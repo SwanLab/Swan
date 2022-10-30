@@ -22,12 +22,16 @@ classdef EigModes < handle
         designVariable
         stiffnessMatComputer
         bendingMatComputer
+        inertiaMoment
+        youngModulus
     end
 
     methods (Access = public)
         
         function obj = EigModes(cParams)
             obj.init(cParams)
+            obj.createStiffnessMatrix();
+            obj.createBendingMatrix();
             obj.createEigModesPlotter();
         end             
 
@@ -67,7 +71,7 @@ classdef EigModes < handle
     end
 
     methods (Access = private)
-
+        
         function dfdx = computeSimpleEig(obj,Belem,x)
             d = obj.dim;
             free = obj.freeNodes;
@@ -121,11 +125,36 @@ classdef EigModes < handle
             obj.mesh                 = cParams.mesh;
             obj.dim                  = cParams.dim;
             obj.designVariable       = cParams.designVariable;
-            obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
-            obj.bendingMatComputer   = cParams.bendingMatComputer;
+            obj.inertiaMoment        = cParams.inertiaMoment;
+            obj.youngModulus         = cParams.youngModulus;
+            obj.freeNodes            = cParams.freeNodes;
+            %obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
+            %obj.bendingMatComputer   = cParams.bendingMatComputer;
         end
 
-        
+        function createStiffnessMatrix(obj)
+            s.type = 'StiffnessMatrixColumn';
+            s.dim = obj.dim;
+            s.mesh = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.freeNodes      = obj.freeNodes;
+            K = LHSintegrator.create(s);
+            obj.stiffnessMatComputer = K;
+        end
+
+        function createBendingMatrix(obj)
+            s.type         = 'BendingMatrix';
+            s.dim          = obj.dim;
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.inertiaMoment  = obj.inertiaMoment;
+            s.youngModulus   = obj.youngModulus;
+            s.designVariable = obj.designVariable;
+            s.freeNodes      = obj.freeNodes;
+            B = LHSintegrator.create(s);
+            obj.bendingMatComputer = B;
+        end
+
         function computeEigenModesAndValues(obj) 
             obj.stiffnessMatComputer.compute();
             obj.bendingMatComputer.compute();            

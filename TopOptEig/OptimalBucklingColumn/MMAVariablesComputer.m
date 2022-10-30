@@ -1,5 +1,8 @@
 classdef MMAVariablesComputer < handle
-
+    properties (Access = public)
+        minThick
+        maxThick
+    end
     properties (Access = private)
         designVariable
         xMin
@@ -19,8 +22,6 @@ classdef MMAVariablesComputer < handle
         mesh
         nConstraints
         nValues
-        minThick
-        maxThick
     end
     
     methods (Access = public)

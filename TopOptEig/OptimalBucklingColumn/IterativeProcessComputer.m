@@ -69,7 +69,7 @@ classdef IterativeProcessComputer < handle
          function obj = computeIterativeProcess(obj)
 % -------
             s = SettingsOptimizer();
-            s.optimizerNames.type = 'MMA';% 'AlternatingPrimalDual';'NullSpace';'MMA';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
+            s.optimizerNames.type = obj.optimizerType; %'MMA';% 'AlternatingPrimalDual';'NullSpace';'MMA';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';%MMA';%'IPOPT';%fmincon';%'MMA';%'fmincon';'MMA';
 
             s.optimizerNames.primal = 'PROJECTED GRADIENT';
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
@@ -86,13 +86,13 @@ classdef IterativeProcessComputer < handle
             s.incrementalScheme.nSteps = 1;
             sD.nConstraints = 3;
             s.dualVariable     = DualVariable(sD);              
-            s.uncOptimizerSettings.ub = 10;
-            s.uncOptimizerSettings.lb = 0.25;        
+            s.uncOptimizerSettings.ub = obj.mmaVarComputer.maxThick;
+            s.uncOptimizerSettings.lb = obj.mmaVarComputer.minThick;        
             s.outputFunction.type        = 'Topology';
             s.outputFunction.iterDisplay = 'none';
-            s.type = 'MMA';% 'AlternatingPrimalDual';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
+            s.type = obj.optimizerType;%'MMA';% 'AlternatingPrimalDual';%'fmincon';'AlternatingPrimalDual';'NullSpace';'AlternatingPrimalDual';'MMA';'AlternatingPrimalDual';'MMA'; % IPOPT';%'fmincon';'MMA';%'fmincon';%'MMA';
             s.outputFunction.monitoring  = MonitoringManager(s);                  
-            s.maxIter           = 100;
+            s.maxIter           = obj.maxIter;
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
 
@@ -111,40 +111,6 @@ classdef IterativeProcessComputer < handle
 % 
          end
 
-         function increaseIter(obj)
-             obj.nIter = obj.nIter+1;
-         end
-
-         function updateStatus(obj)
-             obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
-        end
-
-        function computeNewDesign(obj)
-            iter = obj.nIter;
-            x = obj.designVariable.value;
-            xval = x;
-
-            obj.constraint.computeFunctionAndGradient(); 
-            fval = obj.constraint.value;
-            dfdx = obj.constraint.gradient';
-            dfdx2 = 0;            
-            
-            obj.cost.computeFunctionAndGradient(); 
-            f0val = obj.cost.value;
-            df0dx = obj.cost.gradient;
-            df0dx2 = 0;
-            
-            nV = obj.nValues;
-            m = obj.nConstraints;
-            xmma = obj.mmaVarComputer.compute(nV,m,iter,xval,f0val,df0dx,df0dx2,fval,dfdx,dfdx2);
-
-            obj.xVal = xval;
-            obj.xMMA = xmma;
-  
-            obj.designVariable.update(obj.xMMA);
-            obj.change = max(abs(obj.designVariable.value-xval));            
-        end
-
         function createCost(obj)
             sF.type = 'firstEignValue_functional';            
             sC.weights = 1;
@@ -155,35 +121,37 @@ classdef IterativeProcessComputer < handle
         end
 
         function createEigModes(obj)
-            s.freeNodes  = obj.freeNodes;
-            s.mesh       = obj.mesh;
-            s.dim        = obj.dim;
-            s.stiffnessMatComputer = obj.createStiffnessMatrix();
-            s.bendingMatComputer   = obj.createBendingMatrix();
+            s.freeNodes     = obj.freeNodes;
+            s.mesh          = obj.mesh;
+            s.dim           = obj.dim;
+            s.inertiaMoment = obj.inertiaMoment;
+            s.youngModulus  = obj.youngModulus;
+            %s.stiffnessMatComputer = obj.createStiffnessMatrix();
+            %s.bendingMatComputer   = obj.createBendingMatrix();
             s.designVariable       = obj.designVariable;
             obj.eigenModes = EigModes(s);
         end
 
-        function K = createStiffnessMatrix(obj)
-            s.type = 'StiffnessMatrixColumn';
-            s.dim = obj.dim;
-            s.mesh = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.freeNodes      = obj.freeNodes;
-            K = LHSintegrator.create(s);
-        end
-
-        function B = createBendingMatrix(obj)
-            s.type         = 'BendingMatrix';
-            s.dim          = obj.dim;
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.inertiaMoment  = obj.inertiaMoment;
-            s.youngModulus   = obj.youngModulus;
-            s.designVariable = obj.designVariable;
-            s.freeNodes      = obj.freeNodes;
-            B = LHSintegrator.create(s);
-        end
+%         function K = createStiffnessMatrix(obj)
+%             s.type = 'StiffnessMatrixColumn';
+%             s.dim = obj.dim;
+%             s.mesh = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.freeNodes      = obj.freeNodes;
+%             K = LHSintegrator.create(s);
+%         end
+% 
+%         function B = createBendingMatrix(obj)
+%             s.type         = 'BendingMatrix';
+%             s.dim          = obj.dim;
+%             s.mesh         = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.inertiaMoment  = obj.inertiaMoment;
+%             s.youngModulus   = obj.youngModulus;
+%             s.designVariable = obj.designVariable;
+%             s.freeNodes      = obj.freeNodes;
+%             B = LHSintegrator.create(s);
+%         end
 
         function createConstraint(obj)
             sF1.eigModes       = obj.eigenModes;
@@ -206,38 +174,74 @@ classdef IterativeProcessComputer < handle
             obj.constraint = Constraint(sC);
         end
 
-        function displayIteration(obj)
-            V = obj.designVariable.computeVolum();
-            f0val = obj.cost.value;
-            iter  = obj.nIter;
-            disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%10.4f',f0val) ...
-                ' Vol.: ' sprintf('%6.3f',V) ...
-                ' ch.: ' sprintf('%6.3f',''  )])
-        end
-
-        function plotFigures(obj)
-            iter = obj.nIter;
-            obj.costHistory(iter) = obj.cost.value;
-            obj.vol(iter) = obj.designVariable.computeVolum();
-            obj.plot(iter)
-            figure(4)
-            plot(obj.costHistory)
-            grid on
-            grid minor
-            xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
-            ylabel('Cost','Interpreter', 'latex','fontsize',18,'fontweight','b');
-            figure(5)
-            plot(obj.vol)
-            grid on
-            grid minor
-            xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
-            ylabel('Volume','Interpreter', 'latex','fontsize',18,'fontweight','b');
-        end
-
         function plot(obj,iter)
             A = obj.designVariable.getColumnArea;
             obj.eigenModes.plot(A,iter);
-        end                            
+        end 
+
+%          function increaseIter(obj)
+%              obj.nIter = obj.nIter+1;
+%          end
+% 
+%          function updateStatus(obj)
+%              obj.hasFinished = (obj.change <= 0.0005) || (obj.nIter >= obj.maxIter);
+%         end
+
+%         function computeNewDesign(obj)
+%             iter = obj.nIter;
+%             x = obj.designVariable.value;
+%             xval = x;
+% 
+%             obj.constraint.computeFunctionAndGradient(); 
+%             fval = obj.constraint.value;
+%             dfdx = obj.constraint.gradient';
+%             dfdx2 = 0;            
+%             
+%             obj.cost.computeFunctionAndGradient(); 
+%             f0val = obj.cost.value;
+%             df0dx = obj.cost.gradient;
+%             df0dx2 = 0;
+%             
+%             nV = obj.nValues;
+%             m = obj.nConstraints;
+%             xmma = obj.mmaVarComputer.compute(nV,m,iter,xval,f0val,df0dx,df0dx2,fval,dfdx,dfdx2);
+% 
+%             obj.xVal = xval;
+%             obj.xMMA = xmma;
+%   
+%             obj.designVariable.update(obj.xMMA);
+%             obj.change = max(abs(obj.designVariable.value-xval));            
+%         end
+
+%         function displayIteration(obj)
+%             V = obj.designVariable.computeVolum();
+%             f0val = obj.cost.value;
+%             iter  = obj.nIter;
+%             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%10.4f',f0val) ...
+%                 ' Vol.: ' sprintf('%6.3f',V) ...
+%                 ' ch.: ' sprintf('%6.3f',''  )])
+%         end
+
+%         function plotFigures(obj)
+%             iter = obj.nIter;
+%             obj.costHistory(iter) = obj.cost.value;
+%             obj.vol(iter) = obj.designVariable.computeVolum();
+%             obj.plot(iter)
+%             figure(4)
+%             plot(obj.costHistory)
+%             grid on
+%             grid minor
+%             xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
+%             ylabel('Cost','Interpreter', 'latex','fontsize',18,'fontweight','b');
+%             figure(5)
+%             plot(obj.vol)
+%             grid on
+%             grid minor
+%             xlabel('Number of Iteration','Interpreter', 'latex','fontsize',18,'fontweight','b');
+%             ylabel('Volume','Interpreter', 'latex','fontsize',18,'fontweight','b');
+%         end
+
+                                   
            
     end
 
