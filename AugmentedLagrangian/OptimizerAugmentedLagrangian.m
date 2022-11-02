@@ -84,8 +84,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 0.05; % 10        5 for stage1    0.05 !!!!!
+            obj.dualVariable.value = 6*ones(obj.nConstr,1); %zeros(obj.nConstr,1);
+            obj.penalty            = 10; % 10        5 for stage1    0.05 !!!!!
         end
 
         function obj = update(obj)
@@ -178,7 +178,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
             if obj.nIter == 0
-                obj.dualVariable.value = 2.17029;
+                obj.dualVariable.value = 6;
             end
             if mNew < obj.mOld
                 obj.acceptableStep = true;

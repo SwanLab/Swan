@@ -1,28 +1,28 @@
 filename = 'SquareForAniTests';
-filename = 'CantileverVertical';
+% filename = 'CantileverVertical';
 
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 
-initial_case = 'full';
+initial_case = 'squareInclusion';
 
-cost = {'compliance'};
+cost = {'anisotropicPerimeterInterior2D'};
 weights = [1];
 
-constraint = {'volumeConstraint','perimeterConstraint'};
-constraint_case = {'EQUALITY','EQUALITY'};
+constraint = {'volumeConstraint'};
+constraint_case = {'EQUALITY'};
 
 optimizerUnconstrained = 'SLERP'; 
-optimizer = 'NullSpace';
+optimizer = 'AlternatingPrimalDual';
 incrementFactor = 2;
 designVariable = 'LevelSet';
 filterType = 'P1';
-widthSquare = sqrt(0.15);
+widthSquare = sqrt(0.1);
 
-nsteps = 10;
-Vfrac_final = 1-widthSquare^2;
-Vfrac_final = 0.4;
+nsteps = 1;
+Vfrac_final = 0.85;
+% Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
 
