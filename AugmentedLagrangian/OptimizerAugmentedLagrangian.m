@@ -84,7 +84,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = 6*ones(obj.nConstr,1); %zeros(obj.nConstr,1);
+            obj.dualVariable.value = 7.5*ones(obj.nConstr,1);
             obj.penalty            = 10; % 10        5 for stage1    0.05 !!!!!
         end
 
@@ -178,7 +178,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
             if obj.nIter == 0
-                obj.dualVariable.value = 6;
+                obj.dualVariable.value = 7.5;
             end
             if mNew < obj.mOld
                 obj.acceptableStep = true;
@@ -188,6 +188,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
+                obj.dualUpdater.updatePenalty(obj.penalty);
+                obj.dualUpdater.update();                
                 obj.meritNew = mNew; % Provisional value
             else
                 obj.primalUpdater.decreaseStepLength();
