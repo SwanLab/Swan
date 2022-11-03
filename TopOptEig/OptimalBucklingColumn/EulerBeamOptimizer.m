@@ -10,6 +10,8 @@ classdef EulerBeamOptimizer < handle
     end
     
     properties (Access = private)
+        data
+        bProblem
         nElem
         nConstraints
         columnLength
@@ -37,10 +39,8 @@ classdef EulerBeamOptimizer < handle
 
         function obj = EulerBeamOptimizer()
             obj.init()
-            obj.createMesh();
-            obj.createDimensions();
-            obj.createDesignVariable();
-            obj.createBoundaryConditions()
+            obj.createData();
+            obj.createBucklingProblem();
             obj.createMMA();
             obj.computeIterativeProcess()
             obj.PostProcess();
@@ -62,61 +62,25 @@ classdef EulerBeamOptimizer < handle
             obj.optimizerType = 'MMA';
             obj.maxIter       = 100;
         end
-
-        function createMesh(obj)
-            s.coord  = obj.createCoordinates();
-            s.connec = obj.createConnectivity();
-            s.type = 'LINE';
-            m = Mesh(s);
-            obj.mesh = m;
+        
+        function createData(obj)
+            s.nElem        = obj.nElem;
+            s.columnLength = obj.columnLength;
+            Data = DataCreator(s);
+            obj.mesh = Data.mesh;
+            obj.dim  = Data.dim;
+            obj.freeNodes = Data.freeNodes;
+            obj.data = Data;
         end
-
-        function coord = createCoordinates(obj)
-            nnod = obj.nElem + 1;
-%              x = [0;rand(nnod-2,1);1]*obj.columnLength;
-%              x = sort(x);
-%               coord = x; 
-             coord = linspace(0,obj.columnLength,nnod)';
-        end
-
-        function Tnod = createConnectivity(obj)
-            nNode = 2;
-            Tnod = zeros(obj.nElem,nNode);
-            e = 1;
-            for iElem = 1: obj.nElem
-                Tnod(iElem,1) = e;
-                e = e + 1;
-                Tnod(iElem,2) = e;
-            end
-        end
-
-        function createDimensions(obj)
-            s.mesh = obj.mesh;
-            s.pdim = '2D';
-            s.ngaus = 2;
-            s.type = 'Vector';
-            s.name = 'x';
-            s.ndimf = 2;
-            s.fieldName = 'u';
-            d = DimensionVariables.create(s);
-            d.compute();
-            obj.dim = d;
-        end
-
-        function createDesignVariable(obj)
-            s.type  = 'AreaColumn';
-            s.mesh  = obj.mesh;
-            des = DesignVariable.create(s);
-            obj.designVariable = des;  
-        end
-
-        function createBoundaryConditions(obj)
-            d = obj.dim;
-            fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
-            nodes = 1:d.ndofs;
-            free  = setdiff(nodes,fixnodes);
-            obj.freeNodes = free;
-        end        
+        
+        function createBucklingProblem(obj)
+            s.data = obj.data;
+            s.youngModulus = obj.youngModulus;
+            s.inertiaMoment = obj.inertiaMoment;
+            problem = BucklingProblemCreator(s);
+            obj.designVariable = problem.designVariable;
+            obj.bProblem = problem;
+        end       
 
         function obj = createMMA(obj)
             s.nConstraints  = obj.nConstraints;
@@ -130,12 +94,11 @@ classdef EulerBeamOptimizer < handle
         end
 
         function obj = computeIterativeProcess(obj)
+            s.data = obj.data;
+            s.bProblem = obj.bProblem;
             s.mmaVarComputer = obj.mmaVarComputer;
-            s.freeNodes      = obj.freeNodes;
             s.nConstraints   = obj.nConstraints;
-            s.mesh           = obj.mesh;
             s.nValues        = obj.nValues;
-            s.dim            = obj.dim;
             s.youngModulus   = obj.youngModulus;
             s.inertiaMoment  = obj.inertiaMoment;
             s.maxIter        = obj.maxIter;

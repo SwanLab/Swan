@@ -128,8 +128,6 @@ classdef EigModes < handle
             obj.inertiaMoment        = cParams.inertiaMoment;
             obj.youngModulus         = cParams.youngModulus;
             obj.freeNodes            = cParams.freeNodes;
-            %obj.stiffnessMatComputer = cParams.stiffnessMatComputer;
-            %obj.bendingMatComputer   = cParams.bendingMatComputer;
         end
 
         function createStiffnessMatrix(obj)
