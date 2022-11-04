@@ -4,72 +4,229 @@
     <meta name ="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swan</title>
     <link rel="stylesheet" href="styles.css">
-    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css?family=Noto Sans' rel='stylesheet'>
-    <link rel="shortcut icon" type="image/png" href="Favicon.png">
+    <link href='https://fonts.googleapis.com/css?family=Poppins:400,600,700' rel='stylesheet'>
+    <link rel="shortcut icon" type="image/png" href="website/images/Favicon.png">
 </head>
+
 <body>
-    <div class="toolbar">
-        <a href="#logo" class="logo">
-            <img src="SwanLogo_White.png" height="45px">
-        </a>
-        <a href="#ghlogo" class="ghlogo">
-            <img src="GitHubLogo.png" height="45px">
-        </a>
-        <a href="#about" class="toolbar-link">About</a>
-        <a href="#example" class="toolbar-link">Examples</a>
-        <a href="#contact" class="toolbar-link">Contact</a>
-    </div>
-    <div class="main-banner" style="color:white">
-        <div style="padding:3% 0">
-            <div class="main-text center-box" style="font-size:3.5em; font-weight: bold;">Swan</div>
-            <div class="sub-text center-box" style="font-size:1.5em">
-                <div>A MATLAB-based, open-source <br/> topology optimization toolbox</div>
+    <div class="swanhead">
+        <div class="top-navbar">
+            <a class="logo">
+                <img src="website/images/swanlogo_black.png" height="45px">
+            </a>
+            <a href="https://github.com/SwanLab/Swan/" class="ghlogo">
+                <img src="website/images/GitHub-Mark-32px.png"" height="28px">
+            </a>
+            <a href="#contributors" class="top-navbar-link">Contributors</a>
+            <a href="#examples" class="top-navbar-link">Examples</a>
+            <a href="#features" class="top-navbar-link">Features</a>
+        </div>
+        <div class="swanhead-content">
+        <div class="swanhead-text">
+            <div>
+                <div class="headline">
+                    Topology optimization<br/>
+                    for
+                    <div class="word-slider">
+                        <ul class="word-slider__words">
+                          <li class="word-slider__word">all</li>
+                          <li class="word-slider__word">engineers</li>
+                          <li class="word-slider__word">researchers</li>
+                          <li class="word-slider__word">all</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="headline-sub"> We are building an open-source and versatile toolbox <br/> to push the limits of topology optimization </div>
             </div>
-            <div class="sub-text center-box" style="margin-top: 30px">
-                <div class="button">View on GitHub</div>
+            
+            <a href="https://github.com/SwanLab/Swan/">
+            <div class="gh-button">
+                <div class = "gh-button-flex">
+                    <div><img src="website/images/GitHub-Mark-Light-32px.png" height="24px"> </div>
+                    <div>View on GitHub</div>
+                </div>
+            </div>
+            </a>
+
+        </div>
+        </div>
+    </div>
+
+    <div class="swancontent">
+    <!-- SWAN: FEATURES -->
+    <div class="section-start">
+        <a id="features"></a>
+        <div class="section-pre">What</div>
+        <div class="section-header">Features</div>
+    </div>
+
+    <!--- Multi-scale optimization-->
+    <div class="swancontent-features">
+        <div class="swancontent-features-LHS">
+
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Multi-scale optimization </div>
+                <div class="swancontent-feature-contents">
+                    One of the key features that sets Swan apart from other topology optimization
+                    toolboxes is the ability to design <span class="feature-highlight">optimal materials at the micro scale</span>, and reuse
+                    the obtained results to perform analyses at the <span class="feature-highlight">macro level</span>.
+                </div>
+            </div>
+            
+            <!--- Optimization algorithms-->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Optimization algorithms </div>
+                <div class="swancontent-feature-contents">
+                    Swan can solve topology optimization problems using various strategies,
+                    including <span class="feature-highlight">density-based optimizers</span> like Projected Gradient, MMA and IPOPT,
+                    as well as <span class="feature-highlight">level-set methods</span> such as SLERP, Projected SLERP and Hamilton-Jacobi.
+                </div>
+            </div>
+            
+            <!--- Various constraints-->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Various constraints </div>
+                <div class="swancontent-feature-contents">
+                    The <span class="feature-highlight">modular design</span> of Swan allows the combination of several functions in order
+                    to define different optimization problems. Among the functions that can be used as
+                    constraints are compliance, volume, perimeter, non-self adjoint compliance and
+                    homogenized elasticity matrix.
+                </div>
+            </div>
+            
+            <!--- The road ahead -->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> The road ahead </div>
+                <div class="swancontent-feature-contents">
+                    We are constantly looking ahead and recruiting new contributors in order to keep
+                    expanding Swan's capabilities. Among the planned upcmoing features are <span class="feature-highlight">multiphysics</span>,
+                    <span class="feature-highlight"></span>3D microstructural optimization</span>, and many more.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="swancontent-features-RHS">
+            <img src="website/images/examples/cantilever3d.png"/>
+            <div class="swancontent-image-description">
+                Optimization of the 3D cantilever benchmark
             </div>
         </div>
     </div>
-    <div class="post-banner" style="padding:3% 10% 0 10%">
-        <div class="title">Examples</div>
-        <div style="display: flex; align-items: stretch; flex-wrap: wrap; justify-content: center; margin:auto">
-            <div style="flex: 1 1 0; background: white; margin: 2px; border-top:.2em solid #1b1b1b; padding:1em;">
-                <img src="https://raw.githubusercontent.com/SwanLab/Examples/master/Videos/Video_ORIOL_BridgeCoolQuadrilateralSYM_Case_4_2_1_47.gif" width="100%">    
-                <div class="card-title">Density-based methods</div>
-                <div class="card-text"> Optimization of the bridge benchmark case using density-based methods</div>
-            </div>
-            <div style="flex: 1 1 0; background: white; margin: 2px; border-top:.2em solid #1b1b1b; padding:1em;">
-                <img src="https://raw.githubusercontent.com/SwanLab/Examples/master/Videos/Video_ORIOL_BridgeCoolQuadrilateralSYM_Case_1_1_1_306.gif" width="100%">    
-                <div class="card-title">Level-set methods</div>
-                <div class="card-text"> Optimization of the bridge benchmark case using 2D level-set methods</div>
-            </div>
-            <div style="flex: 1 1 0; background: white; margin: 2px; border-top:.2em solid #1b1b1b; padding:1em;">
-                <img src="https://raw.githubusercontent.com/SwanLab/Examples/master/Videos/Video_CantileverQuadrilateral_Case_1_2_1_66.gif" width="100%">    
-                <div class="card-title">Density-based methods</div>
-                <div class="card-text"> Optimization of the bridge benchmark case using density-based methods</div>
-            </div>
-            <div style="flex: 1 1 0; background: white; margin: 2px; border-top:.2em solid #1b1b1b; padding:1em;">
-                <img src="https://raw.githubusercontent.com/SwanLab/Examples/master/Videos/Video_CantileverQuadrilateral_Case_1_1_1_24_epsilon0.gif" width="100%">    
-                <div class="card-title">Level-set methods</div>
-                <div class="card-text"> Optimization of the bridge benchmark case using 2D level-set methods</div>
-            </div>
-            <div style="flex: 1 1 0; background: white; margin: 2px; border-top:.2em solid #1b1b1b; padding:1em;">
-                <img src="https://github.com/SwanLab/Examples/blob/master/Videos/Video_CantileverHexahedra_Case_5_1_2_130.gif" width="100%">    
-                <div class="card-title">Level-set methods</div>
-                <div class="card-text"> Optimization of the bridge benchmark case using 2D level-set methods</div>
-            </div>
-        </div>
-        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+    <!-- SWAN: EXAMPLES -->
+    <div class="section-start">
+        <a id="examples"></a>
+        <div class="section-pre">What</div>
+        <div class="section-header">Not convinced?</div>
     </div>
-    <div class="footer">
-        <div class="footer-flexbox-frame" style="width:80%">
-            <div class="footer-flexbox-item">
-                <img src="SwanLogo_White.png" height="60px">
-            </div>
-            <div class="footer-flexbox-item">Uns enllaços<br/> O alguna <br/> Cosa més<br/> per aquí</div>
-            <div class="footer-flexbox-item">Alguna altra<br/> Cosa que <br/> Em dec estar<br/> Deixant pq soc aixi</div>
+
+    <div class="section-examples">
+
+    <div class="section-examples-example">
+        <div class="examples-image"> <img src="website/images/examples/bridge_density.gif"/></div>
+        <div class="examples-name">Bridge optimization with density methods</div>
+        <div class="examples-text">
+            Swan allows the usage of both density and level-set methods in order to solve
+            the same problem. Here is the usual bridge benchmark case, solved with density-based
+            methods.
         </div>
+    </div>
+    <div class="section-examples-example">
+        <div class="examples-image"> <img src="website/images/examples/bridge_levelset.gif"/></div>
+        <div class="examples-name">Bridge optimization with level-set methods</div>
+        <div class="examples-text">
+            Swan allows the usage of both density and level-set methods in order to solve
+            the same problem. Here is the usual bridge benchmark case, solved with level-set-based
+            methods.
+        </div>
+    </div>
+
+    </div>
+
+    <!--tfgs/tfms guais + posar algo de projectes europeus?-->
+    
+    <!-- SWAN: CONTRIBUTORS -->
+    <div class="section-start">
+        <a id="contributors"></a>
+        <div class="section-pre">Who</div>
+        <div class="section-header">Contributors</div>
+    </div>
+
+    <div class="section-contributors">
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/alexferrer.png"/></div>
+        <div class="contributor-name">Àlex Ferrer</div>
+        <div class="contributor-text">Per aquí, algunes paraules sobre qui és i què ha fet, motivació i recerca</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Ferran de la Fuente</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/188789">his dissertation</a>, Ferran worked on topology optimization with a focus on manufacturability </div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Albert Torres</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/188971">his dissertation</a>, Albert focused on using topology optimization for material design</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Raul Rubio</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/188968">his dissertation</a>, Raul used the finite element method to study the flow around an airfoil</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Ignacio Izquierdo</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/188969">his dissertation</a>, Ignacio studied large deformations of a wing using both linear and non-linear models </div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Oriol Trujillo</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/188992">his dissertation</a>, Oriol worked on topology optimization problems with stress constraints </div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Marc Núñez</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/189114">his dissertation</a>, Marc set benchmark cases and studied the results using various filters and algorithms</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Ton Creus</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/372281">his dissertation</a>, Ton worked on accelerating the implementation of the finite element method</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Aitziber Mañeru</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/372205">her dissertation</a>, Aitziber implemented the optimal design of topologies considering mode analysis</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder"/></div>
+        <div class="contributor-name">Arnau Pena</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/374521">his dissertation</a>, Arnau implemented and evaluated the results of the fmincon and a Null Space optimizers</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Joel Carrasco</div>
+        <div class="contributor-text">As part of his dissertation, Joel studied the relation of shape symmetry with isotropy and orthotropy in material design</div>
+    </div>
+
+    <div class="section-contributors-contributor" >
+        <div class="contributor-image"> <img src="website/images/contributors/placeholder.png"/></div>
+        <div class="contributor-name">Jose Antonio Torres</div>
+        <div class="contributor-text">As part of <a href="https://upcommons.upc.edu/handle/2117/374685">his dissertation</a>, Jose focused on 3D printing and anisotropic perimeter constraints for topology optimization </div>
+    </div>
+
+    </div> <!-- end of contributors -->
+
     </div>
 </body>
-</html>
