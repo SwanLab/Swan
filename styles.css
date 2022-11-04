@@ -182,6 +182,10 @@ body {
 
 /* examples */
 
+.section-examples-previa {
+    margin-bottom: 2em;
+}
+
 .section-examples {
     display: flex;
     flex-direction: row;
