@@ -251,3 +251,68 @@ body {
     text-decoration: none;
     color: var(--primary);
 }
+
+/* WORD SLIDER */
+  
+  .word-slider {
+    display: inline-block;
+    height: 1.5em;
+    overflow: hidden;
+    vertical-align: middle;
+    -webkit-mask-image: linear-gradient(transparent, white, white, white, transparent);
+            mask-image: linear-gradient(transparent, white, white, white, transparent);
+    mask-type: luminance;
+    mask-mode: alpha;
+  }
+  .word-slider__words {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    -webkit-animation-name: wordSlider;
+            animation-name: wordSlider;
+    -webkit-animation-timing-function: ease-out;
+            animation-timing-function: ease-out;
+    -webkit-animation-iteration-count: infinite;
+            animation-iteration-count: infinite;
+    -webkit-animation-duration: 7s;
+            animation-duration: 7s;
+  }
+  .word-slider__word {
+    display: block;
+    line-height: 1.38em;
+    text-align: left;
+    color: var(--primary);
+    text-decoration: underline solid var(--primary) 4px;
+    text-underline-offset: 6px;
+  }
+  
+  @-webkit-keyframes wordSlider {
+    0%, 27% {
+      transform: translateY(0%);
+    }
+    33%, 60% {
+      transform: translateY(-25%);
+    }
+    66%, 93% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(-75%);
+    }
+  }
+  
+  @keyframes wordSlider {
+    0%, 27% {
+      transform: translateY(0%);
+    }
+    33%, 60% {
+      transform: translateY(-25%);
+    }
+    66%, 93% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(-75%);
+    }
+  }
