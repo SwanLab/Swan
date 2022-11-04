@@ -209,6 +209,7 @@ body {
 .examples-text {
     color: var(--gray60)
 }
+
 /* contributors */
 .section-contributors {
     display: flex;
@@ -244,4 +245,9 @@ body {
 
 .contributor-text {
     color: var(--gray60)
+}
+
+.contributor-text a {
+    text-decoration: none;
+    color: var(--primary);
 }
