@@ -5,21 +5,38 @@
     <title>Swan</title>
     <link rel="stylesheet" href="stylesnou.css">
     <link href='https://fonts.googleapis.com/css?family=Poppins:400,600,700' rel='stylesheet'>
-    <link rel="shortcut icon" type="image/png" href="Favicon.png">
+    <link rel="shortcut icon" type="image/png" href="../images/Favicon.png">
 </head>
 
 <body>
     <div class="swanhead">
+        <div class="top-navbar">
+            <a href="#logo" class="logo">
+                <img src="../images/swanlogo_black.png" height="45px">
+            </a>
+            <a href="https://github.com/SwanLab/Swan/" class="ghlogo">
+                <img src="../images/GitHub-Mark-32px.png"" height="28px">
+            </a>
+            <a href="#contributors" class="top-navbar-link">Contributors</a>
+            <a href="#examples" class="top-navbar-link">Examples</a>
+            <a href="#features" class="top-navbar-link">Features</a>
+        </div>
         <div class="swanhead-content">
         <div class="swanhead-text">
             <div>
                 <div class="headline"> Topology optimization<br/> for <span class="swan-underline">all</span> </div>
                 <div class="headline-sub"> We are building an open-source and versatile toolbox <br/> to push the limits of topology optimization </div>
             </div>
-
+            
+            <a href="https://github.com/SwanLab/Swan/">
             <div class="gh-button">
-                <div> O  View on GitHub</div>
+                <div class = "gh-button-flex">
+                    <div><img src="../images/GitHub-Mark-Light-32px.png" height="24px"> </div>
+                    <div>View on GitHub</div>
+                </div>
             </div>
+            </a>
+
         </div>
         </div>
     </div>
@@ -27,56 +44,100 @@
     <div class="swancontent">
     <!-- SWAN: FEATURES -->
     <div class="section-start">
+        <a id="features"></a>
         <div class="section-pre">What</div>
         <div class="section-header">Features</div>
     </div>
 
     <!--- Multi-scale optimization-->
-    <div class="swancontent-feature"> 
-        <div class="swancontent-feature-title"> Multi-scale optimization </div>
-        <div class="swancontent-feature-contents">
-        Design of optimal materials at the microstructural level<br/>
-        Usage of said materials at the macrostructural level
+    <div class="swancontent-features">
+        <div class="swancontent-features-LHS">
+
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Multi-scale optimization </div>
+                <div class="swancontent-feature-contents">
+                    One of the key features that sets Swan apart from other topology optimization
+                    toolboxes is the ability to design <span class="feature-highlight">optimal materials at the micro scale</span>, and reuse
+                    the obtained results to perform analyses at the <span class="feature-highlight">macro level</span>.
+                </div>
+            </div>
+            
+            <!--- Optimization algorithms-->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Optimization algorithms </div>
+                <div class="swancontent-feature-contents">
+                    Swan can solve topology optimization problems using various strategies,
+                    including <span class="feature-highlight">density-based optimizers</span> like Projected Gradient, MMA and IPOPT,
+                    as well as <span class="feature-highlight">level-set methods</span> such as SLERP, Projected SLERP and Hamilton-Jacobi.
+                </div>
+            </div>
+            
+            <!--- Various constraints-->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> Various constraints </div>
+                <div class="swancontent-feature-contents">
+                    The <span class="feature-highlight">modular design</span> of Swan allows the combination of several functions in order
+                    to define different optimization problems. Among the functions that can be used as
+                    constraints are compliance, volume, perimeter, non-self adjoint compliance and
+                    homogenized elasticity matrix.
+                </div>
+            </div>
+            
+            <!--- The road ahead -->
+            <div class="swancontent-feature"> 
+                <div class="swancontent-feature-title"> The road ahead </div>
+                <div class="swancontent-feature-contents">
+                    We are constantly looking ahead and recruiting new contributors in order to keep
+                    expanding Swan's capabilities. Among the planned upcmoing features are <span class="feature-highlight">multiphysics</span>,
+                    <span class="feature-highlight"></span>3D microstructural optimization</span>, and many more.
+                </div>
+            </div>
+
         </div>
-    </div>
-    
-    <!--- Optimization algorithms-->
-    <div class="swancontent-feature"> 
-        <div class="swancontent-feature-title"> Optimization algorithms </div>
-        <div class="swancontent-feature-contents">
-        Design of optimal materials at the microstructural level<br/>
-        Usage of said materials at the macrostructural level
-        </div>
-    </div>
-    
-    <!--- Various constraints-->
-    <div class="swancontent-feature"> 
-        <div class="swancontent-feature-title"> Various constraints </div>
-        <div class="swancontent-feature-contents">
-        Design of optimal materials at the microstructural level<br/>
-        Usage of said materials at the macrostructural level
-        </div>
-    </div>
-    
-    <!--- The road ahead -->
-    <div class="swancontent-feature"> 
-        <div class="swancontent-feature-title"> The road ahead </div>
-        <div class="swancontent-feature-contents">
-        Design of optimal materials at the microstructural level<br/>
-        Usage of said materials at the macrostructural level
+
+        <div class="swancontent-features-RHS">
+            <img src="../images/examples/cantilever3d.png"/>
+            <div class="swancontent-image-description">
+                Optimization of the 3D cantilever benchmark
+            </div>
         </div>
     </div>
 
     <!-- SWAN: EXAMPLES -->
     <div class="section-start">
+        <a id="examples"></a>
         <div class="section-pre">What</div>
         <div class="section-header">Not convinced?</div>
     </div>
 
-    tfgs/tfms guais + posar algo de projectes europeus?
+    <div class="section-examples">
+
+    <div class="section-examples-example">
+        <div class="examples-image"> <img src="../images/examples/bridge_density.gif"/></div>
+        <div class="examples-name">Bridge optimization with density methods</div>
+        <div class="examples-text">
+            Swan allows the usage of both density and level-set methods in order to solve
+            the same problem. Here is the usual bridge benchmark case, solved with density-based
+            methods.
+        </div>
+    </div>
+    <div class="section-examples-example">
+        <div class="examples-image"> <img src="../images/examples/bridge_levelset.gif"/></div>
+        <div class="examples-name">Bridge optimization with level-set methods</div>
+        <div class="examples-text">
+            Swan allows the usage of both density and level-set methods in order to solve
+            the same problem. Here is the usual bridge benchmark case, solved with level-set-based
+            methods.
+        </div>
+    </div>
+
+    </div>
+
+    <!--tfgs/tfms guais + posar algo de projectes europeus?-->
     
     <!-- SWAN: CONTRIBUTORS -->
     <div class="section-start">
+        <a id="contributors"></a>
         <div class="section-pre">Who</div>
         <div class="section-header">Contributors</div>
     </div>
