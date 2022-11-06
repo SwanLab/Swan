@@ -27,9 +27,9 @@ classdef BucklingProblemCreator < handle
     end
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh      = cParams.data.mesh;
-            obj.dim       = cParams.data.dim;
-            obj.freeNodes = cParams.data.freeNodes;
+            obj.mesh      = cParams.mesh;
+            obj.dim       = cParams.dim;
+            obj.freeNodes = cParams.freeNodes;
             obj.inertiaMoment = cParams.inertiaMoment;
             obj.youngModulus = cParams.youngModulus;
         end
@@ -51,13 +51,11 @@ classdef BucklingProblemCreator < handle
         end
 
         function createEigModes(obj)
-            s.freeNodes     = obj.freeNodes;
-            s.mesh          = obj.mesh;
-            s.dim           = obj.dim;
-            s.inertiaMoment = obj.inertiaMoment;
-            s.youngModulus  = obj.youngModulus;
-            s.designVariable       = obj.designVariable;
-            obj.eigenModes = EigModes(s);
+            s.mesh           = obj.mesh;
+            s.inertiaMoment  = obj.inertiaMoment;
+            s.youngModulus   = obj.youngModulus;
+            s.designVariable = obj.designVariable;
+            obj.eigenModes   = EigModes(s);
         end
 
         function createConstraint(obj)

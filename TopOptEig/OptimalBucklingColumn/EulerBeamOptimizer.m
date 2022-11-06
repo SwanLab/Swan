@@ -10,12 +10,14 @@ classdef EulerBeamOptimizer < handle
     end
     
     properties (Access = private)
-        data
-        bProblem
+        mesh
+        designVariable
+        eigenModes
+        constraint
+        optimizer
         nElem
         nConstraints
         columnLength
-        mesh
         nValues
         youngModulus
         inertiaMoment
@@ -29,7 +31,6 @@ classdef EulerBeamOptimizer < handle
     end
 
     properties (Access = private)
-        designVariable
         freeNodes
         nIter
         mmaVarComputer
@@ -39,10 +40,14 @@ classdef EulerBeamOptimizer < handle
 
         function obj = EulerBeamOptimizer()
             obj.init()
-            obj.createData();
-            obj.createBucklingProblem();
-            obj.createMMA();
-            obj.computeIterativeProcess()
+            obj.createMesh();
+            obj.createDesignVariable();
+            obj.createEigModes();
+            obj.createCost();
+            obj.createConstraint();
+            obj.createOptimizer();
+            obj.optimizer.solveProblem();
+            obj.cost = obj.designVariable.value(obj.nElem+1);
             obj.PostProcess();
         end
 
@@ -59,55 +64,118 @@ classdef EulerBeamOptimizer < handle
             obj.inertiaMoment = 1;  
             obj.minThick      = 0.25;
             obj.maxThick      = 10;
-            obj.optimizerType = 'MMA';
+            obj.optimizerType = 'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
             obj.maxIter       = 100;
         end
         
-        function createData(obj)
-            s.nElem        = obj.nElem;
-            s.columnLength = obj.columnLength;
-            Data = DataCreator(s);
-            obj.mesh = Data.mesh;
-            obj.dim  = Data.dim;
-            obj.freeNodes = Data.freeNodes;
-            obj.data = Data;
+        function createMesh(obj)
+            s.coord  = obj.createCoordinates();  
+            s.connec = obj.createConnectivity();
+            s.type = 'LINE';
+            m = Mesh(s);
+            obj.mesh = m;
+        end
+
+        function createDesignVariable(obj)
+            s.type  = 'AreaColumn';
+            s.mesh  = obj.mesh;
+            des = DesignVariable.create(s);
+            obj.designVariable = des;  
+        end
+
+        function createCost(obj)
+            sF.type = 'firstEignValue_functional';            
+            sC.weights = 1;
+            sC.nShapeFuncs = 1;
+            sC.designVar = obj.designVariable;         
+            sC.shapeFuncSettings{1} = sF;
+            obj.cost = Cost(sC);
         end
         
-        function createBucklingProblem(obj)
-            s.data = obj.data;
-            s.youngModulus = obj.youngModulus;
-            s.inertiaMoment = obj.inertiaMoment;
-            problem = BucklingProblemCreator(s);
-            obj.designVariable = problem.designVariable;
-            obj.bProblem = problem;
+        function createEigModes(obj)
+            s.mesh           = obj.mesh;
+            s.inertiaMoment  = obj.inertiaMoment;
+            s.youngModulus   = obj.youngModulus;
+            s.designVariable = obj.designVariable;
+            eigModes = EigModes(s);
+            obj.dim = eigModes.dim;
+            obj.freeNodes = eigModes.freeNodes;
+            obj.eigenModes = eigModes;
+        end
+
+        function createConstraint(obj)
+            sF1.eigModes       = obj.eigenModes;
+            sF1.eigNum         = 1;
+            sF1.type = 'doubleEig';  
+
+            sF2.eigModes       = obj.eigenModes;  
+            sF2.eigNum         = 2;
+            sF2.type = 'doubleEig';  
+
+            sF3.type = 'volumeColumn';    
+            sF3.mesh = obj.mesh;
+
+            sC.nShapeFuncs = 3;
+            sC.designVar = obj.designVariable;   
+            sC.dualVariable  = [];
+            sC.shapeFuncSettings{1} = sF1;
+            sC.shapeFuncSettings{2} = sF2;
+            sC.shapeFuncSettings{3} = sF3;
+            obj.constraint = Constraint(sC);
+        end
+
+        function coord = createCoordinates(obj)
+            nnod = obj.nElem + 1;
+%              x = [0;rand(nnod-2,1);1]*obj.columnLength;
+%              x = sort(x);
+%               coord = x; 
+             coord = linspace(0,obj.columnLength,nnod)';
+        end
+
+        function connec = createConnectivity(obj)
+            nNode = 2;
+            Tnod = zeros(obj.nElem,nNode);
+            e = 1;
+            for iElem = 1: obj.nElem
+                Tnod(iElem,1) = e;
+                e = e + 1;
+                Tnod(iElem,2) = e;
+            end
+            connec = Tnod;
         end       
 
-        function obj = createMMA(obj)
-            s.nConstraints  = obj.nConstraints;
-            s.minThick      = obj.minThick;
-            s.maxThick      = obj.maxThick;
-            s.nValues       = obj.nValues;
-            s.designVariable = obj.designVariable;
-            s.mesh           = obj.mesh;
-            mmaVarComp = MMAVariablesComputer(s);
-            obj.mmaVarComputer = mmaVarComp;
+        function createOptimizer(obj)
+            s = SettingsOptimizer();
+            s.optimizerNames.type = obj.optimizerType;
+
+            s.optimizerNames.primal = 'PROJECTED GRADIENT';
+            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
+            s.uncOptimizerSettings.designVariable   = obj.designVariable;
+            s.monitoringDockerSettings.mesh = obj.mesh;
+            s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
+            s.monitoringDockerSettings.refreshInterval = 1;
+            s.designVar         = obj.designVariable;
+            s.targetParameters.optimality_tol  = 0.0005; %obj.incrementalScheme.targetParams;
+            s.targetParameters.constr_tol = 0.0005;
+            s.cost              = obj.cost;
+            s.constraint        = obj.constraint;
+            s.incrementalScheme.iStep  = 1; %obj.incrementalScheme;
+            s.incrementalScheme.nSteps = 1;
+            sD.nConstraints = 3;
+            s.dualVariable     = DualVariable(sD);              
+            s.uncOptimizerSettings.ub = obj.maxThick;
+            s.uncOptimizerSettings.lb = obj.minThick;        
+            s.outputFunction.type        = 'Topology';
+            s.outputFunction.iterDisplay = 'none';
+            s.type = obj.optimizerType;
+            s.outputFunction.monitoring  = MonitoringManager(s);                  
+            s.maxIter           = obj.maxIter;
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
+            %s.primalUpdater = 'PROJECTED GRADIENT';
+
+            obj.optimizer = Optimizer.create(s); 
         end
 
-        function obj = computeIterativeProcess(obj)
-            s.data = obj.data;
-            s.bProblem = obj.bProblem;
-            s.mmaVarComputer = obj.mmaVarComputer;
-            s.nConstraints   = obj.nConstraints;
-            s.nValues        = obj.nValues;
-            s.youngModulus   = obj.youngModulus;
-            s.inertiaMoment  = obj.inertiaMoment;
-            s.maxIter        = obj.maxIter;
-            s.optimizerType  = obj.optimizerType;
-            s.designVariable = obj.designVariable;
-            solution = IterativeProcessComputer(s);
-            solution.compute();
-            obj.cost = obj.designVariable.value(obj.nElem+1);
-        end
 
         function PostProcess(obj)
             s.designVariable = obj.designVariable;

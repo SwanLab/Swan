@@ -49,10 +49,10 @@ classdef IterativeProcessComputer < handle
     methods (Access = private)
 
          function init(obj,cParams)
-            obj.freeNodes      = cParams.data.freeNodes;
+            obj.freeNodes      = cParams.freeNodes;
             obj.nConstraints   = cParams.nConstraints;
-            obj.mesh           = cParams.data.mesh;
-            obj.dim            = cParams.data.dim;
+            obj.mesh           = cParams.mesh;
+            obj.dim            = cParams.dim;
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
             obj.nValues        = cParams.nValues;
@@ -60,9 +60,9 @@ classdef IterativeProcessComputer < handle
             obj.mmaVarComputer = cParams.mmaVarComputer;
             obj.maxIter        = cParams.maxIter;
             obj.optimizerType  = cParams.optimizerType;
-            obj.designVariable = cParams.bProblem.designVariable;
-            obj.cost           = cParams.bProblem.cost;
-            obj.constraint     = cParams.bProblem.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
          end
 
          function obj = computeIterativeProcess(obj)

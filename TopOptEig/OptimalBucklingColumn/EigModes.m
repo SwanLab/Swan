@@ -1,19 +1,18 @@
 classdef EigModes < handle
     
     properties (Access = public)
-         
+         dim
+         freeNodes
     end
     
     properties (Access = private)
         mesh
-        dim
         V
         v1
         v2
         D
         eigModesPlotter
         lambda
-        freeNodes
         mode1Disp
         mode2Disp
     end
@@ -30,6 +29,8 @@ classdef EigModes < handle
         
         function obj = EigModes(cParams)
             obj.init(cParams)
+            obj.createDimensions();
+            obj.createBoundaryConditions();
             obj.createStiffnessMatrix();
             obj.createBendingMatrix();
             obj.createEigModesPlotter();
@@ -123,12 +124,31 @@ classdef EigModes < handle
 
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
-            obj.dim                  = cParams.dim;
             obj.designVariable       = cParams.designVariable;
             obj.inertiaMoment        = cParams.inertiaMoment;
             obj.youngModulus         = cParams.youngModulus;
-            obj.freeNodes            = cParams.freeNodes;
         end
+        
+        function createDimensions(obj)
+            s.mesh = obj.mesh;
+            s.pdim = '2D';
+            s.ngaus = 2;
+            s.type = 'Vector';
+            s.name = 'x';
+            s.ndimf = 2;
+            s.fieldName = 'u';
+            d = DimensionVariables.create(s);
+            d.compute();
+            obj.dim = d;
+        end
+        
+         function createBoundaryConditions(obj)
+            d = obj.dim;
+            fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
+            nodes = 1:d.ndofs;
+            free  = setdiff(nodes,fixnodes);
+            obj.freeNodes = free;
+         end
 
         function createStiffnessMatrix(obj)
             s.type = 'StiffnessMatrixColumn';
