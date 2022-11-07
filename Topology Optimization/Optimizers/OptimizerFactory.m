@@ -2,10 +2,10 @@ classdef OptimizerFactory < handle
     
     methods (Access = public, Static)
         
-        function op = create(cParams)
+        function op = create(cParams,optParams)
             switch cParams.type
                 case 'AlternatingPrimalDual'
-                    op = OptimizerAugmentedLagrangian(cParams);
+                    op = OptimizerAugmentedLagrangian(cParams,optParams);
                 case 'MMA'
                     op = Optimizer_MMA(cParams);
                 case 'IPOPT'

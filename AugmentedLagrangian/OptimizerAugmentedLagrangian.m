@@ -2,6 +2,10 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'Augmented Lagrangian';
+        lambdaProv = 0
+        penaltyProv
+        trustProv
+        factorProv = 1.1
     end
 
     properties (Access = private)
@@ -36,7 +40,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
     methods (Access = public) 
         
-        function obj = OptimizerAugmentedLagrangian(cParams)
+        function obj = OptimizerAugmentedLagrangian(cParams,optParams)
+            obj.penaltyProv = optParams.penaltyProv;
+            obj.trustProv = optParams.trustProv;
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
@@ -84,11 +90,15 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = 7.5*ones(obj.nConstr,1);
-            obj.penalty            = 10; % 10        5 for stage1    0.05 !!!!!
+            obj.dualVariable.value = obj.lambdaProv*ones(obj.nConstr,1);
+            % 7.5 for SquareAni
+            obj.penalty            = obj.penaltyProv; % 10        5 for stage1    0.05 !!!!!
+            % 27 for squareAni; 
         end
 
         function obj = update(obj)
+            v0 = obj.computeVolume();
+
             x0 = obj.designVariable.value;
             obj.designVariable.update(x0);
             obj.saveOldValues(x0);
@@ -98,8 +108,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.lineSearchTrials = 0;
             obj.computeMeritGradient();
             while ~obj.acceptableStep
-                x = obj.updatePrimal();
-                obj.checkStep(x,x0);
+                [x,v] = obj.updatePrimal();
+                obj.checkStep(x,x0,v,v0);
             end
             obj.updateOldValues(x);
         end
@@ -129,15 +139,16 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 factor = 1.05; % 1.05
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 10; %1.05
+                factor = obj.factorProv; %1.05
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
 
-        function x = updatePrimal(obj)
+        function [x,v] = updatePrimal(obj)
             x   = obj.designVariable.value;
             g   = obj.meritGradient;
             x   = obj.primalUpdater.update(g,x);
+            v   = obj.computeVolume();
         end
 
         function computeMeritGradient(obj)
@@ -175,12 +186,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             end
         end
 
-        function checkStep(obj,x,x0)
+        function checkStep(obj,x,x0,v,v0)
             mNew = obj.computeMeritFunction(x);
             if obj.nIter == 0
-                obj.dualVariable.value = 7.5;
+                obj.dualVariable.value = obj.lambdaProv; % % % %
             end
-            if mNew < obj.mOld
+            if mNew < obj.mOld && norm(x-x0)/norm(x0) < obj.trustProv
                 obj.acceptableStep = true;
                 obj.dualUpdater.updatePenalty(obj.penalty);
                 obj.dualUpdater.update();
@@ -248,14 +259,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
-%             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
-            if iStep == 1
-                itHas = obj.nIter >= 300;
-            elseif iStep == 11
-                itHas = obj.nIter >= 2*300 + (9)*30;
-            else
-                itHas = obj.nIter >= 300 + (iStep-1)*30;
-            end
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+%             if iStep == 1
+%                 itHas = obj.nIter >= 300;
+%             elseif iStep == 11
+%                 itHas = obj.nIter >= 2*300 + (9)*30;
+%             else
+%                 itHas = obj.nIter >= 300 + (iStep-1)*30;
+%             end
         end
 
         function saveVariablesForAnalysis(obj)
@@ -279,6 +290,23 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             end
         end
 
+        function v = computeVolume(obj)
+            m = obj.designVariable.mesh.innerMeshOLD;
+            quad = Quadrature.set(m.type);
+            quad.computeQuadrature('LINEAR');
+            s.mesh = m;
+            s.connec  = m.connec;
+            s.type    = m.type;
+            s.fValues = obj.designVariable.value;
+            phiFun = P1Function(s);
+            projP0 = Projector_toP0(s);
+            phiFunP0 = projP0.project(phiFun);
+            chi = squeeze(1-heaviside(phiFunP0.fValues));
+
+            geometricVolume = sum(m.computeDvolume(quad));
+            volume = sum(m.computeDvolume(quad),1).*chi';
+            v = volume/(geometricVolume);
+        end
 
     end
 

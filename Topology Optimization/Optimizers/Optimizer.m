@@ -22,9 +22,9 @@ classdef Optimizer < handle
     
     methods (Access = public, Static)
         
-        function obj = create(cParams)
+        function obj = create(cParams,optParams)
             f   = OptimizerFactory();
-            obj = f.create(cParams);
+            obj = f.create(cParams,optParams);
         end
         
     end

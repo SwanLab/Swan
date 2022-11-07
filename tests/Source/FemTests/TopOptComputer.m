@@ -14,9 +14,9 @@ classdef TopOptComputer < handle
             obj.testName = cParams.testName;
         end
 
-        function compute(obj)
+        function compute(obj,optParams)
             obj.createSettings();
-            topOptSolver = TopOpt_Problem(obj.settings);
+            topOptSolver = TopOpt_Problem(obj.settings,optParams);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;
         end

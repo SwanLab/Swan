@@ -18,24 +18,24 @@ classdef TopOpt_Problem < handle
     
     methods (Access = public)
         
-        function obj = TopOpt_Problem(cParams)
+        function obj = TopOpt_Problem(cParams,optParams)
             obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
             obj.createHomogenizedVarComputer(cParams)
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
-            obj.createOptimizer(cParams);
+            obj.createOptimizer(cParams,optParams);
             obj.createVideoMaker(cParams);
         end
         
-        function createOptimizer(obj,settings)
+        function createOptimizer(obj,settings,optParams)
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
             obj.optimizerSettings.outputFunction.type        = 'Topology';
             obj.optimizerSettings.outputFunction.iterDisplay = 'none';
             obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
-            obj.optimizer = Optimizer.create(obj.optimizerSettings);
+            obj.optimizer = Optimizer.create(obj.optimizerSettings,optParams);
         end
 
         function computeBounds(obj)
