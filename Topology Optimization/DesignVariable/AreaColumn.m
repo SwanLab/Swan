@@ -52,7 +52,7 @@ classdef AreaColumn < DesignVariable
         
         function createInitialValue(obj)
             N = obj.mesh.nelem;
-            x0 = rand(N+1,1); %x0 = ones(N+1,1);               
+            x0 = ones(N+1,1);   %x0 = rand(N+1,1);          
             obj.update(x0);        
         end
     end
