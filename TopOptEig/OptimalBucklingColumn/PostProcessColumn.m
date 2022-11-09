@@ -10,7 +10,6 @@ classdef PostProcessColumn < handle
     
     properties (Access = private)
         designVariable
-        dim
         mesh
         scale
     end
@@ -33,14 +32,12 @@ classdef PostProcessColumn < handle
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
-            obj.dim            = cParams.dim;
             obj.mesh           = cParams.mesh;
             obj.scale          = cParams.scale;
         end
 
         function createPolygon(obj)
             z = obj.designVariable.getColumnArea;
-            % d     = obj.dim;
             scl   = obj.scale;
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;

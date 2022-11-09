@@ -26,12 +26,8 @@ classdef EulerBeamOptimizer < handle
         maxIter
     end
 
-    properties (Access = private)
-        dim
-    end
 
     properties (Access = private)
-        freeNodes
         nIter
         mmaVarComputer
     end
@@ -62,9 +58,9 @@ classdef EulerBeamOptimizer < handle
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
-            obj.minThick      = 0.25;
+            obj.minThick      = 0.5;
             obj.maxThick      = 10;
-            obj.optimizerType = 'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
+            obj.optimizerType = 'NullSpace';%NullSpace';%'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
             obj.maxIter       = 100;
         end
         
@@ -98,8 +94,6 @@ classdef EulerBeamOptimizer < handle
             s.youngModulus   = obj.youngModulus;
             s.designVariable = obj.designVariable;
             eigModes = EigModes(s);
-            obj.dim = eigModes.dim;
-            obj.freeNodes = eigModes.freeNodes;
             obj.eigenModes = eigModes;
         end
 
@@ -170,7 +164,7 @@ classdef EulerBeamOptimizer < handle
             s.type = obj.optimizerType;
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = obj.maxIter;
-            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.constraintCase = {'INEQUALITY','INEQUALITY','EQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
 
             obj.optimizer = Optimizer.create(s); 
@@ -179,7 +173,6 @@ classdef EulerBeamOptimizer < handle
 
         function PostProcess(obj)
             s.designVariable = obj.designVariable;
-            s.dim            = obj.dim;
             s.mesh           = obj.mesh;
             s.scale          = 1;
             post = PostProcessColumn(s);

@@ -1,10 +1,5 @@
 classdef EigModes < handle
-    
-    properties (Access = public)
-         dim
-         freeNodes
-    end
-    
+       
     properties (Access = private)
         mesh
         V
@@ -15,9 +10,11 @@ classdef EigModes < handle
         lambda
         mode1Disp
         mode2Disp
+        freeNodes        
     end
 
     properties (Access = private)
+        dim
         designVariable
         stiffnessMatComputer
         bendingMatComputer
