@@ -8,8 +8,7 @@ classdef MaterialInterpolation < handle
         muFunc
         dmuFunc
         kappaFunc
-        dkappaFunc
-            
+        dkappaFunc   
         matProp
         isoMaterial
     end
@@ -17,7 +16,7 @@ classdef MaterialInterpolation < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            f = MaterialInterpolationFactory;
+            f   = MaterialInterpolationFactory;
             obj = f.create(cParams);
         end
         
@@ -42,12 +41,37 @@ classdef MaterialInterpolation < handle
         
         function init(obj,cParams)
             obj.nElem = cParams.nElem;
-            obj.ndim  = cParams.ndim;
             obj.pdim  = cParams.dim;
+            obj.computeNDim(cParams);
             obj.saveYoungAndPoisson(cParams);
             obj.createIsotropicMaterial();
             obj.computeMuAndKappaIn0();
             obj.computeMuAndKappaIn1();
+        end
+
+        function computeNDim(obj,cParams)
+            switch cParams.dim
+                case '2D'
+                  obj.ndim = 2;
+                case '3D'
+                  obj.ndim = 3;
+            end
+        end
+
+        function saveYoungAndPoisson(obj,cParams)
+            cP = cParams.constitutiveProperties;
+            obj.matProp.rho1 = cP.rho_plus;
+            obj.matProp.rho0 = cP.rho_minus;
+            obj.matProp.E1   = cP.E_plus;
+            obj.matProp.E0   = cP.E_minus;
+            obj.matProp.nu1  = cP.nu_plus;
+            obj.matProp.nu0  = cP.nu_minus;
+        end
+
+        function createIsotropicMaterial(obj)
+            s.pdim  = obj.pdim;
+            s.ptype = 'ELASTIC';
+            obj.isoMaterial = Material.create(s);
         end
         
         function computeMuAndKappaIn0(obj)
@@ -65,28 +89,12 @@ classdef MaterialInterpolation < handle
             obj.matProp.kappa1 = obj.computeKappa(E1,nu1);
         end
         
-        function saveYoungAndPoisson(obj,cParams)
-            cP = cParams.constitutiveProperties;
-            obj.matProp.rho1 = cP.rho_plus;
-            obj.matProp.rho0 = cP.rho_minus;
-            obj.matProp.E1   = cP.E_plus;
-            obj.matProp.E0   = cP.E_minus;
-            obj.matProp.nu1  = cP.nu_plus;
-            obj.matProp.nu0  = cP.nu_minus;
-        end
-        
-        function createIsotropicMaterial(obj)
-            s.pdim  = obj.pdim;
-            s.ptype = 'ELASTIC';
-            obj.isoMaterial = Material.create(s);
-        end
-        
         function computeSymbolicInterpolationFunctions(obj)
             [muS,dmuS,kS,dkS] = obj.computeSymbolicMuKappa();
-            obj.muFunc     = matlabFunction(muS);
-            obj.dmuFunc    = matlabFunction(dmuS);
-            obj.kappaFunc  = matlabFunction(kS);
-            obj.dkappaFunc = matlabFunction(dkS);
+            obj.muFunc        = matlabFunction(muS);
+            obj.dmuFunc       = matlabFunction(dmuS);
+            obj.kappaFunc     = matlabFunction(kS);
+            obj.dkappaFunc    = matlabFunction(dkS);
         end
         
         function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
@@ -96,12 +104,17 @@ classdef MaterialInterpolation < handle
         
         function mu = computeMu(obj,E,nu)
             mat = obj.isoMaterial;
-            mu = mat.computeMuFromYoungAndNu(E,nu);
+            mu  = mat.computeMuFromYoungAndNu(E,nu);
         end
         
         function k = computeKappa(obj,E,nu)
             mat = obj.isoMaterial;
-            k = mat.computeKappaFromYoungAndNu(E,nu);
+            k   = mat.computeKappaFromYoungAndNu(E,nu);
+        end
+
+        function computeNstre(obj)
+            ndim      = obj.ndim;
+            obj.nstre = 3*(ndim-1);
         end
         
     end

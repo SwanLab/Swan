@@ -3,40 +3,27 @@ classdef MaterialInterpolationFactory < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            switch cParams.dim 
-                case '2D'
-                  cParams.ndim = 2;
-                case '3D'
-                  cParams.ndim = 3;
-            end
-               
             switch cParams.typeOfMaterial
                 case 'ISOTROPIC'
                     switch cParams.interpolation
                         case 'SIMPALL'
                             if ~isfield(cParams,'simpAllType')
                                 cParams.simpAllType = 'EXPLICIT';
-                            else
-                                if isempty(cParams.simpAllType)
-                                    cParams.simpAllType = 'EXPLICIT';
-                                end
                             end
-                            switch cParams.dim
-                                case '2D'
-                                    switch cParams.simpAllType
-                                        case 'EXPLICIT'
-                                            obj = SimpAllInterpolationExplicit2D(cParams);
-                                        case 'IMPLICIT'
+                            switch cParams.simpAllType
+                                case 'EXPLICIT'
+                                    obj = SimpAllInterpolationExplicit(cParams);
+                                case 'IMPLICIT'
+                                    switch cParams.dim
+                                        case '2D'
                                             obj = SimpAllInterpolationImplicit2D(cParams);
-                                    end
-                                case '3D'
-                                    switch cParams.simpAllType
-                                        case 'EXPLICIT'
-                                            obj = SimpAllInterpolationExplicit3D(cParams);
-                                        case 'IMPLICIT'
+                                        case '3D'
                                             obj = SimpAllInterpolationImplicit3D(cParams);
+                                        otherwise
+                                            error('Invalid problem dimension.');
                                     end
-                                    
+                                otherwise
+                                    error('Invalid SimpAll type.');
                             end
                         case 'SIMP_Adaptative'
                             obj = SimpInterpolationAdaptative(cParams);
@@ -51,9 +38,6 @@ classdef MaterialInterpolationFactory < handle
             
         end
         
-        
     end
-    
-    
     
 end
