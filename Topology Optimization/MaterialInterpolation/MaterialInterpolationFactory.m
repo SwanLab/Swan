@@ -1,15 +1,15 @@
 classdef MaterialInterpolationFactory < handle
     
     methods (Access = public, Static)
-               
-        function obj = create(cParams)          
+        
+        function obj = create(cParams)
             switch cParams.typeOfMaterial
                 case 'ISOTROPIC'
                     switch cParams.interpolation
                         case 'SIMPALL'
                             if ~isfield(cParams,'simpAllType')
                                 cParams.simpAllType = 'EXPLICIT';
-                            end                                    
+                            end
                             switch cParams.simpAllType
                                 case 'EXPLICIT'
                                     obj = SimpAllInterpolationExplicit(cParams);
@@ -37,7 +37,7 @@ classdef MaterialInterpolationFactory < handle
             end
             
         end
-            
+        
     end
     
 end
