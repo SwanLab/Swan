@@ -60,6 +60,27 @@ body {
     justify-content:center;
 }
 */
+.swanhead-features {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+    justify-content: space-between;
+    vertical-align: center;
+    align-items: center;
+}
+
+.swanhead-features-LHS {
+    max-width: 40%;
+}
+.swanhead-features-RHS {
+    max-width: 60%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    text-align: center;
+}
 
 .headline {
     font-size: var(--size-72);
@@ -202,6 +223,13 @@ body {
     justify-content: center;
     text-align: center;
     max-width: 40%;
+}
+
+.examples-image img{
+    border-radius: 16px;
+    /*
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    */
 }
 
 .examples-name {
