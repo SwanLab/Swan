@@ -60,16 +60,16 @@ classdef EulerBeamOptimizer < handle
             obj.inertiaMoment = 1;  
             obj.minThick      = 0.5;
             obj.maxThick      = 10;
-            obj.optimizerType = 'NullSpace';%NullSpace';%'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
+            obj.optimizerType = 'MMA'; %NullSpace';%'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
             obj.maxIter       = 100;
         end
         
         function createMesh(obj)
-            s.coord  = obj.createCoordinates();  
-            s.connec = obj.createConnectivity();
+            s.nElem = obj.nElem;
+            s.columnLength = obj.columnLength;
             s.type = 'LINE';
-            m = Mesh(s);
-            obj.mesh = m;
+            m = MeshGenerator(s);
+            obj.mesh = m.mesh;
         end
 
         function createDesignVariable(obj)
@@ -116,26 +116,6 @@ classdef EulerBeamOptimizer < handle
             sC.shapeFuncSettings{2} = sF2;
             sC.shapeFuncSettings{3} = sF3;
             obj.constraint = Constraint(sC);
-        end
-
-        function coord = createCoordinates(obj)
-            nnod = obj.nElem + 1;
-%              x = [0;rand(nnod-2,1);1]*obj.columnLength;
-%              x = sort(x);
-%               coord = x; 
-             coord = linspace(0,obj.columnLength,nnod)';
-        end
-
-        function connec = createConnectivity(obj)
-            nNode = 2;
-            Tnod = zeros(obj.nElem,nNode);
-            e = 1;
-            for iElem = 1: obj.nElem
-                Tnod(iElem,1) = e;
-                e = e + 1;
-                Tnod(iElem,2) = e;
-            end
-            connec = Tnod;
         end       
 
         function createOptimizer(obj)
