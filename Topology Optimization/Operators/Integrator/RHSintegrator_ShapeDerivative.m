@@ -81,7 +81,7 @@ classdef RHSintegrator_ShapeDerivative < handle
             for igaus = 1:obj.quadrature.ngaus
                 for idime = 1:ndim
                     fI     = squeezeParticular(fG(idime,igaus,:),1);
-                    fdV    = (fI.*dV(igaus));
+                    fdV    = (fI.*dV(:,igaus));
                     dShape = squeeze(grad(idime,:,:,igaus));
                     intI = bsxfun(@times,dShape,fdV);
                     int = int + intI;

@@ -26,10 +26,10 @@ classdef TestingCorrectors < handle
     methods (Access = public)
         
         function obj = TestingCorrectors()
-           obj.createMesh();            
-           obj.createOrientation();                 
-   %         obj.createBenchmarkMesh();            
-   %         obj.createBenchmarkOrientation();            
+        %   obj.createMesh();            
+        %   obj.createOrientation();                 
+            obj.createBenchmarkMesh();            
+            obj.createBenchmarkOrientation();            
             obj.plotOrientationVector();
             obj.computeSingularities();
             obj.createBoundaryPoint();
@@ -127,14 +127,14 @@ classdef TestingCorrectors < handle
             sCoord =  coordB(isS,:);
             obj.singularityCoord = sCoord(1,:);
             
-            obj.singularityCoord(:,2) = sCoord(:,2)+0.1;
+            %obj.singularityCoord(:,2) = sCoord(:,2)+0.1;
         end
 
         function createBoundaryPoint(obj)
-            obj.boundaryPointCoord = [0 150];
-       %     obj.boundaryPointCoord = [0.5 1.75];
-        %   obj.boundaryPointCoord(:,1) = 1.75;            
-        %   obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);
+       %     obj.boundaryPointCoord = [0 150];
+        %    obj.boundaryPointCoord = [0.5 1.75];
+           obj.boundaryPointCoord(:,1) = 1.75;            
+           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);
 
         end
         
@@ -186,11 +186,13 @@ classdef TestingCorrectors < handle
             int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
             int.computeShapeDeriv(q.posgp); 
             dN = int.deriv;
-            fGauss = zeros(obj.mesh.nelem,q.ngaus);
+            nDim = size(dN,2);
+            fGauss = zeros(nDim,q.ngaus,obj.mesh.nelem);
             for igaus = 1:q.ngaus
-                for iNode = 1:size(dN,2)
-                    grad = dN(igaus,iNode)*cV(:,iNode);
-                    fGauss(:,igaus) = fGauss(:,igaus) + grad;
+                for idim = 1:nDim
+                    grad = dN(igaus,idim)*cV(:,idim);
+                    fG(:,1) = squeeze(fGauss(idim,igaus,:));
+                    fGauss(idim,igaus,:) = fG + grad;
                 end
             end            
         end
@@ -198,11 +200,20 @@ classdef TestingCorrectors < handle
         function solveProjection(obj)
 
             s.mesh     = obj.mesh;
-            s.fGauss   = obj.createCorrectorGradient();
+            s.fGauss = obj.createCorrectorGradient();
             s.fValues  = obj.orientation';            
             
             m = MinimumDiscGradFieldWithVectorInL2(s);
             f = m.solve();
+            
+            phi = f;
+            figure()
+            s.mesh  = obj.mesh;
+            s.field = transpose(phi);
+            n = NodalFieldPlotter(s);
+            n.plot();
+            shading interp        
+                    
         end
         
         function createSymmetricMapCond(obj)   
