@@ -1,27 +1,54 @@
 classdef ContinuousDiscreteSectionsInterpolation < MaterialInterpolation
     
     properties (Access = protected)
-       dmu0
-       dmu1
-       dk0
-       dk1
+       sectionArea
+       sectionInertia
+       sectionAreaInformation    % Com ha arribat aqui no ho se
+       sectionInertiaInformation % Tampoc ho se
     end
        
     methods (Access = protected)
 
-        function [A,I] = computeSectionAreaAndInertia(obj)
-            A = computeSectionArea(obj);
-            I = computeInertia(obj);
+        function computeSectionAreaAndInertia(obj)
+            obj.computeSectionArea(obj);
+            obj.computeSectionInertia(obj);
         end
         
+        function computeSectionArea(obj)
+            s    = obj.designVariable;
+            sNum = contToDiscrete(s);
+            obj.sectionArea = interpolateSectionsInformation(sNum,obj.sectionAreaInformation);
+        end
+
+        function computeSectionInertia(obj)
+            s    = obj.designVariable;
+            sNum = contToDiscrete(s);
+            obj.sectionArea = interpolateSectionsInformation(sNum,obj.sectionInertiaInformation);
+        end
         
         
     end
     
     methods (Access = protected, Static)
-        
-        function A = computeSectionArea(obj)
-            s = obj.designVariable
+
+        function x = contToDiscrete(x)
+            x = x*36 + 1;
+            x = max(1,min(x,37));
+        end
+
+        function val = interpolateSectionsInformation(x,property)
+            val    = zeros(length(s),1);
+            intenger = fix(x);
+            incr     = x - intenger;
+            for i = 1:length(x)
+                if intenger(i) == 37
+                    val(i) = property(intenger(i));
+                else
+                    k1   = property(intenger(i));
+                    k2   = property(intenger(i) + 1);
+                    val(i) = (k1*(1-incr(i)) + k2*incr(i));
+                end
+            end
         end
         
     end

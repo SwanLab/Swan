@@ -21,7 +21,7 @@ classdef Sh_trussTotalMass < ShapeFunctional
         end
         
         function computeFunction(obj)
-            sect = obj.homogenizedVariablesComputer.rho; % Això ni flis
+            sect = obj.homogenizedVariablesComputer.sectionArea; % Això ni flis
             l    = obj.barsLength;
             obj.value = sect'*l;
         end
@@ -39,7 +39,7 @@ classdef Sh_trussTotalMass < ShapeFunctional
     methods (Access = private)
 
         function computeGradient(obj)
-            dSect = obj.homogenizedVariablesComputer.drho; % Això ni flis
+            dSect = obj.homogenizedVariablesComputer.sectionAreaGradient; % Això ni flis
             l     = obj.barsLength;
             obj.gradient = dSect.*l;
         end
