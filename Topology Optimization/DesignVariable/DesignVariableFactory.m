@@ -12,6 +12,8 @@ classdef DesignVariableFactory < handle
                     designVar = MicroParams(cParams);
                 case 'AreaColumn'
                     designVar = AreaColumn(cParams);
+                case 'TrussDiscrete'
+                    designVar = TrussDiscrete(cParams);
             end
         end
         

@@ -32,6 +32,8 @@ classdef MaterialInterpolationFactory < handle
                         otherwise
                             error('Invalid Material Interpolation method.');
                     end
+                case 'ContinuousDiscreteSections'
+                    obj = ContinuousDiscreteSectionsInterpolation(cParams);
                 otherwise
                     error('Invalid type of material');
             end

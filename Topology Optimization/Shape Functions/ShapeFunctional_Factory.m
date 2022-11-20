@@ -106,6 +106,12 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.aniAlphaDeg = 90;
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
+                case 'trussWeight'
+                    sF = Sh_trussTotalMass(cParams);
+                case 'trussDisplacements'
+                    sF = Sh_trussDisplacements(cParams);
+                case 'trussStress'
+                    sF = Sh_trussStress(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

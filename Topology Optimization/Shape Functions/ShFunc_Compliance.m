@@ -1,4 +1,4 @@
-classdef ShFunc_Compliance < ShFunWithElasticPdes
+classdef ShFunc_Compliance < ShapeFunctional
     
     properties (Access = private)
         compliance
