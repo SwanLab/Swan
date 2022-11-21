@@ -7,10 +7,10 @@ classdef PathVertexesToBoundaryComputer < handle
     properties (Access = private)
        mesh 
        singularityCoord
-       boundaryPointCoord       
     end
     
     properties (Access = private)
+       boundaryPointCoord               
        pathVector
        closestVertex
        boundaryNodes
@@ -26,6 +26,7 @@ classdef PathVertexesToBoundaryComputer < handle
         end
         
         function v = compute(obj)
+            obj.computeBoundaryPointCoord();
             obj.createStraightPathVector();
             obj.computeClosestVertex();
             obj.computeBoundaryNodes();
@@ -51,8 +52,21 @@ classdef PathVertexesToBoundaryComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.singularityCoord   = cParams.singularityCoord;
-            obj.boundaryPointCoord = cParams.boundaryPointCoord;
         end
+        
+        function computeBoundaryPointCoord(obj)
+        %    obj.computeToyBoundaryPoint();
+            obj.computeBenchmarkBoundaryPoint();
+        end
+        
+        function computeToyBoundaryPoint(obj)
+            obj.boundaryPointCoord = [0 150];            
+        end        
+
+        function computeBenchmarkBoundaryPoint(obj)
+           obj.boundaryPointCoord(:,1) = max(obj.mesh.coord(:,1));            
+           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);           
+        end               
 
         function createStraightPathVector(obj)
             OA = obj.singularityCoord;            

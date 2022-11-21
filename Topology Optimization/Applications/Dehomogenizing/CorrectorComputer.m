@@ -14,15 +14,17 @@ classdef CorrectorComputer < handle
         isUpperCell
         isPositiveVertex
         isNegativeVertex
-        isVertexInCell        
+        isVertexInCell    
+        areVertexCoherent        
+        pathVertexes     
+        singularityCoord   
+        isCellRight
+        isCellLeft        
     end
     
     properties (Access = private)
-        areVertexCoherent
-        isCellRight
-        isCellLeft
-        pathVertexes
         mesh
+        orientation
     end
     
     methods (Access = public)
@@ -34,6 +36,10 @@ classdef CorrectorComputer < handle
         end
                 
         function phiV = compute(obj) 
+            obj.computeCoherentOrientation();
+            obj.computeSingularities();
+            obj.computePathToBoundary();
+            obj.createLeftRightPathElements();
             obj.computeReferenceCells();                        
             for ivertex = 1:length(obj.pathVertexes)
                 obj.computeIsVertexInCell(ivertex);
@@ -59,12 +65,47 @@ classdef CorrectorComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.pathVertexes      = cParams.pathVertexes;
-            obj.mesh              = cParams.mesh;
-            obj.areVertexCoherent = cParams.areVertexCoherent;
-            obj.isCellLeft        = cParams.isCellLeft;
-            obj.isCellRight       = cParams.isCellRight;
+            obj.mesh               = cParams.mesh;
+            obj.orientation        = cParams.orientation;
         end
+        
+        function computeCoherentOrientation(obj)
+            s.mesh        = obj.mesh.createDiscontinousMesh();
+            s.orientation = obj.createDiscontinousField(obj.orientation);
+            c = CoherentOrientationSelector(s);
+            aC = c.isOrientationCoherent();
+            obj.areVertexCoherent = aC;
+        end                
+        
+       function computeSingularities(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = obj.orientation;
+            sF = SingularitiesFinder(s);
+            isS = sF.computeSingularElements();
+            sF.plot();
+            coordB = obj.mesh.computeBaricenter();
+            coordB = transpose(coordB);
+            sCoord =  coordB(isS,:);
+            obj.singularityCoord = sCoord(1,:);            
+        end                       
+                           
+        function computePathToBoundary(obj)
+            s.mesh = obj.mesh;
+            s.singularityCoord   = obj.singularityCoord;
+            p = PathVertexesToBoundaryComputer(s);
+            v = p.compute(); 
+            obj.pathVertexes = v;
+        end        
+
+        function createLeftRightPathElements(obj)
+            s.pathVertexes = obj.pathVertexes;
+            s.mesh         = obj.mesh;
+            l = LeftRightCellsOfPathToBoundaryComputer(s);
+            [cR,cL] = l.compute();   
+            l.plot();            
+            obj.isCellLeft  = cL;
+            obj.isCellRight = cR;
+        end         
         
         function f = restrictToCell(obj,f)
             fV = obj.restrictToVertex(f);
@@ -152,6 +193,14 @@ classdef CorrectorComputer < handle
             itIs = obj.isVertexInCell;
             fV = f & itIs;
         end        
+        
+        function fD = createDiscontinousField(obj,fValues)
+            s.connec = obj.mesh.connec;
+            s.type   = obj.mesh.type;
+            s.fNodes = fValues;
+            f = FeFunction(s);            
+            fD = f.computeDiscontinousField();
+        end          
         
     end
     

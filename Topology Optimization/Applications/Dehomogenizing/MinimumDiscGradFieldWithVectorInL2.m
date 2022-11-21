@@ -7,6 +7,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
     
     properties (Access = private)
         mesh
+        rhsType
         meshCont
         fGauss
         fValues
@@ -36,7 +37,8 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         
         function init(obj,cParams)
             obj.meshCont = cParams.mesh;
-            obj.mesh     = obj.meshCont.createDiscontinousMesh();
+            obj.rhsType  = cParams.rhsType;
+            obj.mesh     = obj.meshCont.createDiscontinousMesh();            
             obj.fGauss   = cParams.fGauss;
             obj.fValues  = cParams.fValues;
         end
@@ -56,7 +58,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             fD = f.computeDiscontinousField();
             obj.fieldDisc = fD;
         end
-
+        
         function createSymmetricMapCond(obj)   
             s.meshCont  = obj.meshCont;
             s.meshDisc  = obj.mesh;
@@ -107,7 +109,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
             s.npnod     = obj.field.dim.ndofs;
-            s.type      = 'ShapeDerivative';
+            s.type      = obj.rhsType;
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute();

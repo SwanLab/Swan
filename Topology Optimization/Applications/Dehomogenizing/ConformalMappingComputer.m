@@ -3,6 +3,7 @@ classdef ConformalMappingComputer < handle
     properties (Access = public)
        phi
        dilation
+       corrector
     end
     
     properties (Access = private)
@@ -10,7 +11,7 @@ classdef ConformalMappingComputer < handle
     end
     
     properties (Access = private)
-       theta 
+       orientation 
        mesh
     end
     
@@ -23,6 +24,7 @@ classdef ConformalMappingComputer < handle
         function phiV = compute(obj)
             obj.computeDilation();
             obj.computeMapping();
+            obj.computeOrthogonalCorrector();
             phiV = obj.phi;
         end
         
@@ -65,12 +67,12 @@ classdef ConformalMappingComputer < handle
         end
         
         function init(obj,cParams)
-            obj.theta    = cParams.theta;
-            obj.mesh     = cParams.mesh;
+            obj.orientation = cParams.theta;
+            obj.mesh        = cParams.mesh;
         end
         
         function computeDilation(obj)
-            s.theta = obj.theta;
+            s.theta = obj.orientation;
             s.mesh  = obj.mesh;
             d = DilationFieldComputer(s);
             obj.dilation = d.compute();
@@ -95,6 +97,7 @@ classdef ConformalMappingComputer < handle
             s.fGauss  = obj.computeVectorComponentP0(idim);
             s.fValues = obj.computeVector(idim);
             s.mesh   = obj.mesh;
+            s.rhsType = 'ShapeFunction';
             varProb  = MinimumDiscGradFieldWithVectorInL2(s);
            % varProb  = MinimumGradFieldWithVectorInL2(s);            
             phi = varProb.solve();
@@ -102,8 +105,8 @@ classdef ConformalMappingComputer < handle
         
         function b = computeVector(obj,idim)
            er = exp(obj.dilation);
-           erCos = er.*cos(obj.theta);
-           erSin = er.*sin(obj.theta);
+           erCos = er.*cos(obj.orientation);
+           erSin = er.*sin(obj.orientation);
            Q(1,1,:) = erCos;
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
@@ -125,6 +128,14 @@ classdef ConformalMappingComputer < handle
                 fG(idim,:,:) = f.interpolateFunction(xGauss);
             end
             %%%%% HEREEEE!!!!! Integrate with more gauss points b
+        end
+        
+        function computeOrthogonalCorrector(obj)
+            s.mesh               = obj.mesh;
+            s.orientation        = obj.orientation;
+            o = OrthogonalCorrectorComputer(s);
+            o.compute();
+            o.plot();                        
         end
     
     end
