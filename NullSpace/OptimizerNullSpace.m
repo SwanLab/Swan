@@ -2,6 +2,7 @@ classdef OptimizerNullSpace < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'NullSpace';
+        fProv
     end
 
     properties (Access = private)
@@ -35,12 +36,16 @@ classdef OptimizerNullSpace < Optimizer
 
     methods (Access = public) 
         
-        function obj = OptimizerNullSpace(cParams)
+        function obj = OptimizerNullSpace(cParams,optParams)
+            obj.fProv = optParams.fProv;
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
+
+            obj.dualUpdater.parameter = optParams.fProv;
+
             obj.prepareFirstIter();
         end
 
@@ -98,6 +103,9 @@ classdef OptimizerNullSpace < Optimizer
             DJ = obj.cost.gradient;
             Dg = obj.constraint.gradient;
             while ~obj.acceptableStep
+
+                obj.dualUpdater.parameter = 1/obj.primalUpdater.tau; % NEW NEW NEW
+
                 obj.computeMeritGradient(DJ,Dg);
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
@@ -118,7 +126,7 @@ classdef OptimizerNullSpace < Optimizer
                 aJ      = 1;
                 DmF     = aJ*(DJ + Dg*l);
                 factor  = 1;
-                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor,1);
             else
                 factor = 1.2; % 1.2
                 obj.primalUpdater.increaseStepLength(factor);

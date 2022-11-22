@@ -20,13 +20,14 @@ x.connec = m.mesh.connec;
 projP1 = Projector_toP1(x);
 resCharFunInP1 = projP1.project(circleFun);
 resCharFunInP1.plot(m.mesh);
-% view(0,90)
+view(-37.5,30)
 title('L2p1')
 
 % CharFun to P0 Function
 projP0 = Projector_toP0(x);
 resCharFunInP0 = projP0.project(circleFun);
 resCharFunInP0.plot(m.mesh);
+view(-37.5,30)
 title('L2p0')
 
 
@@ -34,6 +35,7 @@ title('L2p0')
 projP1D = Projector_toP1Discontinuous(x);
 resCharFunInP1D = projP1D.project(circleFun);
 resCharFunInP1D.plot(m.mesh);
+view(-37.5,30)
 title('L2p1d')
 
 %% H1 Projectors
@@ -44,7 +46,7 @@ xx.projectorType = 'toH1P1';
 projH1P1 = Projector.create(xx);
 resCharFunInH1P1 = projH1P1.project(circleFun);
 resCharFunInH1P1.plot(m.mesh);
-% view(0,90)
+view(-37.5,30)
 title('H1p1')
 
 % CharFun to P1 Discontinuous Function in H1 domain
@@ -52,6 +54,7 @@ xx.projectorType = 'toH1P1Disc';
 projH1P1D = Projector.create(xx);
 resCharFunInH1P1D = projH1P1D.project(circleFun);
 resCharFunInH1P1D.plot(m.mesh);
+view(-37.5,30)
 title('H1p1d')
 
 %% Filters

@@ -2,7 +2,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'Augmented Lagrangian';
-        lambdaProv = 0
+        lambdaProv = 0 % Be careful with x0 dependence also
         penaltyProv
         trustProv
         factorProv = 1.1
@@ -36,6 +36,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         globalLineSearch
         globalDual
         globalDesignVar
+
+        lambdaInitEstimation
     end
 
     methods (Access = public) 
@@ -54,7 +56,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function obj = solveProblem(obj)
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();            if obj.mOld ==15.625;
+pp=1; % x0 dependence
+            end
             obj.hasFinished = 0;
             obj.printOptimizerVariable();
             while ~obj.hasFinished
@@ -137,7 +141,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             DmF     = DJ + Dg*(l + p*g);
             if obj.nIter == 0
                 factor = 1.05; % 1.05
-                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor,1);
             else
                 factor = obj.factorProv; %1.05
                 obj.primalUpdater.increaseStepLength(factor);
@@ -159,6 +163,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             gPlus = obj.defineConstraintValue();
             g     = (DJ + Dh*(l + p*gPlus));
             obj.meritGradient = g;
+            obj.lambdaInitEstimation = (Dh'*Dh)\(obj.constraint.value-...
+                obj.primalUpdater.tau*Dh'*DJ);
         end
 
         function mF = computeMeritFunction(obj,x)
@@ -187,10 +193,28 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function checkStep(obj,x,x0,v,v0)
-            mNew = obj.computeMeritFunction(x);
             if obj.nIter == 0
+%                 obj.primalUpdater.computeFirstStepLength(0,0,0,0.5);
+%                 obj.computeMeritGradient();
                 obj.dualVariable.value = obj.lambdaProv; % % % %
+%                 obj.dualVariable.value = obj.lambdaInitEstimation;
+%                 [x,~] = obj.updatePrimal();
+%                 mNew = obj.computeMeritFunction(x);
+%                 m0 = obj.computeMeritFunction(x0);
+
+%                 mNew = obj.mOld;
+%                 while  mNew >= obj.mOld
+%                     obj.dualUpdater.updatePenalty(obj.penalty);
+%                     obj.dualUpdater.update();
+%                     obj.computeMeritGradient();
+%                     obj.primalUpdater.computeFirstStepLength(0,0,0,0.01);
+%                     [x,~] = obj.updatePrimal();
+%                     mNew = obj.computeMeritFunction(x);
+%                     m0 = obj.computeMeritFunction(x0);
+%                     % obj.designVariable.update(x0);
+%                 end
             end
+            mNew = obj.computeMeritFunction(x);
             if mNew < obj.mOld && norm(x-x0)/norm(x0) < obj.trustProv
                 obj.acceptableStep = true;
                 obj.dualUpdater.updatePenalty(obj.penalty);

@@ -12,7 +12,10 @@ classdef DualUpdater_NullSpace < handle
        dualOld
        isInequality
        position
-       parameter
+    end
+
+    properties (Access = public)
+        parameter
     end
 
     methods (Access = public)
@@ -89,9 +92,9 @@ classdef DualUpdater_NullSpace < handle
             aJ = 1;
             aC = 1;
             f  = obj.parameter;
-            f2 = 1;
-            AC = min(f,f2*aC/aJ*S*h);
-            AJ = -aC/aJ*S*Dh'*DJ;
+            f2 = 1; % should f2 be a parameter?
+            AC = min(f2,f*aC/aJ*S*h); % min(aC/aJ *f, ...) ?          I have exchanged f-f2
+            AJ = -aC/aJ*S*Dh'*DJ; % -1/aJ...?
             l  = AC + AJ;
             obj.dualVariable.value = l;
         end
@@ -112,7 +115,7 @@ classdef DualUpdater_NullSpace < handle
             DJ          = obj.cost.gradient;
             g           = obj.constraint.value;
             f           = obj.parameter;
-            c           = min(f*(Dg'*Dg),g);
+            c           = min(f*(Dg'*Dg),g);% min(f*(Dg'*DJ),g)
             i           = length(g);
             p           = obj.position;
             prob.H      = Dg'*Dg;

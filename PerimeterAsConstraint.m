@@ -15,11 +15,11 @@ constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 
 optimizerUnconstrained = 'SLERP'; 
-optimizer = 'AlternatingPrimalDual';
+optimizer = 'NullSpace';
 incrementFactor = 2;
 designVariable = 'LevelSet';
 filterType = 'P1';
-widthSquare = sqrt(0.1);
+widthSquare = sqrt(0.15);
 
 nsteps = 1;
 Vfrac_final = 0.85;
@@ -27,7 +27,7 @@ Vfrac_final = 0.85;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.9;
+Vfrac_initial = 0.85;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -41,9 +41,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 3000;
+maxiter = 45; % 3000    200

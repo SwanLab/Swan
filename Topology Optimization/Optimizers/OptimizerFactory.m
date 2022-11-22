@@ -15,7 +15,7 @@ classdef OptimizerFactory < handle
                 case 'fmincon'
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
-                    op = OptimizerNullSpace(cParams);
+                    op = OptimizerNullSpace(cParams,optParams);
                 otherwise
                     error('Invalid optimizer.')
             end

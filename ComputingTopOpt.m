@@ -1,13 +1,15 @@
 function ComputingTopOpt
+
+% Conclusion: f and line search in another .m file
+
+clear
+clc
 close all
 
+k=[];
 
-
-s.testName = 'test_cantilever2';%''testJose';
-s.testName = 'test_cantilever_nullspace';
-s.testName = 'PerimeterAsConstraint';
-k.penaltyProv = 40;
-k.trustProv   = 100;
+s.testName = 'PerimeterAsConstraint';%''testJose';
 t = TopOptComputer(s);
 t.compute(k);
+
 end
