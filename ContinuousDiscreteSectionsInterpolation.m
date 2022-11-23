@@ -1,10 +1,13 @@
 classdef ContinuousDiscreteSectionsInterpolation < MaterialInterpolation
     
-    properties (Access = protected)
+    properties (Access = public)
        sectionArea
        sectionInertia
-       sectionAreaInformation    % Com ha arribat aqui no ho se
-       sectionInertiaInformation % Tampoc ho se
+    end
+
+    properties (Access = private)
+        sectionAreaInformation
+        sectionInertiaInformation
     end
        
     methods (Access = protected)
@@ -23,7 +26,7 @@ classdef ContinuousDiscreteSectionsInterpolation < MaterialInterpolation
         function computeSectionInertia(obj)
             s    = obj.designVariable;
             sNum = contToDiscrete(s);
-            obj.sectionArea = interpolateSectionsInformation(sNum,obj.sectionInertiaInformation);
+            obj.sectionInertia = interpolateSectionsInformation(sNum,obj.sectionInertiaInformation);
         end
         
         

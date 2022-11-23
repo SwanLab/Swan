@@ -8,20 +8,19 @@ classdef Sh_trussTotalMass < ShapeFunctional
     methods (Access = public)
         
         function obj = Sh_trussTotalMass(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-%             obj.geometricVolume = sum(obj.dvolu(:));
+            % Load barres
+            obj.homogenizedVariablesComputer.interpolation.loadFiles();
         end
         
         function computeFunctionAndGradient(obj)
             obj.nVariables = obj.designVariable.nVariables;
-            obj.updateHomogenizedMaterialProperties();
             obj.computeFunction();
             obj.computeGradient();
         end
         
         function computeFunction(obj)
-            sect = obj.homogenizedVariablesComputer.sectionArea; % Això ni flis
+            sect = obj.homogenizedVariablesComputer.interpolation.sectionArea;
             l    = obj.barsLength;
             obj.value = sect'*l;
         end
@@ -39,23 +38,10 @@ classdef Sh_trussTotalMass < ShapeFunctional
     methods (Access = private)
 
         function computeGradient(obj)
-            dSect = obj.homogenizedVariablesComputer.sectionAreaGradient; % Això ni flis
+            dSect = obj.homogenizedVariablesComputer.interpolation.lengthLessAreaGradient;
             l     = obj.barsLength;
             obj.gradient = dSect.*l;
         end
-        
-%         function updateHomogenizedMaterialProperties(obj)
-%             nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-%             x  = obj.designVariable.value;
-%             xf = cell(obj.designVariable.nVariables,1);
-%             for ivar = 1:obj.nVariables
-%                 i0 = nx*(ivar-1) + 1;
-%                 iF = nx*ivar;
-%                 xs = x(i0:iF);
-%                 xf{ivar} = obj.filter.getP0fromP1(xs);
-%             end
-%             obj.homogenizedVariablesComputer.computeDensity(xf);
-%         end
 
     end
     
