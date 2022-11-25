@@ -2,7 +2,8 @@ classdef EulerBeamOptimizer < handle
 
     properties (Access = public)
         columnMesh
-        cost
+        value
+        initValue
     end
     
     properties (Access = protected)
@@ -10,7 +11,10 @@ classdef EulerBeamOptimizer < handle
     end
     
     properties (Access = private)
+        cost
         mesh
+        initValueType
+        meshType
         designVariable
         eigenModes
         constraint
@@ -34,8 +38,8 @@ classdef EulerBeamOptimizer < handle
 
     methods (Access = public)
 
-        function obj = EulerBeamOptimizer()
-            obj.init()
+        function obj = EulerBeamOptimizer(cParams)
+            obj.init(cParams)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createEigModes();
@@ -43,7 +47,7 @@ classdef EulerBeamOptimizer < handle
             obj.createConstraint();
             obj.createOptimizer();
             obj.optimizer.solveProblem();
-            obj.cost = obj.designVariable.value(obj.nElem+1);
+            obj.value = obj.designVariable.value;
             obj.PostProcess();
         end
 
@@ -51,7 +55,8 @@ classdef EulerBeamOptimizer < handle
     
     methods (Access = private)
         
-        function init(obj)
+        function init(obj,cParams)
+            obj.initValue = cParams.value;
             obj.nElem         = 500;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
@@ -59,20 +64,25 @@ classdef EulerBeamOptimizer < handle
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.minThick      = 0.5;
-            obj.maxThick      = 10;
-            obj.optimizerType = 'MMA'; %NullSpace';%'MMA'; %'MMA'; 'AlternatingPrimalDual';%'fmincon';'NullSpace'; % IPOPT';
+            obj.maxThick      = 100;
+            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.initValueType = 'Random'; % Random/Constant/External Value
+            obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.maxIter       = 100;
         end
         
         function createMesh(obj)
             s.nElem = obj.nElem;
             s.columnLength = obj.columnLength;
+            s.meshType = obj.meshType;
             s.type = 'LINE';
             m = MeshGenerator(s);
             obj.mesh = m.mesh;
         end
 
         function createDesignVariable(obj)
+            s.initValue = obj.initValue;
+            s.initValueType = obj.initValueType;
             s.type  = 'AreaColumn';
             s.mesh  = obj.mesh;
             des = DesignVariable.create(s);

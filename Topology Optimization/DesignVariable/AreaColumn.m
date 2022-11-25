@@ -5,7 +5,8 @@ classdef AreaColumn < DesignVariable
     end
     
     properties (Access = private)
-        
+        initValue
+        initValueType
     end
        
     methods (Access = public)
@@ -47,12 +48,25 @@ classdef AreaColumn < DesignVariable
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;      
+            obj.mesh = cParams.mesh;
+            obj.initValue = cParams.initValue;
+            obj.initValueType = cParams.initValueType;
         end
         
         function createInitialValue(obj)
             N = obj.mesh.nelem;
-            x0 = 2*rand(N+1,1);   %x0 = rand(N+1,1);          
+            switch obj.initValueType
+                case 'Constant'
+                    x0 = ones(N+1,1);
+                case 'Random'
+                    x0 = rand(N+1,1);
+                case 'External Value'
+                    x0 = obj.initValue;
+                    x0=x0+norm(x0)*rand(size(x0))*0.01;
+                otherwise 
+                    error('Invalid Initial Value Type.')
+            end
+            %x0 = 2*rand(N+1,1);
             obj.update(x0);        
         end
     end

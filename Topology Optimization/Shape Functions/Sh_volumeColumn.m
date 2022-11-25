@@ -41,9 +41,14 @@ classdef Sh_volumeColumn < ShapeFunctional
     methods (Access = public)
 
         function computeFunction(obj)
-            V = obj.designVariable.computeVolum();
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('CONSTANT');
+            dV = obj.mesh.computeDvolume(q);
+            A = obj.designVariable.getColumnArea();
+            V = dV*A;
+%             V = obj.designVariable.computeVolum();
             fx = V-1;
-           % fx = sqrt(V)-1;
+%           fx = sqrt(V)-1;
             obj.value = fx;
         end
 

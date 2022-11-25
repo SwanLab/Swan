@@ -1,10 +1,13 @@
 clear all;
 close all;
 
-BeamOpt = EulerBeamOptimizer();
-cost = BeamOpt.cost;
+load('initValue.mat')
+s.value = value;
+BeamOpt = EulerBeamOptimizer(s);
+val = BeamOpt.value;
+cost = val(end);
 
-test = cost-52
+test = cost-51.5
 if abs(test) < 1
     disp('Test Passed')
 else 

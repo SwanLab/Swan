@@ -25,7 +25,7 @@ classdef CC < handle & matlab.mixin.Copyable
         function computeFunctionAndGradient(obj)
             obj.initValueAndGradient();
             for iSF = 1:length(obj.shapeFunctions)
-                obj.shapeFunctions{iSF}.updateTargetParameters();
+                %obj.shapeFunctions{iSF}.updateTargetParameters();
                 obj.shapeFunctions{iSF}.computeFunctionAndGradient();
                 obj.updateFields(iSF);
             end

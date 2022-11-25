@@ -8,6 +8,7 @@ classdef MeshGenerator < handle
         coord
         connec
         type
+        meshType
     end
     
     properties (Access = private)
@@ -32,14 +33,21 @@ classdef MeshGenerator < handle
             obj.nElem = cParams.nElem;
             obj.columnLength = cParams.columnLength;
             obj.type = cParams.type;
+            obj.meshType = cParams.meshType;
         end
         
         function createCoordinates(obj)
             nnod = obj.nElem + 1;
-%              x = [0;rand(nnod-2,1);1]*obj.columnLength;
-%              x = sort(x);
-%               coord = x; 
-             obj.coord = linspace(0,obj.columnLength,nnod)';
+            switch obj.meshType
+                case 'Structured'
+                    obj.coord = linspace(0,obj.columnLength,nnod)';
+                case 'Unstructured'
+                    x = [0;rand(nnod-2,1);1]*obj.columnLength;
+                    x = sort(x);
+                    obj.coord = x;
+                otherwise
+                    error('Invalid Mesh Type.')
+            end    
         end
 
         function createConnectivity(obj)
