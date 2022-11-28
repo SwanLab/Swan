@@ -10,6 +10,7 @@ classdef StructuralTrussProblem < handle
         connec
         material
         neumann, dirichlet
+        barInterp, designVar
     end
 
     properties (Access = private) % Calc
@@ -40,6 +41,8 @@ classdef StructuralTrussProblem < handle
             obj.neumann   = cParams.neumann;
             obj.dirichlet = cParams.dirichlet;
             obj.material  = cParams.material;
+            obj.barInterp = cParams.interp;
+            obj.designVar = cParams.designVar;
         end
 
         function createSolver(obj)

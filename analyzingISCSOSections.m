@@ -93,7 +93,8 @@ Ival = Si(:,2);
 Re_val = (2^(1/2)*((Aval.^2 + 2*pi.*Ival)./Aval).^(1/2))./(2*pi^(1/2));
 Ri_val = (2^(1/2)*(-(Aval.^2 - 2*pi.*Ival)./Aval).^(1/2))./(2*pi^(1/2));
 
-expr = (Re_val.^4 + Ri_val.^4)/2;
+expr = pi*((Re_val).^3 + (Ri_val).^3);
+
 [vals, idx] = sort(expr);
 figure()
 subplot(1,2,1)

@@ -18,7 +18,7 @@ classdef DesignVariableTruss < handle
             obj.ubRad   = cParams.ubR;
             obj.lbRad   = cParams.lbR;
             obj.ubThick = cParams.ubT;
-            obj.lbThick = cParams.ubT;
+            obj.lbThick = cParams.lbT;
         end
         
         function init(obj,x0)
