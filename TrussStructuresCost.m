@@ -12,7 +12,8 @@ classdef TrussStructuresCost < handle
     methods (Access = public)
         
         function obj = TrussStructuresCost(cParams)
-            obj.shapeFunction = ShapeFunctional_Factory(cParams);
+            cParams.type = cParams.costType;
+            obj.shapeFunction = ShapeFunctional_Factory.create(cParams);
         end
 
         function computeFunctionAndGradient(obj)

@@ -25,11 +25,7 @@ classdef Sh_trussTotalMass < handle
         end
 
         function computeGradient(obj)            
-            xR = obj.designVariable(1:nVar);
-            xT = obj.designVariable(nVar+1:end);
-            gR = 4*pi*xT;
-            gT = 4*pi*xR;
-            obj.gradient = [gR;gT];         
+                  
         end
         
         

@@ -19,8 +19,9 @@ classdef TrussStructureProblem < handle
     methods (Access = private)
         
         function compute(obj)
-            run(obj.fileName);
+            run(obj.fileName); % AQUÍ HA D'HAVER-HI TOTA LA INFO
             designVar          = DesignVariableTruss(cParams);
+            designVar.init(x0);
             interp             = BarSectionInterpolation(d);
             costData.designVar = designVar;
             costData.interp    = interp;
@@ -28,7 +29,7 @@ classdef TrussStructureProblem < handle
             s.designVar        = designVar;
             s.cost             = TrussStructureCost(costData);
             s.constraint       = TrussStructureConstraint(constrData);
-            d.init(x0);
+        
 
         end
 
