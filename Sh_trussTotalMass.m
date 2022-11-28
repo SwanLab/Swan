@@ -1,46 +1,47 @@
-classdef Sh_trussTotalMass < ShapeFunctional
+classdef Sh_trussTotalMass < handle
     
     properties (Access = public)
-        sectionAreaInfo
-        barsLength
+        value
+        gradient
+    end
+
+    properties (Access = private)
+        interpolator
+        barLength
+        designVariable
     end
     
     methods (Access = public)
         
         function obj = Sh_trussTotalMass(cParams)
             obj.init(cParams);
-            % Load barres
-            obj.homogenizedVariablesComputer.interpolation.loadFiles();
         end
         
-        function computeFunctionAndGradient(obj)
-            obj.nVariables = obj.designVariable.nVariables;
-            obj.computeFunction();
-            obj.computeGradient();
-        end
         
         function computeFunction(obj)
-            sect = obj.homogenizedVariablesComputer.interpolation.sectionArea;
-            l    = obj.barsLength;
-            obj.value = sect'*l;
-        end
-        
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value*obj.value0;
+            interp = obj.interpolator;
+            interp.computeSectionArea();
+            obj.value = interp.sectionArea;
         end
 
-        function t = getTitlesToPlot(obj)
-            t{1} = 'Structure total mass';
+        function computeGradient(obj)            
+            xR = obj.designVariable(1:nVar);
+            xT = obj.designVariable(nVar+1:end);
+            gR = 4*pi*xT;
+            gT = 4*pi*xR;
+            obj.gradient = [gR;gT];         
         end
+        
         
     end
     
     methods (Access = private)
 
-        function computeGradient(obj)
-            dSect = obj.homogenizedVariablesComputer.interpolation.lengthLessAreaGradient;
-            l     = obj.barsLength;
-            obj.gradient = dSect.*l;
+        function obj = init(obj,cParams)
+            obj.interpolator   = cParams.interp;
+            obj.designVariable = cParams.designVar;
+            obj.varN           = length(obj.designVariable)/2;
+            obj.barLength      = load(cParams.barLength);
         end
 
     end

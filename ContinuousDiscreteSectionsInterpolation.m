@@ -1,4 +1,4 @@
-classdef ContinuousDiscreteSectionsInterpolation < MaterialInterpolation
+classdef ContinuousDiscreteSectionsInterpolation < handle
     
     properties (Access = public)
        sectionArea
