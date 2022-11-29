@@ -75,7 +75,7 @@ classdef Sh_trussDisplacements < handle
             RHS    = zeros(nNodes*3,1);
             for i = 1:length(k)
                 uNode = k(i).*u(:,:,i);
-                n1    = 3*i-2;
+                n1    = 3*(i-1) + 1;
                 n2    = 3*i;
                 RHS(n1:n2) = uNode;
             end
