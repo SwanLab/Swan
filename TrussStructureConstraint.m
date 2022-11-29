@@ -1,4 +1,4 @@
-classdef TrussStructuresConstraint < handle
+classdef TrussStructureConstraint < handle
     
     properties (Access = public)
         value
@@ -11,7 +11,7 @@ classdef TrussStructuresConstraint < handle
     
     methods (Access = public)
         
-        function obj = TrussStructuresConstraint(cParams)
+        function obj = TrussStructureConstraint(cParams)
             nCr = cParams.nConstraints;
             obj.value    = zeros(nCr,1);
             obj.gradient = zeros(length(cParams.designVariable),nCr);
