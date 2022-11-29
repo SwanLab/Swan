@@ -31,6 +31,7 @@ classdef TrussStructureProblem < handle
             costData.interp    = interp;
             costData.barLength = obj.barLengthFileName;
             constrData.phyProb = obj.createFEMProblem(interp, designVar);
+            constrData.interp  = interp;
             s.designVar        = designVar;
             s.cost             = TrussStructureCost(costData);
             s.constraint       = TrussStructureConstraint(constrData);

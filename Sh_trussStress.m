@@ -1,4 +1,4 @@
-classdef Sh_trussDisplacements < handle
+classdef Sh_trussStress < handle
     
     properties (Access = public)
         value
@@ -7,28 +7,34 @@ classdef Sh_trussDisplacements < handle
 
     properties (Access = private)
         physicalProblem
+        barsLength
         designVariable
+        interpolator
         qVal
         pVal
-        constraintU
+        constraintStress
         maxDisplacement
-        u_q
+        s_q
     end
     
     methods (Access = public)
         
-        function obj = Sh_trussDisplacements(cParams)
+        function obj = Sh_trussStress(cParams)
             obj.init(cParams);
         end
         
-        
         function computeFunction(obj)
             p = obj.physicalProblem;
+            i = obj.interpolator;
+            i.computeSectionInertia();
+            E = p.material.E;
+            I = i.sectionInertia;
+            l = obj.barsLength;
             p.solve();
-            u = p.displacement;
-            uNorm = obj.computeDisplacementConstraintNorm(u);
-            obj.constraintU = uNorm;
-            obj.value = uNorm - obj.maxDisplacement;
+            s = p.stress;
+            sNorm = obj.computeStressConstraintNorm(s);
+            obj.constraintStress = sNorm;
+            obj.value = sNorm - pi^2*E*I/(p.stiffness*l).^2; % L'Stiffness matrix no entenc massa com funcionarà aquí. :(
         end
 
         function computeGradient(obj)            
@@ -46,39 +52,31 @@ classdef Sh_trussDisplacements < handle
 
         function obj = init(obj,cParams)
             obj.physicalProblem = cParams.phyProb;
+            obj.interpolator    = cParams.interp;
             obj.maxDisplacement = cParams.maxDisplacement;
             obj.qVal            = cParams.qVal;
             obj.pVal            = cParams.pVal;
+            obj.barsLength      = cParams.barsLength;
             obj.varN            = length(obj.designVariable)/2;
         end
 
-        function uNorm = computeDisplacementConstraintNorm(obj,u)
-            nNodes = size(u,3);
-            q      = obj.qVal;
-            p      = obj.pVal;
-            u_i    = zeros(nNodes,1);
-            for i = 1:nNodes
-                u_i(i) = (u(1,1,i)^q + u(1,2,i)^q + u(1,3,i)^q)^(1/q);
+        function sNorm = computeStressConstraintNorm(obj,s)
+            nEl = size(s,3);
+            q   = obj.qVal;
+            p   = obj.pVal;
+            s   = abs(s);
+            s_e = zeros(nEl,1);
+            for i = 1:nEl
+                s_e(i) = (s(1,1,i)^q + s(2,2,i)^q + s(3,3,i)^q + ...
+                    (2*s(1,2,i))^q + (2*s(1,3,i))^q + (2*s(2,3,i))^q)^(1/q);
             end
-            obj.u_q = u_i;
-            u_i     = u_i.^p;
-            uNorm   = (1/nNodes*sum(u_i))^(1/p);
+            obj.s_q = s_e;
+            s_e     = s_e.^p;
+            sNorm   = (1/nEl*sum(s_e))^(1/p);
         end
 
         function RHS = computeAdjointRHS(obj,u)
-            gu     = obj.constraintU;
-            nNodes = size(u,3);
-            p      = obj.pVal;
-            q      = obj.qVal;
-            uq     = obj.u_q;
-            k      = gu^(1-p)*1/nNodes*uq.^(p-q);
-            RHS    = zeros(nNodes*3,1);
-            for i = 1:length(k)
-                uNode = k(i).*u(:,:,i);
-                n1    = 3*i-2;
-                n2    = 3*i;
-                RHS(n1:n2) = uNode;
-            end
+
         end
 
     end
