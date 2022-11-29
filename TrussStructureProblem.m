@@ -1,7 +1,8 @@
 classdef TrussStructureProblem < handle
     
     properties (Access = public)
-        fileName = 'ISCSOMesh'
+        meshFileName = 'ISCSOMesh'
+        barLengthFileName = 'barLength.mat'
     end
 
     properties (Access = private)
@@ -19,7 +20,6 @@ classdef TrussStructureProblem < handle
     methods (Access = private)
         
         function compute(obj)
-            run(obj.fileName); % AQUÍ HA D'HAVER-HI TOTA LA INFO
             cParams = obj.getDesignVarParams();
             designVar          = DesignVariableTruss(cParams);
             nBars = size(connec,1);
@@ -28,6 +28,7 @@ classdef TrussStructureProblem < handle
             interp             = BarSectionInterpolation(designVar);
             costData.designVar = designVar;
             costData.interp    = interp;
+            costData.barLength = obj.barLengthFileName;
             constrData.phyProb = obj.createFEMProblem(interp, designVar);
             s.designVar        = designVar;
             s.cost             = TrussStructureCost(costData);
@@ -44,7 +45,7 @@ classdef TrussStructureProblem < handle
         end
 
         function prob = createFEMProblem(obj, interp, dVar)
-            run(obj.fileName); % AQUÍ HA D'HAVER-HI TOTA LA INFO
+            run(obj.meshFileName); % AQUÍ HA D'HAVER-HI TOTA LA INFO
             s.coord     = coord;
             s.connec    = connec;
             s.material  = ISCSOMaterial(s);
