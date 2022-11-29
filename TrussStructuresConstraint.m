@@ -12,7 +12,10 @@ classdef TrussStructuresConstraint < handle
     methods (Access = public)
         
         function obj = TrussStructuresConstraint(cParams)
-            for iSF = cParams.nConstraints
+            nCr = cParams.nConstraints;
+            obj.value    = zeros(nCr,1);
+            obj.gradient = zeros(length(cParams.designVariable),nCr);
+            for iSF = nCr
                 cParams.type = cParams.constraintType{isF};
                 obj.shapeFunction{iSF} = ShapeFunctional_Factory.create(cParams);
             end
@@ -27,12 +30,12 @@ classdef TrussStructuresConstraint < handle
 
         function computeFunction(obj,iSF)
             obj.shapeFunction{iSF}.computeFunction();
-            obj.value = obj.shapeFunction{iSF}.value;
+            obj.value(iSF,1) = obj.shapeFunction{iSF}.value;
         end
 
         function computeGradient(obj,iSF)
             obj.shapeFunction{iSF}.computeGradient();
-            obj.gradient = obj.shapeFunction{iSF}.gradient;
+            obj.gradient(:,iSF) = obj.shapeFunction{iSF}.gradient;
         end
         
     end

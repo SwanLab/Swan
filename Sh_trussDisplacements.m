@@ -7,8 +7,10 @@ classdef Sh_trussDisplacements < handle
 
     properties (Access = private)
         physicalProblem
-        barLength
         designVariable
+        normVal
+        qVal
+        maxDisplacement
     end
     
     methods (Access = public)
@@ -22,15 +24,13 @@ classdef Sh_trussDisplacements < handle
             p = obj.physicalProblem;
             p.solve();
             u = p.displacement;
-            obj.value =
+            obj.value = norm(u,obj.qVal);
         end
 
         function computeGradient(obj)            
-            xR = obj.designVariable(1:nVar);
-            xT = obj.designVariable(nVar+1:end);
-            gR = 4*pi*xT;
-            gT = 4*pi*xR;
-            obj.gradient = [gR;gT];         
+            p = obj.physicalProblem;
+            p.solveDisplacementAdjoint();
+            obj.gradient = -p.Adjoint.*p.stifnessDerivative;
         end
         
         
@@ -41,6 +41,8 @@ classdef Sh_trussDisplacements < handle
         function obj = init(obj,cParams)
             obj.physicalProblem = cParams.phyProb;
             obj.maxDisplacement = cParams.maxDisplacement;
+            obj.normVal         = cParams.normVal;
+            obj.qVal            = cParams.qVal;
             obj.varN            = length(obj.designVariable)/2;
         end
 
