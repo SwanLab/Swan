@@ -20,6 +20,8 @@ classdef MonitoringManager < handle
                     obj.monitoring = AcademicMonitoring(cParams);
                 case 'Topology'
                     obj.monitoring = TopologyMonitoring(cParams);
+                case 'Truss Structure'
+                    obj.monitoring = TrussStructureMonitoring(cParams);
             end
         end
         

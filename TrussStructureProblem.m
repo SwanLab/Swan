@@ -3,6 +3,7 @@ classdef TrussStructureProblem < handle
     properties (Access = public)
         meshFileName = 'ISCSOMesh'
         barLengthFileName = 'barLength.mat'
+        result
     end
 
     properties (Access = private)
@@ -20,10 +21,10 @@ classdef TrussStructureProblem < handle
     methods (Access = private)
         
         function compute(obj)
-            cParams = obj.getDesignVarParams();
-            designVar          = DesignVariableTruss(cParams);
-            nBars = size(connec,1);
-            x0 = [ones(nBars,1); ones(nBars,1)];
+            cParams   = obj.getDesignVarParams();
+            designVar = DesignVariableTruss(cParams);
+            nBars     = size(connec,1);
+            x0        = [ones(nBars,1); ones(nBars,1)];
             designVar.init(x0);
             interp             = BarSectionInterpolation(designVar);
             costData.designVar = designVar;
@@ -33,8 +34,12 @@ classdef TrussStructureProblem < handle
             s.designVar        = designVar;
             s.cost             = TrussStructureCost(costData);
             s.constraint       = TrussStructureConstraint(constrData);
-        
-
+            s.outputFunction.type       = "Truss Structure";
+            s.outputFunction.monitoring = MonitoringManager(s);
+            s.optimizerNames.primal     = 'PROJECTED GRADIENT';
+            opt = Optimizer.create(s);
+            opt.solveProblem();
+            obj.result = designVar.value;
         end
 
         function s = getDesignVarParams(obj)
