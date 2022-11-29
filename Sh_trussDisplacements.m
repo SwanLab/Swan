@@ -10,6 +10,8 @@ classdef Sh_trussDisplacements < handle
         designVariable
         normVal
         qVal
+        pVal
+        constraintU
         maxDisplacement
     end
     
@@ -24,12 +26,15 @@ classdef Sh_trussDisplacements < handle
             p = obj.physicalProblem;
             p.solve();
             u = p.displacement;
-            obj.value = norm(u,obj.qVal);
+            uNorm = obj.computeDisplacementConstraintNorm(u);
+            obj.constraintU = uNorm;
+            obj.value = uNorm - obj.maxDisplacement;
         end
 
         function computeGradient(obj)            
             p = obj.physicalProblem;
-            p.solveDisplacementAdjoint();
+            RHS = obj.computeAdjointRHS();
+            p.solveDisplacementAdjoint(RHS);
             obj.gradient = -p.Adjoint.*p.stifnessDerivative;
         end
         
@@ -43,7 +48,27 @@ classdef Sh_trussDisplacements < handle
             obj.maxDisplacement = cParams.maxDisplacement;
             obj.normVal         = cParams.normVal;
             obj.qVal            = cParams.qVal;
+            obj.pVal            = cParams.pVal;
             obj.varN            = length(obj.designVariable)/2;
+        end
+
+        function uNorm = computeDisplacementConstraintNorm(obj,u)
+            nNodes = size(u,3);
+            q      = obj.qVal;
+            p      = obj.pVal;
+            u_i    = zeros(1,nNodes);
+            for i = 1:nNodes
+                u_i(i) = (u(1,1,i)^q + u(1,2,i)^q + u(1,3,i)^q)^(1/q);
+            end
+            u_i = u_i.^p;
+            uNorm = (1/nNodes*sum(u_i))^(1/p);
+        end
+
+        function RHS = computeAdjointRHS(obj)
+            gu     = obj.constraintU;
+            nNodes = size(u,3);
+            p      = obj.pVal;
+            RHS    = gu^(1-p)*1/nNodes; % PER ACABAR
         end
 
     end
