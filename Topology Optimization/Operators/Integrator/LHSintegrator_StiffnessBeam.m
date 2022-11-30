@@ -19,6 +19,11 @@ classdef LHSintegrator_StiffnessBeam < LHSintegrator
             LHS = obj.assembleMatrixField(lhs);
         end
 
+        function LHS = computeDerivative(obj)
+            lhs = obj.computeElementalLHSDerivative();
+            LHS = obj.assembleMatrixField(lhs);
+        end
+
     end
 
 
@@ -28,6 +33,16 @@ classdef LHSintegrator_StiffnessBeam < LHSintegrator
             le = obj.calculateBarLength();
             [A, Iz] = obj.getBarSectionData();
             Ke = obj.computeLocalK(le, A, Iz);
+            Re = obj.computeRotationMatrix(le);
+            ReT   = permute(Re,[2 1 3]);
+            ReTKe  = pagemtimes(ReT,Ke);
+            lhs    = pagemtimes(ReTKe, Re);
+        end
+
+        function lhs = computeElementalLHSDerivative(obj)
+            le = obj.calculateBarLength();
+            [dA, dIz] = obj.getBarDerivativeSectionData();
+            Ke = obj.computeLocalKDerivative(le, A, Iz);
             Re = obj.computeRotationMatrix(le);
             ReT   = permute(Re,[2 1 3]);
             ReTKe  = pagemtimes(ReT,Ke);
@@ -106,6 +121,18 @@ classdef LHSintegrator_StiffnessBeam < LHSintegrator
             Ke(6,5,:) = -6.*le.*c1;
             Ke(6,6,:) = 4.*le.^2.*c1;
 
+        end
+
+        function dKe = computeLocalKDerivative(obj, le, dA, dIz)
+            dAdr = dA(1);
+            dAdt = dA(2);
+            dIdr = dIz(1);
+            dIdt = dIz(2);
+            dKedr = computeLocalK(obj, le, dAdr, dIdr);
+            dKedt = computeLocalK(obj, le, dAdt, dIdt);
+            dKe(:,:,:,1) = dKedr;
+            dKe(:,:,:,2) = dKedt;
+            % suposo que els termes creuats no calen?
         end
 
         function Re = computeRotationMatrix(obj, le)
