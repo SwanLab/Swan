@@ -80,6 +80,7 @@ classdef StructuralTrussProblem < handle
             KRL = obj.LHS(freeDofs, fixedDofs(:,1));
             F = obj.RHS(freeDofs) - KRL * fixedVals;
             u = obj.solver.solve(K,F);
+            obj.displacement = u;
         end
 
         function Fdata = convertDataToDof(obj)

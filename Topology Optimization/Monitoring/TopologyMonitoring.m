@@ -58,7 +58,7 @@ classdef TopologyMonitoring < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.type     = cParams.type;
+            obj.type              = cParams.type;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
             obj.designVariable    = cParams.designVar;

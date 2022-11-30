@@ -3,6 +3,7 @@ classdef DesignVariableTruss < handle
     properties (Access = public)
         value
         valueOld
+        mesh = 0
     end
     
     properties (Access = private)

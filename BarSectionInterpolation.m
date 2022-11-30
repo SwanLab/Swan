@@ -24,16 +24,16 @@ classdef BarSectionInterpolation < handle
         end
 
         function computeSectionArea(obj)
-            var    = obj.designVariable;
+            var    = obj.designVariable.value;
             varNum = length(var)/2;
             r      = var(1:varNum);
             t      = var(varNum+1:end);
-            A      = 4*pi*r*t;
+            A      = 4*pi.*r.*t;
             obj.sectionArea = A;
         end
 
         function computeSectionInertia(obj)
-            var    = obj.designVariable;
+            var    = obj.designVariable.value;
             varNum = length(var)/2;
             r      = var(1:varNum);
             t      = var(varNum+1:end);
@@ -42,8 +42,9 @@ classdef BarSectionInterpolation < handle
         end
 
         function computeSectionAreaDerivative(obj)
-            xR = obj.designVariable(1:obj.nVar);
-            xT = obj.designVariable(obj.nVar+1:end);
+            var = obj.designVariable.value;
+            xR = var(1:obj.nVar);
+            xT = var(obj.nVar+1:end);
             gR = 4*pi.*xT;
             gT = 4*pi.*xR;
             obj.sectionAreaDerivative = [gR;gT];   
@@ -63,7 +64,7 @@ classdef BarSectionInterpolation < handle
         
         function init(obj,designVar)
             obj.designVariable = designVar;
-            obj.nVar = length(obj.designVariable)/2;
+            obj.nVar = length(obj.designVariable.value)/2;
         end
 
     end

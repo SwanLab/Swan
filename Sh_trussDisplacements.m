@@ -13,6 +13,7 @@ classdef Sh_trussDisplacements < handle
         constraintU
         maxDisplacement
         u_q
+        varN
     end
     
     methods (Access = public)

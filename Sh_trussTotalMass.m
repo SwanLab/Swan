@@ -9,6 +9,7 @@ classdef Sh_trussTotalMass < handle
         interpolator
         barLength
         designVariable
+        varN
     end
     
     methods (Access = public)
@@ -21,11 +22,13 @@ classdef Sh_trussTotalMass < handle
         function computeFunction(obj)
             interp = obj.interpolator;
             interp.computeSectionArea();
-            obj.value = interp.sectionArea;
+            obj.value = sum(interp.sectionArea.*obj.barLength);
         end
 
         function computeGradient(obj)            
-                  
+            interp = obj.interpolator;
+            interp.computeSectionAreaDerivative();
+            obj.gradient = interp.sectionAreaDerivative.*[obj.barLength;obj.barLength];
         end
         
         
@@ -35,9 +38,9 @@ classdef Sh_trussTotalMass < handle
 
         function obj = init(obj,cParams)
             obj.interpolator   = cParams.interp;
-            obj.designVariable = cParams.designVar;
+            obj.designVariable = cParams.designVariable;
             obj.varN           = length(obj.designVariable)/2;
-            obj.barLength      = load(cParams.barLength);
+            obj.barLength      = cParams.barsLength;
         end
 
     end

@@ -1,0 +1,10 @@
+% ISCSO PROBLEM
+costData.type    = 'trussWeight';
+constrData.ctype = {'trussDisplacements'};%{'trussDisplacements','trussStress'};
+nConstr          = 1;
+constrData.maxDisplacement = 2.5e-3;
+%constrData.maxStress = 1e6;
+constrData.qVal = 8;
+constrData.pVal = 10;
+s.uncOptimizerSettings.ub = inf;
+s.uncOptimizerSettings.lb = -inf;

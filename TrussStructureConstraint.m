@@ -3,26 +3,30 @@ classdef TrussStructureConstraint < handle
     properties (Access = public)
         value
         gradient
+        nSF
     end
 
     properties (Access = private)
         shapeFunction
+        nConstraints
     end
     
     methods (Access = public)
         
         function obj = TrussStructureConstraint(cParams)
             nCr = cParams.nConstraints;
+            obj.nConstraints = nCr;
             obj.value    = zeros(nCr,1);
             obj.gradient = zeros(length(cParams.designVariable),nCr);
-            for iSF = nCr
-                cParams.type = cParams.constraintType{isF};
-                obj.shapeFunction{iSF} = ShapeFunctional_Factory.create(cParams);
+            for iSF = 1:nCr
+                cParams.type = cParams.ctype{iSF};
+                f = ShapeFunctional_Factory();
+                obj.shapeFunction{iSF} = f.create(cParams);
             end
         end
 
         function computeFunctionAndGradient(obj)
-            for iSF = cParams.nConstraints
+            for iSF = obj.nConstraints
                 obj.computeFunction(iSF);
                 obj.computeGradient(iSF);
             end

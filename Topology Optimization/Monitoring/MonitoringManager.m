@@ -21,7 +21,8 @@ classdef MonitoringManager < handle
                 case 'Topology'
                     obj.monitoring = TopologyMonitoring(cParams);
                 case 'Truss Structure'
-                    obj.monitoring = TrussStructureMonitoring(cParams);
+                    obj.monitoring = TopologyMonitoring(cParams);
+                    % AQUI AFEGIM EL PLOT DE L'ESTRUCTURA
             end
         end
         
