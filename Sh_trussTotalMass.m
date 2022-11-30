@@ -29,6 +29,7 @@ classdef Sh_trussTotalMass < handle
             interp = obj.interpolator;
             interp.computeSectionAreaDerivative();
             obj.gradient = interp.sectionAreaDerivative.*[obj.barLength;obj.barLength];
+            obj.gradient = obj.gradient;
         end
         
         

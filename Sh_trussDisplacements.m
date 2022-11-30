@@ -37,7 +37,7 @@ classdef Sh_trussDisplacements < handle
             u = p.displacement;
             RHS = obj.computeAdjointRHS(u);
             p.solveDisplacementAdjoint(RHS);
-            obj.gradient = -p.Adjoint.*p.stiffnessDerivative;
+            obj.gradient = -p.Adjoint.*p.stiffnessDerivative.*p.displacement;
         end
         
         
