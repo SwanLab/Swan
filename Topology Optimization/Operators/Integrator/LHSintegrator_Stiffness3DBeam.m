@@ -37,7 +37,7 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
         function LHS = assembleMatrixField(obj, Ae)
             nNods = size(obj.coord, 1);
             nNodE = size(obj.connec,2);
-            nDim  = 3;
+            nDim  = 6; %3
             nDofs = nNods*nDim;
             dofConn = obj.computeDofConnectivity();
             Kg = zeros(nNods*nDim, nNods*nDim);
@@ -82,6 +82,8 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
             E = obj.material.E;
             G = obj.material.G;
             % J = St Venant torsional stiffness
+            Iy = Iz;
+            J = Iz/2; % For ISCSO sections
             nBars = size(obj.connec,1);
             Ke = zeros(12,12, nBars);
             k1 = E.*A./L;

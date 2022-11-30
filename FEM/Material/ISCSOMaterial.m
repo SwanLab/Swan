@@ -2,6 +2,7 @@ classdef ISCSOMaterial < handle
     
     properties (Access = public)
         E
+        G
     end
     
     properties (Access = private)
@@ -25,6 +26,7 @@ classdef ISCSOMaterial < handle
         
         function init(obj,cParams)
             obj.E = 1;
+            obj.G = 1;
         end
         
     end
