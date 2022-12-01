@@ -37,7 +37,7 @@ classdef Sh_trussDisplacements < handle
             u = p.displacement;
             RHS = obj.computeAdjointRHS(u);
             p.solveDisplacementAdjoint(RHS);
-            obj.gradient = -p.Adjoint.*p.stiffnessDerivative.*p.displacement;
+            obj.gradient = obtainGradientFromAdjoint(p);
         end
         
         
@@ -59,7 +59,10 @@ classdef Sh_trussDisplacements < handle
             p      = obj.pVal;
             u_i    = zeros(nNodes,1);
             for i = 1:nNodes
-                u_i(i) = (u(1,1,i)^q + u(1,2,i)^q + u(1,3,i)^q)^(1/q);
+                n1 = 6*(i-1) + 1;
+                n2 = n1 + 1;
+                n3 = n2 + 1;
+                u_i(i) = (u(n1,1)^q + u(n2,1)^q + u(n3,1)^q)^(1/q);
             end
             obj.u_q = u_i;
             u_i     = u_i.^p;
@@ -76,9 +79,24 @@ classdef Sh_trussDisplacements < handle
             RHS    = zeros(nNodes*3,1);
             for i = 1:length(k)
                 uNode = k(i).*u(:,:,i);
-                n1    = 3*(i-1) + 1;
-                n2    = 3*i;
+                n1    = 6*(i-1) + 1;
+                n2    = 6*i;
                 RHS(n1:n2) = uNode;
+            end
+        end
+
+        function g = obtainGradientFromAdjoint(obj,f)
+            p  = f.displacementAdjoint;
+            dK = f.stiffnessDerivative;
+            u  = f.displacement;
+            g  = zeros(nVar*2,1);
+            for var = 1:2
+                n = (1-var)*obj.varN;
+                for i = 1:obj.varN*2
+                    n1 = 12*(i-1) + 1 + n;
+                    n2 = 12*i + n;
+                    g(i + n,1) = -p(n1:n2,1)'*dK(n1:n2,n1:n2,var)*u(n1:n2,1);
+                end
             end
         end
 
