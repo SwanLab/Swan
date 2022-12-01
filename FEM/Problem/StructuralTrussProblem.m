@@ -3,6 +3,8 @@ classdef StructuralTrussProblem < handle
     properties (Access = public)
         stress
         displacement
+        adjoint
+        stiffnessDerivative
     end
 
     properties (Access = private) % In
@@ -58,6 +60,28 @@ classdef StructuralTrussProblem < handle
             s.material = obj.material;
             lhs = LHSintegrator_StiffnessBeam(s);
             obj.LHS = lhs.compute();
+        end
+
+        function computeLHSDerivative(obj)
+            s.coord    = obj.coord;
+            s.connec   = obj.connec;
+            s.material = obj.material;
+            lhs = LHSintegrator_StiffnessBeam(s);
+            obj.stiffnessDerivative = lhs.computeDerivative();
+        end
+
+        function solveDisplacementAdjoint(obj,F)
+            nNods = size(obj.coord, 1);
+            nDofs = nNods * 3;
+            fixedDofs = obj.convertDataToDof();
+            fixedVals = fixedDofs(:,2);
+            dofs = 1:nDofs;
+            freeDofs = setdiff(dofs,fixedDofs(:,1));
+            K   = obj.LHS(freeDofs, freeDofs);
+            KRL = obj.LHS(freeDofs, fixedDofs(:,1));
+            F = F - KRL * fixedVals;
+            p = obj.solver.solve(K,F);
+            obj.adjoint = p;
         end
 
         function computeRHS(obj)
