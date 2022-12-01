@@ -18,12 +18,17 @@ classdef BarSectionInterpolation < handle
             obj.init(designVar);
         end
 
-        function computeSectionAreaAndInertia(obj)
-            obj.computeSectionArea();
-            obj.computeSectionInertia();
+        function [A,I] = computeSectionAreaAndInertia(obj)
+            A = obj.computeSectionArea();
+            I = obj.computeSectionInertia();
         end
 
-        function computeSectionArea(obj)
+        function [dA, dI] = computeSectionAreaAndInertiaDerivative(obj)
+            dA = obj.computeSectionAreaDerivative();
+            dI = obj.computeSectionInertiaDerivative();
+        end
+
+        function A = computeSectionArea(obj)
             var    = obj.designVariable.value;
             varNum = length(var)/2;
             r      = var(1:varNum);
@@ -32,7 +37,7 @@ classdef BarSectionInterpolation < handle
             obj.sectionArea = A;
         end
 
-        function computeSectionInertia(obj)
+        function I = computeSectionInertia(obj)
             var    = obj.designVariable.value;
             varNum = length(var)/2;
             r      = var(1:varNum);
@@ -41,20 +46,24 @@ classdef BarSectionInterpolation < handle
             obj.sectionInertia = I;
         end
 
-        function computeSectionAreaDerivative(obj)
+        function dA = computeSectionAreaDerivative(obj)
             var = obj.designVariable.value;
             xR = var(1:obj.nVar);
             xT = var(obj.nVar+1:end);
             gR = 4*pi.*xT;
             gT = 4*pi.*xR;
-            obj.sectionAreaDerivative = [gR;gT];   
+            dA(1) = gR;
+            dA(2) = gT;
+            obj.sectionAreaDerivative = [gR;gT];
         end
 
-        function computeSectionInertiaDerivative(obj)
+        function dI = computeSectionInertiaDerivative(obj)
             xR = obj.designVariable(1:obj.nVar);
             xT = obj.designVariable(obj.nVar+1:end);
             gR = 8*pi.*xT*(3.*xR.^2 + xT.^2);
             gT = 8*pi.*xR*(3.*xT.^2 + xR.^2);
+            dI(1) = gR;
+            dI(2) = gT;
             obj.sectionInertiaDerivative = [gR;gT];
         end
 

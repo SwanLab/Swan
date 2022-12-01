@@ -1,14 +1,12 @@
 %% Testing ISCSO FEM
 clc; clear;
 
-run('ISCSOMesh.m')
+run('ISCSOMesh3D.m')
 s.coord  = coord;
 s.connec = connec;
 s.material = ISCSOMaterial(s);
-% forces = [5 1 0;
-%           5 2 10];
 s.neumann = neumann;
 s.dirichlet = dirichlet;
 
-fem = StructuralTrussProblem(s);
+fem = StructuralTruss3DProblem(s);
 fem.solve();

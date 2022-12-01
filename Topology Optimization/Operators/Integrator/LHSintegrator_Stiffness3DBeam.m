@@ -19,6 +19,11 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
             LHS = obj.assembleMatrixField(lhs);
         end
 
+        function LHS = computeDerivative(obj)
+            lhs = obj.computeElementalLHSDerivative();
+            LHS = obj.assembleMatrixField(lhs);
+        end
+
     end
 
 
@@ -26,13 +31,23 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
 
         function lhs = computeElementalLHS(obj)
             le = obj.calculateBarLength();
-            [A, Iz] = obj.getBarSectionData();
+            [A, Iz] = obj.interp.computeSectionAreaAndInertia();
             Ke = obj.computeLocalK(le, A, Iz);
             Re = obj.computeRotationMatrix(le);
             ReT   = permute(Re,[2 1 3]);
             ReTKe  = pagemtimes(ReT,Ke);
             lhs    = pagemtimes(ReTKe, Re);
         end
+
+        function lhs = computeElementalLHSDerivative(obj)
+            le = obj.calculateBarLength();
+            [dA, dIz] = obj.interp.computeSectionAreaAndInertiaDerivative();
+            Ke = obj.computeLocalKDerivative(le, dA, dIz);
+            Re = obj.computeRotationMatrix(le);
+            ReT   = permute(Re,[2 1 3]);
+            ReTKe  = pagemtimes(ReT,Ke);
+            lhs    = pagemtimes(ReTKe, Re);
+        end 
 
         function LHS = assembleMatrixField(obj, Ae)
             nNods = size(obj.coord, 1);
@@ -198,7 +213,7 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
 
         function dofConnec = computeDofConnectivity(obj)
             conne = obj.connec;
-            nDimf = 3;
+            nDimf = 6;
             nNodeEl = size(conne, 2);
             nDofsEl = nNodeEl * nDimf;
             dofsElem  = zeros(nDofsEl,size(conne,1));
@@ -214,8 +229,20 @@ classdef LHSintegrator_Stiffness3DBeam < LHSintegrator
         end
 
         function idof = nod2dof(obj, inode, iunkn)
-            ndimf = 3;
+            ndimf = 6;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
+        end
+
+        function dKe = computeLocalKDerivative(obj, le, dA, dIz)
+            dAdr = dA(1);
+            dAdt = dA(2);
+            dIdr = dIz(1);
+            dIdt = dIz(2);
+            dKedr = computeLocalK(obj, le, dAdr, dIdr);
+            dKedt = computeLocalK(obj, le, dAdt, dIdt);
+            dKe(:,:,:,1) = dKedr;
+            dKe(:,:,:,2) = dKedt;
+            % suposo que els termes creuats no calen?
         end
 
     end

@@ -31,6 +31,11 @@ classdef StructuralTruss3DProblem < handle
             obj.computeDisplacements();
         end
 
+        function solveAdjoint(obj,p)
+            obj.computeLHS();
+            obj.displacement = obj.LHS\p;
+        end
+
     end
 
     methods (Access = private)
@@ -56,7 +61,8 @@ classdef StructuralTruss3DProblem < handle
             s.coord    = obj.coord;
             s.connec   = obj.connec;
             s.material = obj.material;
-            lhs = LHSintegrator_StiffnessBeam(s);
+            s.interp   = obj.barInterp;
+            lhs = LHSintegrator_Stiffness3DBeam(s);
             obj.LHS = lhs.compute();
         end
 
