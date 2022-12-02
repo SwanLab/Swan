@@ -54,15 +54,21 @@ function rg = getAreaAndInertia()
 %     plotWithRadAndThick(Ae,Ai,Aei,Iei,Aef,Aif,Af,If,indexOpt,h,'Ae','Ai')
     index = 1:length(Af);
     notIndexOpt = setdiff(index,indexOpt);
+
     figure()
     hold on
     plot(Af(notIndexOpt),If(notIndexOpt),'ro','MarkerFaceColor', 'r','MarkerSize',3)
     for i = 1:length(h)
         plot(Af(indexOpt(i)),If(indexOpt(i)),'ko','MarkerFaceColor', 'k','MarkerSize',h(i))
     end
+
     xlabel('Area')
     ylabel('Inertia')
     hold off
+
+    %% Comparing A/I-length values
+    % for our solution and the optimal one
+%     close all
     load("l.mat");
     load("sect.mat");
     AI = Si(indexAll,1)./Si(indexAll,2);
@@ -70,29 +76,48 @@ function rg = getAreaAndInertia()
     plot(AI,l,'ro','MarkerFaceColor', 'r')
     xlabel('A/I')
     ylabel('Bar length')
+
+    
     figure()
     Area = Si(sect,1);
     Inertia = Si(sect,2);
+    
     subplot(1,2,1)
     hold on
     plot(Area,Inertia,'ko','MarkerFaceColor', 'k')
     plot(Si(:,1),Si(:,2),'ro','MarkerFaceColor', 'r','MarkerSize',3)
+    for i = 1:length(h)
+        plot(Area(indexOpt(i)),Inertia(indexOpt(i)),'ko','MarkerFaceColor', 'k','MarkerSize',h(i))
+        plot(Si(indexAll(i),1),Si(indexAll(i),2),'ro','MarkerFaceColor', 'r','MarkerSize',h(i))
+    end
     hold off
     xlabel('Area')
     ylabel('Inertia')
     title('El nostre')
+
     subplot(1,2,2)
     hold on
-    plot(Si(indexAll,1),Si(indexAll,2),'ko','MarkerFaceColor', 'k')
-    plot(Si(:,1),Si(:,2),'ro','MarkerFaceColor', 'r','MarkerSize',3)
+    plot(Si(indexAll,1),Si(indexAll,2),'ko','MarkerFaceColor', 'k') %optim
+    plot(Si(:,1),Si(:,2),'ro','MarkerFaceColor', 'r','MarkerSize',3) %nostre
+    for i = 1:length(h)
+        plot(Area(indexOpt(i)),Inertia(indexOpt(i)),'ko','MarkerFaceColor', 'k','MarkerSize',h(i))
+        plot(Si(indexAll(i),1),Si(indexAll(i),2),'ro','MarkerFaceColor', 'r','MarkerSize',h(i))
+    end
     hold off
     xlabel('Area')
     ylabel('Inertia')
     title('Òptim')
+
+%     close all
     figure()
     hold on
     plot(Area,Inertia,'ro')
     plot(Si(indexAll,1),Si(indexAll,2),'b*')
+    hold on
+    for i = 1:length(h)
+        plot(Area(indexOpt(i)),Inertia(indexOpt(i)),'ro','MarkerSize',h(i))
+        plot(Si(indexAll(i),1),Si(indexAll(i),2),'b*','MarkerSize',h(i))
+    end
 %     plot(Si(:,1),Si(:,2),'ok')
     hold off
 
