@@ -14,6 +14,7 @@ classdef TrussStructureProblem < handle
     methods (Access = public)
         
         function obj = TrussStructureProblem()
+            obj.createAreaAndInertia();
             obj.compute();
         end
 
@@ -75,6 +76,12 @@ classdef TrussStructureProblem < handle
             obj.nBars   = size(connec,1);
             obj.barsLength = ones(6,1);% S'HA DE CALCULAR
             prob = StructuralTrussProblem(s);
+        end
+
+        function createAreaAndInertia()
+            Si = DataSections();
+            A = Si(:,1);
+            I = Si(:,2);
         end
 
     end
