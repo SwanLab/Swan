@@ -11,10 +11,8 @@ classdef TestingOrthogonalCorrectors < handle
     properties (Access = private)
        mesh
        orientation       
-       isVertexInCell
-       referenceCells
-       symCond
-       correctorValue
+       interpolator
+       orthogonalCorrector
     end
     
     methods (Access = public)
@@ -25,6 +23,7 @@ classdef TestingOrthogonalCorrectors < handle
             obj.createBenchmarkMesh();        
             obj.createBenchmarkOrientation();
             obj.plotOrientationVector();
+            obj.createInterpolator();
             obj.createOrthogonalCorrector();
         end
         
@@ -94,31 +93,48 @@ classdef TestingOrthogonalCorrectors < handle
             ax = a(:,1);
             ay = a(:,2);
             quiver(x,y,ax,ay);
-        end        
+        end     
         
- 
+        function createInterpolator(obj)
+            s.meshCont    = obj.mesh;
+            s.meshDisc    = obj.mesh.createDiscontinousMesh;
+            s.orientation = obj.orientation;
+            s = SymmetricContMapCondition(s);            
+            sC = s.computeCondition();
+            obj.interpolator = sC;            
+        end            
 
         function createOrthogonalCorrector(obj)
-            s.mesh               = obj.mesh;
-            s.orientation        = obj.orientation;
+            s.mesh            = obj.mesh;
+            s.interpolator    = obj.interpolator;
+            s.correctorValue  = obj.computeCorrector();
             o = OrthogonalCorrectorComputer(s);
-            o.compute();
+            oC = o.compute();
             o.plot();
-        end
+            obj.orthogonalCorrector = oC;            
+        end       
         
-        %Coefffffss
-        
-       function fD = createDiscontinousField(obj,fValues)
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = fValues;
-            f = FeFunction(s);            
-            fD = f.computeDiscontinousField();
-       end         
-                        
-        
-       
-        
+        function cV = computeCorrector(obj)   
+            s.mesh               = obj.mesh;            
+            s.orientation        = obj.orientation;
+            s.singularityCoord   = obj.computeSingularities();
+            c = CorrectorComputer(s);
+            cV = c.compute();
+            c.plot()                        
+        end        
+                  
+        function sCoord = computeSingularities(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = obj.orientation;
+            sF = SingularitiesFinder(s);
+            isS = sF.computeSingularElements();
+            sF.plot();
+            coordB = obj.mesh.computeBaricenter();
+            coordB = transpose(coordB);
+            sCoord =  coordB(isS,:);
+            sCoord = sCoord(1,:);
+        end          
+
     end
     
 

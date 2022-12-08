@@ -18,8 +18,9 @@ classdef DehomogenizingSingularities < handle
         
         function obj = DehomogenizingSingularities()
             obj.createMesh();
+            obj.createBackgroundMesh();            
             obj.createOrientation();
-            obj.computeSingularities();
+            %obj.computeSingularities();
             obj.dehomogenize();
         end
         
@@ -33,15 +34,17 @@ classdef DehomogenizingSingularities < handle
         end
         
         function createOrientation(obj)
-            obj.createBenchmarkOrientation();
-        end
-        
-        function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.orientation;
-            sF = SingularitiesFinder(s);
-            isS = sF.computeSingularElements();
-            sF.plot();
+            m = obj.backgroundMesh;%obj.mesh
+            s1 = 0.32;
+            s2 = -0.8;
+            x1 = m.coord(:,1);
+            x2 = m.coord(:,2);
+            v(:,1) = cos(pi*(x1 + s1*x2));
+            v(:,2) = cos(pi*(x2 + s2*x1));
+            beta = atan2(v(:,2),v(:,1));
+            alpha = beta/2;
+            obj.orientation(:,1) = cos(alpha);
+            obj.orientation(:,2) = sin(alpha);
         end
         
         function createBenchmarkMesh(obj)
@@ -62,26 +65,13 @@ classdef DehomogenizingSingularities < handle
             m = Mesh(s);            
             obj.mesh = m;
         end        
-        
-        function createBenchmarkOrientation(obj)
-            s1 = 0.32;
-            s2 = -0.8;
-            x1 = obj.mesh.coord(:,1);
-            x2 = obj.mesh.coord(:,2);
-            v(:,1) = cos(pi*(x1 + s1*x2));
-            v(:,2) = cos(pi*(x2 + s2*x1));
-            beta = atan2(v(:,2),v(:,1));
-            alpha = beta/2;
-            obj.orientation(:,1) = cos(alpha);
-            obj.orientation(:,2) = sin(alpha);
-        end  
+               
 
         function dehomogenize(obj)
-            obj.createBackgroundMesh();
             s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = 46;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
-            s.mesh               = obj.mesh;
+            s.mesh               = obj.backgroundMesh;%obj.mesh;
             s.theta              = atan2(obj.orientation(:,2),obj.orientation(:,1));
             d = Dehomogenizer(s);
             d.compute();
@@ -91,8 +81,8 @@ classdef DehomogenizingSingularities < handle
 
          function s = createLevelSetCellParams(obj)        
             s.type   = 'rectangleInclusion';
-            s.widthH = 0.7*ones(size(obj.backgroundMesh.coord,1),1);
-            s.widthV = 0.7*ones(size(obj.backgroundMesh.coord,1),1);        
+            s.widthH = 0.87*ones(size(obj.backgroundMesh.coord,1),1);
+            s.widthV = 0.87*ones(size(obj.backgroundMesh.coord,1),1);        
             s.ndim   = 2;
          end          
 
@@ -101,8 +91,9 @@ classdef DehomogenizingSingularities < handle
              FV.faces    = obj.mesh.connec;
              FV2 = FV;
              FV2 = refinepatch(FV2);
-             FV2 = refinepatch(FV2);
-             FV2 = refinepatch(FV2);
+           %  FV2 = refinepatch(FV2);
+           %  FV2 = refinepatch(FV2);
+           %  FV2 = refinepatch(FV2);             
              s.coord = FV2.vertices(:,1:2);
              s.connec = FV2.faces;
              m = Mesh(s);

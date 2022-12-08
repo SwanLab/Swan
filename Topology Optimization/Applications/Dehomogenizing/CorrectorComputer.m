@@ -17,7 +17,6 @@ classdef CorrectorComputer < handle
         isVertexInCell    
         areVertexCoherent        
         pathVertexes     
-        singularityCoord   
         isCellRight
         isCellLeft        
     end
@@ -25,6 +24,7 @@ classdef CorrectorComputer < handle
     properties (Access = private)
         mesh
         orientation
+        singularityCoord
     end
     
     methods (Access = public)
@@ -37,7 +37,6 @@ classdef CorrectorComputer < handle
                 
         function phiV = compute(obj) 
             obj.computeCoherentOrientation();
-            obj.computeSingularities();
             obj.computePathToBoundary();
             obj.createLeftRightPathElements();
             obj.computeReferenceCells();                        
@@ -67,6 +66,7 @@ classdef CorrectorComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.orientation        = cParams.orientation;
+            obj.singularityCoord   = cParams.singularityCoord;
         end
         
         function computeCoherentOrientation(obj)
@@ -77,18 +77,6 @@ classdef CorrectorComputer < handle
             obj.areVertexCoherent = aC;
         end                
         
-       function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.orientation;
-            sF = SingularitiesFinder(s);
-            isS = sF.computeSingularElements();
-            sF.plot();
-            coordB = obj.mesh.computeBaricenter();
-            coordB = transpose(coordB);
-            sCoord =  coordB(isS,:);
-            obj.singularityCoord = sCoord(1,:);            
-        end                       
-                           
         function computePathToBoundary(obj)
             s.mesh = obj.mesh;
             s.singularityCoord   = obj.singularityCoord;

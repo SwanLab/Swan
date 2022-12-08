@@ -64,8 +64,8 @@ classdef PathVertexesToBoundaryComputer < handle
         end        
 
         function computeBenchmarkBoundaryPoint(obj)
+           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);                       
            obj.boundaryPointCoord(:,1) = max(obj.mesh.coord(:,1));            
-           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);           
         end               
 
         function createStraightPathVector(obj)

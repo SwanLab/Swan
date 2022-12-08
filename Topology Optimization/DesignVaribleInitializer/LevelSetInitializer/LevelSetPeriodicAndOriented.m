@@ -76,8 +76,9 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function [y1,y2] = applyMapping(obj)
             y1 = obj.mapping.phi(:,1);
             y2 = obj.mapping.phi(:,2);
-            y1 = obj.interpolateFunction(y1);
-            y2 = obj.interpolateFunction(y2);
+            mD = obj.mesh.createDiscontinousMesh;
+            y1 = obj.interpolateFunction(y1,mD);
+            y2 = obj.interpolateFunction(y2,mD);
         end 
         
         function thresholdParameters(obj)
@@ -94,7 +95,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         
         function t = computeMinLengthInUnitCell(obj)
             r = obj.mapping.dilation;
-            r = obj.interpolateFunction(r);            
+            r = obj.interpolateFunction(r,obj.mesh);            
             hC = obj.epsilon*exp(-r);
             hmin = min(hC);
             hmax = max(hC);
@@ -103,9 +104,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             t = hcut./hC;                           
         end
         
-        function vq = interpolateFunction(obj,v)
-            X = obj.mesh.coord(:,1);
-            Y = obj.mesh.coord(:,2);
+        function vq = interpolateFunction(obj,v,mesh)
+            m = mesh;
+            X = m.coord(:,1);
+            Y = m.coord(:,2);
             F = scatteredInterpolant(X,Y,v);
             xB = obj.backgroundMesh.coord(:,1);
             yB = obj.backgroundMesh.coord(:,2);
@@ -132,8 +134,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     methods (Access = private, Static)
         
         function f = periodicFunction(y)
-           % f = abs(cos(pi/2*y)).^2;
-            f = y - floor(y);
+            f = abs(cos(pi/2*y)).^2;
+           % f = y - floor(y);
         end                        
         
     end

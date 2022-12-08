@@ -5,14 +5,15 @@ classdef OrthogonalCorrectorComputer < handle
     end
     
     properties (Access = private)
-        correctorValue
+        
         shiftingValue
         orthogonalCorrectorValue
     end
     
     properties (Access = private)
         mesh
-        orientation        
+        interpolator        
+        correctorValue               
     end
     
     methods (Access = public)
@@ -21,17 +22,33 @@ classdef OrthogonalCorrectorComputer < handle
             obj.init(cParams)            
         end
         
-        function compute(obj)
-            obj.createCorrector();
+        function c = compute(obj)
             obj.createShifting();
             obj.createOrthogonalCorrector();
+            c = obj.orthogonalCorrectorValue;
         end
         
         function plot(obj)
-            phi = obj.orthogonalCorrectorValue;
+            obj.plotFieldDG((obj.orthogonalCorrectorValue))
+            obj.plotFieldDG((obj.shiftingValue))
+            
+            
+            figure()
+            m = obj.mesh.createDiscontinousMesh();
+            x = m.coord(:,1);
+            y = m.coord(:,2);
+            z = abs(obj.shiftingValue');
+            %figure()
+            tricontour(m.connec,x,y,z,linspace(min(z(:)),max(z(:)),30))
+         %   view(0,90)
+        %    colorbar
+        %    shading interp
+        end
+        
+        function plotFieldDG(obj,f)
             figure()
             s.mesh  = obj.mesh.createDiscontinousMesh();
-            s.field = transpose(phi);
+            s.field = transpose(f);
             n = NodalFieldPlotter(s);
             n.plot();
             shading interp             
@@ -43,64 +60,55 @@ classdef OrthogonalCorrectorComputer < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientation        = cParams.orientation;
+            obj.interpolator       = cParams.interpolator;
+            obj.correctorValue     = cParams.correctorValue;
         end
-        
-        function createCorrector(obj)   
-            s.mesh               = obj.mesh;            
-            s.orientation        = obj.orientation;
-            c = CorrectorComputer(s);
-            cV = c.compute();
-            c.plot()                        
-            obj.correctorValue = cV;
-        end
-        
+
         function createShifting(obj)
             s.mesh     = obj.mesh;
-            s.fGauss   = obj.createCorrectorGradient();
-            s.fValues  = obj.orientation';                        
+            s.fGauss   = obj.createDiscontinousGradient(obj.correctorValue);
             s.rhsType = 'ShapeDerivative';
+            s.interpolator = obj.interpolator;
             m = MinimumDiscGradFieldWithVectorInL2(s);
             f = m.solve();
-            fD = obj.createDiscontinousField(f);
-            fD  = reshape(fD',3,[])';  %%%Ehhhhhh!  
-            obj.shiftingValue = fD;
+            obj.shiftingValue = f;
         end
         
-        function fGauss = createCorrectorGradient(obj) %%%Ehhhhh
-            cV = obj.correctorValue;
+        function fGauss = createDiscontinousGradient(obj,field)%%%Ehhhhh            
+            cV = field; 
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');              
+            q.computeQuadrature('QUADRATIC');              
             int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
             int.computeShapeDeriv(q.posgp); 
-            dN = int.deriv;
-            nDim = size(dN,2);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            dN = g.dNdx;            
+            
+            %dN = int.deriv;
+            nDim = size(dN,1);
+            nnode = size(dN,2);
             fGauss = zeros(nDim,q.ngaus,obj.mesh.nelem);
             for igaus = 1:q.ngaus
                 for idim = 1:nDim
-                    grad = dN(igaus,idim)*cV(:,idim);
+                    for iNode = 1:nnode
+                    dNi = squeeze(dN(idim,iNode,:,igaus));
+                    grad = dNi.*cV(:,iNode);
                     fG(:,1) = squeeze(fGauss(idim,igaus,:));
                     fGauss(idim,igaus,:) = fG + grad;
+                    end
                 end
             end            
         end        
         
-       function fD = createDiscontinousField(obj,fValues)
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = fValues;
-            f = FeFunction(s);            
-            fD = f.computeDiscontinousField();
-       end     
-       
-
        function createOrthogonalCorrector(obj)
             phi = obj.correctorValue;
             fD  = obj.shiftingValue;
             phi = phi -fD; 
             obj.orthogonalCorrectorValue = phi;
        end
-        
+       
+
     end
     
 end

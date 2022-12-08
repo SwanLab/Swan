@@ -2,12 +2,13 @@ classdef SymmetricContMapCondition < handle
     
     properties (Access = private)
         isCoherent
+        orientationDisc        
     end
     
     properties (Access = private)
        meshDisc
        meshCont
-       orientationDisc
+       orientation
     end
     
     methods (Access = public)
@@ -17,6 +18,7 @@ classdef SymmetricContMapCondition < handle
         end
         
         function c = computeCondition(obj)
+            obj.createOrientationDiscontinous();
             obj.isOrientationCoherent();
             c = obj.computeSymmetricCondition();
         end
@@ -26,10 +28,19 @@ classdef SymmetricContMapCondition < handle
     methods (Access = private)
         
         function init(obj,cParams)         
-            obj.meshCont        = cParams.meshCont;
-            obj.meshDisc        = cParams.meshDisc;
-            obj.orientationDisc = cParams.fieldDisc;
+            obj.meshCont    = cParams.meshCont;
+            obj.meshDisc    = cParams.meshDisc;
+            obj.orientation = cParams.orientation;
         end
+        
+        function createOrientationDiscontinous(obj)
+            s.connec = obj.meshCont.connec;
+            s.type   = obj.meshCont.type;
+            s.fNodes = obj.orientation;
+            f = FeFunction(s);            
+            fD = f.computeDiscontinousField();
+            obj.orientationDisc = fD;
+        end         
 
         function isOrientationCoherent(obj)
             s.mesh        = obj.meshDisc;

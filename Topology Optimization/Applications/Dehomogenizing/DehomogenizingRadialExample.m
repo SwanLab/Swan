@@ -29,9 +29,9 @@ classdef DehomogenizingRadialExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nx1    = 125*2;
-            obj.nx2    = 125;
-            obj.nCells = 16;
+            obj.nx1    = 180*2;
+            obj.nx2    = 180;
+            obj.nCells = 32;
         end
         
         function createBackgroundMesh(obj)
@@ -74,7 +74,9 @@ classdef DehomogenizingRadialExample < handle
         function createOrientation(obj)
             x2 = obj.backgroundMesh.coord(:,2);
             x1 = obj.backgroundMesh.coord(:,1);
-            obj.theta = atan2(x2,x1);
+            obj.theta = atan((x2+0.1)./x1);            
+            isLeft = x1 < 0;
+            %obj.theta(isLeft) = obj.theta(isLeft) + 180;
         end
 
         function createSuperEllipseParams(obj)
@@ -90,8 +92,8 @@ classdef DehomogenizingRadialExample < handle
         
         function createLevelSetCellParams(obj)
            s.type   = 'smoothRectangle';
-           s.widthH = obj.superEllipse.m1;
-           s.widthV = obj.superEllipse.m2;
+           s.widthH = 0.7*ones(size(obj.superEllipse.m1));
+           s.widthV = 0.7*ones(size(obj.superEllipse.m2));
            s.pnorm  = obj.superEllipse.q;
            s.ndim   = 2;
            obj.cellLevelSetParams = s;
