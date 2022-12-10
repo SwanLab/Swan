@@ -56,19 +56,21 @@ classdef EulerBeamOptimizer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.initValue = cParams.value;
+            obj.initValue     = cParams.value;
             obj.nElem         = 500;
             obj.nConstraints  = 3; 
             obj.columnLength  = 1; 
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
-            obj.minThick      = 0.5;
-            obj.maxThick      = 100;
             obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Random'; % Random/Constant/External Value
             obj.meshType      = 'Structured'; %Structured/Unstructured
-            obj.maxIter       = 100;
+            obj.maxIter       = 1000;
+            obj.minThick(1:obj.nElem,1) = 0.5; %sqrt(0.5/pi);
+            obj.minThick(obj.nElem+1)   = 0;
+            obj.maxThick(1:obj.nElem,1) = 10; %sqrt(100/pi);
+            obj.maxThick(obj.nElem+1)   = 10000;
         end
         
         function createMesh(obj)
@@ -154,7 +156,7 @@ classdef EulerBeamOptimizer < handle
             s.type = obj.optimizerType;
             s.outputFunction.monitoring  = MonitoringManager(s);                  
             s.maxIter           = obj.maxIter;
-            s.constraintCase = {'INEQUALITY','INEQUALITY','EQUALITY'};
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
 
             obj.optimizer = Optimizer.create(s); 

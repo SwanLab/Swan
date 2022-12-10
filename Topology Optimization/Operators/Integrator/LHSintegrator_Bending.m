@@ -80,9 +80,12 @@ classdef LHSintegrator_Bending < LHSintegrator
             desVar = (A.^2)';
             Edof = d.ndofsElem;
             lhs = zeros(Edof,Edof,nElem);
-            for iElem = 1:nElem
-                lhs(:,:,iElem) = desVar(iElem).*Be(:,:,iElem);
-            end 
+            for iNode = 1:Edof
+                for jNode = 1:Edof
+                    Bij = squeeze(Be(iNode,jNode,:));
+                    lhs(iNode,jNode,:) = desVar(:).*Bij;
+                end
+            end
         end
 
         function l = computeLength(obj)

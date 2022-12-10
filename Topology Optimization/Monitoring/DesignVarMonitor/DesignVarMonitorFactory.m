@@ -59,6 +59,8 @@ classdef DesignVarMonitorFactory < handle
                     end
                 case 'AreaColumn'
                     obj.monitor = DesignVarMonitor_AreaColumn(mS);
+                case 'RadiusColumn'
+                    obj.monitor = DesignVarMonitor_RadiusColumn(mS);
                 otherwise
                     error('Invalid Design Variable')
             end

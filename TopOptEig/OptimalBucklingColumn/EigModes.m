@@ -52,6 +52,7 @@ classdef EigModes < handle
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
             x = obj.designVariable.getColumnArea();
+            %x = obj.designVariable.getColumnRadius();
             nElem = obj.mesh.nelem;
             eigV1 = obj.D(1,1);
             eigV2 = obj.D(2,2);
@@ -82,6 +83,7 @@ classdef EigModes < handle
             for i = 1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
                 dx = 2*x(i,1);
+                %dx = 4*pi^2*x(i,1).^3;
                 dfdx(1,i) = -dx*(W(index,1)'*Belem(:,:,i)*W(index,1));
                 dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
             end    
@@ -104,6 +106,7 @@ classdef EigModes < handle
             for i=1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
                 dx = 2*x(i,1);
+                %dx = 4*pi^2*x(i,1).^3;
                 dW1(i,1)= dx*(W1(index,1)'*Belem(:,:,i)*W1(index,1));
                 dW2(i,1)= dx*(W2(index,1)'*Belem(:,:,i)*W2(index,1));
                 dW1W2(i,1)= (2*x(i,1))*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
@@ -141,7 +144,8 @@ classdef EigModes < handle
         
          function createBoundaryConditions(obj)
             d = obj.dim;
-            fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
+            %fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
+            fixnodes = [1,2];
             nodes = 1:d.ndofs;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;

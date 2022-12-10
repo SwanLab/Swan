@@ -157,9 +157,9 @@ classdef Optimizer_MMA < Optimizer
                 obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmin = obj.lowerBound.*ones(length(x0),1);
                 obj.xmin(end) = 0;
-                obj.xmax = obj.upperBound*ones(length(x0),1);
+                obj.xmax = obj.upperBound.*ones(length(x0),1);
                 obj.xmax(end) = 1000;
                 % obj.low = obj.xmin;
                 obj.low = zeros(length(x0),1);

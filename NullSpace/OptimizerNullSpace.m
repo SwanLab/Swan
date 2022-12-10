@@ -11,7 +11,7 @@ classdef OptimizerNullSpace < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 0.1
+        tol = 0.01
         nX
         hasConverged
         acceptableStep

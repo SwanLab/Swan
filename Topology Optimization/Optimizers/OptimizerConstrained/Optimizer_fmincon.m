@@ -73,8 +73,8 @@ classdef Optimizer_fmincon < Optimizer
             prob.b                 = [];
             prob.Aeq               = [];
             prob.beq               = [];
-            prob.ub                = obj.upperBound*ones(obj.nX,1);
-            prob.lb                = obj.lowerBound*ones(obj.nX,1);
+            prob.ub                = obj.upperBound.*ones(obj.nX,1);
+            prob.lb                = obj.lowerBound.*ones(obj.nX,1);
             prob.nonlcon           = @(x) obj.constraintAndGradient(x);
             prob.solver            = "fmincon";
             obj.problem            = prob;
