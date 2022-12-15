@@ -16,6 +16,7 @@ classdef EigModes < handle
     properties (Access = private)
         dim
         designVariable
+        sectionVariables
         stiffnessMatComputer
         bendingMatComputer
         inertiaMoment
@@ -125,6 +126,7 @@ classdef EigModes < handle
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
             obj.designVariable       = cParams.designVariable;
+            obj.sectionVariables    = cParams.sectionVariables;
             obj.inertiaMoment        = cParams.inertiaMoment;
             obj.youngModulus         = cParams.youngModulus;
         end
@@ -144,8 +146,8 @@ classdef EigModes < handle
         
          function createBoundaryConditions(obj)
             d = obj.dim;
-            %fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
-            fixnodes = [1,2];
+            fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
+            %fixnodes = [1,d.ndofs-1];
             nodes = 1:d.ndofs;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;
@@ -169,6 +171,7 @@ classdef EigModes < handle
             s.inertiaMoment  = obj.inertiaMoment;
             s.youngModulus   = obj.youngModulus;
             s.designVariable = obj.designVariable;
+            s.sectionVariables = obj.sectionVariables;
             s.freeNodes      = obj.freeNodes;
             B = LHSintegrator.create(s);
             obj.bendingMatComputer = B;

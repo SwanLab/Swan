@@ -16,6 +16,7 @@ classdef EulerBeamOptimizer < handle
         initValueType
         meshType
         designVariable
+        sectionVariables
         eigenModes
         constraint
         optimizer
@@ -42,6 +43,7 @@ classdef EulerBeamOptimizer < handle
             obj.init(cParams)
             obj.createMesh();
             obj.createDesignVariable();
+            obj.createSectionVariables();
             obj.createEigModes();
             obj.createCost();
             obj.createConstraint();
@@ -63,7 +65,7 @@ classdef EulerBeamOptimizer < handle
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
-            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Random'; % Random/Constant/External Value
             obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.maxIter       = 1000;
@@ -91,6 +93,13 @@ classdef EulerBeamOptimizer < handle
             obj.designVariable = des;  
         end
 
+        function createSectionVariables(obj)
+            s.designVariable = obj.designVariable;
+            s.type = 'Circular';
+            sectVar = SectionVariablesComputer.create(s);
+            obj.sectionVariables = sectVar;
+        end
+
         function createCost(obj)
             sF.type = 'firstEignValue_functional';            
             sC.weights = 1;
@@ -101,10 +110,11 @@ classdef EulerBeamOptimizer < handle
         end
         
         function createEigModes(obj)
-            s.mesh           = obj.mesh;
-            s.inertiaMoment  = obj.inertiaMoment;
-            s.youngModulus   = obj.youngModulus;
-            s.designVariable = obj.designVariable;
+            s.mesh             = obj.mesh;
+            s.inertiaMoment    = obj.inertiaMoment;
+            s.youngModulus     = obj.youngModulus;
+            s.designVariable   = obj.designVariable;
+            s.sectionVariables = obj.sectionVariables;
             eigModes = EigModes(s);
             obj.eigenModes = eigModes;
         end
@@ -120,6 +130,7 @@ classdef EulerBeamOptimizer < handle
 
             sF3.type = 'volumeColumn';    
             sF3.mesh = obj.mesh;
+            sF3.sectionVariables = obj.sectionVariables;
 
             sC.nShapeFuncs = 3;
             sC.designVar = obj.designVariable;   

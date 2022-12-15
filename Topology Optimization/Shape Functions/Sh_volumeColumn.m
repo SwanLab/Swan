@@ -6,6 +6,7 @@ classdef Sh_volumeColumn < ShapeFunctional
     
     properties (Access = private)
         mesh
+        sectionVariables
     end
     
     methods (Access = public)
@@ -34,6 +35,7 @@ classdef Sh_volumeColumn < ShapeFunctional
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
+            obj.sectionVariables = cParams.sectionVariables;
         end
 
     end
@@ -62,7 +64,8 @@ classdef Sh_volumeColumn < ShapeFunctional
             nElem = obj.designVariable.mesh.nelem;
             dfdx = zeros(1,nElem+1);
             %dfdx(1,1:nElem)= 2*pi*l'.*R; %*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
-            dfdx(1,1:nElem)= l';
+            dA = obj.sectionVariables.computeAreaDerivative();
+            dfdx(1,1:nElem)= dA.*l';
             obj.gradient = dfdx;
         end
 
