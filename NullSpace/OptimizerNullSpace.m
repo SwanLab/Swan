@@ -1,5 +1,10 @@
 classdef OptimizerNullSpace < Optimizer
 
+    properties (Access = public)
+        aGt = 1/sqrt(10)  % 1e-2
+        aJ  = sqrt(10)    % 1e2
+    end
+
     properties (GetAccess = public, SetAccess = protected)
         type = 'NullSpace';
         fProv
@@ -96,15 +101,15 @@ classdef OptimizerNullSpace < Optimizer
             if obj.nIter ~= 0
                 obj.dualUpdater.update(); 
             end
-            obj.mOld = obj.computeMeritFunction(x0);
             obj.calculateInitialStep();
+            obj.mOld = obj.computeMeritFunction(x0);
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             DJ = obj.cost.gradient;
             Dg = obj.constraint.gradient;
             while ~obj.acceptableStep
 
-                obj.dualUpdater.parameter = 1/obj.primalUpdater.tau; % NEW NEW NEW
+                obj.dualUpdater.parameter = obj.aGt/(obj.aJ*obj.primalUpdater.tau); % NEW NEW NEW for EQUALITY
 
                 obj.computeMeritGradient(DJ,Dg);
                 x = obj.updatePrimal();
@@ -123,8 +128,7 @@ classdef OptimizerNullSpace < Optimizer
                 l       = obj.dualVariable.value;
                 DJ      = obj.cost.gradient;
                 Dg      = obj.constraint.gradient;
-                aJ      = 1;
-                DmF     = aJ*(DJ + Dg*l);
+                DmF     = obj.aJ*(DJ + Dg*l);
                 factor  = 1;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor,1);
             else
@@ -152,8 +156,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function computeMeritGradient(obj,DJ,Dg)
             l       = obj.dualVariable.value;
-            aJ      = 1;
-            DmF     = aJ*(DJ + Dg*l);
+            DmF     = obj.aJ*(DJ + Dg*l);
             obj.meritGradient = DmF;
         end
 
@@ -181,15 +184,20 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function mF = computeMeritFunction(obj,x)
+            DJ = obj.cost.gradient;
+            Dh = obj.constraint.gradient;
+            S  = (Dh'*Dh)^-1;
+            lJ = -S*(Dh'*DJ);
             obj.designVariable.update(x)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            l  = obj.dualVariable.value;
-            aJ = 1;
-            AJ = aJ*(J + l'*h);
-            mF = AJ;
+            t = obj.primalUpdater.tau;
+            aG = obj.aGt/t;
+            mG = 0.5*aG*h'*S*h;
+            mJ = obj.aJ*(J + lJ'*h);
+            mF = mJ+mG;
         end
 
         function obj = saveOldValues(obj,x)

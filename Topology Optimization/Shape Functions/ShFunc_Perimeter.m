@@ -138,7 +138,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             pB = u.unfittedBoundaryMesh.computeVolume();
             pT = pR + pB;
             pT2 = u.computePerimeter();
-            pT2 - pT%
+            %pT2 - pT
             else
                pT = 0;
             end

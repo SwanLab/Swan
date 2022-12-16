@@ -89,13 +89,12 @@ classdef DualUpdater_NullSpace < handle
             Dh = obj.constraint.gradient;
             h  = obj.constraint.value;
             S  = (Dh'*Dh)^-1;
-            aJ = 1;
-            aC = 1;
-            f  = obj.parameter;
-            f2 = 1; % should f2 be a parameter?
-            AC = min(f2,f*aC/aJ*S*h); % min(aC/aJ *f, ...) ?          I have exchanged f-f2
-            AJ = -aC/aJ*S*Dh'*DJ; % -1/aJ...?
-            l  = AC + AJ;
+            f = obj.parameter; % f = aCt/(aJ*t);
+            Delta = 10000;
+            lC = f*S*h;
+            lC = max(min(Delta,lC),-Delta);
+            lJ = -S*Dh'*DJ;
+            l  = lC + lJ;
             obj.dualVariable.value = l;
         end
 
@@ -124,16 +123,19 @@ classdef DualUpdater_NullSpace < handle
             prob.b      = [];
             prob.Aeq    = [];
             prob.beq    = [];
-            prob.lb     = -inf*ones(i,1);
+
+            tol = 15; % inf
+
+            prob.lb     = -tol*ones(i,1);
             prob.lb(p)  = 0;
-            prob.ub     = inf*ones(length(g),1);
+            prob.ub     = tol*ones(length(g),1);
             prob.x0     = zeros(length(prob.H),1);
             prob.solver = 'quadprog';
             obj.problem = prob;
         end
 
         function computeDualProblemOptions(obj)
-            opts = optimoptions("quadprog");
+%             opts = optimoptions("quadprog");
             opts = struct( ...
                 'Algorithm','interior-point-convex', ...
                 'Diagnostics','off', ...
