@@ -45,10 +45,20 @@ classdef DehomogenizingSingularities < handle
             alpha = beta/2;
             obj.orientation(:,1) = cos(alpha);
             obj.orientation(:,2) = sin(alpha);
+            
+            
+           figure()
+            a = obj.orientation;
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            ax = a(:,1);
+            ay = a(:,2);
+            q = quiver(x1,x2,ax,ay);
+            q.ShowArrowHead = 'off';
         end
         
         function createBenchmarkMesh(obj)
-           h = 0.03;
+           h = 0.0321;
            xmin = 0.50;
            xmax = 2.0;
            ymin = 0.25;
@@ -69,7 +79,7 @@ classdef DehomogenizingSingularities < handle
 
         function dehomogenize(obj)
             s.backgroundMesh     = obj.backgroundMesh;
-            s.nCells             = 46;
+            s.nCells             = 55;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.backgroundMesh;%obj.mesh;
             s.theta              = atan2(obj.orientation(:,2),obj.orientation(:,1));
@@ -91,8 +101,8 @@ classdef DehomogenizingSingularities < handle
              FV.faces    = obj.mesh.connec;
              FV2 = FV;
              FV2 = refinepatch(FV2);
-           %  FV2 = refinepatch(FV2);
-           %  FV2 = refinepatch(FV2);
+             FV2 = refinepatch(FV2);
+          %   FV2 = refinepatch(FV2);
            %  FV2 = refinepatch(FV2);             
              s.coord = FV2.vertices(:,1:2);
              s.connec = FV2.faces;

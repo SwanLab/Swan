@@ -32,7 +32,7 @@ classdef ConformalMappingComputer < handle
         
         function plot(obj)
             obj.plotDilation();
-            obj.plotMapping();
+       %     obj.plotMapping();
         end
         
     end
@@ -64,7 +64,7 @@ classdef ConformalMappingComputer < handle
             m = obj.mesh.createDiscontinousMesh;
             x = m.coord(:,1);
             y = m.coord(:,2);
-            [~,h] = tricontour(m.connec,x,y,z,50);
+            [~,h] = tricontour(m.connec,x,y,z,30);
             set(h,'LineWidth',5);
             colorbar
         end
@@ -77,7 +77,7 @@ classdef ConformalMappingComputer < handle
         function createInterpolator(obj)
             s.meshCont    = obj.mesh;
             s.meshDisc    = obj.mesh.createDiscontinousMesh();
-            s.orientation = obj.orientation;
+            s.orientation = [cos(obj.orientation),sin(obj.orientation)];
             s = SymmetricContMapCondition(s);            
             sC = s.computeCondition();
             obj.interpolator = sC;            
@@ -93,7 +93,7 @@ classdef ConformalMappingComputer < handle
         
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
-            s.orientation = obj.computeOrientationVector(1)';
+            s.orientation = [cos(obj.orientation),sin(obj.orientation)];%obj.computeOrientationVector(1)';
             sF = SingularitiesFinder(s);
             isS = sF.computeSingularElements();
             sF.plot();
@@ -108,17 +108,21 @@ classdef ConformalMappingComputer < handle
            m = obj.mesh.createDiscontinousMesh;
            nnod = m.nnodes;
            phiV = zeros(nnod,nDim);
+           
+           
+           bT = obj.computeOrientationVector(1);
+           cr = obj.computeCorrector(bT);
+           oC = obj.computeOrthogonalCorrector(cr);
+           
            for iDim = 1:nDim
               b = obj.computeOrientationVector(iDim);             
               bGauss = obj.computeOrientationVectorComponentP0(b);               
               phiI   = obj.computeMapping(bGauss);              
               if ~isempty(obj.singularityCoord)
-                cr = obj.computeCorrector(b);
-                oC = obj.computeOrthogonalCorrector(cr);
                 coef = obj.computeCoeffs(oC,bGauss);
                 psiT = zeros(size(oC));
                 for iSing = length(coef)
-                  psiT = psiT + coef(iSing)*oC(:,:,iSing);
+                  psiT = psiT + coef(iSing)*oC(:,:,iSing);                 
                 end 
                 phiIc = phiI + psiT;
               else
@@ -143,10 +147,10 @@ classdef ConformalMappingComputer < handle
             sCoord = obj.singularityCoord;
             s.mesh               = obj.mesh;            
             s.orientation        = b';
-            s.singularityCoord = sCoord(end-1,:);
+            s.singularityCoord = sCoord(1,:);
             c = CorrectorComputer(s);
             cV = c.compute();
-            c.plot()                        
+           % c.plot()                        
         end
         
 

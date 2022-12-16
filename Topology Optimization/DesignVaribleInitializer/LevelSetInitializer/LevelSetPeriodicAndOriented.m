@@ -48,6 +48,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function createEpsilon(obj)
             L = obj.mesh.computeCharacteristicLength();
             obj.epsilon = L/obj.nCells;            
+            obj.epsilon = 0.057;
         end
         
         function createMapping(obj)
