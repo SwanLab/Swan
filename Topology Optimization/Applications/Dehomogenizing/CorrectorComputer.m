@@ -70,7 +70,7 @@ classdef CorrectorComputer < handle
         end
         
         function computeCoherentOrientation(obj)
-            s.mesh        = obj.mesh.createDiscontinousMesh();
+            s.mesh        = obj.mesh.createDiscontinuousMesh();
             s.orientation = obj.createDiscontinousField(obj.orientation);
             c = CoherentOrientationSelector(s);
             aC = c.isOrientationCoherent();
@@ -183,11 +183,20 @@ classdef CorrectorComputer < handle
         end        
         
         function fD = createDiscontinousField(obj,fValues)
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = fValues;
-            f = FeFunction(s);            
-            fD = f.computeDiscontinousField();
+%             s.connec = obj.mesh.connec;
+%             s.type   = obj.mesh.type;
+%             s.fNodes = fValues;
+%             f = FeFunction(s);            
+%             fD = f.computeDiscontinousField();
+            s.fValues = fValues;
+            s.connec = obj.meshCont.connec;
+            s.type   = obj.meshCont.type;
+            f = P1Function(s);
+            s.mesh   = obj.meshCont;
+            s.connec = obj.meshCont.connec;
+            p = Projector_toP1Discontinuous(s);
+            fD = p.project(f);
+
         end          
         
     end

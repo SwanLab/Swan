@@ -88,7 +88,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function [y1,y2] = applyMapping(obj)
             y1 = obj.phi(:,1);
             y2 = obj.phi(:,2);
-            mD = obj.mesh.createDiscontinousMesh;
+            mD = obj.mesh.createDiscontinuousMesh;
             y1 = obj.interpolateFunction(y1,mD);
             y2 = obj.interpolateFunction(y2,mD);
         end 

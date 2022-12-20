@@ -41,7 +41,7 @@ classdef SingularitiesFinder < handle
         end
 
         function createDiscontinousMesh(obj)
-            m = obj.mesh.createDiscontinousMesh();
+            m = obj.mesh.createDiscontinuousMesh();
             obj.meshDisc = m;
         end
 

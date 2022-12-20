@@ -37,9 +37,17 @@ classdef SymmetricContMapCondition < handle
             s.connec = obj.meshCont.connec;
             s.type   = obj.meshCont.type;
             s.fNodes = obj.orientation;
-            f = FeFunction(s);            
-            fD = f.computeDiscontinousField();
-            obj.orientationDisc = fD;
+            
+            s.fValues = obj.orientation;
+            s.connec = obj.meshCont.connec;
+            s.type   = obj.meshCont.type;
+            f = P1Function(s);
+            s.mesh   = obj.meshCont;
+            s.connec = obj.meshCont.connec;
+            p = Projector_toP1Discontinuous(s);
+            fD = p.project(f);
+            
+            obj.orientationDisc = fD.fValues;
         end         
 
         function isOrientationCoherent(obj)

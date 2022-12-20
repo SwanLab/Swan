@@ -20,7 +20,6 @@ classdef DehomogenizingSingularities < handle
             obj.createMesh();
             obj.createBackgroundMesh();            
             obj.createOrientation();
-            %obj.computeSingularities();
             obj.dehomogenize();
         end
         
