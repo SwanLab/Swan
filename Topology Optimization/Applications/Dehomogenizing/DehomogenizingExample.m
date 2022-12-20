@@ -43,13 +43,14 @@ classdef DehomogenizingExample < handle
     methods (Access = private)
         
         function init(obj)
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-%             obj.fileName = 'CantileverSymmetricWithoutFixing';
-%             obj.iteration = 216;
+           % filePath = 
+            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
+            obj.fileName = 'CantileverSymmetricWithoutFixing';
+            obj.iteration = 216;
 % 
-           obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-           obj.fileName = 'ExperimentingPlotSuperEllipse';
-           obj.iteration = 64;
+%            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%            obj.fileName = 'ExperimentingPlotSuperEllipse';
+%            obj.iteration = 64;
             
 %            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
 %            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';

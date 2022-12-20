@@ -83,10 +83,11 @@ classdef ConformalMappingComputer < handle
            nnod = m.nnodes;
            phiV = zeros(nnod,nDim);
            
-           
-           b1 = obj.computeOrientationVector(1);
-           cr = obj.computeCorrector(b1);
-           oC = obj.computeOrthogonalCorrector(cr);
+           if ~isempty(obj.singularityCoord)               
+               b1 = obj.computeOrientationVector(1);
+               cr = obj.computeCorrector(b1);
+               oC = obj.computeOrthogonalCorrector(cr);
+           end
            
            for iDim = 1:nDim
               b = obj.computeOrientationVector(iDim);             
@@ -121,7 +122,7 @@ classdef ConformalMappingComputer < handle
             sCoord = obj.singularityCoord;
             s.mesh               = obj.mesh;            
             s.orientation        = b';
-            s.singularityCoord = sCoord(2,:);
+            s.singularityCoord = sCoord(1,:);
             c = CorrectorComputer(s);
             cV = c.compute();
            % c.plot()                        

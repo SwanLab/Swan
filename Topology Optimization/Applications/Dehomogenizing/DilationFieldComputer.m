@@ -55,24 +55,24 @@ classdef DilationFieldComputer < handle
             s.mesh = obj.mesh;
             g = Geometry.create(s);
             g.computeGeometry(q,int);
-            grad = g.dNdx;
+          %  grad = g.dNdx;
             nodes = obj.mesh.connec;
-            f = obj.theta;
-            gradF = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
-                for kNode = 1:obj.mesh.nnodeElem
-                    nodeK = nodes(:,kNode);
-                    fI = f(nodeK);
-                    for idim = 1:obj.mesh.ndim
-                        dN = squeeze(grad(idim,kNode,:,igaus));
-                        gF = squeeze(gradF(idim,igaus,:));
-                        gradF(idim,igaus,:) = gF + fI.*dN;%bsxfun(@times,dN,fI);
-                    end
-                end
-            end
-            gradT = zeros(size(gradF));
-            gradT(1,:,:) = -gradF(2,:,:);
-            gradT(2,:,:) = gradF(1,:,:);
+         %   f = obj.theta;
+%             gradF = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
+%             for igaus = 1:q.ngaus
+%                 for kNode = 1:obj.mesh.nnodeElem
+%                     nodeK = nodes(:,kNode);
+%                     fI = f(nodeK);
+%                     for idim = 1:obj.mesh.ndim
+%                         dN = squeeze(grad(idim,kNode,:,igaus));
+%                         gF = squeeze(gradF(idim,igaus,:));
+%                         gradF(idim,igaus,:) = gF + fI.*dN;%bsxfun(@times,dN,fI);
+%                     end
+%                 end
+%             end
+%             gradT = zeros(size(gradF));
+%             gradT(1,:,:) = -gradF(2,:,:);
+%             gradT(2,:,:) = gradF(1,:,:);
 
             alpha = obj.theta;
             a1(:,1) = cos(alpha);
@@ -87,7 +87,7 @@ classdef DilationFieldComputer < handle
             Q = [0 1;-1 0];
             nNode = obj.mesh.nnodeElem;
             nDim = obj.mesh.ndim;
-            gradT2 = zeros(size(gradF));
+            gradT2 = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
             for igaus = 1:q.ngaus
                 for jNode = 1:nNode
                      nodeJ = nodes(:,jNode);                                            

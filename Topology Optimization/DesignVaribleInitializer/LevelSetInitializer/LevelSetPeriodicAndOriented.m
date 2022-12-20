@@ -66,9 +66,9 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.theta    = obj.angle;
             s.dilation = obj.dilation;
             c = ConformalMappingComputer(s);
-            phi = c.compute();
+            phiV = c.compute();
            % c.plot();            
-            obj.phi = phi;
+            obj.phi = phiV;
         end        
         
         function createCellCoord(obj)
