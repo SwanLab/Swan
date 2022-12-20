@@ -1,4 +1,5 @@
 FemTestsSuite;
+MicroShapeTestsSuite;
 DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
@@ -10,3 +11,4 @@ close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
 PostProcTestsSuite;
+ProjectorsTestsSuite;

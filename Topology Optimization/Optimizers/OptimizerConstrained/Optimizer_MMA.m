@@ -28,19 +28,47 @@ classdef Optimizer_MMA < Optimizer
         dfdx
         upperBound
         lowerBound
+        hasFinished
+        incrementalScheme
+        hasConverged
+        historicalVariables
+       % targetParameters
+        KKTnorm
     end
     
     methods (Access = public)
         
         function obj = Optimizer_MMA(cParams)
+            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.upperBound = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound = cParams.uncOptimizerSettings.lb;
+            obj.outputFunction.monitoring.create(cParams);
+%             obj.upperBound = cParams.uncOptimizerSettings.ub;
+%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
+
+       function solveProblem(obj)
+            % obj.cost.computeFunctionAndGradient();
+            % obj.constraint.computeFunctionAndGradient();
+%             obj.printOptimizerVariable();
+            obj.hasFinished = false;
+            obj.printOptimizerVariable();
+            while ~obj.hasFinished
+                obj.update();
+                obj.updateIterInfo();
+                obj.updateMonitoring();
+                obj.printOptimizerVariable();
+            end
+%             obj.printOptimizerVariable();
+%             obj.printHistory();
+            obj.hasConverged = 0;
+%             obj.printHistoryFinalValues();
+       end
         
-        function x = update(obj)
+        function update(obj)
             x = obj.designVariable.value;
+            obj.cost.computeFunctionAndGradient(); 
+            obj.constraint.computeFunctionAndGradient();
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -65,19 +93,32 @@ classdef Optimizer_MMA < Optimizer
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
             obj.historicalVariables.kktnorm = kktnorm;
-            
+            obj.dualVariable.value = lam;            
             obj.updateConvergenceStatus();
-            
-            obj.dualVariable.value = lam;
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(kktnorm);
-            obj.convergenceVars.append(obj.outit/obj.maxoutit);
-            obj.designVariable.update(x);
+            obj.KKTnorm     = kktnorm;
         end
         
     end
     
     methods (Access = private)
+
+        function updateMonitoring(obj)
+            s.hasFinished          = obj.hasFinished;
+            s.nIter                = obj.nIter;
+            s.KKTnorm              = obj.KKTnorm;
+            s.outitFrac            = obj.outit/obj.maxoutit;
+            obj.outputFunction.monitoring.compute(s);
+        end
+
+        function init(obj,cParams)
+            obj.outputFunction         = cParams.outputFunction.monitoring;
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.hasConverged           = false;
+            obj.constraintCase         = cParams.constraintCase;
+            obj.targetParameters       = cParams.targetParameters;
+        end
         
         function [f,df,c,dc] = funmma(obj)
             f  = obj.cost.value;
@@ -92,7 +133,11 @@ classdef Optimizer_MMA < Optimizer
             % In many applications, the constraints are on the form yi(x) < =  ymaxi
             % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
             % (and not ymaxi = 10^10 for example).
-            kconstr = 100;
+
+            
+
+            % kconstr = 100;
+            kconstr = 1;
             cconstr = 0;
             c = kconstr*c;
             c(c > 0) = c(c > 0) + cconstr;
@@ -114,33 +159,37 @@ classdef Optimizer_MMA < Optimizer
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
                 obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmin(end) = 0;
                 obj.xmax = obj.upperBound*ones(length(x0),1);
-                obj.low = obj.xmin;
-                obj.upp = obj.xmax;
+                obj.xmax(end) = 1000;
+                % obj.low = obj.xmin;
+                obj.low = zeros(length(x0),1);
+                % obj.upp = obj.xmax;
+                obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1e3*ones(obj.m,1);
+                obj.c = 1000*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
             end
         end
-        
+
         function [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,low,upp] = ...
                 mmasub(obj,m,n,iter,xval,xmin,xmax,xold1,xold2, ...
                 ~,df0dx,fval,dfdx,low,upp,a0,a,c,d)
-            epsimin = 10^(-7);
+            epsimin = sqrt(m+n)*10^(-9); %10^(-7);  
             raa0 = 1e-5;
             move = 1.0;
             albefa = 0.1;
-            asyinit = 0.5;
-            asyincr = 1.2;
-            asydecr = 0.7;
+            asyinit = 0.1 ; %0.2 % 0.5; 
+            asyincr = 1.1; % 1.2;
+            asydecr = 0.65; % 0.7
             eeen = ones(n,1);
             eeem = ones(m,1);
             zeron = zeros(n,1);
-            
+
             % Calculation of the asymptotes low and upp :
             if iter < 2.5
                 low = xval - asyinit*(xmax-xmin);
@@ -221,18 +270,37 @@ classdef Optimizer_MMA < Optimizer
             has_not_converged = kktnorm > obj.kkttol && obj.outit < obj.maxoutit;
             obj.hasConverged = ~has_not_converged;
         end
-        
+
         function [c,dc] = checkConstraintCase(obj,c,dc)
             if strcmp(obj.constraintCase,'EQUALITY')
                 c  = [c;-c];
                 dc = [dc;-dc];
             end
         end
-        
+
+        function updateIterInfo(obj)
+            obj.increaseIter();
+            obj.updateStatus();
+        end
+
+        function increaseIter(obj)
+            obj.nIter = obj.nIter + 1;
+        end
+
+        function updateStatus(obj)
+            obj.hasFinished = obj.hasConverged || obj.hasExceededStepIterations();
+        end
+
+        function itHas = hasExceededStepIterations(obj)
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+        end
+
     end
-    
+
     methods (Access = private, Static)
-        
+
         function [xmma,ymma,zmma,lamma,xsimma,etamma,mumma,zetmma,smma] = ...
                 subsolv(m,n,epsimin,low,upp,alfa,beta,p0,q0,P,Q,a0,a,b,c,d)
             %
@@ -292,7 +360,7 @@ classdef Optimizer_MMA < Optimizer
                 residunorm = sqrt(residu'*residu);
                 residumax = max(abs(residu));
                 ittt = 0;
-                while residumax > 0.9*epsi & ittt < 200
+                while residumax > 0.9*epsi & ittt < 200 % 100
                     ittt = ittt + 1;
                     itera = itera + 1;
                     ux1 = upp-x;

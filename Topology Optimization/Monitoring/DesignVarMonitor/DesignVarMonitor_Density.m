@@ -29,7 +29,7 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             obj.patchHandle = patch(obj.axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,...
                'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
             set(obj.axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
-            %obj.plot();
+            % obj.plot();
             obj.BCplotter.plot();
         end
         
@@ -54,7 +54,6 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             s.femSettings.scale = cParams.scale;
             s.femSettings.mesh = cParams.mesh.innerMeshOLD;            
             obj.filter = Filter_P1_Density(s);
-            obj.filter.preProcess();
         end
         
         function rhoElem = filterDensity(obj)

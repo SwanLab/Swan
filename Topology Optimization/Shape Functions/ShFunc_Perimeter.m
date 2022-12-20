@@ -95,7 +95,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             s.connec = obj.designVariable.mesh.connec;
             s.type   = obj.designVariable.mesh.type;
             s.fNodes = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
-            f = FeFunction(s);
+            f = P1Function(s);
             per = f.computeValueInCenterElement();
             per = per.*vfrac;
             per0 = per;

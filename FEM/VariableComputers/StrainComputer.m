@@ -34,16 +34,6 @@ classdef StrainComputer < handle
             obj.connec             = cParams.dispField.connec;
             obj.geometry           = cParams.dispField.geometry;
         end
-       
-        function createGeometry(obj)
-            q = obj.quadrature;
-            int = obj.mesh.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
-        end
         
         function strain = computeStrain(obj)
             d_u = obj.displacement;
@@ -81,9 +71,8 @@ classdef StrainComputer < handle
         function Bmat = computeB(obj,igaus)
             s.dim          = obj.dim;
             s.geometry     = obj.geometry;
-            s.globalConnec = [];
             Bcomp = BMatrixComputer(s);
-            Bmat = Bcomp.computeBmat(igaus);
+            Bmat = Bcomp.compute(igaus);
         end
     end
     

@@ -13,7 +13,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
     methods (Access = public)
 
         function obj = OptimizerDualNestedInPrimal(cParams)
-            obj.init(cParams);
+            obj.initOptimizer(cParams);
             obj.createLagrangian();
             obj.createOptimizerUnconstrained(cParams.uncOptimizerSettings)
             obj.createConstraintProjector();

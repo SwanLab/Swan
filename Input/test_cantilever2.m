@@ -1,18 +1,19 @@
-filename = 'Cantileverbeam_Quadrilateral_Bilinear';
+filename = 'Cantileverbeam_Quadrilateral_Bilinear';%CantileverArnau2 %Cantilever';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+initial_case = 'holes';%'holes';
 cost = {'compliance'};
 weights = [1];
-constraint = {'volumeConstraint'; 'perimeterConstraint'};
-optimizer = 'IPOPT';
+constraint = {'volumeConstraint'};
+constraint_case = {'EQUALITY'};
+optimizerUnconstrained = 'HAMILTON-JACOBI';%'SLERP';%'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
+optimizer = 'AlternatingPrimalDual';%'DualNestedInPrimal';'DualNestedInPrimal';%'AlternatingPrimalDual';%'AlternatingPrimalDual';
 incrementFactor = 1;
-designVariable = 'Density';
+designVariable = 'LevelSet';%'Density';'LevelSet'
 filterType = 'P1';
-
 nsteps = 1;
-Vfrac_final = 0.6;
+Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -33,4 +34,5 @@ plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
+monitoring_interval = 1;
 maxiter = 3;

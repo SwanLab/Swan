@@ -23,7 +23,7 @@ classdef Density < DesignVariable
             s.connec = obj.mesh.connec;
             s.type   = obj.mesh.type;
             s.fNodes = obj.value;
-            f = FeFunction(s);
+            f = P1Function(s);
             rho = f.computeValueInCenterElement();
         end
         

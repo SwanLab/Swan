@@ -35,6 +35,6 @@ classdef TotalCoordinatesCalculator < handle
             obj.totalCoord(1:boundNodes,:) = obj.boundCoord;
         end
         
-    end    
+    end
     
 end

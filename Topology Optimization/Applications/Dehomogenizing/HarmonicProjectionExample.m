@@ -83,7 +83,7 @@ classdef HarmonicProjectionExample < handle
         function vI = interpolateOrientationAngle(obj,v0)
             s.mesh    = obj.mesh;
             s.fValues = v0;
-            p = PieceWiseConstantFunction(s);
+            p = P0Function(s);
             vI = p.projectToLinearNodalFunction();
         end
 

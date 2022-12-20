@@ -20,6 +20,23 @@ classdef Quadrature_Quadrilateral < Quadrature
                     
                     obj.weigp =  [1,1,1,1];%1*ones(1,obj.ngaus);
 
+                case 'QUADRATIC' %SERENDIPITY, QUADRILATERAL QUADRATIC NOT IMPLEMENTED
+                    % Copied from down below
+                    obj.ngaus = 9;
+                    % Compute WEIGP and POSGP
+                    a =  0.77459667;
+                    obj.posgp(:,1) = [ 0,+a];
+                    obj.posgp(:,2) = [ 0, 0];
+                    obj.posgp(:,3) = [+a,+a];
+                    obj.posgp(:,4) = [-a,-a];
+                    obj.posgp(:,5) = [-a, 0];
+                    obj.posgp(:,6) = [+a, 0];
+                    obj.posgp(:,7) = [+a,-a];
+                    obj.posgp(:,8) = [-a,+a];
+                    obj.posgp(:,9) = [ 0,-a];
+                    
+                    obj.weigp =(4/9)*ones(1,obj.ngaus);
+
                 case 'QUADRATICMSS' %SERENDIPITY, QUADRILATERAL QUADRATIC NOT IMPLEMENTED
                     obj.ngaus = 9;
                     % Compute WEIGP and POSGP
