@@ -1,64 +1,42 @@
 classdef ConformalMappingComputer < handle
     
-    properties (Access = public)
-       phi
-       dilation
-       interpolator
-       singularityCoord
-    end
     
     properties (Access = private)
-       
+       phi
+       interpolator
+       singularityCoord 
     end
     
     properties (Access = private)
        orientation 
        mesh
+       dilation       
     end
     
     methods (Access = public)
         
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
+            obj.createInterpolator();            
         end
         
         function phiV = compute(obj)
-            obj.createInterpolator();
-            obj.computeDilation();
             obj.computeSingularities();
             obj.computeMappingWithSingularities();
             phiV = obj.phi;
         end
         
         function plot(obj)
-            obj.plotDilation();
-       %     obj.plotMapping();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function plotDilation(obj)
-           obj.plotField(obj.dilation);
-        end
-        
-        function plotMapping(obj)
            phi1 = obj.phi(:,1);
            phi2 = obj.phi(:,2);
            obj.plotContour((phi1)); 
            obj.plotContour((phi2));
         end
-
-        function plotField(obj,z)
-            figure()
-            s.mesh  = obj.mesh;
-            s.field = z;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp
-        end
         
+    end
+    
+    methods (Access = private)
+                
         function plotContour(obj,z)
             figure()
             m = obj.mesh.createDiscontinousMesh;
@@ -72,6 +50,7 @@ classdef ConformalMappingComputer < handle
         function init(obj,cParams)
             obj.orientation = cParams.theta;
             obj.mesh        = cParams.mesh;
+            obj.dilation    = cParams.dilation;
         end
         
         function createInterpolator(obj)
@@ -83,12 +62,7 @@ classdef ConformalMappingComputer < handle
             obj.interpolator = sC;            
         end        
         
-        function computeDilation(obj)
-            s.theta = obj.orientation;
-            s.mesh  = obj.mesh;
-            d = DilationFieldComputer(s);
-            obj.dilation = d.compute();
-        end
+
         
         
         function computeSingularities(obj)

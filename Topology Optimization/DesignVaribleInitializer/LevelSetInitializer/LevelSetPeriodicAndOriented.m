@@ -2,8 +2,9 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
  
     properties (Access = private)
         epsilon
+        dilation
         cellCoord
-        mapping
+        phi
     end
     
     properties (Access = private)
@@ -27,6 +28,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         
         function computeLevelSet(obj)
             obj.createEpsilon(); 
+            obj.computeDilation();
             obj.createMapping();
             obj.createCellCoord();
             obj.thresholdParameters();
@@ -48,16 +50,25 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function createEpsilon(obj)
             L = obj.mesh.computeCharacteristicLength();
             obj.epsilon = L/obj.nCells;            
-          %  obj.epsilon = 0.055;%HEREEEEE
         end
         
-        function createMapping(obj)
-            s.mesh  = obj.mesh;
+        function computeDilation(obj)
             s.theta = obj.angle;
-            map = ConformalMappingComputer(s);
-            map.compute();
-            map.plot();            
-            obj.mapping = map;
+            s.mesh  = obj.mesh;
+            dC = DilationFieldComputer(s);
+            d  = dC.compute();
+            %dC.plot();
+            obj.dilation = d;
+        end           
+        
+        function createMapping(obj)
+            s.mesh     = obj.mesh;
+            s.theta    = obj.angle;
+            s.dilation = obj.dilation;
+            c = ConformalMappingComputer(s);
+            phi = c.compute();
+           % c.plot();            
+            obj.phi = phi;
         end        
         
         function createCellCoord(obj)
@@ -75,8 +86,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
         
         function [y1,y2] = applyMapping(obj)
-            y1 = obj.mapping.phi(:,1);
-            y2 = obj.mapping.phi(:,2);
+            y1 = obj.phi(:,1);
+            y2 = obj.phi(:,2);
             mD = obj.mesh.createDiscontinousMesh;
             y1 = obj.interpolateFunction(y1,mD);
             y2 = obj.interpolateFunction(y2,mD);
@@ -95,7 +106,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
         
         function t = computeMinLengthInUnitCell(obj)
-            r = obj.mapping.dilation;
+            r = obj.dilation;
             r = obj.interpolateFunction(r,obj.mesh);            
             hC = obj.epsilon*exp(-r);
             hmin = min(hC);
@@ -135,8 +146,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     methods (Access = private, Static)
         
         function f = periodicFunction(y)
-            f = abs(cos(pi/2*y)).^2;
-           % f = y - floor(y);
+           f = abs(cos(pi/2*y)).^2;
+         %  f = y - floor(y);
         end                        
         
     end

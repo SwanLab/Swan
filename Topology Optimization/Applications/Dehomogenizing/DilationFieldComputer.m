@@ -1,6 +1,10 @@
 classdef DilationFieldComputer < handle
     
     properties (Access = private)
+       dilation 
+    end
+    
+    properties (Access = private)
        theta 
        mesh
     end
@@ -12,7 +16,17 @@ classdef DilationFieldComputer < handle
         end
         
         function d = compute(obj)
-            d = obj.computeDilationField();
+            obj.computeDilationField();
+            d = obj.dilation; 
+        end
+        
+        function plot(obj)
+            figure()
+            s.mesh  = obj.mesh;
+            s.field = obj.dilation;
+            n = NodalFieldPlotter(s);
+            n.plot();
+            shading interp            
         end
         
     end
@@ -24,11 +38,12 @@ classdef DilationFieldComputer < handle
             obj.mesh  = cParams.mesh;
         end
                
-        function r = computeDilationField(obj)
+        function computeDilationField(obj)
             s.fGauss = obj.computeThetaGradient();
             s.mesh   = obj.mesh;
             varProb  = MinimumGradFieldWithVectorInL2(s);
             r = varProb.solve();
+            obj.dilation = r;
         end
         
         function gradT = computeThetaGradient(obj)
