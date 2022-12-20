@@ -58,7 +58,7 @@ classdef DehomogenizingSingularities < handle
         end
         
         function createBenchmarkMesh(obj)
-           h = 0.0321;
+           h = 0.0221;
            xmin = 0.50;
            xmax = 2.0;
            ymin = 0.25;
@@ -79,7 +79,7 @@ classdef DehomogenizingSingularities < handle
 
         function dehomogenize(obj)
             s.backgroundMesh     = obj.backgroundMesh;
-            s.nCells             = 55;
+            s.nCells             = 45;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.backgroundMesh;%obj.mesh;
             s.theta              = atan2(obj.orientation(:,2),obj.orientation(:,1));

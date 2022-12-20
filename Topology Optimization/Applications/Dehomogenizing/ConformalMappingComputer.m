@@ -110,13 +110,13 @@ classdef ConformalMappingComputer < handle
            phiV = zeros(nnod,nDim);
            
            
-           bT = obj.computeOrientationVector(1);
-           cr = obj.computeCorrector(bT);
+           b1 = obj.computeOrientationVector(1);
+           cr = obj.computeCorrector(b1);
            oC = obj.computeOrthogonalCorrector(cr);
            
            for iDim = 1:nDim
               b = obj.computeOrientationVector(iDim);             
-              bGauss = obj.computeOrientationVectorComponentP0(b);               
+              bGauss = obj.computeOrientationVectorComponentP0(b);   
               phiI   = obj.computeMapping(bGauss);              
               if ~isempty(obj.singularityCoord)
                 coef = obj.computeCoeffs(oC,bGauss);
@@ -147,7 +147,7 @@ classdef ConformalMappingComputer < handle
             sCoord = obj.singularityCoord;
             s.mesh               = obj.mesh;            
             s.orientation        = b';
-            s.singularityCoord = sCoord(1,:);
+            s.singularityCoord = sCoord(2,:);
             c = CorrectorComputer(s);
             cV = c.compute();
            % c.plot()                        
@@ -190,7 +190,7 @@ classdef ConformalMappingComputer < handle
         end
         
         function c = computeCoeffs(obj,psi,bGauss)
-            In = obj.interpolator;             
+            I = obj.interpolator;
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');   
             m = obj.mesh.createDiscontinousMesh();
@@ -227,6 +227,49 @@ classdef ConformalMappingComputer < handle
                 end
                 
             end
+            
+            LHS2 = zeros(nSing,nSing);
+            RHS2 = zeros(nSing,1);      
+            
+            
+            sF.mesh               = m;
+            sF.ndimf              = 1;
+            sF.interpolationOrder = m.interpolation.order;
+            s.field = Field(sF);            
+            s.mesh         = m;
+            s.globalConnec = m.connec;
+            s.type         = 'StiffnessMatrix';
+            
+            lhs = LHSintegrator.create(s);
+            Kdg = lhs.compute();
+            phidg = reshape(psi',[],1);
+            LHS2 = phidg'*Kdg*phidg;            
+            
+            
+            q = Quadrature.set(m.type);
+            q.computeQuadrature('QUADRATIC');
+            int = Interpolation.create(m,m.interpolation.order);
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = m;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            dN = g.dNdx;
+            
+            %dN = int.deriv
+            inte = zeros(m.nelem,nnode);
+            for idim = 1:nDim
+                for igaus = 1:q.ngaus
+                    dVG  = dV(igaus,:)';
+                    bG = squeeze(bGauss(idim,igaus,:));
+                    for iNode = 1:nnode
+                        dNi = squeeze(dN(idim,iNode,:,igaus));
+                        intG = dNi.*bG.*dVG;
+                        inte(:,iNode) = inte(:,iNode) + intG;
+                    end
+                end
+            end
+            RHS2 = sum(sum(psi.*inte));
+            
             c = LHS\RHS;
         end 
         
@@ -249,6 +292,8 @@ classdef ConformalMappingComputer < handle
                 for idim = 1:nDim
                     for iNode = 1:nnode
                     dNi = squeeze(dN(idim,iNode,:,igaus));
+            %        dNi = squeeze(dN(idim,iNode,igaus));
+
                     grad = dNi.*cV(:,iNode);
                     fG(:,1) = squeeze(fGauss(idim,igaus,:));
                     fGauss(idim,igaus,:) = fG + grad;
