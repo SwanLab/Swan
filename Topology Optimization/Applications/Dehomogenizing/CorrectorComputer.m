@@ -189,14 +189,14 @@ classdef CorrectorComputer < handle
 %             f = FeFunction(s);            
 %             fD = f.computeDiscontinousField();
             s.fValues = fValues;
-            s.connec = obj.meshCont.connec;
-            s.type   = obj.meshCont.type;
+            s.connec = obj.mesh.connec;
+            s.type   = obj.mesh.type;
             f = P1Function(s);
-            s.mesh   = obj.meshCont;
-            s.connec = obj.meshCont.connec;
+            s.mesh   = obj.mesh;
+            s.connec = obj.mesh.connec;
             p = Projector_toP1Discontinuous(s);
             fD = p.project(f);
-
+            fD = fD.fValues;
         end          
         
     end

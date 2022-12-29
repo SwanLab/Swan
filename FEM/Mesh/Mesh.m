@@ -225,6 +225,17 @@ classdef Mesh < handle
             mD = Mesh(s);
         end
 
+        function cells = computeAllCellsOfVertex(obj,vertex)
+            vertexInCell  = obj.connec;
+            isInCell      = any(vertexInCell == vertex,2);
+            allCells(:,1) = 1:size(isInCell,1);
+            cells         = allCells(isInCell);
+        end        
+
+        function cV = computeConnectedVertex(obj,vertex)
+            cV  = obj.edges.computeConnectedVertex(vertex);
+        end         
+
         function fP1 = mapP0ToP1Discontinous(obj,f)
             nnodeElem = obj.meshDisc.nnodeElem;
             fRepeted = zeros(size(f,1),nnodeElem);

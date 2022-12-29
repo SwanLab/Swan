@@ -38,7 +38,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         function init(obj,cParams)
             obj.meshCont     = cParams.mesh;
             obj.rhsType      = cParams.rhsType;
-            obj.mesh         = obj.meshCont.createDiscontinousMesh();            
+            obj.mesh         = obj.meshCont.createDiscontinuousMesh();            
             obj.fGauss       = cParams.fGauss;
             obj.interpolator = cParams.interpolator;
         end

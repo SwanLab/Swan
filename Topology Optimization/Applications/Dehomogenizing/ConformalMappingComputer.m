@@ -146,11 +146,11 @@ classdef ConformalMappingComputer < handle
             xGauss = q.posgp;
             bG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
             for idim = 1:obj.mesh.ndim
-                s.fNodes = b(idim,:)';
+                s.fValues = b(idim,:)';
                 s.connec = obj.mesh.connec;
                 s.type   = obj.mesh.type;
                 f = P1Function(s);
-                fG(idim,:,:) = f.interpolateFunction(xGauss);
+                bG(idim,:,:) = f.evaluate(xGauss);
             end
             %%%%% HEREEEE!!!!! Integrate with more gauss points b
         end
@@ -168,7 +168,7 @@ classdef ConformalMappingComputer < handle
             I = obj.interpolator;
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            m = obj.mesh.createDiscontinousMesh();
+            m = obj.mesh.createDiscontinuousMesh();
             dV = obj.mesh.computeDvolume(q);
             nDim = m.ndim;
             nSing = size(psi,3);
