@@ -46,18 +46,18 @@ classdef TestingPathFormSingularityToBoundary < handle
             obj.nInteriorPoints = 20000;
             obj.nBoundaryPoints = 100;
         end
-        
+
         function createMesh(obj)
-            [xB,yB] = obj.createBoundaryVertex();
-            [xI,yI] = obj.createInteriorVertex();            
-            xT = [xB,xI];
-            yT = [yB,yI];            
-            s.coord(:,1) = xT;
-            s.coord(:,2) = yT;
-            s.connec = delaunay(s.coord);
-            m = Mesh(s);
+            s.xmin = obj.xmin;
+            s.xmax = obj.xmax;
+            s.ymin = obj.ymin;
+            s.ymax = obj.ymax;
+            s.nInteriorPoints = obj.nInteriorPoints;
+            s.nBoundaryPoints = obj.nBoundaryPoints;
+            uM = UnstructuredMeshCreator(s);
+            m = uM.create();
             obj.mesh = m;
-        end        
+        end
         
         function createBenchMarkMesh(obj)
             xv = linspace(obj.xmin,obj.xmax,3);
@@ -70,60 +70,7 @@ classdef TestingPathFormSingularityToBoundary < handle
             obj.mesh = m;
         end
         
-        function x = createRandVertexInClosedUnitInterval(obj,n)
-            x0 = obj.createRandVertexInOpenUnitInterval(n-2);
-            x  = [0,x0,1];
-        end
-        
-        function x = createInteriorVertexCoord(obj,xMin,xMax,n)
-            xUnit = obj.createRandVertexInOpenUnitInterval(n);
-            x     = obj.scaleVertexCoord(xMin,xMax,xUnit);
-        end
-        
-        function x = createBoundaryVertexCoord(obj,xMin,xMax,n)
-            xUnit = obj.createRandVertexInClosedUnitInterval(n);
-            x     = obj.scaleVertexCoord(xMin,xMax,xUnit);
-        end
-        
-        function [xI,yI] = createInteriorVertex(obj)
-            n = obj.nInteriorPoints;
-            xI = obj.createInteriorVertexCoord(obj.xmin,obj.xmax,n);
-            yI = obj.createInteriorVertexCoord(obj.ymin,obj.ymax,n);
-        end
-        
-        function [xB,yB] = createBoundaryVertex(obj)
-            [xD,yD] = obj.createDownVertex();
-            [xU,yU] = obj.createUpperVertex();
-            [xL,yL] = obj.createLeftVertex();
-            [xR,yR] = obj.createRightVertex();
-            xB = [xD,xU,xL,xR];
-            yB = [yD,yU,yL,yR];
-        end
-        
-        function [x,y] = createDownVertex(obj)
-            n = obj.nBoundaryPoints;
-            x = obj.createBoundaryVertexCoord(obj.xmin,obj.xmax,n);            
-            y = obj.ymin*ones(1,n);           
-        end
-        
-        function [x,y] = createUpperVertex(obj)
-            n = obj.nBoundaryPoints;
-            x = obj.createBoundaryVertexCoord(obj.xmin,obj.xmax,n);            
-            y = obj.ymax*ones(1,n);                  
-        end
-        
-        function [x,y] = createLeftVertex(obj)
-            n = obj.nBoundaryPoints;
-            x = obj.xmin*ones(1,n);
-            y = obj.createBoundaryVertexCoord(obj.ymin,obj.ymax,n);                        
-        end
-        
-        function [x,y] = createRightVertex(obj)
-            n = obj.nBoundaryPoints;
-            x = obj.xmax*ones(1,n);                  
-            y = obj.createBoundaryVertexCoord(obj.ymin,obj.ymax,n);                        
-        end
-        
+ 
         function createSingularityPoint(obj)
             obj.singularityCoord = [0.59 2.7];
         end
@@ -153,17 +100,6 @@ classdef TestingPathFormSingularityToBoundary < handle
         end        
         
     end
-    
-    methods (Access = private, Static)
-        
-        function xV = createRandVertexInOpenUnitInterval(n)
-            xV = rand(1,n);
-        end        
-        
-        function x = scaleVertexCoord(xMin,xMax,xUnit)
-            x = xMin + (xMax - xMin)*(xUnit);
-        end
-        
-    end
+
     
 end

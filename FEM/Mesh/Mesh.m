@@ -163,6 +163,14 @@ classdef Mesh < handle
             obj.edges = edge;
         end
 
+        function eM = computeEdgeMesh(obj)
+            obj.computeEdges;           
+            s.coord  = obj.coord;
+            s.connec = obj.edges.nodesInEdges;
+            s.kFace  = obj.kFace -1;
+            eM = Mesh(s);
+        end
+
         function m = computeCanonicalMesh(obj)
             s.remainingNodes = unique(obj.connec);
             s.mesh        = obj;
@@ -234,17 +242,17 @@ classdef Mesh < handle
 
         function cV = computeConnectedVertex(obj,vertex)
             cV  = obj.edges.computeConnectedVertex(vertex);
-        end         
+        end       
 
-        function fP1 = mapP0ToP1Discontinous(obj,f)
-            nnodeElem = obj.meshDisc.nnodeElem;
-            fRepeted = zeros(size(f,1),nnodeElem);
-            for iNode = 1:nnodeElem
-                fRepeted(:,iNode) = f;
-            end
-            fRepeted = transpose(fRepeted);
-            fP1 = fRepeted(:);
-        end
+%         function fP1 = mapP0ToP1Discontinous(obj,f)
+%             nnodeElem = obj.meshDisc.nnodeElem;
+%             fRepeted = zeros(size(f,1),nnodeElem);
+%             for iNode = 1:nnodeElem
+%                 fRepeted(:,iNode) = f;
+%             end
+%             fRepeted = transpose(fRepeted);
+%             fP1 = fRepeted(:);
+%         end
 
     end
 
