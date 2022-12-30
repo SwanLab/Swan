@@ -12,3 +12,4 @@ HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
 PostProcTestsSuite;
 ProjectorsTestsSuite;
+DehomogenizingSingularitiesTest;

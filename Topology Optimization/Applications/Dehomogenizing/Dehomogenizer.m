@@ -1,12 +1,13 @@
 classdef Dehomogenizer < handle
     
     properties (Access = public)
-        
+       
     end
     
     properties (Access = private)
         boundaryMesh
         uMesh        
+        levelSet
     end
     
     properties (Access = private)
@@ -23,13 +24,15 @@ classdef Dehomogenizer < handle
             obj.init(cParams)            
         end
         
-        function compute(obj)
-            obj.createBoundaryMesh();                       
-            obj.createUnfittedMesh();            
+        function ls = compute(obj)
+            obj.createBoundaryMesh();    
+            obj.createLevelSet();                                    
+            ls = obj.levelSet;
         end
         
         function plot(obj)
-            obj.plotOrientation();
+            obj.createUnfittedMesh();                        
+         %   obj.plotOrientation();
             obj.plotStructure();
            % obj.plotComponents();
         end
@@ -55,7 +58,7 @@ classdef Dehomogenizer < handle
         end
         
         function createUnfittedMesh(obj)
-            ls = obj.createLevelSet();                                    
+            ls = obj.levelSet;
             s.boundaryMesh   = obj.boundaryMesh;
             s.backgroundMesh = obj.backgroundMesh;
             obj.uMesh = UnfittedMesh(s);
@@ -84,8 +87,8 @@ classdef Dehomogenizer < handle
             sp.plot();
         end
 
-        function ls = createLevelSet(obj)
-            s.coord = obj.backgroundMesh.coord;            
+        function createLevelSet(obj)
+            s.coord  = obj.backgroundMesh.coord;            
             s.type   = 'periodicAndOriented';            
             s.backgroundMesh   = obj.backgroundMesh;
             s.mesh   = obj.mesh;
@@ -93,8 +96,8 @@ classdef Dehomogenizer < handle
             s.angle  = obj.theta;
             s.nCells = obj.nCells;
             s.cellLevelSetParams = obj.cellLevelSetParams;
-            levelSet = LevelSetCreator.create(s);            
-            ls = levelSet.getValue();   
+            lSet = LevelSetCreator.create(s);            
+            obj.levelSet = lSet.getValue();   
         end             
         
     end
