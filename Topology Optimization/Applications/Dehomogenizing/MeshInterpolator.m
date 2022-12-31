@@ -18,9 +18,8 @@ classdef MeshInterpolator < handle
         function obj = MeshInterpolator()
             close all
             obj.createCoarseMesh()
-            obj.createFineMesh();
-            obj.createCoarseFeFunction();
-            obj.interpolateFeFunction();
+            obj.createFunctions();
+            obj.remeshDiscontinousField();
         end
         
     end
@@ -37,11 +36,17 @@ classdef MeshInterpolator < handle
             s.nBoundaryPoints = 15;
             uM = UnstructuredMeshCreator(s);
             m = uM.create();
+
+% 
+%             s.coord = [1 0; 0 1; 0 0; 1 1];
+%             s.connec = [3 1 2; 1 4 2];
+%             m = Mesh(s);
+
             obj.coarseMesh = m;
         end
-        
-        function createFineMesh(obj)
-            mC = obj.coarseMesh;
+
+        function mFine = remesh(obj,mC)
+            %mC = obj.coarseMesh;
             mC.computeEdges();
             e = mC.edges;
 
@@ -96,44 +101,103 @@ classdef MeshInterpolator < handle
             sF.coord  = [mC.coord;newCoord];
             mFine = Mesh(sF);
             mFine.plot()
-            obj.fineMesh = mFine;
+        end
+        
+        function createFunctions(obj,m)
+            f   = @(x) x(:,1).*x(:,2);
+            m   = obj.coarseMesh;
+            fP1 = obj.createFeFunction(m,f);
+
+
+            mFine     = obj.remesh(m);
+            s.connec  = mFine.connec;
+            s.type    = mFine.type;
+            s.fValues = obj.interpolateFeFunction(f,m);
+            cF = P1Function(s); 
+            cF.plot(mFine) 
+
         end
 
-        function createCoarseFeFunction(obj)
-            f = @(x) x(:,1).*x(:,2);
-            m = obj.coarseMesh;
+        function fP1 = createFeFunction(obj,m,f)
             s.connec  = m.connec;
             s.type    = m.type;
             s.fValues = f(m.coord);
-            cF = P1Function(s); 
-            cF.plot(m)
+            fP1 = P1Function(s); 
+            fP1.plot(m)
+        end        
+
+        function createFineFeFunction(obj)
+            func = @(x) x(:,1).*x(:,2);            
+            m = obj.coarseMesh;
+
+
+
+
+            mD = obj.coarseMesh.createDiscontinuousMesh();
+            mDFine = obj.remesh(mD);
         end
 
-        function interpolateFeFunction(obj)
-            f = @(x) x(:,1).*x(:,2);            
-            m = obj.coarseMesh.computeEdgeMesh();  
-            fValues = f(m.coord);
-            s.connec  = m.connec;
-            s.type    = m.type;
-            s.fValues = fValues;
-            cF = P1Function(s);             
+
+
+
+        function allF = interpolateFeFunction(obj,f,m)
+            me = m.computeEdgeMesh();  
+            fe = obj.createFeFunction(me,f); 
             q = Quadrature.set(m.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
-            fNewValues = squeeze(cF.evaluate(xV));                
+            fNewValues = squeeze(fe.evaluate(xV));                
+            allF = [fe.fValues;fNewValues];
+        end
+
+        function remeshDiscontinousField(obj)
+            mC = obj.coarseMesh;
+            m = mC.createDiscontinuousMesh();
+            figure()
+            m.plot()
+
+            f = obj.createFunction(mC);
+
+            mFine = obj.fineMesh;
+            mFine.createDiscontinuousMesh();
+        
+            e = mC.edges;
+            m.computeEdges;
+            eD = m.edges;
+            connec = m.connec;
+            for iEdge = 1:3
+                nodes = e.localNodeByEdgeByElem(1,iEdge,:);
+                nodeA = nodes(:,1);
+                nodeB = nodes(:,2);
 
 
-            allF = [fValues;fNewValues];
-
-
-            m = obj.fineMesh;
-            s.connec  = m.connec;
-            s.type    = m.type;
-            s.fValues = allF;
-            cF = P1Function(s); 
-            cF.plot(m)            
+            end
 
         end
+
+        function fD = createFunction(obj,m)
+            %m = m.createDiscontinuousMesh();
+            coord = m.computeBaricenter()';
+            ls = coord(:,2)-(1-coord(:,1));
+            chi = zeros(size(ls));
+            chi(ls<0) = 1;            
+            %= heaviside(ls);
+
+            
+
+            s.fValues = chi;%reshape(chi,[],3); 
+            s.connec  = m.connec; 
+            s.type    = m.type;
+            f = P0Function(s);
+
+            s.mesh = m;
+            s.connec = m.connec;
+            p = Projector_toP1Discontinuous(s);
+            fD = p.project(f);
+            fD.plot(m)
+            end
+
+
         
     end
     
