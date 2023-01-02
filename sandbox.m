@@ -37,7 +37,6 @@ bMc = BoundaryMeshCreator.create(sB);
 boundaryMesh  = bMc.create();
 
 % Level set
-
 s.type       = 'circleInclusion';
 s.mesh       = backgroundMesh;
 s.ndim       = 2;
@@ -53,11 +52,6 @@ uMesh.compute(ls);
 uMesh.plot();
 
 % New mesh
-% s.coord  = uMesh.innerMesh.mesh.coord;
-% s.connec = [uMesh.innerMesh.mesh.connec; uMesh.innerCutMesh.mesh.connec];
-% 
-% mT = Mesh(s);
-% mT.plot
 
 coordInner     = uMesh.innerMesh.mesh.coord;
 connecInner    = uMesh.innerMesh.mesh.connec;
@@ -65,8 +59,8 @@ coordCutInner  = uMesh.innerCutMesh.mesh.coord;
 connecCutInner = uMesh.innerCutMesh.mesh.connec;
 ncoord = size(coordInner,1);
 connecCutInner = connecCutInner + ncoord;
-s.coord = [coordInner;coordCutInner];
-s.connec = [connecInner;connecCutInner];
+s.coord  = [coordInner;  coordCutInner];
+s.connec = [connecInner; connecCutInner];
 jointMesh = Mesh(s);
 
 % Export to STL
