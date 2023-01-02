@@ -22,9 +22,12 @@ classdef Density < DesignVariable
         function rho = computeVolumeFraction(obj)
             s.connec = obj.mesh.connec;
             s.type   = obj.mesh.type;
-            s.fNodes = obj.value;
+            s.fValues = obj.value;
             f = P1Function(s);
-            rho = f.computeValueInCenterElement();
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            rho = f.evaluate(xV);
         end
         
     end

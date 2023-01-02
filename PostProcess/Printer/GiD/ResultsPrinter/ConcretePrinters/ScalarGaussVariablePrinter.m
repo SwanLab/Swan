@@ -18,7 +18,7 @@ classdef ScalarGaussVariablePrinter < ResultsPrinter
         end
         
         function printResults(obj,iter,fileID)
-            field(:,1,:) = obj.fields';
+            field(:,1,:) = squeeze(obj.fields)';
             dS = obj.createScalarGaussDataBase(iter,fileID,field, obj.fieldName,'OnGaussPoints');
             ScalarGaussPrinter(dS);
         end

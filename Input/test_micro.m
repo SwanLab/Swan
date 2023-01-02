@@ -40,7 +40,7 @@ micro.beta =[0 -1 0]';%[0 -1 0]'
 
 % For all tests
 plotting = false;
-printing = false;
+printing = true;
 printing_physics = false;
 monitoring = false;
 maxiter = 3;
