@@ -98,6 +98,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.minLengthInUnitCell = mL;
             m1 = obj.cellLevelSetParams.widthH;
             m2 = obj.cellLevelSetParams.widthV;
+            m1 = obj.interpolateFunction(m1,obj.mesh);
+            m2 = obj.interpolateFunction(m2,obj.mesh);
             t = MparameterThresholder(s);
             m1 = t.thresh(m1);
             m2 = t.thresh(m2);            
@@ -117,13 +119,14 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
         
         function vq = interpolateFunction(obj,v,mesh)
-            m = mesh;
-            X = m.coord(:,1);
-            Y = m.coord(:,2);
-            F = scatteredInterpolant(X,Y,v);
-            xB = obj.backgroundMesh.coord(:,1);
-            yB = obj.backgroundMesh.coord(:,2);
-            vq = F(xB,yB);
+%             m = mesh;
+%             X = m.coord(:,1);
+%             Y = m.coord(:,2);
+%             F = scatteredInterpolant(X,Y,v);
+%             xB = obj.backgroundMesh.coord(:,1);
+%             yB = obj.backgroundMesh.coord(:,2);
+%             vq = F(xB,yB);
+           vq = obj.refine(mesh,v);
         end           
         
         function [y1,y2] = transformToFastCoord(obj,x1,x2)
@@ -140,6 +143,19 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             y1 = obj.periodicFunction(y1);
             y2 = obj.periodicFunction(y2);
         end   
+
+        function [v] = refine(obj,m,v)
+            for i = 1:3
+                s.type    = m.type;
+                s.connec  = m.connec;
+                s.fValues = v;
+                fC        = P1Function(s);
+                mF = m.remesh();
+                fF = fC.refine(m,mF);
+                v = fF.fValues;
+                m = mF;
+            end
+        end
         
     end
     
