@@ -38,6 +38,20 @@ classdef P1DiscontinuousFunction < FeFunction
                 fxV = fxV + f;
             end
         end
+        
+        function fFine = refine(obj,m,mFine)
+            f = squeeze(obj.fValues); 
+            f = f(:);
+            fEdges = obj.computeFunctionInEdges(m,f);                   
+            fAll  = [f,fEdges]; 
+            for iNode = 1:m.nnodeElem  
+                fV(1,iNode,:) = fAll(mFine.connec(:,iNode));
+            end
+            s.type    = mFine.type;
+            s.connec  = mFine.connec;
+            s.fValues = fV;     
+            fFine = P1DiscontinuousFunction(s);
+        end
 
         function plot(obj, m)
             ndims   = size(obj.fValues, 1);
@@ -75,6 +89,13 @@ classdef P1DiscontinuousFunction < FeFunction
             m.type = obj.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
+
+        function f = computeFunctionInEdges(obj,m,fNodes)
+            s.mesh   = m;
+            s.fNodes = fNodes;
+            eF       = EdgeFunctionInterpolator(s);
+            f = eF.compute();
+        end        
         
     end
     

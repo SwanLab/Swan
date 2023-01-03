@@ -242,7 +242,13 @@ classdef Mesh < handle
 
         function cV = computeConnectedVertex(obj,vertex)
             cV  = obj.edges.computeConnectedVertex(vertex);
-        end       
+        end   
+
+        function m = remesh(obj)
+            s.mesh = obj;
+            r = Remesher(s);
+            m = r.compute();
+        end
 
 %         function fP1 = mapP0ToP1Discontinous(obj,f)
 %             nnodeElem = obj.meshDisc.nnodeElem;

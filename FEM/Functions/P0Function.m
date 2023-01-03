@@ -27,16 +27,15 @@ classdef P0Function < FeFunction
             end
         end
 
-        function fDfun = computeP1DiscontinuousFunction(obj)
-            fD = obj.createDiscontinuousFunction();
-            s.fValues = fD;
-            s.connec  = obj.connec;
-            s.type    = obj.type;
-            fDfun = P1DiscontinuousFunction(s);            
+        function fD = computeP1DiscontinuousFunction(obj,m)
+            s.mesh    = m;
+            s.connec  = m.connec;
+            p = Projector_toP1Discontinuous(s);
+            fD = p.project(obj);
         end
 
         function plot(obj, m)
-            p1DiscFun = obj.computeP1DiscontinuousFunction(); % replace with a projector
+            p1DiscFun = obj.computeP1DiscontinuousFunction(m); % replace with a projector
             p1DiscFun.plot(m);
         end
 
