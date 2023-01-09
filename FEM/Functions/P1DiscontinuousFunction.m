@@ -40,17 +40,42 @@ classdef P1DiscontinuousFunction < FeFunction
         end
         
         function fFine = refine(obj,m,mFine)
+         %   mFineD = mFine.createDiscontinuousMesh();
             f = squeeze(obj.fValues); 
             f = f(:);
             fEdges = obj.computeFunctionInEdges(m,f);                   
-            fAll  = [f,fEdges]; 
-            for iNode = 1:m.nnodeElem  
-                fV(1,iNode,:) = fAll(mFine.connec(:,iNode));
-            end
+            fAll  = [f;fEdges]; 
+           
+            
             s.type    = mFine.type;
             s.connec  = mFine.connec;
-            s.fValues = fV;     
-            fFine = P1DiscontinuousFunction(s);
+            s.fValues = fAll;
+            fP1 = P1Function(s);
+            
+            s.mesh   = mFine;
+            s.connec = mFine.connec;
+            s.type   = mFine.type;
+            sP.origin = 'P1';
+            sP.x = fP1;
+
+            p = ProjectorToP1discont(s);
+            fFine = p.project(sP);            
+%             
+%             for iNode = 1:m.nnodeElem  
+%                 fV(1,iNode,:) = fAll(mFine.connec(:,iNode));
+%             end
+%           %  ndims = size(fAll, 2);
+%           %  nNodesDisc = m.nnodeElem*m.nelem;
+%           %  coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
+%             s.type = obj.type;
+%             s.connec = obj.connec;
+%             s.fValues = obj.coord;
+%             coordP1 = P1Function(s);
+% 
+%             s.type    = mFine.type;
+%             s.connec  = mFineD.connec;
+%             s.fValues = fV;     
+%             fFine = P1DiscontinuousFunction(s);
         end
 
         function plot(obj, m)

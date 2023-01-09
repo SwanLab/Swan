@@ -14,23 +14,29 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         end
 
         function testRemeshP1ContinousFunction(obj)
-            mC = obj.createCoarseMesh();
-            f  = obj.createP1ContinousFunction(mC);
-            mF = mC.remesh();        
-            fFine = f.refine(mC,mF);   
+            m = obj.createCoarseMesh();
+            f = obj.createP1ContinousFunction(m);
+            for i = 1:2
+                mF = m.remesh();
+                f = f.refine(m,mF);
+                m    = mF;
+            end           
             s = load('test_RemeshP1Function');
-            err = norm(s.fValues(:) - fFine.fValues(:));
+            err = norm(s.fValues(:) - f.fValues(:));
             tol = 1e-6;
             obj.verifyLessThanOrEqual(err, tol)
         end
 
         function testRemeshP1DiscontinousFunction(obj)
-            mC = obj.createCoarseDiscontinousMesh();
-            f  = obj.createP1DiscontinousFunction(mC);
-            mF = mC.remesh();        
-            fFine = f.refine(mC,mF);   
+            m = obj.createCoarseDiscontinousMesh();
+            f = obj.createP1DiscontinousFunction(m);
+            for i = 1:2
+                mF = m.remesh();
+                f = f.refine(m,mF);
+                m    = mF.createDiscontinuousMesh();
+            end  
             s = load('test_RemeshP1DiscFunction');
-            err = norm(s.fValues(:) - fFine.fValues(:));
+            err = norm(s.fValues(:) - f.fValues(:));
             tol = 1e-6;
             obj.verifyLessThanOrEqual(err, tol)
         end        
@@ -46,7 +52,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         end     
 
         function mD = createCoarseDiscontinousMesh(obj)
-            m   = obj.createCoarseMesh;
+            m   = obj.createCoarseMesh();
             mD = m.createDiscontinuousMesh();
         end                
 
@@ -68,7 +74,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         end        
 
         function f = createFunctionToRemesh(obj)
-            f = @(x) x(:,1).*x(:,2);
+            f = @(x) x(:,1).^2+x(:,2).^2;
         end        
 
     end
