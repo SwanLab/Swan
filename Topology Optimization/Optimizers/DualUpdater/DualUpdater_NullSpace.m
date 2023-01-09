@@ -16,6 +16,9 @@ classdef DualUpdater_NullSpace < handle
 
     properties (Access = public)
         parameter
+        t
+        lG
+        lJ
     end
 
     methods (Access = public)
@@ -87,14 +90,11 @@ classdef DualUpdater_NullSpace < handle
             obj.cost.computeFunctionAndGradient();
             DJ = obj.cost.gradient;
             Dh = obj.constraint.gradient;
-            h  = obj.constraint.value;
             S  = (Dh'*Dh)^-1;
-            f = obj.parameter; % f = aCt/(aJ*t);
-            Delta = 10000;
-            lC = f*S*h;
-            lC = max(min(Delta,lC),-Delta);
-            lJ = -S*Dh'*DJ;
-            l  = lC + lJ;
+            h  = obj.constraint.value;
+            obj.lG = S*h;
+            obj.lJ = -S*Dh'*DJ;
+            l  = obj.lG + obj.t*obj.lJ;
             obj.dualVariable.value = l;
         end
 

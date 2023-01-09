@@ -21,8 +21,8 @@ classdef SLERP < handle
             x = obj.computeNewLevelSet(g);
         end
 
-        function computeFirstStepLength(obj,~,~,~,tau0)
-            obj.tau = tau0;%1;     0.02 for squareAni
+        function computeFirstStepLength(obj,tau0)
+            obj.tau = tau0;
         end
 
         function is = isTooSmall(obj)
@@ -31,7 +31,7 @@ classdef SLERP < handle
 
         function increaseStepLength(obj,f)
 %             obj.tau = min(f*obj.tau,1);
-            obj.tau = 1;
+            obj.tau = f;
         end
 
         function decreaseStepLength(obj)

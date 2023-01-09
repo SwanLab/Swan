@@ -47,4 +47,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 50; % 3000    200      45
+maxiter = 500; % 3000    200      50
