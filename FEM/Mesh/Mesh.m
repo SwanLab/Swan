@@ -235,6 +235,11 @@ classdef Mesh < handle
             fP1 = fRepeted(:);
         end
         
+        function exportSTL(obj, cParams)
+            cParams.mesh = obj;
+            e = STLExporter(cParams);
+            e.export();
+        end
     end
     
     methods (Access = private)

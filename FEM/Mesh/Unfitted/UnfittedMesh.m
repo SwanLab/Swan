@@ -82,6 +82,17 @@ classdef UnfittedMesh < handle
             dv = dvC + dvI;
         end
         
+        function jointMesh = exportInnerMesh(obj)
+            coordInner     = obj.innerMesh.mesh.coord;
+            connecInner    = obj.innerMesh.mesh.connec;
+            coordCutInner  = obj.innerCutMesh.mesh.coord;
+            connecCutInner = obj.innerCutMesh.mesh.connec;
+            ncoord = size(coordInner,1);
+            connecCutInner = connecCutInner + ncoord;
+            s.coord  = [coordInner;  coordCutInner];
+            s.connec = [connecInner; connecCutInner];
+            jointMesh = Mesh(s);
+        end
         
     end
     

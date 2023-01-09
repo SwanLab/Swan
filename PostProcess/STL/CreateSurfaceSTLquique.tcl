@@ -13,6 +13,7 @@ proc CreateSurfaceSTL {input_post_res output_gid_project_name} {
      GiD_Process Mescape Preprocess Yes
      GiD_Process Mescape Geometry Edit ReConstruction OneLineForEachElement 1:end escape
      GiD_Process Mescape Geometry Edit JoinLines 1:end escape escape
+     GiD_Process Mescape Geometry Create NurbsSurface 463 540 541 618 619 escape
      GiD_Process Mescape Files Save $output_gid_project_name escape
 
 }
