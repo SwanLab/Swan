@@ -28,6 +28,7 @@ classdef Mesh < handle
     properties (Access = private)
         xFE
         geometry
+        triMesh
     end
     
         
@@ -235,11 +236,11 @@ classdef Mesh < handle
             fP1 = fRepeted(:);
         end
         
-        function exportSTL(obj, cParams)
-            cParams.mesh = obj;
-            e = STLExporter(cParams);
-            e.export();
+        function exportSTL(obj, file)
+            obj.triangulateMesh();
+            stlwrite(obj.triMesh, [file '.stl'])
         end
+
     end
     
     methods (Access = private)
@@ -327,6 +328,12 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
+        end
+
+        function triangulateMesh(obj)
+            P = obj.coord;
+            T = obj.connec;
+            obj.triMesh = triangulation(T,P);
         end
         
     end
