@@ -36,7 +36,7 @@ classdef RHSintegrator_ElasticMicro < handle
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndof(:)),1);
+                R = zeros(sum(obj.dim.ndofs(:)),1);
             end
 
         end

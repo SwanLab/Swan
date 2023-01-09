@@ -22,6 +22,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             cParams.filterParams.filterType = 'PDE';
             obj.init(cParams);
           %  obj.initFrame();
+          obj.computeFunctionAndGradient();
         end
         
         function computeFunctionAndGradient(obj)
@@ -92,11 +93,14 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function per0 = computePerimeterIntegrandP0(obj)
             vfrac = obj.designVariable.computeVolumeFraction();
-            s.connec = obj.designVariable.mesh.connec;
-            s.type   = obj.designVariable.mesh.type;
-            s.fNodes = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
+            s.connec  = obj.designVariable.mesh.connec;
+            s.type    = obj.designVariable.mesh.type;
+            s.fValues = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
             f = P1Function(s);
-            per = f.computeValueInCenterElement();
+            q = Quadrature.set(obj.designVariable.mesh.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            per = f.evaluate(xV);
             per = per.*vfrac;
             per0 = per;
         end

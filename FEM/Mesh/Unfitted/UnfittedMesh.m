@@ -82,7 +82,22 @@ classdef UnfittedMesh < handle
             dv = dvC + dvI;
         end
         
-        
+        function exportGiD(obj)
+            % call a postprocess to create .msh .res
+            % From CreateSurface(STL) --> CreateMesh for visualizing
+            %   called from a unix command line, see GiDImageCapturer
+            %   line 70
+            % Export .msh
+        end
+
+        function m = exportInnerMesh(obj)
+            s.unfittedMesh = obj;
+            s.type = 'Matlab';
+            s.filename= 'none'; % only for gid
+            ime = InnerMeshExporter(s);
+            m = ime.export();
+        end
+
     end
     
     methods (Access = private)
