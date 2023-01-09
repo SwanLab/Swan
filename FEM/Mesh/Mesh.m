@@ -28,6 +28,7 @@ classdef Mesh < handle
     properties (Access = private)
         xFE
         geometry
+        triMesh
     end
 
 
@@ -164,7 +165,7 @@ classdef Mesh < handle
         end
 
         function eM = computeEdgeMesh(obj)
-            obj.computeEdges;           
+            obj.computeEdges;
             s.coord  = obj.coord;
             s.connec = obj.edges.nodesInEdges;
             s.kFace  = obj.kFace -1;
@@ -238,17 +239,18 @@ classdef Mesh < handle
             isInCell      = any(vertexInCell == vertex,2);
             allCells(:,1) = 1:size(isInCell,1);
             cells         = allCells(isInCell);
-        end        
+        end
 
         function cV = computeConnectedVertex(obj,vertex)
             cV  = obj.edges.computeConnectedVertex(vertex);
-        end   
+        end
 
         function m = remesh(obj)
             s.mesh = obj;
             r = Remesher(s);
             m = r.compute();
         end
+
 
 %         function fP1 = mapP0ToP1Discontinous(obj,f)
 %             nnodeElem = obj.meshDisc.nnodeElem;
@@ -259,6 +261,13 @@ classdef Mesh < handle
 %             fRepeted = transpose(fRepeted);
 %             fP1 = fRepeted(:);
 %         end
+
+
+        function exportSTL(obj, file)
+            obj.triangulateMesh();
+            stlwrite(obj.triMesh, [file '.stl'])
+        end
+
 
     end
 
@@ -347,6 +356,12 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
+        end
+
+        function triangulateMesh(obj)
+            P = obj.coord;
+            T = obj.connec;
+            obj.triMesh = triangulation(T,P);
         end
 
     end
