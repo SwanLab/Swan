@@ -90,7 +90,7 @@ classdef CorrectorComputer < handle
             s.mesh         = obj.mesh;
             l = LeftRightCellsOfPathToBoundaryComputer(s);
             [cR,cL] = l.compute();   
-            l.plot();            
+          %  l.plot();            
             obj.isCellLeft  = cL;
             obj.isCellRight = cR;
         end         

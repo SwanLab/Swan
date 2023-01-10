@@ -78,12 +78,16 @@ classdef P1DiscontinuousFunction < FeFunction
 %             fFine = P1DiscontinuousFunction(s);
         end
 
-        function plot(obj, m)
+        function fV = getFvaluesAsVector(obj)
             ndims   = size(obj.fValues, 1);
             nelem   = size(obj.connec, 1);
             nnodeEl = size(obj.connec, 2);
-            mD = m.createDiscontinuousMesh();
-            fD = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+            fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+        end
+
+        function plot(obj, m)
+            fD = obj.getFvaluesAsVector();
+             mD = m.createDiscontinuousMesh();            
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()

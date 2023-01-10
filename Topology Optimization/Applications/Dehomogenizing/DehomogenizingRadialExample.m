@@ -17,11 +17,16 @@ classdef DehomogenizingRadialExample < handle
         
         function obj = DehomogenizingRadialExample()
             obj.init();
+            for i = 10:50
+                obj.nCells = i;
             obj.createBackgroundMesh();  
             obj.createOrientation();
             obj.createSuperEllipseParams();
             obj.createLevelSetCellParams();
             obj.dehomogenize();
+            exportgraphics(gcf,'testAnimated.gif','Append',true);
+
+            end
         end
         
     end
@@ -29,9 +34,9 @@ classdef DehomogenizingRadialExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nx1    = 180*2;
-            obj.nx2    = 180;
-            obj.nCells = 32;
+            obj.nx1    = 40*2;%180
+            obj.nx2    = 40;%180
+            obj.nCells = 32;%32
         end
         
         function createBackgroundMesh(obj)
@@ -66,7 +71,7 @@ classdef DehomogenizingRadialExample < handle
              s.coord  = V(:,1:2);
              s.connec = F;
              obj.backgroundMesh = Mesh(s);
-             obj.backgroundMesh.plot()
+        %     obj.backgroundMesh.plot()
 %             obj.coord = s.coord;
             
         end
@@ -91,9 +96,9 @@ classdef DehomogenizingRadialExample < handle
         end
         
         function createLevelSetCellParams(obj)
-           s.type   = 'smoothRectangle';
-           s.widthH = 0.7*ones(size(obj.superEllipse.m1));
-           s.widthV = 0.7*ones(size(obj.superEllipse.m2));
+           s.type   = 'rectangleInclusion';%'smoothRectangle';
+           s.widthH = 0.87*ones(size(obj.superEllipse.m1));
+           s.widthV = 0.87*ones(size(obj.superEllipse.m2));
            s.pnorm  = obj.superEllipse.q;
            s.ndim   = 2;
            obj.cellLevelSetParams = s;

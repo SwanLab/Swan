@@ -25,12 +25,20 @@ classdef Dehomogenizer < handle
         end
         
         function ls = compute(obj)
-            obj.createBoundaryMesh();    
             obj.createLevelSet();                                    
             ls = obj.levelSet;
         end
         
         function plot(obj)
+            m = obj.backgroundMesh;
+            m = m.createDiscontinuousMesh();
+            for i = 1:3
+                m = m.remesh();
+                m = m.createDiscontinuousMesh();
+            end
+            
+            obj.backgroundMesh = m;
+            obj.createBoundaryMesh();                
             obj.createUnfittedMesh();                        
          %   obj.plotOrientation();
             obj.plotStructure();

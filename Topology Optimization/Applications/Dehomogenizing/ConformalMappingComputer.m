@@ -70,7 +70,7 @@ classdef ConformalMappingComputer < handle
             s.orientation = [cos(obj.orientation),sin(obj.orientation)];%obj.computeOrientationVector(1)';
             sF = SingularitiesFinder(s);
             isS = sF.computeSingularElements();
-            sF.plot();
+           % sF.plot();
             coordB = obj.mesh.computeBaricenter();
             coordB = transpose(coordB);
             sCoord =  coordB(isS,:);
@@ -105,7 +105,7 @@ classdef ConformalMappingComputer < handle
               end
               phiV(:,iDim) = reshape(phiIc',[],1);
            end
-           obj.phi = abs(phiV);
+           obj.phi = (phiV);
         end
 
         function phi = computeMapping(obj,fGauss)

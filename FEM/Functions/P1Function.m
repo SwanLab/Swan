@@ -166,6 +166,14 @@ classdef P1Function < FeFunction
             end
         end
 
+        function fD = createP1Discontinous(obj,m)
+            s.mesh   = m;
+            s.connec = obj.connec;
+            p = Projector_toP1Discontinuous(s);
+            fC = obj;
+            fD = p.project(fC);
+        end
+
     end
 
     methods (Access = private)

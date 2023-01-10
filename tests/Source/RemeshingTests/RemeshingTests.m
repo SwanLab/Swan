@@ -33,7 +33,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             for i = 1:2
                 mF = m.remesh();
                 f = f.refine(m,mF);
-                m    = mF.createDiscontinuousMesh();
+                m = mF.createDiscontinuousMesh();
             end  
             s = load('test_RemeshP1DiscFunction');
             err = norm(s.fValues(:) - f.fValues(:));
