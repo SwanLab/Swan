@@ -17,7 +17,6 @@ classdef EdgeFunctionInterpolator < handle
         end
         
         function fE = compute(obj)
-            obj.createEdgeMesh();
             obj.createP1FunctionInEdges();
             fE = obj.interpolateInMiddleEdge();
         end
@@ -27,12 +26,8 @@ classdef EdgeFunctionInterpolator < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh   = cParams.mesh;
-            obj.fNodes = cParams.fNodes;
-        end
-        
-        function createEdgeMesh(obj)
-            obj.edgeMesh = obj.mesh.computeEdgeMesh();              
+            obj.edgeMesh = cParams.edgeMesh;
+            obj.fNodes   = cParams.fNodes;
         end
         
         function f = createP1FunctionInEdges(obj)

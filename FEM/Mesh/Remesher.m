@@ -1,7 +1,14 @@
 classdef Remesher < handle
     
+    properties (Access = public)
+    %    coord
+    %    connec
+        fineMesh
+    end
+
     properties (Access = private)
         mesh
+        nLevels
         cellsToRemesh
     end
     
@@ -16,13 +23,50 @@ classdef Remesher < handle
             s.connec = obj.computeConnectivities();
             mF = Mesh(s);            
         end
+
+        function remesh(obj)
+          %  s.nodesByElem = obj.connec;
+          %  edge = EdgesConnectivitiesComputer(s);
+          %  edge.compute();
+           m0 = obj.mesh;
+            for iLevel = 1:obj.nLevels
+                s.coord  = obj.computeCoords();
+                s.connec = obj.computeConnectivities();
+                m = Mesh(s);
+                m = m.createDiscontinuousMesh();
+                obj.mesh = m;
+                obj.cellsToRemesh = 1:obj.mesh.nelem;
+            end
+            obj.fineMesh = obj.mesh;
+            obj.mesh     = m0;
+            obj.cellsToRemesh = 1:obj.mesh.nelem;            
+        end
+
+        function f = interpolate(obj,f)
+            m0 = obj.mesh;            
+            for iLevel = 1:obj.nLevels
+                m = obj.mesh;
+                s.coord  = obj.computeCoords();
+                s.connec = obj.computeConnectivities();
+                mF = Mesh(s);                
+                f  = f.refine(m,mF);
+                mD = mF.createDiscontinuousMesh();                
+                obj.mesh = mD;                
+                obj.cellsToRemesh = 1:obj.mesh.nelem;
+            end    
+            obj.mesh     = m0;
+            obj.cellsToRemesh = 1:obj.mesh.nelem;              
+        end
         
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+        %    obj.coord    = cParams.mesh.coord;
+          %  obj.connec   = cParams.mesh.connec;
+            obj.mesh     = cParams.mesh;
+            obj.nLevels  = cParams.nLevels;
             obj.cellsToRemesh = 1:obj.mesh.nelem;            
         end
         
@@ -33,7 +77,7 @@ classdef Remesher < handle
         end        
         
         function nC = computeNewCoord(obj)
-            me           = obj.mesh.computeEdgeMesh();  
+            me           = obj.mesh.computeEdgeMesh();              
             coordInEdges = me.computeBaricenter()';            
             nC           = coordInEdges;
         end

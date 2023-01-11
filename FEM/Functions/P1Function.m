@@ -169,9 +169,10 @@ classdef P1Function < FeFunction
         function fD = createP1Discontinous(obj,m)
             s.mesh   = m;
             s.connec = obj.connec;
-            p = Projector_toP1Discontinuous(s);
-            fC = obj;
-            fD = p.project(fC);
+            p = ProjectorToP1discont(s);
+            s.x = obj;
+            s.origin = 'P1';
+            fD = p.project(s);
         end
 
     end
@@ -225,9 +226,9 @@ classdef P1Function < FeFunction
         end
 
         function f = computeFunctionInEdges(obj,m,fNodes)
-            s.mesh   = m;
-            s.fNodes = fNodes;
-            eF       = EdgeFunctionInterpolator(s);
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end        
 

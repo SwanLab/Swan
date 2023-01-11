@@ -19,13 +19,12 @@ classdef DehomogenizingRadialExample < handle
             obj.init();
             for i = 10:50
                 obj.nCells = i;
-            obj.createBackgroundMesh();  
-            obj.createOrientation();
-            obj.createSuperEllipseParams();
-            obj.createLevelSetCellParams();
-            obj.dehomogenize();
-            exportgraphics(gcf,'testAnimated.gif','Append',true);
-
+                obj.createBackgroundMesh();
+                obj.createOrientation();
+                obj.createSuperEllipseParams();
+                obj.createLevelSetCellParams();
+                obj.dehomogenize();
+                exportgraphics(gcf,'testAnimated.gif','Append',true);
             end
         end
         

@@ -95,6 +95,7 @@ classdef ConformalMappingComputer < handle
               phiI   = obj.computeMapping(bGauss);
               if ~isempty(obj.singularityCoord)
                 coef = obj.computeCoeffs(oC,bGauss);
+               % coef = floor(coef);
                 psiT = zeros(size(oC));
                 for iSing = length(coef)
                   psiT = psiT + coef(iSing)*oC(:,:,iSing);

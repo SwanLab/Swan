@@ -6,15 +6,16 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         cellCoord
         phi
     end
-    
+
     properties (Access = private)
-      mesh
-      backgroundMesh
-      angle        
-      cellLevelSetParams
-      nCells
+        mesh
+        remesher
+        backgroundMesh
+        angle
+        cellLevelSetParams
+        nCells
     end
-    
+
     methods (Access = public)
         
         function obj = LevelSetPeriodicAndOriented(cParams)
@@ -27,49 +28,25 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     methods (Access = protected)
         
         function computeLevelSet(obj)
-            obj.createEpsilon(); 
-            obj.computeDilation();
-            obj.createMapping();
             obj.createCellCoord();
             obj.thresholdParameters();
-            obj.createCellLevelSet();            
-        end 
-        
+            obj.createCellLevelSet();
+        end
     end
+        
     
     methods (Access = private)
         
         function init(obj,cParams)
            obj.mesh               = cParams.mesh;
+           obj.remesher           = cParams.remesher;           
            obj.backgroundMesh     = cParams.backgroundMesh;
-           obj.angle              = cParams.angle;
+           obj.dilation           = cParams.dilation;           
+           obj.phi                = cParams.phi;
            obj.cellLevelSetParams = cParams.cellLevelSetParams; 
-           obj.nCells             = cParams.nCells;
+           obj.epsilon            = cParams.epsilon;
         end
-        
-        function createEpsilon(obj)
-            L = obj.mesh.computeCharacteristicLength();
-            obj.epsilon = L/obj.nCells;            
-        end
-        
-        function computeDilation(obj)
-            s.theta = obj.angle;
-            s.mesh  = obj.mesh;
-            dC = DilationFieldComputer(s);
-            d  = dC.compute();
-            %dC.plot();
-            obj.dilation = d;
-        end           
-        
-        function createMapping(obj)
-            s.mesh     = obj.mesh;
-            s.theta    = obj.angle;
-            s.dilation = obj.dilation;
-            c = ConformalMappingComputer(s);
-            phiV = c.compute();
-           % c.plot();            
-            obj.phi = phiV;
-        end        
+                   
         
         function createCellCoord(obj)
             [y1,y2] = obj.applyMapping();  
@@ -120,7 +97,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             r = obj.dilation;            
             mD = obj.mesh.createDiscontinuousMesh();
             rD = obj.createDiscontinousValues(r,obj.mesh,mD);
-            r  = obj.interpolateFunction(rD,mD);            
+            r  = obj.interpolateFunction(rD,mD);   
             hC = obj.epsilon*exp(-r);
             hmin = min(hC);
             hmax = max(hC);
@@ -169,11 +146,17 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.connec  = m.connec;
             s.fValues = v;
             f         = P1DiscontinuousFunction(s);
-            for i = 1:3
-                mF = m.remesh();
-                f  = f.refine(m,mF);
-                m  = mF.createDiscontinuousMesh();
-            end
+%             for i = 1:2
+%                mF = m.remesh();
+%                f  = f.refine(m,mF);
+%                m  = mF.createDiscontinuousMesh();
+%             end
+            r = obj.remesher;
+            f = r.interpolate(f);
+
+%             mF = obj.fineMesh;
+%             f  = f.refine(m0,mF);
+            
             v = f.getFvaluesAsVector();
         end
         

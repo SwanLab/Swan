@@ -50,32 +50,8 @@ classdef P1DiscontinuousFunction < FeFunction
             s.type    = mFine.type;
             s.connec  = mFine.connec;
             s.fValues = fAll;
-            fP1 = P1Function(s);
-            
-            s.mesh   = mFine;
-            s.connec = mFine.connec;
-            s.type   = mFine.type;
-            sP.origin = 'P1';
-            sP.x = fP1;
-
-            p = ProjectorToP1discont(s);
-            fFine = p.project(sP);            
-%             
-%             for iNode = 1:m.nnodeElem  
-%                 fV(1,iNode,:) = fAll(mFine.connec(:,iNode));
-%             end
-%           %  ndims = size(fAll, 2);
-%           %  nNodesDisc = m.nnodeElem*m.nelem;
-%           %  coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
-%             s.type = obj.type;
-%             s.connec = obj.connec;
-%             s.fValues = obj.coord;
-%             coordP1 = P1Function(s);
-% 
-%             s.type    = mFine.type;
-%             s.connec  = mFineD.connec;
-%             s.fValues = fV;     
-%             fFine = P1DiscontinuousFunction(s);
+            fP1   = P1Function(s);
+            fFine = fP1.createP1Discontinous(mFine);            
         end
 
         function fV = getFvaluesAsVector(obj)
@@ -120,9 +96,9 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function f = computeFunctionInEdges(obj,m,fNodes)
-            s.mesh   = m;
-            s.fNodes = fNodes;
-            eF       = EdgeFunctionInterpolator(s);
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end        
         

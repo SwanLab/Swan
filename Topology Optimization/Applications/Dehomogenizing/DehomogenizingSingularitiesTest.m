@@ -27,13 +27,7 @@ classdef DehomogenizingSingularitiesTest < handle
             obj.createMesh();
             obj.createBackgroundMesh();            
             obj.createOrientation();
-            nCell = linspace(10,55,60);
-               for i = 1:length(nCell)
-                obj.nCells = nCell(i);
-                obj.dehomogenize();
-                exportgraphics(gcf,'testAnimated2.gif','Append',true);
-                close all
-               end
+            obj.dehomogenize();
         end
 
         function passed = hasPassed(obj)
@@ -50,7 +44,7 @@ classdef DehomogenizingSingularitiesTest < handle
         function init(obj,cParams)
             obj.testName = cParams.testName;
             %obj.meshSize = 0.00521;
-            obj.meshSize = 0.0921;%0.0521 %0.0221
+            obj.meshSize = 0.0521;%0.0521 %0.0221;0.0921
             obj.nCells   = 45;   %45        
             obj.xmin = 0.5;
             obj.xmax = 2.0;
