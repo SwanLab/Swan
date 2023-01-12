@@ -5,14 +5,15 @@ classdef Dehomogenizer < handle
     end
     
     properties (Access = private)
-        boundaryMesh
-        uMesh  
-        remesher
         dilation
         phi
-        nCell
-        epsilon
+        remesher
+        meshFine
+        boundaryMesh
         levelSet
+        uMesh
+        nCell
+        epsilon        
     end
     
     properties (Access = private)
@@ -29,52 +30,31 @@ classdef Dehomogenizer < handle
             obj.init(cParams)            
         end
 
-        function createRemesher(obj)
-            m = obj.backgroundMesh;
-            m = m.createDiscontinuousMesh();
-            s.mesh = m;
-            s.nLevels = 2;
-            r  = Remesher(s);
-            r.remesh();
-            obj.remesher = r;
-        end
-        
-        function ls = compute(obj)
+     function ls = compute(obj)
             obj.computeDilation();
             obj.createMapping();
             obj.createRemesher();
             obj.createLevelSet(); 
+            obj.createFineMesh();  
+            obj.createBoundaryMesh();
             for i = 1:length(obj.nCells)
                 obj.nCell = obj.nCells(i);
                 obj.createEpsilon();   
                 obj.levelSet.computeLs(obj.epsilon);
                 ls = obj.levelSet.getValue();
                 obj.plot(ls);
-                xmin = min(obj.backgroundMesh.coord(:,1));
-                xmax = max(obj.backgroundMesh.coord(:,1));
-                ymin = min(obj.backgroundMesh.coord(:,2));
-                ymax = max(obj.backgroundMesh.coord(:,2));
-                axis([xmin xmax ymin ymax])
-                set(gca, 'Visible', 'off')                
-                exportgraphics(gcf,'testAnimated2.gif','Append',true);
-                close all
-            end            
+                obj.saveImage();
+             end            
             ls = obj.levelSet;            
         end
-        
+
         function plot(obj,ls)
-            fineMesh = obj.remesher.fineMesh;
-            m = fineMesh.createDiscontinuousMesh();
-            obj.backgroundMesh = m;
-            obj.createBoundaryMesh();
             obj.createUnfittedMesh(ls);
             %   obj.plotOrientation();
             obj.plotStructure();
             % obj.plotComponents();
-            %    obj.backgroundMesh = m0;
-            %   obj.createBoundaryMesh();
         end        
-       
+      
         
     end
     
@@ -88,21 +68,6 @@ classdef Dehomogenizer < handle
             obj.mesh               = cParams.mesh;
         end
         
-        function createBoundaryMesh(obj)
-            sB.backgroundMesh = obj.backgroundMesh;
-            sB.dimension = 1:3;
-            sB.type = 'FromReactangularBox';
-            bMc = BoundaryMeshCreator.create(sB);
-            obj.boundaryMesh  = bMc.create();            
-        end
-        
-        function createUnfittedMesh(obj,ls)
-            s.boundaryMesh   = obj.boundaryMesh;
-            s.backgroundMesh = obj.backgroundMesh;
-            obj.uMesh = UnfittedMesh(s);
-            obj.uMesh.compute(ls);
-        end               
-
         function computeDilation(obj)
             s.theta = obj.theta;
             s.mesh  = obj.mesh;
@@ -122,8 +87,32 @@ classdef Dehomogenizer < handle
             obj.phi = phiV;
         end
 
+        function createRemesher(obj)
+            m = obj.backgroundMesh;
+            m = m.createDiscontinuousMesh();
+            s.mesh = m;
+            s.nLevels = 2;
+            r  = Remesher(s);
+            r.remesh();
+            obj.remesher = r;
+        end     
+
+        function  createFineMesh(obj)
+            fineMesh = obj.remesher.fineMesh;
+            m = fineMesh.createDiscontinuousMesh();
+            obj.meshFine = m;
+        end        
+
+        function createBoundaryMesh(obj)
+            sB.backgroundMesh = obj.meshFine;
+            sB.dimension = 1:3;
+            sB.type = 'FromReactangularBox';
+            bMc = BoundaryMeshCreator.create(sB);
+            obj.boundaryMesh  = bMc.create();            
+        end        
+
         function createEpsilon(obj)
-            L = obj.mesh.computeCharacteristicLength();
+            L = obj.meshFine.computeCharacteristicLength();
             obj.epsilon = L/obj.nCell;
         end
 
@@ -136,12 +125,30 @@ classdef Dehomogenizer < handle
             st = sin(t(:,1));
             quiver(x,y,ct,st)
         end
-        
+
+        function saveImage(obj)
+            xmin = min(obj.backgroundMesh.coord(:,1));
+            xmax = max(obj.backgroundMesh.coord(:,1));
+            ymin = min(obj.backgroundMesh.coord(:,2));
+            ymax = max(obj.backgroundMesh.coord(:,2));
+            axis([xmin xmax ymin ymax])
+            set(gca, 'Visible', 'off')
+            exportgraphics(gcf,'testAnimated2.gif','Append',true);
+            close all
+        end        
+
+        function createUnfittedMesh(obj,ls)
+            s.boundaryMesh   = obj.boundaryMesh();
+            s.backgroundMesh = obj.meshFine;
+            obj.uMesh = UnfittedMesh(s);
+            obj.uMesh.compute(ls);
+        end    
+
         function plotStructure(obj)
             figure()
             obj.uMesh.plotStructureInColor('black');
         end
-        
+
         function plotComponents(obj)
             s.unfittedMesh = obj.uMesh;
             sp = UnfittedMeshSplitter(s);
