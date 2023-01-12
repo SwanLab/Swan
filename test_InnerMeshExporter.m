@@ -21,6 +21,7 @@ classdef test_InnerMeshExporter < handle
             obj.createSampleLevelSet();
             obj.createUnfittedMesh();
             obj.printUnfittedMesh();
+            obj.exportMshGiD()
         end
         
     end
@@ -72,6 +73,16 @@ classdef test_InnerMeshExporter < handle
         function printUnfittedMesh(obj)
             filename = 'sample_test_innermeshexporter';
             obj.unfittedMesh.print(filename);
+        end
+
+        function exportMshGiD(obj)
+            s.filename        = 'hellothere';
+            s.gidProjectPath  = '/home/ton/test_micro_project.gid';
+            s.meshElementSize = '0.0707107';
+            s.meshFileName    = 'hmmmm22';
+            s.swanPath        = '/home/ton/Github/Swan/';
+            s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
+            obj.unfittedMesh.exportGiD(s);
         end
         
     end

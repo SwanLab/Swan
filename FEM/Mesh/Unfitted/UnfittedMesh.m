@@ -84,19 +84,31 @@ classdef UnfittedMesh < handle
         
         function print(obj, filename)
             d = obj.createPostProcessDataBase(filename);
-            d.printMode = 'DesignVariable';
+            d.fields           = {obj.levelSet};
+            d.printMode        = 'DesignVariable';
             d.nDesignVariables = 1;
-            d.fields = {obj.levelSet};
             postProcess = Postprocess('TopOptProblem',d);
             postProcess.print(1,d)
         end
         
-        function exportGiD(obj)
-            % call a postprocess to create .msh .res
-            % From CreateSurface(STL) --> CreateMesh for visualizing
-            %   called from a unix command line, see GiDImageCapturer
-            %   line 70
-            % Export .msh
+        function exportGiD(obj, cParams)
+            % SAMPLE CPARAMS
+            % s.filename        = 'hellothere';
+            % s.resFilePath     = '/home/ton/test_micro23.flavia.res';
+            % s.gidProjectPath  = '/home/ton/test_micro_project.gid';
+            % s.meshElementSize = '0.0707107';
+            % s.meshFileName    = 'hmmmm22';
+            % s.swanPath        = '/home/ton/Github/Swan/';
+            % s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
+            filename = cParams.filename;
+            obj.print(filename);
+            cParams.resFilePath = [cParams.swanPath, 'Output/',filename,'/',filename,'1.flavia.res'];
+            obj.createSurfaceMeshTclFromTemplate(cParams);
+            pathTcl  = [cParams.swanPath,'PostProcess/STL/'];
+            
+            tclFile = [pathTcl,'CreateSurfaceMeshFile.tcl" '];
+            command = [cParams.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
+            system(command);
         end
 
         function m = exportInnerMesh(obj)
@@ -205,6 +217,23 @@ classdef UnfittedMesh < handle
             d.ndim       = obj.backgroundMesh.ndim;
             d.pdim       = obj.backgroundMesh.ndim;
             d.designVar  = 'LevelSet';
+        end
+
+        function createSurfaceMeshTclFromTemplate(obj, cParams)
+            resFilePath     = cParams.resFilePath;
+            gidProjectPath  = cParams.gidProjectPath;
+            meshElementSize = cParams.meshElementSize;
+            meshFileName    = cParams.meshFileName;
+
+            templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
+            targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
+            fid = fopen(targetFile, 'w');
+            fprintf(fid, ['set input_post_res "', resFilePath, '"\n']);
+            fprintf(fid, ['set output_gid_project_name "', gidProjectPath, '"\n']);
+            fprintf(fid, ['set mesh_element_size "', meshElementSize, '"\n']);
+            fprintf(fid, ['set mesh_name "', meshFileName, '"\n']);
+            fprintf(fid, ['\n',templateText]);
+            fclose(fid);
         end
         
     end

@@ -1,8 +1,3 @@
-set input_post_res "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
-set output_gid_project_name "/home/ton/test_micro_project.gid"
-set mesh_element_size "0.0707107"
-set mesh_name "hmmmm22"
-
 GiD_Process Mescape Postprocess
 GiD_Process Mescape Files Read $input_post_res escape
 GiD_Process Mescape Results Options ExtractBoundaries escape
