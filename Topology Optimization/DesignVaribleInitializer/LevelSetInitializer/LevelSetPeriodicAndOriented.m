@@ -5,6 +5,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         dilation
         cellCoord
         phi
+        y1
+        y2
+        m1
+        m2
     end
 
     properties (Access = private)
@@ -13,14 +17,22 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         backgroundMesh
         angle
         cellLevelSetParams
-        nCells
     end
 
     methods (Access = public)
         
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams); 
-            obj.computeLevelSet();
+            [y1,y2] = obj.applyMapping();  
+            obj.y1 = abs(y1);
+            obj.y2 = abs(y2);  
+            obj.interpolateDilatation();
+            obj.interpolateM1M2();
+        end
+
+        function computeLs(obj,epsilon)
+           obj.epsilon = epsilon;            
+           obj.computeLevelSet();
         end
         
     end
@@ -32,6 +44,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             obj.thresholdParameters();
             obj.createCellLevelSet();
         end
+
     end
         
     
@@ -44,15 +57,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
            obj.dilation           = cParams.dilation;           
            obj.phi                = cParams.phi;
            obj.cellLevelSetParams = cParams.cellLevelSetParams; 
-           obj.epsilon            = cParams.epsilon;
         end
-                   
-        
-        function createCellCoord(obj)
-            [y1,y2] = obj.applyMapping();  
-            y1 = abs(y1);
-            y2 = abs(y2);
-            [y1,y2] = obj.transformToFastCoord(y1,y2);                                           
+                                                
+        function createCellCoord(obj)            
+            [y1,y2] = obj.transformToFastCoord(obj.y1,obj.y2);                                           
             [y1,y2] = obj.makeCoordPeriodic(y1,y2);                                                          
             obj.cellCoord = [y1,y2];
         end        
@@ -71,20 +79,23 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             y1 = obj.interpolateFunction(y1,mD);
             y2 = obj.interpolateFunction(y2,mD);
         end 
-        
-        function thresholdParameters(obj)
-            mL = obj.computeMinLengthInUnitCell();
-            s.minLengthInUnitCell = mL;
+
+        function interpolateM1M2(obj)
             m1 = obj.cellLevelSetParams.widthH;
             m2 = obj.cellLevelSetParams.widthV;
             mD = obj.mesh.createDiscontinuousMesh();
             m1 = obj.createDiscontinousValues(m1,obj.mesh,mD);
             m2 = obj.createDiscontinousValues(m2,obj.mesh,mD);
-            m1 = obj.interpolateFunction(m1,obj.mesh);
-            m2 = obj.interpolateFunction(m2,obj.mesh);
+            obj.m1 = obj.interpolateFunction(m1,obj.mesh);
+            obj.m2 = obj.interpolateFunction(m2,obj.mesh);
+        end
+        
+        function thresholdParameters(obj)
+            mL = obj.computeMinLengthInUnitCell();
+            s.minLengthInUnitCell = mL;            
             t = MparameterThresholder(s);
-            m1 = t.thresh(m1);
-            m2 = t.thresh(m2);            
+            m1 = t.thresh(obj.m1);
+            m2 = t.thresh(obj.m2);            
             obj.cellLevelSetParams.widthH = m1;
             obj.cellLevelSetParams.widthV = m2; 
        %     p = obj.cellLevelSetParams.pnorm;
@@ -92,12 +103,17 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
        %     p = obj.interpolateFunction(p,obj.mesh);
        %     obj.cellLevelSetParams.pnorm = p;
         end
-        
-        function t = computeMinLengthInUnitCell(obj)
+
+        function interpolateDilatation(obj)
             r = obj.dilation;            
             mD = obj.mesh.createDiscontinuousMesh();
             rD = obj.createDiscontinousValues(r,obj.mesh,mD);
             r  = obj.interpolateFunction(rD,mD);   
+            obj.dilation = r;
+        end
+        
+        function t = computeMinLengthInUnitCell(obj)
+            r = obj.dilation;
             hC = obj.epsilon*exp(-r);
             hmin = min(hC);
             hmax = max(hC);
