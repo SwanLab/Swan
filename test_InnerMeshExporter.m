@@ -20,6 +20,7 @@ classdef test_InnerMeshExporter < handle
             obj.createSampleMeshes();
             obj.createSampleLevelSet();
             obj.createUnfittedMesh();
+            obj.printUnfittedMesh();
         end
         
     end
@@ -32,8 +33,8 @@ classdef test_InnerMeshExporter < handle
         end
 
         function createBackgroundMesh(obj)
-            x1 = linspace(-1,1,100);
-            x2 = linspace(0,1,100);
+            x1 = linspace(-1,1,70);
+            x2 = linspace(0,1,70);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -66,6 +67,11 @@ classdef test_InnerMeshExporter < handle
             uMesh.compute(obj.levelSet);
             obj.unfittedMesh = uMesh;
 %             uMesh.plot();
+        end
+
+        function printUnfittedMesh(obj)
+            filename = 'sample_test_innermeshexporter';
+            obj.unfittedMesh.print(filename);
         end
         
     end

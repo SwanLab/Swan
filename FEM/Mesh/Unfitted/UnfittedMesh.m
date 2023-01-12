@@ -82,6 +82,15 @@ classdef UnfittedMesh < handle
             dv = dvC + dvI;
         end
         
+        function print(obj, filename)
+            d = obj.createPostProcessDataBase(filename);
+            d.printMode = 'DesignVariable';
+            d.nDesignVariables = 1;
+            d.fields = {obj.levelSet};
+            postProcess = Postprocess('TopOptProblem',d);
+            postProcess.print(1,d)
+        end
+        
         function exportGiD(obj)
             % call a postprocess to create .msh .res
             % From CreateSurface(STL) --> CreateMesh for visualizing
@@ -185,6 +194,17 @@ classdef UnfittedMesh < handle
                 ls   = obj.levelSet;
                 obj.unfittedBoundaryMesh.compute(ls);
             end
+        end
+
+        function d = createPostProcessDataBase(obj, filename)
+            d.mesh    = obj.backgroundMesh;
+            d.outFileName = filename;
+            d.ptype   = 'TopOpt';
+            ps = PostProcessDataBaseCreator(d);
+            d  = ps.create();
+            d.ndim       = obj.backgroundMesh.ndim;
+            d.pdim       = obj.backgroundMesh.ndim;
+            d.designVar  = 'LevelSet';
         end
         
     end
