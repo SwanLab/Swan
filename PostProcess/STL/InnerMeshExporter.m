@@ -68,7 +68,10 @@ classdef InnerMeshExporter < handle
             % return msh in Mesh()
         end
 
-        function m = readMsh(obj, file)
+        function m = readMsh(obj, filename)
+            s.filePath = filename;
+            mR = MshReader(s);
+            mR.read();
         end
         
     end
