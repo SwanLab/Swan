@@ -20,8 +20,9 @@ classdef test_InnerMeshExporter < handle
             obj.createSampleMeshes();
             obj.createSampleLevelSet();
             obj.createUnfittedMesh();
-            obj.printUnfittedMesh();
-            obj.exportMshGiD()
+%             obj.printUnfittedMesh();
+%             obj.exportMshGiD()
+            obj.exportUsingExporter();
         end
         
     end
@@ -85,6 +86,10 @@ classdef test_InnerMeshExporter < handle
             obj.unfittedMesh.exportGiD(s);
         end
         
+        function exportUsingExporter(obj)
+            obj.unfittedMesh.exportInnerMesh();
+        end
+
     end
     
 end

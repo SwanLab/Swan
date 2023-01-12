@@ -57,7 +57,13 @@ classdef InnerMeshExporter < handle
         end
 
         function m = exportUsingGiD(obj)
-            mshFile = obj.unfittedMesh.exportGiD();
+            s.filename        = 'hellothere';
+            s.gidProjectPath  = '/home/ton/test_micro_project.gid';
+            s.meshElementSize = '0.0707107';
+            s.meshFileName    = 'hmmmm22';
+            s.swanPath        = '/home/ton/Github/Swan/';
+            s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
+            mshFile = obj.unfittedMesh.exportGiD(s);
             m = obj.readMsh(mshFile);
             % return msh in Mesh()
         end

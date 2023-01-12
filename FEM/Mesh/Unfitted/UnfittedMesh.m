@@ -91,7 +91,7 @@ classdef UnfittedMesh < handle
             postProcess.print(1,d)
         end
         
-        function exportGiD(obj, cParams)
+        function f = exportGiD(obj, cParams)
             % SAMPLE CPARAMS
             % s.filename        = 'hellothere';
             % s.resFilePath     = '/home/ton/test_micro23.flavia.res';
@@ -109,11 +109,12 @@ classdef UnfittedMesh < handle
             tclFile = [pathTcl,'CreateSurfaceMeshFile.tcl" '];
             command = [cParams.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
             system(command);
+            f = [cParams.gidPath,cParams.meshFileName,'.msh'];
         end
 
         function m = exportInnerMesh(obj)
             s.unfittedMesh = obj;
-            s.type = 'Matlab';
+            s.type = 'GiD';
             s.filename= 'none'; % only for gid
             ime = InnerMeshExporter(s);
             m = ime.export();
