@@ -87,7 +87,8 @@ classdef test_InnerMeshExporter < handle
         end
         
         function exportUsingExporter(obj)
-            obj.unfittedMesh.exportInnerMesh();
+            m = obj.unfittedMesh.exportInnerMesh();
+            m.plot();
         end
 
     end
