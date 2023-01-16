@@ -90,34 +90,11 @@ classdef UnfittedMesh < handle
             postProcess = Postprocess('TopOptProblem',d);
             postProcess.print(1,d)
         end
-        
-        function f = exportGiD(obj, cParams)
-            % SAMPLE CPARAMS
-            % s.filename        = 'hellothere';
-            % s.resFilePath     = '/home/ton/test_micro23.flavia.res';
-            % s.gidProjectPath  = '/home/ton/test_micro_project.gid';
-            % s.meshElementSize = '0.0707107';
-            % s.meshFileName    = 'hmmmm22';
-            % s.swanPath        = '/home/ton/Github/Swan/';
-            % s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
-            filename = cParams.filename;
-            obj.print(filename);
-            cParams.resFilePath = [cParams.swanPath, 'Output/',filename,'/',filename,'1.flavia.res'];
-            obj.createSurfaceMeshTclFromTemplate(cParams);
-            pathTcl  = [cParams.swanPath,'PostProcess/STL/'];
-            
-            tclFile = [pathTcl,'CreateSurfaceMeshFile.tcl" '];
-            command = [cParams.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
-            system(command);
-            f = [cParams.gidPath,cParams.meshFileName,'.msh'];
-        end
 
-        function m = exportInnerMesh(obj)
+        function m = createFullInnerMesh(obj, s)
             s.unfittedMesh = obj;
-            s.type = 'GiD';
-            s.filename= 'none'; % only for gid
-            ime = InnerMeshExporter(s);
-            m = ime.export();
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
         end
 
     end
@@ -225,6 +202,7 @@ classdef UnfittedMesh < handle
             gidProjectPath  = cParams.gidProjectPath;
             meshElementSize = cParams.meshElementSize;
             meshFileName    = cParams.meshFileName;
+            gidPath         = cParams.gidPath;
 
             templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
             targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
@@ -233,6 +211,7 @@ classdef UnfittedMesh < handle
             fprintf(fid, ['set output_gid_project_name "', gidProjectPath, '"\n']);
             fprintf(fid, ['set mesh_element_size "', meshElementSize, '"\n']);
             fprintf(fid, ['set mesh_name "', meshFileName, '"\n']);
+            fprintf(fid, ['set gidpath "', gidPath, '"\n']);
             fprintf(fid, ['\n',templateText]);
             fclose(fid);
         end

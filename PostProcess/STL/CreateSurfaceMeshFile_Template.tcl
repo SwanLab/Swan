@@ -12,5 +12,4 @@ GiD_Process Mescape Geometry Edit ReConstruction OneLineForEachElement 1:end esc
 GiD_Process Mescape Geometry Edit JoinLines 1:end escape escape
 GiD_Process Mescape Geometry Create NurbsSurface 1:end escape
 GiD_Process Mescape Meshing Generate Yes $mesh_element_size MeshingParametersFrom=Preferences
-GiD_Process Mescape Files WriteMesh /home/ton/GiDx64/gid-16.1.2d/$mesh_name.msh
-GiD_Process Mescape Files Save $output_gid_project_name escape
+GiD_Process Mescape Files WriteMesh $gidpath$mesh_name.msh

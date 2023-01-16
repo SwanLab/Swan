@@ -87,7 +87,15 @@ classdef test_InnerMeshExporter < handle
         end
         
         function exportUsingExporter(obj)
-            m = obj.unfittedMesh.exportInnerMesh();
+            h = obj.unfittedMesh.innerMesh.mesh.computeMeanCellSize();
+            s.type = 'GiD';
+            s.filename        = 'hellothere';
+            s.gidProjectPath  = '/home/ton/test_micro_project.gid';
+            s.meshElementSize = num2str(h);
+            s.meshFileName    = 'hmmmm22';
+            s.swanPath        = '/home/ton/Github/Swan/';
+            s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
+            m = obj.unfittedMesh.createFullInnerMesh(s);
             m.plot();
         end
 

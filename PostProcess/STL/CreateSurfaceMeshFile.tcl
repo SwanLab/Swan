@@ -1,7 +1,8 @@
 set input_post_res "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
 set output_gid_project_name "/home/ton/test_micro_project.gid"
-set mesh_element_size "0.0707107"
+set mesh_element_size "0.028986"
 set mesh_name "hmmmm22"
+set gidpath "/home/ton/GiDx64/gid-16.1.2d/"
 
 GiD_Process Mescape Postprocess
 GiD_Process Mescape Files Read $input_post_res escape
@@ -17,5 +18,4 @@ GiD_Process Mescape Geometry Edit ReConstruction OneLineForEachElement 1:end esc
 GiD_Process Mescape Geometry Edit JoinLines 1:end escape escape
 GiD_Process Mescape Geometry Create NurbsSurface 1:end escape
 GiD_Process Mescape Meshing Generate Yes $mesh_element_size MeshingParametersFrom=Preferences
-GiD_Process Mescape Files WriteMesh /home/ton/GiDx64/gid-16.1.2d/$mesh_name.msh
-GiD_Process Mescape Files Save $output_gid_project_name escape
+GiD_Process Mescape Files WriteMesh $gidpath$mesh_name.msh
