@@ -90,7 +90,6 @@ classdef test_InnerMeshExporter < handle
             h = obj.unfittedMesh.innerMesh.mesh.computeMeanCellSize();
             s.type = 'GiD';
             s.filename        = 'hellothere';
-            s.gidProjectPath  = '/home/ton/test_micro_project.gid';
             s.meshElementSize = num2str(h);
             s.meshFileName    = 'hmmmm22';
             s.swanPath        = '/home/ton/Github/Swan/';

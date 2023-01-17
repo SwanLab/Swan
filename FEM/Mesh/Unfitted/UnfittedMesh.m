@@ -196,25 +196,6 @@ classdef UnfittedMesh < handle
             d.pdim       = obj.backgroundMesh.ndim;
             d.designVar  = 'LevelSet';
         end
-
-        function createSurfaceMeshTclFromTemplate(obj, cParams)
-            resFilePath     = cParams.resFilePath;
-            gidProjectPath  = cParams.gidProjectPath;
-            meshElementSize = cParams.meshElementSize;
-            meshFileName    = cParams.meshFileName;
-            gidPath         = cParams.gidPath;
-
-            templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
-            targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
-            fid = fopen(targetFile, 'w');
-            fprintf(fid, ['set input_post_res "', resFilePath, '"\n']);
-            fprintf(fid, ['set output_gid_project_name "', gidProjectPath, '"\n']);
-            fprintf(fid, ['set mesh_element_size "', meshElementSize, '"\n']);
-            fprintf(fid, ['set mesh_name "', meshFileName, '"\n']);
-            fprintf(fid, ['set gidpath "', gidPath, '"\n']);
-            fprintf(fid, ['\n',templateText]);
-            fclose(fid);
-        end
         
     end
     

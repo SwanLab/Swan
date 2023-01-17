@@ -1,11 +1,12 @@
 classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
     properties (Access = private)
         filename
-        gidProjectPath
-        meshElementSize
         meshFileName
+        meshElementSize
         swanPath
         gidPath
+        tclPath
+        resFilePath
     end
     
     methods (Access = public)
@@ -15,16 +16,16 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
         end
 
         function m = export(obj)
-            h = obj.unfittedMesh.innerMesh.mesh.computeMeanCellSize();
-            s.filename        = 'hellothere';
-            s.gidProjectPath  = '/home/ton/test_micro_project.gid';
-            s.meshElementSize = num2str(h);
-            s.meshFileName    = 'hmmmm22';
-            s.swanPath        = '/home/ton/Github/Swan/';
-            s.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
-            obj.exportMshThroughGiD(s);
-            f = obj.getOutputFileName(s);
-            m = obj.readMsh(f);
+            obj.exportMshThroughGiD();
+            m = obj.readMsh();
+        end
+
+        function exportMshThroughGiD(obj)
+            obj.unfittedMesh.print(obj.filename);
+            obj.createSurfaceMeshTclFromTemplate();
+            tclFile = [obj.tclPath,'CreateSurfaceMeshFile.tcl" '];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
+            system(command);
         end
         
     end
@@ -32,41 +33,44 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.filename        = cParams.filename;
             obj.unfittedMesh    = cParams.unfittedMesh;
-            obj.gidProjectPath  = cParams.gidProjectPath;
+            obj.filename        = cParams.filename;
             obj.meshElementSize = cParams.meshElementSize;
             obj.meshFileName    = cParams.meshFileName;
             obj.swanPath        = cParams.swanPath;
             obj.gidPath         = cParams.gidPath;
-        end
-        
-    end
-
-    methods (Static, Access = private)
-
-        function f = getOutputFileName(s)
-            f = [s.gidPath,s.meshFileName,'.msh'];
+            obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
+            obj.resFilePath     = obj.getResFilePath();
         end
 
-        function m = readMsh(filename)
-            s.filePath = filename;
+        function m = readMsh(obj)
+            s.filePath = obj.getOutputFileName();
             mR = MshReader(s);
             m = mR.read();
         end
-        
-        function exportMshThroughGiD(obj, cParams)
-            filename = cParams.filename;
-            obj.print(filename);
-            cParams.resFilePath = [cParams.swanPath, 'Output/',filename,'/',filename,'1.flavia.res'];
-            obj.createSurfaceMeshTclFromTemplate(cParams);
-            pathTcl  = [cParams.swanPath,'PostProcess/STL/'];
-            
-            tclFile = [pathTcl,'CreateSurfaceMeshFile.tcl" '];
-            command = [cParams.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
-            system(command);
+
+        function f = getOutputFileName(obj)
+            f = [obj.gidPath, obj.meshFileName,'.msh'];
         end
 
+        function f = getResFilePath(obj)
+            name = obj.filename;
+            swan = obj.swanPath;
+            f = [swan, 'Output/', name , '/', name, '1.flavia.res'];
+        end
+
+        function createSurfaceMeshTclFromTemplate(obj)
+            templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
+            targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
+            fid = fopen(targetFile, 'w');
+            fprintf(fid, ['set input_post_res "', obj.resFilePath, '"\n']);
+            fprintf(fid, ['set mesh_element_size "', obj.meshElementSize, '"\n']);
+            fprintf(fid, ['set mesh_name "', obj.meshFileName, '"\n']);
+            fprintf(fid, ['set gidpath "', obj.gidPath, '"\n']);
+            fprintf(fid, ['\n',templateText]);
+            fclose(fid);
+        end
+        
     end
     
 end

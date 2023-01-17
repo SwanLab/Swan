@@ -1,5 +1,4 @@
 set input_post_res "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
-set output_gid_project_name "/home/ton/test_micro_project.gid"
 set mesh_element_size "0.028986"
 set mesh_name "hmmmm22"
 set gidpath "/home/ton/GiDx64/gid-16.1.2d/"
