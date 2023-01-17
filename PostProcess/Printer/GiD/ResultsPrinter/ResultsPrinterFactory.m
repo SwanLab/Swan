@@ -47,6 +47,8 @@ classdef ResultsPrinterFactory < handle
                     p = DensityGaussResultsPrinter(d);
                 case {'LevelSet'}
                     p = LevelSetResultsPrinter(d);
+                case 'FeFunction'
+                    p = FunctionResultsPrinter(d);
                 otherwise
                     p = [];
             end

@@ -156,6 +156,13 @@ classdef P1Function < FeFunction
             end
         end
 
+        function print(obj, s)
+%             s.mesh
+            s.fun = obj;
+            p = FunctionPrinter(s);
+            p.print();
+        end
+
     end
 
     methods (Access = private)
