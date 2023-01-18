@@ -12,11 +12,14 @@ mesh = s.mesh;
 
 sAF.fHandle = @(x) x(1,:,:);
 sAF.ndimf   = 1;
+% sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
+% sAF.ndimf   = 2;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
 %% Create projectors to P0, P1 and P1D
 % testingFunctions.m
+% testingGradients.m
 % Projector to P1
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
