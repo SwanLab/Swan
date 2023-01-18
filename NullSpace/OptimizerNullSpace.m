@@ -1,16 +1,21 @@
 classdef OptimizerNullSpace < Optimizer
 
     properties (Access = public)
-        aGtNum = 1.5e-3
+        aGt = 1e-2
         aJ  = 1
-        DeltaNum = 100000
-        Delta
-        aGt
+        Delta = 1
+        trustInterval
+        trustIntervalInit = inf
+        trustIntervalEnd  = inf
+        n0 = 100
+
+        % To erase:
+        meritEv
+        meritOldEv
     end
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'NullSpace';
-        fProv
     end
 
     properties (Access = private)
@@ -44,16 +49,12 @@ classdef OptimizerNullSpace < Optimizer
 
     methods (Access = public) 
         
-        function obj = OptimizerNullSpace(cParams,optParams)
-            obj.fProv = optParams.fProv;
+        function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
-
-            obj.dualUpdater.parameter = optParams.fProv;
-
             obj.prepareFirstIter();
         end
 
@@ -99,32 +100,35 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = update(obj)
-            obj.aGt   = obj.aGtNum/(abs(obj.constraint.value)+0.1)^1;
-%             obj.Delta = obj.DeltaNum/(abs(obj.constraint.value)+sqrt(0.01))^2;
-%             obj.aGt = obj.aGtNum;
-            obj.Delta = obj.DeltaNum;
-
+            if obj.nIter<=obj.n0
+                obj.trustInterval = obj.trustIntervalInit;
+            else
+                obj.trustInterval = obj.trustIntervalEnd;
+            end
             x0 = obj.designVariable.value;
             obj.saveOldValues(x0);
-            if obj.nIter == 0
-                obj.calculateInitialStep(); % for merit old (?)
-            end
-            obj.dualUpdater.t = obj.primalUpdater.tau;
-            obj.dualUpdater.update();
-            s.x = x0;
-            tOld = obj.primalUpdater.tau;
-            s.t = tOld;
-            obj.mOld = obj.computePreviousMeritFunction(s);
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             DJ = obj.cost.gradient;
             Dg = obj.constraint.gradient;
+
+k=1;
+
             while ~obj.acceptableStep
-                obj.computeMeritGradient(DJ,Dg,tOld);
+                obj.designVariable.update(x0);
+                obj.dualUpdater.t = obj.primalUpdater.tau;
+                obj.dualUpdater.Delta = obj.Delta;
+                obj.dualUpdater.aJ = obj.aJ;
+                obj.dualUpdater.aG = obj.aGt;
+                obj.dualUpdater.update();
+                obj.mOld = obj.computeMeritFunction(x0);
+                obj.meritOldEv(k) = obj.mOld;
+                obj.computeMeritGradient(DJ,Dg);
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
-                obj.checkStep(x,x0,tOld);
+                obj.checkStep(x,x0,k);
+                k=k+1;
             end
             obj.updateOldValues(x);
         end
@@ -155,21 +159,16 @@ classdef OptimizerNullSpace < Optimizer
             x       = obj.primalUpdater.update(g,x);
         end
 
-        function computeMeritGradient(obj,DJ,Dg,t)
-            lJ  = obj.dualUpdater.lJ;
-            lG  = obj.projectLambdaG();
-            f   = obj.aGt/(t*obj.aJ);
-%             l   = lJ+f*lG;
-            l   = t*(lJ+f*lG);
-            DmF = obj.aJ*(DJ + Dg*l);
+        function computeMeritGradient(obj,DJ,Dg)
+            l   = obj.dualVariable.value;
+            DmF = obj.aJ*(DJ+l*Dg);
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x,x0,t0)
-            s.x = x;
-            s.t = obj.primalUpdater.tau;
-            mNew = obj.computeMeritFunction(s);
-            if mNew < obj.mOld && norm(x-x0)/norm(x0) < 10
+        function checkStep(obj,x,x0,k)
+            mNew = obj.computeMeritFunction(x);
+            obj.meritEv(k) = mNew;
+            if mNew < obj.mOld && norm(x-x0)/norm(x0) < obj.trustInterval
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
@@ -177,7 +176,6 @@ classdef OptimizerNullSpace < Optimizer
 %                 error('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew = obj.mOld;
-                obj.primalUpdater.increaseStepLength(t0); % restore tau to prev step
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
             else
@@ -187,34 +185,14 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function mF = computeMeritFunction(obj,cParams)
-            x  = cParams.x;
-            t  = cParams.t;
-            lJ = obj.dualUpdater.lJ;
-            lG = obj.projectLambdaG();
-            obj.designVariable.update(x)
+        function mF = computeMeritFunction(obj,x)
+            obj.designVariable.update(x);
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
+            l  = obj.dualVariable.value;
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            aG = obj.aGt/t;
-%             mJ = obj.aJ*(J+lJ*h);
-            mJ = obj.aJ*(J+t*lJ*h);
-%             mG = aG*lG*h;
-            mG = aG*t*lG*h;
-            mF = mJ+mG;
-        end
-
-        function mF = computePreviousMeritFunction(obj,cParams)
-            mF = obj.computeMeritFunction(cParams);
-            if obj.nIter == 0
-                mF = 1*mF; % "Initial Lagrange multiplier"
-            end
-        end
-
-        function lG = projectLambdaG(obj)
-            lG = obj.dualUpdater.lG;
-            lG = max(-obj.Delta,min(obj.Delta,lG));
+            mF = obj.aJ*(J+l*h);
         end
 
         function obj = saveOldValues(obj,x)

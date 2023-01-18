@@ -17,14 +17,18 @@ classdef DualUpdater_NullSpace < handle
     properties (Access = public)
         parameter
         t
-        lG
-        lJ
+        Delta
+        aG
+        aJ
     end
 
     methods (Access = public)
 
         function obj = DualUpdater_NullSpace(cParams)
-            obj.init(cParams);
+            obj.init(cParams);        function lG = projectLambdaG(obj,t)
+            lG = obj.dualUpdater.lG/t;
+            lG = max(-obj.Delta,min(obj.Delta,lG));
+        end
             obj.defineConstraintCases();
             obj.defineRangeStepParameterValue(cParams);
         end
@@ -92,9 +96,12 @@ classdef DualUpdater_NullSpace < handle
             Dh = obj.constraint.gradient;
             S  = (Dh'*Dh)^-1;
             h  = obj.constraint.value;
-            obj.lG = S*h;
-            obj.lJ = -S*Dh'*DJ;
-            l  = obj.lG + obj.t*obj.lJ;
+            lG = S*h/obj.t;
+            lG = (obj.aG/obj.aJ)*lG;
+            lG = obj.projectLambdaG(lG);
+            lJ = -S*Dh'*DJ;
+%             lG = max(min(lG,lJ),-lJ);
+            l  = lG + lJ;
             obj.dualVariable.value = l;
         end
 
@@ -107,6 +114,10 @@ classdef DualUpdater_NullSpace < handle
             PROBLEM.options = obj.options;
             l = quadprog(PROBLEM);
             obj.dualVariable.value = l;
+        end
+
+        function lG = projectLambdaG(obj,lG)
+            lG = max(-obj.Delta,min(obj.Delta,lG));
         end
 
          function computeDualProblemParameters(obj)
