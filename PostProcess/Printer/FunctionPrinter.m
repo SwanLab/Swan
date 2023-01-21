@@ -95,14 +95,12 @@ classdef FunctionPrinter < handle
         function printResFValues(obj, fid)
             nodStr  = '%d ';
             numStr  = '%0.5g ';
-            fValues = obj.fun.fValues;
-            nNodes  = length(fValues);
-            nodeMat = (1:nNodes)';
-            results = [nodeMat, fValues];
+            results = obj.formatResultsMat();
             fValsStr  = repmat(numStr,[1, obj.fun.ndimf]);
             formatStr = [nodStr,fValsStr,'\n'];
             funTypeStr = obj.getFunctionTypeString();
-            resHeaderStr = ['\nResult "obladi" "FunResults" 0', funTypeStr, 'OnNodes \n'];
+            locTypeStr = obj.getFValuesLocationString();
+            resHeaderStr = ['\nResult "obladi" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
             compsStr = obj.getComponentString();
             fprintf(fid, resHeaderStr);
             fprintf(fid, compsStr);
@@ -112,11 +110,36 @@ classdef FunctionPrinter < handle
             
         end
 
+        function res = formatResultsMat(obj)
+            switch class(obj.fun)
+                case 'P1Function'
+                    fValues = squeeze(obj.fun.fValues);
+                    nNodes  = length(fValues);
+                    nodeMat = (1:nNodes)';
+                    res = [nodeMat, fValues];
+                case 'P1DiscontinuousFunction'
+                case 'P0Function'
+                    fValues = permute(obj.fun.fValues, [3 1 2]);
+                    nNodes  = length(fValues);
+                    nodeMat = (1:nNodes)';
+                    res = [nodeMat, fValues];
+            end
+        end
+
         function s = getFunctionTypeString(obj)
             if obj.fun.ndimf == 1
                 s = ' Scalar ';
             else
                 s = ' Vector ';
+            end
+        end
+
+        function s = getFValuesLocationString(obj)
+            switch class(obj.fun)
+                case {'P1Function', 'P1DiscontinuousFunction'}
+                    s = 'OnNodes ';
+                case 'P0Function'
+                    s = 'OnGaussPoints "Guass up?" ';
             end
         end
 
