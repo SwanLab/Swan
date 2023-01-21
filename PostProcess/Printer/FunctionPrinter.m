@@ -118,6 +118,13 @@ classdef FunctionPrinter < handle
                     nodeMat = (1:nNodes)';
                     res = [nodeMat, fValues];
                 case 'P1DiscontinuousFunction'
+                    ndims   = size(obj.fun.fValues, 1);
+                    nelem   = size(obj.mesh.connec, 1);
+                    nnodeEl = size(obj.mesh.connec, 2);
+                    fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
+                    nNodes  = length(fV);
+                    nodeMat = (1:nNodes)';
+                    res = [nodeMat, fV];
                 case 'P0Function'
                     fValues = permute(obj.fun.fValues, [3 1 2]);
                     nNodes  = length(fValues);
