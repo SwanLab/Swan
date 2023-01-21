@@ -37,7 +37,7 @@ classdef FunctionPrinter < handle
         end
         
         function printMesh(obj)
-            d = obj.createMeshPostProcessDataBase('hey');
+            d = obj.createMeshPostProcessDataBase(obj.filename);
             p = MeshPrinter();
             p.print(d);
         end
@@ -48,11 +48,12 @@ classdef FunctionPrinter < handle
             ps = PostProcessDataBaseCreator(dI);
             db = ps.create();
             d = rmfield(db, 'gtype');
-            d.ndim = size(obj.mesh.coord,2); % why not
+            d.ndim = size(obj.mesh.coord,2); % yolo
         end
 
         function printResults(obj)
-            fid = fopen('hey.flavia.res', 'w');
+            f = obj.filename;
+            fid = fopen([f, '.flavia.res'], 'w');
             obj.printResHeader(fid);
             obj.printResGaussInfo(fid);
             obj.printResFValues(fid);
@@ -64,12 +65,31 @@ classdef FunctionPrinter < handle
         end
 
         function printResGaussInfo(obj, fid)
-            fprintf(fid, 'GaussPoints "Guass up?" Elemtype Triangle \n');
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            nDim  = size(quad.posgp,1);
+            el = obj.getGiDElementType();
+            fprintf(fid, ['GaussPoints "Guass up?" Elemtype ', el, '\n']);
             fprintf(fid, 'Number of Gauss Points: 1 \n');
             fprintf(fid, 'Nodes not included \n');
             fprintf(fid, 'Natural Coordinates: given \n');
-            fprintf(fid, ' 3.33333e-01  3.33333e-01  \n');
+            printFormat = [repmat('%12.5d ',1,nDim),'\n'];
+            toPrint = quad.posgp;
+            fprintf(fid,printFormat,toPrint);
             fprintf(fid, 'End GaussPoints  \n');
+        end
+        
+        function s = getGiDElementType(obj)
+            switch  obj.mesh.type
+                case 'TRIANGLE'
+                    s = 'Triangle';
+                case 'QUAD'
+                    s = 'Quadrilateral';
+                case 'TETRAHEDRA'
+                    s = 'Tetrahedra';
+                case 'HEXAHEDRA'
+                    s = 'Hexahedra';
+            end
         end
 
         function printResFValues(obj, fid)
