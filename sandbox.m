@@ -41,13 +41,25 @@ p0fun = projP0.project(xFun);
 projP1D = Projector_toP1Discontinuous(ppar);
 p1dfun = projP1D.project(xFun);
 
+% FGaussDiscontinuousFunction
+quad = Quadrature.set(mesh.type);
+quad.computeQuadrature('LINEAR');
+fgfun = p1fun.computeGradient(quad,mesh);
+% fgp1 = projP1.project(fgfun);
+
 %% Function printing
 aa.mesh = mesh;
-aa.filename = 'p1fun';
-p1fun.print(aa)
+% aa.filename = 'p1fun';
+% p1fun.print(aa)
+% 
+% aa.filename = 'p0fun';
+% p0fun.print(aa)
+% 
+% aa.filename = 'p1dfun';
+% p1dfun.print(aa)
 
-aa.filename = 'p0fun';
-p0fun.print(aa)
+aa.filename = 'fgfun';
+fgfun.print(aa)
 
-aa.filename = 'p1dfun';
-p1dfun.print(aa)
+% aa.filename = 'fgp1fun';
+% fgp1.print(aa)

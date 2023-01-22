@@ -111,6 +111,7 @@ classdef FunctionPrinter < handle
         end
 
         function res = formatResultsMat(obj)
+            % ngaus!!
             switch class(obj.fun)
                 case 'P1Function'
                     fValues = squeeze(obj.fun.fValues);
@@ -130,6 +131,15 @@ classdef FunctionPrinter < handle
                     nNodes  = length(fValues);
                     nodeMat = (1:nNodes)';
                     res = [nodeMat, fValues];
+                case 'FGaussDiscontinuousFunction'
+                    ndims   = size(obj.fun.fValues, 1);
+                    nelem   = size(obj.mesh.connec, 1);
+                    nnodeEl = size(obj.mesh.connec, 2);
+                    fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
+                    nNodes  = length(fV);
+                    nodeMat = (1:nNodes)';
+                    res = [nodeMat, fV];
+
             end
         end
 
@@ -145,7 +155,7 @@ classdef FunctionPrinter < handle
             switch class(obj.fun)
                 case {'P1Function', 'P1DiscontinuousFunction'}
                     s = 'OnNodes ';
-                case 'P0Function'
+                case {'P0Function', 'FGaussDiscontinuousFunction'}
                     s = 'OnGaussPoints "Guass up?" ';
             end
         end

@@ -35,6 +35,12 @@
             p1fg.plot(mesh);
         end
 
+        function print(obj, s)
+%             s.mesh
+            s.fun = obj;
+            p = FunctionPrinter(s);
+            p.print();
+        end
     end
     
     methods (Access = private)
