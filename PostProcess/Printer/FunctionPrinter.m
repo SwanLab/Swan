@@ -69,7 +69,7 @@ classdef FunctionPrinter < handle
             quad.computeQuadrature('LINEAR');
             nDim  = size(quad.posgp,1);
             el = obj.getGiDElementType();
-            fprintf(fid, ['GaussPoints "Guass up?" Elemtype ', el, '\n']);
+            fprintf(fid, ['GaussPoints "Gauss Points" Elemtype ', el, '\n']);
             fprintf(fid, 'Number of Gauss Points: 1 \n');
             fprintf(fid, 'Nodes not included \n');
             fprintf(fid, 'Natural Coordinates: given \n');
@@ -112,6 +112,7 @@ classdef FunctionPrinter < handle
 
         function res = formatResultsMat(obj)
             % ngaus!!
+            % move to fun.getDataToPrint()
             switch class(obj.fun)
                 case 'P1Function'
                     fValues = squeeze(obj.fun.fValues);
