@@ -3,8 +3,8 @@
 clc; clear; close all;
 
 % file = 'test2d_triangle';
-file = 'test2d_quad';
-% file = 'test3d_hexahedra';
+% file = 'test2d_quad';
+file = 'test3d_hexahedra';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
@@ -49,8 +49,8 @@ fgfun = p1fun.computeGradient(quad,mesh);
 
 %% Function printing
 aa.mesh = mesh;
-% aa.filename = 'p1fun';
-% p1fun.print(aa)
+aa.filename = 'p1fun';
+p1fun.print(aa)
 
 % aa.filename = 'p0fun';
 % p0fun.print(aa)
@@ -58,8 +58,8 @@ aa.mesh = mesh;
 % aa.filename = 'p1dfun';
 % p1dfun.print(aa)
 
-aa.filename = 'fgfun';
-fgfun.print(aa)
+% aa.filename = 'fgfun';
+% fgfun.print(aa)
 
 % aa.filename = 'fgp1fun';
 % fgp1.print(aa)

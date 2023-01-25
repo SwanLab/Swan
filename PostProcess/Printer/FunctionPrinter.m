@@ -160,18 +160,20 @@ classdef FunctionPrinter < handle
             % move to fun.getDataToPrint()
             switch class(obj.fun)
                 case 'P1Function'
-                    fValues = squeeze(obj.fun.fValues);
-                    nNodes  = length(fValues);
-                    nodeMat = (1:nNodes)';
-                    res = [nodeMat, fValues];
+%                     fValues = squeeze(obj.fun.fValues);
+%                     nNodes  = length(fValues);
+%                     nodeMat = (1:nNodes)';
+%                     res = [nodeMat, fValues];
+                    [res, format] = obj.fun.getDataToPrint();
                 case 'P1DiscontinuousFunction'
-                    ndims   = size(obj.fun.fValues, 1);
-                    nelem   = size(obj.mesh.connec, 1);
-                    nnodeEl = size(obj.mesh.connec, 2);
-                    fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
-                    nNodes  = length(fV);
-                    nodeMat = (1:nNodes)';
-                    res = [nodeMat, fV];
+%                     ndims   = size(obj.fun.fValues, 1);
+%                     nelem   = size(obj.mesh.connec, 1);
+%                     nnodeEl = size(obj.mesh.connec, 2);
+%                     fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
+%                     nNodes  = length(fV);
+%                     nodeMat = (1:nNodes)';
+%                     res = [nodeMat, fV];
+                    [res, format] = obj.fun.getDataToPrint();
                 case 'P0Function'
                     [res, format] = obj.fun.getDataToPrint();
                 case 'FGaussDiscontinuousFunction'
