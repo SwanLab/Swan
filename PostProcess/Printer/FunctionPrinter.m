@@ -68,9 +68,10 @@ classdef FunctionPrinter < handle
         function printResGaussInfo(obj, fid)
             obj.createQuadrature();
             nDim  = size(obj.quadrature.posgp,1);
+            nGaus = obj.quadrature.ngaus;
             el = obj.getGiDElementType();
             fprintf(fid, ['GaussPoints "Gauss Points" Elemtype ', el, '\n']);
-            fprintf(fid, 'Number of Gauss Points: 1 \n');
+            fprintf(fid, ['Number of Gauss Points: ', num2str(nGaus),' \n']);
             fprintf(fid, 'Nodes not included \n');
             fprintf(fid, 'Natural Coordinates: given \n');
             printFormat = [repmat('%12.5d ',1,nDim),'\n'];
@@ -172,19 +173,9 @@ classdef FunctionPrinter < handle
                     nodeMat = (1:nNodes)';
                     res = [nodeMat, fV];
                 case 'P0Function'
-%                     fValues = permute(obj.fun.fValues, [3 1 2]);
-%                     nNodes  = length(fValues);
-%                     nodeMat = (1:nNodes)';
-%                     res = [nodeMat, fValues];
                     [res, format] = obj.fun.getDataToPrint();
                 case 'FGaussDiscontinuousFunction'
-                    ndims   = size(obj.fun.fValues, 1);
-                    nelem   = size(obj.mesh.connec, 1);
-                    nnodeEl = size(obj.mesh.connec, 2);
-                    fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
-                    nNodes  = length(fV);
-                    nodeMat = (1:nNodes)';
-                    res = [nodeMat, fV];
+                    [res, format] = obj.fun.getDataToPrint();
 
             end
         end
