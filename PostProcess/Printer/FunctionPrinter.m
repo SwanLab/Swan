@@ -12,6 +12,7 @@ classdef FunctionPrinter < handle
         fun
         mesh
         filename
+        quadrature
     end
     
     methods (Access = public)
@@ -65,19 +66,25 @@ classdef FunctionPrinter < handle
         end
 
         function printResGaussInfo(obj, fid)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            nDim  = size(quad.posgp,1);
+            obj.createQuadrature();
+            nDim  = size(obj.quadrature.posgp,1);
             el = obj.getGiDElementType();
             fprintf(fid, ['GaussPoints "Gauss Points" Elemtype ', el, '\n']);
             fprintf(fid, 'Number of Gauss Points: 1 \n');
             fprintf(fid, 'Nodes not included \n');
             fprintf(fid, 'Natural Coordinates: given \n');
             printFormat = [repmat('%12.5d ',1,nDim),'\n'];
-            toPrint = quad.posgp;
+            toPrint = obj.quadrature.posgp;
             fprintf(fid,printFormat,toPrint);
             fprintf(fid, 'End GaussPoints  \n');
         end
+        
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
+
         
         function s = getGiDElementType(obj)
             switch  obj.mesh.type
@@ -95,23 +102,60 @@ classdef FunctionPrinter < handle
         function printResFValues(obj, fid)
             nodStr  = '%d ';
             numStr  = '%0.5g ';
-            results = obj.formatResultsMat();
+            [results,frmat] = obj.formatResultsMat();
             fValsStr  = repmat(numStr,[1, obj.fun.ndimf]);
             formatStr = [nodStr,fValsStr,'\n'];
             funTypeStr = obj.getFunctionTypeString();
             locTypeStr = obj.getFValuesLocationString();
-            resHeaderStr = ['\nResult "obladi" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
+            resHeaderStr = ['\nResult "fValues" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
             compsStr = obj.getComponentString();
             fprintf(fid, resHeaderStr);
             fprintf(fid, compsStr);
             fprintf(fid, 'Values  \n');
-            fprintf(fid, formatStr,results');
+
+            fprintf(fid,frmat,results{:});
+%             fprintf(fid, formatStr,results');
+
+
+%             pformat = ['%s ',repmat('%12.5d ',1,obj.fun.ndimf),'\n'];
+%             c  = obj.computeElementStringColum();
+%             fM = obj.computeTensorValueColums();
+%             str = [c,fM]';
+%             fprintf(fid,pformat,str{:});
+
             fprintf(fid, 'End Values\n\n');
             
         end
 
-        function res = formatResultsMat(obj)
-            % ngaus!!
+        
+        function c = computeElementStringColum(obj)
+            nElem = size(obj.mesh.connec, 1);
+            nGaus = obj.quadrature.ngaus;
+            allElem(:,1) = 1:nElem;
+            colWidth = size(num2str(nElem),2);
+            strInCol = repmat(' ',nElem*nGaus,colWidth);
+            numIndex = 1:nGaus:nElem*nGaus;
+            strInCol(numIndex,:) = num2str(allElem);
+            c = cellstr(strInCol);
+        end
+        
+        function fM = computeTensorValueColums(obj)
+            fV = obj.fun.fValues;
+            nGaus   = obj.quadrature.ngaus;
+            nComp   = size(obj.fun.fValues, 2);
+            nElem   = size(obj.mesh.connec, 1);
+            fM  = zeros(nGaus*nElem,nComp);
+            for istre = 1:nComp
+                for igaus = 1:nGaus
+                    rows = linspace(igaus,(nElem - 1)*nGaus + igaus,nElem);
+                    fM(rows,istre) = fV(igaus,istre,:);
+                end
+            end
+            fM = num2cell(fM);
+        end
+
+        function [res, format] = formatResultsMat(obj)
+            % ngaus!! --> see GaussFieldPrinter
             % move to fun.getDataToPrint()
             switch class(obj.fun)
                 case 'P1Function'
@@ -128,10 +172,11 @@ classdef FunctionPrinter < handle
                     nodeMat = (1:nNodes)';
                     res = [nodeMat, fV];
                 case 'P0Function'
-                    fValues = permute(obj.fun.fValues, [3 1 2]);
-                    nNodes  = length(fValues);
-                    nodeMat = (1:nNodes)';
-                    res = [nodeMat, fValues];
+%                     fValues = permute(obj.fun.fValues, [3 1 2]);
+%                     nNodes  = length(fValues);
+%                     nodeMat = (1:nNodes)';
+%                     res = [nodeMat, fValues];
+                    [res, format] = obj.fun.getDataToPrint();
                 case 'FGaussDiscontinuousFunction'
                     ndims   = size(obj.fun.fValues, 1);
                     nelem   = size(obj.mesh.connec, 1);
@@ -157,7 +202,7 @@ classdef FunctionPrinter < handle
                 case {'P1Function', 'P1DiscontinuousFunction'}
                     s = 'OnNodes ';
                 case {'P0Function', 'FGaussDiscontinuousFunction'}
-                    s = 'OnGaussPoints "Guass up?" ';
+                    s = 'OnGaussPoints "Gauss Points" ';
             end
         end
 

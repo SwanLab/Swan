@@ -14,10 +14,10 @@ fem.solve();
 %% Create functions
 % AnalyticalFunction
 
-% sAF.fHandle = @(x) x(1,:,:);
-% sAF.ndimf   = 1;
-sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
-sAF.ndimf   = 2;
+sAF.fHandle = @(x) x(1,:,:);
+sAF.ndimf   = 1;
+% sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
+% sAF.ndimf   = 2;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
@@ -51,15 +51,15 @@ fgfun = p1fun.computeGradient(quad,mesh);
 aa.mesh = mesh;
 % aa.filename = 'p1fun';
 % p1fun.print(aa)
-% 
-% aa.filename = 'p0fun';
-% p0fun.print(aa)
-% 
+
+aa.filename = 'p0fun';
+p0fun.print(aa)
+
 % aa.filename = 'p1dfun';
 % p1dfun.print(aa)
 
-aa.filename = 'fgfun';
-fgfun.print(aa)
+% aa.filename = 'fgfun';
+% fgfun.print(aa)
 
 % aa.filename = 'fgp1fun';
 % fgp1.print(aa)
