@@ -10,6 +10,7 @@ classdef FunctionPrinter < handle
     
     properties (Access = private)
         fun
+        funNames
         mesh
         filename
         quadrature
@@ -35,6 +36,15 @@ classdef FunctionPrinter < handle
             obj.fun      = cParams.fun;
             obj.mesh     = cParams.mesh;
             obj.filename = cParams.filename;
+            obj.initFunctionNames(cParams);
+        end
+        
+        function initFunctionNames(obj, cParams)
+            if numel(obj.fun) == 1
+                obj.funNames{1} = 'fValues';
+            else
+                obj.funNames = cParams.funNames;
+            end
         end
         
         function printMesh(obj)
@@ -57,7 +67,9 @@ classdef FunctionPrinter < handle
             fid = fopen([f, '.flavia.res'], 'w');
             obj.printResHeader(fid);
             obj.printResGaussInfo(fid);
-            obj.printResFValues(fid);
+            for iFun = 1:numel(obj.fun)
+                obj.printResFValues(fid, iFun);
+            end
             fclose(fid);
         end
 
@@ -100,12 +112,13 @@ classdef FunctionPrinter < handle
             end
         end
 
-        function printResFValues(obj, fid)
-            funTypeStr = obj.getFunctionTypeString();
-            locTypeStr = obj.getFValuesLocationString();
-            resHeaderStr = ['\nResult "fValues" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
-            compsStr = obj.getComponentString();
-            [results,frmat] =  obj.fun.getDataToPrint();
+        function printResFValues(obj, fid, iFun)
+            funTypeStr = obj.getFunctionTypeString(iFun);
+            locTypeStr = obj.getFValuesLocationString(iFun);
+            funNameStr = obj.funNames{iFun};
+            resHeaderStr = ['\nResult "', funNameStr,'" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
+            compsStr = obj.getComponentString(iFun);
+            [results,frmat] =  obj.fun{iFun}.getDataToPrint();
             fprintf(fid, resHeaderStr);
             fprintf(fid, compsStr);
             fprintf(fid, 'Values  \n');
@@ -114,16 +127,16 @@ classdef FunctionPrinter < handle
             
         end
 
-        function s = getFunctionTypeString(obj)
-            if obj.fun.ndimf == 1
+        function s = getFunctionTypeString(obj, iFun)
+            if obj.fun{iFun}.ndimf == 1
                 s = ' Scalar ';
             else
                 s = ' Vector ';
             end
         end
 
-        function s = getFValuesLocationString(obj)
-            switch class(obj.fun)
+        function s = getFValuesLocationString(obj, iFun)
+            switch class(obj.fun{iFun})
                 case {'P1Function', 'P1DiscontinuousFunction'}
                     s = 'OnNodes ';
                 case {'P0Function', 'FGaussDiscontinuousFunction'}
@@ -131,8 +144,8 @@ classdef FunctionPrinter < handle
             end
         end
 
-        function s = getComponentString(obj)
-            switch obj.fun.ndimf
+        function s = getComponentString(obj, iFun)
+            switch obj.fun{iFun}.ndimf
                 case 1
                     s = 'ComponentNames  "x"\n';
                 case 2

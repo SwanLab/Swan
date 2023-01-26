@@ -42,7 +42,7 @@ classdef P0Function < FeFunction
 
         function print(obj, s)
 %             s.mesh
-            s.fun = obj;
+            s.fun = {obj};
             p = FunctionPrinter(s);
             p.print();
         end
@@ -88,8 +88,10 @@ classdef P0Function < FeFunction
 
         % Printing
         function c = computeElementStringColum(obj)
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('LINEAR');
             nElem = size(obj.connec, 1);
-            nGaus = 1;
+            nGaus = q.ngaus;
             allElem(:,1) = 1:nElem;
             colWidth = size(num2str(nElem),2);
             strInCol = repmat(' ',nElem*nGaus,colWidth);
@@ -99,8 +101,11 @@ classdef P0Function < FeFunction
         end
         
         function fM = computeTensorValueColums(obj)
-            fV = obj.fValues;
-            nGaus   = 1;
+%             fV = obj.fValues;
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('LINEAR');
+            fV = obj.evaluate(q.posgp);
+            nGaus   = q.ngaus;
             nComp   = obj.ndimf;
             nElem   = size(obj.connec, 1);
             fM  = zeros(nGaus*nElem,nComp);

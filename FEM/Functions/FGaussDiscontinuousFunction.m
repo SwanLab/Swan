@@ -37,7 +37,7 @@
 
         function print(obj, s)
 %             s.mesh
-            s.fun = obj;
+            s.fun = {obj};
             p = FunctionPrinter(s);
             p.print();
         end

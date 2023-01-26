@@ -3,8 +3,8 @@
 clc; clear; close all;
 
 % file = 'test2d_triangle';
-% file = 'test2d_quad';
-file = 'test3d_hexahedra';
+file = 'test2d_quad';
+% file = 'test3d_hexahedra';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
@@ -52,8 +52,8 @@ aa.mesh = mesh;
 % aa.filename = 'p1fun';
 % p1fun.print(aa)
 
-% aa.filename = 'p0fun';
-% p0fun.print(aa)
+aa.filename = 'p0fun';
+p0fun.print(aa)
 
 % aa.filename = 'p1dfun';
 % p1dfun.print(aa)
@@ -63,3 +63,12 @@ aa.mesh = mesh;
 
 % aa.filename = 'fgp1fun';
 % fgp1.print(aa)
+
+%% Multiple function printing
+
+bb.mesh     = mesh;
+bb.filename = 'funfunfun';
+bb.fun      = {p0fun, p1fun};
+bb.funNames = {'p0', 'p1'};
+fp = FunctionPrinter(bb);
+fp.print();
