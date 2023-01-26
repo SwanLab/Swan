@@ -65,13 +65,13 @@ classdef EulerBeamOptimizer < handle
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
-            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
-            obj.initValueType = 'Constant'; % Random/Constant/External Value
+            obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.initValueType = 'Random'; % Random/Constant/External Value
             obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.maxIter       = 1000;
-            obj.minThick(1:obj.nElem,1) = sqrt(0.5); %sqrt(0.5/pi)/0.5/sqrt(0.5);
+            obj.minThick(1:obj.nElem,1) = sqrt(0.25/pi); %sqrt(0.5/pi)/0.5/sqrt(0.5);
             obj.minThick(obj.nElem+1)   = 0;
-            obj.maxThick(1:obj.nElem,1) = sqrt(10); %sqrt(100/pi)/10/sqrt(10);
+            obj.maxThick(1:obj.nElem,1) = sqrt(10/pi); %sqrt(100/pi)/10/sqrt(10);
             obj.maxThick(obj.nElem+1)   = 10000;
 %             obj.minThick(1:2*obj.nElem,1) = 0.1; 
 %             obj.minThick(2*obj.nElem+1)   = 0;

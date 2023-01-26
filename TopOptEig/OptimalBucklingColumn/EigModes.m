@@ -119,7 +119,6 @@ classdef EigModes < handle
             W1(free,1) = obj.v1;
             W2(free,1) = obj.v2;
             dI = obj.sectionVariables.computeInertiaDerivative();
-            x = obj.sectionVariables.computeArea();
             for i=1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
                 dx = dI(i,1);
@@ -127,7 +126,9 @@ classdef EigModes < handle
                 %dx = 4*pi^2*x(i,1).^3;
                 dW1(i,1)= dx*(W1(index,1)'*Belem(:,:,i)*W1(index,1));
                 dW2(i,1)= dx*(W2(index,1)'*Belem(:,:,i)*W2(index,1));
-                dW1W2(i,1)= (2*x(i,1))*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
+%                dW1W2(i,1)= (2*x(i,1))*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
+                dW1W2(i,1)= dx*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
+
                 A = [dW1(i,1) dW1W2(i,1); dW1W2(i,1) dW2(i,1)];
                 A1 = dW1(i,1);
                 A12 = dW1W2(i,1);
@@ -187,6 +188,7 @@ classdef EigModes < handle
             s.freeNodes      = obj.freeNodes;
             K = LHSintegrator.create(s);
             obj.stiffnessMatComputer = K;
+            obj.stiffnessMatComputer.compute();            
         end
 
         function createBendingMatrix(obj)
@@ -204,7 +206,6 @@ classdef EigModes < handle
         end
 
         function computeEigenModesAndValues(obj) 
-            obj.stiffnessMatComputer.compute();
             obj.bendingMatComputer.compute();            
             [Kfree,free]  = obj.stiffnessMatComputer.provideFreeStiffnessMatrix();
             obj.freeNodes = free;
