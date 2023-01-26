@@ -13,7 +13,7 @@ classdef ParaviewPostprocessor < handle
         connec
         filename
         outputFile
-        d_u
+        fun
     end
     
     methods (Access = public)
@@ -34,7 +34,7 @@ classdef ParaviewPostprocessor < handle
             obj.coord    = cParams.mesh.coord;
             obj.connec   = cParams.mesh.connec;
             obj.filename = cParams.filename;
-            obj.d_u = cParams.d_u;
+            obj.fun = cParams.fun;
         end
         
         function openFile(obj)
@@ -132,11 +132,12 @@ classdef ParaviewPostprocessor < handle
         end
 
         function n = createDisplacementNode(obj, docNode)
-            dispStr = sprintf('%.4f %.4f %.4f\n', obj.d_u');
+            nDimf = obj.fun.ndimf;
+            dispStr = sprintf('%.4f %.4f %.4f\n', obj.fun.fValues');
             n = docNode.createElement('DataArray');
             n.setAttribute('type', 'Float64');
             n.setAttribute('Name', 'Displacement');
-            n.setAttribute('NumberOfComponents', '3'); % !!
+            n.setAttribute('NumberOfComponents', num2str(nDimf));
             n.setAttribute('format', 'ascii');
             t = docNode.createTextNode(dispStr);
             n.appendChild(t);

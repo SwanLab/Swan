@@ -11,13 +11,6 @@ mesh = s.mesh;
 fem = FEM.create(s);
 fem.solve();
 
-%% Paraview
-zz.mesh = mesh;
-zz.filename = 'paraview';
-zz.d_u = fem.variables.d_u;
-pvPst = ParaviewPostprocessor(zz);
-
-
 %% Create functions
 % AnalyticalFunction
 
@@ -55,27 +48,34 @@ fgfun = p1fun.computeGradient(quad,mesh);
 % fgp1 = projP1.project(fgfun);
 
 %% Function printing
-aa.mesh = mesh;
-aa.filename = 'p1fun';
-p1fun.print(aa)
-
-aa.filename = 'p0fun';
-p0fun.print(aa)
-
-aa.filename = 'p1dfun';
-p1dfun.print(aa)
-
-aa.filename = 'fgfun';
-fgfun.print(aa)
-
-aa.filename = 'fgp1fun';
-fgp1.print(aa)
+% aa.mesh = mesh;
+% aa.filename = 'p1fun';
+% p1fun.print(aa)
+% 
+% aa.filename = 'p0fun';
+% p0fun.print(aa)
+% 
+% aa.filename = 'p1dfun';
+% p1dfun.print(aa)
+% 
+% aa.filename = 'fgfun';
+% fgfun.print(aa)
+% 
+% aa.filename = 'fgp1fun';
+% fgp1.print(aa)
 
 %% Multiple function printing
 
-bb.mesh     = mesh;
-bb.filename = 'funfunfun';
-bb.fun      = {p0fun, p1fun};
-bb.funNames = {'p0', 'p1'};
-fp = FunctionPrinter(bb);
-fp.print();
+% bb.mesh     = mesh;
+% bb.filename = 'funfunfun';
+% bb.fun      = {p0fun, p1fun};
+% bb.funNames = {'p0', 'p1'};
+% fp = FunctionPrinter(bb);
+% fp.print();
+
+%% Paraview
+zz.mesh = mesh;
+zz.filename = 'paraview';
+zz.fun = p1fun;
+pvPst = ParaviewPostprocessor(zz);
+% pvPst = ParaviewLegacyPostprocessor(zz);
