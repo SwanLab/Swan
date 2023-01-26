@@ -8,7 +8,6 @@ classdef LHSintegrator_Bending < LHSintegrator
     properties (Access = private)
         youngModulus
         inertiaMoment
-        designVariable
         sectionVariables
         freeNodes
     end
@@ -75,12 +74,9 @@ classdef LHSintegrator_Bending < LHSintegrator
 
         function lhs = computeElementalLHS(obj)
             Be = obj.elementalBendingMatrix;
-            %A = obj.designVariable.getColumnArea;
             I = obj.sectionVariables.computeInertia();
             d = obj.dim;
             nElem = obj.mesh.nelem;
-            %desVar = (A.^2)';
-            
             Edof = d.ndofsElem;
             lhs = zeros(Edof,Edof,nElem);
             for iNode = 1:Edof
@@ -110,7 +106,7 @@ classdef LHSintegrator_Bending < LHSintegrator
         function obj = initBending(obj,cParams)
             obj.youngModulus   = cParams.youngModulus;
             obj.inertiaMoment  = cParams.inertiaMoment;
-            obj.designVariable = cParams.designVariable;
+            %obj.designVariable = cParams.designVariable;
             obj.sectionVariables = cParams.sectionVariables;
             obj.freeNodes      = cParams.freeNodes;
         end

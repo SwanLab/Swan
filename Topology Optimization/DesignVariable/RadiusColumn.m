@@ -21,16 +21,11 @@ classdef RadiusColumn < DesignVariable
             obj.createInitialValue();
         end
         
-        function R = getColumnRadius(obj)
-            x = obj.value;
-            N = obj.mesh.nelem;
-            R = x(1:N);
-        end
-        
-        function A = getColumnArea(obj)
-            R = obj.getColumnRadius();
-            A = R.^2.*pi;
-        end
+%         function R = getColumnRadius(obj)
+%             x = obj.value;
+%             N = obj.mesh.nelem;
+%             R = x(1:N);
+%         end
         
         function gamma = getFirstEigenMode(obj)
            x = obj.value;

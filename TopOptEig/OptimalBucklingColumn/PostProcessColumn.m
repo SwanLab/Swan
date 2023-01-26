@@ -10,6 +10,7 @@ classdef PostProcessColumn < handle
     
     properties (Access = private)
         designVariable
+        sectionVariables
         mesh
         scale
     end
@@ -24,6 +25,7 @@ classdef PostProcessColumn < handle
             obj.createPolygon();
             obj.createMesh();
             obj.plotMesh();
+            obj.create3Dplot();
         end
         
     end
@@ -32,12 +34,13 @@ classdef PostProcessColumn < handle
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
+            obj.sectionVariables = cParams.sectionVariables;
             obj.mesh           = cParams.mesh;
             obj.scale          = cParams.scale;
         end
 
         function createPolygon(obj)
-            z = obj.designVariable.getColumnArea;
+            z = obj.sectionVariables.computeArea();
             scl   = obj.scale;
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;
@@ -52,7 +55,15 @@ classdef PostProcessColumn < handle
             vertex(end,:) = vertex(1,:);
             obj.polygon = polyshape(vertex);
         end
-
+        
+%         function create3Dplot(obj)
+%             nElem = obj.mesh.nelem;
+%             s.radius = obj.designVariable.value(1:nElem);
+%             s.coord = obj.mesh.coord;
+%             plt = Plot3DBucklingColumn(s);
+%             plt.compute();
+%         end
+        
         function createMesh(obj)
             pgon = obj.polygon;
             tr = triangulation(pgon);

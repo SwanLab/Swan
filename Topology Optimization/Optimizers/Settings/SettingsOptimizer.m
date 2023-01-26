@@ -13,6 +13,7 @@ classdef SettingsOptimizer < AbstractSettings
         maxIter
         
         designVar
+        sectionVariables
         dualVariable
         cost
         constraint

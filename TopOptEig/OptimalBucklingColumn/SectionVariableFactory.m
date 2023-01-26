@@ -6,6 +6,8 @@ classdef SectionVariableFactory < handle
             switch cParams.type
                 case 'Circular'
                     section = CircularSection(cParams);
+                case 'Quadrilateral'
+                    section = QuadrilateralSection(cParams);
             end
         end
         

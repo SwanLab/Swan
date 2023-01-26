@@ -2,10 +2,11 @@ classdef SectionVariablesComputer < handle
     
     properties (GetAccess = public, SetAccess = protected)
         designVariable
+        mesh
     end
     
     properties (Access = private)
-        
+ 
     end
     
     methods (Access = public, Static)
@@ -25,6 +26,7 @@ classdef SectionVariablesComputer < handle
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
+            obj.mesh = cParams.mesh;
         end
         
     end

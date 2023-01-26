@@ -3,6 +3,7 @@ classdef TopologyMonitoring < handle
     properties (Access = public)
         optimizerName
         designVariable
+        sectionVariables
         cost
         constraint
         dualVariable
@@ -62,6 +63,7 @@ classdef TopologyMonitoring < handle
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
             obj.designVariable    = cParams.designVar;
+            obj.sectionVariables  = cParams.sectionVariables;
             obj.dualVariable      = cParams.dualVariable;
             obj.incrementalScheme = cParams.incrementalScheme;
         end
@@ -187,6 +189,7 @@ classdef TopologyMonitoring < handle
         
         function createMonitorDocker(obj,s)
             s.designVariable  = obj.designVariable;
+            s.sectionVariables = obj.sectionVariables;
             s.dualVariable    = obj.dualVariable;
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;

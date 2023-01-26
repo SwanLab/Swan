@@ -50,7 +50,7 @@ classdef EulerBeamOptimizer < handle
             obj.createOptimizer();
             obj.optimizer.solveProblem();
             obj.value = obj.designVariable.value;
-            obj.PostProcess();
+            obj.postProcess();
         end
 
     end
@@ -66,13 +66,17 @@ classdef EulerBeamOptimizer < handle
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
-            obj.initValueType = 'Random'; % Random/Constant/External Value
+            obj.initValueType = 'Constant'; % Random/Constant/External Value
             obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.maxIter       = 1000;
-            obj.minThick(1:obj.nElem,1) = 0.5; %sqrt(0.5/pi);
+            obj.minThick(1:obj.nElem,1) = sqrt(0.25); %sqrt(0.5/pi)/0.5/sqrt(0.5);
             obj.minThick(obj.nElem+1)   = 0;
-            obj.maxThick(1:obj.nElem,1) = 10; %sqrt(100/pi);
+            obj.maxThick(1:obj.nElem,1) = sqrt(3); %sqrt(100/pi)/10/sqrt(10);
             obj.maxThick(obj.nElem+1)   = 10000;
+%             obj.minThick(1:2*obj.nElem,1) = 0.1; 
+%             obj.minThick(2*obj.nElem+1)   = 0;
+%             obj.maxThick(1:2*obj.nElem,1) = 10; 
+%             obj.maxThick(2*obj.nElem+1)   = 10000;
         end
         
         function createMesh(obj)
@@ -87,15 +91,16 @@ classdef EulerBeamOptimizer < handle
         function createDesignVariable(obj)
             s.initValue = obj.initValue;
             s.initValueType = obj.initValueType;
-            s.type  = 'AreaColumn';
+            s.type  = 'SquareColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn
             s.mesh  = obj.mesh;
             des = DesignVariable.create(s);
             obj.designVariable = des;  
         end
 
         function createSectionVariables(obj)
+            s.mesh = obj.mesh;
             s.designVariable = obj.designVariable;
-            s.type = 'Circular';
+            s.type = 'Quadrilateral'; %Quadrilatera/Circular
             sectVar = SectionVariablesComputer.create(s);
             obj.sectionVariables = sectVar;
         end
@@ -113,7 +118,6 @@ classdef EulerBeamOptimizer < handle
             s.mesh             = obj.mesh;
             s.inertiaMoment    = obj.inertiaMoment;
             s.youngModulus     = obj.youngModulus;
-            s.designVariable   = obj.designVariable;
             s.sectionVariables = obj.sectionVariables;
             eigModes = EigModes(s);
             obj.eigenModes = eigModes;
@@ -152,6 +156,7 @@ classdef EulerBeamOptimizer < handle
             s.monitoringDockerSettings.optimizerNames = s.optimizerNames;
             s.monitoringDockerSettings.refreshInterval = 1;
             s.designVar         = obj.designVariable;
+            s.sectionVariables  = obj.sectionVariables;
             s.targetParameters.optimality_tol  = 0.0005; %obj.incrementalScheme.targetParams;
             s.targetParameters.constr_tol = 0.0005;
             s.cost              = obj.cost;
@@ -174,8 +179,9 @@ classdef EulerBeamOptimizer < handle
         end
 
 
-        function PostProcess(obj)
+        function postProcess(obj)
             s.designVariable = obj.designVariable;
+            s.sectionVariables = obj.sectionVariables;
             s.mesh           = obj.mesh;
             s.scale          = 1;
             post = PostProcessColumn(s);

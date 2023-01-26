@@ -8,6 +8,7 @@ classdef DesignVarMonitor_Abstract < handle
         figHandle
         patchHandle
         designVar
+        sectionVariables
         mesh
         bc
         cam
@@ -44,6 +45,7 @@ classdef DesignVarMonitor_Abstract < handle
         function obj = DesignVarMonitor_Abstract(cParams)
             obj.showBC    = cParams.showBC;
             obj.designVar = cParams.designVar;
+            obj.sectionVariables = cParams.sectionVariables;
             obj.mesh      = obj.designVar.mesh;
             obj.bc        = cParams.bc;
             obj.dim       = cParams.dim;

@@ -38,16 +38,16 @@ classdef Sh_doubleEig < ShapeFunctional
     methods (Access = public)
 
         function computeFunction(obj)
-           eigN = obj.eigNum;
-           obj.value = obj.eigModes.provideFunction(eigN);
-           %obj.normalizeFunction();
+            eigN = obj.eigNum;
+            lambda = obj.eigModes.provideEigenValue();
+            gamma = obj.designVariable.getFirstEigenMode();            
+            obj.value = gamma-lambda(eigN);
         end
 
         function computeGradient(obj)
             eigN = obj.eigNum;
             dfdx = obj.eigModes.provideDerivative(eigN);
             obj.gradient = dfdx';
-            %obj.normalizeGradient();
         end
     end
     

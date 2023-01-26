@@ -15,7 +15,6 @@ classdef EigModes < handle
 
     properties (Access = private)
         dim
-        designVariable
         sectionVariables
         stiffnessMatComputer
         bendingMatComputer
@@ -42,26 +41,27 @@ classdef EigModes < handle
             p.plot(A,m1,m2,iter,obj.D)
         end
 
-        function fx = provideFunction(obj,eigNum)
+        function l = provideEigenValue(obj)
             obj.computeEigenModesAndValues();            
-            obj.lambda = obj.computeLambda();                
-            gamma = obj.designVariable.getFirstEigenMode();            
-            fx = gamma-obj.lambda(eigNum);
+            obj.computeLambda();   
+            l = obj.lambda;
+%             gamma = obj.designVariable.getFirstEigenMode();            
+%             fx = gamma-obj.lambda(eigNum);
         end
 
        function grad = provideDerivative(obj,eigNum)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
-            x = obj.designVariable.getColumnArea();
+            %x = obj.designVariable.getColumnArea();
             %x = obj.designVariable.getColumnRadius();
             nElem = obj.mesh.nelem;
             eigV1 = obj.D(1,1);
             eigV2 = obj.D(2,2);
             difEigs = abs(eigV2-eigV1);
             if difEigs > 1 
-                dfdx = obj.computeSimpleEig(Belem,x);
+                dfdx = obj.computeSimpleEig(Belem);
             else 
-                dfdx = obj.computeDoubleEig(Belem,x);
+                dfdx = obj.computeDoubleEig(Belem);
             end
             dfdx(1,nElem+1) = 1;
             dfdx(2,nElem+1) = 1;
@@ -72,7 +72,7 @@ classdef EigModes < handle
 
     methods (Access = private)
         
-        function dfdx = computeSimpleEig(obj,Belem,x)
+        function dfdx = computeSimpleEig(obj,Belem)
             d = obj.dim;
             free = obj.freeNodes;
             ndofe = d.ndofsElem;
@@ -81,17 +81,31 @@ classdef EigModes < handle
             W(free,1) = obj.v1;
             W(free,2) = obj.v2;
             nElem = obj.mesh.nelem;
+            dI = obj.sectionVariables.computeInertiaDerivative();
             for i = 1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
-                dx = 2*x(i,1);
+                dx = dI(i,1);
+                %dx = 2*x(i,1);
                 %dx = 4*pi^2*x(i,1).^3;
                 dfdx(1,i) = -dx*(W(index,1)'*Belem(:,:,i)*W(index,1));
                 dfdx(2,i) = -dx*(W(index,2)'*Belem(:,:,i)*W(index,2));
-            end    
+            end
+%             for i = 1:nElem
+%                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
+%                 Eig1(:,nElem) = W(index,1);
+%                 Eig2(:,nElem) = W(index,2);
+%             end
+%             for i = 1:ndofe
+%                 for j = 1:ndofe
+%                     Bij = squeeze(Belem(i,j,:));
+%                     Eig1j = Eig1(j,:)';
+% 
+%                 end
+%             end
 
         end
 
-        function dfdx = computeDoubleEig(obj,Belem,x)
+        function dfdx = computeDoubleEig(obj,Belem)
             d    = obj.dim;
             free = obj.freeNodes;
             ndofe = d.ndofsElem;
@@ -104,14 +118,26 @@ classdef EigModes < handle
             dW1W2 = zeros(nElem,1);
             W1(free,1) = obj.v1;
             W2(free,1) = obj.v2;
+            dI = obj.sectionVariables.computeInertiaDerivative();
+            x = obj.sectionVariables.computeArea();
             for i=1:nElem
                 index = ndofn*(i-1)+1: ndofn*(i-1)+ndofe;
-                dx = 2*x(i,1);
+                dx = dI(i,1);
+                %dx = 2*x(i,1);
                 %dx = 4*pi^2*x(i,1).^3;
                 dW1(i,1)= dx*(W1(index,1)'*Belem(:,:,i)*W1(index,1));
                 dW2(i,1)= dx*(W2(index,1)'*Belem(:,:,i)*W2(index,1));
                 dW1W2(i,1)= (2*x(i,1))*(W1(index,1)'*Belem(:,:,i)*W2(index,1));
                 A = [dW1(i,1) dW1W2(i,1); dW1W2(i,1) dW2(i,1)];
+                A1 = dW1(i,1);
+                A12 = dW1W2(i,1);
+                A21 = dW1W2(i,1);
+                A2 = dW2(i,1);
+                a=1;
+                b = -(A1 + A2);
+                c = A1*A2 - A12*A21;
+                lambd1 = -b+sqrt(b^2-4*a*c)/(2*a);
+                lambd2 = -b-sqrt(b^2-4*a*c)/(2*a);
                 [U,R] = eigs(A,2,'SM');
                 S = sort(diag(R));
                 dfdx(1,i) = -S(1);
@@ -125,7 +151,7 @@ classdef EigModes < handle
 
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
-            obj.designVariable       = cParams.designVariable;
+            %obj.designVariable       = cParams.designVariable;
             obj.sectionVariables    = cParams.sectionVariables;
             obj.inertiaMoment        = cParams.inertiaMoment;
             obj.youngModulus         = cParams.youngModulus;
@@ -170,7 +196,7 @@ classdef EigModes < handle
             s.globalConnec = obj.mesh.connec;
             s.inertiaMoment  = obj.inertiaMoment;
             s.youngModulus   = obj.youngModulus;
-            s.designVariable = obj.designVariable;
+            %s.designVariable = obj.designVariable;
             s.sectionVariables = obj.sectionVariables;
             s.freeNodes      = obj.freeNodes;
             B = LHSintegrator.create(s);
@@ -192,8 +218,9 @@ classdef EigModes < handle
             obj.eigModesPlotter = p;
         end
 
-        function l = computeLambda(obj)
-            l = sort(diag(obj.D));       
+        function computeLambda(obj)
+            l = sort(diag(obj.D));
+            obj.lambda = l;
         end
 
         function computeEigenFunctionAndValues(obj,B,K)

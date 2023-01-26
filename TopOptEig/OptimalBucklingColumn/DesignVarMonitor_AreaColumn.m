@@ -25,7 +25,8 @@ classdef DesignVarMonitor_AreaColumn < DesignVarMonitor_Abstract
     methods (Access = private)
 
         function createPolygon(obj,scl)
-            z = obj.designVar.getColumnArea;
+            %z = obj.designVar.getColumnArea;
+            z = obj.sectionVariables.computeArea;
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;
             dimFig   = 2;

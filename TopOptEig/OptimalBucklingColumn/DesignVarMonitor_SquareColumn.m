@@ -1,7 +1,7 @@
-classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
+classdef DesignVarMonitor_SquareColumn < DesignVarMonitor_Abstract
     
-properties (Access = protected)
-        designVarName = 'Radius Column'
+    properties (Access = protected)
+        designVarName = 'Square Column'
     end
     
     properties (Access = private)
@@ -10,7 +10,7 @@ properties (Access = protected)
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_RadiusColumn(cParams)
+        function obj = DesignVarMonitor_SquareColumn(cParams)
             obj@DesignVarMonitor_Abstract(cParams);
         end
         
@@ -95,4 +95,5 @@ properties (Access = protected)
     end
     
 
+    
 end

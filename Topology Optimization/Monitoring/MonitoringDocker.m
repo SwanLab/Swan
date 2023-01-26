@@ -50,7 +50,8 @@ classdef MonitoringDocker < handle
             s.showBC         = cParams.shallShowBoundaryConditions;
             s.bc             = cParams.boundaryConditions;
             s.designVariable = cParams.designVariable;
-            s.optimizerNames  = cParams.optimizerNames;
+            s.sectionVariables= cParams.sectionVariables;
+            s.optimizerNames = cParams.optimizerNames;
             s.dim            = cParams.dim;
             s.scale          = cParams.scale;
             s.mesh           = cParams.mesh;

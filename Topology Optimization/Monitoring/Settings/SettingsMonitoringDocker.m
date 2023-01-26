@@ -18,6 +18,7 @@ classdef SettingsMonitoringDocker < AbstractSettings
         scale
         
         designVariable
+        sectionVariables
         dualVariable
         optimizerNames
         cost

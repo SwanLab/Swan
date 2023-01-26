@@ -16,6 +16,10 @@ classdef DesignVariableFactory < handle
                     designVar = AreaColumn(cParams);
                 case 'RadiusColumn'
                     designVar = RadiusColumn(cParams);
+                case 'SquareColumn'
+                    designVar = SquareColumn(cParams);
+                case 'RectangularColumn'
+                    designVar = RectangularColumn(cParams);
                 case 'LevelSetEigModes'
                     designVar = LevelSetEigModes(cParams);
             end

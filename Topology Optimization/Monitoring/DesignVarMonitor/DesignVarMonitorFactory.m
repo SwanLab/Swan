@@ -6,6 +6,7 @@ classdef DesignVarMonitorFactory < handle
         
         scale
         designVariable
+        sectionVariables
         optimizer
         dim
         showBC
@@ -39,6 +40,7 @@ classdef DesignVarMonitorFactory < handle
             obj.optimizer      = cParams.optimizerNames;
             obj.dim            = cParams.dim;
             obj.designVariable = cParams.designVariable;
+            obj.sectionVariables = cParams.sectionVariables;
             obj.showBC         = cParams.showBC;
             obj.bc             = cParams.bc;
             obj.scale          = cParams.scale;
@@ -61,6 +63,8 @@ classdef DesignVarMonitorFactory < handle
                     obj.monitor = DesignVarMonitor_AreaColumn(mS);
                 case 'RadiusColumn'
                     obj.monitor = DesignVarMonitor_RadiusColumn(mS);
+                case 'SquareColumn'
+                    obj.monitor = DesignVarMonitor_SquareColumn(mS);
                 otherwise
                     error('Invalid Design Variable')
             end
@@ -81,6 +85,7 @@ classdef DesignVarMonitorFactory < handle
         
         function s = getMonitorSettings(obj)
             s.designVar = obj.designVariable;
+            s.sectionVariables = obj.sectionVariables;
             s.showBC    = obj.showBC;
             s.bc        = obj.bc;
             s.dim       = obj.dim;

@@ -33,7 +33,7 @@ classdef Sh_volumeColumn < ShapeFunctional
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.designVariable = cParams.designVariable;
+            %obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.sectionVariables = cParams.sectionVariables;
         end
@@ -46,7 +46,7 @@ classdef Sh_volumeColumn < ShapeFunctional
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CONSTANT');
             dV = obj.mesh.computeDvolume(q);
-            A = obj.designVariable.getColumnArea();
+            A = obj.sectionVariables.computeArea();
             V = dV*A;
 %             V = obj.designVariable.computeVolum();
             fx = V-1;
@@ -61,7 +61,7 @@ classdef Sh_volumeColumn < ShapeFunctional
             l = sum(obj.mesh.computeDvolume(q));             
             %dfdx(1,:) = 1./1.*dfdx(1,:); 
             %dfdx(2,:) = 1./1.*dfdx(2,:); 
-            nElem = obj.designVariable.mesh.nelem;
+            nElem = obj.mesh.nelem;
             dfdx = zeros(1,nElem+1);
             %dfdx(1,1:nElem)= 2*pi*l'.*R; %*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
             dA = obj.sectionVariables.computeAreaDerivative();

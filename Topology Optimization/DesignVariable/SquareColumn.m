@@ -1,4 +1,4 @@
-classdef AreaColumn < DesignVariable
+classdef SquareColumn < DesignVariable
     
     properties (Access = public)
         
@@ -8,12 +8,12 @@ classdef AreaColumn < DesignVariable
         initValue
         initValueType
     end
-       
+    
     methods (Access = public)
         
-        function obj = AreaColumn(cParams)
-            obj.init(cParams);
-            obj.type = 'AreaColumn';
+        function obj = SquareColumn(cParams)
+            obj.init(cParams)
+            obj.type = 'SquareColumn';
             obj.createInitialValue();
         end
         
@@ -47,7 +47,7 @@ classdef AreaColumn < DesignVariable
                 case 'Constant'
                     x0 = ones(N+1,1);
                 case 'Random'
-                    x0 = rand(N+1,1);
+                    x0 = sqrt(rand(N+1,1));
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;
@@ -57,5 +57,5 @@ classdef AreaColumn < DesignVariable
             obj.update(x0);        
         end
     end
-
+    
 end
