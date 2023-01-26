@@ -101,85 +101,17 @@ classdef FunctionPrinter < handle
         end
 
         function printResFValues(obj, fid)
-            nodStr  = '%d ';
-            numStr  = '%0.5g ';
-            [results,frmat] = obj.formatResultsMat();
-            fValsStr  = repmat(numStr,[1, obj.fun.ndimf]);
-            formatStr = [nodStr,fValsStr,'\n'];
             funTypeStr = obj.getFunctionTypeString();
             locTypeStr = obj.getFValuesLocationString();
             resHeaderStr = ['\nResult "fValues" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
             compsStr = obj.getComponentString();
+            [results,frmat] =  obj.fun.getDataToPrint();
             fprintf(fid, resHeaderStr);
             fprintf(fid, compsStr);
             fprintf(fid, 'Values  \n');
-
             fprintf(fid,frmat,results{:});
-%             fprintf(fid, formatStr,results');
-
-
-%             pformat = ['%s ',repmat('%12.5d ',1,obj.fun.ndimf),'\n'];
-%             c  = obj.computeElementStringColum();
-%             fM = obj.computeTensorValueColums();
-%             str = [c,fM]';
-%             fprintf(fid,pformat,str{:});
-
             fprintf(fid, 'End Values\n\n');
             
-        end
-
-        
-        function c = computeElementStringColum(obj)
-            nElem = size(obj.mesh.connec, 1);
-            nGaus = obj.quadrature.ngaus;
-            allElem(:,1) = 1:nElem;
-            colWidth = size(num2str(nElem),2);
-            strInCol = repmat(' ',nElem*nGaus,colWidth);
-            numIndex = 1:nGaus:nElem*nGaus;
-            strInCol(numIndex,:) = num2str(allElem);
-            c = cellstr(strInCol);
-        end
-        
-        function fM = computeTensorValueColums(obj)
-            fV = obj.fun.fValues;
-            nGaus   = obj.quadrature.ngaus;
-            nComp   = size(obj.fun.fValues, 2);
-            nElem   = size(obj.mesh.connec, 1);
-            fM  = zeros(nGaus*nElem,nComp);
-            for istre = 1:nComp
-                for igaus = 1:nGaus
-                    rows = linspace(igaus,(nElem - 1)*nGaus + igaus,nElem);
-                    fM(rows,istre) = fV(igaus,istre,:);
-                end
-            end
-            fM = num2cell(fM);
-        end
-
-        function [res, format] = formatResultsMat(obj)
-            % ngaus!! --> see GaussFieldPrinter
-            % move to fun.getDataToPrint()
-            switch class(obj.fun)
-                case 'P1Function'
-%                     fValues = squeeze(obj.fun.fValues);
-%                     nNodes  = length(fValues);
-%                     nodeMat = (1:nNodes)';
-%                     res = [nodeMat, fValues];
-                    [res, format] = obj.fun.getDataToPrint();
-                case 'P1DiscontinuousFunction'
-%                     ndims   = size(obj.fun.fValues, 1);
-%                     nelem   = size(obj.mesh.connec, 1);
-%                     nnodeEl = size(obj.mesh.connec, 2);
-%                     fV = reshape(obj.fun.fValues, [ndims, nelem*nnodeEl])';
-%                     nNodes  = length(fV);
-%                     nodeMat = (1:nNodes)';
-%                     res = [nodeMat, fV];
-                    [res, format] = obj.fun.getDataToPrint();
-                case 'P0Function'
-                    [res, format] = obj.fun.getDataToPrint();
-                case 'FGaussDiscontinuousFunction'
-                    [res, format] = obj.fun.getDataToPrint();
-
-            end
         end
 
         function s = getFunctionTypeString(obj)

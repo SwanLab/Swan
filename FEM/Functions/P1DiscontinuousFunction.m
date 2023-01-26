@@ -68,6 +68,13 @@ classdef P1DiscontinuousFunction < FeFunction
             p.print();
         end
 
+        function [res, pformat] = getDataToPrint(obj)
+            pformat = ['%s ',repmat('%12.5d ',1,obj.ndimf),'\n'];
+            elemColum = obj.computeElementStringColum();
+            valColums = obj.computeTensorValueColums();
+            res = [elemColum,valColums]';
+        end
+
 
     end
     
@@ -83,6 +90,27 @@ classdef P1DiscontinuousFunction < FeFunction
         function createInterpolation(obj)
             m.type = obj.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
+        end
+
+        % Printing
+        function c = computeElementStringColum(obj)
+            nElem = size(obj.fValues, 3);
+            nNodE = size(obj.fValues, 2);
+            allElem(:,1) = 1:nElem*nNodE;
+            colWidth = size(num2str(nElem*nNodE),2);
+            strInCol = repmat(' ',nElem*nNodE,colWidth);
+            numIndex = 1:1:nElem*nNodE;
+            strInCol(numIndex,:) = num2str(allElem);
+            c = cellstr(strInCol);
+        end
+        
+        function fM = computeTensorValueColums(obj)
+            nComp = obj.ndimf;
+            nNodE = size(obj.fValues, 2);
+            nElem = size(obj.fValues, 3);
+            nVals = nNodE*nElem;
+            fM = reshape(obj.fValues, [nComp, nVals])';
+            fM = num2cell(fM);
         end
         
     end

@@ -49,8 +49,8 @@ fgfun = p1fun.computeGradient(quad,mesh);
 
 %% Function printing
 aa.mesh = mesh;
-aa.filename = 'p1fun';
-p1fun.print(aa)
+% aa.filename = 'p1fun';
+% p1fun.print(aa)
 
 % aa.filename = 'p0fun';
 % p0fun.print(aa)
