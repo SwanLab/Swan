@@ -74,8 +74,9 @@ fgfun = p1fun.computeGradient(quad,mesh);
 % fp.print();
 
 %% Paraview
-zz.mesh = mesh;
-zz.filename = 'paraview';
-zz.fun = p1fun;
+zz.mesh     = mesh;
+zz.filename = 'paraview2';
+zz.fun      = {fgfun, p1fun, p0fun};
+zz.funNames = {'fgfun', 'p1fun', 'p0fun'};
 pvPst = ParaviewPostprocessor(zz);
 % pvPst = ParaviewLegacyPostprocessor(zz);

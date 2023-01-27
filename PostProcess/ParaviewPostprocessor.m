@@ -14,6 +14,12 @@ classdef ParaviewPostprocessor < handle
         filename
         outputFile
         fun
+        funNames
+    end
+
+    properties (Access = private)
+        pointDataN
+        cellDataN
     end
     
     methods (Access = public)
@@ -34,9 +40,18 @@ classdef ParaviewPostprocessor < handle
             obj.coord    = cParams.mesh.coord;
             obj.connec   = cParams.mesh.connec;
             obj.filename = cParams.filename;
-            obj.fun = cParams.fun;
+            obj.fun      = cParams.fun;
+            obj.initFunctionNames(cParams);
         end
         
+        function initFunctionNames(obj, cParams)
+            if numel(obj.fun) == 1
+                obj.funNames{1} = 'fValues';
+            else
+                obj.funNames = cParams.funNames;
+            end
+        end
+
         function openFile(obj)
             fullfile = strcat(obj.filename, '.vtu');
             obj.outputFile = fopen(fullfile,'w');
@@ -69,13 +84,29 @@ classdef ParaviewPostprocessor < handle
             pieceN.appendChild(cellsN);
 
             % Create PointData
-            pointDataN = docNode.createElement('PointData');
-            pieceN.appendChild(pointDataN);
+            pdN = docNode.createElement('PointData');
+            pieceN.appendChild(pdN);
+            obj.pointDataN = pdN;
+
+            % Create CellData
+            cdN = docNode.createElement('CellData');
+            pieceN.appendChild(cdN);
+            obj.cellDataN = cdN;
             
+            % functions
             % Create Displacement DataArray
-            displacementDAN = obj.createDisplacementNode(docNode);
-            pointDataN.appendChild(displacementDAN);
-            
+            for iFun = 1:numel(obj.fun)
+                switch class(obj.fun{iFun})
+                    case 'P0Function'
+                        n = obj.createFValuesCell(docNode, iFun);
+                        obj.cellDataN.appendChild(n);
+                    otherwise
+                        n = obj.createFValuesNode(docNode, iFun);
+                        obj.pointDataN.appendChild(n);
+                end
+
+            end             
+
             text = xmlwrite(docNode);
             fprintf(obj.outputFile, text);
         end
@@ -131,12 +162,35 @@ classdef ParaviewPostprocessor < handle
             n.appendChild(t);
         end
 
-        function n = createDisplacementNode(obj, docNode)
-            nDimf = obj.fun.ndimf;
-            dispStr = sprintf('%.4f %.4f %.4f\n', obj.fun.fValues');
+        function n = createFValuesCell(obj, docNode, iFun)
+            func = obj.fun{iFun};
+            nDimf = func.ndimf;
+            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            dispStr = sprintf(formatStr, squeeze(func.fValues));
+            nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');
             n.setAttribute('type', 'Float64');
-            n.setAttribute('Name', 'Displacement');
+            n.setAttribute('Name', nameStr);
+            n.setAttribute('NumberOfComponents', num2str(nDimf));
+            n.setAttribute('format', 'ascii');
+            t = docNode.createTextNode(dispStr);
+            n.appendChild(t);
+        end
+
+        function n = createFValuesNode(obj, docNode, iFun)
+            % projector
+            ppar.mesh   = obj.mesh;
+            ppar.connec = obj.mesh.connec;
+            projP1 = Projector_toP1(ppar);
+            % fvalues
+            func = projP1.project(obj.fun{iFun});
+            nDimf = func.ndimf;
+            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            dispStr = sprintf(formatStr, squeeze(func.fValues)');
+            nameStr = obj.funNames{iFun};
+            n = docNode.createElement('DataArray');
+            n.setAttribute('type', 'Float64');
+            n.setAttribute('Name', nameStr);
             n.setAttribute('NumberOfComponents', num2str(nDimf));
             n.setAttribute('format', 'ascii');
             t = docNode.createTextNode(dispStr);
@@ -148,14 +202,14 @@ classdef ParaviewPostprocessor < handle
             if (size(obj.coord,2) == 2)
                 obj.coord = [obj.coord, zeros(nnodes,1)];
             end
-            coordStr = sprintf('%.4f %.4f %.4f\n', obj.coord');
+            coordStr = sprintf('\n%.4f %.4f %.4f', obj.coord');
         end
         
         function [connecStr, offsetStr, typesStr] = writeConnec(obj)
             nelems = size(obj.connec,1);
             nnodEl = size(obj.connec,2);
             connecP = obj.connec-1;
-            format = [repmat(' %d',1,nnodEl),'\n'];
+            format = ['\n',repmat(' %d',1,nnodEl)];
             connecStr = sprintf(format, connecP');
             
             offset = nnodEl:nnodEl:nelems*nnodEl;
