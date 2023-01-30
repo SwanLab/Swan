@@ -2,19 +2,25 @@
 % - GiDImageCapturer -> some variables should be "user variables", defined
 %   once in a centralized file
 
-% - {{fet}} Netejar FullInnerMeshCreators
-% - {{fet}} Update a la master
-% - {{fet}} Prints de P1Functions, P1DiscontinuousFunction i FGaussFunctions
 
+% - check XY componennt of fgaussfunctions
+% - study file output size vs time (gid/paraview) to see which is better
+%   for printing
+%       - instructions at the wiki (running the test + graph)
+% - update to master after cleanup
 
-% - composite function printing passant n funcions
-%       - {{fet}} caldra nom de la funcio a printejar...
-%       - {{fet}} exemple de stokes per imprimir els dos
-%                   alhora/tensions+desplacaments
-%       - {{fet}} mantenir funcionalitat per printejar una funcio
-%       - {{fet}} paraview
-%       - {{no fet}} uml de tot plegat (es una classe)
-%       - recuperar gid unfitted mesh photo GiDimagecapturer
-%           density --(project)--> unfittedmesh -> innermesh/photo
+% - {{no fet}} uml de tot plegat (es una classe)
+% - recuperar gid unfitted mesh photo GiDimagecapturer
+%      density --(project)--> unfittedmesh -> innermesh/photo
 
 % opengl, llicencies, gid 
+% https://www.youtube.com/watch?v=zikDxtlvbUA
+
+% ppt -> add gifs, not pictures
+
+
+%% per mes endavant
+% - moure input a repositori a part per alleugerir
+% - geometry only in mesh
+% - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
+%   removed

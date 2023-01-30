@@ -4,7 +4,7 @@ clc; clear; close all;
 
 % file = 'test2d_triangle';
 % file = 'test2d_quad';
-file = 'test3d_hexahedra';
+file = 'Cantileverbeam_Quadrilateral_Bilinear';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
@@ -66,12 +66,14 @@ fgfun = p1fun.computeGradient(quad,mesh);
 
 %% Multiple function printing
 
-% bb.mesh     = mesh;
-% bb.filename = 'funfunfun';
-% bb.fun      = {p0fun, p1fun};
-% bb.funNames = {'p0', 'p1'};
-% fp = FunctionPrinter(bb);
-% fp.print();
+symGrad = fem.uFun.computeSymmetricGradient2(quad, mesh);
+
+bb.mesh     = mesh;
+bb.filename = 'funfunfun';
+bb.fun      = {fem.uFun, symGrad};
+bb.funNames = {'disp', 'symGrad'};
+fp = FunctionPrinter(bb);
+fp.print();
 
 %% Paraview
 zz.mesh     = mesh;
