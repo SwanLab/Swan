@@ -97,7 +97,6 @@ classdef FunctionPrinter < handle
             q.computeQuadrature('LINEAR');
             obj.quadrature = q;
         end
-
         
         function s = getGiDElementType(obj)
             switch  obj.mesh.type

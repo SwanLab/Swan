@@ -3,6 +3,7 @@
 %   once in a centralized file
 
 
+% 
 % - check XY componennt of fgaussfunctions
 % - study file output size vs time (gid/paraview) to see which is better
 %   for printing
@@ -18,6 +19,9 @@
 
 % ppt -> add gifs, not pictures
 
+%% Comments
+
+% Cantileverbeam_Hexahedra_Linear_Structured_SYM
 
 %% per mes endavant
 % - moure input a repositori a part per alleugerir
