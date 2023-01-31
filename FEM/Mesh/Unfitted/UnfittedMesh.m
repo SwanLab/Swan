@@ -98,6 +98,13 @@ classdef UnfittedMesh < handle
             m = ime.export();
         end
 
+        function plotComponents(obj)
+            s.unfittedMesh = obj;
+            sp = UnfittedMeshSplitter(s);
+            sp.split();
+            sp.plot();
+        end
+
     end
     
     methods (Access = private)

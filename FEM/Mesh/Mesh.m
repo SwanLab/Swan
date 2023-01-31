@@ -245,8 +245,9 @@ classdef Mesh < handle
             cV  = obj.edges.computeConnectedVertex(vertex);
         end
 
-        function m = remesh(obj)
+        function m = remesh(obj,nLevels)
             s.mesh = obj;
+            s.nLevels = nLevels;
             r = Remesher(s);
             m = r.compute();
         end
