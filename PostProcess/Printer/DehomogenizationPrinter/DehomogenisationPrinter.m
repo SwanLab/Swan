@@ -4,6 +4,7 @@ classdef DehomogenisationPrinter < handle
         mesh
         dataRes
         alpha
+        density
     end
     
     properties (Access = private)
@@ -20,6 +21,7 @@ classdef DehomogenisationPrinter < handle
         function print(obj)
             obj.wrapResMeshData();
             obj.projectAlphaToNodes();
+            obj.projectDensityToNodes();
             obj.printDehomogResFile();
             obj.printDehomogMshFile();            
         end
@@ -49,6 +51,12 @@ classdef DehomogenisationPrinter < handle
             normA = sqrt(alpha1.^2 + alpha2.^2);
             obj.alpha = [alpha1,alpha2]./normA;
         end
+
+        function projectDensityToNodes(obj)
+            alphaN = obj.dataRes.DensityGauss;
+            dens   = obj.projectInNodesScalarPieceWiseFunction(alphaN(:,1));
+            obj.density = dens;
+        end
         
         function alpha = projectInNodesScalarPieceWiseFunction(obj,fValues)
             s.mesh   = obj.mesh;
@@ -66,6 +74,7 @@ classdef DehomogenisationPrinter < handle
             s.values(:,3) = obj.alpha(:,1);
             s.values(:,4) = obj.alpha(:,2);
             s.values(:,5) = obj.dataRes.SuperEllipseExponent;
+            s.values(:,6) = obj.density;            
             p = DehomogenisationOutputPrinter(s);
             p.print();
         end

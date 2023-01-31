@@ -1,12 +1,17 @@
 classdef Dehomogenizer < handle
     
     properties (Access = public)
-        
+       
     end
     
     properties (Access = private)
-        boundaryMesh
-        uMesh        
+        dilation
+        phi
+        remesher
+        levelSet
+        uMesh
+        nCell
+        epsilon        
     end
     
     properties (Access = private)
@@ -22,18 +27,21 @@ classdef Dehomogenizer < handle
         function obj = Dehomogenizer(cParams)
             obj.init(cParams)            
         end
-        
-        function compute(obj)
-            obj.createBoundaryMesh();                       
-            obj.createUnfittedMesh();            
-        end
-        
-        function plot(obj)
-            obj.plotOrientation();
-            obj.plotStructure();
-            obj.plotComponents();
-        end
-        
+
+     function ls = compute(obj)           
+            obj.computeDilation();
+            obj.createMapping();
+            obj.createLevelSet(); 
+            nC = length(obj.nCells);
+            ls = cell(nC,1);
+            for iCell = 1:nC
+                obj.nCell = obj.nCells(iCell);
+                obj.createEpsilon();   
+                obj.levelSet.computeLs(obj.epsilon);
+                ls{iCell} = obj.levelSet.getValue();
+             end            
+     end
+
     end
     
     methods (Access = private)
@@ -44,57 +52,46 @@ classdef Dehomogenizer < handle
             obj.theta              = cParams.theta;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;            
             obj.mesh               = cParams.mesh;
+            obj.remesher           = cParams.remesher;
         end
         
-        function createBoundaryMesh(obj)
-            sB.backgroundMesh = obj.backgroundMesh;
-            sB.dimension = 1:3;
-            sB.type = 'FromReactangularBox';
-            bMc = BoundaryMeshCreator.create(sB);
-            obj.boundaryMesh  = bMc.create();            
+        function computeDilation(obj)
+            s.theta = obj.theta;
+            s.mesh  = obj.mesh;
+            dC = DilationFieldComputer(s);
+            d  = dC.compute();
+            %dC.plot();
+            obj.dilation = d;
+        end      
+
+        function createMapping(obj)
+            s.mesh     = obj.mesh;
+            s.theta    = obj.theta;
+            s.dilation = obj.dilation;
+            c = ConformalMappingComputer(s);
+            phiV = c.compute();
+            % c.plot();
+            obj.phi = phiV;
         end
         
-        function createUnfittedMesh(obj)
-            ls = obj.createLevelSet();                                    
-            s.boundaryMesh   = obj.boundaryMesh;
-            s.backgroundMesh = obj.backgroundMesh;
-            obj.uMesh = UnfittedMesh(s);
-            obj.uMesh.compute(ls);
-        end               
-        
-        function plotOrientation(obj)
-            figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            t  = obj.theta;
-            ct = cos(t(:,1));
-            st = sin(t(:,1));
-            quiver(x,y,ct,st)
-        end
-        
-        function plotStructure(obj)
-            figure()
-            obj.uMesh.plotStructureInColor('black');
-        end
-        
-        function plotComponents(obj)
-            s.unfittedMesh = obj.uMesh;
-            sp = UnfittedMeshSplitter(s);
-            sp.split();                        
-            sp.plot();
+        function createEpsilon(obj)
+            L = obj.mesh.computeCharacteristicLength();
+            obj.epsilon = L/obj.nCell;
         end
 
-        function ls = createLevelSet(obj)
-            s.coord = obj.backgroundMesh.coord;            
+        function createLevelSet(obj)
+            s.coord  = obj.backgroundMesh.coord;            
             s.type   = 'periodicAndOriented';            
             s.backgroundMesh   = obj.backgroundMesh;
-            s.mesh   = obj.mesh;
-            s.ndim   = 2;            
-            s.angle  = obj.theta;
-            s.nCells = obj.nCells;
+            s.mesh     = obj.mesh;
+            s.remesher = obj.remesher;
+            s.ndim     = 2;            
+            s.phi      = obj.phi;            
+            s.dilation = obj.dilation;
+          %  s.epsilon = obj.epsilon;
             s.cellLevelSetParams = obj.cellLevelSetParams;
-            levelSet = LevelSetCreator.create(s);            
-            ls = levelSet.getValue();   
+            lSet = LevelSetCreator.create(s);            
+            obj.levelSet = lSet;   
         end             
         
     end

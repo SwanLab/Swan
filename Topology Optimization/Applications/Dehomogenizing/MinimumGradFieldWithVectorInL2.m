@@ -7,15 +7,17 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     
     properties (Access = private)
         mesh
+        meshCont
         fGauss
-        dim
+        field
+        symCond
     end
     
     methods (Access = public)
         
         function obj = MinimumGradFieldWithVectorInL2(cParams)
             obj.init(cParams);
-            obj.createDimension();
+            obj.createField();
         end
 
         function u = solve(obj)
@@ -29,24 +31,20 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh   = cParams.mesh;
-            obj.fGauss = cParams.fGauss;
+            obj.mesh     = cParams.mesh;
+            obj.fGauss   = cParams.fGauss;
         end
 
-        function createDimension(obj)
-            q = Quadrature();
-            q = q.set(obj.mesh.type);
-            s.mesh = obj.mesh;
-            s.pdim = '1D';
-            s.ngaus = q.ngaus;
-            d = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
+        function createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = obj.mesh.interpolation.order;
+            obj.field = Field(s);
         end
-        
+       
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
-            M = obj.computeMassMatrix();
+           % M = obj.computeMassMatrix();
             I = ones(size(K,1),1);
             %eta = 0.01;
             %obj.LHS = K + eta*M;
@@ -57,32 +55,36 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.type         = 'StiffnessMatrix';
-            s.dim          = obj.dim;
+            s.field        = obj.field;
+
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
         
-        function M = computeMassMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'MassMatrix';
-            s.dim          = obj.dim;
-            lhs = LHSintegrator.create(s);
-            M = lhs.compute();
-        end
+%         function M = computeMassMatrix(obj)
+%             s.mesh         = obj.mesh;
+%             s.globalConnec = obj.mesh.connec;
+%             s.type         = 'MassMatrix';
+%             s.dim          = obj.dim;
+%             s.quadType     = 'QUADRATIC';
+%             lhs = LHSintegrator.create(s);
+%             M = lhs.compute();
+%         end
         
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q.computeQuadrature('CUBIC');
             s.fType     = 'Gauss';
             s.fGauss    = obj.fGauss;
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            rhs = RHSintegrator(s);
-            rhsC = rhs.integrateWithShapeDerivative();
-            rhsV = obj.assembleIntegrand(rhsC);
+            s.npnod     = obj.field.dim.ndofs;
+            s.type      = 'ShapeDerivative';
+            s.globalConnec = obj.mesh.connec;
+            rhs  = RHSintegrator.create(s);
+            rhsV = rhs.compute();
             obj.RHS = [rhsV;0];
         end
         

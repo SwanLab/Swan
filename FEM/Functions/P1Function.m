@@ -140,6 +140,16 @@ classdef P1Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
+        function fFine = refine(obj,m,mFine)
+            fNodes  = obj.fValues;
+            fEdges  = obj.computeFunctionInEdges(m,fNodes);
+            fAll    = [fNodes;fEdges];
+            s.type    = mFine.type;
+            s.connec  = mFine.connec;
+            s.fValues = fAll;     
+            fFine = P1Function(s);
+        end
+
         function plot(obj, m) % 2D domains only
             x = m.coord(:,1);
             y = m.coord(:,2);
@@ -154,6 +164,15 @@ classdef P1Function < FeFunction
                 a.EdgeColor = [0 0 0];
                 title(['dim = ', num2str(idim)]);
             end
+        end
+
+        function fD = createP1Discontinous(obj,m)
+            s.mesh   = m;
+            s.connec = obj.connec;
+            p = ProjectorToP1discont(s);
+            s.x = obj;
+            s.origin = 'P1';
+            fD = p.project(s);
         end
 
     end
@@ -205,6 +224,13 @@ classdef P1Function < FeFunction
                 fCol(idim:obj.ndimf:nVals, 1) = obj.fValues(:,idim)';
             end
         end
+
+        function f = computeFunctionInEdges(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
+            f = eF.compute();
+        end        
 
     end
 

@@ -1,125 +1,284 @@
 classdef ConformalMappingComputer < handle
-    
-    properties (Access = public)
+
+
+    properties (Access = private)
        phi
+       interpolator
+       singularityCoord
+    end
+
+    properties (Access = private)
+       orientation
+       mesh
        dilation
     end
-    
-    properties (Access = private)
-       
-    end
-    
-    properties (Access = private)
-       theta 
-       mesh
-    end
-    
+
     methods (Access = public)
-        
+
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
+            obj.createInterpolator();
         end
-        
+
         function phiV = compute(obj)
-            obj.computeDilation();
-            obj.computeMapping();
+            obj.computeSingularities();
+            obj.computeMappingWithSingularities();
             phiV = obj.phi;
         end
-        
+
         function plot(obj)
-            obj.plotDilation();
-            obj.plotMapping();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function plotDilation(obj)
-            figure()
-            s.mesh  = obj.mesh;
-            s.field = obj.dilation;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp
-        end
-        
-        function plotMapping(obj)
            phi1 = obj.phi(:,1);
            phi2 = obj.phi(:,2);
-           obj.plotContour(phi1); 
-           obj.plotContour(phi2);
+           obj.plotContour((phi1));
+           obj.plotContour((phi2));
         end
-        
+
+    end
+
+    methods (Access = private)
+
         function plotContour(obj,z)
             figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            [~,h] = tricontour(obj.mesh.connec,x,y,z,50);
+            m = obj.mesh.createDiscontinousMesh;
+            x = m.coord(:,1);
+            y = m.coord(:,2);
+            [~,h] = tricontour(m.connec,x,y,z,30);
             set(h,'LineWidth',5);
             colorbar
         end
-        
+
         function init(obj,cParams)
-            obj.theta    = cParams.theta;
-            obj.mesh     = cParams.mesh;
-        end
-        
-        function computeDilation(obj)
-            s.theta = obj.theta;
-            s.mesh  = obj.mesh;
-            d = DilationFieldComputer(s);
-            obj.dilation = d.compute();
-        end
-        
-        function computeMapping(obj)
-           nDim = 2;
-           nnod = obj.mesh.nnodes;
-           phiV = zeros(nnod,nDim);
-           for iDim = 1:nDim
-             phiV(:,iDim) = obj.computeComponent(iDim);
-           end
-           obj.phi = phiV;
+            obj.orientation = cParams.theta;
+            obj.mesh        = cParams.mesh;
+            obj.dilation    = cParams.dilation;
         end
 
-        function computeSecondComponent(obj)
-           iDim = 2;
-           obj.phi(:,iDim) = obj.computeComponent(iDim);
+        function createInterpolator(obj)
+            s.meshCont    = obj.mesh;
+            s.meshDisc    = obj.mesh.createDiscontinuousMesh();
+            s.orientation = [cos(obj.orientation),sin(obj.orientation)];
+            s = SymmetricContMapCondition(s);
+            sC = s.computeCondition();
+            obj.interpolator = sC;
         end
-        
-        function phi = computeComponent(obj,idim)
-            s.fGauss = obj.computeVectorComponent(idim);
-            s.mesh   = obj.mesh;
-            varProb  = MinimumGradFieldWithVectorInL2(s);
+
+
+
+
+        function computeSingularities(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = [cos(obj.orientation),sin(obj.orientation)];%obj.computeOrientationVector(1)';
+            sF = SingularitiesFinder(s);
+            isS = sF.computeSingularElements();
+           % sF.plot();
+            coordB = obj.mesh.computeBaricenter();
+            coordB = transpose(coordB);
+            sCoord =  coordB(isS,:);
+            obj.singularityCoord = sCoord;
+        end
+
+        function computeMappingWithSingularities(obj)
+           nDim = 2;
+           m = obj.mesh.createDiscontinuousMesh();
+           nnod = m.nnodes;
+           phiV = zeros(nnod,nDim);
+
+           if ~isempty(obj.singularityCoord)
+               b1 = obj.computeOrientationVector(1);
+               cr = obj.computeCorrector(b1);
+               oC = obj.computeOrthogonalCorrector(cr);
+           end
+
+           for iDim = 1:nDim
+              b = obj.computeOrientationVector(iDim);
+              bGauss = obj.computeOrientationVectorComponentP0(b);
+              phiI   = obj.computeMapping(bGauss);
+              if ~isempty(obj.singularityCoord)
+                coef = obj.computeCoeffs(oC,bGauss);
+               % coef = floor(coef);
+                psiT = zeros(size(oC));
+                for iSing = length(coef)
+                  psiT = psiT + coef(iSing)*oC(:,:,iSing);
+                end
+                phiIc = phiI + psiT;
+              else
+                phiIc = phiI;
+              end
+              phiV(:,iDim) = reshape(phiIc',[],1);
+           end
+           obj.phi = (phiV);
+        end
+
+        function phi = computeMapping(obj,fGauss)
+            s.fGauss  = fGauss;
+            s.mesh    = obj.mesh;
+            s.rhsType = 'ShapeDerivative';
+            s.interpolator = obj.interpolator;
+            varProb   = MinimumDiscGradFieldWithVectorInL2(s);
+           % varProb  = MinimumGradFieldWithVectorInL2(s);
             phi = varProb.solve();
         end
-        
-        function b = computeVector(obj,idim)
+
+        function cV = computeCorrector(obj,b)
+            sCoord = obj.singularityCoord;
+            s.mesh               = obj.mesh;
+            s.orientation        = b';
+            s.singularityCoord = sCoord(1,:);
+            c = CorrectorComputer(s);
+            cV = c.compute();
+           % c.plot()
+        end
+
+
+        function b = computeOrientationVector(obj,idim)
            er = exp(obj.dilation);
-           erCos = er.*cos(obj.theta);
-           erSin = er.*sin(obj.theta);
+           erCos = er.*cos(obj.orientation);
+           erSin = er.*sin(obj.orientation);
            Q(1,1,:) = erCos;
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
            Q(2,2,:) = erCos;
            b = squeezeParticular(Q(:,idim,:),2);
         end
-        
-        function fG = computeVectorComponent(obj,idim)
-            b = obj.computeVector(idim);
+
+        function bG = computeOrientationVectorComponentP0(obj,b)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q.computeQuadrature('QUADRATIC');
             xGauss = q.posgp;
-            fG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
+            bG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
             for idim = 1:obj.mesh.ndim
-                s.fNodes = b(idim,:)';
+                s.fValues = b(idim,:)';
                 s.connec = obj.mesh.connec;
                 s.type   = obj.mesh.type;
                 f = P1Function(s);
-                fG(idim,:,:) = f.interpolateFunction(xGauss);
+                bG(idim,:,:) = f.evaluate(xGauss);
+            end
+            %%%%% HEREEEE!!!!! Integrate with more gauss points b
+        end
+
+        function c = computeOrthogonalCorrector(obj,c)
+            s.mesh               = obj.mesh;
+            s.correctorValue     = c;
+            s.interpolator       = obj.interpolator;
+            o = OrthogonalCorrectorComputer(s);
+            c = o.compute();
+           % o.plot();
+        end
+
+        function c = computeCoeffs(obj,psi,bGauss)
+            I = obj.interpolator;
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC');
+            m = obj.mesh.createDiscontinuousMesh();
+            dV = obj.mesh.computeDvolume(q);
+            nDim = m.ndim;
+            nSing = size(psi,3);
+            LHS = zeros(nSing,nSing);
+            RHS = zeros(nSing,1);
+
+            nnode = obj.mesh.nnodeElem;
+            nElem = obj.mesh.nelem;
+            dPsi = zeros(nDim,nnode,nElem,nSing);
+            for iSing = 1:nSing
+                dPsi(:,:,:,iSing) = obj.createDiscontinousGradient(psi(:,:,iSing));
+            end
+
+
+            for igaus = 1:q.ngaus
+                dVG  = dV(igaus,:)';
+                for idim = 1:nDim
+                    bG = squeeze(bGauss(idim,igaus,:));
+                    dPsiG = squeeze(dPsi(idim,igaus,:,:));
+                    for iSing = 1:nSing
+                        dPsiI = dPsiG(:,iSing);
+                        for jSing = 1:nSing
+                            dPsiJ = dPsiG(:,:,:,jSing);
+                            lhs = sum(dPsiI.*dVG.*dPsiJ);
+                            LHS(iSing,jSing) = LHS(iSing,jSing) + lhs;
+                        end
+                        rhs = sum(dPsiI.*dVG.*bG);
+                        RHS(iSing) = RHS(iSing) + rhs;
+                    end
+
+                end
+
+            end
+
+            LHS2 = zeros(nSing,nSing);
+            RHS2 = zeros(nSing,1);
+
+
+            sF.mesh               = m;
+            sF.ndimf              = 1;
+            sF.interpolationOrder = m.interpolation.order;
+            s.field = Field(sF);
+            s.mesh         = m;
+            s.globalConnec = m.connec;
+            s.type         = 'StiffnessMatrix';
+
+            lhs = LHSintegrator.create(s);
+            Kdg = lhs.compute();
+            phidg = reshape(psi',[],1);
+            LHS2 = phidg'*Kdg*phidg;
+
+
+            q = Quadrature.set(m.type);
+            q.computeQuadrature('QUADRATIC');
+            int = Interpolation.create(m,m.interpolation.order);
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = m;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            dN = g.dNdx;
+
+            %dN = int.deriv
+            inte = zeros(m.nelem,nnode);
+            for idim = 1:nDim
+                for igaus = 1:q.ngaus
+                    dVG  = dV(igaus,:)';
+                    bG = squeeze(bGauss(idim,igaus,:));
+                    for iNode = 1:nnode
+                        dNi = squeeze(dN(idim,iNode,:,igaus));
+                        intG = dNi.*bG.*dVG;
+                        inte(:,iNode) = inte(:,iNode) + intG;
+                    end
+                end
+            end
+            RHS2 = sum(sum(psi.*inte));
+
+            c = LHS\RHS;
+        end
+
+        function fGauss = createDiscontinousGradient(obj,field)%%%Ehhhhh
+            cV = field;
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC');
+            int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
+            int.computeShapeDeriv(q.posgp);
+            s.mesh = obj.mesh;
+            g = Geometry.create(s);
+            g.computeGeometry(q,int);
+            dN = g.dNdx;
+
+            %dN = int.deriv;
+            nDim = size(dN,1);
+            nnode = size(dN,2);
+            fGauss = zeros(nDim,q.ngaus,obj.mesh.nelem);
+            for igaus = 1:q.ngaus
+                for idim = 1:nDim
+                    for iNode = 1:nnode
+                    dNi = squeeze(dN(idim,iNode,:,igaus));
+            %        dNi = squeeze(dN(idim,iNode,igaus));
+
+                    grad = dNi.*cV(:,iNode);
+                    fG(:,1) = squeeze(fGauss(idim,igaus,:));
+                    fGauss(idim,igaus,:) = fG + grad;
+                    end
+                end
             end
         end
-    
+
+
     end
-    
+
 end

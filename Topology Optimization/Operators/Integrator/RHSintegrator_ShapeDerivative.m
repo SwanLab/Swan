@@ -73,18 +73,22 @@ classdef RHSintegrator_ShapeDerivative < handle
             % integrateWithShapeDerivative@RHSintegrator
             fG      = obj.fGauss;
             dV      = obj.computeDvolume();
-            grad    = obj.computeGrad();
-            nnode   = size(grad,2);
-            ndim    = size(grad,1);
+            dN      = obj.computeGrad();
+            nnode   = size(dN,2);
+            ndim    = size(dN,1);
             nelem   = obj.mesh.nelem;
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
                 for idime = 1:ndim
+                    for inode = 1:nnode
                     fI     = squeezeParticular(fG(idime,igaus,:),1);
-                    fdV    = (fI.*dV(igaus));
-                    dShape = squeeze(grad(idime,:,:,igaus));
-                    intI = bsxfun(@times,dShape,fdV);
-                    int = int + intI;
+                    fdV    = fI.*dV(igaus,:);
+                   %dShape = squeeze(grad(idime,:,:,igaus));
+                    %intI = bsxfun(@times,dShape,fdV);                   
+                    dShape = squeeze(dN(idime,inode,:,igaus))';                    
+                    intI = dShape.*fdV;
+                    int(inode,:) = int(inode,:) + intI;
+                    end
                 end
             end
             rhsC = transpose(int);
@@ -98,6 +102,7 @@ classdef RHSintegrator_ShapeDerivative < handle
             g = Geometry.create(s);
             g.computeGeometry(obj.quadrature,int);
             grad = g.dNdx;
+         %   grad = int.deriv;
         end
 
         function f = assembleIntegrand(obj,rhsElem)

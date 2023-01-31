@@ -1,5 +1,5 @@
 classdef Mesh < handle
-    
+
     properties (GetAccess = public, SetAccess = private)
         nnodeElem
 %         npnod
@@ -7,33 +7,33 @@ classdef Mesh < handle
         type
         kFace
         geometryType
-        
+
         coord
         connec
-        
+
         nelem
         ndim
-        
-        
+
+
         coordElem
         interpolation
-        
+
         edges
         boundaryNodes
         boundaryElements
-        
+
         masterSlaveNodes
     end
-    
+
     properties (Access = private)
         xFE
         geometry
         triMesh
     end
-    
-        
+
+
     methods (Access = public)
-        
+
         function obj = Mesh(cParams)
             obj.init(cParams);
             obj.computeDimensionParams();
@@ -43,7 +43,7 @@ classdef Mesh < handle
             obj.computeElementCoordinates();
             obj.createGeometry();
         end
-        
+
         function obj = createFromFile(obj,cParams)
             testName = cParams.testName;
             [coordV, connecV] = obj.readCoordConnec(testName);
@@ -51,14 +51,14 @@ classdef Mesh < handle
             s.connec = connecV(:,2:end);
             obj = Mesh(s);
         end
-        
+
         function plot(obj)
             s.mesh = obj;
             s = SettingsMeshPlotter(s);
             mP = MeshPlotter(s);
             mP.plot();
         end
-        
+
         function hMin = computeMinCellSize(obj)
             x1(:,1) = obj.coord(obj.connec(:,1),1);
             x1(:,2) = obj.coord(obj.connec(:,1),2);
@@ -75,7 +75,7 @@ classdef Mesh < handle
             hs = min([n12,n23,n13],[],2);
             hMin = min(hs);
         end
-        
+
         function hMean = computeMeanCellSize(obj)
             x1(:,1) = obj.coord(obj.connec(:,1),1);
             x1(:,2) = obj.coord(obj.connec(:,1),2);
@@ -92,36 +92,36 @@ classdef Mesh < handle
             hs = max([n12,n23,n13],[],2);
             hMean = max(hs);
         end
-        
+
         function L = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
             xmax = max(obj.coord);
             L = norm(xmax-xmin);
         end
-        
+
         function changeCoordinates(obj,newCoords)
             obj.coord = newCoords;
         end
-        
+
         function setCoord(obj,newCoord)
             obj.coord = newCoord;
         end
-        
+
         function setConnec(obj,newConnec)
             obj.connec = newConnec;
         end
-        
+
         function xV = computeBaricenter(obj)
             q = Quadrature.set(obj.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             xV = squeeze(obj.xFE.evaluate(xV));
         end
-        
+
         function xGauss = computeXgauss(obj,xV)
             xGauss = obj.xFE.evaluate(xV);
         end
-        
+
         function dvolume = computeDvolume(obj,quad)
             g = obj.geometry;
             g.computeGeometry(quad,obj.interpolation);
@@ -133,7 +133,7 @@ classdef Mesh < handle
             g = obj.geometry;
             invJac = g.computeInverseJacobian(quad,int);
         end
-        
+
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
@@ -141,7 +141,7 @@ classdef Mesh < handle
             g.computeGeometry(quad,obj.interpolation);
             n = g.normalVector;
         end
-        
+
         function q = computeElementQuality(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
@@ -149,38 +149,46 @@ classdef Mesh < handle
             L(1,:) = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
-        
+
         function v = computeVolume(obj)
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             v = obj.computeDvolume(quad);
             v = sum(v(:));
         end
-        
+
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             obj.edges = edge;
         end
-        
+
+        function eM = computeEdgeMesh(obj)
+            obj.computeEdges;
+            s.coord  = obj.coord;
+            s.connec = obj.edges.nodesInEdges;
+            s.kFace  = obj.kFace -1;
+            eM = Mesh(s);
+        end
+
         function m = computeCanonicalMesh(obj)
             s.remainingNodes = unique(obj.connec);
             s.mesh        = obj;
             c = CannonicalMeshComputer(s);
             m = c.compute();
         end
-        
+
         function setMasterSlaveNodes(obj,nodes)
             obj.masterSlaveNodes = nodes;
         end
-        
+
         function computeMasterSlaveNodes(obj)
            mR = MasterSlaveRelator(obj.coord);
            nodes = mR.getRelation();
            obj.masterSlaveNodes = nodes;
         end
-        
+
         function plotNormals(obj)
             switch obj.ndim
                 case 3
@@ -205,9 +213,9 @@ classdef Mesh < handle
                 s.type = 'FromReactangularBox';
                 bC = BoundaryMeshCreator.create(s);
                 bMesh = bC.create();
-            else                
+            else
                 s.borderNodes    = obj.boundaryNodes;
-                s.borderElements = obj.boundaryElements; 
+                s.borderElements = obj.boundaryElements;
                 s.backgroundMesh = obj;
                 s.type = 'FromData';
                 b = BoundaryMeshCreator.create(s);
@@ -226,72 +234,93 @@ classdef Mesh < handle
             mD = Mesh(s);
         end
 
-        function fP1 = mapP0ToP1Discontinous(obj,f)
-            nnodeElem = obj.meshDisc.nnodeElem;
-            fRepeted = zeros(size(f,1),nnodeElem);
-            for iNode = 1:nnodeElem
-                fRepeted(:,iNode) = f;
-            end
-            fRepeted = transpose(fRepeted);
-            fP1 = fRepeted(:);
+        function cells = computeAllCellsOfVertex(obj,vertex)
+            vertexInCell  = obj.connec;
+            isInCell      = any(vertexInCell == vertex,2);
+            allCells(:,1) = 1:size(isInCell,1);
+            cells         = allCells(isInCell);
         end
-        
+
+        function cV = computeConnectedVertex(obj,vertex)
+            cV  = obj.edges.computeConnectedVertex(vertex);
+        end
+
+        function m = remesh(obj,nLevels)
+            s.mesh = obj;
+            s.nLevels = nLevels;
+            r = Remesher(s);
+            m = r.compute();
+        end
+
+
+%         function fP1 = mapP0ToP1Discontinous(obj,f)
+%             nnodeElem = obj.meshDisc.nnodeElem;
+%             fRepeted = zeros(size(f,1),nnodeElem);
+%             for iNode = 1:nnodeElem
+%                 fRepeted(:,iNode) = f;
+%             end
+%             fRepeted = transpose(fRepeted);
+%             fP1 = fRepeted(:);
+%         end
+
+
         function exportSTL(obj, file)
             obj.triangulateMesh();
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             s = SettingsMesh(cParams);
             if isfield(cParams,'boundaryNodes')
-               obj.boundaryNodes = cParams.boundaryNodes; 
+               obj.boundaryNodes = cParams.boundaryNodes;
             end
             if isfield(cParams,'boundaryElements')
-               obj.boundaryElements = cParams.boundaryElements; 
-            end            
+               obj.boundaryElements = cParams.boundaryElements;
+            end
             if isfield(cParams,'masterSlaveNodes')
-               obj.masterSlaveNodes = cParams.masterSlaveNodes; 
+               obj.masterSlaveNodes = cParams.masterSlaveNodes;
             end
             obj.coord  = s.coord;
             obj.connec = s.connec;
             obj.type   = s.type;
             obj.kFace  = s.kFace;
         end
-        
+
         function computeDimensionParams(obj)
             obj.nnodes = size(obj.coord,1);
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnodeElem = size(obj.connec,2);
         end
-        
+
         function computeType(obj)
             s.geometryType = obj.geometryType;
             s.nnodeElem    = obj.nnodeElem;
             t = MeshTypeComputer(s);
             obj.type = t.compute();
         end
-        
+
         function computeGeometryType(obj)
             s.ndim  = obj.ndim;
             s.kFace = obj.kFace;
             g = GeometryTypeComputer(s);
             obj.geometryType = g.compute();
         end
-        
+
         function createGeometry(obj)
             s.mesh = obj;
             obj.geometry = Geometry.create(s);
         end
-        
+
         function createInterpolation(obj)
             obj.interpolation = Interpolation.create(obj,'LINEAR');
         end
-        
+
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
             obj.coordElem = obj.xFE.fValues;
@@ -306,7 +335,7 @@ classdef Mesh < handle
             p = ProjectorToP1discont(s);
             p1d = p.project(sP);
         end
-        
+
         function computeCoordFEfunction(obj)
             s.type = obj.type;
             s.connec = obj.connec;
@@ -314,7 +343,7 @@ classdef Mesh < handle
             coordP1 = P1Function(s);
             obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
-        
+
         function L = computeSquarePerimeter(obj)
             obj.computeEdges();
             nElem = size(obj.connec,1);
@@ -335,16 +364,15 @@ classdef Mesh < handle
             T = obj.connec;
             obj.triMesh = triangulation(T,P);
         end
-        
+
     end
-        
+
     methods (Access = private, Static)
-        
+
         function [coord, connec] = readCoordConnec(testName)
             run(testName)
         end
-        
-    end
-    
-end
 
+    end
+
+end
