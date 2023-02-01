@@ -69,10 +69,15 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function [res, pformat] = getDataToPrint(obj)
-            pformat = ['%s ',repmat('%12.5d ',1,obj.ndimf),'\n'];
-            elemColum = obj.computeElementStringColum();
-            valColums = obj.computeTensorValueColums();
-            res = [elemColum,valColums]';
+            nElem = size(obj.fValues, 3);
+            nNodE = size(obj.fValues, 2);
+            nNods = nElem*nNodE;
+            s.nDimf   = obj.ndimf;
+            s.nData   = nNods;
+            s.nGroup  = nNods;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
         end
 
 
@@ -93,24 +98,12 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         % Printing
-        function c = computeElementStringColum(obj)
-            nElem = size(obj.fValues, 3);
-            nNodE = size(obj.fValues, 2);
-            allElem(:,1) = 1:nElem*nNodE;
-            colWidth = size(num2str(nElem*nNodE),2);
-            strInCol = repmat(' ',nElem*nNodE,colWidth);
-            numIndex = 1:1:nElem*nNodE;
-            strInCol(numIndex,:) = num2str(allElem);
-            c = cellstr(strInCol);
-        end
-        
-        function fM = computeTensorValueColums(obj)
+        function fM = getFormattedFValues(obj)
             nComp = obj.ndimf;
             nNodE = size(obj.fValues, 2);
             nElem = size(obj.fValues, 3);
             nVals = nNodE*nElem;
             fM = reshape(obj.fValues, [nComp, nVals])';
-            fM = num2cell(fM);
         end
         
     end

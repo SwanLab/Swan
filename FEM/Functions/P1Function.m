@@ -126,10 +126,13 @@ classdef P1Function < FeFunction
         end
 
         function [res, pformat] = getDataToPrint(obj)
-            pformat = ['%s ',repmat('%12.5d ',1,obj.ndimf),'\n'];
-            elemColum = obj.computeElementStringColum();
-            valColums = obj.computeTensorValueColums();
-            res = [elemColum,valColums]';
+            nNods = size(obj.fValues, 1);
+            s.nDimf   = obj.ndimf;
+            s.nData   = nNods;
+            s.nGroup  = nNods;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
         end
 
     end
@@ -150,30 +153,8 @@ classdef P1Function < FeFunction
         end
 
         % Printing
-        function c = computeElementStringColum(obj)
-            nElem = size(obj.fValues, 1);
-            nGaus = 1;
-            allElem(:,1) = 1:nElem;
-            colWidth = size(num2str(nElem),2);
-            strInCol = repmat(' ',nElem*nGaus,colWidth);
-            numIndex = 1:nGaus:nElem*nGaus;
-            strInCol(numIndex,:) = num2str(allElem);
-            c = cellstr(strInCol);
-        end
-        
-        function fM = computeTensorValueColums(obj)
-            fV = obj.fValues;
-            nGaus   = 1;
-            nComp   = obj.ndimf;
-            nElem   = size(obj.fValues, 1);
-            fM  = zeros(nGaus*nElem,nComp);
-            for iStre = 1:nComp
-                for iGaus = 1:nGaus
-                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
-                    fM(rows,iStre) = fV(:,iStre);
-                end
-            end
-            fM = num2cell(fM);
+        function fM = getFormattedFValues(obj)
+            fM = obj.fValues;
         end
 
     end

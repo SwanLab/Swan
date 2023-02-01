@@ -43,10 +43,14 @@
         end
 
         function [res, pformat] = getDataToPrint(obj)
-            pformat = ['%s ',repmat('%12.5d ',1,obj.ndimf),'\n'];
-            elemColum = obj.computeElementStringColum();
-            valColums = obj.computeTensorValueColums();
-            res = [elemColum,valColums]';
+            nElem = size(obj.fValues, 3);
+            nGaus = obj.quadrature.ngaus;
+            s.nDimf   = obj.ndimf;
+            s.nData   = nElem*nGaus;
+            s.nGroup  = nElem;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
         end
 
     end
@@ -60,18 +64,7 @@
         end
 
         % Printing
-        function c = computeElementStringColum(obj)
-            nElem = size(obj.fValues, 3);
-            nGaus = obj.quadrature.ngaus;
-            allElem(:,1) = 1:nElem;
-            colWidth = size(num2str(nElem),2);
-            strInCol = repmat(' ',nElem*nGaus,colWidth);
-            numIndex = 1:nGaus:nElem*nGaus;
-            strInCol(numIndex,:) = num2str(allElem);
-            c = cellstr(strInCol);
-        end
-        
-        function fM = computeTensorValueColums(obj)
+        function fM = getFormattedFValues(obj)
             fV = obj.fValues;
             nGaus = obj.quadrature.ngaus;
             nComp = obj.ndimf;
@@ -83,7 +76,6 @@
                     fM(rows,iStre) = fV(iStre,iGaus,:);
                 end
             end
-            fM = num2cell(fM);
         end
         
     end

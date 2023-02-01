@@ -48,10 +48,17 @@ classdef P0Function < FeFunction
         end
 
         function [res, pformat] = getDataToPrint(obj)
-            pformat = ['%s ',repmat('%12.5d ',1,obj.ndimf),'\n'];
-            elemColum = obj.computeElementStringColum();
-            valColums = obj.computeTensorValueColums();
-            res = [elemColum,valColums]';
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('LINEAR');
+            nElem = size(obj.connec, 1);
+            nGaus = q.ngaus;
+
+            s.nDimf   = obj.ndimf;
+            s.nData   = nElem*nGaus;
+            s.nGroup  = nElem;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
         end
     end
 
@@ -87,21 +94,7 @@ classdef P0Function < FeFunction
         end
 
         % Printing
-        function c = computeElementStringColum(obj)
-            q = Quadrature.set(obj.type);
-            q.computeQuadrature('LINEAR');
-            nElem = size(obj.connec, 1);
-            nGaus = q.ngaus;
-            allElem(:,1) = 1:nElem;
-            colWidth = size(num2str(nElem),2);
-            strInCol = repmat(' ',nElem*nGaus,colWidth);
-            numIndex = 1:nGaus:nElem*nGaus;
-            strInCol(numIndex,:) = num2str(allElem);
-            c = cellstr(strInCol);
-        end
-        
-        function fM = computeTensorValueColums(obj)
-%             fV = obj.fValues;
+        function fM = getFormattedFValues(obj)
             q = Quadrature.set(obj.type);
             q.computeQuadrature('LINEAR');
             fV = obj.evaluate(q.posgp);
@@ -115,7 +108,6 @@ classdef P0Function < FeFunction
                     fM(rows,iStre) = fV(iStre,iGaus,:);
                 end
             end
-            fM = num2cell(fM);
         end
 
     end

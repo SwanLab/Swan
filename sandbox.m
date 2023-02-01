@@ -66,14 +66,23 @@ fgfun = p1fun.computeGradient(quad,mesh);
 
 %% Multiple function printing
 
-symGrad = fem.uFun.computeSymmetricGradient2(quad, mesh);
-
 bb.mesh     = mesh;
 bb.filename = 'funfunfun';
-bb.fun      = {fem.uFun, symGrad};
-bb.funNames = {'disp', 'symGrad'};
+bb.fun      = {p0fun, p1fun, fgfun};
+bb.funNames = {'p0', 'p1', 'fgf'};
 fp = FunctionPrinter(bb);
 fp.print();
+
+%% Multiple function printing
+
+% symGrad = fem.uFun.computeSymmetricGradient2(quad, mesh);
+
+% bb.mesh     = mesh;
+% bb.filename = 'funfunfun';
+% bb.fun      = {fem.uFun, symGrad};
+% bb.funNames = {'disp', 'symGrad'};
+% fp = FunctionPrinter(bb);
+% fp.print();
 
 %% Paraview
 zz.mesh     = mesh;
