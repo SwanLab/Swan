@@ -57,22 +57,7 @@ classdef DilationFieldComputer < handle
             g.computeGeometry(q,int);
           %  grad = g.dNdx;
             nodes = obj.mesh.connec;
-         %   f = obj.theta;
-%             gradF = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
-%             for igaus = 1:q.ngaus
-%                 for kNode = 1:obj.mesh.nnodeElem
-%                     nodeK = nodes(:,kNode);
-%                     fI = f(nodeK);
-%                     for idim = 1:obj.mesh.ndim
-%                         dN = squeeze(grad(idim,kNode,:,igaus));
-%                         gF = squeeze(gradF(idim,igaus,:));
-%                         gradF(idim,igaus,:) = gF + fI.*dN;%bsxfun(@times,dN,fI);
-%                     end
-%                 end
-%             end
-%             gradT = zeros(size(gradF));
-%             gradT(1,:,:) = -gradF(2,:,:);
-%             gradT(2,:,:) = gradF(1,:,:);
+
 
             alpha = obj.theta;
             a1(:,1) = cos(alpha);
@@ -113,14 +98,7 @@ classdef DilationFieldComputer < handle
             end
 
 
-            %                    nodeK = nodes(:,kNode);
-            %                    fI = f(nodeK);
-            %                    for idim = 1:obj.mesh.ndim
-            %                     dN = squeeze(grad(idim,kNode,:,igaus));
-            %                     gF = squeeze(gradF(idim,igaus,:));
-            %                     gradF(idim,igaus,:) = gF + fI.*dN;%bsxfun(@times,dN,fI);
-            %                    end
-            %                 end
+     
             gradT = gradT2;
         end
 

@@ -22,8 +22,6 @@ classdef Dehomogenizer < handle
 
         function ls = compute(obj)
             obj.createEpsilons();
-            obj.createRemesher(); 
-            obj.createFineMesh();  
             obj.computeLevelSet();
             ls = obj.levelSet;            
         end
@@ -54,29 +52,15 @@ classdef Dehomogenizer < handle
             obj.epsilons = L./obj.nCells;
         end            
 
-        function createRemesher(obj)
-            s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels = 2;
-            r  = Remesher(s);
-            r.remesh();
-            obj.remesher = r;
-        end
-
-        function  createFineMesh(obj)
-            fMesh = obj.remesher.fineMesh;
-            m = fMesh.createDiscontinuousMesh();
-            obj.fineMesh = m;
-        end
-
         function computeLevelSet(obj)
             s.type     = 'periodicAndOriented';
             s.mesh     = obj.mesh;
-            s.remesher = obj.remesher;
             s.theta    = obj.theta;
-            s.epsilons = obj.epsilons;
             s.cellLevelSetParams = obj.cellLevelSetParams;
             lSet = LevelSetCreator.create(s);
-            obj.levelSet = lSet.computeLS();
+            ls = lSet.computeLS(obj.epsilons);
+            obj.levelSet = ls;  
+            obj.fineMesh = lSet.getFineMesh();
         end
 
         function uM = createUnfittedMesh(obj,ls)

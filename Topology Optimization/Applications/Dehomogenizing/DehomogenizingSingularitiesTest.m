@@ -42,7 +42,7 @@ classdef DehomogenizingSingularitiesTest < handle
         function init(obj,cParams)
             obj.testName = cParams.testName;
             %obj.meshSize = 0.00521;
-            obj.meshSize = 0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45        
             obj.xmin = 0.5;
             obj.xmax = 2.0;
