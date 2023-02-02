@@ -60,14 +60,19 @@ classdef ProjectorToP1discont < handle
                     f = x.fValues;
                     nNode  = size(obj.connec,2);
                     nDime  = size(f,2);
-                    nElem  = size(obj.connec,1);
-                    fNodeElem = zeros(nDime,nNode,nElem);
-                    fNods  = transpose(f);
-                    for inode = 1:nNode
-                        nodes = obj.connec(:,inode);
-                        fNode = fNods(:,nodes);
-                        fNodeElem(:,inode,:) = fNode;
-                    end
+                  %  nElem  = size(obj.connec,1);
+%                     fNodeElem = zeros(nDime,nNode,nElem);
+                     %fNods  = transpose(f);
+%                     for inode = 1:nNode
+%                         nodes = obj.connec(:,inode);
+%                         fNode = fNods(:,nodes);
+%                         fNodeElem(:,inode,:) = fNode;
+%                     end
+                    nodes = reshape(obj.connec',1,[]);
+                    fe = f(nodes,:)';
+                    fNodeElem = reshape(fe,nDime,nNode,[]);
+                    
+              
                     s.fValues = fNodeElem;
                     s.connec = obj.connec;
                     s.type   = obj.mesh.type;

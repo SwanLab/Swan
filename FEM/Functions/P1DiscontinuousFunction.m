@@ -38,13 +38,32 @@ classdef P1DiscontinuousFunction < FeFunction
                 fxV = fxV + f;
             end
         end
+        
+        function fFine = refine(obj,m,mFine)
+         %   mFineD = mFine.createDiscontinuousMesh();
+            f = squeeze(obj.fValues); 
+            f = f(:);
+            fEdges = obj.computeFunctionInEdges(m,f);                   
+            fAll  = [f;fEdges]; 
+           
+            
+            s.type    = mFine.type;
+            s.connec  = mFine.connec;
+            s.fValues = fAll;
+            fP1   = P1Function(s);
+            fFine = fP1.createP1Discontinous(mFine);            
+        end
 
-        function plot(obj, m)
+        function fV = getFvaluesAsVector(obj)
             ndims   = size(obj.fValues, 1);
             nelem   = size(obj.connec, 1);
             nnodeEl = size(obj.connec, 2);
-            mD = m.createDiscontinuousMesh();
-            fD = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+            fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+        end
+
+        function plot(obj, m)
+            fD = obj.getFvaluesAsVector();
+             mD = m.createDiscontinuousMesh();            
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()
@@ -104,6 +123,13 @@ classdef P1DiscontinuousFunction < FeFunction
             nElem = size(obj.fValues, 3);
             nVals = nNodE*nElem;
             fM = reshape(obj.fValues, [nComp, nVals])';
+        end
+        
+        function f = computeFunctionInEdges(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
+            f = eF.compute();
         end
         
     end

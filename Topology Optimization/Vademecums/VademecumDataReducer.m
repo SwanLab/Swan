@@ -21,13 +21,13 @@ classdef VademecumDataReducer < handle
     methods (Access = private)
         
         function init(obj)
-            obj.fileName = 'SuperEllipseQOptAnalytic';%'SuperEllipseQMax';%'SuperEllipseQ2';            
+            obj.fileName = 'SuperEllipseQ2';%'SuperEllipseQOptAnalytic';%'SuperEllipseQOptAnalytic';%'SuperEllipseQMax';%'SuperEllipseQ2';            
             obj.fileNameReduced = [obj.fileName,'Reduced'];
         end
         
         function loadFullVademecum(obj)
             matFile   = [obj.fileName,'.mat'];
-            file2load = fullfile('/media/alex/My Passport/Vademecum/',matFile);
+            file2load = fullfile('/media/alex/MyPassport/Vademecum/',matFile);
             v = load(file2load);            
             obj.fullVademecum = v.d;
         end

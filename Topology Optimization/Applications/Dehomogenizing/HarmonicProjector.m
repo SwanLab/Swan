@@ -99,7 +99,8 @@ classdef HarmonicProjector < handle
             obj.massMatrix = M;
         end
 
-        function K = computeStiffnessMatrix(obj)
+
+       function computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.type         = 'StiffnessMatrix';

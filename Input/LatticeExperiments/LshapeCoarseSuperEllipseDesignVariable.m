@@ -2,13 +2,13 @@
 %filename = 'CantileverSquareMedium';
 %'CantileverSquareSYmmetricMesh';
 %filename = 'CantileverSquare';
-%filename = 'CantileverSquareSmall';
+filename = 'CantileverSquareSmall';
 %filename = 'CantileverSquareNew';
 %'CantileverSquareNewFine';
 %filename = 'Cantilever_quad_coarse';
 %filename = 'LshapeTriFine';
 %filename = 'LshapeTri';
-filename = 'LshapeTriSmall';
+%filename = 'LshapeTriSmall';
 %filename = 'Lshape';
 %filename = 'LshapeFine';
 %filename = 'ArchTriFine';
@@ -23,12 +23,12 @@ ptype = 'MACRO';
 initial_case = 'given';
 m1 = 0.0101;
 m2 = 0.0101;
-%cost = {'compliance'};
+cost = {'compliance'};
 %cost = {'stressNorm'};
-cost = {'stressNorm','compliance'};
 %cost = {'stressNorm','compliance'};
-weights = [1,10];
-%weights = 1;
+%cost = {'stressNorm','compliance'};
+%weights = [1,10];
+weights = 1;
 constraint = {'volumeConstraint'};
 filterType = 'PDE';
 %filterType = 'P1';
@@ -79,17 +79,17 @@ vademecumFileName = 'SuperEllipseQOptAnalytic';
 % rho0 = 0.3;
 
 line_search_initiator = 'INCREASING LAST STEP';
-incrementFactor = 1.95;
+incrementFactor = 1.05;
 %
 
 
 %kfrac = 2;
-nsteps = 16;%17;
+nsteps = 1;%17;
 
 plotting = true;
 printing = true;
 monitoring = true;
-monitoring_interval = 3;
+monitoring_interval = 1;
 maxiter = 800;
 
 % 
@@ -99,21 +99,21 @@ maxiter = 800;
 % isDirichletPart2 = @(y) y > 0.70 & y < 0.80;
 % isDirichletPartY = @(y) isDirichletPart1(y) | isDirichletPart2(y);
 % isDirichletPart = @(x,y) isDirichletPartX(x) & isDirichletPartY(y);
- isNeumannPartX = @(x) x > (0.96) & x < (1+1e-12);
- isNeumannPartY = @(y) y > 0.35 & y < 0.5;
- 
- isCornerX = @(x) x > (0.4 - 0.05) & x < (0.4 +0.05);
- isCornerY = @(y) y > (0.4 - 0.05) & y < (0.4 +0.05);
- isCornerPart = @(x,y) isCornerX(x) & isCornerY(y);
+%  isNeumannPartX = @(x) x > (0.96) & x < (1+1e-12);
+%  isNeumannPartY = @(y) y > 0.35 & y < 0.5;
+%  
+%  isCornerX = @(x) x > (0.4 - 0.05) & x < (0.4 +0.05);
+%  isCornerY = @(y) y > (0.4 - 0.05) & y < (0.4 +0.05);
+%  isCornerPart = @(x,y) isCornerX(x) & isCornerY(y);
+% % 
+%  isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
+% % iNotOptimizable = @(coord) isDirichletPart(coord(:,1),coord(:,2)) & ~isNeumannPart(coord(:,1),coord(:,2));
 % 
- isNeumannPart = @(x,y) isNeumannPartX(x) & isNeumannPartY(y);
-% iNotOptimizable = @(coord) isDirichletPart(coord(:,1),coord(:,2)) & ~isNeumannPart(coord(:,1),coord(:,2));
-
-iNotOptimizable = @(coord) isCornerPart(coord(:,1),coord(:,2)) | isNeumannPart(coord(:,1),coord(:,2));
-
-costDomainNotOptimizable       = {iNotOptimizable};
-constraintDomainNotOptimizable = {[]};
-
-isDesignVariableFixed.nodes  = iNotOptimizable;
-isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
+% iNotOptimizable = @(coord) isCornerPart(coord(:,1),coord(:,2)) | isNeumannPart(coord(:,1),coord(:,2));
+% 
+% costDomainNotOptimizable       = {iNotOptimizable};
+% constraintDomainNotOptimizable = {[]};
+% 
+% isDesignVariableFixed.nodes  = iNotOptimizable;
+% isDesignVariableFixed.values = @(x) [m1*ones(size(x,1),1);m2*ones(size(x,1),1)];
 

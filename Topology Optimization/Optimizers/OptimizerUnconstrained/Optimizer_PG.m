@@ -26,6 +26,7 @@ classdef Optimizer_PG < Optimizer_Unconstrained
             gradient = obj.objectiveFunction.gradient;
             x_new = x_n-obj.lineSearch.value*gradient;
             ub = obj.upperBound*ones(length(x_n(:,1)),1);
+            x2 = reshape(x_n,[],2); norm(x2(:,1)-x2(:,2))
             lb = obj.lowerBound*ones(length(x_n(:,1)),1);
             x_new = max(min(x_new,ub),lb);
             obj.designVariable.update(x_new);

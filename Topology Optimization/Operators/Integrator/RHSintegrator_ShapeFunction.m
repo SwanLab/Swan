@@ -43,12 +43,12 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.globalConnec = cParams.globalConnec;
             obj.quadrature   = obj.computeQuadrature();
         end
-        
+
         function q = computeQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(obj.quadOrder);
         end
-        
+
         function computeFgaussFromFnodal(obj, fNodal)
             obj.computeGaussPoints();
             obj.computeFgauss(fNodal);
@@ -69,7 +69,7 @@ classdef RHSintegrator_ShapeFunction < handle
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end
-        
+
         function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
             fG     = obj.fGauss;
             dV     = obj.computeDvolume();
@@ -98,12 +98,12 @@ classdef RHSintegrator_ShapeFunction < handle
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
-        
+
         function dV = computeDvolume(obj)
             q = obj.quadrature;
             dV = obj.mesh.computeDvolume(q);
         end
-        
+
         function shapes = computeShapeFunctions(obj)
             int = Interpolation.create(obj.mesh,'LINEAR');
             int.computeShapeDeriv(obj.xGauss);

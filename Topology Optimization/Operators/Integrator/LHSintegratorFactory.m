@@ -1,7 +1,7 @@
 classdef LHSintegratorFactory < handle
 
    methods (Access = public, Static)
-       
+
        function obj = create(cParams)
            switch cParams.type
                case 'MassMatrix'
@@ -64,6 +64,10 @@ classdef LHSintegratorFactory < handle
 
                case 'StokesD'
                    obj = LHSintegrator_StokesD(cParams);
+
+               case 'AdvectionMatrix'
+                           %cross(b,grad(b))
+                           obj = LHSintegrator_Advection(cParams);
            end
        end
    end

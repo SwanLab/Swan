@@ -34,7 +34,12 @@ classdef EdgesConnectivitiesComputer < handle
             obj.computeEdgesInElem();
             obj.computeLocalOrientedEdgeConnec();
         end
-
+        
+        function cV = computeConnectedVertex(obj,vertex)
+            e  = obj.computeAllEdgesOfVertex(vertex);
+            cV = obj.computeOtherVertexOfEdge(e,vertex);
+        end         
+        
     end
     
     methods (Access = private)
@@ -128,6 +133,23 @@ classdef EdgesConnectivitiesComputer < handle
             localNode   = obj.localEdgesInElem(iedge,:);
             localNodes  = obj.nodesByElem(:,localNode);
         end
+        
+        function edges = computeAllEdgesOfVertex(obj,vertex)
+            vertexInEdges = obj.nodesInEdges;            
+            isInEdge = vertexInEdges == vertex;            
+            allEdges  = 1:size(isInEdge,1);
+            allEdgesA(:,1) = allEdges(isInEdge(:,1));
+            allEdgesB(:,1) = allEdges(isInEdge(:,2));
+            edges = [allEdgesA;allEdgesB];            
+        end        
+        
+        function oV = computeOtherVertexOfEdge(obj,edge,vertex)
+            vertexesInEdges = obj.nodesInEdges;
+            vertexesOfEdge  = vertexesInEdges(edge,:);
+            oVB = setdiff(vertexesOfEdge(:,2),vertex);
+            oVA = setdiff(vertexesOfEdge(:,1),vertex);
+            oV = [oVB;oVA];
+        end            
         
     end
     
