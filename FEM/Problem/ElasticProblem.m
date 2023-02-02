@@ -4,6 +4,8 @@ classdef ElasticProblem < handle
         variables
         boundaryConditions
         uFun
+        strainFun
+        stressFun
     end
 
     properties (Access = private)

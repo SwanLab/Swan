@@ -3,6 +3,20 @@
 %   once in a centralized file
 
 
+
+%%
+
+% fem.print
+%   - use functions
+% topopt.print
+%   - use functions
+%   - optimizer: designVar, pde, CC (which have functionals)
+%           - designvar pde and functionals should print
+%           - create fefunctions in each of these classes for printing
+%           *only*
+%           - later on we will eventually do more stuff
+
+
 % 
 % - check XY componennt of fgaussfunctions
 % - study file output size vs time (gid/paraview) to see which is better
