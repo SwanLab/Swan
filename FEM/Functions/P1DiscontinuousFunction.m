@@ -41,17 +41,16 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function fFine = refine(obj,m,mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
-            f = squeeze(obj.fValues); 
+            f = squeeze(obj.fValues);
             f = f(:);
-            fEdges = obj.computeFunctionInEdges(m,f);                   
-            fAll  = [f;fEdges]; 
-           
+            fEdges = obj.computeFunctionInEdges(m,f);
+            fAll  = [f;fEdges];
             
             s.type    = mFine.type;
             s.connec  = mFine.connec;
             s.fValues = fAll;
             fP1   = P1Function(s);
-            fFine = fP1.createP1Discontinous(mFine);            
+            fFine = fP1.createP1Discontinous(mFine);
         end
 
         function fV = getFvaluesAsVector(obj)
@@ -63,7 +62,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plot(obj, m)
             fD = obj.getFvaluesAsVector();
-             mD = m.createDiscontinuousMesh();            
+             mD = m.createDiscontinuousMesh();
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()
@@ -98,7 +97,6 @@ classdef P1DiscontinuousFunction < FeFunction
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
         end
-
 
     end
     

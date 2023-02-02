@@ -108,7 +108,7 @@ classdef P1Function < FeFunction
             fAll    = [fNodes;fEdges];
             s.type    = mFine.type;
             s.connec  = mFine.connec;
-            s.fValues = fAll;     
+            s.fValues = fAll;
             fFine = P1Function(s);
         end
 
@@ -143,6 +143,8 @@ classdef P1Function < FeFunction
             s.fValues = obj.getFormattedFValues();
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
+        end
+
         function fD = createP1Discontinous(obj,m)
             s.mesh   = m;
             s.connec = obj.connec;
@@ -179,7 +181,7 @@ classdef P1Function < FeFunction
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
-        end        
+        end
 
     end
 
