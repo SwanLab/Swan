@@ -61,8 +61,7 @@ classdef RHSintegrator_ShapeDerivative < handle
 
         function computeFgauss(obj)
             s.fValues = obj.fNodal;
-            s.connec = obj.globalConnec;
-            s.type   = obj.mesh.type;
+            s.mesh   = obj.mesh;
             f = P1Function(s);
             fG = f.evaluate(obj.xGauss);
             fG = permute(fG,[2 3 1]);

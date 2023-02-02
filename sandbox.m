@@ -44,23 +44,22 @@ p1dfun = projP1D.project(xFun);
 % FGaussDiscontinuousFunction
 quad = Quadrature.set(mesh.type);
 quad.computeQuadrature('LINEAR');
-fgfun = p1fun.computeGradient(quad,mesh);
+fgfun = p1fun.computeGradient(quad);
 % fgp1 = projP1.project(fgfun);
 
 %% Function printing
-% aa.mesh = mesh;
-% aa.filename = 'p1fun';
-% p1fun.print(aa)
-% 
-% aa.filename = 'p0fun';
-% p0fun.print(aa)
-% 
-% aa.filename = 'p1dfun';
-% p1dfun.print(aa)
-% 
-% aa.filename = 'fgfun';
-% fgfun.print(aa)
-% 
+aa.filename = 'p1fun';
+p1fun.print(aa)
+
+aa.filename = 'p0fun';
+p0fun.print(aa)
+
+aa.filename = 'p1dfun';
+p1dfun.print(aa)
+
+aa.filename = 'fgfun';
+fgfun.print(aa)
+
 % aa.filename = 'fgp1fun';
 % fgp1.print(aa)
 
@@ -75,14 +74,14 @@ fp.print();
 
 %% Multiple function printing
 
-% symGrad = fem.uFun.computeSymmetricGradient2(quad, mesh);
+symGrad = fem.uFun.computeSymmetricGradient(quad);
 
-% bb.mesh     = mesh;
-% bb.filename = 'funfunfun';
-% bb.fun      = {fem.uFun, symGrad};
-% bb.funNames = {'disp', 'symGrad'};
-% fp = FunctionPrinter(bb);
-% fp.print();
+bb.mesh     = mesh;
+bb.filename = 'funfunfun';
+bb.fun      = {fem.uFun, symGrad};
+bb.funNames = {'disp', 'symGrad'};
+fp = FunctionPrinter(bb);
+fp.print();
 
 %% Paraview
 zz.mesh     = mesh;

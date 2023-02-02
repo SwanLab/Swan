@@ -148,8 +148,7 @@ classdef ConformalMappingComputer < handle
             bG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
             for idim = 1:obj.mesh.ndim
                 s.fValues = b(idim,:)';
-                s.connec = obj.mesh.connec;
-                s.type   = obj.mesh.type;
+                s.mesh   = obj.mesh;
                 f = P1Function(s);
                 bG(idim,:,:) = f.evaluate(xGauss);
             end

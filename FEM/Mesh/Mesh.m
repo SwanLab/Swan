@@ -337,8 +337,7 @@ classdef Mesh < handle
         end
 
         function computeCoordFEfunction(obj)
-            s.type = obj.type;
-            s.connec = obj.connec;
+            s.mesh    = obj;
             s.fValues = obj.coord;
             coordP1 = P1Function(s);
             obj.xFE = obj.projectToP1Discontinuous(coordP1);

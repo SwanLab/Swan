@@ -31,8 +31,7 @@ classdef EdgeFunctionInterpolator < handle
         end
         
         function f = createP1FunctionInEdges(obj)
-            s.type    = obj.edgeMesh.type;
-            s.connec  = obj.edgeMesh.connec;
+            s.mesh    = obj.mesh;
             s.fValues = obj.fNodes;
             s.functionType = 'P1';
             f = P1Function(s);

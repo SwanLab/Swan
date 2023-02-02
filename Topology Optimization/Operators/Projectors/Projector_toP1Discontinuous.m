@@ -16,8 +16,7 @@ classdef Projector_toP1Discontinuous < Projector
             RHS = obj.computeRHS(x);
             f = LHS\RHS;
             fVals = obj.reshapeFValues(f, x.ndimf);
-            s.type    = obj.mesh.type;
-            s.connec  = obj.mesh.connec;
+            s.mesh    = obj.mesh;
             s.fValues = fVals;
             xProj = P1DiscontinuousFunction(s);
         end

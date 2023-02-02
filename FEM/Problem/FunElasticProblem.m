@@ -52,8 +52,7 @@ classdef FunElasticProblem < handle
             nDimf  = str2double(strdim);
             nNodes = size(obj.mesh.coord,1);
             s.ndimf   = nDimf;
-            s.connec  = obj.mesh.connec;
-            s.type    = obj.mesh.type;
+            s.mesh    = obj.mesh;
             s.fValues = zeros(nNodes,nDimf);
             f = P1Function(s);
             obj.displacement = f;

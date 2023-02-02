@@ -93,8 +93,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function per0 = computePerimeterIntegrandP0(obj)
             vfrac = obj.designVariable.computeVolumeFraction();
-            s.connec  = obj.designVariable.mesh.connec;
-            s.type    = obj.designVariable.mesh.type;
+            s.mesh    = obj.designVariable.mesh;
             s.fValues = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
             f = P1Function(s);
             q = Quadrature.set(obj.designVariable.mesh.type);

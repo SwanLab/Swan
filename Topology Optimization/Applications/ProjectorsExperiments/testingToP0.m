@@ -16,13 +16,11 @@ femU      = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 % z.fValues = femStrain;
 z.fValues = femStrain(:,1:2);
 % z.fValues = femStrain(:,2);
-z.connec  = s.mesh.connec;
-z.type    = s.mesh.type;
+z.mesh    = s.mesh;
 sigP0 = P0Function(z);
 
 % P1 Function
-z.connec  = s.mesh.connec;
-z.type    = s.mesh.type;
+z.mesh    = s.mesh;
 z.fValues = femU;
 uP1 = P1Function(z);
 

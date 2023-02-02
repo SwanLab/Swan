@@ -11,6 +11,7 @@
     end
 
     properties (Access = private)
+        mesh
     end
     
     properties (Access = private)
@@ -27,17 +28,17 @@
             fxV = obj.fValues;
         end
 
-        function plot(obj, mesh)
-            pp1.mesh   = mesh;
-            pp1.connec = mesh.connec;
+        function plot(obj)
+            pp1.mesh   = obj.mesh;
+            pp1.connec = obj.mesh.connec;
             projP1 = Projector_toP1(pp1);
             p1fg = projP1.project(obj);
-            p1fg.plot(mesh);
+            p1fg.plot();
         end
 
         function print(obj, s)
-%             s.mesh
-            s.fun = {obj};
+            s.mesh = obj.mesh;
+            s.fun  = {obj};
             p = FunctionPrinter(s);
             p.print();
         end
@@ -61,6 +62,7 @@
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;
             obj.ndimf      = size(cParams.fValues,1);
+            obj.mesh       = cParams.mesh;
         end
 
         % Printing

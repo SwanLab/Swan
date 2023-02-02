@@ -58,8 +58,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
 
         function fC = createP1ContinousFunction(obj,m)               
             f         = obj.createFunctionToRemesh();
-            s.type    = m.type;
-            s.connec  = m.connec;
+            s.mesh    = m.mesh;
             s.fValues = f(m.coord);    
             fC        = P1Function(s);
         end    
@@ -67,10 +66,9 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         function fC = createP1DiscontinousFunction(obj,m)
             f         = obj.createFunctionToRemesh();
             s.fValues = f(m.computeBaricenter()');
-            s.connec  = m.connec;
-            s.type    = m.type;
+            s.mesh    = m;
             f0 = P0Function(s);
-            fC = f0.computeP1DiscontinuousFunction(m);
+            fC = f0.computeP1DiscontinuousFunction();
         end        
 
         function f = createFunctionToRemesh(obj)
