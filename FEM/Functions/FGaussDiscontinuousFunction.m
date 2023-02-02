@@ -35,6 +35,24 @@
             p1fg.plot(mesh);
         end
 
+        function print(obj, s)
+%             s.mesh
+            s.fun = {obj};
+            p = FunctionPrinter(s);
+            p.print();
+        end
+
+        function [res, pformat] = getDataToPrint(obj)
+            nElem = size(obj.fValues, 3);
+            nGaus = obj.quadrature.ngaus;
+            s.nDimf   = obj.ndimf;
+            s.nData   = nElem*nGaus;
+            s.nGroup  = nElem;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
+        end
+
     end
     
     methods (Access = private)
@@ -43,6 +61,21 @@
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;
             obj.ndimf      = size(cParams.fValues,1);
+        end
+
+        % Printing
+        function fM = getFormattedFValues(obj)
+            fV = obj.fValues;
+            nGaus = obj.quadrature.ngaus;
+            nComp = obj.ndimf;
+            nElem = size(obj.fValues, 3);
+            fM  = zeros(nGaus*nElem,nComp);
+            for iStre = 1:nComp
+                for iGaus = 1:nGaus
+                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
+                    fM(rows,iStre) = fV(iStre,iGaus,:);
+                end
+            end
         end
         
     end

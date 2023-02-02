@@ -21,7 +21,7 @@ classdef Postprocess < handle
             obj.createResultPrinter(postCase);
         end
         
-        function  print(obj,iter,d)
+        function print(obj,iter,d)
             obj.printMeshFile(iter);
             obj.printResFile(iter,d)
         end

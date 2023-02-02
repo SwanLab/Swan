@@ -1,72 +1,93 @@
+%% This is a sandbox file!
+% Feel free to test anything here :)
 clc; clear; close all;
 
-% %% Export STL from GiD mesh
-% file = 'test_micro_holeinclusion';
-% % file = 'test2d_triangle';
-% a.fileName = file;
-% s = FemDataContainer(a);
-% fem = FEM.create(s);
-% fem.computeChomog();
-% % fem.solve();
-% fem.print(file)
+% file = 'test2d_triangle';
+% file = 'test2d_quad';
+file = 'Cantileverbeam_Quadrilateral_Bilinear';
+a.fileName = file;
+s = FemDataContainer(a);
+mesh = s.mesh;
+fem = FEM.create(s);
+fem.solve();
+
+%% Create functions
+% AnalyticalFunction
+
+% sAF.fHandle = @(x) x(1,:,:);
+% sAF.ndimf   = 1;
+sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
+sAF.ndimf   = 2;
+sAF.mesh    = mesh;
+xFun = AnalyticalFunction(sAF);
+
+%% Create projectors to P0, P1 and P1D
+% testingFunctions.m
+% testingGradients.m
+
+% Projector to P1
+ppar.mesh   = mesh;
+ppar.connec = mesh.connec;
+projP1 = Projector_toP1(ppar);
+p1fun = projP1.project(xFun);
+% p1fun.plot(mesh)
+% title('P1 (quad linear)')
+
+% Projector to P0
+projP0 = Projector_toP0(ppar);
+p0fun = projP0.project(xFun);
+
+% Projector to P1 Discontinuous
+projP1D = Projector_toP1Discontinuous(ppar);
+p1dfun = projP1D.project(xFun);
+
+% FGaussDiscontinuousFunction
+quad = Quadrature.set(mesh.type);
+quad.computeQuadrature('LINEAR');
+fgfun = p1fun.computeGradient(quad,mesh);
+% fgp1 = projP1.project(fgfun);
+
+%% Function printing
+% aa.mesh = mesh;
+% aa.filename = 'p1fun';
+% p1fun.print(aa)
 % 
-% P = s.mesh.coord;
-% T = s.mesh.connec;
-% TR = triangulation(T,P);
-% triplot(TR)
-% stlwrite(TR, 'whatever.stl') % export as stl
+% aa.filename = 'p0fun';
+% p0fun.print(aa)
+% 
+% aa.filename = 'p1dfun';
+% p1dfun.print(aa)
+% 
+% aa.filename = 'fgfun';
+% fgfun.print(aa)
+% 
+% aa.filename = 'fgp1fun';
+% fgp1.print(aa)
 
-%% Export STL from Unfitted Mesh
-clc; clear
-% Background
+%% Multiple function printing
 
-x1 = linspace(-1,1,100);
-x2 = linspace(0,1,100);
+bb.mesh     = mesh;
+bb.filename = 'funfunfun';
+bb.fun      = {p0fun, p1fun, fgfun};
+bb.funNames = {'p0', 'p1', 'fgf'};
+fp = FunctionPrinter(bb);
+fp.print();
 
-[xv,yv] = meshgrid(x1,x2);
-[F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-s.coord  = V(:,1:2);
-s.connec = F;
-backgroundMesh = Mesh(s);
+%% Multiple function printing
 
-% Boundary
-sB.backgroundMesh = backgroundMesh;
-sB.dimension = 1:3;
-sB.type = 'FromReactangularBox';
-bMc = BoundaryMeshCreator.create(sB);
-boundaryMesh  = bMc.create();
+% symGrad = fem.uFun.computeSymmetricGradient2(quad, mesh);
 
-% Level set
-s.type       = 'circleInclusion';
-s.mesh       = backgroundMesh;
-s.ndim       = 2;
-s.fracRadius = 0.4;
-levelSet = LevelSetCreator.create(s);
-ls = levelSet.getValue();
+% bb.mesh     = mesh;
+% bb.filename = 'funfunfun';
+% bb.fun      = {fem.uFun, symGrad};
+% bb.funNames = {'disp', 'symGrad'};
+% fp = FunctionPrinter(bb);
+% fp.print();
 
-% Unfitted mesh
-s.boundaryMesh   = boundaryMesh;
-s.backgroundMesh = backgroundMesh;
-uMesh = UnfittedMesh(s);
-uMesh.compute(ls);
-uMesh.plot();
-
-% New mesh
-
-coordInner     = uMesh.innerMesh.mesh.coord;
-connecInner    = uMesh.innerMesh.mesh.connec;
-coordCutInner  = uMesh.innerCutMesh.mesh.coord;
-connecCutInner = uMesh.innerCutMesh.mesh.connec;
-ncoord = size(coordInner,1);
-connecCutInner = connecCutInner + ncoord;
-s.coord  = [coordInner;  coordCutInner];
-s.connec = [connecInner; connecCutInner];
-jointMesh = Mesh(s);
-
-% Export to STL
-figure()
-P = jointMesh.coord;
-T = jointMesh.connec;
-TR = triangulation(T,P);
-triplot(TR)
-stlwrite(TR, 'whateverLS.stl')
+%% Paraview
+zz.mesh     = mesh;
+zz.filename = 'paraview2';
+zz.fun      = {fgfun, p1fun, p0fun};
+zz.funNames = {'fgfun', 'p1fun', 'p0fun'};
+pvPst = ParaviewPostprocessor(zz);
+% pvPst = ParaviewLegacyPostprocessor(zz);
