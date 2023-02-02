@@ -67,41 +67,52 @@ classdef DilationFieldComputer < handle
             a2(:,2) = cos(alpha);
 
             dN = g.dNdx;
-            N  = int.shape;
 
-            Q = [0 1;-1 0];
+            s.connec  = obj.mesh.connec;
+            s.type    = obj.mesh.type;
+            s.fValues = a1;            
+            a1F = P1Function(s);
+            a1FV = a1F.evaluate(q.posgp); 
+
+
+            s.connec  = obj.mesh.connec;
+            s.type    = obj.mesh.type;
+            s.fValues = a2;            
+            a2F = P1Function(s);
+            a2FV = a2F.evaluate(q.posgp);            
+
+            da1 = obj.computeDivergence(a1F,q,dN);
+            da2 = obj.computeDivergence(a2F,q,dN);            
+            
+            da1a1 = bsxfun(@times,da1,a1FV);
+            da2a2 = bsxfun(@times,da2,a2FV);
+          
+            
+            gradT3 = -da2a2 - da1a1;
+         %   norm(gradT3(:) - gradT2(:))/norm(gradT2(:))
+
+            gradT = gradT3;
+        end
+        
+        function da = computeDivergence(obj,f,q,dN)
+            fV = f.fValues;
+            nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
-            nDim = obj.mesh.ndim;
-            gradT2 = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
+            nDim  = obj.mesh.ndim;
+            da = zeros(1,q.ngaus,obj.mesh.nelem);
             for igaus = 1:q.ngaus
-                for jNode = 1:nNode
-                     nodeJ = nodes(:,jNode);                                            
-                    for kNode = 1:nNode
-                        nodeK = nodes(:,kNode);                        
-                        for rDim = 1:nDim
-                            for lDim = 1:nDim
-                                for mDim = 1:nDim
-                                    dNkl = squeeze(dN(lDim,kNode,:,igaus));
-                                    Nj   = N(jNode,igaus);
-                                    Qlr = Q(lDim,rDim);
-                                    a1kr = a1(nodeK,rDim);
-                                    a1jm = a1(nodeJ,mDim);
-                                    a2kr = a2(nodeK,rDim);
-                                    a2jm = a2(nodeJ,mDim);
-                                    gV(1,1,:) = dNkl.*Nj.*Qlr.*(a1kr.*a2jm - a2kr.*a1jm);
-                                    gradT2(mDim,igaus,:) = gradT2(mDim,igaus,:) + gV;
-                                end
-                            end
-                        end
+                for kNode = 1:nNode
+                    nodeK = nodes(:,kNode);
+                    for rDim = 1:nDim
+                        dNkr = squeeze(dN(rDim,kNode,:,igaus));
+                        fkr = fV(nodeK,rDim);
+                        int(1,1,:) = dNkr.*fkr;
+                        da(1,igaus,:) = da(1,igaus,:) + int(1,1,:);
                     end
                 end
             end
-
-
-     
-            gradT = gradT2;
-        end
-
+       end
+        
 
 
 

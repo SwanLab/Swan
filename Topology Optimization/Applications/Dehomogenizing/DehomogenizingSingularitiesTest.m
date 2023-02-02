@@ -31,7 +31,12 @@ classdef DehomogenizingSingularitiesTest < handle
         function passed = hasPassed(obj)
             d = load(obj.testName);
             ls = obj.levelSet;
-            itIs = isequaln(ls,d.levelSet);
+            errI = zeros(numel(ls),1);
+            for iCell = 1:numel(ls)
+                lSI = d.levelSet{iCell};
+                errI(iCell) = norm(ls{iCell} - lSI)/norm(lSI);
+            end
+            itIs = sum(errI) < 1e-12;
             passed = itIs;
         end
 
