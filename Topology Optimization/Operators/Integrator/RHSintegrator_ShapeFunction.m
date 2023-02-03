@@ -61,11 +61,14 @@ classdef RHSintegrator_ShapeFunction < handle
         end
 
         function computeFgauss(obj, fNodal)
-            mmm.coord = obj.mesh.coord;
-            mmm.connec = obj.globalConnec;
-            locMesh = Mesh(mmm);
+%             mmm.coord = obj.mesh.coord;
+%             mmm.connec = obj.globalConnec;
+%             locMesh = Mesh(mmm);
+            msh.connec = obj.globalConnec;
+            msh.type   = obj.mesh.type;
+            s.mesh    = msh;
             s.fValues = fNodal;
-            s.mesh    = locMesh;
+%             s.mesh    = locMesh;
 %             s.connec = obj.globalConnec;
 %             s.type   = obj.mesh.type;
             f = P1Function(s);

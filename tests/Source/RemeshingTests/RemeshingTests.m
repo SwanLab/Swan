@@ -18,7 +18,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             f = obj.createP1ContinousFunction(m);
             for i = 1:2
                 mF = m.remesh(1);
-                f = f.refine(m,mF);
+                f = f.refine(mF);
                 m    = mF;
             end           
             s = load('test_RemeshP1Function');
@@ -32,7 +32,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             f = obj.createP1DiscontinousFunction(m);
             for i = 1:2
                 mF = m.remesh(1);
-                f = f.refine(m,mF);
+                f = f.refine(mF);
                 m = mF.createDiscontinuousMesh();
             end  
             s = load('test_RemeshP1DiscFunction');
@@ -58,7 +58,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
 
         function fC = createP1ContinousFunction(obj,m)               
             f         = obj.createFunctionToRemesh();
-            s.mesh    = m.mesh;
+            s.mesh    = m;
             s.fValues = f(m.coord);    
             fC        = P1Function(s);
         end    

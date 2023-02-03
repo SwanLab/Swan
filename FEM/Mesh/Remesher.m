@@ -49,7 +49,7 @@ classdef Remesher < handle
                 s.coord  = obj.computeCoords();
                 s.connec = obj.computeConnectivities();
                 mF = Mesh(s);                
-                f  = f.refine(m,mF);
+                f  = f.refine(mF);
                 mD = mF.createDiscontinuousMesh();                
                 obj.mesh = mD;                
                 obj.cellsToRemesh = 1:obj.mesh.nelem;

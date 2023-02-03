@@ -118,7 +118,7 @@ classdef P1Function < FeFunction
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = obj.fValues(:,idim);
-                a = trisurf(m.connec,x,y,z);
+                a = trisurf(obj.mesh.connec,x,y,z);
                 view(0,90)
     %             colorbar
                 shading interp
