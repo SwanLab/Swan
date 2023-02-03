@@ -6,10 +6,16 @@
 
 %%
 
+% investigate: converting data to binary format to save read'n'write
+% resources for paraview
+% wtf is rho @ DesignVariable
+
 % fem.print
 %   - use functions
 % topopt.print
 %   - use functions
+%       - check printing for various time steps in gid
+%       - check printing for various time steps in paraview
 %   - optimizer: designVar, pde, CC (which have functionals)
 %           - designvar pde and functionals should print
 %           - create fefunctions in each of these classes for printing
@@ -23,10 +29,6 @@
 %   for printing
 %       - instructions at the wiki (running the test + graph)
 % - update to master after cleanup
-
-% - {{no fet}} uml de tot plegat (es una classe)
-% - recuperar gid unfitted mesh photo GiDimagecapturer
-%      density --(project)--> unfittedmesh -> innermesh/photo
 
 % opengl, llicencies, gid 
 % https://www.youtube.com/watch?v=zikDxtlvbUA
@@ -43,3 +45,6 @@
 % - geometry only in mesh
 % - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
 %   removed
+
+% - recuperar gid unfitted mesh photo GiDimagecapturer
+%      density --(project)--> unfittedmesh -> innermesh/photo

@@ -49,40 +49,40 @@ fgfun = p1fun.computeGradient(quad);
 % fgp1 = projP1.project(fgfun);
 
 %% Function printing
-aa.filename = 'p1fun';
-p1fun.print(aa)
-
-aa.filename = 'p0fun';
-p0fun.print(aa)
-
-aa.filename = 'p1dfun';
-p1dfun.print(aa)
-
-aa.filename = 'fgfun';
-fgfun.print(aa)
+% aa.filename = 'p1fun';
+% p1fun.print(aa)
+% 
+% aa.filename = 'p0fun';
+% p0fun.print(aa)
+% 
+% aa.filename = 'p1dfun';
+% p1dfun.print(aa)
+% 
+% aa.filename = 'fgfun';
+% fgfun.print(aa)
 
 % aa.filename = 'fgp1fun';
 % fgp1.print(aa)
 
 %% Multiple function printing
 
-bb.mesh     = mesh;
-bb.filename = 'funfunfun';
-bb.fun      = {p0fun, p1fun, fgfun};
-bb.funNames = {'p0', 'p1', 'fgf'};
-fp = FunctionPrinter(bb);
-fp.print();
+% bb.mesh     = mesh;
+% bb.filename = 'funfunfun';
+% bb.fun      = {p0fun, p1fun, fgfun};
+% bb.funNames = {'p0', 'p1', 'fgf'};
+% fp = FunctionPrinter(bb);
+% fp.print();
 
 %% Multiple function printing
 
-symGrad = fem.uFun.computeSymmetricGradient(quad);
-
-bb.mesh     = mesh;
-bb.filename = 'funfunfun';
-bb.fun      = {fem.uFun, symGrad};
-bb.funNames = {'disp', 'symGrad'};
-fp = FunctionPrinter(bb);
-fp.print();
+% symGrad = fem.uFun.computeSymmetricGradient(quad);
+% 
+% bb.mesh     = mesh;
+% bb.filename = 'funfunfun';
+% bb.fun      = {fem.uFun, symGrad};
+% bb.funNames = {'disp', 'symGrad'};
+% fp = FunctionPrinter(bb);
+% fp.print();
 
 %% Paraview
 zz.mesh     = mesh;
@@ -91,3 +91,19 @@ zz.fun      = {fgfun, p1fun, p0fun};
 zz.funNames = {'fgfun', 'p1fun', 'p0fun'};
 pvPst = ParaviewPostprocessor(zz);
 % pvPst = ParaviewLegacyPostprocessor(zz);
+
+%% Top opt printing
+z.mesh = obj.designVariable.mesh.meshes{1};
+z.fValues = obj.designVariable.value;
+valFun = P1Function(z);
+
+aaa.mesh = obj.designVariable.mesh.meshes{1};
+aaa.fValues = obj.designVariable.alpha';
+alphaFun = P0Function(aaa);
+
+
+zz.mesh     = obj.designVariable.mesh.meshes{1};
+zz.filename = 'levelsetdesignvar';
+zz.fun      = {valFun, alphaFun};
+zz.funNames = {'value', 'alpha'};
+pvPst = ParaviewPostprocessor(zz);
