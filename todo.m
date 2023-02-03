@@ -1,54 +1,44 @@
 %% To-do
-
-% UML Projectors
-% plot fgaussfun
-% geometry to mesh (jacobian in mesh)
-% BMatComp(dNdx), dndx coming from interp
-% create gradient of function and compSymmVector
-% projectors with unfittedmesh at rhs without it noticing it
-
-% Pending:
-% - Projectors/Filters with Triangle&Quads (figures)
-
-% Jose: 
-% Done! - Delete element loops of projectors
-% Done! - H1Projection
-% - Clean code of projectors + tests
-% Done! - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
+% - GiDImageCapturer -> some variables should be "user variables", defined
+%   once in a centralized file
 
 
-%% Changelog
+
+%%
+
+% fem.print
+%   - use functions
+% topopt.print
+%   - use functions
+%   - optimizer: designVar, pde, CC (which have functionals)
+%           - designvar pde and functionals should print
+%           - create fefunctions in each of these classes for printing
+%           *only*
+%           - later on we will eventually do more stuff
+
+
 % 
+% - check XY componennt of fgaussfunctions
+% - study file output size vs time (gid/paraview) to see which is better
+%   for printing
+%       - instructions at the wiki (running the test + graph)
+% - update to master after cleanup
 
-%% Notes (Ton)
-% Train of thought regarding Geometry/Mesh/Interpolation
+% - {{no fet}} uml de tot plegat (es una classe)
+% - recuperar gid unfitted mesh photo GiDimagecapturer
+%      density --(project)--> unfittedmesh -> innermesh/photo
 
-%   - Basically, everything is linked up together. Geometry is used as a
-%   flexible tool to perform various actions
-%   - It is also very much dynamic, the same geometry can be re-computed
-%   many times in a single problem with different parameters
+% opengl, llicencies, gid 
+% https://www.youtube.com/watch?v=zikDxtlvbUA
 
-%   - When a Mesh is created, a Geometry_Volumetric is also created.
-%   However, nothing else is calculated.
-%   - The calculations are performed when calling computeGeometry(q,int).
-%   Thus, there is no one Jacobian/dNdx: 
-%       - Quad: constant (normals) /linear (linear int) / quadratic (quad
-%       fields)
-%       - Int: linear (mesh) / quadratic (fields)
+% ppt -> add gifs, not pictures
 
+%% Comments
 
-%       - mesh.computeInvJac(q,int)
+% Cantileverbeam_Hexahedra_Linear_Structured_SYM
 
-%   - P1function.computeGradient() or Gradient(p1fun)?! Two distinct use
-%   cases for (sym)gradient (fValues known vs unknown)
-%   - BoundaryConditions defined as functions?!
-
-% Links: testingGradients, P1Function
-% Links: funProblems, FunElasticProblem
-
-%% Next steps
-%
-
-%% Backlog
-
-% - Let Paraview print strain as a P1DiscontFunct
+%% per mes endavant
+% - moure input a repositori a part per alleugerir
+% - geometry only in mesh
+% - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
+%   removed

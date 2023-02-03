@@ -41,17 +41,16 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function fFine = refine(obj,m,mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
-            f = squeeze(obj.fValues); 
+            f = squeeze(obj.fValues);
             f = f(:);
-            fEdges = obj.computeFunctionInEdges(m,f);                   
-            fAll  = [f;fEdges]; 
-           
+            fEdges = obj.computeFunctionInEdges(m,f);
+            fAll  = [f;fEdges];
             
             s.type    = mFine.type;
             s.connec  = mFine.connec;
             s.fValues = fAll;
             fP1   = P1Function(s);
-            fFine = fP1.createP1Discontinous(mFine);            
+            fFine = fP1.createP1Discontinous(mFine);
         end
 
         function fV = getFvaluesAsVector(obj)
@@ -63,7 +62,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plot(obj, m)
             fD = obj.getFvaluesAsVector();
-             mD = m.createDiscontinuousMesh();            
+             mD = m.createDiscontinuousMesh();
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()
@@ -77,6 +76,26 @@ classdef P1DiscontinuousFunction < FeFunction
                 a.EdgeColor = [0 0 0];
                 title(['dim = ', num2str(idim)]);
             end
+        end
+
+        function print(obj, s)
+%             s.mesh
+            s.mesh = s.mesh.createDiscontinuousMesh();
+            s.fun = {obj};
+            p = FunctionPrinter(s);
+            p.print();
+        end
+
+        function [res, pformat] = getDataToPrint(obj)
+            nElem = size(obj.fValues, 3);
+            nNodE = size(obj.fValues, 2);
+            nNods = nElem*nNodE;
+            s.nDimf   = obj.ndimf;
+            s.nData   = nNods;
+            s.nGroup  = nNods;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
         end
 
     end
@@ -95,12 +114,21 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
+        % Printing
+        function fM = getFormattedFValues(obj)
+            nComp = obj.ndimf;
+            nNodE = size(obj.fValues, 2);
+            nElem = size(obj.fValues, 3);
+            nVals = nNodE*nElem;
+            fM = reshape(obj.fValues, [nComp, nVals])';
+        end
+        
         function f = computeFunctionInEdges(obj,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
-        end        
+        end
         
     end
     

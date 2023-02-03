@@ -48,7 +48,6 @@ classdef CharacteristicFunction < L2Function
             s.connec   = obj.mesh.connec;
             s.type     = obj.mesh.type;
             s.fValues  = obj.mesh.coord;
-            s.ndimf    = size(obj.mesh.coord,2);
             obj.coorP1 = P1Function(s);
         end
 

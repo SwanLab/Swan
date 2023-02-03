@@ -39,6 +39,26 @@ classdef P0Function < FeFunction
             p1DiscFun.plot(m);
         end
 
+        function print(obj, s)
+%             s.mesh
+            s.fun = {obj};
+            p = FunctionPrinter(s);
+            p.print();
+        end
+
+        function [res, pformat] = getDataToPrint(obj)
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('LINEAR');
+            nElem = size(obj.connec, 1);
+            nGaus = q.ngaus;
+
+            s.nDimf   = obj.ndimf;
+            s.nData   = nElem*nGaus;
+            s.nGroup  = nElem;
+            s.fValues = obj.getFormattedFValues();
+            fps = FunctionPrintingSettings(s);
+            [res, pformat] = fps.getDataToPrint();
+        end
     end
 
     methods (Access = private)
@@ -70,6 +90,23 @@ classdef P0Function < FeFunction
                 end
             end
             fD = permute(fRepeated, [1 3 2]);
+        end
+
+        % Printing
+        function fM = getFormattedFValues(obj)
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('LINEAR');
+            fV = obj.evaluate(q.posgp);
+            nGaus   = q.ngaus;
+            nComp   = obj.ndimf;
+            nElem   = size(obj.connec, 1);
+            fM  = zeros(nGaus*nElem,nComp);
+            for iStre = 1:nComp
+                for iGaus = 1:nGaus
+                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
+                    fM(rows,iStre) = fV(iStre,iGaus,:);
+                end
+            end
         end
 
     end

@@ -3,6 +3,9 @@ classdef ElasticProblem < handle
     properties (Access = public)
         variables
         boundaryConditions
+        uFun
+        strainFun
+        stressFun
     end
 
     properties (Access = private)
@@ -181,10 +184,11 @@ classdef ElasticProblem < handle
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
-%             z.connec = obj.mesh.connec;
-%             z.type   = obj.mesh.type;
-%             z.fNodes = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             uFeFun = P1Function(z);
+            z.connec = obj.mesh.connec;
+            z.type   = obj.mesh.type;
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = P1Function(z);
+            obj.uFun = uFeFun;
         end
 
         function computeStrain(obj)
