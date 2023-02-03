@@ -37,11 +37,11 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
         
-        function fFine = refine(obj, mFine)
+        function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
             f = squeeze(obj.fValues);
             f = f(:);
-            fEdges = obj.computeFunctionInEdges(f);
+            fEdges = obj.computeFunctionInEdges(m,f);
             fAll  = [f;fEdges];
             
             s.mesh    = mFine;
@@ -119,8 +119,8 @@ classdef P1DiscontinuousFunction < FeFunction
             fM = reshape(obj.fValues, [nComp, nVals])';
         end
         
-        function f = computeFunctionInEdges(obj,fNodes)
-            s.edgeMesh = obj.mesh.computeEdgeMesh();
+        function f = computeFunctionInEdges(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();

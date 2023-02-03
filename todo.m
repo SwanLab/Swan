@@ -36,6 +36,7 @@
 %% Comments
 
 % Cantileverbeam_Hexahedra_Linear_Structured_SYM
+% refining in P1DiscontinuousFunction vs P1Function (see RemeshingTests)
 
 %% per mes endavant
 % - moure input a repositori a part per alleugerir
