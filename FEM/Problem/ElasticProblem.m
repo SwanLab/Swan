@@ -184,6 +184,7 @@ classdef ElasticProblem < handle
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
+
             z.mesh   = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
@@ -199,6 +200,9 @@ classdef ElasticProblem < handle
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
+            
+            obj.strainFun = obj.uFun.computeSymmetricGradient(obj.quadrature);
+            obj.strainFun.applyVoigtNotation();
         end
 
         function computeStress(obj)
@@ -208,6 +212,17 @@ classdef ElasticProblem < handle
             scomp  = StressComputer(s);
             stress = scomp.compute();
             obj.variables.stress = stress;
+            
+            strn  = permute(obj.strainFun.fValues,[1 3 2]);
+            strn2(:,1,:,:) = strn;
+            stress =squeeze(pagemtimes(obj.material.C,strn2));
+            stress = permute(stress, [1 3 2]);
+
+            z.mesh    = obj.mesh;
+            z.fValues = stress;
+            z.quadrature = obj.quadrature;
+            strFeFun = FGaussDiscontinuousFunction(z);
+            obj.stressFun = strFeFun;
         end
 
         function computePrincipalDirection(obj)

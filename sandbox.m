@@ -4,7 +4,8 @@ clc; clear; close all;
 
 % file = 'test2d_triangle';
 % file = 'test2d_quad';
-file = 'Cantileverbeam_Quadrilateral_Bilinear';
+file = 'test3d_hexahedra';
+% file = 'Cantileverbeam_Quadrilateral_Bilinear';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
