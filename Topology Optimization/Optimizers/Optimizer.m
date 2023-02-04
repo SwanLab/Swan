@@ -75,7 +75,7 @@ classdef Optimizer < handle
                 d.fields  = obj.designVariable.getVariablesToPlot();
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
-                obj.postProcess.print(obj.nIter,d);
+%                 obj.postProcess.print(obj.nIter,d);
             end
         end
 

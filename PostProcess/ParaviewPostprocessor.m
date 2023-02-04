@@ -27,6 +27,14 @@ classdef ParaviewPostprocessor < handle
         function obj = ParaviewPostprocessor(cParams)
             obj.init(cParams);
             obj.openFile();
+        end
+
+        function appendFunction(obj, fun, name)
+            obj.fun{end+1} = fun;
+            obj.funNames{end+1} = name;
+        end
+
+        function print(obj)
             obj.createPiece();
             obj.saveFile();
         end
