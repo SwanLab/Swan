@@ -113,7 +113,7 @@ classdef ParaviewPostprocessor < handle
                         obj.pointDataN.appendChild(n);
                 end
 
-            end             
+            end
 
             text = xmlwrite(docNode);
             fprintf(obj.outputFile, text);
