@@ -41,7 +41,7 @@ classdef LevelSet < DesignVariable
             vf = dv./dVT;
         end
         
-        function printLevelSet(obj)
+        function [fun, funNames] = printLevelSet(obj)
             aa.mesh = obj.mesh.meshes{1};
             aa.fValues = obj.value;
             valFun = P1Function(aa);
@@ -50,14 +50,16 @@ classdef LevelSet < DesignVariable
             bb.fValues = obj.alpha';
             alphaFun = P0Function(bb);
 
+            fun = {valFun, alphaFun};
+            funNames = {'value', 'alpha'};
             cc.mesh     = obj.mesh.meshes{1};
             cc.filename = 'levelsetdesignvar';
-            cc.fun      = {valFun, alphaFun};
-            cc.funNames = {'value', 'alpha'};
-            pvPst = ParaviewPostprocessor(cc);
-            pvPst.print();
-            fp = FunctionPrinter(cc);
-            fp.print();
+            cc.fun      = fun;
+            cc.funNames = funNames;
+%             pvPst = ParaviewPostprocessor(cc);
+%             pvPst.print();
+%             fp = FunctionPrinter(cc);
+%             fp.print();
         end
     end
     

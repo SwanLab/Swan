@@ -44,7 +44,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             fP = obj.addHomogPrintVariablesNames(fP);
         end
         
-        function printCompliance(obj)
+        function [fun, funNames] = printCompliance(obj)
             mesh = obj.designVariable.mesh.meshes{1};
             phy = obj.physicalProblem;
             strain = phy.strainFun;
@@ -64,14 +64,17 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             bb.fValues = obj.designVariable.alpha';
             alphaFun = P0Function(bb);
 
+            fun      = {complFun, strain, stress, displ};
+            funNames = {'compliance', 'strain', 'stress', 'u'};
+
             cc.mesh     = mesh;
             cc.filename = 'shfunc_compliance';
-            cc.fun      = {complFun, alphaFun, strain, stress, displ};
-            cc.funNames = {'compliance', 'alpha', 'strain', 'stress', 'u'};
-            pvPst = ParaviewPostprocessor(cc);
-            pvPst.print();
-            fp = FunctionPrinter(cc);
-            fp.print();
+            cc.fun      = fun;
+            cc.funNames = funNames;
+%             pvPst = ParaviewPostprocessor(cc);
+%             pvPst.print();
+%             fp = FunctionPrinter(cc);
+%             fp.print();
         end
     end
     

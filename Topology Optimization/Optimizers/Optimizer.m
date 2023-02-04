@@ -18,6 +18,10 @@ classdef Optimizer < handle
     properties (GetAccess = public, SetAccess = protected, Abstract)
         type
     end
+
+    properties (Access = public)
+        simulationPrinter
+    end
     
     
     methods (Access = public, Static)
@@ -76,6 +80,19 @@ classdef Optimizer < handle
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
 %                 obj.postProcess.print(obj.nIter,d);
+                [desFun, desName] = obj.designVariable.printLevelSet();
+                [shpFun, shpName] = obj.cost.shapeFunctions{1}.printCompliance();
+                fun  = [desFun, shpFun];
+                name = [desName, shpName];
+                file = ['test_cantilever2_', num2str(obj.nIter)];
+
+                zz.mesh     = obj.designVariable.mesh.meshes{1};
+                zz.filename = file;
+                zz.fun      = fun;
+                zz.funNames = name;
+                pp = ParaviewPostprocessor(zz);
+                pp.print();
+                obj.simulationPrinter.appendStep(file);
             end
         end
 
@@ -89,6 +106,8 @@ classdef Optimizer < handle
                 d.printMode = cParams.printMode;
                 d.nDesignVariables = obj.designVariable.nVariables;
                 obj.postProcess = Postprocess('TopOptProblem',d);
+                s.filename = 'simulation';
+                obj.simulationPrinter = SimulationPrinter(s);
             end
         end
 

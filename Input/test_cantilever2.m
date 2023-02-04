@@ -35,4 +35,4 @@ printing = true;
 printing_physics = false;
 monitoring = false;
 monitoring_interval = 1;
-maxiter = 150;
+maxiter = 20;

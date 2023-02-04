@@ -68,11 +68,11 @@ classdef SimulationPrinter < handle
         end
 
         function n = createDataSetNode(obj, docNode, iFun)
-            n = docNode.createElement('Collection');
-            n.setAttribute('timestep', num2str(0));
+            n = docNode.createElement('DataSet');
+            n.setAttribute('timestep', num2str(iFun));
             n.setAttribute('group', '');
-            n.setAttribute('part', num2str(iFun));
-            n.setAttribute('file', obj.stepsFiles{iFun});
+            n.setAttribute('part', num2str(0));
+            n.setAttribute('file', [obj.stepsFiles{iFun}, '.vtu']);
             n.setAttribute('name', obj.filename);
         end
         
