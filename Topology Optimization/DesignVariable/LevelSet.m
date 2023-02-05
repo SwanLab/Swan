@@ -41,7 +41,7 @@ classdef LevelSet < DesignVariable
             vf = dv./dVT;
         end
         
-        function [fun, funNames] = printLevelSet(obj)
+        function [fun, funNames] = getFunsToPlot(obj)
             aa.mesh = obj.mesh.meshes{1};
             aa.fValues = obj.value;
             valFun = P1Function(aa);

@@ -44,7 +44,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             fP = obj.addHomogPrintVariablesNames(fP);
         end
         
-        function [fun, funNames] = printCompliance(obj)
+        function [fun, funNames] = getFunsToPlot(obj)
             mesh = obj.designVariable.mesh.meshes{1};
             phy = obj.physicalProblem;
             strain = phy.strainFun;

@@ -22,6 +22,10 @@ classdef Optimizer < handle
     properties (Access = public)
         simulationPrinter
     end
+
+    properties (Access = private)
+        outFilename % !!!
+    end
     
     
     methods (Access = public, Static)
@@ -80,11 +84,15 @@ classdef Optimizer < handle
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
 %                 obj.postProcess.print(obj.nIter,d);
-                [desFun, desName] = obj.designVariable.printLevelSet();
-                [shpFun, shpName] = obj.cost.shapeFunctions{1}.printCompliance();
-                fun  = [desFun, shpFun];
-                name = [desName, shpName];
-                file = ['test_cantilever2_', num2str(obj.nIter)];
+                [desFun, desName] = obj.designVariable.getFunsToPlot();
+                fun  = desFun;
+                name = desName;
+                for iShp = 1:numel(obj.cost.shapeFunctions)
+                    [shpFun, shpName] = obj.cost.shapeFunctions{iShp}.getFunsToPlot();
+                    fun  = [fun, shpFun];
+                    name = [name, shpName];
+                end
+                file = [obj.outFilename, '_', num2str(obj.nIter)];
 
                 zz.mesh     = obj.designVariable.mesh.meshes{1};
                 zz.filename = file;
@@ -106,12 +114,13 @@ classdef Optimizer < handle
                 d.printMode = cParams.printMode;
                 d.nDesignVariables = obj.designVariable.nVariables;
                 obj.postProcess = Postprocess('TopOptProblem',d);
-                s.filename = 'simulation';
+                s.filename = [obj.outFilename, '_simulation'];
                 obj.simulationPrinter = SimulationPrinter(s);
             end
         end
 
         function d = createPostProcessDataBase(obj,cParams)
+            obj.outFilename = cParams.femFileName;
             d.mesh    = obj.designVariable.mesh;
             d.outFileName = cParams.femFileName;
             d.ptype   = cParams.ptype;
