@@ -22,12 +22,11 @@ classdef QuadrilateralSection < SectionVariablesComputer
         function I = computeInertia(obj)
             switch obj.designVariable.type
                 case 'SquareColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    C = x(1:N);
+                    C = obj.getSingleValue();
                     I = (C.^4)/12;
                 case 'RectangularColumn'
-                    
+                    [a,b]=obj.getDoubleValue();
+                    I = a.*(b.^3)/12;
                 otherwise 
                     disp('Wrong Design Variable type');
             end
@@ -36,39 +35,37 @@ classdef QuadrilateralSection < SectionVariablesComputer
         function dI = computeInertiaDerivative(obj)
             switch obj.designVariable.type
                 case 'SquareColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    C = x(1:N);
+                    C = obj.getSingleValue();
                     dI = (4*C.^3)/12; 
                 case 'RectangularColumn'
+                    [a,b]=obj.getDoubleValue();
+                    dIda = b.^3/12;
+                    dIdb = 3*a.*(b.^2)/12;
+                    dI = [dIda; dIdb];
             end
         end
         
         function A = computeArea(obj)
             switch obj.designVariable.type
                 case 'SquareColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    C = x(1:N);
+                    C = obj.getSingleValue();
                     A = C.^2;
                 case 'RectangularColumn'
-                    x = obj.designVariable.value;
-                    N = mesh.nelem;
-                    A = zeros(N,1);
-                    for iElem=1:N
-                        A(iElem)=x(iElem)*x(N+iElem);
-                    end
+                    [a,b]=obj.getDoubleValue();
+                    A = a.*b;
             end
         end
 
         function dA = computeAreaDerivative(obj)
             switch obj.designVariable.type
                 case 'SquareColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    C = x(1:N);
+                    C = obj.getSingleValue();
                     dA = 2*C;
                 case 'RectangularColumn'
+                    [a,b]=obj.getDoubleValue();
+                    dAda = b;
+                    dAdb = a;
+                    dA = [dAda; dAdb];
             end
         end
         

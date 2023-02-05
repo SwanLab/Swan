@@ -1,4 +1,4 @@
-classdef RectangularColumn < DesignVariable
+classdef HoleColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 2
@@ -11,9 +11,9 @@ classdef RectangularColumn < DesignVariable
        
     methods (Access = public)
         
-        function obj = RectangularColumn(cParams)
+        function obj = HoleColumn(cParams)
             obj.init(cParams);
-            obj.type = 'RectangularColumn';
+            obj.type = 'HoleColumn';
             obj.createInitialValue();
         end
         
@@ -47,7 +47,8 @@ classdef RectangularColumn < DesignVariable
                 case 'Constant'
                     x0 = ones(2*N+1,1);
                 case 'Random'
-                    x0 = rand(2*N+1,1);
+                    x0(1:N,1) = rand(N,1);
+                    x0(N+1:2*N+1,1) = 0.5*rand(N+1,1);
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;
@@ -57,5 +58,5 @@ classdef RectangularColumn < DesignVariable
             obj.update(x0);        
         end
     end
-
+    
 end

@@ -1,7 +1,7 @@
 classdef SquareColumn < DesignVariable
     
     properties (Access = public)
-        
+        nDesignVar = 1
     end
     
     properties (Access = private)

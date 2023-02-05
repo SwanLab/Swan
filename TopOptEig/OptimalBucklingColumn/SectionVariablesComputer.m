@@ -3,6 +3,7 @@ classdef SectionVariablesComputer < handle
     properties (GetAccess = public, SetAccess = protected)
         designVariable
         mesh
+        nDesVarElem
     end
     
     properties (Access = private)
@@ -27,6 +28,20 @@ classdef SectionVariablesComputer < handle
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
             obj.mesh = cParams.mesh;
+            obj.nDesVarElem = cParams.designVariable.nDesignVar;             
+        end
+
+        function value = getSingleValue(obj)
+            x = obj.designVariable.value;
+            N = obj.mesh.nelem;
+            value = x(1:N);
+        end
+
+        function [a,b] = getDoubleValue(obj)
+            x = obj.designVariable.value;
+            N = obj.mesh.nelem;
+            a = x(1:N);
+            b = x(N+1:2*N);
         end
         
     end

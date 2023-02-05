@@ -24,10 +24,11 @@ classdef CircularSection < SectionVariablesComputer
                     A = obj.computeArea();
                     I = (A.^2)';
                 case 'RadiusColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    R = x(1:N);
+                    R = obj.getSingleValue();
                     I = pi^2*R.^4;
+                case 'HoleColumn'
+                    [r,e] = obj.getDoubleValue();
+                    I = pi*((r+e).^4-r.^4)/4;
                 otherwise 
                     disp('Wrong Design Variable type');
             end
@@ -39,24 +40,29 @@ classdef CircularSection < SectionVariablesComputer
                     A = obj.computeArea();
                     dI = 2*A;
                 case 'RadiusColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    R = x(1:N);
+                    R = obj.getSingleValue();
                     dI = 4*pi^2*R.^3;
+                case 'HoleColumn'
+                    [r,e] = obj.getDoubleValue();
+                    dIdr = pi*((r+e).^3-r.^3);
+                    dIde = pi*(r+e).^3;
+                    dI = [dIdr; dIde];
             end
         end
         
         function A = computeArea(obj)
             switch obj.designVariable.type
                 case 'AreaColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    A = x(1:N,1);
+                    A = obj.val1;
                 case 'RadiusColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    R = x(1:N);
+                    R = obj.getSingleValue();
                     A = R.^2.*pi;
+                case 'HoleColumn'
+                    [r,e] = obj.getDoubleValue();
+                    Rint = r;
+                    Rext = r+e;
+                    A = pi*(Rext.^2-Rint.^2);
+
             end
         end
 
@@ -65,40 +71,20 @@ classdef CircularSection < SectionVariablesComputer
                 case 'AreaColumn'
                     dA = 1;
                 case 'RadiusColumn'
-                    x = obj.designVariable.value;
-                    N = obj.mesh.nelem;
-                    R = x(1:N);
+                    R = obj.getSingleValue();
                     dA = 2*pi*R;
+                case 'HoleColumn'
+                    [r,e] = obj.getDoubleValue();
+                    dAdr = 2*pi*e;
+                    dAde = 2*pi*(r+e);
+                    dA = [dAdr; dAde];
             end
         end
         
     end
     
     methods (Access = private)
-%         function I = computeAreaInertia(obj)
-%             A = obj.computeArea();
-%             I = (A.^2)';
-%         end
         
-%         function I = computeRadiusInertia(obj)
-%             R = obj.designVariable.getColumnRadius();
-%             I = pi^2*R^4;
-%         end
-        
-%         function dI = computeAreaInertiaDerivative(obj)
-%             A = obj.computeArea();
-%             dI = 2*A;
-%         end
-%         
-%         function dI = computeRadiusInertiaDerivative(obj)
-%             R = obj.designVariable.getColumnRadius();
-%             dI = 4*pi^2*R.^3;
-%         end
-
-%         function dA = computeRadiusAreaDerivative(obj)
-%             R = obj.designVariable.getColumnRadius();
-%             dA = 2*pi*R;
-%         end
     end
     
 end
