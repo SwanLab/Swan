@@ -173,7 +173,7 @@ classdef ParaviewPostprocessor < handle
         function n = createFValuesCell(obj, docNode, iFun)
             func = obj.fun{iFun};
             nDimf = func.ndimf;
-            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
             dispStr = sprintf(formatStr, squeeze(func.fValues));
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');
@@ -193,7 +193,7 @@ classdef ParaviewPostprocessor < handle
             % fvalues
             func = projP1.project(obj.fun{iFun});
             nDimf = func.ndimf;
-            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
             dispStr = sprintf(formatStr, squeeze(func.fValues)');
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');

@@ -86,7 +86,7 @@ classdef ElasticProblem < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun, obj.strainFun, obj.stressFun};
+            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
             funNames = {'displacement', 'strain', 'stress'};
         end
 
@@ -190,7 +190,7 @@ classdef ElasticProblem < handle
             z.mesh   = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
-            obj.uFun = uFeFun;
+            obj.uFun{end+1} = uFeFun;
         end
 
         function computeStrain(obj)
@@ -203,8 +203,14 @@ classdef ElasticProblem < handle
             strain = scomp.compute();
             obj.variables.strain = strain;
             
-            obj.strainFun = obj.uFun.computeSymmetricGradient(obj.quadrature);
-            obj.strainFun.applyVoigtNotation();
+%             strFun = obj.uFun.computeSymmetricGradient(obj.quadrature);
+%             strFun.applyVoigtNotation();
+            z.mesh       = obj.mesh;
+            z.fValues    = permute(strain, [2 1 3]);
+            z.quadrature = obj.quadrature;
+            strFun = FGaussDiscontinuousFunction(z);
+
+            obj.strainFun{end+1} = strFun;
         end
 
         function computeStress(obj)
@@ -215,16 +221,22 @@ classdef ElasticProblem < handle
             stress = scomp.compute();
             obj.variables.stress = stress;
             
-            strn  = permute(obj.strainFun.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strn;
-            stress =squeeze(pagemtimes(obj.material.C,strn2));
-            stress = permute(stress, [1 3 2]);
-
-            z.mesh    = obj.mesh;
-            z.fValues = stress;
+%             strn  = permute(obj.strainFun.fValues,[1 3 2]);
+%             strn2(:,1,:,:) = strn;
+%             stress =squeeze(pagemtimes(obj.material.C,strn2));
+%             stress = permute(stress, [1 3 2]);
+% 
+%             z.mesh    = obj.mesh;
+%             z.fValues = stress;
+%             z.quadrature = obj.quadrature;
+%             strFeFun = FGaussDiscontinuousFunction(z);
+%             obj.stressFun = strFeFun;
+            z.mesh       = obj.mesh;
+            z.fValues    = permute(stress, [2 1 3]);
             z.quadrature = obj.quadrature;
-            strFeFun = FGaussDiscontinuousFunction(z);
-            obj.stressFun = strFeFun;
+            strFun = FGaussDiscontinuousFunction(z);
+
+            obj.stressFun{end+1} = strFun;
         end
 
         function computePrincipalDirection(obj)

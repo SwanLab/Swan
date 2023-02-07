@@ -53,17 +53,11 @@ classdef ElasticProblemMicro < ElasticProblem
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
-            sAF.ndimf   = 2;
-            sAF.mesh    = obj.mesh;
-            xFun = AnalyticalFunction(sAF);
-            ppar.mesh   = obj.mesh;
-            ppar.connec = obj.mesh.connec;
-            projP1 = Projector_toP1(ppar);
-            p1fun = projP1.project(xFun);
-
-            fun = {obj.uFun, obj.strainFun, obj.stressFun, p1fun};
-            funNames = {'displacement', 'strain', 'stress', 'p1'};
+            dispN = obj.createFunctionNames('displacement');
+            strsN = obj.createFunctionNames('stress');
+            strnN = obj.createFunctionNames('strain');
+            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+            funNames = {dispN{:}, strsN{:}, strnN{:}};
         end
 
 %         function print(obj,filename)
@@ -151,6 +145,12 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables2print{istre}.strain       = vars.strain;
             obj.variables2print{istre}.stress_fluct = vars.stress_fluct;
             obj.variables2print{istre}.strain_fluct = vars.strain_fluct;
+        end
+
+        function n = createFunctionNames(obj, name)
+            nStre = numel(obj.uFun);
+            nums = 1:nStre;
+            n = cellstr([repmat(name, [nStre,1]), num2str(nums')])';
         end
         
     end
