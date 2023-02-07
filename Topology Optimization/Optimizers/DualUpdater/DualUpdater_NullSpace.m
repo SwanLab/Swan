@@ -12,23 +12,25 @@ classdef DualUpdater_NullSpace < handle
        dualOld
        isInequality
        position
+       parameter
     end
 
     properties (Access = public)
-        parameter
         t
-        Delta
+        aGMax
         aG
-        aJ
+
+        lGtrialPl
+        lGmaxPl
+        lGPl
+        lJPl
+        lPl
     end
 
     methods (Access = public)
 
         function obj = DualUpdater_NullSpace(cParams)
-            obj.init(cParams);        function lG = projectLambdaG(obj,t)
-            lG = obj.dualUpdater.lG/t;
-            lG = max(-obj.Delta,min(obj.Delta,lG));
-        end
+            obj.init(cParams);
             obj.defineConstraintCases();
             obj.defineRangeStepParameterValue(cParams);
         end
@@ -95,14 +97,19 @@ classdef DualUpdater_NullSpace < handle
             DJ = obj.cost.gradient;
             Dh = obj.constraint.gradient;
             S  = (Dh'*Dh)^-1;
-            h  = obj.constraint.value;
-            lG = S*h/obj.t;
-            lG = (obj.aG/obj.aJ)*lG;
-            lG = obj.projectLambdaG(lG);
+            g  = obj.constraint.value;
             lJ = -S*Dh'*DJ;
-%             lG = max(min(lG,lJ),-lJ);
+            lGtrial = obj.aG*S*g/obj.t;
+            lGmax   = obj.aGMax*max(abs(DJ+lJ*Dh))/max(abs(Dh));
+            lG = obj.projectLambdaG(lGtrial,lGmax);
             l  = lG + lJ;
             obj.dualVariable.value = l;
+
+            obj.lGtrialPl = lGtrial;
+            obj.lGmaxPl = lGmax;
+            obj.lGPl = lG;
+            obj.lJPl = lJ;
+            obj.lPl = l;
         end
 
         function computeQuadraticProblem(obj)
@@ -114,10 +121,6 @@ classdef DualUpdater_NullSpace < handle
             PROBLEM.options = obj.options;
             l = quadprog(PROBLEM);
             obj.dualVariable.value = l;
-        end
-
-        function lG = projectLambdaG(obj,lG)
-            lG = max(-obj.Delta,min(obj.Delta,lG));
         end
 
          function computeDualProblemParameters(obj)
@@ -166,6 +169,14 @@ classdef DualUpdater_NullSpace < handle
                 'ObjectiveLimit', -1e20 ...
                 );
             obj.options = opts;
+        end
+
+    end
+
+    methods (Static,Access = private)
+
+        function lG = projectLambdaG(lG,Delta)
+            lG = max(-Delta,min(Delta,lG));
         end
 
     end

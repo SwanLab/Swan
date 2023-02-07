@@ -6,7 +6,7 @@ close all
 % set(0,'DefaultFigureVisible','off');
 
 penaltyVec = [1];
-trustVec = [0.5]; % 0.1
+trustVec = [1]; % 0.1
 
 s.testName = 'PerimeterAsConstraint';
 for i = 1:length(penaltyVec)

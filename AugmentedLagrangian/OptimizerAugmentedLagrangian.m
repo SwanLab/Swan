@@ -2,7 +2,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'Augmented Lagrangian';
-        lambdaProv = 0 % Be careful with x0 dependence also
+        lambdaProv = 10 % Be careful with x0 dependence also
         penaltyProv
         trustProv
         factorProv = 1.1
@@ -141,7 +141,7 @@ pp=1; % x0 dependence
             DmF     = DJ + Dg*(l + p*g);
             if obj.nIter == 0
                 factor = 1.05; % 1.05
-                obj.primalUpdater.computeFirstStepLength(DmF,x,factor,1);
+                obj.primalUpdater.computeFirstStepLength(1);
             else
                 factor = obj.factorProv; %1.05
                 obj.primalUpdater.increaseStepLength(factor);

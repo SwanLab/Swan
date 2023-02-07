@@ -5,8 +5,7 @@ close all
 
 % set(0,'DefaultFigureVisible','off');
 
-fVec = [0.01,0.1,1,10,100];
-% fVec = [0.01];
+fVec = 1;
 
 s.testName = 'PerimeterAsConstraint';
 for i = 1:length(fVec)

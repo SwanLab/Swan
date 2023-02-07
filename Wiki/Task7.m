@@ -10,3 +10,4 @@ a.fileName = file;
 s = FemDataContainer(a);
 fem = FEM.create(s);
 fem.solve();
+fem.print(file);
