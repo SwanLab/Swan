@@ -2,6 +2,8 @@ classdef ElasticProblemMicro < ElasticProblem
 
     properties (Access = public)
         variables2print
+        strainFluctFun
+        stressFluctFun
     end
 
     methods (Access = public)
@@ -50,6 +52,20 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables.tdisp   = tDisp;
         end
 
+        function [fun, funNames] = getFunsToPlot(obj)
+            sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
+            sAF.ndimf   = 2;
+            sAF.mesh    = obj.mesh;
+            xFun = AnalyticalFunction(sAF);
+            ppar.mesh   = obj.mesh;
+            ppar.connec = obj.mesh.connec;
+            projP1 = Projector_toP1(ppar);
+            p1fun = projP1.project(xFun);
+
+            fun = {obj.uFun, obj.strainFun, obj.stressFun, p1fun};
+            funNames = {'displacement', 'strain', 'stress', 'p1'};
+        end
+
 %         function print(obj,filename)
 %             s.quad = obj.quadrature;
 %             s.mesh = obj.mesh;
@@ -61,7 +77,7 @@ classdef ElasticProblemMicro < ElasticProblem
 %             s.type      = 'HomogenizedTensor';
 %             fPrinter = FemPrinter(s);
 %             fPrinter.print(filename);
-%          end        
+%          end
 
     end
 
@@ -104,6 +120,26 @@ classdef ElasticProblemMicro < ElasticProblem
             vars.strain = strain;
             vars.stress_homog = stressHomog;
             obj.variables = vars;
+
+            % Functions
+%             aa.mesh       = obj.mesh;
+%             aa.quadrature = obj.quadrature;
+%             aa.fValues    = permute(stress, [2 1 3]);
+%             stressFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(strain, [2 1 3]);
+%             strainFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(stressFluct, [2 1 3]);
+%             stressFlFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(strainFluct, [2 1 3]);
+%             strainFlFun = FGaussDiscontinuousFunction(aa);
+%             
+%             obj.stressFun{end+1} = stressFun;
+%             obj.strainFun{end+1} = strainFun;
+%             obj.stressFluctFun{end+1} = stressFlFun;
+%             obj.strainFluctFun{end+1} = strainFlFun;
         end
 
         function assignVarsToPrint(obj, istre)

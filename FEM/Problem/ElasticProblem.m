@@ -76,16 +76,18 @@ classdef ElasticProblem < handle
         end
        
         function print(obj,filename)
-            s.quad = obj.quadrature;
-            s.mesh = obj.mesh;
-            s.iter = 0;
-            s.fields    = obj.createVariablesToPrint();
-            s.ptype     = obj.ptype;
-            s.ndim      = obj.displacementField.dim.ndimf;
-            s.pdim      = obj.pdim;
-            s.type      = obj.createPrintType();
-            fPrinter = FemPrinter(s);
-            fPrinter.print(filename);
+            [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = obj.mesh;
+            a.filename = filename;
+            a.fun      = fun;
+            a.funNames = funNames;
+            pst = ParaviewPostprocessor(a);
+            pst.print();
+        end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.uFun, obj.strainFun, obj.stressFun};
+            funNames = {'displacement', 'strain', 'stress'};
         end
 
     end
