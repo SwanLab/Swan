@@ -53,11 +53,16 @@ classdef ElasticProblemMicro < ElasticProblem
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            dispN = obj.createFunctionNames('displacement');
-            strsN = obj.createFunctionNames('stress');
-            strnN = obj.createFunctionNames('strain');
-            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
-            funNames = {dispN{:}, strsN{:}, strnN{:}};
+            if isempty(obj.stressFun)
+                fun = [];
+                funNames = [];
+            else
+                dispN = obj.createFunctionNames('displacement');
+                strsN = obj.createFunctionNames('stress');
+                strnN = obj.createFunctionNames('strain');
+                fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+                funNames = {dispN{:}, strsN{:}, strnN{:}};
+            end
         end
 
 %         function print(obj,filename)

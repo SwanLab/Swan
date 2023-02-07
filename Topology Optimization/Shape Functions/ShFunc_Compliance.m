@@ -47,9 +47,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function [fun, funNames] = getFunsToPlot(obj)
             mesh = obj.designVariable.mesh.meshes{1};
             phy = obj.physicalProblem;
-            strain = phy.strainFun;
-            stress = phy.stressFun;
-            displ  = phy.uFun;
+            strain = phy.strainFun{1}; % !!!
+            stress = phy.stressFun{1}; % !!!
+            displ  = phy.uFun{1}; % !!!
             compl  = obj.compliance/obj.value0;
 
             quad = Quadrature.set(mesh.type);
