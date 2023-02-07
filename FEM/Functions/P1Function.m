@@ -102,9 +102,9 @@ classdef P1Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function fFine = refine(obj,mFine)
+        function fFine = refine(obj,m,mFine)
             fNodes  = obj.fValues;
-            fEdges  = obj.computeFunctionInEdges(fNodes);
+            fEdges  = obj.computeFunctionInEdges(m, fNodes);
             fAll    = [fNodes;fEdges];
             s.mesh    = mFine;
             s.fValues = fAll;
@@ -175,7 +175,7 @@ classdef P1Function < FeFunction
             fM = obj.fValues;
         end
 
-        function f = computeFunctionInEdges(obj,fNodes)
+        function f = computeFunctionInEdges(obj,m,fNodes)
             s.edgeMesh = obj.mesh.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);

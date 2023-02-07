@@ -1,5 +1,7 @@
 %% To-do
 % (0) Mesh refining P1Function (RemeshingTests)
+%       - Looks like mF is NOT exactly continuous...
+%       - Perhaps remesh inside the refine method in P1Function?
 % (1) Macro printing with FeFunctions
 % (2) Micro printing with FeFunctions
 % (3) Micro TopOpt printing
