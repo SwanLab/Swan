@@ -63,6 +63,7 @@ classdef Sh_volumeColumn < ShapeFunctional
             %dfdx(2,:) = 1./1.*dfdx(2,:); 
             nElem = obj.mesh.nelem;
             dfdx = zeros(1,2*nElem+1);
+%             dfdx = zeros(1,nElem+1);
             %dfdx(1,1:nElem)= 2*pi*l'.*R; %*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
             dA = obj.sectionVariables.computeAreaDerivative();
             %dfdx(1,1:nElem)= dA.*l';

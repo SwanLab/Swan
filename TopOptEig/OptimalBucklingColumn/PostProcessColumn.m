@@ -58,7 +58,7 @@ classdef PostProcessColumn < handle
         
 %         function create3Dplot(obj)
 %             nElem = obj.mesh.nelem;
-%             s.radius = obj.designVariable.value(1:nElem);
+%             s.designVariableValue = obj.designVariable.value(1:nElem);
 %             s.coord = obj.mesh.coord;
 %             plt = Plot3DBucklingColumn(s);
 %             plt.compute();
