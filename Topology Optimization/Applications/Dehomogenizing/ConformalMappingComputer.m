@@ -9,6 +9,7 @@ classdef ConformalMappingComputer < handle
 
     properties (Access = private)
        orientation
+       orientationVector
        mesh
        dilation
     end
@@ -17,6 +18,7 @@ classdef ConformalMappingComputer < handle
 
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
+            obj.computeOrientationVector();
             obj.createInterpolator();
         end
 
@@ -83,30 +85,34 @@ classdef ConformalMappingComputer < handle
            if ~isempty(obj.singularityCoord)
                for iS = size(obj.singularityCoord)-1
                 sCoord = obj.singularityCoord(iS,:);
-                b1 = obj.computeOrientationVector(1);
+                b = obj.orientationVector;
+                b1 = squeezeParticular(b(:,1,:),2);
                 cr = obj.computeCorrector(b1,sCoord);
                 oC = obj.computeOrthogonalCorrector(cr);
                end
            end
 
            for iDim = 1:nDim
-
+                b = obj.orientationVector;
+                bI = squeezeParticular(b(:,iDim,:),2);
+                phiD  = obj.computeMapping(bI);     
+                phiI(:,iDim) = reshape(phiD',[],1);
            end
 
            for iDim = 1:nDim          
-              b = obj.computeOrientationVector(iDim);
-       %       b0 = obj.computeOrientationVectorComponentP0(b);
-              phiI  = obj.computeMapping(b);               
+                b = obj.orientationVector;
+                bI = squeezeParticular(b(:,iDim,:),2);              
               if ~isempty(obj.singularityCoord)
-                coef = obj.computeCoeffs(oC,b);
+                coef = obj.computeCoeffs(oC,bI);
                % coef = floor(coef);
                 psiT = zeros(size(oC));
                 for iSing = length(coef)
                   psiT = psiT + coef(iSing)*oC(:,:,iSing);
                 end
-                phiIc = phiI(:,:) + psiT;
+                psiT = reshape(psiT,[],1);
+                phiIc = phiI(:,:,iDim) + psiT;                
               else
-                phiIc = phiI(:,:);
+                phiIc = phiI(:,:,iDim);
               end
               phiV(:,iDim) = reshape(phiIc',[],1);
            end
@@ -133,7 +139,7 @@ classdef ConformalMappingComputer < handle
         end
 
 
-        function b = computeOrientationVector(obj,idim)
+        function computeOrientationVector(obj)
            er = exp(obj.dilation);
            erCos = er.*cos(obj.orientation);
            erSin = er.*sin(obj.orientation);
@@ -141,7 +147,7 @@ classdef ConformalMappingComputer < handle
            Q(1,2,:) = -erSin;
            Q(2,1,:) = erSin;
            Q(2,2,:) = erCos;
-           b = squeezeParticular(Q(:,idim,:),2);
+           obj.orientationVector = Q;
         end
 
         function c = computeOrthogonalCorrector(obj,c)
