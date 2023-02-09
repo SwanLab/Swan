@@ -9,7 +9,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         mesh
         rhsType
         meshCont
-        fGauss
+        fValues
         interp
         field
         interpolator
@@ -39,7 +39,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             obj.meshCont     = cParams.mesh;
             obj.rhsType      = cParams.rhsType;
             obj.mesh         = obj.meshCont.createDiscontinuousMesh();            
-            obj.fGauss       = cParams.fGauss;
+            obj.fValues       = cParams.fValues;
             obj.interpolator = cParams.interpolator;
         end
 
@@ -49,17 +49,11 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.interpolationOrder = obj.mesh.interpolation.order;
             obj.field = Field(s);
         end
-
 %         
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
             K = In'*K*In;
-           % M = obj.computeMassMatrix();
-            %I = ones(size(K,1),1);
-            %eta = 0.01;
-            %obj.LHS = K + eta*M;
-            %obj.LHS = [K,I;I',0];
             obj.LHS = K;
         end
         
@@ -72,12 +66,28 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
+
+        function bG = computeFGauss(obj)
+            b = obj.fValues;
+            q = Quadrature.set(obj.meshCont.type);
+            q.computeQuadrature('QUADRATIC');
+            xGauss = q.posgp;
+            bG = zeros(obj.meshCont.ndim,q.ngaus,obj.meshCont.nelem);
+            for idim = 1:obj.meshCont.ndim
+                s.fValues = b(idim,:)';
+                s.connec = obj.meshCont.connec;
+                s.type   = obj.meshCont.type;
+                f = P1Function(s);
+                bG(idim,:,:) = f.evaluate(xGauss);
+            end
+            %%%%% HEREEEE!!!!! Integrate with more gauss points b
+        end
         
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             s.fType     = 'Gauss';
-            s.fGauss    = obj.fGauss;
+            s.fGauss    = obj.computeFGauss();
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;

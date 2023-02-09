@@ -62,9 +62,6 @@ classdef ConformalMappingComputer < handle
             obj.interpolator = sC;
         end
 
-
-
-
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
             s.orientation = [cos(obj.orientation),sin(obj.orientation)];%obj.computeOrientationVector(1)';
@@ -84,33 +81,40 @@ classdef ConformalMappingComputer < handle
            phiV = zeros(nnod,nDim);
 
            if ~isempty(obj.singularityCoord)
-               b1 = obj.computeOrientationVector(1);
-               cr = obj.computeCorrector(b1);
-               oC = obj.computeOrthogonalCorrector(cr);
+               for iS = size(obj.singularityCoord)-1
+                sCoord = obj.singularityCoord(iS,:);
+                b1 = obj.computeOrientationVector(1);
+                cr = obj.computeCorrector(b1,sCoord);
+                oC = obj.computeOrthogonalCorrector(cr);
+               end
            end
 
            for iDim = 1:nDim
+
+           end
+
+           for iDim = 1:nDim          
               b = obj.computeOrientationVector(iDim);
-              bGauss = obj.computeOrientationVectorComponentP0(b);
-              phiI   = obj.computeMapping(bGauss);
+       %       b0 = obj.computeOrientationVectorComponentP0(b);
+              phiI  = obj.computeMapping(b);               
               if ~isempty(obj.singularityCoord)
-                coef = obj.computeCoeffs(oC,bGauss);
+                coef = obj.computeCoeffs(oC,b);
                % coef = floor(coef);
                 psiT = zeros(size(oC));
                 for iSing = length(coef)
                   psiT = psiT + coef(iSing)*oC(:,:,iSing);
                 end
-                phiIc = phiI + psiT;
+                phiIc = phiI(:,:) + psiT;
               else
-                phiIc = phiI;
+                phiIc = phiI(:,:);
               end
               phiV(:,iDim) = reshape(phiIc',[],1);
            end
            obj.phi = (phiV);
         end
 
-        function phi = computeMapping(obj,fGauss)
-            s.fGauss  = fGauss;
+        function phi = computeMapping(obj,fValues)
+            s.fValues  = fValues;
             s.mesh    = obj.mesh;
             s.rhsType = 'ShapeDerivative';
             s.interpolator = obj.interpolator;
@@ -119,11 +123,10 @@ classdef ConformalMappingComputer < handle
             phi = varProb.solve();
         end
 
-        function cV = computeCorrector(obj,b)
-            sCoord = obj.singularityCoord;
+        function cV = computeCorrector(obj,b,sCoord)            
             s.mesh               = obj.mesh;
             s.orientation        = b';
-            s.singularityCoord = sCoord(1,:);
+            s.singularityCoord = sCoord;
             c = CorrectorComputer(s);
             cV = c.compute();
            % c.plot()
@@ -141,21 +144,6 @@ classdef ConformalMappingComputer < handle
            b = squeezeParticular(Q(:,idim,:),2);
         end
 
-        function bG = computeOrientationVectorComponentP0(obj,b)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-            xGauss = q.posgp;
-            bG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
-            for idim = 1:obj.mesh.ndim
-                s.fValues = b(idim,:)';
-                s.connec = obj.mesh.connec;
-                s.type   = obj.mesh.type;
-                f = P1Function(s);
-                bG(idim,:,:) = f.evaluate(xGauss);
-            end
-            %%%%% HEREEEE!!!!! Integrate with more gauss points b
-        end
-
         function c = computeOrthogonalCorrector(obj,c)
             s.mesh               = obj.mesh;
             s.correctorValue     = c;
@@ -165,7 +153,8 @@ classdef ConformalMappingComputer < handle
            % o.plot();
         end
 
-        function c = computeCoeffs(obj,psi,bGauss)
+        function c = computeCoeffs(obj,psi,b)
+            bGauss = obj.computeFGauss(b);
             I = obj.interpolator;
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
@@ -248,6 +237,21 @@ classdef ConformalMappingComputer < handle
 
             c = LHS\RHS;
         end
+
+        function bG = computeFGauss(obj,b)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC');
+            xGauss = q.posgp;
+            bG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
+            for idim = 1:obj.mesh.ndim
+                s.fValues = b(idim,:)';
+                s.connec = obj.mesh.connec;
+                s.type   = obj.mesh.type;
+                f = P1Function(s);
+                bG(idim,:,:) = f.evaluate(xGauss);
+            end
+            %%%%% HEREEEE!!!!! Integrate with more gauss points b
+        end        
 
         function fGauss = createDiscontinousGradient(obj,field)%%%Ehhhhh
             cV = field;

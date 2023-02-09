@@ -12,6 +12,13 @@ classdef DehomogenizingTests < handle & matlab.unittest.TestCase
             verifyTrue(testCase, passed)
         end
 
+        function testDehomogenizingSeveralSingularities(testCase)
+            s.testName = 'test_dehomogenizingSingularities';            
+            test = DehomogenizingSeveralSingularitiesTest(s);
+            passed = test.hasPassed();
+            verifyTrue(testCase, passed)
+        end        
+
     end
 
     properties (Access = protected)

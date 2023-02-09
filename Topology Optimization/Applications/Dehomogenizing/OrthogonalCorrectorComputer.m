@@ -66,40 +66,13 @@ classdef OrthogonalCorrectorComputer < handle
 
         function createShifting(obj)
             s.mesh     = obj.mesh;
-            s.fGauss   = obj.createDiscontinousGradient(obj.correctorValue);
+            s.fValue   = obj.correctorValue;
             s.rhsType = 'ShapeDerivative';
             s.interpolator = obj.interpolator;
-            m = MinimumDiscGradFieldWithVectorInL2(s);
+            m = MinimumDiscGradFieldWithVectorInH1(s);
             f = m.solve();
             obj.shiftingValue = f;
         end
-        
-        function fGauss = createDiscontinousGradient(obj,field)%%%Ehhhhh            
-            cV = field; 
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');              
-            int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
-            int.computeShapeDeriv(q.posgp); 
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            dN = g.dNdx;            
-            
-            %dN = int.deriv;
-            nDim = size(dN,1);
-            nnode = size(dN,2);
-            fGauss = zeros(nDim,q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
-                for idim = 1:nDim
-                    for iNode = 1:nnode
-                    dNi = squeeze(dN(idim,iNode,:,igaus));
-                    grad = dNi.*cV(:,iNode);
-                    fG(:,1) = squeeze(fGauss(idim,igaus,:));
-                    fGauss(idim,igaus,:) = fG + grad;
-                    end
-                end
-            end            
-        end        
         
        function createOrthogonalCorrector(obj)
             phi = obj.correctorValue;

@@ -183,11 +183,6 @@ classdef CorrectorComputer < handle
         end        
         
         function fD = createDiscontinousField(obj,fValues)
-%             s.connec = obj.mesh.connec;
-%             s.type   = obj.mesh.type;
-%             s.fNodes = fValues;
-%             f = FeFunction(s);            
-%             fD = f.computeDiscontinousField();
             s.fValues = fValues;
             s.connec = obj.mesh.connec;
             s.type   = obj.mesh.type;
