@@ -22,13 +22,17 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             obj.createField();
         end
 
-        function u = solve(obj)
+        function uF = solve(obj)
             obj.computeLHS();
             obj.computeRHS();
             uC = obj.solveSystem();
             In = obj.interpolator; 
-            u  = In*uC; 
-            u = reshape(u,obj.mesh.nnodeElem,[])'; % Eh          
+            u  = In*uC;            
+            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]); % Eh 
+            s.connec  = obj.mesh.connec; 
+            s.type    = obj.mesh.type;
+            s.fValues = uV; 
+            uF = P1DiscontinuousFunction(s);
         end
         
     end

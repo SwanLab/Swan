@@ -80,7 +80,17 @@ classdef ConformalMappingComputer < handle
            nDim = 2;
            m = obj.mesh.createDiscontinuousMesh();
            nnod = m.nnodes;
-           phiV = zeros(nnod,nDim);
+           phiI = zeros(nnod,nDim);
+
+
+           for iDim = 1:nDim
+                b  = obj.orientationVector;
+                bI = squeezeParticular(b(:,iDim,:),2);
+                phiD  = obj.computeMapping(bI);     
+                phiI(:,iDim) = phiD.getFvaluesAsVector();
+                %phiI(:,iDim) = reshape(phiD',[],1);
+           end
+
 
            if ~isempty(obj.singularityCoord)
                for iS = size(obj.singularityCoord)-1
@@ -91,42 +101,34 @@ classdef ConformalMappingComputer < handle
                 oC = obj.computeOrthogonalCorrector(cr);
                end
            end
+           oC = squeeze(oC.fValues)';
 
-           for iDim = 1:nDim
-                b = obj.orientationVector;
-                bI = squeezeParticular(b(:,iDim,:),2);
-                phiD  = obj.computeMapping(bI);     
-                phiI(:,iDim) = reshape(phiD',[],1);
-           end
+           psiTs = zeros(nnod,nDim);
+           if ~isempty(obj.singularityCoord)
+               for iDim = 1:nDim
+                   b  = obj.orientationVector;
+                   bI = squeezeParticular(b(:,iDim,:),2);
 
-           for iDim = 1:nDim          
-                b = obj.orientationVector;
-                bI = squeezeParticular(b(:,iDim,:),2);              
-              if ~isempty(obj.singularityCoord)
-                coef = obj.computeCoeffs(oC,bI);
-               % coef = floor(coef);
-                psiT = zeros(size(oC));
-                for iSing = length(coef)
-                  psiT = psiT + coef(iSing)*oC(:,:,iSing);
-                end
-                psiT = reshape(psiT,[],1);
-                phiIc = phiI(:,:,iDim) + psiT;                
-              else
-                phiIc = phiI(:,:,iDim);
-              end
-              phiV(:,iDim) = reshape(phiIc',[],1);
+                   coef = obj.computeCoeffs(oC,bI);
+                   % coef = floor(coef);
+                   psiT = zeros(size(oC));
+                   for iSing = length(coef)
+                       psiT = psiT + coef(iSing)*oC(:,:,iSing);
+                   end
+                   psiTs(:,iDim) = reshape(psiT',[],1);
+               end
            end
-           obj.phi = (phiV);
+           phiIc2  = phiI + psiTs;
+           obj.phi = phiIc2;
         end
 
         function phi = computeMapping(obj,fValues)
-            s.fValues  = fValues;
+            s.fValues = fValues;
             s.mesh    = obj.mesh;
             s.rhsType = 'ShapeDerivative';
             s.interpolator = obj.interpolator;
-            varProb   = MinimumDiscGradFieldWithVectorInL2(s);
-           % varProb  = MinimumGradFieldWithVectorInL2(s);
-            phi = varProb.solve();
+            problem   = MinimumDiscGradFieldWithVectorInL2(s);
+            phi = problem.solve();
         end
 
         function cV = computeCorrector(obj,b,sCoord)            

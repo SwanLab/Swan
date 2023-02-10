@@ -22,10 +22,15 @@ classdef OrthogonalCorrectorComputer < handle
             obj.init(cParams)            
         end
         
-        function c = compute(obj)
+        function cF = compute(obj)
             obj.createShifting();
             obj.createOrthogonalCorrector();
-            c = obj.orthogonalCorrectorValue;
+            c(1,:,:) = obj.orthogonalCorrectorValue';
+            s.connec  = obj.mesh.connec; 
+            s.type    = obj.mesh.type;
+            s.fValues = c; 
+            cF = P1DiscontinuousFunction(s);
+             
         end
         
         function plot(obj)
@@ -77,7 +82,7 @@ classdef OrthogonalCorrectorComputer < handle
        function createOrthogonalCorrector(obj)
             phi = obj.correctorValue;
             fD  = obj.shiftingValue;
-            phi = phi -fD; 
+            phi = phi - fD; 
             obj.orthogonalCorrectorValue = phi;
        end
        
