@@ -91,31 +91,29 @@ classdef ConformalMappingComputer < handle
                 %phiI(:,iDim) = reshape(phiD',[],1);
            end
 
-
            if ~isempty(obj.singularityCoord)
-               for iS = size(obj.singularityCoord)-1
+               for iS = 1:size(obj.singularityCoord)-1
                 sCoord = obj.singularityCoord(iS,:);
                 b = obj.orientationVector;
                 b1 = squeezeParticular(b(:,1,:),2);
                 cr = obj.computeCorrector(b1,sCoord);
-                oC = obj.computeOrthogonalCorrector(cr);
+                oC{iS} = obj.computeOrthogonalCorrector(cr)
                end
-           end
-           oC = squeeze(oC.fValues)';
+           end         
 
            psiTs = zeros(nnod,nDim);
            if ~isempty(obj.singularityCoord)
                for iDim = 1:nDim
                    b  = obj.orientationVector;
                    bI = squeezeParticular(b(:,iDim,:),2);
-
                    coef = obj.computeCoeffs(oC,bI);
                    % coef = floor(coef);
-                   psiT = zeros(size(oC));
-                   for iSing = length(coef)
-                       psiT = psiT + coef(iSing)*oC(:,:,iSing);
+                   psiT = zeros(size(phiI,1),1);
+                   for iSing = 1:size(obj.singularityCoord)-1
+                       ocV = oC{iSing}.getFvaluesAsVector();
+                       psiT = psiT + coef(iSing)*ocV;
                    end
-                   psiTs(:,iDim) = reshape(psiT',[],1);
+                   psiTs(:,iDim) = psiT;
                end
            end
            phiIc2  = phiI + psiTs;
@@ -169,7 +167,7 @@ classdef ConformalMappingComputer < handle
             m = obj.mesh.createDiscontinuousMesh();
             dV = obj.mesh.computeDvolume(q);
             nDim = m.ndim;
-            nSing = size(psi,3);
+            nSing = numel(psi);
             LHS = zeros(nSing,nSing);
             RHS = zeros(nSing,1);
 
@@ -177,7 +175,8 @@ classdef ConformalMappingComputer < handle
             nElem = obj.mesh.nelem;
             dPsi = zeros(nDim,nnode,nElem,nSing);
             for iSing = 1:nSing
-                dPsi(:,:,:,iSing) = obj.createDiscontinousGradient(psi(:,:,iSing));
+                psiV = squeeze(psi{iSing}.fValues)';
+                dPsi(:,:,:,iSing) = obj.createDiscontinousGradient(psiV);
             end
 
 
@@ -213,9 +212,10 @@ classdef ConformalMappingComputer < handle
             s.globalConnec = m.connec;
             s.type         = 'StiffnessMatrix';
 
+            psiV = squeeze(psi{1}.fValues)';
             lhs = LHSintegrator.create(s);
             Kdg = lhs.compute();
-            phidg = reshape(psi',[],1);
+            phidg = reshape(psiV',[],1);
             LHS2 = phidg'*Kdg*phidg;
 
 
@@ -241,9 +241,10 @@ classdef ConformalMappingComputer < handle
                     end
                 end
             end
-            RHS2 = sum(sum(psi.*inte));
+            RHS2 = sum(sum(psiV.*inte));
 
-            c = LHS\RHS;
+
+            c = LHS2\RHS2;
         end
 
         function bG = computeFGauss(obj,b)

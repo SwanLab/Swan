@@ -49,7 +49,7 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
             %obj.meshSize = 0.00521;
             obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45        
-            obj.xmin = 0.8;
+            obj.xmin = 0.7;
             obj.xmax = 4.8;
             obj.ymin = 0.1;
             obj.ymax = 4.1;
