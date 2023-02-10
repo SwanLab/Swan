@@ -1,11 +1,7 @@
 classdef LagrangeSimplicial1D < handle
    
-    properties (Access = private)
-        k
-    end
-    
-    
     properties (Access = public)
+        k
         n_vertices
         vertices
         normalVectors
@@ -24,6 +20,9 @@ classdef LagrangeSimplicial1D < handle
         end
     
         function plotShapeFunctions(obj)
+            set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
             obj.fig = figure();
             hold on
             for i = 1:obj.k+1

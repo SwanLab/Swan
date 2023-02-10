@@ -24,6 +24,9 @@ classdef LagrangeTensorProduct1D < handle
         end
     
         function plotShapeFunctions(obj)
+            set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
             obj.fig = figure();
             hold on
             for i = 1:obj.k+1

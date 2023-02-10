@@ -1,11 +1,7 @@
 classdef LagrangeTensorProduct2D < handle
    
-    properties (Access = private)
+    properties (Access = public)
         k
-    end
-
-    
-    properties (Access = private)
         n_vertices
         vertices
         n_nodes
@@ -23,6 +19,9 @@ classdef LagrangeTensorProduct2D < handle
         end
         
         function plotShapeFunctions(obj)
+            set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
             obj.fig = figure();
             hold on
             for i = 1:obj.k+1
@@ -32,7 +31,7 @@ classdef LagrangeTensorProduct2D < handle
                     xlabel('x')
                     ylabel('y')
                     zlabel('z')
-                    title("i:"+i+", j:"+j)
+                    title("i:"+string(i-1)+", j:"+string(j-1))
                 end
             end
             hold off
@@ -59,15 +58,12 @@ classdef LagrangeTensorProduct2D < handle
         function computeNodes(obj)
             obj.n_nodes = (obj.k+1)^2;
             
-            if obj.k == 1
-                obj.nodes.coord = [0,0;0,1;1,0;1,1];
-                obj.nodes.index = [1,1;1,2;2,1;2,2];
-            elseif obj.k == 2
-                obj.nodes.coord = [0,0;0,0.5;0,1;0.5,0;0.5,0.5;0.5,1;1,0;1,0.5;1,1];
-                obj.nodes.index = [1,1;1,2;1,3;2,1;2,2;2,3;3,1;3,2;3,3];
-            elseif obj.k == 3
-                obj.nodes.coord = [0,0;0,1/3;0,2/3;0,1;1/3,0;1/3,1/3;1/3,2/3;1/3,1;2/3,0;2/3,1/3;2/3,2/3;2/3,1;1,0;1,1/3;1,2/3;1,1];
-                obj.nodes.index = [1,1;1,2;1,3;1,4;2,1;2,2;2,3;2,4;3,1;3,2;3,3;3,4;4,1;4,2;4,3;4,4];
+            obj.nodes = zeros(obj.k+1,obj.k+1,2);
+            for i = 1:obj.k+1
+                for j = 1:obj.k+1
+                    obj.nodes(i,j,1)=(i-1)/obj.k;
+                    obj.nodes(i,j,2)=(j-1)/obj.k;
+                end
             end
         end
         
@@ -79,8 +75,8 @@ classdef LagrangeTensorProduct2D < handle
                 func2 = 1;
                 for j = 1:(obj.k+1)
                     if i~=j
-                        func1 = func1*(x-obj.nodes.coord((j-1)*(obj.k+1)+1,1))/(obj.nodes.coord((i-1)*(obj.k+1)+1,1)-obj.nodes.coord((j-1)*(obj.k+1)+1,1));
-                        func2 = func2*(y-obj.nodes.coord(j,2))/(obj.nodes.coord(i,2)-obj.nodes.coord(j,2));
+                        func1 = func1*(x-obj.nodes(j,i,1))/(obj.nodes(i,i,1)-obj.nodes(j,i,1));
+                        func2 = func2*(y-obj.nodes(i,j,2))/(obj.nodes(i,i,2)-obj.nodes(i,j,2));
                     end
                 end
                 obj.lagrangePolynomials{1,i} = func1;
