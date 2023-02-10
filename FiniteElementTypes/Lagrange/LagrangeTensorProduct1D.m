@@ -8,9 +8,10 @@ classdef LagrangeTensorProduct1D < handle
     properties (Access = public)
         n_vertices
         vertices
+        normalVectors
         n_nodes
         nodes
-        lagrangePolynomials
+        barycentricCoords
         shapeFunctions
         fig
     end
@@ -21,16 +22,16 @@ classdef LagrangeTensorProduct1D < handle
         function obj = LagrangeTensorProduct1D(k)
             obj.init(k);
         end
-        
+    
         function plotShapeFunctions(obj)
             obj.fig = figure();
             hold on
             for i = 1:obj.k+1
                 subplot(1,obj.k+1,i)
-                fplot(obj.shapeFunctions{1,i},[0 1])
+                fplot(obj.shapeFunctions{i},[0 1])
                 xlabel('x')
                 ylabel('y')
-                title("i:"+i)
+                title("$i="+string(i-1)+"$")
                 grid on
             end
             hold off
@@ -44,8 +45,8 @@ classdef LagrangeTensorProduct1D < handle
         function init(obj,k)
             obj.k = k;
             obj.computeVertices()
+            obj.computeNormalVectors()
             obj.computeNodes()
-            obj.computeLagrangePolinomyals()
             obj.computeShapeFunctions()
         end
         
@@ -54,36 +55,29 @@ classdef LagrangeTensorProduct1D < handle
             obj.vertices = [0,1];
         end
         
-        function computeNodes(obj)
-            obj.n_nodes = obj.k+1;
-            
-            if obj.k == 1
-                obj.nodes.coord = [0,1];
-                obj.nodes.index = [1,2];
-            elseif obj.k == 2
-                obj.nodes.coord = [0,0.5,1];
-                obj.nodes.index = [1,0;1,2;2,0];
-            elseif obj.k == 3
-                obj.nodes.coord = [0,1/3,2/3,1];
-                obj.nodes.index = [1,0;1,2;2,1;2,0];
-            end
+        function computeNormalVectors(obj)
+            obj.normalVectors = [1,0];
         end
         
-        function computeLagrangePolinomyals(obj)
-            syms x
+        function computeNodes(obj)
+            obj.n_nodes = nchoosek(1+obj.k,obj.k);
+            for i=1:obj.n_nodes
+                obj.nodes.coord(i) = (i-1)/obj.k;
+                obj.nodes.index(i) = i;
+            end
+        end
+
+        function computeShapeFunctions(obj)
             for i = 1:obj.n_nodes
-                func = 1;
+                syms x
+                shapeFunc = 1;
                 for j = 1:obj.n_nodes
                     if i~=j
-                        func = func*(x-obj.nodes.coord(j))/(obj.nodes.coord(i)-obj.nodes.coord(j));
+                        shapeFunc = shapeFunc * (x-obj.nodes.coord(j))/(obj.nodes.coord(i)-obj.nodes.coord(j));
                     end
                 end
-                obj.lagrangePolynomials{i} = func;
+                obj.shapeFunctions{i} = shapeFunc;
             end
-        end
-        
-        function computeShapeFunctions(obj)
-            obj.shapeFunctions = obj.lagrangePolynomials;
         end
         
     end
