@@ -8,10 +8,10 @@ classdef CrouzeixRaviart1D < handle
     properties (Access = public)
         n_vertices
         vertices
-        normalVectors
         n_nodes
         nodes
-        barycentricCoords
+        edgeVectors
+        midPoints
         shapeFunctions
         fig
     end
@@ -45,7 +45,6 @@ classdef CrouzeixRaviart1D < handle
        
         function init(obj)
             obj.computeVertices()
-            obj.computeBarycentricCoords()
             obj.computeShapeFunctions()
         end
         
@@ -54,20 +53,14 @@ classdef CrouzeixRaviart1D < handle
             obj.vertices = [0,1];
         end
         
-        function computeBarycentricCoords(obj)
+        function computeShapeFunctions(obj)
             syms x
             for i = 1:obj.n_vertices
-                if i~=obj.n_vertices
-                    obj.barycentricCoords{i} = symfun(1-(x-obj.vertices(i))/(obj.vertices(i+1)-obj.vertices(i)),x);
-                else
-                    obj.barycentricCoords{i} = symfun(1-(x-obj.vertices(i))/(obj.vertices(1)-obj.vertices(i)),x);
-                end
-            end
-        end
-        
-        function computeShapeFunctions(obj)
-            for i = 1:obj.n_vertices
-                obj.shapeFunctions{i} = 1-obj.barycentricCoords{i};
+                A = [1 obj.vertices(2); 1 obj.vertices(1) ];
+                X = zeros(obj.n_vertices,1);
+                X(i) = 1;
+                s = A\X;
+                obj.shapeFunctions{i} = s(1)+s(2)*x;
             end
         end
         

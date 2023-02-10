@@ -8,10 +8,8 @@ classdef CrouzeixRaviart2D < handle
     properties (Access = public)
         n_vertices
         vertices
-        normalVectors
-        n_nodes
-        nodes
-        barycentricCoords
+        edgeVectors
+        midPoints
         shapeFunctions
         fig
     end
@@ -47,8 +45,8 @@ classdef CrouzeixRaviart2D < handle
        
         function init(obj)
             obj.computeVertices()
-            obj.computeNormalVectors()
-            obj.computeBarycentricCoords()
+            obj.computeEdgesVectors()
+            obj.computeMidpoints()
             obj.computeShapeFunctions()
         end
         
@@ -57,24 +55,30 @@ classdef CrouzeixRaviart2D < handle
             obj.vertices = [0,0;0,1;1,0];
         end
         
-        function computeNormalVectors(obj)
-            obj.normalVectors = [sqrt(2)/2,sqrt(2)/2;0,-1;-1,0];
+        function computeEdgesVectors(obj)
+            obj.edgeVectors(1,:) = obj.vertices(3,:)-obj.vertices(2,:);
+            obj.edgeVectors(2,:) = obj.vertices(1,:)-obj.vertices(3,:);
+            obj.edgeVectors(3,:) = obj.vertices(2,:)-obj.vertices(1,:);
         end
         
-        function computeBarycentricCoords(obj)
-            syms x y
+        function computeMidpoints(obj)
             for i = 1:obj.n_vertices
-                if i~=obj.n_vertices
-                    obj.barycentricCoords{i} = symfun(1-dot([x,y]-obj.vertices(i,:),obj.normalVectors(i,:))/dot(obj.vertices(i+1,:)-obj.vertices(i,:),obj.normalVectors(i,:)),[x,y]);
+                if i==obj.n_vertices
+                    obj.midPoints(i,:) = obj.vertices(1,:)+obj.edgeVectors(i,:)/2;
                 else
-                    obj.barycentricCoords{i} = symfun(1-dot([x,y]-obj.vertices(i,:),obj.normalVectors(i,:))/dot(obj.vertices(1,:)-obj.vertices(i,:),obj.normalVectors(i,:)),[x,y]);
+                    obj.midPoints(i,:) = obj.vertices(i+1,:)+obj.edgeVectors(i,:)/2;
                 end
             end
         end
         
         function computeShapeFunctions(obj)
+            syms x y
             for i = 1:obj.n_vertices
-                obj.shapeFunctions{i} = 1-2*obj.barycentricCoords{i};
+                A = [1 obj.midPoints(1,:) obj.midPoints(1,:); 1 obj.midPoints(2,:) obj.midPoints(2,:); 1 obj.midPoints(3,:) obj.midPoints(3,:)];
+                X = zeros(obj.n_vertices,1);
+                X(i) = 1;
+                s = X\A;
+                obj.shapeFunctions{i} = s(1)+s(2)*x+s(3)*y;
             end
         end
         
