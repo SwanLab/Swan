@@ -79,9 +79,7 @@ classdef CC < handle & matlab.mixin.Copyable
                 s = cParams.shapeFuncSettings{iS};
                 s.designVariable = cParams.designVar;
                 s.shNumber = iS;
-                if isprop(cParams, 'femData')
-                    s.femSettings.dirichlet = cParams.femData.bc.dirichlet;
-                end
+
                 if isprop(cParams,'homogenizedVarComputer')
                     s.homogVarComputer = cParams.homogenizedVarComputer;
                 end
