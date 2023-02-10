@@ -42,6 +42,7 @@ classdef ShapeFunctional_Factory < handle
                     %sF = ShFunc_StressNorm3(cParams);
                 case 'perimeter'
                     cParams.filterParams.femSettings.LHStype = 'DiffReactRobin';
+                    cParams.filterParams.femSettings.dirichlet = cParams.femSettings.dirichlet;
                     %cParams.designVariable = cParams.designVariable.value;
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterInterior'

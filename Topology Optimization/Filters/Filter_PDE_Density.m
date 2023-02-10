@@ -101,9 +101,9 @@ classdef Filter_PDE_Density < Filter
             s.dim          = obj.field.dim;
             s.scale        = obj.femSettings.scale;
             s.mesh         = obj.mesh;
-            s.bc{1}.dirichlet = [];
+            s.bc{1}.dirichlet = obj.femSettings.dirichlet(1:2:end,:);
             s.bc{1}.pointload = [];
-            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndimf     = 1;
             s.bc{1}.ndofs     = [];
             s.ndofs        = obj.field.dim.ndofs;
             obj.bc         = BoundaryConditions(s);
