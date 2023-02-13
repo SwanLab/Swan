@@ -62,6 +62,9 @@ classdef ElasticProblemMicro < ElasticProblem
                 strnN = obj.createFunctionNames('strain');
                 fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
                 funNames = {dispN{:}, strsN{:}, strnN{:}};
+                obj.uFun = {};
+                obj.strainFun = {};
+                obj.stressFun = {};
             end
         end
 

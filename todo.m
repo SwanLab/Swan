@@ -22,7 +22,7 @@
 % - Micro as three elasticity problems
 
 %% Long-term
-% - Move Input folder to a separat repository
+% - Move Input folder to a separate repository
 % - Geometry only in Mesh
 % - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
 %   removed
