@@ -3,10 +3,13 @@
 %       - Looks like mF is NOT exactly continuous...
 %       - Perhaps remesh inside the refine method in P1Function?
 % (DONE) Macro printing with FeFunctions
-% (2) Micro printing with FeFunctions
+% (DONE) Micro printing with FeFunctions
 %       - How do we print the three primal cases without three elastic
 %         problems
-% (3) Micro TopOpt printing
+% (DONE) Micro TopOpt printing
+%       - Memory leak when printing LevelSet instead of Density...
+%       - alpha becomes 0x1x0, perimeterp0 is a 6400x1x6400
+%       - different output formats in computeVolumeFraction !!!
 
 % EXTRAS
 %  - Investigate: converting data to binary format to save read'n'write
