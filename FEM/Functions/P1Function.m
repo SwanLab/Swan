@@ -9,6 +9,8 @@ classdef P1Function < FeFunction
 
     properties (Access = private)
         mesh
+        meshCoarse
+        meshFine
     end
 
     methods (Access = public)
@@ -145,9 +147,9 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function fD = createP1Discontinous(obj)
-            s.mesh   = obj.mesh;
-            s.connec = obj.mesh.connec;
+        function fD = createP1Discontinous(obj, m)
+            s.mesh   = m;
+            s.connec = m.connec;
             p = ProjectorToP1discont(s);
             s.x = obj;
             s.origin = 'P1';
@@ -163,6 +165,7 @@ classdef P1Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
             obj.order   = 'LINEAR';
+            obj.meshCoarse = cParams.mesh;
         end
 
         function createInterpolation(obj)
@@ -176,7 +179,7 @@ classdef P1Function < FeFunction
         end
 
         function f = computeFunctionInEdges(obj,m,fNodes)
-            s.edgeMesh = obj.mesh.computeEdgeMesh();
+            s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();

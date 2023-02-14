@@ -47,7 +47,7 @@ classdef P1DiscontinuousFunction < FeFunction
             s.mesh    = mFine;
             s.fValues = fAll;
             fP1   = P1Function(s);
-            fFine = fP1.createP1Discontinous();
+            fFine = fP1.createP1Discontinous(mFine);
         end
 
         function fV = getFvaluesAsVector(obj)
