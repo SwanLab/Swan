@@ -149,7 +149,7 @@ classdef P1Function < FeFunction
 
         function fD = createP1Discontinous(obj, m)
             s.mesh   = m;
-            s.connec = m.connec;
+            s.connec = obj.mesh.connec;
             p = ProjectorToP1discont(s);
             s.x = obj;
             s.origin = 'P1';

@@ -41,7 +41,7 @@ classdef ProjectorToP1discont < handle
                 case {'P0'}
                     dim      = 1;
                     ndim  = size(x.fValues, 1);
-                    nnodeElem = size(obj.mesh.connec,2);
+                    nnodeElem = size(obj.connec,2);
                     fEl = squeeze(x.fValues(dim,:,:));
                     fRepeated = zeros(ndim, size(fEl,1), nnodeElem);
                     for idim = 1:ndim
@@ -57,7 +57,7 @@ classdef ProjectorToP1discont < handle
                     xFun      = P1DiscontinuousFunction(s);
                 case {'P1'}
                     f = x.fValues;
-                    nNode  = size(obj.mesh.connec,2);
+                    nNode  = size(obj.connec,2);
                     nDime  = size(f,2);
                   %  nElem  = size(obj.connec,1);
 %                     fNodeElem = zeros(nDime,nNode,nElem);
@@ -67,7 +67,7 @@ classdef ProjectorToP1discont < handle
 %                         fNode = fNods(:,nodes);
 %                         fNodeElem(:,inode,:) = fNode;
 %                     end
-                    nodes = reshape(obj.mesh.connec',1,[]);
+                    nodes = reshape(obj.connec',1,[]);
                     fe = f(nodes,:)';
                     fNodeElem = reshape(fe,nDime,nNode,[]);
                     
