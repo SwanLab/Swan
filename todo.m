@@ -34,3 +34,9 @@
 
 % - GiDImageCapturer -> some variables should be "user variables", defined
 %   once in a centralized file
+
+%% P1DiscontinuousFun takes a discontinuous Mesh (checklist)
+% P1DiscontinuousFunction x2
+% LevelSetPeriodicAndOriented x1
+% Projector_toP1Discontinuous x1
+% ProjectorToP1discont x1
