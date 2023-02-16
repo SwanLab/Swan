@@ -4,7 +4,7 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         LHS
         RHS
     end
-    
+
     properties (Access = private)
         mesh
         rhsType
@@ -14,9 +14,9 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         field
         interpolator
     end
-    
+
     methods (Access = public)
-        
+
         function obj = MinimumDiscGradFieldWithVectorInL2(cParams)
             obj.init(cParams);
             obj.createField();
@@ -26,23 +26,22 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             obj.computeLHS();
             obj.computeRHS();
             uC = obj.solveSystem();
-            In = obj.interpolator; 
-            u  = In*uC;            
-            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]); % Eh 
-            s.connec  = obj.mesh.connec; 
-            s.type    = obj.mesh.type;
-            s.fValues = uV; 
+            In = obj.interpolator;
+            u  = In*uC;
+            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]); % Eh
+            s.mesh    = obj.mesh;
+            s.fValues = uV;
             uF = P1DiscontinuousFunction(s);
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.meshCont     = cParams.mesh;
             obj.rhsType      = cParams.rhsType;
-            obj.mesh         = obj.meshCont.createDiscontinuousMesh();            
+            obj.mesh         = obj.meshCont.createDiscontinuousMesh();
             obj.fValues       = cParams.fValues;
             obj.interpolator = cParams.interpolator;
         end
@@ -53,14 +52,14 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.interpolationOrder = obj.mesh.interpolation.order;
             obj.field = Field(s);
         end
-%         
+        %
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
             K = In'*K*In;
             obj.LHS = K;
         end
-        
+
         function K = computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
@@ -79,14 +78,13 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             bG = zeros(obj.meshCont.ndim,q.ngaus,obj.meshCont.nelem);
             for idim = 1:obj.meshCont.ndim
                 s.fValues = b(idim,:)';
-                s.connec = obj.meshCont.connec;
-                s.type   = obj.meshCont.type;
+                s.mesh    = obj.meshCont;
                 f = P1Function(s);
                 bG(idim,:,:) = f.evaluate(xGauss);
             end
             %%%%% HEREEEE!!!!! Integrate with more gauss points b
         end
-        
+
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
@@ -100,13 +98,13 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.type      = obj.rhsType;
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();        
+            rhsV = rhs.compute();
             In = obj.interpolator;
             rhsV = In'*rhsV;
             %obj.RHS = [rhsV;0];
             obj.RHS = rhsV;
         end
-        
+
         function f = assembleIntegrand(obj,rhsCells)
             integrand = rhsCells;
             ndofs  = obj.mesh.nnodes;
@@ -119,14 +117,14 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
-        
+
         function u = solveSystem(obj)
             a.type = 'DIRECT';
             s = Solver.create(a);
             u = s.solve(obj.LHS,obj.RHS);
             u = u(1:end);
         end
-        
+
     end
-    
+
 end
