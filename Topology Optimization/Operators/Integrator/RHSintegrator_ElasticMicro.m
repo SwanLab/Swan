@@ -95,39 +95,31 @@ classdef RHSintegrator_ElasticMicro < handle
         end
         
         function F = computeStrainRHS(obj,vstrain)
-            Cmat  = obj.material.C;
-            nunkn = obj.dim.ndimf;
-            nstre = size(Cmat,1);
-            nelem = size(Cmat,3);
-            nnode = obj.dim.nnodeElem;
             ngaus = obj.quadrature.ngaus;
-
-            eforce = zeros(nunkn*nnode,ngaus,nelem);
-            sigma = zeros(nstre,ngaus,nelem);
-            s.dim = obj.dim;
-            s.geometry = obj.geometry;
-            Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
-                Bmat    = Bcomp.compute(igaus);
-                dV(:,1) = obj.dvolume(:,igaus);
-                for istre = 1:nstre
-                    for jstre = 1:nstre
-                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
-                        vj  = vstrain(jstre);
-                        si  = squeeze(sigma(istre,igaus,:));
-                        sigma(istre,igaus,:) = si + Cij*vj;
-                    end
-                end
-                for iv = 1:nnode*nunkn
-                    for istre = 1:nstre
-                        Biv_i = squeeze(Bmat(istre,iv,:));
-                        si    = squeeze(sigma(istre,igaus,:));
-                        Fiv   = squeeze(eforce(iv,igaus,:));
-                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
-                    end
-                end
+                sigma  = obj.computeStress(vstrain);
+                eforce = obj.computeEForce(sigma,igaus);
             end
             F = -eforce;
+        end
+
+        function sigma = computeStress(obj, vstrain)
+            Cmat  = obj.material.C;
+            nElem = size(Cmat,3);
+            vStr  = repmat(vstrain', [1  1 nElem]);
+            sigma = pagemtimes(Cmat, vStr);
+        end
+
+        function eforce = computeEForce(obj, sigma, igaus)
+            s.dim      = obj.dim;
+            s.geometry = obj.geometry;
+            Bcomp = BMatrixComputer(s);
+            Bmat    = Bcomp.compute(igaus);
+            
+            dV(1,1,:) = obj.dvolume(:,igaus);
+            Bok = permute(Bmat, [2 1 3]);
+            Bsig = pagemtimes(Bok, sigma);
+            eforce = pagemtimes(Bsig,dV);
         end
 
     end

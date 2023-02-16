@@ -13,8 +13,7 @@ fem.solve();
 femU  = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 
 % P1 Function
-z.connec  = s.mesh.connec;
-z.type    = s.mesh.type;
+z.mesh    = s.mesh.type;
 z.fValues = femU;
 uP1 = P1Function(z);
 
@@ -24,8 +23,8 @@ quad.computeQuadrature('LINEAR');
 
 % Calculate gradient
 grad = uP1.computeGradient(quad,s.mesh);
-symGrad1 = uP1.computeSymmetricGradient(quad, s.mesh);
-symGrad2 = uP1.computeSymmetricGradient2(quad,s.mesh);
+symGrad1 = uP1.computeSymmetricGradient(quad);
+symGrad2 = uP1.computeSymmetricGradient2(quad);
 
 % Plot
 grad.plot(s.mesh);

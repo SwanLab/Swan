@@ -123,8 +123,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function fV = createDiscontinousValues(obj,r,m,mD)
-            s.type    = m.type;
-            s.connec  = m.connec;
+            s.mesh    = m;
             s.fValues = r;
             fC = P1Function(s);
             fD = fC.createP1Discontinous(mD);            
@@ -158,8 +157,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end   
 
         function [v] = refine(obj,m,v)
-            s.type    = m.type;
-            s.connec  = m.connec;
+            s.mesh    = m;
             s.fValues = v;
             f         = P1DiscontinuousFunction(s);
 %             for i = 1:2

@@ -53,8 +53,7 @@ classdef ProjectorToP1discont < handle
                     fD = permute(fRepeated, [1 3 2]);
                     fD = fD(1,:,:);
                     s.fValues = fD;
-                    s.connec  = obj.connec;
-                    s.type    = obj.mesh.type;
+                    s.mesh    = obj.mesh;
                     xFun      = P1DiscontinuousFunction(s);
                 case {'P1'}
                     f = x.fValues;
@@ -74,8 +73,7 @@ classdef ProjectorToP1discont < handle
                     
               
                     s.fValues = fNodeElem;
-                    s.connec = obj.connec;
-                    s.type   = obj.mesh.type;
+                    s.mesh    = obj.mesh;
                     xFun = P1DiscontinuousFunction(s);
             end
         end

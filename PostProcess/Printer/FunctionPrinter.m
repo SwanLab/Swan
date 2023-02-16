@@ -20,7 +20,11 @@ classdef FunctionPrinter < handle
         
         function obj = FunctionPrinter(cParams)
             obj.init(cParams)
-            
+        end
+
+        function appendFunction(obj, fun, name)
+            obj.fun{end+1} = fun;
+            obj.funNames{end+1} = name;
         end
 
         function print(obj)
