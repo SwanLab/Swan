@@ -1,4 +1,9 @@
 %% To-do
+% - Delete discontinuous_mesh
+% - Delete field
+% 
+
+
 % (0) Mesh refining P1Function (RemeshingTests)
 %       - Looks like mF is NOT exactly continuous...
 %       - Perhaps remesh inside the refine method in P1Function?
