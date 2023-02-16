@@ -326,6 +326,13 @@ classdef Mesh < handle
             obj.coordElem = obj.xFE.fValues;
         end
 
+        function computeCoordFEfunction(obj)
+            s.mesh    = obj;
+            s.fValues = obj.coord;
+            coordP1 = P1Function(s);
+            obj.xFE = obj.projectToP1Discontinuous(coordP1);
+        end
+
         function p1d = projectToP1Discontinuous(obj, f)
             s.mesh   = obj;
             s.connec = obj.connec;
@@ -334,14 +341,6 @@ classdef Mesh < handle
             sP.x = f;
             p = ProjectorToP1discont(s);
             p1d = p.project(sP);
-        end
-
-        function computeCoordFEfunction(obj)
-            s.type = obj.type;
-            s.connec = obj.connec;
-            s.fValues = obj.coord;
-            coordP1 = P1Function(s);
-            obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
 
         function L = computeSquarePerimeter(obj)

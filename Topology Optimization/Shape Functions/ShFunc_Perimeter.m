@@ -44,6 +44,27 @@ classdef ShFunc_Perimeter < ShapeFunctional
             fP{3}.value = obj.computePerimeterIntegrandP0();
             fP{4}.value = obj.computePerimeterIntegrandP1();
         end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            mesh = obj.designVariable.mesh.meshes{1};
+
+            aa.mesh    = mesh;
+            aa.fValues = obj.gradient;
+            gradFun = P1Function(aa);
+
+            aa.fValues = obj.regularizedDensity;
+            regDensFun = P1Function(aa);
+
+            aa.fValues = squeeze(obj.computePerimeterIntegrandP0());
+            perIntegP0 = P0Function(aa);
+
+            aa.fValues = obj.computePerimeterIntegrandP1();
+            perIntegP1 = P1Function(aa);
+
+            fun = {gradFun, regDensFun, perIntegP0, perIntegP1};
+            funNames = {'PerimeterGradient', 'RegularizedDensity', ...
+                        'PerimeterP0', 'PerimeterP1'};
+        end
         
         function v = getVariablesToPlot(obj)
             v{1} = obj.value*obj.value0;
@@ -93,8 +114,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function per0 = computePerimeterIntegrandP0(obj)
             vfrac = obj.designVariable.computeVolumeFraction();
-            s.connec  = obj.designVariable.mesh.connec;
-            s.type    = obj.designVariable.mesh.type;
+            s.mesh    = obj.designVariable.mesh;
             s.fValues = 2/(obj.epsilon)*(1 - obj.regularizedDensity);
             f = P1Function(s);
             q = Quadrature.set(obj.designVariable.mesh.type);

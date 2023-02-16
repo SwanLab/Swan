@@ -166,10 +166,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             t = hcut./hC;                           
         end
 
-        function fV = createDiscontinousValues(obj,r)
-            m = obj.mesh;
-            s.type    = m.type;
-            s.connec  = m.connec;
+        function fV = createDiscontinousValues(obj,r,m,mD)
+            s.mesh    = m;
             s.fValues = r;
             mD = obj.meshD;
             fC = P1Function(s);
@@ -177,10 +175,34 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             fV = fD.fValues;
         end
         
-        function vq = interpolateDiscontinousFunction(obj,v)
-            m = obj.meshD;
-            s.type    = m.type;
-            s.connec  = m.connec;
+        function vq = interpolateFunction(obj,v,mesh)
+%             m = mesh;
+%             X = m.coord(:,1);
+%             Y = m.coord(:,2);
+%             F = scatteredInterpolant(X,Y,v);
+%             xB = obj.backgroundMesh.coord(:,1);
+%             yB = obj.backgroundMesh.coord(:,2);
+%             vq = F(xB,yB);
+           vq = obj.refine(mesh,v);
+        end           
+        
+        function [y1,y2] = transformToFastCoord(obj,x1,x2)
+            y1 = obj.computeMicroCoordinate(x1);
+            y2 = obj.computeMicroCoordinate(x2);
+        end   
+        
+        function y = computeMicroCoordinate(obj,x)
+            eps = obj.epsilon;        
+            y = (x-min(x))/eps;
+        end          
+        
+        function  [y1,y2] = makeCoordPeriodic(obj,y1,y2)
+            y1 = obj.periodicFunction(y1);
+            y2 = obj.periodicFunction(y2);
+        end   
+
+        function [v] = refine(obj,m,v)
+            s.mesh    = m;
             s.fValues = v;
             f         = P1DiscontinuousFunction(s);
             r = obj.remesher;

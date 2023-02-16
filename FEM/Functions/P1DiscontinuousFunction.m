@@ -5,10 +5,8 @@ classdef P1DiscontinuousFunction < FeFunction
     end
     
     properties (Access = private)
-        connec
-        fNodes
         interpolation
-        type
+        mesh
     end
     
     properties (Access = private)
@@ -39,15 +37,14 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
         
-        function fFine = refine(obj,m,mFine)
+        function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
             f = squeeze(obj.fValues);
             f = f(:);
             fEdges = obj.computeFunctionInEdges(m,f);
             fAll  = [f;fEdges];
             
-            s.type    = mFine.type;
-            s.connec  = mFine.connec;
+            s.mesh    = mFine;
             s.fValues = fAll;
             fP1   = P1Function(s);
             fFine = fP1.createP1Discontinous(mFine);
@@ -55,14 +52,14 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function fV = getFvaluesAsVector(obj)
             ndims   = size(obj.fValues, 1);
-            nelem   = size(obj.connec, 1);
-            nnodeEl = size(obj.connec, 2);
+            nelem   = size(obj.mesh.connec, 1);
+            nnodeEl = size(obj.mesh.connec, 2);
             fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
         end
 
-        function plot(obj, m)
+        function plot(obj)
             fD = obj.getFvaluesAsVector();
-             mD = m.createDiscontinuousMesh();
+            mD = obj.mesh.createDiscontinuousMesh();
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()
@@ -80,7 +77,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function print(obj, s)
 %             s.mesh
-            s.mesh = s.mesh.createDiscontinuousMesh();
+            s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};
             p = FunctionPrinter(s);
             p.print();
@@ -104,13 +101,12 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function init(obj,cParams)
             obj.fValues = cParams.fValues;
-            obj.connec  = cParams.connec;
-            obj.type    = cParams.type;
+            obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,1);
         end
 
         function createInterpolation(obj)
-            m.type = obj.type;
+            m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 

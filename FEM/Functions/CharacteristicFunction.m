@@ -45,8 +45,7 @@ classdef CharacteristicFunction < L2Function
         end
 
         function createP1CoorFunction(obj)
-            s.connec   = obj.mesh.connec;
-            s.type     = obj.mesh.type;
+            s.mesh     = obj.mesh;
             s.fValues  = obj.mesh.coord;
             obj.coorP1 = P1Function(s);
         end

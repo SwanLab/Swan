@@ -34,13 +34,8 @@ classdef SymmetricContMapCondition < handle
         end
         
         function createOrientationDiscontinous(obj)
-            s.connec = obj.meshCont.connec;
-            s.type   = obj.meshCont.type;
-            s.fNodes = obj.orientation;
-            
             s.fValues = obj.orientation;
-            s.connec = obj.meshCont.connec;
-            s.type   = obj.meshCont.type;
+            s.mesh    = obj.meshCont;
             f = P1Function(s);
             s.mesh   = obj.meshCont;
             s.connec = obj.meshCont.connec;

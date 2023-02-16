@@ -184,8 +184,7 @@ classdef CorrectorComputer < handle
         
         function fD = createDiscontinousField(obj,fValues)
             s.fValues = fValues;
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
+            s.mesh   = obj.mesh;
             f = P1Function(s);
             s.mesh   = obj.mesh;
             s.connec = obj.mesh.connec;

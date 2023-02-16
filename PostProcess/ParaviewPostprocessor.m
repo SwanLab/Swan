@@ -27,6 +27,14 @@ classdef ParaviewPostprocessor < handle
         function obj = ParaviewPostprocessor(cParams)
             obj.init(cParams);
             obj.openFile();
+        end
+
+        function appendFunction(obj, fun, name)
+            obj.fun{end+1} = fun;
+            obj.funNames{end+1} = name;
+        end
+
+        function print(obj)
             obj.createPiece();
             obj.saveFile();
         end
@@ -105,7 +113,7 @@ classdef ParaviewPostprocessor < handle
                         obj.pointDataN.appendChild(n);
                 end
 
-            end             
+            end
 
             text = xmlwrite(docNode);
             fprintf(obj.outputFile, text);
@@ -165,7 +173,7 @@ classdef ParaviewPostprocessor < handle
         function n = createFValuesCell(obj, docNode, iFun)
             func = obj.fun{iFun};
             nDimf = func.ndimf;
-            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
             dispStr = sprintf(formatStr, squeeze(func.fValues));
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');
@@ -185,7 +193,7 @@ classdef ParaviewPostprocessor < handle
             % fvalues
             func = projP1.project(obj.fun{iFun});
             nDimf = func.ndimf;
-            formatStr = ['\n', repmat('%.4f ', 1,nDimf)];
+            formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
             dispStr = sprintf(formatStr, squeeze(func.fValues)');
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');

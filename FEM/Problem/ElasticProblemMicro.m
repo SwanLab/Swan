@@ -2,6 +2,8 @@ classdef ElasticProblemMicro < ElasticProblem
 
     properties (Access = public)
         variables2print
+        strainFluctFun
+        stressFluctFun
     end
 
     methods (Access = public)
@@ -50,6 +52,22 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables.tdisp   = tDisp;
         end
 
+        function [fun, funNames] = getFunsToPlot(obj)
+            if isempty(obj.stressFun)
+                fun = [];
+                funNames = [];
+            else
+                dispN = obj.createFunctionNames('displacement');
+                strsN = obj.createFunctionNames('stress');
+                strnN = obj.createFunctionNames('strain');
+                fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+                funNames = {dispN{:}, strsN{:}, strnN{:}};
+                obj.uFun = {};
+                obj.strainFun = {};
+                obj.stressFun = {};
+            end
+        end
+
 %         function print(obj,filename)
 %             s.quad = obj.quadrature;
 %             s.mesh = obj.mesh;
@@ -61,7 +79,7 @@ classdef ElasticProblemMicro < ElasticProblem
 %             s.type      = 'HomogenizedTensor';
 %             fPrinter = FemPrinter(s);
 %             fPrinter.print(filename);
-%          end        
+%          end
 
     end
 
@@ -104,6 +122,26 @@ classdef ElasticProblemMicro < ElasticProblem
             vars.strain = strain;
             vars.stress_homog = stressHomog;
             obj.variables = vars;
+
+            % Functions
+%             aa.mesh       = obj.mesh;
+%             aa.quadrature = obj.quadrature;
+%             aa.fValues    = permute(stress, [2 1 3]);
+%             stressFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(strain, [2 1 3]);
+%             strainFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(stressFluct, [2 1 3]);
+%             stressFlFun = FGaussDiscontinuousFunction(aa);
+% 
+%             aa.fValues    = permute(strainFluct, [2 1 3]);
+%             strainFlFun = FGaussDiscontinuousFunction(aa);
+%             
+%             obj.stressFun{end+1} = stressFun;
+%             obj.strainFun{end+1} = strainFun;
+%             obj.stressFluctFun{end+1} = stressFlFun;
+%             obj.strainFluctFun{end+1} = strainFlFun;
         end
 
         function assignVarsToPrint(obj, istre)
@@ -115,6 +153,12 @@ classdef ElasticProblemMicro < ElasticProblem
             obj.variables2print{istre}.strain       = vars.strain;
             obj.variables2print{istre}.stress_fluct = vars.stress_fluct;
             obj.variables2print{istre}.strain_fluct = vars.strain_fluct;
+        end
+
+        function n = createFunctionNames(obj, name)
+            nStre = numel(obj.uFun);
+            nums = 1:nStre;
+            n = cellstr([repmat(name, [nStre,1]), num2str(nums')])';
         end
         
     end

@@ -60,8 +60,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         
         function computeLevelSetInSubMesh(obj)
             ls = obj.levelSet;
-            s.connec = obj.backgroundMesh.connec;
-            s.type   = obj.backgroundMesh.type;
+            s.mesh   = obj.backgroundMesh;
             s.fValues = ls;
             f = P1Function(s);
             q = Quadrature.set(obj.backgroundMesh.type);

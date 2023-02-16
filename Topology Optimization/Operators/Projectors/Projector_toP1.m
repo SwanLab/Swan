@@ -15,8 +15,7 @@ classdef Projector_toP1 < Projector
             LHS = obj.computeLHS();
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
-            s.type    = obj.mesh.type;
-            s.connec  = obj.mesh.connec;
+            s.mesh    = obj.mesh;
             s.fValues = xProj;
             xFun = P1Function(s);
         end
