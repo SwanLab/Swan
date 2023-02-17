@@ -51,11 +51,10 @@ classdef CorrectorComputer < handle
         
         function plot(obj)
             phi = obj.correctorValues;
-            figure()
-            s.mesh  = obj.mesh.createDiscontinousMesh();
-            s.field = transpose(phi);
-            n = NodalFieldPlotter(s);
-            n.plot();
+            s.fValues = permute(phi, [3, 2, 1]);
+            s.mesh    = obj.mesh;
+            p1d = P1DiscontinuousFunction(s);
+            p1d.plot();
             shading interp
         end
         
@@ -70,7 +69,7 @@ classdef CorrectorComputer < handle
         end
         
         function computeCoherentOrientation(obj)
-            s.mesh        = obj.mesh.createDiscontinuousMesh();
+            s.mesh        = obj.mesh;
             s.orientation = obj.createDiscontinousField(obj.orientation);
             c = CoherentOrientationSelector(s);
             aC = c.isOrientationCoherent();

@@ -1,6 +1,20 @@
 %% To-do
 % DISCONTINUOUS MESH
 % (0) Check projectors
+% (1) Delete discontinuous meshes
+%       IMPOSSIBLE
+%           - P1DiscontinuousFunction
+%           - Mesh
+%           - Field
+%       TOUGH
+%           - Remesher
+%           - ConformalMappingComputer
+%           - DehomogenizingSingularitiesTest
+%           - MinimumDiscGradFieldWithVectorInL2
+%           - LevelSetPeriodicAndOriented
+%           - RemeshingTests
+%       EASY
+%           x SingularitiesFinder
 
 % - Delete discontinuous_mesh
 % - Delete field
