@@ -32,15 +32,38 @@ classdef LevelSet < DesignVariable
             v{1} = obj.value;
         end
         
-        function vf = computeVolumeFraction(obj)
+        function Vf = computeVolumeFraction(obj)
             q = Quadrature.set(obj.unfittedMesh.backgroundMesh.type);
             q.computeQuadrature('CONSTANT');
             bM = obj.unfittedMesh.backgroundMesh;
             dv = obj.unfittedMesh.computeDvolume(q);
             dVT = bM.computeDvolume(q)';
             vf = dv./dVT;
+            Vf(1,1,:) = vf;
         end
         
+        function [fun, funNames] = getFunsToPlot(obj)
+            aa.mesh = obj.mesh.meshes{1};
+            aa.fValues = obj.value;
+            valFun = P1Function(aa);
+            
+%             bb.mesh = obj.mesh.meshes{1};
+%             bb.fValues = obj.alpha';
+%             alphaFun = P0Function(bb);
+% 
+%             fun = {valFun, alphaFun};
+%             funNames = {'value', 'alpha'};
+            fun = {valFun};
+            funNames = {'value'};
+            cc.mesh     = obj.mesh.meshes{1};
+            cc.filename = 'levelsetdesignvar';
+            cc.fun      = fun;
+            cc.funNames = funNames;
+%             pvPst = ParaviewPostprocessor(cc);
+%             pvPst.print();
+%             fp = FunctionPrinter(cc);
+%             fp.print();
+        end
     end
     
     methods (Access = private)

@@ -1,5 +1,5 @@
 classdef DehomogenizingSingularitiesTest < handle
-        
+
     properties (Access = private)
         mesh
         orientation
@@ -18,9 +18,9 @@ classdef DehomogenizingSingularitiesTest < handle
         widthW
         nCells
     end
-    
+
     methods (Access = public)
-        
+
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
             obj.createMesh();
@@ -41,36 +41,36 @@ classdef DehomogenizingSingularitiesTest < handle
         end
 
     end
-    
+
     methods (Access = private)
 
         function init(obj,cParams)
             obj.testName = cParams.testName;
             %obj.meshSize = 0.00521;
             obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45        
+            obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45
             obj.xmin = 0.5;
             obj.xmax = 2.0;
             obj.ymin = 0.25;
             obj.ymax = 1.75;
-            obj.singularitiesData = [0.32,-0.8];            
+            obj.singularitiesData = [0.32,-0.8];
             obj.widthH = 0.87;
             obj.widthW = 0.87;
-        end        
-        
-        function createMesh(obj)
-           h = obj.meshSize;
-           xv = obj.xmin:h:obj.xmax;
-           yv = obj.ymin:h:obj.ymax;
-           [X,Y] = meshgrid(xv,yv);
-           s.coord(:,1) = X(:);
-           s.coord(:,2) = Y(:);
-           s.connec = delaunay(s.coord);
-           m = Mesh(s);
-           obj.mesh = m;
         end
 
-        
+        function createMesh(obj)
+            h = obj.meshSize;
+            xv = obj.xmin:h:obj.xmax;
+            yv = obj.ymin:h:obj.ymax;
+            [X,Y] = meshgrid(xv,yv);
+            s.coord(:,1) = X(:);
+            s.coord(:,2) = Y(:);
+            s.connec = delaunay(s.coord);
+            m = Mesh(s);
+            obj.mesh = m;
+        end
+
+
         function createOrientation(obj)
             m = obj.mesh;
             s1 = obj.singularitiesData(:,1);
@@ -93,15 +93,15 @@ classdef DehomogenizingSingularitiesTest < handle
             ct = cos(t(:,1));
             st = sin(t(:,1));
             quiver(x,y,ct,st)
-        end        
+        end
 
-         function s = createLevelSetCellParams(obj)        
+        function s = createLevelSetCellParams(obj)
             I        = ones(size(obj.mesh.coord,1),1);
             s.type   = 'rectangleInclusion';
             s.widthH = obj.widthH*I;
             s.widthV = obj.widthW*I;
             s.ndim   = 2;
-         end       
+        end
 
         function dehomogenize(obj)
             s.nCells             = obj.nCells;
@@ -112,8 +112,8 @@ classdef DehomogenizingSingularitiesTest < handle
             ls = d.compute();
             d.plot();
             obj.levelSet = ls;
-        end         
-        
+        end
+
     end
-    
+
 end

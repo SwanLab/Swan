@@ -8,8 +8,9 @@ classdef P1Function < FeFunction
     end
 
     properties (Access = private)
-        type
-        connec
+        mesh
+        meshCoarse
+        meshFine
     end
 
     methods (Access = public)
@@ -25,11 +26,11 @@ classdef P1Function < FeFunction
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
-            nElem  = size(obj.connec,1);
+            nElem  = size(obj.mesh.connec,1);
             fxV = zeros(nF,nGaus,nElem);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
-                    node = obj.connec(:,iNode);
+                    node = obj.mesh.connec(:,iNode);
                     Ni = shapes(iNode,iGaus);
                     fi = obj.fValues(node,:);
                     f(:,1,:) = Ni*fi';
@@ -38,12 +39,12 @@ classdef P1Function < FeFunction
             end
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
-            nElem = size(obj.connec,1);
+        function dNdx  = computeCartesianDerivatives(obj,quad)
+            nElem = size(obj.mesh.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
             nGaus = quad.ngaus;
-            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
             for igaus = 1:nGaus
                 dShapes = obj.interpolation.deriv(:,:,igaus);
@@ -57,8 +58,8 @@ classdef P1Function < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, quad, mesh)
-            dNdx = obj.computeCartesianDerivatives(quad,mesh);
+        function gradFun = computeGradient(obj, quad)
+            dNdx = obj.computeCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -71,7 +72,7 @@ classdef P1Function < FeFunction
                 for iDims = 1:nDims
                     for iNode = 1:nNode
                         dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
-                        nodes = obj.connec(:,iNode);
+                        nodes = obj.mesh.connec(:,iNode);
                         f = obj.fValues(nodes,:);
                         p = (dNdx_i.*f)';
                         pp(1,:,:) = p;
@@ -80,14 +81,14 @@ classdef P1Function < FeFunction
                 end
             end
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = permute(fVR, [1 3 2]);
-%             s.ndimf      = nDimf;
+            s.fValues    = permute(fVR, [1 3 2]);
+            s.mesh       = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function symGradFun = computeSymmetricGradient(obj,quad,mesh)
-            grad = obj.computeGradient(quad,mesh);
+        function symGradFun = computeSymmetricGradient(obj,quad)
+            grad = obj.computeGradient(quad);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
             nGaus = size(grad.fValues, 2);
@@ -99,27 +100,27 @@ classdef P1Function < FeFunction
             
             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
             s.quadrature = quad;
+            s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
         function fFine = refine(obj,m,mFine)
             fNodes  = obj.fValues;
-            fEdges  = obj.computeFunctionInEdges(m,fNodes);
+            fEdges  = obj.computeFunctionInEdges(m, fNodes);
             fAll    = [fNodes;fEdges];
-            s.type    = mFine.type;
-            s.connec  = mFine.connec;
+            s.mesh    = mFine;
             s.fValues = fAll;
             fFine = P1Function(s);
         end
 
-        function plot(obj, m) % 2D domains only
-            x = m.coord(:,1);
-            y = m.coord(:,2);
+        function plot(obj) % 2D domains only
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = obj.fValues(:,idim);
-                a = trisurf(m.connec,x,y,z);
+                a = trisurf(obj.mesh.connec,x,y,z);
                 view(0,90)
     %             colorbar
                 shading interp
@@ -130,6 +131,7 @@ classdef P1Function < FeFunction
 
         function print(obj, s)
 %             s.mesh
+            s.mesh = obj.mesh;
             s.fun = {obj};
             p = FunctionPrinter(s);
             p.print();
@@ -145,9 +147,9 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function fD = createP1Discontinous(obj,m)
+        function fD = createP1Discontinous(obj, m)
             s.mesh   = m;
-            s.connec = obj.connec;
+            s.connec = obj.mesh.connec;
             p = ProjectorToP1discont(s);
             s.x = obj;
             s.origin = 'P1';
@@ -159,15 +161,15 @@ classdef P1Function < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.connec  = cParams.connec;
-            obj.type    = cParams.type;
+            obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
             obj.order   = 'LINEAR';
+            obj.meshCoarse = cParams.mesh;
         end
 
         function createInterpolation(obj)
-            m.type = obj.type;
+            m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
