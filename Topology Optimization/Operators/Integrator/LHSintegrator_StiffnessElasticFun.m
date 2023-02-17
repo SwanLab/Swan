@@ -24,7 +24,7 @@ classdef LHSintegrator_StiffnessElasticFun < handle %LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature,obj.mesh);
+            dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(obj.material.C,3);

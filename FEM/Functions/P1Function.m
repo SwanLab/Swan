@@ -72,11 +72,10 @@ classdef P1Function < FeFunction
                 for iDims = 1:nDims
                     for iNode = 1:nNode
                         dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
-                        nodes = obj.mesh.connec(:,iNode);
-                        f = obj.fValues(nodes,:);
-                        p = (dNdx_i.*f)';
-                        pp(1,:,:) = p;
-                        grad(iDims,:,:,iGaus) = grad(iDims,:,:,iGaus) + pp;
+                        nodes  = obj.mesh.connec(:,iNode);
+                        f      = obj.fValues(nodes,:);
+                        dfdx(1,:,:) = (dNdx_i.*f)';
+                        grad(iDims,:,:,iGaus) = grad(iDims,:,:,iGaus) + dfdx;
                     end
                 end
             end

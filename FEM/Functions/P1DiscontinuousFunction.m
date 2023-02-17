@@ -36,6 +36,57 @@ classdef P1DiscontinuousFunction < FeFunction
                 fxV = fxV + f;
             end
         end
+
+         function dNdx  = computeCartesianDerivatives(obj,quad)
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for igaus = 1:nGaus
+                dShapes = obj.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+         end   
+
+        function gradFun = computeGradient(obj, quad)
+            dNdx = obj.computeCartesianDerivatives(quad);
+            nDimf = obj.ndimf;
+            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
+            nNode = size(dNdx, 2);
+            nElem = size(dNdx, 3);
+            nGaus = size(dNdx, 4);
+            
+
+            cV = squeeze(obj.fValues);
+            grad = zeros(nDims,nDimf, nElem, nGaus);
+            for iGaus = 1:nGaus
+                dNdx_g = dNdx(:,:,:,iGaus);
+                for iDims = 1:nDims
+                    for iNode = 1:nNode
+                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
+                        %dNi = squeeze(dNdx(idim,iNode,:,igaus));
+                        f = cV(iNode,:)';
+                        gradV = dNdx_i.*f;
+                        fG(:,1) = squeeze(grad(iDims,:,:,iGaus));
+                        grad(iDims,:,:,iGaus) = fG + gradV;
+                    end
+                end
+            end
+            %  gradt(1,:,:,:) = grad;
+            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
+            s.fValues = fVR;
+            s.mesh    = obj.mesh;
+            s.quadrature = quad;
+            gradFun = FGaussDiscontinuousFunction(s);
+        end         
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();

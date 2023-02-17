@@ -76,35 +76,31 @@ classdef ConformalMappingComputer < handle
             obj.singularityCoord = sCoord;
         end
 
-
-
         function computeMappingWithSingularities(obj)
             nDim = 2;
             m = obj.mesh.createDiscontinuousMesh();
             nnod = m.nnodes;
             phiI = zeros(nnod,nDim);
 
-
-            for iDim = 1:nDim
-                bI = obj.orientationVector(:,:,iDim);
-                phiD  = obj.computeMapping(bI);
-                phiI(:,iDim) = phiD.getFvaluesAsVector();
-                %phiI(:,iDim) = reshape(phiD',[],1);
-            end
-
             if ~isempty(obj.singularityCoord)
                 for iS = 1:size(obj.singularityCoord)-1
                     sCoord = obj.singularityCoord(iS,:);
-                    b1 = obj.orientationVector(:,:,1);
+                    b1 = obj.orientationVector{1}.fValues;
                     cr = obj.computeCorrector(b1,sCoord);
                     oC{iS} = obj.computeOrthogonalCorrector(cr);
                 end
             end
 
+
             psiTs = zeros(nnod,nDim);
-            if ~isempty(obj.singularityCoord)
-                for iDim = 1:nDim
-                    bI =obj.orientationVector(:,:,iDim);
+            for iDim = 1:nDim
+
+                bI = obj.orientationVector{iDim}.fValues;
+                phiD  = obj.computeMapping(bI);
+                phiI(:,iDim) = phiD.getFvaluesAsVector();
+
+                if ~isempty(obj.singularityCoord)
+                    bI = obj.orientationVector{iDim}.fValues;
                     coef = obj.computeCoeffs(oC,bI);
                     % coef = floor(coef);
                     psiT = zeros(size(phiI,1),1);
@@ -115,6 +111,7 @@ classdef ConformalMappingComputer < handle
                     psiTs(:,iDim) = psiT;
                 end
             end
+
             phiIc2  = phiI + psiTs;
             obj.phi = phiIc2;
         end
@@ -148,7 +145,12 @@ classdef ConformalMappingComputer < handle
             b2(:,2) = erCos;
             b(:,:,1) = b1;
             b(:,:,2) = b2;
-            obj.orientationVector = b;
+            for iDim = 1:obj.mesh.ndim
+                s.fValues = b(:,:,iDim);
+                s.mesh   = obj.mesh;
+                bf = P1Function(s);
+                obj.orientationVector{iDim} = bf;
+            end
         end
 
         function c = computeOrthogonalCorrector(obj,c)
@@ -167,9 +169,8 @@ classdef ConformalMappingComputer < handle
 
             nSing = numel(psi);
             for iSing = 1:nSing
-                psiV = squeeze(psi{iSing}.fValues)';
-                dPsiV = obj.createDiscontinousGradient(psiV,q);
-                dPsi(:,iSing,:,:) = dPsiV;
+                dPsiV = psi{iSing}.computeGradient(q);
+                dPsi(:,iSing,:,:) = dPsiV.fValues;
             end
 
             LHS = zeros(nSing,nSing);
@@ -202,43 +203,6 @@ classdef ConformalMappingComputer < handle
             end
             c = LHS\RHS;
         end
-
-        function grad = createDiscontinousGradient(obj,field,q)%%%Ehhhhh
-            cV = field;
-            int = Interpolation.create(obj.mesh,obj.mesh.interpolation.order);
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            dNdx = g.dNdx;
-
-            nDims = size(dNdx, 1);
-            nNode = size(dNdx, 2);
-            nElem = size(dNdx, 3);
-            nGaus = size(dNdx, 4);
-            nDimf = 1;
-
-            grad = zeros(nDims,nDimf, nElem, nGaus);
-            for iGaus = 1:nGaus
-                dNdx_g = dNdx(:,:,:,iGaus);
-                for iDims = 1:nDims
-                    for iNode = 1:nNode
-                        dNi = squeeze(dNdx_g(iDims, iNode,:));
-                        %dNi = squeeze(dNdx(idim,iNode,:,igaus));
-                        gradV = dNi.*cV(:,iNode);
-                        fG(:,1) = squeeze(grad(iDims,:,:,iGaus));
-                        grad(iDims,:,:,iGaus) = fG + gradV;
-                    end
-                end
-            end
-            %  gradt(1,:,:,:) = grad;
-            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = fVR;
-            %             s.ndimf      = nDimf;
-            s.quadrature = q;
-            gradFun = FGaussDiscontinuousFunction(s);
-        end
-
 
     end
 
