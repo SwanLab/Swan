@@ -6,7 +6,6 @@ classdef P1DiscontinuousFunction < FeFunction
     
     properties (Access = private)
         interpolation
-        mesh
     end
     
     properties (Access = private)

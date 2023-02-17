@@ -8,7 +8,6 @@ classdef P1Function < FeFunction
     end
 
     properties (Access = private)
-        mesh
         meshCoarse
         meshFine
     end
@@ -148,8 +147,7 @@ classdef P1Function < FeFunction
         end
 
         function fD = createP1Discontinous(obj, m)
-            s.mesh   = m;
-            s.connec = obj.mesh.connec;
+            s.mesh   = obj.mesh;
             p = ProjectorToP1discont(s);
             s.x = obj;
             s.origin = 'P1';
