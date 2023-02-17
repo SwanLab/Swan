@@ -126,7 +126,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.mesh    = m;
             s.fValues = r;
             fC = P1Function(s);
-            fD = fC.createP1Discontinous(mD);            
+            fD = fC.project('P1D');            
             fV = fD.fValues;
         end
         

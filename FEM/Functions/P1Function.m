@@ -146,14 +146,6 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function fD = createP1Discontinous(obj, m)
-            s.mesh   = obj.mesh;
-            p = ProjectorToP1discont(s);
-            s.x = obj;
-            s.origin = 'P1';
-            fD = p.project(s);
-        end
-
     end
 
     methods (Access = private)

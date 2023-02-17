@@ -37,11 +37,7 @@ classdef SymmetricContMapCondition < handle
             s.fValues = obj.orientation;
             s.mesh    = obj.meshCont;
             f = P1Function(s);
-            s.mesh   = obj.meshCont;
-            s.connec = obj.meshCont.connec;
-            p = Projector_toP1Discontinuous(s);
-            fD = p.project(f);
-            
+            fD = f.project('P1D');
             obj.orientationDisc = fD.fValues;
         end         
 

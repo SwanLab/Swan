@@ -38,11 +38,10 @@
         end
 
         function plot(obj)
-            pp1.mesh   = obj.mesh;
-            pp1.connec = obj.mesh.connec;
-            projP1 = Projector_toP1(pp1);
-            p1fg = projP1.project(obj);
-            p1fg.plot();
+            s.mesh = obj.mesh;
+            proj = Projector_toP1(s);
+            p1fun = proj.project(obj);
+            p1fun.plot();
         end
 
         function print(obj, s)

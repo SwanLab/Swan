@@ -191,10 +191,7 @@ classdef CorrectorComputer < handle
             s.fValues = fValues;
             s.mesh   = obj.mesh;
             f = P1Function(s);
-            s.mesh   = obj.mesh;
-            s.connec = obj.mesh.connec;
-            p = Projector_toP1Discontinuous(s);
-            fD = p.project(f);
+            fD = f.project('P1D');
             fD = fD.fValues;
         end          
         
