@@ -6,20 +6,23 @@
 %           - P1DiscontinuousFunction
 %           - Mesh
 %           - Field
-%       TOUGH
-%           - Remesher
-%           - ConformalMappingComputer
-%           - DehomogenizingSingularitiesTest
 %           - MinimumDiscGradFieldWithVectorInL2
-%           - LevelSetPeriodicAndOriented
+%               - used for fields
+%       TOUGH
+%           - DehomogenizingSingularitiesTest
 %           - RemeshingTests
+%           - Remesher
+%           - SymmetricContMapCondition
+%               - used for connecs, coords
+%           x LevelSetPeriodicAndOriented
 %       EASY
 %           x SingularitiesFinder
 
-% - Delete discontinuous_mesh
-% - Delete field
-% 
+% (2) Delete fields
+% (3) Delete Mesh_Total
 
+%% Results
+% FeFunction.project(target)
 
 %% Mid-term
 % - Use FeFunctions in TopOpt_Problem

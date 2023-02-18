@@ -55,7 +55,6 @@ classdef ConformalMappingComputer < handle
 
         function createInterpolator(obj)
             s.meshCont    = obj.mesh;
-            s.meshDisc    = obj.mesh.createDiscontinuousMesh();
             s.orientation = [cos(obj.orientation),sin(obj.orientation)];
             s = SymmetricContMapCondition(s);
             sC = s.computeCondition();

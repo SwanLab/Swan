@@ -29,7 +29,7 @@ classdef SymmetricContMapCondition < handle
         
         function init(obj,cParams)         
             obj.meshCont    = cParams.meshCont;
-            obj.meshDisc    = cParams.meshDisc;
+            obj.meshDisc    = cParams.meshCont.createDiscontinuousMesh();
             obj.orientation = cParams.orientation;
         end
         

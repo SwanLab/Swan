@@ -79,7 +79,7 @@ classdef SingularitiesFinder < handle
                 nodeI = obj.mesh.connec(:,iNode);
                 fP1(:,:,iNode) = f(nodeI,:);
             end
-        end        
+        end
 
     end
 
