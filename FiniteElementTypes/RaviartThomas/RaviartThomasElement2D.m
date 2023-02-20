@@ -64,26 +64,23 @@ classdef RaviartThomasElement2D < handle
         end
         
         function F = integral_func(~,f,A,B)
-            syms x y a1 b1 a2 b2 real
+            syms x y a1 b1 a2 b2 t real
             F = f;
-            if A(1) ~= B(1)
-                f_int = F;
-                b = max(A(1),B(1));
-                a = min(A(1),B(1));
-                F = int(f_int,x,a,b);
+            
+            if A(1) == B(1)
+                F = subs(F,x,A(1));
+                F = subs(F,y,t);
+            elseif A(2) == B(2)
+                F = subs(F,y,A(2));
+                F = subs(F,x,t);
             else
-                f_int = F;
-                F = subs(f_int,x,A(1));
+                m = (A(2)-B(2))/(A(1)-B(1));
+                n = A(2)-m*A(1);
+                F = subs(F,y,m*x+n);
+                F = subs(F,x,t);
             end
-            if A(2) ~= B(2)
-                f_int = F;
-                b = max(A(2),B(2));
-                a = min(A(2),B(2));
-                F = int(f_int,y,a,b);
-            else
-                f_int = F;
-                F = subs(f_int,y,A(2));
-            end
+            
+            F = int(F,t,0,1);
         end
         
         function computeShapeFunctions(obj)
