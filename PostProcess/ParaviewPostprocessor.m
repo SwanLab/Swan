@@ -188,7 +188,6 @@ classdef ParaviewPostprocessor < handle
         function n = createFValuesNode(obj, docNode, iFun)
             % projector
             ppar.mesh   = obj.mesh;
-            ppar.connec = obj.mesh.connec;
             projP1 = Projector_toP1(ppar);
             % fvalues
             func = projP1.project(obj.fun{iFun});

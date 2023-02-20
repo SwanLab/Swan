@@ -2,10 +2,6 @@ classdef P0Function < FeFunction
     
     properties (Access = public)
     end
-
-    properties (Access = private)
-        mesh
-    end
     
     methods (Access = public)
         
@@ -26,15 +22,8 @@ classdef P0Function < FeFunction
             end
         end
 
-        function fD = computeP1DiscontinuousFunction(obj)
-            s.mesh    = obj.mesh;
-            s.connec  = obj.mesh.connec;
-            p = Projector_toP1Discontinuous(s);
-            fD = p.project(obj);
-        end
-
         function plot(obj)
-            p1DiscFun = obj.computeP1DiscontinuousFunction(); % replace with a projector
+            p1DiscFun = obj.project('P1D');
             p1DiscFun.plot();
         end
 
@@ -73,21 +62,6 @@ classdef P0Function < FeFunction
             nElem = size(f,1);
             nDime = size(f,2);
             obj.fValues = reshape(f',[nDime, 1, nElem]);
-        end
-
-        function fD = createDiscontinuousFunction(obj)
-            dim = 1;
-            ndim  = size(obj.fValues, 1);
-            nnodeElem = size(obj.mesh.connec,2);
-            fEl = squeeze(obj.fValues(dim,:,:));
-            fRepeated = zeros(ndim, size(fEl,1), nnodeElem);
-            for idim = 1:ndim
-                fEl = squeeze(obj.fValues(idim,:,:));
-                for iNode = 1:nnodeElem
-                    fRepeated(idim, :,iNode) = fEl;
-                end
-            end
-            fD = permute(fRepeated, [1 3 2]);
         end
 
         % Printing

@@ -4,15 +4,15 @@ classdef ProjectorFactory < handle
 
         function obj = create(cParams)
             switch cParams.projectorType
-                case 'toP0'
+                case 'P0'
                     obj = Projector_toP0(cParams);
-                case 'toP1'
+                case 'P1'
                     obj = Projector_toP1(cParams);
-                case 'toP1Disc'
+                case 'P1D'
                     obj = Projector_toP1Discontinuous(cParams);
-                case 'toH1P1'
+                case 'H1P1'
                     obj = H1Projector_toP1(cParams);
-                case 'toH1P1Disc'
+                case 'H1P1D'
                     obj = H1Projector_toP1Discontinuous(cParams);
             end
         end

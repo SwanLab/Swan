@@ -8,7 +8,6 @@ classdef P1Function < FeFunction
     end
 
     properties (Access = private)
-        mesh
         meshCoarse
         meshFine
     end
@@ -145,15 +144,6 @@ classdef P1Function < FeFunction
             s.fValues = obj.getFormattedFValues();
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
-        end
-
-        function fD = createP1Discontinous(obj, m)
-            s.mesh   = m;
-            s.connec = obj.mesh.connec;
-            p = ProjectorToP1discont(s);
-            s.x = obj;
-            s.origin = 'P1';
-            fD = p.project(s);
         end
 
     end

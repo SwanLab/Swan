@@ -6,7 +6,6 @@ classdef P1DiscontinuousFunction < FeFunction
     
     properties (Access = private)
         interpolation
-        mesh
     end
     
     properties (Access = private)
@@ -46,8 +45,8 @@ classdef P1DiscontinuousFunction < FeFunction
             
             s.mesh    = mFine;
             s.fValues = fAll;
-            fP1   = P1Function(s);
-            fFine = fP1.createP1Discontinous(mFine);
+            p1fun = P1Function(s);
+            fFine = p1fun.project('P1D');
         end
 
         function fV = getFvaluesAsVector(obj)
@@ -76,7 +75,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function print(obj, s)
-%             s.mesh
             s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};
             p = FunctionPrinter(s);

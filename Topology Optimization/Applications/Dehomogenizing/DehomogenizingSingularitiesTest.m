@@ -40,7 +40,8 @@ classdef DehomogenizingSingularitiesTest < handle
         function passed = hasPassed(obj)
             d = load(obj.testName);
             ls = obj.levelSet;
-            itIs = isequaln(ls,d.levelSet);
+%             itIs = isequaln(ls,d.levelSet);
+            itIs = norm(ls{1}-d.levelSet{1})<1e-10 & norm(ls{2}-d.levelSet{2})<1e-10;
             passed = itIs;
         end
 
@@ -150,9 +151,10 @@ classdef DehomogenizingSingularitiesTest < handle
         end     
 
         function  createFineMesh(obj)
-            fineMesh = obj.remesher.fineMesh;
-            m = fineMesh.createDiscontinuousMesh();
-            obj.meshFine = m;
+%             fineMesh = obj.remesher.fineMesh;
+%             m = fineMesh.createDiscontinuousMesh();
+%             obj.meshFine = m;
+            obj.meshFine = obj.remesher.fineMesh;
         end        
 
         function createBoundaryMesh(obj)

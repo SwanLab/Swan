@@ -335,8 +335,6 @@ classdef Mesh < handle
 
         function p1d = projectToP1Discontinuous(obj, f)
             s.mesh   = obj;
-            s.connec = obj.connec;
-            s.type   = obj.type;
             sP.origin = 'P1';
             sP.x = f;
             p = ProjectorToP1discont(s);

@@ -54,8 +54,7 @@ classdef ConformalMappingComputer < handle
         end
 
         function createInterpolator(obj)
-            s.meshCont    = obj.mesh;
-            s.meshDisc    = obj.mesh.createDiscontinuousMesh();
+            s.mesh        = obj.mesh;
             s.orientation = [cos(obj.orientation),sin(obj.orientation)];
             s = SymmetricContMapCondition(s);
             sC = s.computeCondition();
@@ -79,8 +78,9 @@ classdef ConformalMappingComputer < handle
 
         function computeMappingWithSingularities(obj)
            nDim = 2;
-           m = obj.mesh.createDiscontinuousMesh();
-           nnod = m.nnodes;
+%            m = obj.mesh.createDiscontinuousMesh();
+%            nnod = m.nnodes;
+           nnod = obj.mesh.nelem*obj.mesh.nnodeElem;
            phiV = zeros(nnod,nDim);
 
            if ~isempty(obj.singularityCoord)
@@ -168,9 +168,9 @@ classdef ConformalMappingComputer < handle
             I = obj.interpolator;
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            m = obj.mesh.createDiscontinuousMesh();
+%             m = obj.mesh.createDiscontinuousMesh();
             dV = obj.mesh.computeDvolume(q);
-            nDim = m.ndim;
+            nDim = obj.mesh.ndim;
             nSing = size(psi,3);
             LHS = zeros(nSing,nSing);
             RHS = zeros(nSing,1);
@@ -203,47 +203,47 @@ classdef ConformalMappingComputer < handle
 
             end
 
-            LHS2 = zeros(nSing,nSing);
-            RHS2 = zeros(nSing,1);
-
-
-            sF.mesh               = m;
-            sF.ndimf              = 1;
-            sF.interpolationOrder = m.interpolation.order;
-            s.field = Field(sF);
-            s.mesh         = m;
-            s.globalConnec = m.connec;
-            s.type         = 'StiffnessMatrix';
-
-            lhs = LHSintegrator.create(s);
-            Kdg = lhs.compute();
-            phidg = reshape(psi',[],1);
-            LHS2 = phidg'*Kdg*phidg;
-
-
-            q = Quadrature.set(m.type);
-            q.computeQuadrature('QUADRATIC');
-            int = Interpolation.create(m,m.interpolation.order);
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = m;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            dN = g.dNdx;
-
-            %dN = int.deriv
-            inte = zeros(m.nelem,nnode);
-            for idim = 1:nDim
-                for igaus = 1:q.ngaus
-                    dVG  = dV(igaus,:)';
-                    bG = squeeze(bGauss(idim,igaus,:));
-                    for iNode = 1:nnode
-                        dNi = squeeze(dN(idim,iNode,:,igaus));
-                        intG = dNi.*bG.*dVG;
-                        inte(:,iNode) = inte(:,iNode) + intG;
-                    end
-                end
-            end
-            RHS2 = sum(sum(psi.*inte));
+%             LHS2 = zeros(nSing,nSing);
+%             RHS2 = zeros(nSing,1);
+% 
+% 
+%             sF.mesh               = m;
+%             sF.ndimf              = 1;
+%             sF.interpolationOrder = m.interpolation.order;
+%             s.field = Field(sF);
+%             s.mesh         = m;
+%             s.globalConnec = m.connec;
+%             s.type         = 'StiffnessMatrix';
+% 
+%             lhs = LHSintegrator.create(s);
+%             Kdg = lhs.compute();
+%             phidg = reshape(psi',[],1);
+%             LHS2 = phidg'*Kdg*phidg;
+% 
+% 
+%             q = Quadrature.set(m.type);
+%             q.computeQuadrature('QUADRATIC');
+%             int = Interpolation.create(m,m.interpolation.order);
+%             int.computeShapeDeriv(q.posgp);
+%             s.mesh = m;
+%             g = Geometry.create(s);
+%             g.computeGeometry(q,int);
+%             dN = g.dNdx;
+% 
+%             %dN = int.deriv
+%             inte = zeros(m.nelem,nnode);
+%             for idim = 1:nDim
+%                 for igaus = 1:q.ngaus
+%                     dVG  = dV(igaus,:)';
+%                     bG = squeeze(bGauss(idim,igaus,:));
+%                     for iNode = 1:nnode
+%                         dNi = squeeze(dN(idim,iNode,:,igaus));
+%                         intG = dNi.*bG.*dVG;
+%                         inte(:,iNode) = inte(:,iNode) + intG;
+%                     end
+%                 end
+%             end
+%             RHS2 = sum(sum(psi.*inte));
 
             c = LHS\RHS;
         end

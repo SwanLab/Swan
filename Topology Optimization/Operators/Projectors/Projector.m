@@ -34,7 +34,7 @@ classdef Projector < handle
 
         function init(obj, cParams)
             obj.mesh   = cParams.mesh;
-            obj.connec = cParams.connec;
+            obj.connec = cParams.mesh.connec;
         end
 
     end
