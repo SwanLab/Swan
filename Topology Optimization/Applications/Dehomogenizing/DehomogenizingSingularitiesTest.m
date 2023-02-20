@@ -151,9 +151,10 @@ classdef DehomogenizingSingularitiesTest < handle
         end     
 
         function  createFineMesh(obj)
-            fineMesh = obj.remesher.fineMesh;
-            m = fineMesh.createDiscontinuousMesh();
-            obj.meshFine = m;
+%             fineMesh = obj.remesher.fineMesh;
+%             m = fineMesh.createDiscontinuousMesh();
+%             obj.meshFine = m;
+            obj.meshFine = obj.remesher.fineMesh;
         end        
 
         function createBoundaryMesh(obj)

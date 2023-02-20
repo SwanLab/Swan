@@ -2,7 +2,8 @@ classdef SymmetricContMapCondition < handle
     
     properties (Access = private)
         isCoherent
-        orientationDisc        
+        isCoherentFun
+        orientationDisc
     end
     
     properties (Access = private)
@@ -14,7 +15,7 @@ classdef SymmetricContMapCondition < handle
     methods (Access = public)
         
         function obj = SymmetricContMapCondition(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function c = computeCondition(obj)
@@ -27,7 +28,7 @@ classdef SymmetricContMapCondition < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)         
+        function init(obj,cParams)
             obj.meshCont    = cParams.meshCont;
             obj.meshDisc    = cParams.meshCont.createDiscontinuousMesh();
             obj.orientation = cParams.orientation;
@@ -39,20 +40,23 @@ classdef SymmetricContMapCondition < handle
             f = P1Function(s);
             fD = f.project('P1D');
             obj.orientationDisc = fD.fValues;
-        end         
+        end
 
         function isOrientationCoherent(obj)
-            s.mesh        = obj.meshDisc;
+            s.mesh        = obj.meshCont;
             s.orientation = obj.orientationDisc;
             c = CoherentOrientationSelector(s);
             isC = c.isOrientationCoherent();
             obj.isCoherent = isC;
+            a.fValues = permute(double(isC), [3 2 1]);
+            a.mesh = obj.meshCont;
+            obj.isCoherentFun = P1DiscontinuousFunction(a);
         end
 
         function sC = computeSymmetricCondition(obj)
             nnodeD    = obj.meshDisc.nnodeElem;
-            nElemD    = obj.meshDisc.nelem;                                    
-            nnodesC   = obj.meshCont.nnodes;    
+            nElemD    = obj.meshDisc.nelem;
+            nnodesC   = obj.meshCont.nnodes;
             connecC   = obj.meshCont.connec;
             connecD   = obj.meshDisc.connec;
             sC = sparse(nnodeD*nElemD,nnodesC);
@@ -75,7 +79,7 @@ classdef SymmetricContMapCondition < handle
             m = zeros(size(isMapSymmetric));
             m(isMapSymmetric) = 1;
             m(isMapAntiSymm)  = -1;
-        end        
+        end
 
     end
     

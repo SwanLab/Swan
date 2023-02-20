@@ -71,14 +71,11 @@ classdef SingularitiesFinder < handle
         end
 
         function fP1 = mapP1ToP1Discontinous(obj,f)
-            nnodeElem = obj.mesh.nnodeElem;
-            nElem     = obj.mesh.nelem;
-            nDim      = size(f,2);
-            fP1 = zeros(nElem,nDim,nnodeElem);
-            for iNode = 1:nnodeElem
-                nodeI = obj.mesh.connec(:,iNode);
-                fP1(:,:,iNode) = f(nodeI,:);
-            end
+            s.fValues = f;
+            s.mesh    = obj.mesh;
+            fun = P1Function(s);
+            funP1D = fun.project('P1D');
+            fP1 = permute(funP1D.fValues, [3 1 2]);
         end
 
     end
