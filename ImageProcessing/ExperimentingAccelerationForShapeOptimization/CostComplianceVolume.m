@@ -19,9 +19,9 @@ classdef CostComplianceVolume < handle
         end
         
         function [J,dJ] = computeValueAndGradient(obj,x)
-            obj.designVariable.value = x;            
-            obj.compliance.computeCostAndGradient();
-            obj.volume.computeCostAndGradient();
+            obj.designVariable.update(x);            
+            obj.compliance.computeFunctionAndGradient();
+            obj.volume.computeFunctionAndGradient();
             J  = obj.computeCost;
             dJ = obj.computeGradient;
         end

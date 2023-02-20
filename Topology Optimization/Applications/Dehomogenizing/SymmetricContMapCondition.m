@@ -53,7 +53,7 @@ classdef SymmetricContMapCondition < handle
             obj.isCoherentFun = P1DiscontinuousFunction(a);
         end
 
-        function sC = computeSymmetricCondition(obj)
+        function sC = computeSymmetricCondition(obj) % can be eliminated
             nnodeD    = obj.meshDisc.nnodeElem;
             nElemD    = obj.meshDisc.nelem;
             nnodesC   = obj.meshCont.nnodes;
