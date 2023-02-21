@@ -4,7 +4,8 @@ classdef ConformalMappingComputer < handle
     properties (Access = private)
         phi
         interpolator
-        singularityCoord
+        phiMapping
+        totalCorrector
     end
 
     properties (Access = private)
@@ -23,7 +24,6 @@ classdef ConformalMappingComputer < handle
         end
 
         function phiV = compute(obj)
-            obj.computeSingularities();
             obj.computeMappingWithSingularities();
             phiV = obj.phi;
         end
@@ -52,58 +52,33 @@ classdef ConformalMappingComputer < handle
             obj.interpolator = sC;
         end
 
-        function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = [cos(obj.orientation),sin(obj.orientation)];%obj.computeOrientationVector(1)';
-            sF = SingularitiesFinder(s);
-            isS = sF.computeSingularElements();
-            % sF.plot();
-            coordB = obj.mesh.computeBaricenter();
-            coordB = transpose(coordB);
-            sCoord =  coordB(isS,:);
-            obj.singularityCoord = sCoord;
-        end
-
-        function computeMappingWithSingularities(obj)
-            nDim = 2;
-            %nnod = m.nnodes;
-            nnod = obj.mesh.nelem*obj.mesh.nnodeElem;   
-           % phiI = zeros(nnod,nDim);
-
-            if ~isempty(obj.singularityCoord)
-                for iS = 1:size(obj.singularityCoord)-1
-                    sCoord = obj.singularityCoord(iS,:);
-                    b1 = obj.orientationVector{1}.fValues;
-                    cr = obj.computeCorrector(b1,sCoord);
-                    oC{iS} = obj.computeOrthogonalCorrector(cr);
-                end
-            end
-    
-            
+        function computeMappings(obj)
+            nDim = obj.mesh.ndim;
             for iDim = 1:nDim
                 bI    = obj.orientationVector{iDim}.fValues;
                 phiD  = obj.computeMapping(bI);
-%                phiI(:,iDim) = phiD.getFvaluesAsVector();
-                phiI(iDim,:,:) = phiD.fValues;
+                phiV(iDim,:,:) = phiD.fValues;
             end
-
-             if ~isempty(obj.singularityCoord)
-                    psiT = zeros(size(phiI));
-                 for iDim = 1:nDim            
-                    bI = obj.orientationVector{iDim}.fValues;
-                    coef = obj.computeCoeffs(oC,bI);
-                    
-                    for iSing = 1:size(obj.singularityCoord)-1
-                        ocV = oC{iSing}.fValues;                        
-                        psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iSing)*ocV;
-                    end
-                 end 
-                 phiI = phiI + psiT;                 
-            end 
-
-            s.fValues = phiI;
+            s.fValues = phiV;
             s.mesh    = obj.mesh;
-            psiTs = P1DiscontinuousFunction(s);
+            phiF = P1DiscontinuousFunction(s);
+            obj.phiMapping = phiF;
+        end
+
+        function computeTotalCorrector(obj)
+           s.mesh = obj.mesh;
+           s.orientationVector = obj.orientationVector;
+           s.interpolator = obj.interpolator;
+           s.phiMapping   = obj.phiMapping;
+           tC = TotalCorrectorComputer(s);           
+           obj.totalCorrector = tC.compute();
+        end
+
+
+        function computeMappingWithSingularities(obj)
+            obj.computeMappings();
+            obj.computeTotalCorrector();
+            psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
             obj.phi = psiTs;
         end
 
@@ -114,15 +89,6 @@ classdef ConformalMappingComputer < handle
             s.interpolator = obj.interpolator;
             problem   = MinimumDiscGradFieldWithVectorInL2(s);
             phi = problem.solve();
-        end
-
-        function cV = computeCorrector(obj,b,sCoord)
-            s.mesh               = obj.mesh;
-            s.orientation        = b;
-            s.singularityCoord = sCoord;
-            c = CorrectorComputer(s);
-            cV = c.compute();
-            % c.plot()
         end
 
 
@@ -142,57 +108,6 @@ classdef ConformalMappingComputer < handle
                 bf = P1Function(s);
                 obj.orientationVector{iDim} = bf;
             end
-        end
-
-        function c = computeOrthogonalCorrector(obj,c)
-            s.mesh               = obj.mesh;
-            s.correctorValue     = c;
-            s.interpolator       = obj.interpolator;
-            o = OrthogonalCorrectorComputer(s);
-            c = o.compute();
-            % o.plot();
-        end
-
-        function c = computeCoeffs(obj,psi,b)
-
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-
-            nSing = numel(psi);
-            for iSing = 1:nSing
-                dPsiV = psi{iSing}.computeGradient(q);
-                dPsi(:,iSing,:,:) = dPsiV.fValues;
-            end
-
-            LHS = zeros(nSing,nSing);
-            RHS = zeros(nSing,1);
-
-
-            s.fValues = b;
-            s.mesh   = obj.mesh;
-            bf = P1Function(s);
-
-
-            xGauss = q.posgp;
-            bfG    = bf.evaluate(xGauss);
-
-
-
-            dV = obj.mesh.computeDvolume(q);
-            dVt(1,:,:) = dV;
-            dVT = repmat(dVt,bf.ndimf,1,1);
-
-            for iSing = 1:nSing
-                dPsiI = permute(squeeze(dPsi(:,iSing,:,:)),[1 3 2]);
-                for jSing = 1:nSing
-                    dPsiJ = permute(squeeze(dPsi(:,jSing,:,:)),[1 3 2]);
-                    lhs   = dPsiI.*dPsiJ.*dVT;
-                    LHS(iSing,jSing) = sum(lhs(:));
-                end
-                rhs = dPsiI.*bfG.*dVT;
-                RHS(iSing) = sum(rhs(:));
-            end
-           c = LHS\RHS;
         end
 
     end

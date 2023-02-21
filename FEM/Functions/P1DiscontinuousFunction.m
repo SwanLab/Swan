@@ -162,7 +162,19 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
     end
-    
+
+
+    methods (Access = public, Static)
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues + f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1DiscontinuousFunction(s);
+        end
+
+    end
+
     methods (Access = private)
         
         function init(obj,cParams)
@@ -193,5 +205,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
         
     end
+
     
 end

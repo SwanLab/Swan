@@ -127,6 +127,17 @@ classdef P1Function < FeFunction
             end
         end
 
+        function plotArrowVector(obj)
+            figure()
+            a = obj.fValues;
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            ax = a(:,1);
+            ay = a(:,2);
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
+        end             
+
         function print(obj, s)
 %             s.mesh
             s.mesh = obj.mesh;
