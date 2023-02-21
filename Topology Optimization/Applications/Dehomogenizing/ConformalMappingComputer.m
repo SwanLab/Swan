@@ -29,25 +29,14 @@ classdef ConformalMappingComputer < handle
         end
 
         function plot(obj)
-            phi1 = obj.phi(:,1);
-            phi2 = obj.phi(:,2);
-            obj.plotContour((phi1));
-            obj.plotContour((phi2));
+            for iDim = 1:obj.mesh.ndim
+                obj.phi{iDim}.plotContour();
+            end
         end
 
     end
 
     methods (Access = private)
-
-        function plotContour(obj,z)
-            figure()
-            m = obj.mesh.createDiscontinousMesh;
-            x = m.coord(:,1);
-            y = m.coord(:,2);
-            [~,h] = tricontour(m.connec,x,y,z,30);
-            set(h,'LineWidth',5);
-            colorbar
-        end
 
         function init(obj,cParams)
             obj.orientation = cParams.theta;
@@ -77,10 +66,9 @@ classdef ConformalMappingComputer < handle
 
         function computeMappingWithSingularities(obj)
             nDim = 2;
-            m = obj.mesh.createDiscontinuousMesh();
             %nnod = m.nnodes;
             nnod = obj.mesh.nelem*obj.mesh.nnodeElem;   
-            phiI = zeros(nnod,nDim);
+           % phiI = zeros(nnod,nDim);
 
             if ~isempty(obj.singularityCoord)
                 for iS = 1:size(obj.singularityCoord)-1
@@ -90,30 +78,33 @@ classdef ConformalMappingComputer < handle
                     oC{iS} = obj.computeOrthogonalCorrector(cr);
                 end
             end
-
-
-            psiTs = zeros(nnod,nDim);
+    
+            
             for iDim = 1:nDim
-
-                bI = obj.orientationVector{iDim}.fValues;
+                bI    = obj.orientationVector{iDim}.fValues;
                 phiD  = obj.computeMapping(bI);
-                phiI(:,iDim) = phiD.getFvaluesAsVector();
-
-                if ~isempty(obj.singularityCoord)
-                    bI = obj.orientationVector{iDim}.fValues;
-                    coef = obj.computeCoeffs(oC,bI);
-                    % coef = floor(coef);
-                    psiT = zeros(size(phiI,1),1);
-                    for iSing = 1:size(obj.singularityCoord)-1
-                        ocV = oC{iSing}.getFvaluesAsVector();
-                        psiT = psiT + coef(iSing)*ocV;
-                    end
-                    psiTs(:,iDim) = psiT;
-                end
+%                phiI(:,iDim) = phiD.getFvaluesAsVector();
+                phiI(iDim,:,:) = phiD.fValues;
             end
 
-            phiIc2  = phiI + psiTs;
-            obj.phi = phiIc2;
+             if ~isempty(obj.singularityCoord)
+                    psiT = zeros(size(phiI));
+                 for iDim = 1:nDim            
+                    bI = obj.orientationVector{iDim}.fValues;
+                    coef = obj.computeCoeffs(oC,bI);
+                    
+                    for iSing = 1:size(obj.singularityCoord)-1
+                        ocV = oC{iSing}.fValues;                        
+                        psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iSing)*ocV;
+                    end
+                 end 
+                 phiI = phiI + psiT;                 
+            end 
+
+            s.fValues = phiI;
+            s.mesh    = obj.mesh;
+            psiTs = P1DiscontinuousFunction(s);
+            obj.phi = psiTs;
         end
 
         function phi = computeMapping(obj,fValues)

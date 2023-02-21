@@ -125,6 +125,23 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
+        function plotContour(obj)
+            fD = obj.getFvaluesAsVector();
+            mD = obj.mesh.createDiscontinuousMesh();
+            x = mD.coord(:,1);
+            y = mD.coord(:,2);
+            figure()
+            for idim = 1:obj.ndimf
+                subplot(1,obj.ndimf,idim);
+                z = fD(:,idim);
+                [~,a] = tricontour(mD.connec,x,y,z,30);
+                set(a,'LineWidth',5);
+                view(0,90)
+                colorbar
+                title(['dim = ', num2str(idim)]);
+            end            
+        end
+
         function print(obj, s)
             s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};

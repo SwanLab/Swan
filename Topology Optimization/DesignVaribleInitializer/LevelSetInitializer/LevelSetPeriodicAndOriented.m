@@ -26,7 +26,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
-            obj.meshD = obj.mesh.createDiscontinuousMesh();
             obj.computeDilation();
             obj.createDeformedCoord();
             obj.createRemesher();
@@ -86,12 +85,12 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.dilation = obj.dilation;
             c = ConformalMappingComputer(s);
             defCoord = c.compute();
-            % c.plot();
-            obj.deformedCoord = defCoord;
+
+            obj.deformedCoord = defCoord.getFvaluesAsVector();
         end
 
         function createRemesher(obj)
-            s.mesh    = obj.meshD;
+            s.mesh    = obj.mesh.createDiscontinuousMesh();
             s.nLevels = 2;
             r  = Remesher(s);
             r.remesh();
@@ -195,7 +194,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function vq = interpolateDiscontinousFunction(obj,v)
-            s.mesh    = obj.meshD;
+            s.mesh    = obj.mesh;
             s.fValues = v;
             f         = P1DiscontinuousFunction(s);
             r = obj.remesher;
