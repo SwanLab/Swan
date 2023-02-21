@@ -26,7 +26,6 @@ classdef SingularitiesFinder < handle
         end
 
         function plot(obj)
-            obj.createDiscontinousMesh();
             obj.plotOrientationVector();
             obj.plotSingularities();
         end
@@ -38,11 +37,6 @@ classdef SingularitiesFinder < handle
         function init(obj,cParams)
             obj.mesh        = cParams.mesh;
             obj.orientation = cParams.orientation;
-        end
-
-        function createDiscontinousMesh(obj)
-            m = obj.mesh.createDiscontinuousMesh();
-            obj.meshDisc = m;
         end
 
         function computeSingularities(obj)
@@ -69,44 +63,20 @@ classdef SingularitiesFinder < handle
             q.ShowArrowHead = 'off';
         end
 
-
         function plotSingularities(obj)
-            isSingP1Disc = obj.computeIsSingularP1Discontinous();
-            connec = obj.meshDisc.connec;
-            xDisc  = obj.meshDisc.coord(:,1);
-            yDisc  = obj.meshDisc.coord(:,2);
-            figure()
-            trisurf(connec,xDisc,yDisc,isSingP1Disc)
-            view(0,90)
-            colorbar
-        end
-
-        function isS = computeIsSingularP1Discontinous(obj)
-            isSingP0     = obj.isElemSingular;
-            isSingP1Disc = obj.mapP0ToP1Discontinous(isSingP0);
-            isS = isSingP1Disc;
-        end
-
-        function fP1 = mapP0ToP1Discontinous(obj,f)
-            nnodeElem = obj.meshDisc.nnodeElem;
-            fRepeted = zeros(size(f,1),nnodeElem);
-            for iNode = 1:nnodeElem
-                fRepeted(:,iNode) = f;
-            end
-            fRepeted = transpose(fRepeted);
-            fP1 = fRepeted(:);
+            s.fValues = double(obj.isElemSingular);
+            s.mesh    = obj.mesh;
+            p0 = P0Function(s);
+            p0.plot();
         end
 
         function fP1 = mapP1ToP1Discontinous(obj,f)
-            nnodeElem = obj.mesh.nnodeElem;
-            nElem     = obj.mesh.nelem;
-            nDim      = size(f,2);
-            fP1 = zeros(nElem,nDim,nnodeElem);
-            for iNode = 1:nnodeElem
-                nodeI = obj.mesh.connec(:,iNode);
-                fP1(:,:,iNode) = f(nodeI,:);
-            end
-        end        
+            s.fValues = f;
+            s.mesh    = obj.mesh;
+            fun = P1Function(s);
+            funP1D = fun.project('P1D');
+            fP1 = permute(funP1D.fValues, [3 1 2]);
+        end
 
     end
 

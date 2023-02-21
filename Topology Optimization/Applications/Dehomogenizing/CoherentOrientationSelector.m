@@ -8,27 +8,26 @@ classdef CoherentOrientationSelector < handle
     methods (Access = public)
         
         function obj = CoherentOrientationSelector(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function isCoherent = isOrientationCoherent(obj)
             nnode   = obj.mesh.nnodeElem;
-            nElem   = obj.mesh.nelem;                        
-            connec  = obj.mesh.connec;
+            nElem   = obj.mesh.nelem;
+%             connec  = obj.mesh.connec;
             orient  = obj.orientation;
             isCoh   = false(nElem,nnode);
 %             for iElem = 1:nElem
-%                 nodeRef = connec(iElem,1);                
-%                 o1 = orient(nodeRef,:); 
+%                 nodeRef = connec(iElem,1);
+%                 o1 = orient(nodeRef,:);
 %                 for iNode = 1:nnode
-%                     nodeI = connec(iElem,iNode);                  
-%                     oI   = orient(nodeI,:);                   
+%                     nodeI = connec(iElem,iNode);
+%                     oI   = orient(nodeI,:);
 %                     o1oI = dot(o1,oI);
 %                     isCoh(iElem,iNode) = (o1oI)>0;
-%                 end                             
+%                 end
 %             end
-            
-            for iElem = 1:nElem
+            for iElem = 1:nElem % !!
                 o1 = orient(:,1,iElem);
                 for iNode = 1:nnode
                     oI = orient(:,iNode,iElem);
@@ -36,7 +35,6 @@ classdef CoherentOrientationSelector < handle
                     isCoh(iElem,iNode) = (o1oI)>0;
                 end
             end
-            
             
             isCoherent = isCoh;
         end

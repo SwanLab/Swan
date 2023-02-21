@@ -56,8 +56,7 @@ classdef ConformalMappingComputer < handle
         end
 
         function createInterpolator(obj)
-            s.meshCont    = obj.mesh;
-            s.meshDisc    = obj.mesh.createDiscontinuousMesh();
+            s.mesh        = obj.mesh;
             s.orientation = [cos(obj.orientation),sin(obj.orientation)];
             s = SymmetricContMapCondition(s);
             sC = s.computeCondition();
@@ -79,7 +78,8 @@ classdef ConformalMappingComputer < handle
         function computeMappingWithSingularities(obj)
             nDim = 2;
             m = obj.mesh.createDiscontinuousMesh();
-            nnod = m.nnodes;
+            %nnod = m.nnodes;
+            nnod = obj.mesh.nelem*obj.mesh.nnodeElem;   
             phiI = zeros(nnod,nDim);
 
             if ~isempty(obj.singularityCoord)
@@ -201,7 +201,7 @@ classdef ConformalMappingComputer < handle
                 rhs = dPsiI.*bfG.*dVT;
                 RHS(iSing) = sum(rhs(:));
             end
-            c = LHS\RHS;
+           c = LHS\RHS;
         end
 
     end

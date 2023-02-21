@@ -69,7 +69,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             s.fValues = f(m.computeBaricenter()');
             s.mesh    = m;
             f0 = P0Function(s);
-            fC = f0.computeP1DiscontinuousFunction();
+            fC = f0.project('P1D');
         end        
 
         function f = createFunctionToRemesh(obj)

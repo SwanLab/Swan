@@ -62,6 +62,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
     end
 
+
     methods (Access = private)
 
         function init(obj,cParams)
@@ -167,10 +168,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function fV = createDiscontinousValues(obj,r)
-            s.mesh    =obj.mesh;
+            s.mesh    = obj.mesh;
             s.fValues = r;
             fC = P1Function(s);
-            fD = fC.createP1Discontinous(obj.meshD);
+            fD = fC.project('P1D');
             fV = fD.fValues;
         end
 
@@ -216,7 +217,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             f         = P1DiscontinuousFunction(s);
             r = obj.remesher;
             f = r.interpolate(f);
-            vq = f.getFvaluesAsVector();
+            v = f.getFvaluesAsVector();
         end
 
     end

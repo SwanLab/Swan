@@ -35,7 +35,7 @@ classdef PlotterDensity < handle
             obj.designVariable = cParams.designVariable;
             obj.nFigures = 5;
             obj.createFigure();
-            obj.createFilter();
+%             obj.createFilter();
             obj.createAxisAndPatchHandle();
         end    
         
@@ -70,6 +70,7 @@ classdef PlotterDensity < handle
             s.quadratureOrder = 'LINEAR';
             s = SettingsFilter(s);
             s.femSettings.scale = 'MACRO';
+            s.mesh = obj.designVariable.mesh.meshes{1};
             filterP1 = Filter_P1_Density(s);
 %             filterP1.preProcess();
             obj.filter = filterP1;
@@ -77,8 +78,13 @@ classdef PlotterDensity < handle
         
         function plotDensity(obj)
             rho = obj.designVariable.value;
-            rhoElem = obj.filter.getP0fromP1(rho);
-            set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
+            s.fValues = rho;
+            s.mesh = obj.designVariable.mesh.meshes{1};
+            fun = P1Function(s);
+            funp0 = fun.project('P0');
+            funp0.plot();
+%             rhoElem = obj.filter.getP0fromP1(rho);
+%             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
             drawnow            
         end
         
