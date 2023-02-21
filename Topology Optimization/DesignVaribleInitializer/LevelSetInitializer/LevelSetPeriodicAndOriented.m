@@ -72,6 +72,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function computeDilation(obj)
             s.theta = obj.theta;
+          %  s.orientationVector = obj.orientationVector;
             s.mesh  = obj.mesh;
             dC = DilationFieldComputer(s);
             d  = dC.compute();
