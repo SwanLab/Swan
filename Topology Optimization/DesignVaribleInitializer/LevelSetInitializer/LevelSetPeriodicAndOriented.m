@@ -163,7 +163,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             hmin = min(hC);
             hmax = max(hC);
             % hcut = (hmax+hmin)/0.6;%/4;%/2;
-            hcut = 0;0.00001*obj.epsilon;
+            hcut = 0;%0.00001*obj.epsilon;
             t = hcut./hC;
         end
 
@@ -176,13 +176,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function vq = interpolateFunction(obj,v,mesh)
-            %             m = mesh;
-            %             X = m.coord(:,1);
-            %             Y = m.coord(:,2);
-            %             F = scatteredInterpolant(X,Y,v);
-            %             xB = obj.backgroundMesh.coord(:,1);
-            %             yB = obj.backgroundMesh.coord(:,2);
-            %             vq = F(xB,yB);
             vq = obj.refine(mesh,v);
         end
 
@@ -209,7 +202,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             f = r.interpolate(f);
             vq = f.getFvaluesAsVector();
         end
-
 
         function [v] = refine(obj,m,v)
             s.mesh    = m;
