@@ -119,6 +119,16 @@ classdef NedelecElement3D < handle
             F = int(f_int,t,0,1);
         end
         
+        function F = lineIntegral(~,func,pointA,pointB)
+            syms x y z t real
+            x1 = pointA(1); y1 = pointA(2); z1 = pointA(3);
+            x2 = pointB(1); y2 = pointB(2); z2 = pointB(3);
+            func = subs(func,x,x1 + t*(x2-x1));
+            func = subs(func,y,y1 + t*(y2-y1));
+            func = subs(func,z,z1 + t*(z2-z1));
+            F = int(func,t,0,1);
+        end
+        
         function computeShapeFunctions(obj)
             syms x y z a1 a2 a3 b1 b2 b3 real
             
@@ -128,12 +138,12 @@ classdef NedelecElement3D < handle
                 pn(j) = dot(p,obj.edges.vect(j,:));
             end
             
-            A(1) = obj.integral_func(pn(1),obj.vertices(2,:),obj.vertices(3,:));
-            A(2) = obj.integral_func(pn(2),obj.vertices(2,:),obj.vertices(1,:));
-            A(3) = obj.integral_func(pn(3),obj.vertices(1,:),obj.vertices(3,:));
-            A(4) = obj.integral_func(pn(4),obj.vertices(1,:),obj.vertices(4,:));
-            A(5) = obj.integral_func(pn(5),obj.vertices(2,:),obj.vertices(4,:));
-            A(6) = obj.integral_func(pn(6),obj.vertices(3,:),obj.vertices(4,:));
+            A(1) = obj.lineIntegral(pn(1),obj.vertices(2,:),obj.vertices(3,:));
+            A(2) = obj.lineIntegral(pn(2),obj.vertices(2,:),obj.vertices(1,:));
+            A(3) = obj.lineIntegral(pn(3),obj.vertices(1,:),obj.vertices(3,:));
+            A(4) = obj.lineIntegral(pn(4),obj.vertices(1,:),obj.vertices(4,:));
+            A(5) = obj.lineIntegral(pn(5),obj.vertices(2,:),obj.vertices(4,:));
+            A(6) = obj.lineIntegral(pn(6),obj.vertices(3,:),obj.vertices(4,:));
             
             for i = 1:length(A)
                 b = zeros(1,length(A));

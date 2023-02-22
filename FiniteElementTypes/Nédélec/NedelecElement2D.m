@@ -65,7 +65,7 @@ classdef NedelecElement2D < handle
         end
         
         function F = lineIntegral(~,func,pointA,pointB)
-            syms x y a1 a2 b1 t real
+            syms x y t real
             x1 = pointA(1); y1 = pointA(2);
             x2 = pointB(1); y2 = pointB(2);
             func = subs(func,x,x1 + t*(x2-x1));
