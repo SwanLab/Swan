@@ -86,7 +86,7 @@ classdef MinimumDiscGradFieldWithVectorInH1 < handle
                 for idim = 1:nDim
                     for iNode = 1:nnode
                         dNi = squeeze(dN(idim,iNode,:,igaus));
-                        grad = dNi.*cV(:,iNode);
+                        grad = dNi.*squeeze(cV(1,iNode,:));
                         fG(:,1) = squeeze(fGauss(idim,igaus,:));
                         fGauss(idim,igaus,:) = fG + grad;
                     end

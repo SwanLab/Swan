@@ -93,24 +93,23 @@ classdef TotalCorrectorComputer < handle
             oC = cell(nSing,1);
             for iS = 1:nSing
                 sCoord = obj.singularityCoord(iS,:);
-                b1 = obj.dilatedOrientation{1}.fValues;
-                cr = obj.computeCorrector(sCoord);
-                oC{iS} = obj.computeOrthogonalCorrector(cr);
+                cF = obj.computeCorrectorFunction(sCoord);
+                oC{iS} = obj.computeOrthogonalCorrector(cF);
             end
             obj.ortoghonalCorrector = oC;
         end        
         
-        function c = computeOrthogonalCorrector(obj,c)
-            s.mesh               = obj.mesh;
-            s.correctorValue     = c;
-            s.interpolator       = obj.interpolator;
+        function c = computeOrthogonalCorrector(obj,cF)
+            s.mesh          = obj.mesh;
+            s.corrector     = cF;
+            s.interpolator  = obj.interpolator;
             o = OrthogonalCorrectorComputer(s);
             c = o.compute();
             % o.plot();
         end    
         
 
-        function cV = computeCorrector(obj,sCoord)
+        function cV = computeCorrectorFunction(obj,sCoord)
             s.mesh             = obj.mesh;
             s.isCoherent       = obj.isCoherent;
             s.singularityCoord = sCoord;

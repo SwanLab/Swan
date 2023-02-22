@@ -39,29 +39,33 @@ classdef SingularitiesComputer < handle
         function computeSingularElements(obj)
             aC = obj.orientation;
             aD = aC.project('P1D');
-            aD = permute(aD.fValues, [3 1 2]);
-            a1 = aD(:,:,1);
-            a2 = aD(:,:,2);
-            a3 = aD(:,:,3);
+            aD = permute(aD.fValues, [1 3 2]);
+            a1 = zeros(3,obj.mesh.nelem);
+            a2 = zeros(3,obj.mesh.nelem);
+            a3 = zeros(3,obj.mesh.nelem);
+            a1(1:2,:) = aD(:,:,1);
+            a2(1:2,:) = aD(:,:,2);
+            a3(1:2,:) = aD(:,:,3);
                       
-            a1a2 = obj.scalarProduct(a1,a2);
-            a1a3 = obj.scalarProduct(a1,a3);
-            a2a3 = obj.scalarProduct(a2,a3);
+            a1a2 = dot(a1,a2);
+            a1a3 = dot(a1,a3);
+            a2a3 = dot(a2,a3);
 
             aV(1,:,1) = a2a3;
             aV(1,:,2) = a1a3;
             aV(1,:,3) = a1a2;
             
-            s.fValues = aV;
+            s.fValues = (aV);
             s.mesh    = obj.mesh;
             f = P1DiscontinuousFunction(s);
             f.plot()
+            colorbar
 
-            isS = sign(a1a2.*a1a3.*a2a3);
-
+            isS = sign(a1a2.*a1a3.*a2a3)';
             s.fValues = isS<0;
             s.mesh    = obj.mesh;
             f = P0Function(s);
+
             obj.isElemSingular = f;
         end
 
@@ -75,12 +79,6 @@ classdef SingularitiesComputer < handle
 
     end
 
-    methods (Access = private, Static)
-
-        function ab = scalarProduct(a,b)
-            ab = a(:,1).*b(:,1) + a(:,2).*b(:,2);
-        end
-
-    end
+ 
 
 end
