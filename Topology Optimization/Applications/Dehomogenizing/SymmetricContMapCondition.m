@@ -2,13 +2,12 @@ classdef SymmetricContMapCondition < handle
     
     properties (Access = private)
         isCoherent
-        isCoherentFun
         orientationDisc
     end
     
     properties (Access = private)
        mesh
-       orientation
+       orientationVector
     end
     
     methods (Access = public)
@@ -18,8 +17,6 @@ classdef SymmetricContMapCondition < handle
         end
         
         function c = computeCondition(obj)
-            obj.createOrientationDiscontinous();
-            obj.isOrientationCoherent();
             c = obj.computeSymmetricCondition();
         end
         
@@ -28,38 +25,19 @@ classdef SymmetricContMapCondition < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation = cParams.orientation;
+            obj.mesh       = cParams.mesh;
+            obj.isCoherent = cParams.isCoherent;
         end
         
-        function createOrientationDiscontinous(obj)
-            s.fValues = obj.orientation;
-            s.mesh    = obj.mesh;
-            f = P1Function(s);
-            fD = f.project('P1D');
-            obj.orientationDisc = fD.fValues;
-        end
-
-        function isOrientationCoherent(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.orientationDisc;
-            c = CoherentOrientationSelector(s);
-            isC = c.isOrientationCoherent();
-            obj.isCoherent = isC;
-            a.fValues = permute(double(isC), [3 2 1]);
-            a.mesh = obj.mesh;
-            obj.isCoherentFun = P1DiscontinuousFunction(a);
-        end
-
         function sC = computeSymmetricCondition(obj)
             nnodeD    = obj.mesh.nnodeElem;
             nElemD    = obj.mesh.nelem;
             nnodesC   = obj.mesh.nnodes;
             connecC   = obj.mesh.connec;
-            connecD = obj.computeDiscontinuousConnectivities();
+            connecD   = obj.computeDiscontinuousConnectivities();
             sC = sparse(nnodeD*nElemD,nnodesC);
             for iNode = 1:nnodeD
-                isC  = obj.isCoherent(:,iNode);
+                isC  = squeeze(obj.isCoherent.fValues(1,iNode,:));
                 cond = obj.computeConformalMapCondition(isC);
                 nodesC = connecC(:,iNode);
                 nodesD = connecD(:,iNode);

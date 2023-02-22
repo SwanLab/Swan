@@ -1,21 +1,18 @@
 classdef SimpleShapeOptimizationSolver < handle
-    % treure terme momentum
+
     properties (Access = public)
         tV
         JV
-        betaV
         incXvalues
         designVariable
     end
     
     properties (Access = private)
-        topOpt
+        topOptProblem
         cost
         plotter
         TOL
         maxIter
-        momentumParameter
-        momentumParams
     end
     
     methods (Access = public)
@@ -25,7 +22,6 @@ classdef SimpleShapeOptimizationSolver < handle
         end
         
         function solve(obj)
-            beta = 0;
             xNew = obj.computeInitialValue();
             xOld = xNew;
             x = xOld;
@@ -38,7 +34,7 @@ classdef SimpleShapeOptimizationSolver < handle
                 x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,beta,incX);
+                obj.plotCostAndLineSearch(iter,J,t,incX);
                 iter = iter + 1;
             end
         end
@@ -67,33 +63,18 @@ classdef SimpleShapeOptimizationSolver < handle
         function init(obj,cParams)
             obj.TOL            = cParams.TOL;
             obj.maxIter        = cParams.maxIter;
-            obj.momentumParams = cParams.momentumParams;
-            obj.createSettings();
+            obj.topOptProblem  = cParams.topOptProblem;
             obj.createDesignVariable();
             obj.createCost();
             obj.createPlotter();
         end
         
-        function createMomentumParameter(obj)
-            s = obj.momentumParams;
-            obj.momentumParameter = MomentumParameter.create(s);
-        end
-        
-        function createSettings(obj)
-            settings = Settings('Example1');
-            translator = SettingsTranslator();
-            translator.translate(settings);
-            fileName = translator.fileName;
-            settingsTopOpt = SettingsTopOptProblem(fileName);
-            obj.topOpt = TopOpt_Problem(settingsTopOpt);
-        end
-        
         function createDesignVariable(obj)
-            obj.designVariable = obj.topOpt.designVariable;
+            obj.designVariable = obj.topOptProblem.designVariable;
         end
         
         function createCost(obj)
-            s.topOpt = obj.topOpt;
+            s.topOpt = obj.topOptProblem;
             s.designVariable = obj.designVariable;
             obj.cost = CostComplianceVolume(s);
         end
@@ -134,12 +115,11 @@ classdef SimpleShapeOptimizationSolver < handle
             t0 = ndJ/nX;
         end
         
-        function plotCostAndLineSearch(obj,iter,J,t,beta,incX)
+        function plotCostAndLineSearch(obj,iter,J,t,incX)
             obj.JV(iter) = J;
             obj.tV(iter) = t;
-            obj.betaV(iter) = beta;
             obj.incXvalues(iter) = incX;
-            obj.plotter.plot(obj.JV,obj.tV,obj.betaV,obj.incXvalues);
+            obj.plotter.plot(obj.JV,obj.tV,obj.incXvalues);
         end
         
         function n = computeNorm(obj,x)

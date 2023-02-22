@@ -19,11 +19,10 @@ classdef PlotterDensity < handle
             obj.init(cParams)
         end
         
-        function plot(obj,cost,t,beta,incX)
+        function plot(obj,cost,t,incX)
             obj.plotDensity();
             obj.plotCost(cost);
             obj.plotLineSearch(t);
-            obj.plotBeta(beta);
             obj.plotIncX(incX);
         end
         
@@ -33,7 +32,7 @@ classdef PlotterDensity < handle
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
-            obj.nFigures = 5;
+            obj.nFigures = 4;
             obj.createFigure();
 %             obj.createFilter();
             obj.createAxisAndPatchHandle();
@@ -47,7 +46,7 @@ classdef PlotterDensity < handle
     
         function createAxisAndPatchHandle(obj)
             figure(obj.figureNumber)
-            subplot(1,obj.nFigures,5)
+            subplot(1,obj.nFigures,4)
             obj.figHandle = obj.figureNumber;
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
             title('Density')
@@ -100,17 +99,10 @@ classdef PlotterDensity < handle
             plot(t);
             title('LineSearch')
         end
-        
-        function plotBeta(obj,beta)
-            figure(obj.figureNumber)
-            subplot(1,obj.nFigures,3)
-            plot(beta);
-            title('$\beta$','Interpreter','Latex');
-        end
-        
+       
         function plotIncX(obj,incX)
             figure(obj.figureNumber)
-            subplot(1,obj.nFigures,4)
+            subplot(1,obj.nFigures,3)
             plot(incX);
             title('$\Delta x$','Interpreter','Latex')
         end

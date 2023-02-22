@@ -4,42 +4,45 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
         LHS
         RHS
     end
-    
+
     properties (Access = private)
         mesh
         rhsType
         meshCont
-        fGauss
+        fValues
         interp
         field
         interpolator
     end
-    
+
     methods (Access = public)
-        
+
         function obj = MinimumDiscGradFieldWithVectorInL2(cParams)
             obj.init(cParams);
             obj.createField();
         end
 
-        function u = solve(obj)
+        function uF = solve(obj)
             obj.computeLHS();
             obj.computeRHS();
             uC = obj.solveSystem();
-            In = obj.interpolator; 
-            u  = In*uC; 
-            u = reshape(u,obj.mesh.nnodeElem,[])'; % Eh          
+            In = obj.interpolator;
+            u  = In*uC;
+            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]); % Eh
+            s.mesh    = obj.mesh;
+            s.fValues = uV;
+            uF = P1DiscontinuousFunction(s);
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.meshCont     = cParams.mesh;
             obj.rhsType      = cParams.rhsType;
-            obj.mesh         = obj.meshCont.createDiscontinuousMesh();            
-            obj.fGauss       = cParams.fGauss;
+            obj.mesh         = obj.meshCont.createDiscontinuousMesh();
+            obj.fValues       = cParams.fValues;
             obj.interpolator = cParams.interpolator;
         end
 
@@ -49,20 +52,14 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.interpolationOrder = obj.mesh.interpolation.order;
             obj.field = Field(s);
         end
-
-%         
+        %
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
             K = In'*K*In;
-           % M = obj.computeMassMatrix();
-            %I = ones(size(K,1),1);
-            %eta = 0.01;
-            %obj.LHS = K + eta*M;
-            %obj.LHS = [K,I;I',0];
             obj.LHS = K;
         end
-        
+
         function K = computeStiffnessMatrix(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
@@ -72,12 +69,27 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
-        
+
+        function bG = computeFGauss(obj)
+            b = obj.fValues;
+            q = Quadrature.set(obj.meshCont.type);
+            q.computeQuadrature('QUADRATIC');
+            xGauss = q.posgp;
+            bG = zeros(obj.meshCont.ndim,q.ngaus,obj.meshCont.nelem);
+            for idim = 1:obj.meshCont.ndim
+                s.fValues = b(idim,:)';
+                s.mesh    = obj.meshCont;
+                f = P1Function(s);
+                bG(idim,:,:) = f.evaluate(xGauss);
+            end
+            %%%%% HEREEEE!!!!! Integrate with more gauss points b
+        end
+
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             s.fType     = 'Gauss';
-            s.fGauss    = obj.fGauss;
+            s.fGauss    = obj.computeFGauss();
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
@@ -86,13 +98,13 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
             s.type      = obj.rhsType;
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();        
+            rhsV = rhs.compute();
             In = obj.interpolator;
             rhsV = In'*rhsV;
             %obj.RHS = [rhsV;0];
             obj.RHS = rhsV;
         end
-        
+
         function f = assembleIntegrand(obj,rhsCells)
             integrand = rhsCells;
             ndofs  = obj.mesh.nnodes;
@@ -105,14 +117,14 @@ classdef MinimumDiscGradFieldWithVectorInL2 < handle
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
-        
+
         function u = solveSystem(obj)
             a.type = 'DIRECT';
             s = Solver.create(a);
             u = s.solve(obj.LHS,obj.RHS);
             u = u(1:end);
         end
-        
+
     end
-    
+
 end
