@@ -16,6 +16,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetCylinder(d);
                 case 'cylinderBuckling'
                     obj = LevelSetCylinderBuckling(d);
+                case 'holedCircle'
+                    obj = LevelSetHoledCircle(d);
                 case 'horizontal'
                     obj = LevelSetHorizontalInclusion(d);
                 case {'squareInclusion'}
@@ -26,6 +28,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetRectangle(d);
                 case 'rectangleInclusion'
                     obj = LevelSetRectangleInclusion(d);
+                case 'rectangularColumn'
+                    obj = LevelSetRectangularColumn(d);
                 case 'smoothRectangle'
                     obj = LevelSetSmoothRectangleInclusion(d);
                 case 'feasible'

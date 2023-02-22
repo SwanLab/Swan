@@ -56,13 +56,18 @@ classdef PostProcessColumn < handle
             obj.polygon = polyshape(vertex);
         end
         
-%         function create3Dplot(obj)
-%             nElem = obj.mesh.nelem;
-%             s.designVariableValue = obj.designVariable.value(1:nElem);
-%             s.coord = obj.mesh.coord;
-%             plt = Plot3DBucklingColumn(s);
-%             plt.compute();
-%         end
+        function create3Dplot(obj)
+            nElem = obj.mesh.nelem;
+            switch obj.designVariable.nDesignVar
+                case 1
+                    s.designVariableValue = obj.designVariable.value(1:nElem);
+                case 2
+                    s.designVariableValue = obj.designVariable.value(1:2*nElem);
+            end
+            s.coord = obj.mesh.coord;
+            plt = Plot3DBucklingColumn(s);
+            plt.compute();
+        end
         
         function createMesh(obj)
             pgon = obj.polygon;

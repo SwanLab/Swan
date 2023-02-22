@@ -66,14 +66,14 @@ classdef EulerBeamOptimizer < handle
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
-            obj.initValueType = 'Random'; % Random/Constant/External Value
+            obj.initValueType = 'Constant'; % Random/Constant/External Value
             obj.meshType      = 'Structured'; %Structured/Unstructured
-            obj.maxIter       = 500;
+            obj.maxIter       = 100;
 %             obj.minThick(1:obj.nElem,1) = sqrt(0.25/pi); %sqrt(0.5/pi)/0.5/sqrt(0.5);
 %             obj.minThick(obj.nElem+1)   = 0;
 %             obj.maxThick(1:obj.nElem,1) = sqrt(10/pi); %sqrt(100/pi)/10/sqrt(10);
 %             obj.maxThick(obj.nElem+1)   = 10000;
-            obj.minThick(1:2*obj.nElem,1) = 0.3; 
+            obj.minThick(1:2*obj.nElem,1) = 0.2; 
             obj.minThick(2*obj.nElem+1,1)   = 0;
             obj.maxThick(1:2*obj.nElem,1) = 5; 
             obj.maxThick(2*obj.nElem+1,1)   = 10000;
@@ -91,7 +91,7 @@ classdef EulerBeamOptimizer < handle
         function createDesignVariable(obj)
             s.initValue = obj.initValue;
             s.initValueType = obj.initValueType;
-            s.type  = 'HoleColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn
+            s.type  = 'HoleColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
             s.mesh  = obj.mesh;
             des = DesignVariable.create(s);
             obj.designVariable = des;  

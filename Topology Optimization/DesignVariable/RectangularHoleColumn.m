@@ -1,7 +1,7 @@
-classdef RectangularColumn < DesignVariable
+classdef RectangularHoleColumn < DesignVariable
     
     properties (Access = public)
-        nDesignVar = 2
+        nDesignVar = 4
     end
     
     properties (Access = private)
@@ -11,16 +11,17 @@ classdef RectangularColumn < DesignVariable
        
     methods (Access = public)
         
-        function obj = RectangularColumn(cParams)
+        function obj = RectangularHoleColumn(cParams)
             obj.init(cParams);
-            obj.type = 'RectangularColumn';
+            obj.type = 'RectangularHoleColumn';
             obj.createInitialValue();
         end
         
         function gamma = getFirstEigenMode(obj)
            x = obj.value;
            N = obj.mesh.nelem;
-           gamma = x(2*N+1);  
+           nVar = obj.nDesignVar;
+           gamma = x(nVar*N+1);  
         end
 
         function v = getVariablesToPlot(obj)
@@ -43,15 +44,20 @@ classdef RectangularColumn < DesignVariable
         
         function createInitialValue(obj)
             N = obj.mesh.nelem;
+            nVar = obj.nDesignVar;
             switch obj.initValueType
                 case 'Constant'
-                    a = ones(N,1);
-                    b = 0.7*ones(N,1);
-                    x0 = [a;b;1];
+                    a = ones(nVar*N+1,1)
+                    b = 
+                    c = 
+                    d = 
+                    x0 = [a;b;c;d];
                 case 'Random'
-                    a = rand(N,1);
-                    b = 0.7*rand(N,1);
-                    x0 = [a;b;1];
+                    a = rand(nVAr*N+1,1);
+                    b = 
+                    c = 
+                    d = 
+                    x0 = [a;b;c;d];
                 otherwise 
                     error('Invalid Initial Value Type.')
             end

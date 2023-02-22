@@ -36,8 +36,8 @@ classdef Plot3DBucklingColumn < handle
         
         function createBackgroundMesh(obj)
             nElem = length(obj.coordinates)-1;
-            x = linspace(0,2,20);
-            y = linspace(0,2,20);
+            x = linspace(0,3,20);
+            y = linspace(0,3,20);
             z = linspace(0,4,nElem);
             [X,Y,Z] = meshgrid(x,y,z);   
             coord  = [X(:) Y(:) Z(:)];
@@ -56,7 +56,7 @@ classdef Plot3DBucklingColumn < handle
         end
 
         function createLevelSet(obj)
-            s.type       = 'cylinderBuckling';
+            s.type = 'rectangularColumn'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
             s.desVarValue     = obj.value;
             s.coord      = obj.backgroundMesh.coord;
             s.ndim       = obj.backgroundMesh.ndim;

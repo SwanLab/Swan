@@ -50,24 +50,19 @@ classdef Sh_volumeColumn < ShapeFunctional
             V = dV*A;
 %             V = obj.designVariable.computeVolum();
             fx = V-1;
-%           fx = sqrt(V)-1;
             obj.value = fx;
         end
 
         function computeGradient(obj)
-            %R = obj.designVariable.getColumnRadius();
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
-            l = sum(obj.mesh.computeDvolume(q));             
-            %dfdx(1,:) = 1./1.*dfdx(1,:); 
-            %dfdx(2,:) = 1./1.*dfdx(2,:); 
+            l = sum(obj.mesh.computeDvolume(q))';              
             nElem = obj.mesh.nelem;
-            dfdx = zeros(1,2*nElem+1);
-%             dfdx = zeros(1,nElem+1);
-            %dfdx(1,1:nElem)= 2*pi*l'.*R; %*ones(1,nElem);% 1/(nElem+1).*ones(1,nElem);
             dA = obj.sectionVariables.computeAreaDerivative();
-            %dfdx(1,1:nElem)= dA.*l';
-            dfdx(1,1:2*nElem)= dA.*[l,l]';
+            nVar = obj.sectionVariables.nDesVarElem;
+            dfdx = zeros(1,nVar*nElem+1);
+            lVar = repmat(l,nVar,1);
+            dfdx(1:nVar*nElem) = dA.*lVar;
             obj.gradient = dfdx;
         end
 

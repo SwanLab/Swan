@@ -5,7 +5,8 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
     end
     
     properties (Access = private)
-        polygon
+        polygonArea
+        polygonInnerRadius
     end
     
     methods (Access = public)
@@ -16,15 +17,17 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
         
         function plot(obj)
             scale = 0.3;
-            obj.createPolygon(scale);
-            obj.plotFigure();
+            obj.createPolygonArea(scale);
+            obj.createPolygonInnerRadius(scale);
+            obj.plotArea();
+            obj.plotInnerRadius();
         end
         
     end
 
     methods (Access = private)
 
-        function createPolygon(obj,scl)
+        function createPolygonArea(obj,scl)
             z = obj.sectionVariables.computeArea();
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;
@@ -37,7 +40,25 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             end
             vertex = obj.flip(vertex,vertElem,dimFig);
             vertex(end,:) = vertex(1,:);
-            obj.polygon = polyshape(vertex);
+            obj.polygonArea = polyshape(vertex);
+        end
+
+        function createPolygonInnerRadius(obj,scl)
+            desVar = obj.sectionVariables.designVariable;
+            nElem = (size(desVar.value)-1)/2;
+            z = desVar.value(1:nElem);
+            coord = obj.mesh.coord;
+            nnod     = obj.mesh.nelem+1;
+            dimFig   = 2;
+            vertElem = 4;
+            vertex = zeros(vertElem*obj.mesh.nelem+1,dimFig);
+            for iNod = 1:nnod-1
+                vertex(2*iNod-1,:)   = [z(iNod) coord(iNod)];
+                vertex(2*iNod,:) = [z(iNod) coord(iNod+1)];
+            end
+            vertex = obj.flip(vertex,vertElem,dimFig);
+            vertex(end,:) = vertex(1,:);
+            obj.polygonInnerRadius = polyshape(vertex);
         end
 
         function vertex = flip(obj,vertex,vertElem,dimFig)
@@ -47,8 +68,8 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             vertex(dimFig*nElem+1:vertElem*nElem,2) = fliplr(vertex(1:dimFig*nElem,2)')';
         end
 
-        function plotFigure(obj)
-            pgon = obj.polygon;
+        function plotArea(obj)
+            pgon = obj.polygonArea;
             figure(3)
             clf
             plot(pgon);
@@ -59,6 +80,20 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end
+
+        function plotInnerRadius(obj)
+            pgon = obj.polygonInnerRadius;
+            figure(4)
+            clf
+            plot(pgon);
+            axis([-2 2 0 1])
+            grid on
+            grid minor
+            title('Column Inner Radius (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            xlabel('r1(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+        end
+
 
     end 
     
