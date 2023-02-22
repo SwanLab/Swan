@@ -64,24 +64,13 @@ classdef NedelecElement2D < handle
             obj.edges.measure = [sqrt(2),1,1];
         end
         
-        function F = integral_func(~,f,A,B)
-            syms x y a1 b1 a2 b2 t real
-            F = f;
-            
-            if A(1) == B(1)
-                F = subs(F,x,A(1));
-                F = subs(F,y,t);
-            elseif A(2) == B(2)
-                F = subs(F,y,A(2));
-                F = subs(F,x,t);
-            else
-                m = (A(2)-B(2))/(A(1)-B(1));
-                n = A(2)-m*A(1);
-                F = subs(F,y,m*x+n);
-                F = subs(F,x,t);
-            end
-            
-            F = int(F,t,0,1);
+        function F = lineIntegral(~,func,pointA,pointB)
+            syms x y a1 a2 b1 t real
+            x1 = pointA(1); y1 = pointA(2);
+            x2 = pointB(1); y2 = pointB(2);
+            func = subs(func,x,x1 + t*(x2-x1));
+            func = subs(func,y,y1 + t*(y2-y1));
+            F = int(func,t,0,1);
         end
         
         function computeShapeFunctions(obj)
@@ -92,9 +81,9 @@ classdef NedelecElement2D < handle
                 pn(j) = dot(p,obj.edges.vect(j,:));
             end
             
-            A(1) = obj.integral_func(pn(1),obj.vertices(2,:),obj.vertices(3,:));
-            A(2) = obj.integral_func(pn(2),obj.vertices(3,:),obj.vertices(1,:));
-            A(3) = obj.integral_func(pn(3),obj.vertices(1,:),obj.vertices(2,:));
+            A(1) = obj.lineIntegral(pn(1),obj.vertices(2,:),obj.vertices(3,:));
+            A(2) = obj.lineIntegral(pn(2),obj.vertices(3,:),obj.vertices(1,:));
+            A(3) = obj.lineIntegral(pn(3),obj.vertices(1,:),obj.vertices(2,:));
             
             for i = 1:obj.n_vertices
                 b = zeros(1,obj.n_vertices);
