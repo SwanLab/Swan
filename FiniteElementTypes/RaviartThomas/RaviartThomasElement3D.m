@@ -67,6 +67,24 @@ classdef RaviartThomasElement3D < handle
             obj.normalVectors = [1,1,1;-1,0,0;0,-1,0;0,0,-1];
         end
         
+        function F = lineIntegral(~,func,pointA,pointB,pointC)
+            syms x y z u v real
+%             x1 = pointA(1); y1 = pointA(2); z1 = pointA(3);
+%             x2 = pointB(1); y2 = pointB(2); z2 = pointB(3);
+%             x3 = pointB(1); y2 = pointB(2); z2 = pointB(3);
+%             func = subs(func,x,x1 + t*(x2-x1));
+%             func = subs(func,y,y1 + t*(y2-y1));
+            paramx = (1-u-v)*pointA(1) + u*pointB(1) + v*pointC(1);
+            paramy = (1-u-v)*pointA(2) + u*pointB(2) + v*pointC(2);
+            paramz = (1-u-v)*pointA(3) + u*pointB(3) + v*pointC(3);
+            
+            func = subs(func,x,paramx);
+            func = subs(func,y,paramy);
+            func = subs(func,z,paramz);
+
+            F = int(int(func,u,0,1),v,0,1);
+        end
+        
         function F = integral_func(~,f,A,B,C)
             syms x y z a1 b1 a2 a3 t r real
             F = f;
@@ -112,10 +130,10 @@ classdef RaviartThomasElement3D < handle
                 pn(j) = dot(p,obj.normalVectors(j,:));
             end
             
-            A(1) = obj.integral_func(pn(1),obj.vertices(2,:),obj.vertices(3,:),obj.vertices(4,:));
-            A(2) = obj.integral_func(pn(2),obj.vertices(3,:),obj.vertices(1,:),obj.vertices(4,:));
-            A(3) = obj.integral_func(pn(3),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(4,:));
-            A(4) = obj.integral_func(pn(4),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(3,:));
+            A(1) = obj.lineIntegral(pn(1),obj.vertices(2,:),obj.vertices(3,:),obj.vertices(4,:));
+            A(2) = obj.lineIntegral(pn(2),obj.vertices(3,:),obj.vertices(1,:),obj.vertices(4,:));
+            A(3) = obj.lineIntegral(pn(3),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(4,:));
+            A(4) = obj.lineIntegral(pn(4),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(3,:));
             
             for i = 1:obj.n_vertices
                 b = zeros(1,obj.n_vertices);
