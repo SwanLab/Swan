@@ -11,12 +11,14 @@ classdef ConformalMappingComputer < handle
         orientationVector
         dilatedOrientation
         mesh
+        isCoherent
     end
 
     methods (Access = public)
 
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
+            obj.isOrientationCoherent();
             obj.createInterpolator();
         end
 
@@ -41,9 +43,17 @@ classdef ConformalMappingComputer < handle
             obj.dilatedOrientation = cParams.dilatedOrientation;
         end
 
+        function isOrientationCoherent(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = obj.orientationVector{1}.project('P1D');
+            c = CoherentOrientationSelector(s);
+            isC = c.isOrientationCoherent();
+            obj.isCoherent = isC;
+        end        
+
         function createInterpolator(obj)
-            s.mesh              = obj.mesh;
-            s.orientationVector = obj.orientationVector{1};
+            s.mesh       = obj.mesh;
+            s.isCoherent = obj.isCoherent;
             s = SymmetricContMapCondition(s);
             sC = s.computeCondition();
             obj.interpolator = sC;
@@ -64,6 +74,7 @@ classdef ConformalMappingComputer < handle
 
         function computeTotalCorrector(obj)
            s.mesh = obj.mesh;
+           s.isCoherent         = obj.isCoherent;
            s.dilatedOrientation = obj.dilatedOrientation;
            s.interpolator = obj.interpolator;
            s.phiMapping   = obj.phiMapping;

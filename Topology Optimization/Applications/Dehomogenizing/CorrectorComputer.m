@@ -4,7 +4,6 @@ classdef CorrectorComputer < handle
     properties (Access = private)
         correctorValues
         referenceCells
-        isCoherent
         isNotCoherent
         itHasSameCoherence
         itHasNotSameCoherence
@@ -20,7 +19,7 @@ classdef CorrectorComputer < handle
     
     properties (Access = private)
         mesh
-        orientation
+        isCoherent
         singularityCoord
     end
     
@@ -61,16 +60,16 @@ classdef CorrectorComputer < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientation        = cParams.orientation;
+            obj.isCoherent         = cParams.isCoherent;
             obj.singularityCoord   = cParams.singularityCoord;
         end
         
         function computeCoherentOrientation(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.createDiscontinousField(obj.orientation);
-            c = CoherentOrientationSelector(s);
-            aC = c.isOrientationCoherent();
-            obj.areVertexCoherent = squeeze(aC.fValues(1,:,:))';
+          %  s.mesh        = obj.mesh;
+          %  s.orientation = obj.createDiscontinousField(obj.orientation);
+          %  c = CoherentOrientationSelector(s);
+          %  aC = c.isOrientationCoherent();
+            obj.areVertexCoherent = squeeze(obj.isCoherent.fValues(1,:,:))';
         end                
         
         function computePathToBoundary(obj)

@@ -17,8 +17,6 @@ classdef SymmetricContMapCondition < handle
         end
         
         function c = computeCondition(obj)
-            obj.createOrientationDiscontinous();
-            obj.isOrientationCoherent();
             c = obj.computeSymmetricCondition();
         end
         
@@ -27,24 +25,10 @@ classdef SymmetricContMapCondition < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh              = cParams.mesh;
-            obj.orientationVector = cParams.orientationVector;
+            obj.mesh       = cParams.mesh;
+            obj.isCoherent = cParams.isCoherent;
         end
         
-        function createOrientationDiscontinous(obj)
-            f = obj.orientationVector;
-            fD = f.project('P1D');
-            obj.orientationDisc = fD.fValues;
-        end
-
-        function isOrientationCoherent(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.orientationDisc;
-            c = CoherentOrientationSelector(s);
-            isC = c.isOrientationCoherent();
-            obj.isCoherent = isC;
-        end
-
         function sC = computeSymmetricCondition(obj)
             nnodeD    = obj.mesh.nnodeElem;
             nElemD    = obj.mesh.nelem;

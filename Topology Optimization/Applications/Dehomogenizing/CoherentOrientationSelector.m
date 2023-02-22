@@ -15,7 +15,7 @@ classdef CoherentOrientationSelector < handle
             nnode   = obj.mesh.nnodeElem;
             nElem   = obj.mesh.nelem;
 %             connec  = obj.mesh.connec;
-            orient  = obj.orientation;
+            orient  = obj.orientation.fValues;
             isCoh   = false(nElem,nnode);
 %             for iElem = 1:nElem
 %                 nodeRef = connec(iElem,1);

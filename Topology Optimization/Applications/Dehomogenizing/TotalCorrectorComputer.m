@@ -16,6 +16,7 @@ classdef TotalCorrectorComputer < handle
        singularityCoord
        interpolator
        phiMapping
+       isCoherent
     end
     
     methods (Access = public)
@@ -69,14 +70,14 @@ classdef TotalCorrectorComputer < handle
            obj.dilatedOrientation = cParams.dilatedOrientation;
            obj.interpolator       = cParams.interpolator;
            obj.phiMapping         = cParams.phiMapping;
+           obj.isCoherent         = cParams.isCoherent;
         end
 
         function createTotalCorrector(obj)
             s.fValues = zeros(size(obj.phiMapping.fValues));
             s.mesh    = obj.mesh;
             obj.totalCorrector = P1DiscontinuousFunction(s);    
-        end       
-        
+        end               
 
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
@@ -93,7 +94,7 @@ classdef TotalCorrectorComputer < handle
             for iS = 1:nSing
                 sCoord = obj.singularityCoord(iS,:);
                 b1 = obj.dilatedOrientation{1}.fValues;
-                cr = obj.computeCorrector(b1,sCoord);
+                cr = obj.computeCorrector(sCoord);
                 oC{iS} = obj.computeOrthogonalCorrector(cr);
             end
             obj.ortoghonalCorrector = oC;
@@ -109,9 +110,9 @@ classdef TotalCorrectorComputer < handle
         end    
         
 
-        function cV = computeCorrector(obj,b,sCoord)
-            s.mesh               = obj.mesh;
-            s.orientation        = b;
+        function cV = computeCorrector(obj,sCoord)
+            s.mesh             = obj.mesh;
+            s.isCoherent       = obj.isCoherent;
             s.singularityCoord = sCoord;
             c = CorrectorComputer(s);
             cV = c.compute();
