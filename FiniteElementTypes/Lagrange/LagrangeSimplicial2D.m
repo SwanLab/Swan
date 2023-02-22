@@ -20,6 +20,13 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function plotShapeFunctions(obj)
+            s.coord = obj.vertices;
+            s.connec = [1 2 3];
+            m = Mesh(s);
+            m.plot()
+
+            a = trisurf(m.connec,s.coord(:,1),s.coord(:,2),obj.shapeFunctions{1,1});
+
             obj.fig = figure();
             syms x y
             hold on
