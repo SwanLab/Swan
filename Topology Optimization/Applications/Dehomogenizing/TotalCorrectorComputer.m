@@ -12,7 +12,7 @@ classdef TotalCorrectorComputer < handle
     
     properties (Access = private)
        mesh 
-       orientationVector
+       dilatedOrientation
        singularityCoord
        interpolator
        phiMapping
@@ -30,7 +30,7 @@ classdef TotalCorrectorComputer < handle
             nDim  = obj.mesh.ndim;
             c = zeros(nDim,nSing);
             for iDim = 1:nDim
-                bI = obj.orientationVector{iDim}.fValues;
+                bI = obj.dilatedOrientation{iDim}.fValues;
                 oC = obj.ortoghonalCorrector;
                 c(iDim,:) = obj.computeCoeffs(oC,bI);
             end
@@ -65,10 +65,10 @@ classdef TotalCorrectorComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-           obj.mesh = cParams.mesh;
-           obj.orientationVector = cParams.orientationVector;
-           obj.interpolator = cParams.interpolator;
-           obj.phiMapping   = cParams.phiMapping;
+           obj.mesh               = cParams.mesh;
+           obj.dilatedOrientation = cParams.dilatedOrientation;
+           obj.interpolator       = cParams.interpolator;
+           obj.phiMapping         = cParams.phiMapping;
         end
 
         function createTotalCorrector(obj)
@@ -80,7 +80,7 @@ classdef TotalCorrectorComputer < handle
 
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
-            s.orientation = obj.orientationVector{1};
+            s.orientation = obj.dilatedOrientation{1};
             sC = SingularitiesComputer(s);
             sCoord = sC.compute();
             %sC.plot();
@@ -92,7 +92,7 @@ classdef TotalCorrectorComputer < handle
             oC = cell(nSing,1);
             for iS = 1:nSing
                 sCoord = obj.singularityCoord(iS,:);
-                b1 = obj.orientationVector{1}.fValues;
+                b1 = obj.dilatedOrientation{1}.fValues;
                 cr = obj.computeCorrector(b1,sCoord);
                 oC{iS} = obj.computeOrthogonalCorrector(cr);
             end

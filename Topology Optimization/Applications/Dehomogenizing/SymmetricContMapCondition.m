@@ -8,7 +8,7 @@ classdef SymmetricContMapCondition < handle
     
     properties (Access = private)
        mesh
-       orientation
+       orientationVector
     end
     
     methods (Access = public)
@@ -28,14 +28,12 @@ classdef SymmetricContMapCondition < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation = cParams.orientation;
+            obj.mesh              = cParams.mesh;
+            obj.orientationVector = cParams.orientationVector;
         end
         
         function createOrientationDiscontinous(obj)
-            s.fValues = obj.orientation;
-            s.mesh    = obj.mesh;
-            f = P1Function(s);
+            f = obj.orientationVector;
             fD = f.project('P1D');
             obj.orientationDisc = fD.fValues;
         end

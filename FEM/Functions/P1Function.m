@@ -126,6 +126,16 @@ classdef P1Function < FeFunction
             divF = FGaussDiscontinuousFunction(s);
         end
 
+        function fdivF = computeFieldTimesDivergence(obj,q)
+            fG  = obj.evaluate(q.posgp);
+            dfG = obj.computeDivergence(q);
+            fdivFG = bsxfun(@times,dfG.fValues,fG);
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = fdivFG;
+            fdivF = FGaussDiscontinuousFunction(s);            
+        end
+
         function fFine = refine(obj,m,mFine)
             fNodes  = obj.fValues;
             fEdges  = obj.computeFunctionInEdges(m, fNodes);
@@ -180,6 +190,17 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
+    end
+
+    methods (Access = public, Static)
+
+        function fS = times(f1,f2)
+            fS = f1.fValues.*f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end
+        
     end
 
     methods (Access = private)

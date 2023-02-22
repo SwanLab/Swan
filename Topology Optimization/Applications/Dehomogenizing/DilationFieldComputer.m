@@ -5,7 +5,7 @@ classdef DilationFieldComputer < handle
     end
     
     properties (Access = private)
-       theta 
+       orientationVector
        mesh
     end
     
@@ -20,63 +20,34 @@ classdef DilationFieldComputer < handle
             d = obj.dilation; 
         end
         
-        function plot(obj)
-            figure()
-            s.mesh  = obj.mesh;
-            s.field = obj.dilation;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp            
-        end
-        
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.theta = cParams.theta;
+            obj.orientationVector = cParams.orientationVector;
             obj.mesh  = cParams.mesh;
         end
                
         function computeDilationField(obj)
-            s.fGauss = obj.computeThetaGradient();
+            s.fGauss = obj.computeFieldTimesDivField();
             s.mesh   = obj.mesh;
             varProb  = MinimumGradFieldWithVectorInL2(s);
             r = varProb.solve();
-            obj.dilation = r;
+            s.mesh = obj.mesh;
+            s.fValues = r;
+            rF = P1Function(s);
+            obj.dilation = rF;
         end
         
-        function gradT = computeThetaGradient(obj)
+        function gradT = computeFieldTimesDivField(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
-
-
-            alpha = obj.theta;
-            a1(:,1) = cos(alpha);
-            a1(:,2) = sin(alpha);
-
-            a2(:,1) = -sin(alpha);
-            a2(:,2) = cos(alpha);
-
-
-            s.mesh = obj.mesh;
-            s.fValues = a1;            
-            a1F = P1Function(s);
-            a1FV = a1F.evaluate(q.posgp); 
-
-            s.mesh = obj.mesh;
-            s.fValues = a2;            
-            a2F = P1Function(s);
-            a2FV = a2F.evaluate(q.posgp);            
-
-            da1 = a1F.computeDivergence(q);
-            da2 = a2F.computeDivergence(q);            
-            
-            da1a1 = bsxfun(@times,da1.fValues,a1FV);
-            da2a2 = bsxfun(@times,da2.fValues,a2FV);
-          
-            
-            gradT = -da2a2 - da1a1;
+            a1    = obj.orientationVector{1};
+            a2    = obj.orientationVector{2};            
+            aDa1  = a1.computeFieldTimesDivergence(q);
+            aDa2  = a2.computeFieldTimesDivergence(q);
+            gradT = -aDa1.fValues - aDa2.fValues;
         end
 
     end
