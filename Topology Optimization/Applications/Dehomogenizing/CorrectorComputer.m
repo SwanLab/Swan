@@ -1,8 +1,5 @@
 classdef CorrectorComputer < handle
     
-    properties (Access = public)
-        
-    end
     
     properties (Access = private)
         correctorValues
@@ -73,7 +70,7 @@ classdef CorrectorComputer < handle
             s.orientation = obj.createDiscontinousField(obj.orientation);
             c = CoherentOrientationSelector(s);
             aC = c.isOrientationCoherent();
-            obj.areVertexCoherent = aC;
+            obj.areVertexCoherent = squeeze(aC.fValues(1,:,:))';
         end                
         
         function computePathToBoundary(obj)

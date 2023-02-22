@@ -36,7 +36,11 @@ classdef CoherentOrientationSelector < handle
                 end
             end
             
-            isCoherent = isCoh;
+            a.fValues = permute(isCoh, [3 2 1]);
+            a.mesh = obj.mesh;
+            isCoherent = P1DiscontinuousFunction(a);            
+           % isCoherent = isCoh;
+
         end
         
     end

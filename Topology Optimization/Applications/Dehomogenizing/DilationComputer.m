@@ -1,4 +1,4 @@
-classdef MinimumGradFieldWithVectorInL2 < handle
+classdef DilationComputer < handle
 
     properties (Access = private)
         LHS
@@ -7,23 +7,23 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     
     properties (Access = private)
         mesh
-        meshCont
-        fGauss
-        field
-        symCond
+        orientationVector
     end
     
     methods (Access = public)
         
-        function obj = MinimumGradFieldWithVectorInL2(cParams)
+        function obj = DilationComputer(cParams)
             obj.init(cParams);
             obj.createField();
         end
 
-        function u = solve(obj)
+        function rF = compute(obj)
             obj.computeLHS();
             obj.computeRHS();
-            u = obj.solveSystem();
+            r = obj.solveSystem();
+            s.mesh = obj.mesh;
+            s.fValues = r;
+            rF = P1Function(s);            
         end
         
     end
@@ -31,23 +31,13 @@ classdef MinimumGradFieldWithVectorInL2 < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh     = cParams.mesh;
-            obj.fGauss   = cParams.fGauss;
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
+            obj.mesh               = cParams.mesh;
+            obj.orientationVector  = cParams.orientationVector;
         end
        
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
-           % M = obj.computeMassMatrix();
             I = ones(size(K,1),1);
-            %eta = 0.01;
-            %obj.LHS = K + eta*M;
             obj.LHS = [K,I;I',0];
         end
         
@@ -55,32 +45,29 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
-
+            s.field        = obj.createField();
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-        end
-        
-%         function M = computeMassMatrix(obj)
-%             s.mesh         = obj.mesh;
-%             s.globalConnec = obj.mesh.connec;
-%             s.type         = 'MassMatrix';
-%             s.dim          = obj.dim;
-%             s.quadType     = 'QUADRATIC';
-%             lhs = LHSintegrator.create(s);
-%             M = lhs.compute();
-%         end
+        end  
+
+        function f = createField(obj)
+            s.mesh               = obj.mesh;
+            s.ndimf              = 1;
+            s.interpolationOrder = obj.mesh.interpolation.order;
+            f = Field(s);
+        end        
         
         function computeRHS(obj)
+            f = obj.createField();
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
             s.fType     = 'Gauss';
-            s.fGauss    = obj.fGauss;
+            s.fGauss    = obj.computeFieldTimesDivField(q);
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.npnod     = f.dim.ndofs;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
@@ -88,18 +75,13 @@ classdef MinimumGradFieldWithVectorInL2 < handle
             obj.RHS = [rhsV;0];
         end
         
-        function f = assembleIntegrand(obj,rhsCells)
-            integrand = rhsCells;
-            ndofs  = obj.mesh.nnodes;
-            connec = obj.mesh.connec;
-            nnode  = size(connec,2);
-            f = zeros(ndofs,1);
-            for inode = 1:nnode
-                int = integrand(:,inode);
-                con = connec(:,inode);
-                f = f + accumarray(con,int,[ndofs,1],@sum,0);
-            end
-        end
+        function gradT = computeFieldTimesDivField(obj,q)
+            a1    = obj.orientationVector{1};
+            a2    = obj.orientationVector{2};            
+            aDa1  = a1.computeFieldTimesDivergence(q);
+            aDa2  = a2.computeFieldTimesDivergence(q);
+            gradT = -aDa1.fValues - aDa2.fValues;
+        end        
         
         function u = solveSystem(obj)
             a.type = 'DIRECT';

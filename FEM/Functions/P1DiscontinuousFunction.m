@@ -116,7 +116,7 @@ classdef P1DiscontinuousFunction < FeFunction
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                a = trisurf(mD.connec,x,y,z);
+                a = trisurf(mD.connec,x,y,double(z));
                 view(0,90)
     %             colorbar
                 shading interp

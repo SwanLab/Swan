@@ -5,7 +5,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         epsilons
         dilation
         dilatedOrientation
-        orientationVector
         cellCoord
         phi
         y1
@@ -20,7 +19,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         mesh
         remesher
         cellLevelSetParams
-        theta
+        orientationVector
         nCells
     end
 
@@ -28,7 +27,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
-            obj.computeOrientationVector();
             obj.computeDilation();
             obj.computeDilatedOrientationVector();
             obj.createDeformedCoord();
@@ -70,29 +68,14 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.theta              = cParams.theta;
+            obj.orientationVector  = cParams.orientationVector;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
-        end
-
-        function computeOrientationVector(obj)
-            b1(:,1) = cos(obj.theta);
-            b1(:,2) = sin(obj.theta);
-            b2(:,1) = -sin(obj.theta);
-            b2(:,2) = cos(obj.theta);
-            b(:,:,1) = b1;
-            b(:,:,2) = b2;
-            for iDim = 1:obj.mesh.ndim
-                s.fValues = b(:,:,iDim);
-                s.mesh   = obj.mesh;
-                bf = P1Function(s);
-                obj.orientationVector{iDim} = bf;
-            end
         end
 
         function computeDilation(obj)
             s.orientationVector = obj.orientationVector;
             s.mesh  = obj.mesh;
-            dC = DilationFieldComputer(s);
+            dC = DilationComputer(s);
             d  = dC.compute();
             obj.dilation = d;
         end        
