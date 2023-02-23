@@ -1,11 +1,8 @@
 classdef TotalCorrectorComputer < handle
     
-    properties (Access = public)
-        
-    end
     
     properties (Access = private)
-        ortoghonalCorrector  
+        ortoghonalCorrectors  
         ortogonalCoefficients
         totalCorrector
     end
@@ -31,15 +28,15 @@ classdef TotalCorrectorComputer < handle
             nDim  = obj.mesh.ndim;
             c = zeros(nDim,nSing);
             for iDim = 1:nDim
-                bI = obj.dilatedOrientation{iDim}.fValues;
-                oC = obj.ortoghonalCorrector;
+                bI = obj.dilatedOrientation{iDim};
+                oC = obj.ortoghonalCorrectors;
                 c(iDim,:) = obj.computeCoeffs(oC,bI);
             end
             obj.ortogonalCoefficients = c;
         end
 
         function psiT = computeTotalComputer(obj)
-            oC   = obj.ortoghonalCorrector;
+            oC   = obj.ortoghonalCorrectors;
             coef = obj.ortogonalCoefficients;
             psiT = obj.totalCorrector.fValues;
             for iDim = 1:obj.mesh.ndim
@@ -84,7 +81,6 @@ classdef TotalCorrectorComputer < handle
             s.orientation = obj.dilatedOrientation{1};
             sC = SingularitiesComputer(s);
             sCoord = sC.compute();
-            %sC.plot();
             obj.singularityCoord = sCoord;
         end        
         
@@ -93,21 +89,12 @@ classdef TotalCorrectorComputer < handle
             oC = cell(nSing,1);
             for iS = 1:nSing
                 sCoord = obj.singularityCoord(iS,:);
-                cF = obj.computeCorrectorFunction(sCoord);
-                oC{iS} = obj.computeOrthogonalCorrector(cF);
+                cF     = obj.computeCorrectorFunction(sCoord);
+                sF     = obj.createShifting(cF);
+                oC{iS} = obj.computeOrthogonalCorrector(cF,sF);
             end
-            obj.ortoghonalCorrector = oC;
-        end        
-        
-        function c = computeOrthogonalCorrector(obj,cF)
-            s.mesh          = obj.mesh;
-            s.corrector     = cF;
-            s.interpolator  = obj.interpolator;
-            o = OrthogonalCorrectorComputer(s);
-            c = o.compute();
-            % o.plot();
-        end    
-        
+            obj.ortoghonalCorrectors = oC;
+        end                
 
         function cV = computeCorrectorFunction(obj,sCoord)
             s.mesh             = obj.mesh;
@@ -115,50 +102,31 @@ classdef TotalCorrectorComputer < handle
             s.singularityCoord = sCoord;
             c = CorrectorComputer(s);
             cV = c.compute();
-            % c.plot()
-        end        
+        end            
         
-        function c = computeCoeffs(obj,psi,b)
+        function sF = createShifting(obj,cF)
+            s.mesh         = obj.mesh;
+            s.corrector    = cF;
+            s.interpolator = obj.interpolator;
+            m = ShiftingFunctionComputer(s);
+            sF = m.compute();
+        end   
 
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-
-            nSing = numel(psi);
-            for iSing = 1:nSing
-                dPsiV = psi{iSing}.computeGradient(q);
-                dPsi(:,iSing,:,:) = dPsiV.fValues;
-            end
-
-            LHS = zeros(nSing,nSing);
-            RHS = zeros(nSing,1);
-
-
-            s.fValues = b;
-            s.mesh   = obj.mesh;
-            bf = P1Function(s);
-
-
-            xGauss = q.posgp;
-            bfG    = bf.evaluate(xGauss);
-
-
-
-            dV = obj.mesh.computeDvolume(q);
-            dVt(1,:,:) = dV;
-            dVT = repmat(dVt,bf.ndimf,1,1);
-
-            for iSing = 1:nSing
-                dPsiI = permute(squeeze(dPsi(:,iSing,:,:)),[1 3 2]);
-                for jSing = 1:nSing
-                    dPsiJ = permute(squeeze(dPsi(:,jSing,:,:)),[1 3 2]);
-                    lhs   = dPsiI.*dPsiJ.*dVT;
-                    LHS(iSing,jSing) = sum(lhs(:));
-                end
-                rhs = dPsiI.*bfG.*dVT;
-                RHS(iSing) = sum(rhs(:));
-            end
-           c = LHS\RHS;
-        end        
+        function oC = computeOrthogonalCorrector(obj,cF,sF)
+            phi = cF.fValues;
+            fD  = sF.fValues;
+            phi = phi - fD;
+            s.mesh    = obj.mesh;
+            s.fValues = phi;
+            oC = P1DiscontinuousFunction(s);  
+        end          
+        
+        function coef = computeCoeffs(obj,psi,b)
+            s.orthogonalCorrector = psi;
+            s.mesh                = obj.mesh;
+            c = CorrectorCoefficientsComputer(s);
+            coef = c.compute(b);
+        end
         
     end
     
