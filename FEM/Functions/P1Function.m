@@ -146,18 +146,27 @@ classdef P1Function < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            figure()
-            for idim = 1:obj.ndimf
-                subplot(1,obj.ndimf,idim);
-                z = obj.fValues(:,idim);
-                a = trisurf(obj.mesh.connec,x,y,z);
-                view(0,90)
-    %             colorbar
-                shading interp
-                a.EdgeColor = [0 0 0];
-                title(['dim = ', num2str(idim)]);
+
+            switch obj.mesh.type    
+                case {'TRIANGLE','QUAD'}
+                    x = obj.mesh.coord(:,1);
+                    y = obj.mesh.coord(:,2);
+                    figure()
+                    for idim = 1:obj.ndimf
+                        subplot(1,obj.ndimf,idim);
+                        z = obj.fValues(:,idim);
+                        a = trisurf(obj.mesh.connec,x,y,z);
+                        view(0,90)
+                        %             colorbar
+                        shading interp
+                        a.EdgeColor = [0 0 0];
+                        title(['dim = ', num2str(idim)]);
+                    end
+                case 'LINE'
+                    x = obj.mesh.coord(:,1);
+                    y = obj.fValues;
+                    figure()
+                    plot(x,y)
             end
         end
 
