@@ -62,7 +62,7 @@ classdef ConformalMappingComputer < handle
         function computeMappings(obj)
             nDim = obj.mesh.ndim;
             for iDim = 1:nDim
-                bI    = obj.dilatedOrientation{iDim}.fValues;
+                bI    = obj.dilatedOrientation{iDim};
                 phiD  = obj.computeMapping(bI);
                 phiV(iDim,:,:) = phiD.fValues;
             end
@@ -89,13 +89,12 @@ classdef ConformalMappingComputer < handle
             obj.phi = psiTs;
         end
 
-        function phi = computeMapping(obj,fValues)
-            s.fValues = fValues';
-            s.mesh    = obj.mesh;
-            s.rhsType = 'ShapeDerivative';
+        function phi = computeMapping(obj,b)
+            s.orientation  = b;
+            s.mesh         = obj.mesh;
             s.interpolator = obj.interpolator;
-            problem   = MinimumDiscGradFieldWithVectorInL2(s);
-            phi = problem.solve();
+            mC  = MappingComputer(s);
+            phi = mC.compute();
         end
 
     end

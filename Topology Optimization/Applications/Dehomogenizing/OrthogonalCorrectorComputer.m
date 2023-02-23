@@ -39,16 +39,12 @@ classdef OrthogonalCorrectorComputer < handle
         end
 
         function createShifting(obj)
-            s.mesh     = obj.mesh;
-            s.fValue   = obj.corrector.fValues;
-            s.rhsType = 'ShapeDerivative';
+            s.mesh         = obj.mesh;
+            s.corrector    = obj.corrector;
             s.interpolator = obj.interpolator;
-            m = MinimumDiscGradFieldWithVectorInH1(s);
-            f = m.solve();
-            s.mesh = obj.mesh;
-            s.fValues(1,:,:) = f';
-            sh = P1DiscontinuousFunction(s);
-            obj.shiftingFunction = sh;
+            m = ShiftingFunctionComputer(s);
+            sF = m.compute();
+            obj.shiftingFunction = sF;
         end
 
         function createOrthogonalCorrector(obj)
