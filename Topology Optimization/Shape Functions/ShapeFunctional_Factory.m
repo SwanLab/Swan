@@ -92,9 +92,9 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 84.3; % 87     84.3
+                    u = 45; % 87     84.3
                     cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 90; % 90
+                    cParams.filterParams.femSettings.aniAlphaDeg = 0; % 90
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'anisotropicPerimeterInterior2D'

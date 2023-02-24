@@ -60,7 +60,7 @@ classdef SettingsTargetParamsManager < AbstractSettings
             obj.setIfEmpty('epsilonPerFinal',obj.epsilonInitial);
             obj.setIfEmpty('epsilonIsoInitial',h);
             obj.setIfEmpty('epsilonIsoFinal',obj.epsilonInitial);
-            obj.epsilonPerInitial = 20*h;  %    10*L
+            obj.epsilonPerInitial = 10*h;  %    10*L
             obj.epsilonPerFinal   = 10*h;  %    10h for NullSpaceCantil.
         end
         

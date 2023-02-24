@@ -1,6 +1,6 @@
 % INPUTS:
 %   General:
-filename = 'test2d_micro'; % MESH
+filename = 'instantSquare'; % MESH
 ptype = 'MICRO'; % MICRO (unit cell) or MACRO (structure)
 cost = {'chomog_alphabeta'};
 weights = [1];

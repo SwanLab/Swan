@@ -22,9 +22,13 @@ classdef ProjectedGradient < handle
             x  = x - t*g;
             x  = min(ub,max(x,lb));
         end
+% 
+%         function computeFirstStepLength(obj,g,x,f)
+%             obj.tau = f*sqrt(norm(g)/norm(x));
+%         end
 
-        function computeFirstStepLength(obj,g,x,f)
-            obj.tau = f*sqrt(norm(g)/norm(x));
+        function computeFirstStepLength(obj,tau0)
+            obj.tau = tau0;
         end
         
         function increaseStepLength(obj,f)

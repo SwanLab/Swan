@@ -17,8 +17,8 @@ classdef DualUpdater_NullSpace < handle
 
     properties (Access = public)
         t
-        aGMax
         aG
+        p
 
         lGtrialPl
         lGmaxPl
@@ -99,8 +99,10 @@ classdef DualUpdater_NullSpace < handle
             S  = (Dh'*Dh)^-1;
             g  = obj.constraint.value;
             lJ = -S*Dh'*DJ;
-            lGtrial = obj.aG*S*g/obj.t;
-            lGmax   = obj.aGMax*max(abs(DJ+lJ*Dh))/max(abs(Dh));
+%             lGtrial = obj.aG*S*g/obj.t;
+            lGtrial = obj.aG*S*g;
+%             lGmax   = obj.aGMax*max(abs(DJ+lJ*Dh))/max(abs(Dh));
+            lGmax   = obj.p*lJ;
             lG = obj.projectLambdaG(lGtrial,lGmax);
             l  = lG + lJ;
             obj.dualVariable.value = l;

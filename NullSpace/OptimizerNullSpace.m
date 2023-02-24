@@ -1,10 +1,13 @@
 classdef OptimizerNullSpace < Optimizer
+% Why for it>18 lG oscillates around negative values?
+% - Let's try Florian's merit
+% - ...
 
     properties (Access = public)
-        aGMax = 0.3
-        aG = 0.01
-        trustInterval = 0.01
-        n0 = 0
+        aG
+        eta
+        p
+        n0 = 100
     end
 
     properties (GetAccess = public, SetAccess = protected)
@@ -44,7 +47,6 @@ classdef OptimizerNullSpace < Optimizer
         globalLineSearch
         globalDual
         globalDesignVar
-        eta
     end
 
     methods (Access = public) 
@@ -100,12 +102,21 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = update(obj)
-            if obj.nIter<=obj.n0
-                obj.eta = inf;
+            if obj.nIter<=obj.n0 % if -> clean code
+                obj.p     = 0;
+                obj.aG    = 1;
+                if obj.nIter == 0
+                    obj.eta = inf;
+                else
+                    obj.eta = 0.02;
+                end
             else
-                obj.eta = obj.trustInterval;
+                obj.p     = inf;
+                obj.aG    = 1;
+                obj.eta   = 0.005;
             end
             x0 = obj.designVariable.value;
+            g0 = obj.constraint.value;
             obj.saveOldValues(x0);
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
@@ -115,22 +126,16 @@ classdef OptimizerNullSpace < Optimizer
 
             while ~obj.acceptableStep
                 obj.designVariable.update(x0);
-                obj.dualUpdater.t = obj.primalUpdater.tau;
-                obj.dualUpdater.aGMax = obj.aGMax;
+                obj.dualUpdater.t  = obj.primalUpdater.tau;
                 obj.dualUpdater.aG = obj.aG;
+                obj.dualUpdater.p  = obj.p;
                 obj.dualUpdater.update();
-
-%                 if abs(obj.dualUpdater.lGtrialPl)<obj.dualUpdater.lGmaxPl % !!
-%                     obj.eta = inf;
-%                 else
-%                     
-%                 end
-
                 obj.mOld = obj.computeMeritFunction(x0);
+%                 obj.mOld = obj.computeMeritFunctionFlorian(x0,x0);
                 obj.computeMeritGradient(DJ,Dg);
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
-                obj.checkStep(x,x0);
+                obj.checkStep(x,x0,g0);
             end
 
             obj.lGtrial(obj.nIter+1) = obj.dualUpdater.lGtrialPl;
@@ -174,9 +179,12 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x,x0)
+        function checkStep(obj,x,x0,g0)
             mNew = obj.computeMeritFunction(x);
-            if mNew < obj.mOld && norm(x-x0)/norm(x0) < obj.eta
+            g  = obj.constraint.value;
+            v0 = obj.computeVolume(g0);
+            v  = obj.computeVolume(g);
+            if mNew < obj.mOld && norm(v-v0) < obj.eta
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
@@ -193,6 +201,11 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
+        function v = computeVolume(obj,g)
+            targetVolume = obj.targetParameters.Vfrac;
+            v            = targetVolume*(1+g);
+        end
+
         function mF = computeMeritFunction(obj,x)
             obj.designVariable.update(x);
             obj.cost.computeFunctionAndGradient();
@@ -202,6 +215,23 @@ classdef OptimizerNullSpace < Optimizer
             h  = obj.constraint.value;
             mF = J+l*h;
         end
+
+%         function mF = computeMeritFunctionFlorian(obj,x,y)
+%             mF = obj.computeMeritFunction(x);
+% 
+%             obj.designVariable.update(y);
+%             obj.cost.computeFunctionAndGradient();
+%             obj.constraint.computeFunctionAndGradient();
+%             Dg = obj.constraint.gradient;
+%             S  = (Dg'*Dg)^-1;
+% 
+%             obj.designVariable.update(x);
+%             obj.cost.computeFunctionAndGradient();
+%             obj.constraint.computeFunctionAndGradient();
+%             gx = obj.constraint.value;
+%             lGx = max(-obj.p*obj.dualUpdater.lJPl,min(obj.p*obj.dualUpdater.lJPl,0.5*obj.aG*S*gx));
+%             mF = mF+gx*(lGx-obj.dualUpdater.lGPl);
+%         end
 
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
@@ -223,6 +253,11 @@ classdef OptimizerNullSpace < Optimizer
            else
                
            end
+
+%            if max(abs(obj.meritGradient)) < obj.tol && obj.checkConstraint()
+%                obj.hasConverged = true;
+%            end
+
 
         end
 
