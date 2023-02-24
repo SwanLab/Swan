@@ -52,27 +52,16 @@ classdef Dehomogenizer < handle
             obj.epsilons = L./obj.nCells;
         end            
 
-        function orientation = computeOrientationVector(obj)
-            b1(:,1) = cos(obj.theta);
-            b1(:,2) = sin(obj.theta);
-            b2(:,1) = -sin(obj.theta);
-            b2(:,2) = cos(obj.theta);
-            b(:,:,1) = b1;
-            b(:,:,2) = b2;
-            nDim = obj.mesh.ndim;
-            orientation = cell(nDim,1);
-            for iDim = 1:nDim
-                s.fValues = b(:,:,iDim);
-                s.mesh   = obj.mesh;
-                bf = P1Function(s);
-                orientation{iDim} = bf;
-            end
+        function o = computeOrientationVectors(obj)
+            s.theta = obj.theta;
+            s.mesh  = obj.mesh;
+            o = OrientationVectors(s);
         end
 
         function computeLevelSet(obj)
             s.type               = 'periodicAndOriented';
             s.mesh               = obj.mesh;
-            s.orientationVector  = obj.computeOrientationVector();
+            s.orientationVectors = obj.computeOrientationVectors();
             s.cellLevelSetParams = obj.cellLevelSetParams;
             lSet = LevelSetCreator.create(s);
             ls = lSet.computeLS(obj.epsilons);

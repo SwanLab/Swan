@@ -19,7 +19,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         mesh
         remesher
         cellLevelSetParams
-        orientationVector
+        orientationVectors
         nCells
     end
 
@@ -68,12 +68,12 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientationVector  = cParams.orientationVector;
+            obj.orientationVectors = cParams.orientationVectors;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
         end
 
         function computeDilation(obj)
-            s.orientationVector = obj.orientationVector;
+            s.orientationVector = obj.orientationVectors;
             s.mesh  = obj.mesh;
             dC = DilationComputer(s);
             d  = dC.compute();
@@ -85,7 +85,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.mesh    = obj.mesh;
             er = P1Function(s);
             for iDim = 1:obj.mesh.ndim
-                b  = obj.orientationVector{iDim};
+                b  = obj.orientationVectors.value{iDim};
                 dO = P1Function.times(er,b);
                 obj.dilatedOrientation{iDim} = dO;
             end
@@ -93,7 +93,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function createDeformedCoord(obj)
             s.mesh               = obj.mesh;
-            s.orientationVector  = obj.orientationVector;
+            s.orientationVector  = obj.orientationVectors;
             s.dilatedOrientation = obj.dilatedOrientation;
             c = ConformalMappingComputer(s);
             defCoord = c.compute();

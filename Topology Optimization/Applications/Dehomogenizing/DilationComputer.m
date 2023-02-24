@@ -76,8 +76,8 @@ classdef DilationComputer < handle
         end
         
         function gradT = computeFieldTimesDivField(obj,q)
-            a1    = obj.orientationVector{1};
-            a2    = obj.orientationVector{2};            
+            a1    = obj.orientationVector.value{1};
+            a2    = obj.orientationVector.value{2};            
             aDa1  = a1.computeFieldTimesDivergence(q);
             aDa2  = a2.computeFieldTimesDivergence(q);
             gradT = -aDa1.fValues - aDa2.fValues;
