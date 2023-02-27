@@ -20,12 +20,12 @@ classdef ShapeFunctional_Factory < handle
             end
             
             if ~isempty(cParams.designVariable.mesh)
-                if isprop(cParams.designVariable.mesh,'innerMeshOLD')
-                mOld = cParams.designVariable.mesh.innerMeshOLD;
+%                 if isprop(cParams.designVariable.mesh,'innerMeshOLD')
+                mOld = cParams.designVariable.mesh;
                 cParams.mesh = mOld;
                 cParams.filterParams.mesh          = mOld;
                 cParams.filterParams.designVarType = cParams.designVariable.type;
-                end
+%                 end
             end
             
             switch cParams.type

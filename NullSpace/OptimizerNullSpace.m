@@ -126,7 +126,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function displayIter(obj,x)
-            m = obj.designVariable.mesh.innerMeshOLD;
+            m = obj.designVariable.mesh;
             bm = m.createBoundaryMesh();
             s.backgroundMesh = m;
             s.boundaryMesh   = bm;
