@@ -4,10 +4,9 @@ classdef OptimizerNullSpace < Optimizer
 % - ...
 
     properties (Access = public)
-        aG
+        aG  = 0.1
         eta
         p
-        n0 = 100
     end
 
     properties (GetAccess = public, SetAccess = protected)
@@ -102,19 +101,21 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = update(obj)
-            if obj.nIter<=obj.n0 % if -> clean code
-                obj.p     = 0;
-                obj.aG    = 1;
-                if obj.nIter == 0
-                    obj.eta = inf;
-                else
-                    obj.eta = 0.02;
-                end
+            k = 1e1;
+            if obj.nIter==0
+                obj.p   = 0;
+                obj.eta = inf;
             else
-                obj.p     = inf;
-                obj.aG    = 1;
-                obj.eta   = 0.005;
+                deltamF = abs(obj.meritNew-obj.mOld);
+%                 projectedDeltamFnorm = min(1,k*deltamF);
+%                 obj.p   = obj.p-log(projectedDeltamFnorm);
+
+                if deltamF < 1e-3
+                    obj.p = inf;
+                end
+                obj.eta=0.001+exp(-0.05*obj.nIter-3);
             end
+
             x0 = obj.designVariable.value;
             g0 = obj.constraint.value;
             obj.saveOldValues(x0);
