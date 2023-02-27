@@ -50,22 +50,11 @@ classdef SingularitiesComputer < handle
             a1a2 = dot(a1,a2);
             a1a3 = dot(a1,a3);
             a2a3 = dot(a2,a3);
-
-            aV(1,:,1) = a2a3;
-            aV(1,:,2) = a1a3;
-            aV(1,:,3) = a1a2;
             
-            s.fValues = (aV);
-            s.mesh    = obj.mesh;
-            f = P1DiscontinuousFunction(s);
-            f.plot()
-            colorbar
-
             isS = sign(a1a2.*a1a3.*a2a3)';
             s.fValues = isS<0;
             s.mesh    = obj.mesh;
             f = P0Function(s);
-
             obj.isElemSingular = f;
         end
 

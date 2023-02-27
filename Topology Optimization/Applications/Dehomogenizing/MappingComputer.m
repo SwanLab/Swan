@@ -4,7 +4,7 @@ classdef MappingComputer < handle
     properties (Access = private)
         meshDisc
         mesh
-        orientationVector
+        interpolator
         dilatedOrientation
         field
     end
@@ -35,8 +35,8 @@ classdef MappingComputer < handle
 
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientationVector  = cParams.orientationVector;
-            obj.dilatedOrientation = cParams.dilatedOrientation;                       
+            obj.dilatedOrientation = cParams.dilatedOrientation;
+            obj.interpolator       = cParams.interpolator;
             obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
 
@@ -76,7 +76,7 @@ classdef MappingComputer < handle
         end
 
         function u = solveSystem(obj,LHS,RHS)
-            In = obj.orientationVector.interpolator;            
+            In = obj.interpolator;            
             LHS = In'*LHS*In;
             RHS = In'*RHS;            
             a.type = 'DIRECT';

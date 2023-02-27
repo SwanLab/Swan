@@ -161,6 +161,12 @@ classdef P1DiscontinuousFunction < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
+        function connec = computeDiscontinuousConnectivities(obj)
+            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
+            nodes  = 1:nNodes;
+            connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+        end              
+
     end
 
 

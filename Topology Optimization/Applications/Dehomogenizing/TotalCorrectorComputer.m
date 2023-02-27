@@ -9,10 +9,10 @@ classdef TotalCorrectorComputer < handle
     
     properties (Access = private)
        mesh 
-       dilatedOrientation
        orientationVector
-       singularityCoord
        interpolator
+       dilatedOrientation
+       singularities
        phiMapping
        isCoherent
     end
@@ -25,7 +25,7 @@ classdef TotalCorrectorComputer < handle
         end
 
         function computeCoefficients(obj)
-            nSing = size(obj.singularityCoord,1)-1;
+            nSing = size(obj.singularities,1)-1;
             nDim  = obj.mesh.ndim;
             c = zeros(nDim,nSing);
             for iDim = 1:nDim
@@ -41,7 +41,7 @@ classdef TotalCorrectorComputer < handle
             coef = obj.ortogonalCoefficients;
             psiT = obj.totalCorrector.fValues;
             for iDim = 1:obj.mesh.ndim
-                for iSing = 1:size(obj.singularityCoord)-1
+                for iSing = 1:size(obj.singularities)-1
                     ocV = oC{iSing}.fValues;
                     psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iDim,iSing)*ocV;
                 end
@@ -50,8 +50,7 @@ classdef TotalCorrectorComputer < handle
         end
 
         function tC = compute(obj)
-           obj.computeSingularities();           
-           if ~isempty(obj.singularityCoord)               
+           if ~isempty(obj.singularities)               
                obj.computeOrtoghonalCorrector();
                obj.computeCoefficients();
                obj.computeTotalComputer();
@@ -65,30 +64,27 @@ classdef TotalCorrectorComputer < handle
         
         function init(obj,cParams)
            obj.mesh               = cParams.mesh;
-           obj.orientationVector  = cParams.orientationVector;
+           obj.singularities      = cParams.singularities;
+           obj.isCoherent         = cParams.isCoherent;
+           obj.interpolator       = cParams.interpolator;
            obj.dilatedOrientation = cParams.dilatedOrientation;
            obj.phiMapping         = cParams.phiMapping;
         end
 
         function createTotalCorrector(obj)
-            s.fValues = zeros(size(obj.phiMapping.fValues));
+            nElem = obj.mesh.nelem;
+            ndif  = obj.mesh.ndim;
+            nnode = obj.mesh.nnodeElem;
+            s.fValues = zeros(ndif,nnode,nElem);
             s.mesh    = obj.mesh;
             obj.totalCorrector = P1DiscontinuousFunction(s);    
-        end               
-
-        function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.orientationVector.value{1};
-            sC = SingularitiesComputer(s);
-            sCoord = sC.compute();
-            obj.singularityCoord = sCoord;
-        end        
+        end                   
         
         function computeOrtoghonalCorrector(obj)
-            nSing = size(obj.singularityCoord,1)-1;
+            nSing = size(obj.singularities,1)-1;
             oC = cell(nSing,1);
             for iS = 1:nSing
-                sCoord = obj.singularityCoord(iS,:);
+                sCoord = obj.singularities(iS,:);
                 cF     = obj.computeCorrectorFunction(sCoord);
                 sF     = obj.createShifting(cF);
                 oC{iS} = obj.computeOrthogonalCorrector(cF,sF);
@@ -97,8 +93,8 @@ classdef TotalCorrectorComputer < handle
         end                
 
         function cV = computeCorrectorFunction(obj,sCoord)
-            s.mesh              = obj.mesh;
-            s.orientationVector = obj.orientationVector;
+            s.mesh             = obj.mesh;
+            s.isCoherent       = obj.isCoherent;
             s.singularityCoord = sCoord;
             c = CorrectorComputer(s);
             cV = c.compute();
@@ -107,7 +103,7 @@ classdef TotalCorrectorComputer < handle
         function sF = createShifting(obj,cF)
             s.mesh         = obj.mesh;
             s.corrector    = cF;
-            s.interpolator = obj.orientationVector.interpolator;
+            s.interpolator = obj.interpolator;
             m = ShiftingFunctionComputer(s);
             sF = m.compute();
         end   

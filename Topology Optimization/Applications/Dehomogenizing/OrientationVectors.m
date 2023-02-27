@@ -1,13 +1,15 @@
 classdef OrientationVectors < handle
-    
-    properties (GetAccess = public, SetAccess = private)
-        value
-        isCoherent
-        interpolator
-    end
-    
-    properties (Access = private)
-        
+
+    properties (Access = private)  
+        value        
+        isCoherent        
+        singularities
+        interpolator    
+        dilation        
+        dilatedOrientation               
+        phiMapping
+        totalCorrector
+        phi        
     end
     
     properties (Access = private)
@@ -19,9 +21,19 @@ classdef OrientationVectors < handle
         
         function obj = OrientationVectors(cParams)
             obj.init(cParams)
+        end
+
+        function dCoord = computeDeformedCoordinates(obj)
             obj.createOrientationVector();
             obj.computeIsOrientationCoherent();
-            obj.createInterpolator();
+            obj.computeInterpolator();
+            obj.computeSingularities();
+            obj.computeDilation();
+            obj.computeDilatedOrientationVector();
+            obj.computeMappings();
+            obj.computeTotalCorrector();
+            obj.computeMappingWithSingularities();
+            dCoord = obj.phi;
         end
         
     end
@@ -69,12 +81,12 @@ classdef OrientationVectors < handle
             obj.isCoherent = isCF;
         end
 
-        function sC = createInterpolator(obj)
+        function sC = computeInterpolator(obj)
             nnodeD    = obj.mesh.nnodeElem;
             nElemD    = obj.mesh.nelem;
             nnodesC   = obj.mesh.nnodes;
             connecC   = obj.mesh.connec;
-            connecD   = obj.computeDiscontinuousConnectivities();
+            connecD   = obj.isCoherent.computeDiscontinuousConnectivities();
             isCo = obj.isCoherent;
             sC = sparse(nnodeD*nElemD,nnodesC);
             for iNode = 1:nnodeD
@@ -86,11 +98,57 @@ classdef OrientationVectors < handle
             end
             obj.interpolator = sC;
         end
-       
-        function connec = computeDiscontinuousConnectivities(obj)
-            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes  = 1:nNodes;
-            connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+
+        function computeSingularities(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = obj.value{1};
+            sC = SingularitiesComputer(s);
+            sCoord = sC.compute();
+            obj.singularities = sCoord;
+        end          
+
+        function computeDilation(obj)
+            s.orientationVector = obj.value;
+            s.mesh              = obj.mesh;
+            dC = DilationComputer(s);
+            d  = dC.compute();
+            obj.dilation = d;
+        end    
+
+        function computeDilatedOrientationVector(obj)
+            s.fValues = exp(obj.dilation.fValues);
+            s.mesh    = obj.mesh;
+            er = P1Function(s);
+            for iDim = 1:obj.mesh.ndim
+                b  = obj.value{iDim};
+                dO = P1Function.times(er,b);
+                obj.dilatedOrientation{iDim} = dO;
+            end
+        end            
+
+        function computeMappings(obj)
+            s.mesh               = obj.mesh;
+            s.interpolator       = obj.interpolator;
+            s.dilatedOrientation = obj.dilatedOrientation;
+            mC   = MappingComputer(s);
+            phiM = mC.compute();
+            obj.phiMapping = phiM;
+        end
+
+        function computeTotalCorrector(obj)
+           s.mesh = obj.mesh;
+           s.isCoherent         = obj.isCoherent;
+           s.singularities      = obj.singularities;
+           s.interpolator       = obj.interpolator;
+           s.dilatedOrientation = obj.dilatedOrientation;
+           s.phiMapping   = obj.phiMapping;
+           tC = TotalCorrectorComputer(s);           
+           obj.totalCorrector = tC.compute();
+        end
+
+        function computeMappingWithSingularities(obj)
+            psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
+            obj.phi = psiTs;
         end        
         
     end
