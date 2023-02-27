@@ -71,7 +71,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function createDeformedCoord(obj)
             c  = obj.orientationVectors;
             dC = c.computeDeformedCoordinates();
-            obj.deformedCoord = dC.getFvaluesAsVector();
+            obj.deformedCoord = dC;
         end
 
         function createRemesher(obj)
@@ -85,7 +85,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function createCellCoord(obj)
             nDim = obj.mesh.ndim;
             for iDim = 1:nDim
-                x = obj.deformedCoord(:,iDim);
+                x = obj.deformedCoord.fValues(:,iDim);
                 y = obj.computeMicroCoordinate(x);
                 y = obj.periodicFunction(y);
                 yT(:,iDim) = y;
@@ -102,15 +102,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function interpolateDeformedCoord(obj)
             nDim  = obj.mesh.ndim;
-            nnode = obj.mesh.nnodeElem;
-            for iDim = 1:nDim
-                yD = obj.deformedCoord(:,iDim);
-                y(1,:,:) = reshape(yD,nnode,[]);
-                yI = obj.interpolateDiscontinousFunction(y);
+                yDI = obj.deformedCoord;%.fValues(iDim,:,:); 
+                yI  = obj.interpolateDiscontinousFunction(yDI);
                 yI = abs(yI);
-                yT(:,iDim) = yI;
-            end
-            obj.deformedCoord = yT;
+            obj.deformedCoord.fValues = yI;
         end
 
         function interpolateM1M2(obj)
@@ -157,7 +152,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             s.fValues = r;
             fC = P1Function(s);
             fD = fC.project('P1D');
-            fV = fD.fValues;
+            fV = fD;
+            %fV = fD.fValues;
         end
 
         function vq = interpolateFunction(obj,v,mesh)
@@ -180,9 +176,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function vq = interpolateDiscontinousFunction(obj,v)
-            s.mesh    = obj.mesh;
-            s.fValues = v;
-            f         = P1DiscontinuousFunction(s);
+           % s.mesh    = obj.mesh;
+            %s.fValues = v;
+           % f         = P1DiscontinuousFunction(s);
+            f = v;
             r = obj.remesher;
             f = r.interpolate(f);
             vq = f.getFvaluesAsVector();

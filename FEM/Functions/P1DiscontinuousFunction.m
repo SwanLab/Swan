@@ -89,11 +89,13 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
-            f = squeeze(obj.fValues);
-            f = f(:);
-            fEdges = obj.computeFunctionInEdges(m,f);
-            fAll  = [f;fEdges];
-            
+            f = (obj.fValues);
+            for iDim = 1:obj.ndimf
+            fI = f(iDim,:,:);
+            fI = fI(:);
+            fEdges = obj.computeFunctionInEdges(m,fI);
+            fAll(:,iDim)  = [fI;fEdges];
+            end
             s.mesh    = mFine;
             s.fValues = fAll;
             p1fun = P1Function(s);
