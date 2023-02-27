@@ -1,5 +1,6 @@
 classdef HarmonicProjector < handle
 
+    % Not used
     properties (Access = private)
         dim
         massMatrix
@@ -101,10 +102,12 @@ classdef HarmonicProjector < handle
 
 
        function computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.dim          = obj.dim;
+            s.mesh    = obj.mesh;
+            s.fValues = zeros(obj.mesh.nnodes, 1);
+            fun = P1Function(s);
+            s.mesh = obj.mesh;
+            s.fun  = fun;
+            s.type = 'StiffnessMatrixFun';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             obj.stiffnessMatrix = K;

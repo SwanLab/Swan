@@ -19,7 +19,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            % Goal: develop this function
             func = obj.fValues;
             obj.interpolation.computeShapeDeriv(xV);
             shapes = obj.interpolation.shape;
@@ -85,7 +84,7 @@ classdef P1DiscontinuousFunction < FeFunction
             s.mesh    = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
-        end         
+        end
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
@@ -139,7 +138,7 @@ classdef P1DiscontinuousFunction < FeFunction
                 view(0,90)
                 colorbar
                 title(['dim = ', num2str(idim)]);
-            end            
+            end
         end
 
         function print(obj, s)
@@ -181,6 +180,7 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,1);
+            obj.order   = 'LINEAR';
         end
 
         function createInterpolation(obj)

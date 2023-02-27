@@ -14,12 +14,11 @@
 %           - Remesher -> make it disappear from everywhere? only in mesh?
 %           ? SymmetricContMapCondition
 %               - used for connecs, coords
-%               x CoherentOrientationSelector
-%           x LevelSetPeriodicAndOriented
-%       EASY
-%           x SingularitiesFinder
 
 % (2) Delete fields
+%       - Note: ignored P2 elastic for now
+
+
 % (3) Delete Mesh_Total
 
 %% Results

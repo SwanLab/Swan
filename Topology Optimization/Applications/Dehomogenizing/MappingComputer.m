@@ -10,7 +10,6 @@ classdef MappingComputer < handle
         mesh
         orientation
         interp
-        field
         interpolator
     end
 
@@ -18,7 +17,6 @@ classdef MappingComputer < handle
 
         function obj = MappingComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function uF = compute(obj)
@@ -43,26 +41,22 @@ classdef MappingComputer < handle
             obj.interpolator = cParams.interpolator;
             obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
-        end
         
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
-            K = In'*K*In;
-            obj.LHS = K;
+            Kn = In'*K*In;
+            obj.LHS = Kn;
         end
 
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
+            % Should be a P1DiscontinuousFunction instead!
+            a.mesh = obj.meshDisc;
+            a.fValues = zeros(obj.meshDisc.nnodes, 1);
+            f = P1Function(a);
+            s.mesh = obj.meshDisc;
+            s.type = 'StiffnessMatrixFun';
+            s.fun  = f;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -77,7 +71,7 @@ classdef MappingComputer < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);

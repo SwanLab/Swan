@@ -8,13 +8,14 @@ classdef DilationComputer < handle
     properties (Access = private)
         mesh
         orientationVector
+        dilation
     end
     
     methods (Access = public)
         
         function obj = DilationComputer(cParams)
             obj.init(cParams);
-            obj.createField();
+            obj.createDilationFun();
         end
 
         function rF = compute(obj)
@@ -42,13 +43,18 @@ classdef DilationComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.createField();
+            s.fun  = obj.dilation;
+            s.mesh = obj.mesh;
+            s.type = 'StiffnessMatrixFun';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end  
+
+        function createDilationFun(obj)
+            s.mesh    = obj.mesh;
+            s.fValues = zeros(obj.mesh.nnodes, 1);
+            obj.dilation = P1Function(s);
+        end
 
         function f = createField(obj)
             s.mesh               = obj.mesh;

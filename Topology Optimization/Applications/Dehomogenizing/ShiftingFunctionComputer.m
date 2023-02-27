@@ -25,12 +25,12 @@ classdef ShiftingFunctionComputer < handle
             obj.computeLHS();
             obj.computeRHS();
             uC = obj.solveSystem();
-            In = obj.interpolator; 
+            In = obj.interpolator;
             u  = In*uC; 
             u = reshape(u,obj.mesh.nnodeElem,[]); 
             s.mesh = obj.mesh;
             s.fValues(1,:,:) = u;
-            sF = P1DiscontinuousFunction(s);                     
+            sF = P1DiscontinuousFunction(s);
         end
         
     end
@@ -41,7 +41,7 @@ classdef ShiftingFunctionComputer < handle
             obj.mesh     = cParams.mesh;
             obj.corrector    = cParams.corrector;
             obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();                        
+            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
 
         function createField(obj)
@@ -59,10 +59,18 @@ classdef ShiftingFunctionComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
+            % Should be a P1DiscontinuousFunction instead!
+            a.mesh = obj.meshDisc;
+            a.fValues = zeros(obj.meshDisc.nnodes, 1);
+            f = P1Function(a);
+
+            a.mesh = obj.meshDisc;
+            a.fValues = zeros(1, obj.meshDisc.nnodeElem, obj.mesh.nelem);
+            fD = P1DiscontinuousFunction(a);
+
+            s.mesh = obj.meshDisc;
+            s.type = 'StiffnessMatrixFun';
+            s.fun  = f;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -78,11 +86,11 @@ classdef ShiftingFunctionComputer < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();        
+            rhsV = rhs.compute();
             In = obj.interpolator;
             rhsV = In'*rhsV;
             obj.RHS = rhsV;

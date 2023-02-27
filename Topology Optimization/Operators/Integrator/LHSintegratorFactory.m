@@ -8,6 +8,10 @@ classdef LHSintegratorFactory < handle
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
                    obj = LHSintegrator_Mass(cParams);
+               case 'MassMatrixFun'
+                   % Computes the MASS MATRIX by first computing the
+                   % elemental LHS (N*N) and then assembling the result
+                   obj = LHSintegrator_MassFun(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh
@@ -16,16 +20,15 @@ classdef LHSintegratorFactory < handle
                    % Computes the STIFFNESS MATRIX by first computing the
                    % elemental LHS (dN*dN) and then assembling the result
                    obj = LHSintegrator_Stiffness(cParams);
+               case 'StiffnessMatrixFun'
+                   % Computes the STIFFNESS MATRIX by first computing the
+                   % elemental LHS (dN*dN) and then assembling the result
+                   obj = LHSintegrator_StiffnessFun(cParams);
                case 'ElasticStiffnessMatrix'
                    % Computes the ELASTIC STIFFNESS MATRIX by first
                    % computing the elemental LHS (dN*C*dN / B*C*B) and then
-                   % assembling the result
-                   obj = LHSintegrator_StiffnessElastic(cParams);
-               case 'FunElasticStiffnessMatrix'
-                   % Computes the ELASTIC STIFFNESS MATRIX by first
-                   % computing the elemental LHS (dN*C*dN / B*C*B) and then
                    % assembling the result using functions
-                   obj = LHSintegrator_StiffnessElasticFun(cParams);
+                   obj = LHSintegrator_StiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'
                    % dB'*Celas*dB
                    obj = LHSintegratorAnisotropicStiffness(cParams);
