@@ -51,7 +51,7 @@ classdef CorrectorComputer < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.areCoherent        = cParams.isCoherent;
+            obj.areCoherent        = cParams.orientationVector.isCoherent;
             obj.singularityCoord   = cParams.singularityCoord;
         end
         

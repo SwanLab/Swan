@@ -1,17 +1,12 @@
 classdef MappingComputer < handle
 
-    properties (Access = private)
-        LHS
-        RHS
-    end
 
     properties (Access = private)
         meshDisc
         mesh
-        orientation
-        interp
+        orientationVector
+        dilatedOrientation
         field
-        interpolator
     end
 
     methods (Access = public)
@@ -22,12 +17,13 @@ classdef MappingComputer < handle
         end
 
         function uF = compute(obj)
-            obj.computeLHS();
-            obj.computeRHS();
-            uC = obj.solveSystem();
-            In = obj.interpolator;
-            u  = In*uC;
-            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]);
+            LHS = obj.computeLHS();
+            for iDim = 1:obj.mesh.ndim
+                RHS = obj.computeRHS(iDim);
+                uC  = obj.solveSystem(LHS,RHS);
+                uC  = reshape(uC,obj.mesh.nnodeElem,[]);
+                uV(iDim,:,:) = uC;
+            end
             s.mesh    = obj.mesh;
             s.fValues = uV;
             uF = P1DiscontinuousFunction(s);
@@ -38,10 +34,10 @@ classdef MappingComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation  = cParams.orientation;
-            obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
+            obj.mesh               = cParams.mesh;
+            obj.orientationVector  = cParams.orientationVector;
+            obj.dilatedOrientation = cParams.dilatedOrientation;                       
+            obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
 
         function createField(obj)
@@ -51,14 +47,7 @@ classdef MappingComputer < handle
             obj.field = Field(s);
         end
         
-        function computeLHS(obj)
-            K = obj.computeStiffnessMatrix();
-            In = obj.interpolator;
-            K = In'*K*In;
-            obj.LHS = K;
-        end
-
-        function K = computeStiffnessMatrix(obj)
+        function K = computeLHS(obj)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
             s.type         = 'StiffnessMatrix';
@@ -67,10 +56,11 @@ classdef MappingComputer < handle
             K = lhs.compute();
         end
 
-        function computeRHS(obj)
+        function RHS = computeRHS(obj,iDim)
+            aI = obj.dilatedOrientation{iDim};
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);            
+            fG = aI.evaluate(q.posgp);            
             s.fType     = 'Gauss';
             s.fGauss    = fG;
             s.xGauss    = q.posgp;
@@ -82,16 +72,18 @@ classdef MappingComputer < handle
             s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute();
-            In = obj.interpolator;
-            rhsV = In'*rhsV;
-            obj.RHS = rhsV;
+            RHS = rhsV;
         end
 
-        function u = solveSystem(obj)
+        function u = solveSystem(obj,LHS,RHS)
+            In = obj.orientationVector.interpolator;            
+            LHS = In'*LHS*In;
+            RHS = In'*RHS;            
             a.type = 'DIRECT';
             s = Solver.create(a);
-            u = s.solve(obj.LHS,obj.RHS);
-            u = u(1:end);
+            u = s.solve(LHS,RHS);
+            u = In*u;            
+            u = u(1:end);            
         end
 
     end

@@ -10,6 +10,7 @@ classdef TotalCorrectorComputer < handle
     properties (Access = private)
        mesh 
        dilatedOrientation
+       orientationVector
        singularityCoord
        interpolator
        phiMapping
@@ -64,10 +65,9 @@ classdef TotalCorrectorComputer < handle
         
         function init(obj,cParams)
            obj.mesh               = cParams.mesh;
+           obj.orientationVector  = cParams.orientationVector;
            obj.dilatedOrientation = cParams.dilatedOrientation;
-           obj.interpolator       = cParams.interpolator;
            obj.phiMapping         = cParams.phiMapping;
-           obj.isCoherent         = cParams.isCoherent;
         end
 
         function createTotalCorrector(obj)
@@ -78,7 +78,7 @@ classdef TotalCorrectorComputer < handle
 
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
-            s.orientation = obj.dilatedOrientation{1};
+            s.orientation = obj.orientationVector.value{1};
             sC = SingularitiesComputer(s);
             sCoord = sC.compute();
             obj.singularityCoord = sCoord;
@@ -97,8 +97,8 @@ classdef TotalCorrectorComputer < handle
         end                
 
         function cV = computeCorrectorFunction(obj,sCoord)
-            s.mesh             = obj.mesh;
-            s.isCoherent       = obj.isCoherent;
+            s.mesh              = obj.mesh;
+            s.orientationVector = obj.orientationVector;
             s.singularityCoord = sCoord;
             c = CorrectorComputer(s);
             cV = c.compute();
@@ -107,7 +107,7 @@ classdef TotalCorrectorComputer < handle
         function sF = createShifting(obj,cF)
             s.mesh         = obj.mesh;
             s.corrector    = cF;
-            s.interpolator = obj.interpolator;
+            s.interpolator = obj.orientationVector.interpolator;
             m = ShiftingFunctionComputer(s);
             sF = m.compute();
         end   

@@ -18,7 +18,6 @@ classdef ConformalMappingComputer < handle
 
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
-            obj.createInterpolator();
         end
 
         function phiV = compute(obj)
@@ -42,32 +41,19 @@ classdef ConformalMappingComputer < handle
             obj.dilatedOrientation = cParams.dilatedOrientation;
         end
 
-        function createInterpolator(obj)
-            s.mesh              = obj.mesh;
-            s.orientationVector = obj.orientationVector;
-            s = OppositeOrientationInterpolator(s);
-            sC = s.compute();
-            obj.interpolator = sC;
-        end
-
         function computeMappings(obj)
-            nDim = obj.mesh.ndim;
-            for iDim = 1:nDim
-                bI    = obj.dilatedOrientation{iDim};
-                phiD  = obj.computeMapping(bI);
-                phiV(iDim,:,:) = phiD.fValues;
-            end
-            s.fValues = phiV;
-            s.mesh    = obj.mesh;
-            phiF = P1DiscontinuousFunction(s);
-            obj.phiMapping = phiF;
+            s.mesh              = obj.mesh;
+            s.orientationVector  = obj.orientationVector;
+            s.dilatedOrientation = obj.dilatedOrientation;           
+            mC   = MappingComputer(s);
+            phiM = mC.compute();
+            obj.phiMapping = phiM;
         end
 
         function computeTotalCorrector(obj)
            s.mesh = obj.mesh;
-           s.isCoherent         = obj.orientationVector.isCoherent;
+           s.orientationVector  = obj.orientationVector;
            s.dilatedOrientation = obj.dilatedOrientation;
-           s.interpolator = obj.interpolator;
            s.phiMapping   = obj.phiMapping;
            tC = TotalCorrectorComputer(s);           
            obj.totalCorrector = tC.compute();
@@ -78,14 +64,6 @@ classdef ConformalMappingComputer < handle
             obj.computeTotalCorrector();
             psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
             obj.phi = psiTs;
-        end
-
-        function phi = computeMapping(obj,b)
-            s.orientation  = b;
-            s.mesh         = obj.mesh;
-            s.interpolator = obj.interpolator;
-            mC  = MappingComputer(s);
-            phi = mC.compute();
         end
 
     end
