@@ -1,7 +1,12 @@
 classdef AcademicMonitoring < handle
     
-    properties (Access = public)
-        
+    properties (Access = private)
+        xVec1 = []
+        xVec2 = []
+        iterVec = []
+        cVec = []
+        cnstVec1 = []
+        cnstVec2 = []
     end
     
     properties (Access = private)
@@ -64,23 +69,34 @@ classdef AcademicMonitoring < handle
             x    = obj.designVariable.value;
             c    = obj.cost.value;
             cnst = obj.constraint.value;
-            hold on
+            obj.xVec1 = [obj.xVec1;x(1)];
+            obj.xVec2 = [obj.xVec2;x(2)];
+            obj.iterVec = [obj.iterVec;iter];
+            obj.cVec = [obj.cVec;c];
+            obj.cnstVec1 = [obj.cnstVec1;cnst(1)];
+            obj.cnstVec2 = [obj.cnstVec2;cnst(2)];
             subplot(1,3,1)
-            plot(x(1),x(2),'r')
+            hold on
+            plot(obj.xVec1,obj.xVec2,'r')
+            hold off
             xlabel('x_1')
             ylabel('x_2')
             title('Design variables')
             subplot(1,3,2)
-            plot(iter,c,'b')
+            hold on
+            plot(obj.iterVec,obj.cVec,'b')
+            hold off
             xlabel('Iteration')
             ylabel('Objective function J(x)')
             title('Objective function evolution')
             subplot(1,3,3)
-            plot(iter,cnst(1),'b',iter,cnst(2),'g')
+            hold on
+            plot(obj.iterVec,obj.cnstVec1,'b',obj.iterVec,obj.cnstVec2,'g')
+            hold off
             xlabel('Iteration')
             ylabel('Constraint violation')
             title('Constraints violation evolution')
-            legend('Constraint 1, Constraint 2')
+            legend('Constraint 1', 'Constraint 2')
             drawnow
         end
         
