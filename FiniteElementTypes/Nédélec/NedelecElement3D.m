@@ -90,8 +90,10 @@ classdef NedelecElement3D < handle
             matrixLHS = obj.assemblyLHS(tangentComponentBaseShapeFunction);
             for i = 1:length(matrixLHS)
                 vectorRHS = obj.assemblyRHS(i);
-                s = obj.computeShapeFunctionCoefficients(matrixLHS,vectorRHS);
-                obj.shapeFunctions{i} = matlabFunction([s.a1+s.b3*y-s.b2*z,s.a2+s.b1*z-s.b3*x,s.a3+s.b2*x-s.b1*y],'Vars',[x y z]);
+                coefShapeFunc = obj.computeShapeFunctionCoefficients(matrixLHS,vectorRHS);
+                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1+coefShapeFunc.b3*y-coefShapeFunc.b2*z...
+                    ,coefShapeFunc.a2+coefShapeFunc.b1*z-coefShapeFunc.b3*x,coefShapeFunc.a3+coefShapeFunc.b2*x...
+                    -coefShapeFunc.b1*y],'Vars',[x y z]);
             end
         end
         

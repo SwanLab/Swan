@@ -83,8 +83,8 @@ classdef NedelecElement2D < handle
             matrixLHS = assemblyLHS(tangentialComponentShapeFunction);
             for i = 1:obj.n_vertices
                 eq = matrixLHS == vectorRHS;
-                s = solve(eq,[a1 a2 b1]);
-                obj.shapeFunctions{i} = matlabFunction([s.a1-s.b1*y,s.a2+s.b1*x]);
+                coefShapeFunc = solve(eq,[a1 a2 b1]);
+                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1-coefShapeFunc.b1*y,coefShapeFunc.a2+coefShapeFunc.b1*x]);
             end
         end
         

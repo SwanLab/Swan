@@ -55,20 +55,20 @@ classdef CrouzeixRaviart1D < handle
         function computeShapeFunctions(obj)
             syms x
             for i = 1:obj.n_vertices
-                A = asssemblyA();
-                b = assemblyb(i);
-                s = A\b;
-                obj.shapeFunctions{i} = matlabFunction(s(1)+s(2)*x);
+                matrixLHS = asssemblyLHS();
+                vectorRHS = assemblyRHS(i);
+                coefShapeFunc = matrixLHS\vectorRHS;
+                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x);
             end
         end
         
-        function A = assemblyA(obj)
-            A = [1 obj.vertices(2); 1 obj.vertices(1) ];
+        function matrixLHS = assemblyLHS(obj)
+            matrixLHS = [1 obj.vertices(2); 1 obj.vertices(1) ];
         end
         
-        function b = assemblyb(obj,i)
-            b = zeros(obj.n_vertices,1);
-            b(i) = 1;
+        function vectorRHS = assemblyRHS(obj,i)
+            vectorRHS = zeros(obj.n_vertices,1);
+            vectorRHS(i) = 1;
         end
         
     end

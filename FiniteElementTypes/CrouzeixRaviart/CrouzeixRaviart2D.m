@@ -73,12 +73,12 @@ classdef CrouzeixRaviart2D < handle
         
         function computeShapeFunctions(obj)
             syms x y
+            matrixLHS = [1 obj.midPoints(1,:) obj.midPoints(1,:); 1 obj.midPoints(2,:) obj.midPoints(2,:); 1 obj.midPoints(3,:) obj.midPoints(3,:)];
             for i = 1:obj.n_vertices
-                A = [1 obj.midPoints(1,:) obj.midPoints(1,:); 1 obj.midPoints(2,:) obj.midPoints(2,:); 1 obj.midPoints(3,:) obj.midPoints(3,:)];
-                b = zeros(obj.n_vertices,1);
-                b(i) = 1;
-                s = b\A;
-                obj.shapeFunctions{i} = matlabFunction(s(1)+s(2)*x+s(3)*y);
+                vectorRHS = zeros(obj.n_vertices,1);
+                vectorRHS(i) = 1;
+                coefShapeFunc = vectorRHS\matrixLHS;
+                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x+coefShapeFunc(3)*y);
             end
         end
         
