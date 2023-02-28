@@ -88,7 +88,7 @@ classdef LagrangeTensorProduct2D < handle
             obj.shapeFunctions = cell(obj.k+1);
             for i = 1:(obj.k+1)
                 for j = 1:(obj.k+1)
-                    obj.shapeFunctions{i,j} = obj.lagrangePolynomials{1,i}*obj.lagrangePolynomials{2,j};
+                    obj.shapeFunctions{i,j} = matlabFunction(obj.lagrangePolynomials{1,i}*obj.lagrangePolynomials{2,j});
                 end 
             end
         end

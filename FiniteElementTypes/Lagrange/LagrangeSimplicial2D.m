@@ -26,15 +26,15 @@ classdef LagrangeSimplicial2D < handle
             
             obj.fig = figure();
             for i=1:obj.n_nodes
-                subplot(obj.k+1,obj.k+1,I)
+                subplot(obj.k+1,obj.k+1,i)
                 m.plot()
                 
-                points = evaluateFunction(m,I);
-                surf(points(:,1),points(:,2),points(:,3));
+                points = obj.evaluateFunction(m,i);
+                plot3(points(:,1),points(:,2),points(:,3),'.');
                 
                 zlim([-0.5 1])
                 xlabel('x'); ylabel('y'); zlabel('z')
-                title("I:"+string(I-1))
+                title("i:"+string(i-1))
                 grid on
             end
         end
@@ -79,7 +79,7 @@ classdef LagrangeSimplicial2D < handle
                 for j = 1:(obj.k+1)
                     if (i+j)<=(obj.k+2)
                         s = obj.computeShapeFunctionCoefficients(X,i,j);
-                        I = computeSimplexIndeces(i,j);
+                        I = obj.computeSimplexIndeces(i,j);
                         obj.shapeFunctions{I} = X*s;
                     end
                 end
@@ -97,7 +97,9 @@ classdef LagrangeSimplicial2D < handle
             for i = 1:(obj.k+1)
                 for j = 1:(obj.k+1)
                     if (i+j)<=(obj.k+2)
-                        obj.shapeFunctions{i,j} = matlabFunction(obj.shapeFunctions{i,j});
+                        I = obj.computeSimplexIndeces(i,j);
+                        f = matlabFunction(obj.shapeFunctions{I},'Vars',[x y]);
+                        obj.shapeFunctions{I} = f;
                     end
                 end
             end
@@ -108,7 +110,7 @@ classdef LagrangeSimplicial2D < handle
             for i = 1:(obj.k+1)
                 for j = 1:(obj.k+1)
                     if (i+j)<=(obj.k+2)
-                        I = computeSimplexIndeces(i,j);
+                        I = obj.computeSimplexIndeces(i,j);
                         X(I) = x^(i-1)*y^(j-1);
                     end
                 end
@@ -116,7 +118,7 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function B = assemblyShapeFunctionCoefficientsRHS(obj,i,j)
-            I = computeSimplexIndeces(i,j);
+            I = obj.computeSimplexIndeces(i,j);
             B = zeros(obj.n_nodes,1);
             B(I) = 1;
         end
@@ -127,7 +129,8 @@ classdef LagrangeSimplicial2D < handle
             for i = 1:(obj.k+1)
                 for j = 1:(obj.k+1)
                     if (i+j)<=(obj.k+2)
-                        I = computeSimplexIndeces(i,j);
+                        I = obj.computeSimplexIndeces(i,j);
+                        node(:) = obj.nodes(i,j,:);
                         A(I,:) = subs(X,[x y],node);
                     end
                 end
@@ -142,15 +145,24 @@ classdef LagrangeSimplicial2D < handle
             I = n+j;
         end
         
-        function points = obj.evaluateFunction(obj,m,I)
-            p1 = m.coord(1,:);
-            p2 = m.coord(2,:);
-            p3 = m.coord(3,:);
+        function inside_points = evaluateFunction(obj,m,I)
+            A = m.coord(1,:);
+            B = m.coord(2,:);
+            C = m.coord(3,:);
 
-            b = rand(1000,2);
-            b(:,3) = 1 - b(:,1) - b(:,2);
-            points = b(:,1) .* p1 + b(:,2) .* p2 + b(:,3) .* p3;
-            points(:,3) = obj.shapeFunctions{I}(points(:,1),points(:,2));
+            points = rand(10000,2);
+
+            points(:,1) = points(:,1) * max([B(1) C(1)]) + min([A(1) B(1) C(1)]);
+            points(:,2) = points(:,2) * max([C(2) sqrt(3)/2]) + min([A(2) B(2) C(2)]);
+
+            inside_points = [];
+            for i = 1:size(points,1)
+                P = points(i,:);
+                if P(1)+P(2) <= 1
+                    inside_points = [inside_points; P];
+                end
+            end
+            inside_points(:,3) = obj.shapeFunctions{I}(inside_points(:,1),inside_points(:,2));
         end
         
     end

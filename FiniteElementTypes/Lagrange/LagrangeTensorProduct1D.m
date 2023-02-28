@@ -79,7 +79,7 @@ classdef LagrangeTensorProduct1D < handle
                         shapeFunc = shapeFunc * (x-obj.nodes.coord(j))/(obj.nodes.coord(i)-obj.nodes.coord(j));
                     end
                 end
-                obj.shapeFunctions{i} = shapeFunc;
+                obj.shapeFunctions{i} = matlabFunction(shapeFunc);
             end
         end
         

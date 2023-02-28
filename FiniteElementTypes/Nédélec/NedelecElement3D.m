@@ -25,12 +25,11 @@ classdef NedelecElement3D < handle
             obj.fig = figure();
             nodes = [0,0,0;0,1/3,0;0,2/3,0;0,1,0;1/3,0,0;1/3,1/3,0;1/3,2/3,0;2/3,0,0;2/3,1/3,0;2/3,1/3,0;1,0,0;
                      0,0,1/3;0,1/3,1/3;0,2/3,1/3;1/3,0,1/3;1/3,1/3,1/3;2/3,0,1/3;0,0,2/3;0,1/3,2/3;1/3,0,2/3;0,0,1];
-            syms x y z
             for i=1:6
                 subplot(2,3,i)
                 hold on
                 for j = 1:length(nodes)
-                    X(j,:) = subs(obj.shapeFunctions{i},[x y z],nodes(j,:));
+                    X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2),nodes(j,3));
                 end
                 quiver3(nodes(:,1),nodes(:,2),nodes(:,3),double(X(:,1)),double(X(:,2)),double(X(:,3)))
                 plot3([0 1],[0 0],[0 0],'k')
@@ -69,56 +68,7 @@ classdef NedelecElement3D < handle
             obj.edges.measure = [sqrt(2),1,1,1,sqrt(2),sqrt(2)];
             obj.edges.j = [4,5,6,1,2,3];
         end
-        
-        function F = integral_func(~,f,A,B)
-            syms x y z a1 a2 a3 b1 b2 b3 t real
-            F = f;
-            
-            if A(1) == B(1)
-                F = subs(F,x,A(1));
-                if A(2) == B(2)
-                    F = subs(F,y,A(2));
-                    F = subs(F,z,t);
-                elseif A(3) == B(3)
-                    F = subs(F,y,t);
-                    F = subs(F,z,A(3));
-                else
-                    m = (A(3)-B(3))/(A(2)-B(2));
-                    n = A(3)-m*A(2);
-                    F = subs(F,y,t);
-                    F = subs(F,z,m*t+n);
-                end
-            elseif A(2) == B(2)
-                F = subs(F,y,A(2));
-                if A(3) == B(3)
-                    F = subs(F,z,A(3));
-                    F = subs(F,x,t);
-                elseif A(1) ~= B(1)
-                    m = (A(3)-B(3))/(A(1)-B(1));
-                    n = A(3)-m*A(1);
-                    F = subs(F,x,t);
-                    F = subs(F,z,m*t+n);
-                end
-            elseif A(3) == B(3)
-                m = (A(2)-B(2))/(A(1)-B(1));
-                n = A(2)-m*A(1);
-                F = subs(F,y,m*t+n);
-                F = subs(F,x,t);
-                F = subs(F,z,A(3));
-            else
-                m1 = (A(2)-B(2))/(A(1)-B(1));
-                n1 = A(2)-m*A(1);
-                m2 = (A(3)-B(3))/(A(1)-B(1));
-                n2 = A(3)-m*A(1);
-                F = subs(F,x,t);
-                F = subs(F,y,m1*t+n1);
-                F = subs(F,z,m2*t+n2);
-            end
-            
-            f_int = F;
-            F = int(f_int,t,0,1);
-        end
-        
+                
         function F = lineIntegral(~,func,pointA,pointB)
             syms x y z t real
             x1 = pointA(1); y1 = pointA(2); z1 = pointA(3);
@@ -151,7 +101,7 @@ classdef NedelecElement3D < handle
                 
                 eq = A == b;
                 s = solve(eq,[a1 a2 a3 b1 b2 b3]);
-                obj.shapeFunctions{i} = [s.a1+s.b3*y-s.b2*z,s.a2+s.b1*z-s.b3*x,s.a3+s.b2*x-s.b1*y];
+                obj.shapeFunctions{i} = matlabFunction([s.a1+s.b3*y-s.b2*z,s.a2+s.b1*z-s.b3*x,s.a3+s.b2*x-s.b1*y],'Vars',[x y z]);
             end
         end
         

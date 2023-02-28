@@ -24,12 +24,11 @@ classdef RaviartThomasElement2D < handle
         function plotShapeFunctions(obj)
             obj.fig = figure();
             nodes = [0,0;0,1/3;0,2/3;0,1;1/3,0;1/3,1/3;1/3,2/3;2/3,0;2/3,1/3;2/3,1/3;1,0];
-            syms x y
             for i=1:3
                 subplot(1,3,i)
                 hold on
                 for j = 1:length(nodes)
-                    X(j,:) = subs(obj.shapeFunctions{i},[x y],nodes(j,:));
+                    X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2));
                 end
                 quiver(nodes(:,1),nodes(:,2),double(X(:,1)),double(X(:,2)))
                 plot([0 1],[0 0],'k')
@@ -90,7 +89,7 @@ classdef RaviartThomasElement2D < handle
                 
                 eq = A == b;
                 s = solve(eq,[a1 a2 b1]);
-                obj.shapeFunctions{i} = [s.a1+s.b1*x,s.a2+s.b1*y];
+                obj.shapeFunctions{i} = matlabFunction([s.a1+s.b1*x,s.a2+s.b1*y]);
             end
         end
         

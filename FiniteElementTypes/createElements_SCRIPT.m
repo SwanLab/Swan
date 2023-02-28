@@ -1,26 +1,26 @@
 %% LAGRANGE SIMPLICIAL
-k = 1;
-d = 1;
+k = 2;
+d = 2;
 ls = LagrangeElement.create('SIMPLICIAL',k,d);
-ls.plotshapefunctions();
+ls.plotShapeFunctions();
 
 %% LAGRANGE TENSOR PRODUCT
 k = 1;
-d = 1;
+d = 2;
 lt = LagrangeElement.create('TENSOR PRODUCT',k,d);
-lt.plotshapefunctions();
+lt.plotShapeFunctions();
 
 %% CROUZEIX-RAVIART
 d = 2;
 cr = CrouzeixRaviartElement.create(d);
-cr.plotshapefunctions();
+cr.plotShapeFunctions();
 
 %% RAVIART-THOMAS
-d = 2;
+d = 3;
 rt = RaviartThomasElement.create(d);
-rtplotshapefunctions();
+rt.plotShapeFunctions();
 
 %% NÉDÉLEC
 d = 2;
 nd = NedelecElement.create(d);
-nd.plotshapefunctions();
+nd.plotShapeFunctions();

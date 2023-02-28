@@ -25,7 +25,6 @@ classdef CrouzeixRaviart1D < handle
         
         function plotShapeFunctions(obj)
             obj.fig = figure();
-            syms x
             hold on
             for i=1:obj.n_vertices
                 subplot(1,2,i)
@@ -56,12 +55,20 @@ classdef CrouzeixRaviart1D < handle
         function computeShapeFunctions(obj)
             syms x
             for i = 1:obj.n_vertices
-                A = [1 obj.vertices(2); 1 obj.vertices(1) ];
-                X = zeros(obj.n_vertices,1);
-                X(i) = 1;
-                s = A\X;
-                obj.shapeFunctions{i} = s(1)+s(2)*x;
+                A = asssemblyA();
+                b = assemblyb(i);
+                s = A\b;
+                obj.shapeFunctions{i} = matlabFunction(s(1)+s(2)*x);
             end
+        end
+        
+        function A = assemblyA(obj)
+            A = [1 obj.vertices(2); 1 obj.vertices(1) ];
+        end
+        
+        function b = assemblyb(obj,i)
+            b = zeros(obj.n_vertices,1);
+            b(i) = 1;
         end
         
     end

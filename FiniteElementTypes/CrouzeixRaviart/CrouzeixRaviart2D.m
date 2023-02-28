@@ -75,10 +75,10 @@ classdef CrouzeixRaviart2D < handle
             syms x y
             for i = 1:obj.n_vertices
                 A = [1 obj.midPoints(1,:) obj.midPoints(1,:); 1 obj.midPoints(2,:) obj.midPoints(2,:); 1 obj.midPoints(3,:) obj.midPoints(3,:)];
-                X = zeros(obj.n_vertices,1);
-                X(i) = 1;
-                s = X\A;
-                obj.shapeFunctions{i} = s(1)+s(2)*x+s(3)*y;
+                b = zeros(obj.n_vertices,1);
+                b(i) = 1;
+                s = b\A;
+                obj.shapeFunctions{i} = matlabFunction(s(1)+s(2)*x+s(3)*y);
             end
         end
         
