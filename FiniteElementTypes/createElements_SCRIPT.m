@@ -21,6 +21,6 @@ rt = RaviartThomasElement.create(d);
 rt.plotShapeFunctions();
 
 %% NÉDÉLEC
-d = 2;
+d = 3;
 nd = NedelecElement.create(d);
 nd.plotShapeFunctions();
