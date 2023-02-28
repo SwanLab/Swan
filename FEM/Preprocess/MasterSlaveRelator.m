@@ -75,6 +75,7 @@ classdef MasterSlaveRelator < handle
         end
 
         function computeMasterSlaveRelation3D(obj)
+            % not checked
             [masterFaceX,slaveFaceX] = obj.computeMasterSlaveNodesInFaceX3D();
             [masterFaceY,slaveFaceY] = obj.computeMasterSlaveNodesInFaceY3D();
             [masterFaceZ,slaveFaceZ] = obj.computeMasterSlaveNodesInFaceZ3D();
