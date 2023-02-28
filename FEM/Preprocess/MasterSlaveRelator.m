@@ -8,6 +8,8 @@ classdef MasterSlaveRelator < handle
         nodesInXmax
         nodesInYmin
         nodesInYmax
+        nodesInZmin
+        nodesInZmax
         cellDescriptor
         msRelation
         allNodes
@@ -24,8 +26,10 @@ classdef MasterSlaveRelator < handle
                     obj.computeMasterSlaveRelation();
                 case 3
                     obj.init3(coord);
-                    obj.get_vertices(coord);
-                    obj.get_MasterSlave(coord)
+                    obj.computeNodesInFaces3D(coord);
+                    obj.computeMasterSlaveRelation3D();
+%                     obj.get_vertices(coord);
+%                     obj.get_MasterSlave(coord)
             end
         end
         
@@ -51,12 +55,32 @@ classdef MasterSlaveRelator < handle
             obj.nodesInYmin = setdiff(cD.nodesInYmin,corners);
             obj.nodesInYmax = setdiff(cD.nodesInYmax,corners);
         end
+
+        function computeNodesInFaces3D(obj,coord)
+            cD = CellNodesDescriptor(coord);
+            corners = cD.cornerNodes;
+            obj.nodesInXmin = setdiff(cD.nodesInXmin,corners);
+            obj.nodesInXmax = setdiff(cD.nodesInXmax,corners);
+            obj.nodesInYmin = setdiff(cD.nodesInYmin,corners);
+            obj.nodesInYmax = setdiff(cD.nodesInYmax,corners);
+            obj.nodesInZmin = setdiff(cD.nodesInZmin,corners);
+            obj.nodesInZmax = setdiff(cD.nodesInZmax,corners);
+        end
         
         function computeMasterSlaveRelation(obj)
             [masterFaceX,slaveFaceX] = obj.computeMasterSlaveNodesInFaceX();
             [masterFaceY,slaveFaceY] = obj.computeMasterSlaveNodesInFaceY();
             obj.msRelation = [masterFaceX slaveFaceX;
                 masterFaceY slaveFaceY];
+        end
+
+        function computeMasterSlaveRelation3D(obj)
+            [masterFaceX,slaveFaceX] = obj.computeMasterSlaveNodesInFaceX3D();
+            [masterFaceY,slaveFaceY] = obj.computeMasterSlaveNodesInFaceY3D();
+            [masterFaceZ,slaveFaceZ] = obj.computeMasterSlaveNodesInFaceZ3D();
+            obj.msRelation = [masterFaceX slaveFaceX;
+                masterFaceY slaveFaceY;
+                masterFaceZ slaveFaceZ];
         end
         
         function [master,slave] = computeMasterSlaveNodesInFaceX(obj)
@@ -65,6 +89,23 @@ classdef MasterSlaveRelator < handle
         
         function [master,slave] = computeMasterSlaveNodesInFaceY(obj)
             [master,slave] = obj.computeMasterSlaveNode(obj.nodesInYmin,obj.nodesInYmax,obj.x);
+        end
+        
+
+
+        function [master,slave] = computeMasterSlaveNodesInFaceX3D(obj)
+            [masterY,slaveY] = obj.computeMasterSlaveNode(obj.nodesInXmin,obj.nodesInXmax,obj.y);
+            [masterZ,slaveZ] = obj.computeMasterSlaveNode(obj.nodesInXmin,obj.nodesInXmax,obj.z);
+            master = [masterY; masterZ];
+            slave  = [slaveY; slaveZ];
+        end
+        
+        function [master,slave] = computeMasterSlaveNodesInFaceY3D(obj)
+            [master,slave] = obj.computeMasterSlaveNode(obj.nodesInYmin,obj.nodesInYmax,obj.x);
+        end
+        
+        function [master,slave] = computeMasterSlaveNodesInFaceZ3D(obj)
+            [master,slave] = obj.computeMasterSlaveNode(obj.nodesInZmin,obj.nodesInZmax,obj.x);
         end
         
         function [master,slave] = computeMasterSlaveNode(obj,isLowerFace,isUpperFace,dir2compare)
@@ -87,7 +128,7 @@ classdef MasterSlaveRelator < handle
             obj.x = coord(:,1);
             obj.y = coord(:,2);
             obj.z = coord(:,3);
-%             obj.allNodes(:,1) = 1:size(obj.x,1);
+            obj.allNodes(:,1) = 1:size(obj.x,1);
         end
 
         function get_vertices(obj,coord)

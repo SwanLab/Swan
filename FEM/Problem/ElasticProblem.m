@@ -101,6 +101,7 @@ classdef ElasticProblem < handle
             obj.pdim        = cParams.dim;
             obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
+            obj.mesh        = cParams.mesh;
             if isprop(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else

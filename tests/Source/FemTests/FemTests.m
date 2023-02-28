@@ -10,6 +10,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
 %         microTests = {'test2d_micro', 'test3d_micro_cube'}
         microTests = {'test3d_micro_cube'}
+%         microTests = {'test2d_micro'}
         thermalTests = {'test_thermal'}
         hyperelasticTests = {'test_hyperelastic'}
     end
