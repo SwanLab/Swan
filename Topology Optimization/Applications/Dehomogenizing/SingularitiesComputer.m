@@ -1,10 +1,9 @@
 classdef SingularitiesComputer < handle
 
-    properties (Access = private)
-        meshDisc
+   properties (GetAccess = public, SetAccess = private)  
+        nSing
         isElemSingular
-        singularitiesCoord
-    end    
+    end      
 
     properties (Access = private)
         orientation
@@ -17,10 +16,9 @@ classdef SingularitiesComputer < handle
             obj.init(cParams)
         end
 
-        function sC = compute(obj)
+        function compute(obj)
             obj.computeSingularElements();
-            obj.computeSingluaritiesCoord();
-            sC = obj.singularitiesCoord;
+            obj.computeNumberOfSingularities();
         end
 
         function plot(obj)
@@ -58,12 +56,8 @@ classdef SingularitiesComputer < handle
             obj.isElemSingular = f;
         end
 
-        function computeSingluaritiesCoord(obj)
-            isS = obj.isElemSingular.fValues;
-            coord = obj.mesh.computeBaricenter();
-            coord = transpose(coord);
-            sC    = coord(isS,:); 
-            obj.singularitiesCoord = sC;
+        function computeNumberOfSingularities(obj)
+            obj.nSing = sum(obj.isElemSingular.fValues);
         end
 
     end

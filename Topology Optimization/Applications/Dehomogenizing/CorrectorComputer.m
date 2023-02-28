@@ -15,12 +15,13 @@ classdef CorrectorComputer < handle
         pathVertexes     
         isCellRight
         isCellLeft
+        singularCoord
     end
     
     properties (Access = private)
         mesh
         areCoherent
-        singularityCoord
+        singularElement
     end
     
     methods (Access = public)
@@ -32,6 +33,7 @@ classdef CorrectorComputer < handle
         end
                 
         function cF = compute(obj) 
+            obj.computeSingularCoord();
             obj.computePathToBoundary();
             obj.createLeftRightPathElements();
             obj.computeReferenceCells();                        
@@ -42,7 +44,7 @@ classdef CorrectorComputer < handle
                 obj.computeCorrector();
             end    
             obj.createCorrectorFunction();
-            cF = obj.correctorFunction;
+            cF = obj.correctorFunction;            
         end
         
     end
@@ -50,14 +52,22 @@ classdef CorrectorComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh               = cParams.mesh;
-            obj.areCoherent        = cParams.isCoherent;
-            obj.singularityCoord   = cParams.singularityCoord;
+            obj.mesh            = cParams.mesh;
+            obj.areCoherent     = cParams.isCoherent;
+            obj.singularElement = cParams.singularElement;
+        end
+
+        function computeSingularCoord(obj)
+            isS = obj.singularElement;
+            sC  = obj.mesh.computeBaricenter();
+            sC  = transpose(sC);
+            sC  = sC(isS,:); 
+            obj.singularCoord = sC;
         end
         
          function computePathToBoundary(obj)
             s.mesh = obj.mesh;
-            s.singularityCoord   = obj.singularityCoord;
+            s.singularityCoord   = obj.singularCoord;
             p = PathVertexesToBoundaryComputer(s);
             v = p.compute(); 
             obj.pathVertexes = v;
@@ -66,6 +76,7 @@ classdef CorrectorComputer < handle
         function createLeftRightPathElements(obj)
             s.pathVertexes = obj.pathVertexes;
             s.mesh         = obj.mesh;
+            s.singularElement = obj.singularElement;
             l = LeftRightCellsOfPathToBoundaryComputer(s);
             [cR,cL] = l.compute();   
           %  l.plot();            
@@ -129,6 +140,9 @@ classdef CorrectorComputer < handle
             itHas    = obj.itHasSameCoherence;
             itHasNot = obj.itHasNotSameCoherence;
             isU = obj.isUpperCell;
+            if rCell == obj.singularElement
+                isU(rCell) = true;
+            end
             isU(itHas)    = isU(rCell);
             isU(itHasNot) = ~isU(rCell);
             obj.isUpperCell = isU;

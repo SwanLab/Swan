@@ -103,8 +103,8 @@ classdef OrientationVectors < handle
             s.mesh        = obj.mesh;
             s.orientation = obj.value{1};
             sC = SingularitiesComputer(s);
-            sCoord = sC.compute();
-            obj.singularities = sCoord;
+            sC.compute();
+            obj.singularities = sC;%sCoord;
         end          
 
         function computeDilation(obj)

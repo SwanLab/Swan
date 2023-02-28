@@ -23,9 +23,13 @@ classdef DehomogenizingSingularitiesTest < handle
 
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
-            obj.createMesh();
-            obj.createOrientation();
-            obj.dehomogenize();
+            mSize = linspace(0.04,0.042,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            for iMesh = 1:length(mSize)
+                obj.meshSize = mSize(iMesh);
+                obj.createMesh();
+                obj.createOrientation();
+                obj.dehomogenize();
+            end
         end
 
         function passed = hasPassed(obj)
@@ -47,8 +51,8 @@ classdef DehomogenizingSingularitiesTest < handle
         function init(obj,cParams)
             obj.testName = cParams.testName;
             %obj.meshSize = 0.00521;
-            obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45
+            obj.meshSize = 0.03;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.nCells   = 30;%linspace(10,62,40); %[60 62];
             obj.xmin = 0.5;
             obj.xmax = 2.0;
             obj.ymin = 0.25;
@@ -65,7 +69,11 @@ classdef DehomogenizingSingularitiesTest < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            s.connec = delaunay(s.coord);
+              [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+              s.coord  = V(:,1:2);
+              s.connec = F;
+
+%            s.connec = delaunay(s.coord);
             m = Mesh(s);
             obj.mesh = m;
         end
@@ -81,8 +89,8 @@ classdef DehomogenizingSingularitiesTest < handle
             v(:,2) = cos(pi*(x2 + s2*x1));
             beta = atan2(v(:,2),v(:,1));
             alpha = beta/2;
-            obj.orientation(:,1) = cos(alpha);
-            obj.orientation(:,2) = sin(alpha);
+            a = [cos(alpha), sin(alpha)];
+            obj.orientation = a;
         end
 
         function plotOrientation(obj)

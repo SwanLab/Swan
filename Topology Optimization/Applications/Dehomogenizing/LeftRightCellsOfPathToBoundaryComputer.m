@@ -2,7 +2,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
     
     properties (Access = private)
         mesh
-        pathVertexes        
+        pathVertexes  
+        singularElement
     end
     
     properties (Access = private)
@@ -40,6 +41,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.pathVertexes = cParams.pathVertexes;
+            obj.singularElement = cParams.singularElement;
             obj.isCellRight = false(obj.mesh.nelem,1);            
             obj.isCellLeft  = false(obj.mesh.nelem,1);            
         end     
@@ -64,7 +66,9 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             obj.computeCellsOfVertex(v1);                        
             obj.computeFinalCellsOnRight(v2,v1);
             obj.appendCellsOnRight();
-            obj.appendCellsOnLeft();             
+            obj.appendCellsOnLeft();  
+            obj.isCellRight(obj.singularElement) = false;
+            obj.isCellLeft(obj.singularElement)  = true;
        end        
         
        function computeIntermidiateCells(obj)
@@ -113,7 +117,6 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             u      = obj.computeUnitVector(coordI,coordB);           
             alpha = obj.computeAngle(u);                        
         end        
-
         
         function computeCellsOfVertex(obj,vertex)
             c = obj.mesh.computeAllCellsOfVertex(vertex);  

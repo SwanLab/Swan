@@ -29,10 +29,13 @@ classdef Dehomogenizer < handle
         function plot(obj)
             ls = obj.levelSet;
             for i = 1:numel(ls)
+                figure(1)
+                clf
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
+                drawnow
                 %    uM.plotComponents();
-                obj.saveImage()
+             %   obj.saveImage()
             end
         end
 
