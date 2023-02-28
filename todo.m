@@ -17,6 +17,8 @@
 
 % (2) Delete fields
 %       - Note: ignored P2 elastic for now
+%       - Nvm cant lol
+%       - 
 
 
 % (3) Delete Mesh_Total
