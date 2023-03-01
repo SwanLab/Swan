@@ -4,16 +4,14 @@ classdef OptimizerNullSpace < Optimizer
 % - ...
 
     properties (Access = public)
-        aG  = 0.1
+        aJ
+        aG
         eta
-        p
     end
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'NullSpace';
 
-        lGtrial
-        lGmax
         lG
         lJ
         l
@@ -100,22 +98,25 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualVariable.value = zeros(obj.nConstr,1);
         end
 
-        function obj = update(obj)
-            k = 1e1;
+        function updateRobustnessParameters(obj)
             if obj.nIter==0
-                obj.p   = 0;
+                obj.aJ  = 0.1;
+                obj.aG  = 0;
                 obj.eta = inf;
             else
+                obj.eta = 0.01;
                 deltamF = abs(obj.meritNew-obj.mOld);
-%                 projectedDeltamFnorm = min(1,k*deltamF);
-%                 obj.p   = obj.p-log(projectedDeltamFnorm);
-
-                if deltamF < 1e-3
-                    obj.p = inf;
+                if deltamF < 1e-5 && obj.constraint.value < 0.05
+                    obj.aG  = 0.1;
+                    obj.eta = 0.001;
+                elseif deltamF < 1e-5
+                    obj.aJ = obj.aJ + 0.1;
                 end
-                obj.eta=0.001+exp(-0.05*obj.nIter-3);
             end
+        end
 
+        function obj = update(obj)
+            obj.updateRobustnessParameters();
             x0 = obj.designVariable.value;
             g0 = obj.constraint.value;
             obj.saveOldValues(x0);
@@ -129,7 +130,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.designVariable.update(x0);
                 obj.dualUpdater.t  = obj.primalUpdater.tau;
                 obj.dualUpdater.aG = obj.aG;
-                obj.dualUpdater.p  = obj.p;
+                obj.dualUpdater.aJ = obj.aJ;
                 obj.dualUpdater.update();
                 obj.mOld = obj.computeMeritFunction(x0);
 %                 obj.mOld = obj.computeMeritFunctionFlorian(x0,x0);
@@ -139,8 +140,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkStep(x,x0,g0);
             end
 
-            obj.lGtrial(obj.nIter+1) = obj.dualUpdater.lGtrialPl;
-            obj.lGmax(obj.nIter+1) = obj.dualUpdater.lGmaxPl;
             obj.lG(obj.nIter+1) = obj.dualUpdater.lGPl;
             obj.lJ(obj.nIter+1) = obj.dualUpdater.lJPl;
             obj.l(obj.nIter+1) = obj.dualUpdater.lPl;

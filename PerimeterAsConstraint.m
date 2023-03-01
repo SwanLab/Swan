@@ -42,7 +42,7 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
+plotting = true;
 printing = true;
 printing_physics = false;
 monitoring = true;
