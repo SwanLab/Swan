@@ -87,7 +87,7 @@ classdef ScalarProduct < handle
         end
     
         function K = computeStiffnessMatrix(obj)
-            s.mesh = obj.mesh;
+            s.mesh    = obj.mesh;
             s.fValues = zeros(obj.mesh.nnodes, 1);
             f = P1Function(s);
             s.type  = 'StiffnessMatrixFun';

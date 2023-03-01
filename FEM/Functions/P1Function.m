@@ -37,6 +37,12 @@ classdef P1Function < FeFunction
                 end
             end
         end
+
+        function N = computeShapeFunctions(obj, quad)
+            obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+%             obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
+        end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
             nElem = size(obj.mesh.connec,1);
@@ -143,6 +149,23 @@ classdef P1Function < FeFunction
             s.mesh    = mFine;
             s.fValues = fAll;
             fFine = P1Function(s);
+        end
+
+        function dofConnec = computeDofConnectivity(obj)
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
         end
 
         function plot(obj) % 2D domains only

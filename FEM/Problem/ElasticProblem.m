@@ -235,13 +235,13 @@ classdef ElasticProblem < handle
             z.quadrature = obj.quadrature;
             strFun = FGaussDiscontinuousFunction(z);
 
-            wtfun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            wtfun.applyVoigtNotation();
-
-            perm = permute(wtfun.fValues, [2 1 3]);
-            norm(squeeze(perm(:)-strain(:)))/norm(strain(:))
-            obj.variables.strain = perm;
-            obj.strainFun{end+1} = wtfun;
+%             wtfun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
+%             wtfun.applyVoigtNotation();
+% 
+%             perm = permute(wtfun.fValues, [2 1 3]);
+%             norm(squeeze(perm(:)-strain(:)))/norm(strain(:))
+%             obj.variables.strain = perm;
+            obj.strainFun{end+1} = strFun;
 %             strnFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
 %             strnFun.applyVoigtNotation();
 %             obj.strain = strnFun;

@@ -17,8 +17,12 @@
 
 % (2) Delete fields
 %       - Note: ignored P2 elastic for now
-%       - Nvm cant lol
-%       - 
+%       - ELASTIC STIFFNESS
+%           Pending test_anisotropy cleanup
+%       - STIFFNESS
+%           Pending: test1DLHS -> Geometry_Line to include computeInvJac
+%           a la Geometry_Volumetric
+%           Pending: diffreact dependencies
 
 
 % (3) Delete Mesh_Total

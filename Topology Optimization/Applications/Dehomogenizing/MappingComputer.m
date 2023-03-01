@@ -50,21 +50,20 @@ classdef MappingComputer < handle
         end
 
         function K = computeStiffnessMatrix(obj)
-            % Should be a P1DiscontinuousFunction instead!
-            a.mesh = obj.meshDisc;
-            a.fValues = zeros(obj.meshDisc.nnodes, 1);
-            f = P1Function(a);
-            s.mesh = obj.meshDisc;
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(1, obj.mesh.nnodeElem, obj.mesh.nelem);
+            fD = P1DiscontinuousFunction(a);
+            s.mesh = obj.mesh;
             s.type = 'StiffnessMatrixFun';
-            s.fun  = f;
-            lhs = LHSintegrator.create(s);
-            K = lhs.compute();
+            s.fun  = fD;
+            lhs2 = LHSintegrator.create(s);
+            K = lhs2.compute();
         end
 
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);            
+            fG = obj.orientation.evaluate(q.posgp);
             s.fType     = 'Gauss';
             s.fGauss    = fG;
             s.xGauss    = q.posgp;

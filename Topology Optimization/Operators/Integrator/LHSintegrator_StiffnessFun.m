@@ -72,7 +72,6 @@ classdef LHSintegrator_StiffnessFun < handle
         end
 
         function LHS = assembleMatrix(obj, lhs)
-            s.connec = obj.mesh.connec; % !!!
             s.fun    = obj.fun; % !!!
             assembler = AssemblerFun(s);
             LHS = assembler.assemble(lhs);

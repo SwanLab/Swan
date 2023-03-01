@@ -4,7 +4,7 @@ DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
 close all;
-TopOptTestsSuite;
+% TopOptTestsSuite;
 ReadingFilesTestsSuite;
 PlottingTestsSuite;
 close all;

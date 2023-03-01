@@ -9,8 +9,6 @@ classdef ShiftingFunctionComputer < handle
         meshDisc
         mesh
         corrector
-        interp
-        field
         interpolator
     end
     
@@ -18,7 +16,6 @@ classdef ShiftingFunctionComputer < handle
         
         function obj = ShiftingFunctionComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function sF = compute(obj)
@@ -43,13 +40,6 @@ classdef ShiftingFunctionComputer < handle
             obj.interpolator = cParams.interpolator;
             obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
-        end
          
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
@@ -59,18 +49,12 @@ classdef ShiftingFunctionComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            % Should be a P1DiscontinuousFunction instead!
-            a.mesh = obj.meshDisc;
-            a.fValues = zeros(obj.meshDisc.nnodes, 1);
-            f = P1Function(a);
-
-            a.mesh = obj.meshDisc;
-            a.fValues = zeros(1, obj.meshDisc.nnodeElem, obj.mesh.nelem);
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(1, obj.mesh.nnodeElem, obj.mesh.nelem);
             fD = P1DiscontinuousFunction(a);
-
-            s.mesh = obj.meshDisc;
+            s.mesh = obj.mesh;
             s.type = 'StiffnessMatrixFun';
-            s.fun  = f;
+            s.fun  = fD;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end

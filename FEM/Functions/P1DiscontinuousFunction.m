@@ -99,6 +99,25 @@ classdef P1DiscontinuousFunction < FeFunction
             fFine = p1fun.project('P1D');
         end
 
+        function dofConnec = computeDofConnectivity(obj)
+            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
+            nodes  = 1:nNodes;
+            conne = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+            nDimf  = obj.ndimf;
+            nNodeE = size(conne, 2);
+            nDofsE = nNodeE*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNodeE
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
         function fV = getFvaluesAsVector(obj)
             ndims   = size(obj.fValues, 1);
             nelem   = size(obj.mesh.connec, 1);

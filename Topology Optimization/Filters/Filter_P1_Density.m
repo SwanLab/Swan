@@ -41,12 +41,13 @@ classdef Filter_P1_Density < Filter
     methods (Access = private)
 
         function createMassMatrix(obj)
-            s.dim          = obj.fieldM.dim;
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(obj.mesh.nnodes, 1);
+            f = P1Function(a);
+            s.type         = 'MassMatrixFun';
             s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.field        = obj.fieldM;
+            s.fun          = f;
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
