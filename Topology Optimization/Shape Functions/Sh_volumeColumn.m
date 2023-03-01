@@ -7,6 +7,7 @@ classdef Sh_volumeColumn < ShapeFunctional
     properties (Access = private)
         mesh
         sectionVariables
+        maxVolume
     end
     
     methods (Access = public)
@@ -33,9 +34,9 @@ classdef Sh_volumeColumn < ShapeFunctional
     methods (Access = protected)
         
         function init(obj,cParams)
-            %obj.designVariable = cParams.designVariable;
-            obj.mesh           = cParams.mesh;
+            obj.mesh             = cParams.mesh;
             obj.sectionVariables = cParams.sectionVariables;
+            obj.maxVolume        = cParams.maxVolume;
         end
 
     end
@@ -48,8 +49,8 @@ classdef Sh_volumeColumn < ShapeFunctional
             dV = obj.mesh.computeDvolume(q);
             A = obj.sectionVariables.computeArea();
             V = dV*A;
-%             V = obj.designVariable.computeVolum();
-            fx = V-1;
+            Vmax = obj.maxVolume;
+            fx = V-Vmax;
             obj.value = fx;
         end
 

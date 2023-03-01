@@ -54,7 +54,7 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             figure(3)
             clf
             plot(pgon);
-            axis([-2 2 0 1])
+            axis([-10 10 0 20])
             grid on
             grid minor
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');

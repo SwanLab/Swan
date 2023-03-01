@@ -36,12 +36,12 @@ classdef ShFunc_FirstEigenValue < ShapeFunctional %
 
         function computeFunction(obj)
 
-            s.mesh         = obj.designVariable.mesh;
-            s.globalConnec = obj.designVariable.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.dim          = 1;
-            lhs = LHSintegrator.create(s);
-            K = lhs.compute();
+%             s.mesh         = obj.designVariable.mesh;
+%             s.globalConnec = obj.designVariable.mesh.connec;
+%             s.type         = 'StiffnessMatrix';
+%             s.dim          = 1;
+%             lhs = LHSintegrator.create(s);
+%             K = lhs.compute();
 
             gamma = obj.designVariable.getFirstEigenMode();
             f0val = -gamma;

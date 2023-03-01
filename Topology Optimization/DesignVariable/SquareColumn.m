@@ -2,6 +2,7 @@ classdef SquareColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 1
+        sectionType = 'Quadrilateral'
     end
     
     properties (Access = private)

@@ -25,7 +25,6 @@ properties (Access = protected)
     methods (Access = private)
 
         function createPolygon(obj,scl)
-            %z = obj.designVar.getColumnArea;
             z = obj.sectionVariables.computeArea;
             coord = obj.mesh.coord;
             nnod     = obj.mesh.nelem+1;
@@ -50,10 +49,11 @@ properties (Access = protected)
 
         function plotFigure(obj)
             pgon = obj.polygon;
+            yMax = max(obj.mesh.coord);
             figure(3)
             clf
             plot(pgon);
-            axis([-2 2 0 1])
+            axis([-10 10 0 yMax])
             grid on
             grid minor
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');

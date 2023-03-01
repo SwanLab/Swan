@@ -117,7 +117,7 @@ classdef Optimizer_fmincon < Optimizer
         end
 
         function obj = createOptions(obj)
-            obj.maxIter                    = 1e3;
+            %obj.maxIter                    = 1e3;
             opts                           = optimoptions("fmincon");
             opts.Algorithm                 = obj.algorithm;
             opts.BarrierParamUpdate        = "monotone";

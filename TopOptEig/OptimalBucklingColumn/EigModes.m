@@ -119,14 +119,14 @@ classdef EigModes < handle
             dI = obj.sectionVariables.computeInertiaDerivative();
             switch obj.sectionVariables.nDesVarElem
                 case 1
+                    
                     for iElem=1:nElem
                         index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;
                         dx = dI(iElem,1);
                         dW1(iElem,1)= dx*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
                         dW2(iElem,1)= dx*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
                         dW1W2(iElem,1)= dx*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
-        
-                        A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
+%                         A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
                         A1 = dW1(iElem,1);
                         A12 = dW1W2(iElem,1);
                         A21 = dW1W2(iElem,1);
@@ -136,14 +136,56 @@ classdef EigModes < handle
                         c = (A1*A2)-(A12*A21);
                         lambd1 = (-b+sqrt(b^2-4*a*c))/(2*a);
                         lambd2 = (-b-sqrt(b^2-4*a*c))/(2*a);
-                        %S = sort([lambd1,lambd2]);
-                        [U,R] = eigs(A,2,'SM');
-                        S = sort(diag(R));
+                        S = sort([lambd1,lambd2]);
+%                         [U,R] = eigs(A,2,'SM');
+%                         S = sort(diag(R));
                         dfdx(1,iElem) = -S(1);
                         dfdx(2,iElem) = -S(2);
                     end
                     dfdx(1,nElem+1) = 1;
                     dfdx(2,nElem+1) = 1;
+
+
+%                 gElemt = ndofn*((1:nElem)-1);
+%                 dx=dI;
+%                 W1B = zeros(1,ndofe,nElem);
+%                 W2B = zeros(1,ndofe,nElem);
+%                 W1BW1 = zeros(nElem,1);
+%                 W2BW2 = zeros(nElem,1);
+%                 W1BW2 = zeros(nElem,1);
+%                 for iDof = 1:ndofe
+%                     for jDof = 1:ndofe
+%                         indexJ = gElemt(:)+jDof;
+%                         Bij(:,1) = squeeze(Belem(jDof,iDof,:));
+%                         W1Bj(1,1,:) = W1(indexJ).*Bij;
+%                         W2Bj(1,1,:) = W2(indexJ).*Bij;
+%                         W1B(1,iDof,:) = W1B(1,iDof,:)+W1Bj;
+%                         W2B(1,iDof,:) = W2B(1,iDof,:)+W2Bj;
+%                     end
+%                     indexI = gElemt(:)+iDof;
+%                     W1Bt = squeeze(W1B(1,iDof,:));
+%                     W2Bt = squeeze(W2B(1,iDof,:));
+%                     W1BW1(:,1) = W1Bt.*W1(indexI)+W1BW1(:,1);
+%                     W2BW2(:,1) = W2Bt.*W2(indexI)+W2BW2(:,1);
+%                     W1BW2(:,1) = W1Bt.*W2(indexI)+W1BW2(:,1);
+%                 end
+%                 A1 = dx.*W1BW1;
+%                 A12 = dx.*W1BW2;
+%                 A21 = dx.*W1BW2;
+%                 A2 = dx.*W2BW2;
+%                 a=1;
+%                 b = -(A1 + A2);
+%                 c = (A1.*A2)-(A12.*A21);
+%                 lambd1 = (-b+sqrt(b.^2-4*a.*c))/(2*a);
+%                 lambd2 = (-b-sqrt(b.^2-4*a.*c))/(2*a);
+%                 S = sort([lambd1,lambd2],1);
+%                 dfdx(1,:) = -S(:,1);
+%                 dfdx(2,:) = -S(:,2);
+%                 dfdx(1,nElem+1) = 1;
+%                 dfdx(2,nElem+1) = 1;
+                
+        
+
                 case 2
                     for iElem=1:nElem
                         index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;

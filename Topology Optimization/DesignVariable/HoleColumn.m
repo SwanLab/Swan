@@ -2,6 +2,7 @@ classdef HoleColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 2
+        sectionType = 'Circular'
     end
     
     properties (Access = private)

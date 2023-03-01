@@ -2,6 +2,7 @@ classdef AreaColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 1
+        sectionType = 'Circular'
     end
     
     properties (Access = private)

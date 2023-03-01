@@ -2,6 +2,7 @@ classdef RectangularColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 2
+        setionType = 'Quadrilateral'
     end
     
     properties (Access = private)

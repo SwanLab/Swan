@@ -2,6 +2,7 @@ classdef RadiusColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 1
+        sectionType = 'Circular'
     end
     
     properties (Access = private)
@@ -20,12 +21,6 @@ classdef RadiusColumn < DesignVariable
             obj.type = 'RadiusColumn';
             obj.createInitialValue();
         end
-        
-%         function R = getColumnRadius(obj)
-%             x = obj.value;
-%             N = obj.mesh.nelem;
-%             R = x(1:N);
-%         end
         
         function gamma = getFirstEigenMode(obj)
            x = obj.value;

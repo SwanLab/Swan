@@ -2,6 +2,7 @@ classdef RectangularHoleColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 4
+        sectionType = 'Quadrilateral'
     end
     
     properties (Access = private)

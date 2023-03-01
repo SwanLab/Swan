@@ -36,9 +36,9 @@ classdef Plot3DBucklingColumn < handle
         
         function createBackgroundMesh(obj)
             nElem = length(obj.coordinates)-1;
-            x = linspace(0,3,20);
-            y = linspace(0,3,20);
-            z = linspace(0,4,nElem);
+            x = linspace(0,5,40);
+            y = linspace(0,5,40);
+            z = linspace(0,20,nElem);
             [X,Y,Z] = meshgrid(x,y,z);   
             coord  = [X(:) Y(:) Z(:)];
             d = delaunayTriangulation(coord);
@@ -56,7 +56,7 @@ classdef Plot3DBucklingColumn < handle
         end
 
         function createLevelSet(obj)
-            s.type = 'rectangularColumn'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
+            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
             s.desVarValue     = obj.value;
             s.coord      = obj.backgroundMesh.coord;
             s.ndim       = obj.backgroundMesh.ndim;
