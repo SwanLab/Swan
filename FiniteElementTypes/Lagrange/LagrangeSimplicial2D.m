@@ -1,11 +1,11 @@
 classdef LagrangeSimplicial2D < handle
    
     properties (Access = public)
-        k
+        polinomialOrder
         n_vertices
         vertices
         normalVectors
-        n_nodes
+        ndofs
         nodes
         barycentricCoords
         shapeFunctions
@@ -25,8 +25,8 @@ classdef LagrangeSimplicial2D < handle
             m = Mesh(s);
             
             obj.fig = figure();
-            for i=1:obj.n_nodes
-                subplot(obj.k+1,obj.k+1,i)
+            for i=1:obj.ndofs
+                subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i)
                 m.plot()
                 
                 points = obj.evaluateFunction(m,i);
@@ -45,11 +45,18 @@ classdef LagrangeSimplicial2D < handle
     methods (Access = private)
        
         function init(obj,k)
-            obj.k = k;
-            obj.computeVertices()
-            obj.computeNodes()
-            obj.computeShapeFunctions()
-            obj.storeShapeFunctions()
+            obj.polinomialOrder = k;
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeNodes();
+            obj.computeShapeFunctions();
+            obj.storeShapeFunctions();
+        end
+
+        function computeNdof(obj)
+            k = obj.polinomialOrder;                                    
+            n = nchoosek(2+k,k);            
+            obj.ndofs = n;
         end
         
         function computeVertices(obj)
@@ -58,29 +65,28 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeNodes(obj)
-            obj.n_nodes = nchoosek(2+obj.k,obj.k);
-            
-            obj.nodes = zeros(obj.k+1,obj.k+1,2);
-            for i = 1:obj.k+1
-                for j = 1:obj.k+1
-                    if (i+j)<=(obj.k+2)
-                        obj.nodes(i,j,1)=(i-1)/obj.k;
-                        obj.nodes(i,j,2)=(j-1)/obj.k;
+            k = obj.polinomialOrder;                                    
+            node = zeros(k+1,k+1,2);
+            for i = 1:k+1
+                for j = 1:k+1
+                    if (i+j)<=(k+2)
+                        node(i,j,1)=(i-1)/k;
+                        node(i,j,2)=(j-1)/k;
                     end
                 end
             end
+            obj.nodes = node;
         end
         
         function computeShapeFunctions(obj)
-            syms x y
-            X = obj.assemblyBasis();
-            
-            for i = 1:(obj.k+1)
-                for j = 1:(obj.k+1)
-                    if (i+j)<=(obj.k+2)
-                        s = obj.computeShapeFunctionCoefficients(X,i,j);
-                        I = obj.computeSimplexIndeces(i,j);
-                        obj.shapeFunctions{I} = X*s;
+            k = obj.polinomialOrder;
+            X = obj.computeBasisInMonomialForm();
+            for i = 1:(k+1)
+                for j = 1:(k+1)
+                    if (i+j)<=(k+2)
+                        a = obj.computeShapeFunctionCoefficients(X,i,j);
+                        s = obj.computeMonomialIndeces(i,j);
+                        obj.shapeFunctions{s} = X*a;
                     end
                 end
             end
@@ -88,30 +94,30 @@ classdef LagrangeSimplicial2D < handle
         
         function s = computeShapeFunctionCoefficients(obj,X,i,j)
             A = obj.assemblyShapeFunctionCoefficientsLHS(X);
-            B = obj.assemblyShapeFunctionCoefficientsRHS(i,j);
-            s = A\B;
+            b = obj.assemblyShapeFunctionCoefficientsRHS(i,j);
+            s = A\b;
         end
         
         function storeShapeFunctions(obj)
             syms x y
-            for i = 1:(obj.k+1)
-                for j = 1:(obj.k+1)
-                    if (i+j)<=(obj.k+2)
-                        I = obj.computeSimplexIndeces(i,j);
-                        f = matlabFunction(obj.shapeFunctions{I},'Vars',[x y]);
-                        obj.shapeFunctions{I} = f;
+            for i = 1:(obj.polinomialOrder+1)
+                for j = 1:(obj.polinomialOrder+1)
+                    if (i+j)<=(obj.polinomialOrder+2)
+                        s = obj.computeMonomialIndeces(i,j);
+                        f = matlabFunction(obj.shapeFunctions{s},'Vars',[x y]);
+                        obj.shapeFunctions{s} = f;
                     end
                 end
             end
         end
         
-        function X = assemblyBasis(obj)
+        function X = computeBasisInMonomialForm(obj)
             syms x y
-            for i = 1:(obj.k+1)
-                for j = 1:(obj.k+1)
-                    if (i+j)<=(obj.k+2)
-                        I = obj.computeSimplexIndeces(i,j);
-                        X(I) = x^(i-1)*y^(j-1);
+            for i = 1:(obj.polinomialOrder+1)
+                for j = 1:(obj.polinomialOrder+1)
+                    if (i+j)<=(obj.polinomialOrder+2)
+                        s = obj.computeMonomialIndeces(i,j);
+                        X(s) = x^(i-1)*y^(j-1);
                     end
                 end
             end
@@ -119,30 +125,30 @@ classdef LagrangeSimplicial2D < handle
         
         function B = assemblyShapeFunctionCoefficientsRHS(obj,i,j)
             I = obj.computeSimplexIndeces(i,j);
-            B = zeros(obj.n_nodes,1);
+            B = zeros(obj.ndofs,1);
             B(I) = 1;
         end
         
         function A = assemblyShapeFunctionCoefficientsLHS(obj,X)
             syms x y
-            A = zeros(obj.n_nodes);
-            for i = 1:(obj.k+1)
-                for j = 1:(obj.k+1)
-                    if (i+j)<=(obj.k+2)
-                        I = obj.computeSimplexIndeces(i,j);
+            A = zeros(obj.ndofs);
+            for i = 1:(obj.polinomialOrder+1)
+                for j = 1:(obj.polinomialOrder+1)
+                    if (i+j)<=(obj.polinomialOrder+2)
+                        s = obj.computeMonomialIndeces(i,j);
                         node(:) = obj.nodes(i,j,:);
-                        A(I,:) = subs(X,[x y],node);
+                        A(s,:) = subs(X,[x y],node);
                     end
                 end
             end
         end
         
-        function I = computeSimplexIndeces(obj,i,j)
-            n = -(obj.k+2);
+        function s = computeMonomialIndeces(obj,i,j)
+            n = -(obj.polinomialOrder+2);
             for m = 1:i
-                n = n + obj.k + 1 - (m-2);
+                n = n + obj.polinomialOrder + 1 - (m-2);
             end
-            I = n+j;
+            s = n+j;
         end
         
         function inside_points = evaluateFunction(obj,m,I)
