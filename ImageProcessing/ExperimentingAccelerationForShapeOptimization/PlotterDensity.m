@@ -40,7 +40,8 @@ classdef PlotterDensity < handle
         
         function createFigure(obj)
             fh = figure('units', 'pixels');
-            fh.set('Position',[4000 1500 3000 500])
+%             fh.set('Position',[4000 1500 3000 500])
+            fh.set('Position',[400 100 1300 700])
             obj.figureNumber = fh;
         end
     

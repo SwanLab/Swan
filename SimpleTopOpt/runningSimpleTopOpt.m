@@ -11,6 +11,7 @@ end
 
 
 function t = createFullTopOptProblem()
+% settings = Settings('Example1');
 settings = Settings('Example1');
 translator = SettingsTranslator();
 translator.translate(settings);

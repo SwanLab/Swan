@@ -35,7 +35,7 @@ classdef SimpleShapeOptimizationSolver < handle
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
                 obj.plotCostAndLineSearch(iter,J,t,incX);
-                iter = iter + 1;
+                iter = iter + 1
             end
         end
         
