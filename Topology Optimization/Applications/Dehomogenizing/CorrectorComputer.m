@@ -140,9 +140,9 @@ classdef CorrectorComputer < handle
             itHas    = obj.itHasSameCoherence;
             itHasNot = obj.itHasNotSameCoherence;
             isU = obj.isUpperCell;
-            if rCell == obj.singularElement
-                isU(rCell) = true;
-            end
+%            if rCell == obj.singularElement
+%                isU(rCell) = false;
+%            end
             isU(itHas)    = isU(rCell);
             isU(itHasNot) = ~isU(rCell);
             obj.isUpperCell = isU;

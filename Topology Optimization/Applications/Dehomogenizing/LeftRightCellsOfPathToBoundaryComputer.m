@@ -67,9 +67,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             obj.computeFinalCellsOnRight(v2,v1);
             obj.appendCellsOnRight();
             obj.appendCellsOnLeft();  
-            obj.isCellRight(obj.singularElement) = false;
-            obj.isCellLeft(obj.singularElement)  = true;
-       end        
+         end        
         
        function computeIntermidiateCells(obj)
            vertex = obj.pathVertexes;
