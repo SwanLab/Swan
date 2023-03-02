@@ -1,13 +1,11 @@
 classdef CorrectorComputer < handle
        
     properties (Access = private)
+        upperCellFunction
         correctorFunction
         correctorValues
-        referenceCells
-        isNotCoherent
-        isCoherent
-        itHasSameCoherence
-        itHasNotSameCoherence
+        
+
         isUpperCell
         isPositiveVertex
         isNegativeVertex
@@ -20,26 +18,24 @@ classdef CorrectorComputer < handle
     
     properties (Access = private)
         mesh
-        areCoherent
         singularElement
+        areCoherent
     end
     
     methods (Access = public)
         
         function obj = CorrectorComputer(cParams)
             obj.init(cParams);
-            obj.isUpperCell     = false(obj.mesh.nelem,1);
             obj.correctorValues = zeros(obj.mesh.nelem,obj.mesh.nnodeElem);
         end
                 
         function cF = compute(obj) 
             obj.computeSingularCoord();
             obj.computePathToBoundary();
-            obj.createLeftRightPathElements();
-            obj.computeReferenceCells();                        
+            obj.computeLeftRightPathElements();
+            obj.computeUpperLowerCell();
             for ivertex = 1:length(obj.pathVertexes)
                 obj.computeIsVertexInCell(ivertex);
-                obj.isCellAnUpperCell(ivertex);                
                 obj.computePositiveNegativeVertexes();
                 obj.computeCorrector();
             end    
@@ -70,10 +66,10 @@ classdef CorrectorComputer < handle
             s.singularityCoord   = obj.singularCoord;
             p = PathVertexesToBoundaryComputer(s);
             v = p.compute(); 
-            obj.pathVertexes = v;
+            obj.pathVertexes = v(2:end);
         end        
 
-        function createLeftRightPathElements(obj)
+        function computeLeftRightPathElements(obj)
             s.pathVertexes = obj.pathVertexes;
             s.mesh         = obj.mesh;
             s.singularElement = obj.singularElement;
@@ -82,12 +78,16 @@ classdef CorrectorComputer < handle
           %  l.plot();            
             obj.isCellLeft  = cL;
             obj.isCellRight = cR;
-        end         
-        
-        function f = restrictToCell(obj,f)
-            fV = obj.restrictToVertex(f);
-            f  =  any(fV,2);
-        end
+        end    
+
+        function computeUpperLowerCell(obj)
+            s.pathVertexes    = obj.pathVertexes;
+            s.mesh            = obj.mesh;
+            s.areCoherent     = obj.areCoherent;            
+            u = UpperLowerCellComputer(s);
+            u.compute();
+            obj.isUpperCell = u.isUpperCell;
+        end                
         
         function fE = extendToAllVertexOfCell(obj,f)
             n = obj.mesh.nnodeElem;
@@ -104,60 +104,17 @@ classdef CorrectorComputer < handle
         end
         
         function isP = computePositiveCells(obj)
-            isU = obj.isUpperCell;
+            isU = squeeze(obj.isUpperCell.fValues);
             isRightDown = obj.isCellRight & ~isU;
             isLeftUpper = obj.isCellLeft  & isU;
             isP = isRightDown | isLeftUpper;
         end
-        
-        function computeCoherentAndNotCoherentVertex(obj)
-            areC  = squeeze(obj.areCoherent.fValues(1,:,:))';
-            isCoh = obj.restrictToCell(areC);
-            isNot = obj.restrictToCell(~areC);
-            obj.isCoherent    = isCoh;
-            obj.isNotCoherent = isNot;
-        end
-        
-        function computeReferenceCells(obj)
-            s.mesh         = obj.mesh;
-            s.pathVertexes = obj.pathVertexes;
-            r = ReferenceCellOfPathComputer(s);
-            rC = r.compute();
-            obj.referenceCells = rC;
-        end
-        
+         
         function computeIsVertexInCell(obj,ivertex)
             vI = obj.pathVertexes(ivertex);
             vertexInCell  = obj.mesh.connec;
             itIs = (vertexInCell == vI);
             obj.isVertexInCell = itIs;
-        end
-        
-        function isCellAnUpperCell(obj,ivertex)
-            rCell  = obj.referenceCells(ivertex);
-            obj.computeCoherentAndNotCoherentVertex();
-            obj.hasCellSameCoherentOrientationAsReferenceCell(rCell);
-            itHas    = obj.itHasSameCoherence;
-            itHasNot = obj.itHasNotSameCoherence;
-            isU = obj.isUpperCell;
-%            if rCell == obj.singularElement
-%                isU(rCell) = false;
-%            end
-            isU(itHas)    = isU(rCell);
-            isU(itHasNot) = ~isU(rCell);
-            obj.isUpperCell = isU;
-        end
-        
-        function hasCellSameCoherentOrientationAsReferenceCell(obj,rCell)
-            if obj.isCoherent(rCell)
-                itHas    = obj.isCoherent;
-                itHasNot = obj.isNotCoherent;
-            else
-                itHas    = obj.isNotCoherent;
-                itHasNot = obj.isCoherent;
-            end
-            obj.itHasSameCoherence = itHas;
-            obj.itHasNotSameCoherence = itHasNot;
         end
         
         function computeCorrector(obj)
@@ -174,7 +131,7 @@ classdef CorrectorComputer < handle
             s.mesh    = obj.mesh;
             f = P1DiscontinuousFunction(s);
             obj.correctorFunction = f;
-        end        
+        end    
         
         function fV = restrictToVertex(obj,f)
             itIs = obj.isVertexInCell;
