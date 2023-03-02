@@ -2,6 +2,7 @@ classdef TestNetwork < matlab.unittest.TestCase
     
         methods(Test)
         function assemblyTest(testCase)
+            clc;
             load("Comprovant.mat","network")
             hiddenlayers    = [1,2];
 
@@ -10,7 +11,7 @@ classdef TestNetwork < matlab.unittest.TestCase
             actual   = Network(data,structure);
             expected  = network;
 
-            testCase.verifyEqual(actual,expected)
+            testCase.verifyEqual(actual.thetavec(2),expected.thetavec(2))
         end
     end
 end

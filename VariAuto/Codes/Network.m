@@ -21,7 +21,6 @@ classdef Network < handle
     
    properties (Access = private)
        propagator
-       plotter
    end
 
    methods (Access = public)
@@ -61,18 +60,6 @@ classdef Network < handle
            self.gradient = grad;
        end 
 
-       function plotBoundary(self,type) 
-           self.plotter.plotBoundary(type);
-       end
-
-       function plotConections(self)
-           self.plotter.plotNetworkStatus();
-       end
-
-       function plotConfusionMatrix(self)
-           self.plotter.drawConfusionMat();
-       end
-
        function updateHyperparameter(self,h)
            switch h.type
                case 'lambda'
@@ -101,7 +88,6 @@ classdef Network < handle
                self.lambda = s{6};
            end
            self.propagator = Propagator(self.data,self.lambda,self);
-           self.plotter = Plotter(self);
        end  
    end   
 
