@@ -1,5 +1,5 @@
 filename = 'Cantileverbeam_Quadrilateral_Bilinear';%CantileverArnau2 %Cantilever';%'CantileverBeam_Triangle_Linear';
-ptype = 'MACRO';
+ptype = 'MICRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'holes';%'holes';
@@ -31,7 +31,7 @@ TOL.nu_minus = 1/3;
 
 % For all tests
 plotting = false;
-printing = false;
+printing = true;
 printing_physics = false;
 monitoring = false;
 monitoring_interval = 1;
