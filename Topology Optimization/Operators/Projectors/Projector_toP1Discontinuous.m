@@ -1,14 +1,9 @@
 classdef Projector_toP1Discontinuous < Projector
 
-    properties (Access = private)
-        field
-    end
-
     methods (Access = public)
 
         function obj = Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function xProj = project(obj, x)
@@ -25,19 +20,14 @@ classdef Projector_toP1Discontinuous < Projector
 
     methods (Access = private)
 
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.field = Field(s);
-        end
-
         function LHS = computeLHS(obj)
-            s.type  = 'MassMatrix';
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(1,obj.mesh.nnodeElem, obj.mesh.nelem);
+            f = P1DiscontinuousFunction(a);
+            s.type  = 'MassMatrixFun';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.fun   = f;
+            s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end

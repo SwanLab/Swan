@@ -1,16 +1,9 @@
 classdef H1Projector_toP1 < Projector
-
-    properties (Access = private)
-        fieldMass
-        fieldStiffness
-    end
     
     methods (Access = public)
 
         function obj = H1Projector_toP1(cParams)
             obj.init(cParams);
-            obj.createFieldMass();
-            obj.createFieldStiffness();
         end
 
         function xFun = project(obj, x)
@@ -25,22 +18,6 @@ classdef H1Projector_toP1 < Projector
     end
 
     methods (Access = private)
-
-        function createFieldMass(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1; 
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            obj.fieldMass = Field(s);
-        end
-
-        function createFieldStiffness(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1; 
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'CONSTANT';
-            obj.fieldStiffness = Field(s);
-        end
         
         function LHS = computeLHS(obj)
             LHSM    = obj.computeMassMatrix();
@@ -50,9 +27,14 @@ classdef H1Projector_toP1 < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.fieldMass;
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(obj.mesh.nnodes, 1);
+            f = P1Function(a);
+
+            s.fun  = f;
+            s.mesh = obj.mesh;
+            s.type = 'MassMatrixFun';
+            s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
         end

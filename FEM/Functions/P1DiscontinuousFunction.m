@@ -35,24 +35,30 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
-         function dNdx  = computeCartesianDerivatives(obj,quad)
-            nElem = size(obj.mesh.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                end
-            end
-            dNdx = dShapeDx;
-         end   
+        function N = computeShapeFunctions(obj, quad)
+            obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+%             obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
+        end
+
+        function dNdx  = computeCartesianDerivatives(obj,quad)
+           nElem = size(obj.mesh.connec,1);
+           nNode = obj.interpolation.nnode;
+           nDime = obj.interpolation.ndime;
+           nGaus = quad.ngaus;
+           invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+           dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+           for igaus = 1:nGaus
+               dShapes = obj.interpolation.deriv(:,:,igaus);
+               for jDime = 1:nDime
+                   invJ_JI   = invJ(:,jDime,:,igaus);
+                   dShape_KJ = dShapes(jDime,:);
+                   dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                   dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+               end
+           end
+           dNdx = dShapeDx;
+        end   
 
         function gradFun = computeGradient(obj, quad)
             dNdx = obj.computeCartesianDerivatives(quad);

@@ -64,24 +64,15 @@ classdef ScalarProduct < handle
                 n = n + fs'*K*gs;
             end
         end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.field = Field(s);
-        end
         
         function M = computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
-            s.type  = 'MassMatrix';
+            a.mesh    = obj.mesh;
+            a.fValues = zeros(obj.mesh.nnodes, 1);
+            f = P1Function(a);
+            s.type  = 'MassMatrixFun';
             s.mesh  = obj.mesh;
-            s.field = f;
+            s.fun   = f;
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

@@ -1,16 +1,9 @@
 classdef H1Projector_toP1Discontinuous < Projector
 
-    properties (Access = private)
-        fieldMass
-        fieldStiffness
-    end
-
     methods (Access = public)
 
         function obj = H1Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
-            obj.createFieldMass();
-            obj.createFieldStiffness();
         end
 
         function xProj = project(obj, x)
@@ -27,24 +20,6 @@ classdef H1Projector_toP1Discontinuous < Projector
 
     methods (Access = private)
 
-        function createFieldMass(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.fieldMass = Field(s);
-        end
-
-        function createFieldStiffness(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'CONSTANT';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.fieldStiffness = Field(s);
-        end
-
         function LHS = computeLHS(obj)
             LHSM    = obj.computeMassMatrix();
             LHSK    = obj.computeStiffnessMatrix();
@@ -53,9 +28,14 @@ classdef H1Projector_toP1Discontinuous < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.fieldMass;
+            s.mesh    = obj.mesh;
+            s.fValues = zeros(1,obj.mesh.nnodeElem, obj.mesh.nelem);
+            f = P1DiscontinuousFunction(s);
+
+            s.fun  = f;
+            s.mesh = obj.mesh;
+            s.type = 'MassMatrixFun';
+            s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
         end
