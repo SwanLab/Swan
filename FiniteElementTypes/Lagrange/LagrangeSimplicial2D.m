@@ -20,21 +20,27 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function plotShapeFunctions(obj)
+            set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
+            
             s.coord = obj.vertices;
             s.connec = [1 2 3];
             m = Mesh(s);
+            for i=1:3
+                m = m.remesh(2);
+            end
             
-            obj.fig = figure();
+%             obj.fig = figure();
             for i=1:obj.ndofs
-                subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i)
-                m.plot()
+%                 subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i);
+                figure()
+                m.plot();
+                trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i}(m.coord(:,1),m.coord(:,2)));
                 
-                points = obj.evaluateFunction(m,i);
-                plot3(points(:,1),points(:,2),points(:,3),'.');
-                
-                zlim([-0.5 1])
-                xlabel('x'); ylabel('y'); zlabel('z')
-                title("i:"+string(i-1))
+                xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
+                xlabel('x'); ylabel('y'); zlabel('z');
+                title("i:"+string(i-1));
                 grid on
             end
         end
@@ -124,7 +130,7 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function B = assemblyShapeFunctionCoefficientsRHS(obj,i,j)
-            I = obj.computeSimplexIndeces(i,j);
+            I = obj.computeMonomialIndeces(i,j);
             B = zeros(obj.ndofs,1);
             B(I) = 1;
         end

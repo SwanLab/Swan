@@ -22,20 +22,26 @@ classdef CrouzeixRaviart2D < handle
         end
         
         function plotShapeFunctions(obj)
-            obj.fig = figure();
-            syms x y
-            hold on
+            set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
+            
+            s.coord = obj.vertices;
+            s.connec = [1 2 3];
+            m = Mesh(s);
+            
+%             obj.fig = figure();
             for i=1:obj.n_vertices
-                subplot(1,3,i)
-                func = piecewise(x+y<=1,obj.shapeFunctions{i});
-                fsurf(func,[0 1])
-                xlabel('x')
-                ylabel('y')
-                zlabel('z')
-                title("i:"+i)
+%                 subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i);
+                figure()
+                m.plot();
+                trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i}(m.coord(:,1),m.coord(:,2)));
+                
+                xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
+                xlabel('x'); ylabel('y'); zlabel('z');
+                title("i:"+string(i-1));
                 grid on
             end
-            hold off
         end
     
     end
@@ -78,7 +84,7 @@ classdef CrouzeixRaviart2D < handle
                 vectorRHS = zeros(obj.n_vertices,1);
                 vectorRHS(i) = 1;
                 coefShapeFunc = vectorRHS\matrixLHS;
-                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x+coefShapeFunc(3)*y);
+                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x+coefShapeFunc(3)*y,'Vars',[x y]);
             end
         end
         

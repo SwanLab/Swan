@@ -22,19 +22,31 @@ classdef LagrangeTensorProduct2D < handle
             set(groot,'defaulttextinterpreter','latex');
             set(groot,'defaultLegendInterpreter','latex');
             set(groot,'defaultAxesTickLabelInterpreter','latex');
-            obj.fig = figure();
-            hold on
+            
+            s.coord = obj.vertices;
+            s.connec = [1 2 3;
+                        2 3 4];
+            m = Mesh(s);
+            for i=1:3
+                m = m.remesh(2);
+            end
+            
+%             obj.fig = figure();
             for i = 1:obj.k+1
                 for j = 1:obj.k+1
-                    subplot(obj.k+1,obj.k+1,(obj.k+1)*(i-1)+j)
-                    fsurf(obj.shapeFunctions{i,j},[0 1 0 1])
-                    xlabel('x')
-                    ylabel('y')
-                    zlabel('z')
+%                     subplot(obj.k+1,obj.k+1,(obj.k+1)*(i-1)+j)
+                    figure()
+                    m.plot();
+                    trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i,j}(m.coord(:,1),m.coord(:,2)));
+                    
+                    xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
+                    xlabel('x'); ylabel('y'); zlabel('z');
                     title("i:"+string(i-1)+", j:"+string(j-1))
+                    grid on
                 end
             end
             hold off
+            
         end
         
     end
