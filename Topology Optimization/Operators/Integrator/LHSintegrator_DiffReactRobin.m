@@ -39,27 +39,25 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
         end
 
         function computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = f;
+            g.mesh    = obj.mesh;
+            g.fValues = zeros(size(obj.mesh.coord,1),1);
+            f = P1Function(g);
+            s.type = 'MassMatrixFun';
+            s.mesh = obj.mesh;
+            s.fun  = f;
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end
 
         function computeBoundaryMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
+            g.mesh    = obj.mesh;
+            g.fValues = zeros(size(obj.mesh.coord,1),1);
+            f = P1Function(g);
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
-            s.field = f;
+            s.fun   = f;
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.Mr  = LHS.compute();
         end

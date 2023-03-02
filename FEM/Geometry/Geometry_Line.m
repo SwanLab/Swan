@@ -20,7 +20,7 @@ classdef Geometry_Line < Geometry
         function computeGeometry(obj,quad,interpV)
             obj.initGeometry(interpV,quad);
             obj.computeDvolu();
-            obj.computeCartesianDerivatives();            
+            obj.computeCartesianDerivatives();
         end
         
     end
@@ -84,7 +84,7 @@ classdef Geometry_Line < Geometry
             nDime = obj.mesh.ndim;
             nGaus = obj.quadrature.ngaus;
             detJ = obj.computeDeterminant();
-            invDet = 1./detJ;            
+            invDet = 1./detJ;
             deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
             dShapes = deriv;
             dN = zeros(nDime,nNode,nElem,nGaus);

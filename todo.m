@@ -1,6 +1,5 @@
 %% To-do
 % DISCONTINUOUS MESH
-% (0) Check projectors
 % (1) Delete discontinuous meshes
 %       IMPOSSIBLE
 %           - P1DiscontinuousFunction
@@ -23,12 +22,13 @@
 %           Pending: test1DLHS -> Geometry_Line to include computeInvJac
 %           a la Geometry_Volumetric
 %           Pending: diffreact dependencies
+%       - MASS
+%           Pending: test1DLHS, LHSintegrator_Stokes
+%           Noteworthy: LHSintegrator_MassBoundary
 
-
-% (3) Delete Mesh_Total
 
 %% Results
-% FeFunction.project(target)
+% 
 
 %% Mid-term
 % - Use FeFunctions in TopOpt_Problem
@@ -38,8 +38,6 @@
 %% Long-term
 % - Move Input folder to a separate repository
 % - Geometry only in Mesh
-% - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
-%   removed
 % - Recuperar gid unfitted mesh photo GiDimagecapturer
 %      density --(project)--> unfittedmesh -> innermesh/photo
 

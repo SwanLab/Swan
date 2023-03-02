@@ -1,15 +1,9 @@
 classdef LHSintegrator_MassBoundary < LHSintegrator
 
-    properties (Access = private)
-        quadType
-        field
-    end
-
     methods (Access = public)
         
         function obj = LHSintegrator_MassBoundary(cParams)
             obj.mesh  = cParams.mesh;
-            obj.field = cParams.field;
         end
 
         function LHS = compute(obj)
@@ -23,16 +17,28 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
         function Mr = computeBoundaryMassMatrix(obj)
             s = obj.createIntegratorParams();
             nInt = numel(s.compositeParams);
-            ndof = s.compositeParams{1}.field.dim.ndofs;
-            LHS = sparse(ndof,ndof);
+            ndof = length(s.compositeParams{1}.bMesh.nodesInBoxFaces);
+            LHSg = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
-                sL.type     = 'MassMatrix';
-                lhs = LHSintegrator.create(sL);
-                LHSadd = lhs.compute();
-                LHS = LHS + LHSadd;
+                z.mesh     = sL.mesh;
+                z.fValues  = zeros(size(sL.mesh.coord,1),1);
+                f = P1Function(z);
+                a.type = 'MassMatrixFun';
+                a.mesh = z.mesh;
+                a.fun  = f;
+                lhs = LHSintegrator.create(a);
+                LHS = lhs.compute();
+
+                local2global(z.mesh.connec(:)) = sL.bMesh.globalConnec(:);
+                [iLoc,jLoc,vals] = find(LHS);
+                iGlob = local2global(iLoc);
+                jGlob = local2global(jLoc);
+
+                LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
+                LHSg = LHSg + LHSadd;
             end
-            Mr = LHS;
+            Mr = LHSg;
         end
         
         function cParams = createIntegratorParams(obj)
@@ -40,18 +46,8 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
             nBoxFaces = numel(bMeshes);
             for iMesh = 1:nBoxFaces
                 bMesh = bMeshes{iMesh};
-                m  = bMesh.mesh;
-                s.mesh = m;
-                s.globalConnec = bMesh.globalConnec;
-                a.ndimf = obj.field.dim.ndimf;
-                a.mesh = m;
-                a.interpolationOrder = 'LINEAR';
-                a.quadratureOrder = 'LINEAR';
-                a.scale = 'MACRO';
-                subField = Field(a);
-                subField.dim.ndofs = obj.field.dim.ndofs;
-                s.field = subField;
-                s.field.connec = bMesh.globalConnec;
+                s.bMesh = bMesh;
+                s.mesh  = bMesh.mesh;
                 cParams.compositeParams{iMesh} = s;
             end
         end

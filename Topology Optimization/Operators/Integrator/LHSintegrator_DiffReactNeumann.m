@@ -37,14 +37,13 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
         end
 
         function computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
-            s.type  = 'MassMatrix';
+            g.mesh    = obj.mesh;
+            g.fValues = zeros(size(obj.mesh.coord,1),1);
+            f = P1Function(g);
+            s.type  = 'MassMatrixFun';
             s.mesh  = obj.mesh;
-            s.field = f;
+            s.fun  = f;
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end
