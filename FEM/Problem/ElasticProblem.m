@@ -40,6 +40,7 @@ classdef ElasticProblem < handle
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
+            %obj.createPostProcessDataBase();
         end
 
         function solve(obj)

@@ -17,14 +17,14 @@ Data_prb = {
 '2D';
 'Plane_Stress';
 'ELASTIC';
-'MACRO';
+'MICRO';
 };
 
 %% Coordinates
 % Node                X                Y                Z
 
 coord = [
-   1        00000        00000 
+     1        00000        00000 
      2  1.00000e-02  1.00000e-02 
      3        00000  2.00000e-02 
      4  2.00000e-02        00000 
