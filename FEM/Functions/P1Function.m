@@ -110,7 +110,7 @@ classdef P1Function < FeFunction
         end
 
         function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);            
+            dNdx = obj.computeCartesianDerivatives(q);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
@@ -140,7 +140,7 @@ classdef P1Function < FeFunction
             s.quadrature = q;
             s.mesh       = obj.mesh;
             s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);            
+            fdivF = FGaussDiscontinuousFunction(s);
         end
 
         function fFine = refine(obj,m,mFine)
@@ -171,7 +171,7 @@ classdef P1Function < FeFunction
 
         function plot(obj) % 2D domains only
 
-            switch obj.mesh.type    
+            switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
                     x = obj.mesh.coord(:,1);
                     y = obj.mesh.coord(:,2);
@@ -203,7 +203,7 @@ classdef P1Function < FeFunction
             ay = a(:,2);
             q = quiver(x,y,ax,ay);
             q.ShowArrowHead = 'off';
-        end             
+        end
 
         function print(obj, s)
 %             s.mesh
