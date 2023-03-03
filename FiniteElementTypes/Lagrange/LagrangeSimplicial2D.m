@@ -51,12 +51,11 @@ classdef LagrangeSimplicial2D < handle
     methods (Access = private)
        
         function init(obj,k)
-            obj.polinomialOrder = k;
+            obj.polynomialOrder = k;
             obj.computeVertices();
             obj.computeNdof();
             obj.computeNodes();
             obj.computeShapeFunctions();
-            obj.storeShapeFunctions();
         end
 
         function computeNdof(obj)
@@ -87,35 +86,24 @@ classdef LagrangeSimplicial2D < handle
         function computeShapeFunctions(obj)
             k = obj.polynomialOrder;
             X = obj.computeBasisInMonomialForm();
+            shapeFuncs = cell(obj.ndofs,1);
             for i = 1:(k+1)
                 for j = 1:(k+1)
                     if (i+j)<=(k+2)
                         a = obj.computeShapeFunctionCoefficients(X,i,j);
                         s = obj.computeMonomialIndeces(i,j);
-                        obj.shapeFunctions{s} = X*a;
+                        shapeFuncs{s} = matlabFunction(X*a,'Vars',[x y]);
                     end
                 end
             end
+            
+            obj.shapeFunctions = shapeFuncs;
         end
         
         function s = computeShapeFunctionCoefficients(obj,X,i,j)
-            A = obj.assemblyShapeFunctionCoefficientsLHS(X);
-            b = obj.assemblyShapeFunctionCoefficientsRHS(i,j);
+            A = obj.applyLinearFormInMonomialForm(X);
+            b = obj.computeLinearFormValues(i,j);
             s = A\b;
-        end
-        
-        function storeShapeFunctions(obj)
-            k = obj.polynomialOrder;
-            syms x y
-            for i = 1:(k+1)
-                for j = 1:(k+1)
-                    if (i+j)<=(k+2)
-                        s = obj.computeMonomialIndeces(i,j);
-                        f = matlabFunction(obj.shapeFunctions{s},'Vars',[x y]);
-                        obj.shapeFunctions{s} = f;
-                    end
-                end
-            end
         end
         
         function X = computeBasisInMonomialForm(obj)
@@ -131,13 +119,13 @@ classdef LagrangeSimplicial2D < handle
             end
         end
         
-        function B = assemblyShapeFunctionCoefficientsRHS(obj,i,j)
+        function B = computeLinearFormValues(obj,i,j)
             I = obj.computeMonomialIndeces(i,j);
             B = zeros(obj.ndofs,1);
             B(I) = 1;
         end
         
-        function A = assemblyShapeFunctionCoefficientsLHS(obj,X)
+        function A = applyLinearFormInMonomialForm(obj,X)
             k = obj.polynomialOrder;
             syms x y
             A = zeros(obj.ndofs);
@@ -158,27 +146,8 @@ classdef LagrangeSimplicial2D < handle
             for m = 1:i
                 n = n + k + 1 - (m-2);
             end
+            
             s = n+j;
-        end
-        
-        function inside_points = evaluateFunction(obj,m,I)
-            A = m.coord(1,:);
-            B = m.coord(2,:);
-            C = m.coord(3,:);
-
-            points = rand(10000,2);
-
-            points(:,1) = points(:,1) * max([B(1) C(1)]) + min([A(1) B(1) C(1)]);
-            points(:,2) = points(:,2) * max([C(2) sqrt(3)/2]) + min([A(2) B(2) C(2)]);
-
-            inside_points = [];
-            for i = 1:size(points,1)
-                P = points(i,:);
-                if P(1)+P(2) <= 1
-                    inside_points = [inside_points; P];
-                end
-            end
-            inside_points(:,3) = obj.shapeFunctions{I}(inside_points(:,1),inside_points(:,2));
         end
         
     end

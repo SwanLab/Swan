@@ -4,7 +4,7 @@ classdef LagrangeTensorProduct2D < handle
         polynomialOrder
         n_vertices
         vertices
-        n_nodes
+        ndofs
         nodes
         lagrangePolynomials
         shapeFunctions
@@ -14,8 +14,8 @@ classdef LagrangeTensorProduct2D < handle
     
     methods (Access = public)
     
-        function obj = LagrangeTensorProduct2D(k)
-            obj.init(k);
+        function obj = LagrangeTensorProduct2D(polynomialOrder)
+            obj.init(polynomialOrder);
         end
         
         function plotShapeFunctions(obj)
@@ -30,7 +30,6 @@ classdef LagrangeTensorProduct2D < handle
             for i=1:3
                 m = m.remesh(2);
             end
-            
 %             obj.fig = figure();
             for i = 1:k+1
                 for j = 1:k+1
@@ -38,14 +37,12 @@ classdef LagrangeTensorProduct2D < handle
                     figure()
                     m.plot();
                     trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i,j}(m.coord(:,1),m.coord(:,2)));
-                    
                     xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
                     xlabel('x'); ylabel('y'); zlabel('z');
                     title("i:"+string(i-1)+", j:"+string(j-1))
                     grid on
                 end
             end
-            hold off
             
         end
         
@@ -56,10 +53,11 @@ classdef LagrangeTensorProduct2D < handle
        
         function init(obj,polynomialOrder)
             obj.polynomialOrder = polynomialOrder;
-            obj.computeVertices()
-            obj.computeNodes()
-            obj.computeLagrangePolinomyals()
-            obj.computeShapeFunctions()
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeNodes();
+            obj.computeLagrangePolinomyals();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
@@ -67,23 +65,26 @@ classdef LagrangeTensorProduct2D < handle
             obj.vertices = [0,0;0,1;1,0;1,1];
         end
         
+        function computeNdof(obj)
+            obj.ndofs = (k+1)^2;
+        end
+        
         function computeNodes(obj)
             k = obj.polynomialOrder;
-            obj.n_nodes = (k+1)^2;
-            
-            obj.nodes = zeros(k+1,k+1,2);
+            node = zeros(k+1,k+1,2);
             for i = 1:k+1
                 for j = 1:k+1
-                    obj.nodes(i,j,1)=(i-1)/k;
-                    obj.nodes(i,j,2)=(j-1)/k;
+                    node(i,j,1)=(i-1)/k;
+                    node(i,j,2)=(j-1)/k;
                 end
             end
+            obj.nodes = node;
         end
         
         function computeLagrangePolinomyals(obj)
             k = obj.polynomialOrder;
             syms x y
-            obj.lagrangePolynomials = cell(2,k+1);
+            lagrangePolynomial = cell(2,k+1);
             for i = 1:(k+1)
                 func1 = 1;
                 func2 = 1;
@@ -93,18 +94,21 @@ classdef LagrangeTensorProduct2D < handle
                         func2 = func2*(y-obj.nodes(i,j,2))/(obj.nodes(i,i,2)-obj.nodes(i,j,2));
                     end
                 end
-                obj.lagrangePolynomials{1,i} = func1;
-                obj.lagrangePolynomials{2,i} = func2;
+                lagrangePolynomial{1,i} = func1;
+                lagrangePolynomial{2,i} = func2;
             end
+            obj.lagrangePolynomials = lagrangePolynomial;
         end
         
         function computeShapeFunctions(obj)
-            obj.shapeFunctions = cell(obj.k+1);
+            k = obj.polynomialOrder;
+            shapeFunc = cell(k+1);
             for i = 1:(k+1)
                 for j = 1:(k+1)
-                    obj.shapeFunctions{i,j} = matlabFunction(obj.lagrangePolynomials{1,i}*obj.lagrangePolynomials{2,j});
+                    shapeFunc{i,j} = matlabFunction(obj.lagrangePolynomials{1,i}*obj.lagrangePolynomials{2,j});
                 end 
             end
+            obj.shapeFunctions = cell(k+1);
         end
         
     end

@@ -9,7 +9,7 @@ classdef LagrangeTensorProduct1D < handle
         n_vertices
         vertices
         normalVectors
-        n_nodes
+        ndofs
         nodes
         barycentricCoords
         shapeFunctions
@@ -29,17 +29,15 @@ classdef LagrangeTensorProduct1D < handle
             set(groot,'defaultAxesTickLabelInterpreter','latex');
             
             k = obj.polynomialOrder;
-            obj.fig = figure();
-            hold on
+%             obj.fig = figure();
             for i = 1:k+1
-                subplot(1,k+1,i)
-                fplot(obj.shapeFunctions{i},[0 1])
-                xlabel('x')
-                ylabel('y')
-                title("$i="+string(i-1)+"$")
+%                 subplot(1,k+1,i)
+                figure();
+                fplot(obj.shapeFunctions{i},[0 1]);
+                xlabel('x'); ylabel('y');
+                title("$i="+string(i-1)+"$");
                 grid on
             end
-            hold off
         end
         
     end
@@ -50,7 +48,7 @@ classdef LagrangeTensorProduct1D < handle
         function init(obj,polynomialOrder)
             obj.polynomialOrder = polynomialOrder;
             obj.computeVertices()
-            obj.computeNormalVectors()
+            obj.computeNdof()
             obj.computeNodes()
             obj.computeShapeFunctions()
         end
@@ -60,30 +58,37 @@ classdef LagrangeTensorProduct1D < handle
             obj.vertices = [0,1];
         end
         
-        function computeNormalVectors(obj)
-            obj.normalVectors = [1,0];
+        function computeNdof(obj)
+            k = obj.polynomialOrder;
+            obj.ndofs = nchoosek(1+k,k);
         end
         
         function computeNodes(obj)
             k = obj.polynomialOrder;
-            obj.n_nodes = nchoosek(1+k,k);
-            for i=1:obj.n_nodes
-                obj.nodes.coord(i) = (i-1)/k;
-                obj.nodes.index(i) = i;
+            ndof = obj.ndofs;
+            coord = zeros(ndof,1); index = zeros(ndof,1);
+            for i=1:ndof
+                coord(i) = (i-1)/k;
+                index(i) = i;
             end
+            obj.nodes.coord = coord;
+            obj.nodes.index = index;
         end
 
         function computeShapeFunctions(obj)
-            for i = 1:obj.n_nodes
-                syms x
-                shapeFunc = 1;
-                for j = 1:obj.n_nodes
+            ndof = obj.ndofs;
+            syms x
+            shapeFunc = cell(ndof);
+            for i = 1:ndof
+                shapeFunc{i} = 1;
+                for j = 1:ndof
                     if i~=j
-                        shapeFunc = shapeFunc * (x-obj.nodes.coord(j))/(obj.nodes.coord(i)-obj.nodes.coord(j));
+                        shapeFunc{i} = shapeFunc{i} * (x-obj.nodes.coord(j))/(obj.nodes.coord(i)-obj.nodes.coord(j));
                     end
                 end
-                obj.shapeFunctions{i} = matlabFunction(shapeFunc);
+                shapeFunc{i} = matlabFunction(shapeFunc{i});
             end
+            obj.shapeFunctions = shapeFunc;
         end
         
     end

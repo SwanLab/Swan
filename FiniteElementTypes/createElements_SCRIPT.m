@@ -6,7 +6,7 @@ ls.plotShapeFunctions();
 
 %% LAGRANGE TENSOR PRODUCT
 k = 2;
-d = 2;
+d = 1;
 lt = LagrangeElement.create('TENSOR PRODUCT',k,d);
 lt.plotShapeFunctions();
 
