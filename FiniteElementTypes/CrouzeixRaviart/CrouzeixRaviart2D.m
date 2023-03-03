@@ -37,7 +37,7 @@ classdef CrouzeixRaviart2D < handle
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i}(m.coord(:,1),m.coord(:,2)));
                 
-                xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
+                xlim([0 1]); ylim([0 1]); zlim([-1.5 1.5]);
                 xlabel('x'); ylabel('y'); zlabel('z');
                 title("i:"+string(i-1));
                 grid on
@@ -78,14 +78,31 @@ classdef CrouzeixRaviart2D < handle
         end
         
         function computeShapeFunctions(obj)
-            syms x y
-            matrixLHS = [1 obj.midPoints(1,:) obj.midPoints(1,:); 1 obj.midPoints(2,:) obj.midPoints(2,:); 1 obj.midPoints(3,:) obj.midPoints(3,:)];
+            syms x y a b1 b2
+            baseShapeFunction = a+b1*x+b2*y;
+            matrixLHS = assemblyLHS(obj,baseShapeFunction);
             for i = 1:obj.n_vertices
                 vectorRHS = zeros(obj.n_vertices,1);
                 vectorRHS(i) = 1;
-                coefShapeFunc = vectorRHS\matrixLHS;
-                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x+coefShapeFunc(3)*y,'Vars',[x y]);
+                eq = matrixLHS' == vectorRHS;
+                coefShapeFunc = solve(eq,[a b1 b2]);
+                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc.a+coefShapeFunc.b1*x+coefShapeFunc.b2*y,'Vars',[x y]);
             end
+        end
+        
+        function matrixLHS = assemblyLHS(obj,baseShapeFunction)
+                matrixLHS(1) = obj.lineIntegral(baseShapeFunction,obj.vertices(2,:),obj.vertices(3,:));
+                matrixLHS(2) = obj.lineIntegral(baseShapeFunction,obj.vertices(1,:),obj.vertices(3,:));
+                matrixLHS(3) = obj.lineIntegral(baseShapeFunction,obj.vertices(2,:),obj.vertices(1,:));
+        end
+        
+        function F = lineIntegral(~,func,pointA,pointB)
+            syms x y t real
+            x1 = pointA(1); y1 = pointA(2);
+            x2 = pointB(1); y2 = pointB(2);
+            func = subs(func,x,x1 + t*(x2-x1));
+            func = subs(func,y,y1 + t*(y2-y1));
+            F = int(func,t,0,1);
         end
         
     end

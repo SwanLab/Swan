@@ -1,7 +1,7 @@
 classdef LagrangeTensorProduct1D < handle
    
     properties (Access = private)
-        k
+        polynomialOrder
     end
     
     
@@ -27,10 +27,12 @@ classdef LagrangeTensorProduct1D < handle
             set(groot,'defaulttextinterpreter','latex');
             set(groot,'defaultLegendInterpreter','latex');
             set(groot,'defaultAxesTickLabelInterpreter','latex');
+            
+            k = obj.polynomialOrder;
             obj.fig = figure();
             hold on
-            for i = 1:obj.k+1
-                subplot(1,obj.k+1,i)
+            for i = 1:k+1
+                subplot(1,k+1,i)
                 fplot(obj.shapeFunctions{i},[0 1])
                 xlabel('x')
                 ylabel('y')
@@ -45,8 +47,8 @@ classdef LagrangeTensorProduct1D < handle
     
     methods (Access = private)
        
-        function init(obj,k)
-            obj.k = k;
+        function init(obj,polynomialOrder)
+            obj.polynomialOrder = polynomialOrder;
             obj.computeVertices()
             obj.computeNormalVectors()
             obj.computeNodes()
@@ -63,9 +65,10 @@ classdef LagrangeTensorProduct1D < handle
         end
         
         function computeNodes(obj)
-            obj.n_nodes = nchoosek(1+obj.k,obj.k);
+            k = obj.polynomialOrder;
+            obj.n_nodes = nchoosek(1+k,k);
             for i=1:obj.n_nodes
-                obj.nodes.coord(i) = (i-1)/obj.k;
+                obj.nodes.coord(i) = (i-1)/k;
                 obj.nodes.index(i) = i;
             end
         end

@@ -1,7 +1,7 @@
 classdef LagrangeTensorProduct2D < handle
    
     properties (Access = public)
-        k
+        polynomialOrder
         n_vertices
         vertices
         n_nodes
@@ -23,17 +23,17 @@ classdef LagrangeTensorProduct2D < handle
             set(groot,'defaultLegendInterpreter','latex');
             set(groot,'defaultAxesTickLabelInterpreter','latex');
             
+            k = obj.polynomialOrder;
             s.coord = obj.vertices;
-            s.connec = [1 2 3;
-                        2 3 4];
+            s.connec = [1 2 3;2 3 4];
             m = Mesh(s);
             for i=1:3
                 m = m.remesh(2);
             end
             
 %             obj.fig = figure();
-            for i = 1:obj.k+1
-                for j = 1:obj.k+1
+            for i = 1:k+1
+                for j = 1:k+1
 %                     subplot(obj.k+1,obj.k+1,(obj.k+1)*(i-1)+j)
                     figure()
                     m.plot();
@@ -54,8 +54,8 @@ classdef LagrangeTensorProduct2D < handle
     
     methods (Access = private)
        
-        function init(obj,k)
-            obj.k = k;
+        function init(obj,polynomialOrder)
+            obj.polynomialOrder = polynomialOrder;
             obj.computeVertices()
             obj.computeNodes()
             obj.computeLagrangePolinomyals()
@@ -68,24 +68,26 @@ classdef LagrangeTensorProduct2D < handle
         end
         
         function computeNodes(obj)
-            obj.n_nodes = (obj.k+1)^2;
+            k = obj.polynomialOrder;
+            obj.n_nodes = (k+1)^2;
             
-            obj.nodes = zeros(obj.k+1,obj.k+1,2);
-            for i = 1:obj.k+1
-                for j = 1:obj.k+1
-                    obj.nodes(i,j,1)=(i-1)/obj.k;
-                    obj.nodes(i,j,2)=(j-1)/obj.k;
+            obj.nodes = zeros(k+1,k+1,2);
+            for i = 1:k+1
+                for j = 1:k+1
+                    obj.nodes(i,j,1)=(i-1)/k;
+                    obj.nodes(i,j,2)=(j-1)/k;
                 end
             end
         end
         
         function computeLagrangePolinomyals(obj)
+            k = obj.polynomialOrder;
             syms x y
-            obj.lagrangePolynomials = cell(2,obj.k+1);
-            for i = 1:(obj.k+1)
+            obj.lagrangePolynomials = cell(2,k+1);
+            for i = 1:(k+1)
                 func1 = 1;
                 func2 = 1;
-                for j = 1:(obj.k+1)
+                for j = 1:(k+1)
                     if i~=j
                         func1 = func1*(x-obj.nodes(j,i,1))/(obj.nodes(i,i,1)-obj.nodes(j,i,1));
                         func2 = func2*(y-obj.nodes(i,j,2))/(obj.nodes(i,i,2)-obj.nodes(i,j,2));
@@ -98,8 +100,8 @@ classdef LagrangeTensorProduct2D < handle
         
         function computeShapeFunctions(obj)
             obj.shapeFunctions = cell(obj.k+1);
-            for i = 1:(obj.k+1)
-                for j = 1:(obj.k+1)
+            for i = 1:(k+1)
+                for j = 1:(k+1)
                     obj.shapeFunctions{i,j} = matlabFunction(obj.lagrangePolynomials{1,i}*obj.lagrangePolynomials{2,j});
                 end 
             end

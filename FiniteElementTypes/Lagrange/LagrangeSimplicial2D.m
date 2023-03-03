@@ -1,7 +1,7 @@
 classdef LagrangeSimplicial2D < handle
    
     properties (Access = public)
-        polinomialOrder
+        polynomialOrder
         n_vertices
         vertices
         normalVectors
@@ -60,7 +60,7 @@ classdef LagrangeSimplicial2D < handle
         end
 
         function computeNdof(obj)
-            k = obj.polinomialOrder;                                    
+            k = obj.polynomialOrder;                                    
             n = nchoosek(2+k,k);            
             obj.ndofs = n;
         end
@@ -71,7 +71,7 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeNodes(obj)
-            k = obj.polinomialOrder;                                    
+            k = obj.polynomialOrder;                                    
             node = zeros(k+1,k+1,2);
             for i = 1:k+1
                 for j = 1:k+1
@@ -85,7 +85,7 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeShapeFunctions(obj)
-            k = obj.polinomialOrder;
+            k = obj.polynomialOrder;
             X = obj.computeBasisInMonomialForm();
             for i = 1:(k+1)
                 for j = 1:(k+1)
@@ -105,10 +105,11 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function storeShapeFunctions(obj)
+            k = obj.polynomialOrder;
             syms x y
-            for i = 1:(obj.polinomialOrder+1)
-                for j = 1:(obj.polinomialOrder+1)
-                    if (i+j)<=(obj.polinomialOrder+2)
+            for i = 1:(k+1)
+                for j = 1:(k+1)
+                    if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         f = matlabFunction(obj.shapeFunctions{s},'Vars',[x y]);
                         obj.shapeFunctions{s} = f;
@@ -118,10 +119,11 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function X = computeBasisInMonomialForm(obj)
+            k = obj.polynomialOrder;
             syms x y
-            for i = 1:(obj.polinomialOrder+1)
-                for j = 1:(obj.polinomialOrder+1)
-                    if (i+j)<=(obj.polinomialOrder+2)
+            for i = 1:(k+1)
+                for j = 1:(k+1)
+                    if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         X(s) = x^(i-1)*y^(j-1);
                     end
@@ -136,11 +138,12 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function A = assemblyShapeFunctionCoefficientsLHS(obj,X)
+            k = obj.polynomialOrder;
             syms x y
             A = zeros(obj.ndofs);
-            for i = 1:(obj.polinomialOrder+1)
-                for j = 1:(obj.polinomialOrder+1)
-                    if (i+j)<=(obj.polinomialOrder+2)
+            for i = 1:(k+1)
+                for j = 1:(k+1)
+                    if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         node(:) = obj.nodes(i,j,:);
                         A(s,:) = subs(X,[x y],node);
@@ -150,9 +153,10 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function s = computeMonomialIndeces(obj,i,j)
-            n = -(obj.polinomialOrder+2);
+            k = obj.polynomialOrder;
+            n = -(k+2);
             for m = 1:i
-                n = n + obj.polinomialOrder + 1 - (m-2);
+                n = n + k + 1 - (m-2);
             end
             s = n+j;
         end

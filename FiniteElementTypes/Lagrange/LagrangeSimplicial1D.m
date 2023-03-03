@@ -1,7 +1,7 @@
 classdef LagrangeSimplicial1D < handle
    
     properties (Access = public)
-        k
+        polynomialOrder
         n_vertices
         vertices
         normalVectors
@@ -15,18 +15,20 @@ classdef LagrangeSimplicial1D < handle
     
     methods (Access = public)
     
-        function obj = LagrangeSimplicial1D(k)
-            obj.init(k);
+        function obj = LagrangeSimplicial1D(polynomialOrder)
+            obj.init(polynomialOrder);
         end
     
         function plotShapeFunctions(obj)
             set(groot,'defaulttextinterpreter','latex');
             set(groot,'defaultLegendInterpreter','latex');
             set(groot,'defaultAxesTickLabelInterpreter','latex');
+            
+            k = obj.polynomialOrder;
             obj.fig = figure();
             hold on
-            for i = 1:obj.k+1
-                subplot(1,obj.k+1,i)
+            for i = 1:k+1
+                subplot(1,k+1,i)
                 fplot(obj.shapeFunctions{i},[0 1])
                 xlabel('x')
                 ylabel('y')
@@ -41,8 +43,8 @@ classdef LagrangeSimplicial1D < handle
     
     methods (Access = private)
        
-        function init(obj,k)
-            obj.k = k;
+        function init(obj,polynomialOrder)
+            obj.polynomialOrder = polynomialOrder;
             obj.computeVertices()
             obj.computeNormalVectors()
             obj.computeNodes()
@@ -59,9 +61,10 @@ classdef LagrangeSimplicial1D < handle
         end
         
         function computeNodes(obj)
-            obj.n_nodes = nchoosek(1+obj.k,obj.k);
+            k = obj.polynomialOrder;
+            obj.n_nodes = nchoosek(1+k,k);
             for i=1:obj.n_nodes
-                obj.nodes.coord(i) = (i-1)/obj.k;
+                obj.nodes.coord(i) = (i-1)/k;
                 obj.nodes.index(i) = i;
             end
         end
