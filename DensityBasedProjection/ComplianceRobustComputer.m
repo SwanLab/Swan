@@ -160,9 +160,23 @@ classdef ComplianceRobustComputer < handle
 
 
             %Calculamos una normalización para el coste:
-            sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-            KiI   = sparse(iK,jK,sKiI);
-            KiI = (KiI+KiI')/2;
+%             sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
+%             KiI   = sparse(iK,jK,sKiI);
+%             KiI = (KiI+KiI')/2;
+            s.elementType = 'square';
+            s.t=t;
+            s.poissonCoefficient=poissonCoefficient;
+            s.elasticModuleMinimun=elasticModuleMinimun;
+            s.elasticModuleNeutral=elasticModuleNeutral;       
+            s.penalization=penalization;
+            s.elementNumberX = elementNumberX;
+            s.elementNumberY = elementNumberY;
+            s.projectedField= xPhysE;
+            s.conectivityMatrixMat = conectivityMatrixMat;
+            B = StifnessMatrixComputer(s);
+            B.compute();
+            KiI = B.globalStifnessMatrix;
+
 
             F    = sparse(output,1,neumanCondition,2*(elementNumberY+1)*(elementNumberX+1),1);
 
