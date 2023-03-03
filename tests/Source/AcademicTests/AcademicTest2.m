@@ -16,3 +16,4 @@ s.maxIter                    = [];
 s.targetParameters.constr_tol = 1e-3;
 s.constraintCase             = {'INEQUALITY','INEQUALITY'};
 s.maxIter                    = 1000;
+s.postProcessSettings.shallPrint = false;
