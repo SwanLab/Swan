@@ -24,7 +24,7 @@ classdef OptimizerNullSpace < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-8
+        tol = 1e-5
         nX
         hasConverged
         acceptableStep
@@ -63,6 +63,12 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
+            obj.aG  = 0;
+            if obj.nIter == 0
+                obj.eta = inf;
+            else
+                obj.eta = 0.01;
+            end
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -89,6 +95,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
             obj.nIter                  = 0;
+            obj.aJ                     = 0.1;
         end
 
         function prepareFirstIter(obj)
@@ -99,17 +106,12 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateRobustnessParameters(obj)
-            if obj.nIter==0
-                obj.aJ  = 0.1;
-                obj.aG  = 0;
-                obj.eta = inf;
-            else
-                obj.eta = 0.01;
+            if not(obj.nIter==0)
                 deltamF = abs(obj.meritNew-obj.mOld);
                 if deltamF < 1e-5 && obj.constraint.value < 0.05
-                    obj.aG  = 0.1;
+                    obj.aG  = 0.05;
                     obj.eta = 0.001;
-                elseif deltamF < 1e-5
+                elseif deltamF < obj.tol
                     obj.aJ = obj.aJ + 0.1;
                 end
             end
@@ -151,7 +153,7 @@ classdef OptimizerNullSpace < Optimizer
             if obj.nIter == 0
                 obj.primalUpdater.computeFirstStepLength(1);
             else
-                factor = 2;
+                factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
