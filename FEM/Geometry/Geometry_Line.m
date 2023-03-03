@@ -27,6 +27,14 @@ classdef Geometry_Line < Geometry
     
     methods (Access = private)
         
+        function computeDvolu(obj)
+            obj.computeDrDtxi();
+            detJ = obj.computeDeterminant();
+            w(:,1) = obj.quadrature.weigp;
+            dv =  bsxfun(@times,w,detJ);
+            obj.dvolu = dv';
+        end
+        
         function computeDrDtxi(obj)
             nGaus  = obj.quadrature.ngaus;
             nDime  = obj.mesh.ndim;
@@ -39,37 +47,6 @@ classdef Geometry_Line < Geometry
                 drdtxi(:,:,idime) = dShapes*x;
             end
             obj.drDtxi = drdtxi;
-        end
-        
-        function computeTangentVector(obj)
-            obj.computeDrDtxi();
-            drdtxi = obj.drDtxi;
-            drdtxiNorm = obj.computeVectorNorm(drdtxi);
-            t = drdtxi./drdtxiNorm;
-            obj.tangentVector = t;
-        end
-        
-        function computeNormalVector(obj)
-            nDime  = obj.mesh.ndim;
-            switch nDime
-                case 2
-                    error('Not done, Call second derivative');
-                case 3
-                    obj.computeTangentVector();
-                    t = obj.tangentVector;
-                    n = zeros(size(t));
-                    n(:,:,1) = -t(:,:,2);
-                    n(:,:,2) =  t(:,:,1);
-                    obj.normalVector = n;
-            end
-        end
-        
-        function computeDvolu(obj)
-            obj.computeDrDtxi();
-            detJ = obj.computeDeterminant();
-            w(:,1) = obj.quadrature.weigp;
-            dv =  bsxfun(@times,w,detJ);
-            obj.dvolu = dv';
         end
 
         function detJ = computeDeterminant(obj)
@@ -99,6 +76,29 @@ classdef Geometry_Line < Geometry
             end
             obj.dNdx = dN;
         end
+        
+%         function computeTangentVector(obj)
+%             obj.computeDrDtxi();
+%             drdtxi = obj.drDtxi;
+%             drdtxiNorm = obj.computeVectorNorm(drdtxi);
+%             t = drdtxi./drdtxiNorm;
+%             obj.tangentVector = t;
+%         end
+%         
+%         function computeNormalVector(obj)
+%             nDime  = obj.mesh.ndim;
+%             switch nDime
+%                 case 2
+%                     error('Not done, Call second derivative');
+%                 case 3
+%                     obj.computeTangentVector();
+%                     t = obj.tangentVector;
+%                     n = zeros(size(t));
+%                     n(:,:,1) = -t(:,:,2);
+%                     n(:,:,2) =  t(:,:,1);
+%                     obj.normalVector = n;
+%             end
+%         end
         
     end
     

@@ -24,7 +24,7 @@ classdef DilationComputer < handle
             r = obj.solveSystem();
             s.mesh = obj.mesh;
             s.fValues = r;
-            rF = P1Function(s);            
+            rF = P1Function(s);
         end
         
     end
@@ -48,24 +48,16 @@ classdef DilationComputer < handle
             s.type = 'StiffnessMatrixFun';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-        end  
+        end
 
         function createDilationFun(obj)
             s.mesh    = obj.mesh;
             s.fValues = zeros(obj.mesh.nnodes, 1);
             obj.dilation = P1Function(s);
         end
-
-        function f = createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            f = Field(s);
-        end        
         
         function computeRHS(obj)
-            f = obj.createField();
-            q = Quadrature.set(obj.mesh.type);
+            ºq = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
             s.fType     = 'Gauss';
             s.fGauss    = obj.computeFieldTimesDivField(q);
@@ -73,7 +65,7 @@ classdef DilationComputer < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = f.dim.ndofs;
+            s.npnod     = obj.mesh.nnodes;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.mesh.connec;
             rhs  = RHSintegrator.create(s);
@@ -83,11 +75,11 @@ classdef DilationComputer < handle
         
         function gradT = computeFieldTimesDivField(obj,q)
             a1    = obj.orientationVector{1};
-            a2    = obj.orientationVector{2};            
+            a2    = obj.orientationVector{2};
             aDa1  = a1.computeFieldTimesDivergence(q);
             aDa2  = a2.computeFieldTimesDivergence(q);
             gradT = -aDa1.fValues - aDa2.fValues;
-        end        
+        end
         
         function u = solveSystem(obj)
             a.type = 'DIRECT';
