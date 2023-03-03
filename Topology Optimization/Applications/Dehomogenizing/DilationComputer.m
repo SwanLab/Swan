@@ -51,13 +51,11 @@ classdef DilationComputer < handle
         end
 
         function createDilationFun(obj)
-            s.mesh    = obj.mesh;
-            s.fValues = zeros(obj.mesh.nnodes, 1);
-            obj.dilation = P1Function(s);
+            obj.dilation = P1Function.create(obj.mesh, 1);
         end
         
         function computeRHS(obj)
-            ºq = Quadrature.set(obj.mesh.type);
+            q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
             s.fType     = 'Gauss';
             s.fGauss    = obj.computeFieldTimesDivField(q);

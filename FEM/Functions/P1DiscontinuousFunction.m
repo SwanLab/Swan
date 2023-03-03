@@ -197,6 +197,12 @@ classdef P1DiscontinuousFunction < FeFunction
             fS = P1DiscontinuousFunction(s);
         end
 
+        function p1d = create(mesh, ndimf)
+            a.mesh    = mesh;
+            a.fValues = zeros(ndimf, mesh.nnodeElem, mesh.nelem);
+            p1d = P1DiscontinuousFunction(a);
+        end
+
     end
 
     methods (Access = private)

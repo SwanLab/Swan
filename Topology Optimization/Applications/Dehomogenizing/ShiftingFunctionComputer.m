@@ -49,12 +49,9 @@ classdef ShiftingFunctionComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            a.mesh    = obj.mesh;
-            a.fValues = zeros(1, obj.mesh.nnodeElem, obj.mesh.nelem);
-            fD = P1DiscontinuousFunction(a);
             s.mesh = obj.mesh;
             s.type = 'StiffnessMatrixFun';
-            s.fun  = fD;
+            s.fun  = P1DiscontinuousFunction.create(obj.mesh, 1);
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end

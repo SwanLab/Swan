@@ -20,11 +20,8 @@ classdef Projector_toP1 < Projector
     methods (Access = private)
         
         function LHS = computeLHS(obj)
-            a.mesh    = obj.mesh;
-            a.fValues = zeros(obj.mesh.nnodes, 1);
-            f = P1Function(a);
             s.mesh  = obj.mesh;
-            s.fun   = f;
+            s.fun   = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
             s.type  = 'MassMatrixFun';
             lhs = LHSintegrator.create(s);

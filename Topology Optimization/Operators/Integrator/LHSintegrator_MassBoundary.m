@@ -21,16 +21,13 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
             LHSg = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
-                z.mesh     = sL.mesh;
-                z.fValues  = zeros(size(sL.mesh.coord,1),1);
-                f = P1Function(z);
                 a.type = 'MassMatrixFun';
-                a.mesh = z.mesh;
-                a.fun  = f;
+                a.mesh = sL.mesh;
+                a.fun  = P1Function.create(sL.mesh, 1);
                 lhs = LHSintegrator.create(a);
                 LHS = lhs.compute();
 
-                local2global(z.mesh.connec(:)) = sL.bMesh.globalConnec(:);
+                local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
                 [iLoc,jLoc,vals] = find(LHS);
                 iGlob = local2global(iLoc);
                 jGlob = local2global(jLoc);

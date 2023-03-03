@@ -28,11 +28,7 @@ classdef H1Projector_toP1Discontinuous < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.mesh    = obj.mesh;
-            s.fValues = zeros(1,obj.mesh.nnodeElem, obj.mesh.nelem);
-            f = P1DiscontinuousFunction(s);
-
-            s.fun  = f;
+            s.fun  = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.mesh = obj.mesh;
             s.type = 'MassMatrixFun';
             s.quadratureOrder = 'QUADRATIC';
@@ -41,13 +37,9 @@ classdef H1Projector_toP1Discontinuous < Projector
         end
 
         function LHSK = computeStiffnessMatrix(obj)
-            s.mesh    = obj.mesh;
-            s.fValues = zeros(1,obj.mesh.nnodeElem, obj.mesh.nelem);
-            f = P1DiscontinuousFunction(s);
-
             s.type  = 'StiffnessMatrixFun';
             s.mesh  = obj.mesh;
-            s.fun   = f;
+            s.fun   = P1DiscontinuousFunction.create(obj.mesh,1);
             s.quadratureOrder = 'CONSTANT';
             lhs = LHSintegrator.create(s);
             LHSK = lhs.compute();

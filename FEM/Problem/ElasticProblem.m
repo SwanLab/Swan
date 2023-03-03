@@ -126,9 +126,9 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementField(obj)
-            ndimf = regexp(obj.pdim,'\d*','Match');
+            nDimf = regexp(obj.pdim,'\d*','Match');
             s.mesh               = obj.mesh;
-            s.ndimf              = str2double(ndimf);
+            s.ndimf              = str2double(nDimf);
             s.interpolationOrder = obj.interpolationType; %obj.interpolationType
             f = Field(s);
             obj.inputBC = f.translateBoundaryConditions(obj.inputBC);
@@ -137,12 +137,7 @@ classdef ElasticProblem < handle
 
             strdim = regexp(obj.pdim,'\d*','Match');
             nDimf  = str2double(strdim);
-            nNodes = size(obj.mesh.coord,1);
-            s.ndimf   = nDimf;
-            s.mesh    = obj.mesh;
-            s.fValues = zeros(nNodes,nDimf);
-            f = P1Function(s);
-            obj.displacementFun = f;
+            obj.displacementFun = P1Function.create(obj.mesh, nDimf);
         end
 
         function dim = getFunDims(obj)
@@ -209,7 +204,7 @@ classdef ElasticProblem < handle
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
 
-            z.mesh   = obj.mesh;
+            z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
             obj.uFun{end+1} = uFeFun;

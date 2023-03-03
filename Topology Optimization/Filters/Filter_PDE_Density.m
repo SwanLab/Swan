@@ -59,13 +59,10 @@ classdef Filter_PDE_Density < Filter
     methods (Access = private)
 
         function createMassMatrix(obj)
-            a.mesh    = obj.mesh;
-            a.fValues = zeros(obj.mesh.nnodes, 1);
-            f = P1Function(a);
-            s.type         = 'MassMatrixFun';
-            s.quadratureOrder     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.fun        = f;
+            s.type   = 'MassMatrixFun';
+            s.mesh   = obj.mesh;
+            s.fun    = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             lhs = LHSintegrator.create(s);
             obj.M = lhs.compute();
         end

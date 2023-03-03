@@ -227,6 +227,12 @@ classdef P1Function < FeFunction
 
     methods (Access = public, Static)
 
+        function p1 = create(mesh, ndimf)
+            s.fValues = zeros(mesh.nnodes, ndimf);
+            s.mesh    = mesh;
+            p1 = P1Function(s);
+        end
+
         function fS = times(f1,f2)
             fS = f1.fValues.*f2.fValues;
             s.fValues = fS;
