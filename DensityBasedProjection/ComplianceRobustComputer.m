@@ -63,14 +63,14 @@ classdef ComplianceRobustComputer < handle
             displacementE = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             displacementI = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             displacementD = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
-            designField        = volumenFraction*ones(elementNumberY,elementNumberX);
+            filteredField        = volumenFraction*ones(elementNumberY,elementNumberX);
 
             %Parámetros del MMA:
             % rowsolid  = 46:55;
             % columnsolid = 146:155;
             rowsolid = [];
             columnsolid = [];
-            designField(rowsolid,columnsolid) = 1;
+            filteredField(rowsolid,columnsolid) = 1;
 
 
             minDensity    = zeros(elementNumberY,elementNumberX);
@@ -89,11 +89,11 @@ classdef ComplianceRobustComputer < handle
             low     = minDensity;
             upp     = maxDensity;
             a0      = 1;
-            a       = [1 1 1 0]';
-            e       = 1000*ones(numberRestriction,1);
-            d       = 0*ones(numberRestriction,1);
-            xold1   = designField(:);
-            xold2   = designField(:);
+            mmaParameter.a       = [1 1 1 0]';
+            mmaParameter.e       = 1000*ones(numberRestriction,1);
+            mmaParameter.d       = 0*ones(numberRestriction,1);
+            xold1   = filteredField(:);
+            xold2   = filteredField(:);
 
             %Preparación del filtro y de la proyección:
             iH = ones(elementNumberX*elementNumberY*(2*(ceil(minimunInfluenceRadios)-1)+1)^2,1);
@@ -126,10 +126,30 @@ classdef ComplianceRobustComputer < handle
 
             %Phys--> Definen la proyeccion, minimun lenght scale. Eta--> Controlar el
             %ancho de la escala.
-            xTilde   = designField;
-            xPhysE   = (tanh(beta*etaE) + tanh(beta*(xTilde-etaE)))/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
-            xPhysI   = (tanh(beta*etaI) + tanh(beta*(xTilde-etaI)))/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
-            xPhysD   = (tanh(beta*etaD) + tanh(beta*(xTilde-etaD)))/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
+            xTilde   = filteredField;
+            %             xPhysE   = (tanh(beta*etaE) + tanh(beta*(xTilde-etaE)))/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
+            %             xPhysI   = (tanh(beta*etaI) + tanh(beta*(xTilde-etaI)))/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
+            %             xPhysD   = (tanh(beta*etaD) + tanh(beta*(xTilde-etaD)))/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
+            s.beta = beta;
+            s.eta =etaE;
+            s.filteredField =filteredField;
+            E = FieldProjector(s);
+            E.compute();
+            xPhysE = E.projectedField;
+
+            s.beta = beta;
+            s.eta =etaI;
+            s.filteredField =filteredField;
+            I = FieldProjector(s);
+            I.compute();
+            xPhysI = I.projectedField;
+
+            s.beta = beta;
+            s.eta =etaD;
+            s.filteredField =filteredField;
+            D = FieldProjector(s);
+            D.compute();
+            xPhysD = D.projectedField;
 
             volfracD = volumenFraction*sum(xPhysD(:))/sum(xPhysI(:));
 
@@ -159,7 +179,7 @@ classdef ComplianceRobustComputer < handle
                 iterbeta = iterbeta + 1;
                 itervol  = itervol  + 1;
 
-                xold = designField(:);
+                xold = filteredField(:);
 
                 %Matriz de rigidez:
                 sKiE  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
@@ -251,24 +271,24 @@ classdef ComplianceRobustComputer < handle
                 dfdx        = [ dcsE1(:)'; dcsI1(:)'; dcsD1(:)'; dvs_dxs(:)'];
                 dfdx(1:3,:) = dfdx(1:3,:)/cte;
                 dfdx2       = 0*dfdx;
-                xval        = designField(:);
+                xval        = filteredField(:);
 
                 %     [xmma,~,zmma,~,~,~,~,~,~,low,upp] = mmasub(m,n,iter,xval,xmin,xmax,xold1,xold2, ...
                 %         f0val,df0dx,fval,dfdx,low,upp,a0,a,e,d);
 
                 [xmma,~,zmma,~,~,~,~,~,~,low,upp] = ComplianceRobustComputer.mmasub2(numberRestriction,variableNumber,iter,xval,minDensity,maxDensity,xold1,xold2, ...
-                    f0val,df0dx,df0dx2,fval,dfdx,dfdx2,low,upp,a0,a,e,d);
+                    f0val,df0dx,df0dx2,fval,dfdx,dfdx2,low,upp,a0,mmaParameter.a,mmaParameter.e,mmaParameter.d);
 
 
                 xold2  = xold1;
                 xold1  = xval;
 
 
-                designField     = reshape(xmma,elementNumberY,elementNumberX);
+                filteredField     = reshape(xmma,elementNumberY,elementNumberX);
 
                 costChange = norm(xmma-xold,inf);
 
-                xTilde(:) = (H*designField(:))./Hs;
+                xTilde(:) = (H*filteredField(:))./Hs;
                 xPhysE    = (tanh(beta*etaE) + tanh(beta*(xTilde-etaE)))/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
                 xPhysI    = (tanh(beta*etaI) + tanh(beta*(xTilde-etaI)))/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
                 xPhysD    = (tanh(beta*etaD) + tanh(beta*(xTilde-etaD)))/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
