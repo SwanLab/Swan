@@ -42,19 +42,20 @@ classdef ComplianceRobustComputer < handle
             B12     = [ 2 -3  4 -9; -3  2  9 -2;  4  9  2  3; -9 -2  3  2];
             elementalStiffnessMatrix      = t/(1-poissonCoefficient^2)/24*([A11 A12;A12' A11]+poissonCoefficient*[B11 B12;B12' B11]);
 
-            %Matrices de ensamblaje de la matriz global de rigidez:
-            nodeNumeration = reshape(1:(1+elementNumberX)*(1+elementNumberY),1+elementNumberY,1+elementNumberX);
-            conectivityMatrixVec = reshape(2*nodeNumeration(1:end-1,1:end-1)+1,elementNumberX*elementNumberY,1);
-            conectivityMatrixMat = repmat(conectivityMatrixVec,1,8)+repmat([0 1 2*elementNumberY+[2 3 0 1] -2 -1],elementNumberX*elementNumberY,1);
+
+            s.elementNumberX =  elementNumberX;
+            s.elementNumberY =  elementNumberY;
+            B = GeometryComputer(s);
+            B.compute();
+            allDegress   = B.degress.all;
+            freeDegress  = B.degress.free;
+            fixedDegress = B.degress.fixed;
+            conectivityMatrixMat = B.conectivityMatrixMat;
+
+
+            
             iK      = reshape(kron(conectivityMatrixMat,ones(8,1))',64*elementNumberX*elementNumberY,1);
             jK      = reshape(kron(conectivityMatrixMat,ones(1,8))',64*elementNumberX*elementNumberY,1);
-
-            %Condiciones de contorno:
-            % fixeddofs = 1:2*(nely+1);
-            fixedDegress = [1:2:2*(elementNumberY+1) 2*(elementNumberX+1)*(elementNumberY+1) 2*(elementNumberX+1)*(elementNumberY+1)-1];
-            allDegress   = 1:2*(elementNumberX+1)*(elementNumberY+1);
-            freeDegress  = setdiff(allDegress,fixedDegress);
-            % output    = 2*(nely+1)*(nelx)+nely+2;
             output    = 2;
 
             %Inicializaciones: %Es una clase de desplazamientos; 2 dof por cada
