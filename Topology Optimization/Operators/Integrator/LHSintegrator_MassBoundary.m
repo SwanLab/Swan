@@ -28,7 +28,7 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
                 LHS = lhs.compute();
 
                 local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
-                [iLoc,jLoc,vals] = find(LHS);
+                [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
                 iGlob = local2global(iLoc);
                 jGlob = local2global(jLoc);
 
