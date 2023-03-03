@@ -6,7 +6,7 @@ clear
 clc
 close all
 %% Define the number of iterations
-s.iterations = 3;
+s.iterations = 5;
 
 %% Load results
 if s.iterations == 3
@@ -14,7 +14,7 @@ load('C:\Users\artur\Documents\GitHub\SWAM\Swan\DensityBasedProjection\Test\Data
 elseif s.iterations == 5
 load('C:\Users\artur\Documents\GitHub\SWAM\Swan\DensityBasedProjection\Test\Data\ResultsData5Iterations.mat')
 else 
-warning('No test Data for the current iterations')
+error('No test Data for the current iterations')
 end
 %% Create the objects
 Test1 = ComplianceRobustComputer(s);
@@ -23,20 +23,20 @@ Test1.compute();
 %% Validator
 if results.projectedField.E == Test1.projectedField.E
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-    disp('Projected Field E_|OK!|')
+    disp('Projected Field E |OK!|')
 else
     warning('Error in Projected Field E')
 end
 
 if results.projectedField.I == Test1.projectedField.I
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-    disp('Projected Field I_|OK!|')
+    disp('Projected Field I |OK!|')
 else
     warning('Error in Projected Field I')
 end
 if results.projectedField.D == Test1.projectedField.D
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-    disp('Projected Field D_|OK!|')
+    disp('Projected Field D |OK!|')
 else
     warning('Error in Projected Field D')
 end

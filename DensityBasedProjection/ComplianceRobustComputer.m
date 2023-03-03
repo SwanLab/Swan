@@ -177,8 +177,15 @@ classdef ComplianceRobustComputer < handle
             B.compute();
             KiI = B.globalStifnessMatrix;
 
+            s.neumanCondition = neumanCondition;
+            s.output = output;
+            s.elementNumberX = elementNumberX;
+            s.elementNumberY = elementNumberY;
+            B = ForceComputer(s);
+            B.compute();
+            F = B.force;
 
-            F    = sparse(output,1,neumanCondition,2*(elementNumberY+1)*(elementNumberX+1),1);
+            %F    = sparse(output,1,neumanCondition,2*(elementNumberY+1)*(elementNumberX+1),1);
 
             UC = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             UC(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress);
