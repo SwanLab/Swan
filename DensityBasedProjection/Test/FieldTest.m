@@ -6,7 +6,7 @@ clear
 clc
 close all
 %% Define the number of iterations
-s.iterations = 5;
+s.iterations = 3;
 
 %% Load results
 if s.iterations == 3

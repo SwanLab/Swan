@@ -187,10 +187,23 @@ classdef ComplianceRobustComputer < handle
 
             %F    = sparse(output,1,neumanCondition,2*(elementNumberY+1)*(elementNumberX+1),1);
 
-            UC = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
-            UC(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress);
-
-            cte = abs(F'*UC);
+%             UC = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
+% %             UC(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress
+            s.force = F;
+            s.globalStifnessMatrix =KiI;
+            s.elementNumberX =elementNumberX;
+            s.elementNumberY =elementNumberY;
+            s.freeDegress =freeDegress;
+            B = DisplacementComputer(s); 
+            B.compute()
+            UC = B.displacement;
+           
+            %cte = abs(F'*UC);
+            s.force = F;
+            s.displacement =UC;
+            B = CostComputer(s);
+            B.compute();
+            cte = B.cost;
 
             %Optimización
             while (costChange > 0.001) && (iter < 300) && (finish == false)
