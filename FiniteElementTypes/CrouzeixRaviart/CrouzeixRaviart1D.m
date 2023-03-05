@@ -8,10 +8,7 @@ classdef CrouzeixRaviart1D < handle
     properties (Access = public)
         n_vertices
         vertices
-        n_nodes
-        nodes
-        edgeVectors
-        midPoints
+        ndofs
         shapeFunctions
         fig
     end
@@ -24,14 +21,13 @@ classdef CrouzeixRaviart1D < handle
         end
         
         function plotShapeFunctions(obj)
-            obj.fig = figure();
-            hold on
+%             obj.fig = figure();
             for i=1:obj.n_vertices
-                subplot(1,2,i)
-                fplot(obj.shapeFunctions{i},[0 1])
-                xlabel('x')
-                ylabel('y')
-                title("i:"+i)
+%                 subplot(1,2,i)
+                figure();
+                fplot(obj.shapeFunctions{i},[0 1]);
+                xlabel('x'); ylabel('y');
+                title("i: "+string(i-1));
                 grid on
             end
             hold off
@@ -43,32 +39,40 @@ classdef CrouzeixRaviart1D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.computeVertices()
-            obj.computeShapeFunctions()
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 2;
             obj.vertices = [0,1];
+            obj.n_vertices = length(obj.vertices);
+        end
+        
+        function computeNdof(obj)
+            obj.ndofs = length(obj.vertices);
         end
         
         function computeShapeFunctions(obj)
             syms x
-            for i = 1:obj.n_vertices
-                matrixLHS = asssemblyLHS();
-                vectorRHS = assemblyRHS(i);
-                coefShapeFunc = matrixLHS\vectorRHS;
-                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc(1)+coefShapeFunc(2)*x);
+            ndof = obj.ndofs;
+            shapeFunc = cell(ndof,1);
+            for i = 1:ndof
+                LHS = obj.applyLinearForm();
+                RHS = obj.computeLinearFormValues(i);
+                coef = LHS\RHS;
+                shapeFunc{i} = matlabFunction(coef(1)+coef(2)*x);
             end
+            obj.shapeFunctions = shapeFunc;
         end
         
-        function matrixLHS = assemblyLHS(obj)
-            matrixLHS = [1 obj.vertices(2); 1 obj.vertices(1) ];
+        function LHS = applyLinearForm(obj)
+            LHS = [1 obj.vertices(2); 1 obj.vertices(1)];
         end
         
-        function vectorRHS = assemblyRHS(obj,i)
-            vectorRHS = zeros(obj.n_vertices,1);
-            vectorRHS(i) = 1;
+        function RHS = computeLinearFormValues(obj,i)
+            RHS = zeros(obj.n_vertices,1);
+            RHS(i) = 1;
         end
         
     end

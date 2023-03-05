@@ -6,12 +6,12 @@ classdef RaviartThomasElement2D < handle
     
     
     properties (Access = public)
-        n_vertices
+        ndofs
         vertices
-        measure
         normalVectors
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -25,18 +25,15 @@ classdef RaviartThomasElement2D < handle
             obj.fig = figure();
             nodes = [0,0;0,1/3;0,2/3;0,1;1/3,0;1/3,1/3;1/3,2/3;2/3,0;2/3,1/3;2/3,1/3;1,0];
             for i=1:3
-                subplot(1,3,i)
+                subplot(1,3,i);
                 hold on
                 for j = 1:length(nodes)
                     X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2));
                 end
-                quiver(nodes(:,1),nodes(:,2),double(X(:,1)),double(X(:,2)))
-                plot([0 1],[0 0],'k')
-                plot([0 0],[1 0],'k')
-                plot([0 1],[1 0],'k')
-                title("i:"+i)
-                xlabel('x')
-                ylabel('y')
+                quiver(nodes(:,1),nodes(:,2),double(X(:,1)),double(X(:,2)));
+                plot([0 1],[0 0],'k'); plot([0 0],[1 0],'k'); plot([0 1],[1 0],'k');
+                title("i:"+i);
+                xlabel('x'); ylabel('y');
                 grid on
                 hold off
             end
@@ -48,14 +45,19 @@ classdef RaviartThomasElement2D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.computeVertices()
-            obj.computeNormalVectors()
-            obj.computeShapeFunctions()
+            obj.simplicial = Simplicial2D();
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeNormalVectors();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 3;
-            obj.vertices = [0,0;1,0;0,1];
+            obj.vertices = obj.simplicial.vertices;
+        end
+        
+        function computeNdof(obj)
+            obj.ndofs = length(obj.vertices);
         end
         
         function computeNormalVectors(obj)
@@ -75,12 +77,12 @@ classdef RaviartThomasElement2D < handle
             syms x y a1 a2 b1 real
             
             baseShapeFunction = [a1+b1*x,a2+b1*y];
-            for j = 1:obj.n_vertices
+            for j = 1:obj.ndofs
                 normalComponentShapeFunction(j) = dot(baseShapeFunction,obj.normalVectors(j,:));
             end
             
             matrixLHS = obj.assemblyLHS(normalComponentShapeFunction);
-            for i = 1:obj.n_vertices
+            for i = 1:obj.ndofs
                 vectorRHS = obj.assemblyRHS(i);
                 coefShapeFunc = solve(matrixLHS == vectorRHS,[a1 a2 b1]);
                 obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1+coefShapeFunc.b1*x,coefShapeFunc.a2+coefShapeFunc.b1*y]);

@@ -6,12 +6,11 @@ classdef CrouzeixRaviart2D < handle
     
     
     properties (Access = public)
-        n_vertices
         vertices
-        edgeVectors
-        midPoints
+        ndofs
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -31,7 +30,7 @@ classdef CrouzeixRaviart2D < handle
             m = Mesh(s);
             
 %             obj.fig = figure();
-            for i=1:obj.n_vertices
+            for i=1:obj.ndofs
 %                 subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i);
                 figure()
                 m.plot();
@@ -50,50 +49,42 @@ classdef CrouzeixRaviart2D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.computeVertices()
-            obj.computeEdgesVectors()
-            obj.computeMidpoints()
-            obj.computeShapeFunctions()
+            obj.simplicial = Simplicial2D();
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 3;
-            obj.vertices = [0,0;0,1;1,0];
+            obj.vertices = obj.simplicial.vertices;
         end
         
-        function computeEdgesVectors(obj)
-            obj.edgeVectors(1,:) = obj.vertices(3,:)-obj.vertices(2,:);
-            obj.edgeVectors(2,:) = obj.vertices(1,:)-obj.vertices(3,:);
-            obj.edgeVectors(3,:) = obj.vertices(2,:)-obj.vertices(1,:);
-        end
-        
-        function computeMidpoints(obj)
-            for i = 1:obj.n_vertices
-                if i==obj.n_vertices
-                    obj.midPoints(i,:) = obj.vertices(1,:)+obj.edgeVectors(i,:)/2;
-                else
-                    obj.midPoints(i,:) = obj.vertices(i+1,:)+obj.edgeVectors(i,:)/2;
-                end
-            end
+        function computeNdof(obj)
+            obj.ndofs = length(obj.vertices);
         end
         
         function computeShapeFunctions(obj)
             syms x y a b1 b2
             baseShapeFunction = a+b1*x+b2*y;
-            matrixLHS = assemblyLHS(obj,baseShapeFunction);
-            for i = 1:obj.n_vertices
-                vectorRHS = zeros(obj.n_vertices,1);
-                vectorRHS(i) = 1;
-                eq = matrixLHS' == vectorRHS;
-                coefShapeFunc = solve(eq,[a b1 b2]);
-                obj.shapeFunctions{i} = matlabFunction(coefShapeFunc.a+coefShapeFunc.b1*x+coefShapeFunc.b2*y,'Vars',[x y]);
+            shapeFunc = cell(obj.ndofs);
+            LHS = obj.applyLinearForm(baseShapeFunction);
+            for i = 1:obj.ndofs
+                RHS = obj.computeLinearFormValues(i);
+                coef = solve(LHS' == RHS,[a b1 b2]);
+                shapeFunc{i} = matlabFunction(coef.a+coef.b1*x+coef.b2*y,'Vars',[x y]);
             end
+            obj.shapeFunctions = shapeFunc;
         end
         
-        function matrixLHS = assemblyLHS(obj,baseShapeFunction)
-                matrixLHS(1) = obj.lineIntegral(baseShapeFunction,obj.vertices(2,:),obj.vertices(3,:));
-                matrixLHS(2) = obj.lineIntegral(baseShapeFunction,obj.vertices(1,:),obj.vertices(3,:));
-                matrixLHS(3) = obj.lineIntegral(baseShapeFunction,obj.vertices(2,:),obj.vertices(1,:));
+        function RHS = computeLinearFormValues(obj,i)
+            RHS = zeros(obj.ndofs,1);
+            RHS(i) = 1;
+        end
+        
+        function LHS = applyLinearForm(obj,baseShapeFunc)
+            LHS(1) = obj.lineIntegral(baseShapeFunc,obj.vertices(2,:),obj.vertices(3,:));
+            LHS(2) = obj.lineIntegral(baseShapeFunc,obj.vertices(1,:),obj.vertices(3,:));
+            LHS(3) = obj.lineIntegral(baseShapeFunc,obj.vertices(2,:),obj.vertices(1,:));
         end
         
         function F = lineIntegral(~,func,pointA,pointB)

@@ -2,14 +2,12 @@ classdef LagrangeSimplicial2D < handle
    
     properties (Access = public)
         polynomialOrder
-        n_vertices
         vertices
-        normalVectors
         ndofs
         nodes
-        barycentricCoords
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -52,6 +50,7 @@ classdef LagrangeSimplicial2D < handle
        
         function init(obj,k)
             obj.polynomialOrder = k;
+            obj.simplicial = Simplicial2D();
             obj.computeVertices();
             obj.computeNdof();
             obj.computeNodes();
@@ -65,8 +64,7 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 3;
-            obj.vertices = [0,0;0,1;1,0];
+            obj.vertices = obj.simplicial.vertices;
         end
         
         function computeNodes(obj)
@@ -86,6 +84,7 @@ classdef LagrangeSimplicial2D < handle
         function computeShapeFunctions(obj)
             k = obj.polynomialOrder;
             X = obj.computeBasisInMonomialForm();
+            syms x y
             shapeFuncs = cell(obj.ndofs,1);
             for i = 1:(k+1)
                 for j = 1:(k+1)
