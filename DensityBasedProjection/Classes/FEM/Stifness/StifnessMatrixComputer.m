@@ -30,16 +30,16 @@ classdef StifnessMatrixComputer < handle
     end
     methods (Access = private)
         function inputData(obj,cParams)
-            obj.elementType = cParams.elementType;
-            obj.t=cParams.t;
-            obj.poissonCoefficient=cParams.poissonCoefficient;
-            obj.elasticModuleMinimun=cParams.elasticModuleMinimun;
-            obj.elasticModuleNeutral=cParams.elasticModuleNeutral;
+            obj.elementType = cParams.structure.elementType;
+            obj.t=cParams.structure.t;
+            obj.poissonCoefficient=cParams.structure.poissonCoefficient;
+            obj.elasticModuleMinimun=cParams.structure.elasticModuleMinimun;
+            obj.elasticModuleNeutral=cParams.structure.elasticModuleNeutral;  
+            obj.penalization=cParams.structure.penalization;
             
-            obj.penalization=cParams.penalization;
-            obj.elementNumberX = cParams.elementNumberX;
-            obj.elementNumberY = cParams.elementNumberY;
-            obj.conectivityMatrixMat = cParams.conectivityMatrixMat;
+            obj.elementNumberX = cParams.mesh.elementNumberX;
+            obj.elementNumberY = cParams.mesh.elementNumberY;
+            obj.conectivityMatrixMat = cParams.mesh.conectivityMatrixMat;
 
             obj.projectedField=cParams.projectedField;
         end

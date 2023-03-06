@@ -159,51 +159,75 @@ classdef ComplianceRobustComputer < handle
             finish = false;
 
 
-            %Calculamos una normalización para el coste:
+%Calculamos una normalización para el coste:
 %             sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
 %             KiI   = sparse(iK,jK,sKiI);
 %             KiI = (KiI+KiI')/2;
-            s.elementType = 'square';
-            s.t=t;
-            s.poissonCoefficient=poissonCoefficient;
-            s.elasticModuleMinimun=elasticModuleMinimun;
-            s.elasticModuleNeutral=elasticModuleNeutral;       
-            s.penalization=penalization;
-            s.elementNumberX = elementNumberX;
-            s.elementNumberY = elementNumberY;
-            s.projectedField= xPhysE;
-            s.conectivityMatrixMat = conectivityMatrixMat;
-            B = StifnessMatrixComputer(s);
-            B.compute();
-            KiI = B.globalStifnessMatrix;
+%             s.elementType = 'square';
+%             s.t=t;
+%             s.poissonCoefficient=poissonCoefficient;
+%             s.elasticModuleMinimun=elasticModuleMinimun;
+%             s.elasticModuleNeutral=elasticModuleNeutral;       
+%             s.penalization=penalization;
+%             s.elementNumberX = elementNumberX;
+%             s.elementNumberY = elementNumberY;
+%             s.projectedField= xPhysE;
+%             s.conectivityMatrixMat = conectivityMatrixMat;
+%             B = StifnessMatrixComputer(s);
+%             B.compute();
+%             KiI = B.globalStifnessMatrix;
+% 
+%             s.neumanCondition = neumanCondition;
+%             s.output = output;
+%             s.elementNumberX = elementNumberX;
+%             s.elementNumberY = elementNumberY;
+%             B = ForceComputer(s);
+%             B.compute();
+%             F = B.force;
+% 
 
-            s.neumanCondition = neumanCondition;
-            s.output = output;
-            s.elementNumberX = elementNumberX;
-            s.elementNumberY = elementNumberY;
-            B = ForceComputer(s);
-            B.compute();
-            F = B.force;
+%             s.force = F;
+%             s.globalStifnessMatrix =KiI;
+%             s.elementNumberX =elementNumberX;
+%             s.elementNumberY =elementNumberY;
+%             s.freeDegress =freeDegress;
+%             B = DisplacementComputer(s); 
+%             B.compute()
+%             UC = B.displacement;
+%            
 
-            %F    = sparse(output,1,neumanCondition,2*(elementNumberY+1)*(elementNumberX+1),1);
+%             s.force = F;
+%             s.displacement =UC;
+%             B = CostComputer(s);
+%             B.compute();
+%             cte = B.cost;
 
-%             UC = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
-% %             UC(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress
-            s.force = F;
-            s.globalStifnessMatrix =KiI;
-            s.elementNumberX =elementNumberX;
-            s.elementNumberY =elementNumberY;
-            s.freeDegress =freeDegress;
-            B = DisplacementComputer(s); 
-            B.compute()
-            UC = B.displacement;
+
            
-            %cte = abs(F'*UC);
-            s.force = F;
-            s.displacement =UC;
-            B = CostComputer(s);
+            s.mesh.elementNumberX = elementNumberX;
+            s.mesh.elementNumberY = elementNumberY;
+            s.mesh.neumanCondition = neumanCondition;
+            s.mesh.output = output;
+            s.mesh.freeDegress = freeDegress;
+            s.mesh.conectivityMatrixMat = conectivityMatrixMat;
+            
+            s.structure.elementType = 'square';
+            s.structure.t=t;
+            s.structure.penalization=penalization;
+            s.structure.poissonCoefficient=poissonCoefficient;
+            s.structure.elasticModuleMinimun=elasticModuleMinimun;
+            s.structure.elasticModuleNeutral=elasticModuleNeutral;
+            s.projectedField = xPhysE;
+            
+            B = FEMcomputer(s);
             B.compute();
             cte = B.cost;
+            F = B.force;
+
+
+
+
+
 
             %Optimización
             while (costChange > 0.001) && (iter < 300) && (finish == false)
