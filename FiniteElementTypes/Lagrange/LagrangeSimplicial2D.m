@@ -68,13 +68,15 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeNodes(obj)
-            k = obj.polynomialOrder;                                    
-            node = zeros(k+1,k+1,2);
+            k = obj.polynomialOrder;
+            ndof = obj.ndofs;
+            node = zeros(ndof,2);
             for i = 1:k+1
                 for j = 1:k+1
                     if (i+j)<=(k+2)
-                        node(i,j,1)=(i-1)/k;
-                        node(i,j,2)=(j-1)/k;
+                        s = obj.computeMonomialIndeces(i,j);
+                        node(s,1)=(i-1)/k;
+                        node(s,2)=(j-1)/k;
                     end
                 end
             end
@@ -82,60 +84,47 @@ classdef LagrangeSimplicial2D < handle
         end
         
         function computeShapeFunctions(obj)
-            k = obj.polynomialOrder;
-            X = obj.computeBasisInMonomialForm();
             syms x y
+            basisMonomialFormSym = obj.computeBasisInMonomialForm();
+            basisMonomialForm = matlabFunction(basisMonomialFormSym);
             shapeFuncs = cell(obj.ndofs,1);
-            for i = 1:(k+1)
-                for j = 1:(k+1)
-                    if (i+j)<=(k+2)
-                        a = obj.computeShapeFunctionCoefficients(X,i,j);
-                        s = obj.computeMonomialIndeces(i,j);
-                        shapeFuncs{s} = matlabFunction(X*a,'Vars',[x y]);
-                    end
-                end
+            for s = 1:obj.ndofs
+                a = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
+                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*a,'Vars',[x y]);
             end
             
             obj.shapeFunctions = shapeFuncs;
         end
         
-        function s = computeShapeFunctionCoefficients(obj,X,i,j)
+        function coefs = computeShapeFunctionCoefficients(obj,X,s)
             A = obj.applyLinearFormInMonomialForm(X);
-            b = obj.computeLinearFormValues(i,j);
-            s = A\b;
+            b = obj.computeLinearFormValues(s);
+            coefs = A\b;
         end
         
-        function X = computeBasisInMonomialForm(obj)
+        function basisMonomialFormSym = computeBasisInMonomialForm(obj)
             k = obj.polynomialOrder;
             syms x y
             for i = 1:(k+1)
                 for j = 1:(k+1)
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
-                        X(s) = x^(i-1)*y^(j-1);
+                        basisMonomialFormSym(s) = x^(i-1)*y^(j-1);
                     end
                 end
             end
         end
         
-        function B = computeLinearFormValues(obj,i,j)
-            I = obj.computeMonomialIndeces(i,j);
+        function B = computeLinearFormValues(obj,s)
             B = zeros(obj.ndofs,1);
-            B(I) = 1;
+            B(s) = 1;
         end
         
         function A = applyLinearFormInMonomialForm(obj,X)
-            k = obj.polynomialOrder;
-            syms x y
             A = zeros(obj.ndofs);
-            for i = 1:(k+1)
-                for j = 1:(k+1)
-                    if (i+j)<=(k+2)
-                        s = obj.computeMonomialIndeces(i,j);
-                        node(:) = obj.nodes(i,j,:);
-                        A(s,:) = subs(X,[x y],node);
-                    end
-                end
+            for s = 1:obj.ndofs
+                        node(:) = obj.nodes(s,:);
+                        A(s,:) = X(node(1),node(2));
             end
         end
         

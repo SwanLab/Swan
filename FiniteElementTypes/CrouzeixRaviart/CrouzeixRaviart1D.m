@@ -11,6 +11,7 @@ classdef CrouzeixRaviart1D < handle
         ndofs
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -39,13 +40,14 @@ classdef CrouzeixRaviart1D < handle
     methods (Access = private)
        
         function init(obj)
+            obj.simplicial = Simplicial1D();
             obj.computeVertices();
             obj.computeNdof();
             obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.vertices = [0,1];
+            obj.vertices = obj.simplicial.vertices;
             obj.n_vertices = length(obj.vertices);
         end
         

@@ -6,11 +6,12 @@ classdef RaviartThomasElement3D < handle
     
     
     properties (Access = public)
-        n_vertices
         vertices
         shapeFunctions
         normalVectors
         fig
+        simplicial
+        ndofs
     end
     
     
@@ -28,19 +29,13 @@ classdef RaviartThomasElement3D < handle
                 subplot(2,2,i)
                 hold on
                 for j = 1:length(nodes)
-                X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2),nodes(j,3));
+                    X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2),nodes(j,3));
                 end
-                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),double(X(:,1)),double(X(:,2)),double(X(:,3)))
-                plot3([0 1],[0 0],[0 0],'k')
-                plot3([0 0],[1 0],[0 0],'k')
-                plot3([0 1],[1 0],[0 0],'k')
-                plot3([0 0],[0 0],[0 1],'k')
-                plot3([0 0],[1 0],[0 1],'k')
-                plot3([1 0],[0 0],[0 1],'k')
-                xlabel('x')
-                ylabel('y')
-                zlabel('z')
-                title("i:"+i)
+                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),double(X(:,1)),double(X(:,2)),double(X(:,3)));
+                plot3([0 1],[0 0],[0 0],'k'); plot3([0 0],[1 0],[0 0],'k'); plot3([0 1],[1 0],[0 0],'k');
+                plot3([0 0],[0 0],[0 1],'k'); plot3([0 0],[1 0],[0 1],'k'); plot3([1 0],[0 0],[0 1],'k');
+                xlabel('x'); ylabel('y'); zlabel('z');
+                title("i: "+string(i-1))
                 grid on
                 hold off
             end
@@ -52,18 +47,23 @@ classdef RaviartThomasElement3D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.computeVertices()
-            obj.computeNormalVectors()
-            obj.computeShapeFunctions()
+            obj.simplicial = Simplicial3D();
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeNormalVectors();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 4;
-            obj.vertices = [0,0,0;1,0,0;0,1,0;0,0,1];
+            obj.vertices = obj.simplicial.vertices;
+        end
+        
+        function computeNdof(obj)
+            obj.ndofs = length(obj.vertices);
         end
         
         function computeNormalVectors(obj)
-            obj.normalVectors = [1,1,1;-1,0,0;0,-1,0;0,0,-1];
+            obj.normalVectors = obj.simplicial.normalVectors;
         end
         
         function F = planeIntegral(~,func,pointA,pointB,pointC)
@@ -83,28 +83,29 @@ classdef RaviartThomasElement3D < handle
             syms x y z a1 a2 a3 b1 real
             
             baseShapeFunction = [a1+b1*x,a2+b1*y,a3+b1*z];
-            for j = 1:obj.n_vertices
+            for j = 1:obj.ndofs
                 normalComponentShapeFunction(j) = dot(baseShapeFunction,obj.normalVectors(j,:));
             end
             
-            matrixLHS = obj.assemblyLHS(normalComponentShapeFunction);
-            for i = 1:obj.n_vertices
-                vectorRHS = obj.assemblyRHS(i);
-                coefShapeFunc = solve(matrixLHS == vectorRHS,[a1 a2 a3 b1]);
-                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1+coefShapeFunc.b1*x,coefShapeFunc.a2+coefShapeFunc.b1*y,coefShapeFunc.a3+coefShapeFunc.b1*z]);
+            LHS = obj.applyLinearForm(normalComponentShapeFunction);
+            for s = 1:obj.ndofs
+                RHS = obj.computeLinearFormValues(s);
+                c = solve(LHS == RHS,[a1 a2 a3 b1]);
+                obj.shapeFunctions{s} = matlabFunction([c.a1+c.b1*x,c.a2+c.b1*y,c.a3+c.b1*z]);
             end
         end
         
-        function matrixLHS = assemblyLHS(obj,normalComponentShapeFunction)
-            matrixLHS(1) = obj.planeIntegral(normalComponentShapeFunction(1),obj.vertices(2,:),obj.vertices(3,:),obj.vertices(4,:));
-            matrixLHS(2) = obj.planeIntegral(normalComponentShapeFunction(2),obj.vertices(3,:),obj.vertices(1,:),obj.vertices(4,:));
-            matrixLHS(3) = obj.planeIntegral(normalComponentShapeFunction(3),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(4,:));
-            matrixLHS(4) = obj.planeIntegral(normalComponentShapeFunction(4),obj.vertices(1,:),obj.vertices(2,:),obj.vertices(3,:));
+        function LHS = applyLinearForm(obj,func)
+            v = obj.vertices;
+            LHS(1) = obj.planeIntegral(func(1),v(2,:),v(3,:),v(4,:));
+            LHS(2) = obj.planeIntegral(func(2),v(3,:),v(1,:),v(4,:));
+            LHS(3) = obj.planeIntegral(func(3),v(1,:),v(2,:),v(4,:));
+            LHS(4) = obj.planeIntegral(func(4),v(1,:),v(2,:),v(3,:));
         end
         
-        function vectorRHS = assemblyRHS(obj,i)
-            vectorRHS = zeros(1,obj.n_vertices);
-            vectorRHS(i) = 1;
+        function RHS = computeLinearFormValues(obj,s)
+            RHS = zeros(1,obj.ndofs);
+            RHS(s) = obj.simplicial.facesArea(s);
         end
         
     end

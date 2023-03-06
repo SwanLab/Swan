@@ -10,6 +10,7 @@ classdef LagrangeSimplicial1D < handle
         barycentricCoords
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -45,6 +46,7 @@ classdef LagrangeSimplicial1D < handle
        
         function init(obj,polynomialOrder)
             obj.polynomialOrder = polynomialOrder;
+            obj.simplicial = Simpplicial1D();
             obj.computeVertices();
             obj.computeNdof();
             obj.computeNodes();
@@ -52,8 +54,8 @@ classdef LagrangeSimplicial1D < handle
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 2;
-            obj.vertices = [0,1];
+            obj.vertices = obj.simplicial.vertices;
+            obj.n_vertices = length(obj.vertices);
         end
         
         function computeNdof(obj)

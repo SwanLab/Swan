@@ -1,12 +1,12 @@
 %% LAGRANGE SIMPLICIAL
-k = 3;
+k = 2;
 d = 2;
 ls = LagrangeElement.create('SIMPLICIAL',k,d);
 ls.plotShapeFunctions();
 
 %% LAGRANGE TENSOR PRODUCT
 k = 2;
-d = 1;
+d = 2;
 lt = LagrangeElement.create('TENSOR PRODUCT',k,d);
 lt.plotShapeFunctions();
 
@@ -21,6 +21,6 @@ rt = RaviartThomasElement.create(d);
 rt.plotShapeFunctions();
 
 %% NÉDÉLEC
-d = 2;
+d = 3;
 nd = NedelecElement.create(d);
 nd.plotShapeFunctions();

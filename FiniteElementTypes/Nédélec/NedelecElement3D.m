@@ -8,10 +8,12 @@ classdef NedelecElement3D < handle
     properties (Access = public)
         n_vertices
         vertices
+        ndofs
         edges
         midPoints
         shapeFunctions
         fig
+        simplicial
     end
     
     
@@ -31,17 +33,11 @@ classdef NedelecElement3D < handle
                 for j = 1:length(nodes)
                     X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2),nodes(j,3));
                 end
-                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),double(X(:,1)),double(X(:,2)),double(X(:,3)))
-                plot3([0 1],[0 0],[0 0],'k')
-                plot3([0 0],[1 0],[0 0],'k')
-                plot3([0 1],[1 0],[0 0],'k')
-                plot3([0 0],[0 0],[0 1],'k')
-                plot3([0 0],[1 0],[0 1],'k')
-                plot3([1 0],[0 0],[0 1],'k')
-                xlabel('x')
-                ylabel('y')
-                zlabel('z')
-                title("i:"+i)
+                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),double(X(:,1)),double(X(:,2)),double(X(:,3)));
+                plot3([0 1],[0 0],[0 0],'k'); plot3([0 0],[1 0],[0 0],'k'); plot3([0 1],[1 0],[0 0],'k');
+                plot3([0 0],[0 0],[0 1],'k'); plot3([0 0],[1 0],[0 1],'k'); plot3([1 0],[0 0],[0 1],'k');
+                xlabel('x'); ylabel('y'); zlabel('z')
+                title("i:"+string(i-1))
                 grid on
                 hold off
             end
@@ -53,19 +49,24 @@ classdef NedelecElement3D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.computeVertices()
-            obj.computeEdges()
-            obj.computeShapeFunctions()
+            obj.simplicial = Simplicial3D();
+            obj.computeVertices();
+            obj.computeNdof();
+            obj.computeEdges();
+            obj.computeShapeFunctions();
         end
         
         function computeVertices(obj)
-            obj.n_vertices = 4;
-            obj.vertices = [0,0,0;1,0,0;0,1,0;0,0,1];
+            obj.vertices = obj.simplicial.vertices;
+        end
+        
+        function computeNdof(obj)
+            obj.ndofs = length(obj.vertices);
         end
         
         function computeEdges(obj)
-            obj.edges.vect = [1,-1,0;1,0,0;0,1,0;0,0,1;-1,0,1;0,1,-1];
-            obj.edges.measure = [sqrt(2),1,1,1,sqrt(2),sqrt(2)];
+            obj.edges.vect = obj.simplicial.tangentVectors;
+            obj.edges.measure = obj.simplicial.edgesLength;
         end
                 
         function F = lineIntegral(~,func,pointA,pointB)
@@ -90,17 +91,15 @@ classdef NedelecElement3D < handle
             matrixLHS = obj.assemblyLHS(tangentComponentBaseShapeFunction);
             for i = 1:length(matrixLHS)
                 vectorRHS = obj.assemblyRHS(i);
-                coefShapeFunc = obj.computeShapeFunctionCoefficients(matrixLHS,vectorRHS);
-                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1+coefShapeFunc.b3*y-coefShapeFunc.b2*z...
-                    ,coefShapeFunc.a2+coefShapeFunc.b1*z-coefShapeFunc.b3*x,coefShapeFunc.a3+coefShapeFunc.b2*x...
-                    -coefShapeFunc.b1*y],'Vars',[x y z]);
+                c = obj.computeShapeFunctionCoefficients(matrixLHS,vectorRHS);
+                obj.shapeFunctions{i} = matlabFunction([c.a1+c.b3*y-c.b2*z,c.a2+c.b1*z-c.b3*x,c.a3+c.b2*x-c.b1*y],'Vars',[x y z]);
             end
         end
         
         function matrixLHS = assemblyLHS(obj,tangentComponentBaseShapeFunction)
             matrixLHS(1) = obj.lineIntegral(tangentComponentBaseShapeFunction(1),obj.vertices(2,:),obj.vertices(3,:));
-            matrixLHS(2) = obj.lineIntegral(tangentComponentBaseShapeFunction(2),obj.vertices(2,:),obj.vertices(1,:));
-            matrixLHS(3) = obj.lineIntegral(tangentComponentBaseShapeFunction(3),obj.vertices(1,:),obj.vertices(3,:));
+            matrixLHS(2) = obj.lineIntegral(tangentComponentBaseShapeFunction(2),obj.vertices(3,:),obj.vertices(1,:));
+            matrixLHS(3) = obj.lineIntegral(tangentComponentBaseShapeFunction(3),obj.vertices(2,:),obj.vertices(1,:));
             matrixLHS(4) = obj.lineIntegral(tangentComponentBaseShapeFunction(4),obj.vertices(1,:),obj.vertices(4,:));
             matrixLHS(5) = obj.lineIntegral(tangentComponentBaseShapeFunction(5),obj.vertices(2,:),obj.vertices(4,:));
             matrixLHS(6) = obj.lineIntegral(tangentComponentBaseShapeFunction(6),obj.vertices(3,:),obj.vertices(4,:));
@@ -108,7 +107,7 @@ classdef NedelecElement3D < handle
         
         function vectorRHS = assemblyRHS(obj,i)
             vectorRHS = zeros(1,length(obj.edges.vect));
-            vectorRHS(i) = 1;
+            vectorRHS(i) = obj.edges.measure(i);
         end
         
         function s = computeShapeFunctionCoefficients(~,matrixLHS,vectorRHS)
