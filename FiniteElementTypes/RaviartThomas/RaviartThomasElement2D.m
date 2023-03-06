@@ -61,7 +61,7 @@ classdef RaviartThomasElement2D < handle
         end
         
         function computeNormalVectors(obj)
-            obj.normalVectors = [1,1;-1,0;0,-1];
+            obj.normalVectors = obj.simplicial.normalVectors;
         end
         
         function F = lineIntegral(~,func,pointA,pointB)
@@ -81,23 +81,24 @@ classdef RaviartThomasElement2D < handle
                 normalComponentShapeFunction(j) = dot(baseShapeFunction,obj.normalVectors(j,:));
             end
             
-            matrixLHS = obj.assemblyLHS(normalComponentShapeFunction);
-            for i = 1:obj.ndofs
-                vectorRHS = obj.assemblyRHS(i);
-                coefShapeFunc = solve(matrixLHS == vectorRHS,[a1 a2 b1]);
-                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1+coefShapeFunc.b1*x,coefShapeFunc.a2+coefShapeFunc.b1*y]);
+            LHS = obj.applyLinearForms(normalComponentShapeFunction);
+            for s = 1:obj.ndofs
+                RHS = obj.computeLinearFormsValues(s);
+                c = solve(LHS == RHS,[a1 a2 b1]);
+                obj.shapeFunctions{s} = matlabFunction([c.a1+c.b1*x,c.a2+c.b1*y]);
             end
         end
         
-        function matrixLHS = assemblyLHS(obj,normalComponentShapeFunction)
-            matrixLHS(1) = obj.lineIntegral(normalComponentShapeFunction(1),obj.vertices(2,:),obj.vertices(3,:));
-            matrixLHS(2) = obj.lineIntegral(normalComponentShapeFunction(2),obj.vertices(3,:),obj.vertices(1,:));
-            matrixLHS(3) = obj.lineIntegral(normalComponentShapeFunction(3),obj.vertices(1,:),obj.vertices(2,:));
+        function LHS = applyLinearForms(obj,func)
+            v = obj.vertices;
+            LHS(1) = obj.lineIntegral(func(1),v(2,:),v(3,:));
+            LHS(2) = obj.lineIntegral(func(2),v(3,:),v(1,:));
+            LHS(3) = obj.lineIntegral(func(3),v(1,:),v(2,:));
         end
         
-        function vectorRHS = assemblyRHS(obj,i)
-            vectorRHS = zeros(1,obj.n_vertices);
-            vectorRHS(i) = 1;
+        function RHS = computeLinearFormsValues(obj,s)
+            RHS = zeros(1,obj.ndofs);
+            RHS(s) = 1;
         end
         
     end

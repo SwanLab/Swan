@@ -83,24 +83,25 @@ classdef NedelecElement2D < handle
                 tangCompShapeFunc(j) = dot(baseShapeFunction,obj.edges.vect(j,:));
             end
             
-            matrixLHS = obj.assemblyLHS(tangCompShapeFunc);
+            LHS = obj.applyLinearForm(tangCompShapeFunc);
             for i = 1:obj.ndofs
-                vectorRHS = obj.assemblyRHS(i);
-                eq = matrixLHS == vectorRHS;
-                coefShapeFunc = solve(eq,[a1 a2 b1]);
-                obj.shapeFunctions{i} = matlabFunction([coefShapeFunc.a1-coefShapeFunc.b1*y,coefShapeFunc.a2+coefShapeFunc.b1*x]);
+                RHS = obj.computeLinearFormValues(i);
+                eq = LHS == RHS;
+                c = solve(eq,[a1 a2 b1]);
+                obj.shapeFunctions{i} = matlabFunction([c.a1-c.b1*y,c.a2+c.b1*x]);
             end
         end
         
-        function matrixLHS = assemblyLHS(obj,tangentialComponentShapeFunction)
-            matrixLHS(1) = obj.lineIntegral(tangentialComponentShapeFunction(1),obj.vertices(2,:),obj.vertices(3,:));
-            matrixLHS(2) = obj.lineIntegral(tangentialComponentShapeFunction(2),obj.vertices(3,:),obj.vertices(1,:));
-            matrixLHS(3) = obj.lineIntegral(tangentialComponentShapeFunction(3),obj.vertices(1,:),obj.vertices(2,:));
+        function LHS = applyLinearForm(obj,func)
+            v = obj.vertices;
+            LHS(1) = obj.lineIntegral(func(1),v(2,:),v(3,:));
+            LHS(2) = obj.lineIntegral(func(2),v(3,:),v(1,:));
+            LHS(3) = obj.lineIntegral(func(3),v(1,:),v(2,:));
         end
         
-        function vectorRHS = assemblyRHS(obj,i)
-            vectorRHS = zeros(1,obj.ndofs);
-            vectorRHS(i) = 1;
+        function RHS = computeLinearFormValues(obj,i)
+            RHS = zeros(1,obj.ndofs);
+            RHS(i) = 1;
         end
         
     end

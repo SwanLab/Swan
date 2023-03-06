@@ -89,17 +89,17 @@ classdef LagrangeSimplicial2D < handle
             basisMonomialForm = matlabFunction(basisMonomialFormSym);
             shapeFuncs = cell(obj.ndofs,1);
             for s = 1:obj.ndofs
-                a = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
-                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*a,'Vars',[x y]);
+                c = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
+                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*c,'Vars',[x y]);
             end
             
             obj.shapeFunctions = shapeFuncs;
         end
         
         function coefs = computeShapeFunctionCoefficients(obj,X,s)
-            A = obj.applyLinearFormInMonomialForm(X);
-            b = obj.computeLinearFormValues(s);
-            coefs = A\b;
+            LHS = obj.applyLinearFormInMonomialForm(X);
+            RHS = obj.computeLinearFormValues(s);
+            coefs = LHS\RHS;
         end
         
         function basisMonomialFormSym = computeBasisInMonomialForm(obj)
@@ -115,16 +115,16 @@ classdef LagrangeSimplicial2D < handle
             end
         end
         
-        function B = computeLinearFormValues(obj,s)
-            B = zeros(obj.ndofs,1);
-            B(s) = 1;
+        function RHS = computeLinearFormValues(obj,s)
+            RHS = zeros(obj.ndofs,1);
+            RHS(s) = 1;
         end
         
-        function A = applyLinearFormInMonomialForm(obj,X)
-            A = zeros(obj.ndofs);
+        function LHS = applyLinearFormInMonomialForm(obj,X)
+            LHS = zeros(obj.ndofs);
             for s = 1:obj.ndofs
-                        node(:) = obj.nodes(s,:);
-                        A(s,:) = X(node(1),node(2));
+                node(:) = obj.nodes(s,:);
+                LHS(s,:) = X(node(1),node(2));
             end
         end
         

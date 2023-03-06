@@ -16,7 +16,7 @@ cr = CrouzeixRaviartElement.create(d);
 cr.plotShapeFunctions();
 
 %% RAVIART-THOMAS
-d = 3;
+d = 2;
 rt = RaviartThomasElement.create(d);
 rt.plotShapeFunctions();
 

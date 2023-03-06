@@ -6,7 +6,6 @@ classdef NedelecElement3D < handle
     
     
     properties (Access = public)
-        n_vertices
         vertices
         ndofs
         edges
@@ -61,7 +60,7 @@ classdef NedelecElement3D < handle
         end
         
         function computeNdof(obj)
-            obj.ndofs = length(obj.vertices);
+            obj.ndofs = length(obj.simplicial.edgesLength);
         end
         
         function computeEdges(obj)
@@ -84,36 +83,37 @@ classdef NedelecElement3D < handle
             
             baseShapeFunction = [a1+b3*y-b2*z,a2+b1*z-b3*x,a3+b2*x-b1*y];
             
-            for j = 1:6
+            for j = 1:obj.ndofs
                 tangentComponentBaseShapeFunction(j) = dot(baseShapeFunction,obj.edges.vect(j,:));
             end
             
-            matrixLHS = obj.assemblyLHS(tangentComponentBaseShapeFunction);
-            for i = 1:length(matrixLHS)
-                vectorRHS = obj.assemblyRHS(i);
-                c = obj.computeShapeFunctionCoefficients(matrixLHS,vectorRHS);
-                obj.shapeFunctions{i} = matlabFunction([c.a1+c.b3*y-c.b2*z,c.a2+c.b1*z-c.b3*x,c.a3+c.b2*x-c.b1*y],'Vars',[x y z]);
+            LHS = obj.applyLinearForms(tangentComponentBaseShapeFunction);
+            for s = 1:length(LHS)
+                RHS = obj.assemblyRHS(s);
+                c = obj.computeShapeFunctionCoefficients(LHS,RHS);
+                obj.shapeFunctions{s} = matlabFunction([c.a1+c.b3*y-c.b2*z,c.a2+c.b1*z-c.b3*x,c.a3+c.b2*x-c.b1*y],'Vars',[x y z]);
             end
         end
         
-        function matrixLHS = assemblyLHS(obj,tangentComponentBaseShapeFunction)
-            matrixLHS(1) = obj.lineIntegral(tangentComponentBaseShapeFunction(1),obj.vertices(2,:),obj.vertices(3,:));
-            matrixLHS(2) = obj.lineIntegral(tangentComponentBaseShapeFunction(2),obj.vertices(3,:),obj.vertices(1,:));
-            matrixLHS(3) = obj.lineIntegral(tangentComponentBaseShapeFunction(3),obj.vertices(2,:),obj.vertices(1,:));
-            matrixLHS(4) = obj.lineIntegral(tangentComponentBaseShapeFunction(4),obj.vertices(1,:),obj.vertices(4,:));
-            matrixLHS(5) = obj.lineIntegral(tangentComponentBaseShapeFunction(5),obj.vertices(2,:),obj.vertices(4,:));
-            matrixLHS(6) = obj.lineIntegral(tangentComponentBaseShapeFunction(6),obj.vertices(3,:),obj.vertices(4,:));
+        function LHS = applyLinearForms(obj,func)
+            v = obj.vertices;
+            LHS(1) = obj.lineIntegral(func(1),v(2,:),v(3,:));
+            LHS(2) = obj.lineIntegral(func(2),v(3,:),v(1,:));
+            LHS(3) = obj.lineIntegral(func(3),v(2,:),v(1,:));
+            LHS(4) = obj.lineIntegral(func(4),v(1,:),v(4,:));
+            LHS(5) = obj.lineIntegral(func(5),v(2,:),v(4,:));
+            LHS(6) = obj.lineIntegral(func(6),v(3,:),v(4,:));
         end
         
-        function vectorRHS = assemblyRHS(obj,i)
-            vectorRHS = zeros(1,length(obj.edges.vect));
-            vectorRHS(i) = obj.edges.measure(i);
+        function RHS = assemblyRHS(obj,i)
+            RHS = zeros(1,length(obj.edges.vect));
+            RHS(i) = obj.edges.measure(i);
         end
         
-        function s = computeShapeFunctionCoefficients(~,matrixLHS,vectorRHS)
+        function c = computeShapeFunctionCoefficients(~,LHS,RHS)
             syms a1 a2 a3 b1 b2 b3 real
-            eq = matrixLHS == vectorRHS;
-            s = solve(eq,[a1 a2 a3 b1 b2 b3]);
+            eq = LHS == RHS;
+            c = solve(eq,[a1 a2 a3 b1 b2 b3]);
         end
         
     end
