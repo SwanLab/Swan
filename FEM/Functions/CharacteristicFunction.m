@@ -28,7 +28,12 @@ classdef CharacteristicFunction < L2Function
             for iGaus = 1:nGaus
                 x = xy(1,iGaus,:);
                 y = xy(2,iGaus,:);
-                f = obj.fxy(x,y);
+                if (size(xy,1) == 3)
+                    z = xy(3,iGaus,:);
+                    f = obj.fxy(x,y,z);
+                else
+                    f = obj.fxy(x,y);
+                end
                 fxV(1,iGaus,f>0) = 0;
                 fxV(1,iGaus,f<=0) = 1;
             end
