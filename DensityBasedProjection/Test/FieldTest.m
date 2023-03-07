@@ -40,6 +40,6 @@ if results.projectedField.D == Test1.projectedField.D
 else
     warning('Error in Projected Field D')
 end
-
+close all 
 
 

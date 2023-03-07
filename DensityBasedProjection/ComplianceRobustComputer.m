@@ -35,12 +35,19 @@ classdef ComplianceRobustComputer < handle
             minimunInfluenceRadios    =   1.5;
             neumanCondition       = -1e-3;
 
-            %Matriz de rigidez (para elementos cuadrados):
-            A11     = [12  3 -6 -3;  3 12  3  0; -6  3 12 -3; -3  0 -3 12];
-            A12     = [-6 -3  0  3; -3 -6 -3 -6;  0 -3 -6  3;  3 -6  3 -6];
-            B11     = [-4  3 -2  9;  3 -4 -9  4; -2 -9 -4 -3;  9  4 -3 -4];
-            B12     = [ 2 -3  4 -9; -3  2  9 -2;  4  9  2  3; -9 -2  3  2];
-            elementalStiffnessMatrix      = t/(1-poissonCoefficient^2)/24*([A11 A12;A12' A11]+poissonCoefficient*[B11 B12;B12' B11]);
+%             %Matriz de rigidez (para elementos cuadrados):
+%             A11     = [12  3 -6 -3;  3 12  3  0; -6  3 12 -3; -3  0 -3 12];
+%             A12     = [-6 -3  0  3; -3 -6 -3 -6;  0 -3 -6  3;  3 -6  3 -6];
+%             B11     = [-4  3 -2  9;  3 -4 -9  4; -2 -9 -4 -3;  9  4 -3 -4];
+%             B12     = [ 2 -3  4 -9; -3  2  9 -2;  4  9  2  3; -9 -2  3  2];
+%             elementalStiffnessMatrix      = t/(1-poissonCoefficient^2)/24*([A11 A12;A12' A11]+poissonCoefficient*[B11 B12;B12' B11]);
+            
+            s.elementType = 'square';
+            s.t = t;
+            s.poissonCoefficient = poissonCoefficient;
+            B = ElementalStiffnessMatricesComputer(s);
+            B.compute();
+            elementalStiffnessMatrix = B.elementalStiffnessMatrix;
 
 
             s.elementNumberX =  elementNumberX;
@@ -211,7 +218,7 @@ classdef ComplianceRobustComputer < handle
             s.mesh.freeDegress = freeDegress;
             s.mesh.conectivityMatrixMat = conectivityMatrixMat;
             
-            s.structure.elementType = 'square';
+            s.structure.elementalStiffnessMatrix = elementalStiffnessMatrix;
             s.structure.t=t;
             s.structure.penalization=penalization;
             s.structure.poissonCoefficient=poissonCoefficient;
@@ -222,7 +229,8 @@ classdef ComplianceRobustComputer < handle
             B = FEMcomputer(s);
             B.compute();
             cte = B.cost;
-            F = B.force;
+            
+            
 
 
 
@@ -240,28 +248,59 @@ classdef ComplianceRobustComputer < handle
                 xold = filteredField(:);
 
                 %Matriz de rigidez:
-                sKiE  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-                KiE   = sparse(iK,jK,sKiE); KiE = (KiE+KiE')/2;
-                sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysI(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-                KiI   = sparse(iK,jK,sKiI); KiI = (KiI+KiI')/2;
-                sKiD  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysD(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-                KiD   = sparse(iK,jK,sKiD); KiD = (KiD+KiD')/2;
+%                 sKiE  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
+%                 KiE   = sparse(iK,jK,sKiE); KiE = (KiE+KiE')/2;
+%                 sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysI(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
+%                 KiI   = sparse(iK,jK,sKiI); KiI = (KiI+KiI')/2;
+%                 sKiD  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysD(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
+%                 KiD   = sparse(iK,jK,sKiD); KiD = (KiD+KiD')/2;
+% 
+%                 %Resolución del problema de elementos finitos:
+%                 displacementE(freeDegress) = KiE(freeDegress,freeDegress)\F(freeDegress);
+%                 displacementI(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress);
+%                 displacementD(freeDegress) = KiD(freeDegress,freeDegress)\F(freeDegress);
+% 
+%                 displacementE      = displacementE(:,1);
+%                 costE   = F'*displacementE;
+% 
+%                 displacementI      = displacementI(:,1);
+%                 costI   = F'*displacementI;
+% 
+%                 displacementD      = displacementD(:,1);
+%                 costD   = F'*displacementD;
 
-                %Resolución del problema de elementos finitos:
-                displacementE(freeDegress) = KiE(freeDegress,freeDegress)\F(freeDegress);
-                displacementI(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress);
-                displacementD(freeDegress) = KiD(freeDegress,freeDegress)\F(freeDegress);
+                s.mesh.elementNumberX = elementNumberX;
+                s.mesh.elementNumberY = elementNumberY;
+                s.mesh.neumanCondition = neumanCondition;
+                s.mesh.output = output;
+                s.mesh.freeDegress = freeDegress;
+                s.mesh.conectivityMatrixMat = conectivityMatrixMat;                            
+                s.structure.elementType = 'square';
+                s.structure.t=t;
+                s.structure.penalization=penalization;
+                s.structure.poissonCoefficient=poissonCoefficient;
+                s.structure.elasticModuleMinimun=elasticModuleMinimun;
+                s.structure.elasticModuleNeutral=elasticModuleNeutral;
+                
+                s.projectedField = xPhysE;                      
+                E = FEMcomputer(s);
+                E.compute();
+                costE = E.cost;
+                displacementE = E.displacement;
 
-                displacementE      = displacementE(:,1);
-                costE   = F'*displacementE;
+                s.projectedField = xPhysI;                      
+                I = FEMcomputer(s);
+                I.compute();
+                costI = I.cost;
+                displacementI = I.displacement;
 
-                displacementI      = displacementI(:,1);
-                costI   = F'*displacementI;
-
-                displacementD      = displacementD(:,1);
-                costD   = F'*displacementD;
-
-                %Cálculo de las derivadas respecto a la variable estructural:
+                s.projectedField = xPhysD;                      
+                D = FEMcomputer(s);
+                D.compute();
+                costD = D.cost;
+                displacementD = D.displacement;
+                           
+              %Cálculo de las derivadas respecto a la variable estructural:
                 cE1a  = reshape(sum((displacementE(conectivityMatrixMat)*elementalStiffnessMatrix).*displacementE(conectivityMatrixMat),2),elementNumberY,elementNumberX);
                 dcsE1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysE.^(penalization-1).*cE1a;
 
@@ -270,6 +309,11 @@ classdef ComplianceRobustComputer < handle
 
                 cD1a  = reshape(sum((displacementD(conectivityMatrixMat)*elementalStiffnessMatrix).*displacementD(conectivityMatrixMat),2),elementNumberY,elementNumberX);
                 dcsD1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysD.^(penalization-1).*cD1a;
+                
+                
+                
+           
+
 
                 %     dcsE1(1:10,1:10)/cte
                 %

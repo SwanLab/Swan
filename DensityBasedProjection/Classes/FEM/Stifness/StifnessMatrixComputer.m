@@ -3,7 +3,7 @@ classdef StifnessMatrixComputer < handle
         globalStifnessMatrix
     end
     properties (Access = private)
-        elementType
+%        elementType
         t
         poissonCoefficient
         elasticModuleMinimun
@@ -23,14 +23,14 @@ classdef StifnessMatrixComputer < handle
         end
 
         function compute(obj)
-            obj.computeElementalStiffnessMatrices()
+%            obj.computeElementalStiffnessMatrices()
             obj.penalizeElasticModule()
             obj.computeGlobalStifnessMatrix()
         end
     end
     methods (Access = private)
         function inputData(obj,cParams)
-            obj.elementType = cParams.structure.elementType;
+            obj.elementalStiffnessMatrix = cParams.structure.elementalStiffnessMatrix;
             obj.t=cParams.structure.t;
             obj.poissonCoefficient=cParams.structure.poissonCoefficient;
             obj.elasticModuleMinimun=cParams.structure.elasticModuleMinimun;
@@ -43,14 +43,14 @@ classdef StifnessMatrixComputer < handle
 
             obj.projectedField=cParams.projectedField;
         end
-        function computeElementalStiffnessMatrices(obj)
-            s.elementType = obj.elementType;
-            s.t = obj.t;
-            s.poissonCoefficient = obj.poissonCoefficient;
-            B = ElementalStiffnessMatricesComputer(s);
-            B.compute();
-            obj.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
-        end
+%         function computeElementalStiffnessMatrices(obj)
+%             s.elementType = obj.elementType;
+%             s.t = obj.t;
+%             s.poissonCoefficient = obj.poissonCoefficient;
+%             B = ElementalStiffnessMatricesComputer(s);
+%             B.compute();
+%             obj.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
+%         end
         function penalizeElasticModule(obj)
             s.elasticModuleMinimun = obj.elasticModuleMinimun;
             s.elasticModuleNeutral = obj.elasticModuleNeutral;
