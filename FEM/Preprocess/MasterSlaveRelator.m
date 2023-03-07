@@ -13,7 +13,7 @@ classdef MasterSlaveRelator < handle
         cellDescriptor
         msRelation
         allNodes
-        vertices
+        cornerNodes 
     end
     
     methods (Access = public)
@@ -28,8 +28,9 @@ classdef MasterSlaveRelator < handle
                     obj.init3(coord);
                     obj.computeNodesInFaces3D(coord);
                     obj.computeMasterSlaveRelation3D();
-%                     obj.get_vertices(coord);
-%                     obj.get_MasterSlave(coord)
+%                     obj.get_cornerNodes(coord);
+%                     obj.get_MasterSlave(coord);
+%                     obj.get_MasterSlave2(coord); 
             end
         end
         
@@ -44,6 +45,13 @@ classdef MasterSlaveRelator < handle
         function init2(obj,coord)
             obj.x = coord(:,1);
             obj.y = coord(:,2);
+            obj.allNodes(:,1) = 1:size(obj.x,1);
+        end
+
+        function init3(obj,coord)
+            obj.x = coord(:,1);
+            obj.y = coord(:,2);
+            obj.z = coord(:,3);
             obj.allNodes(:,1) = 1:size(obj.x,1);
         end
         
@@ -91,22 +99,17 @@ classdef MasterSlaveRelator < handle
         function [master,slave] = computeMasterSlaveNodesInFaceY(obj)
             [master,slave] = obj.computeMasterSlaveNode(obj.nodesInYmin,obj.nodesInYmax,obj.x);
         end
-        
-
 
         function [master,slave] = computeMasterSlaveNodesInFaceX3D(obj)
-            [masterY,slaveY] = obj.computeMasterSlaveNode(obj.nodesInXmin,obj.nodesInXmax,obj.y);
-            [masterZ,slaveZ] = obj.computeMasterSlaveNode(obj.nodesInXmin,obj.nodesInXmax,obj.z);
-            master = [masterY; masterZ];
-            slave  = [slaveY; slaveZ];
+            [master,slave] = obj.computeMasterSlaveNode3D(obj.nodesInXmin,obj.nodesInXmax,obj.y,obj.z);
         end
         
         function [master,slave] = computeMasterSlaveNodesInFaceY3D(obj)
-            [master,slave] = obj.computeMasterSlaveNode(obj.nodesInYmin,obj.nodesInYmax,obj.x);
+            [master,slave] = obj.computeMasterSlaveNode3D(obj.nodesInYmin,obj.nodesInYmax,obj.x,obj.z);
         end
         
         function [master,slave] = computeMasterSlaveNodesInFaceZ3D(obj)
-            [master,slave] = obj.computeMasterSlaveNode(obj.nodesInZmin,obj.nodesInZmax,obj.x);
+            [master,slave] = obj.computeMasterSlaveNode3D(obj.nodesInZmin,obj.nodesInZmax,obj.x,obj.y);
         end
         
         function [master,slave] = computeMasterSlaveNode(obj,isLowerFace,isUpperFace,dir2compare)
@@ -116,6 +119,13 @@ classdef MasterSlaveRelator < handle
             slave  = obj.obtainClosestNodeInOppositeFace(nLF,nUF,dir2compare);
         end
         
+        function [master,slave] = computeMasterSlaveNode3D(obj,isLowerFace,isUpperFace,dir2compare1,dir2compare2)
+            nLF = obj.allNodes(isLowerFace,1);
+            nUF = obj.allNodes(isUpperFace,1);
+            master = nLF;
+            slave  = obj.obtainClosestNodeInOppositeFace3D(nLF,nUF,dir2compare1,dir2compare2);
+        end
+
         function closestNodesUF = obtainClosestNodeInOppositeFace(obj,nodesLF,nodesUF,pos)
             nNodes         = length(nodesLF);
             closestNodesUF = zeros(nNodes,1);
@@ -124,70 +134,104 @@ classdef MasterSlaveRelator < handle
                 closestNodesUF(inode) = obj.obtainClosestNode(nodeLF,nodesUF,pos);
             end
         end
-
-        function init3(obj,coord)
-            obj.x = coord(:,1);
-            obj.y = coord(:,2);
-            obj.z = coord(:,3);
-            obj.allNodes(:,1) = 1:size(obj.x,1);
+        
+        function closestNodesUF = obtainClosestNodeInOppositeFace3D(obj,nodesLF,nodesUF,pos1,pos2)
+            nNodes         = length(nodesLF);
+            closestNodesUF = zeros(nNodes,1);
+            for inode = 1:nNodes
+                nodeLF = nodesLF(inode);
+                closestNodesUF(inode) = obj.obtainClosestNode3D(nodeLF,nodesUF,pos1,pos2);
+            end
         end
 
-        function get_vertices(obj,coord)
-            v = [];
-            for i = 1:length(coord) %   find ????
-                nodeGID = coord(i,:);
-                if (isequal(nodeGID, [0,0,0]) || isequal(nodeGID, [0,0,1]) || ...
-                        isequal(nodeGID, [0,1,0]) || isequal(nodeGID, [1,0,0]) || ...
-                        isequal(nodeGID, [0,1,1]) || isequal(nodeGID, [1,0,1]) || ...
-                        isequal(nodeGID, [1,1,0]) || isequal(nodeGID, [1,1,1]))
-                    v = [v; nodeGID];
-                end
-            end
-            obj.vertices = v;
-        end 
+%         function get_cornerNodes(obj,coord)
+%             v = [];
+%             for i = 1:length(coord) %   find ????
+%                 nodeGID = coord(i,:);
+%                 if (isequal(nodeGID, [0,0,0]) || isequal(nodeGID, [0,0,1]) || ...
+%                         isequal(nodeGID, [0,1,0]) || isequal(nodeGID, [1,0,0]) || ...
+%                         isequal(nodeGID, [0,1,1]) || isequal(nodeGID, [1,0,1]) || ...
+%                         isequal(nodeGID, [1,1,0]) || isequal(nodeGID, [1,1,1]))
+%                     v = [v; nodeGID];
+%                 end
+%             end
+%             obj.cornerNodes = v;
+%         end 
+% 
+%         function get_MasterSlave(obj,gidcoord)
+%             MS = [ ];
+%             v = obj.cornerNodes;
+%             for i = 1:length(gidcoord)
+%                 if ismember(gidcoord(i,:),v,'rows')
+%                 else % if node is not a vertice
+%                     if any(gidcoord==0)
+%                         xCoord = gidcoord(i,1);
+%                         yCoord = gidcoord(i,2);
+%                         zCoord = gidcoord(i,3);
+%                         if xCoord==0
+%                             for j = 1:length(gidcoord)
+%                                 nodeCompared = gidcoord(j,1:3);
+%                                 nodeSuposed = [xCoord+1,yCoord,zCoord];
+%                                 if (isequal(nodeCompared,nodeSuposed))
+%                                     MS = [MS; [i j]];
+%                                 end
+%                             end
+%                         end
+%                         if yCoord==0
+%                             for j = 1:length(gidcoord)
+%                                 nodeCompared = gidcoord(j,1:3);
+%                                 nodeSuposed = [xCoord,yCoord+1,zCoord];
+%                                 if (isequal(nodeCompared,nodeSuposed))
+%                                     MS = [MS; [i j]];
+%                                 end
+%                             end
+%                         end
+%                         if zCoord==0
+%                             for j = 1:length(gidcoord)
+%                                 nodeCompared = gidcoord(j,1:3);
+%                                 nodeSuposed = [xCoord,yCoord,zCoord+1];
+%                                 if (isequal(nodeCompared,nodeSuposed))
+%                                     MS = [MS; [i j]];
+%                                 end
+%                             end
+%                         end
+%                     end
+%                 end
+%             end
+%             obj.msRelation = MS;
+%         end
+% 
+%         function get_MasterSlave2(obj,gidcoord)
+%             MS = [ ];
+%             v = obj.cornerNodes;
+%             n = length(gidcoord);
+%             [~, idx] = ismember(gidcoord,v,'rows');
+%             noncornerNodes = find(~idx);
+%             
+%             if any(gidcoord(noncornerNodes,:) == 0)
+%                 for i = noncornerNodes'
+%                     xCoord = gidcoord(i,1);
+%                     yCoord = gidcoord(i,2);
+%                     zCoord = gidcoord(i,3);
+%                     for j = 1:n
+%                         if j == i
+%                             continue
+%                         end
+%                         nodeCompared = gidcoord(j,1:3);
+%                         if xCoord == 0 && isequal(nodeCompared, [xCoord+1,yCoord,zCoord])
+%                             MS = [MS; [i j]];
+%                         elseif yCoord == 0 && isequal(nodeCompared, [xCoord,yCoord+1,zCoord])
+%                             MS = [MS; [i j]];
+%                         elseif zCoord == 0 && isequal(nodeCompared, [xCoord,yCoord,zCoord+1])
+%                             MS = [MS; [i j]];
+%                         end
+%                     end
+%                 end
+%             end
+%             
+%             obj.msRelation = MS;
+%         end
 
-        function get_MasterSlave(obj,gidcoord)
-            MS = [ ];
-            v = obj.vertices;
-            for i = 1:length(gidcoord)
-                if ismember(gidcoord(i,:),v,'rows')
-                else % if node is not a vertice
-                    if any(gidcoord==0)
-                        xCoord = gidcoord(i,1);
-                        yCoord = gidcoord(i,2);
-                        zCoord = gidcoord(i,3);
-                        if xCoord==0
-                            for j = 1:length(gidcoord)
-                                nodeCompared = gidcoord(j,1:3);
-                                nodeSuposed = [xCoord+1,yCoord,zCoord];
-                                if (isequal(nodeCompared,nodeSuposed))
-                                    MS = [MS; [i j]];
-                                end
-                            end
-                        end
-                        if yCoord==0
-                            for j = 1:length(gidcoord)
-                                nodeCompared = gidcoord(j,1:3);
-                                nodeSuposed = [xCoord,yCoord+1,zCoord];
-                                if (isequal(nodeCompared,nodeSuposed))
-                                    MS = [MS; [i j]];
-                                end
-                            end
-                        end
-                        if zCoord==0
-                            for j = 1:length(gidcoord)
-                                nodeCompared = gidcoord(j,1:3);
-                                nodeSuposed = [xCoord,yCoord,zCoord+1];
-                                if (isequal(nodeCompared,nodeSuposed))
-                                    MS = [MS; [i j]];
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            obj.msRelation = MS;
-        end
     end
     
     methods (Access = private, Static)
@@ -197,6 +241,22 @@ classdef MasterSlaveRelator < handle
             xB = pos(nodeB,1);
             distAB = abs(xA - xB);
             [distMin,isClosest] = min(distAB);
+            if distMin > 1e-10
+                error('non slave node')
+            end
+            closestNodeB = nodeB(isClosest);
+        end
+
+        function closestNodeB = obtainClosestNode3D(nodeA, nodeB, pos1,pos2)
+            xA = pos1(nodeA);
+            yA = pos2(nodeA);
+            
+            xB = pos1(nodeB);
+            yB = pos2(nodeB);
+            
+            distAB = sqrt((xA - xB).^2 + (yA - yB).^2);
+            [distMin, isClosest] = min(distAB);
+            
             if distMin > 1e-10
                 error('non slave node')
             end

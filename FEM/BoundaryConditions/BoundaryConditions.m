@@ -238,16 +238,16 @@ classdef BoundaryConditions < handle
            mR = MasterSlaveRelator(coord);
            MS = mR.getRelation();
 
-%            masters = MS(:,1);
-%             slaves = MS(:,2);
-%             fV = zeros(size(obj.mesh.coord,1),1);
-%             fV(masters,:)  = 1;
-%             fV(slaves, :) = -1;
-%             s.fValues = fV;
-%             s.mesh = obj.mesh;
-%             p1f = P1Function(s);
-%             a.filename = 'masterslaveprova';
-%             p1f.print(a);
+            masters = MS(:,1);
+            slaves = MS(:,2);
+            fV = zeros(size(obj.mesh.coord,1),1);
+            fV(masters,:)  = 1;
+            fV(slaves, :) = -1;
+            s.fValues = fV;
+            s.mesh = obj.mesh;
+            p1f = P1Function(s);
+            a.filename = 'masterslaveprova';
+            p1f.print(a);
         end
 
     end
