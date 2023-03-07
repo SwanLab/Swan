@@ -247,28 +247,8 @@ classdef ComplianceRobustComputer < handle
 
                 xold = filteredField(:);
 
-                %Matriz de rigidez:
-%                 sKiE  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysE(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-%                 KiE   = sparse(iK,jK,sKiE); KiE = (KiE+KiE')/2;
-%                 sKiI  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysI(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-%                 KiI   = sparse(iK,jK,sKiI); KiI = (KiI+KiI')/2;
-%                 sKiD  = reshape(elementalStiffnessMatrix(:)*(elasticModuleMinimun + xPhysD(:)'.^penalization*(elasticModuleNeutral-elasticModuleMinimun)),64*elementNumberX*elementNumberY,1);
-%                 KiD   = sparse(iK,jK,sKiD); KiD = (KiD+KiD')/2;
-% 
-%                 %Resolución del problema de elementos finitos:
-%                 displacementE(freeDegress) = KiE(freeDegress,freeDegress)\F(freeDegress);
-%                 displacementI(freeDegress) = KiI(freeDegress,freeDegress)\F(freeDegress);
-%                 displacementD(freeDegress) = KiD(freeDegress,freeDegress)\F(freeDegress);
-% 
-%                 displacementE      = displacementE(:,1);
-%                 costE   = F'*displacementE;
-% 
-%                 displacementI      = displacementI(:,1);
-%                 costI   = F'*displacementI;
-% 
-%                 displacementD      = displacementD(:,1);
-%                 costD   = F'*displacementD;
 
+             %Resolución del problema de elementos finitos:
                 s.mesh.elementNumberX = elementNumberX;
                 s.mesh.elementNumberY = elementNumberY;
                 s.mesh.neumanCondition = neumanCondition;
@@ -301,15 +281,28 @@ classdef ComplianceRobustComputer < handle
                 displacementD = D.displacement;
                            
               %Cálculo de las derivadas respecto a la variable estructural:
-                cE1a  = reshape(sum((displacementE(conectivityMatrixMat)*elementalStiffnessMatrix).*displacementE(conectivityMatrixMat),2),elementNumberY,elementNumberX);
+
+                s.elementNumberX = elementNumberX;
+                s.elementNumberY = elementNumberY;
+                s.elementalStiffnessMatrix = elementalStiffnessMatrix;              
+
+                s.displacement =displacementE;
+                E = CostDerivator(s);
+                E.compute();
+                cE1a = E.derivedCost;
                 dcsE1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysE.^(penalization-1).*cE1a;
 
-                cI1a  = reshape(sum((displacementI(conectivityMatrixMat)*elementalStiffnessMatrix).*displacementI(conectivityMatrixMat),2),elementNumberY,elementNumberX);
+                s.displacement =displacementI;
+                I = CostDerivator(s);
+                I.compute();
+                cI1a = I.derivedCost;
                 dcsI1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysI.^(penalization-1).*cI1a;
 
-                cD1a  = reshape(sum((displacementD(conectivityMatrixMat)*elementalStiffnessMatrix).*displacementD(conectivityMatrixMat),2),elementNumberY,elementNumberX);
+                s.displacement =displacementD;
+                D = CostDerivator(s);
+                D.compute();
+                cD1a = D.derivedCost;
                 dcsD1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysD.^(penalization-1).*cD1a;
-                
                 
                 
            
