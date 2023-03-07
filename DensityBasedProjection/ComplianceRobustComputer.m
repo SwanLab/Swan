@@ -284,7 +284,8 @@ classdef ComplianceRobustComputer < handle
 
                 s.elementNumberX = elementNumberX;
                 s.elementNumberY = elementNumberY;
-                s.elementalStiffnessMatrix = elementalStiffnessMatrix;              
+                s.elementalStiffnessMatrix = elementalStiffnessMatrix;
+                s.conectivityMatrixMat = conectivityMatrixMat; 
 
                 s.displacement =displacementE;
                 E = CostDerivator(s);
