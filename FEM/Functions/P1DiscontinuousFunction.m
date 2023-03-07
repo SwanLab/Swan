@@ -35,6 +35,57 @@ classdef P1DiscontinuousFunction < FeFunction
                 fxV = fxV + f;
             end
         end
+
+         function dNdx  = computeCartesianDerivatives(obj,quad)
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for igaus = 1:nGaus
+                dShapes = obj.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+         end   
+
+        function gradFun = computeGradient(obj, quad)
+            dNdx = obj.computeCartesianDerivatives(quad);
+            nDimf = obj.ndimf;
+            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
+            nNode = size(dNdx, 2);
+            nElem = size(dNdx, 3);
+            nGaus = size(dNdx, 4);
+            
+
+            cV = squeeze(obj.fValues);
+            grad = zeros(nDims,nDimf, nElem, nGaus);
+            for iGaus = 1:nGaus
+                dNdx_g = dNdx(:,:,:,iGaus);
+                for iDims = 1:nDims
+                    for iNode = 1:nNode
+                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
+                        %dNi = squeeze(dNdx(idim,iNode,:,igaus));
+                        f = cV(iNode,:)';
+                        gradV = dNdx_i.*f;
+                        fG(:,1) = squeeze(grad(iDims,:,:,iGaus));
+                        grad(iDims,:,:,iGaus) = fG + gradV;
+                    end
+                end
+            end
+            %  gradt(1,:,:,:) = grad;
+            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
+            s.fValues = fVR;
+            s.mesh    = obj.mesh;
+            s.quadrature = quad;
+            gradFun = FGaussDiscontinuousFunction(s);
+        end         
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
@@ -65,13 +116,30 @@ classdef P1DiscontinuousFunction < FeFunction
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                a = trisurf(mD.connec,x,y,z);
+                a = trisurf(mD.connec,x,y,double(z));
                 view(0,90)
     %             colorbar
                 shading interp
                 a.EdgeColor = [0 0 0];
                 title(['dim = ', num2str(idim)]);
             end
+        end
+
+        function plotContour(obj)
+            fD = obj.getFvaluesAsVector();
+            mD = obj.mesh.createDiscontinuousMesh();
+            x = mD.coord(:,1);
+            y = mD.coord(:,2);
+            figure()
+            for idim = 1:obj.ndimf
+                subplot(1,obj.ndimf,idim);
+                z = fD(:,idim);
+                [~,a] = tricontour(mD.connec,x,y,z,30);
+                set(a,'LineWidth',5);
+                view(0,90)
+                colorbar
+                title(['dim = ', num2str(idim)]);
+            end            
         end
 
         function print(obj, s)
@@ -94,7 +162,19 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
     end
-    
+
+
+    methods (Access = public, Static)
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues + f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1DiscontinuousFunction(s);
+        end
+
+    end
+
     methods (Access = private)
         
         function init(obj,cParams)
@@ -125,5 +205,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
         
     end
+
     
 end

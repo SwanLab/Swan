@@ -35,10 +35,10 @@ pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 projP1 = Projector_toP1(pp1);
 p1fun = projP1.project(xFun);
-p1fun.plot(mesh)
+p1fun.plot()
 
 % Gradients
-grad1 = p1fun.computeGradient(quad,mesh);
+grad1 = p1fun.computeGradient(quad);
 gradientOp = Gradient();
 grad2 = gradientOp.compute(p1fun, quad, mesh);
 

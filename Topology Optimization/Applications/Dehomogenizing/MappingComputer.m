@@ -1,0 +1,99 @@
+classdef MappingComputer < handle
+
+    properties (Access = private)
+        LHS
+        RHS
+    end
+
+    properties (Access = private)
+        meshDisc
+        mesh
+        orientation
+        interp
+        field
+        interpolator
+    end
+
+    methods (Access = public)
+
+        function obj = MappingComputer(cParams)
+            obj.init(cParams);
+            obj.createField();
+        end
+
+        function uF = compute(obj)
+            obj.computeLHS();
+            obj.computeRHS();
+            uC = obj.solveSystem();
+            In = obj.interpolator;
+            u  = In*uC;
+            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]);
+            s.mesh    = obj.mesh;
+            s.fValues = uV;
+            uF = P1DiscontinuousFunction(s);
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh        = cParams.mesh;
+            obj.orientation  = cParams.orientation;
+            obj.interpolator = cParams.interpolator;
+            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
+        end
+
+        function createField(obj)
+            s.mesh               = obj.meshDisc;
+            s.ndimf              = 1;
+            s.interpolationOrder = obj.mesh.interpolation.order;
+            obj.field = Field(s);
+        end
+        
+        function computeLHS(obj)
+            K = obj.computeStiffnessMatrix();
+            In = obj.interpolator;
+            K = In'*K*In;
+            obj.LHS = K;
+        end
+
+        function K = computeStiffnessMatrix(obj)
+            s.mesh         = obj.mesh;
+            s.globalConnec = obj.mesh.connec;
+            s.type         = 'StiffnessMatrix';
+            s.field        = obj.field;
+            lhs = LHSintegrator.create(s);
+            K = lhs.compute();
+        end
+
+        function computeRHS(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC');
+            fG = obj.orientation.evaluate(q.posgp);            
+            s.fType     = 'Gauss';
+            s.fGauss    = fG;
+            s.xGauss    = q.posgp;
+            s.mesh      = obj.mesh;
+            s.type      = obj.mesh.type;
+            s.quadOrder = q.order;
+            s.npnod     = obj.field.dim.ndofs;
+            s.type      = 'ShapeDerivative';
+            s.globalConnec = obj.meshDisc.connec;
+            rhs  = RHSintegrator.create(s);
+            rhsV = rhs.compute();
+            In = obj.interpolator;
+            rhsV = In'*rhsV;
+            obj.RHS = rhsV;
+        end
+
+        function u = solveSystem(obj)
+            a.type = 'DIRECT';
+            s = Solver.create(a);
+            u = s.solve(obj.LHS,obj.RHS);
+            u = u(1:end);
+        end
+
+    end
+
+end
