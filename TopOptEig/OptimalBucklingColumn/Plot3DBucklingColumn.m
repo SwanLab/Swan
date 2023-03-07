@@ -1,5 +1,9 @@
 classdef Plot3DBucklingColumn < handle
     
+    properties (Access = public)
+        frame
+    end
+    
     properties (Access = private)
         backgroundMesh
         boundaryMesh
@@ -10,6 +14,7 @@ classdef Plot3DBucklingColumn < handle
     properties (Access = private)
         value
         coordinates
+        type
     end
     
     methods (Access = public)
@@ -32,12 +37,13 @@ classdef Plot3DBucklingColumn < handle
         function init(obj,cParams)
             obj.value = cParams.designVariableValue;
             obj.coordinates    = cParams.coord;
+            obj.type = cParams.type;
         end
         
         function createBackgroundMesh(obj)
             nElem = length(obj.coordinates)-1;
-            x = linspace(0,5,40);
-            y = linspace(0,5,40);
+            x = linspace(0,5,20);
+            y = linspace(0,5,20);
             z = linspace(0,20,nElem);
             [X,Y,Z] = meshgrid(x,y,z);   
             coord  = [X(:) Y(:) Z(:)];
@@ -56,7 +62,7 @@ classdef Plot3DBucklingColumn < handle
         end
 
         function createLevelSet(obj)
-            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
+            s.type = obj.type;
             s.desVarValue     = obj.value;
             s.coord      = obj.backgroundMesh.coord;
             s.ndim       = obj.backgroundMesh.ndim;
@@ -73,9 +79,11 @@ classdef Plot3DBucklingColumn < handle
         end
         
         function plotUnfittedMesh(obj) 
-            figure();
+            figure(4)
+            clf
             obj.unfittedMesh.plot();
-            view([1 1 1])            
+            view([1 1 1])
+            obj.frame=getframe;
         end
         
     end

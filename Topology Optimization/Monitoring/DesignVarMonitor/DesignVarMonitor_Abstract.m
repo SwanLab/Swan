@@ -1,5 +1,9 @@
 classdef DesignVarMonitor_Abstract < handle
     
+    properties (Access = public)
+        frames
+    end
+
     properties (Access = protected, Abstract)
         designVarName
     end
@@ -13,6 +17,7 @@ classdef DesignVarMonitor_Abstract < handle
         bc
         cam
         BCplotter
+        nIter
     end
     
     properties (Access = private)
@@ -67,14 +72,23 @@ classdef DesignVarMonitor_Abstract < handle
     methods (Access = private)
         
         function init(obj)
+            obj.initIterations();
             obj.initFrame();
+            obj.initGIF();
             obj.createCamera();
             obj.createBCplotter();
             obj.setupTheme();
             obj.initPlotting();
         end
         
+        function initIterations(obj)
+            obj.nIter = 0;
+        end
         
+        function initGIF(obj)
+            obj.frames = {};
+        end
+
         function initFrame(obj)
             obj.figHandle = figure;
             

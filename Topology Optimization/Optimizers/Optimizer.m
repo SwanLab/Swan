@@ -2,6 +2,7 @@ classdef Optimizer < handle
 
     properties (Access = public)
         nIter = 0
+        outputFunction
     end
     
     properties (Access = protected)
@@ -9,7 +10,7 @@ classdef Optimizer < handle
         dualVariable
         cost
         constraint
-        outputFunction
+        %outputFunction
         maxIter 
         targetParameters
         dualUpdater

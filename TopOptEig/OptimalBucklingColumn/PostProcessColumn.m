@@ -13,6 +13,7 @@ classdef PostProcessColumn < handle
         sectionVariables
         mesh
         scale
+        frames
     end
     
     methods (Access = public)
@@ -26,6 +27,7 @@ classdef PostProcessColumn < handle
             obj.createMesh();
             obj.plotMesh();
             obj.create3Dplot();
+            obj.createGIF();
         end
         
     end
@@ -37,6 +39,7 @@ classdef PostProcessColumn < handle
             obj.sectionVariables = cParams.sectionVariables;
             obj.mesh           = cParams.mesh;
             obj.scale          = cParams.scale;
+            obj.frames         = cParams.optimizer.outputFunction.monitoring.monitorDocker.designVarMonitor.frames;
         end
 
         function createPolygon(obj)
@@ -58,15 +61,27 @@ classdef PostProcessColumn < handle
         
         function create3Dplot(obj)
             nElem = obj.mesh.nelem;
-            switch obj.designVariable.nDesignVar
-                case 1
-                    s.designVariableValue = obj.designVariable.value(1:nElem);
-                case 2
-                    s.designVariableValue = obj.designVariable.value(1:2*nElem);
-            end
+            nVar = obj.designVariable.nDesignVar;
+            s.designVariableValue = obj.designVariable.value(1:nVar*nElem);
             s.coord = obj.mesh.coord;
+            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
             plt = Plot3DBucklingColumn(s);
             plt.compute();
+        end
+
+        function createGIF(obj)
+            fr = obj.frames;
+            nImages = length(fr);
+            filename = "testAnimated.gif"; 
+                for idx = 1:nImages
+                    im = frame2im(fr{idx});
+                    [A,map] = rgb2ind(im,256);
+                    if idx == 1
+                        imwrite(A,map,filename,"gif","LoopCount",Inf,"DelayTime",1);
+                    else
+                        imwrite(A,map,filename,"gif","WriteMode","append","DelayTime",1);
+                    end
+                end
         end
         
         function createMesh(obj)

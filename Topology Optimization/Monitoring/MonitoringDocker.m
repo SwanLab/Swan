@@ -1,6 +1,6 @@
 classdef MonitoringDocker < handle
     
-    properties (Access = private)
+    properties (Access = public)
         paramsMonitor
         designVarMonitor
     end

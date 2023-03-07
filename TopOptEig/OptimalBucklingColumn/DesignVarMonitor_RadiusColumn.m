@@ -1,6 +1,6 @@
 classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
     
-properties (Access = protected)
+    properties (Access = protected)
         designVarName = 'Radius Column'
     end
     
@@ -15,9 +15,11 @@ properties (Access = protected)
         end
         
         function plot(obj)
+            obj.nIter= obj.nIter+1;
             scale = 0.3;
             obj.createPolygon(scale);
             obj.plotFigure();
+            obj.create3Dplot();
         end
         
     end
@@ -59,6 +61,17 @@ properties (Access = protected)
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+        end
+
+        function create3Dplot(obj)
+            nElem = obj.sectionVariables.mesh.nelem;
+            nVar = obj.sectionVariables.designVariable.nDesignVar;
+            s.designVariableValue = obj.sectionVariables.designVariable.value(1:nVar*nElem);
+            s.coord = obj.sectionVariables.mesh.coord;
+            s.type = 'cylinderBuckling'; 
+            plt = Plot3DBucklingColumn(s);
+            plt.compute();
+            obj.frames{obj.nIter} = plt.frame;
         end
 
     end 
