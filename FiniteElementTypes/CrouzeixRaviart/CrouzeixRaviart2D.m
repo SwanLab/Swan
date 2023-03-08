@@ -65,15 +65,21 @@ classdef CrouzeixRaviart2D < handle
         
         function computeShapeFunctions(obj)
             syms x y a b1 b2
-            baseShapeFunction = a+b1*x+b2*y;
-            shapeFunc = cell(obj.ndofs);
-            LHS = obj.applyLinearForm(baseShapeFunction);
-            for i = 1:obj.ndofs
+            shapeFunc = cell(obj.ndofs,1);
+            ndof = obj.ndofs;
+            
+            LHS = obj.applyLinearForm();
+            for i = 1:ndof
                 RHS = obj.computeLinearFormValues(i);
-                coef = solve(LHS' == RHS,[a b1 b2]);
-                shapeFunc{i} = matlabFunction(coef.a+coef.b1*x+coef.b2*y,'Vars',[x y]);
+                c = obj.computeShapeFunctionCoefficients(LHS,RHS);
+                shapeFunc{i} = matlabFunction(c.a+c.b1*x+c.b2*y,'Vars',[x y]);
             end
             obj.shapeFunctions = shapeFunc;
+        end
+        
+        function c = computeShapeFunctionCoefficients(~,LHS,RHS)
+            syms a b1 b2
+            c = solve(LHS' == RHS,[a b1 b2]);
         end
         
         function RHS = computeLinearFormValues(obj,i)
@@ -81,7 +87,10 @@ classdef CrouzeixRaviart2D < handle
             RHS(i) = 1;
         end
         
-        function LHS = applyLinearForm(obj,baseShapeFunc)
+        function LHS = applyLinearForm(obj)
+            syms x y a b1 b2
+            baseShapeFunc = a+b1*x+b2*y;
+            
             LHS(1) = obj.lineIntegral(baseShapeFunc,obj.vertices(2,:),obj.vertices(3,:));
             LHS(2) = obj.lineIntegral(baseShapeFunc,obj.vertices(1,:),obj.vertices(3,:));
             LHS(3) = obj.lineIntegral(baseShapeFunc,obj.vertices(2,:),obj.vertices(1,:));

@@ -62,10 +62,14 @@ classdef CrouzeixRaviart1D < handle
             for i = 1:ndof
                 LHS = obj.applyLinearForm();
                 RHS = obj.computeLinearFormValues(i);
-                coef = LHS\RHS;
-                shapeFunc{i} = matlabFunction(coef(1)+coef(2)*x);
+                c = obj.computeShapeFunctionCoefficients(LHS,RHS);
+                shapeFunc{i} = matlabFunction(c(1)+c(2)*x);
             end
             obj.shapeFunctions = shapeFunc;
+        end
+        
+        function c = computeShapeFunctionCoefficients(~,LHS,RHS)
+            c = LHS\RHS;
         end
         
         function LHS = applyLinearForm(obj)

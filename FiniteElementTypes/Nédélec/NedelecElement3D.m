@@ -9,7 +9,6 @@ classdef NedelecElement3D < handle
         vertices
         ndofs
         edges
-        midPoints
         shapeFunctions
         fig
         simplicial
@@ -79,35 +78,36 @@ classdef NedelecElement3D < handle
         end
         
         function computeShapeFunctions(obj)
-            syms x y z a1 a2 a3 b1 b2 b3 real
-            
-            baseShapeFunction = [a1+b3*y-b2*z,a2+b1*z-b3*x,a3+b2*x-b1*y];
-            
-            for j = 1:obj.ndofs
-                tangentComponentBaseShapeFunction(j) = dot(baseShapeFunction,obj.edges.vect(j,:));
-            end
-            
-            LHS = obj.applyLinearForms(tangentComponentBaseShapeFunction);
+            syms x y z
+            LHS = obj.applyLinearForms();
             for s = 1:length(LHS)
-                RHS = obj.assemblyRHS(s);
+                RHS = obj.computeLinearFormValues(s);
                 c = obj.computeShapeFunctionCoefficients(LHS,RHS);
                 obj.shapeFunctions{s} = matlabFunction([c.a1+c.b3*y-c.b2*z,c.a2+c.b1*z-c.b3*x,c.a3+c.b2*x-c.b1*y],'Vars',[x y z]);
             end
         end
         
-        function LHS = applyLinearForms(obj,func)
+        function LHS = applyLinearForms(obj)
+            syms x y z a1 a2 a3 b1 b2 b3 real
+            
+            baseShapeFunction = [a1+b3*y-b2*z,a2+b1*z-b3*x,a3+b2*x-b1*y];
+            
+            for j = 1:obj.ndofs
+                tangCompBaseShapeFunction(j) = dot(baseShapeFunction,obj.edges.vect(j,:));
+            end
+            
             v = obj.vertices;
-            LHS(1) = obj.lineIntegral(func(1),v(2,:),v(3,:));
-            LHS(2) = obj.lineIntegral(func(2),v(3,:),v(1,:));
-            LHS(3) = obj.lineIntegral(func(3),v(2,:),v(1,:));
-            LHS(4) = obj.lineIntegral(func(4),v(1,:),v(4,:));
-            LHS(5) = obj.lineIntegral(func(5),v(2,:),v(4,:));
-            LHS(6) = obj.lineIntegral(func(6),v(3,:),v(4,:));
+            LHS(1) = obj.lineIntegral(tangCompBaseShapeFunction(1),v(2,:),v(3,:));
+            LHS(2) = obj.lineIntegral(tangCompBaseShapeFunction(2),v(3,:),v(1,:));
+            LHS(3) = obj.lineIntegral(tangCompBaseShapeFunction(3),v(2,:),v(1,:));
+            LHS(4) = obj.lineIntegral(tangCompBaseShapeFunction(4),v(1,:),v(4,:));
+            LHS(5) = obj.lineIntegral(tangCompBaseShapeFunction(5),v(2,:),v(4,:));
+            LHS(6) = obj.lineIntegral(tangCompBaseShapeFunction(6),v(3,:),v(4,:));
         end
         
-        function RHS = assemblyRHS(obj,i)
+        function RHS = computeLinearFormValues(obj,s)
             RHS = zeros(1,length(obj.edges.vect));
-            RHS(i) = obj.edges.measure(i);
+            RHS(s) = obj.edges.measure(s);
         end
         
         function c = computeShapeFunctionCoefficients(~,LHS,RHS)

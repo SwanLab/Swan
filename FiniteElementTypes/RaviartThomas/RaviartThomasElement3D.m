@@ -81,26 +81,36 @@ classdef RaviartThomasElement3D < handle
         
         function computeShapeFunctions(obj)
             syms x y z a1 a2 a3 b1 real
+            shapeFunc = cell(obj.ndofs,1);
+            
+            LHS = obj.applyLinearForm();
+            for s = 1:obj.ndofs
+                RHS = obj.computeLinearFormValues(s);
+                c = obj.computeShapeFunctionCoefficients(LHS,RHS);
+                shapeFunc{s} = matlabFunction([c.a1+c.b1*x,c.a2+c.b1*y,c.a3+c.b1*z]);
+            end
+            
+            obj.shapeFunctions = shapeFunc;
+        end
+        
+        function c = computeShapeFunctionCoefficients(~,LHS,RHS)
+            syms x y z a1 a2 a3 b1 real
+            c = solve(LHS == RHS,[a1 a2 a3 b1]);
+        end
+        
+        function LHS = applyLinearForm(obj)
+            syms x y z a1 a2 a3 b1 real
             
             baseShapeFunction = [a1+b1*x,a2+b1*y,a3+b1*z];
             for j = 1:obj.ndofs
                 normalComponentShapeFunction(j) = dot(baseShapeFunction,obj.normalVectors(j,:));
             end
             
-            LHS = obj.applyLinearForm(normalComponentShapeFunction);
-            for s = 1:obj.ndofs
-                RHS = obj.computeLinearFormValues(s);
-                c = solve(LHS == RHS,[a1 a2 a3 b1]);
-                obj.shapeFunctions{s} = matlabFunction([c.a1+c.b1*x,c.a2+c.b1*y,c.a3+c.b1*z]);
-            end
-        end
-        
-        function LHS = applyLinearForm(obj,func)
             v = obj.vertices;
-            LHS(1) = obj.planeIntegral(func(1),v(2,:),v(3,:),v(4,:));
-            LHS(2) = obj.planeIntegral(func(2),v(3,:),v(1,:),v(4,:));
-            LHS(3) = obj.planeIntegral(func(3),v(1,:),v(2,:),v(4,:));
-            LHS(4) = obj.planeIntegral(func(4),v(1,:),v(2,:),v(3,:));
+            LHS(1) = obj.planeIntegral(normalComponentShapeFunction(1),v(2,:),v(3,:),v(4,:));
+            LHS(2) = obj.planeIntegral(normalComponentShapeFunction(2),v(3,:),v(1,:),v(4,:));
+            LHS(3) = obj.planeIntegral(normalComponentShapeFunction(3),v(1,:),v(2,:),v(4,:));
+            LHS(4) = obj.planeIntegral(normalComponentShapeFunction(4),v(1,:),v(2,:),v(3,:));
         end
         
         function RHS = computeLinearFormValues(obj,s)
