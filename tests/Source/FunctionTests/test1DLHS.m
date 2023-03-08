@@ -76,13 +76,13 @@ classdef test1DLHS < handle
 %             f = P1Function(s);
             l.mesh = obj.mesh;
             l.field = obj.field;
-            l.type = 'StiffnessMatrix';
+            l.type = 'StiffnessMatrixOld';
             lhs = LHSintegrator.create(l);
             obj.K = lhs.compute();
         end
         
         function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
+            s.type  = 'MassMatrixOld';
             s.mesh  = obj.mesh;
             s.field = obj.field;
             lhs     = LHSintegrator.create(s);

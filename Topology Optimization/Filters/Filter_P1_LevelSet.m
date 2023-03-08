@@ -5,12 +5,14 @@ classdef Filter_P1_LevelSet <  Filter
         x
         x_reg
         projector
+        quadrature
     end
     
     methods (Access = public)
         
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createProjector(cParams);
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
@@ -25,8 +27,8 @@ classdef Filter_P1_LevelSet <  Filter
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
-                x0 = zeros(length(xR),obj.field.quadrature.ngaus);
-                for igaus = 1:obj.field.quadrature.ngaus
+                x0 = zeros(length(xR),obj.quadrature.ngaus);
+                for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
             else
@@ -38,6 +40,12 @@ classdef Filter_P1_LevelSet <  Filter
     end
 
     methods (Access = private)
+
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
 
         function x0 = computeP0fromP1(obj,x)
             xN = obj.projector.project(x);
@@ -64,7 +72,7 @@ classdef Filter_P1_LevelSet <  Filter
         function intX = integrateRHS(obj,x)
             intX = zeros(obj.mesh.nelem,1);
             ngaus = size(x,2);
-            dV = obj.mesh.computeDvolume(obj.field.quadrature)';
+            dV = obj.mesh.computeDvolume(obj.quadrature)';
             for igaus = 1:ngaus
                 dvolu = dV(:,igaus);
 %                 dvolu = obj.field.geometry.dvolu(:,igaus);

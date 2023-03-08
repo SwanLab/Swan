@@ -66,7 +66,7 @@ classdef ScalarProduct < handle
         end
         
         function M = computeMassMatrix(obj)
-            s.type  = 'MassMatrixFun';
+            s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.fun   = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';
@@ -75,12 +75,9 @@ classdef ScalarProduct < handle
         end
     
         function K = computeStiffnessMatrix(obj)
-            s.mesh    = obj.mesh;
-            s.fValues = zeros(obj.mesh.nnodes, 1);
-            f = P1Function(s);
-            s.type  = 'StiffnessMatrixFun';
+            s.type  = 'StiffnessMatrix';
             s.mesh  = obj.mesh;
-            s.fun = f;
+            s.fun = P1Function.create(obj.mesh, 1);
             LHS = LHSintegrator.create(s);
             K = LHS.compute();
         end

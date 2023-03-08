@@ -21,7 +21,7 @@ classdef Projector_toP1Discontinuous < Projector
     methods (Access = private)
 
         function LHS = computeLHS(obj)
-            s.type  = 'MassMatrixFun';
+            s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.fun   = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';

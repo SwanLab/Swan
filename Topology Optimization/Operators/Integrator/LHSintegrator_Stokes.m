@@ -76,7 +76,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function M = computeMassMatrix(obj)
             vel = obj.velocityField;
             dtime = obj.dt;
-            s.type  = 'MassMatrix';
+            s.type  = 'MassMatrixOld';
             s.mesh  = obj.mesh;
             s.field = vel;
             LHS = LHSintegrator.create(s);

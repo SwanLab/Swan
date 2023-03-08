@@ -51,7 +51,7 @@ classdef MappingComputer < handle
 
         function K = computeStiffnessMatrix(obj)
             s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrixFun';
+            s.type = 'StiffnessMatrix';
             s.fun  = P1DiscontinuousFunction.create(obj.mesh,1);
             lhs2 = LHSintegrator.create(s);
             K = lhs2.compute();

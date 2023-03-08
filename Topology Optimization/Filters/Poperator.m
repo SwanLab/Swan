@@ -36,7 +36,7 @@ classdef Poperator < handle
         end
        
         function createMassMatrix(obj)
-            s.type  = 'MassMatrixFun';
+            s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.fun   = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';

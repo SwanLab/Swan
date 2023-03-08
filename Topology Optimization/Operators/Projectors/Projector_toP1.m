@@ -23,7 +23,7 @@ classdef Projector_toP1 < Projector
             s.mesh  = obj.mesh;
             s.fun   = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
-            s.type  = 'MassMatrixFun';
+            s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end

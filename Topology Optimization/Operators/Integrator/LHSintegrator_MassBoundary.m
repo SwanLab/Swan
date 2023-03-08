@@ -21,7 +21,7 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
             LHSg = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
-                a.type = 'MassMatrixFun';
+                a.type = 'MassMatrix';
                 a.mesh = sL.mesh;
                 a.fun  = P1Function.create(sL.mesh, 1);
                 lhs = LHSintegrator.create(a);

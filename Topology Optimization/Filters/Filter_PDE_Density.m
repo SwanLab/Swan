@@ -8,12 +8,14 @@ classdef Filter_PDE_Density < Filter
         x_reg
         LHS
         bc
+        quadrature
     end
 
     methods (Access = public)
 
         function obj = Filter_PDE_Density(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.computeBoundaryConditions();
             obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
@@ -24,8 +26,8 @@ classdef Filter_PDE_Density < Filter
 
         function x0 = getP0fromP1(obj,x)
             obj.x_reg =  obj.getP1fromP1(x);
-            x0 = zeros(obj.mesh.nelem,obj.field.quadrature.ngaus);
-            for igaus = 1:obj.field.quadrature.ngaus
+            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
+            for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
         end
@@ -58,8 +60,14 @@ classdef Filter_PDE_Density < Filter
 
     methods (Access = private)
 
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
+
         function createMassMatrix(obj)
-            s.type   = 'MassMatrixFun';
+            s.type   = 'MassMatrix';
             s.mesh   = obj.mesh;
             s.fun    = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';
@@ -71,7 +79,7 @@ classdef Filter_PDE_Density < Filter
             s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
             s.npnod   = obj.mesh.nnodes;
-            s.ngaus   = obj.field.quadrature.ngaus;
+            s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
             s.shape   = obj.field.interpolation.shape;
             obj.Acomp = Anodal2gausComputer(s);
@@ -96,7 +104,6 @@ classdef Filter_PDE_Density < Filter
         end
 
         function computeBoundaryConditions(obj)
-            s.dim          = obj.field.dim;
             s.scale        = obj.femSettings.scale;
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];

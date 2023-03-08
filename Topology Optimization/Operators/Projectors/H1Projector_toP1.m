@@ -29,14 +29,14 @@ classdef H1Projector_toP1 < Projector
         function LHSM = computeMassMatrix(obj)
             s.fun  = P1Function.create(obj.mesh,1);
             s.mesh = obj.mesh;
-            s.type = 'MassMatrixFun';
+            s.type = 'MassMatrix';
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
         end
 
         function LHSK = computeStiffnessMatrix(obj)
-            s.type = 'StiffnessMatrixFun';
+            s.type = 'StiffnessMatrix';
             s.mesh = obj.mesh;
             s.fun  = P1Function.create(obj.mesh,1);
             s.quadratureOrder = 'CONSTANT';

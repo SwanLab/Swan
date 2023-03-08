@@ -26,6 +26,8 @@
 %           Pending: test1DLHS, LHSintegrator_Stokes
 %           Noteworthy: LHSintegrator_MassBoundary
 
+%% Questions
+% - Filter_P1_LevelSet.getP0fromP1() ??
 
 %% Results
 % 

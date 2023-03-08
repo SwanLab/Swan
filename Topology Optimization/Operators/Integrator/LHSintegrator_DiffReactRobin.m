@@ -24,22 +24,16 @@ classdef LHSintegrator_DiffReactRobin < LHSintegrator
     methods (Access = private)
 
         function computeStiffnessMatrix(obj,cParams)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'LINEAR';
-            f = Field(g);
-            s              = cParams;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = cParams.stiffType;
-            s.mesh         = obj.mesh;
-            s.field        = f;
-            LHS            = LHSintegrator.create(s);
-            obj.K          = LHS.compute();
+            s      = cParams; % For anisotropic stiffness
+            s.fun  = P1Function.create(obj.mesh,1);
+            s.type = cParams.stiffType;
+            s.mesh = obj.mesh;
+            LHS    = LHSintegrator.create(s);
+            obj.K  = LHS.compute();
         end
 
         function computeMassMatrix(obj)
-            s.type = 'MassMatrixFun';
+            s.type = 'MassMatrix';
             s.mesh = obj.mesh;
             s.fun  = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';
