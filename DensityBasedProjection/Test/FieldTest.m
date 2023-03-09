@@ -10,9 +10,11 @@ s.iterations = 3;
 
 %% Load results
 if s.iterations == 3
-load('C:\Users\artur\Documents\GitHub\SWAM\Swan\DensityBasedProjection\Test\Data\ResultsData3Iterations.mat')
+    file = fullfile("DensityBasedProjection",'Test','Data','ResultsData3Iterations.mat');    
+    load(file)
 elseif s.iterations == 5
-load('C:\Users\artur\Documents\GitHub\SWAM\Swan\DensityBasedProjection\Test\Data\ResultsData5Iterations.mat')
+    file = fullfile("DensityBasedProjection",'Test','Data','ResultsData5Iterations.mat');
+    load(file)
 else 
 error('No test Data for the current iterations')
 end
