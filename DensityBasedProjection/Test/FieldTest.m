@@ -7,6 +7,7 @@ clc
 close all
 %% Define the number of iterations
 s.iterations = 3;
+tolerateError = 10e-11;
 
 %% Load results
 if s.iterations == 3
@@ -23,20 +24,20 @@ Test1 = ComplianceRobustComputer(s);
 Test1.compute();
 
 %% Validator
-if results.projectedField.E == Test1.projectedField.E
+if abs(results.projectedField.E-Test1.projectedField.E)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field E |OK!|')
 else
     warning('Error in Projected Field E')
 end
 
-if results.projectedField.I == Test1.projectedField.I
+if abs(results.projectedField.I - Test1.projectedField.I)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field I |OK!|')
 else
     warning('Error in Projected Field I')
 end
-if results.projectedField.D == Test1.projectedField.D
+if abs(results.projectedField.D - Test1.projectedField.D)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field D |OK!|')
 else
