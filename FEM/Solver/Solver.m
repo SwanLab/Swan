@@ -19,6 +19,9 @@ classdef Solver < handle
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
 
+                case 'GMRES_MATLAB'
+                    stype = GMRES_Matlab();
+
                 otherwise
                     error('Invalid solver type.')
             end

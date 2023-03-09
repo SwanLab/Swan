@@ -1,12 +1,14 @@
 %% Simple topology optimization example
 % Note that the beta term
+
 function runningSimpleTopOpt
+tic
 s.maxIter = 100;
 s.TOL = 1e-12;
 s.topOptProblem = createFullTopOptProblem();
 solver = SimpleShapeOptimizationSolver(s);
 solver.solve();
-
+toc
 end
 
 
@@ -19,3 +21,4 @@ fileName = translator.fileName;
 settingsTopOpt = SettingsTopOptProblem(fileName);
 t = TopOpt_Problem(settingsTopOpt);
 end
+
