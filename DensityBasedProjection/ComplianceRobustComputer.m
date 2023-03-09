@@ -230,7 +230,7 @@ classdef ComplianceRobustComputer < handle
                 D.compute();
                 cD1a = D.derivedCost;
 
-              %Penalize the cost derivative
+              % Derivate the derivative cost
                 
                 s.elasticModuleMinimun = elasticModuleMinimun;
                 s.elasticModuleNeutral = elasticModuleNeutral;
@@ -253,24 +253,34 @@ classdef ComplianceRobustComputer < handle
                 D = DerivativePenalizer(s);
                 D.penalize();
                 dcsD1 = D.penalizedDerivative;
-
-
-           
-
+                
+                
 
                 v        = sum(sum(xPhysD))/(volfracD*elementNumberX*elementNumberY)-1;
                 dv_dxs   = 1/(volfracD*elementNumberX*elementNumberY)*ones(elementNumberY,elementNumberX);
 
-                dxsE     = beta*(1 - (tanh(beta*(xTilde-etaE))).^2)/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
+             %   
+                s.beta = beta;
+                s.filteredField = xTilde;
+
+                s.eta =etaE;
+                E = ProjectedFieldDerivator(s);
+                E.compute();
+                dxsE = E.derivatedProjectedField;
+
+                s.eta =etaI;
+                I = ProjectedFieldDerivator(s);
+                I.compute();
+                dxsI = I.derivatedProjectedField;
+
+                s.eta =etaD;
+                D = ProjectedFieldDerivator(s);
+                D.compute();
+                dxsD = D.derivatedProjectedField;
+                
                 dcsE1(:) = H*(dcsE1(:).*dxsE(:)./Hs);
-
-                dxsI     = beta*(1 - (tanh(beta*(xTilde-etaI))).^2)/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
                 dcsI1(:) = H*(dcsI1(:).*dxsI(:)./Hs);
-
-                dxsD     = beta*(1 - (tanh(beta*(xTilde-etaD))).^2)/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
                 dcsD1(:) = H*(dcsD1(:).*dxsD(:)./Hs);
-
-                dxsD     = beta*(1 - (tanh(beta*(xTilde-etaD))).^2)/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
 
                 dvs_dxs(:)  = H*(dv_dxs(:).*dxsD(:)./Hs);
 
@@ -282,9 +292,6 @@ classdef ComplianceRobustComputer < handle
 
 
                 xval        = filteredField(:);
-
-                %     [xmma,~,zmma,~,~,~,~,~,~,low,upp] = mmasub(m,n,iter,xval,xmin,xmax,xold1,xold2, ...
-                %         f0val,df0dx,fval,dfdx,low,upp,a0,a,e,d);
 
                 [xmma,~,zmma,~,~,~,~,~,~,low,upp] = mmasub2Arturo(numberRestriction,variableNumber,iter,xval,minDensity,maxDensity,xold1,xold2, ...
                     f0val,df0dx,df0dx2,fval,dfdx,dfdx2,low,upp,a0,mmaParameter.a,mmaParameter.e,mmaParameter.d);
@@ -299,9 +306,34 @@ classdef ComplianceRobustComputer < handle
                 costChange = norm(xmma-xold,inf);
 
                 xTilde(:) = (H*filteredField(:))./Hs;
-                xPhysE    = (tanh(beta*etaE) + tanh(beta*(xTilde-etaE)))/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
-                xPhysI    = (tanh(beta*etaI) + tanh(beta*(xTilde-etaI)))/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
-                xPhysD    = (tanh(beta*etaD) + tanh(beta*(xTilde-etaD)))/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
+
+                %Project the new filtered field
+             
+                s.beta = beta;
+                s.eta =etaE;
+                s.filteredField =xTilde;
+                E = FieldProjector(s);
+                E.compute();
+                xPhysE = E.projectedField;
+    
+                s.beta = beta;
+                s.eta =etaI;
+                s.filteredField =xTilde;
+                I = FieldProjector(s);
+                I.compute();
+                xPhysI = I.projectedField;
+    
+                s.beta = beta;
+                s.eta =etaD;
+                s.filteredField =xTilde;
+                D = FieldProjector(s);
+                D.compute();
+                xPhysD = D.projectedField;
+
+
+
+
+
 
                 subplot(3,1,1);
                 imagesc(-xPhysE); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight;
