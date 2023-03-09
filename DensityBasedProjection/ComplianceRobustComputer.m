@@ -17,7 +17,11 @@ classdef ComplianceRobustComputer < handle
         function inputData(obj,cParams)
             obj.iterations = cParams.iterations;
         end 
+        
         function runCode(obj)
+
+            %% Parameters
+
             %Malla (elementos cuadrados) y dimensiones de la estructura:
             %Malla estandar 400x80
             elementNumberX    = 160;
@@ -34,62 +38,22 @@ classdef ComplianceRobustComputer < handle
             volumenFraction =   0.5;
             minimunInfluenceRadios    =   1.5;
             neumanCondition       = -1e-3;
-
-%             %Matriz de rigidez (para elementos cuadrados):
-%             A11     = [12  3 -6 -3;  3 12  3  0; -6  3 12 -3; -3  0 -3 12];
-%             A12     = [-6 -3  0  3; -3 -6 -3 -6;  0 -3 -6  3;  3 -6  3 -6];
-%             B11     = [-4  3 -2  9;  3 -4 -9  4; -2 -9 -4 -3;  9  4 -3 -4];
-%             B12     = [ 2 -3  4 -9; -3  2  9 -2;  4  9  2  3; -9 -2  3  2];
-%             elementalStiffnessMatrix      = t/(1-poissonCoefficient^2)/24*([A11 A12;A12' A11]+poissonCoefficient*[B11 B12;B12' B11]);
-            
-            s.elementType = 'square';
-            s.t = t;
-            s.poissonCoefficient = poissonCoefficient;
-            B = ElementalStiffnessMatricesComputer(s);
-            B.compute();
-            elementalStiffnessMatrix = B.elementalStiffnessMatrix;
-
-
-            s.elementNumberX =  elementNumberX;
-            s.elementNumberY =  elementNumberY;
-            B = GeometryComputer(s);
-            B.compute();
-            allDegress   = B.degress.all;
-            freeDegress  = B.degress.free;
-            fixedDegress = B.degress.fixed;
-            conectivityMatrixMat = B.conectivityMatrixMat;
-
-
-            
-            iK      = reshape(kron(conectivityMatrixMat,ones(8,1))',64*elementNumberX*elementNumberY,1);
-            jK      = reshape(kron(conectivityMatrixMat,ones(1,8))',64*elementNumberX*elementNumberY,1);
             output    = 2;
 
-            %Inicializaciones: %Es una clase de desplazamientos; 2 dof por cada
-            %elemento
+            %Inicializaciones: %Es una clase de desplazamientos; 2 dof por cada elemento
             displacementE = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             displacementI = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             displacementD = zeros(2*(elementNumberY+1)*(elementNumberX+1),1);
             filteredField        = volumenFraction*ones(elementNumberY,elementNumberX);
 
-            %Parámetros del MMA:
-            % rowsolid  = 46:55;
-            % columnsolid = 146:155;
-            rowsolid = [];
-            columnsolid = [];
-            filteredField(rowsolid,columnsolid) = 1;
-
-
+            %Define Field and Desity
+            filteredField([],[]) = 1;
             minDensity    = zeros(elementNumberY,elementNumberX);
             maxDensity    =  ones(elementNumberY,elementNumberX);
-            minDensity(rowsolid,columnsolid) = 0.99;
-
-
             minDensity = minDensity(:);
             maxDensity = maxDensity(:);
 
-            % xmin    = zeros(nelx*nely,1);
-            % xmax    =  ones(nelx*nely,1);
+            %MMA parameters 
             costChange  = 1;
             numberRestriction       = 4;
             variableNumber       = elementNumberX*elementNumberY;
@@ -102,7 +66,26 @@ classdef ComplianceRobustComputer < handle
             xold1   = filteredField(:);
             xold2   = filteredField(:);
 
-            %Preparación del filtro y de la proyección:
+            %Elemental stifness Matrix
+            s.elementType = 'square';
+            s.t = t;
+            s.poissonCoefficient = poissonCoefficient;
+            B = ElementalStiffnessMatricesComputer(s);
+            B.compute();
+            elementalStiffnessMatrix = B.elementalStiffnessMatrix;
+
+            %Mesh parameters
+            s.elementNumberX =  elementNumberX;
+            s.elementNumberY =  elementNumberY;
+            B = GeometryComputer(s);
+            B.compute();
+            allDegress   = B.degress.all;
+            freeDegress  = B.degress.free;
+            fixedDegress = B.degress.fixed;
+            conectivityMatrixMat = B.conectivityMatrixMat;
+
+
+            %Filter and Proyecition parameters:
             iH = ones(elementNumberX*elementNumberY*(2*(ceil(minimunInfluenceRadios)-1)+1)^2,1);
             jH = ones(size(iH));
             sH = zeros(size(iH));
@@ -130,13 +113,14 @@ classdef ComplianceRobustComputer < handle
             etaI     = 0.5;
             etaD     = eta;
             beta     = 1;
+            %Optimizer parameter
+            iterbeta = 0;
+            iter     = 0;
+            itervol  = 0;
+            finish = false;
 
-            %Phys--> Definen la proyeccion, minimun lenght scale. Eta--> Controlar el
-            %ancho de la escala.
+            % Project the intial field
             xTilde   = filteredField;
-            %             xPhysE   = (tanh(beta*etaE) + tanh(beta*(xTilde-etaE)))/(tanh(beta*etaE) + tanh(beta*(1-etaE)));
-            %             xPhysI   = (tanh(beta*etaI) + tanh(beta*(xTilde-etaI)))/(tanh(beta*etaI) + tanh(beta*(1-etaI)));
-            %             xPhysD   = (tanh(beta*etaD) + tanh(beta*(xTilde-etaD)))/(tanh(beta*etaD) + tanh(beta*(1-etaD)));
             s.beta = beta;
             s.eta =etaE;
             s.filteredField =filteredField;
@@ -160,13 +144,7 @@ classdef ComplianceRobustComputer < handle
 
             volfracD = volumenFraction*sum(xPhysD(:))/sum(xPhysI(:));
 
-            iterbeta = 0;
-            iter     = 0;
-            itervol  = 0;
-            finish = false;
-
-
-           
+            %Get intial cost
             s.mesh.elementNumberX = elementNumberX;
             s.mesh.elementNumberY = elementNumberY;
             s.mesh.neumanCondition = neumanCondition;
@@ -198,7 +176,7 @@ classdef ComplianceRobustComputer < handle
                 xold = filteredField(:);
 
 
-             %Resolución del problema de elementos finitos:
+             %Get cost and displacement
                 s.mesh.elementNumberX = elementNumberX;
                 s.mesh.elementNumberY = elementNumberY;
                 s.mesh.neumanCondition = neumanCondition;
@@ -230,7 +208,7 @@ classdef ComplianceRobustComputer < handle
                 costD = D.cost;
                 displacementD = D.displacement;
                            
-              %Cálculo de las derivadas respecto a la variable estructural:
+              %Get the derivative
 
                 s.elementNumberX = elementNumberX;
                 s.elementNumberY = elementNumberY;
@@ -275,7 +253,7 @@ classdef ComplianceRobustComputer < handle
 
                 dvs_dxs(:)  = H*(dv_dxs(:).*dxsD(:)./Hs);
 
-                %MMA
+                % Compute the solver
                 sC = [];
                 c = CostAndConstraintArturo(sC);
                 [f0val,df0dx,df0dx2] = c.computeCostValueAndGradient(elementNumberX,elementNumberY);

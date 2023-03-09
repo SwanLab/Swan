@@ -7,7 +7,7 @@ clc
 close all
 %% Define the number of iterations
 s.iterations = 3;
-tolerateError = 10e-11;
+tolerateError = 1e-11;
 
 %% Load results
 if s.iterations == 3
