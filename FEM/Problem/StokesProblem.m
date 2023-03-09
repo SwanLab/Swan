@@ -13,8 +13,8 @@ classdef StokesProblem < handle
         dtime
         finalTime
         inputBC
-        velocityField
-        pressureField
+        velocityField, velocityFun
+        pressureField, pressureFun
         boundaryConditions
 
         LHS, LHSintegrator
@@ -93,6 +93,8 @@ classdef StokesProblem < handle
             s.interpolationOrder = 'QUADRATIC';
             s.scale              = 'MACRO';
             obj.velocityField = Field(s);
+            
+            obj.velocityFun = P2Function.create(obj.mesh, 2);
         end
 
         function createPressureField(obj)
@@ -102,6 +104,8 @@ classdef StokesProblem < handle
             s.quadratureOrder    = 'QUADRATIC';
             s.scale              = 'MACRO';
             obj.pressureField = Field(s);
+
+            obj.pressureFun = P1Function.create(obj.mesh, 1);
         end
 
         function createBoundaryConditions(obj)
@@ -137,6 +141,8 @@ classdef StokesProblem < handle
             s.material      = obj.material;
             s.velocityField = obj.velocityField;
             s.pressureField = obj.pressureField;
+            s.velocityFun = obj.velocityFun;
+            s.pressureFun = obj.pressureFun;
             LHS_int = LHSintegrator.create(s);
             LHS = LHS_int.compute();
             obj.LHS = LHS;

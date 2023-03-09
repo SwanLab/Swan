@@ -9,17 +9,12 @@ classdef P2Function < FeFunction
         connec
     end
 
-    properties (Access = private)
-        mesh
-        type
-    end
-
     methods (Access = public)
 
         function obj = P2Function(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-%             obj.createDOFCoordConnec();
+            obj.createDOFCoordConnec();
         end
 
         function fxV = evaluate(obj, xV)
@@ -41,13 +36,20 @@ classdef P2Function < FeFunction
             end
 
         end
+
+        function N = computeShapeFunctions(obj, quad)
+%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            xV = quad.posgp;
+            obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
+        end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad,mesh)
+        function dNdx  = computeCartesianDerivatives(obj,quad)
             nElem = size(obj.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
             nGaus = quad.ngaus;
-            invJ  = mesh.computeInverseJacobian(quad,obj.interpolation);
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
             for igaus = 1:nGaus
                 dShapes = obj.interpolation.deriv(:,:,igaus);
@@ -61,8 +63,8 @@ classdef P2Function < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, quad, mesh)
-            dNdx = obj.computeCartesianDerivatives(quad,mesh);
+        function gradFun = computeGradient(obj, quad)
+            dNdx = obj.computeCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -90,8 +92,8 @@ classdef P2Function < FeFunction
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function symGradFun = computeSymmetricGradient(obj,quad,mesh)
-            grad = obj.computeGradient(quad,mesh);
+        function symGradFun = computeSymmetricGradient(obj,quad)
+            grad = obj.computeGradient(quad);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
             nGaus = size(grad.fValues, 2);
@@ -128,20 +130,45 @@ classdef P2Function < FeFunction
             end
         end
 
+        function dofConnec = computeDofConnectivity(obj)
+            conne  = obj.connec;
+            nDimf  = obj.ndimf;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
+    end
+
+    methods (Access = public, Static)
+
+        function p1 = create(mesh, ndimf)
+            s.fValues = zeros(mesh.nnodes, ndimf); % wrong
+            s.mesh    = mesh;
+            p1 = P2Function(s);
+        end
+
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-%             obj.mesh = cParams.mesh;
-            obj.type    = cParams.type;
-            obj.connec  = cParams.connec;
+            obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
         end
 
         function createInterpolation(obj)
-            m.type = obj.type;
+            m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'QUADRATIC');
         end
 
@@ -152,6 +179,10 @@ classdef P2Function < FeFunction
             c.compute();
             obj.coord  = c.coord;
             obj.connec = c.connec;
+            nDimf = size(obj.fValues,2);
+            if isequal(size(obj.mesh.coord,1), size(obj.fValues,1))
+                obj.fValues = zeros(size(obj.coord,1),nDimf);
+            end
         end
 
     end

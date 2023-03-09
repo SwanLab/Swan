@@ -1,8 +1,12 @@
-classdef LHSintegrator_StokesD < LHSintegrator
+classdef LHSintegrator_StokesD < handle
 
     properties (Access = private)
-        pressure
-        velocity
+        pressureField
+        velocityField
+        pressureFun
+        velocityFun
+        mesh
+        quadrature
     end
 
     methods (Access = public)
@@ -13,6 +17,7 @@ classdef LHSintegrator_StokesD < LHSintegrator
             %             obj.createInterpolation();
             %             obj.createGeometry();
             obj.initStokesD(cParams);
+            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
@@ -25,27 +30,26 @@ classdef LHSintegrator_StokesD < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            vel = obj.velocity;
-            prs = obj.pressure;
-            nelem = obj.mesh.nelem;
-            nunknV = vel.dim.ndimf;
-            nnodeV = vel.dim.nnodeElem;
-            nnodeP = prs.dim.nnodeElem;
-            
-            dNdxV = vel.geometry.dNdx;
-            dvolV = vel.geometry.dvolu;
-            shpeP = prs.interpolation.shape;
-            ngaus = size(dNdxV,4);
+            dNdxV = obj.velocityFun.computeCartesianDerivatives(obj.quadrature);
+            dvolV = obj.mesh.computeDvolume(obj.quadrature)';
+            shpeP = obj.pressureFun.computeShapeFunctions(obj.quadrature);
 
-            D = zeros(nunknV*nnodeV,nnodeP,nelem);
-            for igauss=1:ngaus
-                for inode_var = 1:nnodeP
-                    for inode_test = 1:nnodeV
-                        for idime = 1:vel.interpolation.ndime
-                            dof_test = inode_test*nunknV - nunknV + idime;
-                            v = squeeze(dNdxV(idime,inode_test,:,igauss));
-                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igauss)...
-                                .*dvolV(:,igauss);
+            nElem = obj.mesh.nelem;
+            nDimfV = size(dNdxV,1);
+            nNodeV = size(dNdxV,2);
+            nNodeP = size(shpeP,1);
+            
+            nGaus = size(dNdxV,4);
+
+            D = zeros(nDimfV*nNodeV,nNodeP,nElem);
+            for igaus = 1:nGaus
+                for inode_var = 1:nNodeP
+                    for inode_test = 1:nNodeV
+                        for idime = 1:nDimfV
+                            dof_test = inode_test*nDimfV - nDimfV + idime;
+                            v = squeeze(dNdxV(idime,inode_test,:,igaus));
+                            D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igaus)...
+                                .*dvolV(:,igaus);
                         end
                     end
                 end
@@ -59,9 +63,23 @@ classdef LHSintegrator_StokesD < LHSintegrator
 
         function initStokesD(obj, cParams)
             obj.mesh     = cParams.mesh;
-            obj.pressure = cParams.pressure;
-            obj.velocity = cParams.velocity;
+            obj.pressureField = cParams.pressure;
+            obj.velocityField = cParams.velocity;
+            obj.pressureFun = cParams.pressureFun;
+            obj.velocityFun = cParams.velocityFun;
 %             obj.material = cParams.material;
+        end
+
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC'); % ehhh
+            obj.quadrature = q;
+        end
+
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = obj.fun; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs);
         end
 
         function LHS = assembleStokesD(obj,Delem)
@@ -69,7 +87,7 @@ classdef LHSintegrator_StokesD < LHSintegrator
             s.nnodeEl       = [];
             s.globalConnec  = [];
             assembler = Assembler(s);
-            LHS = assembler.assembleFields(Delem,obj.velocity,obj.pressure);
+            LHS = assembler.assembleFields(Delem,obj.velocityField,obj.pressureField);
         end
 
     end

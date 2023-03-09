@@ -53,7 +53,7 @@ classdef LHSintegrator_MassFun < handle
             nElem  = size(dVolu,2);
             nDimf  = obj.fun.ndimf;
 %             nDofs  = numel(obj.fun.fValues);
-            nNodE  = obj.mesh.nnodeElem;
+            nNodE  = size(shapes,1);
             nDofE  = nNodE*nDimf;
 
             % One dimension
