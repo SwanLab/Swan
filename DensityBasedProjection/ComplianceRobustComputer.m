@@ -208,7 +208,7 @@ classdef ComplianceRobustComputer < handle
                 costD = D.cost;
                 displacementD = D.displacement;
                            
-              %Get the derivative
+              %Get the cost derivative
 
                 s.elementNumberX = elementNumberX;
                 s.elementNumberY = elementNumberY;
@@ -219,21 +219,42 @@ classdef ComplianceRobustComputer < handle
                 E = CostDerivator(s);
                 E.compute();
                 cE1a = E.derivedCost;
-                dcsE1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysE.^(penalization-1).*cE1a;
 
                 s.displacement =displacementI;
                 I = CostDerivator(s);
                 I.compute();
                 cI1a = I.derivedCost;
-                dcsI1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysI.^(penalization-1).*cI1a;
 
                 s.displacement =displacementD;
                 D = CostDerivator(s);
                 D.compute();
                 cD1a = D.derivedCost;
-                dcsD1 = -penalization*(elasticModuleNeutral-elasticModuleMinimun)*xPhysD.^(penalization-1).*cD1a;
+
+              %Penalize the cost derivative
                 
-                
+                s.elasticModuleMinimun = elasticModuleMinimun;
+                s.elasticModuleNeutral = elasticModuleNeutral;
+                s.penalization = penalization;
+
+                s.nonPenalizedVariable = cE1a;
+                s.projectedField = xPhysE ;
+                E = DerivativePenalizer(s);
+                E.penalize();
+                dcsE1 = E.penalizedDerivative;
+
+                s.nonPenalizedVariable = cI1a;
+                s.projectedField = xPhysI ;
+                I = DerivativePenalizer(s);
+                I.penalize();
+                dcsI1 = I.penalizedDerivative;
+
+                s.nonPenalizedVariable = cD1a;
+                s.projectedField = xPhysD ;
+                D = DerivativePenalizer(s);
+                D.penalize();
+                dcsD1 = D.penalizedDerivative;
+
+
            
 
 
