@@ -20,19 +20,15 @@ classdef LagrangeTensorProduct2D < handle
         
         function plotShapeFunctions(obj)
             set(groot,'defaulttextinterpreter','latex');
-            set(groot,'defaultLegendInterpreter','latex');
-            set(groot,'defaultAxesTickLabelInterpreter','latex');
             
-            k = obj.polynomialOrder;
             s.coord = obj.vertices;
             s.connec = [1 2 3;2 3 4];
             m = Mesh(s);
             for i=1:3
                 m = m.remesh(2);
             end
-%             obj.fig = figure();
+
             for s = 1:obj.ndofs
-%                     subplot(obj.k+1,obj.k+1,(obj.k+1)*(i-1)+j)
                 figure()
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));

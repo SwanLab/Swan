@@ -1,17 +1,20 @@
 classdef RaviartThomasElement2D < handle
    
     properties (Access = private)
-       
+       domainK
+       shapeFunctionsSym
+       xSym
+       ySym
+       a1Sym
+       a2Sym
+       bSym
     end
     
     
     properties (Access = public)
         ndofs
-        vertices
         normalVectors
         shapeFunctions
-        fig
-        simplicial
     end
     
     
@@ -22,20 +25,18 @@ classdef RaviartThomasElement2D < handle
         end
         
         function plotShapeFunctions(obj)
-            obj.fig = figure();
-            nodes = [0,0;0,1/3;0,2/3;0,1;1/3,0;1/3,1/3;1/3,2/3;2/3,0;2/3,1/3;2/3,1/3;1,0];
-            for i=1:3
-                subplot(1,3,i);
-                hold on
-                for j = 1:length(nodes)
-                    X(j,:) = obj.shapeFunctions{i}(nodes(j,1),nodes(j,2));
-                end
-                quiver(nodes(:,1),nodes(:,2),double(X(:,1)),double(X(:,2)));
-                plot([0 1],[0 0],'k'); plot([0 0],[1 0],'k'); plot([0 1],[1 0],'k');
-                title("i:"+i);
+            figure();
+            m = obj.createPlotMeshR();
+            mm = obj.createPlotMesh();
+            for s = 1:3
+                subplot(1,3,s)
+                mm.plot();
+                x = obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2));
+                quiver(m.coord(:,1),m.coord(:,2),x(:,1),x(:,2),'k');
+                title("Shape function (s = "+string(s-1)+")");
                 xlabel('x'); ylabel('y');
+                xlim([-0.5 1.5]); ylim([-0.5 1.5]);
                 grid on
-                hold off
             end
         end
     
@@ -45,66 +46,111 @@ classdef RaviartThomasElement2D < handle
     methods (Access = private)
        
         function init(obj)
-            obj.simplicial = Simplicial2D();
-            obj.computeVertices();
+            obj.domainK = Simplicial2D();
+            
+            obj.xSym = sym('x','real');
+            obj.ySym = sym('y','real');
+            obj.a1Sym = sym('a1','real');
+            obj.a2Sym = sym('a2','real');
+            obj.bSym = sym('b','real');
+            
             obj.computeNdof();
-            obj.computeNormalVectors();
+            obj.computeShapeFunctionsSym();
             obj.computeShapeFunctions();
         end
         
-        function computeVertices(obj)
-            obj.vertices = obj.simplicial.vertices;
-        end
-        
         function computeNdof(obj)
-            obj.ndofs = length(obj.vertices);
+            obj.ndofs = length(obj.domainK.vertices);
         end
         
-        function computeNormalVectors(obj)
-            obj.normalVectors = obj.simplicial.normalVectors;
-        end
-        
-        function F = lineIntegral(~,func,pointA,pointB)
-            syms x y a1 a2 b1 t real
+        function F = lineIntegral(obj,func,pointA,pointB)
+            x = obj.xSym;
+            y = obj.ySym;
+            t = sym('t','real');
             x1 = pointA(1); y1 = pointA(2);
             x2 = pointB(1); y2 = pointB(2);
+            
             func = subs(func,x,x1 + t*(x2-x1));
             func = subs(func,y,y1 + t*(y2-y1));
             F = int(func,t,0,1);
         end
         
-        function computeShapeFunctions(obj)
-            syms x y
+        function computeShapeFunctionsSym(obj)
+            x = obj.xSym;
+            y = obj.ySym;
+            ndof = obj.ndofs;
+            shFunc = cell(ndof,1);
+            
             LHS = obj.applyLinearForms();
-            for s = 1:obj.ndofs
+            for s = 1:ndof
                 RHS = obj.computeLinearFormsValues(s);
                 c = obj.computeShapeFunctionCoefficients(LHS,RHS);
-                obj.shapeFunctions{s} = matlabFunction([c.a1+c.b1*x,c.a2+c.b1*y]);
-            end
-        end
-        
-        function c = computeShapeFunctionCoefficients(~,LHS,RHS)
-            syms a1 a2 b1
-            c = solve(LHS == RHS,[a1 a2 b1]);
-        end
-        
-        function LHS = applyLinearForms(obj,normalComponentShapeFunction)
-            syms x y a1 a2 b1 real
-            
-            baseShapeFunction = [a1+b1*x,a2+b1*y];
-            for j = 1:obj.ndofs
-                normalComponentShapeFunction(j) = dot(baseShapeFunction,obj.normalVectors(j,:));
+                shFunc{s} = [c.a1+c.b*x,c.a2+c.b*y];
             end
             
-            v = obj.vertices;
-            LHS(1) = obj.lineIntegral(normalComponentShapeFunction(1),v(2,:),v(3,:));
-            LHS(2) = obj.lineIntegral(normalComponentShapeFunction(2),v(3,:),v(1,:));
-            LHS(3) = obj.lineIntegral(normalComponentShapeFunction(3),v(1,:),v(2,:));
+            obj.shapeFunctionsSym = shFunc;
+        end
+        
+        function computeShapeFunctions(obj)
+            ndof = obj.ndofs;
+            shFunc = cell(ndof,1);
+            shFuncSym = obj.shapeFunctionsSym;
+            x = obj.xSym;
+            y = obj.ySym;
+            
+            for s = 1:ndof
+                shFunc{s} = matlabFunction(shFuncSym{s},'Vars',[x y]);
+            end
+            
+            obj.shapeFunctions = shFunc;
+        end
+        
+        function c = computeShapeFunctionCoefficients(obj,LHS,RHS)
+            a1 = obj.a1Sym;
+            a2 = obj.a2Sym;
+            b = obj.bSym;
+            c = solve(LHS == RHS,[a1 a2 b]);
+        end
+        
+        function LHS = applyLinearForms(obj,Nn)
+            x = obj.xSym;
+            y = obj.ySym;
+            a1 = obj.a1Sym;
+            a2 = obj.a2Sym;
+            b = obj.bSym;
+            v = obj.domainK.vertices;
+            n = obj.domainK.normalVectors;
+            
+            N = [a1+b*x,a2+b*y];
+            for s = 1:obj.ndofs
+                Nn(s) = dot(N,n(s,:));
+            end
+            
+            LHS(1) = obj.lineIntegral(Nn(1),v(2,:),v(3,:));
+            LHS(2) = obj.lineIntegral(Nn(2),v(3,:),v(1,:));
+            LHS(3) = obj.lineIntegral(Nn(3),v(1,:),v(2,:));
         end
         
         function RHS = computeLinearFormsValues(obj,s)
-            RHS = zeros(1,obj.ndofs);
+            ndof = obj.ndofs;
+            
+            RHS = zeros(1,ndof);
             RHS(s) = 1;
+        end
+        
+        function m = createPlotMeshR(obj)
+            s.coord = obj.domainK.vertices;
+            s.connec = [1 2 3];
+            m = Mesh(s);
+            for i=1:3
+                m = m.remesh(2);
+            end
+        end
+        
+        function m = createPlotMesh(obj)
+            s.coord = obj.domainK.vertices;
+            s.connec = [1 2 3];
+            m = Mesh(s);
         end
         
     end

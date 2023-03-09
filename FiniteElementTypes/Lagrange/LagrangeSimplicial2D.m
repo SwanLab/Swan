@@ -1,13 +1,17 @@
 classdef LagrangeSimplicial2D < handle
    
+    properties (Access = private)
+        xSym
+        ySym
+        shapeFunctionsSym
+        domainK
+        nodes
+    end
+    
     properties (Access = public)
         polynomialOrder
-        vertices
         ndofs
-        nodes
         shapeFunctions
-        fig
-        simplicial
     end
     
     
@@ -19,26 +23,17 @@ classdef LagrangeSimplicial2D < handle
         
         function plotShapeFunctions(obj)
             set(groot,'defaulttextinterpreter','latex');
-            set(groot,'defaultLegendInterpreter','latex');
-            set(groot,'defaultAxesTickLabelInterpreter','latex');
+            ndof = obj.ndofs;
             
-            s.coord = obj.vertices;
-            s.connec = [1 2 3];
-            m = Mesh(s);
-            for i=1:3
-                m = m.remesh(2);
-            end
-            
-%             obj.fig = figure();
-            for i=1:obj.ndofs
-%                 subplot(obj.polinomialOrder+1,obj.polinomialOrder+1,i);
-                figure()
+            m = obj.createPlotMesh();
+            for s=1:ndof
+                figure();
                 m.plot();
-                trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{i}(m.coord(:,1),m.coord(:,2)));
+                trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));
                 
-                xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
+                xlim([0 1]); ylim([0 1]);
                 xlabel('x'); ylabel('y'); zlabel('z');
-                title("i:"+string(i-1));
+                title("Shape function (s = "+string(s-1)+")");
                 grid on
             end
         end
@@ -50,10 +45,14 @@ classdef LagrangeSimplicial2D < handle
        
         function init(obj,k)
             obj.polynomialOrder = k;
-            obj.simplicial = Simplicial2D();
-            obj.computeVertices();
+            obj.domainK = Simplicial2D();
+            
+            obj.xSym = sym('x','real');
+            obj.ySym = sym('y','real');
+            
             obj.computeNdof();
             obj.computeNodes();
+            obj.computeShapeFunctionsSym();
             obj.computeShapeFunctions();
         end
 
@@ -63,53 +62,68 @@ classdef LagrangeSimplicial2D < handle
             obj.ndofs = n;
         end
         
-        function computeVertices(obj)
-            obj.vertices = obj.simplicial.vertices;
-        end
-        
         function computeNodes(obj)
             k = obj.polynomialOrder;
             ndof = obj.ndofs;
-            node = zeros(ndof,2);
+            nod = zeros(ndof,2);
+            
             for i = 1:k+1
                 for j = 1:k+1
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
-                        node(s,1)=(i-1)/k;
-                        node(s,2)=(j-1)/k;
+                        nod(s,1)=(i-1)/k;
+                        nod(s,2)=(j-1)/k;
                     end
                 end
             end
-            obj.nodes = node;
+            
+            obj.nodes = nod;
+        end
+        
+        function computeShapeFunctionsSym(obj)
+            shFunc = cell(obj.ndofs,1);
+            ndof = obj.ndofs;
+            
+            basisMSym = obj.computeBasisInMonomialForm();
+            basisM = matlabFunction(basisMSym,'Vars',[obj.xSym obj.ySym]);
+            for s = 1:ndof
+                c = obj.computeShapeFunctionCoefficients(basisM,s);
+                shFunc{s} = basisMSym*c;
+            end
+            
+            obj.shapeFunctionsSym = shFunc;
         end
         
         function computeShapeFunctions(obj)
-            syms x y
-            basisMonomialFormSym = obj.computeBasisInMonomialForm();
-            basisMonomialForm = matlabFunction(basisMonomialFormSym);
-            shapeFuncs = cell(obj.ndofs,1);
-            for s = 1:obj.ndofs
-                c = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
-                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*c,'Vars',[x y]);
+            ndof = obj.ndofs;
+            shFunc = cell(ndof,1);
+            shFuncSym = obj.shapeFunctionsSym;
+            x = obj.xSym;
+            y = obj.ySym;
+            
+            for s = 1:ndof
+                shFunc{s} = matlabFunction(shFuncSym{s},'Vars',[x y]);
             end
             
-            obj.shapeFunctions = shapeFuncs;
+            obj.shapeFunctions = shFunc;
         end
         
-        function coefs = computeShapeFunctionCoefficients(obj,X,s)
+        function c = computeShapeFunctionCoefficients(obj,X,s)
             LHS = obj.applyLinearFormInMonomialForm(X);
             RHS = obj.computeLinearFormValues(s);
-            coefs = LHS\RHS;
+            c = LHS\RHS;
         end
         
-        function basisMonomialFormSym = computeBasisInMonomialForm(obj)
+        function basisMSym = computeBasisInMonomialForm(obj)
             k = obj.polynomialOrder;
-            syms x y
+            x = obj.xSym;
+            y = obj.ySym;
+            
             for i = 1:(k+1)
                 for j = 1:(k+1)
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
-                        basisMonomialFormSym(s) = x^(i-1)*y^(j-1);
+                        basisMSym(s) = x^(i-1)*y^(j-1);
                     end
                 end
             end
@@ -130,12 +144,22 @@ classdef LagrangeSimplicial2D < handle
         
         function s = computeMonomialIndeces(obj,i,j)
             k = obj.polynomialOrder;
+            
             n = -(k+2);
             for m = 1:i
                 n = n + k + 1 - (m-2);
             end
             
             s = n+j;
+        end
+        
+        function m = createPlotMesh(obj)
+            s.coord = obj.domainK.vertices;
+            s.connec = [1 2 3];
+            m = Mesh(s);
+            for i=1:3
+                m = m.remesh(2);
+            end
         end
         
     end
