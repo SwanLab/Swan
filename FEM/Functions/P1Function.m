@@ -46,22 +46,45 @@ classdef P1Function < FeFunction
         end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
-            nElem = size(obj.mesh.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                end
+            switch obj.mesh.type
+                case {'TRIANGLE','QUAD'}
+                    nElem = size(obj.mesh.connec,1);
+                    nNode = obj.interpolation.nnode;
+                    nDime = obj.interpolation.ndime;
+                    nGaus = quad.ngaus;
+                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+                    for igaus = 1:nGaus
+                        dShapes = obj.interpolation.deriv(:,:,igaus);
+                        for jDime = 1:nDime
+                            invJ_JI   = invJ(:,jDime,:,igaus);
+                            dShape_KJ = dShapes(jDime,:);
+                            dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                            dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                        end
+                    end
+                    dNdx = dShapeDx;
+
+                case 'LINE'
+                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    nElem = obj.mesh.nelem;
+                    nNode = obj.interpolation.nnode;
+                    nDime = obj.mesh.ndim;
+                    nGaus = quad.ngaus;
+                    deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
+                    dShapes = deriv;
+                    dN = zeros(nDime,nNode,nElem,nGaus);
+                    for iGaus = 1:nGaus
+                        invJg = invJ(:,1);
+                        for iDim = 1:nDime
+                            for iNode = 1:nNode
+                                dShapeI(:,1) = squeeze(dShapes(1,iNode,iGaus,:));
+                                dN(iDim,iNode,:,iGaus) = invJg.*dShapeI;
+                            end
+                        end
+                    end
+                    dNdx = dN;
             end
-            dNdx = dShapeDx;
         end
 
         function gradFun = computeGradient(obj, quad)

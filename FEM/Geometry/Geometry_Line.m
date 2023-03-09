@@ -23,6 +23,17 @@ classdef Geometry_Line < Geometry
             obj.computeCartesianDerivatives();
         end
         
+        function invJ = computeInverseJacobian(obj,quad,interpV)
+            obj.initGeometry(interpV,quad);
+            obj.computeDvolu();
+            detJ = obj.computeDeterminant();
+            invDet = 1./detJ;
+            nGaus = obj.quadrature.ngaus;
+%             for iGaus = 1:nGaus
+%                 invJ(:,1)    = invDet(iGaus,:);
+%             end
+            invJ = invDet';
+        end
     end
     
     methods (Access = private)

@@ -71,12 +71,9 @@ classdef test1DLHS < handle
         end
 
         function createStifnessMatrix(obj)
-%             s.mesh    = obj.mesh;
-%             s.fValues = zeros(obj.mesh.nnodes, 1);
-%             f = P1Function(s);
             l.mesh = obj.mesh;
-            l.field = obj.field;
-            l.type = 'StiffnessMatrixOld';
+            l.fun = P1Function.create(obj.mesh,1);
+            l.type = 'StiffnessMatrix';
             lhs = LHSintegrator.create(l);
             obj.K = lhs.compute();
         end
