@@ -50,7 +50,9 @@ classdef Filter_PDE_Density < Filter
         end
 
         function x_reg = getP1fromP0(obj,x0)
-            s.geometry = obj.field.geometry;
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            s.dV = obj.mesh.computeDvolume(quad)';
             s.x        = x0;
             RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
             x_reg      = obj.solveFilter(RHS);
@@ -76,12 +78,13 @@ classdef Filter_PDE_Density < Filter
         end
 
         function A_nodal_2_gauss = computeA(obj)
+            p1f = P1Function.create(obj.mesh,1);
             s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
             s.npnod   = obj.mesh.nnodes;
             s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
-            s.shape   = obj.field.interpolation.shape;
+            s.shape   = p1f.computeShapeFunctions(obj.quadrature);
             obj.Acomp = Anodal2gausComputer(s);
             obj.Acomp.compute();
             A_nodal_2_gauss = obj.Acomp.A_nodal_2_gauss;
@@ -110,7 +113,7 @@ classdef Filter_PDE_Density < Filter
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];
             s.bc{1}.ndofs     = [];
-            s.ndofs        = obj.field.dim.ndofs;
+            s.ndofs        = obj.mesh.nnodes;
             obj.bc         = BoundaryConditions(s);
             obj.bc.compute();
         end
@@ -118,11 +121,9 @@ classdef Filter_PDE_Density < Filter
         function lhs = createProblemLHS(obj)
             s          = obj.femSettings;
             s.mesh     = obj.mesh;
-            s.field    = obj.field;
             s.type     = obj.LHStype;
             problemLHS = LHSintegrator.create(s);
             lhs        = problemLHS.compute(obj.epsilon);
-            obj.bc     = obj.field.translateBoundaryConditions(obj.bc);
             lhs        = obj.bc.fullToReducedMatrix(lhs);
         end
 

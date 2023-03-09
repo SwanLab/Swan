@@ -8,12 +8,14 @@ classdef Filter_PDE_LevelSet < Filter
         x_reg
         LHS
         bc
+        quadrature
     end
 
     methods (Access = public)
 
         function obj = Filter_PDE_LevelSet(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.computeBoundaryConditions();
             obj.levelSet = cParams.designVariable;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
@@ -52,14 +54,14 @@ classdef Filter_PDE_LevelSet < Filter
 
         function x0 = getP0fromP1(obj,x)
             obj.x_reg =  obj.getP1fromP1(x);
-            x0 = zeros(obj.mesh.nelem,obj.field.quadrature.ngaus);
-            for igaus = 1:obj.field.quadrature.ngaus
+            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
+            for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
         end
 
         function x_reg = getP1fromP0(obj,x0)
-            s.geometry = obj.field.geometry;
+            s.dV = obj.mesh.computeDvolume(obj.quadrature)';
             s.x        = x0;
             RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
             x_reg      = obj.solveFilter(RHS);
@@ -68,6 +70,12 @@ classdef Filter_PDE_LevelSet < Filter
     end
 
     methods (Access = private)
+
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
 
         function itHas = hasEpsilonChanged(obj,eps)
             if isempty(obj.epsilon)
@@ -95,12 +103,13 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function A = computeA(obj)
+            p1f = P1Function.create(obj.mesh,1);
             s.nnode   = obj.mesh.nnodeElem;
             s.nelem   = obj.mesh.nelem;
             s.npnod   = obj.mesh.nnodes;
-            s.ngaus   = obj.field.quadrature.ngaus;
+            s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
-            s.shape   = obj.field.interpolation.shape;
+            s.shape   = p1f.computeShapeFunctions(obj.quadrature);
             obj.Acomp = Anodal2gausComputer(s);
             obj.Acomp.compute();
             A = obj.Acomp.A_nodal_2_gauss;
@@ -129,11 +138,9 @@ classdef Filter_PDE_LevelSet < Filter
         function lhs = createProblemLHS(obj)
             s          = obj.femSettings;
             s.mesh     = obj.mesh;
-            s.field    = obj.field;
             s.type     = obj.LHStype;
             problemLHS = LHSintegrator.create(s);
             lhs        = problemLHS.compute(obj.epsilon);
-            obj.bc     = obj.field.translateBoundaryConditions(obj.bc);
             lhs        = obj.bc.fullToReducedMatrix(lhs);
         end
         

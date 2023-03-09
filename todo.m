@@ -28,6 +28,7 @@
 
 %% Questions
 % - Filter_P1_LevelSet.getP0fromP1() ??
+% - Careful: unfittedmesh needed to properly integrate!!!
 
 %% Results
 % 

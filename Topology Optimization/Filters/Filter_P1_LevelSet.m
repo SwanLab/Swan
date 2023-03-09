@@ -75,7 +75,6 @@ classdef Filter_P1_LevelSet <  Filter
             dV = obj.mesh.computeDvolume(obj.quadrature)';
             for igaus = 1:ngaus
                 dvolu = dV(:,igaus);
-%                 dvolu = obj.field.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
         end

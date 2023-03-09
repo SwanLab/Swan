@@ -6,7 +6,6 @@ classdef test1DLHS < handle
 
     properties (Access = private)
         mesh
-        field
         K, M
         LHS, RHS
         funL2, funH1
@@ -24,7 +23,6 @@ classdef test1DLHS < handle
         function obj = test1DLHS()
             obj.init()
             obj.createMesh()
-            obj.createField()
             obj.createLHS();
             obj.createRHS();
             obj.solveSystem();
@@ -53,14 +51,6 @@ classdef test1DLHS < handle
             m = Mesh(s);
 %             m.plot();
             obj.mesh = m;
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            f = Field(s);
-            obj.field = f;
         end
 
         function createLHS(obj)
