@@ -7,8 +7,8 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
     properties (Access = private)
         dt
         mesh
-        velocityField, velocityFun
-        pressureField, pressureFun
+        velocityFun
+        pressureFun
         material
         D
     end
@@ -31,11 +31,9 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
     methods (Access = private)
     
         function init(obj, cParams)
-            obj.dt            = cParams.dt;
-            obj.mesh          = cParams.mesh;
-            obj.material      = cParams.material;
-            obj.pressureField = cParams.pressureField;
-            obj.velocityField = cParams.velocityField;
+            obj.dt          = cParams.dt;
+            obj.mesh        = cParams.mesh;
+            obj.material    = cParams.material;
             obj.pressureFun = cParams.pressureFun;
             obj.velocityFun = cParams.velocityFun;
         end
@@ -50,8 +48,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function D = computeDmatrix(obj)
             s.type = 'StokesD';
             s.mesh = obj.mesh;
-            s.pressure = obj.pressureField;
-            s.velocity = obj.velocityField;
             s.pressureFun = obj.pressureFun;
             s.velocityFun = obj.velocityFun;
             LHS = LHSintegrator.create(s);

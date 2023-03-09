@@ -1,8 +1,6 @@
 classdef LHSintegrator_StokesD < handle
 
     properties (Access = private)
-        pressureField
-        velocityField
         pressureFun
         velocityFun
         mesh
@@ -22,7 +20,8 @@ classdef LHSintegrator_StokesD < handle
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleStokesD(lhs);
+%             LHS = obj.assembleStokesD(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -63,8 +62,6 @@ classdef LHSintegrator_StokesD < handle
 
         function initStokesD(obj, cParams)
             obj.mesh     = cParams.mesh;
-            obj.pressureField = cParams.pressure;
-            obj.velocityField = cParams.velocity;
             obj.pressureFun = cParams.pressureFun;
             obj.velocityFun = cParams.velocityFun;
 %             obj.material = cParams.material;
@@ -77,17 +74,9 @@ classdef LHSintegrator_StokesD < handle
         end
 
         function LHS = assembleMatrix(obj, lhs)
-            s.fun    = obj.fun; % !!!
+            s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs);
-        end
-
-        function LHS = assembleStokesD(obj,Delem)
-            s.dim           = [];
-            s.nnodeEl       = [];
-            s.globalConnec  = [];
-            assembler = Assembler(s);
-            LHS = assembler.assembleFields(Delem,obj.velocityField,obj.pressureField);
+            LHS = assembler.assembleFunctions(lhs, obj.velocityFun, obj.pressureFun);
         end
 
     end
