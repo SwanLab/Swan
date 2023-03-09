@@ -47,24 +47,6 @@ classdef P1Function < FeFunction
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
             switch obj.mesh.type
-                case {'TRIANGLE','QUAD'}
-                    nElem = size(obj.mesh.connec,1);
-                    nNode = obj.interpolation.nnode;
-                    nDime = obj.interpolation.ndime;
-                    nGaus = quad.ngaus;
-                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-                    dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-                    for igaus = 1:nGaus
-                        dShapes = obj.interpolation.deriv(:,:,igaus);
-                        for jDime = 1:nDime
-                            invJ_JI   = invJ(:,jDime,:,igaus);
-                            dShape_KJ = dShapes(jDime,:);
-                            dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                            dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                        end
-                    end
-                    dNdx = dShapeDx;
-
                 case 'LINE'
                     invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
                     nElem = obj.mesh.nelem;
@@ -84,6 +66,24 @@ classdef P1Function < FeFunction
                         end
                     end
                     dNdx = dN;
+                    
+                otherwise
+                    nElem = size(obj.mesh.connec,1);
+                    nNode = obj.interpolation.nnode;
+                    nDime = obj.interpolation.ndime;
+                    nGaus = quad.ngaus;
+                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+                    for igaus = 1:nGaus
+                        dShapes = obj.interpolation.deriv(:,:,igaus);
+                        for jDime = 1:nDime
+                            invJ_JI   = invJ(:,jDime,:,igaus);
+                            dShape_KJ = dShapes(jDime,:);
+                            dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                            dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                        end
+                    end
+                    dNdx = dShapeDx;
             end
         end
 
