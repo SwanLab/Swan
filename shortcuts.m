@@ -24,14 +24,23 @@ ylabel('Merit function','Interpreter','latex')
 legend('Current','Old','Interpreter','latex')
 
 
-nVec = 1:length(obj.lGtrial);
+nVec = 1:length(obj.lG);
 figure
-plot(nVec,obj.lGtrial,nVec,obj.lGmax,'-r',nVec,-obj.lGmax,'--r',nVec,obj.lG,nVec,obj.lJ)
+plot(nVec,obj.lG,nVec,obj.lJ)
 hold on
 plot(nVec,obj.l,'Color',"#EDB120")
 grid on
 grid minor
 xlabel('Iterations','Interpreter','latex')
 ylabel('Lagrange multipliers','Interpreter','latex')
-legend('$\lambda_G^{trial}$','$\lambda_G^{max}$','$-\lambda_G^{max}$','$\lambda_G$','$\lambda_J$','$\lambda$','Interpreter','latex')
+legend('$\lambda_G$','$\lambda_J$','$\lambda$','Interpreter','latex')
 ylim([-52 4])
+
+figure
+plot(nVec,obj.aJvec,nVec,obj.aGvec)
+grid on
+grid minor
+xlabel('Iterations','Interpreter','latex')
+ylabel('Nullspace coefficients','Interpreter','latex')
+legend('$a_J$','$a_G$','Interpreter','latex')
+ylim([-0.1 1])

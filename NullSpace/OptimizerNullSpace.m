@@ -15,6 +15,8 @@ classdef OptimizerNullSpace < Optimizer
         lG
         lJ
         l
+        aGvec
+        aJvec
     end
 
     properties (Access = private)
@@ -36,6 +38,8 @@ classdef OptimizerNullSpace < Optimizer
         meritNew
         nConstr
         meritGradient
+        keepAJincreasing
+        is2ndStage
 
         globalCost
         globalConstraint
@@ -64,11 +68,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasFinished = false;
             obj.printOptimizerVariable();
             obj.aG  = 0;
-            if obj.nIter == 0
-                obj.eta = inf;
-            else
-                obj.eta = 0.01;
-            end
+            obj.keepAJincreasing = true;
+            obj.is2ndStage = false;
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -95,7 +96,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
             obj.nIter                  = 0;
-            obj.aJ                     = 0.1;
+            obj.aJ                     = 0.01;
         end
 
         function prepareFirstIter(obj)
@@ -106,13 +107,28 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateRobustnessParameters(obj)
-            if not(obj.nIter==0)
+            if obj.nIter==0
+                obj.eta = inf;
+            else
+                g            = obj.constraint.value;
+                isNearVolume = g < 0;
+                if isNearVolume
+                    obj.keepAJincreasing = false;
+                end
                 deltamF = abs(obj.meritNew-obj.mOld);
-                if deltamF < 1e-5 && obj.constraint.value < 0.05
-                    obj.aG  = 0.05;
+                if deltamF < 1e-5 && not(obj.keepAJincreasing)
+                    obj.is2ndStage = true;
+                end
+                if obj.is2ndStage
+                    aGmax   = 0.05;
+                    obj.aG  = min(aGmax,obj.aG+0.1*abs(g));
                     obj.eta = 0.001;
-                elseif deltamF < obj.tol
-                    obj.aJ = obj.aJ + 0.1;
+                else
+                    obj.eta = 0.01;
+                end
+                if obj.keepAJincreasing && not(obj.is2ndStage)
+                    k      = obj.primalUpdater.tau;
+                    obj.aJ = obj.aJ + k*obj.eta;
                 end
             end
         end
@@ -145,6 +161,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.lG(obj.nIter+1) = obj.dualUpdater.lGPl;
             obj.lJ(obj.nIter+1) = obj.dualUpdater.lJPl;
             obj.l(obj.nIter+1) = obj.dualUpdater.lPl;
+            obj.aJvec(obj.nIter+1) = obj.aJ;
+            obj.aGvec(obj.nIter+1) = obj.aG;
 
             obj.updateOldValues(x);
         end
