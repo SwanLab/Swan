@@ -13,7 +13,6 @@ classdef RaviartThomasElement2D < handle
     
     properties (Access = public)
         ndofs
-        normalVectors
         shapeFunctions
     end
     
@@ -32,6 +31,7 @@ classdef RaviartThomasElement2D < handle
                 subplot(1,3,s)
                 mm.plot();
                 x = obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2));
+              
                 quiver(m.coord(:,1),m.coord(:,2),x(:,1),x(:,2),'k');
                 title("Shape function (s = "+string(s-1)+")");
                 xlabel('x'); ylabel('y');

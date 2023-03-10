@@ -23,6 +23,8 @@ classdef MeshPlotter < handle
                     obj.plotLineMesh();
                 elseif m.ndim + m.kFace == 2
                     obj.plotSurfaceMesh();
+                elseif m.ndim == 3
+                    obj.plotVolumeMesh();
                 end
                 
             end
@@ -129,6 +131,19 @@ classdef MeshPlotter < handle
                 hold on
             end
             
+        end
+        
+        function plotVolumeMesh(obj) %Black
+            m = obj.mesh;
+            p = plot(alphaShape(m.coord));
+            p.EdgeAlpha = obj.edgeAlpha;
+            p.EdgeLighting = 'flat';
+            p.FaceColor = obj.faceColor;%[167,238,237]/265; 'green';'red';%
+            p.FaceLighting = 'flat';
+            p.FaceAlpha = obj.faceAlpha;
+            p.LineWidth = 1.5;
+            axis('equal');
+            hold on
         end
         
     end
