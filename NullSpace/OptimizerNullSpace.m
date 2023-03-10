@@ -67,7 +67,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.aG  = 0;
+            obj.aG  = 0.00001;
             obj.keepAJincreasing = true;
             obj.is2ndStage = false;
             while ~obj.hasFinished
@@ -111,25 +111,20 @@ classdef OptimizerNullSpace < Optimizer
                 obj.eta = inf;
             else
                 g            = obj.constraint.value;
-                isNearVolume = g < 0;
+                gNear = 0.075; % /20
+                isNearVolume = g < gNear;
                 if isNearVolume
                     obj.keepAJincreasing = false;
                 end
-                deltamF = abs(obj.meritNew-obj.mOld);
-                if deltamF < 1e-5 && not(obj.keepAJincreasing)
-                    obj.is2ndStage = true;
-                end
-                if obj.is2ndStage
-                    aGmax   = 0.05;
-                    obj.aG  = min(aGmax,obj.aG+0.1*abs(g));
-                    obj.eta = 0.001;
+                if obj.keepAJincreasing
+                    obj.eta = 0.02;
+                    k       = 1;
+                    obj.aJ  = obj.aJ + k*obj.eta;
                 else
-                    obj.eta = 0.01;
+                    obj.eta = 0.001;
                 end
-                if obj.keepAJincreasing && not(obj.is2ndStage)
-                    k      = obj.primalUpdater.tau;
-                    obj.aJ = obj.aJ + k*obj.eta;
-                end
+                aGmax   = 0.05;
+                obj.aG  = min(aGmax,obj.aG*(1+obj.eta));
             end
         end
 

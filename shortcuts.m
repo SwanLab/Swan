@@ -37,7 +37,7 @@ legend('$\lambda_G$','$\lambda_J$','$\lambda$','Interpreter','latex')
 ylim([-52 4])
 
 figure
-plot(nVec,obj.aJvec,nVec,obj.aGvec)
+semilogy(nVec,obj.aJvec,nVec,obj.aGvec)
 grid on
 grid minor
 xlabel('Iterations','Interpreter','latex')
