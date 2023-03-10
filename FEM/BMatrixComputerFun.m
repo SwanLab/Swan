@@ -78,13 +78,13 @@ classdef BMatrixComputerFun < handle
 
         function [B] = computeBin1D(obj, igaus)
             deriv  = obj.dNdx(:,:,:,igaus);
-            d     = obj.dim;
+            nDimf = obj.fun.ndimf;
             nNode = size(deriv,2);
             nElem = size(obj.dNdx,3);
-            nDofs = d.ndimf*nNode;
+            nDofs = nDimf*nNode;
             B = zeros(obj.nVoigt,nDofs,nElem);
             for inode = 1:nNode
-                j = d.ndimf*(inode-1) + 1;
+                j = nDimf*(inode-1) + 1;
                 B(1,j,:) = deriv(1,inode,:);
                 B(2,j,:) = deriv(2,inode,:);
             end

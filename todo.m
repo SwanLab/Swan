@@ -1,6 +1,5 @@
 %% To-do
 % DISCONTINUOUS MESH
-% (0) Check projectors
 % (1) Delete discontinuous meshes
 %       IMPOSSIBLE
 %           - P1DiscontinuousFunction
@@ -14,16 +13,25 @@
 %           - Remesher -> make it disappear from everywhere? only in mesh?
 %           ? SymmetricContMapCondition
 %               - used for connecs, coords
-%               x CoherentOrientationSelector
-%           x LevelSetPeriodicAndOriented
-%       EASY
-%           x SingularitiesFinder
 
 % (2) Delete fields
-% (3) Delete Mesh_Total
+%       - Note: ignored P2 elastic for now
+%       - ELASTIC STIFFNESS
+%           Pending test_anisotropy cleanup
+%       - STIFFNESS
+%           Pending: test1DLHS -> Geometry_Line to include computeInvJac
+%           a la Geometry_Volumetric
+%           Pending: diffreact dependencies
+%       - MASS
+%           Pending: test1DLHS, LHSintegrator_Stokes
+%           Noteworthy: LHSintegrator_MassBoundary
+
+%% Questions
+% - Filter_P1_LevelSet.getP0fromP1() ??
+% - Careful: unfittedmesh needed to properly integrate!!!
 
 %% Results
-% FeFunction.project(target)
+% 
 
 %% Mid-term
 % - Use FeFunctions in TopOpt_Problem
@@ -33,8 +41,6 @@
 %% Long-term
 % - Move Input folder to a separate repository
 % - Geometry only in Mesh
-% - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
-%   removed
 % - Recuperar gid unfitted mesh photo GiDimagecapturer
 %      density --(project)--> unfittedmesh -> innermesh/photo
 

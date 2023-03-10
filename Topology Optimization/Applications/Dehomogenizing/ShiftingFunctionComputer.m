@@ -9,8 +9,6 @@ classdef ShiftingFunctionComputer < handle
         meshDisc
         mesh
         corrector
-        interp
-        field
         interpolator
     end
     
@@ -18,19 +16,18 @@ classdef ShiftingFunctionComputer < handle
         
         function obj = ShiftingFunctionComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function sF = compute(obj)
             obj.computeLHS();
             obj.computeRHS();
             uC = obj.solveSystem();
-            In = obj.interpolator; 
+            In = obj.interpolator;
             u  = In*uC; 
             u = reshape(u,obj.mesh.nnodeElem,[]); 
             s.mesh = obj.mesh;
             s.fValues(1,:,:) = u;
-            sF = P1DiscontinuousFunction(s);                     
+            sF = P1DiscontinuousFunction(s);
         end
         
     end
@@ -41,14 +38,7 @@ classdef ShiftingFunctionComputer < handle
             obj.mesh     = cParams.mesh;
             obj.corrector    = cParams.corrector;
             obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();                        
-        end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
+            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
          
         function computeLHS(obj)
@@ -59,10 +49,9 @@ classdef ShiftingFunctionComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
+            s.mesh = obj.mesh;
+            s.type = 'StiffnessMatrix';
+            s.fun  = P1DiscontinuousFunction.create(obj.mesh, 1);
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -78,11 +67,11 @@ classdef ShiftingFunctionComputer < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();        
+            rhsV = rhs.compute();
             In = obj.interpolator;
             rhsV = In'*rhsV;
             obj.RHS = rhsV;

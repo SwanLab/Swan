@@ -4,10 +4,14 @@ classdef LHSintegratorFactory < handle
 
        function obj = create(cParams)
            switch cParams.type
-               case 'MassMatrix'
+               case 'MassMatrixOld'
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
                    obj = LHSintegrator_Mass(cParams);
+               case 'MassMatrix'
+                   % Computes the MASS MATRIX by first computing the
+                   % elemental LHS (N*N) and then assembling the result
+                   obj = LHSintegrator_MassFun(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh
@@ -19,13 +23,8 @@ classdef LHSintegratorFactory < handle
                case 'ElasticStiffnessMatrix'
                    % Computes the ELASTIC STIFFNESS MATRIX by first
                    % computing the elemental LHS (dN*C*dN / B*C*B) and then
-                   % assembling the result
-                   obj = LHSintegrator_StiffnessElastic(cParams);
-               case 'FunElasticStiffnessMatrix'
-                   % Computes the ELASTIC STIFFNESS MATRIX by first
-                   % computing the elemental LHS (dN*C*dN / B*C*B) and then
                    % assembling the result using functions
-                   obj = LHSintegrator_StiffnessElasticFun(cParams);
+                   obj = LHSintegrator_StiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'
                    % dB'*Celas*dB
                    obj = LHSintegratorAnisotropicStiffness(cParams);

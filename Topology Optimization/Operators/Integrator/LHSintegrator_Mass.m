@@ -32,6 +32,7 @@ classdef LHSintegrator_Mass < LHSintegrator
             ndimf  = f.dim.ndimf;
             nnode  = f.dim.nnodeElem;
 
+            N = repmat(shapes, [1 1 nelem]);
             % One dimension
             %             lhs = zeros(nnode,nnode,nelem);
             %             for igaus = 1:ngaus
