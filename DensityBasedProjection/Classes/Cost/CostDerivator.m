@@ -3,29 +3,28 @@ classdef CostDerivator < handle
         derivedCost
     end
     properties (Access = private)
-        structure
-        mesh 
-        displacement 
-        
+        derivedProyectedCost
+        derivatedProjectedField
+        derivedFilteredField
     end
     methods (Access = public)
         function obj = CostDerivator(cParams)
             obj.inputData(cParams);
         end
+
         function compute(obj)
-            obj.computeCost();
+            obj.derive();
         end
     end
     methods (Access = private)
         function inputData(obj,cParams)
-            obj.mesh.conectivityMatrixMat = cParams.conectivityMatrixMat;
-            obj.mesh.elementNumberX = cParams.elementNumberX;
-            obj.mesh.elementNumberY = cParams.elementNumberY;
-            obj.structure.elementalStiffnessMatrix = cParams.elementalStiffnessMatrix;
-            obj.displacement = cParams.displacement; 
+            obj.derivedProyectedCost = cParams.derivedProyectedCost;
+            obj.derivatedProjectedField = cParams.derivatedProjectedField;
+            obj.derivedFilteredField = cParams.derivedFilteredField;
+            obj.derivedCost = zeros(size(obj.derivedProyectedCost));
+        end
+        function derive(obj)
+            obj.derivedCost(:) = obj.derivedFilteredField*(obj.derivedProyectedCost(:).*obj.derivatedProjectedField(:));
         end 
-        function computeCost(obj) 
-           obj.derivedCost  = reshape(sum((obj.displacement(obj.mesh.conectivityMatrixMat)*obj.structure.elementalStiffnessMatrix).*obj.displacement(obj.mesh.conectivityMatrixMat),2),obj.mesh.elementNumberY,obj.mesh.elementNumberX);
-        end 
-    end
+    end 
 end
