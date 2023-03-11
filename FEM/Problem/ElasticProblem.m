@@ -12,12 +12,9 @@ classdef ElasticProblem < handle
         LHS
         RHS
         solver
-        geometry
         scale
         pdim
-        ptype
         inputBC
-
         strain
         stress
     end
@@ -25,14 +22,9 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         quadrature
         material
-
         vstrain
-
         mesh % For Homogenization
-        interpolation
-        interpTranslator
         interpolationType
-        displacementField
         displacementFun
     end
 
@@ -40,7 +32,7 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createDisplacementField();
+            obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -102,15 +94,13 @@ classdef ElasticProblem < handle
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
             obj.pdim        = cParams.dim;
-            obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
-            if isprop(cParams, 'interpolationType')
+            if isprop(cParams, 'interpolationType') % later on for P2
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
             end
             obj.createQuadrature();
-            obj.createInterpolation();
         end
 
         function createQuadrature(obj)
@@ -119,22 +109,7 @@ classdef ElasticProblem < handle
             obj.quadrature = quad;
         end
 
-        function createInterpolation(obj)
-            int = Interpolation.create(obj.mesh,obj.interpolationType);
-            int.computeShapeDeriv(obj.quadrature.posgp);
-            obj.interpolation = int;
-        end
-
-        function createDisplacementField(obj)
-            nDimf = regexp(obj.pdim,'\d*','Match');
-            s.mesh               = obj.mesh;
-            s.ndimf              = str2double(nDimf);
-            s.interpolationOrder = obj.interpolationType; %obj.interpolationType
-            f = Field(s);
-            obj.inputBC = f.translateBoundaryConditions(obj.inputBC);
-            obj.displacementField = f;
-
-
+        function createDisplacementFun(obj)
             strdim = regexp(obj.pdim,'\d*','Match');
             nDimf  = str2double(strdim);
             obj.displacementFun = P1Function.create(obj.mesh, nDimf);
@@ -214,70 +189,36 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            s.dim.ndimf    = obj.displacementFun.ndimf;
-            s.mesh         = obj.mesh;
-            s.quadrature   = obj.quadrature;
-            s.displacement = obj.variables.d_u;
-            s.dispField    = obj.displacementField;
-            scomp  = StrainComputer(s);
-            strain = scomp.compute();
-            obj.variables.strain = strain;
-            
-%             strFun = obj.uFun.computeSymmetricGradient(obj.quadrature);
-%             strFun.applyVoigtNotation();
-            z.mesh       = obj.mesh;
-            z.fValues    = permute(strain, [2 1 3]);
-            z.quadrature = obj.quadrature;
-            strFun = FGaussDiscontinuousFunction(z);
-
-%             wtfun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-%             wtfun.applyVoigtNotation();
-% 
-%             perm = permute(wtfun.fValues, [2 1 3]);
-%             norm(squeeze(perm(:)-strain(:)))/norm(strain(:))
-%             obj.variables.strain = perm;
+            strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
+            strFun.applyVoigtNotation();
+            perm = permute(strFun.fValues, [2 1 3]);
+            obj.variables.strain = perm;
             obj.strainFun{end+1} = strFun;
-%             strnFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-%             strnFun.applyVoigtNotation();
-%             obj.strain = strnFun;
-%             obj.strainFun{end+1} = strnFun;
-%             obj.variables.strain = permute(strnFun.fValues, [2 1 3]);
+            obj.strain = strFun;
         end
 
         function computeStress(obj)
-            s.C      = obj.material.C;
-            s.strain = obj.variables.strain;
-            scomp  = StressComputer(s);
-            stress = scomp.compute();
-            obj.variables.stress = stress;
-            
+            strn  = permute(obj.strain.fValues,[1 3 2]);
+            strn2(:,1,:,:) = strn;
+            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs = permute(strs, [1 3 2]);
+
             z.mesh       = obj.mesh;
-            z.fValues    = permute(stress, [2 1 3]);
+            z.fValues    = strs;
             z.quadrature = obj.quadrature;
             strFun = FGaussDiscontinuousFunction(z);
 
+            obj.stress = strFun;
+            obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun{end+1} = strFun;
-
-%             strn  = permute(obj.strain.fValues,[1 3 2]);
-%             strn2(:,1,:,:) = strn;
-%             strs =squeeze(pagemtimes(obj.material.C,strn2));
-%             strs = permute(strs, [1 3 2]);
-%             z.mesh       = obj.mesh;
-%             z.fValues    = strs;
-%             z.quadrature = obj.quadrature;
-%             stressF = FGaussDiscontinuousFunction(z);
-%             obj.stress = stressF;
-%             
-%             obj.variables.stress = permute(stressF.fValues, [2 1 3]);
-%             obj.stressFun{end+1} = stressF;
         end
 
         function computePrincipalDirection(obj)
-            stress = obj.variables.stress;
+            strss  = obj.variables.stress;
             s.type = obj.pdim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
-            pcomp.compute(stress);
+            pcomp.compute(strss);
             obj.variables.principalDirections = pcomp.direction;
             obj.variables.principalStress     = pcomp.principalStress;
         end
