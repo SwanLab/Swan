@@ -4,14 +4,10 @@ classdef LHSintegratorFactory < handle
 
        function obj = create(cParams)
            switch cParams.type
-               case 'MassMatrixOld'
-                   % Computes the MASS MATRIX by first computing the
-                   % elemental LHS (N*N) and then assembling the result
-                   obj = LHSintegrator_Mass(cParams);
                case 'MassMatrix'
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
-                   obj = LHSintegrator_MassFun(cParams);
+                   obj = LHSintegrator_Mass(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh

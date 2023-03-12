@@ -1,8 +1,12 @@
-classdef LHSintegrator_DiffReactNeumann < LHSintegrator
+classdef LHSintegrator_DiffReactNeumann < handle
 
     properties (GetAccess = public, SetAccess = private)
         M
         K
+    end
+
+    properties (Access = private)
+        mesh
     end
 
     methods (Access = public)

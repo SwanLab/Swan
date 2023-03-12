@@ -1,9 +1,13 @@
-classdef LHSintegrator_DiffReactRobin < LHSintegrator
+classdef LHSintegrator_DiffReactRobin < handle
 
     properties (GetAccess = public, SetAccess = private)
         M
         K
         Mr
+    end
+
+    properties (Access = private)
+        mesh
     end
 
     methods (Access = public)

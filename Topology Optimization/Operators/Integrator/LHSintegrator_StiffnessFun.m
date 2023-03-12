@@ -68,7 +68,7 @@ classdef LHSintegrator_StiffnessFun < handle
         function Bcomp = createBComputer(obj, dNdx)
             s.fun  = obj.fun;
             s.dNdx = dNdx;
-            Bcomp = BMatrixComputerFun(s);
+            Bcomp = BMatrixComputer(s);
         end
 
         function LHS = assembleMatrix(obj, lhs)
