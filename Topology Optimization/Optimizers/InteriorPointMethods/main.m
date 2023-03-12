@@ -3,12 +3,12 @@ clc; clear all; close all
 % load bpopt libraries
 addpath('bpopt')
 
-% Solve problem 1
-% prob = bp_create(10);  % create problem
-% prob.mu = 10;          % change the initial barrier term
-% sol = bpopt(prob);     % solve problem
+problemNumber = 6;              % input number from 1 to 10
+prob = bp_create(problemNumber); 
+prob.create();
+bp = prob.x;
+bp.mu = 100;
 
-% Solve problem 2
-prob = bp_create(6);   % create problem
-prob.mu = 100;         % change the initial barrier term
-sol = bpopt(prob);     % solve problem
+solveProblem = bpopt(bp);
+solveProblem.compute();
+sol = solveProblem.sol;

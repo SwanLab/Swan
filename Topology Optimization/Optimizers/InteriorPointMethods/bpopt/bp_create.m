@@ -18,6 +18,7 @@ classdef bp_create < handle
     end
     methods (Access = private)
         function init(obj,cParams)
+            obj.x.prob = cParams.problemNumber;
         end
 
         function loadParameters(obj)
