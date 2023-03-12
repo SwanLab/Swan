@@ -37,13 +37,25 @@ classdef bp_merit < handle
         end
 
         function computePhi(obj)
-            ph = bp_phi(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            u.xL = obj.xL;
+            u.xU = obj.xU;
+            ph = bp_phi(u);
             ph.compute();
             obj.phi = ph.phi;
         end
 
         function computeResidual(obj)
-            res = bp_res(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            res = bp_res(u);
             res.compute();
             obj.residual = res.c;
         end
@@ -53,8 +65,3 @@ classdef bp_merit < handle
         end
     end
 end
-
-function [me] = bp_merit(bp,x,xL,xU,s,bL,bU)
-    ph = bp_phi(bp,x,xL,xU,s,bL,bU);
-    r = bp_res(bp,x,s,bL,bU);
-    me = ph + bp.nu*sum(abs(r));

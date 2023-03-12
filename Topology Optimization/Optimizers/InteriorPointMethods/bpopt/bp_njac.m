@@ -4,15 +4,11 @@ classdef bp_njac < handle
     end
 
     properties (Access = private)
-        residualBase
-        residual
         bp 
         x 
         s 
         bL 
         bU
-        xp
-        sp
     end
 
     methods (Access = public)
@@ -21,7 +17,6 @@ classdef bp_njac < handle
         end
 
         function compute(obj)
-            obj.computeResidualBase();
             obj.computeJacobian();
         end
     end
@@ -34,65 +29,42 @@ classdef bp_njac < handle
             obj.bU = cParams.bU;
         end
 
-        function computeResidualBase(obj)
-            rBase = bp_res(obj);
-            rBase.compute();
-            obj.residualBase = rBase.c;
-        end
-
-        function computeResidual(obj)
-            r = bp_res(obj);
-            r.compute();
-            obj.residual = r.c;
-        end
-
         function computeJacobian(obj)
             n = size(obj.x,2);
             m = size(obj.bL,2);
             ep = 1e-5;
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            residualBase = computeResidual(u);
             for i = 1:n
-                obj.xp = obj.x;
-                obj.xp(i) = obj.x(i) + ep;
-                obj.computeResidual();
-                J(:,i) = [(obj.residual - obj.residualBase)/ep]';
+                xp = u.x;
+                xp(i) = u.x(i) + ep;
+                u.x = xp;
+                residual = computeResidual(u);
+                J(:,i) = [(residual - residualBase)/ep]';
             end
             k = 0;
             for i = 1:m
                 if (obj.bU(i) > obj.bL(i))
                 k = k + 1;
-                obj.sp = obj.s;
-                obj.sp(i) = obj.s(i) + ep;
-                obj.computeResidual();
-                J(:,n + k) = [(obj.residual - obj.residualBase)/ep]';
+                obj.sp = u.s;
+                sp(i) = u.s(i) + ep;
+                u.s = sp;
+                residual = computeResidual(u);
+                J(:,n + k) = [(residual - residualBase)/ep]';
                 end
             end
             obj.jacobian = J;
         end
     end
-end
-
-function [J] = bp_njac(bp,x,s,bL,bU)
-
-% compute numerical 1st deriv
-n = size(x,2);
-m = size(bL,2);
-
-% compute numerical 1st deriv
-r_base = bp_res(bp,x,s,bL,bU);
-ep = 1e-5;
-for i = 1:n,
-    xp = x;
-    xp(i) = x(i)+ep;
-    r = bp_res(bp,xp,s,bL,bU);
-    J(:,i) = [(r-r_base)/ep]';
-end
-k = 0;
-for i = 1:m,
-    if (bU(i)>bL(i)),
-       k = k + 1;
-       sp = s;
-       sp(i) = s(i)+ep;
-       r = bp_res(bp,x,sp,bL,bU);
-       J(:,n+k) = [(r-r_base)/ep]';
+    methods (Static, Access = private)
+        function residual = computeResidual(cParams)
+            res = bp_res(cParams);
+            res.compute();
+            residual = res.c;
+        end
     end
 end

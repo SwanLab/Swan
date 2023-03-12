@@ -23,11 +23,15 @@ classdef bp_jac < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.x = cParams.x;
+            obj.bp = cParams.bp;
             obj.bL = cParams.bL;
             obj.bU = cParams.bU;
         end
+        
         function computeBaseJacobian(obj)
-            baseJac = bp_jac_stub(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            baseJac = bp_jac_stub(u);
             baseJac.create();
             obj.pdComputation = baseJac.pdComputation;
         end
@@ -45,17 +49,4 @@ classdef bp_jac < handle
             obj.pd = obj.pdComputation;
         end
     end
-end
-function [pd] = bp_jac(bp,x,bL,bU)
-pd = bp_jac_stub(bp,x);
-m = size(pd,1);
-n = size(pd,2);
-
-% add slack variables for inequality constraints
-k = 0;
-for i = 1:m,
-   if(bU(i)>bL(i)),
-       k = k + 1;
-       pd(i,n+k) = -1;
-   end
 end

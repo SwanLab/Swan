@@ -15,6 +15,7 @@ classdef bp_accept < handle
         xa
         xL
         x
+        s
     end
 
     methods (Access = public)
@@ -34,6 +35,9 @@ classdef bp_accept < handle
             obj.xL = cParams.xL;
             obj.xU = cParams.xU;
             obj.filter = cParams.filter;
+            obj.bU = cParams.bU;
+            obj.bL = cParams.bL;
+            obj.s = cParams.s;
         end
 
         function loadParams(obj)
@@ -42,14 +46,6 @@ classdef bp_accept < handle
             obj.n = size(obj.x,2);
             obj.gamma_th = 10^-5;
             obj.gamma_phi = 10^-5;
-        end
-
-        function phi = computePhi(cParams)  % pasar a estatica
-
-        end
-
-        function theta = computeTheta(obj)          % pasar a estática
-        
         end
 
         function checkViolations(obj)
@@ -63,24 +59,21 @@ classdef bp_accept < handle
                 end
             end
             s.bp = obj.bp;
-            s.xa = obj.xa;
+            s.x = obj.xa;
             s.xL = obj.xL;
             s.xU = obj.xU;
+            s.bU = obj.bU;
+            s.bL = obj.bL;
+            s.s = obj.s;
             phiA = obj.computePhi(s);
 
-            c.bp = obj.bp;
-            c.x = obj.x;
-            c.xL = obj.xL;
-            c.xU = obj.xU;
-            phiX = obj.computePhi(c);
+            s.x = obj.x;
+            phiX = obj.computePhi(s);
 
-            w.bp = obj.bp;
-            w.x = obj.x;
-            thetaX = obj.computeTheta(w);
+            thetaX = obj.computeTheta(s);
 
-            u.bp = obj.np;
-            u.xa = obj.xa;
-            thetaA = obj.computeTheta(u);
+            s.x = s.xa;
+            thetaA = obj.computeTheta(s);
             if (viol==0)
             % either condition better compared to last iteration
             if (obj.better_on)
@@ -109,50 +102,17 @@ classdef bp_accept < handle
             obj.accept = ac;
         end
     end
-end
+    methods (Static, Access = private)
+        function phi = computePhi(cParams)
+            cPhi = bp_phi(cParams);
+            cPhi.compute();
+            phi = cPhi.phi;
+        end
 
-function [ac] = bp_accept(bp,x,xa,xL,xU,filter)
-% parameters
-filter_on = false;
-better_on = false;
-n = size(x,2);
-gamma_th = 10^-5;
-gamma_phi = 10^-5;
-
-% check for violations of variable constraints
-% shouldn't need to check these
-viol = 0;
-for i = 1:n,
-    if(xa(i) < xL(i)),
-        viol = viol + 1;
+        function theta = computeTheta(cParams)
+            cTheta = bp_theta(cParams);
+            cTheta.compute();
+            theta = cTheta.theta;
+        end
     end
-    if(xa(i)> xU(i)),
-        viol = viol + 1;
-    end
-end
-
-if (viol==0),
-  % either condition better compared to last iteration
-  if (better_on),
-     better = (bp_phi(bp,xa,xL,xU) <= bp_phi(bp,x,xL,xU) - gamma_phi*bp_theta(bp,x)) || (bp_theta(bp,xa) <= (1-gamma_th)* bp_theta(bp,x));
-  else
-     better = true;
-  end
-     
-  % apply filter to determine whether to accept
-  if (better),
-      ac = true;
-      if (filter_on),
-         nf = size(filter,1);
-         for i = 1:nf,
-             if (((1 - gamma_th)*bp_theta(bp,xa) > filter(i,1)) || (bp_phi(bp,xa,xL,xU) - gamma_phi*bp_theta(bp,xa) > filter(i,2))),
-                 ac = false;
-             end
-         end
-      end
-  else
-      ac = false;
-  end
-else
-    ac = false;
 end
