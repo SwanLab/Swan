@@ -80,7 +80,7 @@ classdef bp_create < handle
         end
 
         function selectProblem(obj)
-            if (isstr(name)),
+            if (isstr(name))
                 % Select custom problem
                 % 0 = Custom model defined in APM
                 obj.x.prob = 0;

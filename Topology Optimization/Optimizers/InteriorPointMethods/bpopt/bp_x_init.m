@@ -73,12 +73,12 @@ classdef bp_x_init < handle
     end
     methods (Access = private)
         function init(obj,cParams)
-            obj.bp.prob = cParams.bp.prob;
+            obj.bp = cParams.bp;
         end
         function selectProblem(obj)
             switch obj.bp.prob
             case(0)
-                y = apm_details(bp.server,bp.app);
+                %y = apm_details(obj.bp.server,obj.bp.app);
                 %x0 = y.var.val';
                 %xL = y.var.lb';
                 %xU = y.var.ub';
@@ -96,14 +96,14 @@ classdef bp_x_init < handle
                 xL = 0*ones(1,n);
                 xU = 100*ones(1,n);
                 xU(1) = 10;
-                bL = [10];
-                bU = [10];
+                bL = 10;
+                bU = 10;
             case(3)
                 x0 = [5, -3];
                 xL = [-10 -10];
                 xU = [10 10];
-                bL = [1];
-                bU = [1e20];
+                bL = 1;
+                bU = 1e20;
             case(4)
                 x0 = [2, 3];
                 xL = [1, 1];
@@ -126,26 +126,26 @@ classdef bp_x_init < handle
                 x0 = [1 1];
                 xL = [0 0];
                 xU = [10 9];
-                bL = [10];
-                bU = [10];
+                bL = 10;
+                bU = 10;
             case(8)
                 x0 = [4 4];
                 xL = [0 0];
                 xU = [10 1e10];
-                bL = [0];
-                bU = [0];
+                bL = 0;
+                bU = 0;
             case(9)
-                x0 = [4];
-                xL = [0];
-                xU = [10];
-                bL = [-1e10];
-                bU = [9];
+                x0 = 4;
+                xL = 0;
+                xU = 10;
+                bL = -1e10;
+                bU = 9;
             case(10)
                 x0 = [-5 -5];
                 xL = [-1e20 -1e20];
                 xU = [1e20 1e20];
-                bL = [1];
-                bU = [1e20];
+                bL = 1;
+                bU = 1e20;
             end
             obj.x0C = x0;
             obj.xLC = xL;

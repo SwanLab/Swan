@@ -14,6 +14,7 @@ classdef bp_accept < handle
         bU
         xa
         xL
+        xU
         x
         s
     end
@@ -50,30 +51,30 @@ classdef bp_accept < handle
 
         function checkViolations(obj)
             viol = 0;
-            for i = 1:obj.n,
-                if(obj.xa(i) < obj.xL(i)),
+            for i = 1:obj.n
+                if(obj.xa(i) < obj.xL(i))
                     viol = viol + 1;
                 end
-                if(obj.xa(i) > obj.xU(i)),
+                if(obj.xa(i) > obj.xU(i))
                     viol = viol + 1;
                 end
             end
-            s.bp = obj.bp;
-            s.x = obj.xa;
-            s.xL = obj.xL;
-            s.xU = obj.xU;
-            s.bU = obj.bU;
-            s.bL = obj.bL;
-            s.s = obj.s;
-            phiA = obj.computePhi(s);
+            u.bp = obj.bp;
+            u.x = obj.xa;
+            u.xL = obj.xL;
+            u.xU = obj.xU;
+            u.bU = obj.bU;
+            u.bL = obj.bL;
+            u.s = obj.s;
+            phiA = obj.computePhi(u);
 
-            s.x = obj.x;
-            phiX = obj.computePhi(s);
+            u.x = obj.x;
+            phiX = obj.computePhi(u);
 
-            thetaX = obj.computeTheta(s);
+            thetaX = obj.computeTheta(u);
 
-            s.x = s.xa;
-            thetaA = obj.computeTheta(s);
+            u.x = u.xa;
+            thetaA = obj.computeTheta(u);
             if (viol==0)
             % either condition better compared to last iteration
             if (obj.better_on)

@@ -1,13 +1,12 @@
-classdef LineSearch < InteriorPointMethodsSolver
+classdef LineSearchComputer < InteriorPointMethodsSolver
 
     properties (Access = public)
         e_mu
-        status
     end
     properties (Access = private)
         predictReduction
     end
-    methods (Acess = public)
+    methods (Access = public)
         function search(obj)
             obj.createLineSearchMethod();
             obj.updateVariables();
@@ -46,12 +45,12 @@ classdef LineSearch < InteriorPointMethodsSolver
                     obj.alpha_du = alpha_du_max;
                     % compute new acceptance point
                     obj.alpha_pr = min(obj.alpha_pr,obj.alpha_pr_max);
-                end
+             end
         end
         function updateVariables(obj)
             % apply alpha values
             obj.xa = obj.x + obj.alpha_pr * obj.dx';
-                if(obj.ns>=1),
+                if(obj.ns>=1)
                     obj.sa = obj.s + obj.alpha_pr * obj.ds';
                 end
                 obj.lambda = obj.lambda + obj.alpha_pr * obj.dlam';
@@ -89,21 +88,21 @@ classdef LineSearch < InteriorPointMethodsSolver
             % clipping (this should already be arranged by alpha_max)
             % push away from the boundary with tau
             for i = 1:obj.n
-                if(obj.xa(i) < obj.xL(i)),
+                if(obj.xa(i) < obj.xL(i))
                     obj.xa(i) = obj.xL(i) + obj.tau*(obj.x(i) - obj.xL(i));
                 end
-                if(obj.xa(i) > obj.xU(i)),
+                if(obj.xa(i) > obj.xU(i))
                     obj.xa(i) = obj.xU(i) - obj.tau*(obj.xU(i) - obj.x(i));
                 end
-                if(obj.zLa(i) < 0),
+                if(obj.zLa(i) < 0)
                     obj.zLa(i) = obj.tau*(obj.zL(i));
                 end
-                if(obj.zUa(i) < 0),
+                if(obj.zUa(i) < 0)
                     obj.zUa(i) = obj.tau*(obj.zU(i));
                 end
             end
             for i = 1:obj.ns
-                if(obj.sa(i) < obj.sL(i)),
+                if(obj.sa(i) < obj.sL(i))
                     obj.sa(i) = obj.sL(i) + obj.tau*(obj.s(i) - obj.sL(i));
                 end
                 if(obj.sa(i) > obj.sU(i))
@@ -135,7 +134,7 @@ classdef LineSearch < InteriorPointMethodsSolver
             %  1 = reduction in merit function
             %  2 = simple clipping
             %  3 = filter method
-            switch obj.bp.line_search,
+            switch obj.bp.line_search
             case(1)
                 % merit function
                 pred_phi_1 = obj.gradient*[obj.dx;obj.ds];
@@ -146,7 +145,7 @@ classdef LineSearch < InteriorPointMethodsSolver
                 u.bp = obj.bp;
                 u.xa = obj.xa;
                 u.sa = obj.sa;
-                u.bL = obj.bL,
+                u.bL = obj.bL;
                 u.bU = obj.bU;
                 theta = thetaComputer(u);
                 rho = 0.1;
@@ -174,7 +173,7 @@ classdef LineSearch < InteriorPointMethodsSolver
                 % compare actual reduction to predicted reduction
                 % as long as the actual reduction is a fraction of the
                 % predicted reduction then accept the trial point
-                if (obj.reducedUpdated >= eta*obj.predictUpdated),
+                if (obj.reducedUpdated >= eta*obj.predictUpdated)
                     obj.accept = true;
                 else
                     obj.accept = false;
@@ -202,8 +201,8 @@ classdef LineSearch < InteriorPointMethodsSolver
             % testing for acceptance
             %ac = true;
             % second order correction
-            if (false),
-                if (not(obj.accept)),
+            if (false)
+                if (not(obj.accept))
                     % new residuals
                     u.bp = obj.bp;
                     u.x = obj.x;
@@ -252,7 +251,7 @@ classdef LineSearch < InteriorPointMethodsSolver
             end
         end
         function updateWithAcceptance(obj)
-            if (obj.accept),
+            if (obj.accept)
                 % accept point
                 obj.x = obj.xa;
                 obj.s = obj.sa;
@@ -286,13 +285,13 @@ classdef LineSearch < InteriorPointMethodsSolver
                 part(4) = max(abs(diag([obj.xU-obj.x obj.sU-obj.s])*diag(boj.zU)*obj.e))/s_c;
                 obj.e_mu = max(part);
                         
-                if (obj.bp.idebug>=1),
+                if (obj.bp.idebug>=1)
                     fprintf(1,'pred: %12.4e, ared: %12.4e, e_mu: %12.4e, k*mu: %12.4e\n',obj.predictUpdated,obj.reducedUpdated,obj.e_mu,0.2*obj.bp.mu);
                 end
         end
         function checkTerminationConditions(obj)
             % check for termination conditions
-            if (obj.e_mu <= obj.bp.e_tol),
+            if (obj.e_mu <= obj.bp.e_tol)
                 fprintf(1,'\nSuccessful solution\n');
                 obj.status = 'success';
                 break;
@@ -303,8 +302,8 @@ classdef LineSearch < InteriorPointMethodsSolver
             k_mu  = 0.2; % (0,1)
                 
             % only update mu if requested (not debugging)
-            if (obj.bp.mu_update),
-                if (obj.e_mu < k_mu * obj.bp.mu),
+            if (obj.bp.mu_update)
+                if (obj.e_mu < k_mu * obj.bp.mu)
                     th_mu = 1.5; % (1,2)
                     % update mu
                     obj.bp.mu = max(bp.e_tol/10,min(k_mu*obj.bp.mu,obj.bp.mu^th_mu));
@@ -346,9 +345,9 @@ classdef LineSearch < InteriorPointMethodsSolver
         end 
         function checkMaxIter(obj)
             % reached the end of the iteration loop without convergence
-            if (obj.iter == obj.bp.maxiter),
+            if (obj.iter == obj.bp.maxiter)
                 obj.status = 'failed: max iterations';
-                break
+                break;
             end
             
            
@@ -357,7 +356,7 @@ classdef LineSearch < InteriorPointMethodsSolver
             % don't do a line search in this MATLAB version
             % just cycle through on another iteration with a lower alpha if
             %   the point was not accepted
-            if (obj.accept),
+            if (obj.accept)
                 % reset alpha
                 obj.alpha_pr = 1.0;
                 obj.alpha_du = 1.0;
@@ -365,7 +364,7 @@ classdef LineSearch < InteriorPointMethodsSolver
                 % reject point and move alpha_x
                 obj.alpha_pr = obj.alpha_pr / 2;
                 obj.alpha_du = obj.alpha_du / 2;
-                if (obj.alpha_pr < 1e-4),
+                if (obj.alpha_pr < 1e-4)
                     obj.alpha_pr = 1.0;
                     obj.alpha_du = 1.0;
                 end

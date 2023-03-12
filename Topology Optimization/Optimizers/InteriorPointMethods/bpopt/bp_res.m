@@ -5,6 +5,11 @@ classdef bp_res < handle
     end
     properties (Access = private)
         cRes
+        bp
+        x
+        s
+        bL
+        bU
     end
 
     methods (Access = public)
@@ -18,23 +23,29 @@ classdef bp_res < handle
     end
     methods (Access = private)
         function init(obj,cParams)
-            
+            obj.bp = cParams.bp;
+            obj.x = cParams.x;
+            obj.s = cParams.s;
+            obj.bL = cParams.bL;
+            obj.bU = cParams.bU;
         end
         function computeBaseResidual(obj)
-            cResidual = bp_res_stub(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            cResidual = bp_res_stub(u);
             cResidual.create();
             obj.cRes = cResidual.cRes;
         end
         function computeResidual(obj)
             j = 0;
-            for i = 1:size(cRes,2),
-                if (bU(i)==bL(i)),
+            for i = 1:size(obj.cRes,2)
+                if (obj.bU(i) == obj.bL(i))
                     % equality constant
-                    obj.cRes(i) = obj.cRes(i) - bL(i);
+                    obj.cRes(i) = obj.cRes(i) - obj.bL(i);
                 else
                     % inequality slack
                     j = j + 1;
-                    obj.cRes(i) = obj.cRes(i) - s(j);
+                    obj.cRes(i) = obj.cRes(i) - obj.s(j);
                 end
             end
             obj.c = obj.cRes;

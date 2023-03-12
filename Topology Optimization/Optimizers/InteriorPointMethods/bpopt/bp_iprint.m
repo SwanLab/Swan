@@ -24,6 +24,7 @@ classdef bp_iprint < handle
         objective
         theta
         du
+        logmu
     end
 
     methods (Access = public)
@@ -66,9 +67,9 @@ classdef bp_iprint < handle
         end
 
         function computeObjectiveGradient(obj)
-            grad = bp_objgrad(obj);
-            grad.compute();
-            obj.grad = grad.objGradient;
+            gradC = bp_objgrad(obj);
+            gradC.compute();
+            obj.grad = gradC.objGradient;
         end
 
         function computeJacobian(obj)
@@ -97,14 +98,14 @@ classdef bp_iprint < handle
             obj.logmu = log10(obj.bp.mu);
         end
 
-        function computeTheta(obj);
+        function computeTheta(obj)
             th = bp_theta(obj);
             th.compute();
             obj.theta = th.theta;
         end
 
         function printResults(obj)
-            if (mod(obj.iter,15)==0),
+            if (mod(obj.iter,15)==0)
                 fprintf(obj.screen,'   Iter       Merit   Objective   log10(mu)        Pcvg        Dcvg    alpha_pr    alpha_du\n');
             end
             fprintf(obj.screen,'  %5i %11.4e %11.4e %11.4e %11.4e %11.4e %11.4e %11.4e\n',obj.iter,obj.merit,obj.objective,obj.logmu,obj.theta,obj.du,obj.alpha_pr,obj.alpha_du);

@@ -50,7 +50,7 @@ classdef bp_njac < handle
             for i = 1:m
                 if (obj.bU(i) > obj.bL(i))
                 k = k + 1;
-                obj.sp = u.s;
+                sp = u.s;
                 sp(i) = u.s(i) + ep;
                 u.s = sp;
                 residual = computeResidual(u);

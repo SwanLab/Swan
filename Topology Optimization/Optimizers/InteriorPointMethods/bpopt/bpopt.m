@@ -37,6 +37,7 @@ classdef bpopt < handle
         e
         th
         ph
+        status
     end
     properties (Access = private)
         m
@@ -74,7 +75,7 @@ classdef bpopt < handle
         end
 
         function checkArguments(obj)
-            if (nargin==0),
+            if (nargin==0)
                 disp('Insufficient arguments, call bp_create to create a problem');
                 obj.sol = [];
                 return
@@ -87,13 +88,13 @@ classdef bpopt < handle
             [obj.x,obj.xL,obj.xU,obj.bL,obj.bU] = bp_x_init(obj.bp);
             % add slack for inequality constraints only
             k = 0;
-            m = max(size(obj.bL));
+            obj.m = max(size(obj.bL));
             si = [];
             obj.s = [];
             obj.sL = [];
             obj.sU = [];
-            for i = 1:m,
-                if(obj.bU(i) > obj.bL(i)),
+            for i = 1:obj.m
+                if(obj.bU(i) > obj.bL(i))
                     k = k + 1;
                     si(k) = i;
                     obj.s(k) = 0;
@@ -117,11 +118,11 @@ classdef bpopt < handle
 
             % initial equation slack variables
             k = 0;
-            for i = 1:obj.m,
+            for i = 1:obj.m
                 % no slack variable when bU(i) == bL(i)
-                if(obj.bU(i) > obj.bL(i)),
+                if(obj.bU(i) > obj.bL(i))
                     k = k + 1;
-                    if (obj.bp.slack_init),
+                    if (obj.bp.slack_init)
                     obj.s(k) = obj.initResidual(i);  % corrected, was -r(i)
                     else
                     obj.s(k) = 0.01;
@@ -157,41 +158,41 @@ classdef bpopt < handle
 
         function checkConsistentBounds(obj)
             % check for consistent bounds
-            if (min(obj.xU - obj.xL)<0),
+            if (min(obj.xU - obj.xL)<0)
                 disp('bounds error (xU < xL)')
                 obj.sol = [];
                 return
             end
-            if (min(bU-bL)<0),
+            if (min(obj.bU - obj.bL)<0)
                 disp('bounds error (bU < bL)')
                 obj.sol = [];
                 return
             end
         end
 
-        function moveVariablesToFeasible(obj);
+        function moveVariablesToFeasible(obj)
             % move x into feasible region and off boundary initially
-            for i = 1:obj.n,
-                if (obj.x(i) <= obj.xL(i) || obj.x(i) >= obj.xU(i)),
+            for i = 1:obj.n
+                if (obj.x(i) <= obj.xL(i) || obj.x(i) >= obj.xU(i))
                     fprintf(1,'Moving x0 to interior region\n')
                     break
                 end
             end
             % Move x variables to be feasible
-            for i = 1:obj.n,
-                if (obj.x(i) <= obj.xL(i)),
+            for i = 1:obj.n
+                if (obj.x(i) <= obj.xL(i))
                     obj.x(i) = min(obj.xU(i),obj.xL(i)+1e-2);
                 end
-                if (obj.x(i) >= obj.xU(i)),
+                if (obj.x(i) >= obj.xU(i))
                     obj.x(i) = max(obj.xL(i),obj.xU(i)-1e-2);
                 end
             end
             % Move slack variables to be feasible
-            for i = 1:obj.ns,
-                if (obj.s(i) <= obj.sL(i)),
+            for i = 1:obj.ns
+                if (obj.s(i) <= obj.sL(i))
                     obj.s(i) = min(obj.sU(i),obj.sL(i)+1e-2);
                 end
-                if (obj.s(i) >= obj.sU(i)),
+                if (obj.s(i) >= obj.sU(i))
                     obj.s(i) = max(obj.sL(i),obj.sU(i)-1e-2);
                 end
             end
@@ -229,7 +230,7 @@ classdef bpopt < handle
         end
 
         function computeObjectiveGradient(obj)
-            u.bp = obj.bo;
+            u.bp = obj.bp;
             u.x = obj.x;
             u.s =obj.s;
             grad = bp_objgrad(u);
@@ -252,15 +253,15 @@ classdef bpopt < handle
             u.x = obj.x;
             u.s = obj.s;
             u.lam = obj.lambda;
-            hes = bp_hes(u)
+            hes = bp_hes(u);
             hes.compute();
             obj.hessian = hes.hess;
         end
 
         function checkDerivatives(obj)
-            if (obj.bp.prob == 0),
-                okJacobian = true;
-                okHessian = true;
+            if (obj.bp.prob == 0)
+                obj.okJacobian = true;
+                obj.okHessian = true;
             else
                 % test only for hard coded problems
                 obj.verifyJacobian();
@@ -309,9 +310,9 @@ classdef bpopt < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            th = bp_theta(u);
-            th.compute();
-            theta = th.theta;
+            the = bp_theta(u);
+            the.compute();
+            theta = the.theta;
             obj.thetaMax = 10^4  * max(1,theta);
             obj.thetaMin = 10^-4 * max(1,theta);
         end
@@ -326,7 +327,7 @@ classdef bpopt < handle
             u.bL = obj.bL;
             u.bU = oj.bU;
             phi = phiComputer(u);
-            obj.filter = [obj.th_max phi];
+            obj.filter = [obj.thetaMax phi];
 
             % initialize iteration count
             u.iter = 0;
@@ -369,7 +370,7 @@ classdef bpopt < handle
             disp('Upper Constraint Variable Mult: ')
             disp(obj.zU)
 
-            if (obj.bp.prob>=1),
+            if (obj.bp.prob>=1)
                 %% Display figures on iteration progress
                 figure(1)
                 hold off;
@@ -393,14 +394,14 @@ classdef bpopt < handle
             obj.sol.status = obj.status;
             obj.sol.x = obj.x;
             obj.sol.s = obj.s;
-            obj.sol.lam = obj.lam;
+            obj.sol.lam = obj.lambda;
             obj.sol.zL = obj.zL;
             obj.sol.zU = obj.zU;
         end
     end
 
     methods (Static, Access = public)
-        function residual = residualComputer(cParams);
+        function residual = residualComputer(cParams)
             residualC = bp_res(cParams);
             residualC.compute();
             residual = res.c;

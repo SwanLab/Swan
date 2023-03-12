@@ -8,6 +8,7 @@ classdef bp_jac < handle
         x 
         bL 
         bU
+        bp
     end
 
     methods (Access = public)

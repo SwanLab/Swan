@@ -4,6 +4,13 @@ classdef bp_phi < handle
    end
    properties (Access = private)
       ph
+      bp
+      x
+      xL
+      xU
+      s
+      bL
+      bU
    end
 
    methods (Access = public)
@@ -18,25 +25,34 @@ classdef bp_phi < handle
 
    methods (Access = private)
       function init(obj,cParams)
+          obj.bp = cParams.bp;
+          obj.x = cParams.x;
+          obj.xL = cParams.xL;
+          obj.xU = cParams.xU;
+          obj.s = cParams.s;
+          obj.bL = cParams.bL;
+          obj.bU = cParams.bU;
       end
 
       function computeObjective(obj)
-         phiBase = bp_obj(obj);
+         u.bp = obj.bp;
+         u.x = obj.x;
+         phiBase = bp_obj(u);
          phiBase.compute();
          obj.ph = phiBase.objectiveFunc;
       end
 
       function computePhi(obj)
-         n = size(x,2);
-         m = size(bL,2);
-         for i = 1:n,
-            obj.ph = obj.ph - cParams.mu * (log(x(i)-xL(i)) + log(xU(i)-x(i)));
+         n = size(obj.x,2);
+         m = size(obj.bL,2);
+         for i = 1:n
+            obj.ph = obj.ph - cParams.mu * (log(obj.x(i) - obj.xL(i)) + log(obj.xU(i) - obj.x(i)));
          end
          j = 0;
-         for i = 1:m,
-            if(bU(i)>bL(i)),
+         for i = 1:m
+            if(obj.bU(i) > obj.bL(i))
                j = j + 1;
-               obj.ph = obj.ph - cParams.mu * (log(s(j)-bL(i)) + log(bU(i)-s(j)));
+               obj.ph = obj.ph - cParams.mu * (log(obj.s(j) - obj.bL(i)) + log(obj.bU(i) - obj.s(j)));
             end
          end
          obj.phi = obj.ph;

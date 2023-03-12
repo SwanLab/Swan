@@ -7,6 +7,7 @@ classdef bp_hes < handle
         xC
         s
         lambda
+        bp
     end
 
     methods (Access= public)
@@ -33,12 +34,12 @@ classdef bp_hes < handle
             lam = obj.lambda;
             switch obj.bp.prob
                 case(0)
-                    y = apm_details(bp.server,bp.app,x);
-                    h = y.hes_obj;
-                    for i = 1:y.neqn
-                        h = h + lam(i) * y.hes_eqn{i};
-                    end
-                    obj.hess = h;
+                    %y = apm_details(bp.server,bp.app,x);
+                    %h = y.hes_obj;
+                    %for i = 1:y.neqn
+                    %    h = h + lam(i) * y.hes_eqn{i};
+                    %end
+                    %obj.hess = h;
                 case(1)
                     h = zeros(4,4);
                     objfact = 1.0;

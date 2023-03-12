@@ -27,16 +27,16 @@ classdef bp_obj < handle
             x = obj.xC;
             switch obj.bp.prob
             case(0)
-                y = apm_details(bp.server,bp.app,x);
-                ob = y.obj;
-                obj.objectiveFunc = ob;
+                %y = apm_details(bp.server,bp.app,x);
+                %ob = y.obj;
+                %obj.objectiveFunc = ob;
             case(1)
                 ob = x(1)*x(4)*(x(1) + x(2) + x(3))  +  x(3);
                 obj.objectiveFunc = ob;
             case(2)
                 ob = 0;
                 n = size(x,2);
-                for i = 1:n,
+                for i = 1:n
                     ob = ob + (x(i)-i)^2;
                 end
                 obj.objectiveFunc = ob;
