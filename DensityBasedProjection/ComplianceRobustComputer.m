@@ -4,205 +4,164 @@ classdef ComplianceRobustComputer < handle
         iterations
     end
     properties (Access = private)
+        filteredField
+        field
+        mesh
+        structure
+        projectParameters
+        filterParameters
+        solverParameters
+        cost
     end
     methods (Access = public)
         function obj = ComplianceRobustComputer(cParams)
             obj.inputData(cParams);
         end
         function compute(obj)
-            obj.runCode();
+            obj.computeInitialParameters();
+            obj.projectField();
+            obj.computeCost();
+            obj.optimize();
         end
     end
     methods (Access = private)
         function inputData(obj,cParams)
             obj.iterations = cParams.iterations;
         end 
-        
-        function runCode(obj)
-
-            %% Parameters
-
-            %Malla (elementos cuadrados) y dimensiones de la estructura:
-            %Malla estandar 400x80
-            elementNumberX    = 160;
-            elementNumberY    = 80;
-            t       = 1;
-
-            %Parámetros del material:
-            elasticModuleNeutral      = 1;
-            elasticModuleMinimun    = 1e-6;
-            poissonCoefficient      = 0.3;
-            penalization   = 3;
-
-            %Entradas del problema:
-            volumenFraction =   0.5;
-            minimunInfluenceRadios    =   1.5;
-            neumanCondition       = -1e-3;
-            output    = 2;
-
-            %Define initial fields
-            field        = volumenFraction*ones(elementNumberY,elementNumberX);
-            filteredField = field;
-
-            %Define density constrains
-            field([],[]) = 1;
-            minDensity    = zeros(elementNumberY,elementNumberX);
-            maxDensity    =  ones(elementNumberY,elementNumberX);
-            minDensity = minDensity(:);
-            maxDensity = maxDensity(:);
-
-            %MMA parameters
-            costChange  = 1;
-            numberRestriction       = 4;
-            variableNumber       = elementNumberX*elementNumberY;
-            low     = minDensity;
-            upp     = maxDensity;
-            a0      = 1;
-            mmaParameter.a       = [1 1 1 0]';
-            mmaParameter.e       = 1000*ones(numberRestriction,1);
-            mmaParameter.d       = 0*ones(numberRestriction,1);
-            xold1   = field(:);
-            xold2   = field(:);
-
-            %Compute Elemental stifness Matrix
-            s.elementType = 'square';
-            s.t = t;
-            s.poissonCoefficient = poissonCoefficient;
-            B = ElementalStiffnessMatricesComputer(s);
-            B.compute();
-            elementalStiffnessMatrix = B.elementalStiffnessMatrix;
-
-            %Mesh parameters
-            s.elementNumberX =  elementNumberX;
-            s.elementNumberY =  elementNumberY;
-            B = GeometryComputer(s);
-            B.compute();
-            allDegress   = B.degress.all;
-            freeDegress  = B.degress.free;
-            fixedDegress = B.degress.fixed;
-            conectivityMatrixMat = B.conectivityMatrixMat;
-
-
-            %Filter parameters:
-            s.elementNumberX =  elementNumberX;
-            s.elementNumberY =  elementNumberY;
-            s.minimunInfluenceRadios = minimunInfluenceRadios;
-            B = weightFilterComputer(s);
-            B.compute();
-            H = B.H;
-            Hs = B.Hs;
-
-            eta      = 0.25;
-            etaE     = 1-eta;
-            etaI     = 0.5;
-            etaD     = eta;
-            beta     = 1;
-
-
+        function computeInitialParameters(obj)
+            obj.computeMeshParameters();
+            obj.computeStructureParameters();
+            obj.computeSolverParameters();
+            obj.computeProjectorParameters
+            obj.computeFilterParameters();
+            obj.computeInitialFields();
+        end
+        function projectField(obj)
             % Project the initial field
-            s.beta = beta;
-            s.eta =etaE;
-            s.filteredField =filteredField;
+            s.beta = obj.projectParameters.beta;
+            s.filteredField =obj.filteredField;
+            s.eta =obj.projectParameters.eta.E;
             E = FieldProjector(s);
             E.compute();
-            projectedFieldE = E.projectedField;
+            obj.projectedField.E = E.projectedField;
 
-            s.beta = beta;
-            s.eta =etaI;
-            s.filteredField =filteredField;
+            s.eta =obj.projectParameters.eta.I;
             I = FieldProjector(s);
             I.compute();
-            projectedFieldI = I.projectedField;
+            obj.projectedField.I = I.projectedField;
 
-            s.beta = beta;
-            s.eta =etaD;
-            s.filteredField =filteredField;
+            s.eta =obj.projectParameters.eta.D;
             D = FieldProjector(s);
             D.compute();
-            projectedFieldD = D.projectedField;
-
-            volfracD = volumenFraction*sum(projectedFieldD(:))/sum(projectedFieldI(:));
-
+            obj.projectedField.D = D.projectedField;
+            obj.projectedField.volfracD = obj.filterParameters.volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
+        end 
+        function computeCost(obj)          
             %Get intial cost
-            s.mesh.elementNumberX = elementNumberX;
-            s.mesh.elementNumberY = elementNumberY;
-            s.mesh.neumanCondition = neumanCondition;
-            s.mesh.output = output;
-            s.mesh.freeDegress = freeDegress;
-            s.mesh.conectivityMatrixMat = conectivityMatrixMat;
-
-            s.structure.elementalStiffnessMatrix = elementalStiffnessMatrix;
-            s.structure.t=t;
-            s.structure.penalization=penalization;
-            s.structure.poissonCoefficient=poissonCoefficient;
-            s.structure.elasticModuleMinimun=elasticModuleMinimun;
-            s.structure.elasticModuleNeutral=elasticModuleNeutral;
-            s.projectedField = projectedFieldE;
+            s.mesh = obj.mesh; 
+            s.structure = obj.structure;
+            s.projectedField = obj.projectedField.E;
 
             B = FEMcomputer(s);
             B.compute();
-            cost.E = B.cost;
-
-
+            obj.cost.E = B.cost;
+        end 
+        function optimize(obj)
             %Optimización
-            clear s
-            s.field = field;
-            s.filteredField =filteredField;
-            s.mesh.elementNumberX = elementNumberX;
-            s.mesh.elementNumberY = elementNumberY;
-            s.mesh.neumanCondition = neumanCondition;
-            s.mesh.output =output;
-            s.mesh.freeDegress = freeDegress;
-            s.mesh.conectivityMatrixMat = conectivityMatrixMat;
-
+            s.mesh = obj.mesh;
+            s.structure=obj.structure;
             s.structure.elementType = 'Square';
-            s.structure.t=t;
-            s.structure.penalization=penalization;
-            s.structure.poissonCoefficient=poissonCoefficient;
-            s.structure.elasticModuleMinimun=elasticModuleMinimun;
-            s.structure.elasticModuleNeutral=elasticModuleNeutral;
-            s.structure.elementalStiffnessMatrix=elementalStiffnessMatrix;
-
-            s.projector.eta.E = etaE;
-            s.projector.eta.I = etaI;
-            s.projector.eta.D = etaD;
-            s.projector.beta = beta;
-
-            s.filter.H = H;
-            s.filter.Hs = Hs;
-
-            s.cost.initial = cost.E;
-            s.costChange = costChange;
-
-            s.solver.minDensity =minDensity;
-            s.solver.maxDensity = maxDensity;
-            s.solver.mmaParameter =mmaParameter;
-            s.solver.numberRestriction = numberRestriction;
-            s.solver.variableNumber = variableNumber;
-            s.solver.xold1 = xold1;
-            s.solver.xold2 = xold2;
-            s.solver.low     = low;
-            s.solver.upp     = upp;
-            s.solver.a0      = a0;
-
-
-
+            s.projector = obj.projectParameters;
+            s.filterParameters = obj.filterParameters;
+            s.cost = obj.cost;
+            s.cost.initial = obj.cost.E;
+            s.solverParameters =obj.solverParameters;
             s.iterations = obj.iterations;
-
-            s.field = field;
-            s.filteredField = filteredField;
-
-            s.projectedField.E = projectedFieldE;
-            s.projectedField.I = projectedFieldI;
-            s.projectedField.D = projectedFieldD;
-
-            s.problemParameters.volfracD = volfracD;
-
-
-            
+            s.field = obj.field;
+            s.filteredField = obj.filteredField;
+            s.projectedField = obj.projectedField;
             B = Optimizer(s);
             B.compute();
             obj.projectedField = B.projectedField;
+        end 
+        function computeMeshParameters(obj)
+            %Mesh parameters
+            %Malla estandar 400x80
+            obj.mesh.elementNumberX    = 160;
+            obj.mesh.elementNumberY    = 80;
+            obj.mesh.neumanCondition       = -1e-3;
+            obj.mesh.output    = 2;
+
+            s.elementNumberX =  obj.mesh.elementNumberX;
+            s.elementNumberY =  obj.mesh.elementNumberY;
+            B = GeometryComputer(s);
+            B.compute();
+            obj.mesh.degress.all   = B.degress.all;
+            obj.mesh.degress.free  = B.degress.free;
+            obj.mesh.degress.fixed = B.degress.fixed;
+            obj.mesh.conectivityMatrixMat = B.conectivityMatrixMat;
         end
+        function computeStructureParameters(obj)
+             obj.structure.t       = 1;
+             %Parámetros del material:
+            obj.structure.elasticModuleNeutral      = 1;
+            obj.structure.elasticModuleMinimun    = 1e-6;
+            obj.structure.poissonCoefficient      = 0.3;
+            obj.structure.penalization   = 3;
+
+            %Compute Elemental stifness Matrix
+            s.elementType = 'square';
+            s.t = obj.structure.t;
+            s.poissonCoefficient =obj.structure. poissonCoefficient;
+            B = ElementalStiffnessMatricesComputer(s);
+            B.compute();
+            obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
+        end 
+        function computeSolverParameters(obj)
+            obj.cost.change  = 1;
+            obj.solverParameters.minDensity    = zeros(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
+            obj.solverParameters.maxDensity    =  ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
+            obj.solverParameters.minDensity =  obj.solverParameters.minDensity(:);
+            obj.solverParameters.maxDensity =  obj.solverParameters.maxDensity(:);
+            
+            obj.solverParameters.numberRestriction       = 4;
+            obj.solverParameters.variableNumber       = obj.mesh.elementNumberX*obj.mesh.elementNumberY;
+            obj.solverParameters.low     = obj.solverParameters.minDensity;
+            obj.solverParameters.upp     = obj.solverParameters.maxDensity;
+            obj.solverParameters.a0      = 1;
+            obj.solverParameters.mmaParameter.a       = [1 1 1 0]';
+            obj.solverParameters.mmaParameter.e       = 1000*ones(obj.solverParameters.numberRestriction,1);
+            obj.solverParameters.mmaParameter.d       = 0*ones(obj.solverParameters.numberRestriction,1);
+            obj.solverParameters.xold1   = obj.field(:);
+            obj.solverParameters.xold2   = obj.field(:);
+        end 
+        function computeFilterParameters(obj)
+            %Filter parameters:
+            obj.filterParameters.volumenFraction =   0.5;
+            obj.filterParameters.minimunInfluenceRadios    =   1.5;
+            
+            s.elementNumberX =  obj.mesh.elementNumberX;
+            s.elementNumberY =  obj.mesh.elementNumberY;
+            s.minimunInfluenceRadios = obj.filterParameters.minimunInfluenceRadios;
+            B = weightFilterComputer(s);
+            B.compute();
+            obj.filterParameters.H = B.H;
+            obj.filterParameters.Hs = B.Hs;
+        end
+        function computeProjectorParameters(obj)
+            eta      = 0.25;
+            obj.projectParameters.eta.E     = 1-eta;
+            obj.projectParameters.eta.I     = 0.5;
+            obj.projectParameters.eta.D     = eta;
+            obj.projectParameters.beta     = 1;
+        end
+        function computeInitialFields(obj)
+            %Define initial fields
+            obj.field        = obj.filterParameters.volumenFraction*ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
+            obj.filteredField = obj.field;
+            %Define density constrains
+            obj.field([],[]) = 1;
+        end
+        
     end
 end

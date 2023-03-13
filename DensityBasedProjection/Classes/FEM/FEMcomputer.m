@@ -53,7 +53,7 @@ classdef FEMcomputer < handle
         function computeDisplacement(obj)
             s.force = obj.force;
             s.globalStifnessMatrix =  obj.globalStifnessMatrix;
-            s.freeDegress = obj.mesh.freeDegress;
+            s.freeDegress = obj.mesh.degress.free;
             s.elementNumberX = obj.mesh.elementNumberX;
             s.elementNumberY = obj.mesh.elementNumberY;
             B = DisplacementComputer(s);
