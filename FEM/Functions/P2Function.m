@@ -147,6 +147,14 @@ classdef P2Function < FeFunction
             dofConnec = dofsElem;
         end
 
+        function dof = getDofsFromCondition(obj, condition)
+            nodes = condition(obj.coord);
+            iNode = find(nodes==1);
+            dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+            dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            dof = sort(dofMat(:));
+        end
+
     end
 
     methods (Access = public, Static)

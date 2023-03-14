@@ -1,20 +1,10 @@
 classdef LHSintegrator_Mass < LHSintegrator
 
-    properties (Access = private)
-        field
-    end
-
     methods (Access = public)
-
-        function obj = LHSintegrator_Mass(cParams)
-            %             obj.init(cParams);
-            obj.mesh  = cParams.mesh;
-            obj.field = cParams.field;
-        end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrixField(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -22,17 +12,15 @@ classdef LHSintegrator_Mass < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            f = obj.field;
-            shapes = f.interpolation.shape;
-            quad   = f.quadrature;
-            dvolu  = obj.mesh.computeDvolume(quad);
-            ngaus  = f.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            %             nnode  = obj.mesh.nnodeElem;
-            ndimf  = f.dim.ndimf;
-            nnode  = f.dim.nnodeElem;
+            shapes = obj.fun.computeShapeFunctions(obj.quadrature);
+            dVolu  = obj.mesh.computeDvolume(obj.quadrature);
+            nGaus  = obj.quadrature.ngaus;
+            nElem  = size(dVolu,2);
+            nDimf  = obj.fun.ndimf;
+%             nDofs  = numel(obj.fun.fValues);
+            nNodE  = size(shapes,1);
+            nDofE  = nNodE*nDimf;
 
-            N = repmat(shapes, [1 1 nelem]);
             % One dimension
             %             lhs = zeros(nnode,nnode,nelem);
             %             for igaus = 1:ngaus
@@ -45,16 +33,16 @@ classdef LHSintegrator_Mass < LHSintegrator
             %             end
 
             % N dimensions, pending optimization
-            M = zeros(nnode*ndimf,nnode*ndimf,nelem);
-            dvolu = dvolu';
-            for igauss = 1 :ngaus
-                for inode= 1:nnode
-                    for jnode= 1:nnode
-                        for iunkn= 1:ndimf
-                            for junkn= 1:ndimf
-                                idof = ndimf*(inode-1)+iunkn;
-                                jdof = ndimf*(jnode-1)+junkn;
-                                dvol = dvolu(:,igauss);
+            M = zeros(nDofE,nDofE,nElem);
+            dVolu = dVolu';
+            for igauss = 1 :nGaus
+                for inode= 1:nNodE
+                    for jnode= 1:nNodE
+                        for iunkn= 1:nDimf
+                            for junkn= 1:nDimf
+                                idof = nDimf*(inode-1)+iunkn;
+                                jdof = nDimf*(jnode-1)+junkn;
+                                dvol = dVolu(:,igauss);
                                 Ni = shapes(inode,igauss,:);
                                 Nj = shapes(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj);
@@ -69,12 +57,10 @@ classdef LHSintegrator_Mass < LHSintegrator
 
         end
 
-        function lhs = assembleMatrixField(obj, Ae)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assembleFields(Ae, obj.field, obj.field);
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = obj.fun; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs);
         end
 
     end

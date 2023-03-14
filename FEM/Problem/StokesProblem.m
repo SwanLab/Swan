@@ -13,7 +13,7 @@ classdef StokesProblem < handle
         dtime
         finalTime
         inputBC
-        velocityField, velocityFun
+        velocityFun
         pressureFun
         boundaryConditions
 
@@ -25,7 +25,7 @@ classdef StokesProblem < handle
 
         function obj = StokesProblem(cParams)
             obj.init(cParams);
-            obj.createVelocityField();
+            obj.createVelocity();
             obj.createPressure();
             obj.createBoundaryConditions();
             obj.createSolver();
@@ -87,13 +87,7 @@ classdef StokesProblem < handle
             obj.inputBC    = inBC;
         end
 
-        function createVelocityField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 2;
-            s.interpolationOrder = 'QUADRATIC';
-            s.scale              = 'MACRO';
-            obj.velocityField = Field(s);
-            
+        function createVelocity(obj)
             obj.velocityFun = P2Function.create(obj.mesh, 2);
         end
 
@@ -104,8 +98,12 @@ classdef StokesProblem < handle
         function createBoundaryConditions(obj)
             vel = obj.velocityFun;
             prs = obj.pressureFun;
-            newBC = obj.velocityField.adaptBoundaryConditions(obj.inputBC);
-            bcV.dirichlet = newBC.dirichlet;
+
+            borderCond = @(x) x(:,1) == 0 | x(:,1) == 1 | x(:,2) == 0 | x(:,2) == 1;
+            dirDofs = obj.velocityFun.getDofsFromCondition(borderCond);
+            dirich = obj.adaptForDirichletConditions(dirDofs);
+
+            bcV.dirichlet = dirich;
             bcV.pointload = [];
             bcV.ndimf     = vel.ndimf;
             bcV.ndofs     = numel(vel.fValues);
@@ -120,6 +118,16 @@ classdef StokesProblem < handle
             s.ndofs = ndofs; % Stokes
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
+        end
+
+        % Should be removed
+        function dirich = adaptForDirichletConditions(obj,dirDofs)
+            nodes = 1 + (dirDofs(2:2:end)-2)/obj.velocityFun.ndimf;
+            nodes2 = repmat(nodes, [1 2]);
+            iNod = sort(nodes2(:));
+            mat12 = repmat([1;2], [length(iNod)/2 1]);
+            valmat = zeros(length(iNod),1);
+            dirich = [iNod mat12 valmat]; 
         end
 
         function createSolver(obj)

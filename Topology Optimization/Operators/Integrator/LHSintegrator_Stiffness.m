@@ -1,18 +1,6 @@
-classdef LHSintegrator_Stiffness < handle
-
-    properties (Access = private)
-        fun
-        mesh
-        quadrature
-        quadratureOrder
-    end
+classdef LHSintegrator_Stiffness < LHSintegrator
 
     methods (Access = public)
-
-        function obj = LHSintegrator_Stiffness(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
-        end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
@@ -45,30 +33,10 @@ classdef LHSintegrator_Stiffness < handle
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.fun      = cParams.fun;
-            obj.mesh     = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.fun.order;
-            end
-        end
-        
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
         function Bcomp = createBComputer(obj, dNdx)
             s.fun  = obj.fun;
             s.dNdx = dNdx;
-            Bcomp = BMatrixComputerFun(s);
+            Bcomp = BMatrixComputer(s);
         end
 
         function LHS = assembleMatrix(obj, lhs)

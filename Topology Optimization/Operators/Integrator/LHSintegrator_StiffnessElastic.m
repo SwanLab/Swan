@@ -1,17 +1,14 @@
-classdef LHSintegrator_StiffnessElastic < handle %LHSintegrator
+classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     properties (Access = private)
-        fun
-        mesh
         material
-        quadrature
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_StiffnessElastic(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
+            obj.material = cParams.material;
         end
 
         function LHS = compute(obj)
@@ -47,22 +44,10 @@ classdef LHSintegrator_StiffnessElastic < handle %LHSintegrator
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.fun      = cParams.fun;
-            obj.mesh     = cParams.mesh;
-            obj.material = cParams.material;
-        end
-        
-       function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature(obj.fun.order);
-           obj.quadrature = quad;
-       end
-
         function Bcomp = createBComputer(obj, dNdx)
             s.fun  = obj.fun;
             s.dNdx = dNdx;
-            Bcomp = BMatrixComputerFun(s);
+            Bcomp = BMatrixComputer(s);
         end
 
         function LHS = assembleMatrix(obj, lhs)

@@ -1,21 +1,16 @@
-classdef LHSintegratorAnisotropicStiffness < handle
+classdef LHSintegratorAnisotropicStiffness < LHSintegrator
 
     properties (Access = private)
         CAnisotropic
         Celas
         alphaDeg
-        fun
-        mesh
-        quadrature
-        quadratureOrder
     end
 
     methods (Access = public)
 
         function obj = LHSintegratorAnisotropicStiffness(cParams)
-            obj.init(cParams);
+            obj@LHSintegrator(cParams);
             obj.initAnisotropicTensor(cParams);
-            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
@@ -52,30 +47,10 @@ classdef LHSintegratorAnisotropicStiffness < handle
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.fun      = cParams.fun;
-            obj.mesh     = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.fun.order;
-            end
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
         function Bcomp = createBComputer(obj, dNdx)
             s.fun  = obj.fun;
             s.dNdx = dNdx;
-            Bcomp = BMatrixComputerFun(s);
+            Bcomp = BMatrixComputer(s);
         end
 
         function LHS = assembleMatrix(obj, lhs)
@@ -90,12 +65,6 @@ classdef LHSintegratorAnisotropicStiffness < handle
             obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
         end
 
-%         function Bcomp = createBComputer(obj)
-%             s.dim          = obj.field.dim;
-%             s.geometry     = obj.field.geometry;
-%             Bcomp = BMatrixComputer(s);
-%         end
-
         function CGlobal = rotateAnisotropicMatrix(obj,CLocal)
             R = [cosd(obj.alphaDeg),-sind(obj.alphaDeg)
                 sind(obj.alphaDeg), cosd(obj.alphaDeg)];
@@ -107,14 +76,6 @@ classdef LHSintegratorAnisotropicStiffness < handle
             C = repmat(obj.CAnisotropic, [1 1 nelem]);
             obj.Celas = C;
         end
-
-%         function lhs = assembleMatrixField(obj, Ae)
-%             s.dim          = obj.field.dim;
-%             s.globalConnec = obj.field.connec;
-%             s.nnodeEl      = obj.field.dim.nnodeElem;
-%             assembler = Assembler(s);
-%             lhs = assembler.assembleFields(Ae, obj.field, obj.field);
-%         end
     end
 
 end

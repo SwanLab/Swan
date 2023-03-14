@@ -1,4 +1,8 @@
-classdef LHSintegrator_MassBoundary < LHSintegrator
+classdef LHSintegrator_MassBoundary < handle
+
+    properties (Access = private)
+        mesh
+    end
 
     methods (Access = public)
         
