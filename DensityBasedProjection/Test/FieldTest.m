@@ -43,5 +43,6 @@ if abs(results.projectedField.D - Test1.projectedField.D)< tolerateError
 else
     warning('Error in Projected Field D')
 end
+close all
 
 

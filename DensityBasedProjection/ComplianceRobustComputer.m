@@ -12,6 +12,7 @@ classdef ComplianceRobustComputer < handle
         filterParameters
         solverParameters
         cost
+        volumen
     end
     methods (Access = public)
         function obj = ComplianceRobustComputer(cParams)
@@ -54,7 +55,7 @@ classdef ComplianceRobustComputer < handle
             D = FieldProjector(s);
             D.compute();
             obj.projectedField.D = D.projectedField;
-            obj.projectedField.volfracD = obj.filterParameters.volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
+            obj.volumen.volfracD = obj.filterParameters.volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
         end 
         function computeCost(obj)          
             %Get intial cost
@@ -80,6 +81,7 @@ classdef ComplianceRobustComputer < handle
             s.field = obj.field;
             s.filteredField = obj.filteredField;
             s.projectedField = obj.projectedField;
+            s.volumen = obj.volumen;
             B = Optimizer(s);
             B.compute();
             obj.projectedField = B.projectedField;
