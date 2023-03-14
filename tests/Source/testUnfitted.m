@@ -27,8 +27,8 @@ classdef testUnfitted < test
         
         function createMesh(obj)
             bM  = obj.computation.designVariable.mesh;
-            s.backgroundMesh = bM.innerMeshOLD;
-            s.boundaryMesh   = bM.boxFaceMeshes;
+            s.backgroundMesh = bM;
+            s.boundaryMesh   = bM.createBoundaryMesh();
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.unfittedMesh.compute(obj.levelSet);

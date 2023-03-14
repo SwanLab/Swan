@@ -14,7 +14,7 @@ classdef BoundaryConditions < handle
 
     properties (Access = private)
         mesh
-        dim
+        ndimf
         ndofs
         scale
         dirichletInput
@@ -28,8 +28,8 @@ classdef BoundaryConditions < handle
         end
 
         function compute(obj)
-            [dirID, dirVals]     = obj.formatInputData(obj.dim.ndimf, obj.dirichletInput);
-            [neuID, neuVals]     = obj.formatInputData(obj.dim.ndimf, obj.pointloadInput);
+            [dirID, dirVals]     = obj.formatInputData(obj.ndimf, obj.dirichletInput);
+            [neuID, neuVals]     = obj.formatInputData(obj.ndimf, obj.pointloadInput);
             obj.dirichlet        = dirID;
             obj.dirichlet_values = dirVals;
             obj.neumann          = neuID;
@@ -74,10 +74,10 @@ classdef BoundaryConditions < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.dim            = cParams.dim;
+            obj.mesh   = cParams.mesh;
             obj.scale          = cParams.scale;
             obj.ndofs          = cParams.ndofs; % Stokes
-            obj.mesh     = cParams.mesh;
+            obj.ndimf          = cParams.bc{1}.ndimf; % Elastic
             obj.initPeriodicMasterSlave(cParams);
             obj.initDirichletInput(cParams);
         end
@@ -137,12 +137,12 @@ classdef BoundaryConditions < handle
         end
         
         function perDof = computePeriodicNodes(obj,perNodes)
-            nunkn = obj.dim.ndimf;
+            nunkn = obj.ndimf;
             nlib = size(perNodes,1);
             perDof = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
                 indDof = nlib*(iunkn - 1) + [1:nlib];
-                perDof(indDof,1) = obj.nod2dof(obj.dim.ndimf, perNodes,iunkn);
+                perDof(indDof,1) = obj.nod2dof(obj.ndimf, perNodes,iunkn);
             end
         end
 
@@ -168,7 +168,6 @@ classdef BoundaryConditions < handle
         end
 
         function idof = nod2dof(obj, ndimf, inode, iunkn)
-%             ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
         

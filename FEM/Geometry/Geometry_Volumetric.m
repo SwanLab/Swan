@@ -42,7 +42,7 @@ classdef Geometry_Volumetric < Geometry
                 jac = obj.computeJacobian(igaus);
                 J(:,:,:,igaus) = jac;
                 invJ(:,:,:,igaus) = obj.computeInvJacobian(jac);
-            end        
+            end
         end
         
     end
