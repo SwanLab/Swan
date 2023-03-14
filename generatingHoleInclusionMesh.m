@@ -56,5 +56,8 @@ holeNodes = find(fV==1);
 m.material.C(:,:,holeNodes) = zeros(6,6, length(holeNodes));
 
 % Solve the problem
-% fem = ElasticProblemMicro(m);
-% fem.computeChomog();
+fem = ElasticProblemMicro(m);
+fem.computeChomog();
+sss.filename = 'fluct';
+
+fem.uFun{1}.print(sss);

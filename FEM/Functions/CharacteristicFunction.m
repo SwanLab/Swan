@@ -9,7 +9,6 @@ classdef CharacteristicFunction < L2Function
     end
 
     properties (Access = private)
-        mesh
         fxy
 %         levelSet
 %         unfittedMesh
@@ -54,12 +53,12 @@ classdef CharacteristicFunction < L2Function
             obj.fxy   = cParams.fxy;
         end
 
-%         function createP1CoorFunction(obj)
-%             s.mesh     = obj.mesh;
-%             s.fValues  = obj.mesh.coord;
-%             obj.coorP1 = P1Function(s);
-%         end
-% 
+        function createP1CoorFunction(obj)
+            s.mesh     = obj.mesh;
+            s.fValues  = obj.mesh.coord;
+            obj.coorP1 = P1Function(s);
+        end
+
 %         function createLevelSetFunction(obj)
 %             fxy = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
 %             xy    = obj.coorP1.fValues;
