@@ -79,8 +79,9 @@ classdef ProjectorComputer < handle
                     val = reshape(val,[obj.mesh.ndim,obj.mesh.nnodes])';
             end
             z.fValues      = val;
-            z.connec       = obj.mesh.connec;
-            z.type         = obj.mesh.type;
+%             z.connec       = obj.mesh.connec;
+%             z.type         = obj.mesh.type;
+            z.mesh         = obj.mesh;
             z.functionType = obj.projectFrom;
             obj.fun        = FeFunction.create(z);
         end

@@ -2,24 +2,21 @@ classdef SymmetricContMapCondition < handle
     
     properties (Access = private)
         isCoherent
-        orientationDisc        
+        orientationDisc
     end
     
     properties (Access = private)
-       meshDisc
-       meshCont
-       orientation
+       mesh
+       orientationVector
     end
     
     methods (Access = public)
         
         function obj = SymmetricContMapCondition(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function c = computeCondition(obj)
-            obj.createOrientationDiscontinous();
-            obj.isOrientationCoherent();
             c = obj.computeSymmetricCondition();
         end
         
@@ -27,46 +24,20 @@ classdef SymmetricContMapCondition < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)         
-            obj.meshCont    = cParams.meshCont;
-            obj.meshDisc    = cParams.meshDisc;
-            obj.orientation = cParams.orientation;
+        function init(obj,cParams)
+            obj.mesh       = cParams.mesh;
+            obj.isCoherent = cParams.isCoherent;
         end
         
-        function createOrientationDiscontinous(obj)
-            s.connec = obj.meshCont.connec;
-            s.type   = obj.meshCont.type;
-            s.fNodes = obj.orientation;
-            
-            s.fValues = obj.orientation;
-            s.connec = obj.meshCont.connec;
-            s.type   = obj.meshCont.type;
-            f = P1Function(s);
-            s.mesh   = obj.meshCont;
-            s.connec = obj.meshCont.connec;
-            p = Projector_toP1Discontinuous(s);
-            fD = p.project(f);
-            
-            obj.orientationDisc = fD.fValues;
-        end         
-
-        function isOrientationCoherent(obj)
-            s.mesh        = obj.meshDisc;
-            s.orientation = obj.orientationDisc;
-            c = CoherentOrientationSelector(s);
-            isC = c.isOrientationCoherent();
-            obj.isCoherent = isC;
-        end
-
         function sC = computeSymmetricCondition(obj)
-            nnodeD    = obj.meshDisc.nnodeElem;
-            nElemD    = obj.meshDisc.nelem;                                    
-            nnodesC   = obj.meshCont.nnodes;    
-            connecC   = obj.meshCont.connec;
-            connecD   = obj.meshDisc.connec;
+            nnodeD    = obj.mesh.nnodeElem;
+            nElemD    = obj.mesh.nelem;
+            nnodesC   = obj.mesh.nnodes;
+            connecC   = obj.mesh.connec;
+            connecD   = obj.computeDiscontinuousConnectivities();
             sC = sparse(nnodeD*nElemD,nnodesC);
             for iNode = 1:nnodeD
-                isC  = obj.isCoherent(:,iNode);
+                isC  = squeeze(obj.isCoherent.fValues(1,iNode,:));
                 cond = obj.computeConformalMapCondition(isC);
                 nodesC = connecC(:,iNode);
                 nodesD = connecD(:,iNode);
@@ -74,6 +45,11 @@ classdef SymmetricContMapCondition < handle
             end
         end
        
+        function connec = computeDiscontinuousConnectivities(obj)
+            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
+            nodes  = 1:nNodes;
+            connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+        end
     end
 
     methods (Access = private, Static)
@@ -84,7 +60,7 @@ classdef SymmetricContMapCondition < handle
             m = zeros(size(isMapSymmetric));
             m(isMapSymmetric) = 1;
             m(isMapAntiSymm)  = -1;
-        end        
+        end
 
     end
     

@@ -8,37 +8,23 @@ classdef CoherentOrientationSelector < handle
     methods (Access = public)
         
         function obj = CoherentOrientationSelector(cParams)
-            obj.init(cParams);            
+            obj.init(cParams);
         end
         
         function isCoherent = isOrientationCoherent(obj)
             nnode   = obj.mesh.nnodeElem;
-            nElem   = obj.mesh.nelem;                        
-            connec  = obj.mesh.connec;
-            orient  = obj.orientation;
-            isCoh   = false(nElem,nnode);
-%             for iElem = 1:nElem
-%                 nodeRef = connec(iElem,1);                
-%                 o1 = orient(nodeRef,:); 
-%                 for iNode = 1:nnode
-%                     nodeI = connec(iElem,iNode);                  
-%                     oI   = orient(nodeI,:);                   
-%                     o1oI = dot(o1,oI);
-%                     isCoh(iElem,iNode) = (o1oI)>0;
-%                 end                             
-%             end
-            
-            for iElem = 1:nElem
-                o1 = orient(:,1,iElem);
-                for iNode = 1:nnode
-                    oI = orient(:,iNode,iElem);
-                    o1oI = dot(o1,oI);
-                    isCoh(iElem,iNode) = (o1oI)>0;
-                end
+            nElem   = obj.mesh.nelem;
+            isCoh   = false(1,nnode,nElem);
+            orient  = obj.orientation.fValues;            
+            bN1 = squeeze(orient(:,1,:));
+            for iNode = 1:nnode
+                bNi = squeeze(orient(:,iNode,:));
+                bN1bNI= dot(bN1,bNi);
+                isCoh(1,iNode,:) = (bN1bNI)>0;
             end
-            
-            
-            isCoherent = isCoh;
+            s.fValues  = isCoh;
+            s.mesh     = obj.mesh;
+            isCoherent = P1DiscontinuousFunction(s);            
         end
         
     end

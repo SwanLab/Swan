@@ -6,7 +6,6 @@ classdef AnalyticalFunction < L2Function
     
     properties (Access = private)
         fHandle
-        mesh
     end
     
     properties (Access = private)

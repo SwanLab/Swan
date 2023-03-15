@@ -31,9 +31,10 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             m = obj.createCoarseDiscontinousMesh();
             f = obj.createP1DiscontinousFunction(m);
             for i = 1:2
-                mF = m.remesh(1);
-                f = f.refine(m,mF);
-                m = mF.createDiscontinuousMesh();
+                mF = m.remesh(1); % mF is CONTINUOUS, m is DISCONTINUOUS
+                f = f.refine(m,mF); %fNew = fOld.refine(mF); -> fOld has m, fNew has mF
+                m = mF.createDiscontinuousMesh(); % care: discont/cont -> interpolation through continuous
+                % ideally: work only with discontinuous meshes
             end  
             s = load('test_RemeshP1DiscFunction');
             err = norm(s.fValues(:) - f.fValues(:));
@@ -58,8 +59,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
 
         function fC = createP1ContinousFunction(obj,m)               
             f         = obj.createFunctionToRemesh();
-            s.type    = m.type;
-            s.connec  = m.connec;
+            s.mesh    = m;
             s.fValues = f(m.coord);    
             fC        = P1Function(s);
         end    
@@ -67,10 +67,9 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         function fC = createP1DiscontinousFunction(obj,m)
             f         = obj.createFunctionToRemesh();
             s.fValues = f(m.computeBaricenter()');
-            s.connec  = m.connec;
-            s.type    = m.type;
+            s.mesh    = m;
             f0 = P0Function(s);
-            fC = f0.computeP1DiscontinuousFunction(m);
+            fC = f0.project('P1D');
         end        
 
         function f = createFunctionToRemesh(obj)

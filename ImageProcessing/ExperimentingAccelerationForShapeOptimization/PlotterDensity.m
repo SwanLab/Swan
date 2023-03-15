@@ -1,7 +1,7 @@
 classdef PlotterDensity < handle
     
     properties (Access = private)
-       filter 
+       filter
        patchHandle
        axes
        figHandle
@@ -19,35 +19,34 @@ classdef PlotterDensity < handle
             obj.init(cParams)
         end
         
-        function plot(obj,cost,t,beta,incX)         
+        function plot(obj,cost,t,incX)
             obj.plotDensity();
             obj.plotCost(cost);
-            obj.plotLineSearch(t);   
-            obj.plotBeta(beta);
-            obj.plotIncX(incX);            
+            obj.plotLineSearch(t);
+            obj.plotIncX(incX);
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj,cParams)            
+        function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
-            obj.nFigures = 5;
+            obj.nFigures = 4;
             obj.createFigure();
-            obj.createFilter();
+%             obj.createFilter();
             obj.createAxisAndPatchHandle();
-        end    
+        end
         
         function createFigure(obj)
-            fh = figure('units', 'pixels');        
+            fh = figure('units', 'pixels');
             fh.set('Position',[4000 1500 3000 500])
-            obj.figureNumber = fh;           
-        end        
+            obj.figureNumber = fh;
+        end
     
         function createAxisAndPatchHandle(obj)
             figure(obj.figureNumber)
-            subplot(1,obj.nFigures,5)
+            subplot(1,obj.nFigures,4)
             obj.figHandle = obj.figureNumber;
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
             title('Density')
@@ -70,6 +69,7 @@ classdef PlotterDensity < handle
             s.quadratureOrder = 'LINEAR';
             s = SettingsFilter(s);
             s.femSettings.scale = 'MACRO';
+            s.mesh = obj.designVariable.mesh.meshes{1};
             filterP1 = Filter_P1_Density(s);
 %             filterP1.preProcess();
             obj.filter = filterP1;
@@ -77,38 +77,35 @@ classdef PlotterDensity < handle
         
         function plotDensity(obj)
             rho = obj.designVariable.value;
-            rhoElem = obj.filter.getP0fromP1(rho);
+            s.fValues = rho;
+            s.mesh = obj.designVariable.mesh.meshes{1};
+            fun = P1Function(s);
+            funp0 = fun.project('P0');
+            rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
-            drawnow            
+            drawnow
         end
         
         function plotCost(obj,cost)
             figure(obj.figureNumber)
             subplot(1,obj.nFigures,1)
             plot(cost);
-            title('Cost')            
+            title('Cost')
         end
         
         function plotLineSearch(obj,t)
-            figure(obj.figureNumber)            
+            figure(obj.figureNumber)
             subplot(1,obj.nFigures,2)
             plot(t);
-            title('LineSearch')              
+            title('LineSearch')
         end
-        
-        function plotBeta(obj,beta)
-            figure(obj.figureNumber)            
-            subplot(1,obj.nFigures,3)
-            plot(beta);
-            title('$\beta$','Interpreter','Latex');                          
-        end
-        
+       
         function plotIncX(obj,incX)
-            figure(obj.figureNumber)            
-            subplot(1,obj.nFigures,4)
+            figure(obj.figureNumber)
+            subplot(1,obj.nFigures,3)
             plot(incX);
-            title('$\Delta x$','Interpreter','Latex')                                                  
-        end        
+            title('$\Delta x$','Interpreter','Latex')
+        end
     
     end
     

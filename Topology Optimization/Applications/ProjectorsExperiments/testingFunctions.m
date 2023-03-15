@@ -20,23 +20,23 @@ xFun = AnalyticalFunction(sAF);
 pp0.mesh   = mesh;
 pp0.connec = mesh.connec;
 projP0 = Projector_toP0(pp0);
-resAFtoP0 = projP0.project(xFun);
-resAFtoP0.plot(mesh)
+p0fun = projP0.project(xFun);
+p0fun.plot()
 title('P0')
 
 % Projector to P1
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 projP1 = Projector_toP1(pp1);
-resAFtoP1 = projP1.project(xFun);
-resAFtoP1.plot(mesh)
+p1fun = projP1.project(xFun);
+p1fun.plot()
 title('P1 (quad linear)')
 
 % Projector to P1 Discontinuous
 pp1d.mesh   = mesh;
 pp1d.connec = mesh.connec;
 projP1D = Projector_toP1Discontinuous(pp1d);
-resAFtoP1D = projP1D.project(xFun);
-resAFtoP1D.plot(mesh)
+p1dfun = projP1D.project(xFun);
+p1dfun.plot()
 title('P1 disc (quad quadratic)')
 

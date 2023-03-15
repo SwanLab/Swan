@@ -73,6 +73,7 @@ classdef TopOpt_Problem < handle
                 obj.optimizer.solveProblem();
             end
 %             obj.optimizer.saveMonitoring();
+%             obj.optimizer.simulationPrinter.print();
         end
         
         function postProcess(obj)
@@ -95,7 +96,7 @@ classdef TopOpt_Problem < handle
         
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
-            s.mesh = obj.mesh.innerMeshOLD;
+            s.mesh = obj.mesh;
         %    s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
@@ -104,7 +105,7 @@ classdef TopOpt_Problem < handle
             s = cParams.designVarSettings;
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-            s.scalarProductSettings.mesh    = obj.mesh.innerMeshOLD;
+            s.scalarProductSettings.mesh    = obj.mesh;
             obj.designVariable = DesignVariable.create(s);
         end
         
@@ -147,10 +148,19 @@ classdef TopOpt_Problem < handle
         
         function createMesh(obj,cParams)
             s = cParams.designVarSettings;
-            sM.coord  = s.femData.mesh.coord;
-            sM.connec = s.femData.mesh.connec;
-            obj.mesh = Mesh_Total(sM);
-            obj.mesh.innerMeshOLD.setMasterSlaveNodes(s.femData.mesh.masterSlaveNodes);
+
+            a.coord  = s.femData.mesh.coord;
+            a.connec = s.femData.mesh.connec;
+            innerMesh = Mesh(a);
+            boundMesh = innerMesh.createBoundaryMesh();
+            sM.backgroundMesh = innerMesh;
+            sM.boundaryMesh   = boundMesh;
+%             obj.mesh = UnfittedMesh(sM);
+            obj.mesh = innerMesh;
+%             sM.coord  = s.femData.mesh.coord;
+%             sM.connec = s.femData.mesh.connec;
+%             obj.mesh = Mesh_Total(sM);
+%             obj.mesh.innerMeshOLD.setMasterSlaveNodes(s.femData.mesh.masterSlaveNodes);
         end
         
     end

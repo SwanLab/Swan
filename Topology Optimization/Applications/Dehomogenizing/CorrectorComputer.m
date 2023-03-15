@@ -1,29 +1,25 @@
 classdef CorrectorComputer < handle
-    
-    properties (Access = public)
-        
-    end
-    
+       
     properties (Access = private)
+        correctorFunction
         correctorValues
         referenceCells
-        isCoherent
         isNotCoherent
+        isCoherent
         itHasSameCoherence
         itHasNotSameCoherence
         isUpperCell
         isPositiveVertex
         isNegativeVertex
         isVertexInCell    
-        areVertexCoherent        
         pathVertexes     
         isCellRight
-        isCellLeft        
+        isCellLeft
     end
     
     properties (Access = private)
         mesh
-        orientation
+        areCoherent
         singularityCoord
     end
     
@@ -35,8 +31,7 @@ classdef CorrectorComputer < handle
             obj.correctorValues = zeros(obj.mesh.nelem,obj.mesh.nnodeElem);
         end
                 
-        function phiV = compute(obj) 
-            obj.computeCoherentOrientation();
+        function cF = compute(obj) 
             obj.computePathToBoundary();
             obj.createLeftRightPathElements();
             obj.computeReferenceCells();                        
@@ -45,18 +40,9 @@ classdef CorrectorComputer < handle
                 obj.isCellAnUpperCell(ivertex);                
                 obj.computePositiveNegativeVertexes();
                 obj.computeCorrector();
-            end            
-            phiV = obj.correctorValues;
-        end
-        
-        function plot(obj)
-            phi = obj.correctorValues;
-            figure()
-            s.mesh  = obj.mesh.createDiscontinousMesh();
-            s.field = transpose(phi);
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp
+            end    
+            obj.createCorrectorFunction();
+            cF = obj.correctorFunction;
         end
         
     end
@@ -65,19 +51,11 @@ classdef CorrectorComputer < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientation        = cParams.orientation;
+            obj.areCoherent        = cParams.isCoherent;
             obj.singularityCoord   = cParams.singularityCoord;
         end
         
-        function computeCoherentOrientation(obj)
-            s.mesh        = obj.mesh.createDiscontinuousMesh();
-            s.orientation = obj.createDiscontinousField(obj.orientation);
-            c = CoherentOrientationSelector(s);
-            aC = c.isOrientationCoherent();
-            obj.areVertexCoherent = aC;
-        end                
-        
-        function computePathToBoundary(obj)
+         function computePathToBoundary(obj)
             s.mesh = obj.mesh;
             s.singularityCoord   = obj.singularityCoord;
             p = PathVertexesToBoundaryComputer(s);
@@ -122,7 +100,7 @@ classdef CorrectorComputer < handle
         end
         
         function computeCoherentAndNotCoherentVertex(obj)
-            areC  = obj.areVertexCoherent;
+            areC  = squeeze(obj.areCoherent.fValues(1,:,:))';
             isCoh = obj.restrictToCell(areC);
             isNot = obj.restrictToCell(~areC);
             obj.isCoherent    = isCoh;
@@ -176,31 +154,19 @@ classdef CorrectorComputer < handle
             phi(isN) = -0.5;
             obj.correctorValues = phi;
         end
+
+        function createCorrectorFunction(obj)
+            s.fValues = permute(obj.correctorValues, [3, 2, 1]);
+            s.mesh    = obj.mesh;
+            f = P1DiscontinuousFunction(s);
+            obj.correctorFunction = f;
+        end        
         
         function fV = restrictToVertex(obj,f)
             itIs = obj.isVertexInCell;
             fV = f & itIs;
-        end        
-        
-        function fD = createDiscontinousField(obj,fValues)
-%             s.connec = obj.mesh.connec;
-%             s.type   = obj.mesh.type;
-%             s.fNodes = fValues;
-%             f = FeFunction(s);            
-%             fD = f.computeDiscontinousField();
-            s.fValues = fValues;
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            f = P1Function(s);
-            s.mesh   = obj.mesh;
-            s.connec = obj.mesh.connec;
-            p = Projector_toP1Discontinuous(s);
-            fD = p.project(f);
-            fD = fD.fValues;
-        end          
+        end                
         
     end
-    
- 
     
 end

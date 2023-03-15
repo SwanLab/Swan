@@ -77,20 +77,31 @@ classdef Mesh < handle
         end
 
         function hMean = computeMeanCellSize(obj)
-            x1(:,1) = obj.coord(obj.connec(:,1),1);
-            x1(:,2) = obj.coord(obj.connec(:,1),2);
-            x2(:,1) = obj.coord(obj.connec(:,2),1);
-            x2(:,2) = obj.coord(obj.connec(:,2),2);
-            x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
-            x1x2 = (x2-x1);
-            x2x3 = (x3-x2);
-            x1x3 = (x1-x3);
-            n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-            n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
-            n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-            hs = max([n12,n23,n13],[],2);
-            hMean = max(hs);
+            switch obj.type
+                case {'LINE'}
+                    x1(:,1) = obj.coord(obj.connec(:,1),1);
+                    x1(:,2) = obj.coord(obj.connec(:,1),2);
+                    x2(:,1) = obj.coord(obj.connec(:,2),1);
+                    x2(:,2) = obj.coord(obj.connec(:,2),2);
+                    x1x2 = (x2-x1);                    
+                    hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+                    hMean = max(hs);  
+                otherwise
+                    x1(:,1) = obj.coord(obj.connec(:,1),1);
+                    x1(:,2) = obj.coord(obj.connec(:,1),2);
+                    x2(:,1) = obj.coord(obj.connec(:,2),1);
+                    x2(:,2) = obj.coord(obj.connec(:,2),2);
+                    x3(:,1) = obj.coord(obj.connec(:,3),1);
+                    x3(:,2) = obj.coord(obj.connec(:,3),2);
+                    x1x2 = (x2-x1);
+                    x2x3 = (x3-x2);
+                    x1x3 = (x1-x3);
+                    n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+                    n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
+                    n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
+                    hs = max([n12,n23,n13],[],2);
+                    hMean = max(hs);                  
+            end
         end
 
         function L = computeCharacteristicLength(obj)
@@ -326,22 +337,19 @@ classdef Mesh < handle
             obj.coordElem = obj.xFE.fValues;
         end
 
+        function computeCoordFEfunction(obj)
+            s.mesh    = obj;
+            s.fValues = obj.coord;
+            coordP1 = P1Function(s);
+            obj.xFE = obj.projectToP1Discontinuous(coordP1);
+        end
+
         function p1d = projectToP1Discontinuous(obj, f)
             s.mesh   = obj;
-            s.connec = obj.connec;
-            s.type   = obj.type;
             sP.origin = 'P1';
             sP.x = f;
             p = ProjectorToP1discont(s);
             p1d = p.project(sP);
-        end
-
-        function computeCoordFEfunction(obj)
-            s.type = obj.type;
-            s.connec = obj.connec;
-            s.fValues = obj.coord;
-            coordP1 = P1Function(s);
-            obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
 
         function L = computeSquarePerimeter(obj)
