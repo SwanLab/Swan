@@ -28,8 +28,8 @@ classdef NedelecElement3D < handle
         end
         
         function plotShapeFunctions(obj)
-            nodes = [0,0,0;0,1/3,0;0,2/3,0;0,1,0;1/3,0,0;1/3,1/3,0;1/3,2/3,0;2/3,0,0;2/3,1/3,0;2/3,1/3,0;1,0,0;
-                     0,0,1/3;0,1/3,1/3;0,2/3,1/3;1/3,0,1/3;1/3,1/3,1/3;2/3,0,1/3;0,0,2/3;0,1/3,2/3;1/3,0,2/3;0,0,1];
+            set(groot,'defaulttextinterpreter','latex');
+            nodes = [0,0,0;0,1/3,0;0,2/3,0;0,1,0;1/3,0,0;1/3,1/3,0;1/3,2/3,0;2/3,0,0;2/3,1/3,0;2/3,1/3,0;1,0,0;0,0,1/3;0,1/3,1/3;0,2/3,1/3;1/3,0,1/3;1/3,1/3,1/3;2/3,0,1/3;0,0,2/3;0,1/3,2/3;1/3,0,2/3;0,0,1];
             m = obj.createPlotMesh();
             for s = 1:6
                 figure();
@@ -38,7 +38,7 @@ classdef NedelecElement3D < handle
                 for i = 1:length(nodes)
                     x(i,:) = obj.shapeFunctions{s}(nodes(i,1),nodes(i,2),nodes(i,3));
                 end
-                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),x(:,1),x(:,2),x(:,3));
+                quiver3(nodes(:,1),nodes(:,2),nodes(:,3),x(:,1),x(:,2),x(:,3),'k');
                 xlabel('x'); ylabel('y'); zlabel('z')
                 title("Shape Function (s = "+string(s-1)+")");
                 grid on
@@ -154,6 +154,27 @@ classdef NedelecElement3D < handle
             s.connec = obj.domainK.connectivities;
             
             m = Mesh(s);
+        end
+        
+        function mm = refinePlotMesh(obj,m)
+            v = m.coord;
+            s1.coord = [v(1,:);v(2,:);v(3,:)];
+            s2.coord = [v(1,:);v(2,:);v(4,:)];
+            s3.coord = [v(1,:);v(3,:);v(4,:)];
+            s4.coord = [v(4,:);v(2,:);v(3,:)];
+            s1.connec = [1 2 3];
+            s2.connec = [1 2 3];
+            s3.connec = [1 2 3];
+            s4.connec = [1 2 3];
+            m1 = Mesh(s1);
+            m2 = Mesh(s2);
+            m3 = Mesh(s3);
+            m4 = Mesh(s4);
+            m1 = m1.remesh(2);
+            m2 = m2.remesh(2);
+            m3 = m3.remesh(2);
+            m4 = m4.remesh(2);
+            mm = m1+m2+m3+m4;
         end
         
     end

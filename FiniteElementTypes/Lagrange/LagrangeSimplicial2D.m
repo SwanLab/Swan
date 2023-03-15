@@ -30,7 +30,7 @@ classdef LagrangeSimplicial2D < handle
                 figure();
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));
-                
+    
                 xlim([0 1]); ylim([0 1]);
                 xlabel('x'); ylabel('y'); zlabel('z');
                 title("Shape function (s = "+string(s-1)+")");

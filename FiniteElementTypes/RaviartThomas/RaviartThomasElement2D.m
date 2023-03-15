@@ -24,6 +24,7 @@ classdef RaviartThomasElement2D < handle
         end
         
         function plotShapeFunctions(obj)
+            set(groot,'defaulttextinterpreter','latex');
             figure();
             m = obj.createPlotMeshR();
             mm = obj.createPlotMesh();
