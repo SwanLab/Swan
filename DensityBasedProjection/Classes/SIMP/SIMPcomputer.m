@@ -1,6 +1,6 @@
 classdef SIMPcomputer < handle
 
-    properties (Access = public)
+    properties (Access = protected)
         elasticModuleMinimun
         elasticModuleNeutral
         projectedField

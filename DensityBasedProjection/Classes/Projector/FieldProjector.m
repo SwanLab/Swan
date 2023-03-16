@@ -1,4 +1,4 @@
-classdef FieldProjector < FieldComputer
+classdef FieldProjector < ProjectedFieldComputer
     properties (Access = public)
         projectedField
     end

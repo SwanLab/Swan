@@ -1,17 +1,10 @@
 classdef CostAndConstraintArturo < handle
     
-    properties (Access = public)
-        
+    properties (Access = public)        
     end
     
-    properties (Access = private)
-        
+    properties (Access = private)       
     end
-    
-    properties (Access = private)
-        
-    end
-    
     methods (Access = public)
         
         function obj = CostAndConstraintArturo(cParams)
@@ -31,18 +24,11 @@ classdef CostAndConstraintArturo < handle
             dfdx(1:3,:) = dfdx(1:3,:)/cte;
             dfdx2       = 0*dfdx;
             
-        end
-        
-   
-        
+        end     
     end
     
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            
-        end
-        
-    end
-    
+    methods (Access = private)       
+        function init(obj,cParams)            
+        end        
+    end    
 end

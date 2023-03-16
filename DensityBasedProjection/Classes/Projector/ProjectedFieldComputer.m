@@ -1,11 +1,11 @@
-classdef FieldComputer < handle
+classdef ProjectedFieldComputer < handle
     properties (Access = protected)
         beta 
         eta
         filteredField      
     end
     methods (Access = public)
-        function obj = FieldComputer(cParams)
+        function obj = ProjectedFieldComputer(cParams)
             obj.inputData(cParams);
         end
         function compute(obj)

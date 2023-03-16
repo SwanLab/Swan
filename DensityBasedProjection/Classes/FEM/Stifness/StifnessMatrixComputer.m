@@ -43,14 +43,6 @@ classdef StifnessMatrixComputer < handle
 
             obj.projectedField=cParams.projectedField;
         end
-%         function computeElementalStiffnessMatrices(obj)
-%             s.elementType = obj.elementType;
-%             s.t = obj.t;
-%             s.poissonCoefficient = obj.poissonCoefficient;
-%             B = ElementalStiffnessMatricesComputer(s);
-%             B.compute();
-%             obj.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
-%         end
         function penalizeElasticModule(obj)
             s.elasticModuleMinimun = obj.elasticModuleMinimun;
             s.elasticModuleNeutral = obj.elasticModuleNeutral;

@@ -1,9 +1,9 @@
 classdef ComplianceRobustComputer < handle
     properties (Access = public)
-        projectedField
-        iterations
+        projectedField        
     end
     properties (Access = private)
+        iterations
         filteredField
         field
         mesh

@@ -1,4 +1,4 @@
-classdef FilteredFieldDerivator < handle 
+classdef FilteredFieldFieldDerivator < handle 
     properties (Access = public)
         derivedFilteredField
     end
@@ -7,7 +7,7 @@ classdef FilteredFieldDerivator < handle
         Hs        
     end
     methods (Access = public)
-        function obj = FilteredFieldDerivator(cParams)
+        function obj = FilteredFieldFieldDerivator(cParams)
             obj.inputData(cParams);
         end
 

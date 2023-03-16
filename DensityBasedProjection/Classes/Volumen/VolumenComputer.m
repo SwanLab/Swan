@@ -36,7 +36,7 @@ classdef VolumenComputer < handle
             obj.volumen.derivated   = 1/(obj.volumen.volfracD*obj.elementNumberX*obj.elementNumberY)*ones(obj.elementNumberY,obj.elementNumberX);
         end
         function filterDerivedVolumen(obj)
-            obj.volumen.derivatedFiltered(:)  = obj.filterParameters.H*(obj.volumen.derivated(:).*obj.derivedProjectedField.D(:)./obj.filterParameters.Hs);
+            obj.volumen.derivated(:)  = obj.filterParameters.H*(obj.volumen.derivated(:).*obj.derivedProjectedField.D(:)./obj.filterParameters.Hs);
         end 
     end
 end

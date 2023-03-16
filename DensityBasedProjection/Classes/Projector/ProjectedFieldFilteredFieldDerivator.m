@@ -1,4 +1,4 @@
-classdef ProjectedFieldDerivator < FieldComputer
+classdef ProjectedFieldFilteredFieldDerivator < ProjectedFieldComputer
     properties (Access = public)
         derivatedProjectedField
     end
