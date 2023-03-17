@@ -1,9 +1,7 @@
-classdef bp_lagrangian < handle
+classdef LagrangianComputer < handle
 
     properties (Access = public)
         lagrangian
-        object
-        residual
     end
     properties (Access = private)
         bp
@@ -12,10 +10,12 @@ classdef bp_lagrangian < handle
         lam 
         bL 
         bU
+        object
+        residual
     end
 
     methods (Access = public)
-        function obj = bp_lagrangian(cParams)
+        function obj = LagrangianComputer(cParams)
             obj.init(cParams)
         end
         function compute(obj)
@@ -38,9 +38,9 @@ classdef bp_lagrangian < handle
         function computeObject(obj)
             u.bp = obj.bp;
             u.x = obj.x;
-            objective = bp_obj(u);
+            objective = ObjectiveFunctionComputer(u);
             objective.compute();
-            obj.object = objective.Object;
+            obj.object = objective.objectiveFunc;
         end
 
         function computeResidual(obj)
@@ -49,9 +49,9 @@ classdef bp_lagrangian < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            res = bp_res(u);
+            res = ResidualComputer(u);
             res.compute();
-            obj.residual = res.Residual;
+            obj.residual = res.c;
         end
 
         function computeLagrangian(obj)

@@ -1,4 +1,4 @@
-classdef bp_nhes < handle
+classdef NumericalHessianComputer < handle
     properties (Access = public)
         hessian
     end
@@ -12,13 +12,15 @@ classdef bp_nhes < handle
         lambda 
         bU
         bL
+        %xL
+        %xU
         xp
         sp
         dLBase
     end
 
     methods (Access = public)
-        function obj = bp_nhes(cParams)
+        function obj = NumericalHessianComputer(cParams)
             obj.init(cParams);
         end
         function compute(obj)
@@ -34,16 +36,30 @@ classdef bp_nhes < handle
             obj.lambda = cParams.lam;
             obj.bL = cParams.bL;
             obj.bU = cParams.bU;
+            %obj.xL = cParams.xL;
+            %obj.xU = cParams.xU;
         end
 
         function computeLagrangianDerivativeBase(obj)
-            dLB = bp_dL_dx(obj);
+            u.x = obj.x;
+            u.bp = obj.bp;
+            u.s = obj.s;
+            u.lam = obj.lambda;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            dLB = LagrangianDerivativeComputer(u);
             dLB.compute();
-            obj.dLBase = dLB.dL;
+            obj.dLBase = dLB.dLagrangian;
         end
 
         function computeLagrangianDerivative(obj)
-            derivL = bp_dL_dx(obj);
+            u.x = obj.x;
+            u.bp = obj.bp;
+            u.s = obj.s;
+            u.lam = obj.lambda;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            derivL = LagrangianDerivativeComputer(u);
             derivL.compute();
             obj.dL1 = derivL.dLagrangian;
         end

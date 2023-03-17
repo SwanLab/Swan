@@ -1,4 +1,4 @@
-classdef bp_verify_jac < handle
+classdef JacobianVerifier < handle
     properties (Access = public)
         okJacobian
     end
@@ -13,7 +13,7 @@ classdef bp_verify_jac < handle
     end
 
     methods (Access = public)
-        function obj = bp_verify_jac(cParams)
+        function obj = JacobianVerifier(cParams)
             obj.init(cParams)
         end
 
@@ -33,13 +33,22 @@ classdef bp_verify_jac < handle
         end
 
         function computeNumericalDerivative(obj)
-            numerical = bp_njac(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            numerical = NumericalJacobianComputer(u);
             numerical.compute();
             obj.jacobianNum = numerical.jacobian;
         end
 
         function computeExactDerivative(obj)
-            exact = bp_jac(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            exact = JacobianComputer(u);
             exact.compute();
             obj.jacobianExact = exact.pd;
         end
@@ -48,7 +57,7 @@ classdef bp_verify_jac < handle
             deviation = max(max(abs(obj.jacobianNum - obj.jacobianExact)));
             tol = 1e-5;
             if (deviation > tol)
-                fprintf(1,'Jacobian error %9.2e exceeds tolerance %9.2e\n',dev_1st,tol) 
+                fprintf(1,'Jacobian error %9.2e exceeds tolerance %9.2e\n',deviation,tol) 
                 obj.jacobianNum
                 obj.jacobianExact
                 obj.okJacobian = false;

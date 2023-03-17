@@ -51,7 +51,7 @@
 %% Problem 10
 %     min   x1^2 - 2*x1*x2 + 4*x2^2
 %     s.t.  0.1 * x1 - x2 > 1
-classdef bp_x_init < handle
+classdef ParametersInitializer < handle
     properties (Access = public)
         x0C
         xLC
@@ -64,7 +64,7 @@ classdef bp_x_init < handle
     end
 
     methods (Access = public)
-        function obj = bp_x_init(cParams)
+        function obj = ParametersInitializer(cParams)
             obj.init(cParams);
         end
         function create(obj)
@@ -73,7 +73,7 @@ classdef bp_x_init < handle
     end
     methods (Access = private)
         function init(obj,cParams)
-            obj.bp = cParams.bp;
+            obj.bp = cParams;
         end
         function selectProblem(obj)
             switch obj.bp.prob
@@ -144,8 +144,8 @@ classdef bp_x_init < handle
                 x0 = [-5 -5];
                 xL = [-1e20 -1e20];
                 xU = [1e20 1e20];
-                bL = 1;
-                bU = 1e20;
+                bL = [1];
+                bU = [1e20];
             end
             obj.x0C = x0;
             obj.xLC = xL;

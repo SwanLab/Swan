@@ -1,60 +1,11 @@
-% BPOPT Nonlinear Programming Solver
-% Large-scale Interior Point solution methods
-% Please note that this development version in MATLAB is primarily used
-%   for algorithm development and small (<1000 variables) problems. An
-%   optimized and large-scale version of this algorithm is available for
-%   use at http://www.APMonitor.com and http://www.APOPT.com.
-%
-% Inputs
-%   bp  = problem from bp_create
-%
-% Outputs
-%   sol = solution returned as a structure
-classdef bpopt < handle
+classdef OptimizerComputer < InteriorPointMethodsSolver
     properties (Access = public)
-        sol
-        x 
-        xL
-        xU
-        bL
-        bU
-        s 
-        initResidual
-        bp
-        gradient
-        jacobian
-        lambda
-        okJacobian
-        okHessian
-        okObjJacobian
-        alpha_pr
-        alpha_du
-        thetaMax
-        thetaMin
-        filter
-        store
-        hessian
-        e
-        th
-        ph
-        status
     end
-    properties (Access = private)
-        m
-        n 
-        ns
-        sL 
-        sU 
-        tau
-        zL
-        zU
+    properties (Access = protected)
     end
 
     methods (Access = public)
-        function obj = bpopt(cParams)
-            obj.init(cParams)
-        end
-
+        
         function compute(obj)
             obj.checkArguments();
             obj.loadInitialVariables();
@@ -64,14 +15,14 @@ classdef bpopt < handle
             obj.checkDerivatives();
             obj.firstNormInfeasibilities();
             obj.iterationInitializer();
-            obj.interiorPointMehtodsSolver();
-            obj.displaySolution();
+            obj.iterationProcess();
+            %obj.displaySolution();
         end
 
     end
-    methods (Access = private)
+    methods (Access = protected)
         function init(obj,cParams)
-            obj.bp = cParams.bp;
+            obj.bp = cParams;
         end
 
         function checkArguments(obj)
@@ -85,7 +36,6 @@ classdef bpopt < handle
         function loadInitialVariables(obj)
             % initial variables
             obj.loadVariables()
-            [obj.x,obj.xL,obj.xU,obj.bL,obj.bU] = bp_x_init(obj.bp);
             % add slack for inequality constraints only
             k = 0;
             obj.m = max(size(obj.bL));
@@ -137,8 +87,8 @@ classdef bpopt < handle
         end
 
         function loadVariables(obj)
-            u.bp = obj.bp;
-            initV = bp_x_init(u);
+            u = obj.bp;
+            initV = ParametersInitializer(u);
             initV.create();
             obj.x = initV.x0C;
             obj.xL = initV.xLC;
@@ -153,7 +103,7 @@ classdef bpopt < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            obj.initResidual = residualComputer(u);
+            obj.initResidual = obj.residualComputer(u);
         end
 
         function checkConsistentBounds(obj)
@@ -229,35 +179,6 @@ classdef bpopt < handle
             obj.lambda = lam';
         end
 
-        function computeObjectiveGradient(obj)
-            u.bp = obj.bp;
-            u.x = obj.x;
-            u.s =obj.s;
-            grad = bp_objgrad(u);
-            grad.compute();
-            obj.gradient = grad.objGradient;
-        end
-
-        function computeJacobian(obj)
-            u.bp = obj.bp;
-            u.x = obj.x;
-            u.bL = obj.bL;
-            u.bU = obj.bU;
-            jac = bp_jac(u);
-            jac.compute();
-            obj.jacobian = jac.pd;
-        end
-
-        function computeHessian(obj)
-            u.bp = obj.bp;
-            u.x = obj.x;
-            u.s = obj.s;
-            u.lam = obj.lambda;
-            hes = bp_hes(u);
-            hes.compute();
-            obj.hessian = hes.hess;
-        end
-
         function checkDerivatives(obj)
             if (obj.bp.prob == 0)
                 obj.okJacobian = true;
@@ -277,7 +198,7 @@ classdef bpopt < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            vJac = bp_verify_jac(u);
+            vJac = JacobianVerifier(u);
             vJac.compute();
             obj.okJacobian = vJac.okJacobian;
         end
@@ -289,7 +210,7 @@ classdef bpopt < handle
             u.bL = obj.bL;
             u.bU = obj.bU;
             u.lam = obj.lambda;
-            vHess = bp_verify_hes(u);
+            vHess = HessianVerifier(u);
             vHess.compute();
             obj.okHessian = vHess.okHessian;
         end
@@ -298,8 +219,8 @@ classdef bpopt < handle
             u.bp = obj.bp;
             u.x = obj.x;
             u.s = obj.s;
-            vObjJac = bp_verify_objgrad(u);
-            vObjJac.compute();
+            vObjJac = GradientVerifier(u);
+            vObjJac.check();
             obj.okObjJacobian = vObjJac.okFirstDerivative;
         end
 
@@ -310,7 +231,7 @@ classdef bpopt < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            the = bp_theta(u);
+            the = ThetaComputer(u);
             the.compute();
             theta = the.theta;
             obj.thetaMax = 10^4  * max(1,theta);
@@ -325,17 +246,14 @@ classdef bpopt < handle
             u.xU = obj.xU;
             u.s = obj.s;
             u.bL = obj.bL;
-            u.bU = oj.bU;
-            phi = phiComputer(u);
+            u.bU = obj.bU;
+            phi = obj.phiComputer(u);
             obj.filter = [obj.thetaMax phi];
-
             % initialize iteration count
-            u.iter = 0;
-
+            iter = 0;
             % print iteration zero
             obj.iterationPrinter();
-
-            obj.store = [u.iter u.x obj.alpha_pr obj.alpha_du obj.bp.mu];
+            obj.store = [iter u.x obj.alpha_pr obj.alpha_du obj.bp.mu];
         end
 
         function iterationPrinter(obj)
@@ -343,82 +261,17 @@ classdef bpopt < handle
             u.zL = obj.zL;
             u.zU = obj.zU;
             u.alpha_pr =obj.alpha_pr;
-            u.alpha_du = oobj.alpha_du;
+            u.alpha_du = obj.alpha_du;
             u.s = obj.s;
+            u.x = obj.x;
             u.xL = obj.xL;
             u.xU = obj.xU;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            pr = bp_iprint(u);
+            u.bp = obj.bp;
+            u.iter = 0;
+            pr = PrinterComputer(u);
             pr.print();
-        end
-        function interiorPointMehtodsSolver(obj)
-            obj.iterationProcess();
-        end
-        function displaySolution(obj)
-            %% Display final solution
-            disp('Status')
-            disp(obj.status)
-            disp('Solution: ')
-            disp(obj.x)
-            disp('Slack Variables: ')
-            disp(obj.s)
-            disp('Equation Multipliers: ')
-            disp(obj.lambda)
-            disp('Lower Constraint Variable Mult: ')
-            disp(obj.zL)
-            disp('Upper Constraint Variable Mult: ')
-            disp(obj.zU)
-
-            if (obj.bp.prob>=1)
-                %% Display figures on iteration progress
-                figure(1)
-                hold off;
-                i = 1;
-                plot(obj.store(:,1),obj.store(:,i+1),'k-')
-                hold on;
-                i = 2;
-                plot(obj.store(:,1),obj.store(:,i+1),'b-')
-                legend('x_1','x_2')
-                
-                figure(2)
-                hold off;
-                plot(obj.store(:,1),obj.store(:,obj.n+2),'r-')
-                hold on;
-                plot(obj.store(:,1),obj.store(:,obj.n+3),'b-')
-                plot(obj.store(:,1),log10(obj.store(:,obj.n+4)),'g-')
-                legend('alpha_{pr}','alpha_{du}','log_{10}(mu)');
-            end
-
-            % record solution for function return
-            obj.sol.status = obj.status;
-            obj.sol.x = obj.x;
-            obj.sol.s = obj.s;
-            obj.sol.lam = obj.lambda;
-            obj.sol.zL = obj.zL;
-            obj.sol.zU = obj.zU;
-        end
-    end
-
-    methods (Static, Access = public)
-        function residual = residualComputer(cParams)
-            residualC = bp_res(cParams);
-            residualC.compute();
-            residual = res.c;
-        end
-
-        function phi = phiComputer(cParams)
-            phiC = bp_phi(cParams);
-            phiC.compute();
-            phi = phiC.phi;
-            obj.ph = phi;
-        end
-
-        function theta = thetaComputer(cParams)
-            th = bp_theta(cParams);
-            th.compute();
-            theta = th.theta;
-            obj.th = theta;
         end
     end
 end

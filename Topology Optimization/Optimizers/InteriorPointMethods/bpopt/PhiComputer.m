@@ -1,4 +1,4 @@
-classdef bp_phi < handle
+classdef PhiComputer < handle
    properties (Access = public)
       phi
    end
@@ -14,7 +14,7 @@ classdef bp_phi < handle
    end
 
    methods (Access = public)
-      function obj = bp_phi(cParams)
+      function obj = PhiComputer(cParams)
          obj.init(cParams);
       end
       function compute(obj)
@@ -37,7 +37,7 @@ classdef bp_phi < handle
       function computeObjective(obj)
          u.bp = obj.bp;
          u.x = obj.x;
-         phiBase = bp_obj(u);
+         phiBase = ObjectiveFunctionComputer(u);
          phiBase.compute();
          obj.ph = phiBase.objectiveFunc;
       end
@@ -46,13 +46,13 @@ classdef bp_phi < handle
          n = size(obj.x,2);
          m = size(obj.bL,2);
          for i = 1:n
-            obj.ph = obj.ph - cParams.mu * (log(obj.x(i) - obj.xL(i)) + log(obj.xU(i) - obj.x(i)));
+            obj.ph = obj.ph - obj.bp.mu * (log(obj.x(i) - obj.xL(i)) + log(obj.xU(i) - obj.x(i)));
          end
          j = 0;
          for i = 1:m
             if(obj.bU(i) > obj.bL(i))
                j = j + 1;
-               obj.ph = obj.ph - cParams.mu * (log(obj.s(j) - obj.bL(i)) + log(obj.bU(i) - obj.s(j)));
+               obj.ph = obj.ph - obj.bp.mu * (log(obj.s(j) - obj.bL(i)) + log(obj.bU(i) - obj.s(j)));
             end
          end
          obj.phi = obj.ph;

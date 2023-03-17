@@ -1,5 +1,5 @@
 % residual with equality constants and inequality slack variables
-classdef bp_res < handle
+classdef ResidualComputer < handle
     properties (Access = public)
         c
     end
@@ -13,7 +13,7 @@ classdef bp_res < handle
     end
 
     methods (Access = public)
-        function obj = bp_res(cParams)
+        function obj = ResidualComputer(cParams)
             obj.init(cParams);
         end
         function compute(obj)
@@ -32,7 +32,7 @@ classdef bp_res < handle
         function computeBaseResidual(obj)
             u.bp = obj.bp;
             u.x = obj.x;
-            cResidual = bp_res_stub(u);
+            cResidual = EquationsResidualsComputer(u);
             cResidual.create();
             obj.cRes = cResidual.cRes;
         end

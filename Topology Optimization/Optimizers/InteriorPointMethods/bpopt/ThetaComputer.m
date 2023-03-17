@@ -1,52 +1,33 @@
-classdef bp_merit < handle
+classdef ThetaComputer < handle
     properties (Access = public)
-        merit
+        theta
     end
     properties (Access = private)
-        phi
-        residual
+        bp
         x 
         s 
-        xL 
-        xU 
         bL 
         bU 
-        bp 
+        residual
     end
 
     methods (Access = public)
-        function obj = bp_merit(cParams)
+        function obj = ThetaComputer(cParams)
             obj.init(cParams);
         end
-
+        
         function compute(obj)
-            obj.computePhi();
             obj.computeResidual();
-            obj.computeMeritFunction();
+            obj.computeTheta();
         end
     end
     methods (Access = private)
         function init(obj,cParams)
             obj.x = cParams.x;
             obj.s = cParams.s;
-            obj.xL = cParams.xL;
-            obj.xU = cParams.xU;
             obj.bL = cParams.bL;
             obj.bU = cParams.bU;
             obj.bp = cParams.bp;
-        end
-
-        function computePhi(obj)
-            u.bp = obj.bp;
-            u.x = obj.x;
-            u.s = obj.s;
-            u.bL = obj.bL;
-            u.bU = obj.bU;
-            u.xL = obj.xL;
-            u.xU = obj.xU;
-            ph = bp_phi(u);
-            ph.compute();
-            obj.phi = ph.phi;
         end
 
         function computeResidual(obj)
@@ -55,13 +36,13 @@ classdef bp_merit < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            res = bp_res(u);
+            res = ResidualComputer(u);
             res.compute();
             obj.residual = res.c;
         end
 
-        function computeMeritFunction(obj)
-            obj.merit = obj.phi + obj.bp.nu*sum(abs(obj.residual));
+        function computeTheta(obj)
+            obj.theta = sum(abs(obj.residual));
         end
     end
 end

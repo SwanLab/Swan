@@ -1,5 +1,6 @@
-classdef InteriorPointMethodsSolver < bpopt 
+classdef InteriorPointMethodsSolver < handle 
     properties (Access = public)
+        bp
         diagonalzL
         diagonalzU
         diagonaldL
@@ -16,9 +17,33 @@ classdef InteriorPointMethodsSolver < bpopt
         alpha_du_max
         alpha_pr_max
         firstLHS
-        iter
-    end
-    properties (Access = private)
+        iteration
+                sol
+        x 
+        xL
+        xU
+        bL
+        bU
+        %bp
+        s 
+        initResidual
+        gradient
+        jacobian
+        lambda
+        okJacobian
+        okHessian
+        okObjJacobian
+        alpha_pr
+        alpha_du
+        thetaMax
+        thetaMin
+        filter
+        store
+        hessian
+        e
+        th
+        ph
+        status
         dx
         ds 
         dlam 
@@ -26,12 +51,40 @@ classdef InteriorPointMethodsSolver < bpopt
         dzU
         zLa
         zUa
+        xa
+        sa
+        residualLS
+        lam
+        m
+        n 
+        ns
+        sL 
+        sU 
+        tau
+        zL
+        zU
+        dL
+        dU
+    end
+    properties (Access = protected)
+        
+    end
+    properties (Access = private)
+        isposdef
+        e_mu
     end
 
     methods (Access = public)
+        function obj = InteriorPointMethodsSolver(cParams)
+            obj.init(cParams);
+        end
+        function solve(obj)
+            obj.openOptimizer();
+        end
+
         function iterationProcess(obj)
             for iter = 1:obj.bp.maxiter
-                
+                obj.iteration = iter;
                 % new residuals
                 u.bp = obj.bp;
                 u.x = obj.x;
@@ -39,48 +92,39 @@ classdef InteriorPointMethodsSolver < bpopt
                 u.bL = obj.bL;
                 u.bU = obj.bU;
                 residual = obj.residualComputer(u);
-
+                obj.residualLS = residual;
                 % 1-norm of infeasibilities
-                theta = obj.thetaComputer(u);
+                obj.th = obj.thetaComputer(u);
                 
                 % phi, objective function and barrier terms
                 u.xL = obj.xL;
                 u.xU = obj.xU;
-                phi = phiComputer(u);
+                obj.ph = obj.phiComputer(u);
                 
                 obj.zUpdater();
                 obj.sigmaComputer();
-
-                % 1st and 2nd derivatives
                 obj.computeJacobian();
                 obj.computeHessian();
                 obj.computeObjectiveGradient();
                 obj.H = obj.hessian + obj.sigmaL + obj.sigmaU;
                 
-                obj.linearSystemSolver();
-                
-                % reduced or full matrix inversion
-                obj.inverseMatrices();
-                
-                % compute acceptance point
-                obj.computeAcceptancePoint();    
-                
-                % check for constraint violations
+                obj.linearSystemSolver(residual);
+                obj.computeAcceptancePoint();
                 obj.checkConstraintViolations();
-                
-                % line search
                 obj.lineSearch();
-                
-                % optionally show contour plot
-                %if (bp.contour),
-                %bp_contour(bp,x,alpha_pr * dx);
-                %end
-                
+                % check for termination conditions
+                if (obj.e_mu <= obj.bp.e_tol)
+                    fprintf(1,'\nSuccessful solution\n');
+                    obj.status = 'success';
+                    obj.finalSolTest();
+                    break;
+                end
             end
+            obj.displaySolution();
         end
 
         function zUpdater(obj)
-            if (obj.bp.z_update==2)
+            if (obj.bp.z_update == 2)
                 zLC = obj.zL;
                 zUC = obj.zU;
                 % update explicitly from z = mu / x
@@ -91,18 +135,18 @@ classdef InteriorPointMethodsSolver < bpopt
                     zLC(obj.n+i) = obj.bp.mu / (obj.s(i) - obj.sL(i));
                 end
                 % zU*(xU-x) = mu  =>  zU = mu / (xU-x)
-                for i = 1:n
+                for i = 1:obj.n
                     zUC(i) = obj.bp.mu / (obj.xU(i) - obj.x(i));
                 end
-                for i = 1:ns
+                for i = 1:obj.ns
                     zUC(obj.n+i) = obj.bp.mu / (obj.sU(i) - obj.s(i));
                 end
                 obj.zL = zLC;
                 obj.zU = zUC;
             end
             % make diagonal matrices
-            obj.diagonalzL = diag(zL);
-            obj.diagonalzU = diag(zU);
+            obj.diagonalzL = diag(obj.zL);
+            obj.diagonalzU = diag(obj.zU);
         end
 
         function sigmaComputer(obj)
@@ -110,14 +154,14 @@ classdef InteriorPointMethodsSolver < bpopt
             obj.dL = [obj.x-obj.xL obj.s-obj.sL];
             obj.dU = [obj.xU-obj.x obj.sU-obj.s];
             obj.diagonaldL = diag(obj.dL);
-            obj.digonaldU = diag(obj.dU);
+            obj.diagonaldU = diag(obj.dU);
             invdML = zeros(obj.n+obj.ns,obj.n+obj.ns);
             invdMU = zeros(obj.n+obj.ns,obj.n+obj.ns);
             sigL = zeros(obj.n+obj.ns,obj.n+obj.ns);
             sigU = zeros(obj.n+obj.ns,obj.n+obj.ns);
             for i = 1:obj.n+obj.ns
-                invdML(i,i) = 1 / dML(i,i); 
-                invdMU(i,i) = 1 / dMU(i,i); 
+                invdML(i,i) = 1 / obj.diagonaldL(i,i); 
+                invdMU(i,i) = 1 / obj.diagonaldU(i,i); 
                 sigL(i,i) = obj.diagonalzL(i,i) / obj.diagonaldL(i,i);
                 sigU(i,i) = obj.diagonalzU(i,i) / obj.diagonaldU(i,i);
              end
@@ -127,15 +171,14 @@ classdef InteriorPointMethodsSolver < bpopt
              obj.sigmaU = sigU;
         end
 
-        function linearSystemSolver(obj)
-             % Construct and solve linear system Ax=b
-                
+        function linearSystemSolver(obj,residual)
+            % Construct and solve linear system Ax=b    
             % Symmetric, zL/zU explicitly solved
             % construct A and b
             A1 = [obj.H,obj.jacobian';obj.jacobian,zeros(obj.m,obj.m)];
             %b1(1:n+ns,1) = g' - zL' + zU' + J'*lam';
-            b1(1:obj.n+obj.ns,1) = obj.gradient' - obj.zL' + obj.zU' + obj.jacobian'*obj.lambda' + obj.zL'-obj.bp.mu*obj.invDiagdL*obj.e -obj.zU'+obj.bp.mu*objinvDiagdU*obj.e;
-            b1(obj.n+obj.ns+1:obj.n+obj.ns+obj.m,1) = residual(1:obj.m)';        
+            b1(1:obj.n + obj.ns,1) = obj.gradient' - obj.zL' + obj.zU' + obj.jacobian'*obj.lambda' + obj.zL'-obj.bp.mu*obj.invDiagdL*obj.e -obj.zU'+obj.bp.mu*obj.invDiagdU*obj.e;
+            b1(obj.n + obj.ns + 1:obj.n + obj.ns + obj.m,1) = residual(1:obj.m)';
             % compute search direction, solving Ax = b
             d1 = -pinv(full(A1))*b1;
             
@@ -146,7 +189,6 @@ classdef InteriorPointMethodsSolver < bpopt
             dzL1 = obj.bp.mu*obj.invDiagdL*obj.e - obj.zL' - obj.sigmaL*[dx1; ds1];
             dzU1 = obj.bp.mu*obj.invDiagdU*obj.e - obj.zU' + obj.sigmaU*[dx1; ds1];
             obj.search1 = [d1;dzL1;dzU1];
-            
             obj.linearLHS = A1;
             obj.testLinearSystemDefinitiness();
             % Un-symmetric, zL/zU implicitly solved
@@ -157,7 +199,7 @@ classdef InteriorPointMethodsSolver < bpopt
                     -diag(obj.zU) zeros(obj.n+obj.ns,obj.m+obj.n+obj.ns) obj.diagonaldU];
             b2(1:obj.n+obj.ns,1) = obj.gradient' - obj.zL' + obj.zU' + obj.jacobian'*obj.lambda';
             b2(obj.n+obj.ns+1:obj.n+obj.ns+obj.m,1) = residual(1:obj.m)';
-            b2(obj.n+obj.ns+obj.m+1:2*(obj.n+obj.ns)+obj.m) = diagdL*diag(obj.zL)*obj.e - obj.bp.mu*obj.e;
+            b2(obj.n+obj.ns+obj.m+1:2*(obj.n+obj.ns)+obj.m) = obj.diagonaldL*diag(obj.zL)*obj.e - obj.bp.mu*obj.e;
             b2(2*(obj.n+obj.ns)+obj.m+1:3*(obj.n+obj.ns)+obj.m) = obj.diagonaldU*diag(obj.zU)*obj.e - obj.bp.mu*obj.e;
             d2 = -pinv(full(A2))*b2;
             dx2 = d2(1:obj.n,1);
@@ -203,7 +245,8 @@ classdef InteriorPointMethodsSolver < bpopt
             else
                saC = [];
             end
-            obj.updatedLambda = obj.lambda + obj.alpha_du * obj.dlam';
+            obj.lam = obj.lambda;
+            obj.lambda = obj.lambda + obj.alpha_du * obj.dlam';
                             
             % updating zLa and zUa
             switch(obj.bp.z_update)
@@ -223,21 +266,20 @@ classdef InteriorPointMethodsSolver < bpopt
                     end
                     % zU*(xU-x) = mu  =>  zU = mu / (xU-x)
                     for i = 1:obj.n
-                        zUaC(i) = obj.bp.mu / (xU(i)-xaC(i));
+                        zUaC(i) = obj.bp.mu / (obj.xU(i)-xaC(i));
                         dzUC(i,1) = zUaC(i) - obj.zU(i);
                     end
                     for i = 1:obj.ns
                         zUaC(obj.n+i) = obj.bp.mu / (obj.sU(i)-saC(i));
                         dzUC(obj.n+i,1) = zUaC(obj.n+i) - obj.zU(obj.n+i);
                     end
-                    obj.zLa = zLaC;
-                    obj.dzL = dzLC;
-                    obj.zUa = zUaC;
-                    obj.dzU = dzUC;
-                    obj.xa = xaC;
-                    obj.sa = saC;
-                end
-                
+                obj.zLa = zLaC;
+                obj.dzL = dzLC;
+                obj.zUa = zUaC;
+                obj.dzU = dzUC;
+            end
+                obj.xa = xaC;
+                obj.sa = saC;
                 % max alpha is that which brings the search point to within "tau" of constraint
                 % tau is 0 to 0.01 (tau = mu when mu<0.01, otherwise tau=0.01)
                 obj.alpha_pr_max = 1.0;
@@ -278,23 +320,23 @@ classdef InteriorPointMethodsSolver < bpopt
         end
 
         function lineSearch(obj)
-            % 2.- Open Line Search class
-            obj.search();
+            LSearch = LineSearchComputer(obj);
+            LSearch.search();
+            obj.x = LSearch.x;
+            obj.status = LSearch.status;
+            obj.s = LSearch.s;
+            obj.lambda = LSearch.lambda;
+            obj.zL = LSearch.zL;
+            obj.zU = LSearch.zU;
+            obj.store = LSearch.store;
+            obj.bp.mu = LSearch.bp.mu;
+            obj.e_mu = LSearch.e_mu;
         end
-    end
-
-    methods (Static, Access = public)
-        function conditionPrinter(idebug,A1,A2,search1,search2)
-            if (idebug>=2)
-                fprintf(1,'Diff: %12.4e, Cond(A1): %12.4e, Cond(A2): %12.4e\n', ...
-                    sum(abs(search1 - search2)),cond(full(A1)),cond(full(A2)));
-            end
-        end
-
-        function inverseMatrices(matrix,dx1,ds1,dlam1,dzL1,dzU1,idebug,A1,dx2,ds2,dlam2,dzL2,dzU2,A2)
+        function inverseMatrices(obj,matrix,dx1,ds1,dlam1,dzL1,dzU1,idebug,A1,dx2,ds2,dlam2,dzL2,dzU2,A2)
+            % reduced or full matrix inversion
             %  1 = condensed, symmetric matrix
             %  2 = full, unsymmetric matrix
-            if (matrix==1)
+            if (matrix == 1)
                 obj.dx = dx1;
                 obj.ds = ds1;
                 obj.dlam = dlam1;
@@ -313,6 +355,128 @@ classdef InteriorPointMethodsSolver < bpopt
                     fprintf(1,'Warning: A2 condition number high %12.4e\n',cond(full(A2)))
                 end
             end
+        end
+
+        function displaySolution(obj)
+            %% Display final solution
+            fprintf('Status: '); fprintf(obj.status); fprintf('\n')
+            disp('Solution: ')
+            disp(obj.x)
+            disp('Slack Variables: ')
+            disp(obj.s)
+            disp('Equation Multipliers: ')
+            disp(obj.lambda)
+            disp('Lower Constraint Variable Mult: ')
+            disp(obj.zL)
+            disp('Upper Constraint Variable Mult: ')
+            disp(obj.zU)
+
+            if (obj.bp.prob >= 1)
+                %% Display figures on iteration progress
+                figure(1)
+                hold off;
+                i = 1;
+                plot(obj.store(:,1),obj.store(:,i+1),'k-')
+                hold on;
+                i = 2;
+                plot(obj.store(:,1),obj.store(:,i+1),'b-')
+                legend('x_1','x_2')
+                
+                figure(2)
+                hold off;
+                plot(obj.store(:,1),obj.store(:,obj.n+2),'r-')
+                hold on;
+                plot(obj.store(:,1),obj.store(:,obj.n+3),'b-')
+                plot(obj.store(:,1),log10(obj.store(:,obj.n+4)),'g-')
+                legend('alpha_{pr}','alpha_{du}','log_{10}(mu)');
+            end
+            %record solution for function return
+            obj.sol.status = obj.status;
+            obj.sol.x = obj.x;
+            obj.sol.s = obj.s;
+            obj.sol.lam = obj.lambda;
+            obj.sol.zL = obj.zL;
+            obj.sol.zU = obj.zU;
+        end
+    end
+
+    methods (Static, Access = public)
+        function conditionPrinter(idebug,A1,A2,search1,search2)
+            if (idebug>=2)
+                fprintf(1,'Diff: %12.4e, Cond(A1): %12.4e, Cond(A2): %12.4e\n', ...
+                    sum(abs(search1 - search2)),cond(full(A1)),cond(full(A2)));
+            end
+        end
+
+        function phi = phiComputer(cParams)
+            phiC = PhiComputer(cParams);
+            phiC.compute();
+            phi = phiC.phi;
+        end
+
+        function theta = thetaComputer(cParams)
+            th = ThetaComputer(cParams);
+            th.compute();
+            theta = th.theta;
+        end
+
+        function residual = residualComputer(cParams)
+            residualC = ResidualComputer(cParams);
+            residualC.compute();
+            residual = residualC.c;
+        end
+
+        function testResults(cParams)
+            Test = TestComputer(cParams);
+            Test.compute();
+        end
+    end
+    methods (Access = private)
+        function init(obj,cParams)
+            obj.bp = cParams;
+        end
+        function openOptimizer(obj)
+                u = obj.bp;
+                opt = OptimizerComputer(u);
+                opt.compute();
+        end
+    end
+    methods (Access = protected)
+        function computeObjectiveGradient(obj)
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s =obj.s;
+            grad = GradientComputer(u);
+            grad.create();
+            obj.gradient = grad.objGradient;
+        end
+
+        function computeJacobian(obj)
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            jac = JacobianComputer(u);
+            jac.compute();
+            obj.jacobian = jac.pd;
+        end
+
+        function computeHessian(obj)
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.lam = obj.lambda;
+            hes = HessianComputer(u);
+            hes.create();
+            obj.hessian = hes.hess;
+        end
+
+        function finalSolTest(obj)
+            load("final_sol.mat",'x_old');
+            u.loadedData = x_old;
+            u.actualData = obj.x;
+            u.desiredTest = 'Final Solution';
+            obj.testResults(u);
         end
     end
 end

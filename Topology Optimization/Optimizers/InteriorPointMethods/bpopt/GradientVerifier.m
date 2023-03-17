@@ -1,4 +1,4 @@
-classdef bp_verify_objgrad < handle
+classdef GradientVerifier < handle
     properties (Access = public)
         okFirstDerivative
     end
@@ -11,7 +11,7 @@ classdef bp_verify_objgrad < handle
     end
 
     methods (Access = public)
-        function obj = bp_verify_objgrad(cParams)
+        function obj = GradientVerifier(cParams)
             obj.init(cParams);
         end
 
@@ -29,22 +29,28 @@ classdef bp_verify_objgrad < handle
         end
 
         function computeNumericalDerivative(obj)
-            num = bp_nobjgrad(obj);
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bp = obj.bp;
+            num = NumericalGradientComputer(u);
             num.compute();
             obj.numericalDerivative = num.gradient;
         end
 
         function computeExactDerivative(obj)
-            exact = bp_objgrad(obj);
-            exact.compute();
+            u.x = obj.x;
+            u.bp = obj.bp;
+            u.s = obj.s;
+            exact = GradientComputer(u);
+            exact.create();
             obj.exactDerivative = exact.objGradient;
         end
 
         function checkDeviation(obj)
-            deviation = max(max(abs(g_num-g_exact)));
+            deviation = max(max(abs(obj.numericalDerivative - obj.exactDerivative)));
             tol = 1e-5;
             if (deviation > tol)
-                fprintf(1,'Jacobian error %9.2e exceeds tolerance %9.2e\n',dev_objgrad,tol) 
+                fprintf(1,'Jacobian error %9.2e exceeds tolerance %9.2e\n',deviation,tol) 
                 obj.numericalDerivative
                 obj.exactDerivative
                 obj.okFirstDerivative = false;

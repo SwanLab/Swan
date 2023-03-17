@@ -1,5 +1,5 @@
 %% BPOPT Solver: Obtain Jacobian (1st derivatives) of Equations
-classdef bp_jac_stub < handle
+classdef JacobianObtainer < handle
     properties (Access = public)
         pdComputation
     end
@@ -9,7 +9,7 @@ classdef bp_jac_stub < handle
     end
 
     methods (Access = public)
-        function obj = bp_jac_stub(cParams)
+        function obj = JacobianObtainer(cParams)
             obj.init(cParams);
         end
 

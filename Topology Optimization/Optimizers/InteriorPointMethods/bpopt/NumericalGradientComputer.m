@@ -1,4 +1,4 @@
-classdef bp_nobjgrad < handle
+classdef NumericalGradientComputer < handle
     properties (Access = public)
         gradient
     end
@@ -8,10 +8,11 @@ classdef bp_nobjgrad < handle
         objective
         objBase
         xp
+        bp
     end
 
     methods (Access = public)
-        function obj = bp_nobjgrad(cParams)
+        function obj = NumericalGradientComputer(cParams)
             obj.init(cParams)
         end
 
@@ -24,16 +25,21 @@ classdef bp_nobjgrad < handle
         function init(obj,cParams)
             obj.xC = cParams.x;
             obj.s = cParams.s;
+            obj.bp = cParams.bp;
         end
 
         function computeObjectiveBase(obj)
-            objB = bp_obj(obj);
+            u.bp = obj.bp;
+            u.x = obj.xC;
+            objB = ObjectiveFunctionComputer(u);
             objB.compute();
             obj.objBase = objB.objectiveFunc;
         end
 
         function computeObjective(obj)
-            object = bp_obj(obj);
+            u.bp = obj.bp;
+            u.x = obj.xp;
+            object = ObjectiveFunctionComputer(u);
             object.compute();
             obj.objective = object.objectiveFunc;
         end

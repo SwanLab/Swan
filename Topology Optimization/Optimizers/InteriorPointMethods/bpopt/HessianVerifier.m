@@ -1,4 +1,4 @@
-classdef bp_verify_hes < handle
+classdef HessianVerifier < handle
     properties (Access = public)
         okHessian
     end
@@ -10,10 +10,11 @@ classdef bp_verify_hes < handle
         lambda 
         bL
         bU
+        bp
     end
 
     methods (Access = public)
-        function obj = bp_verify_hes(cParams)
+        function obj = HessianVerifier(cParams)
             obj.init(cParams)
         end
 
@@ -30,17 +31,28 @@ classdef bp_verify_hes < handle
             obj.lambda = cParams.lam;
             obj.bL = cParams.bL;
             obj.bU = cParams.bU;
+            obj.bp = cParams.bp;
         end
 
         function computeNumericalDerivative(obj)
-            numerical = bp_nhes(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s = obj.s;
+            u.lam = obj.lambda;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            numerical = NumericalHessianComputer(u);
             numerical.compute();
             obj.numericalHessian = numerical.hessian;
         end
 
         function computeExactDerivative(obj)
-            exact = bp_hes(obj);
-            exact.compute();
+            u.x = obj.x;
+            u.s = obj.s;
+            u.lam = obj.lambda;
+            u.bp = obj.bp;
+            exact = HessianComputer(u);
+            exact.create();
             obj.exactHessian = exact.hess;
         end
 
@@ -48,7 +60,7 @@ classdef bp_verify_hes < handle
             deviation = max(max(abs(obj.numericalHessian - obj.exactHessian)));
             tol = 1e-3;
             if (deviation > tol)
-                fprintf(1,'Hessian error %9.2e exceeds tolerance %9.2e\n',dev_2nd,tol) 
+                fprintf(1,'Hessian error %9.2e exceeds tolerance %9.2e\n',deviation,tol) 
                 obj.numericalHessian
                 obj.exactHessian
                 obj.okHessian = false;

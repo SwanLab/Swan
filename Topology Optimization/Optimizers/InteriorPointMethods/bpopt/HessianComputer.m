@@ -1,5 +1,5 @@
 %% BPOPT Solver: Obtain Hessian (2nd derivatives) of Lagrangian
-classdef bp_hes < handle
+classdef HessianComputer < handle
     properties (Access = public)
         hess
     end
@@ -11,7 +11,7 @@ classdef bp_hes < handle
     end
 
     methods (Access= public)
-        function obj = bp_hes(cParams)
+        function obj = HessianComputer(cParams)
             obj.init(cParams);
         end
 

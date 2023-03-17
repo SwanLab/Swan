@@ -331,4 +331,3 @@ switch bp.prob
         % show a legend
         legend('Objective','Barrier Problem','Constraint','New Step','Start','End');
 end
-

@@ -1,5 +1,5 @@
 %% BPOPT Solver: Objective function value
-classdef bp_obj < handle
+classdef ObjectiveFunctionComputer < handle
     properties (Access = public)
         objectiveFunc
     end
@@ -9,7 +9,7 @@ classdef bp_obj < handle
     end
 
     methods (Access = public)
-        function obj = bp_obj(cParams)
+        function obj = ObjectiveFunctionComputer(cParams)
             obj.init(cParams)
         end
 

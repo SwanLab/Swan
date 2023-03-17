@@ -1,14 +1,15 @@
 %% BPOPT Solver: Obtain equation residuals
-classdef bp_res_stub < handle
+classdef EquationsResidualsComputer < handle
     properties (Access = public)
         cRes
     end
     properties (Access = private)
         bp
+        xC
     end
 
     methods (Access = public)
-        function obj = bp_res_stub(cParams)
+        function obj = EquationsResidualsComputer(cParams)
             obj.init(cParams);
         end
         function create(obj)
@@ -18,8 +19,10 @@ classdef bp_res_stub < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.bp = cParams.bp;
+            obj.xC = cParams.x;
         end
         function createCases(obj)
+            x = obj.xC;
             switch obj.bp.prob
                 case(0)
                     %y = apm_details(bp.server,bp.app,x);

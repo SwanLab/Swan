@@ -1,9 +1,6 @@
-classdef bp_iprint < handle
+classdef PrinterComputer < handle
     properties (Access = public)
-        
-    end
-    properties (Access = private)
-        bp
+              bp
         iter
         x 
         lam
@@ -24,11 +21,14 @@ classdef bp_iprint < handle
         objective
         theta
         du
-        logmu
+        logmu  
+    end
+    properties (Access = private)
+
     end
 
     methods (Access = public)
-        function obj = bp_iprint(cParams)
+        function obj = PrinterComputer(cParams)
             obj.init(cParams);
         end
 
@@ -67,13 +67,21 @@ classdef bp_iprint < handle
         end
 
         function computeObjectiveGradient(obj)
-            gradC = bp_objgrad(obj);
-            gradC.compute();
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bp = obj.bp;
+            gradC = GradientComputer(u);
+            gradC.create();
             obj.grad = gradC.objGradient;
         end
 
         function computeJacobian(obj)
-            jac = bp_jac(obj);
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bp = obj.bp;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            jac = JacobianComputer(u);
             jac.compute();
             obj.jacobian = jac.pd;
         end
@@ -83,13 +91,22 @@ classdef bp_iprint < handle
         end
 
         function computeMeritFunction(obj)
-            me = bp_merit(obj);
+            u.x = obj.x;
+            u.s = obj.s;
+            u.xL = obj.xL;
+            u.xU = obj.xU;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            u.bp = obj.bp;
+            me = MeritComputer(u);
             me.compute();
             obj.merit = me.merit;
         end
 
         function computeObjective(obj)
-            object = bp_obj(obj);
+            u.bp = obj.bp;
+            u.x = obj.x;
+            object = ObjectiveFunctionComputer(u);
             object.compute();
             obj.objective = object.objectiveFunc;
         end
@@ -99,7 +116,12 @@ classdef bp_iprint < handle
         end
 
         function computeTheta(obj)
-            th = bp_theta(obj);
+            u.x = obj.x;
+            u.s = obj.s;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            u.bp = obj.bp;
+            th = ThetaComputer(u);
             th.compute();
             obj.theta = th.theta;
         end

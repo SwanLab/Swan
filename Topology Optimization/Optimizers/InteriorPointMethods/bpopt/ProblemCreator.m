@@ -1,5 +1,5 @@
 % BPOPT Create a New Problem Instance
-classdef bp_create < handle
+classdef ProblemCreator < handle
     properties (Access = public)
         x
     end
@@ -7,18 +7,18 @@ classdef bp_create < handle
     end
 
     methods (Access = public)
-        function obj = bp_create(cParams)
+        function obj = ProblemCreator(cParams)
             obj.init(cParams);
         end
 
-        function compute(obj)
+        function create(obj)
             obj.loadParameters();
             obj.selectProblem();
         end
     end
     methods (Access = private)
         function init(obj,cParams)
-            obj.x.prob = cParams.problemNumber;
+            obj.x.prob = cParams;
         end
 
         function loadParameters(obj)
@@ -80,7 +80,7 @@ classdef bp_create < handle
         end
 
         function selectProblem(obj)
-            if (isstr(name))
+            if (isstr(obj.x.prob))
                 % Select custom problem
                 % 0 = Custom model defined in APM
                 obj.x.prob = 0;
@@ -98,7 +98,6 @@ classdef bp_create < handle
                 % line search with simple clipping
                 obj.x.line_search = 2;
             else
-                obj.x.prob = name;
                 obj.x.name = 'test';
                 obj.x.server = 'local';
                 obj.x.app = 'test';

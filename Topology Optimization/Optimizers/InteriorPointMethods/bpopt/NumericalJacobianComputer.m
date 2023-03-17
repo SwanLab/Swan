@@ -1,18 +1,18 @@
-classdef bp_njac < handle
+classdef NumericalJacobianComputer < handle
     properties (Access = public)
         jacobian
     end
 
-    properties (Access = private)
-        bp 
+    properties (Access = private) 
         x 
         s 
         bL 
         bU
+        bp
     end
 
     methods (Access = public)
-        function obj = bp_njac(cParams)
+        function obj = NumericalJacobianComputer(cParams)
             obj.init(cParams);
         end
 
@@ -38,12 +38,12 @@ classdef bp_njac < handle
             u.s = obj.s;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            residualBase = computeResidual(u);
+            residualBase = obj.computeResidual(u);
             for i = 1:n
                 xp = u.x;
                 xp(i) = u.x(i) + ep;
                 u.x = xp;
-                residual = computeResidual(u);
+                residual = obj.computeResidual(u);
                 J(:,i) = [(residual - residualBase)/ep]';
             end
             k = 0;
@@ -53,7 +53,7 @@ classdef bp_njac < handle
                 sp = u.s;
                 sp(i) = u.s(i) + ep;
                 u.s = sp;
-                residual = computeResidual(u);
+                residual = obj.computeResidual(u);
                 J(:,n + k) = [(residual - residualBase)/ep]';
                 end
             end
@@ -62,7 +62,7 @@ classdef bp_njac < handle
     end
     methods (Static, Access = private)
         function residual = computeResidual(cParams)
-            res = bp_res(cParams);
+            res = ResidualComputer(cParams);
             res.compute();
             residual = res.c;
         end

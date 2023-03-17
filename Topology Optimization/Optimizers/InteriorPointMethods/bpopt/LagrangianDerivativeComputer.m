@@ -1,4 +1,4 @@
-classdef bp_dL_dx < handle
+classdef LagrangianDerivativeComputer < handle
    properties (Access = public)
       dLagrangian
    end
@@ -8,12 +8,15 @@ classdef bp_dL_dx < handle
       sp
       xp
       x
+      s
+      bp
       bL
       bU
+      lambda
    end
 
    methods (Access = public)
-      function obj = bp_dL_dx(cParams)
+      function obj = LagrangianDerivativeComputer(cParams)
          obj.init(cParams);
       end
       function compute(obj)
@@ -24,23 +27,35 @@ classdef bp_dL_dx < handle
    methods (Access = private)
       function init(obj,cParams)
          obj.x = cParams.x;
-         obj.xL = cParams.xL;
+         obj.bp = cParams.bp;
          obj.s = cParams.s;
-         obj.lam = cParams.lam;
+         obj.lambda = cParams.lam;
          obj.bL = cParams.bL;
          obj.bU = cParams.bU;
       end
 
       function computeLagrangianBase(obj)
-         LB = bp_lagrangian(obj);
+         u.bp = obj.bp;
+         u.x = obj.x;
+         u.s = obj.s;
+         u.lam = obj.lambda;
+         u.bL = obj.bL;
+         u.bU = obj.bU;
+         LB = LagrangianComputer(u);
          LB.compute();
-         obj.LBase = LB.Lagrangian;
+         obj.LBase = LB.lagrangian;
       end
 
       function computeLagrangian(obj)
-         L = bp_lagrangian(obj);
+         u.bp = obj.bp;
+         u.x = obj.x;
+         u.s = obj.s;
+         u.lam = obj.lambda;
+         u.bL = obj.bL;
+         u.bU = obj.bU;
+         L = LagrangianComputer(u);
          L.compute();
-         obj.L1 = L.Lagrangian;
+         obj.L1 = L.lagrangian;
       end
 
       function computeLagrangianDerivative(obj)
@@ -57,8 +72,8 @@ classdef bp_dL_dx < handle
          for i = 1:m
             if (obj.bU(i) > obj.bL(i))
                k = k + 1;
-               obj.sp = onj.s;
-               obj.sp(i) = s(i) + ep;
+               obj.sp = obj.s;
+               obj.sp(i) = obj.s(i) + ep;
                obj.computeLagrangian();
                dL(k + n) = [(obj.L1 - obj.LBase)/ep];
             end

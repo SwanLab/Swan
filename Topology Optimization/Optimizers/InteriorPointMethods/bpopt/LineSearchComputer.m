@@ -1,12 +1,45 @@
-classdef LineSearchComputer < InteriorPointMethodsSolver
+classdef LineSearchComputer < handle
 
     properties (Access = public)
-        e_mu
+        e_mu, e
+        x
+        status
+        lambda
+        s
+        zL, zU
+        store
+        bp        
     end
     properties (Access = private)
-        predictReduction
+        predictReduction, predictUpdated        
+        reducedUpdated, reduced
+        alpha_du, alpha_du_max
+        alpha_pr, alpha_pr_max
+        xa, sa
+        dx
+        n, ns, m
+        ds
+        dzL, zLa
+        dzU, zUa
+        dlam, lam
+        xL, sL
+        tau
+        xU, sU
+        bU, bL
+        accept
+        gradient, jacobian, residualLS
+        H
+        filter
+        invDiagdU, invDiagdL
+        th, ph, thetaMax
+        sigmaL, sigmaU
+        iter
+        firstLHS
     end
     methods (Access = public)
+        function obj = LineSearchComputer(cParams)
+            obj.init(cParams);
+        end
         function search(obj)
             obj.createLineSearchMethod();
             obj.updateVariables();
@@ -14,10 +47,10 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
             obj.pushVariables();
             obj.reduceMeritFunction();
             obj.performLineSearch();
+            obj.contourPlot();
             obj.checkAcceptance();
             obj.updateWithAcceptance();
             obj.checkConvergence();
-            obj.checkTerminationConditions();
             obj.checkNewBarrierProblem();
             obj.printAndStoreVariables();
             obj.checkMaxIter();
@@ -42,7 +75,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                     obj.alpha_du = 1;
                 case(3)
                     % alpha_du set as approach to constraint
-                    obj.alpha_du = alpha_du_max;
+                    obj.alpha_du = obj.alpha_du_max;
                     % compute new acceptance point
                     obj.alpha_pr = min(obj.alpha_pr,obj.alpha_pr_max);
              end
@@ -53,7 +86,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 if(obj.ns>=1)
                     obj.sa = obj.s + obj.alpha_pr * obj.ds';
                 end
-                obj.lambda = obj.lambda + obj.alpha_pr * obj.dlam';
+            obj.lambda = obj.lam + obj.alpha_pr * obj.dlam';
         end
 
         function updateZvalues(obj)
@@ -113,7 +146,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
 
         function reduceMeritFunction(obj)
             % predicted reduction in the merit function
-            obj.predictReduction = -obj.alpha_pr*obj.gradient*[obj.dx;obj.ds] - 0.5*obj.alpha_pr^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.bp.nu*(norm(obj.residual',1) - norm(obj.residual' + obj.alpha_pr*obj.jacobian*[obj.dx;obj.ds],1));
+            obj.predictReduction = -obj.alpha_pr*obj.gradient*[obj.dx;obj.ds] - 0.5*obj.alpha_pr^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.bp.nu*(norm(obj.residualLS',1) - norm(obj.residualLS' + obj.alpha_pr*obj.jacobian*[obj.dx;obj.ds],1));
             u.bp = obj.bp;
             u.x = obj.x;
             u.xL = obj.xL;
@@ -121,11 +154,11 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
             u.s = obj.s;
             u.bU = obj.bU;
             u.bL = obj.bL;
-            meritX = meritFunctionComputer(u);
+            meritX = obj.meritFunctionComputer(u);
             
             u.x = obj.xa;
             u.s = obj.sa;
-            meritA = meritFunctionComputer(u);
+            meritA = obj.meritFunctionComputer(u);
             obj.reduced = meritX - meritA;
         end
 
@@ -155,7 +188,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 %end
                 obj.bp.nu = max(1,min(1000,nuUpdated));
                 % update predicted and actual reductions with new nu value
-                obj.predictUpdated = -obj.alpha_pr*obj.gradient*[obj.dx;obj.ds] - 0.5*obj.alpha_pr^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.bp.nu*(norm(obj.residual',1) - norm(obj.residual' + obj.alpha_pr*obj.jacobian*[obj.dx;obj.ds],1));
+                obj.predictUpdated = -obj.alpha_pr*obj.gradient*[obj.dx;obj.ds] - 0.5*obj.alpha_pr^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.bp.nu*(norm(obj.residualLS',1) - norm(obj.residualLS' + obj.alpha_pr*obj.jacobian*[obj.dx;obj.ds],1));
                 u.bp = obj.bp;
                 u.x = obj.x;
                 u.xL = obj.xL;
@@ -195,6 +228,11 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 ac = bp_accept(u);
                 ac.compute();
                 obj.accept = ac.accept;
+            end
+        end
+        function contourPlot(obj)
+            if (obj.bp.contour)
+                bp_contour(obj.bp,obj.x,obj.alpha_pr*obj.dx);
             end
         end
         function checkAcceptance(obj)
@@ -255,7 +293,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 % accept point
                 obj.x = obj.xa;
                 obj.s = obj.sa;
-                obj.lam = obj.lama;
+                obj.lam = obj.lambda;
                 obj.zL = obj.zLa;
                 obj.zU = obj.zUa;
                 
@@ -278,24 +316,16 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 u.s = obj.s;
                 u.bL = obj.bL;
                 u.bU = obj.bU;
-                residual = residualComputer(u);
-                part(2) = max(abs(residual));
+                residualUpdated = InteriorPointMethodsSolver.residualComputer(u);
+                part(2) = max(abs(residualUpdated));
                 % use mu = 0 to test for convergence
                 part(3) = max(abs(diag([obj.x-obj.xL obj.s-obj.sL])*diag(obj.zL)*obj.e))/s_c;
-                part(4) = max(abs(diag([obj.xU-obj.x obj.sU-obj.s])*diag(boj.zU)*obj.e))/s_c;
+                part(4) = max(abs(diag([obj.xU-obj.x obj.sU-obj.s])*diag(obj.zU)*obj.e))/s_c;
                 obj.e_mu = max(part);
                         
                 if (obj.bp.idebug>=1)
                     fprintf(1,'pred: %12.4e, ared: %12.4e, e_mu: %12.4e, k*mu: %12.4e\n',obj.predictUpdated,obj.reducedUpdated,obj.e_mu,0.2*obj.bp.mu);
                 end
-        end
-        function checkTerminationConditions(obj)
-            % check for termination conditions
-            if (obj.e_mu <= obj.bp.e_tol)
-                fprintf(1,'\nSuccessful solution\n');
-                obj.status = 'success';
-                break;
-            end
         end
         function checkNewBarrierProblem(obj)
             % check for new barrier problem
@@ -306,18 +336,19 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
                 if (obj.e_mu < k_mu * obj.bp.mu)
                     th_mu = 1.5; % (1,2)
                     % update mu
-                    obj.bp.mu = max(bp.e_tol/10,min(k_mu*obj.bp.mu,obj.bp.mu^th_mu));
+                    obj.bp.mu = max(obj.bp.e_tol/10,min(k_mu*obj.bp.mu,obj.bp.mu^th_mu));
                     % update tau
-                    tau = min(obj.bp.tau_max,100*obj.bp.mu);
+                    obj.tau = min(obj.bp.tau_max,100*obj.bp.mu);
                     % re-initialize filter
                     u.bp = obj.bp;
                     u.x = obj.x;
                     u.xL = obj.xL;
+                    u.xU = obj.xU;
                     u.s = obj.s;
                     u.bL = obj.bL;
                     u.bU = obj.bU;
-                    phi = phiComputer(u);
-                    obj.filter = [obj.th_max phi];
+                    phi = InteriorPointMethodsSolver.phiComputer(u);
+                    obj.filter = [obj.thetaMax phi];
                 end
             end
         end
@@ -330,7 +361,7 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
             u.bp = obj.bp;
             u.iter = obj.iter;
             u.x = obj.x;
-            u.lambda = obj.lambda;
+            u.lam = obj.lambda;
             u.zL = obj.zL;
             u.zU = obj.zU;
             u.alpha_pr = obj.alpha_pr;
@@ -338,16 +369,16 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
             u.s = obj.s;
             u.xL = obj.xL;
             u.xU = obj.xU;
-            u.xL = obj.xL;
             u.bL = obj.bL;
             u.bU = obj.bU;
-            bp_iprint(u);
+            pr = PrinterComputer(u);
+            pr.print();
         end 
         function checkMaxIter(obj)
             % reached the end of the iteration loop without convergence
             if (obj.iter == obj.bp.maxiter)
                 obj.status = 'failed: max iterations';
-                break;
+                return;
             end
             
            
@@ -374,9 +405,56 @@ classdef LineSearchComputer < InteriorPointMethodsSolver
 
     methods (Static, Access = public)
         function meritFunction = meritFunctionComputer(cParams)
-            merit = bp_merit(cParams);
+            merit = MeritComputer(cParams);
             merit.compute();
             meritFunction = merit.merit;
+        end
+    end
+    methods (Access = private)
+        function init(obj,cParams)
+        obj.bp = cParams.bp;      
+        obj.alpha_du = cParams.alpha_du; obj.alpha_du_max = obj.alpha_du_max;
+        obj.alpha_pr = cParams.alpha_pr; obj.alpha_pr_max = obj.alpha_pr_max;
+        obj.xa = cParams.xa; obj.sa = cParams.sa;
+        obj.x = cParams.x; obj.dx = cParams.dx;
+        obj.n = cParams.n; obj.ns = cParams.ns; obj.m = cParams.m;
+        obj.s = cParams.s; obj.ds = cParams.ds;
+        obj.zL = cParams.zL; obj.dzL = cParams.dzL; obj.zLa = cParams.zLa;
+        obj.zU = cParams.zU; obj.dzU = cParams.dzU; obj.zUa = cParams.zUa;
+        obj.lambda = cParams.lambda; obj.dlam = cParams.dlam; 
+        obj.xL = cParams.xL; obj.sL = cParams.sL;
+        obj.tau = cParams.tau;
+        obj.xU = cParams.xU; obj.sU = cParams.sU;
+        obj.bU = cParams.bU; obj.bL = cParams.bL;
+        obj.gradient = cParams.gradient; obj.jacobian = cParams.jacobian; obj.residualLS = cParams.residualLS;
+        obj.H = cParams.H;
+        obj.filter = cParams.filter; obj.store = cParams.store; obj.status = cParams.status;
+        obj.invDiagdU = cParams.invDiagdU; obj.invDiagdL = cParams.invDiagdL;
+        obj.th = cParams.th; obj.ph = cParams.ph; obj.thetaMax = cParams.thetaMax;
+        obj.sigmaL = cParams.sigmaL; obj.sigmaU = cParams.sigmaU;
+        obj.iter = cParams.iteration;
+        obj.firstLHS = cParams.firstLHS;
+        obj.e = cParams.e;
+        obj.lam = cParams.lam;
+        end
+
+        function computeObjectiveGradient(obj)
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.s =obj.s;
+            grad = GradientComputer(u);
+            grad.create();
+            obj.gradient = grad.objGradient;
+        end
+
+        function computeJacobian(obj)
+            u.bp = obj.bp;
+            u.x = obj.x;
+            u.bL = obj.bL;
+            u.bU = obj.bU;
+            jac = JacobianComputer(u);
+            jac.compute();
+            obj.jacobian = jac.pd;
         end
     end
 end

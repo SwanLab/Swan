@@ -1,4 +1,4 @@
-classdef bp_accept < handle
+classdef AcceptanceComputer < handle
     properties (Access = public)
         accept
     end
@@ -20,7 +20,7 @@ classdef bp_accept < handle
     end
 
     methods (Access = public)
-        function obj = bp_accept(cParams)
+        function obj = AcceptanceComputer(cParams)
             obj.init(cParams);
         end
 

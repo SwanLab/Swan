@@ -1,5 +1,5 @@
 % rearrange Jacobian
-classdef bp_jac < handle
+classdef JacobianComputer < handle
     properties (Access = public)
         pd
     end
@@ -12,7 +12,7 @@ classdef bp_jac < handle
     end
 
     methods (Access = public)
-        function obj = bp_jac(cParams)
+        function obj = JacobianComputer(cParams)
             obj.init(cParams);
         end
 
@@ -32,7 +32,7 @@ classdef bp_jac < handle
         function computeBaseJacobian(obj)
             u.bp = obj.bp;
             u.x = obj.x;
-            baseJac = bp_jac_stub(u);
+            baseJac = JacobianObtainer(u);
             baseJac.create();
             obj.pdComputation = baseJac.pdComputation;
         end
