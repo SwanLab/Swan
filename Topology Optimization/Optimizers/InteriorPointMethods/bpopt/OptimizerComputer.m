@@ -1,11 +1,6 @@
 classdef OptimizerComputer < InteriorPointMethodsSolver
-    properties (Access = public)
-    end
-    properties (Access = protected)
-    end
 
     methods (Access = public)
-        
         function compute(obj)
             obj.checkArguments();
             obj.loadInitialVariables();
@@ -16,11 +11,10 @@ classdef OptimizerComputer < InteriorPointMethodsSolver
             obj.firstNormInfeasibilities();
             obj.iterationInitializer();
             obj.iterationProcess();
-            %obj.displaySolution();
         end
-
     end
-    methods (Access = protected)
+
+    methods (Access = private)
         function init(obj,cParams)
             obj.bp = cParams;
         end
@@ -52,24 +46,13 @@ classdef OptimizerComputer < InteriorPointMethodsSolver
                     obj.sU(k) = obj.bU(i);
                 end
             end
-
-            % system size
-            % n variables
             obj.n = max(size(obj.x));
-            % ns slack variables
             obj.ns = max(size(obj.s));
-
-            % initial residuals
             obj.computeInitialResidual();
-            % m constraints (inequality or equality)
             obj.m = max(size(obj.initResidual));
-            % ones vector
             obj.e = ones(obj.n + obj.ns,1);
-
-            % initial equation slack variables
             k = 0;
             for i = 1:obj.m
-                % no slack variable when bU(i) == bL(i)
                 if(obj.bU(i) > obj.bL(i))
                     k = k + 1;
                     if (obj.bp.slack_init)
@@ -79,11 +62,8 @@ classdef OptimizerComputer < InteriorPointMethodsSolver
                     end
                 end
             end
-
-            % initial parameters
             obj.alpha_pr = 1.0;
             obj.alpha_du = 1.0;
-            
         end
 
         function loadVariables(obj)
@@ -173,9 +153,7 @@ classdef OptimizerComputer < InteriorPointMethodsSolver
         function computeConstraintMultiplyers(obj)
             obj.computeObjectiveGradient();
             obj.computeJacobian();
-
             lam = pinv(full(obj.jacobian*obj.jacobian'))*obj.jacobian*(obj.zL'- obj.zU'- obj.gradient');
-
             obj.lambda = lam';
         end
 

@@ -1,77 +1,55 @@
 classdef InteriorPointMethodsSolver < handle 
     properties (Access = public)
         bp
-        diagonalzL
-        diagonalzU
-        diagonaldL
-        diagonaldU
-        invDiagdL
-        invDiagdU
-        sigmaL
-        sigmaU
+        invDiagdL, invDiagdU
+        sigmaL, sigmaU
         H
-        linearLHS
-        search1
-        search2
-        updatedLambda
-        alpha_du_max
-        alpha_pr_max
+        alpha_du, alpha_du_max
+        alpha_pr, alpha_pr_max
         firstLHS
         iteration
-                sol
-        x 
-        xL
-        xU
-        bL
-        bU
-        %bp
-        s 
-        initResidual
-        gradient
-        jacobian
+        sol
+        x, s
+        xL, sL, bL
+        xU, sU, bU
+        gradient, jacobian, residualLS
         lambda
-        okJacobian
-        okHessian
-        okObjJacobian
-        alpha_pr
-        alpha_du
         thetaMax
-        thetaMin
-        filter
-        store
-        hessian
+        filter, store
         e
         th
         ph
         status
-        dx
-        ds 
-        dlam 
-        dzL
-        dzU
-        zLa
-        zUa
-        xa
-        sa
-        residualLS
-        lam
-        m
-        n 
-        ns
-        sL 
-        sU 
+        dx, ds 
+        dlam, lam
+        dzL, dzU
+        zLa, zUa
+        xa, sa
+        m, n, ns
         tau
-        zL
-        zU
-        dL
-        dU
+        zL, zU
     end
     properties (Access = protected)
-        
+        okJacobian
+        okHessian
+        okObjJacobian
+        thetaMin
+        initResidual
     end
     properties (Access = private)
         isposdef
         e_mu
+        diagonalzL
+        diagonalzU
+        diagonaldL
+        diagonaldU
+        hessian
+        dL
+        dU
+        search1
+        search2
+        linearLHS
+        updatedLambda
     end
 
     methods (Access = public)
@@ -85,7 +63,6 @@ classdef InteriorPointMethodsSolver < handle
         function iterationProcess(obj)
             for iter = 1:obj.bp.maxiter
                 obj.iteration = iter;
-                % new residuals
                 u.bp = obj.bp;
                 u.x = obj.x;
                 u.s = obj.s;
@@ -93,26 +70,20 @@ classdef InteriorPointMethodsSolver < handle
                 u.bU = obj.bU;
                 residual = obj.residualComputer(u);
                 obj.residualLS = residual;
-                % 1-norm of infeasibilities
                 obj.th = obj.thetaComputer(u);
-                
-                % phi, objective function and barrier terms
                 u.xL = obj.xL;
                 u.xU = obj.xU;
                 obj.ph = obj.phiComputer(u);
-                
                 obj.zUpdater();
                 obj.sigmaComputer();
                 obj.computeJacobian();
                 obj.computeHessian();
                 obj.computeObjectiveGradient();
                 obj.H = obj.hessian + obj.sigmaL + obj.sigmaU;
-                
                 obj.linearSystemSolver(residual);
                 obj.computeAcceptancePoint();
                 obj.checkConstraintViolations();
                 obj.lineSearch();
-                % check for termination conditions
                 if (obj.e_mu <= obj.bp.e_tol)
                     fprintf(1,'\nSuccessful solution\n');
                     obj.status = 'success';
@@ -122,7 +93,9 @@ classdef InteriorPointMethodsSolver < handle
             end
             obj.displaySolution();
         end
+    end
 
+    methods(Access = private)
         function zUpdater(obj)
             if (obj.bp.z_update == 2)
                 zLC = obj.zL;
@@ -219,9 +192,6 @@ classdef InteriorPointMethodsSolver < handle
         end
 
         function testLinearSystemDefinitiness(obj)
-            % test for positive definiteness
-                % A1 --------------------------------------------------
-                % test for positive definiteness of A1
                 if (obj.bp.idebug>=2)
                     if (min(eigs(obj.linearLHS))<0)
                         fprintf(1,'%12.4e not pos definite - eigenvalue test\n',obj.linearLHS);
@@ -247,15 +217,11 @@ classdef InteriorPointMethodsSolver < handle
             end
             obj.lam = obj.lambda;
             obj.lambda = obj.lambda + obj.alpha_du * obj.dlam';
-                            
-            % updating zLa and zUa
             switch(obj.bp.z_update)
                 case(1)
-                    % update from direct solve approach
                     obj.zLa = obj.zL + obj.alpha_du * obj.dzL';
                     obj.zUa = obj.zU + obj.alpha_du * obj.dzU';
                 case(2)
-                    % update explicitly from z = mu / x
                     for i = 1:obj.n
                         zLaC(i) = obj.bp.mu / (xaC(i) - obj.xL(i));
                         dzLC(i,1) = zLaC(i) - obj.zL(i);
@@ -264,7 +230,6 @@ classdef InteriorPointMethodsSolver < handle
                         zLaC(obj.n+i) = obj.bp.mu / (saC(i) - obj.sL(i));
                         dzLC(obj.n+i,1) = zLaC(obj.n+i) - obj.zL(obj.n+i);
                     end
-                    % zU*(xU-x) = mu  =>  zU = mu / (xU-x)
                     for i = 1:obj.n
                         zUaC(i) = obj.bp.mu / (obj.xU(i)-xaC(i));
                         dzUC(i,1) = zUaC(i) - obj.zU(i);
@@ -280,13 +245,9 @@ classdef InteriorPointMethodsSolver < handle
             end
                 obj.xa = xaC;
                 obj.sa = saC;
-                % max alpha is that which brings the search point to within "tau" of constraint
-                % tau is 0 to 0.01 (tau = mu when mu<0.01, otherwise tau=0.01)
                 obj.alpha_pr_max = 1.0;
                 obj.alpha_du_max = 1.0;
-            end
-            
-        
+        end
 
         function checkConstraintViolations(obj)
             for i = 1:obj.n
@@ -309,11 +270,9 @@ classdef InteriorPointMethodsSolver < handle
                 if (obj.bp.z_update==1)          
                     if(obj.zLa(i) < 0)
                         obj.alpha_du_max = min(obj.alpha_du_max,(obj.tau*obj.zL(i) - obj.zL(i))/obj.dzL(i,1));
-                        %zLa(i) = 0;
                     end
                     if(obj.zUa(i) < 0)
                         obj.alpha_du_max = min(obj.alpha_du_max,(obj.tau*obj.zU(i) - obj.zU(i))/obj.dzU(i,1));
-                        %zUa(i) = 0;
                     end
                 end
             end
@@ -333,9 +292,6 @@ classdef InteriorPointMethodsSolver < handle
             obj.e_mu = LSearch.e_mu;
         end
         function inverseMatrices(obj,matrix,dx1,ds1,dlam1,dzL1,dzU1,idebug,A1,dx2,ds2,dlam2,dzL2,dzU2,A2)
-            % reduced or full matrix inversion
-            %  1 = condensed, symmetric matrix
-            %  2 = full, unsymmetric matrix
             if (matrix == 1)
                 obj.dx = dx1;
                 obj.ds = ds1;
@@ -355,6 +311,23 @@ classdef InteriorPointMethodsSolver < handle
                     fprintf(1,'Warning: A2 condition number high %12.4e\n',cond(full(A2)))
                 end
             end
+        end
+        function init(obj,cParams)
+            obj.bp = cParams;
+        end
+
+        function openOptimizer(obj)
+                u = obj.bp;
+                opt = OptimizerComputer(u);
+                opt.compute();
+        end
+
+        function finalSolTest(obj)
+            load("final_sol.mat",'x_old');
+            u.loadedData = x_old;
+            u.actualData = obj.x;
+            u.desiredTest = 'Final Solution';
+            obj.testResults(u);
         end
 
         function displaySolution(obj)
@@ -401,17 +374,24 @@ classdef InteriorPointMethodsSolver < handle
     end
 
     methods (Static, Access = public)
+        function residual = residualComputer(cParams)
+            residualC = ResidualComputer(cParams);
+            residualC.compute();
+            residual = residualC.c;
+        end
+        
+        function phi = phiComputer(cParams)
+            phiC = PhiComputer(cParams);
+            phiC.compute();
+            phi = phiC.phi;
+        end
+    end
+    methods (Static, Access = protected)
         function conditionPrinter(idebug,A1,A2,search1,search2)
             if (idebug>=2)
                 fprintf(1,'Diff: %12.4e, Cond(A1): %12.4e, Cond(A2): %12.4e\n', ...
                     sum(abs(search1 - search2)),cond(full(A1)),cond(full(A2)));
             end
-        end
-
-        function phi = phiComputer(cParams)
-            phiC = PhiComputer(cParams);
-            phiC.compute();
-            phi = phiC.phi;
         end
 
         function theta = thetaComputer(cParams)
@@ -420,25 +400,9 @@ classdef InteriorPointMethodsSolver < handle
             theta = th.theta;
         end
 
-        function residual = residualComputer(cParams)
-            residualC = ResidualComputer(cParams);
-            residualC.compute();
-            residual = residualC.c;
-        end
-
         function testResults(cParams)
             Test = TestComputer(cParams);
             Test.compute();
-        end
-    end
-    methods (Access = private)
-        function init(obj,cParams)
-            obj.bp = cParams;
-        end
-        function openOptimizer(obj)
-                u = obj.bp;
-                opt = OptimizerComputer(u);
-                opt.compute();
         end
     end
     methods (Access = protected)
@@ -469,14 +433,6 @@ classdef InteriorPointMethodsSolver < handle
             hes = HessianComputer(u);
             hes.create();
             obj.hessian = hes.hess;
-        end
-
-        function finalSolTest(obj)
-            load("final_sol.mat",'x_old');
-            u.loadedData = x_old;
-            u.actualData = obj.x;
-            u.desiredTest = 'Final Solution';
-            obj.testResults(u);
         end
     end
 end

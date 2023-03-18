@@ -2,17 +2,16 @@ classdef LineSearchComputer < handle
 
     properties (Access = public)
         e_mu, e
-        x
+        x, s
         status
         lambda
-        s
         zL, zU
         store
         bp        
     end
     properties (Access = private)
-        predictReduction, predictUpdated        
-        reducedUpdated, reduced
+        predictReduction, predictUpdated
+        reduced
         alpha_du, alpha_du_max
         alpha_pr, alpha_pr_max
         xa, sa
@@ -80,6 +79,7 @@ classdef LineSearchComputer < handle
                     obj.alpha_pr = min(obj.alpha_pr,obj.alpha_pr_max);
              end
         end
+        
         function updateVariables(obj)
             % apply alpha values
             obj.xa = obj.x + obj.alpha_pr * obj.dx';
@@ -117,6 +117,7 @@ classdef LineSearchComputer < handle
                 end
             end
         end
+
         function pushVariables(obj)
             % clipping (this should already be arranged by alpha_max)
             % push away from the boundary with tau
@@ -155,7 +156,6 @@ classdef LineSearchComputer < handle
             u.bU = obj.bU;
             u.bL = obj.bL;
             meritX = obj.meritFunctionComputer(u);
-            
             u.x = obj.xa;
             u.s = obj.sa;
             meritA = obj.meritFunctionComputer(u);
@@ -169,12 +169,9 @@ classdef LineSearchComputer < handle
             %  3 = filter method
             switch obj.bp.line_search
             case(1)
-                % merit function
                 pred_phi_1 = obj.gradient*[obj.dx;obj.ds];
-                % set 2nd derivative contribution to zero if < 0
                 pred_phi_2 = max(0,0.5*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds]);
                 pred_phi_decrease = pred_phi_1 + pred_phi_2;
-
                 u.bp = obj.bp;
                 u.xa = obj.xa;
                 u.sa = obj.sa;
@@ -183,41 +180,20 @@ classdef LineSearchComputer < handle
                 theta = thetaComputer(u);
                 rho = 0.1;
                 nuUpdated = pred_phi_decrease / ((1 - rho) * theta);
-                %if (new_nu>bp.nu),
-                %    bp.nu = min(1000,new_nu + 1);
-                %end
                 obj.bp.nu = max(1,min(1000,nuUpdated));
-                % update predicted and actual reductions with new nu value
                 obj.predictUpdated = -obj.alpha_pr*obj.gradient*[obj.dx;obj.ds] - 0.5*obj.alpha_pr^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.bp.nu*(norm(obj.residualLS',1) - norm(obj.residualLS' + obj.alpha_pr*obj.jacobian*[obj.dx;obj.ds],1));
-                u.bp = obj.bp;
-                u.x = obj.x;
-                u.xL = obj.xL;
-                u.xU = obj.xU;
-                u.s = obj.s;
-                u.bU = obj.bU;
-                u.bL = obj.bL;
-                meritX = meritFunctionComputer(u);
-                
-                u.x = obj.xa;
-                u.s = obj.sa;
-                meritA = meritFunctionComputer(u);
-                obj.reducedUpdated = meritX - meritA;
+                obj.reduceMeritFunction()
                 eta = 0.2;
-                % compare actual reduction to predicted reduction
-                % as long as the actual reduction is a fraction of the
-                % predicted reduction then accept the trial point
-                if (obj.reducedUpdated >= eta*obj.predictUpdated)
+                if (obj.reduced >= eta*obj.predictUpdated)
                     obj.accept = true;
                 else
                     obj.accept = false;
                 end
             case(2)
                 obj.accept = true;
-                % test case for alpha_pr, alpha_du = 1 with clipping only
                 obj.alpha_pr = 1;
                 obj.alpha_du = 1;
             case(3)
-                % check if acceptable point with filter method
                 u.bp = obj.bp;
                 u.x = obj.x;
                 u.xa = obj.xa;
@@ -230,54 +206,44 @@ classdef LineSearchComputer < handle
                 obj.accept = ac.accept;
             end
         end
+
         function contourPlot(obj)
             if (obj.bp.contour)
                 bp_contour(obj.bp,obj.x,obj.alpha_pr*obj.dx);
             end
         end
+
         function checkAcceptance(obj)
-            % testing for acceptance
-            %ac = true;
-            % second order correction
             if (false)
                 if (not(obj.accept))
-                    % new residuals
                     u.bp = obj.bp;
                     u.x = obj.x;
                     u.s = obj.s;
                     u.bL = obj.bL;
                     u.bU = obj.bU;
                     residaulX = residualComputer(u);
-
                     u.x = obj.xa;
                     u.s = obj.sa;
                     residualA = residualComputer(u);
                     b1(obj.n+1:obj.n+obj.m,1) = obj.alpha_pr*residualX' + residualA';
-                    % compute search direction, solving Ax = b
                     d3 = -pinv(full(obj.firstLHS))*b1;
                     dx3 = d3(1:obj.n,1);
                     ds3 = d3(obj.n+1:obj.n+obj.ns,1);
                     dlam3 = d3(obj.n + obj.ns + 1:obj.n + obj.ns + obj.m,1);
-                    % compute search direction for z (explicit solution)
                     dzL3 = obj.bp.mu*obj.invDiagdL*obj.e - obj.zL' - obj.sigmaL*[dx3; ds3];
                     dzU3 = obj.bp.mu*obj.invDiagdU*obj.e - obj.zU' + obj.sigmaU*[dx3; ds3];
-                        
-                    % compute new acceptance point
                     obj.xa = obj.x + obj.alpha_pr * dx3';
                     obj.sa = obj.s + obj.alpha_pr * ds3';
                     obj.lambda = obj.lambda + obj.alpha_du * dlam3';
                     obj.zLa = obj.zL + obj.alpha_du * dzL3';
                     obj.zUa = obj.zU + obj.alpha_du * dzU3';
-                        
-                    % check for acceptance of trial point
                     u.bp = obj.bp;
                     u.x = obj.x;
                     u.xa = obj.xa;
                     u.xL = obj.xL;
                     u.xU = obj.xU;
                     u.filter = obj.filter;
-                    
-                    ac = bp_accept(u);
+                    ac = AcceptanceComputer(u);
                     ac.compute();
                     obj.accept = ac.accept;
                     if (obj.accept)
@@ -288,29 +254,25 @@ classdef LineSearchComputer < handle
                 end
             end
         end
+
         function updateWithAcceptance(obj)
             if (obj.accept)
-                % accept point
                 obj.x = obj.xa;
                 obj.s = obj.sa;
                 obj.lam = obj.lambda;
                 obj.zL = obj.zLa;
                 obj.zU = obj.zUa;
-                
-                % update filter
                 obj.filter = [obj.filter; obj.th obj.ph];
             end
         end
+
         function checkConvergence(obj)
-                % check for convergence
                 s_max = 100; % > 1
                 s_d = max(s_max,(sum(abs(obj.lambda))+sum(abs(obj.zL))+sum(abs(obj.zU)))/(obj.m+2*(obj.n+obj.ns)));
                 s_c = max(s_max,(sum(abs(obj.zU))+sum(abs(obj.zL)))/(2*(obj.n+obj.ns)));
-                
                 obj.computeObjectiveGradient();
                 obj.computeJacobian();
                 part(1) = max(abs(obj.gradient' + obj.jacobian'*obj.lambda' - obj.zL' + obj.zU'))/s_d;
-
                 u.bp = obj.bp;
                 u.x = obj.x;
                 u.s = obj.s;
@@ -318,28 +280,21 @@ classdef LineSearchComputer < handle
                 u.bU = obj.bU;
                 residualUpdated = InteriorPointMethodsSolver.residualComputer(u);
                 part(2) = max(abs(residualUpdated));
-                % use mu = 0 to test for convergence
                 part(3) = max(abs(diag([obj.x-obj.xL obj.s-obj.sL])*diag(obj.zL)*obj.e))/s_c;
                 part(4) = max(abs(diag([obj.xU-obj.x obj.sU-obj.s])*diag(obj.zU)*obj.e))/s_c;
                 obj.e_mu = max(part);
-                        
                 if (obj.bp.idebug>=1)
-                    fprintf(1,'pred: %12.4e, ared: %12.4e, e_mu: %12.4e, k*mu: %12.4e\n',obj.predictUpdated,obj.reducedUpdated,obj.e_mu,0.2*obj.bp.mu);
+                    fprintf(1,'pred: %12.4e, ared: %12.4e, e_mu: %12.4e, k*mu: %12.4e\n',obj.predictUpdated,obj.reduced,obj.e_mu,0.2*obj.bp.mu);
                 end
         end
+
         function checkNewBarrierProblem(obj)
-            % check for new barrier problem
-            k_mu  = 0.2; % (0,1)
-                
-            % only update mu if requested (not debugging)
+            k_mu  = 0.2;
             if (obj.bp.mu_update)
                 if (obj.e_mu < k_mu * obj.bp.mu)
-                    th_mu = 1.5; % (1,2)
-                    % update mu
+                    th_mu = 1.5;
                     obj.bp.mu = max(obj.bp.e_tol/10,min(k_mu*obj.bp.mu,obj.bp.mu^th_mu));
-                    % update tau
                     obj.tau = min(obj.bp.tau_max,100*obj.bp.mu);
-                    % re-initialize filter
                     u.bp = obj.bp;
                     u.x = obj.x;
                     u.xL = obj.xL;
@@ -352,11 +307,12 @@ classdef LineSearchComputer < handle
                 end
             end
         end
+
         function printAndStoreVariables(obj)
-            % print iteration
             obj.printIteration();   
             obj.store = [obj.store; obj.iter obj.x obj.alpha_pr obj.alpha_du obj.bp.mu];
         end
+
         function printIteration(obj)
             u.bp = obj.bp;
             u.iter = obj.iter;
@@ -373,26 +329,20 @@ classdef LineSearchComputer < handle
             u.bU = obj.bU;
             pr = PrinterComputer(u);
             pr.print();
-        end 
+        end
+
         function checkMaxIter(obj)
-            % reached the end of the iteration loop without convergence
             if (obj.iter == obj.bp.maxiter)
                 obj.status = 'failed: max iterations';
                 return;
-            end
-            
-           
+            end 
         end
+        
         function checkNotAcceptance(obj)
-            % don't do a line search in this MATLAB version
-            % just cycle through on another iteration with a lower alpha if
-            %   the point was not accepted
             if (obj.accept)
-                % reset alpha
                 obj.alpha_pr = 1.0;
                 obj.alpha_du = 1.0;
             else
-                % reject point and move alpha_x
                 obj.alpha_pr = obj.alpha_pr / 2;
                 obj.alpha_du = obj.alpha_du / 2;
                 if (obj.alpha_pr < 1e-4)
@@ -401,41 +351,32 @@ classdef LineSearchComputer < handle
                 end
             end
         end
-    end
 
-    methods (Static, Access = public)
-        function meritFunction = meritFunctionComputer(cParams)
-            merit = MeritComputer(cParams);
-            merit.compute();
-            meritFunction = merit.merit;
-        end
-    end
-    methods (Access = private)
         function init(obj,cParams)
-        obj.bp = cParams.bp;      
-        obj.alpha_du = cParams.alpha_du; obj.alpha_du_max = obj.alpha_du_max;
-        obj.alpha_pr = cParams.alpha_pr; obj.alpha_pr_max = obj.alpha_pr_max;
-        obj.xa = cParams.xa; obj.sa = cParams.sa;
-        obj.x = cParams.x; obj.dx = cParams.dx;
-        obj.n = cParams.n; obj.ns = cParams.ns; obj.m = cParams.m;
-        obj.s = cParams.s; obj.ds = cParams.ds;
-        obj.zL = cParams.zL; obj.dzL = cParams.dzL; obj.zLa = cParams.zLa;
-        obj.zU = cParams.zU; obj.dzU = cParams.dzU; obj.zUa = cParams.zUa;
-        obj.lambda = cParams.lambda; obj.dlam = cParams.dlam; 
-        obj.xL = cParams.xL; obj.sL = cParams.sL;
-        obj.tau = cParams.tau;
-        obj.xU = cParams.xU; obj.sU = cParams.sU;
-        obj.bU = cParams.bU; obj.bL = cParams.bL;
-        obj.gradient = cParams.gradient; obj.jacobian = cParams.jacobian; obj.residualLS = cParams.residualLS;
-        obj.H = cParams.H;
-        obj.filter = cParams.filter; obj.store = cParams.store; obj.status = cParams.status;
-        obj.invDiagdU = cParams.invDiagdU; obj.invDiagdL = cParams.invDiagdL;
-        obj.th = cParams.th; obj.ph = cParams.ph; obj.thetaMax = cParams.thetaMax;
-        obj.sigmaL = cParams.sigmaL; obj.sigmaU = cParams.sigmaU;
-        obj.iter = cParams.iteration;
-        obj.firstLHS = cParams.firstLHS;
-        obj.e = cParams.e;
-        obj.lam = cParams.lam;
+            obj.bp = cParams.bp;      
+            obj.alpha_du = cParams.alpha_du; obj.alpha_du_max = obj.alpha_du_max;
+            obj.alpha_pr = cParams.alpha_pr; obj.alpha_pr_max = obj.alpha_pr_max;
+            obj.xa = cParams.xa; obj.sa = cParams.sa;
+            obj.x = cParams.x; obj.dx = cParams.dx;
+            obj.n = cParams.n; obj.ns = cParams.ns; obj.m = cParams.m;
+            obj.s = cParams.s; obj.ds = cParams.ds;
+            obj.zL = cParams.zL; obj.dzL = cParams.dzL; obj.zLa = cParams.zLa;
+            obj.zU = cParams.zU; obj.dzU = cParams.dzU; obj.zUa = cParams.zUa;
+            obj.lambda = cParams.lambda; obj.dlam = cParams.dlam; 
+            obj.xL = cParams.xL; obj.sL = cParams.sL;
+            obj.tau = cParams.tau;
+            obj.xU = cParams.xU; obj.sU = cParams.sU;
+            obj.bU = cParams.bU; obj.bL = cParams.bL;
+            obj.gradient = cParams.gradient; obj.jacobian = cParams.jacobian; obj.residualLS = cParams.residualLS;
+            obj.H = cParams.H;
+            obj.filter = cParams.filter; obj.store = cParams.store; obj.status = cParams.status;
+            obj.invDiagdU = cParams.invDiagdU; obj.invDiagdL = cParams.invDiagdL;
+            obj.th = cParams.th; obj.ph = cParams.ph; obj.thetaMax = cParams.thetaMax;
+            obj.sigmaL = cParams.sigmaL; obj.sigmaU = cParams.sigmaU;
+            obj.iter = cParams.iteration;
+            obj.firstLHS = cParams.firstLHS;
+            obj.e = cParams.e;
+            obj.lam = cParams.lam;
         end
 
         function computeObjectiveGradient(obj)
@@ -455,6 +396,14 @@ classdef LineSearchComputer < handle
             jac = JacobianComputer(u);
             jac.compute();
             obj.jacobian = jac.pd;
+        end
+    end
+
+    methods (Static, Access = private)
+        function meritFunction = meritFunctionComputer(cParams)
+            merit = MeritComputer(cParams);
+            merit.compute();
+            meritFunction = merit.merit;
         end
     end
 end
