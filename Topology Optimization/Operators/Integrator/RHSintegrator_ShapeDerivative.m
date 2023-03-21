@@ -4,7 +4,6 @@ classdef RHSintegrator_ShapeDerivative < handle
         npnod
         mesh
         globalConnec
-        fType
         fNodal
         fGauss
         xGauss
@@ -34,13 +33,8 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.quadOrder    = cParams.quadOrder;
             obj.globalConnec = cParams.globalConnec;
             obj.quadrature   = obj.computeQuadrature();
-            if isequal(cParams.fType,'Nodal')
-                obj.fNodal   = cParams.fNodal;
-                obj.computeFgaussFromFnodal();
-            elseif isequal(cParams.fType,'Gauss')
-                obj.xGauss   = cParams.xGauss;
-                obj.fGauss   = cParams.fGauss;
-            end
+            obj.xGauss   = cParams.xGauss;
+            obj.fGauss   = cParams.fGauss;
         end
         
         function q = computeQuadrature(obj)
@@ -48,35 +42,12 @@ classdef RHSintegrator_ShapeDerivative < handle
             q.computeQuadrature(obj.quadOrder);
         end
         
-        function computeFgaussFromFnodal(obj)
-            obj.computeGaussPoints();
-            obj.computeFgauss();
-        end
-
-        function computeGaussPoints(obj)
-            q = obj.quadrature;
-            xG = repmat(q.posgp,[1,1,obj.mesh.nelem]);
-            obj.xGauss = xG;
-        end
-
-        function computeFgauss(obj)
-            msh.connec = obj.globalConnec;
-            msh.type   = obj.mesh.type;
-            s.fValues = obj.fNodal;
-            s.mesh   = msh;
-            f = P1Function(s);
-            fG = f.evaluate(obj.xGauss);
-            fG = permute(fG,[2 3 1]);
-            obj.fGauss = fG;
-        end
-        
         function rhsC = computeElementalRHS(obj)
-            % integrateWithShapeDerivative@RHSintegrator
             fG      = obj.fGauss;
-            dV      = obj.computeDvolume();
-            dN      = obj.computeGrad();
-            nnode   = size(dN,2);
-            ndim    = size(dN,1);
+            dV      = obj.mesh.computeDvolume(obj.quadrature);
+            dNdx    = obj.computeGrad();
+            nnode   = size(dNdx,2);
+            ndim    = size(dNdx,1);
             nelem   = obj.mesh.nelem;
             int = zeros(nnode,nelem);
             for igaus = 1:obj.quadrature.ngaus
@@ -85,8 +56,8 @@ classdef RHSintegrator_ShapeDerivative < handle
                     fI     = squeezeParticular(fG(idime,igaus,:),1);
                     fdV    = fI.*dV(igaus,:);
                    %dShape = squeeze(grad(idime,:,:,igaus));
-                    %intI = bsxfun(@times,dShape,fdV);                   
-                    dShape = squeeze(dN(idime,inode,:,igaus))';                    
+                    %intI = bsxfun(@times,dShape,fdV);
+                    dShape = squeeze(dNdx(idime,inode,:,igaus))';
                     intI = dShape.*fdV;
                     int(inode,:) = int(inode,:) + intI;
                     end
@@ -117,17 +88,6 @@ classdef RHSintegrator_ShapeDerivative < handle
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
-        end
-        
-        function dV = computeDvolume(obj)
-            q = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);
-        end
-        
-        function shapes = computeShapeFunctions(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);
         end
 
     end

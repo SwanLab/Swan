@@ -1,30 +1,10 @@
 %% To-do
 % DISCONTINUOUS MESH
-% (1) Delete discontinuous meshes
-%       IMPOSSIBLE
-%           - P1DiscontinuousFunction
-%           - Mesh
-%           - Field
-%           - MinimumDiscGradFieldWithVectorInL2
-%               - used for fields
-%       TOUGH
-%           - DehomogenizingSingularitiesTest
-%           - RemeshingTests
-%           - Remesher -> make it disappear from everywhere? only in mesh?
-%           ? SymmetricContMapCondition
-%               - used for connecs, coords
-
-% (2) Delete fields
-%       - Note: ignored P2 elastic for now
-%       - ELASTIC STIFFNESS
-%           Pending test_anisotropy cleanup
-%       - STIFFNESS
-%           Pending: test1DLHS -> Geometry_Line to include computeInvJac
-%           a la Geometry_Volumetric
-%           Pending: diffreact dependencies
-%       - MASS
-%           Pending: test1DLHS, LHSintegrator_Stokes
-%           Noteworthy: LHSintegrator_MassBoundary
+% - Fix P1Function and P1Discontinuous function computeGradient fgauss
+% nelem order
+% - Should Fgaussdiscontfunctions exist on their own? RHSintegrator -> how
+% do you assemble using this type of function? it just comes from the
+% gradient of a p1fun / p1dfun
 
 %% Questions
 % - Filter_P1_LevelSet.getP0fromP1() ??

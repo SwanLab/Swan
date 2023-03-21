@@ -109,7 +109,8 @@ classdef P1Function < FeFunction
                 end
             end
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues    = permute(fVR, [1 3 2]);
+%             s.fValues    = permute(fVR, [1 3 2]);
+            s.fValues    = fVR;
             s.mesh       = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
@@ -126,7 +127,8 @@ classdef P1Function < FeFunction
             gradT = permute(gradReshp, [2 1 3 4]);
             symGrad = 0.5*(gradReshp + gradT);
             
-            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+            rshp = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+            s.fValues    = permute(rshp, [1 3 2]);
             s.quadrature = quad;
             s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);

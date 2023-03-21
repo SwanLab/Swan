@@ -50,8 +50,8 @@ classdef RHSintegrator_Unfitted < handle
         end
 
         function s = createInnerParams(obj,innerMesh)
-            s.mesh         = innerMesh.mesh;
             s.type         = 'ShapeFunction';
+            s.mesh         = innerMesh.mesh;
             s.globalConnec = innerMesh.globalConnec;
             s.npnod        = obj.mesh.backgroundMesh.nnodes;
         end

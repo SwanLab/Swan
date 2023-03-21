@@ -61,11 +61,10 @@ classdef MappingComputer < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             fG = obj.orientation.evaluate(q.posgp);
-            s.fType     = 'Gauss';
             s.fGauss    = fG;
             s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
+            s.mesh      = obj.meshDisc;
+            s.type      = obj.meshDisc.type;
             s.quadOrder = q.order;
             s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivative';

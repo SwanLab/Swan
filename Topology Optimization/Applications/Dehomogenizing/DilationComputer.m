@@ -57,8 +57,8 @@ classdef DilationComputer < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
-            s.fType     = 'Gauss';
-            s.fGauss    = obj.computeFieldTimesDivField(q);
+            gradT = obj.computeFieldTimesDivField(q);
+            s.fGauss    = gradT.fValues;
             s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
@@ -75,8 +75,11 @@ classdef DilationComputer < handle
             a1    = obj.orientationVector{1};
             a2    = obj.orientationVector{2};
             aDa1  = a1.computeFieldTimesDivergence(q);
-            aDa2  = a2.computeFieldTimesDivergence(q);
-            gradT = -aDa1.fValues - aDa2.fValues;
+            aDa2  = a2.computeFieldTimesDivergence(q);        
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = -aDa1.fValues - aDa2.fValues;
+            gradT = FGaussDiscontinuousFunction(s);
         end
         
         function u = solveSystem(obj)
