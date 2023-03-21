@@ -14,7 +14,7 @@ classdef Trainer < handle
        nPlot
     end
 
-    properties (Access = private)
+    properties (Access = protected)
        optimizationProblem
     end
 

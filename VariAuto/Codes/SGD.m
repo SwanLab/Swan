@@ -13,9 +13,9 @@ classdef SGD < Trainer
        thetaLowest
     end
 
-    properties (Access = private)
-        optimizationProblem
-    end
+%     properties (Access = private)
+%         optimizationProblem
+%     end
 
     methods(Access = public)
 
