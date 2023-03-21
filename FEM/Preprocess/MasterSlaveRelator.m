@@ -14,6 +14,7 @@ classdef MasterSlaveRelator < handle
         msRelation
         allNodes
         cornerNodes 
+        commonNodesEdges
     end
     
     methods (Access = public)
@@ -28,14 +29,17 @@ classdef MasterSlaveRelator < handle
                     obj.init3(coord);
                     obj.computeNodesInFaces3D(coord);
                     obj.computeMasterSlaveRelation3D();
-%                     obj.get_cornerNodes(coord);
-%                     obj.get_MasterSlave(coord);
-%                     obj.get_MasterSlave2(coord); 
+%                     obj.avoidRepeatedEdges();
+                    obj.avoidEdges();
             end
         end
         
         function r = getRelation(obj)
             r = obj.msRelation;
+        end
+
+        function e = getRepeatedEdges(obj)
+            e = obj.commonNodesEdges;
         end
         
     end
@@ -144,93 +148,27 @@ classdef MasterSlaveRelator < handle
             end
         end
 
-%         function get_cornerNodes(obj,coord)
-%             v = [];
-%             for i = 1:length(coord) %   find ????
-%                 nodeGID = coord(i,:);
-%                 if (isequal(nodeGID, [0,0,0]) || isequal(nodeGID, [0,0,1]) || ...
-%                         isequal(nodeGID, [0,1,0]) || isequal(nodeGID, [1,0,0]) || ...
-%                         isequal(nodeGID, [0,1,1]) || isequal(nodeGID, [1,0,1]) || ...
-%                         isequal(nodeGID, [1,1,0]) || isequal(nodeGID, [1,1,1]))
-%                     v = [v; nodeGID];
-%                 end
-%             end
-%             obj.cornerNodes = v;
-%         end 
-% 
-%         function get_MasterSlave(obj,gidcoord)
-%             MS = [ ];
-%             v = obj.cornerNodes;
-%             for i = 1:length(gidcoord)
-%                 if ismember(gidcoord(i,:),v,'rows')
-%                 else % if node is not a vertice
-%                     if any(gidcoord==0)
-%                         xCoord = gidcoord(i,1);
-%                         yCoord = gidcoord(i,2);
-%                         zCoord = gidcoord(i,3);
-%                         if xCoord==0
-%                             for j = 1:length(gidcoord)
-%                                 nodeCompared = gidcoord(j,1:3);
-%                                 nodeSuposed = [xCoord+1,yCoord,zCoord];
-%                                 if (isequal(nodeCompared,nodeSuposed))
-%                                     MS = [MS; [i j]];
-%                                 end
-%                             end
-%                         end
-%                         if yCoord==0
-%                             for j = 1:length(gidcoord)
-%                                 nodeCompared = gidcoord(j,1:3);
-%                                 nodeSuposed = [xCoord,yCoord+1,zCoord];
-%                                 if (isequal(nodeCompared,nodeSuposed))
-%                                     MS = [MS; [i j]];
-%                                 end
-%                             end
-%                         end
-%                         if zCoord==0
-%                             for j = 1:length(gidcoord)
-%                                 nodeCompared = gidcoord(j,1:3);
-%                                 nodeSuposed = [xCoord,yCoord,zCoord+1];
-%                                 if (isequal(nodeCompared,nodeSuposed))
-%                                     MS = [MS; [i j]];
-%                                 end
-%                             end
-%                         end
-%                     end
-%                 end
-%             end
-%             obj.msRelation = MS;
-%         end
-% 
-%         function get_MasterSlave2(obj,gidcoord)
-%             MS = [ ];
-%             v = obj.cornerNodes;
-%             n = length(gidcoord);
-%             [~, idx] = ismember(gidcoord,v,'rows');
-%             noncornerNodes = find(~idx);
-%             
-%             if any(gidcoord(noncornerNodes,:) == 0)
-%                 for i = noncornerNodes'
-%                     xCoord = gidcoord(i,1);
-%                     yCoord = gidcoord(i,2);
-%                     zCoord = gidcoord(i,3);
-%                     for j = 1:n
-%                         if j == i
-%                             continue
-%                         end
-%                         nodeCompared = gidcoord(j,1:3);
-%                         if xCoord == 0 && isequal(nodeCompared, [xCoord+1,yCoord,zCoord])
-%                             MS = [MS; [i j]];
-%                         elseif yCoord == 0 && isequal(nodeCompared, [xCoord,yCoord+1,zCoord])
-%                             MS = [MS; [i j]];
-%                         elseif zCoord == 0 && isequal(nodeCompared, [xCoord,yCoord,zCoord+1])
-%                             MS = [MS; [i j]];
-%                         end
-%                     end
-%                 end
-%             end
-%             
-%             obj.msRelation = MS;
-%         end
+        function avoidRepeatedEdges(obj)
+            MS = obj.msRelation;
+            uniqueCol1 = unique(MS(:,1));
+            uniqueCol2 = unique(MS(:,2));
+            commonNodes = intersect(uniqueCol1, uniqueCol2);
+            rowsRemoved = ismember(MS(:,1), commonNodes) | ismember(MS(:,2), commonNodes);
+            MS(rowsRemoved, :) = [];
+            obj.msRelation = MS;
+            obj.commonNodesEdges = commonNodes;
+        end
+
+        function avoidEdges(obj)
+            MS = obj.msRelation;
+            uniqueValues = unique(MS(:));
+            repeatedValues = uniqueValues(histc(MS(:), uniqueValues) > 1);
+%             newMS = MS(~ismember(MS, repeatedValues, 'rows'), :);
+            rowsRemoved = ismember(MS(:,1), repeatedValues) | ismember(MS(:,2), repeatedValues);
+            MS(rowsRemoved, :) = [];
+            obj.msRelation = MS;
+            obj.commonNodesEdges = repeatedValues;
+        end
 
     end
     

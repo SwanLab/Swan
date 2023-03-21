@@ -19,6 +19,7 @@ classdef BoundaryConditions < handle
         scale
         dirichletInput
         pointloadInput
+        nodesEdges
     end
     
     methods (Access = public)
@@ -92,10 +93,21 @@ classdef BoundaryConditions < handle
             globalNdof = 0;
             for i = 1:nfields
                 bc = s.bc{i};
-                obj.dirichletInput = bc.dirichlet;
+                cornerDirichlet = bc.dirichlet;
+                edgesDirichlet = zeros(length(obj.nodesEdges),obj.ndimf);
+                rows = repmat(obj.nodesEdges, [size(edgesDirichlet,2), 1]);
+                cols = repmat(1:size(edgesDirichlet,2), [length(obj.nodesEdges), 1]);
+                cols = cols(:);
+                newValues = zeros(size(rows,1), 1);
+                edgesDirichlet = [rows, cols, newValues];
+                totalDirichlet = [cornerDirichlet; edgesDirichlet];
+                totalDirichlet = sortrows(totalDirichlet, 1);
+
+                obj.dirichletInput = totalDirichlet;
                 obj.pointloadInput = bc.pointload;
 
-                inD = bc.dirichlet;
+%                 inD = bc.dirichlet;
+                inD = totalDirichlet;
                 inN = bc.pointload;
                 [idxD, valD] = obj.formatInputData(bc.ndimf,inD);
                 [idxN, valN] = obj.formatInputData(bc.ndimf,inN);
@@ -236,6 +248,7 @@ classdef BoundaryConditions < handle
         function MS = computeMasterSlave(obj, coord)
            mR = MasterSlaveRelator(coord);
            MS = mR.getRelation();
+           obj.nodesEdges = mR.getRepeatedEdges();
 
             masters = MS(:,1);
             slaves = MS(:,2);
