@@ -4,14 +4,16 @@ classdef LagrangeSimplicial2D < handle
         xSym
         ySym
         shapeFunctionsSym
+        shapeFunctionsDiffSym
         domainK
         nodes
+        polynomialOrder
     end
     
     properties (Access = public)
-        polynomialOrder
         ndofs
         shapeFunctions
+        shapeFunctionsDiff
     end
     
     
@@ -30,7 +32,7 @@ classdef LagrangeSimplicial2D < handle
                 figure();
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));
-    
+                shading FLAT
                 xlim([0 1]); ylim([0 1]);
                 xlabel('x'); ylabel('y'); zlabel('z');
                 title("Shape function (s = "+string(s-1)+")");
@@ -54,6 +56,8 @@ classdef LagrangeSimplicial2D < handle
             obj.computeNodes();
             obj.computeShapeFunctionsSym();
             obj.computeShapeFunctions();
+            obj.computeShapeFunctionsDiffSym();
+            obj.computeShapeFunctionsDiff();
         end
 
         function computeNdof(obj)
@@ -157,9 +161,39 @@ classdef LagrangeSimplicial2D < handle
             s.coord = obj.domainK.vertices;
             s.connec = [1 2 3];
             m = Mesh(s);
-            for i=1:3
+            for i=1:4
                 m = m.remesh(2);
             end
+        end
+        
+        function computeShapeFunctionsDiffSym(obj)
+            f = obj.shapeFunctionsSym;
+            shD = cell(length(f),2);
+            ndof = obj.ndofs;
+            x = obj.xSym;
+            y = obj.ySym;
+            
+            for s = 1:ndof
+                shD{s,1} = diff(f{s},x);
+                shD{s,2} = diff(f{s},y);
+            end
+            
+            obj.shapeFunctionsDiffSym = shD;
+        end
+        
+        function computeShapeFunctionsDiff(obj)
+            ndof = obj.ndofs;
+            shD = cell(ndof,2);
+            shDSym = obj.shapeFunctionsDiffSym;
+            x = obj.xSym;
+            y = obj.ySym;
+            
+            for s = 1:ndof
+                shD{s,1} = matlabFunction(shDSym{s,1},'Vars',[x y]);
+                shD{s,2} = matlabFunction(shDSym{s,2},'Vars',[x y]);
+            end
+            
+            obj.shapeFunctionsDiff = shD;
         end
         
     end
