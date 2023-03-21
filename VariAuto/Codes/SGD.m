@@ -13,6 +13,10 @@ classdef SGD < Trainer
        thetaLowest
     end
 
+    properties (Access = private)
+        optimizationProblem
+    end
+
     methods(Access = public)
 
         function self = SGD(s)
@@ -56,7 +60,7 @@ classdef SGD < Trainer
         
         function train(self)
            tic
-           x0  = self.network.thetavec; 
+           x0  = self.optimizationProblem.thetavec; 
            F = @(theta,X,Y) self.costFunction(theta,X,Y); 
            self.optimize(F,x0);
            toc
@@ -107,7 +111,7 @@ classdef SGD < Trainer
                 criteria(2)   = alarm < self.earlyStop; 
                 criteria(3)   = gnorm > self.optTolerance;
                 criteria(4)   = toc < self.timeStop; 
-                criteria(5)   = self.network.cost > self.fvStop;
+                criteria(5)   = self.optimizationProblem.cost > self.fvStop;
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -154,11 +158,11 @@ classdef SGD < Trainer
         end 
 
         function [alarm,min_testError] = validateES(self,alarm,min_testError)
-            [~,y_pred]   = max(self.network.getOutput(self.data.Xtest),[],2);
+            [~,y_pred]   = max(self.optimizationProblem.getOutput(self.data.Xtest),[],2);
             [~,y_target] = max(self.data.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
-                self.thetaLowest = self.network.thetavec;
+                self.thetaLowest = self.optimizationProblem.thetavec;
                 min_testError = testError;
                 alarm = 0;
             elseif testError == min_testError

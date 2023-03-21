@@ -9,10 +9,6 @@ classdef Network < handle
        Costtype
        HUtype
        OUtype
-       cost
-       regularization
-       loss
-       gradient
     end
 
     properties (Dependent)
@@ -21,6 +17,7 @@ classdef Network < handle
     
    properties (Access = private)
        propagator
+       plotter
    end
 
    methods (Access = public)
@@ -45,20 +42,6 @@ classdef Network < handle
            end      
            self.thetavec = th;
        end
-
-       function h = getOutput(self,X)
-            h = self.propagator.compute_last_H(X);
-       end
-       
-       function computeCost(self,theta,Xb,Yb)
-           self.thetavec = theta;
-           [J,grad] = self.propagator.propagate(self.layer,Xb,Yb); 
-           self.loss = self.propagator.loss;
-           l = self.lambda;
-           self.regularization = l*self.propagator.regularization;
-           self.cost = J; 
-           self.gradient = grad;
-       end 
 
        function updateHyperparameter(self,h)
            switch h.type
@@ -88,6 +71,7 @@ classdef Network < handle
                self.lambda = s{6};
            end
            self.propagator = Propagator(self.data,self.lambda,self);
+           self.plotter = Plotter(self);
        end  
    end   
 

@@ -8,11 +8,14 @@ classdef Trainer < handle
     
     properties (Access = protected) 
        data
-       network
        figureCost
        figureOpt
        xIter
        nPlot
+    end
+
+    properties (Access = private)
+       optimizationProblem
     end
 
     methods (Access = public, Static)
@@ -34,7 +37,7 @@ classdef Trainer < handle
     methods (Access = protected)
 
         function init(self,s)
-            self.network      = s{1};
+            self.optimizationProblem = s{1};
             if length(s) <= 7
                 self.isDisplayed  = false;
             else
@@ -44,9 +47,9 @@ classdef Trainer < handle
 
         function [J,g] = costFunction(self,x,Xb,Yb)
             theta   = x;
-            self.network.computeCost(theta,Xb,Yb)
-            J = self.network.cost;
-            g = self.network.gradient;
+            self.optimizationProblem.computeCost(theta,Xb,Yb)
+            J = self.optimizationProblem.cost;
+            g = self.optimizationProblem.gradient;
         end
 
         function storeValues(self,x,f,state,opt)
@@ -59,8 +62,8 @@ classdef Trainer < handle
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
-                    cV(2) = self.network.regularization;
-                    cV(3) = self.network.loss;
+                    cV(2) = self.optimizationProblem.regularization;
+                    cV(3) = self.optimizationProblem.loss;
                     self.xIter = [self.xIter, x];
                     self.costHist = [self.costHist;cV];
                     oV = zeros(1,2);
@@ -77,8 +80,8 @@ classdef Trainer < handle
             self.plotCostRegErr(v);
             self.plotEpsOpt(v)
             end
-            if self.network.data.nFeatures <= 2
-                self.network.plotBoundary('contour')
+            if self.optimizationProblem.data.nFeatures <= 2 %CUIDADO, Arreglar
+                self.optimizationProblem.plotBoundary('contour')
             end
         end  
 
