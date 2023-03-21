@@ -24,7 +24,8 @@ p0fun = projP0.project(xFun);
 p0fun.plot()
 title('P0')
 
-% Projector to P1
+%% Projector to P1
+clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 projP1 = Projector_toP1(pp1);
@@ -32,7 +33,7 @@ p1fun = projP1.project(xFun);
 p1fun.plot()
 title('P1 (quad linear)')
 
-% Projector to P1 Discontinuous
+%% Projector to P1 Discontinuous
 pp1d.mesh   = mesh;
 pp1d.connec = mesh.connec;
 projP1D = Projector_toP1Discontinuous(pp1d);

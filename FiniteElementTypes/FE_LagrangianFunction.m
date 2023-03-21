@@ -16,9 +16,7 @@ classdef FE_LagrangianFunction < FeFunction
 
         function obj = FE_LagrangianFunction(cParams)
             obj.init(cParams);
-            k = 1;
-            d = 2;
-            obj.createInterpolation(k,d);
+            obj.createInterpolation();
         end
 
         function fxV = evaluate(obj, xV)
@@ -277,9 +275,10 @@ classdef FE_LagrangianFunction < FeFunction
             obj.meshCoarse = cParams.mesh;
         end
 
-        function createInterpolation(obj)
-            m.type = obj.mesh.type;
-            obj.interpolation = FE_Interpolation.create(m,'LINEAR');
+        function createInterpolation(obj,cParams)
+            cParams.mesh.type = obj.mesh.type;
+            cParams.order = obj.order;
+            obj.interpolation = FE_Interpolation(cParams);
         end
 
         % Printing
