@@ -54,7 +54,7 @@ classdef optimizationProblem < handle
        function init(self,s)
            self.data = s{1};
            self.network = s{2};
-           self.propagator = Propagator(self.network.data,self.network.lambda,self);
+           self.propagator = Propagator(self.network.data,self.network.lambda,self.network);
            %self.plotter = Plotter(self);
        end  
    end   
