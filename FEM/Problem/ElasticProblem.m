@@ -77,6 +77,7 @@ classdef ElasticProblem < handle
             a.fun      = fun;
             a.funNames = funNames;
             pst = ParaviewPostprocessor(a);
+%             pst = FunctionPrinter(a); % Gerard, this is for GiD postprocess
             pst.print();
         end
 

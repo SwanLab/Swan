@@ -66,7 +66,7 @@ classdef FEMInputWriter < handle
         end
         
         function createMesh(obj)
-            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
+            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh(s);
@@ -112,12 +112,13 @@ classdef FEMInputWriter < handle
         end
         
         function computeCantileverBoundaryConditions(obj)
-            t              = 0.3*obj.ymax;
+%             t              = 0.3*obj.ymax;
             m              = obj.mesh;
             root           = m.coord(:,1) == 0;
             tipLength      = m.coord(:,1) == obj.xmax;
-            tipWidth       = m.coord(:,2) < obj.ymax-t & m.coord(:,2) > t;
-            tip            = tipLength & tipWidth;
+%             tipWidth       = m.coord(:,2) < obj.ymax-t & m.coord(:,2) > t;
+%             tip            = tipLength & tipWidth;
+            tip            = tipLength;
             obj.nDirichlet = find(root);
             obj.nNeumann   = find(tip);
         end
@@ -145,7 +146,7 @@ classdef FEMInputWriter < handle
             Fmat  = obj.computeBoundaryConditionMatrix(obj.DoF,obj.nNeumann);
             nnode = size(Fmat,1)/obj.DoF;
             Pnod  = obj.P/nnode;
-            for i = 2:2:size(Fmat,1)
+            for i = 1:2:size(Fmat,1) % Gerard, I have changed the first "2" to "1" in order to obtain an axial load!
                 Fmat(i,3) = Pnod;
             end
             obj.pointLoads = Fmat;
