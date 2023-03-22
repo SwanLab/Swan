@@ -9,6 +9,7 @@ close all
 k=[];
 
 s.testName = 'PerimeterAsConstraint';%''testJose';
+% s.testName = 'SquareToEllipseProblem';
 t = TopOptComputer(s);
 t.compute(k);
 

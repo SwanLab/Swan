@@ -1,11 +1,10 @@
 classdef OptimizerNullSpace < Optimizer
-% Why for it>18 lG oscillates around negative values?
-% - Let's try Florian's merit
-% - ...
 
     properties (Access = public)
         aJ
         aG
+        aJmax
+        aGmax
         eta
     end
 
@@ -38,8 +37,6 @@ classdef OptimizerNullSpace < Optimizer
         meritNew
         nConstr
         meritGradient
-        keepAJincreasing
-        is2ndStage
 
         globalCost
         globalConstraint
@@ -67,9 +64,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.aG  = 0.00001;
-            obj.keepAJincreasing = true;
-            obj.is2ndStage = false;
+            obj.updateNullSpaceCoefficient();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -84,19 +79,20 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
-            obj.cost                   = cParams.cost;
-            obj.constraint             = cParams.constraint;
-            obj.designVariable         = cParams.designVar;
-            obj.dualVariable           = cParams.dualVariable;
-            obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.nConstr                = cParams.constraint.nSF;
-            obj.nX                     = length(obj.designVariable.value);
-            obj.maxIter                = cParams.maxIter;
-            obj.hasConverged           = false;
-            obj.nIter                  = 0;
-            obj.aJ                     = 0.01;
+            obj.upperBound        = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound        = cParams.uncOptimizerSettings.lb;
+            obj.cost              = cParams.cost;
+            obj.constraint        = cParams.constraint;
+            obj.designVariable    = cParams.designVar;
+            obj.dualVariable      = cParams.dualVariable;
+            obj.incrementalScheme = cParams.incrementalScheme;
+            obj.nConstr           = cParams.constraint.nSF;
+            obj.nX                = length(obj.designVariable.value);
+            obj.maxIter           = cParams.maxIter;
+            obj.hasConverged      = false;
+            obj.aJmax             = cParams.optimizerNames.aJmax;
+            obj.aGmax             = cParams.optimizerNames.aGmax;
+            obj.nIter             = 0;
         end
 
         function prepareFirstIter(obj)
@@ -106,30 +102,34 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualVariable.value = zeros(obj.nConstr,1);
         end
 
-        function updateRobustnessParameters(obj)
+        function updateNullSpaceCoefficient(obj)
+            targetVolume = obj.targetParameters.Vfrac;
+            obj.aJ       = obj.aJmax*(1-targetVolume);
+        end
+
+        function updateRangeSpaceCoefficient(obj)
+            targetVolume = obj.targetParameters.Vfrac;
+            r            = max(1-targetVolume,targetVolume);
+            g            = obj.constraint.value;
+            v            = obj.computeVolume(g);
+            obj.aG       = obj.aGmax*(1-abs(v-targetVolume)/r)^10;
+        end
+
+        function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = inf;
+                obj.eta = 0.01;  % inf
             else
-                g            = obj.constraint.value;
-                gNear = 0.075; % /20
-                isNearVolume = g < gNear;
-                if isNearVolume
-                    obj.keepAJincreasing = false;
-                end
-                if obj.keepAJincreasing
-                    obj.eta = 0.02;
-                    k       = 1;
-                    obj.aJ  = obj.aJ + k*obj.eta;
+                if obj.aG <= 0.5*obj.aGmax
+                    obj.eta = 0.01;
                 else
                     obj.eta = 0.001;
                 end
-                aGmax   = 0.05;
-                obj.aG  = min(aGmax,obj.aG*(1+obj.eta));
             end
         end
 
         function obj = update(obj)
-            obj.updateRobustnessParameters();
+            obj.updateRangeSpaceCoefficient();
+            obj.updateMaximumVolumeRemoved();
             x0 = obj.designVariable.value;
             g0 = obj.constraint.value;
             obj.saveOldValues(x0);
@@ -146,7 +146,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.dualUpdater.aJ = obj.aJ;
                 obj.dualUpdater.update();
                 obj.mOld = obj.computeMeritFunction(x0);
-%                 obj.mOld = obj.computeMeritFunctionFlorian(x0,x0);
                 obj.computeMeritGradient(DJ,Dg);
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
@@ -204,7 +203,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
             elseif obj.primalUpdater.isTooSmall()
-%                 error('Convergence could not be achieved (step length too small)')
+                warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew = obj.mOld;
                 obj.designVariable.update(x0);
@@ -231,23 +230,6 @@ classdef OptimizerNullSpace < Optimizer
             mF = J+l*h;
         end
 
-%         function mF = computeMeritFunctionFlorian(obj,x,y)
-%             mF = obj.computeMeritFunction(x);
-% 
-%             obj.designVariable.update(y);
-%             obj.cost.computeFunctionAndGradient();
-%             obj.constraint.computeFunctionAndGradient();
-%             Dg = obj.constraint.gradient;
-%             S  = (Dg'*Dg)^-1;
-% 
-%             obj.designVariable.update(x);
-%             obj.cost.computeFunctionAndGradient();
-%             obj.constraint.computeFunctionAndGradient();
-%             gx = obj.constraint.value;
-%             lGx = max(-obj.p*obj.dualUpdater.lJPl,min(obj.p*obj.dualUpdater.lJPl,0.5*obj.aG*S*gx));
-%             mF = mF+gx*(lGx-obj.dualUpdater.lGPl);
-%         end
-
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
             obj.cost.computeFunctionAndGradient();
@@ -268,12 +250,6 @@ classdef OptimizerNullSpace < Optimizer
            else
                
            end
-
-%            if max(abs(obj.meritGradient)) < obj.tol && obj.checkConstraint()
-%                obj.hasConverged = true;
-%            end
-
-
         end
 
         function obj = updateMonitoring(obj)

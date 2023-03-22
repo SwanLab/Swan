@@ -1,16 +1,12 @@
-% filename = 'SquareForAniTests';
-% filename = 'CantileverVertical';
-filename = 'CantileverVerticalSymmetric';
-% filename = 'CantileverBeam_Triangle_Linear';
-
+filename = 'SquareForAniTests';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 
-initial_case = 'full'; % squareInclusion
+initial_case = 'squareInclusion';
 
-cost = {'compliance','anisotropicPerimeter2D'}; % anisotropicPerimeterInterior2D
-weights = [1,0.20];
+cost = {'anisotropicPerimeterInterior2D'}; % anisotropicPerimeterInterior2D
+weights = [1];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -22,14 +18,12 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 widthSquare = sqrt(0.15);
 
-nsteps = 20;
-% Vfrac_final = 0.85;
-Vfrac_final = 0.4;
+nsteps = 1;
+Vfrac_final = 0.85;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-% Vfrac_initial = 0.85;
-Vfrac_initial = 1;
+Vfrac_initial = 0.85;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -43,9 +37,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
-printing = true;
+plotting = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 150*nsteps; % 2100
+maxiter = 2100;
