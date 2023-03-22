@@ -2,15 +2,26 @@
 % Create a Mesh FEM results
 clear; close all;
 
-file = 'test2d_triangle';
-a.fileName = file;
-s = FemDataContainer(a);
-mesh = s.mesh;
+%file = 'test2d_triangle';
+%a.fileName = file;
+%s = FemDataContainer(a);
+
+x =linspace(0,1,10);
+y =linspace(0,1,10);
+
+[xv,yv] = meshgrid(x,y);
+sM.coord(:,1) = xv(:);
+sM.coord(:,2) = yv(:);
+sM.connec = delaunay(sM.coord);
+m = Mesh(sM);
+m.plot()
+mesh = m;
+%mesh = s.mesh;
 
 %% Create functions
 % AnalyticalFunction
 
-sAF.fHandle = @(x) x(1,:,:);
+sAF.fHandle = @(x) x(1,:,:).*x(1,:,:);
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
