@@ -24,12 +24,12 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
-            nElem = size(obj.material.C,3);
+            nElem = obj.mesh.nelem;
             nNodE = size(dNdx,2);
             nDofE = nNodE*obj.fun.ndimf;
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
-            Cmat = obj.material.C(:,:,:,1);
+            Cmat = obj.material.C(:,:,1);
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);
                 dV(1,1,:) = dVolu(igaus,:)';

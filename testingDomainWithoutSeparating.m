@@ -11,7 +11,7 @@ fileName = 'CantileverAxialLoad';
 
 s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
-s.x1          = 1;
+s.x1          = 0.5;
 s.y1          = 0.5;
 s.N           = 20;
 s.M           = 10;
@@ -21,9 +21,32 @@ s.DoF         = 2;
 CantileverAxial = FEMInputWriter(s);
 CantileverAxial.createTest();
 
+% Create Mesh
+[XPL,YPL] = meshgrid(0:0.05:0.5, 0:0.05:0.5);
+[XPR,YPR] = meshgrid(0.5:0.05:1, 0:0.05:0.5);
+X = [XPL(:);XPR(:)];
+Y = [YPL(:);YPR(:)];
+ss.coord(:,1) = X;
+ss.coord(:,2) = Y;
+ss.connec = delaunay(ss.coord);
+mTot = Mesh(ss);
+clear ss
+ss.coord(:,1) = XPL(:);
+ss.coord(:,2) = YPL(:);
+ss.connec = delaunay(ss.coord);
+mLeft = Mesh(ss);
+
+clear ss
+ss.coord(:,1) = XPR(:);
+ss.coord(:,2) = YPR(:);
+ss.connec = delaunay(ss.coord);
+mRight = Mesh(ss);
+
 % Create elasticity problem
 a.fileName = fileName;
 s = FemDataContainer(a);
+s.mesh = mTot;
+s.material.C = s.material.C(:,:,1:mTot.nelem);
 fem = FEM.create(s);
 fem.solve();
 % fem.print(fileName);
@@ -47,10 +70,10 @@ xV = mesh.computeBaricenter();
 x_baricenter = xV(1,:);
 y_baricenter = xV(2,:);
 
-isLeft = x_baricenter<= mesh.coord(110,1);
+isLeft = x_baricenter<= 0.5;
 leftConnec = mesh.connec(isLeft,:);
 
-isRight = x_baricenter> mesh.coord(110,1);
+isRight = x_baricenter> 0.5;
 rightConnec = mesh.connec(isRight,:);
 
 
@@ -77,12 +100,18 @@ fValuesLeft = u.fValues(nodesLeft,:);
 fValuesRight = u.fValues(nodesRight,:);
 
 zz.fValues = fValuesLeft;
-zz.mesh    = leftMesh;
+zz.mesh    = mLeft;
 p1left = P1Function(zz);
 
 zz.fValues = fValuesRight;
-zz.mesh    = rightMesh;
+zz.mesh    = mRight;
 p1right = P1Function(zz);
+
+% STEP 2: BoundaryMesh
+bMeshes = mLeft.createBoundaryMesh();
+bMeshRight = bMeshes{2};
+figure
+bMeshRight.mesh.plot
 
 % STEP 3: Stiffness matrix
 % ...
@@ -91,7 +120,14 @@ sLHS.type     = 'ElasticStiffnessMatrix';
 sLHS.mesh     = leftMesh;
 sLHS.fun      = p1left;
 sLHS.material = s.material;
-lhs = LHSintegrator.create(sLHS);
-K = lhs.compute();
+lhsL = LHSintegrator.create(sLHS);
+Kleft = lhsL.compute();
+
+sLHS.mesh     = rightMesh;
+sLHS.fun      = p1right;
+sLHS.material = s.material;
+lhsR = LHSintegrator.create(sLHS);
+Kright = lhsR.compute();
+
 
 a = 1;
