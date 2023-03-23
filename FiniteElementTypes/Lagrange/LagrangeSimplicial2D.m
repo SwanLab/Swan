@@ -71,8 +71,8 @@ classdef LagrangeSimplicial2D < handle
             ndof = obj.ndofs;
             nod = zeros(ndof,2);
             
-            for i = 1:k+1
-                for j = 1:k+1
+            for j = 1:k+1
+                for i = 1:k+1
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         nod(s,1)=(i-1)/k;
@@ -123,8 +123,8 @@ classdef LagrangeSimplicial2D < handle
             x = obj.xSym;
             y = obj.ySym;
             
-            for i = 1:(k+1)
-                for j = 1:(k+1)
+            for j = 1:(k+1)
+                for i = 1:(k+1)
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         basisMSym(s) = x^(i-1)*y^(j-1);
@@ -146,7 +146,7 @@ classdef LagrangeSimplicial2D < handle
             end
         end
         
-        function s = computeMonomialIndeces(obj,i,j)
+        function s = computeMonomialIndeces(obj,j,i)
             k = obj.polynomialOrder;
             
             n = -(k+2);

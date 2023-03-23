@@ -1,9 +1,14 @@
-classdef FE_Projector_toP1 < Projector
+classdef FE_Projector < Projector
+    
+    properties (Access = private)
+        ls
+    end
     
     methods (Access = public)
 
-        function obj = FE_Projector_toP1(cParams)
+        function obj = FE_Projector(cParams)
             obj.init(cParams);
+            obj.ls = LagrangeElement.create("SIMPLICIAL",1,2);
         end
 
         function xFun = project(obj, x)
@@ -21,7 +26,7 @@ classdef FE_Projector_toP1 < Projector
         
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
-            s.fun   = P1Function.create(obj.mesh, 1);
+            s.fun   = FE_LagrangianFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
@@ -32,8 +37,12 @@ classdef FE_Projector_toP1 < Projector
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+            
+            cParams.mesh.type = obj.mesh.type;
+            cParams.order = 'LINEAR';
+            I = FE_Interpolation(cParams);
+            I.computeShapeDeriv(xV);
+            shapes = permute(I.shape,[1 3 2]);
             conne = obj.mesh.connec;
 
             nGaus = quad.ngaus;

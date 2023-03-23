@@ -1,5 +1,10 @@
 classdef FE_Interpolation < handle
     
+    properties (Access = public)
+        shape
+        deriv
+    end
+    
     properties (Access = private)
         order
         
@@ -7,8 +12,6 @@ classdef FE_Interpolation < handle
         nnode
         
         pos_nodes
-        shape
-        deriv
         isoDv
         
         iteration
@@ -44,7 +47,7 @@ classdef FE_Interpolation < handle
         function init(obj,cParams)
             obj.type  = cParams.mesh.type;
             obj.order = cParams.order;
-            obj.lagrangeElement = LagrangeElement.create('SIMPLICIAL',2,2);
+            obj.lagrangeElement = LagrangeElement.create('SIMPLICIAL',1,2);
         end
         
         function computeParams(obj)
@@ -61,23 +64,25 @@ classdef FE_Interpolation < handle
             nelem = size(posgp,3);
             x = posgp(1,:,:);
             y = posgp(2,:,:);
-            obj.shape = zeros(obj.nnode,ngaus,nelem);
             ls = obj.lagrangeElement;
+            obj.shape = zeros(length(ls.shapeFunctions),ngaus,nelem);
             
-            for s = 1:obj.nnode
-                obj.shape(1,:,:) = ls.shapeFunctions{s}(x,y);
+            for s = 1:length(ls.shapeFunctions)
+                obj.shape(s,:,:) = ls.shapeFunctions{s}(x,y);
             end
         end
         
         function computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
-            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            x = posgp(1,:,:);
+            y = posgp(2,:,:);
             ls = obj.lagrangeElement;
+            obj.deriv = zeros(2,length(ls.shapeFunctions),ngaus,nelem);
             
-            for s = 1:obj.nnode
-                obj.deriv(1,s,:,:) = ls.shapeFunctionsDiff{s}(x,y);
-                obj.deriv(2,s,:,:) = ls.shapeFunctionsDiff{s}(x,y);
+            for s = 1:length(ls.shapeFunctions)
+                obj.deriv(1,s,:,:) = ls.shapeFunctionsDiff{s,1}(x,y);
+                obj.deriv(2,s,:,:) = ls.shapeFunctionsDiff{s,2}(x,y);
             end
         end
         

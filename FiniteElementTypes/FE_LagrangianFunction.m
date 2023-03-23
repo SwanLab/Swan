@@ -172,7 +172,7 @@ classdef FE_LagrangianFunction < FeFunction
             fAll    = [fNodes;fEdges];
             s.mesh    = mFine;
             s.fValues = fAll;
-            fFine = P1Function(s);
+            fFine = FE_LagrangianFunction(s);
         end
 
         function dofConnec = computeDofConnectivity(obj)
@@ -250,17 +250,17 @@ classdef FE_LagrangianFunction < FeFunction
 
     methods (Access = public, Static)
 
-        function p1 = create(mesh, ndimf)
+        function p = create(mesh, ndimf)
             s.fValues = zeros(mesh.nnodes, ndimf);
             s.mesh    = mesh;
-            p1 = P1Function(s);
+            p = FE_LagrangianFunction(s);
         end
 
         function fS = times(f1,f2)
             fS = f1.fValues.*f2.fValues;
             s.fValues = fS;
             s.mesh    = f1.mesh;
-            fS = P1Function(s);
+            fS = FE_LagrangianFunction(s);
         end
         
     end

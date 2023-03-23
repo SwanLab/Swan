@@ -36,7 +36,7 @@ classdef Simplicial2D < handle
         end
         
         function computeVertices(obj)
-            obj.vertices = [0,0;1,0;0,1];
+            obj.vertices = [0,0;0,1;1,0];
         end
         
         function computeConnectivities(obj)
