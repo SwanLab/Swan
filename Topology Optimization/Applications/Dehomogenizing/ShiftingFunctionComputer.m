@@ -60,14 +60,11 @@ classdef ShiftingFunctionComputer < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             cG = obj.corrector.computeGradient(q);
-%             fGauss = permute(cG.fValues,[1 3 2]);
             s.fun = cG;
-            s.fGauss    = cG.fValues;
+            s.quadratureOrder = 'QUADRATIC';
             s.mesh      = obj.meshDisc;
-            s.quadrature = q;
             s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivativeFun';
-            s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute();
             In = obj.interpolator;

@@ -3,10 +3,8 @@ classdef RHSintegrator_ShapeDerivativeFun < handle
     properties (Access = private)
         npnod
         mesh
-        globalConnec
         fNodal
-        fGauss
-        quadOrder
+        quadratureOrder
         quadrature
 
         fun
@@ -14,9 +12,9 @@ classdef RHSintegrator_ShapeDerivativeFun < handle
 
     methods (Access = public)
 
-        % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_ShapeDerivativeFun(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function rhs = compute(obj)
@@ -31,14 +29,17 @@ classdef RHSintegrator_ShapeDerivativeFun < handle
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
-            obj.globalConnec = cParams.globalConnec;
-            obj.quadrature   = cParams.quadrature;
-            obj.fGauss   = cParams.fGauss;
+            obj.quadratureOrder = cParams.quadratureOrder;
             obj.fun      = cParams.fun;
+        end
+
+        function createQuadrature(obj)
+            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
+            obj.quadrature = q;
         end
         
         function rhsC = computeElementalRHS(obj)
-            fG    = obj.fGauss;
+            fG    = obj.fun.evaluate(obj.quadrature.posgp);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             dNdx  = obj.fun.computeCartesianDerivatives();
             nDim  = size(dNdx,1);
@@ -63,7 +64,7 @@ classdef RHSintegrator_ShapeDerivativeFun < handle
         function f = assembleIntegrand(obj,rhsElem)
             integrand = rhsElem;
             ndofs = obj.npnod;
-            connec = obj.globalConnec;
+            connec = obj.mesh.connec;
             nnode  = size(connec,2);
             f = zeros(ndofs,1);
             for inode = 1:nnode
