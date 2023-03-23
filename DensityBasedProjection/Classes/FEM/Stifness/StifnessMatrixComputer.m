@@ -23,8 +23,6 @@ classdef StifnessMatrixComputer < handle
         end
 
         function compute(obj)
-%            obj.computeElementalStiffnessMatrices()
-            obj.penalizeElasticModule()
             obj.computeGlobalStifnessMatrix()
         end
     end
@@ -42,16 +40,6 @@ classdef StifnessMatrixComputer < handle
             obj.conectivityMatrixMat = cParams.mesh.conectivityMatrixMat;
 
             obj.projectedField=cParams.projectedField;
-        end
-        function penalizeElasticModule(obj)
-            s.elasticModuleMinimun = obj.elasticModuleMinimun;
-            s.elasticModuleNeutral = obj.elasticModuleNeutral;
-            s.projectedField = obj.projectedField;
-            s.penalization = obj.penalization;
-            s.nonPenalizedVariable = obj.elementalStiffnessMatrix;
-            B = Penalizer(s);
-            B.penalize();
-            obj.elementalStiffnessMatrix = B.penalizedVariable;
         end
         function computeGlobalStifnessMatrix(obj)
             iK      = reshape(kron(obj.conectivityMatrixMat,ones(8,1))',64*obj.elementNumberX*obj.elementNumberY,1);

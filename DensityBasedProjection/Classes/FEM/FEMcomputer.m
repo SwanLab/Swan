@@ -19,6 +19,7 @@ classdef FEMcomputer < handle
             obj.inputData(cParams)
         end
         function compute(obj)
+            obj.penalizeElasticModule
             obj.computeStifnessMatrix
             obj.computeForces
             obj.computeDisplacement;
@@ -33,6 +34,16 @@ classdef FEMcomputer < handle
             obj.projectedField = cParams.projectedField;
             obj.displacement = zeros(2*(obj.mesh.elementNumberY+1)*(obj.mesh.elementNumberX+1),1);
         end
+        function penalizeElasticModule(obj)
+            s.elasticModuleMinimun = obj.structure.elasticModuleMinimun;
+            s.elasticModuleNeutral = obj.structure.elasticModuleNeutral;
+            s.projectedField = obj.projectedField;
+            s.penalization = obj.structure.penalization;
+            s.nonPenalizedVariable = obj.structure.elementalStiffnessMatrix;
+            B = Penalizer(s);
+            B.penalize();
+            obj.structure.elementalStiffnessMatrix = B.penalizedVariable;
+        end
         function computeStifnessMatrix(obj)
             s.structure = obj.structure;
             s.mesh = obj.mesh;
@@ -41,6 +52,7 @@ classdef FEMcomputer < handle
             B.compute();
             obj.globalStifnessMatrix = B.globalStifnessMatrix;
         end
+
         function computeForces(obj)
             s.neumanCondition = obj.mesh.neumanCondition;
             s.output = obj.mesh.output;

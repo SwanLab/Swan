@@ -15,7 +15,6 @@ classdef CostProjectedFieldDerivator < handle
         end
         function compute(obj)
             obj.computeCost();
-            obj.penalizeDerivatedCost();
         end
     end
     methods (Access = private)
@@ -31,17 +30,6 @@ classdef CostProjectedFieldDerivator < handle
         function computeCost(obj) 
            obj.derivedCost  = reshape(sum((obj.displacement(obj.mesh.conectivityMatrixMat)*obj.structure.elementalStiffnessMatrix).*obj.displacement(obj.mesh.conectivityMatrixMat),2),obj.mesh.elementNumberY,obj.mesh.elementNumberX);
         end 
-        function penalizeDerivatedCost(obj)
-            s.elasticModuleMinimun = obj.structure.elasticModuleMinimun;
-            s.elasticModuleNeutral = obj.structure.elasticModuleNeutral;
-            s.penalization = obj.structure.penalization;
-
-            s.nonPenalizedVariable =  obj.derivedCost;
-            s.projectedField = obj.projectedField ;
-            B = DerivativePenalizer(s);
-            B.penalize();
-            obj.derivedCost = B.penalizedDerivative;
-        end
          
     end
 end

@@ -22,6 +22,8 @@ classdef CostFieldDerivator < handle
         function compute(obj)
             %Get the cost derivated respective the proyectedField
             obj.deriveCostRespectProjectedField();
+            %Penalize the the cost derivated respective the proyectedField
+            obj.penalizeDerivatedCost();
             %Derivate the filtered field by the field
             obj.deriveFilteredFieldRespectedField();
             % Calculate the cost derivated by the field
@@ -56,6 +58,16 @@ classdef CostFieldDerivator < handle
             B = CostProjectedFieldDerivator(s);
             B.compute();
             obj.cost.projectedDerived = B.derivedCost;
+        end
+        function penalizeDerivatedCost(obj)
+            s.elasticModuleMinimun = obj.structure.elasticModuleMinimun;
+            s.elasticModuleNeutral = obj.structure.elasticModuleNeutral;
+            s.penalization = obj.structure.penalization;
+            s.nonPenalizedVariable =  obj.cost.projectedDerived;
+            s.projectedField = obj.projectedField ;
+            B = DerivativePenalizer(s);
+            B.penalize();
+            obj.cost.projectedDerived = B.penalizedDerivative;
         end
         function deriveFilteredFieldRespectedField(obj)
             s.H = obj.filterParameters.H;
