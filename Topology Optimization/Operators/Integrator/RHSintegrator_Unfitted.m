@@ -15,11 +15,26 @@ classdef RHSintegrator_Unfitted < handle
         function int = integrateInDomain(obj,F)
             obj.computeInteriorIntegrators();
             int = obj.integrators.integrateAndSum(F);
+
+            s.fValues = int;
+            s.mesh = obj.mesh.backgroundMesh;
+            p1int = P1Function(s);
+
+            s.fValues = F;
+            p1f  = P1Function(s);
+
         end
 
         function int = integrateInBoundary(obj,F)
             obj.computeBoundaryIntegrators();
             int = obj.integrators.integrateAndSum(F);
+            
+            s.fValues = int;
+            s.mesh = obj.mesh.backgroundMesh;
+            p1int = P1Function(s);
+
+            s.fValues = F;
+            p1f  = P1Function(s);
         end
 
     end
