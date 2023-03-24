@@ -6,14 +6,14 @@ classdef LagrangeSimplicial2D < handle
         shapeFunctionsSym
         shapeFunctionsDiffSym
         domainK
-        nodes
-        polynomialOrder
     end
     
     properties (Access = public)
         ndofs
         shapeFunctions
         shapeFunctionsDiff
+        nodes
+        polynomialOrder
     end
     
     

@@ -2,7 +2,8 @@ classdef FE_Interpolation < handle
     
     properties (Access = public)
         shape
-        deriv
+        deriv        
+        lagrangeElement
     end
     
     properties (Access = private)
@@ -19,8 +20,6 @@ classdef FE_Interpolation < handle
         selectcases
         main_loop
         extra_cases
-        
-        lagrangeElement
     end
     
     properties (Access = private)

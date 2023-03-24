@@ -2,31 +2,25 @@
 % Create a Mesh FEM results
 clear; close all;
 
-%file = 'test2d_triangle';
-%a.fileName = file;
-%s = FemDataContainer(a);
-
-x =linspace(0,1,10);
-y =linspace(0,1,10);
+x =linspace(0,1,6);
+y =linspace(0,1,6);
 
 [xv,yv] = meshgrid(x,y);
 sM.coord(:,1) = xv(:);
 sM.coord(:,2) = yv(:);
 sM.connec = delaunay(sM.coord);
 m = Mesh(sM);
-% m.plot()
 mesh = m;
-%mesh = s.mesh;
 
 %% Create functions
 % AnalyticalFunction
 
-sAF.fHandle = @(x,y) x(1,:,:).*x(1,:,:);
+sAF.fHandle = @(x,y) x(1,:,:).*x(2,:,:);
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
-% %% Create projectors to P0, P1 and P1D
+%% Create projectors to P0, P1 and P1D
 % % Projector to P0
 % pp0.mesh   = mesh;
 % pp0.connec = mesh.connec;
@@ -39,6 +33,7 @@ xFun = AnalyticalFunction(sAF);
 clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
+pp1.order = 1;
 
 projP1 = FE_Projector(pp1);
 p1fun = projP1.project(xFun);
@@ -50,7 +45,7 @@ p1fun2 = projP12.project(xFun);
 p1fun2.plot()
 title('P1 (quad linear) old')
 
-% %% Projector to P1 Discontinuous
+%% Projector to P1 Discontinuous
 % pp1d.mesh   = mesh;
 % pp1d.connec = mesh.connec;
 % projP1D = Projector_toP1Discontinuous(pp1d);

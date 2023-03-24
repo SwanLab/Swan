@@ -1,6 +1,9 @@
 classdef FE_LagrangianFunction < FeFunction
 
     properties (Access = public)
+        dofs
+        ndofs
+        coords
     end
 
     properties (Access = private)
@@ -17,6 +20,9 @@ classdef FE_LagrangianFunction < FeFunction
         function obj = FE_LagrangianFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
+            obj.computeDofs();
+            obj.computeCoords()
+            obj.correctDofs();
         end
 
         function fxV = evaluate(obj, xV)
@@ -176,35 +182,21 @@ classdef FE_LagrangianFunction < FeFunction
         end
 
         function dofConnec = computeDofConnectivity(obj)
-            conne  = obj.mesh.connec;
-            nDimf  = obj.ndimf;
-            nNode  = size(conne, 2);
-            nDofsE = nNode*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNode
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            dofConnec = dofsElem;
+            dofConnec = obj.dofs';
         end
 
         function plot(obj) % 2D domains only
 
             switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
-                    x = obj.mesh.coord(:,1);
-                    y = obj.mesh.coord(:,2);
+                    [x,y] = obj.computePlotCoords();
                     figure()
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         z = obj.fValues(:,idim);
                         a = trisurf(obj.mesh.connec,x,y,z);
                         view(0,90)
-                        %             colorbar
+                        %             colorsbar
                         shading interp
                         a.EdgeColor = [0 0 0];
                         title(['dim = ', num2str(idim)]);
@@ -245,13 +237,34 @@ classdef FE_LagrangianFunction < FeFunction
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
         end
+        
+        function [x,y]  = computePlotCoords(obj)
+            nelem = length(obj.dofs);
+            coord = obj.mesh.coord;
+            
+            x = zeros(obj.ndofs,1);
+            y = zeros(obj.ndofs,1);
+            
+            if obj.interpolation.lagrangeElement.polynomialOrder~=1
+                for ielem = 1:nelem
+                    coor = obj.computeNodesElement(coord(obj.dofs(ielem,[1 3 6]),:));
+                    x(obj.dofs(ielem,:)) = coor(:,1);
+                    y(obj.dofs(ielem,:)) = coor(:,2);
+                end
+            else
+                x = obj.mesh.coord(:,1);
+                y = obj.mesh.coord(:,2);
+            end
+            
+        end
 
     end
 
     methods (Access = public, Static)
 
-        function p = create(mesh, ndimf)
-            s.fValues = zeros(mesh.nnodes, ndimf);
+        function p = create(mesh, ndimf, order)
+            d = FE_LagrangianFunction.numberDofs(mesh,order);
+            s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
             p = FE_LagrangianFunction(s);
         end
@@ -261,6 +274,67 @@ classdef FE_LagrangianFunction < FeFunction
             s.fValues = fS;
             s.mesh    = f1.mesh;
             fS = FE_LagrangianFunction(s);
+        end
+        
+        function ndofs = numberDofs(mesh,order)
+            m = mesh;
+            nelem = m.nelem;
+            ndofel = nchoosek(2+order,order);
+            nnodeElem = m.nnodeElem;
+            
+            dof = zeros(nelem,ndofel);
+            d = m.nnodes;
+            for ielem = 1:nelem
+                dof(ielem,1:nnodeElem) = m.connec(ielem,:);
+                for idof = (nnodeElem+1):ndofel
+                    d = d+1;
+                    dof(ielem,idof) = d;
+                end
+            end
+            ndofs = d;
+            if (order==2)
+                dof = dof(:,[1 4 2 5 6 3]);
+            else
+                dof = m.connec;
+            end
+            
+            coord = mesh.coord;
+            
+            if order~=1
+                x = zeros(ndofs,1);
+                y = zeros(ndofs,1);
+                ls = LagrangeElement.create("SIMPLICIAL",order,2);
+                base = ls.nodes;
+                c = base([1 3 6],:); %!!!!
+
+                for ielem = 1:nelem
+                    coords = coord(dof(ielem,[1 3 6]),:);
+                    M = (coords-coords(1,:))'/c';
+                    N = coords(1,:)';
+                    coor = (M*base'+N)';
+
+                    x(dof(ielem,:)) = coor(:,1);
+                    y(dof(ielem,:)) = coor(:,2);
+                end
+
+                coords = [x,y];
+            else
+                coords = mesh.coord;
+            end
+            
+            for i = mesh.nnodes:ndofs
+                for j = mesh.nnodes:ndofs
+                    if i<=size(coords,1)&&j<=size(coords,1)
+                        if i~=j && isequal(coords(i,:),coords(j,:))
+                            [ind1,ind2] = find(dof==j);
+                            dof(ind1,ind2) = i;
+                            dof(dof>j) = dof(dof>j)-1;
+                            coords(j,:) = [];
+                        end
+                    end
+                end
+            end
+            ndofs = max(max(dof));
         end
         
     end
@@ -286,12 +360,80 @@ classdef FE_LagrangianFunction < FeFunction
             fM = obj.fValues;
         end
 
-        function f = computeFunctionInEdges(obj,m,fNodes)
+        function f = computeFunctionInEdges(~,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end
-
+        
+        function computeDofs(obj)
+            m = obj.mesh;
+            nelem = m.nelem;
+            ndofel = obj.interpolation.lagrangeElement.ndofs;
+            nnodeElem = m.nnodeElem;
+            
+            dof = zeros(nelem,ndofel);
+            d = m.nnodes;
+            for ielem = 1:nelem
+                dof(ielem,1:nnodeElem) = m.connec(ielem,:);
+                for idof = (nnodeElem+1):ndofel
+                    d = d+1;
+                    dof(ielem,idof) = d;
+                end
+            end
+            
+            if (obj.interpolation.lagrangeElement.polynomialOrder==2)
+                obj.dofs = dof(:,[1 4 2 5 6 3]);
+            else
+                obj.dofs = m.connec;
+            end
+            obj.ndofs = d;
+        end
+        
+        function computeCoords(obj)
+            nelem = size(obj.dofs,1);
+            coord = obj.mesh.coord;
+            
+            x = zeros(obj.ndofs,1);
+            y = zeros(obj.ndofs,1);
+            
+            if obj.interpolation.lagrangeElement.polynomialOrder~=1
+                for ielem = 1:nelem
+                    coor = obj.computeNodesElement(coord(obj.dofs(ielem,[1 3 6]),:));
+                    x(obj.dofs(ielem,:)) = coor(:,1);
+                    y(obj.dofs(ielem,:)) = coor(:,2);
+                end
+            
+                obj.coords = [x,y];
+            else
+                obj.coords = obj.mesh.coord;
+            end
+        end
+        
+        function correctDofs(obj)
+            for i = obj.mesh.nnodes:obj.ndofs
+                for j = obj.mesh.nnodes:obj.ndofs
+                    if i<=size(obj.coords,1)&&j<=size(obj.coords,1)
+                        if i~=j && isequal(obj.coords(i,:),obj.coords(j,:))
+                            [ind1,ind2] = find(obj.dofs==j);
+                            obj.dofs(ind1,ind2) = i;
+                            obj.dofs(obj.dofs>j) = obj.dofs(obj.dofs>j)-1;
+                            obj.coords(j,:) = [];
+                        end
+                    end
+                end
+            end
+            obj.ndofs = max(max(obj.dofs));
+        end
+        
+        function coor = computeNodesElement(obj,coords)
+            base = obj.interpolation.lagrangeElement.nodes;
+            c = base([1 3 6],:); %!!!!
+            M = (coords-coords(1,:))'/c';
+            N = coords(1,:)';
+            coor = (M*base'+N)';
+        end
+        
     end
 end

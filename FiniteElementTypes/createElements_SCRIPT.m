@@ -1,8 +1,8 @@
 %% LAGRANGE SIMPLICIAL
-k = 1;
+k = 2;
 d = 2;
 ls = LagrangeElement.create('SIMPLICIAL',k,d);
-% ls.plotShapeFunctions();
+ls.plotShapeFunctions();
 
 %% LAGRANGE TENSOR PRODUCT
 k = 2;

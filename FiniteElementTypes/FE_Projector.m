@@ -8,7 +8,7 @@ classdef FE_Projector < Projector
 
         function obj = FE_Projector(cParams)
             obj.init(cParams);
-            obj.ls = LagrangeElement.create("SIMPLICIAL",1,2);
+            obj.ls = LagrangeElement.create("SIMPLICIAL",cParams.order,2);
         end
 
         function xFun = project(obj, x)
@@ -26,8 +26,8 @@ classdef FE_Projector < Projector
         
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
-            s.fun   = FE_LagrangianFunction.create(obj.mesh, 1);
-            s.quadratureOrder = 'QUADRATIC';
+            s.fun   = FE_LagrangianFunction.create(obj.mesh, 1,obj.ls.polynomialOrder);
+            s.quadratureOrder = 'CUBIC';
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -43,12 +43,14 @@ classdef FE_Projector < Projector
             I = FE_Interpolation(cParams);
             I.computeShapeDeriv(xV);
             shapes = permute(I.shape,[1 3 2]);
-            conne = obj.mesh.connec;
+            
+            FF   = FE_LagrangianFunction.create(obj.mesh, 1,I.lagrangeElement.polynomialOrder);
+            dofsGlob = FF.computeDofConnectivity()';
+            nDofs = max(max(dofsGlob));
 
             nGaus = quad.ngaus;
             nFlds = fun.ndimf;
-            nNode = size(conne,2);
-            nDofs = obj.mesh.nnodes;
+            nDofel = size(shapes,1);
 
             fGaus = fun.evaluate(xV);
             f     = zeros(nDofs,nFlds);
@@ -56,9 +58,9 @@ classdef FE_Projector < Projector
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nNode
-                        dofs = conne(:,inode);
-                        Ni = shapes(inode,igaus);
+                    for inode = 1:nDofel
+                        dofs = dofsGlob(:,inode);
+                        Ni = shapes(inode,1,igaus);
                         int = Ni*fG.*dVg;
                         f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
                     end
@@ -68,7 +70,8 @@ classdef FE_Projector < Projector
         end
 
         function q = createRHSQuadrature(obj, fun)
-            ord = obj.determineQuadratureOrder(fun);
+%             ord = obj.determineQuadratureOrder(fun);ç
+            ord = 'CUBIC';
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(ord);
         end
