@@ -60,17 +60,12 @@ classdef MappingComputer < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);
-            s.fGauss    = fG;
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.meshDisc;
-            s.type      = obj.meshDisc.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.meshDisc.nnodes*1;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
+%             fG = obj.orientation.evaluate(q.posgp);
+            s.mesh  = obj.meshDisc;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsV = rhs.compute(obj.orientation);
             In = obj.interpolator;
             rhsV = In'*rhsV;
             obj.RHS = rhsV;

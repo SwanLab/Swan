@@ -106,7 +106,7 @@ classdef RHSintegrator_ElasticMicro < handle
         function eforce = computeEForce(obj, sigma, igaus)
             sigma.ndimf = size(obj.mesh.coord,2); 
             s.fun  = sigma;
-            s.dNdx = sigma.computeCartesianDerivatives();
+            s.dNdx = sigma.computeCartesianDerivatives(obj.quadrature);
             Bcomp = BMatrixComputer(s);
             Bmat    = Bcomp.compute(igaus);
             

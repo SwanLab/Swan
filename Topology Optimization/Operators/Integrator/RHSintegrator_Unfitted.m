@@ -30,6 +30,13 @@ classdef RHSintegrator_Unfitted < handle
             rhss = RHSintegrator.create(a);
             p1innerInt = rhss.compute(p1finner);
 
+
+%             b.mesh = obj.mesh.innerCutMesh.mesh;
+%             s.cellContainingSubcell = obj.mesh.innerCutMesh.cellContainingSubcell;
+%             b.type = 'CutMeshFun';
+%             rhss = RHSintegrator.create(b);
+%             p1cutInt = rhss.compute(p1finner);
+
             obj.computeInteriorIntegrators();
             int = obj.integrators.integrateAndSum(F);
 

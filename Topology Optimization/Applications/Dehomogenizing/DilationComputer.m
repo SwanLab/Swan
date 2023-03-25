@@ -58,16 +58,12 @@ classdef DilationComputer < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
             gradT = obj.computeFieldTimesDivField(q);
-            s.fGauss    = gradT.fValues;
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.mesh.nnodes;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.mesh.connec;
+
+            s.mesh = obj.mesh;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsV = rhs.compute(gradT);
             obj.RHS = [rhsV;0];
         end
         

@@ -1,25 +1,20 @@
 classdef RHSintegrator_ShapeDerivative < handle
 
     properties (Access = private)
-        npnod
         mesh
-        globalConnec
-        fNodal
-        fGauss
-        xGauss
-        quadOrder
+        quadratureOrder
         quadrature
     end
 
     methods (Access = public)
 
-        % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_ShapeDerivative(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
-        function rhs = compute(obj)
-            rhsElem = obj.computeElementalRHS();
+        function rhs = compute(obj, fun)
+            rhsElem = obj.computeElementalRHS(fun);
             rhs = obj.assembleIntegrand(rhsElem);
         end
 
@@ -29,64 +24,47 @@ classdef RHSintegrator_ShapeDerivative < handle
 
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
-            obj.npnod        = cParams.npnod;
-            obj.quadOrder    = cParams.quadOrder;
-            obj.globalConnec = cParams.globalConnec;
-            obj.quadrature   = obj.computeQuadrature();
-            obj.xGauss   = cParams.xGauss;
-            obj.fGauss   = cParams.fGauss;
+            obj.quadratureOrder = cParams.quadratureOrder;
+        end
+
+        function createQuadrature(obj)
+            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
+            obj.quadrature = q;
         end
         
-        function q = computeQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder);
-        end
-        
-        function rhsC = computeElementalRHS(obj)
-            fG      = obj.fGauss;
-            dV      = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx    = obj.computeGrad();
-            nnode   = size(dNdx,2);
-            ndim    = size(dNdx,1);
-            nelem   = obj.mesh.nelem;
-            int = zeros(nnode,nelem);
-            for igaus = 1:obj.quadrature.ngaus
-                for idime = 1:ndim
-                    for inode = 1:nnode
-                    fI     = squeezeParticular(fG(idime,igaus,:),1);
-                    fdV    = fI.*dV(igaus,:);
-                   %dShape = squeeze(grad(idime,:,:,igaus));
-                    %intI = bsxfun(@times,dShape,fdV);
-                    dShape = squeeze(dNdx(idime,inode,:,igaus))';
-                    intI = dShape.*fdV;
-                    int(inode,:) = int(inode,:) + intI;
+        function rhsC = computeElementalRHS(obj, fun)
+            fG    = fun.evaluate(obj.quadrature.posgp);
+            dV    = obj.mesh.computeDvolume(obj.quadrature);
+            dNdx  = fun.computeCartesianDerivatives(obj.quadrature);
+            nDim  = size(dNdx,1);
+            nNode = size(dNdx,2);
+            nElem = size(dNdx,3);
+            nGaus = size(dNdx,4);
+            int = zeros(nNode,nElem);
+            for igaus = 1:nGaus
+                for idime = 1:nDim
+                    for inode = 1:nNode
+                        fI     = squeezeParticular(fG(idime,igaus,:),1);
+                        fdV    = fI.*dV(igaus,:);
+                        dShape = squeeze(dNdx(idime,inode,:,igaus))';
+                        intI = dShape.*fdV;
+                        int(inode,:) = int(inode,:) + intI;
                     end
                 end
             end
             rhsC = transpose(int);
         end
 
-        function grad = computeGrad(obj)
-            m.type = obj.mesh.type;
-            int = Interpolation.create(m,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(obj.quadrature,int);
-            grad = g.dNdx;
-         %   grad = int.deriv;
-        end
-
         function f = assembleIntegrand(obj,rhsElem)
             integrand = rhsElem;
-            ndofs = obj.npnod;
-            connec = obj.globalConnec;
-            nnode  = size(connec,2);
-            f = zeros(ndofs,1);
-            for inode = 1:nnode
+            connec = obj.mesh.connec;
+            nDofs = max(max(connec));
+            nNode  = size(connec,2);
+            f = zeros(nDofs,1);
+            for inode = 1:nNode
                 int = integrand(:,inode);
                 con = connec(:,inode);
-                f = f + accumarray(con,int,[ndofs,1],@sum,0);
+                f = f + accumarray(con,int,[nDofs,1],@sum,0);
             end
         end
 
