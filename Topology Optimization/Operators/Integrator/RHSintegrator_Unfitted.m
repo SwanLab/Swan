@@ -13,6 +13,23 @@ classdef RHSintegrator_Unfitted < handle
         end
 
         function int = integrateInDomain(obj,F)
+            s.mesh = obj.mesh.backgroundMesh;
+            s.fValues = F;
+            p1f  = P1Function(s);
+
+            connecGlobalInner = obj.mesh.innerMesh.globalConnec;
+            innerDofs = unique(connecGlobalInner);
+
+            s.mesh = obj.mesh.innerMesh.mesh;
+            s.fValues = F(innerDofs);
+            p1finner  = P1Function(s);
+
+
+            a.mesh = obj.mesh.innerMesh.mesh;
+            a.type = 'ShapeFunctionFun';
+            rhss = RHSintegrator.create(a);
+            p1innerInt = rhss.compute(p1finner);
+
             obj.computeInteriorIntegrators();
             int = obj.integrators.integrateAndSum(F);
 
@@ -20,8 +37,6 @@ classdef RHSintegrator_Unfitted < handle
             s.mesh = obj.mesh.backgroundMesh;
             p1int = P1Function(s);
 
-            s.fValues = F;
-            p1f  = P1Function(s);
 
         end
 
