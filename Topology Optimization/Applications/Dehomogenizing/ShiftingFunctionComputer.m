@@ -65,9 +65,9 @@ classdef ShiftingFunctionComputer < handle
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 'QUADRATIC';
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute(cG);
+            rhsF = rhs.compute(cG);
             In = obj.interpolator;
-            rhsV = In'*rhsV;
+            rhsV = In'*rhsF.fValues;
             obj.RHS = rhsV;
         end
         

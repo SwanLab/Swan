@@ -21,7 +21,7 @@ classdef RHSintegrator_Unfitted < handle
             sAF.ndimf   = 1;
             sAF.mesh    = obj.mesh.backgroundMesh;
             xFun = AnalyticalFunction(sAF);
-            PROVAP1 = xFun.project('P1');
+            SAMPLEP1 = xFun.project('P1');
 
             
             globalConnecInner = obj.mesh.innerMesh.globalConnec;
@@ -32,7 +32,7 @@ classdef RHSintegrator_Unfitted < handle
 
 
 %             fV_global = zeros(861,1);
-%             fV_global(innerDofsGlobal) = PROVAP1.fValues(innerDofsGlobal);
+%             fV_global(innerDofsGlobal) = SAMPLEP1.fValues(innerDofsGlobal);
 % 
 %             fV_local = zeros(733,1);
 %             fV_local(innerDofs) = fV_global(innerlocal2innerglobal(innerDofs));
@@ -62,6 +62,7 @@ classdef RHSintegrator_Unfitted < handle
             b.globalConnec          = obj.mesh.backgroundMesh.connec;
             b.npnod                 = obj.mesh.backgroundMesh.nnodes;
             b.backgroundMeshType    = obj.mesh.backgroundMesh.type;
+            b.backgroundMesh        = obj.mesh.backgroundMesh;
             rhss = RHSintegrator.create(b);
             cutFVals = rhss.compute(p1f.fValues);
 

@@ -14,6 +14,8 @@ classdef RHSintegrator_CutMeshFun < handle
         xCoordsIso
         cellContainingSubcell
         subCellConnec
+
+        bgMesh % delete
     end
 
     methods (Access = public)
@@ -47,6 +49,15 @@ classdef RHSintegrator_CutMeshFun < handle
 
             obj.xCoordsIso   = cParams.xCoordsIso;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
+
+            %
+            obj.bgMesh = cParams.backgroundMesh;
+            fV = zeros(length(obj.cellContainingSubcell),1);
+            fV(obj.cellContainingSubcell) = 1;
+            s.fValues = fV;
+            s.mesh = obj.bgMesh;
+            p0cells = P0Function(s);
+    
         end
 
         function createQuadrature(obj)

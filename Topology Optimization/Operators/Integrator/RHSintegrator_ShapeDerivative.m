@@ -13,9 +13,12 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fun)
+        function rhsFun = compute(obj, fun)
             rhsElem = obj.computeElementalRHS(fun);
             rhs = obj.assembleIntegrand(rhsElem);
+            s.fValues = rhs;
+            s.mesh    = obj.mesh;
+            rhsFun = P1Function(s);
         end
 
     end
