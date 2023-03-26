@@ -264,6 +264,13 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues+f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end
         
     end
 

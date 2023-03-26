@@ -39,9 +39,9 @@ classdef RHSintegrator_CutMeshFun < handle
 
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
-%             obj.npnod        = cParams.npnod;
-%             obj.quadOrder    = 'LINEAR';
-%             obj.globalConnec = cParams.globalConnec;
+            obj.npnod        = cParams.npnod;
+            obj.quadOrder    = 'LINEAR';
+            obj.globalConnec = cParams.globalConnec;
 
             obj.backgroundMeshType  = cParams.backgroundMeshType;
 

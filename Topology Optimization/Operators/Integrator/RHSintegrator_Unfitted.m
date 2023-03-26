@@ -17,11 +17,35 @@ classdef RHSintegrator_Unfitted < handle
             s.fValues = F;
             p1f  = P1Function(s);
 
-            connecGlobalInner = obj.mesh.innerMesh.globalConnec;
-            innerDofs = unique(connecGlobalInner);
+            sAF.fHandle = @(x) x(1,:,:);
+            sAF.ndimf   = 1;
+            sAF.mesh    = obj.mesh.backgroundMesh;
+            xFun = AnalyticalFunction(sAF);
+            PROVAP1 = xFun.project('P1');
+
+            
+            globalConnecInner = obj.mesh.innerMesh.globalConnec;
+            localConnecInner  = obj.mesh.innerMesh.mesh.connec;
+            innerDofsGlobal = unique(globalConnecInner(:)); % nein
+            innerDofs = unique(localConnecInner); % nein
+            innerlocal2innerglobal(localConnecInner(:)) = globalConnecInner(:);
+
+
+%             fV_global = zeros(861,1);
+%             fV_global(innerDofsGlobal) = PROVAP1.fValues(innerDofsGlobal);
+% 
+%             fV_local = zeros(733,1);
+%             fV_local(innerDofs) = fV_global(innerlocal2innerglobal(innerDofs));
+
+
+            fV_global = zeros(length(F),1);
+            fV_global(innerDofsGlobal) = F(innerDofsGlobal);
+
+            fV_local = zeros(length(innerDofs),1);
+            fV_local(innerDofs) = fV_global(innerlocal2innerglobal(innerDofs));
 
             s.mesh = obj.mesh.innerMesh.mesh;
-            s.fValues = F(innerDofs);
+            s.fValues = fV_local;
             p1finner  = P1Function(s);
 
 
@@ -31,11 +55,27 @@ classdef RHSintegrator_Unfitted < handle
             p1innerInt = rhss.compute(p1finner);
 
 
-%             b.mesh = obj.mesh.innerCutMesh.mesh;
-%             s.cellContainingSubcell = obj.mesh.innerCutMesh.cellContainingSubcell;
-%             b.type = 'CutMeshFun';
-%             rhss = RHSintegrator.create(b);
-%             p1cutInt = rhss.compute(p1finner);
+            b.mesh = obj.mesh.innerCutMesh.mesh;
+            b.cellContainingSubcell = obj.mesh.innerCutMesh.cellContainingSubcell;
+            b.type = 'CutMeshFun';
+            b.xCoordsIso            = obj.mesh.innerCutMesh.xCoordsIso;
+            b.globalConnec          = obj.mesh.backgroundMesh.connec;
+            b.npnod                 = obj.mesh.backgroundMesh.nnodes;
+            b.backgroundMeshType    = obj.mesh.backgroundMesh.type;
+            rhss = RHSintegrator.create(b);
+            cutFVals = rhss.compute(p1f.fValues);
+
+            cc.mesh = obj.mesh.backgroundMesh;
+            cc.fValues = cutFVals;
+            p1cutInt = P1Function(cc);
+
+            fVintInnerinGlobal = zeros(length(F),1);
+            fVintInnerinGlobal(innerlocal2innerglobal(innerDofs)) = p1innerInt.fValues(innerDofs);
+            fValuesInt = p1cutInt.fValues + fVintInnerinGlobal;
+
+            zzz.mesh = obj.mesh.backgroundMesh;
+            zzz.fValues = fValuesInt;
+            myIntp1 = P1Function(zzz);
 
             obj.computeInteriorIntegrators();
             int = obj.integrators.integrateAndSum(F);
