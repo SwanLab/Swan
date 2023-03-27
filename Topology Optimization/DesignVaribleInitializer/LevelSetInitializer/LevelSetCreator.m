@@ -2,9 +2,12 @@ classdef LevelSetCreator < handle
     
     properties (Access = protected)
         nodeCoord
-        levelSet
+        
         lsSize
         ndim        
+    end
+    properties (Access = public)
+        levelSet
     end
     
     methods (Access = public)
