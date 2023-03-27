@@ -14,11 +14,6 @@ classdef Network < handle
     properties (Dependent)
         layer
     end
-    
-   properties (Access = private)
-       propagator
-       plotter
-   end
 
    methods (Access = public)
 
@@ -42,15 +37,6 @@ classdef Network < handle
            end      
            self.thetavec = th;
        end
-
-       function updateHyperparameter(self,h)
-           switch h.type
-               case 'lambda'
-                    self.lambda = h.value;
-                    self.propagator.lambda = self.lambda;
-                    self.computeInitialTheta();
-           end
-       end
    end
 
    methods (Access = private)
@@ -70,8 +56,6 @@ classdef Network < handle
                self.OUtype = s{5};
                self.lambda = s{6};
            end
-           self.propagator = Propagator(self.data,self.lambda,self);
-           self.plotter = Plotter(self);
        end  
    end   
 

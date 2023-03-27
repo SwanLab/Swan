@@ -13,10 +13,6 @@ classdef SGD < Trainer
        thetaLowest
     end
 
-%     properties (Access = private)
-%         optimizationProblem
-%     end
-
     methods(Access = public)
 
         function self = SGD(s)
