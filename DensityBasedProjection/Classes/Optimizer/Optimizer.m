@@ -123,6 +123,7 @@ classdef Optimizer < handle
             s.projectedField =obj.projectedField.E;
             s.derivedProjectedField = obj.derivedProjectedField.E;
             s.projectorParameters.eta =obj.projectorParameters.eta.E ;
+
             E = CostFieldDerivator(s);
             E.compute();
             obj.derivedCost.E = E.derivedCost;
