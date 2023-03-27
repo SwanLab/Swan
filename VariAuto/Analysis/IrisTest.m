@@ -19,9 +19,9 @@ network   = Network(data,structure);
 costFnc   = optimizationProblem(data,network);
 optimizer = Trainer.create(costFnc,'SGD',learningRate);
 optimizer.train();
-%{
+
 costFnc.plotConfusionMatrix();
+
 if data.nFeatures == 2
-    network.plotBoundary('contour');
+    costFnc.plotBoundary('contour');
 end
-%}

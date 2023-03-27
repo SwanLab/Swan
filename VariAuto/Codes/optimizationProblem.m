@@ -7,15 +7,15 @@ classdef optimizationProblem < handle
        regularization
        loss
        gradient
+       network
     end
     
-   properties (Access = private)
-       network
+    properties (Access = private)
        plotter
        lambda
        a_fcn
        delta
-   end
+    end
 
    methods (Access = public)
 
@@ -57,20 +57,14 @@ classdef optimizationProblem < handle
            self.data = s{1};
            self.network = s{2};
            self.lambda = self.network.lambda;
-           %self.plotter = Plotter(self);
+           self.plotter = Plotter(self);
        end  
 
-%-----------------------------------------------------------------------------------------
-%-----------------------------------------------------------------------------------------
-%--------------------------------------TO SIMPLIFY----------------------------------------
-%-----------------------------------------------------------------------------------------
-%-----------------------------------------------------------------------------------------
-
-        function [J,gradient] = propagate(self,layer,Xb,Yb)
+       function [J,gradient] = propagate(self,layer,Xb,Yb)
             self.forwardprop(layer,Xb,Yb);
             J = self.cost;
             gradient = self.backprop(layer,Yb);
-        end       
+       end  
 
        function g = compute_last_H(self,X)
            nLy = self.network.nLayers;
@@ -81,10 +75,7 @@ classdef optimizationProblem < handle
                 h = self.hypothesisfunction(g,layer{i}.W,layer{i}.b);
                 [g,~] = self.actFCN(h,i+1);
             end
-       end      
-    end
-
-    methods (Access = private)
+       end   
 
        function forwardprop(self,layer,Xb,Yb)
            self.computeLoss(layer,Xb,Yb);

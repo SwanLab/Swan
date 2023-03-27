@@ -10,8 +10,8 @@ classdef Plotter < handle
 
         function self = Plotter(init)
             self.data = init.data;
-            self.neuronsPerLayer = init.neuronsPerLayer;
             self.network = init;
+            self.neuronsPerLayer = init.network.neuronsPerLayer;
         end
 
         function plotBoundary(self,type) 
