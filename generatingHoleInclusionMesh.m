@@ -1,6 +1,6 @@
 %% Generating a 2D mesh with a hole inclusion
 % Using functions!
-clc; clear; close all
+clear; close all
 
 % Create the data container for the FEM problem
 a.fileName = 'test2d_micro';
@@ -21,7 +21,14 @@ p0c.plot();
 % Generate the hole in the material using the values we just found
 fV = squeeze(p0c.fValues);
 holeNodes = find(fV==1);
-m.material.C(:,:,holeNodes) = zeros(3,3, length(holeNodes));
+% m.material.C(:,:,holeNodes) = zeros(3,3, length(holeNodes));
+m.material.C(:,:,holeNodes) = m.material.C(:,:, holeNodes)*1e-10;
+% m.material.C(:,:,holeNodes) = repmat([10*10e-3, 10e-3, 0; 10e-3 10*10e-3 0; 0 0 10e-3], [1 1 length(holeNodes)]);
+
+
+% sUM.backgroundMesh = m.mesh;
+% sUM.boundaryMesh = m.mesh.createBoundaryMesh();
+% uM = UnfittedMesh(sUM);
 
 % Solve the problem
 fem = ElasticProblemMicro(m);
@@ -36,7 +43,7 @@ fem.uFun{3}.plot
 clc; clear; close all
 
 % Create the data container for the FEM problem
-a.fileName = 'test3d_micro_cube';
+a.fileName = 'holeinclusion3d';
 m = FemDataContainer(a);
 
 % Create the characteristic function (1 inside circle, 0 outside)
@@ -53,7 +60,7 @@ p0c = projP0.project(circleFun);
 % Generate the hole in the material using the values we just found
 fV = squeeze(p0c.fValues);
 holeNodes = find(fV==1);
-m.material.C(:,:,holeNodes) = zeros(6,6, length(holeNodes));
+m.material.C(:,:,holeNodes) = m.material.C(6,6, length(holeNodes))*1e-3;
 
 % Solve the problem
 fem = ElasticProblemMicro(m);
