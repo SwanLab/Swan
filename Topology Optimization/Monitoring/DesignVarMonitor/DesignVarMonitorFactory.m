@@ -67,6 +67,8 @@ classdef DesignVarMonitorFactory < handle
                     obj.monitor = DesignVarMonitor_SquareColumn(mS);
                 case 'RectangularColumn'
                     obj.monitor = DesignVarMonitor_RectangularColumn(mS);
+                case 'RectangularHoleColumn'
+                    obj.monitor = DesignVarMonitor_RectangularHoleColumn(mS);
                 case 'HoleColumn'
                     obj.monitor = DesignVarMonitor_HoleColumn(mS);
                 otherwise

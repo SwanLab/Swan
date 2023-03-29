@@ -19,7 +19,8 @@ classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
             scale = 0.3;
             obj.createPolygon(scale);
             obj.plotFigure();
-            obj.create3Dplot();
+            obj.plotDesignVariable();
+            %obj.create3Dplot();
         end
         
     end
@@ -61,6 +62,21 @@ classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+        end
+
+        function plotDesignVariable(obj)
+            y = obj.sectionVariables.getSingleValue();
+            xMax = max(obj.mesh.coord);
+            x = linspace(0,xMax,length(y));
+            figure(4)
+            clf
+            plot(x,y);
+            axis([0 xMax 0 2])
+            grid on
+            grid minor
+            title('Design Variable','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            ylabel('R(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end
 
         function create3Dplot(obj)

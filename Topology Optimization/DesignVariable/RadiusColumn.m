@@ -50,16 +50,15 @@ classdef RadiusColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    x0(1:N+1,1) = sqrt(1/pi);
+                    x0(1:N+1,1) = 5;%sqrt(1/pi);
                 case 'Random'
-                    x0 = sqrt(rand(N+1,1)/pi);
+                    x0 = 0.5*rand(N+1,1);
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;
                 otherwise 
                     error('Invalid Initial Value Type.')
             end
-            %x0 = 2*rand(N+1,1);
             obj.update(x0);        
         end
         

@@ -217,6 +217,36 @@ classdef EigModes < handle
                     end
                     dfdx(1,2*nElem+1) = 1;
                     dfdx(2,2*nElem+1) = 1;
+
+                case 4
+                    for nVar=1:4
+                        for iElem=1:nElem
+                            index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;
+                            da = dI((nVar-1)*nElem+iElem,1);
+                            dW1((nVar-1)*nElem+iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
+                            dW2((nVar-1)*nElem+iElem,1)= da*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
+                            dW1W2((nVar-1)*nElem+iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
+                        end
+                    end
+                    
+                    for iElem=1:4*nElem
+                        A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
+                        A1 = dW1(iElem,1);
+                        A12 = dW1W2(iElem,1);
+                        A21 = dW1W2(iElem,1);
+                        A2 = dW2(iElem,1);
+                        a=1;
+                        b = -(A1 + A2);
+                        c = A1*A2 - A12*A21;
+                        lambd1 = -b+sqrt(b^2-4*a*c)/(2*a);
+                        lambd2 = -b-sqrt(b^2-4*a*c)/(2*a);
+                        [U,R] = eigs(A,2,'SM');
+                        S = sort(diag(R));
+                        dfdx(1,iElem) = -S(1);
+                        dfdx(2,iElem) = -S(2);
+                    end
+                    dfdx(1,4*nElem+1) = 1;
+                    dfdx(2,4*nElem+1) = 1;
             end
 
         end

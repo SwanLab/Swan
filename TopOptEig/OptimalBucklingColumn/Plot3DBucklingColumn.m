@@ -42,8 +42,8 @@ classdef Plot3DBucklingColumn < handle
         
         function createBackgroundMesh(obj)
             nElem = length(obj.coordinates)-1;
-            x = linspace(0,5,20);
-            y = linspace(0,5,20);
+            x = linspace(0,5,30);
+            y = linspace(0,5,30);
             z = linspace(0,20,nElem);
             [X,Y,Z] = meshgrid(x,y,z);   
             coord  = [X(:) Y(:) Z(:)];
@@ -62,12 +62,12 @@ classdef Plot3DBucklingColumn < handle
         end
 
         function createLevelSet(obj)
-            s.type = obj.type;
-            s.desVarValue     = obj.value;
-            s.coord      = obj.backgroundMesh.coord;
-            s.ndim       = obj.backgroundMesh.ndim;
-            lsCreator    = LevelSetCreator.create(s);
-            obj.levelSet = lsCreator.getValue();            
+            s.type        = obj.type;
+            s.desVarValue = obj.value;
+            s.coord       = obj.backgroundMesh.coord;
+            s.ndim        = obj.backgroundMesh.ndim;
+            lsCreator     = LevelSetCreator.create(s);
+            obj.levelSet  = lsCreator.getValue();            
         end
         
         function createUnfittedMesh(obj)

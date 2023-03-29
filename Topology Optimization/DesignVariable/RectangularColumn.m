@@ -46,12 +46,17 @@ classdef RectangularColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    a = ones(N,1);
+                    a = 3*ones(N,1);
                     b = 0.5*ones(N,1);
                     x0 = [a;b;1];
                 case 'Random'
                     a = rand(N,1);
                     b = 0.5*rand(N,1);
+                    x0 = [a;b;1];
+                case 'Sinus'
+                    x = linspace(0,5*pi,N)';
+                    a = 0.4*sin(x)+2;
+                    b = 0.4*sin(x)+2;
                     x0 = [a;b;1];
                 otherwise 
                     error('Invalid Initial Value Type.')

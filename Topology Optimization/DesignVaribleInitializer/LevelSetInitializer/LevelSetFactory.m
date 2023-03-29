@@ -30,6 +30,8 @@ classdef LevelSetFactory < handle
                     obj = LevelSetRectangleInclusion(d);
                 case 'rectangularColumn'
                     obj = LevelSetRectangularColumn(d);
+                case 'rectangularHoleColumn'
+                    obj = LevelSetRectangularHoleColumn(d);
                 case 'smoothRectangle'
                     obj = LevelSetSmoothRectangleInclusion(d);
                 case 'feasible'

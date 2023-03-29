@@ -1,5 +1,5 @@
-classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
-  
+classdef DesignVarMonitor_RectangularHoleColumn < DesignVarMonitor_Abstract
+    
     properties (Access = protected)
         designVarName = 'Square Column'
     end
@@ -10,17 +10,14 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
     
     methods (Access = public)
         
-        function obj = DesignVarMonitor_RectangularColumn(cParams)
+        function obj = DesignVarMonitor_RectangularHoleColumn(cParams)
             obj@DesignVarMonitor_Abstract(cParams);
         end
         
         function plot(obj)
-            obj.nIter= obj.nIter+1;
             scale = 0.3;
             obj.createPolygon(scale);
             obj.plotFigure();
-            obj.plotDesignVariable();
-            %obj.create3Dplot();
         end
         
     end
@@ -61,31 +58,6 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
-        end
-
-        function plotDesignVariable(obj)
-            [a,b] = obj.sectionVariables.getDoubleValue();
-            xMax = max(obj.mesh.coord);
-            x = linspace(0,xMax,length(a));
-            figure(4)
-            clf
-            plot(x,a,x,b);
-            axis([0 xMax 0 3])
-            grid on
-            grid minor
-            title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
-            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
-        end
-
-        function create3Dplot(obj)
-            nElem = obj.sectionVariables.mesh.nelem;
-            nVar = obj.sectionVariables.designVariable.nDesignVar;
-            s.designVariableValue = obj.sectionVariables.designVariable.value(1:nVar*nElem);
-            s.coord = obj.sectionVariables.mesh.coord;
-            s.type = 'rectangularColumn';
-            plt = Plot3DBucklingColumn(s);
-            plt.compute();
-            obj.frames{obj.nIter} = plt.frame;
         end
 
     end 

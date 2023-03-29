@@ -53,10 +53,10 @@ classdef CircularSection < SectionVariablesComputer
         function A = computeArea(obj)
             switch obj.designVariable.type
                 case 'AreaColumn'
-                    A = obj.val1;
+                    A = obj.val;
                 case 'RadiusColumn'
                     R = obj.getSingleValue();
-                    A = R.^2.*pi;
+                    A = R.^2*pi;
                 case 'HoleColumn'
                     [r,e] = obj.getDoubleValue();
                     Rint = r;

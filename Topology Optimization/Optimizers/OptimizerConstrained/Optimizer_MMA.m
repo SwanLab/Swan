@@ -42,8 +42,6 @@ classdef Optimizer_MMA < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
-%             obj.upperBound = cParams.uncOptimizerSettings.ub;
-%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
 

@@ -11,19 +11,23 @@ classdef OptimizerCreator < handle
         mesh
         cost  
         constraint 
-        upperBound
-        lowerBound 
+        minDesVar
+        maxDesVar
+        minCost
+        maxCost
         maxIter 
     end
     
     properties (Access = private)
-        
+        upperBound
+        lowerBound
     end
     
     methods (Access = public)
         
         function obj = OptimizerCreator(cParams)
             obj.init(cParams)
+            obj.createOptimizerBounds();
             obj.create() 
         end
         
@@ -38,10 +42,11 @@ classdef OptimizerCreator < handle
             obj.mesh            = cParams.mesh;
             obj.cost            = cParams.cost;
             obj.constraint      = cParams.constraint;
-            obj.upperBound      = cParams.ub;
-            obj.lowerBound      = cParams.lb;
-            obj.maxIter         = cParams.maxIter;
-            
+            obj.minDesVar       = cParams.minDesVar;
+            obj.maxDesVar       = cParams.maxDesVar;
+            obj.minCost         = cParams.minCost;
+            obj.maxCost         = cParams.maxCost;
+            obj.maxIter         = cParams.maxIter;       
         end
         
         function create(obj)
@@ -73,6 +78,15 @@ classdef OptimizerCreator < handle
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
             %s.primalUpdater = 'PROJECTED GRADIENT';
             obj.optimizer = Optimizer.create(s);
+        end
+
+        function createOptimizerBounds(obj)
+            n = obj.designVariable.nDesignVar;
+            one = ones(n*obj.mesh.nelem+1,1);
+            obj.upperBound = obj.maxDesVar*one;
+            obj.lowerBound = obj.minDesVar*one;
+            obj.upperBound(n*obj.mesh.nelem+1)=obj.maxCost;
+            obj.lowerBound(n*obj.mesh.nelem+1)=obj.minCost;
         end
         
     end

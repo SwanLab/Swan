@@ -14,6 +14,7 @@ classdef PostProcessColumn < handle
         mesh
         scale
         frames
+        makeGIF
     end
     
     methods (Access = public)
@@ -27,7 +28,10 @@ classdef PostProcessColumn < handle
             obj.createMesh();
             obj.plotMesh();
             obj.create3Dplot();
-            obj.createGIF();
+            switch obj.makeGIF
+                case 'Y'
+                    obj.createGIF();
+            end
         end
         
     end
@@ -39,6 +43,7 @@ classdef PostProcessColumn < handle
             obj.sectionVariables = cParams.sectionVariables;
             obj.mesh           = cParams.mesh;
             obj.scale          = cParams.scale;
+            obj.makeGIF        = cParams.makeGIF;
             obj.frames         = cParams.optimizer.outputFunction.monitoring.monitorDocker.designVarMonitor.frames;
         end
 
@@ -64,7 +69,7 @@ classdef PostProcessColumn < handle
             nVar = obj.designVariable.nDesignVar;
             s.designVariableValue = obj.designVariable.value(1:nVar*nElem);
             s.coord = obj.mesh.coord;
-            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'
+            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'/'rectangularHoleColumn'
             plt = Plot3DBucklingColumn(s);
             plt.compute();
         end

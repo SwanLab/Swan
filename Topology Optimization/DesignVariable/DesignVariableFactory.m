@@ -20,6 +20,8 @@ classdef DesignVariableFactory < handle
                     designVar = SquareColumn(cParams);
                 case 'RectangularColumn'
                     designVar = RectangularColumn(cParams);
+                case 'RectangularHoleColumn'
+                    designVar = RectangularHoleColumn(cParams);
                 case 'HoleColumn'
                     designVar = HoleColumn(cParams);
                 case 'LevelSetEigModes'

@@ -15,6 +15,7 @@ classdef EulerBeamOptimizer < handle
         mesh
         initValueType
         meshType
+        desVarType
         designVariable
         sectionVariables
         eigenModes
@@ -27,9 +28,12 @@ classdef EulerBeamOptimizer < handle
         nValues
         youngModulus
         inertiaMoment
-        minThick
-        maxThick
+        minDesVar
+        maxDesVar
+        minCost
+        maxCost
         maxIter
+        makeGIF
     end
 
 
@@ -51,7 +55,7 @@ classdef EulerBeamOptimizer < handle
             obj.createOptimizer();
             obj.optimizer.solveProblem();
             obj.value = obj.designVariable.value;
-            obj.postProcess();
+            %obj.postProcess();
         end
 
     end
@@ -63,22 +67,20 @@ classdef EulerBeamOptimizer < handle
             obj.nElem         = 500;
             obj.nConstraints  = 3; 
             obj.columnLength  = 20; 
-            obj.maxVolume     = 80; %(1e-2)*20^3;
+            obj.maxVolume     = 20*pi; %(1e-2)*20^3;
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
+            obj.makeGIF       = 'N'; %'Y';'N'
             obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
-            obj.initValueType = 'Random'; % Random/Constant/External Value
+            obj.initValueType = 'Constant'; % Random/Constant/External Value/Sinus
             obj.meshType      = 'Structured'; %Structured/Unstructured
+            obj.desVarType    = 'RadiusColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
             obj.maxIter       = 100;
-            obj.minThick(1:obj.nElem,1) = sqrt(0.00001/pi); %sqrt(0.5/pi)/0.5/sqrt(0.5);
-            obj.minThick(obj.nElem+1)   = 0;
-            obj.maxThick(1:obj.nElem,1) = sqrt(1000/pi); %sqrt(100/pi)/10/sqrt(10);
-            obj.maxThick(obj.nElem+1)   = 10000;
-%             obj.minThick(1:2*obj.nElem,1) = 0.0005; 
-%             obj.minThick(2*obj.nElem+1,1)   = 0;
-%             obj.maxThick(1:2*obj.nElem,1) = 15; 
-%             obj.maxThick(2*obj.nElem+1,1)   = 10000;
+            obj.minDesVar = 0; 
+            obj.maxDesVar = 200000; 
+            obj.minCost   = 0;
+            obj.maxCost   = 10000;
         end
         
         function createMesh(obj)
@@ -93,7 +95,7 @@ classdef EulerBeamOptimizer < handle
         function createDesignVariable(obj)
             s.initValue = obj.initValue;
             s.initValueType = obj.initValueType;
-            s.type  = 'RadiusColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
+            s.type  = obj.desVarType;
             s.mesh  = obj.mesh;
             des = DesignVariable.create(s);
             obj.designVariable = des;  
@@ -148,17 +150,19 @@ classdef EulerBeamOptimizer < handle
         end       
 
         function createOptimizer(obj)
-              s.optimizerType   = obj.optimizerType; 
-              s.desVar          = obj.designVariable;  
-              s.sectionVariables=obj.sectionVariables;
-              s.mesh            = obj.mesh;
-              s.cost            = obj.cost;
-              s.constraint      = obj.constraint; 
-              s.ub              = obj.maxThick;
-              s.lb              = obj.minThick;
-              s.maxIter         = obj.maxIter;
-              creator = OptimizerCreator(s);
-              obj.optimizer = creator.optimizer;
+            s.optimizerType    = obj.optimizerType; 
+            s.desVar           = obj.designVariable;  
+            s.sectionVariables = obj.sectionVariables;
+            s.mesh             = obj.mesh;
+            s.cost             = obj.cost;
+            s.constraint       = obj.constraint; 
+            s.minDesVar        = obj.minDesVar;
+            s.maxDesVar        = obj.maxDesVar;
+            s.minCost          = obj.minCost;
+            s.maxCost          = obj.maxCost;
+            s.maxIter          = obj.maxIter;
+            creator = OptimizerCreator(s);
+            obj.optimizer = creator.optimizer;
         end
 
 
@@ -168,6 +172,7 @@ classdef EulerBeamOptimizer < handle
             s.mesh           = obj.mesh;
             s.scale          = 1;
             s.optimizer      = obj.optimizer;
+            s.makeGIF        = obj.makeGIF;
             post = PostProcessColumn(s);
             post.plotColumn();
             obj.columnMesh = post.m;

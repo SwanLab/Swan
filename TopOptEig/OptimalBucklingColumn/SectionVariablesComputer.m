@@ -20,10 +20,6 @@ classdef SectionVariablesComputer < handle
     end
     
     methods (Access = public)
-          
-    end
-    
-    methods (Access = protected)
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
@@ -44,6 +40,14 @@ classdef SectionVariablesComputer < handle
             b = x(N+1:2*N);
         end
         
+        function [a,b,c,d] = getFourValues(obj)
+            x = obj.designVariable.value;
+            N = obj.mesh.nelem;
+            a = x(1:N);
+            b = x(N+1:2*N);
+            c = x(2*N+1:3*N);
+            d = x(3*N+1:4*N);
+        end
     end
     
 end
