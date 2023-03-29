@@ -4,6 +4,7 @@ classdef FE_LagrangianFunction < FeFunction
         dofs
         ndofs
         coords
+        polynomialOrder
     end
 
     properties (Access = private)
@@ -189,7 +190,8 @@ classdef FE_LagrangianFunction < FeFunction
 
             switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
-                    [x,y] = obj.computePlotCoords();
+                    x = obj.coords(:,1);
+                    y = obj.coords(:,2);
                     figure()
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
@@ -237,35 +239,16 @@ classdef FE_LagrangianFunction < FeFunction
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
         end
-        
-        function [x,y]  = computePlotCoords(obj)
-            nelem = length(obj.dofs);
-            coord = obj.mesh.coord;
-            
-            x = zeros(obj.ndofs,1);
-            y = zeros(obj.ndofs,1);
-            
-            if obj.interpolation.lagrangeElement.polynomialOrder~=1
-                for ielem = 1:nelem
-                    coor = obj.computeNodesElement(coord(obj.dofs(ielem,[1 3 6]),:));
-                    x(obj.dofs(ielem,:)) = coor(:,1);
-                    y(obj.dofs(ielem,:)) = coor(:,2);
-                end
-            else
-                x = obj.mesh.coord(:,1);
-                y = obj.mesh.coord(:,2);
-            end
-            
-        end
 
     end
 
     methods (Access = public, Static)
 
-        function p = create(mesh, ndimf, order)
-            d = FE_LagrangianFunction.numberDofs(mesh,order);
+        function p = create(mesh, ndimf, polOrder)
+            d = FE_LagrangianFunction.numberDofs(mesh,polOrder);
             s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
+            s.polynomialOrder = polOrder;
             p = FE_LagrangianFunction(s);
         end
 
@@ -347,11 +330,13 @@ classdef FE_LagrangianFunction < FeFunction
             obj.ndimf   = size(cParams.fValues,2);
             obj.order   = 'LINEAR';
             obj.meshCoarse = cParams.mesh;
+            obj.polynomialOrder = cParams.polynomialOrder;
         end
 
-        function createInterpolation(obj,cParams)
+        function createInterpolation(obj)
             cParams.mesh.type = obj.mesh.type;
             cParams.order = obj.order;
+            cParams.polynomialOrder = obj.polynomialOrder;
             obj.interpolation = FE_Interpolation(cParams);
         end
 

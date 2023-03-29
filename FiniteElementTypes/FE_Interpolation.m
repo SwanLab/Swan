@@ -46,7 +46,7 @@ classdef FE_Interpolation < handle
         function init(obj,cParams)
             obj.type  = cParams.mesh.type;
             obj.order = cParams.order;
-            obj.lagrangeElement = LagrangeElement.create('SIMPLICIAL',1,2);
+            obj.lagrangeElement = LagrangeElement.create('SIMPLICIAL',cParams.polynomialOrder,2);
         end
         
         function computeParams(obj)

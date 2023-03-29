@@ -8,7 +8,7 @@ classdef FE_Projector < Projector
 
         function obj = FE_Projector(cParams)
             obj.init(cParams);
-            obj.ls = LagrangeElement.create("SIMPLICIAL",cParams.order,2);
+            obj.ls = LagrangeElement.create("SIMPLICIAL",cParams.polynomialOrder,2);
         end
 
         function xFun = project(obj, x)
@@ -17,6 +17,7 @@ classdef FE_Projector < Projector
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
             s.fValues = xProj;
+            s.polynomialOrder = obj.ls.polynomialOrder;
             xFun = FE_LagrangianFunction(s);
         end
 
@@ -40,6 +41,7 @@ classdef FE_Projector < Projector
             
             cParams.mesh.type = obj.mesh.type;
             cParams.order = 'LINEAR';
+            cParams.polynomialOrder = obj.ls.polynomialOrder;
             I = FE_Interpolation(cParams);
             I.computeShapeDeriv(xV);
             shapes = permute(I.shape,[1 3 2]);
