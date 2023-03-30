@@ -20,16 +20,16 @@ classdef Network < handle
 
    methods (Access = public)
 
-       function self = Network(varargin)
-           self.init(varargin);
-           self.computeInitialTheta();
+       function obj = Network(varargin)
+           obj.init(varargin);
+           obj.computeInitialTheta();
        end
 
-       function computeInitialTheta(self)
-           nPL    = self.neuronsPerLayer;
+       function computeInitialTheta(obj)
+           nPL    = obj.neuronsPerLayer;
            th     = [];
-           for i = 2:self.nLayers
-                if i ~= self.nLayers
+           for i = 2:obj.nLayers
+                if i ~= obj.nLayers
                     b = zeros([1,nPL(i)]) + 0.1;
                 else
                     b = zeros([1,nPL(i)]) + 1/nPL(i);
@@ -38,39 +38,39 @@ classdef Network < handle
                 W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
                 th = [th,W,b];
            end      
-           self.thetavec = th;
+           obj.thetavec = th;
        end
    end
 
    methods (Access = private)
 
-       function init(self,s)
-           self.data = s{1};
-           self.neuronsPerLayer = s{2};
-           self.nLayers = length(s{2});
+       function init(obj,s)
+           obj.data = s{1};
+           obj.neuronsPerLayer = s{2};
+           obj.nLayers = length(s{2});
            if length(s) <= 2
-               self.Costtype = '-loglikelihood';
-               self.HUtype = 'ReLU';
-               self.OUtype = 'softmax';
-               self.lambda = 0;
+               obj.Costtype = '-loglikelihood';
+               obj.HUtype = 'ReLU';
+               obj.OUtype = 'softmax';
+               obj.lambda = 0;
            else
-               self.Costtype = s{3};
-               self.HUtype = s{4};
-               self.OUtype = s{5};
-               self.lambda = s{6};
+               obj.Costtype = s{3};
+               obj.HUtype = s{4};
+               obj.OUtype = s{5};
+               obj.lambda = s{6};
            end
        end  
    end   
 
    methods 
-       function value = get.layer(self)
-            nPL = self.neuronsPerLayer;
+       function value = get.layer(obj)
+            nPL = obj.neuronsPerLayer;
             last = 1;
-            value = cell(self.nLayers-1,1);
-            for i = 2:self.nLayers
+            value = cell(obj.nLayers-1,1);
+            for i = 2:obj.nLayers
                 aux = nPL(i)*nPL(i-1) + nPL(i);
                 next = last + aux;
-                theta_i = self.thetavec(last:next-1);
+                theta_i = obj.thetavec(last:next-1);
                 value{i-1} = Layer(theta_i,nPL(i-1),nPL(i));
                 last = next;
             end

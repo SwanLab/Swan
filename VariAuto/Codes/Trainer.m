@@ -20,75 +20,75 @@ classdef Trainer < handle
 
     methods (Access = public, Static)
 
-        function self = create(varargin)
+        function obj = create(varargin)
            switch varargin{2}
                case 'SGD'
-                   self = SGD(varargin);
+                   obj = SGD(varargin);
                case 'Fminunc'
-                   self = Fminunc(varargin);
+                   obj = Fminunc(varargin);
                case 'Nesterov'
-                   self = Nesterov(varargin);
+                   obj = Nesterov(varargin);
                case 'RMSProp'
-                   self = RMSProp(varargin);
+                   obj = RMSProp(varargin);
            end
         end
     end
 
     methods (Access = protected)
 
-        function init(self,s)
-            self.optimizationProblem = s{1};
+        function init(obj,s)
+            obj.optimizationProblem = s{1};
             if length(s) <= 7
-                self.isDisplayed  = false;
+                obj.isDisplayed  = false;
             else
-                self.isDisplayed  = true;
+                obj.isDisplayed  = true;
             end
         end
 
-        function [J,g] = costFunction(self,x,Xb,Yb)
+        function [J,g] = costFunction(obj,x,Xb,Yb)
             theta   = x;
-            self.optimizationProblem.computeCost(theta,Xb,Yb)
-            J = self.optimizationProblem.cost;
-            g = self.optimizationProblem.gradient;
+            obj.optimizationProblem.computeCost(theta,Xb,Yb)
+            J = obj.optimizationProblem.cost;
+            g = obj.optimizationProblem.gradient;
         end
 
-        function storeValues(self,x,f,state,opt)
+        function storeValues(obj,x,f,state,opt)
             switch state
                 case 'init'
-                    self.costHist = [0,0,0];
-                    self.optHist = [0,0];      
-                    self.figureCost = figure;
-                    self.figureOpt = figure;
+                    obj.costHist = [0,0,0];
+                    obj.optHist = [0,0];      
+                    obj.figureCost = figure;
+                    obj.figureOpt = figure;
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
-                    cV(2) = self.optimizationProblem.regularization;
-                    cV(3) = self.optimizationProblem.loss;
-                    self.xIter = [self.xIter, x];
-                    self.costHist = [self.costHist;cV];
+                    cV(2) = obj.optimizationProblem.regularization;
+                    cV(3) = obj.optimizationProblem.loss;
+                    obj.xIter = [obj.xIter, x];
+                    obj.costHist = [obj.costHist;cV];
                     oV = zeros(1,2);
                     oV(1) = opt.gnorm;
                     oV(2) = opt.epsilon;
-                    self.optHist = [self.optHist;oV];
+                    obj.optHist = [obj.optHist;oV];
             end
         end
 
-        function plotMinimization(self,iter)
-            nIter = self.nPlot;
+        function plotMinimization(obj,iter)
+            nIter = obj.nPlot;
             v = 0:nIter:iter-1;
             if iter > 1
-            self.plotCostRegErr(v);
-            self.plotEpsOpt(v)
+            obj.plotCostRegErr(v);
+            obj.plotEpsOpt(v)
             end
-            if self.optimizationProblem.data.nFeatures <= 2 %CUIDADO, Arreglar
-                self.optimizationProblem.plotBoundary('contour')
+            if obj.optimizationProblem.data.nFeatures <= 2 %CUIDADO, Arreglar
+                obj.optimizationProblem.plotBoundary('contour')
             end
         end  
 
-        function plotCostRegErr (self,v)
-            figure(self.figureCost)
-            %semilogy(v,self.costHist(2:end,1),'+-r',v,self.costHist(2:end,3),'+-b',v,self.costHist(2:end,2),'+-k')
-            plot(v(2:end),self.costHist(2:end,1),'d--b','MarkerFaceColor','b')
+        function plotCostRegErr (obj,v)
+            figure(obj.figureCost)
+            %semilogy(v,obj.costHist(2:end,1),'+-r',v,obj.costHist(2:end,3),'+-b',v,obj.costHist(2:end,2),'+-k')
+            plot(v(2:end),obj.costHist(2:end,1),'d--b','MarkerFaceColor','b')
             %legend('Fval','Loss','Regularization')
             xlabel('Iterations')
             ylabel('Function Values')
@@ -98,17 +98,17 @@ classdef Trainer < handle
             hold off
         end
 
-        function plotEpsOpt(self,v)
-            figure(self.figureOpt)
+        function plotEpsOpt(obj,v)
+            figure(obj.figureOpt)
 %             subplot(2,1,1)
-%             plot(v,self.optHist(2:end,1),'+-k')
+%             plot(v,obj.optHist(2:end,1),'+-k')
 %             yline(1,'-','Gtol Criteria')
 %             xlabel('Iterations')
 %             ylabel('Optimalty criteria')
 %             title('Gradient norm vs iter')
 %             xlim([10,inf])
 %             subplot(2,1,2)
-            plot(v(2:end),self.optHist(2:end,2),'d--g','MarkerFaceColor','g')
+            plot(v(2:end),obj.optHist(2:end,2),'d--g','MarkerFaceColor','g')
             xlabel('Iterations')
             ylabel('Learning Rate')
             title('Step Size vs Iter')
