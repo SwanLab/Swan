@@ -86,7 +86,7 @@ classdef Optimizer < handle
         end
     
         function computeFEM(obj)
-            %Get cost and displacement
+            %Get cost and displacementv 
             s.mesh = obj.mesh;
             s.structure= obj.structure;
             s.projectedField = obj.projectedField.E;
