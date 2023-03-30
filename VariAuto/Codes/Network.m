@@ -1,8 +1,11 @@
 classdef Network < handle
  
+    properties
+        thetavec
+    end
+
     properties (GetAccess = public, SetAccess = private)
-       data
-       thetavec
+       data       
        neuronsPerLayer
        nLayers
        lambda

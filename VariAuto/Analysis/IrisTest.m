@@ -16,12 +16,12 @@ hiddenlayers    = [2,3];
 data      = Data('../Datasets/Iris.csv',30,1);
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
 network   = Network(data,structure);
-costFnc   = optimizationProblem(data,network);
-optimizer = Trainer.create(costFnc,'SGD',learningRate);
+optProblem   = optimizationProblem(data,network);
+optimizer = Trainer.create(optProblem,'SGD',learningRate);
 optimizer.train();
 
-costFnc.plotConfusionMatrix();
+optProblem.plotConfusionMatrix();
 
 if data.nFeatures == 2
-    costFnc.plotBoundary('contour');
+    optProblem.plotBoundary('contour');
 end
