@@ -247,8 +247,9 @@ classdef OptimizerNullSpace < Optimizer
         function obj = checkConvergence(obj)
            if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
                obj.hasConverged = true;
-           else
-               
+               if obj.primalUpdater.isTooSmall()
+                   obj.primalUpdater.tau = 1;
+               end
            end
         end
 

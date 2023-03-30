@@ -43,9 +43,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
-printing = true;
+plotting = true;
+printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 150*nsteps; % 2100
+maxiter = 300*nsteps; % 2100
