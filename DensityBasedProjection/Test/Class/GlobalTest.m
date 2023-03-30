@@ -1,65 +1,66 @@
-classdef fieldTester < handle
+classdef GlobalTest < handle
     properties (Access = private)
-        expectedResults
+        data
         results
-        test
         iterations
         tolerateError
+        expectedResult
+        Test1
+
     end
 
     methods (Access = public)
-        function obj = fieldTester(iterations,tolerateError)
+        function obj = GlobalTest(iterations)
             obj.iterations = iterations;
-            obj.tolerateError = tolerateError;
-            obj.computeTest()
-        end
-    end
-    methods (Access = private)
-        function computeTest(obj)
+            obj.tolerateError = 1e-10;
             obj.loadData()
-            obj.createComplianceObjects()
+            obj.compute()
             obj.validate()
         end
+        
+    end
+    methods (Access = private)
         function loadData(obj)
-            %% Load results
             if obj.iterations == 3
                 file = fullfile("DensityBasedProjection",'Test','Data','ResultsData3Iterations.mat');
-                obj.expectedResults = load(file);
+                s = load(file);
+                obj.expectedResult = s.results;
             elseif obj.iterations == 5
                 file = fullfile("DensityBasedProjection",'Test','Data','ResultsData5Iterations.mat');
-                obj.expectedResults = load(file);
+                s = load(file);
+                obj.expectedResult = s.results;
             else
                 error('No test Data for the current iterations')
             end
         end
-        function createComplianceObjects(obj)
-            %% Create the objects
+        function compute(obj)
+            % Create the objects
             s.iterations = obj.iterations;
-            obj.results = ComplianceRobustComputer(s);
-            obj.results.compute();
+            obj.Test1 = ComplianceRobustComputer(s);
+            obj.Test1.compute();
         end
         function validate(obj)
-            %% Validator
-            if abs(obj.expectedResults.results.projectedField.E-obj.results.projectedField.E)< obj.tolerateError
+            % ValidafilterParameterstor
+            if abs(obj.expectedResult.projectedField.E-obj.Test1.projectedField.E)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field E |OK!|')
             else
                 warning('Error in Projected Field E')
             end
 
-            if abs(obj.expectedResults.results.projectedField.I - obj.results.projectedField.I)< obj.tolerateError
+            if abs(obj.expectedResult.projectedField.I - obj.Test1.projectedField.I)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field I |OK!|')
             else
                 warning('Error in Projected Field I')
             end
-            if abs(obj.expectedResults.results.projectedField.D - obj.results.projectedField.D)< obj.tolerateError
+            if abs(obj.expectedResult.projectedField.D - obj.Test1.projectedField.D)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field D |OK!|')
             else
                 warning('Error in Projected Field D')
             end
-            close all
         end
     end
 end
+
