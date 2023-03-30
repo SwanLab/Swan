@@ -23,56 +23,59 @@ classdef RHSintegrator_Unfitted < handle
             xFun = AnalyticalFunction(sAF);
             SAMPLEP1 = xFun.project('P1');
 
+            localCutMesh = obj.mesh.innerCutMesh.mesh.computeCanonicalMesh();
+
             
-            globalConnecInner = obj.mesh.innerMesh.globalConnec;
-            localConnecInner  = obj.mesh.innerMesh.mesh.connec;
-            innerDofsGlobal = unique(globalConnecInner(:)); % nein
-            innerDofs = unique(localConnecInner); % nein
-            innerlocal2innerglobal(localConnecInner(:)) = globalConnecInner(:);
+            connecIG = obj.mesh.innerMesh.globalConnec;
+            connecIL  = obj.mesh.innerMesh.mesh.connec;
+            innerL2G = obj.computeLocalToGlobal(connecIG, connecIL);
 
+            connecCG = obj.mesh.innerCutMesh.mesh.connec;
+            connecCL  = localCutMesh.connec;
+            cutL2G = obj.computeLocalToGlobal(connecCG, connecCL);
 
-%             fV_global = zeros(861,1);
-%             fV_global(innerDofsGlobal) = SAMPLEP1.fValues(innerDofsGlobal);
-% 
-%             fV_local = zeros(733,1);
-%             fV_local(innerDofs) = fV_global(innerlocal2innerglobal(innerDofs));
+            innerDofsGlobal = unique(connecIG(:));
+            innerDofs = unique(connecIL);
+
+            cutDofsGlobal = unique(connecCG(:));
+            cutDofs = unique(connecCL);
+
 
 
             fV_global = zeros(length(F),1);
             fV_global(innerDofsGlobal) = F(innerDofsGlobal);
 
-            fV_local = zeros(length(innerDofs),1);
-            fV_local(innerDofs) = fV_global(innerlocal2innerglobal(innerDofs));
+            fV_localInner = zeros(length(innerDofs),1);
+            fV_localInner(innerDofs) = fV_global(innerL2G(innerDofs));
 
             s.mesh = obj.mesh.innerMesh.mesh;
-            s.fValues = fV_local;
+            s.fValues = fV_localInner;
             p1finner  = P1Function(s);
 
+
+            s.mesh = localCutMesh;
+            s.fValues = ones(length(s.mesh.coord),1);
+            p1fcut  = P1Function(s);
+
+            a.mesh = s.mesh;
+            a.type = 'ShapeFunctionFun';
+            rhss = RHSintegrator.create(a);
+            rhsCutLocal = rhss.compute(p1fcut);
 
             a.mesh = obj.mesh.innerMesh.mesh;
             a.type = 'ShapeFunctionFun';
             rhss = RHSintegrator.create(a);
-            p1innerInt = rhss.compute(p1finner);
+            rhsInnerLocal = rhss.compute(p1finner);
+
+            % ---
+            rhsInnerGlobal = zeros(length(F),1);
+            rhsInnerGlobal(innerL2G(innerDofs)) = rhsInnerLocal.fValues(innerDofs);
 
 
-            b.mesh = obj.mesh.innerCutMesh.mesh;
-            b.cellContainingSubcell = obj.mesh.innerCutMesh.cellContainingSubcell;
-            b.type = 'CutMeshFun';
-            b.xCoordsIso            = obj.mesh.innerCutMesh.xCoordsIso;
-            b.globalConnec          = obj.mesh.backgroundMesh.connec;
-            b.npnod                 = obj.mesh.backgroundMesh.nnodes;
-            b.backgroundMeshType    = obj.mesh.backgroundMesh.type;
-            b.backgroundMesh        = obj.mesh.backgroundMesh;
-            rhss = RHSintegrator.create(b);
-            cutFVals = rhss.compute(p1f.fValues);
+            rhsCutGlobal = zeros(length(F),1);
+            rhsCutGlobal(cutL2G(cutDofs)) = rhsCutLocal.fValues(cutDofs);
 
-            cc.mesh = obj.mesh.backgroundMesh;
-            cc.fValues = cutFVals;
-            p1cutInt = P1Function(cc);
-
-            fVintInnerinGlobal = zeros(length(F),1);
-            fVintInnerinGlobal(innerlocal2innerglobal(innerDofs)) = p1innerInt.fValues(innerDofs);
-            fValuesInt = p1cutInt.fValues + fVintInnerinGlobal;
+            fValuesInt = rhsCutGlobal + rhsInnerGlobal;
 
             zzz.mesh = obj.mesh.backgroundMesh;
             zzz.fValues = fValuesInt;
@@ -86,6 +89,10 @@ classdef RHSintegrator_Unfitted < handle
             p1int = P1Function(s);
 
 
+        end
+
+        function l2g = computeLocalToGlobal(obj, connecG, connecL)
+            l2g(connecL(:)) = connecG(:);
         end
 
         function int = integrateInBoundary(obj,F)
@@ -132,6 +139,10 @@ classdef RHSintegrator_Unfitted < handle
             s.mesh         = innerMesh.mesh;
             s.globalConnec = innerMesh.globalConnec;
             s.npnod        = obj.mesh.backgroundMesh.nnodes;
+%             s.type         = 'ShapeFunctionFun';
+%             s.mesh         = innerMesh.mesh;
+%             s.globalConnec = innerMesh.globalConnec;
+%             s.npnod        = obj.mesh.backgroundMesh.nnodes;
         end
 
         function s = createInnerCutParams(obj,gConnec,mesh)
