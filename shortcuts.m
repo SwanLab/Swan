@@ -47,19 +47,57 @@ ylim([-0.1 1])
 
 
 
+
+
+
+
+
+
+% Obtain filter
 a.fileName = 'SquareForAniTests';
 s = FemDataContainer(a);
-d.type = 'squareInclusion';
+d.type = 'circleInclusion';
 d.coord = s.mesh.coord;
 d.ndim = s.mesh.ndim;
-d.widthSquare = sqrt(0.15);
+r = 0.2185;
+P = 2*pi*r+4;
+d.fracRadius = r*2;
 LS = LevelSetFactory.create(d);
 psi = LS.getValue();
-chi = 1-heaviside(psi);
+l.value = psi;
+l.type = 'LevelSet';
+l.mesh = s.mesh;
+LS = LevelSet(l);
+f.mesh = s.mesh;
+f.quadratureOrder = 'LINEAR';
+f.designVariable = LS;
+f.LHStype = 'DiffReactRobin';
+chiFilter = Filter_PDE_LevelSet(f);
+eh = 1:0.01:10;
+eh = 10;
+
+% Obtain perimeter
+for j=1:length(eh)
+    epsilon = eh(j)*s.mesh.computeMeanCellSize();
+    chiFilter.updateEpsilon(epsilon);
+    regularizedDensity = chiFilter.getP1fromP1(LS.value);
+    regularizedDensityProjection = chiFilter.integrate_L2_function_with_shape_function(LS.value);
+    Pvec(j) = sum(2/(epsilon)*((1 - regularizedDensity).*regularizedDensityProjection));
+end
+figure
+plot(eh,Pvec,eh,P*ones(size(Pvec)))
+grid on
+grid minor
+legend('Numerical','Analytical')
+xlabel('$\epsilon/h$','Interpreter','latex')
+ylabel('Perimeter','Interpreter','latex')
+
+% Print
+epsilon = eh*s.mesh.computeMeanCellSize();
+chiFilter.updateEpsilon(epsilon);
+regularizedDensity = chiFilter.getP1fromP1(LS.value);
 ss.mesh = s.mesh;
-ss.fValues = chi;
-Square = P1Function(ss);
+ss.fValues = regularizedDensity;
 ss.filename = 'seminarExample';
-% Square.print(ss);
-SquareRelIso = Square.project('H1P1');
-SquareRelIso.print(ss)
+rhoe = P1Function(ss);
+rhoe.print(ss);
