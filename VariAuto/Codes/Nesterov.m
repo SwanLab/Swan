@@ -7,19 +7,19 @@ classdef Nesterov < SGD
 
     methods(Access = public)
 
-        function self = Nesterov(s)
-            self@SGD(s); 
-            self.alpha = s{4};
-            self.v     = 0;
+        function obj = Nesterov(s)
+            obj@SGD(s); 
+            obj.alpha = s{4};
+            obj.v     = 0;
         end 
     end
     
     methods (Access = protected)
-        function [x,grad] = step(self,x,e,grad,F,Xb,Yb)
-            x_hat    = x + self.alpha*self.v;
+        function [x,grad] = step(obj,x,e,grad,F,Xb,Yb)
+            x_hat    = x + obj.alpha*obj.v;
             [~,grad] = F(x_hat,Xb,Yb);
-            self.v   = self.alpha*self.v - e*grad;
-            x        = x + self.v;     
+            obj.v   = obj.alpha*obj.v - e*grad;
+            x        = x + obj.v;     
         end     
     end 
 end

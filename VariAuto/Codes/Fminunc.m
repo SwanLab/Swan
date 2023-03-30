@@ -5,38 +5,38 @@ classdef Fminunc < Trainer
     end
 
     methods(Access = public)
-        function self = Fminunc(s)
-            self.init(s);
-            self.opt   = self.setSolverOptions(s);
-            self.nPlot = s.nPlot;
-            self.data  = s.data;
+        function obj = Fminunc(s)
+            obj.init(s);
+            obj.opt   = obj.setSolverOptions(s);
+            obj.nPlot = s.nPlot;
+            obj.data  = s.data;
         end
 
-        function train(self)
-            x0  = self.network.thetavec;
-            F = @(theta) self.costFunction(theta,self.data.Xtrain,self.data.Ytrain);
-            fminunc(F,x0,self.opt); 
+        function train(obj)
+            x0  = obj.optimizationProblem.thetavec;
+            F = @(theta) obj.costFunction(theta,obj.data.Xtrain,obj.data.Ytrain);
+            fminunc(F,x0,obj.opt); 
         end
     end
 
     methods(Access = private)
 
-        function opt = setSolverOptions(self,s)
+        function opt = setSolverOptions(obj,s)
            opt = optimoptions(@fminunc);
            opt.SpecifyObjectiveGradient = false;
            opt.Algorithm                = 'quasi-newton';
            opt.OptimalityTolerance      = s.optTolerance;
            opt.MaxIterations            = s.maxevals*5;
            opt.MaxFunctionEvaluations   = s.maxevals; 
-           if self.isDisplayed == true
+           if obj.isDisplayed == true
                 args = [];
                 opt.Display        = 'iter';
                 opt.CheckGradients = true;
-                opt.OutputFcn      = @(theta,optimvalues,state)self.myoutput(theta,optimvalues,state,args);
+                opt.OutputFcn      = @(theta,optimvalues,state)obj.myoutput(theta,optimvalues,state,args);
            end
         end 
 
-        function stop = myoutput(self,x,optimvalues,state,args)
+        function stop = myoutput(obj,x,optimvalues,state,args)
             stop         = false;
             f            = optimvalues.fval;
             opti.epsilon = optimvalues.stepsize;
@@ -45,8 +45,8 @@ classdef Fminunc < Trainer
             if iter == 0
                 opti.epsilon = 1;
             end
-            self.storeValues(x,f,state,opti);
-            self.plotMinimization(iter);                                
+            obj.storeValues(x,f,state,opti);
+            obj.plotMinimization(iter);                                
         end
     end
 end
