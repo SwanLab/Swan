@@ -11,7 +11,7 @@ lambda          = 0;
 learningRate    = 0.1;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [500,150];
+hiddenlayers    = [5000,1500];
 
 %% Loading of files/datasets
 datasets = load("../Codes/datasets.mat").datasets1;
@@ -27,8 +27,8 @@ structure = [data.nFeatures,hiddenlayers,data.nLabels];
 network   = Network(data,structure);
 % network = Network(data,structure,'-loglikelihood','ReLU','softmax',lambda);
 
-%% Create a trainer object
-optimizer       = Trainer.create(network,'SGD',learningRate);
+%% Run Optimization Problem
+optProblem   = optimizationProblem(data,network,learningRate);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;
 % opt.maxepochs     = 100    ; opt.earlyStop     = 10;
 % opt.time          = Inf([1,1]); opt.fv         = 10^-4;
@@ -36,10 +36,9 @@ optimizer       = Trainer.create(network,'SGD',learningRate);
 % optimizer       = Trainer.create(network,'SGD',learningRate,momentum,batch,opt,'static',nplt);
 
 %% RUN & Possible functions
-optimizer.train
 data.plotCorrMatrix();
 % network.plotBoundary('contour'); Amb errors dins?
-network.plotConections();
-network.plotConfusionMatrix();
+optProblem.plotConections();
+optProblem.plotConfusionMatrix();
 
 
