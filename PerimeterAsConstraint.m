@@ -10,7 +10,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full'; % squareInclusion
 
 cost = {'compliance','anisotropicPerimeter2D'}; % anisotropicPerimeterInterior2D
-weights = [1,0.20];
+weights = [1,0.40];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};

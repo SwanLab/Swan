@@ -45,8 +45,8 @@ t.compute(k);
 
 % Pending:
 % - Find Dehomogenizer - saveimage - obtain gif single simulation
-% - Big loop over properties and cases, and obtain gif for different simus compliance
-% - Jump to compliance + different kind of perimeters (20 steps)
+% - Big loop over properties and cases, and obtain gif for different simus compliance (then obtain aJ,aG callibration)
+% - Jump to compliance + different kind of perimeters (20 steps) [use epsilon y exp por defecto]
 
 
 function testWriter(cParams)
