@@ -1,10 +1,9 @@
 %% To-do
-% DISCONTINUOUS MESH
-% - Fix P1Function and P1Discontinuous function computeGradient fgauss
-% nelem order
-% - Should Fgaussdiscontfunctions exist on their own? RHSintegrator -> how
-% do you assemble using this type of function? it just comes from the
-% gradient of a p1fun / p1dfun
+% - Delete rhs_shapefunction -> use funs
+% - Clean RHSunfitted
+% OK! - switch class(mesh.type) @ RHSfactory
+% - filter_pde_density using rhs_unfitted (now rhs_shapefunctionfun*
+% - filter_pde_levelset name change for unfitted
 
 %% Questions
 % - Filter_P1_LevelSet.getP0fromP1() ??

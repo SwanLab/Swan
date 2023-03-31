@@ -98,7 +98,7 @@ classdef Filter_PDE_LevelSet < Filter
         function int = obtainRHSintegrator(obj)
             uMesh = obj.levelSet.getUnfittedMesh();
             s.mesh = uMesh;
-            s.type = 'Unfitted';
+            s.type = 'ShapeFunction';
             int = RHSintegrator.create(s);
         end
 
@@ -151,7 +151,7 @@ classdef Filter_PDE_LevelSet < Filter
             else
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
-                s.type = 'Unfitted';
+                s.type = 'ShapeFunction';
                 int = RHSintegrator.create(s);
                 fInt = int.integrateInBoundary(fNodes);
             end

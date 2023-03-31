@@ -9,6 +9,7 @@ classdef RHSintegrator_Composite < handle
     properties (Access = private)
         RHScells
         RHSsubcells
+        compositeParameters
     end
 
     methods (Access = public)
@@ -31,6 +32,9 @@ classdef RHSintegrator_Composite < handle
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
                     int = integrator.integrateAndSum(nodalFunc);
+                elseif isequal(class(integrator), 'RHSintegrator_ShapeFunctionFun')
+                    p1 = obj.createInnerP1(nodalFunc, iInt);
+                    int = integrator.compute(p1);
                 else
                     int = integrator.compute(nodalFunc);
                 end
@@ -45,8 +49,8 @@ classdef RHSintegrator_Composite < handle
         function init(obj, cParams)
             obj.nInt = numel(cParams.compositeParams);
             obj.npnod = cParams.npnod;
+            obj.compositeParameters  = cParams.compositeParams;
         end
-
 
         function createIntegrators(obj,cParams)
             params = cParams.compositeParams;
@@ -55,7 +59,26 @@ classdef RHSintegrator_Composite < handle
                 integrator = RHSintegrator.create(s);
                 obj.integrators{end+1} = integrator;
             end
+        end
 
+        function p1 = createInnerP1(obj, F, iInt)
+            innerMesh = obj.compositeParameters{iInt}.mesh.innerMesh;
+            connecIG = innerMesh.globalConnec;
+            connecIL  = innerMesh.mesh.connec;
+            innerL2G(connecIL(:)) = connecIG(:);
+
+            innerDofsGlobal = unique(connecIG(:));
+            innerDofs = unique(connecIL);
+
+            fV_global = zeros(length(F),1);
+            fV_global(innerDofsGlobal) = F(innerDofsGlobal);
+
+            fV_localInner = zeros(length(innerDofs),1);
+            fV_localInner(innerDofs) = fV_global(innerL2G(innerDofs));
+
+            s.mesh = innerMesh.mesh;
+            s.fValues = fV_localInner;
+            p1  = P1Function(s);
         end
 
     end
