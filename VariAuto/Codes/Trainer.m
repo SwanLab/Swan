@@ -12,9 +12,6 @@ classdef Trainer < handle
        figureOpt
        xIter
        nPlot
-    end
-
-    properties (Access = protected)
        optimizationProblem
     end
 
