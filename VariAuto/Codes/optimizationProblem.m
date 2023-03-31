@@ -8,6 +8,7 @@ classdef optimizationProblem < handle
        loss
        gradient
        network
+       learningRate
     end
     
     properties (Access = private)
@@ -22,6 +23,8 @@ classdef optimizationProblem < handle
        function obj = optimizationProblem(varargin)
            obj.init(varargin);
            obj.thetavec = obj.network.thetavec;
+           optimizer = Trainer.create(obj,'SGD',obj.learningRate);
+           optimizer.train();
        end
        
        function computeCost(obj,theta,Xb,Yb)
@@ -57,6 +60,7 @@ classdef optimizationProblem < handle
        function init(obj,s)
            obj.data = s{1};
            obj.network = s{2};
+           obj.learningRate = s{3};
            obj.lambda = obj.network.lambda;
            obj.plotter = Plotter(obj);
        end  

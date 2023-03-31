@@ -16,12 +16,10 @@ hiddenlayers    = [2,3];
 data      = Data('../Datasets/Iris.csv',30,1);
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
 network   = Network(data,structure);
-optProblem   = optimizationProblem(data,network);
-optimizer = Trainer.create(optProblem,'SGD',learningRate);
-optimizer.train();
+optProblem   = optimizationProblem(data,network,learningRate);
 
 optProblem.plotConfusionMatrix();
 
-if data.nFeatures == 2
+if data.nFeatures == 2  %If you want to be asked for Features change it in "Data" Class
     optProblem.plotBoundary('contour');
 end
