@@ -1,7 +1,7 @@
 close all
 clc
 clear all
-f = figure('Position',[200 200 250 450]);
+f = figure('Position',[200 200 250 550]);
 
 % Create the buttons
 btnGlobalTest = uicontrol('Style','pushbutton','String','Run Global Test','Position',[50 50 150 30],'BackgroundColor', 'r','Callback',@btn1Callback);
@@ -15,6 +15,10 @@ btnDisplacementComputerTest =  uicontrol('Style','pushbutton','String','Run Disp
 btnForceComputerTest =  uicontrol('Style','pushbutton','String','Run Force Test','Position',[50 330 180 30],'BackgroundColor',[0.3569 0.8118 0.9569],'Callback',@btn8Callback);
 btnPenalizerTest =  uicontrol('Style','pushbutton','String','Run Penalize Test','Position',[50 370 180 30],'BackgroundColor', [0.3569 0.8118 0.9569],'Callback',@btn9Callback);
 btnStifnessMatrixComputerTest =  uicontrol('Style','pushbutton','String','Run StifnessMatrix Test','Position',[50 410 180 30],'BackgroundColor', [0.3569 0.8118 0.9569],'Callback',@btn10Callback);
+
+
+btnCostFieldDerivator =  uicontrol('Style','pushbutton','String','Run Cost Field Derivator Test','Position',[50 450 180 30],'BackgroundColor', [0.56, 0.93, 0.56],'Callback',@btn11Callback);
+
 
 function btn1Callback(hObject,eventdata)
   GlobalTest(3)
@@ -46,9 +50,8 @@ B.testProjectedFieldDerivator;
   disp('-----------')
 end
 function btn6Callback(hObject,eventdata)
-B = FEMcomputerTester(3);
-B.compute;
-B.validate;
+B = CostComputerTester;
+B.testFEM;
   disp('-----------')
 end
 
@@ -66,9 +69,6 @@ B.validate;
 end
 function btn9Callback(hObject,eventdata)
 B = PenalizerTester(3);
-B.compute;
-B.validate;
-  disp('-----------')
 end
 function btn10Callback(hObject,eventdata)
 B = StifnessMatrixComputerTester(3);
@@ -76,6 +76,10 @@ B.compute;
 B.validate;
   disp('-----------')
 end
-
+function btn11Callback(hObject,eventdata)
+B = CostComputerTester;
+B.testCostDerivator;
+  disp('-----------')
+end
 
 

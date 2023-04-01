@@ -1,17 +1,13 @@
 classdef FEMcomputer < handle
     properties (Access = public)
         displacement
-        cost
         force
     end
     properties (Access = private)
         mesh
         structure
         projectedField
-
-        
         globalStifnessMatrix
-
     end
 
     methods (Access = public)
@@ -23,8 +19,6 @@ classdef FEMcomputer < handle
             obj.computeStifnessMatrix
             obj.computeForces
             obj.computeDisplacement;
-            obj.computeCost;
-
         end
     end
     methods (Access = private)
@@ -71,13 +65,6 @@ classdef FEMcomputer < handle
             B = DisplacementComputer(s);
             B.compute();
             obj.displacement = B.displacement;
-        end
-        function computeCost(obj)
-            s.force = obj.force;
-            s.displacement =obj.displacement;
-            B = CostComputer(s);
-            B.compute;
-            obj.cost = B.cost;
         end
     end
 end

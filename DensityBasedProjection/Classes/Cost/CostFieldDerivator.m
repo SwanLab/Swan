@@ -6,13 +6,10 @@ classdef CostFieldDerivator < handle
         mesh
         displacement
         structure
-        projectedField
         projectorParameters
-        derivedProjectedField
-        filteredField
-        filterParameters
-        derivedFilteredField
+        designFields
         cost
+        derivedCostProjected
     end
     methods (Access = public)
         function obj = CostFieldDerivator(cParams)
@@ -35,46 +32,38 @@ classdef CostFieldDerivator < handle
             obj.mesh = cParams.mesh;
             obj.displacement =cParams.displacement;
             obj.structure =cParams.structure;
-            obj.projectedField =cParams.projectedField;
-            obj.projectorParameters =cParams.projectorParameters ;
-            obj.filteredField =cParams.filteredField ;
-            obj.filterParameters =cParams.filterParameters ;
+            obj.designFields = cParams.designFields;
             obj.cost =cParams.cost ;
-            obj.derivedProjectedField = cParams.derivedProjectedField; 
             obj.derivedCost = zeros(obj.mesh.elementNumberX,obj.mesh.elementNumberY);
 
         end
         function derive(obj)
-            obj.derivedCost(:) = obj.derivedFilteredField*(obj.cost.projectedDerived(:).*obj.derivedProjectedField(:));
+            obj.derivedCost(:) = obj.designFields.derivedFilteredField*(obj.derivedCostProjected(:).*obj.designFields.derivedProjectedField(:));
         end
         function deriveCostRespectProjectedField(obj)
             s.elementNumberX = obj.mesh.elementNumberX;
             s.elementNumberY = obj.mesh.elementNumberY;
             s.structure = obj.structure;
             s.conectivityMatrixMat = obj.mesh.conectivityMatrixMat;
-            s.projectedField = obj.projectedField;
+            s.projectedField = obj.designFields.projectedField;
 
             s.displacement =obj.displacement;
             B = CostProjectedFieldDerivator(s);
             B.compute();
-            obj.cost.projectedDerived = B.derivedCost;
+            obj.derivedCostProjected = B.derivedCost;
         end
         function penalizeDerivatedCost(obj)
             s.elasticModuleMinimun = obj.structure.elasticModuleMinimun;
             s.elasticModuleNeutral = obj.structure.elasticModuleNeutral;
             s.penalization = obj.structure.penalization;
-            s.nonPenalizedVariable =  obj.cost.projectedDerived;
-            s.projectedField = obj.projectedField ;
+            s.nonPenalizedVariable =  obj.derivedCostProjected;
+            s.projectedField = obj.designFields.projectedField ;
             B = DerivativePenalizer(s);
             B.penalize();
-            obj.cost.projectedDerived = B.penalizedDerivative;
+            obj.derivedCostProjected = B.penalizedDerivative;
         end
         function deriveFilteredFieldRespectedField(obj)
-            s.H = obj.filterParameters.H;
-            s.Hs = obj.filterParameters.Hs;
-            B = FilteredFieldFieldDerivator(s);
-            B.compute();
-            obj.derivedFilteredField = B.derivedFilteredField;
+            obj.designFields.deriveFilteredField();
         end
     end
 end
