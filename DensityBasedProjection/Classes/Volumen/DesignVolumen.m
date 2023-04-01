@@ -1,4 +1,4 @@
-classdef VolumenComputer < handle 
+classdef DesignVolumen < handle 
     properties (Access = public)
         volumenFraction
         volumen
@@ -12,15 +12,20 @@ classdef VolumenComputer < handle
         derivedProjectedField       
     end
     methods (Access = public)
-        function obj = VolumenComputer(cParams)
+        function obj = DesignVolumen(cParams)
             obj.inputData(cParams);
         end
-
-        function compute(obj)
-            obj.computeVolumen();
-            obj.deriveVolumen();
+        function computeVolumen(obj)
+            obj.volumen  = sum(sum(obj.projectedField))/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)-1;
+        end 
+        function deriveVolumen(obj)
+            obj.derivedVolumen  = 1/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)*ones(obj.elementNumberY,obj.elementNumberX);
             obj.filterDerivedVolumen();
-        end
+        end 
+        function computeVolumenFraction(obj,D,I)
+           obj.volumenFraction = obj.filterParameters.volumenFraction*sum(D.designField.projectedField(:))/sum(I.designField.projectedField(:));
+        end 
+
     end
     methods (Access = private)
         function inputData(obj,cParams)
@@ -31,17 +36,9 @@ classdef VolumenComputer < handle
             obj.derivedProjectedField = cParams.derivedProjectedField;
             obj.volumenFraction = cParams.volumenFraction;
         end
-        function computeVolumenFraction(obj)
-           obj.volumenFraction = obj.filterParameters.volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
-        end 
-        function computeVolumen(obj)
-            obj.volumen.value        = sum(sum(obj.projectedField))/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)-1;
-        end 
-        function deriveVolumen(obj)
-            obj.volumen.derivated   = 1/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)*ones(obj.elementNumberY,obj.elementNumberX);
-        end
+
         function filterDerivedVolumen(obj)
-            obj.volumen.derivated(:)  = obj.filterParameters.H*(obj.volumen.derivated(:).*obj.derivedProjectedField(:)./obj.filterParameters.Hs);
+            obj.derivedVolumen(:)  =  obj.filterParameters.H*(obj.derivedVolumen(:).*obj.derivedProjectedField(:)./obj.filterParameters.Hs);
         end 
     end
 end

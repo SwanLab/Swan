@@ -25,9 +25,9 @@ classdef FEMcomputerTester < handle
             % ValidafilterParameterstor
             if abs(obj.expectedResult.cost-obj.results.cost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('FEM computer |OK!|')
+                disp('FEM computer (cost)|OK!|')
             else
-                warning('Error in FEM computer')
+                warning('Error in FEM computer (cost)')
             end
         end
     end

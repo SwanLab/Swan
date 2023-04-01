@@ -1,4 +1,4 @@
-classdef FieldFilterTester < handle
+classdef VolumenFractionTester < handle
     properties (Access = private)
         data
         results
@@ -6,34 +6,25 @@ classdef FieldFilterTester < handle
         tolerateError
         expectedResult
 
-        filterParameters
-        field
     end
 
     methods (Access = public)
-        function obj = FieldFilterTester(iterations)
+        function obj = VolumenFractionTester(iterations)
             obj.iterations = iterations;
             obj.tolerateError = 1e-10;
             obj.loadData()
         end
-        function compute(obj)
-            % Create the objects
-            s.filterParameters =obj.filterParameters;
-            s.field = obj.field;
-            obj.results = FilterComputer(s);
-            obj.results.compute();
-        end
         function loadResults(obj,cParams)
             % In case is testing an external class
-            obj.results.derivedCost = cParams.results;
+            obj.results = cParams.results;
         end 
         function validate(obj)
             % ValidafilterParameterstor
-            if abs(obj.expectedResult-obj.results.derivedCost)< obj.tolerateError
+            if abs(obj.expectedResult.volumenFraction-obj.results)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Filter |OK!|')
+                disp('Volumen Fraction Computer |OK!|')
             else
-                warning('Error in Filter')
+                warning('Error in Volumen Fraction Computer')
             end
         end
     end
@@ -41,9 +32,9 @@ classdef FieldFilterTester < handle
         function loadData(obj)
             % Load results
             if obj.iterations == 3
-                file = fullfile("DensityBasedProjection",'Test','Data','derivedCost');
+                file = fullfile("DensityBasedProjection",'Test','Data','designVolumen');
                 s = load(file);
-                obj.expectedResult = s.derivedCost;
+                obj.expectedResult = s.designVolumen;
             else
                 error('No test Data for the current iterations')
             end

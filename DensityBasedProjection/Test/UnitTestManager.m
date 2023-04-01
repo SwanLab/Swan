@@ -1,7 +1,7 @@
 close all
 clc
 clear all
-f = figure('Position',[200 200 250 550]);
+f = figure('Position',[200 50 250 650]);
 
 % Create the buttons
 btnGlobalTest = uicontrol('Style','pushbutton','String','Run Global Test','Position',[50 50 150 30],'BackgroundColor', 'r','Callback',@btn1Callback);
@@ -10,7 +10,7 @@ btnProjectorTest = uicontrol('Style','pushbutton','String','Run Projector Test',
 btnFilteredFieldDerivatorTest = uicontrol('Style','pushbutton','String','Run Projected Field Derivator Test','Position',[50 170 180 30],'BackgroundColor', [0.8 0.8 0.8],'Callback',@btn4Callback);
 btnProjectorFieldDerivatorTest =  uicontrol('Style','pushbutton','String','Run Filtered Field Derivator Test','Position',[50 210 180 30],'BackgroundColor', [0.8 0.8 0.8],'Callback',@btn5Callback);
 
-btnFEMComputerTest =  uicontrol('Style','pushbutton','String','Run FEM Test','Position',[50 250 180 30],'BackgroundColor', [0.3569 0.8118 0.9569],'Callback',@btn6Callback);
+btnFEMComputerTest =  uicontrol('Style','pushbutton','String','Run FEM Test','Position',[50 250 180 30],'BackgroundColor', [0 0.5843 0.7137],'Callback',@btn6Callback);
 btnDisplacementComputerTest =  uicontrol('Style','pushbutton','String','Run Displacement Test','Position',[50 290 180 30],'BackgroundColor', [0.3569 0.8118 0.9569],'Callback',@btn7Callback);
 btnForceComputerTest =  uicontrol('Style','pushbutton','String','Run Force Test','Position',[50 330 180 30],'BackgroundColor',[0.3569 0.8118 0.9569],'Callback',@btn8Callback);
 btnPenalizerTest =  uicontrol('Style','pushbutton','String','Run Penalize Test','Position',[50 370 180 30],'BackgroundColor', [0.3569 0.8118 0.9569],'Callback',@btn9Callback);
@@ -18,6 +18,11 @@ btnStifnessMatrixComputerTest =  uicontrol('Style','pushbutton','String','Run St
 
 
 btnCostFieldDerivator =  uicontrol('Style','pushbutton','String','Run Cost Field Derivator Test','Position',[50 450 180 30],'BackgroundColor', [0.56, 0.93, 0.56],'Callback',@btn11Callback);
+
+btnVolumen =  uicontrol('Style','pushbutton','String','Run Volumen Test','Position',[50 490 180 30],'BackgroundColor', [0.8039 0.5647 0.5137],'Callback',@btn12Callback);
+btnVolumenFraction =  uicontrol('Style','pushbutton','String','Run Fraction Volumen Test','Position',[50 530 180 30],'BackgroundColor', [0.8039 0.5647 0.5137],'Callback',@btn13Callback);
+btnDerivedVolumen =  uicontrol('Style','pushbutton','String','Run Derived Volumen Test','Position',[50 570 180 30],'BackgroundColor', [0.8039 0.5647 0.5137],'Callback',@btn14Callback);
+
 
 
 function btn1Callback(hObject,eventdata)
@@ -79,6 +84,21 @@ end
 function btn11Callback(hObject,eventdata)
 B = CostComputerTester;
 B.testCostDerivator;
+  disp('-----------')
+end
+function btn12Callback(hObject,eventdata)
+B = DesignVolumenTester;
+B.testVolumen;
+  disp('-----------')
+end
+function btn13Callback(hObject,eventdata)
+B = DesignVolumenTester;
+B.testVolumenFraction;
+  disp('-----------')
+end
+function btn14Callback(hObject,eventdata)
+B = DesignVolumenTester;
+B.testVolumenDerivator;
   disp('-----------')
 end
 
