@@ -26,17 +26,20 @@ btnDerivedVolumen =  uicontrol('Style','pushbutton','String','Run Derived Volume
 
 
 function btn1Callback(hObject,eventdata)
+  clc
   GlobalTest(3)
   disp('-----------')
 end
 
 function btn2Callback(hObject,eventdata)
+clc
 B = DesignFieldTester;
 B.testFilter;
   disp('-----------')
 end
 
 function btn3Callback(hObject,eventdata)
+clc
 B = DesignFieldTester;
 B.testProjector;
   disp('-----------')
@@ -44,38 +47,49 @@ B.testProjector;
 
 end
 function btn4Callback(hObject,eventdata)
+clc
 B = DesignFieldTester;
 B.testFilteredFieldDerivator;
   disp('-----------')
 end
 
 function btn5Callback(hObject,eventdata)
+clc
 B = DesignFieldTester;
 B.testProjectedFieldDerivator;
   disp('-----------')
 end
 function btn6Callback(hObject,eventdata)
+clc
 B = CostComputerTester;
 B.testFEM;
   disp('-----------')
 end
 
 function btn7Callback(hObject,eventdata)
+clc
 B = DisplacementComputerTester(3);
 B.compute;
 B.validate;
   disp('-----------')
 end
 function btn8Callback(hObject,eventdata)
+clc
 B = ForceComputerTester(3);
 B.compute;
 B.validate;
   disp('-----------')
 end
 function btn9Callback(hObject,eventdata)
+clc
 B = PenalizerTester(3);
+B.compute;
+B.validate;
+  disp('-----------')
+
 end
 function btn10Callback(hObject,eventdata)
+clc
 B = StifnessMatrixComputerTester(3);
 B.compute;
 B.validate;
@@ -87,16 +101,19 @@ B.testCostDerivator;
   disp('-----------')
 end
 function btn12Callback(hObject,eventdata)
+clc
 B = DesignVolumenTester;
 B.testVolumen;
   disp('-----------')
 end
 function btn13Callback(hObject,eventdata)
+clc
 B = DesignVolumenTester;
 B.testVolumenFraction;
   disp('-----------')
 end
 function btn14Callback(hObject,eventdata)
+clc
 B = DesignVolumenTester;
 B.testVolumenDerivator;
   disp('-----------')

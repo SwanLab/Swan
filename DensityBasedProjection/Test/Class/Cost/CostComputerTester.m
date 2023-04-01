@@ -48,14 +48,14 @@ classdef CostComputerTester < handle
 
             file = fullfile("DensityBasedProjection",'Test','Data','designFields.mat');            
             a = load(file);
-            s.designFields = a.designFields;
+            s.designField = a.designFields;
 
             file = fullfile("DensityBasedProjection",'Test','Data','filterParameters.mat');            
             a = load(file);
             s.filterParameters = a.filterParameters;
 
             %Create the DesignFieldObject
-            obj.designCost = CostComputer(s);
+            obj.designCost = DesignCost(s);
         end 
 
     end

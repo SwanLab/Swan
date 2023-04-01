@@ -25,11 +25,11 @@ classdef FieldFilterTester < handle
         end
         function loadResults(obj,cParams)
             % In case is testing an external class
-            obj.results.derivedCost = cParams.results;
+            obj.results.filteredField = cParams.results;
         end 
         function validate(obj)
             % ValidafilterParameterstor
-            if abs(obj.expectedResult-obj.results.derivedCost)< obj.tolerateError
+            if abs(obj.expectedResult-obj.results.filteredField)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Filter |OK!|')
             else
@@ -41,9 +41,9 @@ classdef FieldFilterTester < handle
         function loadData(obj)
             % Load results
             if obj.iterations == 3
-                file = fullfile("DensityBasedProjection",'Test','Data','derivedCost');
+                file = fullfile("DensityBasedProjection",'Test','Data','filteredField');
                 s = load(file);
-                obj.expectedResult = s.derivedCost;
+                obj.expectedResult = s.filteredField;
             else
                 error('No test Data for the current iterations')
             end

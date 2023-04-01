@@ -1,6 +1,8 @@
 classdef ComplianceRobustComputer < handle
     properties (Access = public)
-        projectedField        
+        E
+        I
+        D
     end
     properties (Access = private)
         iterations
@@ -36,36 +38,32 @@ classdef ComplianceRobustComputer < handle
             obj.computeProjectorParameters
             obj.computeFilterParameters();
             obj.computeInitialFields();
+            obj.computeInitialVolumens();
         end
         function projectField(obj)
             % Project the initial field
-            s.beta = obj.projectParameters.beta;
-            s.filteredField =obj.filteredField;
-            s.eta =obj.projectParameters.eta.E;
-            E = FieldProjector(s);
-            E.compute();
-            obj.projectedField.E = E.projectedField;
 
-            s.eta =obj.projectParameters.eta.I;
-            I = FieldProjector(s);
-            I.compute();
-            obj.projectedField.I = I.projectedField;
+            obj.E.designField.project();
+            obj.I.designField.project();
+            obj.D.designField.project();
 
-            s.eta =obj.projectParameters.eta.D;
-            D = FieldProjector(s);
-            D.compute();
-            obj.projectedField.D = D.projectedField;
-            obj.volumen.volfracD = obj.filterParameters.volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
         end 
         function computeCost(obj)          
             %Get intial cost
             s.mesh = obj.mesh; 
             s.structure = obj.structure;
-            s.projectedField = obj.projectedField.E;
+            
+            s.designField = obj.E.designField;
+            obj.E.designCost = DesignCost(s);
+            obj.E.designCost.computeCost();
+            s.designField = obj.I.designField;
+            obj.I.designCost = DesignCost(s);
+            obj.I.designCost.computeCost()
+            s.designField = obj.D.designField;
+            obj.D.designCost = DesignCost(s);
+            obj.D.designCost.computeCost()
 
-            B = FEMcomputer(s);
-            B.compute();
-            obj.cost.E = B.cost;
+
         end 
         function optimize(obj)
             %Optimización
@@ -150,6 +148,7 @@ classdef ComplianceRobustComputer < handle
             obj.filterParameters.H = B.H;
             obj.filterParameters.Hs = B.Hs;
         end
+
         function computeProjectorParameters(obj)
             eta      = 0.25;
             obj.projectParameters.eta.E     = 1-eta;
@@ -157,12 +156,47 @@ classdef ComplianceRobustComputer < handle
             obj.projectParameters.eta.D     = eta;
             obj.projectParameters.beta     = 1;
         end
+        function computeInitialVolumens(obj)
+            s.mesh = obj.mesh;
+            s.filterParameters =obj.filterParameters;            
+            s.derivedProjectedField = [];
+%            obj.volumenFraction = cParams.volumenFraction;
+            s.projectedField =obj.E.designField.projectedField;
+            obj.E.designVolumen = DesignVolumen(s);
+            obj.E.designVolumen.computeVolumenFraction(obj.D,obj.I);
+            s.projectedField =obj.I.designField.projectedField;            
+            obj.I.designVolumen = DesignVolumen(s);
+            obj.I.designVolumen.computeVolumenFraction(obj.D,obj.I);
+            s.projectedField =obj.D.designField.projectedField;         
+            obj.D.designVolumen = DesignVolumen(s);
+            obj.D.designVolumen.computeVolumenFraction(obj.D,obj.I);
+
+
+        end 
+
         function computeInitialFields(obj)
+            s.field = obj.filterParameters.volumenFraction*ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
+            s.field([],[]) = 1;
+            s.filterParameters =  obj.filterParameters;
+            s.projectorParameters.beta =  obj.projectParameters.beta;
+            s.mesh = obj.mesh;
+
+            s.projectorParameters.eta =  obj.projectParameters.eta.E; 
+            obj.E.designField = DesignField(s);
+            s.projectorParameters.eta =  obj.projectParameters.eta.I;
+            obj.I.designField =  DesignField(s);
+            s.projectorParameters.eta =  obj.projectParameters.eta.D;
+            obj.D.designField =  DesignField(s);
+
+            obj.E.designField.filteredField = obj.E.designField.field;
+            obj.I.designField.filteredField =  obj.I.designField.field;
+            obj.D.designField.filteredField = obj.D.designField.field;
+
+
             %Define initial fields
-            obj.field        = obj.filterParameters.volumenFraction*ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
-            obj.filteredField = obj.field;
+%            obj.filteredField = obj.field;
             %Define density constrains
-            obj.field([],[]) = 1;
+%            obj.field([],[]) = 1;
         end
         
     end

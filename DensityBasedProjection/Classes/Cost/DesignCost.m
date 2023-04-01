@@ -1,4 +1,4 @@
-classdef CostComputer < handle
+classdef DesignCost < handle
     properties (Access = public)
         cost
         derivedCost
@@ -10,7 +10,7 @@ classdef CostComputer < handle
         displacement
     end 
     methods (Access = public)
-        function obj = CostComputer(cParams)
+        function obj = DesignCost(cParams)
             obj.inputData(cParams)            
         end
         function computeCost(obj)
@@ -38,7 +38,7 @@ classdef CostComputer < handle
         function inputData(obj,cParams) 
             obj.mesh = cParams.mesh;
             obj.structure =cParams.structure;
-            obj.designFields = cParams.designFields;
+            obj.designFields = cParams.designField;
         end      
     end 
 end
