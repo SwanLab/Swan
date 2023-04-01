@@ -1,6 +1,6 @@
 %% To-do
-% - Delete rhs_shapefunction -> use funs
-% - Clean RHSunfitted
+% OK! - Delete rhs_shapefunction -> use funs
+% OK! - Clean RHSunfitted
 % OK! - switch class(mesh.type) @ RHSfactory
 % - filter_pde_density using rhs_unfitted (now rhs_shapefunctionfun*
 % - filter_pde_levelset name change for unfitted

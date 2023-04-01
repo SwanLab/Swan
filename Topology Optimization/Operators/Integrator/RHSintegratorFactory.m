@@ -13,10 +13,6 @@ classdef RHSintegratorFactory < handle
                         otherwise
                             obj = RHSintegrator_ShapeFunction(cParams);
                     end
-                case 'ShapeFunctionFun'
-                    % Computes the RHS using the NODAL FORCES and SHAPE
-                    % FUNCTIONS
-                    obj = RHSintegrator_ShapeFunctionFun(cParams);
                 case 'ShapeDerivative'
                     % Computes the RHS using the NODAL FORCES and SHAPE
                     % FUNCTIONS' DERIVATIVE

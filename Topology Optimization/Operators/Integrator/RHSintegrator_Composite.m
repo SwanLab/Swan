@@ -32,7 +32,7 @@ classdef RHSintegrator_Composite < handle
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
                     int = integrator.integrateAndSum(nodalFunc);
-                elseif isequal(class(integrator), 'RHSintegrator_ShapeFunctionFun')
+                elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     p1 = obj.createInnerP1(nodalFunc);
                     intLoc = integrator.compute(p1);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
