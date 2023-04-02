@@ -33,12 +33,16 @@ classdef OptimizerTester < handle
                 warning('Step 2: Error in derived Cost')
             end
 
-            if abs(obj.expectedResult.volumen-obj.results.E.designVolumen.cost)< obj.tolerateError
+            if abs(obj.expectedResult.volumen.volfracD-obj.results.E.designVolumen.volumenFraction)> obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Step 3: Cost |OK!|')
+                warning('Step 3: Error in volumen fraction')
+            elseif abs(obj.expectedResult.volumen.value-obj.results.E.designVolumen.volumen)> obj.tolerateError
+                warning('Step 3: Error in volumen value')
+            elseif abs(obj.expectedResult.volumen.derivated-obj.results.E.designVolumen.derivedVolumen)> obj.tolerateError
+                warning('Step 3: Error in derived volumen ')
             else
-                warning('Step 3: Error in Cosgt')
-            end
+                disp('Step 3: volumen |OK!|')                
+            end 
 
         end 
     end
