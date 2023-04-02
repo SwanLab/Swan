@@ -24,20 +24,20 @@ Test1 = ComplianceRobustComputer(s);
 Test1.compute();
 
 %% Validator
-if abs(results.projectedField.E-Test1.projectedField.E)< tolerateError
+if abs(results.projectedField.E-Test1.E.designField.projectedField)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field E |OK!|')
 else
     warning('Error in Projected Field E')
 end
 
-if abs(results.projectedField.I - Test1.projectedField.I)< tolerateError
+if abs(results.projectedField.I - Test1.I.designField.projectedField)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field I |OK!|')
 else
     warning('Error in Projected Field I')
 end
-if abs(results.projectedField.D - Test1.projectedField.D)< tolerateError
+if abs(results.projectedField.D - Test1.D.designField.projectedField)< tolerateError
     %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
     disp('Projected Field D |OK!|')
 else

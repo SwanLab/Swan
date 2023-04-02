@@ -80,7 +80,9 @@ classdef ComplianceRobustComputer < handle
 %            s.cost.initial = obj.cost.E;
             B = Optimizer(s);
             B.compute();
-            obj.projectedField = B.projectedField;
+            obj.E = B.E;
+            obj.I = B.I;
+            obj.D = B.D;
         end 
         function computeMeshParameters(obj)
             %Mesh parameters
@@ -157,8 +159,6 @@ classdef ComplianceRobustComputer < handle
         function computeInitialVolumens(obj)
             s.mesh = obj.mesh;
             s.filterParameters =obj.filterParameters;            
-%            s.derivedProjectedField = [];
-%            obj.volumenFraction = cParams.volumenFraction;
             s.designField =obj.E.designField;
             obj.E.designVolumen = DesignVolumen(s);
             obj.E.designVolumen.computeVolumenFraction(obj.D,obj.I);
@@ -189,16 +189,15 @@ classdef ComplianceRobustComputer < handle
             obj.E.designField.filteredField = obj.E.designField.field;
             obj.I.designField.filteredField =  obj.I.designField.field;
             obj.D.designField.filteredField = obj.D.designField.field;
+            
+            obj.E.designField.project;
+            obj.I.designField.project;
+            obj.D.designField.project;
+
 
             obj.E.designField.deriveProjectedField;
             obj.I.designField.deriveProjectedField;
             obj.D.designField.deriveProjectedField;
-
-
-            %Define initial fields
-%            obj.filteredField = obj.field;
-            %Define density constrains
-%            obj.field([],[]) = 1;
         end
         
     end

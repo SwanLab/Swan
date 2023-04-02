@@ -13,7 +13,7 @@ classdef DesignVolumenTester < handle
             obj.createVolumen();
         end
         function testVolumen(obj)
-            obj.designVolumen.computeVolumen();
+            obj.designVolumen.computeValues();
             results = obj.designVolumen.volumen;
             %Validate Results
             s.results = results;
@@ -22,7 +22,7 @@ classdef DesignVolumenTester < handle
             B.validate;
         end
         function testVolumenDerivator(obj)
-            obj.designVolumen.deriveVolumen();
+            obj.designVolumen.computeValues();
             results = obj.designVolumen.derivedVolumen;
             %Validate Results
             s.results = results;

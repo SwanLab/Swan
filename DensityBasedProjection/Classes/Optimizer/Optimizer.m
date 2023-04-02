@@ -1,6 +1,8 @@
 classdef Optimizer < handle
     properties (Access = public)
-        projectedField
+        E
+        I
+        D
     end
 
     properties (Access = private)
@@ -12,9 +14,7 @@ classdef Optimizer < handle
         solverParameters
         iterations
         problemParameters
-        E
-        I
-        D
+        newField
     end
 
     methods (Access = public)
@@ -68,7 +68,8 @@ classdef Optimizer < handle
 
                 % Compute the solver
                 obj.computeSolver(iter,oldE.designField.field);
-
+                %Set the new field values 
+                obj.setNewFields();
                 %Filter the new field
                 obj.filterNewField();
                 %Project the new filtered field
@@ -90,72 +91,57 @@ classdef Optimizer < handle
             obj.E.designCost.computeCost();
             obj.I.designCost.computeCost();
             obj.D.designCost.computeCost();
-        end
+       end
 
         function deriveCostRespectedField(obj)
             obj.E.designCost.deriveCost();
             obj.I.designCost.deriveCost();
             obj.D.designCost.deriveCost();
         end
+        function computeVolumenValues(obj)
+              obj.E.designVolumen.computeValues();
+              obj.I.designVolumen.computeValues();
+              obj.D.designVolumen.computeValues();
+        end
         function computeSolver(obj,iter,xold)
             sC = [];
             c = CostAndConstraintArturo(sC);
             [f0val,df0dx,df0dx2] = c.computeCostValueAndGradient(obj.mesh.elementNumberX,obj.mesh.elementNumberY);
-            [fval,dfdx,dfdx2] =  c.computeConstraintValueAndGradient(obj.cost.E,obj.cost.I,obj.cost.D,obj.volumen.value,obj.derivedCost.E,obj.derivedCost.I,obj.derivedCost.D,obj.volumen.derivated,obj.cost.initial);
-            xval        = obj.field(:);
+            [fval,dfdx,dfdx2] =  c.computeConstraintValueAndGradient(obj.E.designCost.cost,obj.I.designCost.cost,obj.D.designCost.cost,obj.E.designVolumen.volumen,obj.E.designCost.derivedCost,obj.I.designCost.derivedCost,obj.D.designCost.derivedCost,obj.E.designVolumen.derivedVolumen,obj.E.designCost.cost);
+            
+            xval        = obj.E.designField.field(:);
             [obj.solverParameters.xmma,~,obj.solverParameters.zmma,~,~,~,~,~,~,obj.solverParameters.low,obj.solverParameters.upp] = mmasub2Arturo(obj.solverParameters.numberRestriction,obj.solverParameters.variableNumber,iter,xval,obj.solverParameters.minDensity,obj.solverParameters.maxDensity,obj.solverParameters.xold1,obj.solverParameters.xold2, ...
                 f0val,df0dx,df0dx2,fval,dfdx,dfdx2,obj.solverParameters.low,obj.solverParameters.upp,obj.solverParameters.a0,obj.solverParameters.mmaParameter.a,obj.solverParameters.mmaParameter.e,obj.solverParameters.mmaParameter.d);
 
 
             obj.solverParameters.xold2  = obj.solverParameters.xold1;
             obj.solverParameters.xold1  = xval;
-            obj.field     = reshape(obj.solverParameters.xmma,obj.mesh.elementNumberY,obj.mesh.elementNumberX);
-           obj.solverParameters.costChange  = norm(obj.solverParameters.xmma-xold,inf);
+            obj.solverParameters.costChange  = norm(obj.solverParameters.xmma-xold(:),inf);
 
+            obj.newField     = reshape(obj.solverParameters.xmma,obj.mesh.elementNumberY,obj.mesh.elementNumberX);
         end
-        function computeVolumenValues(obj)
-            s.mesh =obj.mesh;
-            s.filterParameters = obj.filterParameters;
-            s.projectedField = obj.projectedField;
-            s.derivedProjectedField = obj.derivedProjectedField;
-            s.volumen = obj.volumen;
-            B = VolumenComputer(s);
-            B.compute;
-            obj.volumen = B.volumen;
+        function setNewFields(obj) 
+            obj.E.designField.field = obj.newField;
+            obj.I.designField.field = obj.newField;
+            obj.D.designField.field = obj.newField;
+        end 
+        function filterNewField(obj)
+            obj.E.designField.project();
+            obj.I.designField.project();
+            obj.D.designField.project();
+        end
+        function projectNewFilteredField(obj)
+            obj.E.designField.filter();
+            obj.I.designField.filter();
+            obj.D.designField.filter();
+
         end
         function deriveProjectedFieldRespectedFilteredField(obj)
             obj.E.designField.deriveProjectedField();
             obj.I.designField.deriveProjectedField();
             obj.D.designField.deriveProjectedField();
         end
-        function projectNewFilteredField(obj)
-            s.beta = obj.projectorParameters.beta;
-            s.eta = obj.projectorParameters.eta.E;
-            s.filteredField =obj.filteredField;
-            E = FieldProjector(s);
-            E.compute();
-            obj.projectedField.E = E.projectedField;
 
-            s.beta =  obj.projectorParameters.beta;
-            s.eta = obj.projectorParameters.eta.I;
-            I = FieldProjector(s);
-            I.compute();
-            obj.projectedField.I = I.projectedField;
-
-            s.beta =  obj.projectorParameters.beta;
-            s.eta = obj.projectorParameters.eta.D;
-            D = FieldProjector(s);
-            D.compute();
-            obj.projectedField.D = D.projectedField;
-
-        end
-        function filterNewField(obj)
-            s.filterParameters = obj.filterParameters;
-            s.field = obj.field;
-            B = FilterComputer(s);
-            B.compute();
-            obj.filteredField = B.filteredField;
-        end
 
         function plotResults(obj,iter)
 %             subplot(3,1,1);
@@ -165,8 +151,8 @@ classdef Optimizer < handle
 %             subplot(3,1,3);
 %             imagesc(-obj.projectedField.D); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight; pause(0.1)
             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%6.4f',obj.solverParameters.zmma) ...
-                ' ui: '  sprintf('%12f', [obj.cost.E obj.cost.I obj.cost.D])...
-                ' V: '   sprintf('%6.3f',sum(obj.projectedField.I(:))/(obj.mesh.elementNumberX*obj.mesh.elementNumberY)) ...
+                ' ui: '  sprintf('%12f', [obj.E.designCost.cost obj.I.designCost.cost obj.D.designCost.cost])...
+                ' V: '   sprintf('%6.3f',sum(obj.I.designField.projectedField(:))/(obj.mesh.elementNumberX*obj.mesh.elementNumberY)) ...
                 ' ch.: ' sprintf('%6.3f', obj.solverParameters.costChange)])
         end
     end
@@ -180,7 +166,10 @@ classdef Optimizer < handle
 
             if (itervol >= 20 )
                 itervol = 0;
-                obj.volumen.volfracD = volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
+                %obj.volumen.volfracD = volumenFraction*sum(obj.projectedField.D(:))/sum(obj.projectedField.I(:));
+                E.designVolumen.computeVolumenFraction(D,I);
+                I.designVolumen.computeVolumenFraction(D,I);
+                D.designVolumen.computeVolumenFraction(D,I);
             end
             if iter == obj.iterations
                 finish = true;

@@ -41,20 +41,20 @@ classdef GlobalTest < handle
         end
         function validate(obj)
             % ValidafilterParameterstor
-            if abs(obj.expectedResult.projectedField.E-obj.Test1.projectedField.E)< obj.tolerateError
+            if abs(obj.expectedResult.projectedField.E-obj.Test1.E.designField.projectedField)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field E |OK!|')
             else
                 warning('Error in Projected Field E')
             end
 
-            if abs(obj.expectedResult.projectedField.I - obj.Test1.projectedField.I)< obj.tolerateError
+            if abs(obj.expectedResult.projectedField.I - obj.Test1.I.designField.projectedField)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field I |OK!|')
             else
                 warning('Error in Projected Field I')
             end
-            if abs(obj.expectedResult.projectedField.D - obj.Test1.projectedField.D)< obj.tolerateError
+            if abs(obj.expectedResult.projectedField.D - obj.Test1.D.designField.projectedField)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Projected Field D |OK!|')
             else
