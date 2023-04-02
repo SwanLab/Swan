@@ -189,10 +189,6 @@ classdef ComplianceRobustComputer < handle
             obj.E.designField.filteredField = obj.E.designField.field;
             obj.I.designField.filteredField =  obj.I.designField.field;
             obj.D.designField.filteredField = obj.D.designField.field;
-            
-            obj.E.designField.project;
-            obj.I.designField.project;
-            obj.D.designField.project;
 
 
             obj.E.designField.deriveProjectedField;
