@@ -54,8 +54,8 @@ classdef DesignVolumenTester < handle
 
             file = fullfile("DensityBasedProjection",'Test','Data','designFields.mat');            
             a = load(file);
-            s.projectedField= a.designFields.projectedField;
-            s.derivedProjectedField= a.designFields.derivedProjectedField;
+            s.designField= a.designFields;
+            s.designField.deriveProjectedField
             file = fullfile("DensityBasedProjection",'Test','Data','volfracD.mat');            
             a = load(file);
             s.volumenFraction = a.volfracD;

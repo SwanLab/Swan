@@ -32,8 +32,8 @@ classdef DesignVolumen < handle
             obj.elementNumberX = cParams.mesh.elementNumberX;
             obj.elementNumberY =cParams.mesh.elementNumberY;
             obj.filterParameters =cParams.filterParameters;
-            obj.projectedField =cParams.projectedField;
-            obj.derivedProjectedField = cParams.derivedProjectedField;
+            obj.projectedField =cParams.designField.projectedField;
+            obj.derivedProjectedField = cParams.designField.derivedProjectedField;
 %            obj.volumenFraction = cParams.volumenFraction;
         end
 

@@ -2,12 +2,12 @@ classdef DesignCost < handle
     properties (Access = public)
         cost
         derivedCost
+        displacement
+        designFields
     end
     properties (Access = private)
         mesh
         structure
-        designFields
-        displacement
     end 
     methods (Access = public)
         function obj = DesignCost(cParams)

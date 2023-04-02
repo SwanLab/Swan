@@ -116,7 +116,7 @@ classdef ComplianceRobustComputer < handle
             obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
         end 
         function computeSolverParameters(obj)
-            obj.cost.change  = 1;
+            obj.solverParameters.costChange  = 1;
             obj.solverParameters.minDensity    = zeros(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
             obj.solverParameters.maxDensity    =  ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
             obj.solverParameters.minDensity =  obj.solverParameters.minDensity(:);
@@ -157,15 +157,15 @@ classdef ComplianceRobustComputer < handle
         function computeInitialVolumens(obj)
             s.mesh = obj.mesh;
             s.filterParameters =obj.filterParameters;            
-            s.derivedProjectedField = [];
+%            s.derivedProjectedField = [];
 %            obj.volumenFraction = cParams.volumenFraction;
-            s.projectedField =obj.E.designField.projectedField;
+            s.designField =obj.E.designField;
             obj.E.designVolumen = DesignVolumen(s);
             obj.E.designVolumen.computeVolumenFraction(obj.D,obj.I);
-            s.projectedField =obj.I.designField.projectedField;            
+            s.designField =obj.E.designField;            
             obj.I.designVolumen = DesignVolumen(s);
             obj.I.designVolumen.computeVolumenFraction(obj.D,obj.I);
-            s.projectedField =obj.D.designField.projectedField;         
+            s.designField =obj.E.designField;         
             obj.D.designVolumen = DesignVolumen(s);
             obj.D.designVolumen.computeVolumenFraction(obj.D,obj.I);
 
@@ -189,6 +189,10 @@ classdef ComplianceRobustComputer < handle
             obj.E.designField.filteredField = obj.E.designField.field;
             obj.I.designField.filteredField =  obj.I.designField.field;
             obj.D.designField.filteredField = obj.D.designField.field;
+
+            obj.E.designField.deriveProjectedField;
+            obj.I.designField.deriveProjectedField;
+            obj.D.designField.deriveProjectedField;
 
 
             %Define initial fields

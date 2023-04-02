@@ -31,14 +31,14 @@ classdef Optimizer < handle
 
             obj.mesh = cParams.mesh;
             obj.structure = cParams.structure;
-            s.structure.elementType = 'Square';
+            obj.structure.elementType = 'Square';
             obj.projectorParameters = cParams.projector;
             obj.filterParameters= cParams.filterParameters;
             obj.solverParameters = cParams.solverParameters;
             obj.iterations = cParams.iterations;
-            obj.E = s.E;
-            obj.I = s.I;
-            obj.D = s.D;
+            obj.E = cParams.E;
+            obj.I = cParams.I;
+            obj.D = cParams.D;
         end
         function optimize(obj)
             %Optimizer parameter
@@ -47,98 +47,55 @@ classdef Optimizer < handle
             itervol  = 0;
             finish = false;
 
-            while (obj.cost.change > 0.001) && (iter < 300) && (finish == false)
+            while (obj.solverParameters.costChange > 0.001) && (iter < 300) && (finish == false)
                 %Actualización de variables al comienzo del bucle:
                 iter     = iter     + 1;
                 iterbeta = iterbeta + 1;
                 itervol  = itervol  + 1;
 
-                xold = obj.field(:);
+                oldE = obj.E;
+                oldI = obj.I;
+                oldD = obj.D;
+                %xold = obj.field(:);
+                
 
                 % Compute cost and displacement with the projected field
-                obj.computeFEM();
-                % Derivate the projected field respected the filteredField
-                obj.deriveProjectedFieldRespectedFilteredField();
+                obj.computeCost();
                 % Calculate the cost derivated by the field
                 obj.deriveCostRespectedField();
                 % Compute volumen, derivate volumen, filter derivated volumen
                 obj.computeVolumenValues();
 
                 % Compute the solver
-                obj.computeSolver(iter,xold);
+                obj.computeSolver(iter,oldE.designField.field);
 
                 %Filter the new field
                 obj.filterNewField();
                 %Project the new filtered field
                 obj.projectNewFilteredField();
+                % Derivate the projected field respected the filteredField
+                obj.deriveProjectedFieldRespectedFilteredField();
                 %Plot results
                 obj.plotResults(iter);
                 %New optimizer parameters
                 [iterbeta,itervol,finish,iter] = Optimizer.reconfigurateOptimizeParameters(obj,iterbeta,itervol,finish,iter);
 
+
             end
 
         end
     
-        function computeFEM(obj)
-            %Get cost and displacementv 
-            s.mesh = obj.mesh;
-            s.structure= obj.structure;
-            s.projectedField = obj.projectedField.E;
-
-            E = FEMcomputer(s);
-            E.compute();
-            obj.cost.E = E.cost;
-            obj.displacement.E = E.displacement;
-
-            s.projectedField = obj.projectedField.I;
-            I = FEMcomputer(s);
-            I.compute();
-            obj.cost.I = I.cost;
-            obj.displacement.I = I.displacement;
-
-            s.projectedField = obj.projectedField.D;
-            D = FEMcomputer(s);
-            D.compute();
-            obj.cost.D = D.cost;
-            obj.displacement.D = D.displacement;
-
+        function computeCost(obj)
+            %Get cost and displacement
+            obj.E.designCost.computeCost();
+            obj.I.designCost.computeCost();
+            obj.D.designCost.computeCost();
         end
 
         function deriveCostRespectedField(obj)
-            s.mesh = obj.mesh;
-            s.structure =obj.structure;
-            s.filterParameters =obj.filterParameters ;
-            s.filteredField =obj.filteredField ;
-            s.projectorParameters.beta =obj.projectorParameters.beta;
-            s.cost =obj.cost ;
-
-            
-            s.displacement =obj.displacement.E;
-            s.projectedField =obj.projectedField.E;
-            s.derivedProjectedField = obj.derivedProjectedField.E;
-            s.projectorParameters.eta =obj.projectorParameters.eta.E ;
-
-            E = CostFieldDerivator(s);
-            E.compute();
-            obj.derivedCost.E = E.derivedCost;
-
-            s.displacement =obj.displacement.I;
-            s.projectedField =obj.projectedField.I;
-            s.derivedProjectedField = obj.derivedProjectedField.I;
-            s.projectorParameters.eta =obj.projectorParameters.eta.I ;
-            I = CostFieldDerivator(s);
-            I.compute();
-            obj.derivedCost.I = I.derivedCost;
-
-            s.displacement =obj.displacement.D;
-            s.projectedField =obj.projectedField.D;
-            s.projectorParameters.eta =obj.projectorParameters.eta.D;
-            s.derivedProjectedField = obj.derivedProjectedField.D;
-            D = CostFieldDerivator(s);
-            D.compute();
-            obj.derivedCost.D = D.derivedCost;
-
+            obj.E.designCost.deriveCost();
+            obj.I.designCost.deriveCost();
+            obj.D.designCost.deriveCost();
         end
         function computeSolver(obj,iter,xold)
             sC = [];
@@ -153,7 +110,7 @@ classdef Optimizer < handle
             obj.solverParameters.xold2  = obj.solverParameters.xold1;
             obj.solverParameters.xold1  = xval;
             obj.field     = reshape(obj.solverParameters.xmma,obj.mesh.elementNumberY,obj.mesh.elementNumberX);
-            obj.cost.change = norm(obj.solverParameters.xmma-xold,inf);
+           obj.solverParameters.costChange  = norm(obj.solverParameters.xmma-xold,inf);
 
         end
         function computeVolumenValues(obj)
@@ -167,23 +124,9 @@ classdef Optimizer < handle
             obj.volumen = B.volumen;
         end
         function deriveProjectedFieldRespectedFilteredField(obj)
-            s.beta = obj.projectorParameters.beta;
-            s.filteredField = obj.filteredField;
-
-            s.eta =obj.projectorParameters.eta.E;
-            E = ProjectedFieldFilteredFieldDerivator(s);
-            E.compute();
-            obj.derivedProjectedField.E = E.derivatedProjectedField;
-
-            s.eta =obj.projectorParameters.eta.I;
-            I = ProjectedFieldFilteredFieldDerivator(s);
-            I.compute();
-            obj.derivedProjectedField.I = I.derivatedProjectedField;
-
-            s.eta =obj.projectorParameters.eta.D;
-            D = ProjectedFieldFilteredFieldDerivator(s);
-            D.compute();
-            obj.derivedProjectedField.D = D.derivatedProjectedField;
+            obj.E.designField.deriveProjectedField();
+            obj.I.designField.deriveProjectedField();
+            obj.D.designField.deriveProjectedField();
         end
         function projectNewFilteredField(obj)
             s.beta = obj.projectorParameters.beta;
@@ -224,15 +167,15 @@ classdef Optimizer < handle
             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%6.4f',obj.solverParameters.zmma) ...
                 ' ui: '  sprintf('%12f', [obj.cost.E obj.cost.I obj.cost.D])...
                 ' V: '   sprintf('%6.3f',sum(obj.projectedField.I(:))/(obj.mesh.elementNumberX*obj.mesh.elementNumberY)) ...
-                ' ch.: ' sprintf('%6.3f', obj.cost.change)])
+                ' ch.: ' sprintf('%6.3f', obj.solverParameters.costChange)])
         end
     end
     methods (Static)
         function [iterbeta,itervol,finish,iter] = reconfigurateOptimizeParameters(obj,iterbeta,itervol,finish,iter)
-            if (obj.projectorParameters.beta < 32) && ((iterbeta >= 50) || (obj.cost.change <= 0.01))
+            if (obj.projectorParameters.beta < 32) && ((iterbeta >= 50) || (obj.solverParameters.costChange <= 0.01))
                 obj.projectorParameters.beta     = 2*obj.projectorParameters.beta;
                 iterbeta = 0;
-                obj.cost.change   = 1;
+                obj.solverParameters.costChange   = 1;
             end
 
             if (itervol >= 20 )
