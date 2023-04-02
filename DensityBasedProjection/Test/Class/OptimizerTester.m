@@ -24,27 +24,21 @@ classdef OptimizerTester < handle
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
                 disp('Step 1: Cost |OK!|')
             else
-                warning('Step 1: Error in Cosgt')
+                warning('Step 1: Error in Cost')
             end
             if abs(obj.expectedResult.derivedCost.E-obj.results.E.designCost.derivedCost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Step 1: Cost |OK!|')
+                disp('Step 2: derived Cost |OK!|')
             else
-                warning('Step 1: Error in Cosgt')
+                warning('Step 2: Error in derived Cost')
             end
 
-            if abs(obj.expectedResult.cost.E-obj.results.E.designCost.cost)< obj.tolerateError
+            if abs(obj.expectedResult.volumen-obj.results.E.designVolumen.cost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Step 1: Cost |OK!|')
+                disp('Step 3: Cost |OK!|')
             else
-                warning('Step 1: Error in Cosgt')
+                warning('Step 3: Error in Cosgt')
             end
-
-
-
-
-
-
 
         end 
     end
@@ -110,6 +104,12 @@ classdef OptimizerTester < handle
             file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','displacement');
             s = load(file);
             obj.expectedResult.displacement = s.displacement;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','volumen');
+            s = load(file);
+            obj.expectedResult.volumen = s.volumen;
+
+
         end
     end
 end
