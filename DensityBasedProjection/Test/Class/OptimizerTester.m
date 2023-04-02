@@ -6,6 +6,7 @@ classdef OptimizerTester < handle
         results
         tolerateError
         expectedResult
+        data
 
         E
         I
@@ -22,13 +23,13 @@ classdef OptimizerTester < handle
             % ValidafilterParameterstor
             if abs(obj.expectedResult.cost.E-obj.results.E.designCost.cost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Step 1: Cost |OK!|')
+                disp('Step 1: cost |OK!|')
             else
                 warning('Step 1: Error in Cost')
             end
             if abs(obj.expectedResult.derivedCost.E-obj.results.E.designCost.derivedCost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Step 2: derived Cost |OK!|')
+                disp('Step 2: derived cost |OK!|')
             else
                 warning('Step 2: Error in derived Cost')
             end
@@ -42,8 +43,33 @@ classdef OptimizerTester < handle
                 warning('Step 3: Error in derived volumen ')
             else
                 disp('Step 3: volumen values |OK!|')                
+            end           
+            if abs(obj.expectedResult.field-obj.results.E.designField.field)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 4: solver (new field) |OK!|')
+            else
+                warning('Step 4: Error in solver (new field)')
             end 
-
+            if abs(obj.expectedResult.filteredField-obj.results.E.designField.filteredField)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 5: filtered new field |OK!|')
+            else
+                warning('Step 5: Error in filtered new field')
+            end 
+            if abs(obj.expectedResult.projectedField.E-obj.results.E.designField.projectedField)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 6: projected new field |OK!|')
+            else
+                warning('Step 6: Error in projected new field')
+            end
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','E');
+            s = load(file);
+            if abs(s.E.designField.derivedProjectedField-obj.expectedResult.derivedProjectedField.E)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 7: derived projected new field |OK!|')
+            else
+                warning('Step 7: Error in derived projected new field')
+            end    
         end 
     end
     methods (Access = private)
@@ -83,8 +109,11 @@ classdef OptimizerTester < handle
 
             s.iterations = 1;
             
+            obj.data = s;
             obj.results = Optimizer(s);
             obj.results.compute
+            
+             
 
         end
         function loadExpectedResults(obj)
@@ -92,6 +121,19 @@ classdef OptimizerTester < handle
             file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','cost');
             s = load(file);
             obj.expectedResult.cost = s.cost;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','field');
+            s = load(file);
+            obj.expectedResult.field = s.field;
+
+            
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','projectedField');
+            s = load(file);
+            obj.expectedResult.projectedField = s.projectedField;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','filteredField');
+            s = load(file);
+            obj.expectedResult.filteredField = s.filteredField;
 
             file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','costChange');
             s = load(file);

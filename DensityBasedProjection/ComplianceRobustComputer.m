@@ -22,7 +22,6 @@ classdef ComplianceRobustComputer < handle
         end
         function compute(obj)
             obj.computeInitialParameters();
-            obj.projectField();
             obj.computeCost();
             obj.optimize();
         end
@@ -40,14 +39,6 @@ classdef ComplianceRobustComputer < handle
             obj.computeInitialFields();
             obj.computeInitialVolumens();
         end
-        function projectField(obj)
-            % Project the initial field
-
-            obj.E.designField.project();
-            obj.I.designField.project();
-            obj.D.designField.project();
-
-        end 
         function computeCost(obj)          
             %Get intial cost
             s.mesh = obj.mesh; 
@@ -73,6 +64,7 @@ classdef ComplianceRobustComputer < handle
             s.projector = obj.projectParameters;
             s.filterParameters = obj.filterParameters;
             s.solverParameters =obj.solverParameters;
+            s.solverParameters.initialCost = obj.E.designCost.cost;
             s.iterations = obj.iterations;
             s.E = obj.E;
             s.I = obj.I;
@@ -162,10 +154,10 @@ classdef ComplianceRobustComputer < handle
             s.designField =obj.E.designField;
             obj.E.designVolumen = DesignVolumen(s);
             obj.E.designVolumen.computeVolumenFraction(obj.D,obj.I);
-            s.designField =obj.E.designField;            
+            s.designField =obj.I.designField;            
             obj.I.designVolumen = DesignVolumen(s);
             obj.I.designVolumen.computeVolumenFraction(obj.D,obj.I);
-            s.designField =obj.E.designField;         
+            s.designField =obj.D.designField;         
             obj.D.designVolumen = DesignVolumen(s);
             obj.D.designVolumen.computeVolumenFraction(obj.D,obj.I);
 
@@ -190,10 +182,15 @@ classdef ComplianceRobustComputer < handle
             obj.I.designField.filteredField =  obj.I.designField.field;
             obj.D.designField.filteredField = obj.D.designField.field;
 
+            obj.E.designField.project();
+            obj.I.designField.project();
+            obj.D.designField.project();
 
             obj.E.designField.deriveProjectedField;
             obj.I.designField.deriveProjectedField;
             obj.D.designField.deriveProjectedField;
+
+
         end
         
     end

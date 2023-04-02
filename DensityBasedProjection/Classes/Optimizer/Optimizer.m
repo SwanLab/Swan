@@ -107,7 +107,7 @@ classdef Optimizer < handle
             sC = [];
             c = CostAndConstraintArturo(sC);
             [f0val,df0dx,df0dx2] = c.computeCostValueAndGradient(obj.mesh.elementNumberX,obj.mesh.elementNumberY);
-            [fval,dfdx,dfdx2] =  c.computeConstraintValueAndGradient(obj.E.designCost.cost,obj.I.designCost.cost,obj.D.designCost.cost,obj.E.designVolumen.volumen,obj.E.designCost.derivedCost,obj.I.designCost.derivedCost,obj.D.designCost.derivedCost,obj.E.designVolumen.derivedVolumen,obj.E.designCost.cost);
+            [fval,dfdx,dfdx2] =  c.computeConstraintValueAndGradient(obj.E.designCost.cost,obj.I.designCost.cost,obj.D.designCost.cost,obj.D.designVolumen.volumen,obj.E.designCost.derivedCost,obj.I.designCost.derivedCost,obj.D.designCost.derivedCost,obj.D.designVolumen.derivedVolumen,obj.solverParameters.initialCost);
             
             xval        = obj.E.designField.field(:);
             [obj.solverParameters.xmma,~,obj.solverParameters.zmma,~,~,~,~,~,~,obj.solverParameters.low,obj.solverParameters.upp] = mmasub2Arturo(obj.solverParameters.numberRestriction,obj.solverParameters.variableNumber,iter,xval,obj.solverParameters.minDensity,obj.solverParameters.maxDensity,obj.solverParameters.xold1,obj.solverParameters.xold2, ...
@@ -126,14 +126,14 @@ classdef Optimizer < handle
             obj.D.designField.field = obj.newField;
         end 
         function filterNewField(obj)
-            obj.E.designField.project();
-            obj.I.designField.project();
-            obj.D.designField.project();
-        end
-        function projectNewFilteredField(obj)
             obj.E.designField.filter();
             obj.I.designField.filter();
             obj.D.designField.filter();
+        end
+        function projectNewFilteredField(obj)
+            obj.E.designField.project();
+            obj.I.designField.project();
+            obj.D.designField.project();
 
         end
         function deriveProjectedFieldRespectedFilteredField(obj)
