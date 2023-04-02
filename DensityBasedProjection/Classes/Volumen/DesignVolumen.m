@@ -34,7 +34,7 @@ classdef DesignVolumen < handle
             obj.filterParameters =cParams.filterParameters;
             obj.projectedField =cParams.projectedField;
             obj.derivedProjectedField = cParams.derivedProjectedField;
-            obj.volumenFraction = cParams.volumenFraction;
+%            obj.volumenFraction = cParams.volumenFraction;
         end
 
         function filterDerivedVolumen(obj)

@@ -8,18 +8,13 @@ classdef Optimizer < handle
         structure
         projectorParameters
         filterParameters
-        cost
-        derivedCost
         displacement
         solverParameters
         iterations
-        field
-        filteredField
         problemParameters
-        derivedProjectedField
-        derivedFilteredField
-        volumen
-
+        E
+        I
+        D
     end
 
     methods (Access = public)
@@ -33,17 +28,17 @@ classdef Optimizer < handle
     end
     methods (Access = private)
         function inputData(obj,cParams)
+
             obj.mesh = cParams.mesh;
             obj.structure = cParams.structure;
+            s.structure.elementType = 'Square';
             obj.projectorParameters = cParams.projector;
             obj.filterParameters= cParams.filterParameters;
-            obj.cost = cParams.cost;
             obj.solverParameters = cParams.solverParameters;
             obj.iterations = cParams.iterations;
-            obj.field = cParams.field;
-            obj.filteredField = cParams.filteredField;
-            obj.projectedField= cParams.projectedField;
-            obj.volumen = cParams.volumen;
+            obj.E = s.E;
+            obj.I = s.I;
+            obj.D = s.D;
         end
         function optimize(obj)
             %Optimizer parameter

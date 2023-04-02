@@ -72,14 +72,12 @@ classdef ComplianceRobustComputer < handle
             s.structure.elementType = 'Square';
             s.projector = obj.projectParameters;
             s.filterParameters = obj.filterParameters;
-            s.cost = obj.cost;
-            s.cost.initial = obj.cost.E;
             s.solverParameters =obj.solverParameters;
             s.iterations = obj.iterations;
-            s.field = obj.field;
-            s.filteredField = obj.filteredField;
-            s.projectedField = obj.projectedField;
-            s.volumen = obj.volumen;
+            s.E = obj.E;
+            s.I = obj.I;
+            s.D = obj.D;
+%            s.cost.initial = obj.cost.E;
             B = Optimizer(s);
             B.compute();
             obj.projectedField = B.projectedField;

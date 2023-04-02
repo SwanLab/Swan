@@ -68,6 +68,7 @@ classdef DesignVolumenTester < handle
 
             %Create the DesignFieldObject
             obj.designVolumen = DesignVolumen(s);
+            obj.designVolumen.computeVolumenFraction(obj.data.D,obj.data.I);            
         end 
 
     end
