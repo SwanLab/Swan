@@ -1,103 +1,115 @@
 classdef OptimizerTester < handle
+    %UNTITLED40 Summary of this class goes here
+    %   Detailed explanation goes here
+
     properties (Access = private)
-        data
         results
-        iterations
         tolerateError
         expectedResult
 
-        filterParameters
-        projectParameters
-        
-        field
-        mesh
-        volumen 
-        solverParameters
-        cost
-        structure
-        filteredField
-        projectedField
+        E
+        I
+        D
     end
 
     methods (Access = public)
-        function obj = OptimizerTester(iterations)
-            obj.iterations = iterations;
+        function obj = OptimizerTester()
             obj.tolerateError = 1e-10;
-            obj.loadData()
+            obj.createObject();
+            obj.loadExpectedResults();
         end
-        function compute(obj)
-            % Create the objects
-
-            s.mesh = obj.mesh;
-            s.structure=obj.structure;
-            s.structure.elementType = 'Square';
-            s.projector = obj.projectParameters;
-            s.filterParameters = obj.filterParameters;
-            s.cost = obj.cost;
-            s.cost.initial = obj.cost.E;
-            s.solverParameters =obj.solverParameters;
-            s.iterations = obj.iterations;
-            s.field = obj.field;
-            s.filteredField = obj.filteredField;
-            s.projectedField.E = obj.projectedField;
-            s.volumen = obj.volumen;
-            obj.results = Optimizer(s);
-            obj.results.compute();
-        end
-        function loadResults(obj,cParams)
-            % In case is testing an external class
-            obj.results.filteredField = cParams.results;
-        end 
         function validate(obj)
             % ValidafilterParameterstor
-            if abs(obj.expectedResult-obj.results.filteredField)< obj.tolerateError
+            if abs(obj.expectedResult.cost.E-obj.results.E.designCost.cost)< obj.tolerateError
                 %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
-                disp('Filter |OK!|')
+                disp('Step 1: Cost |OK!|')
             else
-                warning('Error in Filter')
+                warning('Step 1: Error in Cosgt')
             end
-        end
+            if abs(obj.expectedResult.derivedCost.E-obj.results.E.designCost.derivedCost)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 1: Cost |OK!|')
+            else
+                warning('Step 1: Error in Cosgt')
+            end
+
+            if abs(obj.expectedResult.cost.E-obj.results.E.designCost.cost)< obj.tolerateError
+                %fprintf('{Stifness matrix}');cprintf('_green', '{true}');disp('|');
+                disp('Step 1: Cost |OK!|')
+            else
+                warning('Step 1: Error in Cosgt')
+            end
+
+
+
+
+
+
+
+        end 
     end
     methods (Access = private)
-        function loadData(obj)
+        function createObject(obj)
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','E');
+            a = load(file);
+            s.E = a.E;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','I');
+            a = load(file);
+            s.I = a.I;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','D');
+            a = load(file);
+            s.D = a.D;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','mesh');
+            a = load(file);
+            s.mesh = a.mesh;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','structure');
+            a = load(file);
+            s.structure = a.structure;
+            s.structure.elementType = 'Square';
+
+            file = fullfile("DensityBasedProjection",'Test','Data','projectorParameters');
+            a = load(file);
+            s.projector = a.projectorParameters;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','filterParameters');
+            a = load(file);
+            s.filterParameters = a.filterParameters;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','solverParameters');
+            a = load(file);
+            s.solverParameters = a.solverParameters;
+
+            s.iterations = 1;
+            
+            obj.results = Optimizer(s);
+            obj.results.compute
+
+        end
+        function loadExpectedResults(obj)
             % Load results
-            if obj.iterations == 3
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','cost');
+            s = load(file);
+            obj.expectedResult.cost = s.cost;
 
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','costChange');
+            s = load(file);
+            obj.expectedResult.costChange = s.costChange;
 
-                file = fullfile("DensityBasedProjection",'Test','Data','mesh');
-                s = load(file);
-                obj.mesh = s.mesh;       
-                file = fullfile("DensityBasedProjection",'Test','Data','structure');
-                s = load(file);
-                obj.structure = s.structure;                      
-                file = fullfile("DensityBasedProjection",'Test','Data','filterParameters');
-                s = load(file);
-                obj.filterParameters = s.filterParameters;
-                file = fullfile("DensityBasedProjection",'Test','Data','projectorParameters');
-                s = load(file);
-                obj.projectParameters = s.projectorParameters;  
-                file = fullfile("DensityBasedProjection",'Test','Data','cost');
-                s = load(file);
-                obj.cost = s.cost;
-                file = fullfile("DensityBasedProjection",'Test','Data','field');
-                s = load(file);
-                obj.field = s.field;
-                file = fullfile("DensityBasedProjection",'Test','Data','filteredField');
-                s = load(file);
-                obj.filteredField = s.filteredField;
-                file = fullfile("DensityBasedProjection",'Test','Data','solverParameters');
-                s = load(file);                
-                obj.solverParameters = s.solverParameters;
-                file = fullfile("DensityBasedProjection",'Test','Data','projectedField');
-                s = load(file);                
-                obj.projectedField = s.projectedField;                
-                file = fullfile("DensityBasedProjection",'Test','Data','volumen');
-                s = load(file);
-                obj.volumen = s.volumen;                
-            else
-                error('No test Data for the current iterations')
-            end
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','derivedCost');
+            s = load(file);
+            obj.expectedResult.derivedCost = s.derivedCost;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','derivedProjectedField');
+            s = load(file);
+            obj.expectedResult.derivedProjectedField = s.derivedProjectedField;
+
+            file = fullfile("DensityBasedProjection",'Test','Data','Optimizer','displacement');
+            s = load(file);
+            obj.expectedResult.displacement = s.displacement;
         end
     end
 end
-
