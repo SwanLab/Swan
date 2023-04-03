@@ -28,6 +28,7 @@ classdef FEMcomputer < handle
             obj.projectedField = cParams.projectedField;
             obj.displacement = zeros(2*(obj.mesh.elementNumberY+1)*(obj.mesh.elementNumberX+1),1);
         end
+
         function penalizeElasticModule(obj)
             s.elasticModuleMinimun = obj.structure.elasticModuleMinimun;
             s.elasticModuleNeutral = obj.structure.elasticModuleNeutral;

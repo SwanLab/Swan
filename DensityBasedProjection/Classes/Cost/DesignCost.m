@@ -11,7 +11,8 @@ classdef DesignCost < handle
     end 
     methods (Access = public)
         function obj = DesignCost(cParams)
-            obj.inputData(cParams)            
+            obj.inputData(cParams)   
+            obj.computeElementalStifnessMatrix()
         end
         function computeCost(obj)
             s.mesh = obj.mesh;
@@ -39,6 +40,15 @@ classdef DesignCost < handle
             obj.mesh = cParams.mesh;
             obj.structure =cParams.structure;
             obj.designFields = cParams.designField;
-        end      
+        end
+        function computeElementalStifnessMatrix(obj)
+            s.elementType = obj.structure.elementType;
+            s.t = obj.structure.t;
+            s.poissonCoefficient =obj.structure. poissonCoefficient;
+            B = ElementalStiffnessMatricesComputer(s);
+            B.compute();
+            obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
+         end
+
     end 
 end

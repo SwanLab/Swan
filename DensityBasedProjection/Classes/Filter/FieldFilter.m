@@ -1,4 +1,4 @@
-classdef FilterComputer < handle 
+classdef FieldFilter < handle 
     properties (Access = public)
         filteredField
     end
@@ -7,7 +7,7 @@ classdef FilterComputer < handle
         field
     end
     methods (Access = public)
-        function obj = FilterComputer(cParams)
+        function obj = FieldFilter(cParams)
             obj.inputData(cParams);
         end
 

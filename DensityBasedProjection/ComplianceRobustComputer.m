@@ -95,14 +95,14 @@ classdef ComplianceRobustComputer < handle
             obj.structure.elasticModuleMinimun    = 1e-6;
             obj.structure.poissonCoefficient      = 0.3;
             obj.structure.penalization   = 3;
-
+            obj.structure.elementType   = 'square';
             %Compute Elemental stifness Matrix
-            s.elementType = 'square';
-            s.t = obj.structure.t;
-            s.poissonCoefficient =obj.structure. poissonCoefficient;
-            B = ElementalStiffnessMatricesComputer(s);
-            B.compute();
-            obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
+%             s.elementType = 'square';
+%             s.t = obj.structure.t;
+%             s.poissonCoefficient =obj.structure. poissonCoefficient;
+%             B = ElementalStiffnessMatricesComputer(s);
+%             B.compute();
+%             obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
         end 
         function computeSolverParameters(obj)
             obj.solverParameters.costChange  = 1;

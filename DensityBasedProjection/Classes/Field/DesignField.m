@@ -16,11 +16,12 @@ classdef DesignField < handle
         function obj = DesignField(cParams)
             obj.inputData(cParams)
             obj.computeWeigth()
+            obj.deriveFilteredField();
         end
         function filter(obj)
             s.filterParameters = obj.filterParameters;
             s.field = obj.field;
-            B = FilterComputer(s);
+            B = FieldFilter(s);
             B.compute();
             obj.filteredField = B.filteredField;
         end
@@ -43,13 +44,6 @@ classdef DesignField < handle
             B.compute();
             obj.derivedProjectedField = B.derivatedProjectedField;
         end
-        function deriveFilteredField(obj)
-            s.H = obj.filterParameters.H;
-            s.Hs = obj.filterParameters.Hs;
-            B = FilteredFieldFieldDerivator(s);
-            B.compute();
-            obj.derivedFilteredField = B.derivedFilteredField;
-        end
     end
     methods (Access = private)
         function inputData(obj,cParams)
@@ -67,5 +61,13 @@ classdef DesignField < handle
             obj.filterParameters.H = B.H;
             obj.filterParameters.Hs = B.Hs;
         end  
+        function deriveFilteredField(obj)
+            s.H = obj.filterParameters.H;
+            s.Hs = obj.filterParameters.Hs;
+            B = FilteredFieldFieldDerivator(s);
+            B.compute();
+            obj.derivedFilteredField = B.derivedFilteredField;
+         end
+
     end
 end
