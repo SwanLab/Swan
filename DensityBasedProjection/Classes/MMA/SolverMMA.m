@@ -1,4 +1,4 @@
-classdef CostAndConstraintArturo < handle
+classdef SolverMMA < handle
     
     properties (Access = public)        
     end
@@ -7,7 +7,7 @@ classdef CostAndConstraintArturo < handle
     end
     methods (Access = public)
         
-        function obj = CostAndConstraintArturo(cParams)
+        function obj = SolverMMA(cParams)
             obj.init(cParams)                            
         end
         

@@ -1,11 +1,11 @@
 close all
 clc
 clear all
-f = figure('Position',[200 50 250 650]);
+f = figure('Position',[200 60 280 650]);
 
 % Create the buttons
-btnGlobalTest = uicontrol('Style','pushbutton','String','Run Global Test','Position',[50 10 150 30],'BackgroundColor', 'r','Callback',@btn1Callback);
-btnOptimizerTest =  uicontrol('Style','pushbutton','String','Run Optimizer Test','Position',[50 50 150 30],'BackgroundColor', 'r','Callback',@btnOptCallback);
+btnGlobalTest = uicontrol('Style','pushbutton','String','Run Global Test','Position',[50 10 150 30],'BackgroundColor', [1.0000 0.1020 0.1020],'Callback',@btn1Callback);
+btnOptimizerTest =  uicontrol('Style','pushbutton','String','Run Optimizer Test','Position',[50 50 150 30],'BackgroundColor', [1.0000 0.8000 0],'Callback',@btnOptCallback);
 btnFilterTest = uicontrol('Style','pushbutton','String','Run Filter Test','Position',[50 90 150 30],'BackgroundColor', [0.8 0.8 0.8],'Callback',@btn2Callback);
 btnProjectorTest = uicontrol('Style','pushbutton','String','Run Projector Test','Position',[50 130 150 30],'BackgroundColor', [0.8 0.8 0.8],'Callback',@btn3Callback);
 btnFilteredFieldDerivatorTest = uicontrol('Style','pushbutton','String','Run Projected Field Derivator Test','Position',[50 170 180 30],'BackgroundColor', [0.8 0.8 0.8],'Callback',@btn4Callback);

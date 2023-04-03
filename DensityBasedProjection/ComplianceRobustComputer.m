@@ -6,15 +6,11 @@ classdef ComplianceRobustComputer < handle
     end
     properties (Access = private)
         iterations
-        filteredField
-        field
         mesh
         structure
-        projectParameters
+        projectorParameters
         filterParameters
         solverParameters
-        cost
-        volumen
     end
     methods (Access = public)
         function obj = ComplianceRobustComputer(cParams)
@@ -61,7 +57,7 @@ classdef ComplianceRobustComputer < handle
             s.mesh = obj.mesh;
             s.structure=obj.structure;
             s.structure.elementType = 'Square';
-            s.projector = obj.projectParameters;
+            s.projectorParameters = obj.projectorParameters;
             s.filterParameters = obj.filterParameters;
             s.solverParameters =obj.solverParameters;
             s.solverParameters.initialCost = obj.E.designCost.cost;
@@ -69,7 +65,6 @@ classdef ComplianceRobustComputer < handle
             s.E = obj.E;
             s.I = obj.I;
             s.D = obj.D;
-%            s.cost.initial = obj.cost.E;
             B = Optimizer(s);
             B.compute();
             obj.E = B.E;
@@ -124,8 +119,8 @@ classdef ComplianceRobustComputer < handle
             obj.solverParameters.mmaParameter.a       = [1 1 1 0]';
             obj.solverParameters.mmaParameter.e       = 1000*ones(obj.solverParameters.numberRestriction,1);
             obj.solverParameters.mmaParameter.d       = 0*ones(obj.solverParameters.numberRestriction,1);
-            obj.solverParameters.xold1   = obj.field(:);
-            obj.solverParameters.xold2   = obj.field(:);
+            obj.solverParameters.xold1   = [];
+            obj.solverParameters.xold2   = [];
         end 
         function computeFilterParameters(obj)
             %Filter parameters:
@@ -143,10 +138,10 @@ classdef ComplianceRobustComputer < handle
 
         function computeProjectorParameters(obj)
             eta      = 0.25;
-            obj.projectParameters.eta.E     = 1-eta;
-            obj.projectParameters.eta.I     = 0.5;
-            obj.projectParameters.eta.D     = eta;
-            obj.projectParameters.beta     = 1;
+            obj.projectorParameters.eta.E     = 1-eta;
+            obj.projectorParameters.eta.I     = 0.5;
+            obj.projectorParameters.eta.D     = eta;
+            obj.projectorParameters.beta     = 1;
         end
         function computeInitialVolumens(obj)
             s.mesh = obj.mesh;
@@ -168,14 +163,14 @@ classdef ComplianceRobustComputer < handle
             s.field = obj.filterParameters.volumenFraction*ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
             s.field([],[]) = 1;
             s.filterParameters =  obj.filterParameters;
-            s.projectorParameters.beta =  obj.projectParameters.beta;
+            s.projectorParameters.beta =  obj.projectorParameters.beta;
             s.mesh = obj.mesh;
 
-            s.projectorParameters.eta =  obj.projectParameters.eta.E; 
+            s.projectorParameters.eta =  obj.projectorParameters.eta.E; 
             obj.E.designField = DesignField(s);
-            s.projectorParameters.eta =  obj.projectParameters.eta.I;
+            s.projectorParameters.eta =  obj.projectorParameters.eta.I;
             obj.I.designField =  DesignField(s);
-            s.projectorParameters.eta =  obj.projectParameters.eta.D;
+            s.projectorParameters.eta =  obj.projectorParameters.eta.D;
             obj.D.designField =  DesignField(s);
 
             obj.E.designField.filteredField = obj.E.designField.field;

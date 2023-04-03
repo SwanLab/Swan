@@ -97,7 +97,7 @@ classdef OptimizerTester < handle
 
             file = fullfile("DensityBasedProjection",'Test','Data','projectorParameters');
             a = load(file);
-            s.projector = a.projectorParameters;
+            s.projectorParameters = a.projectorParameters;
 
             file = fullfile("DensityBasedProjection",'Test','Data','filterParameters');
             a = load(file);

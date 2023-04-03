@@ -3,23 +3,26 @@ classdef DesignVolumen < handle
         volumenFraction
         volumen
         derivedVolumen
+        designFields        
     end
     properties (Access = private)
         elementNumberX
         elementNumberY
         filterParameters
-        projectedField
-        derivedProjectedField       
+%         projectedField
+%         derivedProjectedField       
     end
     methods (Access = public)
         function obj = DesignVolumen(cParams)
             obj.inputData(cParams);
         end
-        function computeValues(obj)
-            obj.computeVolumen();
-            obj.deriveVolumen();
-
+        function computeVolumen(obj)
+            obj.volumen  = sum(sum(obj.designFields.projectedField))/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)-1;
         end 
+        function deriveVolumenAndFilter(obj)
+            obj.derivedVolumen  = 1/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)*ones(obj.elementNumberY,obj.elementNumberX);
+            obj.filterDerivedVolumen();
+        end
         function computeVolumenFraction(obj,D,I)
            obj.volumenFraction = obj.filterParameters.volumenFraction*sum(D.designField.projectedField(:))/sum(I.designField.projectedField(:));
         end 
@@ -30,19 +33,14 @@ classdef DesignVolumen < handle
             obj.elementNumberX = cParams.mesh.elementNumberX;
             obj.elementNumberY =cParams.mesh.elementNumberY;
             obj.filterParameters =cParams.filterParameters;
-            obj.projectedField =cParams.designField.projectedField;
-            obj.derivedProjectedField = cParams.designField.derivedProjectedField;
+            obj.designFields =cParams.designField;
+
+%             obj.projectedField =cParams.designField.projectedField;
+%             obj.derivedProjectedField = cParams.designField.derivedProjectedField;
 %            obj.volumenFraction = cParams.volumenFraction;
-        end
-        function computeVolumen(obj)
-            obj.volumen  = sum(sum(obj.projectedField))/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)-1;
-        end 
-        function deriveVolumen(obj)
-            obj.derivedVolumen  = 1/(obj.volumenFraction*obj.elementNumberX*obj.elementNumberY)*ones(obj.elementNumberY,obj.elementNumberX);
-            obj.filterDerivedVolumen();
         end 
         function filterDerivedVolumen(obj)
-            obj.derivedVolumen(:)  =  obj.filterParameters.H*(obj.derivedVolumen(:).*obj.derivedProjectedField(:)./obj.filterParameters.Hs);
+            obj.derivedVolumen(:)  =  obj.filterParameters.H*(obj.derivedVolumen(:).*obj.designFields.derivedProjectedField(:)./obj.filterParameters.Hs);
         end 
     end
 end
