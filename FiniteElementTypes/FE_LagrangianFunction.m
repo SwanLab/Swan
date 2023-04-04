@@ -259,8 +259,12 @@ classdef FE_LagrangianFunction < FeFunction
         end
         
         function ndofs = numberDofs(mesh,order)
-            mesh.computeEdges();
-            ndofs = mesh.nnodes + max(max(mesh.edges.edgesInElem))*(order-1) + mesh.nelem*(order-2);
+            if order == 1
+                ndofs = mesh.nnodes;
+            else
+                mesh.computeEdges();
+                ndofs = mesh.nnodes + max(max(mesh.edges.edgesInElem))*(order-1) + mesh.nelem*(order-2);
+            end
         end
         
     end
@@ -367,19 +371,7 @@ classdef FE_LagrangianFunction < FeFunction
         end
         
         function coor = computeNodesElement(obj,coords)
-            base = obj.interpolation.lagrangeElement.nodes;
-            
-%             switch obj.polynomialOrder
-%                 case 1
-%                     base = base([1 3 2]);
-%                 case 2
-%                     base = base([1 3 6 2 5 4],:);
-%                 case 3
-%                     base = base([1 4 10 2 3 7 9 5 8 6],:);
-%                 case 4
-%                     base = base([1 5 15 2 3 4 9 12 14 6 10 13 7 8 11],:);
-%             end
-            
+            base = obj.interpolation.lagrangeElement.nodes;          
             c = base(1:3,:);
             M = (coords-coords(1,:))'/c';
             N = coords(1,:)';
