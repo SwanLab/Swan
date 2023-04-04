@@ -9,18 +9,21 @@ classdef EulerBeamOptimizer < handle
     properties (Access = protected)
         optimizerType
     end
-    
+
     properties (Access = private)
         cost
         mesh
+        eigenModes
+        constraint
+        optimizer    
+    end
+    
+    properties (Access = private)
         initValueType
         meshType
         desVarType
         designVariable
         sectionVariables
-        eigenModes
-        constraint
-        optimizer
         nElem
         nConstraints
         columnLength
