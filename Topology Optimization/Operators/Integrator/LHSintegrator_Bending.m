@@ -1,4 +1,4 @@
-classdef LHSintegrator_Bending < LHSintegrator
+classdef LHSintegrator_Bending < handle
 
     properties (Access = public)
         elementalBendingMatrix

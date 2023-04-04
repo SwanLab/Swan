@@ -1,4 +1,4 @@
-classdef LHSintegrator_StiffnessColumn < LHSintegrator
+classdef LHSintegrator_StiffnessColumn < handle
     
     properties (Access = public)
         geometry

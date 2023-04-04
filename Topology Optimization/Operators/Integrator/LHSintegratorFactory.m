@@ -56,7 +56,10 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_Stokes(cParams);
                case 'Laplacian'
                    obj = LHSintegrator_Laplacian(cParams);
-
+               case 'StiffnessMatrixColumn'
+                   obj = LHSintegrator_StiffnessColumn(cParams);
+               case 'BendingMatrix'
+                   obj = LHSintegrator_Bending(cParams);                   
                case 'StokesD'
                    obj = LHSintegrator_StokesD(cParams);
 
