@@ -62,11 +62,12 @@ classdef RHSintegrator_CutMesh < handle
         
         function computeGaussPoints(obj)
             q = obj.quadrature;
-            s.connec = obj.computeSubCellsLocalConnec();
-            s.fNodes = obj.computeSubCellsLocalCoord();
-            s.type   = obj.mesh.type;
-            x = FeFunction(s);
-            obj.xGauss = x.interpolateFunction(q.posgp);
+            msh.connec = obj.computeSubCellsLocalConnec();
+            msh.type    = obj.mesh.type;
+            s.fValues = obj.computeSubCellsLocalCoord();
+            s.mesh    = msh;
+            x = P1Function(s);
+            obj.xGauss = x.evaluate(q.posgp);
         end
         
         function c = computeSubCellsLocalCoord(obj)
@@ -83,11 +84,15 @@ classdef RHSintegrator_CutMesh < handle
         end
 
         function computeFgauss(obj, fNodal)
-            s.fNodes = fNodal;
-            s.connec = obj.subCellConnec;
-            s.type   = obj.backgroundMeshType;
-            f = FeFunction(s);
-            fG = f.interpolateFunction(obj.xGauss);
+            s.fValues = fNodal;
+            mmm.connec = obj.subCellConnec;
+            mmm.type   = obj.backgroundMeshType;
+            s.mesh = mmm;
+%             s.connec = obj.subCellConnec;
+%             s.type   = obj.backgroundMeshType;
+%             s.mesh   = obj.mesh; % !!!
+            f = P1Function(s);
+            fG = f.evaluate(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end

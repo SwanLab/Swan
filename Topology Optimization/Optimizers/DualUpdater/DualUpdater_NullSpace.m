@@ -1,7 +1,6 @@
 classdef DualUpdater_NullSpace < handle
 
     properties (Access = private)
-       NSmeritFunc
        constraint
        cost
        designVariable
@@ -9,32 +8,50 @@ classdef DualUpdater_NullSpace < handle
        problem
        options
        constraintCase
-       tau
        nConstr
-       constrTol
        dualOld
+       isInequality
+       position
+       parameter
     end
 
     methods (Access = public)
 
         function obj = DualUpdater_NullSpace(cParams)
             obj.init(cParams);
+            obj.defineConstraintCases();
+            obj.defineRangeStepParameterValue(cParams);
         end
 
-        function update(obj)
-            k = 1;
+        function defineConstraintCases(obj)
+            obj.isInequality = false;
+            k                = 1;
             for i = 1:obj.nConstr
                 switch obj.constraintCase{i}
                     case {'EQUALITY'}
-                      
+                       
                     case {'INEQUALITY'}
-                        isIneq = true;
-                        pos(k) = i;
-                        k = k + 1;
+                        obj.isInequality = true;
+                        obj.position(k)  = i;
+                        k                = k + 1;
                 end
             end
-            if isIneq
-                obj.computeQuadraticProblem(pos);
+        end
+
+        function defineRangeStepParameterValue(obj,cParams)
+            switch cParams.optimizerNames.primal
+                case {'PROJECTED GRADIENT','HAMILTON JACOBI'}
+                    obj.parameter = inf;
+                case {'SLERP'}
+                    obj.parameter = 5;
+                otherwise
+
+            end
+        end
+
+        function update(obj)
+            if obj.isInequality
+                obj.computeQuadraticProblem();
             else
                 obj.computeDirectDual();
             end
@@ -71,14 +88,18 @@ classdef DualUpdater_NullSpace < handle
             S  = (Dh'*Dh)^-1;
             aJ = 1;
             aC = 1;
-            l  = aC/aJ*S*(h - 1*Dh'*DJ);
+            f  = obj.parameter;
+            f2 = 1;
+            AC = min(f,f2*aC/aJ*S*h);
+            AJ = -aC/aJ*S*Dh'*DJ;
+            l  = AC + AJ;
             obj.dualVariable.value = l;
         end
 
-        function computeQuadraticProblem(obj,pos)
+        function computeQuadraticProblem(obj)
             obj.constraint.computeFunctionAndGradient();
             obj.cost.computeFunctionAndGradient();
-            obj.computeDualProblemParameters(pos);
+            obj.computeDualProblemParameters();
             obj.computeDualProblemOptions();
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
@@ -86,19 +107,22 @@ classdef DualUpdater_NullSpace < handle
             obj.dualVariable.value = l;
         end
 
-         function computeDualProblemParameters(obj,pos)
-            Dg = obj.constraint.gradient;
-            DJ = obj.cost.gradient;
-            g  = obj.constraint.value;
-            t  = 1;%obj.tau;
+         function computeDualProblemParameters(obj)
+            Dg          = obj.constraint.gradient;
+            DJ          = obj.cost.gradient;
+            g           = obj.constraint.value;
+            f           = obj.parameter;
+            c           = min(f*(Dg'*Dg),g);
+            i           = length(g);
+            p           = obj.position;
             prob.H      = Dg'*Dg;
-            prob.f      = -g + t*Dg'*DJ;
+            prob.f      = -c + Dg'*DJ;
             prob.A      = [];
             prob.b      = [];
             prob.Aeq    = [];
             prob.beq    = [];
-            prob.lb     = -inf*ones(length(g),1);
-            prob.lb(pos)= 0;
+            prob.lb     = -inf*ones(i,1);
+            prob.lb(p)  = 0;
             prob.ub     = inf*ones(length(g),1);
             prob.x0     = zeros(length(prob.H),1);
             prob.solver = 'quadprog';

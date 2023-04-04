@@ -1,10 +1,9 @@
 classdef BMatrixComputer < handle
 
     properties (Access = private)
-        dim
-        nvoigt
-        geometry
-        globalConnec
+        fun
+        dNdx
+        nVoigt
     end
 
     methods (Access = public)
@@ -13,22 +12,17 @@ classdef BMatrixComputer < handle
             obj.init(cParams);
         end
 
-        function Btot = compute(obj)
-            Bmatrix = obj.computeBinMatrixForm();
-            Btot    = obj.assembleMatrix(Bmatrix);
-        end
-
-        function B = computeBmat(obj,igaus)
-            ndimf = obj.dim.ndimf;
+        function B = compute(obj,igaus)
+            ndimf = obj.fun.ndimf;
             switch ndimf
                 case 1
-                    obj.nvoigt = 2;
+                    obj.nVoigt = 2;
                     B = obj.computeBin1D(igaus);
                 case 2
-                    obj.nvoigt = 3;
+                    obj.nVoigt = 3;
                     B = obj.computeBin2D(igaus);
                 case 3
-                    obj.nvoigt = 6;
+                    obj.nVoigt = 6;
                     B = obj.computeBin3D(igaus);
             end
         end
@@ -38,108 +32,62 @@ classdef BMatrixComputer < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.dim          = cParams.dim;
-            obj.geometry     = cParams.geometry;
-            obj.globalConnec = cParams.globalConnec;
+            obj.fun  = cParams.fun;
+            obj.dNdx = cParams.dNdx;
         end
 
-        function B = computeBin2D(obj,igaus)
-            d = obj.dim;
-            dNdx = obj.geometry.dNdx;
-            nstre = obj.nvoigt;
-            ndimf = d.ndimf;
-            nnode = size(dNdx,2);
-            ndofE = nnode*ndimf;
-            nelem = size(dNdx,3);
-            B = zeros(nstre,ndofE,nelem);
-            for i = 1:nnode
-                j = ndimf*(i-1)+1;
-                B(1,j,:)   = dNdx(1,i,:,igaus);
-                B(2,j+1,:) = dNdx(2,i,:,igaus);
-                B(3,j,:)   = dNdx(2,i,:,igaus);
-                B(3,j+1,:) = dNdx(1,i,:,igaus);
+        function B = computeBin2D(obj,iGaus)
+            deriv = obj.dNdx;
+            nStre = obj.nVoigt;
+            nDimf = obj.fun.ndimf;
+            nNodE = size(deriv,2);
+            nDofE = nNodE*nDimf;
+            nElem = size(deriv,3);
+            B = zeros(nStre,nDofE,nElem);
+            for iNode = 1:nNodE
+                j = nDimf*(iNode-1)+1;
+                B(1,j,:)   = deriv(1,iNode,:,iGaus);
+                B(2,j+1,:) = deriv(2,iNode,:,iGaus);
+                B(3,j,:)   = deriv(2,iNode,:,iGaus);
+                B(3,j+1,:) = deriv(1,iNode,:,iGaus);
             end
         end
 
-        function B = computeBin3D(obj,igaus)
-            d    = obj.dim;
-            dNdx = obj.geometry.dNdx;
-            nelem = size(dNdx,3);
-            B = zeros(obj.nvoigt,d.ndofsElem,nelem);
-            for inode = 1:d.nnodeElem
-                j = d.ndimf*(inode-1)+1;
+        function B = computeBin3D(obj,iGaus)
+            deriv = obj.dNdx;
+            nNode = size(deriv,2);
+            nElem = size(deriv,3);
+            B = zeros(obj.nVoigt,nNode,nElem);
+            for inode = 1:nNode
+                j = obj.fun.ndimf*(inode-1)+1;
                 % associated to normal strains
-                B(1,j,:)   = dNdx(1,inode,:,igaus);
-                B(2,j+1,:) = dNdx(2,inode,:,igaus);
-                B(3,j+2,:) = dNdx(3,inode,:,igaus);
+                B(1,j,:)   = deriv(1,inode,:,iGaus);
+                B(2,j+1,:) = deriv(2,inode,:,iGaus);
+                B(3,j+2,:) = deriv(3,inode,:,iGaus);
                 % associated to shear strain, gamma12
-                B(4,j,:)   = dNdx(2,inode,:,igaus);
-                B(4,j+1,:) = dNdx(1,inode,:,igaus);
+                B(4,j,:)   = deriv(2,inode,:,iGaus);
+                B(4,j+1,:) = deriv(1,inode,:,iGaus);
                 % associated to shear strain, gamma13
-                B(5,j,:)   = dNdx(3,inode,:,igaus);
-                B(5,j+2,:) = dNdx(1,inode,:,igaus);
+                B(5,j,:)   = deriv(3,inode,:,iGaus);
+                B(5,j+2,:) = deriv(1,inode,:,iGaus);
                 % associated to shear strain, gamma23
-                B(6,j+1,:) = dNdx(3,inode,:,igaus);
-                B(6,j+2,:) = dNdx(2,inode,:,igaus);
+                B(6,j+1,:) = deriv(3,inode,:,iGaus);
+                B(6,j+2,:) = deriv(2,inode,:,iGaus);
             end
         end
 
         function [B] = computeBin1D(obj, igaus)
-            d     = obj.dim;
-            nelem = size(obj.geometry.dNdx,3);
-            dNdx  = obj.geometry.dNdx(:,:,:,igaus);
-            B = zeros(obj.nvoigt,d.ndofsElem,nelem);
-            for inode = 1:d.nnodeElem
-                j = d.ndimf*(inode-1) + 1;
-                B(1,j,:) = dNdx(1,inode,:);
-                B(2,j,:) = dNdx(2,inode,:);
+            deriv  = obj.dNdx(:,:,:,igaus);
+            nDimf = obj.fun.ndimf;
+            nNode = size(deriv,2);
+            nElem = size(obj.dNdx,3);
+            nDofs = nDimf*nNode;
+            B = zeros(obj.nVoigt,nDofs,nElem);
+            for inode = 1:nNode
+                j = nDimf*(inode-1) + 1;
+                B(1,j,:) = deriv(1,inode,:);
+                B(2,j,:) = deriv(2,inode,:);
             end
-        end
-
-        function Bmatrix = computeBinMatrixForm(obj)
-            nelem = size(obj.geometry.dNdx,3);
-            ngaus = size(obj.geometry.dNdx,4);
-            ndofE = obj.dim.ndofsElem;
-            nB = obj.nvoigt*ngaus*nelem;
-            Bmatrix = zeros(nB,ndofE);
-            for igaus = 1:ngaus
-                Bgaus = obj.computeBmatrix(igaus);
-                index = obj.computeGlobalIndex(igaus);
-                Bmatrix(index,:) = Bgaus;
-            end
-        end
-
-        function B = computeBmatrix(obj,igaus)
-            nelem = size(obj.geometry.dNdx,3);
-            ndofE = obj.dim.ndofPerElement;
-            Bmat = obj.computeBmat(igaus);
-            Bper = permute(Bmat,[1 3 2]);
-            B    = reshape(Bper,nelem*obj.nvoigt,ndofE);
-        end
-
-        function index = computeGlobalIndex(obj,igaus)
-            nelem = size(obj.geometry.dNdx,3);
-            uIndex = obj.computeUnitaryIndex(igaus);
-            index = repmat(uIndex,nelem,1);
-        end
-
-        function index = computeUnitaryIndex(obj,igaus)
-            nGaus = size(obj.geometry.dNdx,4);
-            nstre = obj.nvoigt;
-            index = false(nGaus*nstre,1);
-            pos =  nstre*(igaus-1) + (1:nstre);
-            index(pos) = true;
-        end
-
-        function Bt = assembleMatrix(obj, Bfull)
-            s.dim = obj.dim;
-            s.globalConnec = obj.globalConnec;
-            s.nnodeEl = [];
-            dNdx = obj.geometry.dNdx;
-            d.nelem = size(dNdx,3);
-            d.ngaus = size(dNdx,4);
-            assembler = Assembler(s);
-            Bt = assembler.assembleB(Bfull, d);
         end
 
     end

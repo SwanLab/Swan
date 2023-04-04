@@ -23,6 +23,12 @@ classdef ShFunc_Chomog < ShapeFunctional
         function f = getRegularizedDensity(obj)
             f = obj.regDesignVariable;
         end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            [phyFuns, phyNames] = obj.physicalProblem.getFunsToPlot();
+            fun = phyFuns;
+            funNames = phyNames;
+        end
         
         function fP = addPrintableVariables(obj)
             fP = obj.addMicroVariables();

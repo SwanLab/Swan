@@ -1,15 +1,20 @@
-classdef AcademicProblem
+classdef AcademicProblem < handle
 
+    properties (Access = public)
+        result
+    end
+    
     properties (Access = private)
         cost
         constraint
         optimizer
+        filename
     end
 
     methods (Access = public)
 
-        function obj = AcademicProblem()
-            obj.init();
+        function obj = AcademicProblem(cParams)
+            obj.init(cParams);
             obj.compute();
         end
 
@@ -21,12 +26,12 @@ classdef AcademicProblem
 
     methods (Access = private)
 
-        function init(obj)
-            
+        function init(obj, cParams)
+            obj.filename = cParams.filename;
         end
 
         function createOptimizer(obj)
-            run("AcademicTest3.m");
+            run(obj.filename);
             d                            = DesignVariableAcademic();
             d.init(x0);
             j.dV                         = d;
@@ -38,12 +43,13 @@ classdef AcademicProblem
             s.nConstraints               = nConstr;
             s.dualVariable               = DualVariable(s);
             s.outputFunction.type        = "Academic";
-            s.outputFunction.iterDisplay = "iter";
+            s.outputFunction.iterDisplay = "off";
             s.outputFunction.monitoring  = MonitoringManager(s);
             s.optimizerNames.primal     = 'PROJECTED GRADIENT';
             opt = Optimizer.create(s);
             opt.solveProblem();
-            d.value
+            obj.result = d.value;
+            close all;
         end
 
     end

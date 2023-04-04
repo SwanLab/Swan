@@ -13,22 +13,7 @@ classdef Assembler < handle
         end
 
         function A = assemble(obj, aElem)
-%             disp('normal')
-%             tic
-%                 A = obj.assembleMatrix(aElem);
-%             toc
-%             disp('nou')
-%             tic
-                A = obj.assembleMatrixViaIndices(aElem);
-%             toc
-        end
-
-        function B = assembleB(obj, Bfull, d)
-            B = obj.assembleBMatrix(Bfull, d);
-        end
-
-        function C = assembleC(obj, Cmat, dvol)
-            C = obj.assembleCMatrix(Cmat, dvol);
+            A = obj.assembleMatrixViaIndices(aElem);
         end
 
         function V = assembleV(obj, F)
@@ -36,7 +21,32 @@ classdef Assembler < handle
         end
 
         function A = assembleFields(obj, Ae, f1, f2)
-            A = obj.assembleWithFields(Ae, f1, f2);
+            switch f1.galerkinType
+                case 'CONTINUOUS'
+                    A = obj.assembleFieldsCG(Ae, f1, f2);
+                case 'DISCONTINUOUS'
+                    A = obj.assembleFieldsDG(Ae, f1, f2);
+            end
+        end
+
+        function A = assembleVectorFields(obj, Ae, f1, f2)
+            A = obj.assembleVectorWithFields(Ae, f1, f2);
+        end
+
+        function A = assembleFunctions(obj, Aelem, f1, f2, ndofs1, ndofs2, ndofsElem1, ndofsElem2)
+            dofsF1 = obj.computeFunctionDofs(f1);
+            if isequal(f1, f2)
+                dofsF2 = dofsF1;
+            else
+                dofsF2 = obj.computeFunctionDofs(f2);
+            end
+            A = sparse(ndofs1,ndofs2);
+            for i = 1:ndofsElem1
+                for j = 1:ndofsElem2
+                    a = squeeze(Aelem(i,j,:));
+                    A = A + sparse(dofsF1(i,:),dofsF2(j,:),a,ndofs1,ndofs2);
+                end
+            end
         end
 
     end
@@ -101,7 +111,7 @@ classdef Assembler < handle
             connec  = obj.globalConnec;
             ndimf   = obj.dim.ndimf;
             nnodeEl = size(connec, 2); % obj.dim.nnodeElem
-            ndofsEl = nnodeEl * ndimf; % obj.dim.ndofsElem;
+            ndofsEl = nnodeEl * ndimf; %obj.dim.ndofsElem;
             dofsElem  = zeros(ndofsEl,size(connec,1));
             for inode = 1:nnodeEl
                 for iunkn = 1:ndimf
@@ -155,99 +165,40 @@ classdef Assembler < handle
         function Vadd = computeAddVectorByAccumarray(obj,dofs,c, ndof)
            Vadd = accumarray(dofs',c',[ndof 1]);
         end
-        
-        %% B matrix assembly
-        function Bt = assembleBMatrix(obj, Bfull, dims)
-            d = obj.dim;
-            ntot  = size(Bfull,1);
-            dims.nvoigt = ntot/(dims.nelem * dims.ngaus);
-            ndofGlob = d.ndof;
-            Bt = sparse(ntot,ndofGlob);
-            for idof = 1:d.ndofPerElement
-                dofs  = obj.computeGlobalDofs(idof, dims);
-                Bidof = Bfull(:,idof);
-                Bdof = obj.computeBdofBySparse(Bidof,dofs);
-%                 Bdof = obj.computeBdofByAccumarray(Bidof,dofs);
-                Bt = Bt + Bdof;
-            end
-        end
-
-        function dofs = computeGlobalDofs(obj, idof, dims)
-            nvoigt = dims.nvoigt;
-            gDofs = obj.transformLocal2Global(idof);
-            dofs = repmat(gDofs',dims.ngaus*nvoigt,1);
-            dofs = dofs(:);
-        end
-
-        function gDofs = transformLocal2Global(obj,iDof)
-            d       = obj.dim;
-            ndimf   = d.ndimf;
-            nnodeEl = obj.nnodeEl;
-            nodes        = obj.globalConnec;
-            nodesInElem  = reshape(repmat(1:nnodeEl,ndimf,1),1,[]);
-            dofs         = repmat(1:ndimf,1,nnodeEl);
-            inode        = nodesInElem(iDof);
-            iunkn        = dofs(iDof);
-            nodeI        = nodes(:,inode);
-            gDofs   = ndimf*(nodeI-1) + iunkn;
-        end
-
-        function Bdof = computeBdofBySparse(obj,Bidof,dofs)
-            d = obj.dim;
-            ntot  = size(Bidof,1);
-            ndofGlob = d.ndof;
-            Bdof = sparse(1:ntot,dofs,Bidof,ntot,ndofGlob);
-        end
-
-        function Bdof = computeBdofByAccumarray(obj,Bidof,dofs)
-            d = obj.dim;
-            ntot  = size(Bidof,1);
-            ndof = d.ndof;
-            posI = 1:ntot;
-            index = [posI', dofs];
-%             Bdof = accumarray(dofs,Bidof,[ntot 1]);
-            Bdof = accumarray(index,Bidof,[ntot ndof],[],[],true);
-        end
-
-        %% C matrix assembly
-
-       function CmatTot = assembleCMatrix(obj, Cmat, dvol)
-           nvoigt = size(Cmat,1);
-           nelem  = size(Cmat,3);
-           ngaus  = size(dvol,2);
-           ntot   = ngaus*nelem*nvoigt;
-           CmatTot = sparse(ntot,ntot);
-           for istre = 1:nvoigt
-               for jstre = 1:nvoigt
-                   for igaus = 1:ngaus
-                       posI = (istre)+(nvoigt)*(igaus-1) : ngaus*nvoigt : ntot;
-                       posJ = (jstre)+(nvoigt)*(igaus-1) : ngaus*nvoigt : ntot;
-                       Ci = Cmat(istre,jstre,:,igaus);
-                       Ct = squeeze(Ci).*dvol(:,igaus);
-                       Cadd = obj.computeCaddBySparse(Ct, posI, posJ, ntot);
-                       CmatTot = CmatTot + Cadd;
-                   end
-               end
-           end
-       end
-
-       function Cadd = computeCaddBySparse(obj,Ct, posI, posJ, ntot)
-           Cadd = sparse(posI,posJ,Ct,ntot,ntot);
-       end
-
-       function Cadd = computeCaddByAccumarray(obj,Ct, posI, posJ, ntot)
-           index = [posI', posJ'];
-           Cadd = accumarray(index,Ct,[ntot ntot],[],[],true);
-       end
-
-
+      
         %% With Fields
       
-        function A = assembleWithFields(obj, Aelem, f1, f2)
+        function A = assembleFieldsCG(obj, Aelem, f1, f2)
+            % CONTINUOUS GALERKIN
             % Can be accelerated using indices
             dofsF1 = obj.computeFieldDofs(f1);
-            dofsF2 = obj.computeFieldDofs(f2);
-
+            if isequal(f1, f2)
+                dofsF2 = dofsF1;
+            else
+                dofsF2 = obj.computeFieldDofs(f2);
+            end
+            
+            ndofs1 = f1.dim.ndofs;
+            ndofs2 = f2.dim.ndofs;
+            ndofsElem1 = f1.dim.ndofsElem;
+            ndofsElem2 = f2.dim.ndofsElem;
+            A = sparse(ndofs1,ndofs2);
+            for i = 1:ndofsElem1
+                for j = 1:ndofsElem2
+                    a = squeeze(Aelem(i,j,:));
+                    A = A + sparse(dofsF1(i,:),dofsF2(j,:),a,ndofs1,ndofs2);
+                end
+            end
+        end
+      
+        function A = assembleFieldsDG(obj, Aelem, f1, f2)
+            % DISCONTINUOUS GALERKIN
+            % Can be accelerated using indices
+            dofs = 1:f1.dim.ndofs;
+            nElem = size(Aelem,3);
+            dofsF1 = reshape(dofs, [f1.dim.nnodeElem,nElem]);
+            dofsF2 = dofsF1;
+            
             ndofs1 = f1.dim.ndofs;
             ndofs2 = f2.dim.ndofs;
             ndofsElem1 = f1.dim.ndofsElem;
@@ -262,7 +213,26 @@ classdef Assembler < handle
         end
         
       
-        function A = assembleVectorWithFields(obj, Felem, f1, f2)
+        function F = assembleVectorWithFields(obj, FelemCell, f1, f2)
+            fields = {f1,f2};
+            nfields = numel(fields);
+            for ifield = 1:nfields
+                field = fields{ifield};
+                dims  = field.dim;
+                Felem = FelemCell{ifield,1};
+                dofsElem = obj.computeFieldDofs(field);
+                b = zeros(dims.ndofs,1);
+                for i = 1:dims.nnodeElem*dims.ndimf
+                    for igaus = 1:size(Felem,2)
+                    c = squeeze(Felem(i,igaus,:));
+                    idof_elem = dofsElem(i,:);
+                    b = b + sparse(idof_elem,1,c',dims.ndofs,1);
+                    end
+                end
+                b_global{ifield,1} = b;
+            end
+            F =cell2mat(b_global);
+
         end
 
         function dofConnec = computeFieldDofs(obj, field)
@@ -273,6 +243,23 @@ classdef Assembler < handle
             dofsElem  = zeros(ndofsEl,size(connec,1));
 %             idof(:,1)= ndimf*(inode - 1) + iunkn;
             for inode = 1:nnodeEl
+                for iunkn = 1:ndimf
+                    idofElem   = ndimf*(inode - 1) + iunkn;
+                    globalNode = connec(:,inode);
+                    idofGlobal = ndimf*(globalNode - 1) + iunkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
+        function dofConnec = computeFunctionDofs(obj, fun)
+            connec = obj.globalConnec;
+            ndimf  = fun.ndimf;
+            nnode  = size(connec, 2);
+            ndofsE = nnode * ndimf;
+            dofsElem  = zeros(ndofsE,size(connec,1));
+            for inode = 1:nnode
                 for iunkn = 1:ndimf
                     idofElem   = ndimf*(inode - 1) + iunkn;
                     globalNode = connec(:,inode);

@@ -19,7 +19,6 @@ classdef Poperator < handle
        
        function obj = Poperator(cParams)
            obj.init(cParams);
-           obj.computeDimensions();
            obj.createMassMatrix();
            obj.createOperator();
        end
@@ -37,21 +36,12 @@ classdef Poperator < handle
         end
        
         function createMassMatrix(obj)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.fun   = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
-        end
-
-        function computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dims   = DimensionVariables.create(s);
-            obj.dim = dims;
         end
        
         function createOperator(obj)

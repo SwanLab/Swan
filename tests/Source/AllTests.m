@@ -1,4 +1,5 @@
 FemTestsSuite;
+MicroShapeTestsSuite;
 DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
@@ -9,3 +10,7 @@ PlottingTestsSuite;
 close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
+PostProcTestsSuite;
+ProjectorsTestsSuite;
+RemeshingTestsSuite;
+DehomogenizationTestsSuite;

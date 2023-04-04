@@ -11,7 +11,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         costOld
         upperBound
         lowerBound
-        tol = 1e-14
+        tol = 1e-8
         nX
         nConstr
         hasConverged
@@ -49,13 +49,17 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            obj.saveVariablesForAnalysis();
-            while ~obj.hasConverged
+%             obj.saveVariablesForAnalysis();
+            obj.hasFinished = 0;
+            obj.printOptimizerVariable();
+            while ~obj.hasFinished
+%             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.saveVariablesForAnalysis();
+                obj.printOptimizerVariable();
+%                 obj.saveVariablesForAnalysis();
             end
         end
 
@@ -83,7 +87,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = .001; 
+            obj.penalty            = 10;
         end
 
         function obj = update(obj)
@@ -97,14 +101,13 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.computeMeritGradient();
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
-%                 obj.displayIter(x);
                 obj.checkStep(x,x0);
             end
             obj.updateOldValues(x);
         end
 
         function displayIter(obj,x)
-            m = obj.designVariable.mesh.innerMeshOLD;
+            m = obj.designVariable.mesh;
             bm = m.createBoundaryMesh();
             s.backgroundMesh = m;
             s.boundaryMesh   = bm;
@@ -140,13 +143,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function computeMeritGradient(obj)
-            Dh  = obj.constraint.gradient;
-            h   = obj.constraint.value;
-            DJ  = obj.cost.gradient;
-            l   = obj.dualVariable.value;
-            p   = obj.penalty;
-            gPlus  = max(h,-l/p);
-            g   = (DJ + Dh*(l + p*gPlus));
+            Dh    = obj.constraint.gradient;
+            DJ    = obj.cost.gradient;
+            l     = obj.dualVariable.value;
+            p     = obj.penalty;
+            gPlus = obj.defineConstraintValue();
+            g     = (DJ + Dh*(l + p*gPlus));
             obj.meritGradient = g;
         end
 
@@ -155,11 +157,24 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
-            g      = obj.constraint.value;
+            gPlus  = obj.defineConstraintValue();
             l      = obj.dualVariable.value;
             rho    = obj.penalty;
-            gPlus  = max(g,-l/rho);
-            mF     = J + l'*gPlus + 0.5*rho*gPlus'*gPlus;
+            mF     = J + l'*gPlus + 0.5*rho*(gPlus'*gPlus);
+        end
+
+        function c = defineConstraintValue(obj)
+            c   = obj.constraint.value;
+            l   = obj.dualVariable.value;
+            rho = obj.penalty;
+            for i = 1:obj.nConstr
+                switch obj.constraintCase{i}
+                    case 'EQUALITY'
+                        
+                    case 'INEQUALITY'
+                        c(i) = max(c(i),-l/rho);
+                end
+            end
         end
 
         function checkStep(obj,x,x0)
@@ -170,7 +185,10 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.primalUpdater.isTooSmall()
-                error('Convergence could not be achieved (step length too small)')
+%                 error('Convergence could not be achieved (step length too small)')
+                warning('Convergence could not be achieved (step length too small)')
+                obj.acceptableStep = true;
+                obj.meritNew = mNew; % Provisional value
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
@@ -236,19 +254,19 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.globalCost(i)           = obj.cost.value;
             obj.globalConstraint(:,i)   = obj.constraint.value;
             obj.globalCostGradient(i)   = norm(obj.cost.gradient);
-%             obj.globalMerit(i)          = obj.meritNew;
-%             obj.globalLineSearch(i)     = obj.primalUpdater.tau;
+            obj.globalMerit(i)          = obj.meritNew;
+            obj.globalLineSearch(i)     = obj.primalUpdater.tau;
             obj.globalDual(:,i)         = obj.dualVariable.value;
             obj.globalDesignVar(:,i)    = obj.designVariable.value;
             if obj.hasConverged
                 c = obj.globalCost;
                 h = obj.globalConstraint;
                 g = obj.globalCostGradient;
-%                 m = obj.globalMerit;
-%                 t = obj.globalLineSearch;
+                m = obj.globalMerit;
+                t = obj.globalLineSearch;
                 d = obj.globalDual;
                 v = obj.globalDesignVar;
-                save('AugmentedLagrAcademic4.mat',"c","g","h","d","v");
+                save('name.mat',"c","g","h","d","v");
             end
         end
 

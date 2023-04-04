@@ -1,13 +1,13 @@
-classdef LHSintegrator_MassBoundary < LHSintegrator
+classdef LHSintegrator_MassBoundary < handle
 
     properties (Access = private)
-        quadType
+        mesh
     end
 
     methods (Access = public)
         
         function obj = LHSintegrator_MassBoundary(cParams)
-            obj.init(cParams);
+            obj.mesh  = cParams.mesh;
         end
 
         function LHS = compute(obj)
@@ -21,29 +21,34 @@ classdef LHSintegrator_MassBoundary < LHSintegrator
         function Mr = computeBoundaryMassMatrix(obj)
             s = obj.createIntegratorParams();
             nInt = numel(s.compositeParams);
-            ndof = s.compositeParams{1}.dim.ndofs;
-            LHS = sparse(ndof,ndof);
+            ndof = length(s.compositeParams{1}.bMesh.nodesInBoxFaces);
+            LHSg = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
-                sL.type     = 'MassMatrix';
-                sL.quadType = 'LINEAR';
-                lhs = LHSintegrator.create(sL);
-                LHSadd = lhs.compute();
-                LHS = LHS + LHSadd;
+                a.type = 'MassMatrix';
+                a.mesh = sL.mesh;
+                a.fun  = P1Function.create(sL.mesh, 1);
+                lhs = LHSintegrator.create(a);
+                LHS = lhs.compute();
+
+                local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
+                [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
+                iGlob = local2global(iLoc);
+                jGlob = local2global(jLoc);
+
+                LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
+                LHSg = LHSg + LHSadd;
             end
-            Mr = LHS;
+            Mr = LHSg;
         end
         
         function cParams = createIntegratorParams(obj)
             bMeshes  = obj.mesh.createBoundaryMesh();
             nBoxFaces = numel(bMeshes);
-            d = obj.dim;
             for iMesh = 1:nBoxFaces
                 bMesh = bMeshes{iMesh};
-                m  = bMesh.mesh;
-                s.dim  = d;
-                s.mesh = m;
-                s.globalConnec = bMesh.globalConnec;
+                s.bMesh = bMesh;
+                s.mesh  = bMesh.mesh;
                 cParams.compositeParams{iMesh} = s;
             end
         end

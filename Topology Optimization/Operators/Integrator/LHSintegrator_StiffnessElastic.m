@@ -1,37 +1,19 @@
 classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
-    properties (Access = public)
-        elemStiff
-    end
-    
     properties (Access = private)
-        geometry
         material
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_StiffnessElastic(cParams)
-            obj.init(cParams);
+            obj@LHSintegrator(cParams)
             obj.material = cParams.material;
-          %  obj.interpolation = cParams.interpolation;
-            obj.createQuadrature();
-             obj.createInterpolation();
-            obj.quadrature.computeQuadrature(obj.interpolation.order)
-            obj.createGeometry();
         end
 
         function LHS = compute(obj)
-%             disp('Elemental')
-%             tic
-%                 lhs   = obj.computeElementalLHS();
-%             tocº
-%             disp('Pagemtimes')
-%             tic
-                lhs   = obj.computeElementalLHSPagemtimes();
-                obj.elemStiff = lhs;
-%             toc
-            LHS   = obj.assembleMatrix(lhs);
+            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -39,45 +21,18 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            C = obj.material.C;
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            nstre  = size(C,1);
-            nelem  = size(C,3);
-            ngaus  = obj.quadrature.ngaus;
-            npe    = obj.dim.ndofsElem;
-            lhs = zeros(npe,npe,nelem);
-            Bcomp = obj.createBComputer();
-            for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
-                Cmat = C(:,:,:,igaus);
-                dV    = dvolu(igaus,:)';
-                for istre = 1:nstre
-                    Bi = Bmat(istre,:,:);
-                    for jstre = 1:nstre
-                        Cij   = squeeze(Cmat(istre,jstre,:));
-                        c(1,1,:) = Cij.*dV;
-                        CB = bsxfun(@times,Bi,c);
-                        Bj = permute(Bmat(jstre,:,:),[2 1 3]);
-                        t = bsxfun(@times,CB,Bj);
-                        lhs = lhs + t;
-                    end
-                end
-            end
-        end
-
-        function lhs = computeElementalLHSPagemtimes(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = size(obj.material.C,3);
-            npe    = obj.dim.ndofsElem;
-            % npe    = obj.dim.nnodeEl*obj.dim.ndimf;
-            lhs = zeros(npe,npe,nelem);
-            Bcomp = obj.createBComputer();
+            dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature);
+            dVolu = obj.mesh.computeDvolume(obj.quadrature);
+            nGaus = obj.quadrature.ngaus;
+            nElem = size(obj.material.C,3);
+            nNodE = size(dNdx,2);
+            nDofE = nNodE*obj.fun.ndimf;
+            lhs = zeros(nDofE,nDofE,nElem);
+            Bcomp = obj.createBComputer(dNdx);
             Cmat = obj.material.C(:,:,:,1);
-            for igaus = 1:ngaus
-                Bmat = Bcomp.computeBmat(igaus);
-%                 Cmat = obj.material.C(:,:,:,igaus);
-                dV(1,1,:) = dvolu(igaus,:)';
+            for igaus = 1:nGaus
+                Bmat = Bcomp.compute(igaus);
+                dV(1,1,:) = dVolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);
                 BtC  = pagemtimes(Bt,Cmat);
                 BtCB = pagemtimes(BtC, Bmat);
@@ -89,23 +44,18 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     methods (Access = private)
 
-        function Bcomp = createBComputer(obj)
-            s.dim          = obj.dim;
-            s.geometry     = obj.geometry;
-            s.globalConnec = [];
+        function Bcomp = createBComputer(obj, dNdx)
+            s.fun  = obj.fun;
+            s.dNdx = dNdx;
             Bcomp = BMatrixComputer(s);
         end
 
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
+        function LHS = assembleMatrix(obj, lhs)
+            s.connec = obj.mesh.connec; % !!!
+            s.fun    = obj.fun; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs);
         end
-
     end
 
 end

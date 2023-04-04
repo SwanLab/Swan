@@ -82,7 +82,28 @@ classdef UnfittedMesh < handle
             dv = dvC + dvI;
         end
         
-        
+        function print(obj, filename)
+            d = obj.createPostProcessDataBase(filename);
+            d.fields           = {obj.levelSet};
+            d.printMode        = 'DesignVariable';
+            d.nDesignVariables = 1;
+            postProcess = Postprocess('TopOptProblem',d);
+            postProcess.print(1,d)
+        end
+
+        function m = createFullInnerMesh(obj, s)
+            s.unfittedMesh = obj;
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
+        end
+
+        function plotComponents(obj)
+            s.unfittedMesh = obj;
+            sp = UnfittedMeshSplitter(s);
+            sp.split();
+            sp.plot();
+        end
+
     end
     
     methods (Access = private)
@@ -170,6 +191,17 @@ classdef UnfittedMesh < handle
                 ls   = obj.levelSet;
                 obj.unfittedBoundaryMesh.compute(ls);
             end
+        end
+
+        function d = createPostProcessDataBase(obj, filename)
+            d.mesh    = obj.backgroundMesh;
+            d.outFileName = filename;
+            d.ptype   = 'TopOpt';
+            ps = PostProcessDataBaseCreator(d);
+            d  = ps.create();
+            d.ndim       = obj.backgroundMesh.ndim;
+            d.pdim       = obj.backgroundMesh.ndim;
+            d.designVar  = 'LevelSet';
         end
         
     end

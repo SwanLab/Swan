@@ -55,13 +55,12 @@ classdef Optimizer_HJ < Optimizer_Unconstrained
         
         function setupFilter(obj,e,designVar)
             s = SettingsFilter('paramsFilter_PDE_Boundary.json');
-            s.mesh = designVar.mesh.innerMeshOLD;
+            s.mesh = designVar.mesh;
             s.designVarType = designVar.type;
             s.quadratureOrder = 'LINEAR';
             s.femSettings.scale = 'MACRO';
             s.designVariable = designVar;
             obj.filter = Filter.create(s);
-            obj.filter.preProcess();
             obj.filter.updateEpsilon(e);
         end
         

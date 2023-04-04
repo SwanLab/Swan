@@ -1,72 +1,48 @@
 classdef LHSintegrator_Mass < LHSintegrator
 
-    properties (Access = public)
-        elemMass
-    end
-    
-    properties (Access = private)
-        quadType
-    end
-
-    
     methods (Access = public)
-        
-        function obj = LHSintegrator_Mass(cParams)
-            obj.init(cParams);
-            obj.quadType = cParams.quadType;
-            obj.createQuadrature();
-            obj.createInterpolation();
-            if isfield(cParams, 'interpolation')
-                obj.interpolation = cParams.interpolation;
-                obj.quadrature    = cParams.quadrature;
-            end
-        end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
 
-        function lhs = computeElemental(obj) % Temporary for Stokes
-            lhs = obj.computeElementalLHS();
-        end
-        
     end
-    
+
     methods (Access = protected)
-        
+
         function lhs = computeElementalLHS(obj)
-            shapes = obj.interpolation.shape;
-            quad   = obj.quadrature;
-            dvolu  = obj.mesh.computeDvolume(quad);
-            ngaus  = obj.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-%             nnode  = obj.mesh.nnodeElem;
-            ndimf  = obj.dim.ndimf;
-            nnode  = obj.interpolation.nnode;
+            shapes = obj.fun.computeShapeFunctions(obj.quadrature);
+            dVolu  = obj.mesh.computeDvolume(obj.quadrature);
+            nGaus  = obj.quadrature.ngaus;
+            nElem  = size(dVolu,2);
+            nDimf  = obj.fun.ndimf;
+%             nDofs  = numel(obj.fun.fValues);
+            nNodE  = size(shapes,1);
+            nDofE  = nNodE*nDimf;
 
             % One dimension
-%             lhs = zeros(nnode,nnode,nelem);
-%             for igaus = 1:ngaus
-%                 dv(1,1,:) = dvolu(igaus,:);
-%                 Ni = shapes(:,igaus);
-%                 Nj = shapes(:,igaus);
-%                 NiNj = Ni*Nj';
-%                 Aij = bsxfun(@times,NiNj,dv);
-%                 lhs = lhs + Aij;
-%             end
+            %             lhs = zeros(nnode,nnode,nelem);
+            %             for igaus = 1:ngaus
+            %                 dv(1,1,:) = dvolu(igaus,:);
+            %                 Ni = shapes(:,igaus);
+            %                 Nj = shapes(:,igaus);
+            %                 NiNj = Ni*Nj';
+            %                 Aij = bsxfun(@times,NiNj,dv);
+            %                 lhs = lhs + Aij;
+            %             end
 
             % N dimensions, pending optimization
-            M = zeros(nnode*ndimf,nnode*ndimf,nelem);
-            dvolu = dvolu';
-            for igauss = 1 :ngaus
-                for inode= 1:nnode
-                    for jnode= 1:nnode
-                        for iunkn= 1:ndimf
-                            for junkn= 1:ndimf
-                                idof = ndimf*(inode-1)+iunkn;
-                                jdof = ndimf*(jnode-1)+junkn;
-                                dvol = dvolu(:,igauss);
+            M = zeros(nDofE,nDofE,nElem);
+            dVolu = dVolu';
+            for igauss = 1 :nGaus
+                for inode= 1:nNodE
+                    for jnode= 1:nNodE
+                        for iunkn= 1:nDimf
+                            for junkn= 1:nDimf
+                                idof = nDimf*(inode-1)+iunkn;
+                                jdof = nDimf*(jnode-1)+junkn;
+                                dvol = dVolu(:,igauss);
                                 Ni = shapes(inode,igauss,:);
                                 Nj = shapes(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj);
@@ -78,15 +54,15 @@ classdef LHSintegrator_Mass < LHSintegrator
                 end
             end
             lhs = M;
-            obj.elemMass = lhs;  
+
         end
 
-       function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature(obj.quadType);
-           obj.quadrature = quad;
-       end
-        
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = obj.fun; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs);
+        end
+
     end
-    
+
 end

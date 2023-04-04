@@ -20,17 +20,22 @@ classdef ShapeFunctional_Factory < handle
             end
             
             if ~isempty(cParams.designVariable.mesh)
-                if isprop(cParams.designVariable.mesh,'innerMeshOLD')
-                mOld = cParams.designVariable.mesh.innerMeshOLD;
+%                 if isprop(cParams.designVariable.mesh,'innerMeshOLD')
+                mOld = cParams.designVariable.mesh;
                 cParams.mesh = mOld;
                 cParams.filterParams.mesh          = mOld;
                 cParams.filterParams.designVarType = cParams.designVariable.type;
-                end
+%                 end
             end
             
             switch cParams.type
                 case 'compliance'
                     sF = ShFunc_Compliance(cParams);
+                case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
+                        'complianceConstraintC4'}
+                    sF = ShFunc_Compliance_constraint(cParams);
+                case 'complianceConstraint'
+                    sF = ShFunc_ComplianceComparison_constraint(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
                     %sF = ShFunc_StressNorm2(cParams);
@@ -81,12 +86,26 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_doubleEig(cParams);
                 case 'volumeColumn'
                     sF = Sh_volumeColumn(cParams);
-                case 'firstEigTopCost'
-                    sF = ShFunc_firstEigTopCost(cParams);
-                case 'firstEigTopConstraint'
-                    sF = ShFunc_firstEigTopConst(cParams);
-                case 'ModalfirstEigConstraint'
-                    sF = ShFunc_Modal(cParams);
+                case 'firstEigTop'
+                    sF = Sh_firstEigTop(cParams);
+                case 'anisotropicPerimeter2D'
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
+                    %cParams.designVariable = cParams.designVariable.value;
+                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
+                    u = 60;
+                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
+                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
+                    sF = ShFunc_Perimeter(cParams);
+                case 'anisotropicPerimeterInterior2D'
+                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
+                    %cParams.designVariable = cParams.designVariable.value;
+                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
+                    u = 60;
+                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
+                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
+                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
+                    sF = ShFunc_Perimeter(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

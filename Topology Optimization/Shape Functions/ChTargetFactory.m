@@ -124,6 +124,10 @@ classdef ChTargetFactory < handle
                     Ch_star =0.04*[1 -0.6 0;
                         -0.6 1 0;
                         0 0 0.8];
+                case 'IsotropyHexagon'
+                    Ch_star = [0.5931 0.1882 0.0000;
+                               0.1882 0.5931 0.0000;
+                               0.0000 0.0000 0.2025]; 
             end
         end
     end

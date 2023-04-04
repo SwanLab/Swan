@@ -42,6 +42,8 @@ classdef Optimizer_MMA < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.outputFunction.monitoring.create(cParams);
+%             obj.upperBound = cParams.uncOptimizerSettings.ub;
+%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
 
@@ -50,11 +52,12 @@ classdef Optimizer_MMA < Optimizer
             % obj.constraint.computeFunctionAndGradient();
 %             obj.printOptimizerVariable();
             obj.hasFinished = false;
-
+            obj.printOptimizerVariable();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
+                obj.printOptimizerVariable();
             end
 %             obj.printOptimizerVariable();
 %             obj.printHistory();
@@ -155,10 +158,8 @@ classdef Optimizer_MMA < Optimizer
                 obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = obj.lowerBound.*ones(length(x0),1);
-                obj.xmin(end) = 0;
-                obj.xmax = obj.upperBound.*ones(length(x0),1);
-                obj.xmax(end) = 1000;
+                obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmax = obj.upperBound*ones(length(x0),1);
                 % obj.low = obj.xmin;
                 obj.low = zeros(length(x0),1);
                 % obj.upp = obj.xmax;
@@ -180,7 +181,7 @@ classdef Optimizer_MMA < Optimizer
             raa0 = 1e-5;
             move = 1.0;
             albefa = 0.1;
-            asyinit = 0.2 ; % 0.5; 
+            asyinit = 0.1 ; %0.2 % 0.5; 
             asyincr = 1.1; % 1.2;
             asydecr = 0.65; % 0.7
             eeen = ones(n,1);

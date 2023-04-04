@@ -7,6 +7,7 @@ classdef ShapeFunctional < handle
         Msmooth
         dvolu
         value0
+        shNumber
     end
     
     properties (Access = protected)
@@ -17,7 +18,6 @@ classdef ShapeFunctional < handle
     end
 
     properties (Access = private)
-        dim
         mesh
     end
     
@@ -90,32 +90,21 @@ classdef ShapeFunctional < handle
             s.femSettings.mesh = s.mesh;
             s.designVariable = cParams.designVariable;
             obj.filter = Filter.create(s);
-            obj.filter.preProcess();
         end
         
         function createMsmoothAndDvolu(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.computeDimensions();
             q = Quadrature.set(cParams.mesh.type);
             q.computeQuadrature('LINEAR');
             obj.Msmooth = obj.computeMassMatrix();
             obj.dvolu = cParams.mesh.computeDvolume(q)';
         end
-
-        function computeDimensions(obj)
-            s.type = 'Scalar';
-            s.name = 'x';
-            s.mesh = obj.mesh;
-            dims   = DimensionVariables.create(s);
-            obj.dim = dims;
-        end
         
         function M = computeMassMatrix(obj)
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.fun   = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

@@ -37,7 +37,7 @@ classdef Optimizer_fmincon < Optimizer
 
          function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
-            obj.designVariable.updateOld();                
+            obj.designVariable.updateOld();
             x = obj.callfmincon();
             obj.designVariable.update(x);
          end
@@ -62,8 +62,6 @@ classdef Optimizer_fmincon < Optimizer
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
             x = fmincon(PROBLEM);
-            v = obj.globalDesignVar;
-            save('fminconIPOPTacademic4','v');
         end
 
         function createProblem(obj)
@@ -165,11 +163,10 @@ classdef Optimizer_fmincon < Optimizer
             stop      = false;
             switch state
                 case "init"
-                    obj.globalDesignVar(:,obj.nIter + 1) = x;
+
                 case "iter"
                     obj.updateIterInfo();
                     obj.designVariable.update(x);
-                    obj.globalDesignVar(:,obj.nIter + 1) = x;
                     params.algorithm   = obj.algorithm;
                     params.nIter       = obj.nIter;
                     params.hasFinished = obj.hasFinished; 

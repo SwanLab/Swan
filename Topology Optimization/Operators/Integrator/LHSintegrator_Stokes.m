@@ -1,15 +1,15 @@
 classdef LHSintegrator_Stokes < handle %LHSintegrator
 
     properties (GetAccess = public, SetAccess = private)
-        Melem
+        M
     end
 
     properties (Access = private)
         dt
         mesh
-        velocityField
-        pressureField
-        
+        velocityFun
+        pressureFun
+        material
         D
     end
 
@@ -31,29 +31,25 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
     methods (Access = private)
     
         function init(obj, cParams)
-            obj.dt            = cParams.dt;
-            obj.mesh          = cParams.mesh;
-            obj.pressureField = cParams.pressureField;
-            obj.velocityField = cParams.velocityField;
+            obj.dt          = cParams.dt;
+            obj.mesh        = cParams.mesh;
+            obj.material    = cParams.material;
+            obj.pressureFun = cParams.pressureFun;
+            obj.velocityFun = cParams.velocityFun;
         end
 
-        function velLHS = computeVelocityLHS(obj)
-            Ke = obj.computeVelocityLaplacian();
-            Me = obj.computeMassMatrix();
-            Ae = Ke + Me;
-            s.dim          = obj.velocityField.dim;
-            s.globalConnec = obj.velocityField.connec;
-            s.nnodeEl      = obj.velocityField.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assemble(Ae);
-            velLHS = obj.symGradient(lhs);
+        function LHS = computeVelocityLHS(obj)
+            K = obj.computeVelocityLaplacian();
+            M = obj.computeMassMatrix();
+            lhs = K + M;
+            LHS = obj.symGradient(lhs);
         end
 
         function D = computeDmatrix(obj)
             s.type = 'StokesD';
             s.mesh = obj.mesh;
-            s.pressure = obj.pressureField;
-            s.velocity = obj.velocityField;
+            s.pressureFun = obj.pressureFun;
+            s.velocityFun = obj.velocityFun;
             LHS = LHSintegrator.create(s);
             D = LHS.compute();
         end
@@ -70,26 +66,24 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function lhs = computeVelocityLaplacian(obj)
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
-            s.field = obj.velocityField;
-%             s.material = obj.material;
+            s.fun   = obj.velocityFun;
+            s.material = obj.material;
             LHS = LHSintegrator.create(s);
             lhs = LHS.compute();
+            lhs = obj.symGradient(lhs);
         end
 
         function M = computeMassMatrix(obj)
-            vel = obj.velocityField;
-            dtime = obj.dt;
-            s.type          = 'MassMatrix';
-            s.dim           = vel.dim;
-            s.mesh          = obj.mesh;
-            s.quadType      = 'QUADRATIC';
-            s.globalConnec  = []; %vel.connec;
-            s.interpolation = vel.interpolation;
-            s.quadrature    = vel.quadrature;
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.fun   = obj.velocityFun;
+            s.quadratureOrder = 'QUADRATIC';
             LHS = LHSintegrator.create(s);
-            lhs = LHS.computeElemental();
-            M = lhs/dtime;
-            obj.Melem = M;
+            m = LHS.compute();
+
+            dtime = obj.dt;
+            M = m/dtime;
+            obj.M = M;
         end
 
     end

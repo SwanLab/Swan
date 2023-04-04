@@ -1,125 +1,102 @@
 classdef ConformalMappingComputer < handle
-    
-    properties (Access = public)
-       phi
-       dilation
-    end
-    
+
     properties (Access = private)
-       
+        phi
+        interpolator
+        phiMapping
+        totalCorrector
     end
-    
+
     properties (Access = private)
-       theta 
-       mesh
+        orientationVector
+        dilatedOrientation
+        mesh
+        isCoherent
     end
-    
+
     methods (Access = public)
-        
+
         function obj = ConformalMappingComputer(cParams)
             obj.init(cParams);
-        end
-        
-        function phiV = compute(obj)
-            obj.computeDilation();
-            obj.computeMapping();
-            phiV = obj.phi;
-        end
-        
-        function plot(obj)
-            obj.plotDilation();
-            obj.plotMapping();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function plotDilation(obj)
-            figure()
-            s.mesh  = obj.mesh;
-            s.field = obj.dilation;
-            n = NodalFieldPlotter(s);
-            n.plot();
-            shading interp
-        end
-        
-        function plotMapping(obj)
-           phi1 = obj.phi(:,1);
-           phi2 = obj.phi(:,2);
-           obj.plotContour(phi1); 
-           obj.plotContour(phi2);
-        end
-        
-        function plotContour(obj,z)
-            figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            [~,h] = tricontour(obj.mesh.connec,x,y,z,50);
-            set(h,'LineWidth',5);
-            colorbar
-        end
-        
-        function init(obj,cParams)
-            obj.theta    = cParams.theta;
-            obj.mesh     = cParams.mesh;
-        end
-        
-        function computeDilation(obj)
-            s.theta = obj.theta;
-            s.mesh  = obj.mesh;
-            d = DilationFieldComputer(s);
-            obj.dilation = d.compute();
-        end
-        
-        function computeMapping(obj)
-           nDim = 2;
-           nnod = obj.mesh.nnodes;
-           phiV = zeros(nnod,nDim);
-           for iDim = 1:nDim
-             phiV(:,iDim) = obj.computeComponent(iDim);
-           end
-           obj.phi = phiV;
+            obj.isOrientationCoherent();
+            obj.createInterpolator();
         end
 
-        function computeSecondComponent(obj)
-           iDim = 2;
-           obj.phi(:,iDim) = obj.computeComponent(iDim);
+        function phiV = compute(obj)
+            obj.computeMappingWithSingularities();
+            phiV = obj.phi;
         end
-        
-        function phi = computeComponent(obj,idim)
-            s.fGauss = obj.computeVectorComponent(idim);
-            s.mesh   = obj.mesh;
-            varProb  = MinimumGradFieldWithVectorInL2(s);
-            phi = varProb.solve();
-        end
-        
-        function b = computeVector(obj,idim)
-           er = exp(obj.dilation);
-           erCos = er.*cos(obj.theta);
-           erSin = er.*sin(obj.theta);
-           Q(1,1,:) = erCos;
-           Q(1,2,:) = -erSin;
-           Q(2,1,:) = erSin;
-           Q(2,2,:) = erCos;
-           b = squeezeParticular(Q(:,idim,:),2);
-        end
-        
-        function fG = computeVectorComponent(obj,idim)
-            b = obj.computeVector(idim);
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            xGauss = q.posgp;
-            fG = zeros(obj.mesh.ndim,q.ngaus,obj.mesh.nelem);
-            for idim = 1:obj.mesh.ndim
-                s.fNodes = b(idim,:)';
-                s.connec = obj.mesh.connec;
-                s.type   = obj.mesh.type;
-                f = FeFunction(s);
-                fG(idim,:,:) = f.interpolateFunction(xGauss);
+
+        function plot(obj)
+            for iDim = 1:obj.mesh.ndim
+                obj.phi{iDim}.plotContour();
             end
         end
-    
+
     end
-    
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh               = cParams.mesh;
+            obj.orientationVector  = cParams.orientationVector;
+            obj.dilatedOrientation = cParams.dilatedOrientation;
+        end
+
+        function isOrientationCoherent(obj)
+            s.mesh        = obj.mesh;
+            s.orientation = obj.orientationVector{1}.project('P1D');
+            c = CoherentOrientationSelector(s);
+            isC = c.isOrientationCoherent();
+            obj.isCoherent = isC;
+        end        
+
+        function createInterpolator(obj)
+            s.mesh       = obj.mesh;
+            s.isCoherent = obj.isCoherent;
+            s = SymmetricContMapCondition(s);
+            sC = s.computeCondition();
+            obj.interpolator = sC;
+        end
+
+        function computeMappings(obj)
+            nDim = obj.mesh.ndim;
+            for iDim = 1:nDim
+                bI    = obj.dilatedOrientation{iDim};
+                phiD  = obj.computeMapping(bI);
+                phiV(iDim,:,:) = phiD.fValues;
+            end
+            s.fValues = phiV;
+            s.mesh    = obj.mesh;
+            phiF = P1DiscontinuousFunction(s);
+            obj.phiMapping = phiF;
+        end
+
+        function computeTotalCorrector(obj)
+           s.mesh = obj.mesh;
+           s.isCoherent         = obj.isCoherent;
+           s.dilatedOrientation = obj.dilatedOrientation;
+           s.interpolator = obj.interpolator;
+           s.phiMapping   = obj.phiMapping;
+           tC = TotalCorrectorComputer(s);           
+           obj.totalCorrector = tC.compute();
+        end
+
+        function computeMappingWithSingularities(obj)
+            obj.computeMappings();
+            obj.computeTotalCorrector();
+            psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
+            obj.phi = psiTs;
+        end
+
+        function phi = computeMapping(obj,b)
+            s.orientation  = b;
+            s.mesh         = obj.mesh;
+            s.interpolator = obj.interpolator;
+            mC  = MappingComputer(s);
+            phi = mC.compute();
+        end
+
+    end
+
 end

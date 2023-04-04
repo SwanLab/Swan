@@ -6,7 +6,7 @@ classdef MeshPrinter < GiDPrinter
     
     properties (Access = private)
         npnod
-        pdim
+        pdim % useless
         nnode
         coordinates
         connectivities
@@ -49,7 +49,7 @@ classdef MeshPrinter < GiDPrinter
         end
         
         function printCoordinates(obj)
-            iD     = obj.fileID;
+            iD     = obj.fileID; 
             coord  = obj.coordinates;
             nodInEl = obj.npnod;
             nDim   = obj.ndim;

@@ -1,7 +1,7 @@
 classdef LevelSetFactory < handle
-    
+
     methods (Access = public, Static)
-        
+
         function obj = create(d)
             switch d.type
                 case 'circle'
@@ -21,7 +21,7 @@ classdef LevelSetFactory < handle
                 case 'horizontal'
                     obj = LevelSetHorizontalInclusion(d);
                 case {'squareInclusion'}
-                    obj = LevelSetSquareInclusion(d);                    
+                    obj = LevelSetSquareInclusion(d);
                 case 'smoothSquare'
                     obj = LevelSetSmoothSquareInclusion(d);
                 case 'rectangle'
@@ -38,7 +38,7 @@ classdef LevelSetFactory < handle
                     obj = LevelSetFeasible(d);
                 case 'rand'
                     obj = LevelSetRandom(d);
-                case 'holes'                                       
+                case 'holes'
                     obj = LevelSetWithSeveralHoles(d);
                 case 'full'
                     obj = LevelSetFull(d);
@@ -53,10 +53,10 @@ classdef LevelSetFactory < handle
                 otherwise
                     error('Invalid initial value of design variable.');
             end
-            
+
         end
     end
-    
+
 
 end
 

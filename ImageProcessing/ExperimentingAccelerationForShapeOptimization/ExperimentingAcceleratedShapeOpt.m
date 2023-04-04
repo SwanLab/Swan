@@ -47,7 +47,7 @@ s.momentumParams.type = 'CONSTANT';
 s.momentumParams.value = 0;
 s.maxIter = 100;
 s.TOL = 1e-12;
-solver = ShapeOptimizationSolver(s);
+solver = SimpleShapeOptimizationSolver(s);
 solver.solve();
 end
 
