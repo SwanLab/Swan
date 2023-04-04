@@ -7,12 +7,17 @@ classdef LHSintegrator_StiffnessColumn < handle
     
     properties (Access = private)
         freeNodes
+        dim
+        mesh
+        globalConnec
+        quadrature
+        interpolation
     end
     
     methods (Access = public)
         
         function obj = LHSintegrator_StiffnessColumn(cParams)
-            obj.init(cParams) 
+            %obj.init(cParams) 
             obj.initStiffnessColumn(cParams);
             obj.createQuadrature();
             obj.createInterpolation();
@@ -67,6 +72,9 @@ classdef LHSintegrator_StiffnessColumn < handle
 
         function initStiffnessColumn(obj,cParams)
             obj.freeNodes = cParams.freeNodes;
+            obj.dim          = cParams.dim;
+            obj.mesh         = cParams.mesh;
+            obj.globalConnec = cParams.globalConnec;
         end
 
         function createGeometry(obj)
@@ -90,7 +98,27 @@ classdef LHSintegrator_StiffnessColumn < handle
             c3 = (3*l)';
             c4 = (4*l.^2)';
             c5 = (l.^2)';
-        end        
+        end
+
+        function createQuadrature(obj)
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature('LINEAR'); % QUADRATIC LINEAR
+           obj.quadrature = quad;
+        end
+
+        function createInterpolation(obj)
+            int = obj.mesh.interpolation;
+            int.computeShapeDeriv(obj.quadrature.posgp);
+            obj.interpolation = int;
+        end
+
+        function LHS = assembleMatrix(obj,LHSelem)
+            s.dim          = obj.dim;
+            s.globalConnec = obj.globalConnec;
+            s.nnodeEl      = obj.interpolation.nnode;
+            assembler = Assembler(s);
+            LHS = assembler.assemble(LHSelem);
+        end
 
     end
     

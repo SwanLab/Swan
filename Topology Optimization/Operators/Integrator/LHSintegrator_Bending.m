@@ -14,12 +14,17 @@ classdef LHSintegrator_Bending < handle
     
     properties (Access = private)
         geometry
+        dim
+        mesh
+        globalConnec
+        quadrature
+        interpolation
     end
     
     methods (Access = public)
         
         function obj = LHSintegrator_Bending(cParams)
-            obj.init(cParams);
+            %obj.init(cParams);
             obj.initBending(cParams);
             obj.createQuadrature();
             obj.createInterpolation();
@@ -109,6 +114,9 @@ classdef LHSintegrator_Bending < handle
             %obj.designVariable = cParams.designVariable;
             obj.sectionVariables = cParams.sectionVariables;
             obj.freeNodes      = cParams.freeNodes;
+            obj.dim          = cParams.dim;
+            obj.mesh         = cParams.mesh;
+            obj.globalConnec = cParams.globalConnec;
         end
 
         function createGeometry(obj)
@@ -119,6 +127,26 @@ classdef LHSintegrator_Bending < handle
             g = Geometry.create(s);
             g.computeGeometry(q,int);
             obj.geometry = g;
+        end
+
+        function createQuadrature(obj)
+           quad = Quadrature.set(obj.mesh.type);
+           quad.computeQuadrature('LINEAR'); % QUADRATIC LINEAR
+           obj.quadrature = quad;
+        end
+
+        function createInterpolation(obj)
+            int = obj.mesh.interpolation;
+            int.computeShapeDeriv(obj.quadrature.posgp);
+            obj.interpolation = int;
+        end
+
+        function LHS = assembleMatrix(obj,LHSelem)
+            s.dim          = obj.dim;
+            s.globalConnec = obj.globalConnec;
+            s.nnodeEl      = obj.interpolation.nnode;
+            assembler = Assembler(s);
+            LHS = assembler.assemble(LHSelem);
         end
 
     end

@@ -44,8 +44,8 @@ classdef EulerBeamOptimizer < handle
 
     methods (Access = public)
 
-        function obj = EulerBeamOptimizer(cParams)
-            obj.init(cParams)
+        function obj = EulerBeamOptimizer()
+            obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createSectionVariables();
@@ -62,8 +62,7 @@ classdef EulerBeamOptimizer < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.initValue     = cParams.value;
+        function init(obj)
             obj.nElem         = 500;
             obj.nConstraints  = 3; 
             obj.columnLength  = 20; 
