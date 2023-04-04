@@ -154,6 +154,9 @@ classdef LagrangeSimplicial2D < handle
                 n = n + k + 1 - (m-2);
             end
             
+%             ss = n+j;
+%             o = [1 4 2 6 5 3]; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+%             s = o(ss);
             s = n+j;
         end
         
