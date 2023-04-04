@@ -1,9 +1,5 @@
 classdef PathVertexesToBoundaryComputer < handle
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
        mesh 
        singularityCoord
@@ -56,7 +52,22 @@ classdef PathVertexesToBoundaryComputer < handle
         
         function computeBoundaryPointCoord(obj)
         %    obj.computeToyBoundaryPoint();
-            obj.computeBenchmarkBoundaryPoint();
+         %  obj.computeBenchmarkBoundaryPoint();
+            sC = obj.singularityCoord;
+            bM = obj.mesh.createBoundaryMesh();
+            for iB = 1:numel(bM)
+               bmI = bM{iB};
+               bC  = bmI.mesh.coord;
+               dis = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
+               [dM,im] = min(dis);
+               nodes(iB) = bmI.globalConnec(im);
+               dist(iB) = dM;
+            end
+            [~,iM] = min(dist);
+            node = nodes(iM);
+            cP = obj.mesh.coord(node,:);
+           obj.boundaryPointCoord = cP;
+            %obj.boundaryPointCoord(:,2)
         end
         
         function computeToyBoundaryPoint(obj)

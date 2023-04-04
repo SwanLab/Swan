@@ -23,9 +23,13 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
         
         function obj = DehomogenizingSeveralSingularitiesTest(cParams)
             obj.init(cParams);
-            obj.createMesh();
-            obj.createOrientation();
-            obj.dehomogenize();
+            mSize = linspace(0.08,0.022,100);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            for iMesh = 1:length(mSize)
+                obj.meshSize = mSize(iMesh);
+                obj.createMesh();
+                obj.createOrientation();
+                obj.dehomogenize();
+            end
         end
 
         function passed = hasPassed(obj)
@@ -47,12 +51,12 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
         function init(obj,cParams)
             obj.testName = cParams.testName;
             %obj.meshSize = 0.00521;
-            obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45        
+            obj.meshSize = 0.065;%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.nCells   = 30;%[60 62];%linspace(60,62,40);%45;   %45        
             obj.xmin = 0.7;
-            obj.xmax = 4.8;
+            obj.xmax = 2.3;
             obj.ymin = 0.1;
-            obj.ymax = 4.1;
+            obj.ymax = 1.7;
             obj.singularitiesData = [0.3,-0.8];            
             obj.widthH = 0.87;
             obj.widthW = 0.87;
@@ -81,8 +85,8 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
             v(:,2) = cos(pi*(x2 + s2*x1));
             beta = atan2(v(:,2),v(:,1));
             alpha = beta/2;
-            obj.orientation(:,1) = cos(alpha);
-            obj.orientation(:,2) = sin(alpha);
+            a = [cos(alpha), sin(alpha)];
+            obj.orientation = a;
         end
 
         function plotOrientation(obj)
