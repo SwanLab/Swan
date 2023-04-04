@@ -2,8 +2,8 @@
 % Create a Mesh FEM results
 clear; close all;
 
-x =linspace(0,10,100);
-y =linspace(0,10,100);
+x =linspace(0,1,10);
+y =linspace(0,1,10);
 
 [xv,yv] = meshgrid(x,y);
 sM.coord(:,1) = xv(:);
@@ -15,7 +15,7 @@ mesh = m;
 %% Create functions
 % AnalyticalFunction
 
-sAF.fHandle = @(x,y) x(1,:,:).*x(1,:,:) + x(2,:,:).*x(2,:,:);
+sAF.fHandle = @(x,y) x(1,:,:).*x(1,:,:)+x(2,:,:).*x(2,:,:);
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);

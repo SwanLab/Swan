@@ -40,7 +40,7 @@ classdef FE_Projector < Projector
             dV = obj.mesh.computeDvolume(quad);
             
             cParams.mesh.type = obj.mesh.type;
-            cParams.order = 'LINEAR';
+            cParams.order = 'CUBIC';
             cParams.polynomialOrder = obj.ls.polynomialOrder;
             I = FE_Interpolation(cParams);
             I.computeShapeDeriv(xV);
@@ -72,7 +72,7 @@ classdef FE_Projector < Projector
         end
 
         function q = createRHSQuadrature(obj, fun)
-%             ord = obj.determineQuadratureOrder(fun);ç
+%             ord = obj.determineQuadratureOrder(fun);
             ord = 'CUBIC';
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(ord);
