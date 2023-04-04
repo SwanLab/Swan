@@ -43,28 +43,39 @@ fem.uFun{3}.plot
 clc; clear; close all
 
 % Create the data container for the FEM problem
-a.fileName = 'holeinclusion3d';
+%a.fileName = 'holeinclusion3d';
+%m = FemDataContainer(a);
+
+a.fileName = 'test3d_micro_cube';
 m = FemDataContainer(a);
 
+
 % % Create the characteristic function (1 inside circle, 0 outside)
-% s.mesh    = m.mesh;
-% s.fxy     = @(x,y,z) (x-0.5).^2+(y-0.5).^2+(z-0.5).^2 -0.3.^2;
-% circleFun = CharacteristicFunction(s);
-% 
-% % Project the function to P0. Useful later on
-% x.mesh   = m.mesh;
-% x.connec = m.mesh.connec;
-% projP0 = Projector_toP0(x);
-% p0c = projP0.project(circleFun);
+s.mesh    = m.mesh;
+s.fxy     = @(x,y,z) (x-0.5).^2+(y-0.5).^2+(z-0.5).^2 -0.3.^2;
+circleFun = CharacteristicFunction(s);
 
-% % Generate the hole in the material using the values we just found
-% fV = squeeze(p0c.fValues);
-% holeNodes = find(fV==1);
-% m.material.C(:,:,holeNodes) = m.material.C(6,6, length(holeNodes))*1e-3;
+% Project the function to P0. Useful later on
+x.mesh   = m.mesh;
+x.connec = m.mesh.connec;
+projP0 = Projector_toP0(x);
+p0c = projP0.project(circleFun);
 
-% Solve the problem
+% Generate the hole in the material using the values we just found
+fV = squeeze(p0c.fValues);
+holeNodes = find(fV==1);
+m.material.C(:,:,holeNodes) = 1e-3*m.material.C(:,:,holeNodes);
+
+sP.mesh = m.mesh;
+sP.fValues = squeeze(m.material.C(1,1,:));
+c11 = P0Function(sP);
+
+% % Solve the problem
 fem = ElasticProblemMicro(m);
 fem.computeChomog();
 sss.filename = 'fluct';
 
+% 
 fem.uFun{1}.print(sss);
+sss.filename = 'fluctC11';
+c11.print(sss);
