@@ -29,19 +29,25 @@ classdef ValDerForward
 
         function h = plus(u,v)
 
-             if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(u+v.val, v.der);
+            if ~isa(u,'ValDerForward') %u is a scalar
+                h = ValDerForward(u + v.val, v.der);
             elseif ~isa(v,'ValDerForward') %v is a scalar
-                h = ValDerForward(v+u.val, u.der);
+                h = ValDerForward(v + u.val, u.der);
             else
-                h = ValDerForward(u.val+v.val, u.der+v.der);
-             end
+                h = ValDerForward(u.val + v.val, u.der + v.der);
+            end
 
         end
 
         function h = minus(u,v)
 
-            h = ValDerForward(u.val - v.val, u.der - v.der);
+            if ~isa(u,'ValDerForward') %u is a scalar
+                h = ValDerForward(u - v.val, v.der);
+            elseif ~isa(v,'ValDerForward') %v is a scalar
+                h = ValDerForward(v - u.val, u.der);
+            else
+                h = ValDerForward(u.val - v.val, u.der - v.der);
+            end
 
         end
 
@@ -74,13 +80,21 @@ classdef ValDerForward
 
         function h = sin(u)
 
-            h = ValDerForward(sin(u.val), cos(u.val)*u.der);
+            if ~isa(u,'ValDerForward') %u is a scalar
+                h = ValDerForward(sin(u), 0);
+            else
+                h = ValDerForward(sin(u.val), cos(u.val)*u.der);
+            end
 
         end
 
         function h = cos(u)
 
-            h = ValDerForward(cos(u.val), -sin(u.val)*u.der);
+            if ~isa(u,'ValDerForward') %u is a scalar
+                h = ValDerForward(cos(u), 0);
+            else
+                h = ValDerForward(cos(u.val), -sin(u.val)*u.der);
+            end
 
         end
     end

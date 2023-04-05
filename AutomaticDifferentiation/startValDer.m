@@ -8,7 +8,7 @@ switch acc
 
         x = ValDerForward(2,[1 0]);
         y = ValDerForward(0.5,[0 1]);
-        f = 0.5 * u * A * u;
+        f = cos(x)+x*y^2+x^2;
 
         vec = f.double;
 
