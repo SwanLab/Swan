@@ -78,7 +78,15 @@ classdef Mesh < handle
 
         function hMean = computeMeanCellSize(obj)
             switch obj.type
-                case {'TRIANGLE'}
+                case {'LINE'}
+                    x1(:,1) = obj.coord(obj.connec(:,1),1);
+                    x1(:,2) = obj.coord(obj.connec(:,1),2);
+                    x2(:,1) = obj.coord(obj.connec(:,2),1);
+                    x2(:,2) = obj.coord(obj.connec(:,2),2);
+                    x1x2 = (x2-x1);                    
+                    hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+                    hMean = max(hs);  
+                otherwise
                     x1(:,1) = obj.coord(obj.connec(:,1),1);
                     x1(:,2) = obj.coord(obj.connec(:,1),2);
                     x2(:,1) = obj.coord(obj.connec(:,2),1);
@@ -92,15 +100,7 @@ classdef Mesh < handle
                     n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
                     n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
                     hs = max([n12,n23,n13],[],2);
-                    hMean = max(hs);
-                case {'LINE'}
-                    x1(:,1) = obj.coord(obj.connec(:,1),1);
-                    x1(:,2) = obj.coord(obj.connec(:,1),2);
-                    x2(:,1) = obj.coord(obj.connec(:,2),1);
-                    x2(:,2) = obj.coord(obj.connec(:,2),2);
-                    x1x2 = (x2-x1);                    
-                    hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-                    hMean = max(hs);                    
+                    hMean = max(hs);                  
             end
         end
 
