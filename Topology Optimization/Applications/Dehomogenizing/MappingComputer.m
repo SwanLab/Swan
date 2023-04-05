@@ -16,7 +16,7 @@ classdef MappingComputer < handle
         end
 
         function uF = compute(obj)
-            LHS = obj.computeLHS();
+            LHS = obj.computeStiffnessMatrix();
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
                 uC  = obj.solveSystem(LHS,RHS);
@@ -39,11 +39,11 @@ classdef MappingComputer < handle
             obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
         
-        function computeLHS(obj)
+        function LHS = computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
             Kn = In'*K*In;
-            obj.LHS = Kn;
+            LHS = Kn;
         end
 
         function K = computeStiffnessMatrix(obj)
