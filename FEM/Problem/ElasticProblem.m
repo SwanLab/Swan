@@ -147,7 +147,7 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type =  'ITERATIVE';
+            s.type =  'MINRES';
             obj.solver = Solver.create(s);
         end
 
