@@ -13,11 +13,10 @@ classdef MappingComputer < handle
 
         function obj = MappingComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function uF = compute(obj)
-            LHS = obj.computeLHS();
+            LHS = obj.computeStiffnessMatrix();
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
                 uC  = obj.solveSystem(LHS,RHS);
@@ -39,21 +38,20 @@ classdef MappingComputer < handle
             obj.interpolator       = cParams.interpolator;
             obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
-        end
         
-        function K = computeLHS(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
-            lhs = LHSintegrator.create(s);
-            K = lhs.compute();
+        function LHS = computeLHS(obj)
+            K = obj.computeStiffnessMatrix();
+            In = obj.interpolator;
+            Kn = In'*K*In;
+            LHS = Kn;
+        end
+
+        function K = computeStiffnessMatrix(obj)
+            s.mesh = obj.mesh;
+            s.type = 'StiffnessMatrix';
+            s.fun  = P1DiscontinuousFunction.create(obj.mesh,1);
+            lhs    = LHSintegrator.create(s);
+            K      = lhs.compute();
         end
 
         function RHS = computeRHS(obj,iDim)
@@ -67,7 +65,7 @@ classdef MappingComputer < handle
             s.mesh      = obj.mesh;
             s.type      = obj.mesh.type;
             s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.npnod     = obj.meshDisc.nnodes*1;
             s.type      = 'ShapeDerivative';
             s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
