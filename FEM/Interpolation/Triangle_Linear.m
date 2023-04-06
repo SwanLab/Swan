@@ -21,9 +21,9 @@ classdef Triangle_Linear < Interpolation
             obj.ndime = 2;
             obj.nnode = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
-            obj.isoDv = 0.5;
-            obj.main_loop = [3 3];
-            obj.extra_cases = [];
+            obj.isoDv = 0.5; %??????????????
+            obj.main_loop = [3 3]; %??????????????
+            obj.extra_cases = []; %??????????????
         end
         
         function computeShapes(obj,posgp)
@@ -33,16 +33,16 @@ classdef Triangle_Linear < Interpolation
             t = posgp(2,:,:);
             I = ones(size(t));
             obj.shape = zeros(obj.nnode,ngaus,nelem);
-            obj.shape(1,:,:) = I-s-t;
-            obj.shape(2,:,:) = s;
-            obj.shape(3,:,:) = t;
+            obj.shape(1,:,:) = I-s-t; %1-xi-eta
+            obj.shape(2,:,:) = s; %xi
+            obj.shape(3,:,:) = t; %eta
         end
         
         function computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
             obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
-            obj.deriv(1,1,:,:) = -1;
+            obj.deriv(1,1,:,:) = -1; %B^e_xi, matrix of shape function derivatives
             obj.deriv(1,2,:,:) = 1;
             obj.deriv(1,3,:,:) = 0;
             obj.deriv(2,1,:,:) = -1;
@@ -50,8 +50,8 @@ classdef Triangle_Linear < Interpolation
             obj.deriv(2,3,:,:) = 1;
         end
         
-        function computeCases(obj)
-            obj.iteration = [1 2 3;
+        function computeCases(obj) %??????????????
+            obj.iteration = [1 2 3; 
                              2 3 1];
             obj.cases(:,:,1) = [1 4 5;
                 4 2 3;

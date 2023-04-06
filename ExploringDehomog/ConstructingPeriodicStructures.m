@@ -2,8 +2,8 @@ clc;
 clear;
 close;
 
-x = linspace(0,1,10);
-y = linspace(0,1,10);
+x = linspace(0,1,100);
+y = linspace(0,1,100);
 
 [xv,yv] = meshgrid(x,y);
 s.coord(:,1) = xv(:);
@@ -15,14 +15,17 @@ mesh = m;
 
 % Compute epsilon
 L = mesh.computeCharacteristicLength();
-nCells = [10 10]; %??
+nCells = [16 16]; %??
 s.epsilon = L./nCells;
 
 
 % Compute LevelSet
-s.type               = 'Younes';
+s.type               = 'xd';
 s.mesh               = mesh;
 s.ndim               = 2;
+s.fracRadius = 0.5;
+s.widthV= 0.25;
+s.widthH= 0.25;
 s.creatorSettings    = s;
 s.initialCase    = 'Younes';
 lSet = LevelSet(s);

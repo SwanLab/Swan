@@ -39,7 +39,7 @@ classdef DilationComputer < handle
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             I = ones(size(K,1),1);
-            obj.LHS = [K,I;I',0];
+            obj.LHS = [K,I;I',0]; % solo con poner esto ya está?
         end
         
         function K = computeStiffnessMatrix(obj)
@@ -72,11 +72,30 @@ classdef DilationComputer < handle
         end
         
         function gradT = computeFieldTimesDivField(obj,q)
-            a1    = obj.orientationVector{1};
-            a2    = obj.orientationVector{2};
-            aDa1  = a1.computeFieldTimesDivergence(q);
-            aDa2  = a2.computeFieldTimesDivergence(q);
-            gradT = -aDa1.fValues - aDa2.fValues;
+            a1    = obj.orientationVector{1}; % igual
+            a2    = obj.orientationVector{2}; % igual
+            %aDa1  = a1.computeFieldTimesDivergence(q);
+            %aDa2  = a2.computeFieldTimesDivergence(q);
+            %gradT = -aDa1.fValues - aDa2.fValues;
+            
+            % Changes start here
+            diva1 = a1.computeDivergence(q);
+            fG1  = a2.evaluate(q.posgp);
+            fdivFG = bsxfun(@times,diva1.fValues,fG1); %falta afegir valor absolut?
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = fdivFG;
+            diva1a2 = FGaussDiscontinuousFunction(s);
+
+            diva2 = a2.computeDivergence(q);
+            fG2  = a1.evaluate(q.posgp);
+            fdivFG = bsxfun(@times,diva2.fValues,fG2); %falta afegir valor absolut?
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = fdivFG;
+            diva2a1 = FGaussDiscontinuousFunction(s);
+            
+            gradT = diva1a2.fValues+diva2a1.fValues; %falta afegir valor absolut?
         end
         
         function u = solveSystem(obj)

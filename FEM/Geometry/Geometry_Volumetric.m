@@ -66,9 +66,9 @@ classdef Geometry_Volumetric < Geometry
             jac = zeros(nDime,nDime,nElem);
             for kNode = 1:nNode
                 dShapeIK = dShapes(:,kNode);
-                xKJ      = obj.coordElem(kNode,:,:);
-                jacIJ    = bsxfun(@times, dShapeIK, xKJ);
-                jac = jac + jacIJ;
+                xKJ      = obj.coordElem(kNode,:,:); %Nodos de un elemento, deberia ser 3 puntos y 2 componentes no??????????????
+                jacIJ    = bsxfun(@times, dShapeIK, xKJ); %Por qué este orden?
+                jac = jac + jacIJ; %La razon por la que no se usan matrices es que es caro?
             end
             obj.jacobian = jac;
         end
