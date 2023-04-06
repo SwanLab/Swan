@@ -8,20 +8,16 @@ classdef ValDerForward
 
     end
 
-    methods
+    methods (Access = public)
 
-        function obj = ValDerForward(a,b)
-
-            %VALDER class constructor;
+        function obj = ValDerForward(a,b) %VALDER class constructor;
 
             obj.val = a; %given function value
             obj.der = b; %given derivative value or gradient vector
 
         end
 
-        function vec = double(obj)
-
-            %VALDER/DOUBLE Convert valder object to vector of doubles.
+        function vec = double(obj) %VALDER/DOUBLE Convert valder object to vector of doubles.
 
             vec = [ obj.val, obj.der ];
 
@@ -29,72 +25,37 @@ classdef ValDerForward
 
         function h = plus(u,v)
 
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(u + v.val, v.der);
-            elseif ~isa(v,'ValDerForward') %v is a scalar
-                h = ValDerForward(v + u.val, u.der);
-            else
-                h = ValDerForward(u.val + v.val, u.der + v.der);
-            end
+            h = plusFun(u,v);
 
         end
 
         function h = minus(u,v)
 
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(u - v.val, v.der);
-            elseif ~isa(v,'ValDerForward') %v is a scalar
-                h = ValDerForward(v - u.val, u.der);
-            else
-                h = ValDerForward(u.val - v.val, u.der - v.der);
-            end
+            h = minusFun(u,v);
 
         end
 
         function h = mtimes(u,v)
 
-            %VALDER/MTIMES overloads * with at least one valder
-
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(u*v.val, u*v.der);
-            elseif ~isa(v,'ValDerForward') %v is a scalar
-                h = ValDerForward(v*u.val, v*u.der);
-            else
-                h = ValDerForward(u.val*v.val, u.der*v.val + u.val*v.der);
-            end
+            h = mtimesFun(u,v);
 
         end
 
         function h = mpower(u,v)
 
-            %VALDER/MPOWER overloads ^ with at least one valder
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(u^v.val, u^v.val*log(u)*v.der);
-            elseif ~isa(v,'ValDerForward') %v is a scalar
-                h = ValDerForward(u.val^v, v*u.val^(v-1)*u.der);
-            else
-                h = exp(v*log(u)); %call overloaded log, * and exp
-            end
+            h = mpowerFun(u,v);
 
         end
 
         function h = sin(u)
 
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(sin(u), 0);
-            else
-                h = ValDerForward(sin(u.val), cos(u.val)*u.der);
-            end
+            h = sinFun(u);
 
         end
 
         function h = cos(u)
 
-            if ~isa(u,'ValDerForward') %u is a scalar
-                h = ValDerForward(cos(u), 0);
-            else
-                h = ValDerForward(cos(u.val), -sin(u.val)*u.der);
-            end
+            h = cosFun(u);
 
         end
     end

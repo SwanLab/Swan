@@ -4,7 +4,7 @@ clear;
 syms x
 syms y
 
-%coordinates of the triangle vertex (random)
+%coordinates of the triangle vertex (x1,y1; x2,y2; etc) (random)
 coord = [2 2; 7 1; 5 4];
 
 % xi and eta equation, found on article Chapter 4 Finite Element
@@ -33,9 +33,5 @@ n = [n1.double; n2.double; n3.double];
 
 % Jacobian
 J = [n(1,2)*coord(1,1) n(1,3)*coord(2,1); n(2,2)*coord(1,2) n(2,3)*coord(2,2)];
-% 
+%
 % disp(J);
-
-
-
-
