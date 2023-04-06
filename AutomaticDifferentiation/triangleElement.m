@@ -12,10 +12,10 @@ coord = [2 2; 7 1; 5 4];
 xi = (det([1 x y; 1 coord(1,1) coord(1,2); 1 coord(3,1) coord(3,2)]))/(det([1 coord(2,1) coord(2,2); 1 coord(1,1) coord(1,2); 1 coord(3,1) coord(3,2)]));
 eta = (det([1 x y; 1 coord(1,1) coord(1,2); 1 coord(2,1) coord(2,2)]))/(det([1 coord(3,1) coord(3,2); 1 coord(1,1) coord(1,2); 1 coord(2,1) coord(2,2)]));
 
-N = [xi eta 1-xi-eta];
+N = [xi; eta; 1-xi-eta];
 
 %transform symbolic equation into "normal" equation
-a = [double(coeffs(N(1))); double(coeffs(N(2))); double(coeffs(N(3)))];
+a = [double(coeffs(N(1))); double(coeffs(N(2))); double(coeffs(N(3)))]; %The coefficients of eta arent all right, the x is changed for the non variable coefficient.
 
 % AD using my code.
 x = ValDerForward(1,[1 0]);
@@ -33,5 +33,4 @@ n = [n1.double; n2.double; n3.double];
 
 % Jacobian
 J = [n(1,2)*coord(1,1) n(1,3)*coord(2,1); n(2,2)*coord(1,2) n(2,3)*coord(2,2)];
-%
 % disp(J);
