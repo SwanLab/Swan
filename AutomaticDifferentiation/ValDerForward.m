@@ -41,6 +41,12 @@ classdef ValDerForward
 
         end
 
+        function h = rdivide(u,v)
+
+            h = rdivideFun(u,v);
+
+        end
+
         function h = mpower(u,v)
 
             h = mpowerFun(u,v);
