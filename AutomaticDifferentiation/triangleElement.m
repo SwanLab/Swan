@@ -1,39 +1,42 @@
 clear;
 
 %coordinates of the triangle vertex (x1, y1, x2, y2, etc) (random)
-coord = [ 2 2
-          7 1
-          5 4];
+coordElem = [ 2 2; 7 1; 5 4];
 
-Ae = 0.5*((coord(3)*coord(6)-coord(5)*coord(4))+(coord(4)-coord(6))*coord(1)+(coord(5)-coord(3))*coord(2));
+% Compute area of the element
+Ae = 0.5*abs(((coordElem(2,1)*coordElem(3,2)-coordElem(3,1)*coordElem(2,2))+(coordElem(2,2)-coordElem(3,2))*coordElem(1,1)+(coordElem(3,1)-coordElem(2,1))*coordElem(1,2)));
 
-% xi and eta equation, found on article Chapter 4 Finite Element
-% Approximation page 6
-detDenXi = det([1 coord(3) coord(4); 1 coord(1) coord(2); 1 coord(5) coord(6)]);
-detDenEta = det([1 coord(5) coord(6); 1 coord(1) coord(2); 1 coord(3) coord(4)]);
+% matrix of coefficients
+coef = zeros(length(coordElem),3);
 
-coefXi = [coord(2)-coord(6), coord(5)-coord(1),coord(1)*coord(6)-coord(2)*coord(5)] / detDenXi;
-coefEta = [coord(2)-coord(4), coord(3)-coord(1),coord(1)*coord(4)-coord(2)*coord(3)] / detDenEta;
+% coeficients of linear equations
+for i = 1 : length(coordElem)
 
-coef = [coefXi; coefEta; 1-coefXi-coefEta]; %Matrix of coefficients
+    if i == 1
+        j = 2; k = 3;
+    elseif i == 2
+        j = 3; k = 1;
+    elseif i == 3
+        j = 1; k = 2;
+    end
 
-% AD using my code.
-x = ValDerForward(1,[1 0]);
-y = ValDerForward(1,[0 1]);
+    coef(i,1) = (1/(2*Ae)) * ( coordElem(j,2) - coordElem(k,2) );
+    coef(i,2) = (1/(2*Ae)) * ( coordElem(k,1) - coordElem(j,1) );
+    coef(i,3) = (1/(2*Ae)) * ( coordElem(j,1) * coordElem(k,2) - coordElem(k,1) * coordElem(j,2) );
 
-n1 = coef(1,1)*x + coef(1,2)*y + coef(1,3);
-n2 = coef(2,1)*x + coef(2,2)*y + coef(2,3);
-n3 = coef(3,1)*x + coef(3,2)*y + coef(3,3);
+end
 
-% n = a * [x;y;1];
-% n = n.double;
+%AD using my code
+x = ValDerForward(0,[1 0]);
+y = ValDerForward(0,[0 1]);
 
-%First column is value, second column is df/dx, second column is df/dy
-n = [n1.double; n2.double; n3.double];
+N(1) = coef(1,1)*x + coef(1,2)*y + coef(1,3);
+N(2) = coef(2,1)*x + coef(2,2)*y + coef(2,3);
+N(3) = coef(3,1)*x + coef(3,2)*y + coef(3,3);
 
-% Jacobian
-J = [n(1,2)*coord(1) n(1,3)*coord(3); n(2,2)*coord(2) n(2,3)*coord(4)];
+n = [N(1).double; N(2).double; N(3).double];
 
-% B = [coef(1,3) 0 coef(2,3) 0 coef(3,3);
-%     0 coef(1,1) 0 coef(2,1) 0 coef(3,1);
-%     coef(1,1) coef(1,3) coef(2,1) coef(2,3) coef(3,1) coef(3,3)];
+%Jacobian
+J = transpose(n(:,2:end)) * coordElem;
+
+detJ = det(J);
