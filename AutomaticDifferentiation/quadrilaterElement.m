@@ -1,4 +1,4 @@
-classdef quadrilaterElement
+classdef QuadrilaterElement
 
     properties
 
@@ -8,7 +8,7 @@ classdef quadrilaterElement
 
     methods (Access = public)
 
-        function obj = quadrilaterElement(a) %quadrilaterElement class constructor;
+        function obj = QuadrilaterElement(a) %quadrilaterElement class constructor;
 
             obj.coordElem = a; %parametric coordinates
 

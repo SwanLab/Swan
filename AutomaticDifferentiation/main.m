@@ -6,14 +6,13 @@ coordElem = [ 2 2; 7 1; 5 4];
 % %coordinates of the quadrilater vertex (x1, y1, x2, y2, etc) (random)
 % coordElem = [ 1 1; 3 2; 5 4; 2 5];
 
-
 if length(coordElem) == 3
 
-    [J,N] = triangleElement(coordElem).assembleJ();
+    [J,N] = TriangleElement(coordElem).assembleJ();
 
 elseif length(coordElem) == 4
 
-    [J,N] = quadrilaterElement(coordElem).assembleJ();
+    [J,N] = QuadrilaterElement(coordElem).assembleJ();
 
 else
 
