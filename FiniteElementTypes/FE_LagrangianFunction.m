@@ -189,19 +189,30 @@ classdef FE_LagrangianFunction < FeFunction
 
             switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
-                    x = obj.coords(:,1);
-                    y = obj.coords(:,2);
                     figure()
+                    hold on
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
-                        z = obj.fValues(:,idim);
-                        a = trisurf(obj.mesh.connec,x,y,z);
-                        view(0,90)
-                        %             colorsbar
+                        nelem = size(obj.dofs,1);
+                        for ielem = 1:nelem
+                            sM.coord = obj.mesh.coord(obj.mesh.connec(ielem,:),:);
+                            sM.connec = [1 2 3];
+                            m = Mesh(sM);
+                            m = m.remesh(2); m = m.remesh(2); m = m.remesh(2);
+                            x = m.coord(:,1);
+                            y = m.coord(:,2);
+                            z = obj.interpolation.lagrangeElement.evaluate(obj.fValues(obj.dofs(ielem,:)),x,y);
+                            a = trisurf(m.connec,x,y,z); 
+%                             a.EdgeColor = [0 0 0];
+%                             a.EdgeAlpha = 0.3;
+                        end
                         shading interp
-                        a.EdgeColor = [0 0 0];
+                        grid on
+                        view(0,90)
+                        obj.mesh.plot();
                         title(['dim = ', num2str(idim)]);
                     end
+                  
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
                     y = obj.fValues;
@@ -263,7 +274,12 @@ classdef FE_LagrangianFunction < FeFunction
                 ndofs = mesh.nnodes;
             else
                 mesh.computeEdges();
-                ndofs = mesh.nnodes + max(max(mesh.edges.edgesInElem))*(order-1) + mesh.nelem*(order-2);
+                if order >= 3
+                    nodesel = nchoosek(order-1,order-3);
+                else
+                    nodesel = 0;
+                end
+                ndofs = mesh.nnodes + max(max(mesh.edges.edgesInElem))*(order-1) + mesh.nelem*nodesel;
             end
         end
         
@@ -275,9 +291,52 @@ classdef FE_LagrangianFunction < FeFunction
             obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'LINEAR';
+            obj.order   = 'PROVA';
             obj.meshCoarse = cParams.mesh;
             obj.polynomialOrder = cParams.polynomialOrder;
+        end
+        
+        function [x,y,z,connec] = createPlotMesh(obj)
+            nelem = size(obj.dofs,1);
+            ndofsel = size(obj.dofs,2);
+            n = 15;
+            nn = 16;
+            x = zeros(nelem*n,1);
+            y = zeros(nelem*n,1);
+            z = zeros(nelem*n,1);
+            connec = zeros(nelem*nn,3);
+            for ielem = 1:nelem
+                sM.coord = obj.mesh.coord(obj.mesh.connec(ielem,:),:);
+                sM.connec = [1 2 3];
+                m = Mesh(sM);
+                m = m.remesh(2); m = m.remesh(2);
+                x((ielem-1)*n+1:ielem*n) = m.coord(:,1);
+                y((ielem-1)*n+1:ielem*n) = m.coord(:,2);
+                z((ielem-1)*n+1:ielem*n) = obj.interpolation.lagrangeElement.evaluate(obj.fValues(obj.dofs(ielem,:)),m.coord(:,1),m.coord(:,2));
+                connec((ielem-1)*nn+1:ielem*nn,:) = m.connec+(ielem-1)*n;
+            end
+            
+            
+%             order = obj.polynomialOrder;
+%             nlocel = order^2;
+%             nelem = obj.mesh.nelem;
+%             connec = zeros(nelem*nlocel,3);
+%             for ielem = 1:size(obj.dofs,1)
+%                 con = zeros(nlocel,3);
+%                 switch obj.polynomialOrder
+%                     case 1
+%                         con = [1 2 3];
+%                     case 2
+%                         con  = [1 4 6;2 4 5;4 5 6;3 5 6];
+%                     case 3
+%                         con = [1 4 9;4 9 10;4 5 10;5 7 10;5 2 7;8 9 10;6 8 10;6 7 10;6 8 3];
+%                     case 4
+%                         con = [];
+%                 end
+%                 for i = 1:nlocel
+%                     connec((ielem-1)*nlocel+i,:) = obj.dofs(ielem,con(i,:));
+%                 end
+%             end
         end
 
         function createInterpolation(obj)

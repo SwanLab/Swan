@@ -35,6 +35,16 @@ classdef Quadrature_Triangle < Quadrature
                     obj.ngaus = 3;
                     obj.weigp = [1/6;1/6;1/6];
                     obj.posgp = [2/3,1/6,1/6;1/6,2/3,1/6];
+                
+                case 'PROVA'
+                    n = 100;
+                    [X,Y,Wx,Wy]=triquad(n,[0,0;1,0;0,1]);
+                    X = X(:);
+                    Y = Y(:);
+                    w = Wx*Wy';
+                    obj.ngaus = n^2;
+                    obj.weigp = w(:);
+                    obj.posgp = [X Y]';
                 otherwise
                     disp('Quadrature not implemented for triangle elements')
             end

@@ -2,13 +2,17 @@
 % Create a Mesh FEM results
 clear; close all;
 
-x =linspace(0,1,2);
-y =linspace(0,1,2);
+x =linspace(-1,1,4);
+y =linspace(-1,1,4);
 
 [xv,yv] = meshgrid(x,y);
 sM.coord(:,1) = xv(:);
 sM.coord(:,2) = yv(:);
 sM.connec = delaunay(sM.coord);
+
+% sM.coord = [0 0;1 0;0 1];
+% sM.connec = [1 2 3];
+
 m = Mesh(sM);
 mesh = m;
 
@@ -33,17 +37,35 @@ xFun = AnalyticalFunction(sAF);
 clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
-pp1.polynomialOrder = 2;
+pp1.polynomialOrder = 1;
 
+% projP1 = FE_Projector(pp1);
+% p1fun = projP1.project(xFun);
+% p1fun.plot()
+% title('Order1')
+% 
+% pp1.polynomialOrder = 2;
+% projP1 = FE_Projector(pp1);
+% p1fun = projP1.project(xFun);
+% p1fun.plot()
+% title('Order2')
+
+pp1.polynomialOrder = 3;
 projP1 = FE_Projector(pp1);
 p1fun = projP1.project(xFun);
 p1fun.plot()
-title('P1 (quad linear) PAU')
+title('Order3')
 
-projP12 = Projector_toP1(pp1);
-p1fun2 = projP12.project(xFun);
-p1fun2.plot()
-title('P1 (quad linear) old')
+% pp1.polynomialOrder = 4;
+% projP1 = FE_Projector(pp1);
+% p1fun = projP1.project(xFun);
+% p1fun.plot()
+% title('Order4')
+
+% projP12 = Projector_toP1(pp1);
+% p1fun2 = projP12.project(xFun);
+% p1fun2.plot()
+% title('P1 (quad linear) old')
 
 %% Projector to P1 Discontinuous
 % pp1d.mesh   = mesh;

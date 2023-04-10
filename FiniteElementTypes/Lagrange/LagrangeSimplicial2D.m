@@ -40,6 +40,21 @@ classdef LagrangeSimplicial2D < handle
             end
         end
     
+        function z = evaluate(obj,dofs,X,Y)
+            coor = obj.computeNodesElement([X,Y]);
+            z = zeros(length(X),1);
+            for i = 1:obj.ndofs
+                z = z + dofs(i).*obj.shapeFunctions{i}(coor(:,1),coor(:,2));
+            end
+        end
+        
+        function coor = computeNodesElement(obj,coords)
+            base = obj.nodes;          
+            c = base(1:3,:);
+            M = c'/(coords(1:3,:)-coords(1,:))';
+            N = coords(1,:)';
+            coor = (M*(coords-N')')';
+        end
     end
     
     
@@ -146,18 +161,31 @@ classdef LagrangeSimplicial2D < handle
             end
         end
         
-        function s = computeMonomialIndeces(obj,j,i)
+        function s = computeMonomialIndeces(obj,i,j)
             k = obj.polynomialOrder;
-            
-            n = -(k+2);
-            for m = 1:i
-                n = n + k + 1 - (m-2);
+            s = obj.computeMonomialIndecesOrder(i,j,k);
+        end
+        
+        function s = computeMonomialIndecesOrder(obj,i,j,k)
+            if j == 1
+                if i == 1
+                    s = 1;
+                elseif i == k+1
+                    s = 2;
+                else
+                    s = 2+i;
+                end
+            elseif j == k+1
+                s = 3;
+            else
+                if i == 1
+                    s = 3+3*(k-1) - (j-2);
+                elseif i+j-2==k
+                    s = 1+k+j;
+                else
+                    s = obj.computeMonomialIndecesOrder(i-1,j-1,k-3)+3+3*(k-1);
+                end
             end
-            
-            ss = n+j;
-            o = [1 4 2 6 5 3]; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            s = o(ss);
-%             s = n+j;
         end
         
         function m = createPlotMesh(obj)
