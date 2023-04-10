@@ -15,7 +15,7 @@ classdef quadrilaterElement
         end
 
 
-        function J = assembleJ(obj) %Assembly Jacobian Matrix.
+        function [J,N] = assembleJ(obj) %Assembly Jacobian Matrix.
 
             coef = zeros(2,4);
 

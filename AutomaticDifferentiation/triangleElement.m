@@ -15,43 +15,32 @@ classdef triangleElement
         end
 
 
-        function J = assembleJ(obj) %Assembly Jacobian Matrix.
+        function [J,N] = assembleJ(obj) %Assembly Jacobian Matrix.
+%coordinates of the triangle vertex (x1, y1, x2, y2, etc) (random)coordElem
 
-            % Compute area of the element
-            Ae = 0.5*abs(((obj.coordElem(2,1)*obj.coordElem(3,2)-obj.coordElem(3,1)*obj.coordElem(2,2))+(obj.coordElem(2,2)-obj.coordElem(3,2))*obj.coordElem(1,1)+(obj.coordElem(3,1)-obj.coordElem(2,1))*obj.coordElem(1,2)));
+coef = zeros(2,3);
 
-            % matrix of coefficients
-            coef = zeros(length(obj.coordElem),3);
+% matrix of coefficients
+for i = 1 : 2 %coefficients of Nj *  parametric coordinates. Linear equation
 
-            % coeficients of linear equations
-            for i = 1 : length(obj.coordElem)
+    coef(i,1) = obj.coordElem(2,i) - obj.coordElem(1,i);
+    coef(i,2) = obj.coordElem(3,i) - obj.coordElem(1,i);
+    coef(i,3) = obj.coordElem(1,i);
 
-                if i == 1
-                    j = 2; k = 3;
-                elseif i == 2
-                    j = 3; k = 1;
-                elseif i == 3
-                    j = 1; k = 2;
-                end
+end
 
-                coef(i,1) = (1/(2*Ae)) * ( obj.coordElem(j,2) - obj.coordElem(k,2) );
-                coef(i,2) = (1/(2*Ae)) * ( obj.coordElem(k,1) - obj.coordElem(j,1) );
-                coef(i,3) = (1/(2*Ae)) * ( obj.coordElem(j,1) * obj.coordElem(k,2) - obj.coordElem(k,1) * obj.coordElem(j,2) );
+%AD using my code
+xi = ValDerForward(0,[1 0]);
+eta = ValDerForward(0,[0 1]);
 
-            end
+coord(1) = coef(1,1) * xi + coef(1,2) * eta + coef(1,3);
+coord(2) = coef(2,1) * xi + coef(2,2) * eta + coef(2,3);
 
-            %AD using my code
-            x = ValDerForward(0,[1 0]);
-            y = ValDerForward(0,[0 1]);
+N = [ coord(1).double; coord(2).double ];
 
-            N(1) = coef(1,1)*x + coef(1,2)*y + coef(1,3);
-            N(2) = coef(2,1)*x + coef(2,2)*y + coef(2,3);
-            N(3) = coef(3,1)*x + coef(3,2)*y + coef(3,3);
+%Jacobian
+J = N(:,2:end);
 
-            n = [N(1).double; N(2).double; N(3).double];
-
-            %Jacobian
-            J = transpose(n(:,2:end)) * obj.coordElem;
         end
     end
 end
