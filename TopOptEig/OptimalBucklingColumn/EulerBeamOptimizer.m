@@ -167,7 +167,6 @@ classdef EulerBeamOptimizer < handle
             obj.optimizer = creator.optimizer;
         end
 
-
         function postProcess(obj)
             s.designVariable = obj.designVariable;
             s.sectionVariables = obj.sectionVariables;

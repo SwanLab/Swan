@@ -45,8 +45,6 @@ classdef EigModes < handle
             obj.computeEigenModesAndValues();            
             obj.computeLambda();   
             l = obj.lambda;
-%             gamma = obj.designVariable.getFirstEigenMode();            
-%             fx = gamma-obj.lambda(eigNum);
         end
 
        function grad = provideDerivative(obj,eigNum)
@@ -72,50 +70,34 @@ classdef EigModes < handle
             free = obj.freeNodes;
             ndofe = d.ndofsElem;
             ndofn = d.ndofsElem/d.nnodeElem;
-            W = zeros(d.ndofs,2);
-            W(free,1) = obj.v1;
-            W(free,2) = obj.v2;
+            W1    = zeros(d.ndofs,1);
+            W2    = zeros(d.ndofs,1);
+            W1(free,1) = obj.v1;
+            W2(free,1) = obj.v2;
             nElem = obj.mesh.nelem;
             dI = obj.sectionVariables.computeInertiaDerivative();
-            
             nVar = obj.sectionVariables.nDesVarElem;
-            gElemt = ndofn*((1:nElem)-1);
-            dx=dI;
-            WB = zeros(2,ndofe,nElem);
-            WBW = zeros(nElem,2);
-            for iEig = 1:2
-                for iDof = 1:ndofe
-                    for jDof = 1:ndofe
-                        indexJ = gElemt(:)+jDof;
-                        Bij(:,1) = squeeze(Belem(jDof,iDof,:));
-                        WBj(1,1,:) = W(indexJ,iEig).*Bij;
-                        WB(iEig,iDof,:) = WB(iEig,iDof,:)+WBj;
-                    end
-                    indexI = gElemt(:)+iDof;
-                    auxA = squeeze(WB(iEig,iDof,:));
-                    WBW(:,iEig) = auxA.*W(indexI,iEig)+WBW(:,iEig);
-                end
-                WBWt = repmat(WBW(:,iEig),nVar,1);
-                dfdx(iEig,:) = -dx.*WBWt;
+
+            gElemt = ndofn*((1:nElem)-1); 
+            W1t = zeros(nElem,ndofe);
+            W2t = zeros(nElem,ndofe);
+            for kDof = 1:ndofe
+                indexK = gElemt(:)+kDof;
+                W1t(:,kDof) = W1(indexK);  
+                W2t(:,kDof) = W2(indexK);                          
             end
+ 
+            W1BW1 = obj.productMatrix(W1t,W1t,Belem);
+            W2BW2 = obj.productMatrix(W2t,W2t,Belem);
+            
+            W1BW1 = repmat(W1BW1,nVar,1);
+            W2BW2 = repmat(W2BW2,nVar,1);
+            dfdx(1,:) = -dI.*W1BW1;
+            dfdx(2,:) = -dI.*W2BW2;
+
             dfdx(1,nVar*nElem+1) = 1;
             dfdx(2,nVar*nElem+1) = 1;
         end
-
-        function Wab = productMatrix(obj,Wa,Wb,Belem)
-            d     = obj.dim;
-            ndofe = d.ndofsElem;
-            Wab   = zeros(obj.mesh.nelem,1);
-            for iDof = 1:ndofe
-                for jDof = 1:ndofe
-                    Bij(:,1)   = squeeze(Belem(iDof,jDof,:));
-                    w          = Wa(:,iDof).*Bij.*Wb(:,jDof);
-                    Wab        = Wab + w;
-                end
-            end
-
-        end
-
 
         function dfdx = computeDoubleEig(obj,Belem)
             nVar = obj.sectionVariables.nDesVarElem;
@@ -126,140 +108,39 @@ classdef EigModes < handle
             nElem = obj.mesh.nelem;
             W1    = zeros(d.ndofs,1);
             W2    = zeros(d.ndofs,1);
-            dW1   = zeros(nVar*nElem,1);
-            dW2   = zeros(nVar*nElem,1);
-            dW1W2 = zeros(nVar*nElem,1);
             W1(free,1) = obj.v1;
             W2(free,1) = obj.v2;
             dI = obj.sectionVariables.computeInertiaDerivative();
-            switch nVar
-                case 1
-                    
-%                     for iElem=1:nVar*nElem
-%                         index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;
-%                         dx = dI(iElem,1);
-%                         dW1(iElem,1)= dx*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
-%                         dW2(iElem,1)= dx*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
-%                         dW1W2(iElem,1)= dx*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
-% %                         A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
-%                         A1 = dW1(iElem,1);
-%                         A12 = dW1W2(iElem,1);
-%                         A21 = dW1W2(iElem,1);
-%                         A2 = dW2(iElem,1);
-%                         a=1;
-%                         b = -(A1 + A2);
-%                         c = (A1*A2)-(A12*A21);
-%                         lambd1 = (-b+sqrt(b^2-4*a*c))/(2*a);
-%                         lambd2 = (-b-sqrt(b^2-4*a*c))/(2*a);
-%                         S = sort([lambd1,lambd2]);
-% %                         [U,R] = eigs(A,2,'SM');
-% %                         S = sort(diag(R));
-%                         dfdx(1,iElem) = -S(1);
-%                         dfdx(2,iElem) = -S(2);
-%                         lamdaE1(iElem)=lambd1;
-%                         lamdaE2(iElem)=lambd2;
-%                     end
-%                     dfdx(1,nElem+1) = 1;
-%                     dfdx(2,nElem+1) = 1;
 
-                  
-                   gElemt = ndofn*((1:nElem)-1); 
+            gElemt = ndofn*((1:nElem)-1); 
+            W1t = zeros(nElem,ndofe);
+            W2t = zeros(nElem,ndofe);
 
-                   W1t = zeros(nElem,ndofe);
-                   W2t = zeros(nElem,ndofe);
-                   for kDof = 1:ndofe
-                        indexK = gElemt(:)+kDof;
-                        W1t(:,kDof) = W1(indexK);  
-                        W2t(:,kDof) = W2(indexK);                          
-                   end
-              
-                    
-                W1BW1 = obj.productMatrix(W1t,W1t,Belem);
-                W1BW2 = obj.productMatrix(W1t,W2t,Belem);
-                W2BW2 = obj.productMatrix(W2t,W2t,Belem);
-
-               
-      
-                A1_r = dI.*W1BW1;
-                A12_r = dI.*W1BW2;
-                A21_r = dI.*W1BW2;
-                A2_r = dI.*W2BW2;
-                a=1;
-                b = -(A1_r + A2_r);
-                c = (A1_r.*A2_r)-(A12_r.*A21_r);
-                lambd1 = (-b+sqrt(b.^2-4*a.*c))/(2*a);
-                lambd2 = (-b-sqrt(b.^2-4*a.*c))/(2*a);
-                S = sort([lambd1, lambd2],2);
-                dfdx(1,:) = -S(:,1);
-                dfdx(2,:) = -S(:,2);
-                dfdx(1,nElem+1) = 1;
-                dfdx(2,nElem+1) = 1;
-                
-             
-
-                case 2
-                    for iElem=1:nElem
-                        index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;
-                        da = dI(iElem,1);
-                        db = dI(nElem+iElem,1);
-                        dW1(iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
-                        dW2(iElem,1)= da*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                        dW1W2(iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                        dW1(nElem+iElem,1)= db*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
-                        dW2(nElem+iElem,1)= db*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                        dW1W2(nElem+iElem,1)= db*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                    end
-                    
-                    for iElem=1:2*nElem
-                        A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
-                        A1 = dW1(iElem,1);
-                        A12 = dW1W2(iElem,1);
-                        A21 = dW1W2(iElem,1);
-                        A2 = dW2(iElem,1);
-                        a=1;
-                        b = -(A1 + A2);
-                        c = A1*A2 - A12*A21;
-                        lambd1 = -b+sqrt(b^2-4*a*c)/(2*a);
-                        lambd2 = -b-sqrt(b^2-4*a*c)/(2*a);
-                        [U,R] = eigs(A,2,'SM');
-                        S = sort(diag(R));
-                        dfdx(1,iElem) = -S(1);
-                        dfdx(2,iElem) = -S(2);
-                    end
-                    dfdx(1,2*nElem+1) = 1;
-                    dfdx(2,2*nElem+1) = 1;
-
-                case 4
-                    for nVar=1:4
-                        for iElem=1:nElem
-                            index = ndofn*(iElem-1)+1: ndofn*(iElem-1)+ndofe;
-                            da = dI((nVar-1)*nElem+iElem,1);
-                            dW1((nVar-1)*nElem+iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W1(index,1));
-                            dW2((nVar-1)*nElem+iElem,1)= da*(W2(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                            dW1W2((nVar-1)*nElem+iElem,1)= da*(W1(index,1)'*Belem(:,:,iElem)*W2(index,1));
-                        end
-                    end
-                    
-                    for iElem=1:4*nElem
-                        A = [dW1(iElem,1) dW1W2(iElem,1); dW1W2(iElem,1) dW2(iElem,1)];
-                        A1 = dW1(iElem,1);
-                        A12 = dW1W2(iElem,1);
-                        A21 = dW1W2(iElem,1);
-                        A2 = dW2(iElem,1);
-                        a=1;
-                        b = -(A1 + A2);
-                        c = A1*A2 - A12*A21;
-                        lambd1 = -b+sqrt(b^2-4*a*c)/(2*a);
-                        lambd2 = -b-sqrt(b^2-4*a*c)/(2*a);
-                        [U,R] = eigs(A,2,'SM');
-                        S = sort(diag(R));
-                        dfdx(1,iElem) = -S(1);
-                        dfdx(2,iElem) = -S(2);
-                    end
-                    dfdx(1,4*nElem+1) = 1;
-                    dfdx(2,4*nElem+1) = 1;
+            for kDof = 1:ndofe
+                indexK = gElemt(:)+kDof;
+                W1t(:,kDof) = W1(indexK);  
+                W2t(:,kDof) = W2(indexK);                          
             end
+ 
+            W1BW1 = obj.productMatrix(W1t,W1t,Belem);
+            W1BW2 = obj.productMatrix(W1t,W2t,Belem);
+            W2BW2 = obj.productMatrix(W2t,W2t,Belem);
 
+            W1BW1 = repmat(W1BW1,nVar,1);
+            W1BW2 = repmat(W1BW2,nVar,1);
+            W2BW2 = repmat(W2BW2,nVar,1);
+
+            A1 = dI.*W1BW1;
+            A12 = dI.*W1BW2;
+            A21 = dI.*W1BW2;
+            A2 = dI.*W2BW2;
+
+            S = obj.getEigenValues(A1,A2,A12,A21);
+
+            dfdx(1,:) = -S(:,1);
+            dfdx(2,:) = -S(:,2);
+            dfdx(1,nVar*nElem+1) = 1;
+            dfdx(2,nVar*nElem+1) = 1;
         end
 
     end
@@ -287,14 +168,14 @@ classdef EigModes < handle
             obj.dim = d;
         end
         
-         function createBoundaryConditions(obj)
+        function createBoundaryConditions(obj)
             d = obj.dim;
             fixnodes = union([1,2], [d.ndofs-1,d.ndofs]);
             %fixnodes = [1,d.ndofs-1];
             nodes = 1:d.ndofs;
             free  = setdiff(nodes,fixnodes);
             obj.freeNodes = free;
-         end
+        end
 
         function createStiffnessMatrix(obj)
             s.type = 'StiffnessMatrixColumn';
@@ -346,6 +227,28 @@ classdef EigModes < handle
             obj.D  = d; 
         end
         
+        function S = getEigenValues(obj,A1,A2,A12,A21)
+            a=1;
+            b = -(A1 + A2);
+            c = (A1.*A2)-(A12.*A21);
+            lambd1 = (-b+sqrt(b.^2-4*a.*c))/(2*a);
+            lambd2 = (-b-sqrt(b.^2-4*a.*c))/(2*a);
+            S = sort([lambd1, lambd2],2);
+        end
+
+        function Wab = productMatrix(obj,Wa,Wb,Belem)
+            d     = obj.dim;
+            ndofe = d.ndofsElem;
+            Wab   = zeros(obj.mesh.nelem,1);
+            for iDof = 1:ndofe
+                for jDof = 1:ndofe
+                    Bij(:,1)   = squeeze(Belem(iDof,jDof,:));
+                    w          = Wa(:,iDof).*Bij.*Wb(:,jDof);
+                    Wab        = Wab + w;
+                end
+            end
+        end
+
         function reorderModes(obj,lambda,V,D)
             if lambda(1)==D(1,1)
                 V1=V(:,1);
