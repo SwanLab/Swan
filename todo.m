@@ -2,8 +2,8 @@
 % OK! - Delete rhs_shapefunction -> use funs
 % OK! - Clean RHSunfitted
 % OK! - switch class(mesh.type) @ RHSfactory
-% - filter_pde_density using rhs_unfitted (now rhs_shapefunctionfun*
-% - filter_pde_levelset name change for unfitted
+% OK! - filter_pde_density using rhs_unfitted (now rhs_shapefunctionfun*
+% OK! - filter_pde_levelset name change for unfitted
 
 %% Questions
 % - Filter_P1_LevelSet.getP0fromP1() ??

@@ -1,8 +1,6 @@
-classdef RHSintegrator_ShapeFunction < handle
+classdef RHSintegrator_ShapeFunction < RHSintegrator
 
     properties (Access = private)
-        mesh
-        quadrature
     end
 
     methods (Access = public)
@@ -23,12 +21,6 @@ classdef RHSintegrator_ShapeFunction < handle
 
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
-        end
-
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            obj.quadrature = q;
         end
 
         function rhsC = computeElementalRHS(obj, fun)

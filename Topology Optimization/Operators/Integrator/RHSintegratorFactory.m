@@ -21,8 +21,6 @@ classdef RHSintegratorFactory < handle
                     % Computes the RHS using the NODAL FORCES and SHAPE
                     % FUNCTIONS for CUT meshes
                     obj = RHSintegrator_CutMesh(cParams);
-                case 'CutMeshFun'
-                    obj = RHSintegrator_CutMeshFun(cParams);
                 case {'Composite','COMPOSITE'}
                     % Computes the RHS as a COMPOSITE of other RHS
                     % integrators
