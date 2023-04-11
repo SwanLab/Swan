@@ -30,7 +30,8 @@ classdef P0Function < FeFunction
         function print(obj, s)
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            %p = FunctionPrinter(s);
+            p = ParaviewPostprocessor(s);
             p.print();
         end
 
