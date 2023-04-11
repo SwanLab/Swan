@@ -13795,8 +13795,19 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
-];
+% lnodes = [
+% ];
+
+vertices = get_vertices(coord);
+
+dirichlet_data = [ ];
+for i = 1:length(vertices)
+    verticeNumber = vertices(i,1);
+    for j = 1:3
+        dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
+    end
+end
+
 
 %% Force Prescribed
 % Node                Dimension                Value
@@ -13871,3 +13882,67 @@ External_border_nodes = [
 
 Materials = [
 ];
+
+
+
+
+
+%% FUNCTIONS (passar a classes!)
+
+function vertices = get_vertices(gidcoord)
+    vertices = [];
+    for i = 1:length(gidcoord)
+        nodeGID = gidcoord(i,:);
+        nodeCoords = gidcoord(i,2:4);
+        if (isequal(nodeCoords, [-0.5,0.5,1]) || isequal(nodeCoords, [-0.5,0.5,0]) || ...
+                isequal(nodeCoords, [-0.5,-0.5,1]) || isequal(nodeCoords, [-0.5,-0.5,0]) || ...
+                isequal(nodeCoords, [0.5,-0.5,1]) || isequal(nodeCoords, [0.5,-0.5,0]) || ...
+                isequal(nodeCoords, [0.5,0.5,1]) || isequal(nodeCoords, [.5,0.5,0]))
+            vertices = [vertices; nodeGID];
+        end
+    end
+end
+
+function MS = get_MasterSlave(gidcoord,vertices)
+    MS = [ ];
+    for i = 1:length(gidcoord)
+        nodeCoords = gidcoord(i,2:4);
+        if ismember(gidcoord(i,:),vertices,'rows')
+        else % if node is not a vertice
+            if any(nodeCoords==0)
+                xCoord = gidcoord(i,2);
+                yCoord = gidcoord(i,3);
+                zCoord = gidcoord(i,4);
+                if xCoord==0
+                    for j = 1:length(gidcoord)
+                        nodeCompared = gidcoord(j,2:4);
+                        nodeSuposed = [xCoord+1,yCoord,zCoord];
+                        if (isequal(nodeCompared,nodeSuposed))
+                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
+                        end
+                    end
+                end
+                if yCoord==0
+                    for j = 1:length(gidcoord)
+                        nodeCompared = gidcoord(j,2:4);
+                        nodeSuposed = [xCoord,yCoord+1,zCoord];
+                        if (isequal(nodeCompared,nodeSuposed))
+                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
+                        end
+                    end
+                end
+                if zCoord==0
+                    for j = 1:length(gidcoord)
+                        nodeCompared = gidcoord(j,2:4);
+                        nodeSuposed = [xCoord,yCoord,zCoord+1];
+                        if (isequal(nodeCompared,nodeSuposed))
+                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
