@@ -26,7 +26,7 @@ classdef SimpleShapeOptimizationSolver < handle
             xOld = xNew;
             x = xOld;
             incX = obj.computeIncX(xOld,xNew);
-            iter = 1;
+            iter = 1
             while ~obj.hasConverged(iter,incX)
                 [J,dJ] = obj.cost.computeValueAndGradient(xNew);
                 t = obj.computeLineSearch(x,dJ);
@@ -35,8 +35,7 @@ classdef SimpleShapeOptimizationSolver < handle
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
                 obj.plotCostAndLineSearch(iter,J,t,incX);
-                iter = iter + 1;
-                iter
+                iter = iter + 1               
             end
         end
         

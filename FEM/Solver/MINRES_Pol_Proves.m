@@ -1,4 +1,4 @@
-classdef MINRES_Pol < handle
+classdef MINRES_Pol_Proves < handle
 
     properties (Access = public)
         xPrevIt
@@ -6,7 +6,7 @@ classdef MINRES_Pol < handle
 
     methods (Access = public)
 
-        function obj = MINRES_Pol()
+        function obj = MINRES_Pol_Proves()
             obj.init();
         end
 
@@ -104,16 +104,15 @@ classdef MINRES_Pol < handle
             %             xNew = x_k;
 
 
-%             iter = load("CounterPol\iter.mat").iter;
-            %             neededIter = load("CounterPol\neededIter.mat").neededIter;
+            iter = load("CounterPol\iter.mat").iter;
+            neededIter = load("CounterPol\neededIter.mat").neededIter;
             %             solutions = load("CounterPol\solutions.mat").solutions;
 
             %             solutions(:,iter) = xNew;
-            %             neededIter(iter) = j-1;
-%             iter = iter + 1;
-% 
-%             save('CounterPol\iter.mat', 'iter');
-            %             save('CounterPol\neededIter.mat', 'neededIter');
+            neededIter(iter) = j-1;
+            iter = iter + 1;
+            save('CounterPol\iter.mat', 'iter');
+            save('CounterPol\neededIter.mat', 'neededIter');
             %             save('CounterPol\solutions.mat', 'solutions');
 
 %             save('CounterPol\xNew.mat', 'xNew');

@@ -4,14 +4,14 @@
 function runningSimpleTopOpt
 tic
 iter = 1;
-% neededIter = zeros(102,1);
-xNew = zeros(20200,1);
+neededIter = zeros(102,1);
+% xNew = zeros(20200,1);
 % solutions = zeros(20200,102);
 
 % save('CounterPol\solutions.mat', 'solutions');
-save('CounterPol\iter.mat', 'iter');
+% save('CounterPol\iter.mat', 'iter');
 % save('CounterPol\neededIter.mat', 'neededIter');
-save('CounterPol\xNew.mat', 'xNew');
+% save('CounterPol\xNew.mat', 'xNew');
 clear
 s.maxIter = 100;
 s.TOL = 1e-12;

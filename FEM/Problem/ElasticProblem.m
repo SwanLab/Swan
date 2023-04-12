@@ -6,13 +6,13 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        solver
     end
 
     properties (Access = private)
         displacement
         stiffnessMatrix
-        RHS
-        solver
+        RHS        
         geometry
         scale
         pdim
@@ -147,8 +147,12 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type =  'MINRES';
-            obj.solver = Solver.create(s);
+%             s.type =  'MINRES';
+%             obj.solver = Solver.create(s);
+
+
+            obj.solver = MINRES_Pol();
+%             obj.solver = MINRES_Pol_Proves();
         end
 
         function computeStiffnessMatrix(obj)
@@ -183,10 +187,9 @@ classdef ElasticProblem < handle
             bc = obj.boundaryConditions;
             Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
             Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
+            u = obj.solver.solve(Kred,Fred);            
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
-
             z.mesh   = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
