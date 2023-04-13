@@ -55,10 +55,7 @@ classdef PenalizerTester < handle
                 file = fullfile("DensityBasedProjection",'Test','Data','penalizedVariable');
                 s = load(file);
                 obj.expectedResult = s.penalizedVariable;
-                file = fullfile("DensityBasedProjection",'Test','Data','elementalStiffnessMatrix');
-                s = load(file);
-                obj.structure.elementalStiffnessMatrix = s.elementalStiffnessMatrix;
-                
+
             else
                 error('No test Data for the current iterations')
             end

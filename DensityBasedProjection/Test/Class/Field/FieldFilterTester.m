@@ -20,7 +20,7 @@ classdef FieldFilterTester < handle
             % Create the objects
             s.filterParameters =obj.filterParameters;
             s.field = obj.field;
-            obj.results = FieldFilter(s);
+            obj.results = FilterComputer(s);
             obj.results.compute();
         end
         function loadResults(obj,cParams)

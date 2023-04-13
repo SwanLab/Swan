@@ -41,7 +41,7 @@ classdef DesignFieldTester < handle
             B.validate;
         end
         function testFilteredFieldDerivator(obj)
-%            obj.designFields.deriveFilteredField();
+            obj.designFields.deriveFilteredField();
             results = obj.designFields.derivedFilteredField;
             %Validate Results
             s.results = results;

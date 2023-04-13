@@ -21,6 +21,8 @@ classdef CostFieldDerivator < handle
             obj.deriveCostRespectProjectedField();
             %Penalize the the cost derivated respective the proyectedField
             obj.penalizeDerivatedCost();
+            %Derivate the filtered field by the field
+            obj.deriveFilteredFieldRespectedField();
             % Calculate the cost derivated by the field
             obj.derive();
         end
@@ -59,6 +61,9 @@ classdef CostFieldDerivator < handle
             B = DerivativePenalizer(s);
             B.penalize();
             obj.derivedCostProjected = B.penalizedDerivative;
+        end
+        function deriveFilteredFieldRespectedField(obj)
+            obj.designFields.deriveFilteredField();
         end
     end
 end

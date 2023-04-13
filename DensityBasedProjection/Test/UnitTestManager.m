@@ -28,7 +28,7 @@ btnDerivedVolumen =  uicontrol('Style','pushbutton','String','Run Derived Volume
 
 function btn1Callback(hObject,eventdata)
   clc
-  GlobalTest(3);
+  GlobalTest(3)
   disp('-----------')
 end
 
