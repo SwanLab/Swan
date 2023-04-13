@@ -66,82 +66,67 @@ classdef EigModes < handle
     methods (Access = private)
         
         function dfdx = computeSimpleEig(obj,Belem)
-            d = obj.dim;
-            free = obj.freeNodes;
-            ndofe = d.ndofsElem;
-            ndofn = d.ndofsElem/d.nnodeElem;
-            W1    = zeros(d.ndofs,1);
-            W2    = zeros(d.ndofs,1);
-            W1(free,1) = obj.v1;
-            W2(free,1) = obj.v2;
-            nElem = obj.mesh.nelem;
-            dI = obj.sectionVariables.computeInertiaDerivative();
-            nVar = obj.sectionVariables.nDesVarElem;
-
-            gElemt = ndofn*((1:nElem)-1); 
-            W1t = zeros(nElem,ndofe);
-            W2t = zeros(nElem,ndofe);
-            for kDof = 1:ndofe
-                indexK = gElemt(:)+kDof;
-                W1t(:,kDof) = W1(indexK);  
-                W2t(:,kDof) = W2(indexK);                          
-            end
- 
-            W1BW1 = obj.productMatrix(W1t,W1t,Belem);
-            W2BW2 = obj.productMatrix(W2t,W2t,Belem);
+            [v1t,v2t] = obj.computeEigenVectorByDof();
+         
+            v1Bv1 = obj.productMatrix(v1t,v1t,Belem);
+            v2Bv2 = obj.productMatrix(v2t,v2t,Belem);
             
-            W1BW1 = repmat(W1BW1,nVar,1);
-            W2BW2 = repmat(W2BW2,nVar,1);
-            dfdx(1,:) = -dI.*W1BW1;
-            dfdx(2,:) = -dI.*W2BW2;
+            nVar  = obj.sectionVariables.nDesVarElem;
+            
+            v1Bv1 = repmat(v1Bv1,nVar,1);
+            v2Bv2 = repmat(v2Bv2,nVar,1);
+            
+            dI    = obj.sectionVariables.computeInertiaDerivative();            
+            dfdx(1,:) = -dI.*v1Bv1;
+            dfdx(2,:) = -dI.*v2Bv2;
 
-            dfdx(1,nVar*nElem+1) = 1;
-            dfdx(2,nVar*nElem+1) = 1;
+            dfdx(:,end+1) = 1;
         end
 
         function dfdx = computeDoubleEig(obj,Belem)
-            nVar = obj.sectionVariables.nDesVarElem;
-            d    = obj.dim;
-            free = obj.freeNodes;
-            ndofe = d.ndofsElem;
-            ndofn = d.ndofsElem/d.nnodeElem;
-            nElem = obj.mesh.nelem;
-            W1    = zeros(d.ndofs,1);
-            W2    = zeros(d.ndofs,1);
-            W1(free,1) = obj.v1;
-            W2(free,1) = obj.v2;
-            dI = obj.sectionVariables.computeInertiaDerivative();
+            [v1t,v2t] = obj.computeEigenVectorByDof();
+            
+            dI    = obj.sectionVariables.computeInertiaDerivative();
+            nVar  = obj.sectionVariables.nDesVarElem;
+            A11 = obj.productMatrix(v1t,v1t,Belem);
+            A12 = obj.productMatrix(v1t,v2t,Belem);
+            A22 = obj.productMatrix(v2t,v2t,Belem);
 
-            gElemt = ndofn*((1:nElem)-1); 
-            W1t = zeros(nElem,ndofe);
-            W2t = zeros(nElem,ndofe);
+            A11 = repmat(A11,nVar,1);
+            A12 = repmat(A12,nVar,1);
+            A22 = repmat(A22,nVar,1);
 
-            for kDof = 1:ndofe
-                indexK = gElemt(:)+kDof;
-                W1t(:,kDof) = W1(indexK);  
-                W2t(:,kDof) = W2(indexK);                          
-            end
- 
-            W1BW1 = obj.productMatrix(W1t,W1t,Belem);
-            W1BW2 = obj.productMatrix(W1t,W2t,Belem);
-            W2BW2 = obj.productMatrix(W2t,W2t,Belem);
-
-            W1BW1 = repmat(W1BW1,nVar,1);
-            W1BW2 = repmat(W1BW2,nVar,1);
-            W2BW2 = repmat(W2BW2,nVar,1);
-
-            A1 = dI.*W1BW1;
-            A12 = dI.*W1BW2;
-            A21 = dI.*W1BW2;
-            A2 = dI.*W2BW2;
+            A1  = dI.*A11;
+            A12 = dI.*A12;
+            A21 = dI.*A12;
+            A2  = dI.*A22;
 
             S = obj.getEigenValues(A1,A2,A12,A21);
 
             dfdx(1,:) = -S(:,1);
             dfdx(2,:) = -S(:,2);
-            dfdx(1,nVar*nElem+1) = 1;
-            dfdx(2,nVar*nElem+1) = 1;
+            dfdx(:,end+1) = 1;
         end
+
+        function [v1t,v2t] = computeEigenVectorByDof(obj)
+            free  = obj.freeNodes;
+            ndofe = obj.dim.ndofsElem;
+            nnodeElem = obj.dim.nnodeElem;
+            ndofn = obj.dim.ndofsElem/nnodeElem;
+            nElem = obj.mesh.nelem;
+            v1F    = zeros(obj.dim.ndofs,1);
+            v2F    = zeros(obj.dim.ndofs,1);
+            v1F(free,1) = obj.v1;
+            v2F(free,1) = obj.v2;
+            gElemt = ndofn*((1:nElem)-1); 
+            v1t = zeros(nElem,ndofe);
+            v2t = zeros(nElem,ndofe);
+            for kDof = 1:ndofe
+                indexK = gElemt(:)+kDof;
+                v1t(:,kDof) = v1F(indexK);  
+                v2t(:,kDof) = v2F(indexK);                          
+            end
+        end        
 
     end
 
@@ -228,7 +213,7 @@ classdef EigModes < handle
         end
         
         function S = getEigenValues(obj,A1,A2,A12,A21)
-            a=1;
+            a = 1;
             b = -(A1 + A2);
             c = (A1.*A2)-(A12.*A21);
             lambd1 = (-b+sqrt(b.^2-4*a.*c))/(2*a);
