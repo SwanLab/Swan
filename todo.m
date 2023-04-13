@@ -14,6 +14,18 @@
 
 
 %% Long-term
+% Mesh cleanup public
+% Trial/test -> Mass matrix P0 P1
+% Filters -> using only LHS/RHsinteg
+
+% CharacteristicFunction should return an UnfittedMesh
+
+% Nesterov
+
+
+% Preprocess / GUI -> TBD
+
+
 % - Use FeFunctions in TopOpt_Problem
 % - PDE belongs to Optimizer, not ShapeFunctional
 % - Micro as three elasticity problems
