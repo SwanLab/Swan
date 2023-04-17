@@ -28,19 +28,19 @@ classdef FE_Projector < Projector
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
             s.fun   = FE_LagrangianFunction.create(obj.mesh, 1,obj.ls.polynomialOrder);
-            s.quadratureOrder = 'PROVA';
+            s.quadratureOrder = 'ORDER10';
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
         function RHS = computeRHS(obj,fun)
-            quad = obj.createRHSQuadrature(fun);
+            quad = obj.createRHSQuadrature();
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             
             cParams.mesh.type = obj.mesh.type;
-            cParams.order = 'CUBIC';
+            cParams.order = quad.order;
             cParams.polynomialOrder = obj.ls.polynomialOrder;
             I = FE_Interpolation(cParams);
             I.computeShapeDeriv(xV);
@@ -71,9 +71,8 @@ classdef FE_Projector < Projector
             RHS = f;
         end
 
-        function q = createRHSQuadrature(obj, fun)
-%             ord = obj.determineQuadratureOrder(fun);
-            ord = 'PROVA';
+        function q = createRHSQuadrature(obj)
+            ord = 'ORDER10';
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(ord);
         end

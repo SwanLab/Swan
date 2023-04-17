@@ -203,10 +203,10 @@ classdef FE_LagrangianFunction < FeFunction
                             y = m.coord(:,2);
                             z = obj.interpolation.lagrangeElement.evaluate(obj.fValues(obj.dofs(ielem,:)),x,y);
                             a = trisurf(m.connec,x,y,z); 
-%                             a.EdgeColor = [0 0 0];
-%                             a.EdgeAlpha = 0.3;
+                            a.EdgeColor = [0 0 0];
+                            a.EdgeAlpha = 0.3;
                         end
-                        shading interp
+%                         shading interp
                         grid on
                         view(0,90)
                         obj.mesh.plot();
