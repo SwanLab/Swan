@@ -8,6 +8,10 @@ classdef LHSintegratorFactory < handle
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
                    obj = LHSintegrator_Mass(cParams);
+               case 'MassTestTrial'
+                   % Computes the MASS MATRIX by first computing the
+                   % elemental LHS (N*N) and then assembling the result
+                   obj = LHSintegrator_MassTestTrial(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh
@@ -57,8 +61,8 @@ classdef LHSintegratorFactory < handle
                case 'Laplacian'
                    obj = LHSintegrator_Laplacian(cParams);
 
-               case 'StokesD'
-                   obj = LHSintegrator_StokesD(cParams);
+               case 'WeakDivergence'
+                   obj = LHSintegrator_WeakDivergence(cParams);
 
                case 'AdvectionMatrix'
                            %cross(b,grad(b))

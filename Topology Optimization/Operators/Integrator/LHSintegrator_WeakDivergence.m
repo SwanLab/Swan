@@ -1,4 +1,4 @@
-classdef LHSintegrator_StokesD < handle
+classdef LHSintegrator_WeakDivergence < handle
 
     properties (Access = private)
         pressureFun
@@ -9,7 +9,7 @@ classdef LHSintegrator_StokesD < handle
 
     methods (Access = public)
 
-        function obj = LHSintegrator_StokesD(cParams)
+        function obj = LHSintegrator_WeakDivergence(cParams)
             %             obj.init(cParams);
             %             obj.createQuadrature();
             %             obj.createInterpolation();

@@ -1,13 +1,21 @@
 %% This is a sandbox file!
 % Feel free to test anything here :)
-clc; clear; close all;
+% clc; clear; close all;
 
-% file = 'test2d_triangle';
-% file = 'test2d_quad';
-% file = 'test3d_hexahedra';
+% Load mesh
 file = 'test2d_micro';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
-fem = FEM.create(s);
-fem.solve();
+clear s;
+
+% LHS integrator
+trial = P1Function.create(mesh, 1);
+test  = P0Function.create(mesh, 1);
+
+s.type = 'MassTestTrial';
+s.mesh = mesh;
+s.test = test;
+s.trial = trial;
+lhs = LHSintegrator.create(s);
+LHS = lhs.compute();

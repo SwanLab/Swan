@@ -1,9 +1,6 @@
 classdef Mesh < handle
 
     properties (GetAccess = public, SetAccess = private)
-        nnodeElem
-%         npnod
-        nnodes
         type
         kFace
         geometryType
@@ -11,9 +8,10 @@ classdef Mesh < handle
         coord
         connec
 
-        nelem
         ndim
-
+        nelem
+        nnodes
+        nnodeElem
 
         coordElem
         interpolation
