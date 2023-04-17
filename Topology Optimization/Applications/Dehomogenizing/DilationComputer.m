@@ -74,28 +74,28 @@ classdef DilationComputer < handle
         function gradT = computeFieldTimesDivField(obj,q)
             a1    = obj.orientationVector{1}; % igual
             a2    = obj.orientationVector{2}; % igual
-            %aDa1  = a1.computeFieldTimesDivergence(q);
-            %aDa2  = a2.computeFieldTimesDivergence(q);
-            %gradT = -aDa1.fValues - aDa2.fValues;
-            
+            aDa1  = a1.computeFieldTimesDivergence(q);
+            aDa2  = a2.computeFieldTimesDivergence(q);
+            gradT = -aDa1.fValues - aDa2.fValues;
+%             
             % Changes start here
-            diva1 = a1.computeDivergence(q);
-            fG1  = a2.evaluate(q.posgp);
-            fdivFG = bsxfun(@times,diva1.fValues,fG1); %falta afegir valor absolut?
-            s.quadrature = q;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            diva1a2 = FGaussDiscontinuousFunction(s);
-
-            diva2 = a2.computeDivergence(q);
-            fG2  = a1.evaluate(q.posgp);
-            fdivFG = bsxfun(@times,diva2.fValues,fG2); %falta afegir valor absolut?
-            s.quadrature = q;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            diva2a1 = FGaussDiscontinuousFunction(s);
-            
-            gradT = diva1a2.fValues+diva2a1.fValues; %falta afegir valor absolut?
+%             diva1 = a1.computeDivergence(q);
+%             fG1  = a2.evaluate(q.posgp);
+%             fdivFG = bsxfun(@times,abs(diva1.fValues),fG1); % Valor absolut?
+%             s.quadrature = q;
+%             s.mesh       = obj.mesh;
+%             s.fValues    = fdivFG;
+%             diva1a2 = FGaussDiscontinuousFunction(s);
+% 
+%             diva2 = a2.computeDivergence(q);
+%             fG2  = a1.evaluate(q.posgp);
+%             fdivFG = bsxfun(@times,abs(diva2.fValues),fG2); % Valor absolut?
+%             s.quadrature = q;
+%             s.mesh       = obj.mesh;
+%             s.fValues    = fdivFG;
+%             diva2a1 = FGaussDiscontinuousFunction(s);
+%             
+%             gradT = abs(diva1a2.fValues+diva2a1.fValues); % Valor absolut?
         end
         
         function u = solveSystem(obj)

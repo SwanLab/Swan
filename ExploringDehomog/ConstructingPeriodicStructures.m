@@ -15,7 +15,7 @@ mesh = m;
 
 % Compute epsilon
 L = mesh.computeCharacteristicLength();
-nCells = [16 16]; %??
+nCells = [10 10]; %??
 s.epsilon = L./nCells;
 
 
@@ -27,7 +27,7 @@ s.fracRadius = 0.5;
 s.widthV= 0.25;
 s.widthH= 0.25;
 s.creatorSettings    = s;
-s.initialCase    = 'Younes';
+s.initialCase    = 'Younes2';
 lSet = LevelSet(s);
 
 

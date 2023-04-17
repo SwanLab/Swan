@@ -62,7 +62,8 @@ classdef Dehomogenizer < handle
         end
 
         function computeLevelSet(obj)
-            s.type               = 'periodicAndOriented';
+            %s.type               = 'periodicAndOriented';
+            s.type               = 'Younes';
             s.mesh               = obj.mesh;
             s.orientationVectors = obj.computeOrientationVectors();
             s.cellLevelSetParams = obj.cellLevelSetParams;

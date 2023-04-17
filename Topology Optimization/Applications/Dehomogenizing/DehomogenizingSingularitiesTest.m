@@ -24,6 +24,7 @@ classdef DehomogenizingSingularitiesTest < handle
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
             mSize = linspace(0.04,0.042,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            mSize = 0.06;
             for iMesh = 1:length(mSize)
                 obj.meshSize = mSize(iMesh);
                 obj.createMesh();

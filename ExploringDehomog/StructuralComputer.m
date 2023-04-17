@@ -33,10 +33,8 @@ classdef StructuralComputer < handle
     methods (Access = private)
 
         function init(obj)
-            %obj.testName = cParams.testName;
-            %obj.meshSize = 0.00521;
-            obj.meshSize = 0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            obj.nCells   = [60 62];%linspace(60,62,40);%45;   %45
+            obj.meshSize = 0.05;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.nCells   = [20 20];%linspace(60,62,40);%45;   %45
             obj.xmin = 0.5;
             obj.xmax = 2.0;
             obj.ymin = 0.25;
@@ -61,16 +59,9 @@ classdef StructuralComputer < handle
 
         function createOrientation(obj)
             m = obj.mesh;
-            %s1 = obj.singularitiesData(:,1);
-            %s2 = obj.singularitiesData(:,2);
             x1 = m.coord(:,1);
             x2 = m.coord(:,2);
-            theta = atan(x1./x2);
-            %v(:,1) = tan(x1);
-            %v(:,2) = cos(pi*(x2 + s2*x1));
-            %beta = atan2(v(:,2),v(:,1));
-            %alpha = beta/2;
-           
+            theta = 0*atan(x1./x2);
             obj.orientation(:,1) = cos(theta);
             obj.orientation(:,2) = sin(theta);
         end
