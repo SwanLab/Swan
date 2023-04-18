@@ -43,7 +43,7 @@ classdef LevelSet < DesignVariable
         end
         
         function [fun, funNames] = getFunsToPlot(obj)
-            aa.mesh = obj.mesh.meshes{1};
+            aa.mesh = obj.mesh;
             aa.fValues = obj.value;
             valFun = P1Function(aa);
             
@@ -55,7 +55,7 @@ classdef LevelSet < DesignVariable
 %             funNames = {'value', 'alpha'};
             fun = {valFun};
             funNames = {'value'};
-            cc.mesh     = obj.mesh.meshes{1};
+            cc.mesh     = obj.mesh;
             cc.filename = 'levelsetdesignvar';
             cc.fun      = fun;
             cc.funNames = funNames;

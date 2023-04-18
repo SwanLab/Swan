@@ -7369,6 +7369,10 @@ gidlnods = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
+% lnodes = [
+% ];
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 vertices = get_vertices(gidcoord);
 
 dirichlet_data = [ ];
@@ -7378,6 +7382,7 @@ for i = 1:length(vertices)
         dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
     end
 end
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 % dirichlet_data = [ ]; ??  
 
@@ -7451,7 +7456,7 @@ Micro_gauss_post = [
 % Nodes that are Slaves
 % Nodes             Value (1-Slave,0-Master)
 
-Micro_slave = get_MasterSlave(gidcoord,vertices);
+% Micro_slave = get_MasterSlave(gidcoord,vertices);
 % Micro_slave = [
 % ];
 

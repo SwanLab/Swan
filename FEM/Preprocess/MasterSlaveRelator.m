@@ -163,7 +163,6 @@ classdef MasterSlaveRelator < handle
             MS = obj.msRelation;
             uniqueValues = unique(MS(:));
             repeatedValues = uniqueValues(histc(MS(:), uniqueValues) > 1);
-%             newMS = MS(~ismember(MS, repeatedValues, 'rows'), :);
             rowsRemoved = ismember(MS(:,1), repeatedValues) | ismember(MS(:,2), repeatedValues);
             MS(rowsRemoved, :) = [];
             obj.msRelation = MS;

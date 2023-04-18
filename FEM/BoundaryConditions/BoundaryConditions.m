@@ -93,15 +93,17 @@ classdef BoundaryConditions < handle
             globalNdof = 0;
             for i = 1:nfields
                 bc = s.bc{i};
-                cornerDirichlet = bc.dirichlet;
-                edgesDirichlet = zeros(length(obj.nodesEdges),obj.ndimf);
-                rows = repmat(obj.nodesEdges, [size(edgesDirichlet,2), 1]);
-                cols = repmat(1:size(edgesDirichlet,2), [length(obj.nodesEdges), 1]);
-                cols = cols(:);
-                newValues = zeros(size(rows,1), 1);
-                edgesDirichlet = [rows, cols, newValues];
-                totalDirichlet = [cornerDirichlet; edgesDirichlet];
-                totalDirichlet = sortrows(totalDirichlet, 1);
+%                 cornerDirichlet = bc.dirichlet;
+%                 edgesDirichlet = zeros(length(obj.nodesEdges),obj.ndimf);
+%                 rows = repmat(obj.nodesEdges, [size(edgesDirichlet,2), 1]);
+%                 cols = repmat(1:size(edgesDirichlet,2), [length(obj.nodesEdges), 1]);
+%                 cols = cols(:);
+%                 newValues = zeros(size(rows,1), 1);
+%                 edgesDirichlet = [rows, cols, newValues];
+%                 totalDirichlet = [cornerDirichlet; edgesDirichlet];
+%                 totalDirichlet = sortrows(totalDirichlet, 1);
+                
+                totalDirichlet = bc.dirichlet;
 
                 obj.dirichletInput = totalDirichlet;
                 obj.pointloadInput = bc.pointload;
