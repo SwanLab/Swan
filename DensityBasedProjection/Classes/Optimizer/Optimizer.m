@@ -57,11 +57,10 @@ classdef Optimizer < handle
                 oldI = obj.I;
                 oldD = obj.D;
 
-
-                %Set the design Field in the design objects
-                obj.updateDataInDesignVariables();
                 % Compute cost and displacement with the projected field
                 obj.computeCost();
+                % Derivate the projected field respected the filteredField
+                obj.deriveProjectedFieldRespectedFilteredField();
                 % Calculate the cost derivated by the field
                 obj.deriveCostRespectedField();
                 % Compute volumen, derivate volumen, filter derivated volumen
@@ -74,8 +73,9 @@ classdef Optimizer < handle
                 obj.filterNewField();
                 %Project the new filtered field
                 obj.projectNewFilteredField();
-                % Derivate the projected field respected the filteredField
-                obj.deriveProjectedFieldRespectedFilteredField();
+                %Set the design Field in the design objects
+                obj.updateDataInDesignVariables();
+
                 %Plot results
                 obj.plotResults(iter);
                 %New optimizer parameters

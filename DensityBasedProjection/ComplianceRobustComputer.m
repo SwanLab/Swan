@@ -181,10 +181,6 @@ classdef ComplianceRobustComputer < handle
             obj.I.designField.project();
             obj.D.designField.project();
 
-            obj.E.designField.deriveProjectedField;
-            obj.I.designField.deriveProjectedField;
-            obj.D.designField.deriveProjectedField;
-
 
         end
         
