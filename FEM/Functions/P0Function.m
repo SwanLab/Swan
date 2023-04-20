@@ -27,6 +27,18 @@ classdef P0Function < FeFunction
             end
         end
 
+        function dofConnec = computeDofConnectivity(obj)
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nDofsE = nDimf;
+            nElem  = size(conne,1);
+            dofsElem  = zeros(nDofsE,nElem);
+            for iUnkn = 1:nDimf
+                dofsElem(iUnkn,:) = iUnkn:nDimf:nElem;
+            end
+            dofConnec = dofsElem;
+        end
+        
         function N = computeShapeFunctions(obj, quad)
             xV = quad.posgp;
             obj.interpolation.computeShapeDeriv(xV);

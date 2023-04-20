@@ -58,7 +58,7 @@ classdef LHSintegrator_MassTestTrial < handle
             nNodE  = size(shapesTest,1);
             nDofE  = nNodE*nDimf;
 
-            lhs = zeros(size(shapesTrial,1), size(shapesTest,1), nElem);
+            lhs = zeros(size(shapesTest,1), size(shapesTrial,1), nElem);
             for igaus = 1:nGaus
                 dv(1,1,:) = dVolu(igaus,:);
                 Nv = shapesTest(:,igaus);
