@@ -33,12 +33,13 @@ classdef StructuralComputer < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.05;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.meshSize = 0.01;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             obj.nCells   = [20 20];%linspace(60,62,40);%45;   %45
+            %obj.xmin = 0.5;
             obj.xmin = 0.5;
-            obj.xmax = 2.0;
-            obj.ymin = 0.25;
-            obj.ymax = 1.75;
+            obj.xmax = 1;
+            obj.ymin = 0.5;
+            obj.ymax = 1;
             obj.singularitiesData = [0.32,-0.8];
             obj.widthH = 0.87;
             obj.widthW = 0.87;
@@ -61,7 +62,7 @@ classdef StructuralComputer < handle
             m = obj.mesh;
             x1 = m.coord(:,1);
             x2 = m.coord(:,2);
-            theta = 0*atan(x1./x2);
+            theta = atan(x1./x2);
             obj.orientation(:,1) = cos(theta);
             obj.orientation(:,2) = sin(theta);
         end
@@ -77,10 +78,15 @@ classdef StructuralComputer < handle
         end
 
         function s = createLevelSetCellParams(obj)
+%             I        = ones(size(obj.mesh.coord,1),1);
+%             s.type   = 'rectangleInclusion';
+%             s.widthH = obj.widthH*I;
+%             s.widthV = obj.widthW*I;
+            s.ndim   = 2;
             I        = ones(size(obj.mesh.coord,1),1);
-            s.type   = 'rectangleInclusion';
-            s.widthH = obj.widthH*I;
-            s.widthV = obj.widthW*I;
+            s.type   = 'circleInclusion';
+            s.fracRadius = 0.5*I;
+            %s.widthV = obj.widthW*I;
             s.ndim   = 2;
         end
 

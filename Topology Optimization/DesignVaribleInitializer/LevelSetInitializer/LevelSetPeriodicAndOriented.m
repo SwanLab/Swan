@@ -107,20 +107,20 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function interpolateM1M2(obj)
-            m1 = obj.cellLevelSetParams.widthH;
-            m2 = obj.cellLevelSetParams.widthV;
+            m1 = obj.cellLevelSetParams.fracRadius;
+            %m2 = obj.cellLevelSetParams.widthV;
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
-            obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
+            %obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
         end
 
         function thresholdParameters(obj)
-            mL = obj.computeMinLengthInUnitCell();
-            s.minLengthInUnitCell = mL;
-            t = MparameterThresholder(s);
-            m1 = t.thresh(obj.m1);
-            m2 = t.thresh(obj.m2);
-            obj.cellLevelSetParams.widthH = m1;
-            obj.cellLevelSetParams.widthV = m2;
+%             mL = obj.computeMinLengthInUnitCell();
+%             s.minLengthInUnitCell = mL;
+%             t = MparameterThresholder(s);
+%             m1 = t.thresh(obj.m1);
+%             m2 = t.thresh(obj.m2);
+            obj.cellLevelSetParams.widthH = obj.m1;
+            obj.cellLevelSetParams.widthV = obj.m2;
         end
 
  
@@ -183,7 +183,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function f = periodicFunction(y)
             f = abs(cos(pi/2*(y))).^2;
-            %  f = y - floor(y);
+            f = y - floor(y) -1/2;
         end
 
     end

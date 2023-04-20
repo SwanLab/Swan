@@ -46,7 +46,7 @@ classdef LevelSetYounes2 < LevelSetCreator
                 
                 ls(:,1) = ((2*fpy1)./mx1).^q+((2*fpy2)./mx2).^q;
 
-            obj.levelSet = 1-ls;
+            obj.levelSet = ls;
             
         end
         

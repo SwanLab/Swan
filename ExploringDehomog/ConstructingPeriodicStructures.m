@@ -27,7 +27,7 @@ s.fracRadius = 0.5;
 s.widthV= 0.25;
 s.widthH= 0.25;
 s.creatorSettings    = s;
-s.initialCase    = 'Younes2';
+s.initialCase    = 'circle';
 lSet = LevelSet(s);
 
 
