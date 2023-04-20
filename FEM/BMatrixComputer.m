@@ -77,7 +77,7 @@ classdef BMatrixComputer < handle
         end
 
         function [B] = computeBin1D(obj, igaus)
-            deriv  = obj.dNdx(:,:,:,igaus);
+            deriv  = obj.dNdx(:,:,:,igaus); %4 DIM?
             nDimf = obj.fun.ndimf;
             nNode = size(deriv,2);
             nElem = size(obj.dNdx,3);

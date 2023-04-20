@@ -12,7 +12,7 @@ classdef Quadrature_Triangle < Quadrature
                 case 'LINEAR'
                     obj.ngaus = 1;
                     obj.weigp = [1/2];
-                    obj.posgp = [1/3;1/3];
+                    obj.posgp = [1/3;1/3]; %xi
                     
                 case 'QUADRATIC'
                     %obj.ngaus = 3;

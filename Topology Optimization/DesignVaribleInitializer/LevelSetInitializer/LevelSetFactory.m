@@ -42,6 +42,10 @@ classdef LevelSetFactory < handle
                     obj = LevelSetVigdergauz(d);
                 case 'periodicAndOriented'
                     obj = LevelSetPeriodicAndOriented(d);
+                case 'Younes'
+                    obj = LevelSetYounes(d);
+                case 'Younes2'
+                    obj = LevelSetYounes2(d);
                 otherwise
                     error('Invalid initial value of design variable.');
             end

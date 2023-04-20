@@ -10,7 +10,7 @@ classdef LevelSetCircle < LevelSetSphereNdim
     
     methods (Access = protected)
         function computeLevelSetValue(obj)
-            ls = obj.dist - 1;
+            ls = obj.dist-1;
             obj.levelSet = ls;
         end
     end

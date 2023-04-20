@@ -1,22 +1,21 @@
 classdef TotalCorrectorComputer < handle
     
-    properties (Access = public)
-        
-    end
     
     properties (Access = private)
-        ortoghonalCorrector  
+        nCorr        
+        ortoghonalCorrectors  
         ortogonalCoefficients
         totalCorrector
     end
     
     properties (Access = private)
        mesh 
-       dilatedOrientation
-       singularityCoord
+       orientationVector
        interpolator
+       dilatedOrientation
+       singularities
        phiMapping
-       isCoherent
+       isCoherent       
     end
     
     methods (Access = public)
@@ -24,36 +23,11 @@ classdef TotalCorrectorComputer < handle
         function obj = TotalCorrectorComputer(cParams)
             obj.init(cParams); 
             obj.createTotalCorrector();
-        end
-
-        function computeCoefficients(obj)
-            nSing = size(obj.singularityCoord,1)-1;
-            nDim  = obj.mesh.ndim;
-            c = zeros(nDim,nSing);
-            for iDim = 1:nDim
-                bI = obj.dilatedOrientation{iDim}.fValues;
-                oC = obj.ortoghonalCorrector;
-                c(iDim,:) = obj.computeCoeffs(oC,bI);
-            end
-            obj.ortogonalCoefficients = c;
-        end
-
-        function psiT = computeTotalComputer(obj)
-            oC   = obj.ortoghonalCorrector;
-            coef = obj.ortogonalCoefficients;
-            psiT = obj.totalCorrector.fValues;
-            for iDim = 1:obj.mesh.ndim
-                for iSing = 1:size(obj.singularityCoord)-1
-                    ocV = oC{iSing}.fValues;
-                    psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iDim,iSing)*ocV;
-                end
-            end
-            obj.totalCorrector.fValues = psiT;
+            obj.computeNumberOfCorrectors();
         end
 
         function tC = compute(obj)
-           obj.computeSingularities();           
-           if ~isempty(obj.singularityCoord)               
+           if obj.nCorr > 0               
                obj.computeOrtoghonalCorrector();
                obj.computeCoefficients();
                obj.computeTotalComputer();
@@ -67,98 +41,94 @@ classdef TotalCorrectorComputer < handle
         
         function init(obj,cParams)
            obj.mesh               = cParams.mesh;
-           obj.dilatedOrientation = cParams.dilatedOrientation;
-           obj.interpolator       = cParams.interpolator;
-           obj.phiMapping         = cParams.phiMapping;
+           obj.singularities      = cParams.singularities;
            obj.isCoherent         = cParams.isCoherent;
+           obj.interpolator       = cParams.interpolator;
+           obj.dilatedOrientation = cParams.dilatedOrientation;
+           obj.phiMapping         = cParams.phiMapping;
         end
 
         function createTotalCorrector(obj)
-            s.fValues = zeros(size(obj.phiMapping.fValues));
+            nElem = obj.mesh.nelem;
+            ndif  = obj.mesh.ndim;
+            nnode = obj.mesh.nnodeElem;
+            s.fValues = zeros(ndif,nnode,nElem);
             s.mesh    = obj.mesh;
             obj.totalCorrector = P1DiscontinuousFunction(s);    
-        end               
+        end     
 
-        function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation = obj.dilatedOrientation{1};
-            sC = SingularitiesComputer(s);
-            sCoord = sC.compute();
-            %sC.plot();
-            obj.singularityCoord = sCoord;
-        end        
-        
+        function computeNumberOfCorrectors(obj)
+            obj.nCorr =  obj.singularities.nSing -1;
+        end
+
         function computeOrtoghonalCorrector(obj)
-            nSing = size(obj.singularityCoord,1)-1;
-            oC = cell(nSing,1);
-            for iS = 1:nSing
-                sCoord = obj.singularityCoord(iS,:);
-                cF = obj.computeCorrectorFunction(sCoord);
-                oC{iS} = obj.computeOrthogonalCorrector(cF);
+            oC      = cell(obj.nCorr,1);
+            areSing = find(squeeze(obj.singularities.isElemSingular.fValues));           
+            for iS = 1:obj.nCorr
+              %  sCoord = obj.singularities.coord(iS,:);
+                iSing  = areSing(iS);
+                cF     = obj.computeCorrectorFunction(iSing);
+                sF     = obj.createShifting(cF);
+                oC{iS} = obj.computeOrthogonalCorrector(cF,sF);
             end
-            obj.ortoghonalCorrector = oC;
-        end        
+            obj.ortoghonalCorrectors = oC;
+        end             
         
-        function c = computeOrthogonalCorrector(obj,cF)
-            s.mesh          = obj.mesh;
-            s.corrector     = cF;
-            s.interpolator  = obj.interpolator;
-            o = OrthogonalCorrectorComputer(s);
-            c = o.compute();
-            % o.plot();
-        end    
-        
+       function computeCoefficients(obj)
+            nDim  = obj.mesh.ndim;
+            c = zeros(nDim,obj.nCorr);
+            for iDim = 1:nDim
+                bI = obj.dilatedOrientation{iDim};
+                oC = obj.ortoghonalCorrectors;
+                c(iDim,:) = obj.computeCoeffs(oC,bI);
+            end
+            obj.ortogonalCoefficients = c;
+        end
 
-        function cV = computeCorrectorFunction(obj,sCoord)
-            s.mesh             = obj.mesh;
-            s.isCoherent       = obj.isCoherent;
-            s.singularityCoord = sCoord;
+        function psiT = computeTotalComputer(obj)
+            oC    = obj.ortoghonalCorrectors;
+            coef  = obj.ortogonalCoefficients;
+            psiT  = obj.totalCorrector.fValues;
+            for iDim = 1:obj.mesh.ndim
+                for iSing = 1:obj.nCorr
+                    ocV = oC{iSing}.fValues;
+                    psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iDim,iSing)*ocV;
+                end
+            end
+            obj.totalCorrector.fValues = psiT;
+        end        
+
+        function cV = computeCorrectorFunction(obj,singElem)
+            s.mesh               = obj.mesh;
+            s.isCoherent         = obj.isCoherent;
+            s.singularElement    = singElem;
             c = CorrectorComputer(s);
             cV = c.compute();
-            % c.plot()
-        end        
+        end            
         
-        function c = computeCoeffs(obj,psi,b)
+        function sF = createShifting(obj,cF)
+            s.mesh         = obj.mesh;
+            s.corrector    = cF;
+            s.interpolator = obj.interpolator;
+            m = ShiftingFunctionComputer(s);
+            sF = m.compute();
+        end   
 
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-
-            nSing = numel(psi);
-            for iSing = 1:nSing
-                dPsiV = psi{iSing}.computeGradient(q);
-                dPsi(:,iSing,:,:) = dPsiV.fValues;
-            end
-
-            LHS = zeros(nSing,nSing);
-            RHS = zeros(nSing,1);
-
-
-            s.fValues = b;
-            s.mesh   = obj.mesh;
-            bf = P1Function(s);
-
-
-            xGauss = q.posgp;
-            bfG    = bf.evaluate(xGauss);
-
-
-
-            dV = obj.mesh.computeDvolume(q);
-            dVt(1,:,:) = dV;
-            dVT = repmat(dVt,bf.ndimf,1,1);
-
-            for iSing = 1:nSing
-                dPsiI = permute(squeeze(dPsi(:,iSing,:,:)),[1 3 2]);
-                for jSing = 1:nSing
-                    dPsiJ = permute(squeeze(dPsi(:,jSing,:,:)),[1 3 2]);
-                    lhs   = dPsiI.*dPsiJ.*dVT;
-                    LHS(iSing,jSing) = sum(lhs(:));
-                end
-                rhs = dPsiI.*bfG.*dVT;
-                RHS(iSing) = sum(rhs(:));
-            end
-           c = LHS\RHS;
-        end        
+        function oC = computeOrthogonalCorrector(obj,cF,sF)
+            phi = cF.fValues;
+            fD  = sF.fValues;
+            phi = phi - fD;
+            s.mesh    = obj.mesh;
+            s.fValues = phi;
+            oC = P1DiscontinuousFunction(s);  
+        end          
+        
+        function coef = computeCoeffs(obj,psi,b)
+            s.orthogonalCorrector = psi;
+            s.mesh                = obj.mesh;
+            c = CorrectorCoefficientsComputer(s);
+            coef = c.compute(b);
+        end
         
     end
     

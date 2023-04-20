@@ -1,4 +1,4 @@
-classdef DehomogenizingSingularitiesTest < handle
+classdef StructuralComputer < handle
 
     properties (Access = private)
         mesh
@@ -21,39 +21,20 @@ classdef DehomogenizingSingularitiesTest < handle
 
     methods (Access = public)
 
-        function obj = DehomogenizingSingularitiesTest(cParams)
-            obj.init(cParams);
-            mSize = linspace(0.04,0.042,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            mSize = 0.06;
-            for iMesh = 1:length(mSize)
-                obj.meshSize = mSize(iMesh);
-                obj.createMesh();
-                obj.createOrientation();
-                obj.dehomogenize();
-            end
-        end
-
-        function passed = hasPassed(obj)
-            d = load(obj.testName);
-            ls = obj.levelSet;
-            errI = zeros(numel(ls),1);
-            for iCell = 1:numel(ls)
-                lSI = d.levelSet{iCell};
-                errI(iCell) = norm(ls{iCell} - lSI)/norm(lSI);
-            end
-            itIs = sum(errI) < 1e-12;
-            passed = itIs;
+        function obj = StructuralComputer()
+            obj.init();
+            obj.createMesh();
+            obj.createOrientation();
+            obj.dehomogenize();
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj,cParams)
-            obj.testName = cParams.testName;
-            %obj.meshSize = 0.00521;
-            obj.meshSize = 0.03;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
-            obj.nCells   = 30;%linspace(10,62,40); %[60 62];
+        function init(obj)
+            obj.meshSize = 0.05;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            obj.nCells   = [20 20];%linspace(60,62,40);%45;   %45
             obj.xmin = 0.5;
             obj.xmax = 2.0;
             obj.ymin = 0.25;
@@ -70,11 +51,7 @@ classdef DehomogenizingSingularitiesTest < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-              [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
-              s.coord  = V(:,1:2);
-              s.connec = F;
-
-%            s.connec = delaunay(s.coord);
+            s.connec = delaunay(s.coord);
             m = Mesh(s);
             obj.mesh = m;
         end
@@ -82,16 +59,11 @@ classdef DehomogenizingSingularitiesTest < handle
 
         function createOrientation(obj)
             m = obj.mesh;
-            s1 = obj.singularitiesData(:,1);
-            s2 = obj.singularitiesData(:,2);
             x1 = m.coord(:,1);
             x2 = m.coord(:,2);
-            v(:,1) = cos(pi*(x1 + s1*x2));
-            v(:,2) = cos(pi*(x2 + s2*x1));
-            beta = atan2(v(:,2),v(:,1));
-            alpha = beta/2;
-            a = [cos(alpha), sin(alpha)];
-            obj.orientation = a;
+            theta = 0*atan(x1./x2);
+            obj.orientation(:,1) = cos(theta);
+            obj.orientation(:,2) = sin(theta);
         end
 
         function plotOrientation(obj)
