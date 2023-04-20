@@ -9,10 +9,10 @@ classdef CharacteristicFunction < L2Function
     end
 
     properties (Access = private)
-        mesh
+%         mesh
         fxy
-%         levelSet
-%         unfittedMesh
+        levelSet
+        unfittedMesh
     end
 
     methods (Access = public)
@@ -49,31 +49,31 @@ classdef CharacteristicFunction < L2Function
             obj.fxy   = cParams.fxy;
         end
 
-%         function createP1CoorFunction(obj)
-%             s.mesh     = obj.mesh;
-%             s.fValues  = obj.mesh.coord;
-%             obj.coorP1 = P1Function(s);
-%         end
-% 
-%         function createLevelSetFunction(obj)
-%             fxy = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
-%             xy    = obj.coorP1.fValues;
-%             val = fxy(xy(:,1), xy(:,2));
-%             a.fValues = val;
-%             a.mesh = obj.mesh;
-%             lS = P1Function(a);
-%             lS.plot
-%             obj.levelSet = lS;
-%         end
-% 
-%         function createUnfittedMesh(obj)
-% %             b.levelSet = obj.levelSet.fValues;
-%             b.backgroundMesh = obj.mesh;
-%             b.boundaryMesh = obj.mesh.createBoundaryMesh();
-%             uM = UnfittedMesh(b);
-%             uM.compute(obj.levelSet.fValues);
-%             obj.unfittedMesh = uM;
-%         end
+        function createP1CoorFunction(obj)
+            s.mesh     = obj.mesh;
+            s.fValues  = obj.mesh.coord;
+            obj.coorP1 = P1Function(s);
+        end
+
+        function createLevelSetFunction(obj)
+            fxy = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
+            xy    = obj.coorP1.fValues;
+            val = fxy(xy(:,1), xy(:,2));
+            a.fValues = val;
+            a.mesh = obj.mesh;
+            lS = P1Function(a);
+            lS.plot
+            obj.levelSet = lS;
+        end
+
+        function createUnfittedMesh(obj)
+%             b.levelSet = obj.levelSet.fValues;
+            b.backgroundMesh = obj.mesh;
+            b.boundaryMesh = obj.mesh.createBoundaryMesh();
+            uM = UnfittedMesh(b);
+            uM.compute(obj.levelSet.fValues);
+            obj.unfittedMesh = uM;
+        end
 % 
 %         function createRHS(obj)
 %             uMesh = obj.unfittedMesh;

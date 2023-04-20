@@ -19,3 +19,16 @@ s.test = test;
 s.trial = trial;
 lhs = LHSintegrator.create(s);
 LHS = lhs.compute();
+
+% %% Generating a 2D mesh with a hole inclusion
+% % Using functions!
+% clear; close all
+% 
+% % Create the data container for the FEM problem
+% a.fileName = 'test2d_micro';
+% m = FemDataContainer(a);
+% 
+% % Create the characteristic function (1 inside circle, 0 outside)
+% s.mesh    = m.mesh;
+% s.fxy     = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
+% circleFun = CharacteristicFunction(s);
