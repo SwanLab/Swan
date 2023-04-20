@@ -86,8 +86,15 @@ classdef LevelSetYounes < LevelSetCreator
         function createM1M2(obj)
             x1 = obj.mesh.coord(:,1);
             x2 = obj.mesh.coord(:,2);
-            obj.m1 = 1-x1.*x2;
-            obj.m2 = 1-x1.*x2;
+            m1Aux = (1-x1.*x2);
+            %frac = 0.45/max(m1Aux);
+            obj.m1 = m1Aux;
+%             for i=1:size(obj.m1,1)
+%                 if obj.m1(i,1)<0.1
+%                     obj.m1(i,1)=0.1;
+%                 end
+%             end
+            obj.m2 = obj.m1;
         end
         
         function fDI = interpolateContinousFunctionToDisc(obj,fC)
@@ -142,11 +149,12 @@ classdef LevelSetYounes < LevelSetCreator
         function computeLevelSetValue(obj,cParams)
             q=2;
 
-            fpy1 = cParams.coord(:,1);
-            fpy2 = cParams.coord(:,1);
+            %fpy1 = cParams.coord(:,1);
+            %fpy2 = cParams.coord(:,1);
 
-            ls(:,1) = ((2*fpy1)./obj.m1).^q+((2*fpy2)./obj.m2).^q;
-            %ls(:,2) = ls(:,1);
+            %ls = ((2*fpy1)/obj.m1).^q+((2*fpy2)/obj.m2).^q;
+            %ls = ((cParams.coord(:,1)+0.0234)./obj.m1).^q+((cParams.coord(:,2)+0.0234)./obj.m2).^q;
+            ls = (2*(cParams.coord(:,1))./obj.m1).^q+(2*(cParams.coord(:,2))./obj.m2).^q;
             obj.levelSet = 1-ls;
         end
     end
