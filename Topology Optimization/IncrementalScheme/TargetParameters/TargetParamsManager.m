@@ -47,7 +47,7 @@ classdef TargetParamsManager < handle
             obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constrInitial,cParams.constrFinal);
             obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimalityInitial,cParams.optimalityFinal);
             obj.epsilon       = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
-            obj.epsilonPer    = LogarithmicSequence(0,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
+            obj.epsilonPer    = LogarithmicSequence(0.4,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);
             % CHANGE IN THE UPPER ROW 0.8 BY ANOTHER NUMBER TO CONTROL THE
             % KIND OF EVOLUTION (FROM -1 TO 0 HUGE DECAY AT THE END; FROM 0
             % TO 1 HUGE DECAY AT THE BEGINNING)

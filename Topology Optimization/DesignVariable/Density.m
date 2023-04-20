@@ -22,9 +22,12 @@ classdef Density < DesignVariable
         function rho = computeVolumeFraction(obj)
             s.connec = obj.mesh.connec;
             s.type   = obj.mesh.type;
-            s.fNodes = obj.value;
+            s.fValues = obj.value;
             f = P1Function(s);
-            rho = f.computeValueInCenterElement();
+            s.mesh = obj.mesh.innerMeshOLD;
+            P = Projector_toP0(s);
+            rhoFun = P.project(f);
+            rho = squeeze(rhoFun.fValues);
         end
         
     end

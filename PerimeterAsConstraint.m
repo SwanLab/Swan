@@ -10,7 +10,7 @@ materialType = 'ISOTROPIC';
 initial_case = 'full'; % squareInclusion
 
 cost = {'compliance','anisotropicPerimeter2D'}; % anisotropicPerimeterInterior2D
-weights = [1,0.40];
+weights = [1,0.60];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -22,7 +22,7 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 widthSquare = sqrt(0.15);
 
-nsteps = 20;
+nsteps = 5;
 % Vfrac_final = 0.85;
 Vfrac_final = 0.4;
 optimality_final =1e-3;

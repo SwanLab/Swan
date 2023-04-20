@@ -21,6 +21,12 @@ classdef ShFunc_Perimeter < ShapeFunctional
             cParams.filterParams.quadratureOrder = 'LINEAR';
             cParams.filterParams.filterType = 'PDE';
             obj.init(cParams);
+            switch cParams.filterParams.femSettings.LHStype
+                case 'AnisotropicDiffReactNeumann'
+                    x = obj.mesh.coord(:,1);
+                    y = obj.mesh.coord(:,2);
+                    obj.value0 = 2*(max(x)-min(x)+max(y)-min(y));
+            end
             %  obj.initFrame();
             fileName = cParams.femSettings.fileName;
             a.fileName = fileName;

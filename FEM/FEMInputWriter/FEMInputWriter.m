@@ -66,7 +66,7 @@ classdef FEMInputWriter < handle
         end
         
         function createMesh(obj)
-            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f'); % test x
+            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'x'); % test x
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh(s);
@@ -102,7 +102,9 @@ classdef FEMInputWriter < handle
             t              = 0.1*obj.ymax;
             m              = obj.mesh;
             root1          = m.coord(:,2) == 0;
-            root2          = m.coord(:,1) <= t | m.coord(:,1) >= obj.xmax-t;
+            root21 = m.coord(:,1) >= 0.5*t & m.coord(:,1) <=1.5*t;
+            root22 = m.coord(:,1) >=obj.xmax-1.5*t & m.coord(:,1)<=obj.xmax-0.5*t;
+            root2          = root21 | root22;
             root           = root1 & root2;
             tipLength      = m.coord(:,2) == 0;
             tipWidth       = m.coord(:,1) >= 0.45*obj.xmax & m.coord(:,1) <= 0.55*obj.xmax;
@@ -124,8 +126,7 @@ classdef FEMInputWriter < handle
 
         function computeBridgeBoundaryConditions(obj)
             t              = 0.1*obj.xmax;
-            iCase          = 4;
-            forcePos       = [iCase*10/9,(iCase+1)*10/9];
+            forcePos       = [0.45*obj.xmax,0.55*obj.xmax];
             m              = obj.mesh;
             sides          = m.coord(:,1) <= t | m.coord(:,1) >= obj.xmax - t;
             bottom         = m.coord(:,2) == 0;
