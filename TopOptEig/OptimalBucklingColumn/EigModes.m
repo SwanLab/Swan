@@ -96,12 +96,12 @@ classdef EigModes < handle
             A12 = repmat(A12,nVar,1);
             A22 = repmat(A22,nVar,1);
 
-            A1  = dI.*A11;
-            A12 = dI.*A12;
-            A21 = dI.*A12;
-            A2  = dI.*A22;
+            A1s  = dI.*A11;
+            A12s = dI.*A12;
+            A21s = dI.*A12;
+            A2s  = dI.*A22;
 
-            S = obj.getEigenValues(A1,A2,A12,A21);
+            S = obj.getEigenValues(A1s,A2s,A12s,A21s);
 
             dfdx(1,:) = -S(:,1);
             dfdx(2,:) = -S(:,2);
