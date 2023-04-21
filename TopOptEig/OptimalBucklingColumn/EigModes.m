@@ -3,9 +3,9 @@ classdef EigModes < handle
     properties (Access = private)
         mesh
         V
-        v1
-        v2
         D
+        v1t
+        v2t
         eigModesPlotter
         lambda
         mode1Disp
@@ -30,16 +30,7 @@ classdef EigModes < handle
             obj.createBoundaryConditions();
             obj.createStiffnessMatrix();
             obj.createBendingMatrix();
-            obj.createEigModesPlotter();
         end             
-
-        function plot(obj,A,iter)
-            p = obj.eigModesPlotter;
-            [m1,m2] = obj.computeBucklingModes(obj.v1,obj.v2);
-            obj.mode1Disp = m1;
-            obj.mode2Disp = m2;
-            p.plot(A,m1,m2,iter,obj.D)
-        end
 
         function l = provideEigenValue(obj)
             obj.computeEigenModesAndValues();            
@@ -66,46 +57,31 @@ classdef EigModes < handle
     methods (Access = private)
         
         function dfdx = computeSimpleEig(obj,Belem)
-            [v1t,v2t] = obj.computeEigenVectorByDof();
-         
-            v1Bv1 = obj.productMatrix(v1t,v1t,Belem);
-            v2Bv2 = obj.productMatrix(v2t,v2t,Belem);
-            
-            nVar  = obj.sectionVariables.nDesVarElem;
-            
-            v1Bv1 = repmat(v1Bv1,nVar,1);
-            v2Bv2 = repmat(v2Bv2,nVar,1);
-            
-            dI    = obj.sectionVariables.computeInertiaDerivative();            
-            dfdx(1,:) = -dI.*v1Bv1;
-            dfdx(2,:) = -dI.*v2Bv2;
+            [v1,v2] = obj.computeEigenVectorByDof();         
+            vBv(:,1) = obj.productMatrix(v1,v1,Belem);
+            vBv(:,2) = obj.productMatrix(v2,v2,Belem);            
+            nVar     = obj.sectionVariables.nDesVarElem;            
+            vBv      = repmat(vBv,nVar,1);            
+            dI       = obj.sectionVariables.computeInertiaDerivative();            
 
-            dfdx(:,end+1) = 1;
+            dfdx = -dI.*vBv;
+            dfdx(end+1,:) = 1;
+            dfdx = dfdx';
         end
 
         function dfdx = computeDoubleEig(obj,Belem)
-            [v1t,v2t] = obj.computeEigenVectorByDof();
-            
-            dI    = obj.sectionVariables.computeInertiaDerivative();
-            nVar  = obj.sectionVariables.nDesVarElem;
-            A11 = obj.productMatrix(v1t,v1t,Belem);
-            A12 = obj.productMatrix(v1t,v2t,Belem);
-            A22 = obj.productMatrix(v2t,v2t,Belem);
+            [v1,v2] = obj.computeEigenVectorByDof();            
+            vBv11 = obj.productMatrix(v1,v1,Belem);
+            vBv12 = obj.productMatrix(v1,v2,Belem);
+            vBv22 = obj.productMatrix(v2,v2,Belem);
+            vBv   = obj.getEigenValues(vBv11,vBv22,vBv12,vBv12); 
+            nVar  = obj.sectionVariables.nDesVarElem;            
+            vBv    = repmat(vBv,nVar,1);
 
-            A11 = repmat(A11,nVar,1);
-            A12 = repmat(A12,nVar,1);
-            A22 = repmat(A22,nVar,1);
-
-            A1s  = dI.*A11;
-            A12s = dI.*A12;
-            A21s = dI.*A12;
-            A2s  = dI.*A22;
-
-            S = obj.getEigenValues(A1s,A2s,A12s,A21s);
-
-            dfdx(1,:) = -S(:,1);
-            dfdx(2,:) = -S(:,2);
-            dfdx(:,end+1) = 1;
+            dI   = obj.sectionVariables.computeInertiaDerivative();
+            dfdx = -vBv.*dI;
+            dfdx(end+1,:) = 1;
+            dfdx = dfdx';
         end
 
         function [v1t,v2t] = computeEigenVectorByDof(obj)
@@ -116,8 +92,8 @@ classdef EigModes < handle
             nElem = obj.mesh.nelem;
             v1F    = zeros(obj.dim.ndofs,1);
             v2F    = zeros(obj.dim.ndofs,1);
-            v1F(free,1) = obj.v1;
-            v2F(free,1) = obj.v2;
+            v1F(free,1) = obj.v1t;
+            v2F(free,1) = obj.v2t;
             gElemt = ndofn*((1:nElem)-1); 
             v1t = zeros(nElem,ndofe);
             v2t = zeros(nElem,ndofe);
@@ -195,12 +171,6 @@ classdef EigModes < handle
             obj.computeEigenFunctionAndValues(Bfree,Kfree);         
         end
 
-        function createEigModesPlotter(obj)
-            s.mesh = obj.mesh;
-            p = EigModesPlotter(s);
-            obj.eigModesPlotter = p;
-        end
-
         function computeLambda(obj)
             l = sort(diag(obj.D));
             obj.lambda = l;
@@ -242,8 +212,8 @@ classdef EigModes < handle
                 V1=V(:,2);
                 V2=V(:,1);
             end
-            obj.v1 = V1;
-            obj.v2 = V2;             
+            obj.v1t = V1;
+            obj.v2t = V2;             
         end
 
         function [m1disp,m2disp] = computeBucklingModes(obj,v1,v2)
