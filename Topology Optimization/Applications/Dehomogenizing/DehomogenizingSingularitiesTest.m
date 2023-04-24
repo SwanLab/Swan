@@ -23,8 +23,11 @@ classdef DehomogenizingSingularitiesTest < handle
 
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
-            mSize = linspace(0.04,0.042,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
+            mSize = linspace(0.04,0.042,2);
+            %mSize = linspace(0.030526315789474,0.038421052631579,0.034137931034483,0.034482758620690,0.036551724137931);
+            %mSize = linspace(0.03,0.04,30);%linspace(0.042,0.04,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             for iMesh = 1:length(mSize)
+                iMesh
                 obj.meshSize = mSize(iMesh);
                 obj.createMesh();
                 obj.createOrientation();
@@ -57,7 +60,7 @@ classdef DehomogenizingSingularitiesTest < handle
             obj.xmax = 2.0;
             obj.ymin = 0.25;
             obj.ymax = 1.75;
-            obj.singularitiesData = [0.32,-0.8];
+            obj.singularitiesData = [0.32,-0.8];%[0.32,-0.8];
             obj.widthH = 0.87;
             obj.widthW = 0.87;
         end
