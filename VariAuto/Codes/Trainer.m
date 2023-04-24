@@ -4,15 +4,15 @@ classdef Trainer < handle
         isDisplayed
         costHist
         optHist
+        data
     end
     
     properties (Access = protected) 
-       data
        figureCost
        figureOpt
        xIter
        nPlot
-       optimizationProblem
+       CostFunction
     end
 
     methods (Access = public, Static)
@@ -34,7 +34,7 @@ classdef Trainer < handle
     methods (Access = protected)
 
         function init(obj,s)
-            obj.optimizationProblem = s{1};
+            obj.CostFunction = s{1};
             if length(s) <= 7
                 obj.isDisplayed  = false;
             else
@@ -44,9 +44,9 @@ classdef Trainer < handle
 
         function [J,g] = costFunction(obj,x,Xb,Yb)
             theta   = x;
-            obj.optimizationProblem.computeCost(theta,Xb,Yb)
-            J = obj.optimizationProblem.cost;
-            g = obj.optimizationProblem.gradient;
+            obj.CostFunction.computeCost(theta,Xb,Yb)
+            J = obj.CostFunction.cost;
+            g = obj.CostFunction.gradient;
         end
 
         function storeValues(obj,x,f,state,opt)
@@ -59,8 +59,8 @@ classdef Trainer < handle
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
-                    cV(2) = obj.optimizationProblem.regularization;
-                    cV(3) = obj.optimizationProblem.loss;
+                    cV(2) = obj.CostFunction.regularization;
+                    cV(3) = obj.CostFunction.loss;
                     obj.xIter = [obj.xIter, x];
                     obj.costHist = [obj.costHist;cV];
                     oV = zeros(1,2);
@@ -70,17 +70,17 @@ classdef Trainer < handle
             end
         end
 
-        function plotMinimization(obj,iter)
-            nIter = obj.nPlot;
-            v = 0:nIter:iter-1;
-            if iter > 1
-            obj.plotCostRegErr(v);
-            obj.plotEpsOpt(v)
-            end
-            if obj.optimizationProblem.data.nFeatures <= 2 %CUIDADO, Arreglar
-                obj.optimizationProblem.plotBoundary('contour')
-            end
-        end  
+%         function plotMinimization(obj,iter)
+%             nIter = obj.nPlot;
+%             v = 0:nIter:iter-1;
+%             if iter > 1
+%             obj.plotCostRegErr(v);
+%             obj.plotEpsOpt(v)
+%             end
+%             if obj.optimizationProblem.data.nFeatures <= 2 %CUIDADO, Arreglar
+%                 obj.optimizationProblem.plotBoundary('contour')
+%             end
+%         end  
 
         function plotCostRegErr (obj,v)
             figure(obj.figureCost)

@@ -1,4 +1,4 @@
-classdef DesVar < handle
+classdef DesignVariable < handle
     
     properties (Access = public)
         thetavec
@@ -11,7 +11,7 @@ classdef DesVar < handle
     
     methods (Access = public)
 
-        function obj = DesVar(s)
+        function obj = DesignVariable(s)
             obj.init(s);
         end
 
