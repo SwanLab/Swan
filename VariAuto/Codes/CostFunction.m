@@ -4,6 +4,7 @@ classdef CostFunction < handle
         cost
         gradient
         data
+        designVariable
     end
     
     properties (Access = private)
@@ -18,7 +19,7 @@ classdef CostFunction < handle
         end
         
         function computeCost(obj,theta,Xb,Yb)
-           obj.DesignVariable.thetavec = theta;
+           obj.designVariable.thetavec = theta;
            obj.thetavec = theta;
            [J,grad] = obj.propagate(obj.network.layer,Xb,Yb); 
            obj.loss = obj.loss;
@@ -36,6 +37,7 @@ classdef CostFunction < handle
            obj.data = cParams.data;
            obj.network = cParams.network;
            obj.lambda  = cParams.lambda;
+           obj.designVariable = cParams.designVariable;
        end 
 
         function [J,gradient] = propagate(obj,layer,Xb,Yb)

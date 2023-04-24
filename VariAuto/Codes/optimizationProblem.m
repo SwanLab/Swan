@@ -75,6 +75,7 @@ classdef optimizationProblem < handle
            s.data = obj.data;
            s.network = obj.network;
            s.lambda  = obj.lambda;
+           s.designVariable = obj.designVariable;
            obj.costfnc = CostFunction(s);
        end
 
