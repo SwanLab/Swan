@@ -7,7 +7,10 @@ classdef optimizationProblem < handle
        regularization
        loss
        gradient
+       structure
        network
+       desvar
+       costfnc
        learningRate
     end
     
@@ -22,7 +25,9 @@ classdef optimizationProblem < handle
 
        function obj = optimizationProblem(varargin)
            obj.init(varargin);
-           obj.thetavec = obj.network.thetavec;
+           obj.desvar.computeInitialTheta();
+           obj.thetavec = obj.desvar.thetavec;
+           %obj.costfnc = costFnc(obj.network);
            optimizer = Trainer.create(obj,'SGD',obj.learningRate);
            optimizer.train();
        end
@@ -59,8 +64,10 @@ classdef optimizationProblem < handle
 
        function init(obj,s)
            obj.data = s{1};
-           obj.network = s{2};
+           obj.structure = s{2};
            obj.learningRate = s{3};
+           obj.network   = Network(obj.data,obj.structure);
+           obj.desvar = DesVar(obj.network);
            obj.lambda = obj.network.lambda;
            obj.plotter = Plotter(obj);
        end  

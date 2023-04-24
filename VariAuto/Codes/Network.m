@@ -1,6 +1,6 @@
 classdef Network < handle
  
-    properties
+    properties (Access = public)
         thetavec
     end
 
@@ -22,24 +22,8 @@ classdef Network < handle
 
        function obj = Network(varargin)
            obj.init(varargin);
-           obj.computeInitialTheta();
        end
-
-       function computeInitialTheta(obj)
-           nPL    = obj.neuronsPerLayer;
-           th     = [];
-           for i = 2:obj.nLayers
-                if i ~= obj.nLayers
-                    b = zeros([1,nPL(i)]) + 0.1;
-                else
-                    b = zeros([1,nPL(i)]) + 1/nPL(i);
-                end
-                u = (6/(nPL(i-1)+nPL(i)))^0.5;
-                W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
-                th = [th,W,b];
-           end      
-           obj.thetavec = th;
-       end
+       
    end
 
    methods (Access = private)
