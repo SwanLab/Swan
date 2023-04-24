@@ -24,11 +24,11 @@ data  = Data(fileN,testratio,pol_deg);
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
-network   = Network(data,structure);
+% network   = Network(data,structure);
 % network = Network(data,structure,'-loglikelihood','ReLU','softmax',lambda);
 
 %% Run Optimization Problem
-optProblem   = optimizationProblem(data,network,learningRate);
+optProblem   = optimizationProblem(data,structure,learningRate);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;
 % opt.maxepochs     = 100    ; opt.earlyStop     = 10;
 % opt.time          = Inf([1,1]); opt.fv         = 10^-4;
