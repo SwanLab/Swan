@@ -1,4 +1,4 @@
-classdef costFnc < handle
+classdef CostFunction < handle
     
     properties (Access = public)
         cost
@@ -11,7 +11,7 @@ classdef costFnc < handle
 
     methods (Access = private)
         
-        function obj = costFnc(varargin)
+        function obj = CostFunction(varargin)
             obj.init(varargin);
         end
 

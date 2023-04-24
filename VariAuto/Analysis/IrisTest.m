@@ -15,7 +15,7 @@ hiddenlayers    = [2,3];
 % try different feature combination, pairs of features enable the possibility of plotting boundaries
 data      = Data('../Datasets/Iris.csv',30,1);
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
-optProblem   = optimizationProblem(data,structure,learningRate);
+optProblem   = optimizationProblem(data,structure,learningRate,lambda);
 
 optProblem.plotConfusionMatrix();
 

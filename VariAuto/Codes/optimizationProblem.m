@@ -9,7 +9,7 @@ classdef optimizationProblem < handle
        gradient
        structure
        network
-       desvar
+       designVariable
        costfnc
        learningRate
     end
@@ -25,19 +25,21 @@ classdef optimizationProblem < handle
 
        function obj = optimizationProblem(varargin)
            obj.init(varargin);
-           obj.desvar.computeInitialTheta();
-           obj.thetavec = obj.desvar.thetavec;
-           %obj.costfnc = costFnc(obj.network);
+           obj.createNetwork();
+           obj.createDesignVariable();
+           obj.createPlotter();
+           obj.thetavec = obj.designVariable.thetavec;
+%           obj.costfnc = costFnc(obj.network);
            optimizer = Trainer.create(obj,'SGD',obj.learningRate);
            optimizer.train();
        end
        
        function computeCost(obj,theta,Xb,Yb)
-           obj.network.thetavec = theta;
-           obj.thetavec = theta;
-           [J,grad] = obj.propagate(obj.network.layer,Xb,Yb); 
+          obj.network.thetavec = theta;
+      %     obj.thetavec = theta;
+           [J,grad] = obj.propagate(obj.network.getLayer(),Xb,Yb); 
            obj.loss = obj.loss;
-           l = obj.network.lambda;
+           l = obj.lambda;
            obj.regularization = l*obj.regularization;
            obj.cost = J; 
            obj.gradient = grad;
@@ -65,12 +67,26 @@ classdef optimizationProblem < handle
        function init(obj,s)
            obj.data = s{1};
            obj.structure = s{2};
-           obj.learningRate = s{3};
-           obj.network   = Network(obj.data,obj.structure);
-           obj.desvar = DesVar(obj.network);
-           obj.lambda = obj.network.lambda;
-           obj.plotter = Plotter(obj);
+           obj.learningRate = s{3}; 
+           obj.lambda = s{4};
        end  
+
+       function createNetwork(obj)
+           s1 = obj.data;
+           s2 = obj.structure;
+           n  = Network(s1,s2);
+           obj.network = n;
+       end
+
+       function createDesignVariable(obj)
+           s.initValue = obj.network.computeInitialTheta();
+           t = DesVar(s);
+           obj.designVariable = t;
+       end
+
+       function createPlotter(obj)
+           obj.plotter = Plotter(obj);
+       end
 
        function [J,gradient] = propagate(obj,layer,Xb,Yb)
             obj.forwardprop(layer,Xb,Yb);
@@ -80,7 +96,7 @@ classdef optimizationProblem < handle
 
        function g = compute_last_H(obj,X)
            nLy = obj.network.nLayers;
-           layer = obj.network.layer;
+           layer = obj.network.getLayer();
            h = obj.hypothesisfunction(X,layer{1}.W,layer{1}.b);
             [g,~] = obj.actFCN(h,2);
             for i = 2:nLy-1
@@ -133,6 +149,7 @@ classdef optimizationProblem < handle
            deltag = cell(nLy,1);
            gradW = cell(nLy-1,1);
            gradb = cell(nLy-1,1);
+           l = obj.lambda;
            for k = nLy:-1:2    
                [~,a_der] = obj.actFCN(a{k},k); 
                if k == nLy
@@ -141,8 +158,8 @@ classdef optimizationProblem < handle
                else                    
                    deltag{k} = (layer{k}.W*deltag{k+1}')'.*a_der;
                end
-               gradW{k-1} = (1/m)*(a{k-1}'*deltag{k}) + obj.lambda*layer{k-1}.W;
-               gradb{k-1} = (1/m)*(sum(deltag{k},1)) + obj.lambda*layer{k-1}.b;
+               gradW{k-1} = (1/m)*(a{k-1}'*deltag{k}) + l*layer{k-1}.W;
+               gradb{k-1} = (1/m)*(sum(deltag{k},1)) + l*layer{k-1}.b;
            end
            obj.delta = deltag;
            grad = [];

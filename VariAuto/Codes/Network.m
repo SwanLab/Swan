@@ -14,6 +14,10 @@ classdef Network < handle
        OUtype
     end
 
+    properties (Access = private)
+
+    end
+
     properties (Dependent)
         layer
     end
@@ -23,6 +27,21 @@ classdef Network < handle
        function obj = Network(varargin)
            obj.init(varargin);
        end
+
+        function th = computeInitialTheta(obj)
+           nPL    = obj.neuronsPerLayer;
+           th     = [];
+           for i = 2:obj.nLayers
+                if i ~= obj.nLayers
+                    b = zeros([1,nPL(i)]) + 0.1;
+                else
+                    b = zeros([1,nPL(i)]) + 1/nPL(i);
+                end
+                u = (6/(nPL(i-1)+nPL(i)))^0.5;
+                W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
+                th = [th,W,b];
+           end      
+       end       
        
    end
 
@@ -47,7 +66,7 @@ classdef Network < handle
    end   
 
    methods 
-       function value = get.layer(obj)
+       function value = getLayer(obj)
             nPL = obj.neuronsPerLayer;
             last = 1;
             value = cell(obj.nLayers-1,1);
