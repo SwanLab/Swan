@@ -56,7 +56,7 @@ classdef SGD < Trainer
         
         function train(obj)
            tic
-           x0  = obj.optimizationProblem.thetavec; 
+           x0  = obj.optimizationProblem.designVariable.thetavec; 
            F = @(theta,X,Y) obj.costFunction(theta,X,Y); 
            obj.optimize(F,x0);
            toc
@@ -158,7 +158,7 @@ classdef SGD < Trainer
             [~,y_target] = max(obj.data.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
-                obj.thetaLowest = obj.optimizationProblem.thetavec;
+                obj.thetaLowest = obj.optimizationProblem.designVariable.thetavec;
                 min_testError = testError;
                 alarm = 0;
             elseif testError == min_testError

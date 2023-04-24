@@ -2,7 +2,6 @@ classdef optimizationProblem < handle
  
     properties (GetAccess = public, SetAccess = private)
        data
-       thetavec
        cost
        regularization
        loss
@@ -28,15 +27,12 @@ classdef optimizationProblem < handle
            obj.createNetwork();
            obj.createDesignVariable();
            obj.createPlotter();
-           obj.thetavec = obj.designVariable.thetavec;
-%           obj.costfnc = costFnc(obj.network);
            optimizer = Trainer.create(obj,'SGD',obj.learningRate);
            optimizer.train();
        end
        
        function computeCost(obj,theta,Xb,Yb)
-          obj.network.thetavec = theta;
-      %     obj.thetavec = theta;
+           obj.network.thetavec = theta;
            [J,grad] = obj.propagate(obj.network.getLayer(),Xb,Yb); 
            obj.loss = obj.loss;
            l = obj.lambda;
@@ -83,6 +79,13 @@ classdef optimizationProblem < handle
            t = DesVar(s);
            obj.designVariable = t;
        end
+
+       function createCost(obj)
+           s.network = obj.network;
+           s.lambda  = obj.lambda;
+           obj.costfnc = CostFunction(s);
+       end
+
 
        function createPlotter(obj)
            obj.plotter = Plotter(obj);

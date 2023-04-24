@@ -5,16 +5,21 @@ classdef CostFunction < handle
         gradient
     end
     
-    properties (Access = protected)
+    properties (Access = private)
         network
+        lambda
     end
 
-    methods (Access = private)
-        
-        function obj = CostFunction(varargin)
-            obj.init(varargin);
+    methods (Access = public)
+
+        function obj = CostFunction(cParams)
+            obj.init(cParams);
         end
 
+    end
+
+    methods (Access = public)
+        
         function computeCost(obj,theta,Xb,Yb)
            obj.network.thetavec = theta;
            obj.thetavec = theta;
@@ -30,8 +35,9 @@ classdef CostFunction < handle
 
     methods (Access = private)
 
-        function init(obj,s)
-           obj.network = s{1};
+        function init(obj,cParams)
+           obj.network = cParams.network;
+           obj.lambda  = cParams.lambda;
        end 
 
         function [J,gradient] = propagate(obj,layer,Xb,Yb)
