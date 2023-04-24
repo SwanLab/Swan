@@ -3,13 +3,19 @@ classdef CostFunction < handle
     properties (Access = public)
         cost
         gradient
-        data
         designVariable
     end
     
     properties (Access = private)
+        data
         network
         lambda
+
+        regularization
+        loss
+        a_fcn
+        hypothesisfunction
+        delta
     end
 
     methods (Access = public)
@@ -20,7 +26,7 @@ classdef CostFunction < handle
         
         function computeCost(obj,theta,Xb,Yb)
            obj.designVariable.thetavec = theta;
-           obj.thetavec = theta;
+           %obj.thetavec = theta;
            [J,grad] = obj.propagate(obj.network.layer,Xb,Yb); 
            obj.loss = obj.loss;
            l = obj.network.lambda;

@@ -35,6 +35,7 @@ classdef Trainer < handle
 
         function init(obj,s)
             obj.CostFunction = s{1};
+            obj.data = s{4};
             if length(s) <= 7
                 obj.isDisplayed  = false;
             else

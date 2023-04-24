@@ -28,7 +28,7 @@ classdef optimizationProblem < handle
            obj.createDesignVariable();
            obj.createCost();
            obj.createPlotter();
-           optimizer = Trainer.create(obj.costfnc,'SGD',obj.learningRate);
+           optimizer = Trainer.create(obj.costfnc,'SGD',obj.learningRate,obj.data);
            optimizer.train();
        end
               

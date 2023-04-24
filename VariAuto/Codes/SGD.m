@@ -21,12 +21,12 @@ classdef SGD < Trainer
             
             if length(s) <= 4
                 obj.optTolerance = 10^(-6);
-                if size(obj.CostFunction.data.Xtrain,1) > 200
+                if size(obj.data.Xtrain,1) > 200
                     obj.batchSize    = 200;
                 else
-                    obj.batchSize    = size(s{1}.data.Xtrain,1);
+                    obj.batchSize    = size(obj.data.Xtrain,1);
                 end
-                obj.MaxEpochs   = 2000*obj.batchSize/size(obj.CostFunction.data.Xtrain,1);
+                obj.MaxEpochs   = 2000*obj.batchSize/size(obj.data.Xtrain,1);
                 obj.earlyStop   = obj.MaxEpochs;
                 obj.MaxFunEvals = 2000;
                 obj.timeStop    = Inf([1,1]);
@@ -35,8 +35,8 @@ classdef SGD < Trainer
                 obj.lSearchtype  = 'static';
             else 
                 obj.optTolerance = s{6}.optTolerance;
-                if s{5} > size(obj.CostFunction.data.Xtrain,1)
-                    obj.batchSize = size(obj.CostFunction.data.Xtrain,1);
+                if s{5} > size(obj.data.Xtrain,1)
+                    obj.batchSize = size(obj.data.Xtrain,1);
                 else
                     obj.batchSize = s{5};
                 end
@@ -65,7 +65,7 @@ classdef SGD < Trainer
     methods(Access = private)  
         
         function optimize(obj,F,th0)
-            nD            = size(obj.CostFunction.data.Xtrain,1);
+            nD            = size(obj.data.Xtrain,1);
             epsilon0      = obj.learningRate;
             epoch         =  1;iter = -1; funcount =  0; fv = 1;
             alarm         =  0; gnorm = 1; min_testError = 1;
@@ -170,7 +170,7 @@ classdef SGD < Trainer
         function displayIter(obj,epoch,iter,funcount,x,f,opt,state)
             obj.printValues(epoch,funcount,opt,f,iter)
             if obj.isDisplayed == true
-                if iter*obj.batchSize==(epoch-1)*length(obj.CostFunction.data.Xtrain) || iter == -1
+                if iter*obj.batchSize==(epoch-1)*length(obj.data.Xtrain) || iter == -1
                     obj.storeValues(x,f,state,opt);
                     obj.plotMinimization(epoch);
                 end
@@ -188,7 +188,7 @@ classdef SGD < Trainer
 
         function [x,y] = createMinibatch(obj,order,i)
                I = obj.batchSize;            
-               X = obj.CostFunction.data.Xtrain;
+               X = obj.data.Xtrain;
                Y =  obj.data.Ytrain;
                cont = 1;
                if i == fix(size(X,1)/I)

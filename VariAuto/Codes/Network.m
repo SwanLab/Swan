@@ -14,10 +14,6 @@ classdef Network < handle
        OUtype
     end
 
-    properties (Access = private)
-
-    end
-
     properties (Dependent)
         layer
     end
