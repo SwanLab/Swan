@@ -11,7 +11,7 @@ lambda          = 0;
 learningRate    = 0.1;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [3,2];
+hiddenlayers    = [10,15];
 
 %% Loading of files/datasets
 datasets = load("../Codes/datasets.mat").datasets1;
