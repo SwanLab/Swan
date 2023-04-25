@@ -27,7 +27,7 @@ classdef CostFunction < handle
         function computeCost(obj,theta,Xb,Yb)
            obj.designVariable.thetavec = theta;
            %obj.thetavec = theta;
-           [J,grad] = obj.propagate(obj.network.layer,Xb,Yb); 
+           [J,grad] = obj.propagate(obj.network.getLayer(),Xb,Yb); 
            obj.loss = obj.loss;
            l = obj.network.lambda;
            obj.regularization = l*obj.regularization;

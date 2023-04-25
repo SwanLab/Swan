@@ -16,8 +16,8 @@ classdef optimizationProblem < handle
     properties (Access = private)
        plotter
        lambda
-       a_fcn
        delta
+       actFCN
     end
 
    methods (Access = public)

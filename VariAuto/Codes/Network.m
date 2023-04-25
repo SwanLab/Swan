@@ -1,7 +1,7 @@
 classdef Network < handle
  
     properties (Access = public)
-        thetavec
+        designVariable
     end
 
     properties (GetAccess = public, SetAccess = private)
@@ -69,7 +69,7 @@ classdef Network < handle
             for i = 2:obj.nLayers
                 aux = nPL(i)*nPL(i-1) + nPL(i);
                 next = last + aux;
-                theta_i = obj.thetavec(last:next-1);
+                theta_i = obj.designVariable.thetavec(last:next-1);
                 value{i-1} = Layer(theta_i,nPL(i-1),nPL(i));
                 last = next;
             end
