@@ -7,13 +7,13 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 
-initial_case = 'full'; % squareInclusion
+initial_case = 'rectangleInclusion'; % squareInclusion
 
-cost = {'compliance','anisotropicPerimeter2D'}; % anisotropicPerimeterInterior2D
-weights = [1,0.60];
+cost = {'compliance'}; % anisotropicPerimeter2D
+weights = [1];
 
 constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
+constraint_case = {'INEQUALITY'};
 
 optimizerUnconstrained = 'SLERP'; 
 optimizer = 'NullSpace';
@@ -22,9 +22,12 @@ designVariable = 'LevelSet';
 filterType = 'P1';
 widthSquare = sqrt(0.15);
 
-nsteps = 5;
+widthH = 0.8;
+widthV = 0.8;
+
+nsteps = 1;
 % Vfrac_final = 0.85;
-Vfrac_final = 0.4;
+Vfrac_final = 0.75;
 optimality_final =1e-3;
 constr_final =1e-3;
 

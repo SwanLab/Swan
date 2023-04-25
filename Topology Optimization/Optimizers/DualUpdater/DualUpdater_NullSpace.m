@@ -5,14 +5,12 @@ classdef DualUpdater_NullSpace < handle
        cost
        designVariable
        dualVariable
-       problem
        options
        constraintCase
        nConstr
        dualOld
        isInequality
        position
-       parameter
     end
 
     methods (Access = public)
@@ -20,16 +18,15 @@ classdef DualUpdater_NullSpace < handle
         function obj = DualUpdater_NullSpace(cParams)
             obj.init(cParams);
             obj.defineConstraintCases();
-            obj.defineRangeStepParameterValue(cParams);
+            obj.computeDualProblemOptions();
         end
 
         function defineConstraintCases(obj)
-            obj.isInequality = false;
-            k                = 1;
+            k = 1;
             for i = 1:obj.nConstr
                 switch obj.constraintCase{i}
                     case {'EQUALITY'}
-                       
+                       obj.isInequality  = false;
                     case {'INEQUALITY'}
                         obj.isInequality = true;
                         obj.position(k)  = i;
@@ -38,23 +35,19 @@ classdef DualUpdater_NullSpace < handle
             end
         end
 
-        function defineRangeStepParameterValue(obj,cParams)
-            switch cParams.optimizerNames.primal
-                case {'PROJECTED GRADIENT','HAMILTON JACOBI'}
-                    obj.parameter = inf;
-                case {'SLERP'}
-                    obj.parameter = 5;
-                otherwise
-
+        function prob = computeDualBounds(obj)
+            tol     = inf;
+            prob.lb = -tol*ones(obj.nConstr,1);
+            prob.ub = tol*ones(obj.nConstr,1);
+            if obj.isInequality
+                p          = obj.position;
+                prob.lb(p) = 0;
             end
         end
 
         function update(obj,s)
-            if obj.isInequality
-                obj.computeQuadraticProblem(s);
-            else
-                obj.computeDirectDual(s);
-            end
+            s.prob = obj.computeDualBounds();
+            obj.computeQuadraticProblem(s);
         end
 
         function reset(obj)
@@ -79,71 +72,51 @@ classdef DualUpdater_NullSpace < handle
             obj.nConstr        = cParams.constraint.nSF;
         end
 
-        function computeDirectDual(obj,s)
-            aJ = s.nullSpaceCoefficient;
-            aG = s.rangeSpaceCoefficient;
-            DJ = obj.cost.gradient;
-            Dh = obj.constraint.gradient;
-            S  = (Dh'*Dh)^-1;
-            g  = obj.constraint.value;
-            lJ = -aJ*S*Dh'*DJ;
-            lG = aG*S*g;
-            l  = lG + lJ;
-            obj.dualVariable.value = l;
-
-            prob.H = Dh'*Dh;
-            prob.f = aJ*Dh'*DJ;
-            prob.A = [];
-            prob.b = [];
-            prob.solver = 'quadprog';
-            obj.computeDualProblemOptions();
-            prob.options = obj.options;
-            lJ2 = quadprog(prob);
-
-            prob.f = -aG*g;
-            lG2    = quadprog(prob);
-        end
-
         function computeQuadraticProblem(obj,s)
-            obj.constraint.computeFunctionAndGradient();
-            obj.cost.computeFunctionAndGradient();
-            obj.computeDualProblemParameters(s);
-            obj.computeDualProblemOptions();
-            PROBLEM         = obj.problem;
-            PROBLEM.options = obj.options;
-            l = quadprog(PROBLEM);
+%             lJ = obj.computeDualNullSpace(s);
+%             lG = obj.computeDualRangeSpace(s);
+            l  = obj.computeDualGlobal(s);
             obj.dualVariable.value = l;
         end
 
-        function computeDualProblemParameters(obj,s)
-            aJ          = s.nullSpaceCoefficient;
-            aG          = s.rangeSpaceCoefficient;
-            Dg          = obj.constraint.gradient;
-            DJ          = obj.cost.gradient;
-            g           = obj.constraint.value;
-            f           = obj.parameter;
-            c           = min(f*(Dg'*Dg),g);% min(f*(Dg'*DJ),g)
-            i           = length(g);
-            p           = obj.position;
-            prob.H      = Dg'*Dg;
-            prob.f      = -c + Dg'*DJ;
-            prob.A      = [];
-            prob.b      = [];
-            prob.Aeq    = [];
-            prob.beq    = [];
+        function lJ = computeDualNullSpace(obj,s)
+            aJ              = s.nullSpaceCoefficient;
+            Dg              = obj.constraint.gradient;
+            DJ              = obj.cost.gradient;
+            problem.H       = Dg'*Dg;
+            problem.f       = aJ*Dg'*DJ;
+            problem.solver  = 'quadprog';
+            problem.options = obj.options;
+            lJ              = quadprog(problem);
+        end
 
-            tol = 15; % inf
+        function lG = computeDualRangeSpace(obj,s)
+            aG              = s.rangeSpaceCoefficient;
+            Dg              = obj.constraint.gradient;
+            g               = obj.constraint.value;
+            problem.H       = Dg'*Dg;
+            problem.f       = -aG*g;
+            problem.solver  = 'quadprog';
+            problem.options = obj.options;
+            lG              = quadprog(problem);
+        end
 
-            prob.lb     = -tol*ones(i,1);
-            prob.lb(p)  = 0;
-            prob.ub     = tol*ones(length(g),1);
-            prob.x0     = zeros(length(prob.H),1);
-            prob.solver = 'quadprog';
-            obj.problem = prob;
+        function l = computeDualGlobal(obj,s)
+            aJ              = s.nullSpaceCoefficient;
+            aG              = s.rangeSpaceCoefficient;
+            problem         = s.prob;
+            g               = obj.constraint.value;
+            Dg              = obj.constraint.gradient;
+            DJ              = obj.cost.gradient;
+            problem.H       = Dg'*Dg;
+            problem.f       = aJ*Dg'*DJ-aG*g;
+            problem.solver  = 'quadprog';
+            problem.options = obj.options;
+            l               = quadprog(problem);
         end
 
         function computeDualProblemOptions(obj)
-%             opts = optimoptions("quadprog");
+            %             opts = optimoptions("quadprog");
             opts = struct( ...
                 'Algorithm','interior-point-convex', ...
                 'Diagnostics','off', ...
