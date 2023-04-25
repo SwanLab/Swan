@@ -27,15 +27,15 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
-            obj.physicalProblem.computeVariables();
+            obj.physicalProblem.solve();
         end
 
         function computeGradientValue(obj)
             eu    = obj.physicalProblem.variables.strain;
             ep    = obj.adjointProblem.variables.strain;
-            nelem = obj.physicalProblem.mesh.nelem;
-            ngaus = obj.physicalProblem.element.quadrature.ngaus;
-            nstre = obj.physicalProblem.element.getNstre();
+            nelem = size(eu,3);
+            ngaus = size(eu,1);
+            nstre = size(eu,2);
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
@@ -54,7 +54,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         
         function solveAdjoint(obj)
             obj.adjointProblem.setC(obj.homogenizedVariablesComputer.C);
-            obj.adjointProblem.computeVariables();
+            obj.adjointProblem.solve();
         end
         
         function f = getPdesVariablesToPrint(obj)
@@ -84,17 +84,21 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = private)
 
         function createAdjointProblem(obj,fileName)
-            fAdj = Preprocess.getBC_adjoint(fileName);
-            obj.adjointProblem = FEM.create(fileName);
-            [dof,dofVal] = obj.adjointProblem.dof.get_dof_conditions(fAdj,obj.adjointProblem.dof.nunkn);
-            obj.adjointProblem.dof.neumann = dof;
-            obj.adjointProblem.dof.neumann_values = -dofVal;
+            fAdj               = Preprocess.getBC_adjoint(fileName);
+            a.fileName         = fileName;
+            s                  = FemDataContainer(a);
+            s.bc.pointload     = fAdj;
+            obj.adjointProblem = FEM.create(s);
         end
         
         function f = computeDisplacementWeight(obj)
-            f = zeros(obj.adjointProblem.dof.ndof,1);
-            if ~isempty(obj.adjointProblem.dof.neumann)
-                f(obj.adjointProblem.dof.neumann) = obj.adjointProblem.dof.neumann_values;
+            nnode = obj.designVariable.mesh.nnodes;
+            ndim  = obj.designVariable.mesh.ndim;
+            ndof  = nnode*ndim;
+            f = zeros(ndof,1);
+            BC = obj.adjointProblem.boundaryConditions;
+            if ~isempty(BC.neumann)
+                f(obj.adjointProblem.boundaryConditions.neumann) = BC.neumann_values;
             end
             f = -f;
         end
