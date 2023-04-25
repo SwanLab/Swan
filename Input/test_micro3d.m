@@ -9,16 +9,13 @@ cost={'chomog_alphabeta'};
 weights=[1];
 constraint = {'volumeConstraint'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-% optimizer = 'DualNestedInPrimal';
+optimizerUnconstrained = 'SLERP'; 
+optimizer = 'DualNestedInPrimal';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 % optimizer = 'NullSpace';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % optimizer = 'MMA';
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizerUnconstrained = 'HAMILTON-JACOBI';%'SLERP';%'PROJECTED GRADIENT';%'PROJECTED GRADIENT'; 
-optimizer = 'AlternatingPrimalDual';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 incrementFactor = 1;
 designVariable = 'LevelSet';
@@ -45,11 +42,12 @@ TOL.nu_minus = 1/3;
 %Micro
 epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
-micro.alpha =[1 0 0 0 0 0]';
-micro.beta =[1 0 0 0 0 0]';
+micro.alpha =[1 1 0 0 0 0]';
+micro.beta =[1 1 0 0 0 0]';
 
 % For all tests
 plotting = false;
 printing = true;
-monitoring = false;
-maxiter = 10;
+monitoring = true;
+maxiter = 30;
+monitoring_interval = 1;
