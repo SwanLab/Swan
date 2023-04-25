@@ -1,0 +1,12 @@
+fileName = 'mesh';
+root = fileparts(mfilename('fullpath'));
+s.testName    = [root,'\',fileName,'.m'];
+s.problemCase = 'cantilever';
+s.x1          = 1;
+s.y1          = 0.5;
+s.N           = 20;
+s.M           = 10;
+s.P           = 1;
+s.DoF         = 2;
+Cantilever = FEMInputWriter(s);
+Cantilever.createTest();

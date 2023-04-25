@@ -11,7 +11,6 @@ classdef ComplianceRobustComputer < handle
         projectorParameters
         filterParameters
         solverParameters
-        data
     end
     methods (Access = public)
         function obj = ComplianceRobustComputer(cParams)
@@ -26,20 +25,7 @@ classdef ComplianceRobustComputer < handle
     methods (Access = private)
         function inputData(obj,cParams)
             obj.iterations = cParams.iterations;
-            obj.readDataFile(cParams.meshName);
         end 
-        function readDataFile(obj,meshFileName)
-            run(meshFileName);
-            obj.data.Data_prb = Data_prb;
-            obj.data.External_border_elements = External_border_elements;
-            obj.data.External_border_nodes = External_border_nodes;
-            obj.data.gidcoord = gidcoord;
-            obj.data.gidlnods = gidlnods;
-            obj.data.lnodes = lnodes;
-            obj.data.meshFileName = meshFileName;
-            obj.data.nodesolid = nodesolid;
-            obj.data.pointload_complete = pointload_complete;           
-        end
         function computeInitialParameters(obj)
             obj.computeMeshParameters();
             obj.computeStructureParameters();

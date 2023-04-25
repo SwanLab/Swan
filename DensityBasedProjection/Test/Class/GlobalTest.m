@@ -36,6 +36,7 @@ classdef GlobalTest < handle
         function compute(obj)
             % Create the objects
             s.iterations = obj.iterations;
+            s.meshName = "mesh.m";
             obj.Test1 = ComplianceRobustComputer(s);
             obj.Test1.compute();
         end
