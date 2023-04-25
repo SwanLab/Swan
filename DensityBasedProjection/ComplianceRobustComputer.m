@@ -88,10 +88,13 @@ classdef ComplianceRobustComputer < handle
         function computeMeshParameters(obj)
             %Mesh parameters
             %Malla estandar 400x80
-            obj.mesh.elementNumberX    = 160;
-            obj.mesh.elementNumberY    = 80;
             obj.mesh.neumanCondition       = -1e-3;
             obj.mesh.output    = 2;
+
+%             obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
+%             obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
+            obj.mesh.elementNumberX    = 160;
+            obj.mesh.elementNumberY    = 80;
 
             s.elementNumberX =  obj.mesh.elementNumberX;
             s.elementNumberY =  obj.mesh.elementNumberY;
@@ -111,7 +114,8 @@ classdef ComplianceRobustComputer < handle
             obj.structure.penalization   = 3;
 
             %Compute Elemental stifness Matrix
-            s.elementType = 'square';
+            s.elementType = 'SQUARE';
+            %s.elementType = cell2mat(obj.Data.Data_prb(1));
             s.t = obj.structure.t;
             s.poissonCoefficient =obj.structure. poissonCoefficient;
             B = ElementalStiffnessMatricesComputer(s);

@@ -23,17 +23,26 @@ classdef ElementalStiffnessMatricesComputer < handle
             obj.poissonCoefficient = cParams.poissonCoefficient;
         end
         function chose(obj)
-            if obj.elementType == 'square'
-                obj.squareElement();
+            if obj.elementType == 'SQUARE'
+                obj.computeSquareElement();
+            elseif obj.elementType == 'TRIANGLE'
+                obj.computeTriangularElement();
             else
                 disp('Element mesh not implemented')
             end   
            
         end 
-        function squareElement(obj)
+        function computeSquareElement(obj)
             s.poissonCoefficient = obj.poissonCoefficient;
             s.t = obj.t;
             B = SquareElement(s);
+            B.computeStifnessMatrix();
+            obj.elementalStiffnessMatrix = B.stifnessMatrix;     
+        end
+        function computeTriangularElement(obj)
+            s.poissonCoefficient = obj.poissonCoefficient;
+            s.t = obj.t;
+            B = TriangularElement(s);
             B.computeStifnessMatrix();
             obj.elementalStiffnessMatrix = B.stifnessMatrix;     
         end
