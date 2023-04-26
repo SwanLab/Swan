@@ -1,9 +1,5 @@
 classdef Network < handle
  
-    properties (Access = public)
-   %     designVariable
-    end
-
     properties (GetAccess = public, SetAccess = private)
        data       
        neuronsPerLayer

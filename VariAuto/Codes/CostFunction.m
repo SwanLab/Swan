@@ -23,7 +23,7 @@ classdef CostFunction < handle
             obj.init(cParams);
         end
         
-        function computeCost(obj,theta,Xb,Yb)
+        function [J,grad] = computeCost(obj,theta,Xb,Yb)
            obj.designVariable.thetavec = theta;
            %obj.thetavec = theta;
            [J,grad] = obj.propagate(obj.network.getLayer(theta),Xb,Yb); 
@@ -166,7 +166,7 @@ classdef CostFunction < handle
 
        function g = compute_last_H(obj,X)
            nLy = obj.network.nLayers;
-           layer = obj.network.getLayer();
+           layer = obj.network.getLayer(obj.designVariable.thetavec);
            h = obj.hypothesisfunction(X,layer{1}.W,layer{1}.b);
             [g,~] = obj.actFCN(h,2);
             for i = 2:nLy-1
