@@ -70,7 +70,7 @@ classdef ComplianceRobustComputer < handle
             %Optimización
             s.mesh = obj.mesh;
             s.structure=obj.structure;
-            s.structure.elementType = 'Square';
+            s.structure.elementType = 'TRIANGULAR';
             s.projectorParameters = obj.projectorParameters;
             s.filterParameters = obj.filterParameters;
             s.solverParameters =obj.solverParameters;
@@ -90,14 +90,17 @@ classdef ComplianceRobustComputer < handle
             %Malla estandar 400x80
             obj.mesh.neumanCondition       = -1e-3;
             obj.mesh.output    = 2;
+            %Compute Elemental stifness Matrix
+           
 
-%             obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
-%             obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
-            obj.mesh.elementNumberX    = 160;
-            obj.mesh.elementNumberY    = 80;
-
-            s.elementNumberX =  obj.mesh.elementNumberX;
-            s.elementNumberY =  obj.mesh.elementNumberY;
+%           obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
+%           obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
+%           obj.mesh.elementNumberX    = 160;
+%           obj.mesh.elementNumberY    = 80;
+            s.elementType = 'TRIANGULAR';
+            s.data = obj.data;
+%             s.elementNumberX =  obj.mesh.elementNumberX;
+%             s.elementNumberY =  obj.mesh.elementNumberY;
             B = GeometryComputer(s);
             B.compute();
             obj.mesh.degress.all   = B.degress.all;
