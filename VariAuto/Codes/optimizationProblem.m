@@ -31,10 +31,6 @@ classdef optimizationProblem < handle
            optimizer = Trainer.create(obj.costfnc,'SGD',obj.learningRate,obj.data);
            optimizer.train();
        end
-              
-       function h = getOutput(obj,X)
-            h = obj.compute_last_H(X);
-       end
 
        function plotBoundary(obj,type) 
            obj.plotter.plotBoundary(type);
@@ -79,27 +75,10 @@ classdef optimizationProblem < handle
            obj.costfnc = CostFunction(s);
        end
 
-
        function createPlotter(obj)
            obj.plotter = Plotter(obj);
        end
-
-
-       function g = compute_last_H(obj,X)
-           nLy = obj.network.nLayers;
-           layer = obj.network.getLayer();
-           h = obj.hypothesisfunction(X,layer{1}.W,layer{1}.b);
-            [g,~] = obj.actFCN(h,2);
-            for i = 2:nLy-1
-                h = obj.hypothesisfunction(g,layer{i}.W,layer{i}.b);
-                [g,~] = obj.actFCN(h,i+1);
-            end
-       end  
+         
    end
-    
-    methods (Access = private, Static)      
-        function h = hypothesisfunction(X,W,b)
-          h = X*W + b;
-        end     
-    end  
+
 end
