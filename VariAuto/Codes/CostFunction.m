@@ -14,7 +14,6 @@ classdef CostFunction < handle
         regularization
         loss
         a_fcn
-        hypothesisfunction
         delta
     end
 
@@ -27,7 +26,7 @@ classdef CostFunction < handle
         function computeCost(obj,theta,Xb,Yb)
            obj.designVariable.thetavec = theta;
            %obj.thetavec = theta;
-           [J,grad] = obj.propagate(obj.network.getLayer(),Xb,Yb); 
+           [J,grad] = obj.propagate(obj.network.getLayer(theta),Xb,Yb); 
            obj.loss = obj.loss;
            l = obj.network.lambda;
            obj.regularization = l*obj.regularization;
@@ -67,7 +66,9 @@ classdef CostFunction < handle
            a{1} = Xb;
            for i = 2:nLy
                g_prev = a{i-1};
-               h = obj.hypothesisfunction(g_prev,layer{i-1}.W,layer{i-1}.b);
+               W = layer{i-1}.W;
+               b = layer{i-1}.b;
+               h = obj.hypothesisfunction(g_prev,W,b);
                [g,~] = obj.actFCN(h,i);
                a{i} = g;
            end
@@ -159,6 +160,12 @@ classdef CostFunction < handle
             end
         end
     end
+
+    methods (Access = private, Static)      
+        function h = hypothesisfunction(X,W,b)
+          h = X*W + b;
+        end     
+    end      
 
 end
 
