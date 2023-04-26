@@ -24,8 +24,8 @@ classdef optimizationProblem < handle
 
        function obj = optimizationProblem(varargin)
            obj.init(varargin);
+           obj.createDesignVariable(varargin);
            obj.createNetwork();
-           obj.createDesignVariable();
            obj.createCost();
            obj.createPlotter();
            optimizer = Trainer.create(obj.costfnc,'SGD',obj.learningRate,obj.data);
@@ -58,17 +58,17 @@ classdef optimizationProblem < handle
            obj.lambda = s{4};
        end  
 
-       function createNetwork(obj)
-           s1 = obj.data;
-           s2 = obj.structure;
-           n  = Network(s1,s2);
-           obj.network = n;
+       function createDesignVariable(obj,s)
+           t = DesignVariable(s{2});
+           obj.designVariable = t;
        end
 
-       function createDesignVariable(obj)
-           s.initValue = obj.network.computeInitialTheta();
-           t = DesignVariable(s);
-           obj.designVariable = t;
+       function createNetwork(obj)
+           s1 = obj.data;
+           s2 = obj.designVariable;
+           s3 = obj.structure;
+           n  = Network(s1,s2,s3);
+           obj.network = n;
        end
 
        function createCost(obj)

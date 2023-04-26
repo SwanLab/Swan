@@ -24,20 +24,20 @@ classdef Network < handle
            obj.init(varargin);
        end
 
-        function th = computeInitialTheta(obj)
-           nPL    = obj.neuronsPerLayer;
-           th     = [];
-           for i = 2:obj.nLayers
-                if i ~= obj.nLayers
-                    b = zeros([1,nPL(i)]) + 0.1;
-                else
-                    b = zeros([1,nPL(i)]) + 1/nPL(i);
-                end
-                u = (6/(nPL(i-1)+nPL(i)))^0.5;
-                W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
-                th = [th,W,b];
-           end      
-       end       
+       %  function th = computeInitialTheta(obj)
+       %     nPL    = obj.neuronsPerLayer;
+       %     th     = [];
+       %     for i = 2:obj.nLayers
+       %          if i ~= obj.nLayers
+       %              b = zeros([1,nPL(i)]) + 0.1;
+       %          else
+       %              b = zeros([1,nPL(i)]) + 1/nPL(i);
+       %          end
+       %          u = (6/(nPL(i-1)+nPL(i)))^0.5;
+       %          W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
+       %          th = [th,W,b];
+       %     end      
+       % end       
        
    end
 
@@ -45,19 +45,21 @@ classdef Network < handle
 
        function init(obj,s)
            obj.data = s{1};
-           obj.neuronsPerLayer = s{2};
-           obj.nLayers = length(s{2});
-           if length(s) <= 2
+           obj.designVariable = s{2};
+           obj.neuronsPerLayer = s{3};
+           obj.nLayers = length(s{3});
+           if length(s) <= 3
                obj.Costtype = '-loglikelihood';
                obj.HUtype = 'ReLU';
                obj.OUtype = 'softmax';
                obj.lambda = 0;
            else
-               obj.Costtype = s{3};
-               obj.HUtype = s{4};
-               obj.OUtype = s{5};
-               obj.lambda = s{6};
+               obj.Costtype = s{4};
+               obj.HUtype = s{5};
+               obj.OUtype = s{6};
+               obj.lambda = s{7};
            end
+           
        end  
    end   
 
