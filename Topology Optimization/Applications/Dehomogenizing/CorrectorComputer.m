@@ -66,7 +66,7 @@ classdef CorrectorComputer < handle
             s.singularityCoord   = obj.singularCoord;
             p = PathVertexesToBoundaryComputer(s);
             v = p.compute(); 
-            obj.pathVertexes = v(1:end);
+            obj.pathVertexes = v(2:end);
         end        
 
         function computeLeftRightPathElements(obj)
