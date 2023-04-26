@@ -4,6 +4,7 @@ classdef Plotter < handle
         data
         neuronsPerLayer
         network
+        CostFunction
         optimizationProblem
     end
 
@@ -13,6 +14,7 @@ classdef Plotter < handle
             obj.data = init.data;
             obj.network = init.network;
             obj.optimizationProblem = init;
+            obj.CostFunction = init.costfnc;
             obj.neuronsPerLayer = init.network.neuronsPerLayer;
         end
 
@@ -169,7 +171,7 @@ classdef Plotter < handle
         function drawConfusionMat(obj)
             targets = obj.data.Ytest;
             x = obj.data.Xtest;
-            outputs = obj.optimizationProblem.getOutput(x);
+            outputs = obj.CostFunction.getOutput(x);
             figure(1)
             plotconfusion(targets',outputs')
         end
