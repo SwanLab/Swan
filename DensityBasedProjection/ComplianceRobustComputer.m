@@ -90,17 +90,10 @@ classdef ComplianceRobustComputer < handle
             %Malla estandar 400x80
             obj.mesh.neumanCondition       = -1e-3;
             obj.mesh.output    = 2;
-            %Compute Elemental stifness Matrix
-           
-
-%           obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
-%           obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
-%           obj.mesh.elementNumberX    = 160;
-%           obj.mesh.elementNumberY    = 80;
-            s.elementType = 'TRIANGULAR';
+            obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
+            obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
+            s.elementType = 'SQUARE';
             s.data = obj.data;
-%             s.elementNumberX =  obj.mesh.elementNumberX;
-%             s.elementNumberY =  obj.mesh.elementNumberY;
             B = GeometryComputer(s);
             B.compute();
             obj.mesh.degress.all   = B.degress.all;

@@ -17,6 +17,7 @@ classdef GeometryComputer < handle
             obj.createNodeToDegreesMat();
         end
         function compute(obj)
+            obj.connectNodes();
             obj.connectDegrees();
             obj.computeDregreess();
         end
@@ -27,17 +28,10 @@ classdef GeometryComputer < handle
             obj.elementNumberX =  length(unique(obj.data.gidcoord(:,2)));
             obj.elementNumberY =  length(unique(obj.data.gidcoord(:,3)));
             obj.elementType = cell2mat(obj.data.Data_prb(1));
-        end
         function createNodeToDegreesMat(obj)
             linearMat = (1:1:length(obj.data.gidcoord)*2);
             obj.nodeToDegrees = reshape(linearMat,2,[]);
         end 
-%         function connectNodes(obj)
-%             nodeNumeration = reshape(1:(1+obj.elementNumberX)*(1+obj.elementNumberY),1+obj.elementNumberY,1+obj.elementNumberX);
-%             conectivityMatrixVec = reshape(2*nodeNumeration(1:end-1,1:end-1)+1,obj.elementNumberX*obj.elementNumberY,1);
-%             obj.conectivityMatrixMat = repmat(conectivityMatrixVec,1,8)+repmat([0 1 2*obj.elementNumberY+[2 3 0 1] -2 -1],obj.elementNumberX*obj.elementNumberY,1);
-%         end 
-
         function computeDregreess(obj)
             obj.degress.fixed = [1:2:2*(obj.elementNumberY+1) 2*(obj.elementNumberX+1)*(obj.elementNumberY+1) 2*(obj.elementNumberX+1)*(obj.elementNumberY+1)-1];
             obj.degress.all   = 1:2*(obj.elementNumberX+1)*(obj.elementNumberY+1);
