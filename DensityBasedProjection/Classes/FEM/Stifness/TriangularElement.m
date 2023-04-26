@@ -1,11 +1,12 @@
-classdef TriangularElement < Element 
+classdef TriangularElement < Element
     methods (Access = public)
-        function computeStifnessMatrix(obj)           
-            A = [1/2, 1/2, 0; 0, 1/2, 1/2];
-            B = [-1, 1, 0; -1, 0, 1];
-            D = obj.t/(1-obj.poissonCoefficient^2)*[1, obj.poissonCoefficient, 0; obj.poissonCoefficient, 1, 0; 0, 0, (1-obj.poissonCoefficient)/2];
-            T = abs(det([1, obj.nodes(1, :); 1, obj.nodes(2, :); 1, obj.nodes(3, :)]))/2;
-            obj.stiffnessMatrix = T*D*(B'/(A*B))*B'/(A*B)*A;
+        function computeStifnessMatrix(obj)
+            A11     = [2  1 -1;  1  2  1; -1  1  2];
+            A12     = [-1 -1  1;  1  0 -1; -1  1  0];
+            B11     = [1 -1  0; -1  1  0;  0  0  0];
+            B12     = [0  0  0;  0 -1  1;  0  1 -1];
+
+            obj.stifnessMatrix = obj.t/(2*(1+obj.poissonCoefficient))*[A11 A12; A12' B11] + obj.t*obj.poissonCoefficient/(2*(1+obj.poissonCoefficient))*[B12 B12'; A12' A11];
         end
     end
 end

@@ -18,20 +18,20 @@ classdef ElementalStiffnessMatricesComputer < handle
     end
     methods (Access = private)
         function inputData(obj,cParams)
-            obj.elementType = cParams.elementType;
+            obj.elementType = cell2mat(cParams.data.Data_prb(1));
             obj.t = cParams.t;
             obj.poissonCoefficient = cParams.poissonCoefficient;
         end
         function chose(obj)
-            if obj.elementType == 'SQUARE'
-                obj.computeSquareElement();
-            elseif obj.elementType == 'TRIANGLE'
-                obj.computeTriangularElement();
-            else
-                disp('Element mesh not implemented')
-            end   
-           
-        end 
+            switch obj.elementType
+                case 'SQUARE'
+                    obj.computeSquareElement();
+                case 'TRIANGLE'
+                    obj.computeTriangularElement();
+                otherwise
+                    disp('Element mesh not implemented')
+            end
+        end
         function computeSquareElement(obj)
             s.poissonCoefficient = obj.poissonCoefficient;
             s.t = obj.t;

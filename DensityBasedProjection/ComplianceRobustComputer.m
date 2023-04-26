@@ -92,7 +92,6 @@ classdef ComplianceRobustComputer < handle
             obj.mesh.output    = 2;
             obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
             obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
-            s.elementType = 'SQUARE';
             s.data = obj.data;
             B = GeometryComputer(s);
             B.compute();
@@ -103,17 +102,13 @@ classdef ComplianceRobustComputer < handle
         end
         function computeStructureParameters(obj)
              obj.structure.t       = 1;
-             %Parámetros del material:
             obj.structure.elasticModuleNeutral      = 1;
             obj.structure.elasticModuleMinimun    = 1e-6;
             obj.structure.poissonCoefficient      = 0.3;
             obj.structure.penalization   = 3;
-
-            %Compute Elemental stifness Matrix
-            s.elementType = 'SQUARE';
-            %s.elementType = cell2mat(obj.Data.Data_prb(1));
             s.t = obj.structure.t;
-            s.poissonCoefficient =obj.structure. poissonCoefficient;
+            s.poissonCoefficient =obj.structure.poissonCoefficient;
+            s.data = obj.data;
             B = ElementalStiffnessMatricesComputer(s);
             B.compute();
             obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
