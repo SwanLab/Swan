@@ -1,4 +1,4 @@
-filename = 'Gripping_triangle_fine'; % Try other meshes
+filename = 'Gripping_triangle_coarse'; % Try other meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -11,7 +11,7 @@ optimizerUnconstrained = 'PROJECTED GRADIENT'; % See PrimalUpdaterFactory
 optimizer = 'NullSpace'; % See OptimizerFactory
 designVariable = 'Density'; % Density/LevelSet
 filterType = 'P1';
-constraint_case = {'INEQUALITY'}; % EQUALITY or INEQUALITY
+constraint_case = {'EQUALITY'}; % EQUALITY or INEQUALITY
 
 nsteps = 1;
 Vfrac_final = 0.5;
