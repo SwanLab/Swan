@@ -52,7 +52,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
                         ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
-                            g(:,igaus,ivar) = g(:,igaus,ivar) + eu_i.*dCij.*ep_j;
+                            g(:,igaus,ivar) = g(:,igaus,ivar) - eu_i.*dCij.*ep_j;
                         end
                     end
                 end
@@ -93,7 +93,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
 
         function createAdjointProblem(obj,fileName)
             fAdj               = Preprocess.getBC_adjoint(fileName);
-            fAdj(:,3)          = -fAdj(:,3);
             a.fileName         = fileName;
             s                  = FemDataContainer(a);
             s.bc.pointload     = fAdj;
@@ -109,7 +108,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             if ~isempty(BC.neumann)
                 f(obj.adjointProblem.boundaryConditions.neumann) = BC.neumann_values;
             end
-            f = -f;
         end
     end
 end
