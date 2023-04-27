@@ -15,6 +15,14 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             obj.createOrientationUpdater();
         end
 
+        function t = getTitlesToPlot(obj)
+            t{1} = 'Compliance non scaled';
+        end
+
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end
+
     end
 
     methods (Access = protected)
@@ -85,6 +93,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
 
         function createAdjointProblem(obj,fileName)
             fAdj               = Preprocess.getBC_adjoint(fileName);
+            fAdj(:,3)          = -fAdj(:,3);
             a.fileName         = fileName;
             s                  = FemDataContainer(a);
             s.bc.pointload     = fAdj;
