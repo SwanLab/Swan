@@ -1,13 +1,10 @@
-classdef FE_LagrangianFunction < FeFunction
+classdef FE_RaviartThomasFunction < FeFunction
 
     properties (Access = public)
         dofs
         ndofs
         coords
         polynomialOrder
-    end
-
-    properties (Access = private)
         interpolation
     end
 
@@ -18,11 +15,10 @@ classdef FE_LagrangianFunction < FeFunction
 
     methods (Access = public)
 
-        function obj = FE_LagrangianFunction(cParams)
+        function obj = FE_RaviartThomasFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeDofs();
-            obj.computeCoords();
         end
 
         function fxV = evaluate(obj, xV)
@@ -201,12 +197,19 @@ classdef FE_LagrangianFunction < FeFunction
                             m = m.remesh(2); m = m.remesh(2); m = m.remesh(2);
                             x = m.coord(:,1);
                             y = m.coord(:,2);
-                            z = obj.interpolation.lagrangeElement.evaluate(obj.fValues(obj.dofs(ielem,:)),x,y);
-                            a = trisurf(m.connec,x,y,z); 
-                            a.EdgeColor = [0 0 0];
-                            a.EdgeAlpha = 0.3;
+                            localDofs = obj.fValues(obj.dofs(ielem,:));
+                            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(ielem,:,:));
+                            for iedge=1:3
+                                if locPointEdge(iedge,1)~=iedge 
+                                    localDofs(iedge)=-localDofs(iedge);
+                                end
+                            end
+                            [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
+%                             a = quiver(x,y,z1,z2,0);
+                            a = quiver(x,y,z1,z2);
+                            a.Color = [0 0 0];
                         end
-%                         shading interp
+                        axis equal                        
                         grid on
                         view(0,90)
                         obj.mesh.plot();
@@ -255,11 +258,11 @@ classdef FE_LagrangianFunction < FeFunction
     methods (Access = public, Static)
 
         function p = create(mesh, ndimf, polOrder)
-            d = FE_LagrangianFunction.numberDofs(mesh,polOrder);
+            d = FE_RaviartThomasFunction.numberDofs(mesh,polOrder);
             s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
             s.polynomialOrder = polOrder;
-            p = FE_LagrangianFunction(s);
+            p = FE_RaviartThomasFunction(s);
         end
 
         function fS = times(f1,f2)
@@ -271,8 +274,9 @@ classdef FE_LagrangianFunction < FeFunction
         
         function ndofs = numberDofs(mesh,order)
             if order == 1
-                ndofs = mesh.nnodes;
-            else
+                mesh.computeEdges;
+                ndofs = size(mesh.edges.nodesInEdges,1);
+            else % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
                 mesh.computeEdges();
                 if order >= 3
                     nodesel = nchoosek(order-1,order-3);
@@ -291,7 +295,7 @@ classdef FE_LagrangianFunction < FeFunction
             obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'PROVA';
+            obj.order   = 'LINEAR';
             obj.meshCoarse = cParams.mesh;
             obj.polynomialOrder = cParams.polynomialOrder;
         end
@@ -315,35 +319,13 @@ classdef FE_LagrangianFunction < FeFunction
                 z((ielem-1)*n+1:ielem*n) = obj.interpolation.lagrangeElement.evaluate(obj.fValues(obj.dofs(ielem,:)),m.coord(:,1),m.coord(:,2));
                 connec((ielem-1)*nn+1:ielem*nn,:) = m.connec+(ielem-1)*n;
             end
-            
-            
-%             order = obj.polynomialOrder;
-%             nlocel = order^2;
-%             nelem = obj.mesh.nelem;
-%             connec = zeros(nelem*nlocel,3);
-%             for ielem = 1:size(obj.dofs,1)
-%                 con = zeros(nlocel,3);
-%                 switch obj.polynomialOrder
-%                     case 1
-%                         con = [1 2 3];
-%                     case 2
-%                         con  = [1 4 6;2 4 5;4 5 6;3 5 6];
-%                     case 3
-%                         con = [1 4 9;4 9 10;4 5 10;5 7 10;5 2 7;8 9 10;6 8 10;6 7 10;6 8 3];
-%                     case 4
-%                         con = [];
-%                 end
-%                 for i = 1:nlocel
-%                     connec((ielem-1)*nlocel+i,:) = obj.dofs(ielem,con(i,:));
-%                 end
-%             end
         end
 
         function createInterpolation(obj)
             cParams.mesh.type = obj.mesh.type;
             cParams.order = obj.order;
             cParams.polynomialOrder = obj.polynomialOrder;
-            obj.interpolation = FE_Interpolation(cParams);
+            obj.interpolation = FE_Interpolation(cParams); %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         end
 
         % Printing
@@ -359,11 +341,10 @@ classdef FE_LagrangianFunction < FeFunction
         end
         
         function computeDofs(obj)
-            dofsVertices = obj.computeDofsVertices();
             dofsEdges = obj.computeDofsEdges();
             dofsElements = obj.computeDofsElements(dofsEdges);
             
-            obj.dofs = [dofsVertices,dofsEdges,dofsElements];
+            obj.dofs = [dofsEdges,dofsElements];
             obj.ndofs = max(max(obj.dofs));
         end
         
@@ -376,10 +357,10 @@ classdef FE_LagrangianFunction < FeFunction
             mesh = obj.mesh;
             mesh.computeEdges();
             if obj.polynomialOrder == 1
-                dofsEdges = [];
-            else
+                dofsEdges = mesh.edges.edgesInElem;
+            else %!!!!!!!!!!!!!!!!!!!!!!
                 edges = mesh.edges.edgesInElem;
-                ndofEd = (obj.polynomialOrder-1);
+                ndofEd = obj.polynomialOrder;
                 ndofsEdgeElem = ndofEd*obj.mesh.nnodeElem;
                 dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
                 for i = 1:obj.mesh.nelem
@@ -395,46 +376,15 @@ classdef FE_LagrangianFunction < FeFunction
             mesh = obj.mesh;
             if obj.polynomialOrder == 1
                 dofsElements = [];
-            else
-                ord = obj.polynomialOrder-2;
-                ndofsElements = 0;
-                for i = 0:ord
-                    ndofsElements = ndofsElements + i;
-                end
+            else % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                ord = obj.polynomialOrder;
+                ndofsElements = ord;
                 dofsElements = zeros(obj.mesh.nelem,ndofsElements);
                 for i = 1:obj.mesh.nelem
                     dofsElements(i,:) = (i-1)*ndofsElements+1:i*ndofsElements;
                 end
                 dofsElements = dofsElements + max(max(dofsEdges));
             end
-        end
-        
-        function computeCoords(obj)
-            nelem = size(obj.dofs,1);
-            coord = obj.mesh.coord;
-            
-            x = zeros(obj.ndofs,1);
-            y = zeros(obj.ndofs,1);
-            
-            if obj.interpolation.lagrangeElement.polynomialOrder~=1
-                for ielem = 1:nelem
-                    coor = obj.computeNodesElement(coord(obj.dofs(ielem,1:3),:));
-                    x(obj.dofs(ielem,:)) = coor(:,1);
-                    y(obj.dofs(ielem,:)) = coor(:,2);
-                end
-            
-                obj.coords = [x,y];
-            else
-                obj.coords = obj.mesh.coord;
-            end
-        end
-        
-        function coor = computeNodesElement(obj,coords)
-            base = obj.interpolation.lagrangeElement.nodes;          
-            c = base(1:3,:);
-            M = (coords-coords(1,:))'/c';
-            N = coords(1,:)';
-            coor = (M*base'+N)';
         end
         
     end

@@ -3,7 +3,7 @@ classdef FE_Interpolation < handle
     properties (Access = public)
         shape
         deriv        
-        lagrangeElement
+        finiteElement
     end
     
     properties (Access = private)
@@ -46,7 +46,7 @@ classdef FE_Interpolation < handle
         function init(obj,cParams)
             obj.type  = cParams.mesh.type;
             obj.order = cParams.order;
-            obj.lagrangeElement = LagrangeElement.create('SIMPLICIAL',cParams.polynomialOrder,2);
+            obj.finiteElement = RaviartThomasElement.create(2); %!!!!!!!!!!!!!!!!!!!!!
         end
         
         function computeParams(obj)
@@ -60,28 +60,31 @@ classdef FE_Interpolation < handle
         
         function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+            ndim = size(posgp,1);
             x = posgp(1,:,:);
             y = posgp(2,:,:);
-            ls = obj.lagrangeElement;
-            obj.shape = zeros(length(ls.shapeFunctions),ngaus,nelem);
-            
-            for s = 1:length(ls.shapeFunctions)
-                obj.shape(s,:,:) = ls.shapeFunctions{s}(x,y);
+            fEl = obj.finiteElement;
+            obj.shape = zeros(length(fEl.shapeFunctions),ngaus,ndim);
+
+            for s = 1:length(fEl.shapeFunctions)
+                obj.shape(s,:,:) = fEl.shapeFunctions{s}(x',y'); %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             end
         end
         
         function computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+%             nelem = size(posgp,3);
+            nelem = 2;
             x = posgp(1,:,:);
             y = posgp(2,:,:);
-            ls = obj.lagrangeElement;
-            obj.deriv = zeros(2,length(ls.shapeFunctions),ngaus,nelem);
+            fEl = obj.finiteElement;
+            obj.deriv = zeros(2,length(fEl.shapeFunctions),ngaus,nelem);
             
-            for s = 1:length(ls.shapeFunctions)
-                obj.deriv(1,s,:,:) = ls.shapeFunctionsDiff{s,1}(x,y);
-                obj.deriv(2,s,:,:) = ls.shapeFunctionsDiff{s,2}(x,y);
+            for s = 1:length(fEl.shapeFunctions)
+                for i = 1:ngaus
+                    obj.deriv(1,s,i,:) = fEl.shapeFunctionsDiff{s,1}(x(i),y(i));
+                    obj.deriv(2,s,i,:) = fEl.shapeFunctionsDiff{s,2}(x(i),y(i));
+                end
             end
         end
         

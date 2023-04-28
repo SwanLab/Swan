@@ -56,9 +56,9 @@ classdef Simplicial2D < handle
         end
         
         function computeTangentVectors(obj)
-            tang(1,:) = (obj.vertices(3,:)-obj.vertices(2,:))/obj.edgesLength(1);
+            tang(3,:) = (obj.vertices(3,:)-obj.vertices(2,:))/obj.edgesLength(1);
             tang(2,:) = (obj.vertices(1,:)-obj.vertices(3,:))/obj.edgesLength(2);
-            tang(3,:) = (obj.vertices(2,:)-obj.vertices(1,:))/obj.edgesLength(3);
+            tang(1,:) = (obj.vertices(2,:)-obj.vertices(1,:))/obj.edgesLength(3);
             
             obj.tangentVectors = tang;
         end
