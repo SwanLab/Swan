@@ -11,7 +11,7 @@ classdef ComplianceRobustComputer < handle
         projectorParameters
         filterParameters
         solverParameters
-        data
+        settings
     end
     methods (Access = public)
         function obj = ComplianceRobustComputer(cParams)
@@ -26,20 +26,21 @@ classdef ComplianceRobustComputer < handle
     methods (Access = private)
         function inputData(obj,cParams)
             obj.iterations = cParams.iterations;
-            obj.readDataFile(cParams.meshName);
-        end 
-        function readDataFile(obj,meshFileName)
-            run(meshFileName);
-            obj.data.Data_prb = Data_prb;
-            obj.data.External_border_elements = External_border_elements;
-            obj.data.External_border_nodes = External_border_nodes;
-            obj.data.gidcoord = gidcoord;
-            obj.data.gidlnods = gidlnods;
-            obj.data.lnodes = lnodes;
-            obj.data.meshFileName = meshFileName;
-            obj.data.nodesolid = nodesolid;
-            obj.data.pointload_complete = pointload_complete;           
+            obj.readDataFile(cParams.settingsName);
         end
+        function readDataFile(obj,settingsFile)
+%            settingsFile               = 'test_arturo';
+            s                      = Settings(settingsFile);
+            s.warningHoleBC        = false;
+            s.printIncrementalIter = false;
+            s.printChangingFilter  = false;
+            s.printing             = false;
+            translator             = SettingsTranslator();
+            translator.translate(s);
+            settingsFile               = translator.fileName;
+            obj.settings               = SettingsTopOptProblem(settingsFile);
+        end
+
         function computeInitialParameters(obj)
             obj.computeMeshParameters();
             obj.computeStructureParameters();
@@ -86,19 +87,16 @@ classdef ComplianceRobustComputer < handle
             obj.D = B.D;
         end 
         function computeMeshParameters(obj)
-            %Mesh parameters
-            %Malla estandar 400x80
-            obj.mesh.neumanCondition       = -1e-3;
-            obj.mesh.output    = 2;
-            obj.mesh.elementNumberX    = length(unique(obj.data.gidcoord(:,2)));
-            obj.mesh.elementNumberY    = length(unique(obj.data.gidcoord(:,3)));
-            s.data = obj.data;
-            B = GeometryComputer(s);
-            B.compute();
+            file       = 'Arturo';
+            a.fileName = file;
+            mesh       = FemDataContainer(a);
+
             obj.mesh.degress.all   = B.degress.all;
             obj.mesh.degress.free  = B.degress.free;
             obj.mesh.degress.fixed = B.degress.fixed;
             obj.mesh.conectivityMatrixMat = B.conectivityMatrixMat;
+
+
         end
         function computeStructureParameters(obj)
              obj.structure.t       = 1;
@@ -108,7 +106,7 @@ classdef ComplianceRobustComputer < handle
             obj.structure.penalization   = 3;
             s.t = obj.structure.t;
             s.poissonCoefficient =obj.structure.poissonCoefficient;
-            s.data = obj.data;
+            s.data = obj.settings;
             B = ElementalStiffnessMatricesComputer(s);
             B.compute();
             obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
@@ -171,9 +169,10 @@ classdef ComplianceRobustComputer < handle
         function computeInitialFields(obj)
             s.field = obj.filterParameters.volumenFraction*ones(obj.mesh.elementNumberY,obj.mesh.elementNumberX);
             s.field([],[]) = 1;
+            s.mesh = obj.mesh;
             s.filterParameters =  obj.filterParameters;
             s.projectorParameters.beta =  obj.projectorParameters.beta;
-            s.mesh = obj.mesh;
+
 
             s.projectorParameters.eta =  obj.projectorParameters.eta.E; 
             obj.E.designField = DesignField(s);

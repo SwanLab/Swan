@@ -1,14 +1,18 @@
 classdef GeometryComputer < handle
     properties (Access = public)
-        conectivityMatrixMat
         degress
-    end
-    properties (Access = private)
+        connectivityDOFS
         elementNumberX
         elementNumberY
+    end
+    properties (Access = private)
         nodeToDegrees
         data
         elementType
+        connectivityMesh
+        boundaryConditions
+        coord
+        
     end
 
     methods (Access = public)
@@ -17,25 +21,28 @@ classdef GeometryComputer < handle
             obj.createNodeToDegreesMat();
         end
         function compute(obj)
+            obj.countElements();
             obj.connectDegrees();
             obj.computeDregreess();
         end
     end
     methods (Access = private)
         function obj = inputData(obj,cParams)
-            obj.data = cParams.data;
-            obj.elementNumberX =  length(unique(obj.data.gidcoord(:,2)));
-            obj.elementNumberY =  length(unique(obj.data.gidcoord(:,3)));
-            obj.elementType = cell2mat(obj.data.Data_prb(1));
+            obj.connectivityMesh = cParams.mesh.connec;
+            obj.coord = cParams.mesh.coord;
+            obj.boundaryConditions = cParams.bc;
+            obj.elementType = cParams.mesh.type;
         end
         function createNodeToDegreesMat(obj)
             linearMat = (1:1:length(obj.data.gidcoord)*2);
             obj.nodeToDegrees = reshape(linearMat,2,[]);
         end
+        function countElements(obj)
+            obj.elementNumberX = length(unique(obj.coord(:,1)))-1;
+            obj.elementNumberY = length(unique(obj.coord(:,2)))-1;
+
+        end 
         function computeDregreess(obj)
-            obj.degress.fixed = [1:2:2*(obj.elementNumberY+1) 2*(obj.elementNumberX+1)*(obj.elementNumberY+1) 2*(obj.elementNumberX+1)*(obj.elementNumberY+1)-1];
-            obj.degress.all   = 1:2*(obj.elementNumberX+1)*(obj.elementNumberY+1);
-            obj.degress.free  = setdiff(obj.degress.all,obj.degress.fixed);
 
             obj.degress.fixed = reshape(obj.nodeToDegrees(:,obj.data.nodesolid),1,[]);
             obj.degress.all   =  reshape(obj.nodeToDegrees,1,[]);
@@ -44,7 +51,7 @@ classdef GeometryComputer < handle
         end
         function connectDegrees(obj)
             switch obj.elementType
-                case 'SQUARE'
+                case 'QUAD'
                     obj.connectDegreesSquare();
                 case 'TRIANGLE'
                     obj.connectDegreesTriangular();
@@ -54,12 +61,12 @@ classdef GeometryComputer < handle
         end
         function connectDegreesSquare(obj)
             for e = 1:length(obj.data.gidlnods)
-                obj.conectivityMatrixMat(e,:) = reshape(obj.nodeToDegrees(:,obj.data.gidlnods(e,2:end)),1,[]);
+                obj.connectivityDOFS(e,:) = reshape(obj.nodeToDegrees(:,obj.connectivityMesh(e,:)),1,[]);
             end
         end
         function connectDegreesTriangular(obj)
             for e = 1:length(obj.data.gidlnods)
-                obj.conectivityMatrixMat(e,:) = reshape(obj.nodeToDegrees(:,obj.data.gidlnods(e,2:end-1)),1,[]);
+                obj.connectivityDOFS(e,:) = reshape(obj.nodeToDegrees(:,obj.connectivityMesh(e,:)),1,[]);
             end
         end
     end
