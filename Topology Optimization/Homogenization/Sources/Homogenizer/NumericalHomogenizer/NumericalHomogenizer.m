@@ -172,7 +172,8 @@ classdef NumericalHomogenizer < handle
             mpMesh = prob.getMesh();
             cParams.coord  = mpMesh.coord;
             cParams.connec = mpMesh.connec;
-            mesh = Mesh_Total(cParams);
+%             mesh = Mesh_Total(cParams);
+            mesh = Mesh(cParams);
 
             d = obj.volDataBase;
             s = SettingsDesignVariable();
@@ -183,14 +184,14 @@ classdef NumericalHomogenizer < handle
             s.creatorSettings.ndim  = obj.dim.ndimf;
             s.creatorSettings.coord = mpMesh.coord;
             scalarPr.epsilon = 1e-3;
-            scalarPr.mesh = mesh.innerMeshOLD;
+            scalarPr.mesh = mesh;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
             desVar = DesignVariable.create(s);
-            d.filterParams.mesh = desVar.mesh.innerMeshOLD;
+            d.filterParams.mesh = desVar.mesh;
             d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
-            d.mesh = mesh.innerMeshOLD;
+            d.mesh = mesh;
 %             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
             vComputer = ShFunc_Volume(d);

@@ -1,14 +1,9 @@
 classdef Projector_toP1 < Projector
-
-    properties (Access = private)
-        field
-    end
     
     methods (Access = public)
 
         function obj = Projector_toP1(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function xFun = project(obj, x)
@@ -23,19 +18,12 @@ classdef Projector_toP1 < Projector
     end
 
     methods (Access = private)
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1; 
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            obj.field = Field(s);
-        end
         
         function LHS = computeLHS(obj)
-            s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.fun   = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATIC';
+            s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
