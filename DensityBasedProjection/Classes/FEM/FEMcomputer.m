@@ -48,8 +48,9 @@ classdef FEMcomputer < handle
         end
 
         function computeForces(obj)
-            s.neumanCondition = obj.mesh.degress.forceDOFs;
-            s.output = obj.mesh.output;
+            s.allDegrees = obj.mesh.degress.all;
+            s.neumanCondition = obj.mesh.degress.forceDOFs(:,2); 
+            s.output =  obj.mesh.degress.forceDOFs(:,1);
             s.elementNumberX = obj.mesh.elementNumberX;
             s.elementNumberY = obj.mesh.elementNumberY;
             B = ForceComputer(s);

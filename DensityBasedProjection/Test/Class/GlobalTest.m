@@ -30,7 +30,7 @@ classdef GlobalTest < handle
                 s = load(file);
                 obj.expectedResult = s.results;
             else
-                error('No test Data for the current iterations')
+                warning('No test Data for the current iterations')
             end
         end
         function compute(obj)

@@ -160,12 +160,12 @@ classdef Optimizer < handle
 
 
         function plotResults(obj,iter)
-            %             subplot(3,1,1);
-            %             imagesc(-obj.projectedField.E); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight;
-            %             subplot(3,1,2);
-            %             imagesc(-obj.projectedField.I); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight;
-            %             subplot(3,1,3);
-            %             imagesc(-obj.projectedField.D); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight; pause(0.1)
+                        subplot(3,1,1);
+                        imagesc(-obj.E.designField.projectedField); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight;
+                        subplot(3,1,2);
+                        imagesc(-obj.I.designField.projectedField); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight;
+                        subplot(3,1,3);
+                        imagesc(-obj.D.designField.projectedField); colormap(gray); caxis([-1 0]); axis off; axis equal; axis tight; pause(0.1)
             disp([' It.: ' sprintf('%4i',iter) ' Obj.: ' sprintf('%6.4f',obj.solverParameters.zmma) ...
                 ' ui: '  sprintf('%12f', [obj.E.designCost.cost obj.I.designCost.cost obj.D.designCost.cost])...
                 ' V: '   sprintf('%6.3f',sum(obj.I.designField.projectedField(:))/(obj.mesh.elementNumberX*obj.mesh.elementNumberY)) ...

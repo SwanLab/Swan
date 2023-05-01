@@ -50,9 +50,11 @@ classdef GeometryComputer < handle
             obj.degress.fixed(e) = obj.nodeToDegrees(obj.boundaryConditions.dirichlet(e,2),obj.boundaryConditions.dirichlet(e,1));
             end 
             obj.degress.free  = setdiff(obj.degress.all,obj.degress.fixed);
-
-            for e = 1:length(obj.boundaryConditions.pointload)
-            obj.degress.forceDOFs(e) = obj.nodeToDegrees(obj.boundaryConditions.pointload(e,2),obj.boundaryConditions.pointload(e,1));
+            
+            [forceLenght,~] = size(obj.boundaryConditions.pointload);
+            for e = 1:forceLenght
+            obj.degress.forceDOFs(e,1) = obj.nodeToDegrees(obj.boundaryConditions.pointload(e,2),obj.boundaryConditions.pointload(e,1));
+            obj.degress.forceDOFs(e,2) = obj.boundaryConditions.pointload(e,3);
             end 
 
 
