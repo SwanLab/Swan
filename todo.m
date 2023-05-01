@@ -1,13 +1,9 @@
 %% To-do
-% OK! - Delete rhs_shapefunction -> use funs
-% OK! - Clean RHSunfitted
-% OK! - switch class(mesh.type) @ RHSfactory
-% OK! - filter_pde_density using rhs_unfitted (now rhs_shapefunctionfun*
-% OK! - filter_pde_levelset name change for unfitted
+% - Check Paraview micro level-set
+% - Check STL 3D
+% - mass p1p0
 
 %% Questions
-% - Filter_P1_LevelSet.getP0fromP1() ??
-% - Careful: unfittedmesh needed to properly integrate!!!
 
 %% Results
 % 
