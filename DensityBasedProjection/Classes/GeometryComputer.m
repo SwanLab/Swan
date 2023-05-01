@@ -4,11 +4,12 @@ classdef GeometryComputer < handle
         connectivityDOFS
         elementNumberX
         elementNumberY
+        elementType
     end
     properties (Access = private)
         nodeToDegrees
         data
-        elementType
+        
         connectivityMesh
         boundaryConditions
         coord
@@ -34,7 +35,7 @@ classdef GeometryComputer < handle
             obj.elementType = cParams.mesh.type;
         end
         function createNodeToDegreesMat(obj)
-            linearMat = (1:1:length(obj.data.gidcoord)*2);
+            linearMat = (1:1:length(obj.coord)*2);
             obj.nodeToDegrees = reshape(linearMat,2,[]);
         end
         function countElements(obj)
@@ -43,10 +44,17 @@ classdef GeometryComputer < handle
 
         end 
         function computeDregreess(obj)
-
-            obj.degress.fixed = reshape(obj.nodeToDegrees(:,obj.data.nodesolid),1,[]);
+            
             obj.degress.all   =  reshape(obj.nodeToDegrees,1,[]);
+            for e = 1:length(obj.boundaryConditions.dirichlet)
+            obj.degress.fixed(e) = obj.nodeToDegrees(obj.boundaryConditions.dirichlet(e,2),obj.boundaryConditions.dirichlet(e,1));
+            end 
             obj.degress.free  = setdiff(obj.degress.all,obj.degress.fixed);
+
+            for e = 1:length(obj.boundaryConditions.pointload)
+            obj.degress.forceDOFs(e) = obj.nodeToDegrees(obj.boundaryConditions.pointload(e,2),obj.boundaryConditions.pointload(e,1));
+            end 
+
 
         end
         function connectDegrees(obj)
@@ -60,12 +68,12 @@ classdef GeometryComputer < handle
             end
         end
         function connectDegreesSquare(obj)
-            for e = 1:length(obj.data.gidlnods)
+            for e = 1:length(obj.connectivityMesh)
                 obj.connectivityDOFS(e,:) = reshape(obj.nodeToDegrees(:,obj.connectivityMesh(e,:)),1,[]);
             end
         end
         function connectDegreesTriangular(obj)
-            for e = 1:length(obj.data.gidlnods)
+            for e = 1:length(obj.connectivityMesh)
                 obj.connectivityDOFS(e,:) = reshape(obj.nodeToDegrees(:,obj.connectivityMesh(e,:)),1,[]);
             end
         end

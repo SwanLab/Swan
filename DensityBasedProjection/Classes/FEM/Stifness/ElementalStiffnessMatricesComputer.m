@@ -18,13 +18,13 @@ classdef ElementalStiffnessMatricesComputer < handle
     end
     methods (Access = private)
         function inputData(obj,cParams)
-            obj.elementType = cell2mat(cParams.data.Data_prb(1));
+            obj.elementType = cParams.mesh.elementType;
             obj.t = cParams.t;
             obj.poissonCoefficient = cParams.poissonCoefficient;
         end
         function chose(obj)
             switch obj.elementType
-                case 'SQUARE'
+                case 'QUAD'
                     obj.computeSquareElement();
                 case 'TRIANGLE'
                     obj.computeTriangularElement();

@@ -90,12 +90,16 @@ classdef ComplianceRobustComputer < handle
             file       = 'Arturo';
             a.fileName = file;
             mesh       = FemDataContainer(a);
-
+            B = GeometryComputer(mesh);
+            B.compute;
             obj.mesh.degress.all   = B.degress.all;
             obj.mesh.degress.free  = B.degress.free;
             obj.mesh.degress.fixed = B.degress.fixed;
-            obj.mesh.conectivityMatrixMat = B.conectivityMatrixMat;
-
+            obj.mesh.conectivityMatrixMat = B.connectivityDOFS;
+            obj.mesh.elementNumberX = B.elementNumberX;
+            obj.mesh.elementNumberY = B.elementNumberY;
+            obj.mesh.elementType = B.elementType;
+            obj.mesh.degress.forceDOFs = B.degress.forceDOFs;
 
         end
         function computeStructureParameters(obj)
@@ -106,7 +110,7 @@ classdef ComplianceRobustComputer < handle
             obj.structure.penalization   = 3;
             s.t = obj.structure.t;
             s.poissonCoefficient =obj.structure.poissonCoefficient;
-            s.data = obj.settings;
+            s.mesh = obj.mesh;
             B = ElementalStiffnessMatricesComputer(s);
             B.compute();
             obj.structure.elementalStiffnessMatrix = B.elementalStiffnessMatrix;
