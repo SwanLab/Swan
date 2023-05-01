@@ -51,7 +51,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
                         eu_i = squeeze(eu(igaus,istre,:));
                         ep_j = squeeze(ep(igaus,jstre,:));
                         for ivar = 1:obj.nVariables
-                            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:));
+                            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
                             g(:,igaus,ivar) = g(:,igaus,ivar) - eu_i.*dCij.*ep_j;
                         end
                     end
