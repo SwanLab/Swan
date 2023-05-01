@@ -1,5 +1,5 @@
-elementNumberX = 200;
-elementNumberY = 100;
+elementNumberX = 160;
+elementNumberY = 80;
 nodesNumerationVec = 1:(elementNumberX+1)*(elementNumberY+1);
 nodesNumerationMat = reshape(nodesNumerationVec,(elementNumberY+1),(elementNumberX+1));
 [y,x] = size(nodesNumerationMat);
@@ -40,7 +40,7 @@ for yE = 1:y
 end
 prescribedNode(y+1,:)=[(x)*(y) 1 0];
 prescribedNode(y+2,:)=[(x)*(y) 2 0];
-imposedForce = [1 1 1e-3];
+imposedForce = [1 2 1e-3];
 
 pointload_complete = imposedForce;
 lnodes = prescribedNode;
