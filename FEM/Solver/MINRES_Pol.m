@@ -1,7 +1,7 @@
 classdef MINRES_Pol < handle
 
     properties (Access = public)
-        xPrevIt
+        xPrevIt        
     end
 
     methods (Access = public)
@@ -12,13 +12,16 @@ classdef MINRES_Pol < handle
 
 
         function x_k = solve(obj,A,b)
+
             n = size(A,1);
             k = 3000;
-            maxiter = k;
+            maxiter = k;            
             tol = 10^(-3);
 
 
             [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = obj.initiateVariables(k, n, b, A);
+
+            
 
             j = 1;
 
@@ -100,7 +103,8 @@ classdef MINRES_Pol < handle
             end
 
             x_k = x_prev;
-            obj.xPrevIt = x_k;
+            obj.xPrevIt = x_k;            
+
             %             xNew = x_k;
 
 
@@ -124,7 +128,7 @@ classdef MINRES_Pol < handle
     methods (Access = private)
 
         function init(obj)
-            obj.xPrevIt = zeros(20200,1);
+            obj.xPrevIt = zeros(20200,1);            
         end
 
         function [alpha, beta_new, v_new] = lanczosProc(obj, A, vj, v_prev, betaj)
@@ -139,16 +143,16 @@ classdef MINRES_Pol < handle
             %             x0  = load('CounterPol\xNew.mat').xNew;
             %             x0 = zeros(20200,1);
             x0 = obj.xPrevIt;
-            initialRes = b-A*x0;
+            r0 = b-A*x0;
 
             Alpha   = zeros(k+1,1);
             Beta    = zeros(k+1,1);
-            Beta(1) = norm(initialRes);
+            Beta(1) = norm(r0);
             V       = zeros(n,k);
             v_0     = zeros(n,1);
 
 
-            V(:,1)  = initialRes/Beta(1);
+            V(:,1)  = r0/Beta(1);
 
             c       = -1;
             s       = 0;
