@@ -9,16 +9,16 @@ cost={'chomog_alphabeta'};
 weights=[1];
 constraint = {'volumeConstraint'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizerUnconstrained = 'SLERP'; 
-optimizer = 'DualNestedInPrimal';
+% optimizerUnconstrained = 'SLERP'; 
+% optimizer = 'DualNestedInPrimal';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 % optimizer = 'NullSpace';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% optimizer = 'MMA';
+optimizer = 'MMA';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 incrementFactor = 1;
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 fracRadius = 0.50; %%%%%%%%%%% 0.75
 
@@ -49,5 +49,5 @@ micro.beta =[1 1 0 0 0 0]';
 plotting = false;
 printing = true;
 monitoring = true;
-maxiter = 30;
+maxiter = 150;
 monitoring_interval = 1;
