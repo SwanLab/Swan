@@ -6,7 +6,6 @@ classdef test1DLHS < handle
 
     properties (Access = private)
         mesh
-        field
         K, M
         LHS, RHS
         funL2, funH1
@@ -24,7 +23,6 @@ classdef test1DLHS < handle
         function obj = test1DLHS()
             obj.init()
             obj.createMesh()
-            obj.createField()
             obj.createLHS();
             obj.createRHS();
             obj.solveSystem();
@@ -55,14 +53,6 @@ classdef test1DLHS < handle
             obj.mesh = m;
         end
 
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            f = Field(s);
-            obj.field = f;
-        end
-
         function createLHS(obj)
             obj.createStifnessMatrix();
             obj.createMassMatrix();
@@ -71,19 +61,19 @@ classdef test1DLHS < handle
         end
 
         function createStifnessMatrix(obj)
-            l.mesh = obj.mesh;
-            l.field = obj.field;
             l.type = 'StiffnessMatrix';
+            l.fun  = P1Function.create(obj.mesh,1);
+            l.mesh = obj.mesh;
             lhs = LHSintegrator.create(l);
             obj.K = lhs.compute();
         end
         
         function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.field = obj.field;
-            lhs     = LHSintegrator.create(s);
-            obj.M   = lhs.compute();
+            s.type = 'MassMatrix';
+            s.fun  = P1Function.create(obj.mesh,1);
+            s.mesh = obj.mesh;
+            lhs    = LHSintegrator.create(s);
+            obj.M  = lhs.compute();
         end
 
         function createRHS(obj)

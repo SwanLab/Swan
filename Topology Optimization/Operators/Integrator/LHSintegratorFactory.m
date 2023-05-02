@@ -19,13 +19,8 @@ classdef LHSintegratorFactory < handle
                case 'ElasticStiffnessMatrix'
                    % Computes the ELASTIC STIFFNESS MATRIX by first
                    % computing the elemental LHS (dN*C*dN / B*C*B) and then
-                   % assembling the result
-                   obj = LHSintegrator_StiffnessElastic(cParams);
-               case 'FunElasticStiffnessMatrix'
-                   % Computes the ELASTIC STIFFNESS MATRIX by first
-                   % computing the elemental LHS (dN*C*dN / B*C*B) and then
                    % assembling the result using functions
-                   obj = LHSintegrator_StiffnessElasticFun(cParams);
+                   obj = LHSintegrator_StiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'
                    % dB'*Celas*dB
                    obj = LHSintegratorAnisotropicStiffness(cParams);

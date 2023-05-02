@@ -1,8 +1,12 @@
-classdef LHSintegrator_DiffReactNeumann < LHSintegrator
+classdef LHSintegrator_DiffReactNeumann < handle
 
     properties (GetAccess = public, SetAccess = private)
         M
         K
+    end
+
+    properties (Access = private)
+        mesh
     end
 
     methods (Access = public)
@@ -22,29 +26,19 @@ classdef LHSintegrator_DiffReactNeumann < LHSintegrator
     methods (Access = private)
 
         function computeStiffnessMatrix(obj,cParams)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'LINEAR';
-            f = Field(g);
-            s              = cParams;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = cParams.stiffType;
-            s.mesh         = obj.mesh;
-            s.field        = f;
-            LHS            = LHSintegrator.create(s);
-            obj.K          = LHS.compute();
+            s      = cParams;  % For anisotropic stiffness
+            s.type = cParams.stiffType;
+            s.mesh = obj.mesh;
+            s.fun  = P1Function.create(obj.mesh,1);
+            LHS    = LHSintegrator.create(s);
+            obj.K  = LHS.compute();
         end
 
         function computeMassMatrix(obj)
-            g.mesh               = obj.mesh;
-            g.ndimf              = 1;
-            g.interpolationOrder = 'LINEAR';
-            g.quadratureOrder    = 'QUADRATICMASS';
-            f = Field(g);
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = f;
+            s.fun  = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end
