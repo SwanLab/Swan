@@ -42,6 +42,8 @@ classdef AcademicMonitoring < handle
                     obj.plotIPOPT(cParams);
                 case 'MMA'
                     obj.plotMMA(cParams);
+                case 'IPM'
+                    obj.plotIPM(cParams);
                 otherwise
                     error('Optimizer not implemented')
             end
@@ -120,6 +122,80 @@ classdef AcademicMonitoring < handle
         
         function plotMMA(obj,x,cParams)
             
+        end
+
+        function plotIPM(obj,cParams)
+            iter = cParams.nIter;
+            x    = obj.designVariable.value;
+            c    = obj.cost.value;
+            cnst = obj.constraint.value;
+            if length(x) == 2
+                obj.xVec1 = [obj.xVec1;x(1)];
+                obj.xVec2 = [obj.xVec2;x(2)];
+                obj.iterVec = [obj.iterVec;iter];
+                obj.cVec = [obj.cVec;c];
+                obj.cnstVec1 = [obj.cnstVec1;cnst(1)];
+                obj.cnstVec2 = [obj.cnstVec2;cnst(2)];
+                subplot(1,3,1)
+                hold on
+                plot(obj.xVec1,obj.xVec2,'r')
+                hold off
+                xlabel('$x_1$','Interpreter','latex')
+                ylabel('$x_2$','Interpreter','latex')
+                title('Design variables','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                box on
+                subplot(1,3,2)
+                hold on
+                plot(obj.iterVec,obj.cVec,'b')
+                hold off
+                xlabel('Iteration','Interpreter','latex')
+                ylabel('Objective function $J(x)$','Interpreter','latex')
+                title('Obj. function evolution','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                box on
+                subplot(1,3,3)
+                hold on
+                plot(obj.iterVec,obj.cnstVec1,'b',obj.iterVec,obj.cnstVec2,'g')
+                hold off
+                xlabel('Iteration','Interpreter','latex')
+                ylabel('Constraint violation','Interpreter','latex')
+                title('Constr. violation evolution','Interpreter','latex')
+                legend('Constraint 1', 'Constraint 2','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                box on
+                drawnow
+            else
+                obj.xVec1 = [obj.xVec1;x(1)];
+                obj.iterVec = [obj.iterVec;iter];
+                obj.cVec = [obj.cVec;c];
+                obj.cnstVec1 = [obj.cnstVec1;cnst(1)];
+                subplot(1,3,1)
+                hold on
+                plot(obj.xVec1,'r')
+                hold off
+                xlabel('$x_1$','Interpreter','latex')
+                title('Design variables','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                subplot(1,3,2)
+                hold on
+                plot(obj.iterVec,obj.cVec,'b')
+                hold off
+                xlabel('Iteration','Interpreter','latex')
+                ylabel('Objective function $J(x)$','Interpreter','latex')
+                title('Obj. function evolution','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                subplot(1,3,3)
+                hold on
+                plot(obj.iterVec,obj.cnstVec1,'b')
+                hold off
+                xlabel('Iteration','Interpreter','latex')
+                ylabel('Constraint violation','Interpreter','latex')
+                title('Constr. violation evolution','Interpreter','latex')
+                legend('Constraint','Interpreter','latex')
+                set(gca,'TickLabelInterpreter','latex')
+                drawnow
+            end
         end
                 
     end

@@ -16,6 +16,8 @@ classdef OptimizerFactory < handle
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
                     op = OptimizerNullSpace(cParams);
+                case 'IPM'
+                    op = InteriorPointMethodsSolver(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end

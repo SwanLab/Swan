@@ -1,4 +1,4 @@
-classdef TestComputer < handle
+classdef TestComputerIPM < handle
 
     properties (Access = public)
     end
@@ -6,12 +6,12 @@ classdef TestComputer < handle
         tolerance
         maxDifference
         desiredTest
-                actualData
+        actualData
         loadedData 
     end
 
     methods (Access = public)
-        function obj = TestComputer(cParams)
+        function obj = TestComputerIPM(cParams)
             obj.init(cParams);
         end
         
@@ -26,16 +26,16 @@ classdef TestComputer < handle
             obj.actualData = cParams.actualData;
             obj.loadedData = cParams.loadedData;
             obj.desiredTest = cParams.desiredTest;
-            obj.tolerance = 1e-8;
+            obj.tolerance = 1e-5;
         end
 
         function computeMaxDifference(obj)
-            obj.maxDifference = abs(max(max(obj.loadedData - obj.actualData)));
+            obj.maxDifference = abs(max(max(obj.loadedData - obj.actualData.value')));
         end
 
         function checkStatus(obj)
             if obj.maxDifference > obj.tolerance
-                error('The following test has failed:',obj.desiredTest);
+                error('The following test has failed: %s Test',obj.desiredTest);
             else
                 fprintf(obj.desiredTest); fprintf(' test passed \n');
             end

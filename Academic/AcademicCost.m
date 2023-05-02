@@ -4,11 +4,13 @@ classdef AcademicCost < handle
         costFunction
         gradientFunction
         designVariable
+        hessianFunction
     end
     
     properties (Access = public)
         value
         gradient
+        hessian
     end
     
     methods (Access = public)
@@ -18,9 +20,10 @@ classdef AcademicCost < handle
         end
         
         function computeFunctionAndGradient(obj)
-            x            = obj.designVariable.value;
+            x            = obj.designVariable.value';
             obj.value    = obj.costFunction(x);
             obj.gradient = obj.gradientFunction(x);
+            %obj.hessian = obj.hessianFunction(x);
         end
         
     end
@@ -31,6 +34,7 @@ classdef AcademicCost < handle
             obj.costFunction     = cParams.cF;
             obj.gradientFunction = cParams.gF;
             obj.designVariable   = cParams.dV;
+            %obj.hessianFunction = cParams.hF;
         end
         
     end
