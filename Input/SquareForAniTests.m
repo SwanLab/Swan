@@ -17,7 +17,7 @@ Data_prb = {
 '2D';
 'Plane_Stress';
 'ELASTIC';
-'MACRO';
+'MICRO';
 };
 
 %% Coordinates

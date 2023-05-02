@@ -15,8 +15,8 @@ classdef OptimizerFactory < handle
                 case 'fmincon'
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
-                    cParams.optimizerNames.aJmax = 2;
-                    cParams.optimizerNames.aGmax = 0.05;
+                    cParams.optimizerNames.aJmax = 2.5;
+                    cParams.optimizerNames.aGmax = 0;
 %                     cParams.optimizerNames.aJmax = optParams.aJmax;
 %                     cParams.optimizerNames.aGmax = optParams.aGmax;
                     op = OptimizerNullSpace(cParams);

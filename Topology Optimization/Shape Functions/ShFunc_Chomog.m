@@ -97,7 +97,7 @@ classdef ShFunc_Chomog < ShapeFunctional
                 gs = g(:,:,ivar);
                 gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
-            %gf = obj.Msmooth*gf;
+            gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
         end

@@ -1,38 +1,35 @@
-% filename = 'SquareForAniTests';
+filename = 'SquareForAniTests';
 % filename = 'CantileverVertical';
-filename = 'CantileverVerticalSymmetric';
+% filename = 'CantileverVerticalSymmetric';
 % filename = 'CantileverBeam_Triangle_Linear';
 
-ptype = 'MACRO';
+ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 
-initial_case = 'rectangleInclusion'; % squareInclusion
+initial_case = 'circleInclusion'; % squareInclusion
 
-cost = {'compliance'}; % anisotropicPerimeter2D
+cost = {'chomog_alphabeta'}; % anisotropicPerimeter2D
 weights = [1];
 
 constraint = {'volumeConstraint'};
-constraint_case = {'INEQUALITY'};
+constraint_case = {'EQUALITY'};
 
-optimizerUnconstrained = 'SLERP'; 
+optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 optimizer = 'NullSpace';
 incrementFactor = 2;
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
-widthSquare = sqrt(0.15);
-
-widthH = 0.8;
-widthV = 0.8;
+fracRadius = 0.4;
+micro.alpha =[1 1 0]';
+micro.beta =[1 1 0]';
 
 nsteps = 1;
-% Vfrac_final = 0.85;
-Vfrac_final = 0.75;
+Vfrac_final = 0.6;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-% Vfrac_initial = 0.85;
-Vfrac_initial = 1;
+Vfrac_initial = 1-pi*(fracRadius/2)^2;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
