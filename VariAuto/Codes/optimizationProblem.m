@@ -2,18 +2,18 @@ classdef optimizationProblem < handle
  
     properties (GetAccess = public, SetAccess = private)
        data
-       cost
-       regularization
-       loss
-       gradient
-       structure
        network
-       designVariable
        costfnc
-       learningRate
     end
     
     properties (Access = private)
+       designVariable
+       structure
+       gradient
+       cost
+       regularization
+       loss
+       learningRate
        plotter
        lambda
        delta

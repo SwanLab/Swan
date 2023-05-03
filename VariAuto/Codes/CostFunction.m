@@ -2,7 +2,6 @@ classdef CostFunction < handle
     
     properties (Access = public)
         cost
-        gradient
         designVariable
     end
     
@@ -10,7 +9,7 @@ classdef CostFunction < handle
         data
         network
         lambda
-
+        gradient
         regularization
         loss
         a_fcn

@@ -2,18 +2,22 @@ classdef Trainer < handle
 
     properties (Access = public)
         isDisplayed
-        costHist
-        optHist
-        data
     end
     
     properties (Access = protected) 
-       figureCost
-       figureOpt
-       xIter
-       nPlot
-       CostFunction
+        data
+        xIter
+        nPlot
+        CostFunction
     end
+
+    properties (Access = private)
+        figureOpt
+        figureCost
+        costHist
+        optHist
+    end
+
 
     methods (Access = public, Static)
 

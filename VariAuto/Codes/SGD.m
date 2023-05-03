@@ -1,16 +1,19 @@
 classdef SGD < Trainer
 
     properties (Access = protected)
+       learningRate  
+    end
+
+    properties (Access = private)
+       batchSize
+       thetaLowest
+       fvStop
        lSearchtype
-       learningRate
        MaxEpochs
        MaxFunEvals
        optTolerance
        earlyStop
        timeStop
-       fvStop
-       batchSize
-       thetaLowest
     end
 
     methods (Access = public)

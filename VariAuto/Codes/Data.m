@@ -1,7 +1,6 @@
 classdef Data < handle
 
     properties (Access = public)
-        nData
         nFeatures
         nLabels
         data
@@ -9,10 +8,12 @@ classdef Data < handle
         Ytrain       
         Xtest
         Ytest
-        polyGrade
+        
     end
 
     properties (Access = private)
+        nData
+        polyGrade
         testRatio
         X
         Y

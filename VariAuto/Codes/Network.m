@@ -1,13 +1,16 @@
 classdef Network < handle
  
     properties (GetAccess = public, SetAccess = private)
-       data       
        neuronsPerLayer
        nLayers
        lambda
        Costtype
        HUtype
        OUtype
+    end
+
+    properties (Access = private)
+       data   
     end
 
     properties (Dependent)
