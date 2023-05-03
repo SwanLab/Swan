@@ -1,5 +1,9 @@
 classdef Network < handle
  
+    properties (Access = public)
+        theta
+    end
+
     properties (GetAccess = public, SetAccess = private)
        neuronsPerLayer
        nLayers
@@ -10,11 +14,15 @@ classdef Network < handle
     end
 
     properties (Access = private)
-       data   
+       data  
+       prevL
+       nextL
     end
 
     properties (Dependent)
         layer
+        W
+        b
     end
 
    methods (Access = public)
@@ -28,13 +36,13 @@ classdef Network < handle
            th     = [];
            for i = 2:obj.nLayers
                 if i ~= obj.nLayers
-                    b = zeros([1,nPL(i)]) + 0.1;
+                    getB = zeros([1,nPL(i)]) + 0.1;
                 else
-                    b = zeros([1,nPL(i)]) + 1/nPL(i);
+                    getB = zeros([1,nPL(i)]) + 1/nPL(i);
                 end
                 u = (6/(nPL(i-1)+nPL(i)))^0.5;
-                W = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
-                th = [th,W,b];
+                getW = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
+                th = [th,getW,getB];
            end      
        end       
        
@@ -57,7 +65,13 @@ classdef Network < handle
                obj.OUtype = s{5};
                obj.lambda = s{6};
            end
-       end  
+       end
+
+       function self = Layer(thv,prevL,nextL)
+            self.theta = thv;
+            self.prevL = prevL;
+            self.nextL = nextL;
+        end
    end   
 
    methods 
@@ -73,5 +87,15 @@ classdef Network < handle
                 last = next;
             end
        end
+
+       function value = getW(self)
+            aux = self.theta(1:self.prevL*self.nextL);
+            value = reshape(aux,[self.prevL,self.nextL]);
+       end
+
+        function value = getB(self)
+            value = self.theta(self.prevL*self.nextL+1:end);
+        end
    end
+
 end
