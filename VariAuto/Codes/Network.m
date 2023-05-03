@@ -15,8 +15,6 @@ classdef Network < handle
 
     properties (Access = private)
        data  
-       prevL
-       nextL
     end
 
     properties (Dependent)
@@ -67,10 +65,12 @@ classdef Network < handle
            end
        end
 
-       function self = Layer(thv,prevL,nextL)
-            self.theta = thv;
-            self.prevL = prevL;
-            self.nextL = nextL;
+       function s = getPrev(obj,thv,prevL,nextL)
+            s.theta = thv;
+            s.prevL = prevL;
+            s.nextL = nextL;
+            s.b     = obj.getB(thv,prevL,nextL);
+            s.W     = obj.getW(thv,prevL,nextL);
         end
    end   
 
@@ -82,19 +82,19 @@ classdef Network < handle
             for i = 2:obj.nLayers
                 aux = nPL(i)*nPL(i-1) + nPL(i);
                 next = last + aux;
-                theta_i = thetavec(last:next-1);
-                value{i-1} = Layer(theta_i,nPL(i-1),nPL(i));
+                theta_i = thetavec(last:next-1);                
+                value{i-1} = obj.getPrev(theta_i,nPL(i-1),nPL(i));
                 last = next;
             end
        end
 
-       function value = getW(self)
-            aux = self.theta(1:self.prevL*self.nextL);
-            value = reshape(aux,[self.prevL,self.nextL]);
+       function value = getW(obj,thv,prevL,nextL)
+            aux = thv(1:prevL*nextL);
+            value = reshape(aux,[prevL,nextL]);
        end
 
-        function value = getB(self)
-            value = self.theta(self.prevL*self.nextL+1:end);
+        function value = getB(obj,thv,prevL,nextL)
+            value = thv(prevL*nextL+1:end);
         end
    end
 

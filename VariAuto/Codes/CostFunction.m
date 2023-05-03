@@ -24,8 +24,7 @@ classdef CostFunction < handle
         
         function [J,grad] = computeCost(obj,theta,Xb,Yb)
            obj.designVariable.thetavec = theta;
-           %obj.thetavec = theta;
-           [J,grad] = obj.propagate(obj.network.getLayer(theta),Xb,Yb); 
+           [J,grad] = obj.propagate(theta,Xb,Yb); 
            obj.loss = obj.loss;
            l = obj.network.lambda;
            obj.regularization = l*obj.regularization;
@@ -48,13 +47,14 @@ classdef CostFunction < handle
            obj.designVariable = cParams.designVariable;
        end 
 
-        function [J,gradient] = propagate(obj,layer,Xb,Yb)
-            obj.forwardprop(layer,Xb,Yb);
+        function [J,gradient] = propagate(obj,theta,Xb,Yb)           
+            obj.forwardprop(theta,Xb,Yb);
             J = obj.cost;
-            gradient = obj.backprop(layer,Yb);
+            gradient = obj.backprop(theta,Yb);
         end 
 
-        function forwardprop(obj,layer,Xb,Yb)
+        function forwardprop(obj,theta,Xb,Yb)
+           layer = obj.network.getLayer(theta);            
            obj.computeLoss(layer,Xb,Yb);
            obj.computeRegularization(layer);
            c = obj.loss;
@@ -92,7 +92,8 @@ classdef CostFunction < handle
            obj.regularization = r;
        end
 
-       function grad = backprop(obj,layer,Yb)
+       function grad = backprop(obj,theta,Yb)
+           layer = obj.network.getLayer(theta);
            a = obj.a_fcn;
            nPl = obj.network.neuronsPerLayer;
            nLy = obj.network.nLayers;
