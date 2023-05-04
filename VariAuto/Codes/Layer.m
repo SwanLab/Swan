@@ -1,3 +1,0 @@
-classdef Layer < handle 
-
-end
