@@ -23,7 +23,8 @@ classdef Projector_toP1Discontinuous < Projector
         function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.fun   = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();

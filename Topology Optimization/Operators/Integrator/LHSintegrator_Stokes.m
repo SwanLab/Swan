@@ -76,7 +76,9 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function M = computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.fun   = obj.velocityFun;
+            s.test  = obj.velocityFun;
+            s.trial = obj.velocityFun;
+            s.fun = obj.velocityFun;
             s.quadratureOrder = 'QUADRATIC';
             LHS = LHSintegrator.create(s);
             m = LHS.compute();

@@ -27,9 +27,10 @@ classdef H1Projector_toP1 < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.fun  = P1Function.create(obj.mesh,1);
-            s.mesh = obj.mesh;
-            s.type = 'MassMatrix';
+            s.test  = P1Function.create(obj.mesh,1);
+            s.trial = P1Function.create(obj.mesh,1);
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
