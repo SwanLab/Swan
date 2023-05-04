@@ -20,12 +20,14 @@ classdef Network < handle
 
     properties (Access = private)
        data  
+       layer
+       W
+       b
     end
 
     properties (Dependent)
-        layer
-        W
-        b
+     %   layer
+        
     end
 
    methods (Access = public)
@@ -50,7 +52,7 @@ classdef Network < handle
         end
 
         function [J,gradient] = propagate(obj,theta,Xb,Yb)           
-            obj.forwardprop(Xb,Yb);
+            obj.forwardprop(theta,Xb,Yb);
             J = obj.cost;
             gradient = obj.backprop(theta,Yb);
         end 
@@ -84,8 +86,9 @@ classdef Network < handle
             s.W     = obj.getW(thv,prevL,nextL);
        end
 
-       function forwardprop(obj,Xb,Yb) 
-           obj.computeLoss(obj.layer,Xb,Yb);
+       function forwardprop(obj,theta,Xb,Yb) 
+           obj.layer = obj.getLayer(theta);           
+           obj.computeLoss(Xb,Yb);
            obj.computeRegularization(obj.layer);
            c = obj.loss;
            r = obj.regularization;
