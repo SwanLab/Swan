@@ -5,17 +5,12 @@ classdef Network < handle
         cost
         loss
         regularization
-        delta
-        a_fcn
     end
 
     properties (GetAccess = public, SetAccess = private)
        neuronsPerLayer
        nLayers
        lambda
-       Costtype
-       HUtype
-       OUtype
     end
 
     properties (Access = private)
@@ -23,11 +18,11 @@ classdef Network < handle
        layer
        W
        b
-    end
-
-    properties (Dependent)
-     %   layer
-        
+       delta
+       a_fcn
+       HUtype
+       OUtype
+       Costtype
     end
 
    methods (Access = public)
@@ -56,6 +51,32 @@ classdef Network < handle
             J = obj.cost;
             gradient = obj.backprop(theta,Yb);
         end 
+
+        function [g,g_der] = actFCN(obj,z,k)
+            nLy = obj.nLayers;
+            if k == nLy
+                type = obj.OUtype;
+            else
+                type = obj.HUtype;
+            end
+            switch type 
+                case 'sigmoid'
+                    g = 1./(1+exp(-z));
+                    g_der = z.*(1-z);
+                case 'ReLU'
+                    g = gt(z,0).*z;
+                    g_der = gt(z,0);
+                case 'tanh'
+                    g = (exp(z)-exp(-z))./(exp(z)+exp(-z));
+                    g_der = (1-z.^2);
+                case 'softmax'
+                    g = (exp(z))./(sum(exp(z),2));
+                    g_der = z.*(1-z);                   
+                otherwise
+                    msg = [type,' is not a valid activation function'];
+                    error(msg)
+            end
+       end
        
    end
 
@@ -171,35 +192,9 @@ classdef Network < handle
                     error(msg)
             end
        end
-
-       function [g,g_der] = actFCN(obj,z,k)
-            nLy = obj.nLayers;
-            if k == nLy
-                type = obj.OUtype;
-            else
-                type = obj.HUtype;
-            end
-            switch type 
-                case 'sigmoid'
-                    g = 1./(1+exp(-z));
-                    g_der = z.*(1-z);
-                case 'ReLU'
-                    g = gt(z,0).*z;
-                    g_der = gt(z,0);
-                case 'tanh'
-                    g = (exp(z)-exp(-z))./(exp(z)+exp(-z));
-                    g_der = (1-z.^2);
-                case 'softmax'
-                    g = (exp(z))./(sum(exp(z),2));
-                    g_der = z.*(1-z);                   
-                otherwise
-                    msg = [type,' is not a valid activation function'];
-                    error(msg)
-            end
-       end
    end 
 
-   methods (Access = private, Static)      
+   methods (Access = public, Static)      
         function h = hypothesisfunction(X,W,b)
           h = X*W + b;
         end     
