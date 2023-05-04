@@ -150,7 +150,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function calculateInitialStep(obj)
             if obj.nIter == 0
-                obj.primalUpdater.computeFirstStepLength(1);
+                obj.primalUpdater.computeFirstStepLength(1000);
             else
                 factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);

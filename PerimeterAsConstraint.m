@@ -9,20 +9,20 @@ materialType = 'ISOTROPIC';
 
 initial_case = 'circleInclusion'; % squareInclusion
 
-cost = {'chomog_alphabeta'}; % anisotropicPerimeter2D
-weights = [1];
+cost = {'chomog_alphabeta','anisotropicPerimeterInterior2D'}; % anisotropicPerimeter2D
+weights = [1,0.015];
 
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 
-optimizerUnconstrained = 'PROJECTED GRADIENT'; 
+optimizerUnconstrained = 'SLERP'; 
 optimizer = 'NullSpace';
 incrementFactor = 2;
-designVariable = 'Density';
+designVariable = 'LevelSet';
 filterType = 'P1';
 fracRadius = 0.4;
-micro.alpha =[1 1 0]';
-micro.beta =[1 1 0]';
+micro.alpha =[1 0.5 0]';
+micro.beta =[1 0.5 0]';
 
 nsteps = 1;
 Vfrac_final = 0.6;
@@ -44,8 +44,8 @@ TOL.nu_minus = 1/3;
 
 % For all tests
 plotting = true;
-printing = false;
+printing = true;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 300*nsteps; % 2100
+maxiter = 1000; % 2100   300*nsteps
