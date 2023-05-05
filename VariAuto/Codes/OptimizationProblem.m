@@ -67,7 +67,6 @@ classdef OptimizationProblem < handle
 
        function createCost(obj)
            s         = obj.costParams;
-           s.data    = obj.data;
            s.network = obj.network;
            s.designVariable = obj.designVariable;
            obj.costFunc = CostFunction(s);
@@ -76,6 +75,7 @@ classdef OptimizationProblem < handle
        function createOptimizer(obj)
            s             = obj.optimizerParams;
            s.costFunc    = obj.costFunc;
+           s.designVariable = obj.designVariable;
            s.type        = 'SGD';
            s.data        = obj.data;
            s.maxFunEvals = 2000;

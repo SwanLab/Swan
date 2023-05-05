@@ -38,7 +38,7 @@ classdef SGD < Trainer
         
         function train(obj)
            tic
-           x0  = obj.costFunction.designVariable.thetavec; 
+           x0  = obj.designVariable.thetavec; 
            F = @(theta,X,Y) obj.costFunction.computeCost(theta,X,Y); 
            obj.optimize(F,x0);
            toc
@@ -89,7 +89,7 @@ classdef SGD < Trainer
                 criteria(2)   = alarm < obj.earlyStop; 
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
-                criteria(5)   = obj.costFunction.cost > obj.fvStop;
+                criteria(5)   = f > obj.fvStop;
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -140,7 +140,7 @@ classdef SGD < Trainer
             [~,y_target] = max(obj.data.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
-                obj.thetaLowest = obj.costFunction.designVariable.thetavec;
+                obj.thetaLowest = obj.designVariable.thetavec;
                 min_testError = testError;
                 alarm = 0;
             elseif testError == min_testError
@@ -172,7 +172,7 @@ classdef SGD < Trainer
         function [x,y] = createMinibatch(obj,order,i)
                I = obj.batchSize;            
                X = obj.data.Xtrain;
-               Y =  obj.data.Ytrain;
+               Y = obj.data.Ytrain;
                cont = 1;
                if i == fix(size(X,1)/I)
                    plus = mod(size(X,1),I);

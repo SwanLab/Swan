@@ -9,6 +9,7 @@ classdef Trainer < handle
         xIter
         nPlot
         costFunction
+        designVariable
     end
 
     properties (Access = private)
@@ -17,6 +18,7 @@ classdef Trainer < handle
         costHist
         optHist
     end
+
 
 
     methods (Access = public, Static)
@@ -40,6 +42,7 @@ classdef Trainer < handle
         function init(obj,cParams)
             obj.costFunction = cParams.costFunc;
             obj.data         = cParams.data;
+            obj.designVariable = cParams.designVariable;
             obj.isDisplayed  = false;
         end
 

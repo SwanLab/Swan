@@ -14,6 +14,7 @@ classdef Fminunc < Trainer
 
         function train(obj)
             x0  = obj.optimizationProblem.thetavec;
+            c   = obj.costFunction;
             F = @(theta) obj.costFunction(theta,obj.data.Xtrain,obj.data.Ytrain);
             fminunc(F,x0,obj.opt); 
         end
