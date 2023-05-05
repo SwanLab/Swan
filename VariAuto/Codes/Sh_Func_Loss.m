@@ -34,13 +34,11 @@ classdef Sh_Func_Loss < handle
         end
 
        function j = computeCost(obj,Xb,Yb)
-           theta = obj.designVariable.thetavec;
-           j = obj.network.forwardprop(theta,Xb,Yb);
+           j = obj.network.forwardprop(Xb,Yb);
        end
 
        function dj = computeGradient(obj,Yb)
-           theta = obj.designVariable.thetavec;
-           dj = obj.network.backprop(theta,Yb);
+           dj = obj.network.backprop(Yb);
        end                  
         
     end

@@ -26,8 +26,7 @@ classdef CostFunction < handle
         end 
 
         function h = getOutput(obj,X)
-            theta = obj.designVariable.thetavec;
-            h = obj.network.computeLastH(theta,X);
+            h = obj.network.computeLastH(X);
         end
 
     end

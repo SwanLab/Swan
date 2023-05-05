@@ -20,7 +20,6 @@ classdef OptimizationProblem < handle
        function obj = OptimizationProblem(cParams)
            obj.init(cParams);
            obj.createNetwork();
-           obj.createDesignVariable();
            obj.createCost();
            obj.createPlotter();
            obj.createOptimizer();           
@@ -59,23 +58,17 @@ classdef OptimizationProblem < handle
            obj.network = n;
        end
 
-       function createDesignVariable(obj)
-           s.initValue = obj.network.computeInitialTheta();
-           t = DesignVariable(s);
-           obj.designVariable = t;
-       end
-
        function createCost(obj)
            s         = obj.costParams;
            s.network = obj.network;
-           s.designVariable = obj.designVariable;
+           s.designVariable = obj.network.getLearnableVariables();
            obj.costFunc = CostFunction(s);
        end
 
        function createOptimizer(obj)
            s             = obj.optimizerParams;
            s.costFunc    = obj.costFunc;
-           s.designVariable = obj.designVariable;
+           s.designVariable = obj.network.getLearnableVariables();
            s.type        = 'SGD';
            s.data        = obj.data;
            s.maxFunEvals = 2000;
