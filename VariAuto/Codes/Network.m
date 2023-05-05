@@ -14,7 +14,6 @@ classdef Network < handle
     end
 
     properties (Access = private)
-       data  
        layer
        W
        b
@@ -25,10 +24,15 @@ classdef Network < handle
        Costtype
     end
 
+    properties (Access = private)
+       hiddenLayers
+       data         
+    end
+
    methods (Access = public)
 
-       function obj = Network(varargin)
-           obj.init(varargin);
+       function obj = Network(cParams)
+           obj.init(cParams);
        end
 
         function th = computeInitialTheta(obj)
@@ -82,20 +86,21 @@ classdef Network < handle
 
    methods (Access = private)
 
-       function init(obj,s)
-           obj.data = s{1};
-           obj.neuronsPerLayer = s{2};
-           obj.nLayers = length(s{2});
-           if length(s) <= 2
+       function init(obj,cParams)
+           obj.data         = cParams.data;
+           obj.hiddenLayers = cParams.hiddenLayers;
+           obj.neuronsPerLayer = [obj.data.nFeatures,obj.hiddenLayers,obj.data.nLabels];
+           obj.nLayers = length(obj.neuronsPerLayer);
+           if length(cParams) <= 2
                obj.Costtype = '-loglikelihood';
                obj.HUtype = 'ReLU';
                obj.OUtype = 'softmax';
                obj.lambda = 0;
            else
-               obj.Costtype = s{3};
-               obj.HUtype = s{4};
-               obj.OUtype = s{5};
-               obj.lambda = s{6};
+               obj.Costtype = cParams{3};
+               obj.HUtype = cParams{4};
+               obj.OUtype = cParams{5};
+               obj.lambda = cParams{6};
            end
        end
 

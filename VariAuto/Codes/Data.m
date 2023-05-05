@@ -3,25 +3,33 @@ classdef Data < handle
     properties (Access = public)
         nFeatures
         nLabels
-        data
+      %
         Xtrain
         Ytrain       
         Xtest
-        Ytest
-        
+        Ytest        
     end
 
     properties (Access = private)
-        nData
-        polyGrade
-        testRatio
+        polynomialOrder
         X
         Y
+        data
+    end
+
+    properties (Access = private)
+        fileName
+        testRatio
     end
 
     methods (Access = public)
-        function self = Data(File_Name,TP,d)
-            self.init(File_Name,TP,d)
+
+        function obj = Data(cParams)            
+            obj.init(cParams)
+            obj.loadData();
+            obj.splitdata()
+            obj.nLabels   = size(obj.Ytrain,2);                        
+            obj.nFeatures = size(obj.Xtrain,2);            
         end
 
         function plotdata(self,i,j)
@@ -30,63 +38,58 @@ classdef Data < handle
             ylabel(['X',num2str(j)]);
         end
 
-        function plotCorrRow(self,k)
-            x = self.data(:,1:end-1);
+        function plotCorrRow(obj,k)
+            x = obj.data(:,1:end-1);
             nf = size(x,2);
             for i = 1:nf
                 nexttile((i-1)*nf+k)
                 if i == k
                     histogram(x(:,i))
                 else
-                    gscatter(self.data(:,k),self.data(:,i),self.Y,'rgbcmyk','*')
+                    gscatter(obj.data(:,k),obj.data(:,i),obj.Y,'rgbcmyk','*')
                 end
             end
         end
 
-        function plotCorrMatrix(self)
-            x = self.data(:,1:end-1);
+        function plotCorrMatrix(obj)
+            x = obj.data(:,1:end-1);
             nf = size(x,2);
             figure            
             t = tiledlayout(nf,nf,'TileSpacing','Compact'); 
             title(t,'Features correlation matrix');
             for i = 1:nf
-                self.plotCorrRow(i);
+                obj.plotCorrRow(i);
             end
         end
 
-        function updateHyperparameter(self,h)
+        function updateHyperparameter(obj,h)
            switch h.type
                case 'testRatio'
-                   self.testRatio = h.value;
-                   self.splitdata()
+                   obj.testRatio = h.value;
+                   obj.splitdata()
                case 'polyGrade'
-                   self.polyGrade = h.value;
-                   self.computefullvars(self.X,self.polyGrade);
+                   obj.polynomialOrder = h.value;
+                   obj.buildModel(obj.X,obj.polynomialOrder);
            end
         end
     end
 
     methods (Access = private)
 
-        function init(self,File_Name,TP,d)
-            self.testRatio = TP;
-            self.polyGrade = d;
-            self.loadData(File_Name);
-            self.computefullvars(self.X,d)
-            self.splitdata()
-            self.nData = size(self.data,1);
-            self.nLabels = size(self.Ytrain,2);                        
-            self.nFeatures = size(self.Xtrain,2);
+        function init(obj,cParams)
+            obj.fileName        = cParams.fileName;
+            obj.testRatio       = cParams.testRatio;
+            obj.polynomialOrder = cParams.polynomialOrder;
         end
 
-        function loadData(self,FN)
-            f = fullfile('../Datasets/', FN);
-            self.data = load(f);
+        function loadData(obj)
+            f = fullfile('../Datasets/',obj.fileName);
+            obj.data = load(f);
             %fprintf('Features to be used (1:%d):',(size(self.data,2)-1))
             %feat = input(' ');
             feat = 1:4;
-            x = self.data(:, feat);
-            ydata = self.data(:, end);
+            x = obj.data(:, feat);
+            ydata = obj.data(:, end);
             y = zeros(length(ydata),max(ydata));
             u = unique(ydata);
             for i=1:length(ydata)
@@ -96,28 +99,38 @@ classdef Data < handle
                     end
                 end
             end
-            self.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            self.Y = y;
+            obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
+            obj.Y = y;
 %             self.X = x; 
 %             self.Y = ydata;
         end
         
-        function computefullvars(self,x,d)
-            self.X = self.X;
-%             self.X = buildModel(x,d);
-            self.Y = self.Y;
-        end 
 
-        function splitdata(self)
-            nD = size(self.data,1);
-            TP = self.testRatio;
+        function Xful = buildModel(obj)
+            x  = obj.X;
+            d  = obj.polynomialOrder;
+            x1 = x(:,1);
+            x2 = x(:,2);
+            cont = 1;
+            for g = 1:d
+                for a = 0:g
+                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
+                    cont = cont+1;
+                end
+            end
+            obj.X = Xful;
+        end
+
+        function splitdata(obj)
+            nD = size(obj.data,1);
+            TP = obj.testRatio;
             r = randperm(nD);
             ntest = round(TP/100*nD);
             ntrain = nD - ntest;
-            self.Xtrain = self.X(r(1:ntrain),:);
-            self.Xtest = self.X(r((ntrain + 1):end),:);
-            self.Ytrain = self.Y(r(1:ntrain),:);
-            self.Ytest = self.Y(r((ntrain + 1):end),:);
+            obj.Xtrain = obj.X(r(1:ntrain),:);
+            obj.Xtest  = obj.X(r((ntrain + 1):end),:);
+            obj.Ytrain = obj.Y(r(1:ntrain),:);
+            obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
         end
     end
 end

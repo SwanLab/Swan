@@ -4,18 +4,18 @@ classdef Plotter < handle
         data
         neuronsPerLayer
         network
-        CostFunction
+        costFunction
         optimizationProblem
     end
 
     methods (Access = public)
 
-        function obj = Plotter(init)
-            obj.data = init.data;
-            obj.network = init.network;
-            obj.optimizationProblem = init;
-            obj.CostFunction = init.costfnc;
-            obj.neuronsPerLayer = init.network.neuronsPerLayer;
+        function obj = Plotter(cParams)
+            obj.data                = cParams.data;
+            obj.network             = cParams.network;
+            obj.optimizationProblem = cParams;
+            obj.costFunction        = cParams.costfunc;
+            obj.neuronsPerLayer     = cParams.network.neuronsPerLayer;
         end
 
         function plotBoundary(obj,type) 
@@ -171,7 +171,7 @@ classdef Plotter < handle
         function drawConfusionMat(obj)
             targets = obj.data.Ytest;
             x = obj.data.Xtest;
-            outputs = obj.CostFunction.getOutput(x);
+            outputs = obj.costFunction.getOutput(x);
             figure(1)
             plotconfusion(targets',outputs')
         end
@@ -188,7 +188,7 @@ classdef Plotter < handle
                xdata_test = [x1 , x2_aux];
                xful       = buildModel(xdata_test,obj.data.polyGrade);
                X_test(:,:,i) = xful;
-               h(:,i) = reshape(obj.optimizationProblem.getOutput(X_test(:,:,i)),[n_pts*nPL(end),1]);
+               h(:,i) = reshape(obj.costFunction.getOutput(X_test(:,:,i)),[n_pts*nPL(end),1]);
            end
            for j = 1:nPL(end)
                h_3D(:,:,j) = h((j-1)*n_pts+1:j*n_pts,:);

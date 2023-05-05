@@ -8,7 +8,7 @@ classdef Trainer < handle
         data
         xIter
         nPlot
-        CostFunction
+        costFunction
     end
 
     properties (Access = private)
@@ -21,37 +21,26 @@ classdef Trainer < handle
 
     methods (Access = public, Static)
 
-        function obj = create(varargin)
-           switch varargin{2}
+        function obj = create(cParams)
+           switch cParams.type
                case 'SGD'
-                   obj = SGD(varargin);
+                   obj = SGD(cParams);
                case 'Fminunc'
-                   obj = Fminunc(varargin);
+                   obj = Fminunc(cParams);
                case 'Nesterov'
-                   obj = Nesterov(varargin);
+                   obj = Nesterov(cParams);
                case 'RMSProp'
-                   obj = RMSProp(varargin);
+                   obj = RMSProp(cParams);
            end
         end
     end
 
     methods (Access = protected)
 
-        function init(obj,s)
-            obj.CostFunction = s{1};
-            obj.data = s{4};
-            if length(s) <= 7
-                obj.isDisplayed  = false;
-            else
-                obj.isDisplayed  = true;
-            end
-        end
-
-        function [J,g] = costFunction(obj,x,Xb,Yb)
-            theta   = x;
-            obj.CostFunction.computeCost(theta,Xb,Yb)
-            J = obj.CostFunction.cost;
-            g = obj.CostFunction.gradient;
+        function init(obj,cParams)
+            obj.costFunction = cParams.costFunc;
+            obj.data         = cParams.data;
+            obj.isDisplayed  = false;
         end
 
         function storeValues(obj,x,f,state,opt)
@@ -64,8 +53,8 @@ classdef Trainer < handle
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
-                    cV(2) = obj.CostFunction.regularization;
-                    cV(3) = obj.CostFunction.loss;
+                    cV(2) = obj.costFunction.regularization;
+                    cV(3) = obj.costFunction.loss;
                     obj.xIter = [obj.xIter, x];
                     obj.costHist = [obj.costHist;cV];
                     oV = zeros(1,2);

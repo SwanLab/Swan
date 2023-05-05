@@ -10,7 +10,7 @@ classdef SGD < Trainer
        fvStop
        lSearchtype
        MaxEpochs
-       MaxFunEvals
+       maxFunEvals
        optTolerance
        earlyStop
        timeStop
@@ -20,46 +20,26 @@ classdef SGD < Trainer
 
         function obj = SGD(s)
             obj.init(s)
-            obj.learningRate = s{3};
-            
-            if length(s) <= 4
-                obj.optTolerance = 10^(-6);
-                if size(obj.data.Xtrain,1) > 200
-                    obj.batchSize    = 200;
-                else
-                    obj.batchSize    = size(obj.data.Xtrain,1);
-                end
-                obj.MaxEpochs   = 2000*obj.batchSize/size(obj.data.Xtrain,1);
-                obj.earlyStop   = obj.MaxEpochs;
-                obj.MaxFunEvals = 2000;
-                obj.timeStop    = Inf([1,1]);
-                obj.fvStop      = 10^-4;
-                obj.nPlot       = 1;
-                obj.lSearchtype  = 'static';
-            else 
-                obj.optTolerance = s{6}.optTolerance;
-                if s{5} > size(obj.data.Xtrain,1)
-                    obj.batchSize = size(obj.data.Xtrain,1);
-                else
-                    obj.batchSize = s{5};
-                end
-                obj.MaxEpochs   = s{6}.maxepochs;
-                obj.earlyStop   = s{6}.earlyStop;
-                obj.MaxFunEvals = s{6}.maxevals;
-                obj.timeStop    = s{6}.time;
-                obj.fvStop      = s{6}.fv;
-                obj.nPlot       = 1;
-                obj.lSearchtype  = s{7};
+            obj.learningRate = s.learningRate;
+            obj.maxFunEvals  = s.maxFunEvals;
+            obj.optTolerance = 10^(-6);
+            if size(obj.data.Xtrain,1) > 200
+                obj.batchSize    = 200;
+            else
+                obj.batchSize    = size(obj.data.Xtrain,1);
             end
-            if length(s) == 8
-                obj.nPlot = s{8};
-            end
+            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.data.Xtrain,1);
+            obj.earlyStop   = obj.MaxEpochs;
+            obj.timeStop    = Inf([1,1]);
+            obj.fvStop      = 10^-4;
+            obj.nPlot       = 1;
+            obj.lSearchtype  = 'static';
         end
         
         function train(obj)
            tic
-           x0  = obj.CostFunction.designVariable.thetavec; 
-           F = @(theta,X,Y) obj.CostFunction.computeCost(theta,X,Y); 
+           x0  = obj.costFunction.designVariable.thetavec; 
+           F = @(theta,X,Y) obj.costFunction.computeCost(theta,X,Y); 
            obj.optimize(F,x0);
            toc
         end 
@@ -109,7 +89,7 @@ classdef SGD < Trainer
                 criteria(2)   = alarm < obj.earlyStop; 
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
-                criteria(5)   = obj.CostFunction.cost > obj.fvStop;
+                criteria(5)   = obj.costFunction.cost > obj.fvStop;
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -156,11 +136,11 @@ classdef SGD < Trainer
         end 
 
         function [alarm,min_testError] = validateES(obj,alarm,min_testError)
-            [~,y_pred]   = max(obj.CostFunction.getOutput(obj.data.Xtest),[],2);
+            [~,y_pred]   = max(obj.costFunction.getOutput(obj.data.Xtest),[],2);
             [~,y_target] = max(obj.data.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
-                obj.thetaLowest = obj.CostFunction.designVariable.thetavec;
+                obj.thetaLowest = obj.costFunction.designVariable.thetavec;
                 min_testError = testError;
                 alarm = 0;
             elseif testError == min_testError
