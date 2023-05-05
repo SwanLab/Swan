@@ -13,8 +13,8 @@ sM.connec = delaunay(sM.coord);
 sM.coord = [0 0;1 0;0 1];
 sM.connec = [1 2 3];
 
-% sM.coord = [0 0;1 0;0 1];
-% sM.connec = [2 3 1];
+sM.coord = [0 0;1 0;0 1];
+sM.connec = [2 3 1];
 
 m = Mesh(sM);
 mesh = m;
@@ -41,6 +41,9 @@ clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 pp1.polynomialOrder = 1;
+pp1.feParams.type = "Raviart-Thomas";
+pp1.feParams.order = 1;
+pp1.feParams.dim = 2;
 projP1 = FE_Projector(pp1);
 p1fun = projP1.project(xFun);
 p1fun.plot()

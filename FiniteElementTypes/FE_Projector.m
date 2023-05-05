@@ -9,9 +9,9 @@ classdef FE_Projector < Projector
 
         function obj = FE_Projector(cParams)
             obj.init(cParams);
-%             obj.finiteElement = LagrangeElement.create("SIMPLICIAL",cParams.polynomialOrder,2);
-            obj.finiteElement = RaviartThomasElement.create(2); %!!!!!!!!!!!!!!!!!!!
-            obj.FE_function = FE_RaviartThomasFunction.create(obj.mesh, 1, 1); %!!!!!!!!!!!!!!!!!!
+            
+            obj.finiteElement = FiniteElementFactory.create(cParams.feParams);       
+            obj.FE_function = FE_FunctionFactory.create(obj.mesh,1,cParams.feParams);
         end
 
         function xFun = project(obj, x)
@@ -32,7 +32,7 @@ classdef FE_Projector < Projector
             s.mesh  = obj.mesh;
             s.fun = obj.FE_function;            
             s.quadratureOrder = 'CUBIC';
-            s.type  = 'MassMatrixVect';
+            s.type  = 'MassMatrixVect'; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
