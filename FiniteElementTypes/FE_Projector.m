@@ -52,12 +52,15 @@ classdef FE_Projector < Projector
             nFlds = fun.ndimf;
             nDofel = size(shapes,1);
             
+            % I think the problem is here
             fGa = fun.evaluate(xV);
             ndim = size(fGa,2)/nGaus;
             fGaus = zeros(ndim,nGaus,obj.mesh.nelem);
             for i = 1:ndim
                 fGaus(i,:,:) = fGa(1,(i-1)*nGaus+1:i*nGaus,:);
             end
+            %
+            %fGaus = xV;
             
             locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
             sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);

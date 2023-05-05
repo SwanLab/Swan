@@ -11,9 +11,9 @@ sM.coord(:,2) = yv(:);
 sM.connec = delaunay(sM.coord);
 
 sM.coord = [0 0;1 0;0 1];
-sM.connec = [1 2 3];
+%sM.connec = [1 2 3];
 
-sM.coord = [0 0;1 0;0 1];
+%sM.coord = [0 0;1 0;0 1];
 sM.connec = [2 3 1];
 
 m = Mesh(sM);
