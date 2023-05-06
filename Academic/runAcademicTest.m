@@ -1,7 +1,7 @@
 clear
 close all
 
-filename = 'AcademicTest3';
+filename = 'AcademicTest1';
 run(filename);
 d                            = DesignVariableAcademic();
 d.init(x0);

@@ -51,6 +51,7 @@ classdef InteriorPointMethodsSolver < Optimizer
         nSlack
         nX
         baseVariables
+        oldDesignVariable
         oldCost
         oldCostGradient
         mOld
@@ -185,7 +186,7 @@ classdef InteriorPointMethodsSolver < Optimizer
 
         function hessianComputer(obj)
             hess = obj.hessian(1:obj.nX,1:obj.nX); 
-            deltaX = obj.designVariable.value - obj.designVariable.valueOld;
+            deltaX = obj.designVariable.value - obj.oldDesignVariable;
             deltaCost = obj.cost.gradient - obj.oldCostGradient;
             if deltaCost == zeros(size(deltaCost))
                 obj.hessian = zeros(obj.nX,obj.nX);
@@ -318,6 +319,7 @@ classdef InteriorPointMethodsSolver < Optimizer
             obj.oldCost            = obj.cost.value;
             obj.oldCostGradient = obj.cost.gradient;
             obj.designVariable.updateOld;
+            obj.oldDesignVariable = obj.designVariable.value;
         end
 
         function checkStep(obj,x,x0)
@@ -329,11 +331,11 @@ classdef InteriorPointMethodsSolver < Optimizer
             rho = 0.1;
             nuUpdated = pred_phi_decrease / ((1 - rho) * theta);
             obj.baseVariables.nu = max(1,min(1000,nuUpdated));
-            predictUpdated = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient*[obj.dx;obj.ds],1));
+            predictUpdated = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient'*[obj.dx;obj.ds],1));
             reduced = obj.mOld - mNew;
             eta = 0.2;
             if  reduced >= eta*predictUpdated
-            %if mNew < obj.mOld
+%             if mNew < obj.mOld
                 obj.acceptableStep = true;
 %                 obj.primalUpdater.tau = 1;
 %                 obj.alphaPrimal = 1;
@@ -442,9 +444,8 @@ classdef InteriorPointMethodsSolver < Optimizer
         end
 
         function loadIPMVariables(obj)
-            obj.baseVariables.nu = 1;
+            obj.baseVariables.nu = 0.1;
             obj.baseVariables.mu = 10;
-            obj.baseVariables.matrix = 1;
             obj.baseVariables.slack_init = true;
             % update tau
             obj.baseVariables.tau_max = 0.01;
@@ -457,12 +458,16 @@ classdef InteriorPointMethodsSolver < Optimizer
 
         function computeLinearBounds(obj)
             for i = 1:length(obj.constraintCase)
-                if strcmp(obj.constraintCase{i},'INEQUALITY') 
-                    obj.lowerLinearBound(i) = -inf;
-                    obj.upperLinearBound(i) = 0;
+                if strcmp(obj.constraintCase{i},'INEQUALITY')
+                    for j = 1:obj.nX
+                        obj.lowerLinearBound(j) = -inf;
+                        obj.upperLinearBound(j) = 0;
+                    end
                 else
-                    obj.lowerLinearBound(i) = 0;
-                    obj.upperLinearBound(i) = 0;
+                    for j = 1:obj.nX
+                        obj.lowerLinearBound(j) = 0;
+                        obj.upperLinearBound(j) = 0;
+                    end
                 end
             end
         end
@@ -507,14 +512,6 @@ classdef InteriorPointMethodsSolver < Optimizer
             obj.alphaDual = 1.0;
         end
 
-        function finalSolTest(obj)
-            load("final_sol.mat",'x_old');
-            s.loadedData = x_old;
-            s.actualData = obj.designVariable;
-            s.desiredTest = 'Final Solution';
-            obj.testResults(s);
-        end
-
         function checkConvergence(obj)
             x = obj.designVariable.value;
             obj.designVariable.update(x);
@@ -525,7 +522,7 @@ classdef InteriorPointMethodsSolver < Optimizer
             s_max = 100; % > 1
             s_d = max(s_max,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(obj.m+2*(obj.nX+obj.nSlack)));
             s_c = max(s_max,(sum(abs(obj.upperZ))+sum(abs(obj.lowerZ)))/(2*(obj.nX+obj.nSlack)));
-            part(1) = max(abs(obj.cost.gradient' + obj.constraint.gradient'*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
+            part(1) = max(abs(obj.cost.gradient' + obj.constraint.gradient*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
             part(2) = max(abs(obj.constraint.value));
             part(3) = max(abs(diag([obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack])*diag(obj.lowerZ)*obj.e))/s_c;
             part(4) = max(abs(diag([obj.upperX-obj.designVariable.value' obj.upperSlack-obj.slack])*diag(obj.upperZ)*obj.e))/s_c;
@@ -587,13 +584,6 @@ classdef InteriorPointMethodsSolver < Optimizer
             fprintf(1,'   Iter       Merit   Objective   log10(mu)        Pcvg        Dcvg    alpha_pr    alpha_du\n');
             end
             fprintf(1,'  %5i %11.4e %11.4e %11.4e %11.4e %11.4e %11.4e %11.4e\n',obj.nIter,obj.meritNew,obj.cost.value,logmu,theta,du,obj.alphaPrimal,obj.alphaDual);
-        end
-    end
-
-    methods (Static, Access = protected)
-        function testResults(cParams)
-            Test = TestComputerIPM(cParams);
-            Test.compute();
         end
     end
 end

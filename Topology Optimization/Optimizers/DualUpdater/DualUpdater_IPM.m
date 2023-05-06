@@ -18,7 +18,7 @@ classdef DualUpdater_IPM < handle
         end
 
         function compute(obj,lz,uz)
-            c   = obj.constraint.gradient;
+            c   = obj.constraint.gradient';
             g = obj.cost.gradient;
             l = pinv(full(c*c'))*c*(lz'- uz'- g');
             obj.dualVariable.value = l';
