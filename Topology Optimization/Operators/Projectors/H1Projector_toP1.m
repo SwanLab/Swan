@@ -39,7 +39,8 @@ classdef H1Projector_toP1 < Projector
         function LHSK = computeStiffnessMatrix(obj)
             s.type = 'StiffnessMatrix';
             s.mesh = obj.mesh;
-            s.fun  = P1Function.create(obj.mesh,1);
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'CONSTANT';
             lhs = LHSintegrator.create(s);
             LHSK = lhs.compute();

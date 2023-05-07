@@ -48,8 +48,8 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function D = computeWeakDivergenceMatrix(obj)
             s.type = 'WeakDivergence';
             s.mesh = obj.mesh;
-            s.pressureFun = obj.pressureFun;
-            s.velocityFun = obj.velocityFun;
+            s.trial = obj.pressureFun;
+            s.test  = obj.velocityFun;
             LHS = LHSintegrator.create(s);
             D = LHS.compute();
         end
@@ -66,7 +66,8 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function lhs = computeVelocityLaplacian(obj)
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
-            s.fun   = obj.velocityFun;
+            s.test  = obj.velocityFun;
+            s.trial = obj.velocityFun;
             s.material = obj.material;
             LHS = LHSintegrator.create(s);
             lhs = LHS.compute();
@@ -78,7 +79,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
-            s.fun = obj.velocityFun;
             s.quadratureOrder = 'QUADRATIC';
             LHS = LHSintegrator.create(s);
             m = LHS.compute();

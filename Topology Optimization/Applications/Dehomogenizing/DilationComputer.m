@@ -43,9 +43,10 @@ classdef DilationComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.fun  = obj.dilation;
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
+            s.test  = obj.dilation;
+            s.trial = obj.dilation;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end

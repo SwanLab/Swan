@@ -1,20 +1,26 @@
-classdef LHSintegrator_Stiffness < handle %LHSintegrator
+classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
 
     properties (Access = private)
         mesh
         test, trial
         quadrature
         quadratureOrder
+
+        CAnisotropic
+        Celas
+        alphaDeg
     end
 
     methods (Access = public)
 
-        function obj = LHSintegrator_Stiffness(cParams)
+        function obj = LHSintegrator_AnisotropicStiffness(cParams)
             obj.init(cParams);
             obj.createQuadrature();
+            obj.initAnisotropicTensor(cParams);
         end
 
         function LHS = compute(obj)
+            obj.assemblyCMatrix();
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
@@ -35,15 +41,17 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
+            Cmat    = obj.Celas;
             BcompTs = obj.createBComputer(obj.test, dNdxTs);
             BcompTr = obj.createBComputer(obj.trial, dNdxTr);
             lhs = zeros(nDofETs,nDofETr,nElem);
-            for igaus = 1:nGaus
-                BmatTs = BcompTs.compute(igaus);
-                BmatTr = BcompTr.compute(igaus);
-                dV(1,1,:) = dVolu(igaus,:)';
+            for iGaus = 1:nGaus
+                BmatTs = BcompTs.compute(iGaus);
+                BmatTr = BcompTr.compute(iGaus);
+                dV(1,1,:) = dVolu(iGaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
-                BtCB = pagemtimes(Bt, BmatTr);
+                BtC  = pagemtimes(Bt,Cmat);
+                BtCB = pagemtimes(BtC, BmatTr);
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
@@ -66,7 +74,7 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
                 obj.quadratureOrder = obj.trial.order;
             end
         end
-
+        
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(obj.quadratureOrder);
@@ -85,6 +93,23 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
         end
 
+        function initAnisotropicTensor(obj,cParams)
+            CLocal = cParams.CAnisotropic;
+            obj.alphaDeg = cParams.aniAlphaDeg;
+            obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
+        end
+
+        function CGlobal = rotateAnisotropicMatrix(obj,CLocal)
+            R = [cosd(obj.alphaDeg),-sind(obj.alphaDeg)
+                sind(obj.alphaDeg), cosd(obj.alphaDeg)];
+            CGlobal = R*CLocal*R';
+        end
+
+        function assemblyCMatrix(obj)
+            nelem = size(obj.mesh.connec,1);
+            C = repmat(obj.CAnisotropic, [1 1 nelem]);
+            obj.Celas = C;
+        end
     end
 
 end

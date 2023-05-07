@@ -40,7 +40,8 @@ classdef H1Projector_toP1Discontinuous < Projector
         function LHSK = computeStiffnessMatrix(obj)
             s.type  = 'StiffnessMatrix';
             s.mesh  = obj.mesh;
-            s.fun   = P1DiscontinuousFunction.create(obj.mesh,1);
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'CONSTANT';
             lhs = LHSintegrator.create(s);
             LHSK = lhs.compute();

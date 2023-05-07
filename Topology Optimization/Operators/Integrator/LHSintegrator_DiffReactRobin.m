@@ -29,7 +29,8 @@ classdef LHSintegrator_DiffReactRobin < handle
 
         function computeStiffnessMatrix(obj,cParams)
             s      = cParams; % For anisotropic stiffness
-            s.fun  = P1Function.create(obj.mesh,1);
+            s.test  = P1Function.create(obj.mesh,1);
+            s.trial  = P1Function.create(obj.mesh,1);
             s.type = cParams.stiffType;
             s.mesh = obj.mesh;
             LHS    = LHSintegrator.create(s);

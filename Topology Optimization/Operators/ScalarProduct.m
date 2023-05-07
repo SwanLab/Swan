@@ -78,7 +78,8 @@ classdef ScalarProduct < handle
         function K = computeStiffnessMatrix(obj)
             s.type  = 'StiffnessMatrix';
             s.mesh  = obj.mesh;
-            s.fun = P1Function.create(obj.mesh, 1);
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
             LHS = LHSintegrator.create(s);
             K = LHS.compute();
         end
