@@ -5,7 +5,6 @@ classdef Plotter < handle
         neuronsPerLayer
         network
         costFunction
-        optimizationProblem
     end
 
     methods (Access = public)
@@ -13,7 +12,6 @@ classdef Plotter < handle
         function obj = Plotter(cParams)
             obj.data                = cParams.data;
             obj.network             = cParams.network;
-            obj.optimizationProblem = cParams;
             obj.costFunction        = cParams.costfunc;
             obj.neuronsPerLayer     = cParams.network.neuronsPerLayer;
         end
