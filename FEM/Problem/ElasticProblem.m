@@ -76,8 +76,10 @@ classdef ElasticProblem < handle
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = ParaviewPostprocessor(a);
-            pst.print();
+            f = FunctionPrinter(a);
+            f.print();
+            %pst = ParaviewPostprocessor(a);           
+            %pst.print();
         end
 
         function [fun, funNames] = getFunsToPlot(obj)

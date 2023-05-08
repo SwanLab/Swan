@@ -9,6 +9,9 @@ classdef DomainDecompositionManager < handle
     end
 
     properties (Access = private)
+        meshDomain
+        boundaryConditions
+        material
         meshReference
         interfaceMeshReference
         meshSubDomain
@@ -24,6 +27,8 @@ classdef DomainDecompositionManager < handle
 
     methods (Access = public)
 
+   
+
         function obj = DomainDecompositionManager()
             close all
             obj.init();
@@ -31,50 +36,21 @@ classdef DomainDecompositionManager < handle
             obj.obtainCornerNodes();
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
-            %             obj.findContact();
-            [coordBdGl,subNodeDof,GlNodeBd] = obj.coordNodeBoundary();
-            obj.createMasterSlaveConnec(coordBdGl,subNodeDof,GlNodeBd);
-            connecGlob = obj.createGlobalConnec();
-            coordGlob  = obj.createGlobalCoord();
-            connecGlob = obj.updateGlobalConnec(connecGlob);
-            coordGlob  = obj.updateGlobalCoord(coordGlob);
-            s.connec=connecGlob;
-            s.coord = coordGlob;
-            mFem=Mesh(s);
-            mFemBd=mFem.createBoundaryMesh();
-            figure
-            mFem.plot
-
-            dirichletBc.boundaryId=1;
-            dirichletBc.dof=[1,2];
-            dirichletBc.value=[0,0];
-
-            newmanBc.boundaryId=2;
-            newmanBc.dof=[2];
-            newmanBc.value=[10];
-
-            [dirichlet,pointload] = obj.createBc(mFemBd,dirichletBc,newmanBc);
-
-            cParams.mesh=mFem;
-            cParams.bc.dirichlet=dirichlet;
-            cParams.bc.pointload=pointload;
-            ngaus=1;
-            cParams.material = createMaterial(obj,mFem,ngaus);
-            cParams.scale = 'MACRO';
-            cParams.dim = '2D';
-            femp = FEM(cParams);
-
-
-            %             obj.mesh        = cParams.mesh;
-            %             obj.material    = cParams.material;
-            %             obj.scale       = cParams.scale;
-            %             obj.pdim        = cParams.dim;
-            %             obj.inputBC     = cParams.bc;
-            %             obj.computeTotalConnec();
-            %             connecGlob = concatenate(obj);
-            %             obj.computeGlobalConnec();
-            % obj.createSubDomainStiffnessMatrices();
-            % obj.computeGlobalStiffnessMatrix();
+            obj.createDomainMesh();
+            obj.createBoundaryConditions();
+            obj.createDomainMaterial();
+            obj.solveDomainProblem();
+        end
+        
+        function solveDomainProblem(obj)
+            s.mesh     = obj.meshDomain;
+            s.bc       = obj.boundaryConditions;
+            s.material = obj.material;
+            s.type = 'ELASTIC';
+            s.scale = 'MACRO';
+            s.dim = '2D';
+            fem = FEM.create(s);
+            fem.solve();
         end
 
     end
@@ -95,6 +71,37 @@ classdef DomainDecompositionManager < handle
             obj.interfaceMeshReference = bS;
             obj.ninterfaces=length(bS);
         end
+
+       function createDomainMesh(obj)
+            %aquestes dos primeres en una classe q es digui SubdomainNodeRelator o algo aixi i q et torni el "MasterSlave"...
+            % pero q no es digui masterSlave, millor nom (llenguatge %
+            % inclusiu) ok?  no, master i slave no esta ben vist, millor
+            % driver i reference o no se pero un altre nom
+            %el tema de la esclvitud!
+
+            [coordBdGl,subNodeDof,GlNodeBd] = obj.coordNodeBoundary();
+            obj.createMasterSlaveConnec(coordBdGl,subNodeDof,GlNodeBd);
+
+            % Una altre clase per crear Domain mesh, ok?
+            connecGlob = obj.createGlobalConnec();
+            coordGlob  = obj.createGlobalCoord();
+            connecGlob = obj.updateGlobalConnec(connecGlob);
+            coordGlob  = obj.updateGlobalCoord(coordGlob);
+            s.connec   = connecGlob;
+            s.coord    = coordGlob;
+            m    = Mesh(s);
+            m.plot()
+            obj.meshDomain = m;
+            figure
+            m.plot
+        end
+
+        function createDomainMaterial(obj)
+            ngaus = 1;        
+            m = obj.meshDomain;                      
+            obj.material = obj.createMaterial(m,ngaus);
+        end
+        
 
         function L = computeReferenceMeshLength(obj)
             coord = obj.meshReference.coord;
@@ -126,7 +133,6 @@ classdef DomainDecompositionManager < handle
             m = Mesh(s);
         end
 
-
         function coord = computeSubdomainCoords(obj,jDom,iDom)
             coord0 = obj.meshReference.coord;
             L  = obj.computeReferenceMeshLength();
@@ -151,50 +157,6 @@ classdef DomainDecompositionManager < handle
                 end
             end
             obj.interfaceMeshSubDomain = bD;
-        end
-
-
-        function  computeTotalConnec(obj)
-            %             connec0 = obj.meshReference.connec;
-            %             nnodes  = obj.meshReference.nnodes;
-            nX            = obj.nSubdomains(1);
-            nY            = obj.nSubdomains(2);
-            %             connecGlob    = obj.createGlobalConnec();
-            contact       = obj.subDomainContact();
-            interfaceMesh = obj.interfaceMeshSubDomain();
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    if ~isempty(contact.index)
-
-                    end
-                    %                     dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-                    %                     gcoord =
-                    gD{jDom,iDom} = dConnec;
-                end
-            end
-            obj.globalMeshConnec = gD;
-        end
-
-        function findContact(obj)
-            %only those bottom and left
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            %             ninterf=obj.ninterfaces;
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    con=1;
-                    if jDom-1>0
-                        contact(jDom,iDom).index(con,:)= [jDom-1 iDom];
-                        contact(jDom,iDom).line(con) = 3;
-                        con=con+1;
-                    end
-                    if iDom-1>0
-                        contact(jDom,iDom).index(con,:)= [jDom iDom-1];
-                        contact(jDom,iDom).line(con) = 1;
-                    end
-                end
-            end
-            obj.subDomainContact = contact;
         end
 
         function connecGlob = createGlobalConnec(obj)
@@ -254,7 +216,6 @@ classdef DomainDecompositionManager < handle
             ndim          = interfaceMesh{1,1}{1,1}.mesh.ndim;
             ninterface    = obj.ninterfaces();
             coordBdGl     = zeros(1,ndim);
-            subDomNode     = zeros(1,1);
             GlNodeBd         = zeros(1,1);
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -266,8 +227,7 @@ classdef DomainDecompositionManager < handle
                         conecInter  = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
                         nodeIntSub    = unique(conecInter);
                         nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
-                        subDomNode = [subDomNode;nodeIntSub];
-                        GlNodeBd     = [GlNodeBd; nodeIntGl];
+                        GlNodeBd   = [GlNodeBd; nodeIntGl];
                         %                     indLinear= nX*(jDom-1)+iDom;
                         %                     rowIn=(indLinear-1)*nelem+1;
                         %                     rowEnd=indLinear*nelem;
@@ -278,9 +238,10 @@ classdef DomainDecompositionManager < handle
             coordBdGl = coordBdGl(2:end,:);
             subDomNode = subDomNode(2:end,:);
             GlNodeBd   = GlNodeBd(2:end,:);
+
         end
 
-        function createMasterSlaveConnec(obj,coordBdGl,subNodeDof,GlNodeBd)
+        function createMasterSlaveConnec(obj,coordBdGl,GlNodeBd)
             ndim      = obj.meshReference.ndim;
             nBdNode   = length(GlNodeBd);
             GlNodeAux = GlNodeBd;
@@ -339,58 +300,41 @@ classdef DomainDecompositionManager < handle
             obj.cornerNodes = corner;
         end
 
-        %         function obtainFaceNodes(obj)
-        %             ninterface = obj.ninterfaces;
-        %             corner = obj.cornerNodes;
-        %             icorner=1;
-        %             if corner(1)>0
-        %               for i=1:ninterface
-        %                 nodesi=obj.interfaceMeshReference{i,1}.globalConnec;
-        % %                 nodesi(nodesi==)
-        %               end
-        %             else
-        %
-        %             end
-        %
-        %
-        %             dist2face = abs(x - xLim);
-        %             isInFace = dist2face < 1e-13;
-        %             nodesInFace = obj.allNodes(isInFace);
-        %         end
+        function createBoundaryConditions(obj)
+            bM = obj.meshDomain.createBoundaryMesh();
+            
+            dirichletBc.boundaryId=1;
+            dirichletBc.dof=[1,2];
+            dirichletBc.value=[0,0];
+            newmanBc.boundaryId=2;
+            newmanBc.dof=[2];
+            newmanBc.value=[10];
+
+            [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
+            bc.dirichlet=dirichlet;
+            bc.pointload=pointload;   
+            obj.boundaryConditions = bc;
+        end        
+
 
         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-            dirichlet = obj.createDirichletBc(boundaryMesh,dirchletBc);
-            pointload = obj.createNewmanBc(boundaryMesh,newmanBc);
+            dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
+            pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
         end
 
-        function dirichlet = createDirichletBc(obj,boundaryMesh,dirichletBc)
-            nbound = length(dirichletBc.boundaryId);
-            dirichlet = zeros(1,3);
+        function cond = createBondaryCondition(obj,bM,condition)
+            nbound = length(condition.boundaryId);
+            cond = zeros(1,3);
             for ibound=1:nbound
-                ncond  = length(dirichletBc.dof(nbound,:));
-                nodeId= unique(boundaryMesh{dirichletBc.boundaryId(ibound)}.globalConnec);
+                ncond  = length(condition.dof(nbound,:));
+                nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
                 nbd   = length(nodeId);
                 for icond=1:ncond
-                    bdcond= [nodeId, repmat(dirichletBc.dof(icond),[nbd,1]), repmat(dirichletBc.value(icond),[nbd,1])];
-                    dirichlet=[dirichlet;bdcond];
+                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
+                    cond=[cond;bdcond];
                 end
             end
-            dirichlet = dirichlet(2:end,:);
-        end
-
-        function pointload = createNewmanBc(obj,boundaryMesh,newmanBc)
-            nbound = length(newmanBc.boundaryId);
-            pointload = zeros(1,3);
-            for ibound=1:nbound
-                ncond  = length(newmanBc.dof(nbound,:));
-                nodeId= unique(boundaryMesh{newmanBc.boundaryId(ibound)}.globalConnec);
-                nbd   = length(nodeId);
-                for icond=1:ncond
-                    bdcond= [nodeId, repmat(newmanBc.dof(icond),[nbd,1]), repmat(newmanBc.value(icond),[nbd,1])];
-                    pointload=[pointload;bdcond];
-                end
-            end
-            pointload = pointload(2:end,:);
+            cond = cond(2:end,:);
         end
 
         function material = createMaterial(obj,mesh,ngaus)
