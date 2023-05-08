@@ -232,7 +232,8 @@ classdef P1Function < FeFunction
 %             s.mesh
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+         %   p = FunctionPrinter(s);
+            p = ParaviewPostprocessor(s);
             p.print();
         end
 
