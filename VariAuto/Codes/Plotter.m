@@ -16,7 +16,7 @@ classdef Plotter < handle
             obj.neuronsPerLayer     = cParams.network.neuronsPerLayer;
         end
 
-        function plotBoundary(obj,type) 
+        function plotBoundary(obj,type)
            X = obj.data.Xtrain;
            nF = size(X,2);
            nPL = obj.neuronsPerLayer;
