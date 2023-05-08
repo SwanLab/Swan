@@ -1,13 +1,5 @@
 classdef Sh_Func_Loss < handle
     
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
     properties (Access = private)
         designVariable
         network

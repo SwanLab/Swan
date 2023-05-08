@@ -1,13 +1,5 @@
 classdef Sh_Func_L2norm < handle
     
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
     properties (Access = private)
        designVariable  
     end

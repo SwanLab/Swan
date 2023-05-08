@@ -10,11 +10,7 @@ classdef Network < handle
         HUtype
         OUtype
         Costtype
-
         nLayers
-    end
-
-    properties (Access = private)
         hiddenLayers
         learnableVariables
         nFeatures

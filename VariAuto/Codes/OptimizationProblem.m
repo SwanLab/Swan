@@ -1,18 +1,15 @@
 classdef OptimizationProblem < handle
- 
-   properties (Access = private)
-       network
-       costFunc
-       designVariable
-       optimizer
-       plotter       
-    end
-
+    
     properties (Access = private)
         data
         networkParams
         optimizerParams
         costParams
+        network
+        costFunc
+        designVariable
+        optimizer
+        plotter
     end
 
    methods (Access = public)

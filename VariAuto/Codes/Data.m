@@ -3,7 +3,7 @@ classdef Data < handle
     properties (Access = public)
         nFeatures
         nLabels
-      %
+
         Xtrain
         Ytrain       
         Xtest
@@ -15,9 +15,6 @@ classdef Data < handle
         X
         Y
         data
-    end
-
-    properties (Access = private)
         fileName
         testRatio
     end
