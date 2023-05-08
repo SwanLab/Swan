@@ -1,13 +1,13 @@
 classdef DomainDecompositionManager < handle
-    
+
     properties (Access = public)
-        
+
     end
-    
+
     properties (Access = private)
-        
+
     end
-    
+
     properties (Access = private)
         meshReference
         interfaceMeshReference
@@ -21,9 +21,9 @@ classdef DomainDecompositionManager < handle
         MasterSlaveConnec
         cornerNodes
     end
-    
+
     methods (Access = public)
-        
+
         function obj = DomainDecompositionManager()
             close all
             obj.init();
@@ -31,49 +31,81 @@ classdef DomainDecompositionManager < handle
             obj.obtainCornerNodes();
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
-%             obj.findContact();
+            %             obj.findContact();
             [coordBdGl,subNodeDof,GlNodeBd] = obj.coordNodeBoundary();
-            createMasterSlaveConnec(obj,coordBdGl,subNodeDof,GlNodeBd);
+            obj.createMasterSlaveConnec(coordBdGl,subNodeDof,GlNodeBd);
             connecGlob = obj.createGlobalConnec();
-            coordGlob=obj.createGlobalCoord();
-            obj.updateGlobalConnec(connecGlob);
-            connecGlob = updateGlobalConnec(obj,connecGlob);
-%             obj.computeTotalConnec();
-%             connecGlob = concatenate(obj);
-%             obj.computeGlobalConnec();
+            coordGlob  = obj.createGlobalCoord();
+            connecGlob = obj.updateGlobalConnec(connecGlob);
+            coordGlob  = obj.updateGlobalCoord(coordGlob);
+            s.connec=connecGlob;
+            s.coord = coordGlob;
+            mFem=Mesh(s);
+            mFemBd=mFem.createBoundaryMesh();
+            figure
+            mFem.plot
+
+            dirichletBc.boundaryId=1;
+            dirichletBc.dof=[1,2];
+            dirichletBc.value=[0,0];
+
+            newmanBc.boundaryId=2;
+            newmanBc.dof=[2];
+            newmanBc.value=[10];
+
+            [dirichlet,pointload] = obj.createBc(mFemBd,dirichletBc,newmanBc);
+
+            cParams.mesh=mFem;
+            cParams.bc.dirichlet=dirichlet;
+            cParams.bc.pointload=pointload;
+            ngaus=1;
+            cParams.material = createMaterial(obj,mFem,ngaus);
+            cParams.scale = 'MACRO';
+            cParams.dim = '2D';
+            femp = FEM(cParams);
+
+
+            %             obj.mesh        = cParams.mesh;
+            %             obj.material    = cParams.material;
+            %             obj.scale       = cParams.scale;
+            %             obj.pdim        = cParams.dim;
+            %             obj.inputBC     = cParams.bc;
+            %             obj.computeTotalConnec();
+            %             connecGlob = concatenate(obj);
+            %             obj.computeGlobalConnec();
             % obj.createSubDomainStiffnessMatrices();
             % obj.computeGlobalStiffnessMatrix();
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj)
-            obj.nSubdomains = [3 3];
+            obj.nSubdomains = [3 3]; %nx ny
         end
-        
+
         function createReferenceMesh(obj)
             filename='lattice_ex1';
             a.fileName=filename;
-            femD = FemDataContainer(a);   
+            femD = FemDataContainer(a);
             mS = femD.mesh;
             bS = mS.createBoundaryMesh();
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
-            obj.ninterfaces=length(bS); 
+            obj.ninterfaces=length(bS);
         end
-        
-        function L = computeReferenceMeshLength(obj) 
+
+        function L = computeReferenceMeshLength(obj)
             coord = obj.meshReference.coord;
             Lx = max(coord(:,1));
-            Ly = max(coord(:,2));            
-            L = [Lx Ly];          
+            Ly = max(coord(:,2));
+            L = [Lx Ly];
         end
-        
+
         function createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);   
+            nY = obj.nSubdomains(2);
             figure(2)
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -84,29 +116,29 @@ classdef DomainDecompositionManager < handle
                     hold on
                 end
             end
-           obj.meshSubDomain = mD;
+            obj.meshSubDomain = mD;
         end
-        
+
         function m = createSubdomainMesh(obj,coord)
-            connec0  = obj.meshReference.connec;            
+            connec0  = obj.meshReference.connec;
             s.coord  = coord;
             s.connec = connec0;
             m = Mesh(s);
         end
-        
-        
+
+
         function coord = computeSubdomainCoords(obj,jDom,iDom)
-            coord0 = obj.meshReference.coord;  
+            coord0 = obj.meshReference.coord;
             L  = obj.computeReferenceMeshLength();
             Lx = L(1);
             Ly = L(2);
             coord(:,1) = coord0(:,1)+Lx*(iDom-1);
             coord(:,2) = coord0(:,2)+Ly*(jDom-1);
         end
-        
+
         function createInterfaceSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);   
+            nY = obj.nSubdomains(2);
             figure
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -114,20 +146,20 @@ classdef DomainDecompositionManager < handle
                     bD{jDom,iDom} = bIJ;
                     hold on
                     for iline=1:length(bIJ)
-                      bIJ{iline}.mesh.plot();
+                        bIJ{iline}.mesh.plot();
                     end
                 end
             end
-           obj.interfaceMeshSubDomain = bD;
+            obj.interfaceMeshSubDomain = bD;
         end
 
 
         function  computeTotalConnec(obj)
-%             connec0 = obj.meshReference.connec;
-%             nnodes  = obj.meshReference.nnodes;      
+            %             connec0 = obj.meshReference.connec;
+            %             nnodes  = obj.meshReference.nnodes;
             nX            = obj.nSubdomains(1);
             nY            = obj.nSubdomains(2);
-%             connecGlob    = obj.createGlobalConnec();
+            %             connecGlob    = obj.createGlobalConnec();
             contact       = obj.subDomainContact();
             interfaceMesh = obj.interfaceMeshSubDomain();
             for jDom = 1:nY
@@ -135,12 +167,12 @@ classdef DomainDecompositionManager < handle
                     if ~isempty(contact.index)
 
                     end
-%                     dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1); 
-%                     gcoord =  
+                    %                     dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
+                    %                     gcoord =
                     gD{jDom,iDom} = dConnec;
                 end
             end
-           obj.globalMeshConnec = gD;
+            obj.globalMeshConnec = gD;
         end
 
         function findContact(obj)
@@ -151,7 +183,7 @@ classdef DomainDecompositionManager < handle
             for jDom = 1:nY
                 for iDom = 1:nX
                     con=1;
-                     if jDom-1>0
+                    if jDom-1>0
                         contact(jDom,iDom).index(con,:)= [jDom-1 iDom];
                         contact(jDom,iDom).line(con) = 3;
                         con=con+1;
@@ -159,10 +191,10 @@ classdef DomainDecompositionManager < handle
                     if iDom-1>0
                         contact(jDom,iDom).index(con,:)= [jDom iDom-1];
                         contact(jDom,iDom).line(con) = 1;
-                    end                   
+                    end
                 end
             end
-           obj.subDomainContact = contact;  
+            obj.subDomainContact = contact;
         end
 
         function connecGlob = createGlobalConnec(obj)
@@ -173,9 +205,9 @@ classdef DomainDecompositionManager < handle
             nY = obj.nSubdomains(2);
             nelem=obj.meshReference.nelem;
             nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes; 
+            nnodes  = obj.meshReference.nnodes;
             connec0 =obj.meshReference.connec;
-%             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
+            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
             connecGlob=zeros(nX*nY*nelem,nnodeElem);
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -192,12 +224,12 @@ classdef DomainDecompositionManager < handle
             % shared, just summing nnodes.
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-%             nelem=obj.meshReference.nelem;
-%             nnodeElem=obj.meshReference.nnodeElem;
+            %             nelem=obj.meshReference.nelem;
+            %             nnodeElem=obj.meshReference.nnodeElem;
             ndim     = obj.meshReference.ndim;
-            nnodes  = obj.meshReference.nnodes; 
+            nnodes  = obj.meshReference.nnodes;
             meshsd = obj.meshSubDomain;
-%             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
+            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
             coordGlob=zeros(nX*nY*nnodes,ndim);
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -212,23 +244,23 @@ classdef DomainDecompositionManager < handle
         function [coordBdGl,subDomNode,GlNodeBd] = coordNodeBoundary(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-%             nelem=obj.meshReference.nelem;
-%             nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes; 
-%             connec0 =obj.meshReference.connec;
-%             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-%             connecGlob=zeros(nX*nY*nelem,nnodeElem);
+            %             nelem=obj.meshReference.nelem;
+            %             nnodeElem=obj.meshReference.nnodeElem;
+            nnodes  = obj.meshReference.nnodes;
+            %             connec0 =obj.meshReference.connec;
+            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
+            %             connecGlob=zeros(nX*nY*nelem,nnodeElem);
             interfaceMesh = obj.interfaceMeshSubDomain();
             ndim          = interfaceMesh{1,1}{1,1}.mesh.ndim;
             ninterface    = obj.ninterfaces();
             coordBdGl     = zeros(1,ndim);
             subDomNode     = zeros(1,1);
-            GlNodeBd         = zeros(1,1); 
+            GlNodeBd         = zeros(1,1);
             for jDom = 1:nY
                 for iDom = 1:nX
                     for iline=1:ninterface
                         bdcood    = interfaceMesh{jDom,iDom}{iline,1}.mesh.coord;
-                        coordBdGl = [coordBdGl;bdcood]; 
+                        coordBdGl = [coordBdGl;bdcood];
                         %although it says global is in subdomain
                         %conecctivity
                         conecInter  = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
@@ -236,10 +268,10 @@ classdef DomainDecompositionManager < handle
                         nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
                         subDomNode = [subDomNode;nodeIntSub];
                         GlNodeBd     = [GlNodeBd; nodeIntGl];
-%                     indLinear= nX*(jDom-1)+iDom;
-%                     rowIn=(indLinear-1)*nelem+1;
-%                     rowEnd=indLinear*nelem;
-%                     connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
+                        %                     indLinear= nX*(jDom-1)+iDom;
+                        %                     rowIn=(indLinear-1)*nelem+1;
+                        %                     rowEnd=indLinear*nelem;
+                        %                     connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
                     end
                 end
             end
@@ -249,8 +281,8 @@ classdef DomainDecompositionManager < handle
         end
 
         function createMasterSlaveConnec(obj,coordBdGl,subNodeDof,GlNodeBd)
-            ndim     = obj.meshReference.ndim;
-            nBdNode     = length(GlNodeBd);
+            ndim      = obj.meshReference.ndim;
+            nBdNode   = length(GlNodeBd);
             GlNodeAux = GlNodeBd;
             imaster=1;
             if ndim == 2
@@ -260,26 +292,33 @@ classdef DomainDecompositionManager < handle
             end
             for iBdNode = 1:nBdNode
                 NodeCoord = coordAux(iBdNode,:);
-                aux      = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
-                ind      = find(aux == 1);
+                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
+                ind       = find(aux == 1);
                 if length(ind)>1
                     sameNode_aux = GlNodeAux(ind);
                     sameNode(imaster,:) = sort(sameNode_aux);
                     imaster=imaster+1;
                 end
             end
-            obj.MasterSlaveConnec=sameNode;
+            obj.MasterSlaveConnec=unique(sameNode,'rows');
         end
 
         function  connecGlob = updateGlobalConnec(obj,connecGlob)
+            connecAux=connecGlob;
             mSconnec=obj.MasterSlaveConnec;
             nmaster=size(mSconnec,1);
             nslave = size(mSconnec,2);
-             for imaster=1:nmaster
+            for imaster=1:nmaster
                 for islave=2:nslave
-                      connecGlob(connecGlob==mSconnec(imaster,islave))=mSconnec(imaster,1);
+                    connecGlob(connecGlob==mSconnec(imaster,islave))=mSconnec(imaster,1);
+                    connecGlob(connecGlob>mSconnec(imaster,islave))=connecGlob(connecGlob>mSconnec(imaster,islave))-1;
+                    mSconnec(mSconnec>mSconnec(imaster,islave))=mSconnec(mSconnec>mSconnec(imaster,islave))-1;
                 end
-             end
+            end
+        end
+
+        function  coordGlob = updateGlobalCoord(obj,coordGlob)
+            coordGlob  = unique(coordGlob,'rows','stable');
         end
 
         function obtainCornerNodes(obj)
@@ -294,30 +333,77 @@ classdef DomainDecompositionManager < handle
                     if ~isempty(nodes)
                         corner(icorner)= nodes;
                         icorner=icorner+1;
-                    end   
+                    end
                 end
             end
             obj.cornerNodes = corner;
         end
-        
-%         function obtainFaceNodes(obj)
-%             ninterface = obj.ninterfaces;
-%             corner = obj.cornerNodes;
-%             icorner=1;
-%             if corner(1)>0
-%               for i=1:ninterface
-%                 nodesi=obj.interfaceMeshReference{i,1}.globalConnec;
-% %                 nodesi(nodesi==)
-%               end
-%             else
-% 
-%             end
-% 
-% 
-%             dist2face = abs(x - xLim);
-%             isInFace = dist2face < 1e-13;
-%             nodesInFace = obj.allNodes(isInFace);
-%         end
+
+        %         function obtainFaceNodes(obj)
+        %             ninterface = obj.ninterfaces;
+        %             corner = obj.cornerNodes;
+        %             icorner=1;
+        %             if corner(1)>0
+        %               for i=1:ninterface
+        %                 nodesi=obj.interfaceMeshReference{i,1}.globalConnec;
+        % %                 nodesi(nodesi==)
+        %               end
+        %             else
+        %
+        %             end
+        %
+        %
+        %             dist2face = abs(x - xLim);
+        %             isInFace = dist2face < 1e-13;
+        %             nodesInFace = obj.allNodes(isInFace);
+        %         end
+
+        function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
+            dirichlet = obj.createDirichletBc(boundaryMesh,dirchletBc);
+            pointload = obj.createNewmanBc(boundaryMesh,newmanBc);
+        end
+
+        function dirichlet = createDirichletBc(obj,boundaryMesh,dirichletBc)
+            nbound = length(dirichletBc.boundaryId);
+            dirichlet = zeros(1,3);
+            for ibound=1:nbound
+                ncond  = length(dirichletBc.dof(nbound,:));
+                nodeId= unique(boundaryMesh{dirichletBc.boundaryId(ibound)}.globalConnec);
+                nbd   = length(nodeId);
+                for icond=1:ncond
+                    bdcond= [nodeId, repmat(dirichletBc.dof(icond),[nbd,1]), repmat(dirichletBc.value(icond),[nbd,1])];
+                    dirichlet=[dirichlet;bdcond];
+                end
+            end
+            dirichlet = dirichlet(2:end,:);
+        end
+
+        function pointload = createNewmanBc(obj,boundaryMesh,newmanBc)
+            nbound = length(newmanBc.boundaryId);
+            pointload = zeros(1,3);
+            for ibound=1:nbound
+                ncond  = length(newmanBc.dof(nbound,:));
+                nodeId= unique(boundaryMesh{newmanBc.boundaryId(ibound)}.globalConnec);
+                nbd   = length(nodeId);
+                for icond=1:ncond
+                    bdcond= [nodeId, repmat(newmanBc.dof(icond),[nbd,1]), repmat(newmanBc.value(icond),[nbd,1])];
+                    pointload=[pointload;bdcond];
+                end
+            end
+            pointload = pointload(2:end,:);
+        end
+
+        function material = createMaterial(obj,mesh,ngaus)
+            I = ones(mesh.nelem,ngaus);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = mesh.nelem;
+            s.mesh  = mesh;
+            s.kappa = .9107*I;
+            s.mu    = .3446*I;
+            mat = Material.create(s);
+            mat.compute(s);
+            material = mat;
+        end
     end
 end
-        
