@@ -79,7 +79,7 @@ classdef Trainer < handle
 %             end
 %         end  
 
-        function plotCostRegErr (obj,v)
+        function plotCostRegErr(obj,v)
             figure(obj.figureCost)
             %semilogy(v,obj.costHist(2:end,1),'+-r',v,obj.costHist(2:end,3),'+-b',v,obj.costHist(2:end,2),'+-k')
             plot(v(2:end),obj.costHist(2:end,1),'d--b','MarkerFaceColor','b')
