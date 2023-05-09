@@ -7,24 +7,38 @@ s.polynomialOrder = 1;
 s.testRatio       = 30;
 data = Data(s);
 
-% Network
-hiddenlayers  = [2,1,2];
-structure = [data.nFeatures,hiddenlayers,data.nLabels];
-network   = Network(data,structure);
-% Trainer
+hiddenLayers  = [2,1,2];
 learningRate      = 0.01;
-momentum          = 0.9;
-batch             = 200;
-opt.optTolerance  = 1*10^-10;
-opt.maxevals      = 5000;
-opt.maxepochs     = 5000;
-opt.earlyStop     = 10;
-opt.time          = Inf([1,1]);
-opt.fv            = 10^-6;
-optimizer         = Trainer.create(network,'RMSProp',learningRate,momentum,batch,opt,'static');
+lambda = 0;
 
-optimizer.train();
-network.plotConfusionMatrix();
+s.networkParams.hiddenLayers    = hiddenLayers;
+s.data                          = data;
+s.optimizerParams.learningRate  = learningRate;
+s.costParams.lambda             = lambda;
+
+
+opt = OptimizationProblem(s);
+opt.solve();
+opt.plotConfusionMatrix();
+
+% Network
+% hiddenlayers  = [2,1,2];
+% structure = [data.nFeatures,hiddenlayers,data.nLabels];
+% network   = Network(data,structure);
+% % Trainer
+% learningRate      = 0.01;
+% momentum          = 0.9;
+% batch             = 200;
+% opt.optTolerance  = 1*10^-10;
+% opt.maxevals      = 5000;
+% opt.maxepochs     = 5000;
+% opt.earlyStop     = 10;
+% opt.time          = Inf([1,1]);
+% opt.fv            = 10^-6;
+% optimizer         = Trainer.create(network,'RMSProp',learningRate,momentum,batch,opt,'static');
+% 
+% optimizer.train();
+% network.plotConfusionMatrix();
 %% UNCOMMENT FOR PLOTTING SOME WRONG IMAGES
 % [~,OUT]   = max(network.getOutput(data.Xtest),[],2);
 % [~,TAR] = max(data.Ytest,[],2);
