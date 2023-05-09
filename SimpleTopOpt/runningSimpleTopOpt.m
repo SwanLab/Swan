@@ -2,7 +2,7 @@
 % Note that the beta term
 
 function runningSimpleTopOpt
-tic
+% tic
 iter = 1;
 neededIter = zeros(102,1);
 % xNew = zeros(20200,1);
@@ -18,7 +18,7 @@ s.TOL = 1e-12;
 s.topOptProblem = createFullTopOptProblem();
 solver = SimpleShapeOptimizationSolver(s);
 solver.solve();
-toc
+% toc
 end
 
 

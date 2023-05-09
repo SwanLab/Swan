@@ -6,15 +6,15 @@ classdef regularMINRES < handle
 
     methods (Static)
 
-        function [xNew, rNew, V, H] = solve(A,b)
+        function [xNew, rNew, V, H, convIter] = solve(A, b, xPrev, v1, r_0)
 
             n = size(A,1);
             k = 3000;
             maxiter = k;            
-            tol = 10^(-4);
+            tol = 5*10^(-3);
 
 
-            [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = regularMINRES.initiateVariables(k, n, b, A);
+            [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = regularMINRES.initiateVariables(k, n, b, A, xPrev, v1, r_0);
 
             
             
@@ -23,8 +23,7 @@ classdef regularMINRES < handle
 
             x_prev = x0;
 
-            if (norm(A*x_prev-b)>tol)
-
+            % if (norm(A*x_prev-b)>tol)                
                 [Alpha(j), Beta(j+1), V(:,j+1)] = regularMINRES.lanczosProc(A, V(:,j), v_0, Beta(j));
 
                 deltaj_prev = Delta(j);
@@ -69,10 +68,11 @@ classdef regularMINRES < handle
 
 
                 j = 3;
-                res = abs(phi);
+                % res = abs(phi);
+                res = norm(A*xj-b);
 
                 while (j<maxiter)&&(res>tol)
-                    x_prev = xj;
+                                        x_prev = xj;
 
                     [Alpha(j), Beta(j+1), V(:,j+1)] = regularMINRES.lanczosProc(A, V(:,j), V(:,j-1), Beta(j));
 
@@ -92,16 +92,17 @@ classdef regularMINRES < handle
 
                     xj = x_prev + t(j)*d(:,j);
 
-                    res = abs(phi);
-                    j=j+1;
+                    % res = abs(phi);
+                    res = norm(A*xj-b);
+                    j=j+1;                    
                 end
-                x_prev = xj;
-            end
+                x_prev = xj;  
+            % end
             convIter = j-1;
             xNew = x_prev;
-            rNew = abs(phi);
+            rNew = abs(phi); %%ojo, estic calculant valabsolut
             H =  regularMINRES.buildH(Alpha, Beta, j);
-            V = V(:,1:convIter);
+            V = V(:,1:(convIter+1));
         end
 
         
@@ -125,18 +126,27 @@ classdef regularMINRES < handle
             v_new    = w/beta_new;
         end
 
-        function [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = initiateVariables(k, n, b, A)
-            x0 = zeros(20200,1);            
-            r0 = b-A*x0;
+        function [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = initiateVariables(k, n, b, A, xPrev, v1, r0)
+
+            if xPrev == 0
+                x0 = zeros(20200,1); 
+            else
+                x0 = xPrev;
+                % x0 = zeros(20200,1); 
+            end
+
+            r0 = b-A*x0; %!!!
+            % r0 = b-A(x0);
 
             Alpha   = zeros(k+1,1);
             Beta    = zeros(k+1,1);
-            Beta(1) = norm(r0);
+            Beta(1) = norm(r0); %!!!
             V       = zeros(n,k);
             v_0     = zeros(n,1);
 
 
-            V(:,1)  = r0/Beta(1);
+            % V(:,1)  = v1;
+            V(:,1) = r0/Beta(1);
 
             c       = -1;
             s       = 0;
