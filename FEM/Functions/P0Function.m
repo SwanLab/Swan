@@ -24,7 +24,8 @@ classdef P0Function < FeFunction
 
         function plot(obj)
             p1DiscFun = obj.project('P1D');
-            p1DiscFun.plot();
+            %p1DiscFun.plot();
+            p1DiscFun.plotLine();
         end
 
         function print(obj, s)

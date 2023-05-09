@@ -192,7 +192,7 @@ classdef P1Function < FeFunction
             dofConnec = dofsElem;
         end
 
-        function plot(obj) % 2D domains only
+        function plot(obj) % 1-2D domains only
 
             switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
@@ -210,10 +210,18 @@ classdef P1Function < FeFunction
                         title(['dim = ', num2str(idim)]);
                     end
                 case 'LINE'
-                    x = obj.mesh.coord(:,1);
-                    y = obj.fValues;
-                    figure()
-                    plot(x,y)
+                    if obj.mesh.ndim == 1
+                        x = obj.mesh.coord(:,1);
+                        y = obj.fValues;
+                        figure()
+                        plot(x,y)
+                    elseif obj.mesh.ndim == 2
+                        x = obj.mesh.coord(:,1);
+                        y = obj.mesh.coord(:,2);
+                        z = diag(obj.fValues);
+                        figure()
+                        plot3(x,y,z)
+                    end
             end
         end
 

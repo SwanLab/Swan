@@ -9,6 +9,7 @@ classdef SettingsMesh < AbstractSettings
         connec
         type
         kFace
+        ndim
     end
     
     methods (Access = public)
