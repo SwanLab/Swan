@@ -107,10 +107,13 @@ classdef ElasticProblem < handle
                 obj.interpolationType = 'LINEAR';
             end
             obj.createQuadrature();
+<<<<<<< HEAD
         end
         
         function updateIteration(obj)
             obj.currentIteration = obj.currentIteration + 1;
+=======
+>>>>>>> 243ebddbe2466c16e1d103523379870e46e3f868
         end
 
         function updateSolverType(obj)
@@ -156,6 +159,7 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
+<<<<<<< HEAD
             obj.currentIteration = 0;
             % s.type =  'DIRECT';
             % obj.solver = Solver.create(s);
@@ -173,6 +177,15 @@ classdef ElasticProblem < handle
 
 
 
+=======
+             %s.type =  'MINRES';
+             s.type = 'DIRECT';
+             obj.solver = Solver.create(s);
+
+            % obj.solver = MINRES_Pol(); %%BOOOOO
+         %   obj.solver = actualMINRES();
+%             obj.solver = MINRES_Pol_Proves();
+>>>>>>> 243ebddbe2466c16e1d103523379870e46e3f868
         end
 
         function computeStiffnessMatrix(obj)
