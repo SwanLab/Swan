@@ -37,24 +37,54 @@ classdef P1Function < FeFunction
                 end
             end
         end
+
+        function N = computeShapeFunctions(obj, quad)
+%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            xV = quad.posgp;
+            obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
+        end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
-            nElem = size(obj.mesh.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                end
+            switch obj.mesh.type
+                case 'LINE'
+                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    nElem = obj.mesh.nelem;
+                    nNode = obj.interpolation.nnode;
+                    nDime = obj.mesh.ndim;
+                    nGaus = quad.ngaus;
+                    deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
+                    dShapes = deriv;
+                    dN = zeros(nDime,nNode,nElem,nGaus);
+                    for iGaus = 1:nGaus
+                        invJg = invJ(:,1);
+                        for iDim = 1:nDime
+                            for iNode = 1:nNode
+                                dShapeI(:,1) = squeeze(dShapes(1,iNode,iGaus,:));
+                                dN(iDim,iNode,:,iGaus) = invJg.*dShapeI;
+                            end
+                        end
+                    end
+                    dNdx = dN;
+                    
+                otherwise
+                    nElem = size(obj.mesh.connec,1);
+                    nNode = obj.interpolation.nnode;
+                    nDime = obj.interpolation.ndime;
+                    nGaus = quad.ngaus;
+                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+                    for igaus = 1:nGaus
+                        dShapes = obj.interpolation.deriv(:,:,igaus);
+                        for jDime = 1:nDime
+                            invJ_JI   = invJ(:,jDime,:,igaus);
+                            dShape_KJ = dShapes(jDime,:);
+                            dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                            dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                        end
+                    end
+                    dNdx = dShapeDx;
             end
-            dNdx = dShapeDx;
         end
 
         function gradFun = computeGradient(obj, quad)
@@ -103,7 +133,7 @@ classdef P1Function < FeFunction
         end
 
         function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);            
+            dNdx = obj.computeCartesianDerivatives(q);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
@@ -133,7 +163,7 @@ classdef P1Function < FeFunction
             s.quadrature = q;
             s.mesh       = obj.mesh;
             s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);            
+            fdivF = FGaussDiscontinuousFunction(s);
         end
 
         function fFine = refine(obj,m,mFine)
@@ -145,9 +175,26 @@ classdef P1Function < FeFunction
             fFine = P1Function(s);
         end
 
+        function dofConnec = computeDofConnectivity(obj)
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
         function plot(obj) % 2D domains only
 
-            switch obj.mesh.type    
+            switch obj.mesh.type
                 case {'TRIANGLE','QUAD'}
                     x = obj.mesh.coord(:,1);
                     y = obj.mesh.coord(:,2);
@@ -179,7 +226,7 @@ classdef P1Function < FeFunction
             ay = a(:,2);
             q = quiver(x,y,ax,ay);
             q.ShowArrowHead = 'off';
-        end             
+        end
 
         function print(obj, s)
 %             s.mesh
@@ -202,6 +249,12 @@ classdef P1Function < FeFunction
     end
 
     methods (Access = public, Static)
+
+        function p1 = create(mesh, ndimf)
+            s.fValues = zeros(mesh.nnodes, ndimf);
+            s.mesh    = mesh;
+            p1 = P1Function(s);
+        end
 
         function fS = times(f1,f2)
             fS = f1.fValues.*f2.fValues;

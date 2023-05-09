@@ -19,7 +19,6 @@ classdef ShapeFunctional < handle
 
     properties (Access = private)
         mesh
-        field
     end
     
     methods (Access = public, Static)
@@ -95,25 +94,17 @@ classdef ShapeFunctional < handle
         
         function createMsmoothAndDvolu(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.createField();
             q = Quadrature.set(cParams.mesh.type);
             q.computeQuadrature('LINEAR');
             obj.Msmooth = obj.computeMassMatrix();
             obj.dvolu = cParams.mesh.computeDvolume(q)';
         end
-    
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.field = Field(s);
-        end
         
         function M = computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.fun   = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

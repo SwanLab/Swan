@@ -27,6 +27,26 @@
             assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
         end
+        
+        function dNdx  = computeCartesianDerivatives(obj)
+            quad = obj.quadrature;
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.mesh.interpolation.nnode;
+            nDime = obj.mesh.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.mesh.interpolation);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for igaus = 1:nGaus
+                dShapes = obj.mesh.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+        end
 
         function applyVoigtNotation(obj)
             switch obj.ndimf
