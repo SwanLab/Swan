@@ -83,7 +83,19 @@ classdef FEMInputWriter < handle
                     obj.computeArchBoundaryConditions();
                 case 'cantilever3'
                     obj.computeCantilever3DBoundaryConditions();
+                case 'micro'
+                    obj.computeMicroBoundaryConditions();
             end
+        end
+
+        function computeMicroBoundaryConditions(obj)
+            m = obj.mesh;
+            edge1 = m.coord(:,1) == 0 & m.coord(:,2) == 0;
+            edge2 = m.coord(:,1) == 0 & m.coord(:,2) == obj.ymax;
+            edge3 = m.coord(:,1) == obj.xmax & m.coord(:,2) == 0;
+            edge4 = m.coord(:,1) == obj.xmax & m.coord(:,2) == obj.ymax;
+            obj.nDirichlet = find(edge1 | edge2 | edge3 | edge4);
+            obj.nNeumann = 1:size(m.coord,1);
         end
 
         function computeCantilever3DBoundaryConditions(obj)
