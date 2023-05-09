@@ -71,11 +71,6 @@ classdef DomainDecompositionManager < handle
         end
 
        function createDomainMesh(obj)
-            %aquestes dos primeres en una classe q es digui SubdomainNodeRelator o algo aixi i q et torni el "MasterSlave"...
-            % pero q no es digui masterSlave, millor nom (llenguatge %
-            % inclusiu) ok?  no, master i slave no esta ben vist, millor
-            % driver i reference o no se pero un altre nom
-            %el tema de la esclvitud!
             s.nSubdomains   = obj.nSubdomains;
             s.meshReference = obj.meshReference;
             s.interfaceMeshSubDomain = obj.interfaceMeshSubDomain();
@@ -84,22 +79,10 @@ classdef DomainDecompositionManager < handle
 
             coupling = InterfaceCoupling(s);
             coupling.compute();
-
-
-%             [coordBdGl,GlNodeBd] = obj.coordNodeBoundary(); 
-%             obj.createMasterSlaveConnec(coordBdGl,GlNodeBd); 
-            
             s.interfaceConnec = coupling.interfaceConnec;
+
             DMesh = DomainMeshComputer(s);
             DMesh.compute();
-            % Una altre clase per crear Domain mesh, ok?
-%             connecGlob = obj.createGlobalConnec();
-%             coordGlob  = obj.createGlobalCoord();
-%             connecGlob = obj.updateGlobalConnec(connecGlob);
-%             coordGlob  = obj.updateGlobalCoord(coordGlob);
-%             s.connec   = connecGlob;
-%             s.coord    = coordGlob;
-%             m    = Mesh(s);
             obj.meshDomain = DMesh.domainMesh;
         end
 
@@ -109,7 +92,6 @@ classdef DomainDecompositionManager < handle
             obj.material = obj.createMaterial(m,ngaus);
         end
         
-
         function L = computeReferenceMeshLength(obj)
             coord = obj.meshReference.coord;
             Lx = max(coord(:,1));
@@ -166,129 +148,6 @@ classdef DomainDecompositionManager < handle
             obj.interfaceMeshSubDomain = bD;
         end
 
-        function connecGlob = createGlobalConnec(obj)
-            % we simply create a connectivity matrix as if no nodes are
-            % shared, just summing nnodes. We need that to create the
-            % global connectivity matrix that considers shared nodes.
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            nelem = obj.meshReference.nelem;
-            nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes;
-            connec0 =obj.meshReference.connec;
-            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-            connecGlob=zeros(nX*nY*nelem,nnodeElem);
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    indLinear= nX*(jDom-1)+iDom;
-                    rowIn=(indLinear-1)*nelem+1;
-                    rowEnd=indLinear*nelem;
-                    connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
-                end
-            end
-        end
-
-        function  coordGlob=createGlobalCoord(obj)
-            % we simply create the coordinate matrix as if no nodes are
-            % shared, just summing nnodes.
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            %             nelem=obj.meshReference.nelem;
-            %             nnodeElem=obj.meshReference.nnodeElem;
-            ndim     = obj.meshReference.ndim;
-            nnodes  = obj.meshReference.nnodes;
-            meshsd = obj.meshSubDomain;
-            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-            coordGlob=zeros(nX*nY*nnodes,ndim);
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    indLinear= nX*(jDom-1)+iDom;
-                    rowIn=(indLinear-1)*nnodes+1;
-                    rowEnd=indLinear*nnodes;
-                    coordGlob(rowIn:rowEnd,:)=meshsd{jDom,iDom}.coord;
-                end
-            end
-        end
-
-        function [coordBdGl,GlNodeBd] = coordNodeBoundary(obj)
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            %             nelem=obj.meshReference.nelem;
-            %             nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes;
-            %             connec0 =obj.meshReference.connec;
-            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-            %             connecGlob=zeros(nX*nY*nelem,nnodeElem);
-            interfaceMesh = obj.interfaceMeshSubDomain();
-            ndim          = interfaceMesh{1,1}{1,1}.mesh.ndim;
-            ninterface    = obj.ninterfaces();
-            coordBdGl     = zeros(1,ndim);
-            GlNodeBd         = zeros(1,1);
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    for iline=1:ninterface
-                        bdcood    = interfaceMesh{jDom,iDom}{iline,1}.mesh.coord;
-                        coordBdGl = [coordBdGl;bdcood];
-                        %although it says global is in subdomain
-                        %conecctivity
-                        conecInter  = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
-                        nodeIntSub    = unique(conecInter);
-                        nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
-                        GlNodeBd   = [GlNodeBd; nodeIntGl];
-                        %                     indLinear= nX*(jDom-1)+iDom;
-                        %                     rowIn=(indLinear-1)*nelem+1;
-                        %                     rowEnd=indLinear*nelem;
-                        %                     connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
-                    end
-                end
-            end
-            coordBdGl = coordBdGl(2:end,:);
-%             subDomNode = subDomNode(2:end,:);
-            GlNodeBd   = GlNodeBd(2:end,:);
-
-        end
-
-        function createMasterSlaveConnec(obj,coordBdGl,GlNodeBd)
-            ndim      = obj.meshReference.ndim;
-            nBdNode   = length(GlNodeBd);
-            GlNodeAux = GlNodeBd;
-            imaster=1;
-            if ndim == 2
-                coordAux = [coordBdGl zeros(nBdNode,1)];
-            else
-                coordAux = coordBdGl;
-            end
-            for iBdNode = 1:nBdNode
-                NodeCoord = coordAux(iBdNode,:);
-                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
-                ind       = find(aux == 1);
-                if length(ind)>1
-                    sameNode_aux = GlNodeAux(ind);
-                    sameNode(imaster,:) = sort(sameNode_aux);
-                    imaster=imaster+1;
-                end
-            end
-            obj.MasterSlaveConnec=unique(sameNode,'rows');
-        end
-
-        function  connecGlob = updateGlobalConnec(obj,connecGlob)
-            connecAux=connecGlob;
-            mSconnec=obj.MasterSlaveConnec;
-            nmaster=size(mSconnec,1);
-            nslave = size(mSconnec,2);
-            for imaster=1:nmaster
-                for islave=2:nslave
-                    connecGlob(connecGlob==mSconnec(imaster,islave))=mSconnec(imaster,1);
-                    connecGlob(connecGlob>mSconnec(imaster,islave))=connecGlob(connecGlob>mSconnec(imaster,islave))-1;
-                    mSconnec(mSconnec>mSconnec(imaster,islave))=mSconnec(mSconnec>mSconnec(imaster,islave))-1;
-                end
-            end
-        end
-
-        function  coordGlob = updateGlobalCoord(obj,coordGlob)
-            coordGlob  = unique(coordGlob,'rows','stable');
-        end
-
         function obtainCornerNodes(obj)
             ninterface = obj.ninterfaces;
             corner = zeros(ninterface,1);
@@ -322,7 +181,6 @@ classdef DomainDecompositionManager < handle
             bc.pointload=pointload;   
             obj.boundaryConditions = bc;
         end        
-
 
         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
             dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
