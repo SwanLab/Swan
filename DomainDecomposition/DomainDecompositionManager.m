@@ -27,8 +27,6 @@ classdef DomainDecompositionManager < handle
 
     methods (Access = public)
 
-   
-
         function obj = DomainDecompositionManager()
             close all
             obj.init();
@@ -46,10 +44,10 @@ classdef DomainDecompositionManager < handle
             s.mesh     = obj.meshDomain;
             s.bc       = obj.boundaryConditions;
             s.material = obj.material;
-            s.type = 'ELASTIC';
-            s.scale = 'MACRO';
-            s.dim = '2D';
-            fem = FEM.create(s);
+            s.type     = 'ELASTIC';
+            s.scale    = 'MACRO';
+            s.dim      = '2D';
+            fem        = FEM.create(s);
             fem.solve();
         end
 
@@ -62,14 +60,14 @@ classdef DomainDecompositionManager < handle
         end
 
         function createReferenceMesh(obj)
-            filename='lattice_ex1';
-            a.fileName=filename;
-            femD = FemDataContainer(a);
-            mS = femD.mesh;
-            bS = mS.createBoundaryMesh();
+            filename   = 'lattice_ex1';
+            a.fileName = filename;
+            femD       = FemDataContainer(a);
+            mS         = femD.mesh;
+            bS         = mS.createBoundaryMesh();
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
-            obj.ninterfaces=length(bS);
+            obj.ninterfaces = length(bS);
         end
 
        function createDomainMesh(obj)
@@ -78,22 +76,31 @@ classdef DomainDecompositionManager < handle
             % inclusiu) ok?  no, master i slave no esta ben vist, millor
             % driver i reference o no se pero un altre nom
             %el tema de la esclvitud!
+            s.nSubdomains   = obj.nSubdomains;
+            s.meshReference = obj.meshReference;
+            s.interfaceMeshSubDomain = obj.interfaceMeshSubDomain();
+            s.ninterfaces   = obj.ninterfaces;
+            s.meshSubDomain = obj.meshSubDomain;
 
-            [coordBdGl,subNodeDof,GlNodeBd] = obj.coordNodeBoundary();
-            obj.createMasterSlaveConnec(coordBdGl,subNodeDof,GlNodeBd);
+            coupling = InterfaceCoupling(s);
+            coupling.compute();
 
+
+%             [coordBdGl,GlNodeBd] = obj.coordNodeBoundary(); 
+%             obj.createMasterSlaveConnec(coordBdGl,GlNodeBd); 
+            
+            s.interfaceConnec = coupling.interfaceConnec;
+            DMesh = DomainMeshComputer(s);
+            DMesh.compute();
             % Una altre clase per crear Domain mesh, ok?
-            connecGlob = obj.createGlobalConnec();
-            coordGlob  = obj.createGlobalCoord();
-            connecGlob = obj.updateGlobalConnec(connecGlob);
-            coordGlob  = obj.updateGlobalCoord(coordGlob);
-            s.connec   = connecGlob;
-            s.coord    = coordGlob;
-            m    = Mesh(s);
-            m.plot()
-            obj.meshDomain = m;
-            figure
-            m.plot
+%             connecGlob = obj.createGlobalConnec();
+%             coordGlob  = obj.createGlobalCoord();
+%             connecGlob = obj.updateGlobalConnec(connecGlob);
+%             coordGlob  = obj.updateGlobalCoord(coordGlob);
+%             s.connec   = connecGlob;
+%             s.coord    = coordGlob;
+%             m    = Mesh(s);
+            obj.meshDomain = DMesh.domainMesh;
         end
 
         function createDomainMaterial(obj)
@@ -165,7 +172,7 @@ classdef DomainDecompositionManager < handle
             % global connectivity matrix that considers shared nodes.
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            nelem=obj.meshReference.nelem;
+            nelem = obj.meshReference.nelem;
             nnodeElem=obj.meshReference.nnodeElem;
             nnodes  = obj.meshReference.nnodes;
             connec0 =obj.meshReference.connec;
@@ -203,7 +210,7 @@ classdef DomainDecompositionManager < handle
             end
         end
 
-        function [coordBdGl,subDomNode,GlNodeBd] = coordNodeBoundary(obj)
+        function [coordBdGl,GlNodeBd] = coordNodeBoundary(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
             %             nelem=obj.meshReference.nelem;
@@ -236,7 +243,7 @@ classdef DomainDecompositionManager < handle
                 end
             end
             coordBdGl = coordBdGl(2:end,:);
-            subDomNode = subDomNode(2:end,:);
+%             subDomNode = subDomNode(2:end,:);
             GlNodeBd   = GlNodeBd(2:end,:);
 
         end
