@@ -79,7 +79,7 @@ classdef PlotterDensity < handle
         function plotDensity(obj)
             rho = obj.designVariable.value;
             s.fValues = rho;
-            s.mesh = obj.designVariable.mesh.meshes{1};
+            s.mesh = obj.designVariable.mesh;%.meshes{1};
             fun = P1Function(s);
             funp0 = fun.project('P0');
             rhoElem = squeeze(funp0.fValues);
