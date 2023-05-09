@@ -13,7 +13,7 @@ s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
 s.x1          = 1;
 s.y1          = 0.5;
-s.N           = 20;
+s.N           = 19;
 s.M           = 10;
 s.P           = 1;
 s.DoF         = 2;
@@ -96,23 +96,22 @@ GlobalRHS(1:nDofDomainMesh) = F;
 u_dd = GlobalLHS\GlobalRHS;
 u_dd = u_dd(1:nDofDomainMesh);
 uDD = [u_dd(1:2:end-1), u_dd(2:2:end)];
-Error = abs(u.fValues-uDD);
-max(max(Error))
 
+Error = max(max(abs(u.fValues-uDD)))
+
+%plots
 zz.fValues = u.fValues;
 zz.mesh    = mesh;
 plotUFD = P1Function(zz);
+plotUFD.plot
 
 zz.fValues = uDD;
 zz.mesh    = mesh;
 plotUDD = P1Function(zz);
-
-%plots
-plotUFD.plot
 plotUDD.plot
-Error = max(max(abs(u.fValues-uDD)))
 
 %% STEP 1.1: Mesh decomposition
+% 1. Create subdomains
 mesh = s.mesh;
 xV = mesh.computeBaricenter();       
 x_baricenter = xV(1,:);
@@ -123,40 +122,37 @@ leftConnec = mesh.connec(isLeft,:);
 isRight = x_baricenter > max(mesh.coord(:,1))/2;
 rightConnec = mesh.connec(isRight,:);
  
+% 2. Create subdomains' meshes
 ss.connec = leftConnec;
 ss.coord = mesh.coord;
 leftMesh = Mesh(ss);
 leftMesh = leftMesh.computeCanonicalMesh();
-boundaryLeftMesh = leftMesh.createBoundaryMesh();
 
 ss.connec = rightConnec;
 ss.coord = mesh.coord;
 rightMesh = Mesh(ss);
 rightMesh = rightMesh.computeCanonicalMesh();
-boundaryRightMesh = rightMesh.createBoundaryMesh();
- 
-% % Boundary mesh 
-% bb.coord = leftMesh.coord(leftMesh.coord(:,1) == 0.5,:);
-% bb.connec = [1:9];
-% bb.connec = [bb.connec; bb.connec+1]';
-% bb.kFace = -1;
-% leftBoundaryMesh = Mesh(bb);
-% 
-% bb.coord = rightMesh.coord(rightMesh.coord(:,1) == 0.5,:);
-% bb.connec = [1:9];
-% bb.connec = [bb.connec; bb.connec+1]';
-% bb.kFace = -1;
-% rightBoundaryMesh = Mesh(bb);
 
- 
 % Plots
 figure
 leftMesh.plot
 figure
 rightMesh.plot
 
-fValuesLeft = u.fValues(unique(leftMesh.connec()),:);
-fValuesRight = u.fValues(unique(rightMesh.connec()),:);
+% 3. Create boundaries' meshes 
+boundaryMesh = leftMesh.createBoundaryMesh();
+boundaryDirichletMesh = boundaryMesh{1};
+boundaryConnectionMesh = boundaryMesh{2};
+
+% Plots
+figure
+boundaryDirichletMesh.mesh.plot
+figure
+boundaryConnectionMesh.mesh.plot
+
+% 4. Compute stiffness matrices
+fValuesLeft = zeros(leftMesh.nnodes, leftMesh.ndim);
+fValuesRight = zeros(rightMesh.nnodes, rightMesh.ndim);
 
 zz.fValues = fValuesLeft;
 zz.mesh    = leftMesh;
@@ -166,7 +162,21 @@ zz.fValues = fValuesRight;
 zz.mesh    = rightMesh;
 p1right = P1Function(zz);
 
-% "Mass matrix definition (P1 for displacement & P0 for lagrange multipliers)
+sLHS.type     = 'ElasticStiffnessMatrix';
+sLHS.mesh     = leftMesh;
+sLHS.fun      = p1left;
+sLHS.material = s.material;
+lhs = LHSintegrator.create(sLHS);
+Kleft = lhs.compute();
+
+sLHS.type     = 'ElasticStiffnessMatrix';
+sLHS.mesh     = rightMesh;
+sLHS.fun      = p1right;
+sLHS.material = s.material;
+lhs = LHSintegrator.create(sLHS);
+Kright = lhs.compute();
+
+%5. "Mass" matrix definition [C] (P1 for displacement & P0 for lagrange multipliers)
 % sss.mesh    = leftBoundaryMesh;
 % nnode       = size(leftBoundaryMesh.coord,1);
 % ndof        = 1;
@@ -181,33 +191,104 @@ p1right = P1Function(zz);
 % sss.fValues = ones(nelem*ndof,1);
 % P0LeftBMesh = P0Function(sss);
 % P0LeftBMesh.plot
-
+% 
 % ... inside LHS
 % quad        = Quadrature.create(leftBoundaryMesh,'LINEAR');
 % N           = P1LeftBMesh.computeShapeFunctions(quad);
-%
 
-%% STEP 1.2: Stiffness matrix
-% % ...
-% sLHS.type     = 'ElasticStiffnessMatrix';
-% sLHS.mesh     = leftMesh;
-% sLHS.fun      = p1left;
-% sLHS.material = s.material;
-% lhs = LHSintegrator.create(sLHS);
-% Kleft = lhs.compute();
-% 
-% sLHS.type     = 'ElasticStiffnessMatrix';
-% sLHS.mesh     = rightMesh;
-% sLHS.fun      = p1right;
-% sLHS.material = s.material;
-% lhs = LHSintegrator.create(sLHS);
-% Kright = lhs.compute();
+% 5. DOFs allocation
+% Left Domain
+idxDirichletNodes = find(ismember(leftMesh.coord,boundaryDirichletMesh.mesh.coord,'rows'));
+nDofDirichlet = length(idxDirichletNodes)*2;
+DofsDirichlet = zeros(1,nDofDirichlet);
+DofsDirichlet(1:2:end-1) = 2*idxDirichletNodes-1;
+DofsDirichlet(2:2:end) = 2*idxDirichletNodes;
 
-%% STEP 4: "Mass matrices" definition and assembly
+idxLeftConnectionNodes = find(ismember(leftMesh.coord,boundaryConnectionMesh.mesh.coord,'rows'));
+nDofConnection = length(idxLeftConnectionNodes)*2;
+DofsLeftConnection = zeros(1,nDofConnection);
+DofsLeftConnection(1:2:end-1) = 2*idxLeftConnectionNodes-1;
+DofsLeftConnection(2:2:end) = 2*idxLeftConnectionNodes;
 
+idxLeftNodes = 1:1:size(leftMesh.coord(),1);
+nDofLeftDomain = length(idxLeftNodes)*2;
+DofsLeftDomain = zeros(1,nDofLeftDomain);
+DofsLeftDomain(1:2:end-1) = 2*idxLeftNodes - 1;
+DofsLeftDomain(2:2:end) = 2*idxLeftNodes;
 
+% Right Domain
+idxNeumannNodes = find(rightMesh.coord(:,1) == 1);
+nDofNeumann = length(idxNeumannNodes)*2;
+DofsNeumann = zeros(1,nDofNeumann);
+DofsNeumann(1:2:end-1) = 2*idxNeumannNodes-1;
+DofsNeumann(2:2:end) = 2*idxNeumannNodes;
+DofsNeumann = DofsNeumann + max(DofsLeftDomain);
 
+idxRightConnectionNodes = find(ismember(rightMesh.coord,boundaryConnectionMesh.mesh.coord,'rows'));
+DofsRightConnection = zeros(1,nDofConnection);
+DofsRightConnection(1:2:end-1) = 2*idxRightConnectionNodes-1;
+DofsRightConnection(2:2:end) = 2*idxRightConnectionNodes;
+DofsRightConnection = DofsRightConnection + max(DofsLeftDomain);
 
+idxRightNodes = 1:1:size(rightMesh.coord(),1);
+nDofRightDomain = length(idxRightNodes)*2;
+DofsRightDomain = zeros(1,nDofRightDomain);
+DofsRightDomain(1:2:end-1) = 2*idxRightNodes - 1;
+DofsRightDomain(2:2:end) = 2*idxRightNodes;
+DofsRightDomain = DofsRightDomain + max(DofsLeftDomain);
+
+% Lagrange multipliers' mesh
+nDofLagrangeDirichlet = nDofDirichlet;
+initialDofLagrange = max(DofsRightDomain)+1;
+DofsLagrangeDirichlet = initialDofLagrange:1:(initialDofLagrange+nDofDirichlet-1);
+
+nDofLagrangeConnection = nDofConnection; % nDofRightConnection must be the same
+initialDofLagrange = max(DofsLagrangeDirichlet)+1;
+DofsLagrangeConnection = initialDofLagrange:1:(initialDofLagrange+nDofConnection-1);
+
+nDofTotal = max(DofsLagrangeConnection);
+% 6. Lagrange matrices
+cDirichlet = eye(nDofDirichlet,nDofLagrangeDirichlet);
+cConnection = eye(nDofConnection, nDofLagrangeConnection);
+
+% 7. Global Assembly
+GlobalLHS = sparse(nDofTotal, nDofTotal);
+GlobalLHS(DofsLeftDomain,DofsLeftDomain) = Kleft;
+GlobalLHS(DofsRightDomain,DofsRightDomain) = Kright;
+GlobalLHS(DofsDirichlet,DofsLagrangeDirichlet) = cDirichlet;
+GlobalLHS(DofsLeftConnection,DofsLagrangeConnection) = cConnection;
+GlobalLHS(DofsRightConnection,DofsLagrangeConnection) = -cConnection;
+GlobalLHS(DofsLagrangeDirichlet,DofsDirichlet) = cDirichlet';
+GlobalLHS(DofsLagrangeConnection,DofsLeftConnection) = cConnection';
+GlobalLHS(DofsLagrangeConnection,DofsRightConnection) = -cConnection';
+
+GlobalRHS = zeros(nDofTotal,1);
+GlobalRHS(DofsNeumann) = s.bc.pointload(:,3);
+
+% 8. Solver 
+u = GlobalLHS\GlobalRHS;
+uLeft = u(1:nDofLeftDomain);
+uLeft = [uLeft(1:2:end-1), uLeft(2:2:end)];
+
+uRight = u(nDofLeftDomain+1:nDofLeftDomain + nDofRightDomain);
+uRight = [uRight(1:2:end-1), uRight(2:2:end)];
+
+%plot (subdomains)
+zz.fValues = uLeft;
+zz.mesh    = leftMesh;
+plotLeft = P1Function(zz);
+plotLeft.plot
+
+zz.fValues = uRight;
+zz.mesh    = rightMesh;
+plotRight = P1Function(zz);
+plotRight.plot
+
+% plot (combined)
+uGlobal = [uLeft; uRight];
+
+%test
+Error = max(max(abs(GlobalLHS(DofsLagrangeConnection,:)*u)))
 
 
 
