@@ -2,9 +2,13 @@ clear;clc;close all;addpath ../Codes;
 
 %% INITIALIZATION
 % Data choose between 32x32 or dct
-data          = Data('../Datasets/MNIST.csv',30,1);
+s.fileName = '../Datasets/MNIST.csv';
+s.polynomialOrder = 1;
+s.testRatio       = 30;
+data = Data(s);
+
 % Network
-hiddenlayers  = [500,150];
+hiddenlayers  = [2,1,2];
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
 network   = Network(data,structure);
 % Trainer
