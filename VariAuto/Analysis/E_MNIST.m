@@ -3,11 +3,11 @@ clear;clc;close all;addpath ../Codes;
 %% INITIALIZATION
 % Data choose between 32x32 or dct
 s.fileName = '../Datasets/MNIST.csv';
-s.polynomialOrder = 1;
+s.polynomialOrder = 3;
 s.testRatio       = 30;
 data = Data(s);
 
-hiddenLayers  = [2,1,2];
+hiddenLayers  = [150,100,50,30,15,8,4,2,1,2,4,8,15,30,50,100,150];
 learningRate      = 0.01;
 lambda = 0;
 
@@ -21,24 +21,6 @@ opt = OptimizationProblem(s);
 opt.solve();
 opt.plotConfusionMatrix();
 
-% Network
-% hiddenlayers  = [2,1,2];
-% structure = [data.nFeatures,hiddenlayers,data.nLabels];
-% network   = Network(data,structure);
-% % Trainer
-% learningRate      = 0.01;
-% momentum          = 0.9;
-% batch             = 200;
-% opt.optTolerance  = 1*10^-10;
-% opt.maxevals      = 5000;
-% opt.maxepochs     = 5000;
-% opt.earlyStop     = 10;
-% opt.time          = Inf([1,1]);
-% opt.fv            = 10^-6;
-% optimizer         = Trainer.create(network,'RMSProp',learningRate,momentum,batch,opt,'static');
-% 
-% optimizer.train();
-% network.plotConfusionMatrix();
 %% UNCOMMENT FOR PLOTTING SOME WRONG IMAGES
 % [~,OUT]   = max(network.getOutput(data.Xtest),[],2);
 % [~,TAR] = max(data.Ytest,[],2);
