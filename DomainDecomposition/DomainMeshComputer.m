@@ -76,8 +76,6 @@ classdef DomainMeshComputer < handle
             % shared, just summing nnodes.
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            %             nelem=obj.meshReference.nelem;
-            %             nnodeElem=obj.meshReference.nnodeElem;
             ndim     = obj.meshReference.ndim;
             nnodes  = obj.meshReference.nnodes;
             meshsd = obj.meshSubDomain;

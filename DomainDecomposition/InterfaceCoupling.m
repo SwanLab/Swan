@@ -40,14 +40,9 @@ classdef InterfaceCoupling < handle
         end
         
          function coordNodeBoundary(obj)
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            %             nelem=obj.meshReference.nelem;
-            %             nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes;
-            %             connec0 =obj.meshReference.connec;
-            %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-            %             connecGlob=zeros(nX*nY*nelem,nnodeElem);
+            nX            = obj.nSubdomains(1);
+            nY            = obj.nSubdomains(2);
+            nnodes        = obj.meshReference.nnodes;
             interfaceMesh = obj.interfaceMeshSubDomain();
             ndim          = interfaceMesh{1,1}{1,1}.mesh.ndim;
             ninterface    = obj.ninterfaces;
@@ -60,14 +55,10 @@ classdef InterfaceCoupling < handle
                         coordBdGl = [coordBdGl;bdcood];
                         %although it says global is in subdomain
                         %conecctivity
-                        conecInter  = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
-                        nodeIntSub    = unique(conecInter);
+                        conecInter = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
+                        nodeIntSub = unique(conecInter);
                         nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
                         GlNodeBd   = [GlNodeBd; nodeIntGl];
-                        %                     indLinear= nX*(jDom-1)+iDom;
-                        %                     rowIn=(indLinear-1)*nelem+1;
-                        %                     rowEnd=indLinear*nelem;
-                        %                     connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
                     end
                 end
             end
