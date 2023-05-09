@@ -106,6 +106,10 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.aniAlphaDeg = 90;
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
+                case 'MorphologyBasedCompliance'
+                     cParams.filterParams.femSettings.beta = 1;
+                     cParams.filterParams.femSettings.eta = 1;
+                     sF = ShFunc_MorphologyBasedCompliance(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

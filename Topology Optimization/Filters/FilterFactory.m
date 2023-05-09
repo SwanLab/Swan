@@ -18,6 +18,14 @@ classdef FilterFactory < handle
                         case 'LevelSet'
                             filter = Filter_PDE_LevelSet(cParams);
                     end
+                case 'Filter&Project'
+                    switch cParams.designVarType
+                        case {'Density','MicroParams'}
+                            filter = FilterAndProject(cParams);
+                        case 'LevelSet'
+                            
+                    end
+
             end
         end
 
