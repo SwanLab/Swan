@@ -46,6 +46,15 @@ classdef NewElasticProblem < handle
             obj.computePrincipalDirection();
         end
 
+        function computeStiffnessMatrix(obj)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = obj.displacementFun;
+            s.material = obj.material;
+            lhs = LHSintegrator.create(s);
+            obj.LHS = lhs.compute();
+        end
+
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
@@ -145,15 +154,6 @@ classdef NewElasticProblem < handle
         function createSolver(obj)
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
-        end
-
-        function computeStiffnessMatrix(obj)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
-            s.material = obj.material;
-            lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
         end
 
         function computeForces(obj)

@@ -47,9 +47,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function [fun, funNames] = getFunsToPlot(obj)
             mesh = obj.designVariable.mesh;
             phy = obj.physicalProblem;
-            strain = phy.strainFun{1}; % !!!
-            stress = phy.stressFun{1}; % !!!
-            displ  = phy.uFun{1}; % !!!
+            strain = phy.strainFun; % !!!
+            stress = phy.stressFun; % !!!
+            displ  = phy.uFun; % !!!
             compl  = obj.compliance/obj.value0;
 
             quad = Quadrature.set(mesh.type);
@@ -82,6 +82,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
+            obj.physicalProblem.computeStiffnessMatrix();
 %             obj.physicalProblem.computeVariables();
             obj.physicalProblem.solve();
         end

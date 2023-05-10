@@ -17,7 +17,8 @@ classdef MicroComputer < handle
             a.fileName = obj.testName;
             s = FemDataContainer(a);
 %             femSolver = ElasticProblemMicro(s);
-            femSolver = NewElasticProblemMicro(s);
+%             femSolver = NewElasticProblemMicro(s);
+            femSolver = ElasticProblemMicro_Fast(s);
             femSolver.computeChomog();
             obj.computation = femSolver;
         end

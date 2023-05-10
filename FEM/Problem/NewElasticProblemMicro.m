@@ -18,6 +18,31 @@ classdef NewElasticProblemMicro < handle
             obj.createQuadrature();
         end
 
+        function v = computeGeometricalVolume(obj)
+            v = 1;%sum(sum(obj.geometry.dvolu));
+        end
+
+        function dvolu = getDvolume(obj)
+            dvolu  = obj.elasticParams.mesh.computeDvolume(obj.quadrature);
+        end
+
+        function setMatProps(obj,s)
+           obj.material.compute(s);
+        end
+
+        function mesh = getMesh(obj)
+            mesh  = obj.elasticParams.mesh;
+        end
+        
+        function interp = getInterpolation(obj)
+            interp  = obj.elasticParams.mesh.interpolation;
+            interp.computeShapeDeriv(obj.quadrature.posgp);
+        end
+
+        function quad = getQuadrature(obj)
+            quad = obj.quadrature;
+        end
+
         function setC(obj, C)
             obj.material.C = C;
         end
@@ -55,6 +80,17 @@ classdef NewElasticProblemMicro < handle
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
             obj.variables.tdisp   = tDisp;
+        end
+
+        function dim = getDimensions(obj)
+            strdim = regexp(obj.elasticParams.dim,'\d*','Match');
+            nDimf  = str2double(strdim);
+            d.ndimf  = nDimf;
+            d.nnodes = obj.elasticParams.mesh.nnodes;
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.elasticParams.mesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
         end
 
     end
