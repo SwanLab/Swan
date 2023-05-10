@@ -50,30 +50,25 @@ classdef MappingComputer < handle
         end
 
         function K = computeStiffnessMatrix(obj)
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
-            s.fun  = P1DiscontinuousFunction.create(obj.mesh,1);
-            lhs2 = LHSintegrator.create(s);
-            K = lhs2.compute();
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            lhs = LHSintegrator.create(s);
+            K = lhs.compute();
         end
 
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);
-            s.fType     = 'Gauss';
-            s.fGauss    = fG;
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.meshDisc.nnodes*1;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
+%             fG = obj.orientation.evaluate(q.posgp);
+            s.mesh  = obj.meshDisc;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsF = rhs.compute(obj.orientation);
             In = obj.interpolator;
-            rhsV = In'*rhsV;
+            rhsV = In'*rhsF.fValues;
             obj.RHS = rhsV;
         end
 
