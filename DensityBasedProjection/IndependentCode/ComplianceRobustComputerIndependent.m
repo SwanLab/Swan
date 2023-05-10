@@ -1,4 +1,4 @@
-classdef ComplianceRobustComputer < handle
+classdef ComplianceRobustComputerIndependent < handle
     properties (Access = public)
         E
         I
@@ -13,7 +13,7 @@ classdef ComplianceRobustComputer < handle
         solverParameters
     end
     methods (Access = public)
-        function obj = ComplianceRobustComputer(cParams)
+        function obj = ComplianceRobustComputerIndependent(cParams)
             obj.inputData(cParams);
         end
         function compute(obj)
@@ -65,7 +65,7 @@ classdef ComplianceRobustComputer < handle
             s.E = obj.E;
             s.I = obj.I;
             s.D = obj.D;
-            B = Optimizer(s);
+            B = OptimizerThreeField(s);
             B.compute();
             obj.E = B.E;
             obj.I = B.I;

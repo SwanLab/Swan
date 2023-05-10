@@ -80,7 +80,7 @@ classdef ComplianceRobustComputer < handle
             s.E = obj.E;
             s.I = obj.I;
             s.D = obj.D;
-            B = Optimizer(s);
+            B = OptimizerThreeField(s);
             B.compute();
             obj.E = B.E;
             obj.I = B.I;

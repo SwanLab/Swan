@@ -23,7 +23,7 @@ classdef FilterFactory < handle
                         case {'Density','MicroParams'}
                             filter = FilterAndProject(cParams);
                         case 'LevelSet'
-                            
+
                     end
 
             end

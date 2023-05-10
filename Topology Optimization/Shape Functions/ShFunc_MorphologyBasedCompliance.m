@@ -6,33 +6,20 @@ classdef ShFunc_MorphologyBasedCompliance< ShFunWithElasticPdes
         volumenFrac
     end
     properties (Access = private)
-        refinmentFilter
+        
     end
     methods (Access = public)
 
         function obj = ShFunc_MorphologyBasedCompliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.createRefinmentFilter(cParams);
             obj.createComplianceE(cParams);
             obj.createComplianceI(cParams);
             obj.createComplianceD(cParams);
         end
-        function createRefinmentFilter(obj,cParams)
-            s.beta                    = cParams.filterParams.femSettings.beta;
-            s.eta                    = cParams.filterParams.femSettings.eta;
-            s.mesh = cParams.filterParams.mesh;
-            s.filterParams = cParams.filterParams;
-            s.quadratureOrder = cParams.filterParams.quadratureOrder;
-            s.femSettings = cParams.filterParams.femSettings;
-            s.designVariable = cParams.designVariable;
 
-            s.filterType = 'Filter&Project';
-            s.designVarType = 'Density';
-            obj.refinmentFilter = Filter.create(s);
-        end
         function  createComplianceE(obj,cParams)
-            obj.refinmentFilter.compute(cParams.designVariable.value)
+            obj.filter.compute(cParams.designVariable.value)
             
         end
 

@@ -6,13 +6,14 @@ initial_case = 'full';
 cost = {};
 widthSquare = 0.01;
 weights = [];
-constraint = {'MorphologyBasedCompliance'};
-constraint_case = {'INEQUALITY','INEQUALITY'};
+constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
+    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
+constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
 incrementFactor = 1.2;
 designVariable = 'Density';
-filterType = 'P1';
+filterType = 'Filter&Project';
 nsteps = 1;
 Vfrac_final = 0.4;
 optimality_final =1e-3;
@@ -30,9 +31,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = false;
+plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
+monitoring = true;
 monitoring_interval = 1;
-maxiter = 300;
+maxiter = 3;

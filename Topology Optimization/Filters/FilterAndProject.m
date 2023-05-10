@@ -4,9 +4,9 @@ classdef FilterAndProject < Filter
         projectedField
     end
     properties (Access = private)
-        beta
         eta
-        filter
+        beta
+        filterIntermediate
         projector
     end
     
@@ -17,25 +17,36 @@ classdef FilterAndProject < Filter
             obj.defineProjectorSettings(cParams)
         end
 
-        function compute(obj,density)
-            obj.computeFilter(density);
-            obj.createProjector()  
-            obj.computeProjector()
+        function x_reg = getP0fromP1(obj,x)
+            obj.computeFilter(x);
+            obj.createProjector(); 
+            obj.computeProjector();
+            x_reg = obj.projector.projectedField;
         end
+
+        function x_reg = getP1fromP0(obj,x)
+            s.beta = obj.beta;
+            s.eta  = obj.eta;
+            s.filteredField = obj.filteredField;
+            B = ProjectedFieldFilteredFieldDerivator(s);
+            B.compute();
+            dRhoBar_dRhoTilde = B.derivatedProjectedField;
+            dC_dRhoTilde = x.*dRhoBar_dRhoTilde;
+            x_reg = obj.filterIntermediate.getP1fromP0(dC_dRhoTilde);
+        end
+
     end
     methods (Access = private)
-        function createFilter(obj,cParams)
-            s = cParams.filterParams;
-            s.femSettings.mesh = s.mesh;
-            s.designVariable = cParams.designVariable;
-            obj.filter = Filter.create(s);
+        function createFilter(obj,s)
+            s.filterType = 'P1';
+            obj.filterIntermediate = Filter.create(s);
         end
         function defineProjectorSettings(obj,cParams)
-            obj.eta = cParams.eta;
-            obj.beta = cParams.beta;
+            obj.eta  = cParams.femSettings.eta;
+            obj.beta = cParams.femSettings.beta;
         end 
         function computeFilter(obj,density)
-            obj.filteredField = obj.filter.getP0fromP1(density);
+            obj.filteredField = obj.filterIntermediate.getP0fromP1(density);
         end
         function createProjector(obj)
             s.beta = obj.beta;
@@ -45,7 +56,6 @@ classdef FilterAndProject < Filter
         end
         function computeProjector(obj)
             obj.projector.compute();
-            obj.projectedField = obj.projector.projectedField;
         end 
     end
 end

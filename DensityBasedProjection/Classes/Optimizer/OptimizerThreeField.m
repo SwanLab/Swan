@@ -1,4 +1,4 @@
-classdef Optimizer < handle
+classdef OptimizerThreeField < handle
     properties (Access = public)
         E
         I
@@ -18,7 +18,7 @@ classdef Optimizer < handle
     end
 
     methods (Access = public)
-        function obj = Optimizer(cParams)
+        function obj = OptimizerThreeField(cParams)
             obj.inputData(cParams);
         end
 
@@ -79,7 +79,7 @@ classdef Optimizer < handle
                 %Plot results
                 obj.plotResults(iter);
                 %New optimizer parameters
-                [iterbeta,itervol,finish,iter] = Optimizer.reconfigurateOptimizeParameters(obj,iterbeta,itervol,finish,iter);
+                [iterbeta,itervol,finish,iter] = OptimizerThreeField.reconfigurateOptimizeParameters(obj,iterbeta,itervol,finish,iter);
 
 
             end
