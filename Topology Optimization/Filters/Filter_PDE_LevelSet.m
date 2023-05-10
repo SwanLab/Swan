@@ -53,11 +53,17 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function x0 = getP0fromP1(obj,x)
+            % Actually getting FGaussDiscFun
             obj.x_reg =  obj.getP1fromP1(x);
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
+%             s.fValues = obj.x_reg;
+%             s.mesh = obj.mesh;
+%             p1 = P1Function(s);
+%             p0 = p1.project('P0');
+%             x0 = squeeze(p0.fValues);
         end
 
         function x_reg = getP1fromP0(obj,x0)
@@ -98,7 +104,7 @@ classdef Filter_PDE_LevelSet < Filter
         function int = obtainRHSintegrator(obj)
             uMesh = obj.levelSet.getUnfittedMesh();
             s.mesh = uMesh;
-            s.type = 'Unfitted';
+            s.type = 'ShapeFunction';
             int = RHSintegrator.create(s);
         end
 
@@ -151,7 +157,7 @@ classdef Filter_PDE_LevelSet < Filter
             else
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
-                s.type = 'Unfitted';
+                s.type = 'ShapeFunction';
                 int = RHSintegrator.create(s);
                 fInt = int.integrateInBoundary(fNodes);
             end
