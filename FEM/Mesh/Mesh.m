@@ -280,6 +280,12 @@ classdef Mesh < handle
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
+        function exportSTL3D(obj, file)
+            model = createpde;
+            g     = importGeometry(model,[file,'.stl']);
+            g_3D  = extrude(g,5);
+            pdegplot(g_3D,"FaceLabels","on")
+        end
 
     end
 
