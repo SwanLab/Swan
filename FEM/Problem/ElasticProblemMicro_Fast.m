@@ -68,6 +68,55 @@ classdef ElasticProblemMicro_Fast < handle
             obj.variables.tdisp   = tDisp;
         end
 
+        function computeStiffnessMatrix(obj)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = obj.displacementFun;
+            s.material = obj.material;
+            lhs = LHSintegrator.create(s);
+            obj.LHS = lhs.compute();
+        end
+
+        function v = computeGeometricalVolume(obj)
+            v = 1;%sum(sum(obj.geometry.dvolu));
+        end
+
+        function dvolu = getDvolume(obj)
+            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+        end
+
+        function setMatProps(obj,s)
+           obj.material.compute(s);
+        end
+
+        function mesh = getMesh(obj)
+            mesh  = obj.mesh;
+        end
+        
+        function interp = getInterpolation(obj)
+            interp  = obj.mesh.interpolation;
+            interp.computeShapeDeriv(obj.quadrature.posgp);
+        end
+
+        function quad = getQuadrature(obj)
+            quad = obj.quadrature;
+        end
+
+        function setC(obj, C)
+            obj.material.C = C;
+        end
+
+        function dim = getDimensions(obj)
+            strdim = regexp(obj.pdim,'\d*','Match');
+            nDimf  = str2double(strdim);
+            d.ndimf  = nDimf;
+            d.nnodes = obj.mesh.nnodes;
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
+        end
+
     end
 
     methods (Access = private)
@@ -119,16 +168,6 @@ classdef ElasticProblemMicro_Fast < handle
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
         end
-
-        function computeStiffnessMatrix(obj)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
-            s.material = obj.material;
-            lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
-        end
-
 
         function computeForces(obj)
             s.type = 'ElasticMicroNew';

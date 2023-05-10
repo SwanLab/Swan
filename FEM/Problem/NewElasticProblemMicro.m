@@ -47,6 +47,17 @@ classdef NewElasticProblemMicro < handle
             obj.material.C = C;
         end
 
+        function dim = getDimensions(obj)
+            strdim = regexp(obj.elasticParams.dim,'\d*','Match');
+            nDimf  = str2double(strdim);
+            d.ndimf  = nDimf;
+            d.nnodes = obj.elasticParams.mesh.nnodes;
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.elasticParams.mesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
+        end
+
         function obj = computeChomog(obj)
             nVoigt = obj.material.nstre;
             nGaus = obj.quadrature.ngaus;
@@ -80,17 +91,6 @@ classdef NewElasticProblemMicro < handle
             obj.variables.tstrain = tStrn;
             obj.variables.tstress = tStrss;
             obj.variables.tdisp   = tDisp;
-        end
-
-        function dim = getDimensions(obj)
-            strdim = regexp(obj.elasticParams.dim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            d.ndimf  = nDimf;
-            d.nnodes = obj.elasticParams.mesh.nnodes;
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.elasticParams.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
         end
 
     end

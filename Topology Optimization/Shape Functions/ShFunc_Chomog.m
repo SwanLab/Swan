@@ -145,6 +145,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.computeChomog();
             obj.Chomog  = obj.physicalProblem.variables.Chomog;
             obj.tstrain = obj.physicalProblem.variables.tstrain;
