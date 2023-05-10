@@ -66,6 +66,7 @@ classdef PathVertexesToBoundaryComputer < handle
             [~,iM] = min(dist);
             node = nodes(iM);
             cP = obj.mesh.coord(node,:);
+           % obj.boundaryPointCoord = [1.98    1.3500];
            obj.boundaryPointCoord = cP;
             %obj.boundaryPointCoord(:,2)
         end
