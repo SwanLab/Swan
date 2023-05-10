@@ -1,7 +1,7 @@
 classdef MINRES_Pol < handle
 
     properties (Access = public)
-        xPrevIt        
+        xPrevIt
     end
 
     methods (Access = public)
@@ -12,16 +12,20 @@ classdef MINRES_Pol < handle
 
 
         function x_k = solve(obj,A,b)
+        tic
+            if isempty(obj.xPrevIt)
+                obj.xPrevIt = zeros(size(b,1),1);
+            end
 
             n = size(A,1);
             k = 3000;
-            maxiter = k;            
-            tol = 10^(-3);
+            maxiter = k;
+            tol = 10^(-5);
 
 
             [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = obj.initiateVariables(k, n, b, A);
 
-            
+
 
             j = 1;
 
@@ -103,24 +107,8 @@ classdef MINRES_Pol < handle
             end
 
             x_k = x_prev;
-            obj.xPrevIt = x_k;            
-
-            %             xNew = x_k;
-
-
-%             iter = load("CounterPol\iter.mat").iter;
-            %             neededIter = load("CounterPol\neededIter.mat").neededIter;
-            %             solutions = load("CounterPol\solutions.mat").solutions;
-
-            %             solutions(:,iter) = xNew;
-            %             neededIter(iter) = j-1;
-%             iter = iter + 1;
-% 
-%             save('CounterPol\iter.mat', 'iter');
-            %             save('CounterPol\neededIter.mat', 'neededIter');
-            %             save('CounterPol\solutions.mat', 'solutions');
-
-%             save('CounterPol\xNew.mat', 'xNew');
+            obj.xPrevIt = x_k;
+            toc
         end
     end
 
@@ -128,7 +116,6 @@ classdef MINRES_Pol < handle
     methods (Access = private)
 
         function init(obj)
-            obj.xPrevIt = zeros(20200,1);            
         end
 
         function [alpha, beta_new, v_new] = lanczosProc(obj, A, vj, v_prev, betaj)

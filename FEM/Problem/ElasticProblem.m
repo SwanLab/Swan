@@ -43,7 +43,7 @@ classdef ElasticProblem < handle
 
         function solve(obj)
             obj.updateIteration();
-            obj.updateSolverType()
+            % obj.updateSolverType();
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
@@ -158,17 +158,12 @@ classdef ElasticProblem < handle
 
         function createSolver(obj)
             obj.currentIteration = 0;
-            % s.type =  'DIRECT';
+
+            %s.type =  'MINRES';
+            % s.type = 'DIRECT';
             % obj.solver = Solver.create(s);
 
             obj.solver = MINRES_Pol(); %%BOOOOO
-            % obj.solver = actualMINRES();
-
-            %s.type =  'MINRES';
-            s.type = 'DIRECT';
-            obj.solver = Solver.create(s);
-
-            % obj.solver = MINRES_Pol(); %%BOOOOO
             % obj.solver = actualMINRES();
             % obj.solver = MINRES_Pol_Proves();
 
