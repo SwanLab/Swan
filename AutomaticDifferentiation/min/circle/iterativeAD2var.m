@@ -1,4 +1,4 @@
-function [val, grad] = iterativeAD(coord)
+function [val, grad] = iterativeAD2var(coord)
 
 x = ValGradForward(coord(1),[1 0]);
 y = ValGradForward(coord(2),[0 1]);

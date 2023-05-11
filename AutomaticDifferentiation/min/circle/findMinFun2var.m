@@ -15,7 +15,7 @@ iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
 
-[val, grad] = iterativeAD(x0); %Initial Iteration
+[val, grad] = iterativeAD2var(x0); %Initial Iteration
 
 alpha = 0.01;
 
@@ -23,11 +23,11 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %w
 
     iterations = iterations + 1; %iterations counter
 
-    [val, grad] = iterativeAD(x);
+    [val, grad] = iterativeAD2var(x);
 
     xn = x + alpha * grad;
 
-    [valN, gradN] = iterativeAD(xn);
+    [valN, gradN] = iterativeAD2var(xn);
 
     if valN > val
 
