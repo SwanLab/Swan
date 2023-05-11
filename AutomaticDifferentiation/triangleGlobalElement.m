@@ -27,8 +27,8 @@ for i = 1 : length(coordElem)
 end
 
 %AD using my code
-x = ValDerForward(0,[1 0]);
-y = ValDerForward(0,[0 1]);
+x = ValGradForward(0,[1 0]);
+y = ValGradForward(0,[0 1]);
 
 N(1) = coef(1,1)*x + coef(1,2)*y + coef(1,3);
 N(2) = coef(2,1)*x + coef(2,2)*y + coef(2,3);

@@ -1,16 +1,16 @@
 function h = mrdivideFun(u,v)
 
-if ~isa(u,'ValDerForward') && ~isa(v,'ValDerForward') %u and v are scalars
-    h = ValDerForward(u / v, 0);
+if ~isa(u,'ValGradForward') && ~isa(v,'ValGradForward') %u and v are scalars
+    h = ValGradForward(u / v, 0);
 
-elseif ~isa(u,'ValDerForward') %u is a scalar
-    h = ValDerForward(u / v.val, (- v.der * u.val) / v.val ^ 2);
+elseif ~isa(u,'ValGradForward') %u is a scalar
+    h = ValGradForward(u / v.val, (- v.Grad * u.val) / v.val ^ 2);
 
-elseif ~isa(v,'ValDerForward') %v is a scalar
-    h = ValDerForward(u.val / v, u.der / v);
+elseif ~isa(v,'ValGradForward') %v is a scalar
+    h = ValGradForward(u.val / v, u.Grad / v);
 
 else
-    h = ValDerForward(u.val / v.val, (u.der * v.val - v.der * u.val) / v.val ^ 2);
+    h = ValGradForward(u.val / v.val, (u.Grad * v.val - v.Grad * u.val) / v.val ^ 2);
 
 end
 end

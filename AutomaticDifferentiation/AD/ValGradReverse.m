@@ -1,10 +1,10 @@
-classdef ValDerReverse
+classdef ValGradReverse
 
     properties
 
         val
 
-        der
+        Grad
 
         adj
 
@@ -12,17 +12,17 @@ classdef ValDerReverse
 
     methods
 
-        function obj = ValDerReverse(value)
+        function obj = ValGradReverse(value)
 
             obj.val = value;
-            obj.der = 0;
+            obj.Grad = 0;
             obj.adj = [1];
 
         end
 
         function h = plus(x, y)
 
-            h = ValDerReverse(x.val + y.val);
+            h = ValGradReverse(x.val + y.val);
             x.adj = [x.adj; {1, h}];
             y.adj = [y.adj; {1, h}];
 
@@ -31,7 +31,7 @@ classdef ValDerReverse
 
         function h = mtimes(x, y)
 
-            h = ValDerReverse(x.val * y.val);
+            h = ValGradReverse(x.val * y.val);
             x.adj = [x.adj; {y.val, h}];
             y.adj = [y.adj; {x.val, h}];
 
@@ -39,11 +39,11 @@ classdef ValDerReverse
 
         function h = mpower(u,v)
 
-            %VALDER/MPOWER overloads ^ with at least one valder
-            if ~isa(u,'ValDerReverse') %u is a scalar
-                h = ValDerReverse(u^v.val); %, u^v.val*log(u)*v.der);
-            elseif ~isa(v,'ValDerReverse') %v is a scalar
-                h = ValDerReverse(u.val^v); %, v*u.val^(v-1)*u.der);
+            %VALGrad/MPOWER overloads ^ with at least one valGrad
+            if ~isa(u,'ValGradReverse') %u is a scalar
+                h = ValGradReverse(u^v.val); %, u^v.val*log(u)*v.Grad);
+            elseif ~isa(v,'ValGradReverse') %v is a scalar
+                h = ValGradReverse(u.val^v); %, v*u.val^(v-1)*u.Grad);
             else
                 h = exp(v*log(u)); %call overloaded log, * and exp
             end
@@ -53,14 +53,14 @@ classdef ValDerReverse
 
         function h = cos(x)
 
-            h = ValDerReverse(cos(x.val));
+            h = ValGradReverse(cos(x.val));
 
         end
 
 
         function backward(obj, gradient)
 
-            obj.der = obj.der + gradient;
+            obj.Grad = obj.Grad + gradient;
 
             for i = 1:length(obj.adj)
 

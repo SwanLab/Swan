@@ -1,10 +1,10 @@
-function h = mpowerFun(u,v) %VALDER/MPOWER overloads ^ with at least one valder
+function h = mpowerFun(u,v) %VALGrad/MPOWER overloads ^ with at least one valGrad
 
-if ~isa(u,'ValDerForward') %u is a scalar
-    h = ValDerForward(u^v.val, u^v.val*log(u)*v.der);
+if ~isa(u,'ValGradForward') %u is a scalar
+    h = ValGradForward(u^v.val, u^v.val*log(u)*v.Grad);
 
-elseif ~isa(v,'ValDerForward') %v is a scalar
-    h = ValDerForward(u.val^v, v*u.val^(v-1)*u.der);
+elseif ~isa(v,'ValGradForward') %v is a scalar
+    h = ValGradForward(u.val^v, v*u.val^(v-1)*u.Grad);
 
 else
     h = exp(v*log(u)); %call overloaded log, * and exp

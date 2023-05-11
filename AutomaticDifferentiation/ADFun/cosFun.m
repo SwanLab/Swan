@@ -1,9 +1,9 @@
 function h = cosFun(u)
 
-if ~isa(u,'ValDerForward') %u is a scalar
-    h = ValDerForward(cos(u), 0);
+if ~isa(u,'ValGradForward') %u is a scalar
+    h = ValGradForward(cos(u), 0);
 else
-    h = ValDerForward(cos(u.val), -sin(u.val)*u.der);
+    h = ValGradForward(cos(u.val), -sin(u.val)*u.Grad);
 end
 
 end

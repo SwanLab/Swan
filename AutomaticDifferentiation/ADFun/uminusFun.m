@@ -1,10 +1,10 @@
 function h = uminusFun(u)
 
-if ~isa(u,'ValDerForward') %u is a scalar
-    h = ValDerForward(u - v.val, v.der);
+if ~isa(u,'ValGradForward') %u is a scalar
+    h = ValGradForward(u - v.val, v.Grad);
 
 else
-    h = ValDerForward(u.val - v.val, u.der - v.der);
+    h = ValGradForward(u.val - v.val, u.Grad - v.Grad);
 
 end
 end

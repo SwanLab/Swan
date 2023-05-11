@@ -1,25 +1,25 @@
-classdef ValDerForward
+classdef ValGradForward
 
     properties
 
         val % function value
 
-        der % derivative value or gradient vector
+        Grad % Gradivative value or gradient vector
 
     end
 
     methods (Access = public)
 
-        function obj = ValDerForward(a,b) %VALDER class constructor;
+        function obj = ValGradForward(a,b) %VALGrad class constructor;
 
             obj.val = a; %given function value
-            obj.der = b; %given derivative value or gradient vector
+            obj.Grad = b; %given Gradivative value or gradient vector
 
         end
 
-        function vec = double(obj) %VALDER/DOUBLE Convert valder object to vector of doubles.
+        function vec = double(obj) %VALGrad/DOUBLE Convert valGrad object to vector of doubles.
 
-            vec = [ obj.val, obj.der ];
+            vec = [ obj.val, obj.Grad ];
 
         end
 

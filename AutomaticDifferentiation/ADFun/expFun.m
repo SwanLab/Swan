@@ -1,9 +1,9 @@
 function h = expFun(u)
 
-if ~isa(u,'ValDerForward') %u is a scalar
-    h = ValDerForward(exp(u), 0);
+if ~isa(u,'ValGradForward') %u is a scalar
+    h = ValGradForward(exp(u), 0);
 else
-    h = ValDerForward(exp(u.val), exp(u.val)*u.der);
+    h = ValGradForward(exp(u.val), exp(u.val)*u.Grad);
 end
 
 end

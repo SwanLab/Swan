@@ -30,8 +30,8 @@ classdef TriangleLinearElement
             end
 
             %AD using my code
-            xi = ValDerForward(0,[1 0]);
-            eta = ValDerForward(0,[0 1]);
+            xi = ValGradForward(0,[1 0]);
+            eta = ValGradForward(0,[0 1]);
 
             coord(1) = coef(1,1) * xi + coef(1,2) * eta + coef(1,3);
             coord(2) = coef(2,1) * xi + coef(2,2) * eta + coef(2,3);
