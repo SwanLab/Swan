@@ -4,22 +4,22 @@ classdef ValGradForward
 
         val % function value
 
-        Grad % Gradivative value or gradient vector
+        grad % Gradient value or gradient vector
 
     end
 
     methods (Access = public)
 
-        function obj = ValGradForward(a,b) %VALGrad class constructor;
+        function obj = ValGradForward(a,b) %ValGrad class constructor;
 
             obj.val = a; %given function value
-            obj.Grad = b; %given Gradivative value or gradient vector
+            obj.grad = b; %given Gradient value or gradient vector
 
         end
 
-        function vec = double(obj) %VALGrad/DOUBLE Convert valGrad object to vector of doubles.
+        function vec = double(obj) %Convert ValGrad object to vector of doubles.
 
-            vec = [ obj.val, obj.Grad ];
+            vec = [ obj.val, obj.grad ];
 
         end
 

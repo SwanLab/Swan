@@ -4,7 +4,7 @@ classdef ValGradReverse
 
         val
 
-        Grad
+        grad
 
         adj
 
@@ -15,7 +15,7 @@ classdef ValGradReverse
         function obj = ValGradReverse(value)
 
             obj.val = value;
-            obj.Grad = 0;
+            obj.grad = 0;
             obj.adj = [1];
 
         end
@@ -60,7 +60,7 @@ classdef ValGradReverse
 
         function backward(obj, gradient)
 
-            obj.Grad = obj.Grad + gradient;
+            obj.grad = obj.grad + gradient;
 
             for i = 1:length(obj.adj)
 
