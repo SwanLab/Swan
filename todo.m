@@ -3,6 +3,15 @@
 % - Check STL 3D
 % - mass p1p0
 
+% 1) ElasticProblemMicro_Fast
+%       - one loop at solve(). displacements+strain+stress+fluct calculated
+%         without adding additional loops
+%       - code cleanup (see computeDisplacements())
+%       - delete vars/variables/whatever -> change functionals
+
+% 2) FunctionPrinter/ParaviewPostprocessor -> move to Factory
+% 3) Mesh.print
+
 %% Questions
 
 %% Results

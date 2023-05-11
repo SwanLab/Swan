@@ -28,17 +28,20 @@ classdef ElasticProblemMicro_Fast < handle
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
-            obj.computeStiffnessMatrix();
         end
 
         function obj = solve(obj)
-            obj.computeForces();
-            obj.computeDisplacements();
-            obj.computeStrain();
-            obj.computeStress();
+            obj.computeStiffnessMatrix();
+            obj.computeRHS(); %computeRHS
+            for i = 1:nCases
+                obj.computeDisplacements();
+                obj.computeStrain();
+                obj.computeStress();
+                %obj.computeStressStrainFluctuations
+            end
         end
 
-        function obj = computeChomog(obj)
+        function obj = computeChomog(obj) % delete
             nVoigt = obj.material.nstre;
             nGaus = obj.quadrature.ngaus;
             nElem = size(obj.material.C,3);
@@ -169,7 +172,7 @@ classdef ElasticProblemMicro_Fast < handle
             obj.solver = Solver.create(s);
         end
 
-        function computeForces(obj)
+        function computeRHS(obj)
             s.type = 'ElasticMicroNew';
             s.dim      = obj.getFunDims();
             s.BC       = obj.boundaryConditions;
@@ -184,27 +187,34 @@ classdef ElasticProblemMicro_Fast < handle
         end
 
         function u = computeDisplacements(obj)
-            nVoigt = size(obj.RHS,2);
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = zeros(size(Kred,1), nVoigt);
-            for i = 1:nVoigt
-                Fred(:,i) = bc.fullToReducedVector(obj.RHS(:,i));
-            end
+            % --
+                % Fred = obj.computeReducedForce();
+                nVoigt = size(obj.RHS,2);
+                bc = obj.boundaryConditions;
+                Kred = bc.fullToReducedMatrix(obj.LHS);
+                Fred = zeros(size(Kred,1), nVoigt);
+                for i = 1:nVoigt % should be one single loop
+                    Fred(:,i) = bc.fullToReducedVector(obj.RHS(:,i)); % try to do sth
+                end
+            % ---
             uRed = obj.solver.solve(Kred,Fred);
-            u = zeros(numel(obj.displacementFun.fValues),nVoigt);
-            for i = 1:nVoigt
-                u(:,i) = bc.reducedToFullVector(uRed(:,i));
-                obj.variables.d_u(:,i) = u(:,i);
-                z.mesh    = obj.mesh;
-                z.fValues = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
-                uFeFun = P1Function(z);
-                obj.uFun{i} = uFeFun;
-            end
+
+            % ---
+            % obj.Create displacement fields functionals
+                u = zeros(numel(obj.displacementFun.fValues),nVoigt);
+                for i = 1:nVoigt % should disappear
+                    u(:,i) = bc.reducedToFullVector(uRed(:,i));
+                    obj.variables.d_u(:,i) = u(:,i);
+                    z.mesh    = obj.mesh;
+                    z.fValues = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
+                    uFeFun = P1Function(z);
+                    obj.uFun{i} = uFeFun;
+                end
+            % ---
         end
 
         function computeStrain(obj)
-            for i = 1:numel(obj.uFun)
+            for i = 1:numel(obj.uFun) % should disappear
                 strFun = obj.uFun{i}.computeSymmetricGradient(obj.quadrature);
                 strFun.applyVoigtNotation();
                 perm = permute(strFun.fValues, [2 1 3]);
@@ -215,7 +225,7 @@ classdef ElasticProblemMicro_Fast < handle
         end
 
         function computeStress(obj)
-            for i = 1:numel(obj.strainFluctFun)
+            for i = 1:numel(obj.strainFluctFun) % should disappear
                 strn  = permute(obj.strainFluctFun{i}.fValues,[1 3 2]);
                 strn2(:,1,:,:) = strn;
                 strs =squeeze(pagemtimes(obj.material.C,strn2));

@@ -144,6 +144,9 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function solveState(obj)
+            % designVariable -> check if C has changed
+            % if hasCchanged
+            % obj.computeStiffnessMatrix();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.computeChomog();
