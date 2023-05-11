@@ -7,8 +7,9 @@ x = x0;
 xn = x0;
 
 plotX = zeros(1000,3);
-valMin = zeros(3);
-iterations = zeros(3);
+valMin = zeros(3,1);
+gradMin = zeros(3,1);
+iterations = zeros(3,1);
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
 
@@ -36,17 +37,20 @@ for i = 1:3
 
         x(i) = xn(i);
 
+        %% PLOT
+
         plotX(iterations(i),i) = grad(i);
 
         figure(i)
 
-        plot(plotX(:,i));
+        plot(plotX(:,i)); %plot of the gradient tending to the min.
 
         xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 50 -1 1])
 
 
     end
 
-    valMin(i) = val;
+    valMin(i) = val; % Value that minimizes the grad.
+    gradMin(i) = grad(i); % Value that minimizes the grad.
 
 end
