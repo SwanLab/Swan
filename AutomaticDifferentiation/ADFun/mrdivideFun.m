@@ -1,4 +1,4 @@
-function h = rdivideFun(u,v)
+function h = mrdivideFun(u,v)
 
 if ~isa(u,'ValDerForward') && ~isa(v,'ValDerForward') %u and v are scalars
     h = ValDerForward(u / v, 0);

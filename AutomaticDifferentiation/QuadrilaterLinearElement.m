@@ -1,4 +1,4 @@
-classdef QuadrilaterElement
+classdef QuadrilaterLinearElement
 
     properties
 
@@ -8,7 +8,7 @@ classdef QuadrilaterElement
 
     methods (Access = public)
 
-        function obj = QuadrilaterElement(a) %quadrilaterElement class constructor;
+        function obj = QuadrilaterLinearElement(a) %quadrilaterElement class constructor;
 
             obj.coordElem = a; %parametric coordinates
 
@@ -40,6 +40,7 @@ classdef QuadrilaterElement
 
             %Jacobian
             J = N(:,2:end);
+
         end
     end
 end

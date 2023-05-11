@@ -1,4 +1,4 @@
-classdef TriangleElement
+classdef TriangleLinearElement
 
     properties
 
@@ -8,7 +8,7 @@ classdef TriangleElement
 
     methods (Access = public)
 
-        function obj = TriangleElement(a) %triangleElement class constructor;
+        function obj = TriangleLinearElement(a) %triangleElement class constructor;
 
             obj.coordElem = a; %parametric coordinates
 

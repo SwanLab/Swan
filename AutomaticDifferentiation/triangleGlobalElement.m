@@ -38,3 +38,4 @@ n = [N(1).double; N(2).double; N(3).double];
 
 %Jacobian
 J = transpose(n(:,2:end)) * coordElem;
+

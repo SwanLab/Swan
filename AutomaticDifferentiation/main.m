@@ -8,11 +8,11 @@ coordElem = [ 2 2; 7 1; 5 4];
 
 if length(coordElem) == 3
 
-    [J,N] = TriangleElement(coordElem).assembleJ();
+    [J,N] = TriangleLinearElement(coordElem).assembleJ();
 
 elseif length(coordElem) == 4
 
-    [J,N] = QuadrilaterElement(coordElem).assembleJ();
+    [J,N] = QuadrilaterLinearElement(coordElem).assembleJ();
 
 else
 

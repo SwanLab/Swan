@@ -35,15 +35,21 @@ classdef ValDerForward
 
         end
 
+        function h = uminus(u,v)
+
+            h = uminusFun(u,v);
+
+        end
+
         function h = mtimes(u,v)
 
             h = mtimesFun(u,v);
 
         end
 
-        function h = rdivide(u,v)
+        function h = mrdivide(u,v)
 
-            h = rdivideFun(u,v);
+            h = mrdivideFun(u,v);
 
         end
 
@@ -62,6 +68,12 @@ classdef ValDerForward
         function h = cos(u)
 
             h = cosFun(u);
+
+        end
+
+        function h = exp(u)
+
+            h = expFun(u);
 
         end
     end
