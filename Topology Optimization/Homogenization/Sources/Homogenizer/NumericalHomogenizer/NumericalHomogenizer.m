@@ -154,7 +154,7 @@ classdef NumericalHomogenizer < handle
         end
         
         function computeElasticVariables(obj)
-            obj.microProblem.computeChomog();
+            obj.microProblem.solve();
             cV = obj.cellVariables;
             cV.Ch      = obj.microProblem.Chomog;
 %             cV.tstress = obj.microProblem.variables.tstress;

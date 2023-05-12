@@ -190,64 +190,43 @@ classdef ElasticProblemMicro_Fast < handle
         end
 
         function u = computeDisplacements(obj, iVoigt)
-            % --
-                % Fred = obj.computeReducedForce();
-                nVoigt = size(obj.RHS,2);
-                bc = obj.boundaryConditions;
-                Kred = bc.fullToReducedMatrix(obj.LHS);
-%                 Fred = zeros(size(Kred,1), nVoigt);
-%                 for i = 1:nVoigt % should be one single loop
-%                     Fred(:,i) = bc.fullToReducedVector(obj.RHS(:,i)); % try to do sth
-%                 end
-                Fred = bc.fullToReducedVector(obj.RHS(:,iVoigt));
-            % ---
+            [Kred, Fred] = obj.applyBoundaryConditions(iVoigt);
             uRed = obj.solver.solve(Kred,Fred);
+            u = obj.boundaryConditions.reducedToFullVector(uRed);
 
+            obj.variables.d_u(:,iVoigt) = u;
+            z.mesh    = obj.mesh;
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = P1Function(z);
+            obj.uFun{iVoigt} = uFeFun;
+        end
 
-
-            % ---
-            % obj.Create displacement fields functionals
-%                 u = zeros(numel(obj.displacementFun.fValues),nVoigt);
-%                 for i = 1:nVoigt % should disappear
-                    u = bc.reducedToFullVector(uRed);
-                    obj.variables.d_u(:,iVoigt) = u;
-                    z.mesh    = obj.mesh;
-                    z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-                    uFeFun = P1Function(z);
-                    obj.uFun{iVoigt} = uFeFun;
-%                 end
-            % ---
-
-
+        function [Kred, Fred] = applyBoundaryConditions(obj,iVoigt)
+            bc = obj.boundaryConditions;
+            Kred = bc.fullToReducedMatrix(obj.LHS);
+            Fred = bc.fullToReducedVector(obj.RHS(:,iVoigt));
         end
 
         function computeStrain(obj, iVoigt)
-%             for iVoigt = 1:numel(obj.uFun) % should disappear
-                strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
-                strFun.applyVoigtNotation();
-                perm = permute(strFun.fValues, [2 1 3]);
-%                 obj.variables.strain = perm;
-                obj.strainFluctFun{iVoigt} = strFun;
-%                 obj.strain = strFun;
-%             end
+            strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
+            strFun.applyVoigtNotation();
+            obj.strainFluctFun{iVoigt} = strFun;
         end
 
         function computeStress(obj, iVoigt)
-%             for iVoigt = 1:numel(obj.strainFluctFun) % should disappear
-                strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
-                strn2(:,1,:,:) = strn;
-                strs =squeeze(pagemtimes(obj.material.C,strn2));
-                strs = permute(strs, [1 3 2]);
-    
-                z.mesh       = obj.mesh;
-                z.fValues    = strs;
-                z.quadrature = obj.quadrature;
-                strFun = FGaussDiscontinuousFunction(z);
-    
-                obj.stress = strFun;
-                obj.variables.stress = permute(strFun.fValues, [2 1 3]);
-                obj.stressFluctFun{iVoigt} = strFun;
-%             end
+            strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
+            strn2(:,1,:,:) = strn;
+            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs = permute(strs, [1 3 2]);
+
+            z.mesh       = obj.mesh;
+            z.fValues    = strs;
+            z.quadrature = obj.quadrature;
+            strFun = FGaussDiscontinuousFunction(z);
+
+            obj.stress = strFun;
+            obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+            obj.stressFluctFun{iVoigt} = strFun;
         end
 
         %% 
