@@ -25,7 +25,7 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %w
 
     [val, grad] = iterativeAD2var(x);
 
-    xn = x + alpha * grad;
+    xn = x - alpha * grad;
 
     [valN, gradN] = iterativeAD2var(xn);
 
