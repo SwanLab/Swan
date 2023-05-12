@@ -10,25 +10,25 @@ iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
 
-[val(1), grad(1,:)] = iterativeADOneNodeNewhookean(u); %Initial Iteration
+[val(1), grad(1,:)] = iterativeADOneNodeNeoHookean(u); %Initial Iteration
 
 u = u - alpha * grad(1,:);
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
-    [val(2), grad(2,:)] = iterativeADOneNodeNewhookean(u);
+    [val(2), grad(2,:)] = iterativeADOneNodeNeoHookean(u);
 
     u = u - alpha * grad(2,:);
 
     val(1) = val(2);
     grad(1,:) = grad(2,:);
 
-    % if val(2) > val(1)
-    %
-    %     alpha = alpha / 2;
-    %
-    % end
+    if val(2) > val(1)
+
+        alpha = alpha / 2;
+
+    end
 
     plotu(iterations,1) = grad(1,1);
     plotu(iterations,2) = grad(1,2);
