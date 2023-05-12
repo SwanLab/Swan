@@ -86,7 +86,7 @@ classdef P1DiscontinuousFunction < FeFunction
             end
             %  gradt(1,:,:,:) = grad;
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = fVR;
+            s.fValues = permute(fVR, [1 3 2]);
             s.mesh    = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
