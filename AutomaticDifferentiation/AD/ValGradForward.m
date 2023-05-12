@@ -76,5 +76,11 @@ classdef ValGradForward
             h = expFun(u);
 
         end
+
+        function h = log(u)
+
+            h = logFun(u);
+
+        end
     end
 end
