@@ -17,7 +17,7 @@ iterations = 0;
 
 [val, grad] = iterativeAD2var(x0); %Initial Iteration
 
-alpha = 1;
+alpha = 0.01;
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
 
@@ -25,7 +25,7 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %w
 
     [val, grad] = iterativeAD2var(x);
 
-    xn = x - alpha * grad;
+    xn = x + alpha * grad;
 
     [valN, gradN] = iterativeAD2var(xn);
 
@@ -52,25 +52,25 @@ figure(1)
 
 plot(plotX); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations -1 1])
+xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotX) max(plotX)])
 
 figure(2)
 
 plot(plotY); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations -1 1])
+xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotY) max(plotY)])
 
 figure(3)
 
 plot(plotValX); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations -1 1])
+xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotValX) max(plotValX)])
 
 figure(4)
 
 plot(plotValY); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations -1 1])
+xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotValY) max(plotValY)])
 
 valMin = x; % Value that minimizes the grad.
 gradMin(1) = grad(1); % Gradient respect to x.
