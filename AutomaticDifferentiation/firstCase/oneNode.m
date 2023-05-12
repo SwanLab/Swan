@@ -5,6 +5,7 @@ u = [1 1 1];
 
 plotu = zeros(1000,3);
 plotValu = zeros(1000,3);
+plotVal = zeros(1000,1);
 iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
@@ -37,6 +38,8 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-
     plotValu(iterations,1) = u(1);
     plotValu(iterations,2) = u(2);
     plotValu(iterations,3) = u(3);
+
+    plotVal(iterations) = val(1);
 
 end
 
@@ -78,6 +81,11 @@ plot(plotValu(:,3)); %plot of the gradient tending to the min.
 
 xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotValu(:,3)) max(plotValu(:,3))])
 
+figure(7)
+
+plot(plotVal); %plot of the gradient tending to the min.
+
+xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotVal) max(plotVal)])
 
 
 valMin = u; % Value that minimizes the grad.
