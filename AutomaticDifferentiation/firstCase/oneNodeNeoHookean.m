@@ -15,7 +15,6 @@ iterations = 0;
 u = u - alpha * grad(1,:);
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
-    %while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
     [val(2), grad(2,:)] = iterativeADOneNodeNewhookean(u);

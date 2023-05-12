@@ -1,4 +1,4 @@
-function [val, grad] = iterativeADOneNodeNewhookean(u)
+function [val, grad] = iterativeADOneNodeNeoHookean(u)
 
 C1 = 1;
 D1 = 1;
@@ -20,7 +20,7 @@ J = F(1,1) * ( F(2,2) * F(3,3) - F(2,3) * F(3,2) ) - F(1,2) * ( F(2,1) * F(3,3) 
 
 fun1 = C1 * ( I1 - 2 );
 
-fun2 = 2 * C1 * log(J);
+fun2 = 2 * C1 * log(-J);
 
 fun3 = D1 * ( J - 1 )^2;
 
