@@ -49,7 +49,7 @@ classdef ShFunc_ComplianceComparison_constraint < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
-            obj.physicalProblem.computeStiffnessMatrix();
+%             obj.physicalProblem.computeStiffnessMatrix();
 %             obj.physicalProblem.computeVariables();
             obj.physicalProblem.solve();
         end
