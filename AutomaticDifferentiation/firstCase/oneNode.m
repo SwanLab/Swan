@@ -1,45 +1,38 @@
 clear;
 %% DEFINE INITIAL VARIABLES AND MATRIX
-u0 = [1 1 1];
-u = u0;
-un = u0;
+alpha = 0.1;
+u = [1 1 1];
 
 plotu = zeros(1000,3);
 plotValu = zeros(1000,3);
-gradMin = zeros(3,1);
 iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
 
-[val, grad] = iterativeADfirstCase(u0); %Initial Iteration
+[val(1), grad(1,:)] = iterativeADfirstCase(u); %Initial Iteration
 
-alpha = 0.1;
+u = u - alpha * grad(1,:);
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^5 %while grad == 0 or iterations above 50
-%while iterations < 10^4 %while grad == 0 or iterations above 50
+    %while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
-    [val, grad] = iterativeADfirstCase(u);
+    [val(2), grad(2,:)] = iterativeADfirstCase(u);
 
-    un = u - alpha * grad;
+    u = u - alpha * grad(2,:);
 
-    [valN, gradN] = iterativeADfirstCase(un);
+    val(1) = val(2);
+    grad(1,:) = grad(2,:);
 
-    if iterations<100
-        disp(val);
-    end
-
-    % if valN > val
-    % 
+    % if val(2) > val(1)
+    %
     %     alpha = alpha / 2;
-    % 
+    %
     % end
 
-    u = un;
-
-    plotu(iterations,1) = grad(1);
-    plotu(iterations,2) = grad(2);
-    plotu(iterations,3) = grad(3);
+    plotu(iterations,1) = grad(1,1);
+    plotu(iterations,2) = grad(1,2);
+    plotu(iterations,3) = grad(1,3);
 
     plotValu(iterations,1) = u(1);
     plotValu(iterations,2) = u(2);
@@ -88,6 +81,6 @@ xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plot
 
 
 valMin = u; % Value that minimizes the grad.
-gradMin(1) = grad(1); % Value that minimizes the grad.
-gradMin(2) = grad(2); % Value that minimizes the grad.
-gradMin(3) = grad(3); % Value that minimizes the grad.
+gradMin(1) = grad(1,1); % Value that minimizes the grad.
+gradMin(2) = grad(1,2); % Value that minimizes the grad.
+gradMin(3) = grad(1,3); % Value that minimizes the grad.
