@@ -1,6 +1,5 @@
 function [val, grad] = iterativeADOneNodeNewhookean(u)
 
-%F = zeros(3);
 C1 = 1;
 D1 = 1;
 D = [1,1,1; 1,-1,-1; 1,-1,1];

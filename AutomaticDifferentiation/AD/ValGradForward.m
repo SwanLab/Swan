@@ -37,9 +37,9 @@ classdef ValGradForward
 
         end
 
-        function h = uminus(u,v)
+        function h = uminus(u)
 
-            h = uminusFun(u,v);
+            h = uminusFun(u);
 
         end
 

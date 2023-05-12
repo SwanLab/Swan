@@ -1,6 +1,6 @@
 clear;
 %% DEFINE INITIAL VARIABLES AND MATRIX
-alpha = 0.1;
+alpha = 0.001;
 u = [1 1 1];
 
 plotu = zeros(1000,3);
@@ -14,7 +14,7 @@ iterations = 0;
 
 u = u - alpha * grad(1,:);
 
-while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^5 %while grad == 0 or iterations above 50
+while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
     %while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
