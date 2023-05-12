@@ -16,7 +16,7 @@ iterations = 0;
 alpha = 0.1;
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-12) && iterations < 10^5 %while grad == 0 or iterations above 50
-
+%while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
     [val, grad] = iterativeADfirstCase(u);
@@ -25,11 +25,15 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && abs(grad(3)) > 10^(-
 
     [valN, gradN] = iterativeADfirstCase(un);
 
-    if valN > val
-
-        alpha = alpha / 2;
-
+    if iterations<100
+        disp(val);
     end
+
+    % if valN > val
+    % 
+    %     alpha = alpha / 2;
+    % 
+    % end
 
     u = un;
 
