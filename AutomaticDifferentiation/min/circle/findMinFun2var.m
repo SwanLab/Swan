@@ -13,11 +13,11 @@ plotValY = zeros(50,1);
 gradMin = zeros(2,1);
 iterations = 0;
 
-%% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
+%% ITERATE STARTING WITH A FOR WITH THE 2 VARIABLES
 
 [val, grad] = iterativeAD2var(x0); %Initial Iteration
 
-alpha = 0.01;
+alpha = 1;
 
 while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
 
@@ -25,7 +25,7 @@ while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %w
 
     [val, grad] = iterativeAD2var(x);
 
-    xn = x + alpha * grad;
+    xn = x - alpha * grad;
 
     [valN, gradN] = iterativeAD2var(xn);
 
