@@ -11,9 +11,11 @@ classdef ValGradForward
     methods (Access = public)
 
         function obj = ValGradForward(a,b) %ValGrad class constructor;
-
-            obj.val = a; %given function value
-            obj.grad = b; %given Gradient value or gradient vector
+            if nargin == 0
+            else
+                obj.val = a; %given function value
+                obj.grad = b; %given Gradient value or gradient vector
+            end
 
         end
 
