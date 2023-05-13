@@ -10,7 +10,6 @@ classdef MappingComputer < handle
         mesh
         orientation
         interp
-        field
         interpolator
     end
 
@@ -18,7 +17,6 @@ classdef MappingComputer < handle
 
         function obj = MappingComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function uF = compute(obj)
@@ -43,26 +41,19 @@ classdef MappingComputer < handle
             obj.interpolator = cParams.interpolator;
             obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
-        end
         
         function computeLHS(obj)
             K = obj.computeStiffnessMatrix();
             In = obj.interpolator;
-            K = In'*K*In;
-            obj.LHS = K;
+            Kn = In'*K*In;
+            obj.LHS = Kn;
         end
 
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -70,20 +61,14 @@ classdef MappingComputer < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);            
-            s.fType     = 'Gauss';
-            s.fGauss    = fG;
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
+%             fG = obj.orientation.evaluate(q.posgp);
+            s.mesh  = obj.meshDisc;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsF = rhs.compute(obj.orientation);
             In = obj.interpolator;
-            rhsV = In'*rhsV;
+            rhsV = In'*rhsF.fValues;
             obj.RHS = rhsV;
         end
 

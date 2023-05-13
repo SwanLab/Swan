@@ -17,6 +17,12 @@ classdef Quadrature < handle
     end
     
     methods (Static, Access = public)
+
+        function q = create(mesh, order)
+            q = Quadrature.set(mesh.type);
+            q.computeQuadrature(order);
+        end
+
         function quadrature = set(type)
             switch type
                 case 'LINE'

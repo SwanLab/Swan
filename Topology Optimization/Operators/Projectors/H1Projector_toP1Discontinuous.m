@@ -1,16 +1,9 @@
 classdef H1Projector_toP1Discontinuous < Projector
 
-    properties (Access = private)
-        fieldMass
-        fieldStiffness
-    end
-
     methods (Access = public)
 
         function obj = H1Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
-            obj.createFieldMass();
-            obj.createFieldStiffness();
         end
 
         function xProj = project(obj, x)
@@ -27,24 +20,6 @@ classdef H1Projector_toP1Discontinuous < Projector
 
     methods (Access = private)
 
-        function createFieldMass(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.fieldMass = Field(s);
-        end
-
-        function createFieldStiffness(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'CONSTANT';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.fieldStiffness = Field(s);
-        end
-
         function LHS = computeLHS(obj)
             LHSM    = obj.computeMassMatrix();
             LHSK    = obj.computeStiffnessMatrix();
@@ -53,9 +28,11 @@ classdef H1Projector_toP1Discontinuous < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.type  = 'MassMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.mesh  = obj.mesh;
-            s.field = obj.fieldMass;
+            s.type  = 'MassMatrix';
+            s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
         end
@@ -63,7 +40,9 @@ classdef H1Projector_toP1Discontinuous < Projector
         function LHSK = computeStiffnessMatrix(obj)
             s.type  = 'StiffnessMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.fieldStiffness;
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.quadratureOrder = 'CONSTANT';
             lhs = LHSintegrator.create(s);
             LHSK = lhs.compute();
         end

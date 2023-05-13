@@ -78,7 +78,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             dC = DilationComputer(s);
             d  = dC.compute();
             obj.dilation = d;
-        end        
+        end
 
         function computeDilatedOrientationVector(obj)
             s.fValues = exp(obj.dilation.fValues);

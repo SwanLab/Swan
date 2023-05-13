@@ -6,7 +6,6 @@ classdef DiffReactProblem < handle
     
     properties (Access = private)
         mesh
-        field
         solver
         epsilon
         LHStype
@@ -19,7 +18,6 @@ classdef DiffReactProblem < handle
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            obj.createField();
             obj.createBoundaryConditions();
             obj.createSolver();
             obj.createProblemLHS();
@@ -65,19 +63,10 @@ classdef DiffReactProblem < handle
             obj.problemData.scale = cParams.scale;
         end
 
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
-
         function createBoundaryConditions(obj)
-            s.dim   = obj.field.dim;
             s.mesh  = obj.mesh;
             s.scale = obj.problemData.scale;
-            s.ndofs = obj.field.dim.ndofs;
+            s.ndofs = obj.mesh.nnodes;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];

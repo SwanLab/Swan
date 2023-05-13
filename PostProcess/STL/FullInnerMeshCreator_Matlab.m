@@ -1,4 +1,4 @@
-classdef FullInnerMeshCreator_Matlab < InnerMeshExporter
+classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
     
     methods (Access = public)
         

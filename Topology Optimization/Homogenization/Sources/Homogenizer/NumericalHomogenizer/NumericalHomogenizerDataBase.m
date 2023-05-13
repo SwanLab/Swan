@@ -54,12 +54,12 @@ classdef NumericalHomogenizerDataBase < handle
             dF = FemInputReader_GiD().read(fileName);
             cParams.coord  = dF.mesh.coord;
             cParams.connec = dF.mesh.connec;
-            meshT = Mesh_Total(cParams);
+            meshT = Mesh(cParams);
             
             s.mesh = meshT;
             
             scalarPr.epsilon = 1e-3;
-            scalarPr.mesh = meshT.innerMeshOLD;
+            scalarPr.mesh = meshT;
             s.scalarProductSettings = scalarPr;
             
             designVar = DesignVariable.create(s);% Density(s);

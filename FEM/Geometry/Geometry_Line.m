@@ -20,12 +20,31 @@ classdef Geometry_Line < Geometry
         function computeGeometry(obj,quad,interpV)
             obj.initGeometry(interpV,quad);
             obj.computeDvolu();
-            obj.computeCartesianDerivatives();            
+            obj.computeCartesianDerivatives();
         end
         
+        function invJ = computeInverseJacobian(obj,quad,interpV)
+            obj.initGeometry(interpV,quad);
+            obj.computeDvolu();
+            detJ = obj.computeDeterminant();
+            invDet = 1./detJ;
+            nGaus = obj.quadrature.ngaus;
+%             for iGaus = 1:nGaus
+%                 invJ(:,1)    = invDet(iGaus,:);
+%             end
+            invJ = invDet';
+        end
     end
     
     methods (Access = private)
+        
+        function computeDvolu(obj)
+            obj.computeDrDtxi();
+            detJ = obj.computeDeterminant();
+            w(:,1) = obj.quadrature.weigp;
+            dv =  bsxfun(@times,w,detJ);
+            obj.dvolu = dv';
+        end
         
         function computeDrDtxi(obj)
             nGaus  = obj.quadrature.ngaus;
@@ -40,37 +59,6 @@ classdef Geometry_Line < Geometry
             end
             obj.drDtxi = drdtxi;
         end
-        
-        function computeTangentVector(obj)
-            obj.computeDrDtxi();
-            drdtxi = obj.drDtxi;
-            drdtxiNorm = obj.computeVectorNorm(drdtxi);
-            t = drdtxi./drdtxiNorm;
-            obj.tangentVector = t;
-        end
-        
-        function computeNormalVector(obj)
-            nDime  = obj.mesh.ndim;
-            switch nDime
-                case 2
-                    error('Not done, Call second derivative');
-                case 3
-                    obj.computeTangentVector();
-                    t = obj.tangentVector;
-                    n = zeros(size(t));
-                    n(:,:,1) = -t(:,:,2);
-                    n(:,:,2) =  t(:,:,1);
-                    obj.normalVector = n;
-            end
-        end
-        
-        function computeDvolu(obj)
-            obj.computeDrDtxi();
-            detJ = obj.computeDeterminant();
-            w(:,1) = obj.quadrature.weigp;
-            dv =  bsxfun(@times,w,detJ);
-            obj.dvolu = dv';
-        end
 
         function detJ = computeDeterminant(obj)
             drdtxi = obj.drDtxi;
@@ -84,7 +72,7 @@ classdef Geometry_Line < Geometry
             nDime = obj.mesh.ndim;
             nGaus = obj.quadrature.ngaus;
             detJ = obj.computeDeterminant();
-            invDet = 1./detJ;            
+            invDet = 1./detJ;
             deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
             dShapes = deriv;
             dN = zeros(nDime,nNode,nElem,nGaus);
@@ -99,6 +87,29 @@ classdef Geometry_Line < Geometry
             end
             obj.dNdx = dN;
         end
+        
+%         function computeTangentVector(obj)
+%             obj.computeDrDtxi();
+%             drdtxi = obj.drDtxi;
+%             drdtxiNorm = obj.computeVectorNorm(drdtxi);
+%             t = drdtxi./drdtxiNorm;
+%             obj.tangentVector = t;
+%         end
+%         
+%         function computeNormalVector(obj)
+%             nDime  = obj.mesh.ndim;
+%             switch nDime
+%                 case 2
+%                     error('Not done, Call second derivative');
+%                 case 3
+%                     obj.computeTangentVector();
+%                     t = obj.tangentVector;
+%                     n = zeros(size(t));
+%                     n(:,:,1) = -t(:,:,2);
+%                     n(:,:,2) =  t(:,:,1);
+%                     obj.normalVector = n;
+%             end
+%         end
         
     end
     

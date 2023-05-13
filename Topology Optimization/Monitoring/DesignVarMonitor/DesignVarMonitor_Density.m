@@ -49,10 +49,10 @@ classdef DesignVarMonitor_Density < DesignVarMonitor_Abstract
             s.filterType = 'P1';
             s.domainType = 'INTERIOR';
             s.quadratureOrder = 'LINEAR';
-            s.mesh = cParams.mesh.innerMeshOLD;
+            s.mesh = cParams.mesh;
             s = SettingsFilter(s);
             s.femSettings.scale = cParams.scale;
-            s.femSettings.mesh = cParams.mesh.innerMeshOLD;            
+            s.femSettings.mesh = cParams.mesh;            
             obj.filter = Filter_P1_Density(s);
         end
         

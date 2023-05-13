@@ -20,7 +20,7 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
                 fNodes = ones(size(ls));
                 obj.unfittedMesh.compute(ls);
                 s.mesh = obj.unfittedMesh;
-                s.type = 'Unfitted';
+                s.type = 'ShapeFunction';
                 integrator = RHSintegrator.create(s);
                 fInt = integrator.integrateInDomain(fNodes);
             end

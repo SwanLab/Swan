@@ -20,7 +20,7 @@ classdef Density < DesignVariable
         end
         
         function [fun, funNames] = getFunsToPlot(obj)
-            aa.mesh = obj.mesh.meshes{1};
+            aa.mesh = obj.mesh;
             aa.fValues = obj.value;
             valFun = P1Function(aa);
 

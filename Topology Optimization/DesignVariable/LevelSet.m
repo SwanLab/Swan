@@ -78,8 +78,8 @@ classdef LevelSet < DesignVariable
         end
         
         function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh.innerMeshOLD;
-            s.boundaryMesh   = obj.mesh.boxFaceMeshes;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.updateUnfittedMesh();

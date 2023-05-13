@@ -95,7 +95,7 @@ classdef Optimizer < handle
                 end
                 file = [obj.outFolder,'/',obj.outFilename, '_', num2str(obj.nIter)];
 
-                zz.mesh     = obj.designVariable.mesh.meshes{1};
+                zz.mesh     = obj.designVariable.mesh;
                 zz.filename = file;
                 zz.fun      = fun;
                 zz.funNames = name;
