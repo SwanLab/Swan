@@ -1,4 +1,4 @@
-classdef DirichletComputer < handle
+classdef MacroDirichletComputer < handle
 
     properties (Access = private)
         dirDOFs
@@ -6,7 +6,7 @@ classdef DirichletComputer < handle
     end
 
     methods (Access = public)
-        function obj = DirichletComputer(cParams)
+        function obj = MacroDirichletComputer(cParams)
             obj.init(cParams);
         end
 

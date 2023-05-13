@@ -1,4 +1,4 @@
-classdef MicroDirichletSetter < handle
+classdef MicroDirichletComputer < handle
 
     properties (Access = public)
         mesh
@@ -8,7 +8,7 @@ classdef MicroDirichletSetter < handle
     end
 
     methods (Access = public)
-        function obj = MicroDirichletSetter(cParams)
+        function obj = MicroDirichletComputer(cParams)
             obj.init(cParams);
         end
 

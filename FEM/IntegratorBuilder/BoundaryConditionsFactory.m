@@ -4,9 +4,9 @@ classdef BoundaryConditionsFactory < handle
         function obj = create(cParams)
             switch cParams.solMode
                 case 'DISP'
-                    obj = BoundaryConditionsDisp(cParams);
+                    obj = BoundaryConditionsLineal(cParams);
                 case 'FLUC'
-                    obj = BoundaryConditionsFluc(cParams);
+                    obj = BoundaryConditionsPeriodic(cParams);
             end
         end
 

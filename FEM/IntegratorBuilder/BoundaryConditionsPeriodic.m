@@ -1,4 +1,4 @@
-classdef BoundaryConditionsFluc < BoundaryConditions
+classdef BoundaryConditionsPeriodic < BoundaryConditions
 
     properties (Access = private)
         nConstraints
@@ -39,7 +39,7 @@ classdef BoundaryConditionsFluc < BoundaryConditions
             if isprop(obj, 'vstrain')
                 s.dirDOFs        = obj.dirichlet;
                 s.ndofs          = obj.ndofs;
-                DirComputer      = DirichletComputer(s);
+                DirComputer      = MacroDirichletComputer(s);   %a nivel de metodo igual micro que macro
                 [CtDir, sizeDir] = DirComputer.computeDirCond();
                 perDOFslave      = obj.periodic_constrained;
                 perDOFmaster     = obj.periodic_free;

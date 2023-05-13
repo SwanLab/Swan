@@ -1,4 +1,4 @@
-classdef BoundaryConditionsDisp < BoundaryConditions
+classdef BoundaryConditionsLineal < BoundaryConditions
 
     properties (Access = private)
         nConstraints
@@ -70,7 +70,7 @@ classdef BoundaryConditionsDisp < BoundaryConditions
             else
                 s.dirDOFs        = obj.dirichlet;
                 s.ndofs          = obj.ndofs;
-                DirComputer      = DirichletComputer(s);
+                DirComputer      = MacroDirichletComputer(s);
                 [CtDir, sizeDir] = DirComputer.computeDirCond;
                 obj.nConstraints = sizeDir;
                 Ct = CtDir;

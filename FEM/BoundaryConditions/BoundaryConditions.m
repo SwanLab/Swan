@@ -49,7 +49,7 @@ classdef BoundaryConditions < handle
             s.mesh = obj.mesh;
             s.dirDOFs = obj.dirichlet;
             s.vstrain = obj.vstrain;
-            obj.conditionSetter = MicroDirichletSetter(s);
+            obj.conditionSetter = MicroDirichletComputer(s);
         end
 
         function red = fullToReducedMatrix(obj, mat)
