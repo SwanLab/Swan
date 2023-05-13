@@ -76,7 +76,7 @@ classdef ElasticProblem < handle
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = ParaviewPostprocessor(a);
+            pst = FunctionPrinter_Paraview(a);
             pst.print();
         end
 

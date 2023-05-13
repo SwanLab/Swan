@@ -66,15 +66,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
 
             fun      = {complFun, strain, stress, displ};
             funNames = {'compliance', 'strain', 'stress', 'u'};
-
-            cc.mesh     = mesh;
-            cc.filename = 'shfunc_compliance';
-            cc.fun      = fun;
-            cc.funNames = funNames;
-%             pvPst = ParaviewPostprocessor(cc);
-%             pvPst.print();
-%             fp = FunctionPrinter(cc);
-%             fp.print();
         end
     end
     
