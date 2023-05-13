@@ -3,9 +3,9 @@ clear;
 alpha = 0.001;
 u = [1 1 1];
 
-plotGrad = zeros(1000,3);
-plotU = zeros(1000,3);
-plotVal = zeros(1000,1);
+plotGrad = zeros(100,3);
+plotU = zeros(100,3);
+plotVal = zeros(100,1);
 iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 3 VARIABLES
@@ -66,19 +66,19 @@ figure(4)
 
 plot(plotU(:,1)); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotU(:,1)) max(plotU(:,1))])
+xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,1)) max(plotU(:,1))])
 
 figure(5)
 
 plot(plotU(:,2)); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotU(:,2)) max(plotU(:,2))])
+xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,2)) max(plotU(:,2))])
 
 figure(6)
 
 plot(plotU(:,3)); %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotU(:,3)) max(plotU(:,3))])
+xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,3)) max(plotU(:,3))])
 
 figure(7)
 
