@@ -46,7 +46,7 @@ classdef ElasticProblemDisp < ElasticProblem
                 end
                 Ch(istre, :) = [Lx; Ly; Lxy];                
             end
-            obj.variables.Chomog  = Ch;
+            obj.variables.Chomog  = -Ch;
 
         end
     end

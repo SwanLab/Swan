@@ -144,7 +144,7 @@ classdef ElasticProblem < handle
             s.mesh  = obj.mesh;
             s.scale = obj.scale;
             s.bc    = {bc};
-            s.ndofs = obj.displacementFun.dim.ndofs;
+            s.ndofs = dim.ndofs;
             s.btype = obj.btype; % builder type
             s.solMode = obj.solMode;
             s.solType = obj.solType;
@@ -183,7 +183,7 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.material = obj.material;
 
-            s.globalConnec = obj.displacementFun.connec;
+            s.globalConnec = obj.mesh.connec;
             s.btype = obj.btype;
 
 %             s.globalConnec = obj.displacementField.connec;
@@ -198,8 +198,8 @@ classdef ElasticProblem < handle
 
             obj.variables.fext = rhs;
 
-            R = RHSint.computeReactions(obj.LHS);
-            obj.variables.fext = rhs + R;
+%             R = RHSint.computeReactions(obj.LHS);
+%             obj.variables.fext = rhs +R;
 
             obj.RHS = rhs;
         end
@@ -216,7 +216,8 @@ classdef ElasticProblem < handle
             s.solver      = obj.solver;
             s.scale       = obj.scale;
             s.mesh        = obj.mesh;
-            s.dim         = obj.displacementFun.dim;
+            dim = obj.getFunDims();
+            s.dim         = dim;
             
             % ConstraintSolver
             s.RHS         = obj.RHS;
@@ -262,14 +263,14 @@ classdef ElasticProblem < handle
 %             obj.variables.React = R;
             z.mesh   = obj.mesh;
 
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
-            obj.variables.d_u = u;
+%             bc = obj.boundaryConditions;
+%             Kred = bc.fullToReducedMatrix(obj.LHS);
+%             Fred = bc.fullToReducedVector(obj.RHS);
+%             u = obj.solver.solve(Kred,Fred);
+%             u = bc.reducedToFullVector(u);
+%             obj.variables.d_u = u;
 
-            z.mesh    = obj.mesh;
+%             z.mesh    = obj.mesh;
 
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);

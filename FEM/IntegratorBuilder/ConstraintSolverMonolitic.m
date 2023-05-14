@@ -19,8 +19,7 @@ classdef ConstraintSolverMonolitic < ConstraintSolverFactory
             lhs = obj.createGeneralMatrix(LHSMatrix, nConstraints);
             sol = obj.solver.solve(lhs, RHSMatrix);
             u   = sol(1:obj.sizeK, 1);
-            L   = sol(obj.sizeK+1:end, 1);
-         
+            L   = -sol(obj.sizeK+1:end, 1);    
         end
 
     end
