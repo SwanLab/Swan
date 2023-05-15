@@ -66,7 +66,7 @@ classdef OptimizationProblem < handle
            s             = obj.optimizerParams;
            s.costFunc    = obj.costFunc;
            s.designVariable = obj.network.getLearnableVariables();
-           s.type        = 'RMSProp';
+           s.type        = 'SGD';
            s.data        = obj.data;
            s.maxFunEvals = 2000;
            op = Trainer.create(s);

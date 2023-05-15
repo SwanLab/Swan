@@ -82,9 +82,9 @@ classdef Data < handle
         function loadData(obj)
             f = fullfile('../Datasets/',obj.fileName);
             obj.data = load(f);
-            %fprintf('Features to be used (1:%d):',(size(self.data,2)-1))
-            %feat = input(' ');
-            feat = 1:4;
+            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
+            feat = input(' ');
+            %feat = 1:4;
             x = obj.data(:, feat);
             ydata = obj.data(:, end);
             y = zeros(length(ydata),max(ydata));

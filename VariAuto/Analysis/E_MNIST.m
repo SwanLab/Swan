@@ -3,7 +3,7 @@ clear;clc;close all;addpath ../Codes;
 %% INITIALIZATION
 % Data choose between 32x32 or dct
 s.fileName = '../Datasets/MNIST.csv';
-s.polynomialOrder = 3;
+s.polynomialOrder = 1;
 s.testRatio       = 30;
 data = Data(s);
 
@@ -22,10 +22,10 @@ opt.solve();
 opt.plotConfusionMatrix();
 
 %% UNCOMMENT FOR PLOTTING SOME WRONG IMAGES
-% [~,OUT]   = max(network.getOutput(data.Xtest),[],2);
+% [~,OUT]   = max(CostFunction.getOutput(data.Xtest),[],2);
 % [~,TAR] = max(data.Ytest,[],2);
 % err = TAR ~= OUT;
-% 1 - sum(err)/length(err)
+% 1 - sum(err)/length(err);
 % IDX = [];
 % for i = 1:size(data.Xtest,1)
 %     if err(i) == 1
@@ -56,5 +56,5 @@ opt.plotConfusionMatrix();
 %     figure(k)
 %     imshow(rescale(reconstructIDCT))
 %     tlt = strcat('Predicted = ',num2str(OUT(IDX(k))),' , Target = ',num2str(TAR(IDX(k))));
-%     title(tlt)
+%      title(tlt)
 % end
