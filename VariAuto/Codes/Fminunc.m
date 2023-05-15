@@ -7,15 +7,18 @@ classdef Fminunc < Trainer
     methods(Access = public)
         function obj = Fminunc(s)
             obj.init(s);
+            s.optTolerance = 1*10^-10;
+            s.maxevals = 5000;
+            s.nPlot = 1;
             obj.opt   = obj.setSolverOptions(s);
             obj.nPlot = s.nPlot;
             obj.data  = s.data;
         end
 
         function train(obj)
-            x0  = obj.optimizationProblem.thetavec;
+            x0  = obj.designVariable.thetavec;
             c   = obj.costFunction;
-            F = @(theta) obj.costFunction(theta,obj.data.Xtrain,obj.data.Ytrain);
+            F = @(theta) obj.costFunction.computeCost(theta,obj.data.Xtrain,obj.data.Ytrain);
             fminunc(F,x0,obj.opt); 
         end
     end
