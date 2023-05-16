@@ -84,5 +84,11 @@ classdef ValGradForward
             h = logFun(u);
 
         end
+
+        function h = sqrt(u)
+
+            h = sqrtFun(u);
+
+        end
     end
 end
