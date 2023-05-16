@@ -2,6 +2,7 @@ classdef MicroComputer < handle
 
     properties (Access = public)
         computation
+        variables
     end
 
     properties (Access = private)
@@ -19,8 +20,9 @@ classdef MicroComputer < handle
 %             femSolver = ElasticProblemMicro(s);
 %             femSolver = NewElasticProblemMicro(s);
             femSolver = ElasticProblemMicro_Fast(s);
-            femSolver.computeChomog();
+            femSolver.solve();
             obj.computation = femSolver;
+            obj.variables.Chomog = femSolver.Chomog;
         end
 
     end
