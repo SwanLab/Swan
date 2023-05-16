@@ -1,4 +1,4 @@
-classdef RHSintegrator_ElasticMicro < handle
+classdef RHSintegrator_ElasticMicroNew < handle
 
     properties (Access = private)
         dim
@@ -13,18 +13,27 @@ classdef RHSintegrator_ElasticMicro < handle
     
     methods (Access = public)
 
-        function obj = RHSintegrator_ElasticMicro(cParams)
+        function obj = RHSintegrator_ElasticMicroNew(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeDvolume();
         end
 
         function Fext = compute(obj)
-            Fvol       = obj.computeStrainRHS(obj.vstrain);
-            forces     = squeeze(Fvol);
-            FextSupVol = obj.assembleVector(forces);
+            nVoigt = obj.material.nstre;
+            basis   = diag(ones(nVoigt,1));
+            Fvol = zeros(obj.dim.ndofs, nVoigt);
+            for iVoigt = 1:nVoigt
+                vstrain = basis(iVoigt,:);
+                FvolE = squeeze(obj.computeStrainRHS(vstrain));
+                Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
+            end
+%             Fvol       = obj.computeStrainRHS(obj.vstrain);
+%             forces     = squeeze(Fvol);
+%             FextSupVol = obj.assembleVector(forces);
             Fpoint     = obj.computePunctualFext();
-            Fext = FextSupVol +  Fpoint;
+%             Fext = FextSupVol +  Fpoint;
+            Fext = Fvol + Fpoint;
         end
 
         function R = computeReactions(obj, K)
@@ -49,7 +58,7 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.boundaryConditions = cParams.BC;
             obj.material           = cParams.material;
             obj.globalConnec       = cParams.globalConnec;
-            obj.vstrain            = cParams.vstrain;
+%             obj.vstrain            = cParams.vstrain;
         end
        
         function createQuadrature(obj)

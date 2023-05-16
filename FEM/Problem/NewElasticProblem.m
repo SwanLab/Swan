@@ -1,7 +1,7 @@
-classdef ElasticProblem < handle
+classdef NewElasticProblem < handle
     
     properties (Access = public)
-%         variables
+        variables
         boundaryConditions
         uFun
         strainFun
@@ -30,15 +30,15 @@ classdef ElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = ElasticProblem(cParams)
+        function obj = NewElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
+            obj.computeStiffnessMatrix();
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -46,12 +46,25 @@ classdef ElasticProblem < handle
             obj.computePrincipalDirection();
         end
 
+        function computeStiffnessMatrix(obj)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = obj.displacementFun;
+            s.material = obj.material;
+            lhs = LHSintegrator.create(s);
+            obj.LHS = lhs.compute();
+        end
+
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
-%             s.displacement = obj.variables.d_u;
+            s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
+        end
+
+        function setVstrain(obj, vs)
+            obj.vstrain = vs;
         end
 
         function dim = getDimensions(obj)
@@ -76,7 +89,7 @@ classdef ElasticProblem < handle
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = FunctionPrinter_Paraview(a);
+            pst = ParaviewPrinter(a);
             pst.print();
         end
 
@@ -95,8 +108,7 @@ classdef ElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.pdim        = cParams.dim;
             obj.inputBC     = cParams.bc;
-            obj.mesh        = cParams.mesh;
-            if isprop(cParams, 'interpolationType')
+            if isprop(cParams, 'interpolationType') % later on for P2
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
@@ -144,15 +156,6 @@ classdef ElasticProblem < handle
             obj.solver = Solver.create(s);
         end
 
-        function computeStiffnessMatrix(obj)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
-            s.material = obj.material;
-            lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
-        end
-
         function computeForces(obj)
             s.type = 'Elastic';
             s.scale    = obj.scale;
@@ -162,10 +165,13 @@ classdef ElasticProblem < handle
             s.material = obj.material;
 %             s.globalConnec = obj.displacementField.connec;
             s.globalConnec = obj.mesh.connec;
+            if isprop(obj, 'vstrain')
+                s.vstrain = obj.vstrain;
+            end
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs + R;
+            obj.variables.fext = rhs + R;
             obj.RHS = rhs;
         end
 
@@ -175,7 +181,7 @@ classdef ElasticProblem < handle
             Fred = bc.fullToReducedVector(obj.RHS);
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
+            obj.variables.d_u = u;
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -190,8 +196,8 @@ classdef ElasticProblem < handle
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
             strFun.applyVoigtNotation();
             perm = permute(strFun.fValues, [2 1 3]);
-%             obj.variables.strain = perm;
-            obj.strainFun = strFun;
+            obj.variables.strain = perm;
+            obj.strainFun= strFun;
             obj.strain = strFun;
         end
 
@@ -207,18 +213,18 @@ classdef ElasticProblem < handle
             strFun = FGaussDiscontinuousFunction(z);
 
             obj.stress = strFun;
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+            obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun = strFun;
         end
 
         function computePrincipalDirection(obj)
-            strss  = permute(obj.stressFun.fValues, [2 1 3]);
+            strss  = obj.variables.stress;
             s.type = obj.pdim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
             pcomp.compute(strss);
-%             obj.variables.principalDirections = pcomp.direction;
-%             obj.variables.principalStress     = pcomp.principalStress;
+            obj.variables.principalDirections = pcomp.direction;
+            obj.variables.principalStress     = pcomp.principalStress;
         end
 
     end

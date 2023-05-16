@@ -1,6 +1,6 @@
 classdef ShFunc_Chomog < ShapeFunctional
     
-    properties (Access = public)
+    properties (Access = protected)
         Chomog
         tstress
         tstrain
@@ -30,45 +30,45 @@ classdef ShFunc_Chomog < ShapeFunctional
             funNames = phyNames;
         end
         
-        function fP = addPrintableVariables(obj)
-            fP = obj.addMicroVariables();
-            fP{end+1}.value = obj.gradient;
-            fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
-            for i = 1:numel(fH)
-                fP{end+1} = fH{i};
-            end
-        end
-        
-        function fP = addMicroVariables(obj)
-            p = obj.getPhysicalProblems();
-            p = p{1};
-            nMicro = numel(p.variables2print);
-            fP = cell(nMicro,1);
-            for i = 1:nMicro
-                pV = p;
-                pV.variables = p.variables2print{i};
-                cParams.physicalProblem = pV;
-                g = PdeVariableToPrintGetter(cParams);
-                v = g.compute();
-                fP{i}.value = v;
-            end
-        end
-        
-        function fP = createPrintVariables(obj)
-            types = {'Elasticity','Elasticity','Elasticity','ScalarNodal'};
-            names = {'Primal1','Primal2','Primal3','Gradient'};
-            
-            fP = obj.obtainPrintVariables(types,names);
-            fP = obj.addHomogPrintVariablesNames(fP);
-        end
-        
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value*obj.value0;
-        end
-        
-        function t = getTitlesToPlot(obj)
-            t{1} = 'C - C not scaled';
-        end
+%         function fP = addPrintableVariables(obj)
+%             fP = obj.addMicroVariables();
+%             fP{end+1}.value = obj.gradient;
+%             fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
+%             for i = 1:numel(fH)
+%                 fP{end+1} = fH{i};
+%             end
+%         end
+%         
+%         function fP = addMicroVariables(obj)
+%             p = obj.getPhysicalProblems();
+%             p = p{1};
+%             nMicro = numel(p.variables2print);
+%             fP = cell(nMicro,1);
+%             for i = 1:nMicro
+%                 pV = p;
+%                 pV.variables = p.variables2print{i};
+%                 cParams.physicalProblem = pV;
+%                 g = PdeVariableToPrintGetter(cParams);
+%                 v = g.compute();
+%                 fP{i}.value = v;
+%             end
+%         end
+%         
+%         function fP = createPrintVariables(obj)
+%             types = {'Elasticity','Elasticity','Elasticity','ScalarNodal'};
+%             names = {'Primal1','Primal2','Primal3','Gradient'};
+%             
+%             fP = obj.obtainPrintVariables(types,names);
+%             fP = obj.addHomogPrintVariablesNames(fP);
+%         end
+%         
+%         function v = getVariablesToPlot(obj)
+%             v{1} = obj.value*obj.value0;
+%         end
+%         
+%         function t = getTitlesToPlot(obj)
+%             t{1} = 'C - C not scaled';
+%         end
         
         function q = getQuad(obj)
             q = obj.physicalProblem.getQuadrature();
@@ -111,10 +111,9 @@ classdef ShFunc_Chomog < ShapeFunctional
         function computeChDerivative(obj)
             dC = obj.homogenizedVariablesComputer.dC;
             p  = obj.physicalProblem;
-            tstr = p.variables.tstrain;
-            nStre = size(tstr,1);
-            nelem = size(tstr,4);
-            ngaus = size(tstr,2);
+            nStre = obj.getnStre();
+            nelem = obj.getnElem();
+            ngaus = obj.getnGaus;
             dChV = zeros(nStre,nStre,nelem,ngaus);
             for iStre = 1:nStre
                 for jStre = 1:nStre
@@ -122,9 +121,9 @@ classdef ShFunc_Chomog < ShapeFunctional
                         for kStre =1:nStre
                             for lStre = 1:nStre
                                 dChVij = squeeze(dChV(iStre,jStre,:,igaus));
-                                eik   = squeeze(obj.tstrain(iStre,igaus,kStre,:));
+                                eik   = squeeze(obj.tstrain{iStre}.fValues(kStre,igaus,:));
                                 dCkl  = squeeze(dC(kStre,lStre,:,:,igaus));
-                                ejl   = squeeze(obj.tstrain(jStre,igaus,lStre,:));
+                                ejl   = squeeze(obj.tstrain{jStre}.fValues(lStre,igaus,:));
                                 dChV(iStre,jStre,:,igaus) = dChVij + eik.*dCkl.*ejl;%Original
                             end
                         end
@@ -144,11 +143,14 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function solveState(obj)
+            % designVariable -> check if C has changed
+            % if hasCchanged
+            % obj.computeStiffnessMatrix();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
-            obj.physicalProblem.computeChomog();
-            obj.Chomog  = obj.physicalProblem.variables.Chomog;
-            obj.tstrain = obj.physicalProblem.variables.tstrain;
-            obj.tstress = obj.physicalProblem.variables.tstress;
+            obj.physicalProblem.solve();
+            obj.Chomog  = obj.physicalProblem.Chomog;
+            obj.tstrain = obj.physicalProblem.strainFun;
+            obj.tstress = obj.physicalProblem.stressFun;
         end
         
         function updateHomogenizedMaterialProperties(obj)
@@ -175,18 +177,15 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function n = getnStre(obj)
-            ep = obj.physicalProblem.variables.strain;
-            n  = size(ep,2);
+            n = numel(obj.physicalProblem.uFun);
         end
         
         function n = getnGaus(obj)
-            ep = obj.physicalProblem.variables.strain;
-            n  = size(ep,1);
+            n = obj.physicalProblem.strainFun{1}.quadrature.ngaus;
         end
         
         function n = getnElem(obj)
-            ep = obj.physicalProblem.variables.strain;
-            n  = size(ep,3);
+            n = size(obj.physicalProblem.strainFun{1}.fValues,3);
         end
         
     end
