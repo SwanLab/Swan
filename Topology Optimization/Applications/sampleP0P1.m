@@ -15,8 +15,8 @@ sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
-p1trial = xFun.project('P1');
-% p1trial = P1Function.create(mesh, 1);
+%p1trial = xFun.project('P1');
+p1trial = P1Function.create(mesh, 1);
 p0test  = P0Function.create(mesh, 1);
 
 % LHS integrator
@@ -34,6 +34,7 @@ s.type = 'MassMatrix';
 s.mesh = mesh;
 s.test = p0test;
 s.trial = p0test;
+s.trial.order = 'CONSTANT';
 mp0 = LHSintegrator.create(s);
 MP0 = mp0.compute();
 

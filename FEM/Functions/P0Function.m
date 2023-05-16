@@ -47,8 +47,8 @@ classdef P0Function < FeFunction
 
         function plot(obj)
             p1DiscFun = obj.project('P1D');
-            %p1DiscFun.plot();
-            p1DiscFun.plotLine();
+            p1DiscFun.plot();
+            %p1DiscFun.plotLine();
         end
 
         function print(obj, s)
@@ -89,6 +89,7 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,2);
+            obj.order   = 'CONSTANT';
         end
 
         function createInterpolation(obj)
