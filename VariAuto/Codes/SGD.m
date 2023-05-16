@@ -22,13 +22,17 @@ classdef SGD < Trainer
             obj.init(s)
             obj.learningRate = s.learningRate;
             obj.maxFunEvals  = s.maxFunEvals;
+            obj.Xtrain  = s.Xtrain;
+            obj.Ytrain  = s.Ytrain;
+            obj.Xtest  = s.Xtest;
+            obj.Ytest  = s.Ytest;
             obj.optTolerance = 10^(-6);
-            if size(obj.data.Xtrain,1) > 200
+            if size(obj.Xtrain,1) > 200
                 obj.batchSize    = 200;
             else
-                obj.batchSize    = size(obj.data.Xtrain,1);
+                obj.batchSize    = size(obj.Xtrain,1);
             end
-            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.data.Xtrain,1);
+            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
             obj.earlyStop   = obj.MaxEpochs;
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 10^-4;
@@ -48,7 +52,7 @@ classdef SGD < Trainer
     methods(Access = private)  
         
         function optimize(obj,F,th0)
-            nD            = size(obj.data.Xtrain,1);
+            nD            = size(obj.Xtrain,1);
             epsilon0      = obj.learningRate;
             epoch         =  1;iter = -1; funcount =  0; fv = 1;
             alarm         =  0; gnorm = 1; min_testError = 1;
@@ -136,8 +140,8 @@ classdef SGD < Trainer
         end 
 
         function [alarm,min_testError] = validateES(obj,alarm,min_testError)
-            [~,y_pred]   = max(obj.costFunction.getOutput(obj.data.Xtest),[],2);
-            [~,y_target] = max(obj.data.Ytest,[],2);
+            [~,y_pred]   = max(obj.costFunction.getOutput(obj.Xtest),[],2);
+            [~,y_target] = max(obj.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
                 obj.thetaLowest = obj.designVariable.thetavec;
@@ -153,7 +157,7 @@ classdef SGD < Trainer
         function displayIter(obj,epoch,iter,funcount,x,f,opt,state)
             obj.printValues(epoch,funcount,opt,f,iter)
             if obj.isDisplayed == true
-                if iter*obj.batchSize==(epoch-1)*length(obj.data.Xtrain) || iter == -1
+                if iter*obj.batchSize==(epoch-1)*length(obj.Xtrain) || iter == -1
                     obj.storeValues(x,f,state,opt);
                     obj.plotMinimization(epoch);
                 end
@@ -171,8 +175,8 @@ classdef SGD < Trainer
 
         function [x,y] = createMinibatch(obj,order,i)
                I = obj.batchSize;            
-               X = obj.data.Xtrain;
-               Y = obj.data.Ytrain;
+               X = obj.Xtrain;
+               Y = obj.Ytrain;
                cont = 1;
                if i == fix(size(X,1)/I)
                    plus = mod(size(X,1),I);

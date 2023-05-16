@@ -5,11 +5,14 @@ classdef Trainer < handle
     end
     
     properties (Access = protected) 
-        data
         xIter
         nPlot
         costFunction
         designVariable
+        Xtrain
+        Ytrain
+        Xtest
+        Ytest
     end
 
     properties (Access = private)
@@ -41,7 +44,6 @@ classdef Trainer < handle
 
         function init(obj,cParams)
             obj.costFunction = cParams.costFunc;
-            obj.data         = cParams.data;
             obj.designVariable = cParams.designVariable;
             obj.isDisplayed  = false;
         end

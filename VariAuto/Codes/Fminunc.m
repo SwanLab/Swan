@@ -2,6 +2,7 @@ classdef Fminunc < Trainer
 
     properties (Access = private)
         opt
+        
     end
 
     methods(Access = public)
@@ -12,13 +13,14 @@ classdef Fminunc < Trainer
             s.nPlot = 1;
             obj.opt   = obj.setSolverOptions(s);
             obj.nPlot = s.nPlot;
-            obj.data  = s.data;
+            obj.Xtrain  = s.Xtrain;
+            obj.Ytrain  = s.Ytrain;
         end
 
         function train(obj)
             x0  = obj.designVariable.thetavec;
             c   = obj.costFunction;
-            F = @(theta) obj.costFunction.computeCost(theta,obj.data.Xtrain,obj.data.Ytrain);
+            F = @(theta) obj.costFunction.computeCost(theta,obj.Xtrain,obj.Ytrain);
             fminunc(F,x0,obj.opt); 
         end
     end

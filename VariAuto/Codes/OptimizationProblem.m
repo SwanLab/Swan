@@ -69,6 +69,10 @@ classdef OptimizationProblem < handle
            s.type        = 'SGD';
            s.data        = obj.data;
            s.maxFunEvals = 2000;
+           s.Xtrain = obj.data.Xtrain;
+           s.Ytrain = obj.data.Ytrain;
+           s.Xtest = obj.data.Xtest;
+           s.Ytest = obj.data.Ytest;
            op = Trainer.create(s);
            obj.optimizer = op;
        end
