@@ -1,3 +1,3 @@
 clear;
-[plotU,plotVal,plotGrad,iterations] = newtonMethodFindMin(4);
+[plotU,plotVal,plotGrad,plotGrad2,iterations] = newtonMethodFindMin(3);
 disp(min(plotU));

@@ -1,5 +1,5 @@
 function [plotU,plotVal,plotGrad,iterations] = newtonMethodFindMinHigherOrder(u)
-iterations = 36;
+iterations = 11854;
 plotU = zeros(iterations,1);
 plotVal = zeros(iterations,1);
 plotGrad = zeros(iterations,1);

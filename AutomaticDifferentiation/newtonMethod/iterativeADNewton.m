@@ -1,7 +1,10 @@
-function [val, grad] = iterativeADNewton(u)
-x = ValGradForward(u,1);
+function [val, grad, grad2] = iterativeADNewton(u)
+x = ValGradForward(ValGradForward(u,1),1);
 f = exp(-sqrt(x))*sin(x*log(1+x^2));
 
-AD = f.double;
-val = AD(:,1);
-grad = AD(:,2:end);
+firstGrad = f.val.double;
+secondGrad = f.grad.double;
+
+val = firstGrad(:,1);
+grad = firstGrad(:,2);
+grad2 = secondGrad(:,2);
