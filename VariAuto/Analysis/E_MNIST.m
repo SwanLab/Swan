@@ -7,7 +7,7 @@ s.polynomialOrder = 1;
 s.testRatio       = 30;
 data = Data(s);
 
-hiddenLayers  = [500,150];
+hiddenLayers  = [500,250,100,50,10,50,100,250,500];
 learningRate      = 0.01;
 lambda = 0;
 

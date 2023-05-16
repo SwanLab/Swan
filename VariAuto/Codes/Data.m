@@ -87,7 +87,9 @@ classdef Data < handle
             %feat = 1:4;
             x = obj.data(:, feat);
             ydata = obj.data(:, end);
-            y = zeros(length(ydata),max(ydata));
+            %Autoencoder
+            %ydata = obj.data(:, feat);
+            y = zeros(length(ydata),max(feat));
             u = unique(ydata);
             for i=1:length(ydata)
                 for j = 1:length(u)
