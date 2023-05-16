@@ -6,8 +6,6 @@ classdef ConstraintSolverMonolitic < ConstraintSolverFactory
         K
         RHS
         sizeK
-        vstrain
-        sizePer
     end
 
     methods (Access = public)
@@ -31,11 +29,6 @@ classdef ConstraintSolverMonolitic < ConstraintSolverFactory
             obj.K      = cParams.LHS;
             obj.sizeK  = size(obj.K, 1);
             obj.RHS    = cParams.RHS;
-            if isfield(cParams, 'vstrain')
-                obj.vstrain = cParams.vstrain;
-                perDOFslave = obj.bc.periodic_constrained;
-                obj.sizePer = size(perDOFslave, 1);
-            end 
         end
 
         function fullLHS = createGeneralMatrix(obj, Ct, nConstraints)

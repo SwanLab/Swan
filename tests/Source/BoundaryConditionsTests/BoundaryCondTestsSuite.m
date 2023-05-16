@@ -3,7 +3,7 @@ classdef BoundaryCondTestsSuite < handle & matlab.unittest.TestCase
     methods (Access = public)
         function obj = BoundaryCondTestsSuite()
             path = './tests/Source/BoundaryConditionsTests/BoundaryCondTests.m';
-            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag', 'Micro' );
+            suite = matlab.unittest.TestSuite.fromFile(path, 'Tag', 'Macro' );
             results = suite.run;
             table(results)
         end

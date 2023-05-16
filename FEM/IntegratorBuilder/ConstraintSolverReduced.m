@@ -6,8 +6,6 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
         K
         RHS
         sizeK
-        vstrain
-        sizePer
         scale
     end
 
@@ -17,8 +15,8 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
         end
 
         function [u, L] = solveSystem(obj, lhs, rhs, nConstraints)
-            sol         = obj.solver.solve(lhs, rhs);
-            u = reducedToFullVector(obj, sol);
+            sol   = obj.solver.solve(lhs, rhs);
+            u     = reducedToFullVector(obj, sol);
             if strcmp(obj.scale, 'MACRO')
                 L = obj.getReactions(sol);
             else
@@ -36,11 +34,6 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
             obj.sizeK  = size(obj.K, 1);
             obj.RHS    = cParams.RHS;
             obj.scale  = cParams.scale;
-            if isfield(cParams, 'vstrain')
-                obj.vstrain = cParams.vstrain;
-                perDOFslave = obj.bc.periodic_constrained;
-                obj.sizePer = size(perDOFslave, 1);
-            end 
         end
         
         function full = reducedToFullVector(obj, vec)
@@ -53,26 +46,26 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
         end
 
         function b = expandVectorDirichlet(obj,bfree)
-            dir = obj.bc.dirichlet;
-            uD  = obj.bc.dirichlet_values;
-            fr  = obj.bc.free;
+            dir    = obj.bc.dirichlet;
+            uD     = obj.bc.dirichlet_values;
+            fr     = obj.bc.free;
             nsteps = length(bfree(1,:));
-            ndof = sum(obj.bc.ndofs);
-            uD = repmat(uD,1,nsteps);
-            
-            b = zeros(ndof,nsteps);
+            ndof   = sum(obj.bc.ndofs);
+            uD     = repmat(uD,1,nsteps);
+            b       = zeros(ndof,nsteps);
             b(fr,:) = bfree;
+
             if ~isempty(dir)
                 b(dir,:) = uD;
             end
         end
 
         function b = expandVectorPeriodic(obj,bfree)
-            vF = obj.bc.free;
-            vP = obj.bc.periodic_free;
-            vC = obj.bc.periodic_constrained;
-            vI = setdiff(vF,vP);
-            b = zeros(obj.bc.ndofs,1);
+            vF    = obj.bc.free;
+            vP    = obj.bc.periodic_free;
+            vC    = obj.bc.periodic_constrained;
+            vI    = setdiff(vF,vP);
+            b     = zeros(obj.bc.ndofs,1);
             b(vI) = bfree(1:1:size(vI,2));
             b(vP) = bfree(size(vI,2)+1:1:size(bfree,1));
             b(vC) = b(vP);
