@@ -4,25 +4,23 @@ classdef FilterComputer < handle
     end
     properties (Access = private)
         filterParameters
-        field
+        
     end
     methods (Access = public)
         function obj = FilterComputer(cParams)
             obj.inputData(cParams);
         end
 
-        function compute(obj)
-            obj.filter();
+        function filteredField = compute(obj,field)
+            filteredField = (obj.filterParameters.H*field(:))./obj.filterParameters.Hs;
         end
     end
     methods (Access = private)
         function inputData(obj,cParams)
             obj.filterParameters =cParams.filterParameters;
-            obj.field =cParams.field;
-            obj.filteredField = zeros(size(obj.field));
         end
-        function filter(obj)
-            obj.filteredField(:) = (obj.filterParameters.H*obj.field(:))./obj.filterParameters.Hs;
+        function filter(obj,field)
+            
         end 
     end
 end

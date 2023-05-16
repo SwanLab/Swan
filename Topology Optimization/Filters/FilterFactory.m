@@ -25,6 +25,13 @@ classdef FilterFactory < handle
                         case 'LevelSet'
 
                     end
+                case 'Filter&ProjectAlternative'
+                    switch cParams.designVarType
+                        case {'Density','MicroParams'}
+                            filter = FilterAndProjectAlternative(cParams);
+                        case 'LevelSet'
+
+                    end                 
 
             end
         end

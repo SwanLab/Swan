@@ -1,9 +1,9 @@
 classdef ComplianceConstraintThreeField < ShFunc_Compliance
 
     methods (Access = protected)
-        function computeFunctionValue(obj)
-            obj.computeFunctionValue@ShFunc_Compliance;
-            % ... obj.value = obj.value/target - 1
+        function normalizeFunction(obj)
+            obj.normalizeFunction@ShFunc_Compliance;
+            obj.value = obj.value/2 - 1;
         end
     end
 end

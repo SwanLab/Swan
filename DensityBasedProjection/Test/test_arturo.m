@@ -1,4 +1,4 @@
-filename = 'Arturo';
+filename = 'MeshReplicated';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -13,9 +13,9 @@ optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
 incrementFactor = 1.2;
 designVariable = 'Density';
-filterType = 'Filter&Project';
+filterType = 'Filter&ProjectAlternative';
 nsteps = 1;
-Vfrac_final = 0.4;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -36,4 +36,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 3;
+maxiter = 200;

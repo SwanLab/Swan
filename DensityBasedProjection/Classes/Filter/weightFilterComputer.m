@@ -4,8 +4,8 @@ classdef weightFilterComputer < handle
         Hs        
     end
     properties (Access = private)
-        elementNumberX
-        elementNumberY
+        Xnumber
+        Ynumber
         minimunInfluenceRadios
     end
 
@@ -19,21 +19,21 @@ classdef weightFilterComputer < handle
     end
     methods (Access = private)
         function obj = inputData(obj,cParams)
-            obj.elementNumberX =  cParams.elementNumberX;
-            obj.elementNumberY =  cParams.elementNumberY;
+            obj.Xnumber =  cParams.Xnumber;
+            obj.Ynumber =  cParams.Ynumber;
             obj.minimunInfluenceRadios = cParams.minimunInfluenceRadios;
         end
         function computeWeight(obj)
-            iH = ones(obj.elementNumberX*obj.elementNumberY*(2*(ceil(obj.minimunInfluenceRadios)-1)+1)^2,1);
+            iH = ones(obj.Xnumber*obj.Ynumber*(2*(ceil(obj.minimunInfluenceRadios)-1)+1)^2,1);
             jH = ones(size(iH));
             sH = zeros(size(iH));
             k  = 0;
-            for i1 = 1:obj.elementNumberX
-                for j1 = 1:obj.elementNumberY
-                    e1 = (i1-1)*obj.elementNumberY+j1;
-                    for i2 = max(i1-(ceil(obj.minimunInfluenceRadios)-1),1):min(i1+(ceil(obj.minimunInfluenceRadios)-1),obj.elementNumberX)
-                        for j2 = max(j1-(ceil(obj.minimunInfluenceRadios)-1),1):min(j1+(ceil(obj.minimunInfluenceRadios)-1),obj.elementNumberY)
-                            e2 = (i2-1)*obj.elementNumberY+j2;
+            for i1 = 1:obj.Xnumber
+                for j1 = 1:obj.Ynumber
+                    e1 = (i1-1)*obj.Ynumber+j1;
+                    for i2 = max(i1-(ceil(obj.minimunInfluenceRadios)-1),1):min(i1+(ceil(obj.minimunInfluenceRadios)-1),obj.Xnumber)
+                        for j2 = max(j1-(ceil(obj.minimunInfluenceRadios)-1),1):min(j1+(ceil(obj.minimunInfluenceRadios)-1),obj.Ynumber)
+                            e2 = (i2-1)*obj.Ynumber+j2;
                             k = k+1;
                             iH(k) = e1;
                             jH(k) = e2;

@@ -6,6 +6,7 @@
 % main folder as your current matlab path
 clc
 clear all
+close all
 s.testName = 'test_arturo';
 t = TopOptComputer(s);
 t.compute();
