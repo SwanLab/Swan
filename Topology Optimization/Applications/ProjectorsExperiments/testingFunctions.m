@@ -2,19 +2,22 @@
 % Create a Mesh FEM results
 clear; close all;
 
-x =linspace(0,1,2);
-y =linspace(0,1,2);
+x =linspace(0,1,4);
+y =linspace(0,1,4);
 
 [xv,yv] = meshgrid(x,y);
 sM.coord(:,1) = xv(:);
 sM.coord(:,2) = yv(:);
 sM.connec = delaunay(sM.coord);
 
-sM.coord = [0 0;1 0;0 1];
-%sM.connec = [1 2 3];
+% sM.coord = [0 0;1 0;0 1];
+% sM.connec = [1 2 3];
 
-%sM.coord = [0 0;1 0;0 1];
-sM.connec = [2 3 1];
+% sM.coord = [0 0;1 0;0 1];
+% sM.connec = [2 3 1];
+
+% sM.coord = [1 1;0 1;1 0];
+% sM.connec = [1 2 3];
 
 m = Mesh(sM);
 mesh = m;
@@ -22,7 +25,7 @@ mesh = m;
 %% Create functions
 % AnalyticalFunction
 
-sAF.fHandle = @(x,y) [x(1,:,:),x(2,:,:)];
+sAF.fHandle = @(x,y) [0.1.*x(1,:,:),0.1.*x(2,:,:)];
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);

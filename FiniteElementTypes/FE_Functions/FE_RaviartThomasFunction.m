@@ -190,6 +190,13 @@ classdef FE_RaviartThomasFunction < FeFunction
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         nelem = size(obj.dofs,1);
+                        
+                        locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+                        sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
+                        for ielem=1:obj.mesh.nelem
+                            sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+                        end
+                        
                         for ielem = 1:nelem
                             sM.coord = obj.mesh.coord(obj.mesh.connec(ielem,:),:);
                             sM.connec = [1 2 3];
@@ -197,16 +204,11 @@ classdef FE_RaviartThomasFunction < FeFunction
                             m = m.remesh(2); m = m.remesh(2); m = m.remesh(2);
                             x = m.coord(:,1);
                             y = m.coord(:,2);
-                            localDofs = obj.fValues(obj.dofs(ielem,:));
-                            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(ielem,:,:));
-                            for iedge=1:3
-                                if locPointEdge(iedge,1)~=iedge 
-                                    localDofs(iedge)=-localDofs(iedge);
-                                end
-                            end
+                            localDofs = obj.fValues(obj.dofs(ielem,:)).*sides(ielem,:)';
+
                             [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
 %                             a = quiver(x,y,z1,z2,0);
-                            a = quiver(x,y,z1,z2);
+                            a = quiver(x,y,z1,z2,0);
                             a.Color = [0 0 0];
                         end
                         axis equal                        

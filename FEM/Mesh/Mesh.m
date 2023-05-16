@@ -21,13 +21,13 @@ classdef Mesh < handle
         edges
         boundaryNodes
         boundaryElements
-
+        geometry %!
         masterSlaveNodes
     end
 
     properties (Access = private)
         xFE
-        geometry
+%         geometry
         triMesh
     end
 

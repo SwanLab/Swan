@@ -2,12 +2,14 @@ classdef Geometry_Volumetric < Geometry
     
     properties (GetAccess = public, SetAccess = private)
         dNdx
+        jacobian
+        detJ
     end
     
     properties (Access = private)
         matrixInverter
-        jacobian
-        detJ
+%         jacobian
+%         detJ
     end
     
     methods (Access = public)

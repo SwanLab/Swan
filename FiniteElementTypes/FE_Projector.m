@@ -66,7 +66,8 @@ classdef FE_Projector < Projector
                 sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
             end
             
-            J = [-1 -1;1 0];
+            J = obj.mesh.geometry.jacobian;
+            Jdet = obj.mesh.geometry.detJ;
             
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
@@ -74,9 +75,10 @@ classdef FE_Projector < Projector
                     dVg(:,1) = dV(igaus, :);
                     fG = squeeze(fGaus(:,igaus,:)); % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     for iDof = 1:nDofel
+                        Jd = Jdet(:,igaus);
                         dofs = dofsGlob(:,iDof);
-                        Ni = J*shapes(iDof,:,igaus)';
-                        int = Ni'*fG.*dVg'.*sides(:,iDof)';
+                        Ni = pagemtimes(squeeze(shapes(iDof,:,igaus)),J);
+                        int = diag(squeeze(Ni)'*fG)'.*(dVg./Jd)'.*sides(:,iDof)';
                         f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
                     end
                 end
