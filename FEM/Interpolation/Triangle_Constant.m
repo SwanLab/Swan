@@ -1,5 +1,9 @@
 classdef Triangle_Constant < Interpolation
 
+    properties (Access = private)
+        ngaus
+    end
+       
     methods (Access = public)
 
         function obj = Triangle_Constant(cParams)
@@ -9,6 +13,7 @@ classdef Triangle_Constant < Interpolation
         end
 
         function computeShapeDeriv(obj,posgp)
+            obj.ngaus = length(posgp);
             obj.computeShapes()
             obj.computeShapeDerivatives();
         end
@@ -25,14 +30,16 @@ classdef Triangle_Constant < Interpolation
         end
 
         function computeShapes(obj)
+            N = ones(1,obj.ngaus);
 %             obj.shape = @(s,t) {1};
-            obj.shape = [1];
+            obj.shape = N;
 
         end
 
         function computeShapeDerivatives(obj)
+            dN = zeros(2,obj.ngaus);
 %             obj.deriv = @(s,t) {0;0};
-            obj.deriv = [0; 0];
+            obj.deriv = dN;
         end
 
     end
