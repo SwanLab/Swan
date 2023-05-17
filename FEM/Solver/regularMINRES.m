@@ -129,7 +129,7 @@ classdef regularMINRES < handle
         function [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = initiateVariables(k, n, b, A, xPrev, v1, r0)
 
             if xPrev == 0
-                x0 = zeros(20200,1); 
+                x0 = zeros(size(b,1),1); 
             else
                 x0 = xPrev;
                 % x0 = zeros(20200,1); 
