@@ -3,6 +3,7 @@ classdef FE_Projector < Projector
     properties (Access = private)
         finiteElement
         FE_function
+        elementType
     end
     
     methods (Access = public)
@@ -10,19 +11,22 @@ classdef FE_Projector < Projector
         function obj = FE_Projector(cParams)
             obj.init(cParams);
             
-            obj.finiteElement = FiniteElementFactory.create(cParams.feParams);       
+            obj.finiteElement = FiniteElementFactory.create(cParams.feParams);
+            cParams.feParams.finiteElement = obj.finiteElement;
             obj.FE_function = FE_FunctionFactory.create(obj.mesh,1,cParams.feParams);
+            obj.elementType = cParams.feParams.type;
         end
 
         function xFun = project(obj, x)
             LHS = obj.computeLHS();
-            RHS = obj.computeRHS_N(x);
+            RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
             s.fValues = xProj;
             s.polynomialOrder = obj.finiteElement.polynomialOrder;
-%             xFun = FE_RaviartThomasFunction(s); % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            xFun = FE_NedelecFunction(s);
+            s.type = obj.elementType;
+            s.finiteElement = obj.finiteElement;
+            xFun = FE_FunctionFactory.createWithFValues(s);
         end
 
     end
@@ -37,7 +41,16 @@ classdef FE_Projector < Projector
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
-
+        
+        function RHS = computeRHS(obj,fun)
+            switch obj.elementType
+                case "Raviart-Thomas"
+                    RHS = obj.computeRHS_RT(fun);
+                case "Nedelec"
+                    RHS = obj.computeRHS_N(fun);
+            end
+        end
+        
         function RHS = computeRHS_RT(obj,fun)
             quad = obj.createRHSQuadrature();
             xV = quad.posgp;
@@ -90,7 +103,7 @@ classdef FE_Projector < Projector
             RHS = f;
         end
 
-         function RHS = computeRHS_N(obj,fun)
+        function RHS = computeRHS_N(obj,fun)
             quad = obj.createRHSQuadrature();
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
@@ -105,7 +118,6 @@ classdef FE_Projector < Projector
             nFlds = fun.ndimf;
             nDofel = size(shapes,1);
             
-            % I think the problem is here
             fGa = fun.evaluate(xV);
             ndim = size(fGa,2)/nGaus;
             fGaus = zeros(ndim,nGaus,obj.mesh.nelem);

@@ -2,7 +2,7 @@
 % Create a Mesh FEM results
 clear; close all;
 
-x =linspace(0,1,2);
+x =linspace(0,1,4);
 y =linspace(0,1,2);
 
 [xv,yv] = meshgrid(x,y);

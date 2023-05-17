@@ -17,7 +17,7 @@ classdef FE_NedelecFunction < FeFunction
 
         function obj = FE_NedelecFunction(cParams)
             obj.init(cParams);
-            obj.createInterpolation();
+            obj.createInterpolation(cParams.finiteElement);
             obj.computeDofs();
         end
 
@@ -259,11 +259,12 @@ classdef FE_NedelecFunction < FeFunction
 
     methods (Access = public, Static)
 
-        function p = create(mesh, ndimf, polOrder)
+        function p = create(mesh, ndimf, polOrder,finiteElement)
             d = FE_NedelecFunction.numberDofs(mesh,polOrder);
             s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
             s.polynomialOrder = polOrder;
+            s.finiteElement = finiteElement;
             p = FE_NedelecFunction(s);
         end
 
@@ -302,10 +303,11 @@ classdef FE_NedelecFunction < FeFunction
             obj.polynomialOrder = cParams.polynomialOrder;
         end
 
-        function createInterpolation(obj)
+        function createInterpolation(obj,finiteElement)
             cParams.mesh.type = obj.mesh.type;
             cParams.order = obj.order;
             cParams.polynomialOrder = obj.polynomialOrder;
+            cParams.finiteElement = finiteElement;
             obj.interpolation = FE_Interpolation(cParams); %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         end
 

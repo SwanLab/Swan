@@ -17,7 +17,7 @@ classdef FE_RaviartThomasFunction < FeFunction
 
         function obj = FE_RaviartThomasFunction(cParams)
             obj.init(cParams);
-            obj.createInterpolation();
+            obj.createInterpolation(cParams.finiteElement);
             obj.computeDofs();
         end
 
@@ -208,7 +208,7 @@ classdef FE_RaviartThomasFunction < FeFunction
 
                             [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
 %                             a = quiver(x,y,z1,z2,0);
-                            a = quiver(x,y,z1,z2,0);
+                            a = quiver(x,y,z1,z2);
                             a.Color = [0 0 0];
                         end
                         axis equal                        
@@ -259,11 +259,12 @@ classdef FE_RaviartThomasFunction < FeFunction
 
     methods (Access = public, Static)
 
-        function p = create(mesh, ndimf, polOrder)
+        function p = create(mesh, ndimf, polOrder,finiteElement)
             d = FE_RaviartThomasFunction.numberDofs(mesh,polOrder);
             s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
             s.polynomialOrder = polOrder;
+            s.finiteElement = finiteElement;
             p = FE_RaviartThomasFunction(s);
         end
 
@@ -302,10 +303,11 @@ classdef FE_RaviartThomasFunction < FeFunction
             obj.polynomialOrder = cParams.polynomialOrder;
         end
 
-        function createInterpolation(obj)
+        function createInterpolation(obj,finiteElement)
             cParams.mesh.type = obj.mesh.type;
             cParams.order = obj.order;
             cParams.polynomialOrder = obj.polynomialOrder;
+            cParams.finiteElement = finiteElement;
             obj.interpolation = FE_Interpolation(cParams); %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         end
 

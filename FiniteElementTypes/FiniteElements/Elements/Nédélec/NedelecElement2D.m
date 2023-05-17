@@ -62,19 +62,6 @@ classdef NedelecElement2D < handle
                 z1 = z1 + r(:,1);
                 z2 = z2 + r(:,2);
             end
-            
-%             [z1,z2] = obj.computeVectMesh([X,Y],coor,[z1,z2]);
-            
-        end
-        
-        function [z1,z2] = computeVectMesh(obj,coords,coor,vects)
-            vecpoint = vects;
-            base = coor(1:3,:);          
-            M = (coords(1:3,:)-coords(1,:))'/base';
-            N = coords(1,:)';
-            v = (M*vecpoint'+N)-coords';
-            z1 = v(1,:)';
-            z2 = v(2,:)';
         end
         
         function coor = computeNodesElement(obj,coords)
