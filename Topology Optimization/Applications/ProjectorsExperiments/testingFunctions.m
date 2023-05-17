@@ -2,8 +2,8 @@
 % Create a Mesh FEM results
 clear; close all;
 
-x =linspace(0,1,4);
-y =linspace(0,1,4);
+x =linspace(0,1,2);
+y =linspace(0,1,2);
 
 [xv,yv] = meshgrid(x,y);
 sM.coord(:,1) = xv(:);
@@ -25,7 +25,7 @@ mesh = m;
 %% Create functions
 % AnalyticalFunction
 
-sAF.fHandle = @(x,y) [0.1.*x(1,:,:),0.1.*x(2,:,:)];
+sAF.fHandle = @(x,y) [-x(2,:,:),x(1,:,:)];
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
@@ -44,7 +44,7 @@ clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
 pp1.polynomialOrder = 1;
-pp1.feParams.type = "Raviart-Thomas";
+pp1.feParams.type = "Nedelec";
 pp1.feParams.order = 1;
 pp1.feParams.dim = 2;
 projP1 = FE_Projector(pp1);

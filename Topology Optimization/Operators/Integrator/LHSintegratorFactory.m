@@ -11,7 +11,11 @@ classdef LHSintegratorFactory < handle
                case 'MassMatrixVect'
                    % Computes the MASS MATRIX by first computing the
                    % elemental LHS (N*N) and then assembling the result
-                   obj = LHSintegrator_MassVect(cParams);
+                   if (cParams.fun.interpolation.finiteElement.type == "RT")
+                       obj = LHSintegrator_Mass_RT(cParams);
+                   elseif (cParams.fun.interpolation.finiteElement.type == "N")
+                       obj = LHSintegrator_Mass_N(cParams);
+                   end
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh

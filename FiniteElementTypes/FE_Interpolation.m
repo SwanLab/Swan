@@ -46,7 +46,8 @@ classdef FE_Interpolation < handle
         function init(obj,cParams)
             obj.type  = cParams.mesh.type;
             obj.order = cParams.order;
-            obj.finiteElement = RaviartThomasElement.create(2); %!!!!!!!!!!!!!!!!!!!!!
+%             obj.finiteElement = RaviartThomasElement.create(2); %!!!!!!!!!!!!!!!!!!!!!
+            obj.finiteElement = NedelecElement.create(2);
         end
         
         function computeParams(obj)

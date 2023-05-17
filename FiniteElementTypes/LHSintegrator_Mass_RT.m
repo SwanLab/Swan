@@ -1,4 +1,4 @@
-classdef LHSintegrator_MassVect < LHSintegrator
+classdef LHSintegrator_Mass_RT < LHSintegrator
 
     methods (Access = public)
 

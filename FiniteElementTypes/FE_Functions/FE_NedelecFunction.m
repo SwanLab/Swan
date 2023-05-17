@@ -1,4 +1,4 @@
-classdef FE_RaviartThomasFunction < FeFunction
+classdef FE_NedelecFunction < FeFunction
 
     properties (Access = public)
         dofs
@@ -15,7 +15,7 @@ classdef FE_RaviartThomasFunction < FeFunction
 
     methods (Access = public)
 
-        function obj = FE_RaviartThomasFunction(cParams)
+        function obj = FE_NedelecFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
             obj.computeDofs();
@@ -208,7 +208,7 @@ classdef FE_RaviartThomasFunction < FeFunction
 
                             [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
 %                             a = quiver(x,y,z1,z2,0);
-                            a = quiver(x,y,z1,z2,0);
+                            a = quiver(x,y,z1,z2);
                             a.Color = [0 0 0];
                         end
                         axis equal                        
@@ -260,11 +260,11 @@ classdef FE_RaviartThomasFunction < FeFunction
     methods (Access = public, Static)
 
         function p = create(mesh, ndimf, polOrder)
-            d = FE_RaviartThomasFunction.numberDofs(mesh,polOrder);
+            d = FE_NedelecFunction.numberDofs(mesh,polOrder);
             s.fValues = zeros(d, ndimf);
             s.mesh    = mesh;
             s.polynomialOrder = polOrder;
-            p = FE_RaviartThomasFunction(s);
+            p = FE_NedelecFunction(s);
         end
 
         function fS = times(f1,f2)

@@ -12,7 +12,7 @@ classdef FE_FunctionFactory < handle
                 case "Raviart-Thomas"
                     FE_Function = FE_RaviartThomasFunction.create(mesh,dim,order);
                 case "Nedelec"
-                    FE_Function = NedelecElement.create(dim);
+                    FE_Function = FE_NedelecFunction.create(mesh,dim,order);
             end
         end
         

@@ -17,6 +17,7 @@ classdef RaviartThomasElement2D < handle
         shapeFunctions
         shapeFunctionsDiff
         polynomialOrder
+        type
     end
     
     
@@ -69,18 +70,6 @@ classdef RaviartThomasElement2D < handle
             z2 = v(2,:)';
         end
         
-        function v = computeNormalVect(~,coords)
-            A = coords(1,:);
-            B = coords(2,:);
-            C = coords(3,:);
-            AB = B - A;
-            BC = C - B;
-            CA = A - C;
-            v(1,:) = [AB(2), -AB(1)]./norm(AB);
-            v(2,:) = [BC(2), -BC(1)]./norm(BC);            
-            v(3,:) = [CA(2), -CA(1)]./norm(CA);
-        end
-        
         function coor = computeNodesElement(obj,coords)
             base = obj.domainK.vertices;          
             c = base(1:3,:);
@@ -96,6 +85,8 @@ classdef RaviartThomasElement2D < handle
        
         function init(obj)
             obj.domainK = Simplicial2D();
+            
+            obj.type = "RT";
             
             obj.xSym = sym('x','real');
             obj.ySym = sym('y','real');
