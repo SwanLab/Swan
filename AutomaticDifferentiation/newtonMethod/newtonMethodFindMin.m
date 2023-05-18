@@ -9,7 +9,7 @@ grad = 1;
 while abs(grad) > 10^(-6)
     iterations = iterations + 1;
     [val, grad, grad2] = iterativeADNewton(u);
-    u = u - grad2^-1 * grad;
+    u = u - grad2.^(-1) * grad; %preguntar alex si hessiana ha de ser 3x3 en el cas de 3 variables
     plotU(iterations) = u;
     plotVal(iterations) = val;
     plotGrad(iterations) = grad;

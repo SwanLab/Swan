@@ -26,4 +26,4 @@ plot(plotGrad); xlabel("Num. of iterations"); ylabel("First Gradient"); grid; ax
 figure(4);
 plot(plotGrad2); xlabel("Num. of iterations"); ylabel("Second Gradient"); grid; axis([0 iterations min(plotGrad2) max(plotGrad2)]);
 figure(5);
-plot(plotU,plotVal); grid; axis([min(plotU) max(plotU) min(plotVal) max(plotVal)]);
+plot(plotU,plotVal); xlabel("X values"); ylabel("Function Value"); title("Part of the function evaluated through iterations."); grid; axis([min(plotU) max(plotU) min(plotVal) max(plotVal)]);
