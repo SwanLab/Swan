@@ -34,8 +34,10 @@ classdef P0Function < FeFunction
             nElem  = size(conne,1);
             dofsElem  = zeros(nDofsE,nElem);
             for iUnkn = 1:nDimf
-                dofsElem(iUnkn,:) = iUnkn:nDimf:nElem;
+                dofsElem(iUnkn,:) = iUnkn:nDimf:(nElem*nDimf);
             end
+            %a = dofsElem(:);
+            %dofsElem = reshape(a',[],2)';
             dofConnec = dofsElem;
         end
         
@@ -54,7 +56,7 @@ classdef P0Function < FeFunction
         function print(obj, s)
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -89,7 +91,7 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'CONSTANT';
+            obj.order   = 'LINEAR';                        
         end
 
         function createInterpolation(obj)
