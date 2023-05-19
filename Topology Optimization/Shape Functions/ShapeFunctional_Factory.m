@@ -121,7 +121,7 @@ classdef ShapeFunctional_Factory < handle
                 case 'VolumeConstraintRhoD'
                     cParams.filterParams.femSettings.eta  = 0.25;
                     cParams.filterParams.femSettings.beta = 1;
-                    sF = VolumeConstraintRhoD(cParams);
+                    sF = Volume_constraint(cParams);
 
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
