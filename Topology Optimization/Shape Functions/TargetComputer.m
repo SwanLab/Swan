@@ -1,4 +1,4 @@
-classdef TargetComputer < handle
+classdef ShFunTargetComputer < handle
     properties (Access = public)
         value
         gradient
@@ -14,7 +14,7 @@ classdef TargetComputer < handle
         ShapeFunction
     end
     methods (Access = public)
-        function obj = TargetComputer(cParams)
+        function obj = ShFunTargetComputer(cParams)
             obj.createShFunc(cParams);
             obj.setUpMassMatrixAndVolumen();
             obj.setUpInitialValue();
