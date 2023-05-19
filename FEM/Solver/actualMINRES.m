@@ -21,8 +21,11 @@ classdef actualMINRES < handle
             if isempty(obj.xPrevIt)
                 obj.xPrevIt = zeros(size(b,1),1);
             end
+            
+            maxIter = 3000;
+            tol     = 10e-2;
 
-            omega   = 20;
+            omega   = 40;
             e1    = zeros(n,1);
             e1(1) = 1;            
             x0    = obj.xPrevIt;
@@ -32,16 +35,16 @@ classdef actualMINRES < handle
 
                 beta1  = norm(r0);
                 v1 = r0/beta1;
-                c0     = beta1*e1;                
+                % c0     = beta1*e1;                
 
-                [xNew, rNew, V, H, convIter] = regularMINRES.solve(A, b, obj.xPrevIt, v1, r0);
+                [xNew, rNew, V, H, convIter] = regularMINRES.solve(A, b, obj.xPrevIt, v1, r0); %(!)
                 V_noLastUpdate = V(:,(1:convIter));
                 x_k = xNew;
-                r_k = rNew;
+                % r_k = rNew;
                 Vtilde = V_noLastUpdate;
                 totalVectors = size(Vtilde,2);
-                Pk = obj.createPk(totalVectors,omega);
-                obj.Yk = Vtilde*Pk;
+                % Pk = obj.createPk(totalVectors,omega);
+                obj.Yk = Vtilde(:,randperm(totalVectors,omega));
                 % qrA = H*Pk;
                 % [Q,R] = qr(qrA,0);
                 % Uk = obj.Yk/R;
@@ -68,12 +71,12 @@ classdef actualMINRES < handle
 
                 Alpha   = zeros(n,1);
                 Beta    = zeros(n,1);
-                V       = zeros(n,n);  
+                V       = zeros(n,maxIter);  
                 V(:,1)  = r_start/res;
-                S       = zeros(n,n);
-                vTilde  = zeros(n,n);
-                bTilde  = zeros(omega,n);
-                bCols   = zeros(omega,n);
+                S       = zeros(maxIter,maxIter);
+                vTilde  = zeros(n,maxIter);
+                bTilde  = zeros(omega,maxIter);
+                bCols   = zeros(omega,maxIter);
 
 
                 j = 1;
@@ -142,7 +145,6 @@ classdef actualMINRES < handle
                 %compute G
 
                 [c, s] = obj.computeGivensRotation(S2);    
-                newCol = zeros(3,1);
 
                 S(j-1,j) = S2(1);
                 S(j,j)   = c*S2(2)+s*S2(3);
@@ -162,7 +164,7 @@ classdef actualMINRES < handle
 
                 Gnew = [1 0 0; 0 c s; 0 s -c];
 
-                while ((j<3000)&&(norm(yHat(j))>(1e-2*res)))||j<(omega+1)
+                while ((j<maxIter)&&(norm(yHat(j))>(tol*res)))||j<(omega+1)
                     vHat = A*V(:,j);
                     vHat = vHat - Ck*(Ck'*vHat);
                     bCols(:,j) = R\(Ck'*vHat);
@@ -212,7 +214,7 @@ classdef actualMINRES < handle
                 norm(A*x_k-b)
                 norm(A*x_new-b)
                 norm(A*x_known-b)
-                lastIter= j-1
+                lastIter = j-1
                 
                 allVectors   = [obj.Yk V(:,(1:j))];
                 totalVectors = size(allVectors,2);

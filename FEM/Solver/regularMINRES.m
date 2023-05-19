@@ -11,7 +11,7 @@ classdef regularMINRES < handle
             n = size(A,1);
             k = 3000;
             maxiter = k;            
-            tol = 5*10^(-3);
+            tol = 5*10^(-5);
 
 
             [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = regularMINRES.initiateVariables(k, n, b, A, xPrev, v1, r_0);
@@ -101,7 +101,7 @@ classdef regularMINRES < handle
             convIter = j-1;
             xNew = x_prev;
             rNew = abs(phi); %%ojo, estic calculant valabsolut
-            H =  regularMINRES.buildH(Alpha, Beta, j);
+            H = 0;% H =  regularMINRES.buildH(Alpha, Beta, j);            
             V = V(:,1:(convIter+1));
         end
 
