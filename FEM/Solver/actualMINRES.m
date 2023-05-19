@@ -23,7 +23,7 @@ classdef actualMINRES < handle
             end
             
             maxIter = 3000;
-            tol     = 10e-2;
+            tol     = 10e-3;
 
             omega   = 40;
             e1    = zeros(n,1);
@@ -61,8 +61,7 @@ classdef actualMINRES < handle
                 
                 yHat = e1*res;
 
-                c    = -1;
-                s    = 0;
+      
 
                 % x_start = x0+x_known;
                 % Uk = obj.Yk/R;
@@ -169,42 +168,11 @@ classdef actualMINRES < handle
                     vHat = vHat - Ck*(Ck'*vHat);
                     bCols(:,j) = R\(Ck'*vHat);
                     
-                    vHat        = vHat - V(:,j-1)*Beta(j);
-                    Alpha(j)    = V(:,j)'*vHat;
-                    vHat        = vHat - V(:,j)*Alpha(j);
-                    Beta(j+1)   = norm(vHat);
-                    V(:,j+1)    = vHat/Beta(j+1);
-                    
-                    
 
+                 [incX,incB,S,vTilde,bTilde,V,yHat,Alpha,Beta,Gold_1,Gnew] = obj.Lanczos(vHat,bCols,S,vTilde,bTilde,V,yHat,Alpha,Beta,Gold_1,Gnew,j);
 
-                    Tcol = [zeros(j-2,1); Beta(j); Alpha(j); Beta(j+1)];
-
-                    Gold_2 = Gold_1; %G1
-                    Gold_1 = Gnew; %G2
-
-                    %expand G's
-
-                    Gold_2 = [Gold_2 zeros(j,1); zeros(1,j) 1]; %% fix this
-                    Gold_1 = [Gold_1 zeros(j,1); zeros(1,j) 1]; %% fix this
-
-                    Scol   = Gold_1*(Gold_2*Tcol);                    
-                    [c, s] = obj.computeGivensRotation(Scol);
-
-                    Gnew   = [eye(j-1) zeros(j-1,2);zeros(1,j-1) c s; zeros(1,j-1) s -c];
-                    
-                    S(1:j-1,j)  = Scol(1:j-1);
-                    S(j,j)      = c*Scol(j)+s*Beta(j+1);
-                    %S(j+1,j) = 0;
-
-                    modif       = yHat(j);
-                    yHat(j)     = c*modif;
-                    yHat(j+1)   = s*modif; 
-
-                    vTilde(:,j) = (1/S(j,j))*(V(:,j)-vTilde(:,j-1)*S(j-1,j)-vTilde(:,j-2)*S(j-2,j)); %equivalent d
-                    bTilde(:,j) = (1/S(j,j))*(bCols(:,j)-bTilde(:,j-1)*S(j-1,j)-bTilde(:,j-2)*S(j-2,j));
-                    x_new       = x_old + vTilde(:,j)*yHat(j);
-                    bHat        = bHat - bTilde(:,j)*yHat(j);
+                    x_new       = x_old + incX;
+                    bHat        = bHat - incB;
 
                     x_old   = x_new;
                     j       = j+1;
@@ -218,56 +186,66 @@ classdef actualMINRES < handle
                 
                 allVectors   = [obj.Yk V(:,(1:j))];
                 totalVectors = size(allVectors,2);
-                % Pk = obj.createPk(totalVectors,omega);
+
 
                 obj.Yk = allVectors(:,randperm(totalVectors,omega)); %%%%%!!!!!
-                % qrA = H*Pk;
-                % [Q,R] = qr(qrA,0);
-                % Uk = obj.Yk/R;
-                % obj.Yk = Uk;
+
                 obj.xPrevIt = x_k;
-                
-
-
-
-
-
-
-                
-                
-           
-                % newA = (eye(20200)-Ck*Ck')*A;                
-                % newA = @(x) A*x-Ck*(Ck'*(A*x)); 
-                % [xNew, rNew, V, H, convIter] = regularMINRES.solve(newA, b, x_start, v1, r_start); %%triga molt, pk?
-                % 
-                % V_noLastUpdate = V(:,(1:convIter));
-                % B = Ck'*A*V_noLastUpdate;
-                % 
-                % norms = sqrt(sum(Uk.^2,1));
-                % Dk = diag(1./norms); %100x100
-                % Uktilde = Uk*Dk;
-                % Vtilde = [Uktilde V_noLastUpdate];
-                % W = [Ck V]; %20200x100 i 20200xconvIter+1
-                % G = [Dk B; zeros(convIter+1, s) H]; %100x100 / 100xconvIter // convIter+1x100 // convIter+1 x convIter 
-                % 
-                % x_k = x_known + xNew;
-                % % r_k = r_start + rNew;              
-                % 
-                % 
-                % 
-                % totalVectors = size(Vtilde,2);
-                % Pk = obj.createPk(totalVectors, s); %convIterx100
-                % 
-                % obj.Yk = Vtilde*Pk; %20200x(convIter+s) x (convIter+s)x100
-                % 
-                % qrA = G*Pk;
-                % [Q,R] = qr(qrA,0);
-                % Ck = W*Q;
-                % Uk = obj.Yk/R;
-                % obj.Yk = Uk;
-                % obj.xPrevIt = x_k;
+          
+      
             end
         end
+
+
+        function [c,s,S,Gold_1,Gnew] = expandS(obj,Tcol,Beta,Gold_1,Gnew,j)
+
+
+            Gold_2 = Gold_1; %G1
+            Gold_1 = Gnew; %G2
+
+            %expand G's
+
+            Gold_2 = [Gold_2 zeros(j,1); zeros(1,j) 1]; %% fix this
+            Gold_1 = [Gold_1 zeros(j,1); zeros(1,j) 1]; %% fix this
+
+            Scol   = Gold_1*(Gold_2*Tcol);
+            [c, s] = obj.computeGivensRotation(Scol);
+
+            Gnew   = [eye(j-1) zeros(j-1,2);zeros(1,j-1) c s; zeros(1,j-1) s -c];
+
+            S(1:j-1,j)  = Scol(1:j-1);
+            S(j,j)      = c*Scol(j)+s*Beta;
+
+
+        end
+
+
+        function [incX,incB,S,vTilde,bTilde,V,yHat,Alpha,Beta,Gold_1,Gnew] = Lanczos(obj,vHat,bCols,S,vTilde,bTilde,V,yHat,Alpha,Beta,Gold_1,Gnew,j)
+                
+                    vHat        = vHat - V(:,j-1)*Beta(j);
+                    Alpha(j)    = V(:,j)'*vHat;
+                    vHat        = vHat - V(:,j)*Alpha(j);
+                    Beta(j+1)   = norm(vHat);
+                    V(:,j+1)    = vHat/Beta(j+1);
+                    
+                    
+                    Tcol = [zeros(j-2,1); Beta(j); Alpha(j); Beta(j+1)];
+
+                    [c,s,S,Gold_1,Gnew] = obj.expandS(Tcol,Beta(j+1),Gold_1,Gnew,j);
+                  
+                    %S(j+1,j) = 0;
+
+                    modif       = yHat(j);
+                    yHat(j)     = c*modif;
+                    yHat(j+1)   = s*modif; 
+
+                    vTilde(:,j) = (1/S(j,j))*(V(:,j)-vTilde(:,j-1)*S(j-1,j)-vTilde(:,j-2)*S(j-2,j)); %equivalent d
+                    bTilde(:,j) = (1/S(j,j))*(bCols(:,j)-bTilde(:,j-1)*S(j-1,j)-bTilde(:,j-2)*S(j-2,j));
+
+                    incX       = vTilde(:,j)*yHat(j);
+                    incB       = bTilde(:,j)*yHat(j);
+                    
+            end
     end
 
     methods (Access = private)

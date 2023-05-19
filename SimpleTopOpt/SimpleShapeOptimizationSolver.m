@@ -103,8 +103,8 @@ classdef SimpleShapeOptimizationSolver < handle
         end
         
         function t = computeLineSearch(obj,x,dJ)
-            tC = 100;
-            tC = 10;
+         %   tC = 100;
+            tC = 1;
             incT = 1;
             tA = obj.computeAdimensionalLineSearch(x,dJ);
             t = max(tA,incT*tC);
