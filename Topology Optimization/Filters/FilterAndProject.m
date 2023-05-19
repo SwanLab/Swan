@@ -20,7 +20,7 @@ classdef FilterAndProject < Filter
         function x_reg = getP0fromP1(obj,x)
             obj.computeFilter(x);
             obj.createProjector(); 
-            obj.computeProjector();
+            obj.projector.project();
             x_reg = obj.projector.projectedField;
         end
 
@@ -50,8 +50,5 @@ classdef FilterAndProject < Filter
             s.filteredField = obj.filteredField ;
             obj.projector = HeavisideProjector(s);
         end
-        function computeProjector(obj)
-            obj.projector.project();
-        end 
     end
 end

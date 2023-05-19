@@ -106,8 +106,6 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.aniAlphaDeg = 90;
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
-                case 'MorphologyBasedCompliance'
-                    sF = ShFunc_MorphologyBasedCompliance(cParams);
                 case 'ComplianceConstraintThreeFieldRhoE'
                     cParams.filterParams.femSettings.eta  = 0.75;
                     cParams.filterParams.femSettings.beta = 1;
