@@ -37,6 +37,14 @@ classdef SimpleShapeOptimizationSolver < handle
                 obj.plotCostAndLineSearch(iter,J,t,incX);
                 iter = iter + 1               
             end
+         m = obj.designVariable.mesh;
+         s.mesh = m;
+         s.fValues = xNew;
+         p = P1Function(s);
+         sP.mesh = m;
+         sP.filename = 'pol';
+         p.print(sP)
+
         end
         
     end
