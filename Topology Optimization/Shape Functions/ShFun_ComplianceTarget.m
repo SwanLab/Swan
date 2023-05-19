@@ -1,4 +1,4 @@
-classdef ShFun_ComplianceTarget < ShFunTargetComputer
+classdef ShFunc_ComplianceTarget < ShFunTargetComputer
     methods (Access = public)
         function createShFunc(obj,cParams)
             obj.target = 2;
