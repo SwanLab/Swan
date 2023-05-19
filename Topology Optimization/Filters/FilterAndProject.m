@@ -25,12 +25,8 @@ classdef FilterAndProject < Filter
         end
 
         function x_reg = getP1fromP0(obj,x)
-            s.beta = obj.beta;
-            s.eta  = obj.eta;
-            s.filteredField = obj.filteredField;
-            B = ProjectedFieldFilteredFieldDerivator(s);
-            B.compute();
-            dRhoBar_dRhoTilde = B.derivatedProjectedField;
+            obj.projector.derive();
+            dRhoBar_dRhoTilde = obj.projector.derivatedProjectedField;
             dC_dRhoTilde = x.*dRhoBar_dRhoTilde;
             x_reg = obj.filterIntermediate.getP1fromP0(dC_dRhoTilde);
         end
@@ -52,10 +48,10 @@ classdef FilterAndProject < Filter
             s.beta = obj.beta;
             s.eta = obj.eta;
             s.filteredField = obj.filteredField ;
-            obj.projector = FieldProjector(s);
+            obj.projector = HeavisideProjector(s);
         end
         function computeProjector(obj)
-            obj.projector.compute();
+            obj.projector.project();
         end 
     end
 end

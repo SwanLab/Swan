@@ -11,4 +11,5 @@ s.testName = 'test_arturo';
 t = TopOptComputer(s);
 t.compute();
 load('swamTestData20iter.mat')
-display = max(max(swamTestData20iter-t.computation.designVariable.value))
+errorMean = mean(abs(swamTestData20iter-t.computation.designVariable.value))
+errorDeviation = std(abs(swamTestData20iter-t.computation.designVariable.value))
