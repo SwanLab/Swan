@@ -6,7 +6,7 @@ classdef FilterAndProject < Filter
     properties (Access = private)
         eta
         beta
-        filterIntermediate
+        filter
         projector
     end
     
@@ -17,45 +17,38 @@ classdef FilterAndProject < Filter
             obj.defineProjectorSettings(cParams)
         end
 
-        function x_reg = getP0fromP1(obj,x)
-            obj.computeFilter(x);
+        function projectedField = getP0fromP1(obj,field)
+            obj.computeFilter(field);
             obj.createProjector(); 
-            obj.computeProjector();
-            x_reg = obj.projector.projectedField;
+            obj.projector.project();
+            projectedField = obj.projector.projectedField;
         end
 
-        function x_reg = getP1fromP0(obj,x)
-            s.beta = obj.beta;
-            s.eta  = obj.eta;
-            s.filteredField = obj.filteredField;
-            B = ProjectedFieldFilteredFieldDerivator(s);
-            B.compute();
-            dRhoBar_dRhoTilde = B.derivatedProjectedField;
-            dC_dRhoTilde = x.*dRhoBar_dRhoTilde;
-            x_reg = obj.filterIntermediate.getP1fromP0(dC_dRhoTilde);
+        function dC_dRho = getP1fromP0(obj,dC_dRhoBar)
+            obj.projector.deriveProjectedFieldRespectFilteredField();
+            dRhoBar_dRhoTilde = obj.projector.derivatedProjectedField;
+            dC_dRhoTilde = dC_dRhoBar.*dRhoBar_dRhoTilde;
+            dC_dRho = obj.filter.getP1fromP0(dC_dRhoTilde);
         end
 
     end
     methods (Access = private)
         function createFilter(obj,s)
             s.filterType = 'P1';
-            obj.filterIntermediate = Filter.create(s);
+            obj.filter = Filter.create(s);
         end
         function defineProjectorSettings(obj,cParams)
             obj.eta  = cParams.femSettings.eta;
             obj.beta = cParams.femSettings.beta;
         end 
         function computeFilter(obj,density)
-            obj.filteredField = obj.filterIntermediate.getP0fromP1(density);
+            obj.filteredField = obj.filter.getP0fromP1(density);
         end
         function createProjector(obj)
             s.beta = obj.beta;
             s.eta = obj.eta;
             s.filteredField = obj.filteredField ;
-            obj.projector = FieldProjector(s);
+            obj.projector = HeavisideProjector(s);
         end
-        function computeProjector(obj)
-            obj.projector.compute();
-        end 
     end
 end
