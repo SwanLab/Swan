@@ -6,7 +6,7 @@ classdef FilterAndProject < Filter
     properties (Access = private)
         eta
         beta
-        filterIntermediate
+        filter
         projector
     end
     
@@ -28,21 +28,21 @@ classdef FilterAndProject < Filter
             obj.projector.derive();
             dRhoBar_dRhoTilde = obj.projector.derivatedProjectedField;
             dC_dRhoTilde = x.*dRhoBar_dRhoTilde;
-            x_reg = obj.filterIntermediate.getP1fromP0(dC_dRhoTilde);
+            x_reg = obj.filter.getP1fromP0(dC_dRhoTilde);
         end
 
     end
     methods (Access = private)
         function createFilter(obj,s)
             s.filterType = 'P1';
-            obj.filterIntermediate = Filter.create(s);
+            obj.filter = Filter.create(s);
         end
         function defineProjectorSettings(obj,cParams)
             obj.eta  = cParams.femSettings.eta;
             obj.beta = cParams.femSettings.beta;
         end 
         function computeFilter(obj,density)
-            obj.filteredField = obj.filterIntermediate.getP0fromP1(density);
+            obj.filteredField = obj.filter.getP0fromP1(density);
         end
         function createProjector(obj)
             s.beta = obj.beta;
