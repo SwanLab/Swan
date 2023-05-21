@@ -7,7 +7,8 @@ classdef Data < handle
         Xtrain
         Ytrain       
         Xtest
-        Ytest        
+        Ytest
+        Ntest
     end
 
     properties (Access = private)
@@ -130,6 +131,7 @@ classdef Data < handle
             obj.Xtest  = obj.X(r((ntrain + 1):end),:);
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
+            obj.Ntest = ntest;
         end
     end
 end

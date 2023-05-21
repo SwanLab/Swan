@@ -173,6 +173,14 @@ classdef Plotter < handle
             figure(1)
             plotconfusion(targets',outputs')
         end
+
+        function drawSurfaceResults(obj)
+            targets = obj.data.Ytest;
+            x = obj.data.Xtest;
+            outputs = obj.costFunction.getOutput(x);
+            figure(1)
+            obj.plotSurface(targets',outputs')
+        end
     end
 
     methods (Access = private)
@@ -191,6 +199,27 @@ classdef Plotter < handle
            for j = 1:nPL(end)
                h_3D(:,:,j) = h((j-1)*n_pts+1:j*n_pts,:);
            end
-       end 
+        end
+
+        function plotSurface(obj,target,output)
+            result = zeros(obj.data.nFeatures,obj.data.nFeatures);
+                for i = 1:obj.data.Ntest 
+                    j = find(output(:, i) >= 0.5);
+                    k = find(target(:, i) == 1);
+                    result(k,j) = result(k,j) + 1;
+                end
+
+            quo = 0;
+                for u = 1:obj.data.nFeatures
+                    quo = quo + result(u,u);
+                end
+            perc = (quo/obj.data.Ntest)*100;
+
+            surf(result);
+            xlabel("Target");
+            ylabel("Output");
+            colormap(jet);
+            disp(['Output value vs expected percentatge is ', num2str(perc), '%']);
+        end
     end
 end

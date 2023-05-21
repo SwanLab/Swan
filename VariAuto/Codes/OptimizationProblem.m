@@ -37,6 +37,10 @@ classdef OptimizationProblem < handle
        function plotConfusionMatrix(obj)
            obj.plotter.drawConfusionMat();
        end
+
+       function plotSurface(obj)
+           obj.plotter.drawSurfaceResults();
+       end
    end
 
    methods (Access = private)

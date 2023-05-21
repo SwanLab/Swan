@@ -19,7 +19,7 @@ s.costParams.lambda             = lambda;
 
 opt = OptimizationProblem(s);
 opt.solve();
-opt.plotConfusionMatrix();
+opt.plotSurface();
 
 %% UNCOMMENT FOR PLOTTING SOME WRONG IMAGES
 % [~,OUT]   = max(CostFunction.getOutput(data.Xtest),[],2);
