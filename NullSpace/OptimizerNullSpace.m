@@ -99,20 +99,24 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateRangeSpaceCoefficient(obj)
-            targetVolume = obj.targetParameters.Vfrac;
-            g            = obj.constraint.value;
-            v            = obj.computeVolume(g);
-            if v>targetVolume
-                r = 1-targetVolume;
+            if obj.cost.value == 0
+                obj.aG = obj.aGmax;
             else
-                r = targetVolume;
+                targetVolume = obj.targetParameters.Vfrac;
+                g            = obj.constraint.value;
+                v            = obj.computeVolume(g); % class(obj.constraint.shapeFunctions{1,1})=='Volume_constraint'
+                if v>targetVolume
+                    r = 1-targetVolume;
+                else
+                    r = targetVolume;
+                end
+                obj.aG       = obj.aGmax*(1-abs(v-targetVolume)/r)^10;
             end
-            obj.aG       = obj.aGmax*(1-abs(v-targetVolume)/r)^10;
         end
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = inf;
+                obj.eta = 0.01;
             else
                 if obj.aG <= 0.5*obj.aGmax
                     obj.eta = 0.01;
@@ -170,7 +174,7 @@ classdef OptimizerNullSpace < Optimizer
             DJ   = obj.cost.gradient;
             Dg   = obj.constraint.gradient;
             l   = obj.dualVariable.value;
-            DmF = DJ+l*Dg;
+            DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
 
@@ -211,7 +215,7 @@ classdef OptimizerNullSpace < Optimizer
             l  = obj.dualVariable.value;
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            mF = J+l*h;
+            mF = J+l'*h;
         end
 
         function obj = saveOldValues(obj,x)
