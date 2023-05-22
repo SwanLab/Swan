@@ -1,8 +1,8 @@
 function ComputingTopOpt_2Stage
 % checkout: git checkout origin/master -- path/to/file
 % PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
-rho0Name = 'TFM.mat';
-jumpTo2ndPart = false;
+rho0Name = 'GrippingRho.mat';
+jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
 
@@ -63,7 +63,7 @@ if jumpTo2ndPart == false
 %     system(command);
 else
     load(rho0Name);
-    fileName = 'test_anisotropy_cantilever_rho0';
+    fileName = 'test_nullspace';
 
     s = Settings(fileName);
     s.warningHoleBC = false;
@@ -77,7 +77,7 @@ else
     DesignVariable = convertCharsToStrings(settings.designVarSettings.type);
     if  DesignVariable == "Density"
         settings.designVarSettings.creatorSettings.type = 'Given';
-        settings.designVarSettings.creatorSettings.rho0 = rho0;
+        settings.designVarSettings.creatorSettings.rho0 = rho;
     elseif DesignVariable == "LevelSet"
         settings.designVarSettings.initialCase = 'given';
         settings.designVarSettings.creatorSettings.value = rho0;
