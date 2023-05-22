@@ -1,4 +1,4 @@
-filename = 'Cantilever_triangle_fine';
+filename = 'Cantileverbeam_Quadrilateral_Bilinear';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
