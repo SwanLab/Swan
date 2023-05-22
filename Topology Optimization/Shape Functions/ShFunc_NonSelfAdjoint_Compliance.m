@@ -27,6 +27,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.computeVariables();
         end
 
@@ -54,6 +55,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         
         function solveAdjoint(obj)
             obj.adjointProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.adjointProblem.computeStiffnessMatrix();
             obj.adjointProblem.computeVariables();
         end
         
