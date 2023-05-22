@@ -1,4 +1,5 @@
 classdef ShFunc_ComplianceTarget < handle
+
     properties (Access = public)
         value
         gradient
@@ -10,32 +11,27 @@ classdef ShFunc_ComplianceTarget < handle
         regDesignVariable
         target
     end
+
     properties (Access = protected)
         complianceShFunc
     end
+
     methods (Access = public)
+
         function obj = ShFunc_ComplianceTarget(cParams)
             obj.createCompliance(cParams);
             obj.setUpMassMatrixAndVolumen();
             obj.setUpInitialValue();
         end
+
         function computeFunctionAndGradient(obj)
             obj.complianceShFunc.computeFunctionAndGradient();
             obj.value = obj.complianceShFunc.value/obj.target - 1;
             obj.gradient = obj.complianceShFunc.gradient;
         end
-        function computeFunction(obj)
-            obj.complianceShFunc.computeFunction();
-            obj.value = obj.complianceShFunc.value/obj.target- 1;
-        end
-
-        function computeGradient(obj)
-            obj.complianceShFunc.computeGradient();
-            obj.gradient = obj.complianceShFunc.gradient;
-        end
 
         function f = getPhysicalProblems(obj)
-            f = obj.complianceShFunc.getPhysicalProblems(),
+            f = obj.complianceShFunc.getPhysicalProblems();
         end
 
         function f = getRegularizedDesignVariable(obj)
@@ -66,6 +62,7 @@ classdef ShFunc_ComplianceTarget < handle
 
     end
     methods (Access = protected)
+        
         function setUpMassMatrixAndVolumen(obj)
             obj.Msmooth = obj.complianceShFunc.Msmooth;
             obj.dvolu = obj.complianceShFunc.dvolu;
