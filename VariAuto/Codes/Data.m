@@ -85,11 +85,9 @@ classdef Data < handle
             obj.data = load(f);
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
             feat = input(' ');
-            %feat = 1:4;
             x = obj.data(:, feat);
             ydata = obj.data(:, end);
             %Autoencoder
-            %ydata = obj.data(:, feat);
             y = zeros(length(ydata),max(feat));
             u = unique(ydata);
             for i=1:length(ydata)
@@ -101,8 +99,6 @@ classdef Data < handle
             end
             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
             obj.Y = y;
-%             self.X = x; 
-%             self.Y = ydata;
         end
         
 
