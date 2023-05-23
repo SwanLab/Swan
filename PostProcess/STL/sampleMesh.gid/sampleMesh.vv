@@ -1,12 +1,12 @@
-BeginZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/sampleMesh.gid/sampleMesh.vv
-   x -0.989038825035095215 1.98903882503509521
-   y 1.22648310661315918 -0.226483166217803955
-   z -2.17944955825805664 2.17944955825805664
-   e 0.726483166217803955
+BeginZE
+   x -1.49837708473205566 1.49837708473205566
+   y 1.66666662693023682 -0.666666626930236816
+   z -3.5 3.5
+   e 1.16666662693023682
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 0.5 0.5 0
+   c 0 0.5 0
    pd 0
    pno 0
    pfo 0
@@ -29,5 +29,5 @@ BeginZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/sampleMesh.gid/
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/sampleMesh.gid/sampleMesh.vv
+EndZE
 

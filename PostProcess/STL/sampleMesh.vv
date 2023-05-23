@@ -1,12 +1,12 @@
-BeginZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL//sampleMesh.vv
-   x -0.959677457809448242 1.95967745780944824
-   y 1.22648310661315918 -0.226483166217803955
-   z -2.17944955825805664 2.17944955825805664
-   e 0.726483166217803955
+BeginZE
+   x -1.93687117099761963 1.93687117099761963
+   y 1.66666662693023682 -0.666666626930236816
+   z -3.5 3.5
+   e 1.16666662693023682
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 0.5 0.5 0
+   c 0 0.5 0
    pd 0
    pno 0
    pfo 0
@@ -29,13 +29,13 @@ BeginZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL//sampleMesh.vv
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL//sampleMesh.vv
+EndZE
 
 
 BeginPostState
 BeginSingleMesh
   Num meshes: 0
-  Num sets: 2
+  Num sets: 3
   Num cuts: 0
   Set: 0
   State: Off
@@ -48,7 +48,7 @@ BeginSingleMesh
     Color Shininess: 0.5
     Property Massive: 1
     Property Transparent: 0
-    Property Style: 3932173
+    Property Style: 3932174
     Property Edge Width: 1
     Property Vector Filter Factor: 0
     Property Stream Arrow: 0
@@ -64,13 +64,29 @@ BeginSingleMesh
     Color Shininess: 0.5
     Property Massive: 1
     Property Transparent: 0
-    Property Style: 3932173
+    Property Style: 3932174
     Property Edge Width: 1
     Property Vector Filter Factor: 0
     Property Stream Arrow: 0
   EndSet: 1
+  Set: 2
+  State: On
+    Name: "Set0 IsoSurf DesignVar1 = 0 WORKPIECE"
+    IdSet: 3
+    Color Type: 1
+    Color Ambient: 0.2 0.2 0.2 1
+    Color Diffuse: 0.6 0.6 0.6 1
+    Color Specular: 1 1 1 1
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932220
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 2
 EndSingleMesh
   Post_Prefs_Vector_Size: 0 32 32 32
-  ResultView: {Id 6} {No results} {} {} {} {} 4 4
+  ResultView: {Id 6} {Iso Surfaces} TopOpt 1.0 DesignVar1 DesignVar1 {1 {0} {{DesignVar1} {DesignVar1} {TopOpt} {1.000000}}} 4 4
 EndPostState
 

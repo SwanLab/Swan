@@ -1,20 +1,14 @@
 function createSTL
-pathTcl = '/home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/';
-gidPath = '/home/joseantonio/GiDx64/gid-15.0.4/';
-resultsFile = '/home/joseantonio/Documentos/GitHub/Swan/samplemesh.flavia.res';
+pathTcl = '/home/ton/Github/Swan/PostProcess/STL/';
+gidPath = '/home/ton/GiDx64/gid-16.1.2d/';
+resultsFile = '/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res';
 
 writeTclFile(pathTcl,gidPath,resultsFile)
 writeExportTclFile(pathTcl,gidPath)
 command = [gidPath,'gid -t "source ',pathTcl,'callGiD.tcl"'];
 unix(command);
 
-delete('oe.msh')
-delete('oe.png')
-delete('oe.res')
-delete('oe.vv')
-delete('oe')
-
-command = [gidPath,'gid -t "source callGiD2.tcl"'];
+command = [gidPath,'gid -t "source ',pathTcl,'callGiD2.tcl"'];
 unix(command);
 end
 
@@ -36,7 +30,7 @@ fclose(fid);
 end
 
 function writeExportTclFile(pathTcl,gidpath)
-tclFile = [pathTcl,'callGiD2.tcl'];
+tclFile = [pathTcl,'.tcl'];
 stlFileTocall = 'ExportSTL.tcl';
 fid = fopen(tclFile,'w+');
 gidBasPath = [gidpath,'templates/STL.bas'];

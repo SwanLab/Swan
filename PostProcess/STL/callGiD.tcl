@@ -1,9 +1,9 @@
-set path "/home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/"
+set path "/home/ton/Github/Swan/PostProcess/STL/"
 set tclFile "CreateSurfaceSTL.tcl"
 source $path$tclFile 
 set output "$path/sampleMesh" 
-set inputFile "/home/joseantonio/Documentos/GitHub/Swan/samplemesh.flavia.res"
+set inputFile "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
 set meshFile "$path/sampleMesh" 
 set gidProjectName "$path/sampleMesh" 
-set gidBasPath "/home/joseantonio/GiDx64/gid-15.0.4/templates/DXF.bas" 
+set gidBasPath "/home/ton/GiDx64/gid-16.1.2d/templates/DXF.bas" 
 CreateSurfaceSTL $inputFile $output $meshFile $gidProjectName $gidBasPath 
