@@ -43,6 +43,10 @@ classdef TopOpt_Problem < handle
                 case 'Density'
                 obj.optimizerSettings.ub = 1;
                 obj.optimizerSettings.lb = 0;
+                case 'Density&Bound'
+                    obj.optimizerSettings.uncOptimizerSettings.ub = ones(length(obj.designVariable.value),1);
+                    obj.optimizerSettings.uncOptimizerSettings.ub(end) = 1000;
+                    obj.optimizerSettings.uncOptimizerSettings.lb = zeros(length(obj.designVariable.value),1);
                 otherwise
 
             end

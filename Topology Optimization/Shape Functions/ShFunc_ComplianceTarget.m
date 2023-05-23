@@ -9,16 +9,17 @@ classdef ShFunc_ComplianceTarget < handle
         value0
         shNumber
         regDesignVariable
-        target
     end
 
     properties (Access = protected)
         complianceShFunc
+        designVariable
     end
 
     methods (Access = public)
 
         function obj = ShFunc_ComplianceTarget(cParams)
+            obj.createBound(cParams);
             obj.createCompliance(cParams);
             obj.setUpMassMatrixAndVolumen();
             obj.setUpInitialValue();
@@ -26,8 +27,8 @@ classdef ShFunc_ComplianceTarget < handle
 
         function computeFunctionAndGradient(obj)
             obj.complianceShFunc.computeFunctionAndGradient();
-            obj.value = obj.complianceShFunc.value/obj.target - 1;
-            obj.gradient = obj.complianceShFunc.gradient;
+            obj.value = obj.complianceShFunc.value - obj.designVariable.bound;
+            obj.gradient = [obj.complianceShFunc.gradient;-1];
         end
 
         function f = getPhysicalProblems(obj)
@@ -71,10 +72,13 @@ classdef ShFunc_ComplianceTarget < handle
             obj.value0 = obj.complianceShFunc.value0;
         end 
         function createCompliance(obj,cParams)
-            obj.target = 2;
             cParams.type  = 'compliance';
+            cParams.designVariable = cParams.designVariable.density;
             f = ShapeFunctional_Factory();
             obj.complianceShFunc = f.create(cParams);
+        end
+        function createBound(obj,cParams)
+            obj.designVariable = cParams.designVariable;
         end
     end
 end

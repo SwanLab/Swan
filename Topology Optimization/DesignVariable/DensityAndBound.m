@@ -1,8 +1,5 @@
 classdef DensityAndBound < DesignVariable
     properties (Access = public)
-        value
-    end
-    properties (Access = private)
         density
         bound
     end
@@ -10,7 +7,15 @@ classdef DensityAndBound < DesignVariable
         function obj = DensityAndBound(cParams)
             obj.density = Density(cParams);
             obj.bound = 5;
+            obj.mesh = cParams.mesh;
+            obj.type = cParams.type;
+            obj.createValue();
         end 
+        function update(obj,value)
+            obj.update@DesignVariable(value);
+            obj.density.value = obj.value(1:end-1);
+            obj.bound = obj.value(end);
+        end
         function v = getVariablesToPlot(obj)
             v{1} = obj.density.value;
         end       

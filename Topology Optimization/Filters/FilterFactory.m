@@ -6,7 +6,7 @@ classdef FilterFactory < handle
             switch cParams.filterType
                 case 'P1'
                     switch cParams.designVarType
-                        case {'Density','MicroParams'}
+                        case {'Density','MicroParams','Density&Bound'}
                             filter = Filter_P1_Density(cParams);
                         case 'LevelSet'
                             filter = Filter_P1_LevelSet(cParams);
@@ -20,7 +20,7 @@ classdef FilterFactory < handle
                     end
                 case 'Filter&Project'
                     switch cParams.designVarType
-                        case {'Density','MicroParams'}
+                        case {'Density','MicroParams','Density&Bound'}
                             filter = FilterAndProject(cParams);
                         case 'LevelSet'
 

@@ -107,7 +107,7 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'ComplianceConstraintThreeFieldRhoE'
-                    cParams.filterParams.femSettings.eta  = 0.75;
+                    cParams.filterParams.femSettings.eta  = 0.5+0.45;
                     cParams.filterParams.femSettings.beta = 1;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoI'
@@ -115,13 +115,15 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.beta = 1;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.25;
+                    cParams.filterParams.femSettings.eta  = 0.5-0.45;
                     cParams.filterParams.femSettings.beta = 1;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'VolumeConstraintRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.25;
+                    cParams.filterParams.femSettings.eta  = 0.5-0.45;
                     cParams.filterParams.femSettings.beta = 1;
-                    sF = Volume_constraint(cParams);
+                    sF = Volume_constraintWithBound(cParams);
+                case 'LinearBoundFunction'
+                    sF = LinearBoundFunction(cParams);
 
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
