@@ -34,6 +34,8 @@ classdef RHSintegratorFactory < handle
                         case 'MICRO'
                             obj = RHSintegrator_ElasticMicro(cParams);
                     end
+                case 'ElasticMicroNew'
+                    obj = RHSintegrator_ElasticMicroNew(cParams);
                 case 'Stokes'
                     obj = RHSintegrator_Stokes(cParams);
             end

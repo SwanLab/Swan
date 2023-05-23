@@ -11,6 +11,7 @@ classdef PrecomputedVariableTest < handle
         solverType
         solType
         solMode
+        computer
     end
 
     methods (Access = public)
@@ -73,9 +74,12 @@ classdef PrecomputedVariableTest < handle
             testComputer = TestComputer.create(obj.computerType, s);
             testComputer.compute();
             obj.computation = testComputer.computation;
+            obj.computer = testComputer;
         end
         
         function selectComputedVar(obj)
+%             vars = obj.computer.variables;
+%---------------------------
             toStore = obj.variablesToStore;
             comp = obj.computation;
             if isprop(comp, 'variables')
@@ -86,6 +90,7 @@ classdef PrecomputedVariableTest < handle
                 [vars.(valX)] = vars.value;
                 vars = rmfield(vars, 'value');
             end
+            %-----------------------
             fnms = fieldnames(vars);
             totalComputationVariables = numel(fnms);
             totalStoredVariables = size(toStore,2);

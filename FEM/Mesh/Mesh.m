@@ -262,6 +262,13 @@ classdef Mesh < handle
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
+        function print(obj, s)
+            p1 = P1Function.create(obj,1);
+            s.mesh = obj;
+            s.fun = {p1};
+            p = FunctionPrinter.create(s);
+            p.print();
+        end
 
     end
 

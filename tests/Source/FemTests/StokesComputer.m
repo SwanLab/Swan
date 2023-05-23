@@ -2,6 +2,7 @@ classdef StokesComputer < handle
 
     properties (Access = public)
         computation
+        variables
     end
 
     properties (Access = private)
@@ -19,6 +20,7 @@ classdef StokesComputer < handle
             femSolver = FEM.create(s);
             femSolver.computeVariables;
             obj.computation = femSolver;
+            obj.variables = obj.computation.variables;
         end
     end
 

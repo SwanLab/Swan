@@ -234,7 +234,7 @@ classdef P1Function < FeFunction
 %             s.mesh
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            p = FunctionPrinter.create(s);
             p.print();
         end
 

@@ -158,7 +158,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 alpha0(1,:) = 1;
                 obj.designVariable.alpha = alpha0;
             end
-            obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;
+%             obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;
         end
     
     end

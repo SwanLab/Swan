@@ -4,7 +4,7 @@ classdef testComputingFemWithVademecumData < testShowingError ...
     properties (Access = protected)
         tol = 1e-6;
         testName = 'testComputingFemWithVademecumData';
-        variablesToStore = {'u'};        
+        variablesToStore = {'u'};
     end
     
     properties (Access = private)
@@ -34,8 +34,8 @@ classdef testComputingFemWithVademecumData < testShowingError ...
     methods (Access = protected)
         
         function selectComputedVar(obj)
-            obj.computedVar{1} = obj.fem.variables.d_u;            
-        end        
+            obj.computedVar{1} = obj.fem.variables.d_u;
+        end
 
     end
     
@@ -47,7 +47,7 @@ classdef testComputingFemWithVademecumData < testShowingError ...
         
         function createFEM(obj)
             obj.fem = FEM.create('test2d_quad');
-            obj.fem.preProcess;     
+            obj.fem.preProcess;
         end
         
         function createDesignVariableFromRandMxMy(obj)
@@ -66,9 +66,10 @@ classdef testComputingFemWithVademecumData < testShowingError ...
         end
         
         function computeFEM(obj)
-            obj.fem.setC(obj.Ctensor);            
+            obj.fem.setC(obj.Ctensor);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.fem.computeVariables;
-            obj.fem.print('ComputingFemVademecum');            
+            obj.fem.print('ComputingFemVademecum');
         end
         
         function printDensity(obj)
@@ -84,10 +85,10 @@ classdef testComputingFemWithVademecumData < testShowingError ...
             s.mesh    = obj.fem.mesh;
             s.outName = 'ComputingFemVademecum';
             ps = PostProcessDataBaseCreator(s);
-            dB = ps.getValue();            
+            dB = ps.getValue();
             postCase = 'DensityGauss';
             obj.densityPostProcess = Postprocess(postCase,dB);
-        end        
+        end
         
     end
     

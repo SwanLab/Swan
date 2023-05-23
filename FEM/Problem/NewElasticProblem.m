@@ -1,4 +1,4 @@
-classdef ElasticProblem < handle
+classdef NewElasticProblem < handle
     
     properties (Access = public)
         variables
@@ -12,8 +12,6 @@ classdef ElasticProblem < handle
         LHS
         RHS
         solver
-        integratorBuilder
-        geometry
         scale
         pdim
         inputBC
@@ -22,11 +20,8 @@ classdef ElasticProblem < handle
     end
 
     properties (Access = protected)
-        solType
-        solMode
         quadrature
         material
-        btype
         vstrain
         mesh % For Homogenization
         interpolationType
@@ -35,15 +30,15 @@ classdef ElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = ElasticProblem(cParams)
+        function obj = NewElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
+            obj.computeStiffnessMatrix();
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
             obj.computeStrain();
@@ -51,12 +46,25 @@ classdef ElasticProblem < handle
             obj.computePrincipalDirection();
         end
 
+        function computeStiffnessMatrix(obj)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = obj.displacementFun;
+            s.material = obj.material;
+            lhs = LHSintegrator.create(s);
+            obj.LHS = lhs.compute();
+        end
+
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
-%             s.displacement = obj.variables.d_u;
+            s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
+        end
+
+        function setVstrain(obj, vs)
+            obj.vstrain = vs;
         end
 
         function dim = getDimensions(obj)
@@ -81,7 +89,7 @@ classdef ElasticProblem < handle
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = FunctionPrinter_Paraview(a);
+            pst = ParaviewPrinter(a);
             pst.print();
         end
 
@@ -100,14 +108,7 @@ classdef ElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.pdim        = cParams.dim;
             obj.inputBC     = cParams.bc;
-
-%             obj.btype       = cParams.builderType;
-            obj.solMode = cParams.solMode;
-            obj.solType = cParams.solType;                        
-%             if isprop(cParams, 'interpolationType')
-
             if isprop(cParams, 'interpolationType') % later on for P2
-
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
@@ -145,34 +146,14 @@ classdef ElasticProblem < handle
             s.scale = obj.scale;
             s.bc    = {bc};
             s.ndofs = dim.ndofs;
-            s.btype = obj.btype; % builder type
-            s.solMode = obj.solMode;
-            s.solType = obj.solType;
-            if ~isempty(obj.vstrain)
-                s.vstrain = obj.vstrain;
-            end
-            f = BoundaryConditionsFactory();
-            bc = f.create(s);
-%             s.ndofs = dim.ndofs;
-%             bc = BoundaryConditions(s);
+            bc = BoundaryConditions(s);
             bc.compute();
-            %MOVER a computeDisplacements para que vstrain esté definido.
             obj.boundaryConditions = bc;
         end
 
         function createSolver(obj)
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
-        end
-
-
-        function computeStiffnessMatrix(obj)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
-            s.material = obj.material;
-            lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
         end
 
         function computeForces(obj)
@@ -182,111 +163,27 @@ classdef ElasticProblem < handle
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
-
-            s.globalConnec = obj.mesh.connec;
-            s.btype = obj.btype;
-
 %             s.globalConnec = obj.displacementField.connec;
             s.globalConnec = obj.mesh.connec;
-
-
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
-            
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-
-            obj.variables.fext = rhs;
-
-%             R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs +R;
-
-
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs + R;
-
+            obj.variables.fext = rhs + R;
             obj.RHS = rhs;
         end
-        
+
         function u = computeDisplacements(obj)
-
-%             bc = obj.boundaryConditions;
-%             Kred = bc.fullToReducedMatrix(obj.LHS);
-%             Fred = bc.fullToReducedVector(obj.RHS);
-%             u = obj.solver.solve(Kred,Fred);
-%             u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
-
-
-            bc            = obj.boundaryConditions;
-%             builder       = bc.integratorBuilder;
-%             s.LHS         = obj.stiffnessMatrix;
-            s.LHS         = obj.LHS;
-            s.RHS         = obj.RHS;
-            s.bc          = bc;
-            s.builderType = obj.btype;
-            s.solver      = obj.solver;
-            s.scale       = obj.scale;
-            s.mesh        = obj.mesh;
-            dim = obj.getFunDims();
-            s.dim         = dim;
-            
-            % ConstraintSolver
-            s.RHS         = obj.RHS;
-            s.bc          = obj.boundaryConditions;
-            s.K           = obj.LHS;
-            s.solver      = obj.solver;
-%             if ~isempty(obj.vstrain)
-%                 s.vstrain = obj.vstrain;
-%             end
-%             
-%             if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
-%                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
-%             end
-% 
-%             s.solMode = obj.solMode;
-            s.solType = obj.solType;
-% 
-%             BoundaryCondSolver = ConstraintSolverFactory(s);
-%             GlobalLHS = BoundaryCondSolver.assembleGlobalLHS;
-%             GlobalRHS = BoundaryCondSolver.assembleGlobalRHS;
-%             [u, L]  =  BoundaryCondSolver.solveSystem(GlobalLHS, GlobalRHS);
-%             obj.variables.d_u = u;
-%             obj.variables.LangMult = L;
-            %%%%%
-            
-            %REFORMULATED ARCHITECTURE
-            if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
-                    bc.computeMonoliticMicroConditionDisp();
-            end
-
-            f = ConstraintSolverFactory();
-            BoundaryCondSolver = f.create(s);
-            [LHSMatrix, nConstraints] = bc.computeBoundaryCondLHS(s.LHS);
-            RHSMatrix = bc.computeBoundaryCondRHS(s);
-            [u, L] = BoundaryCondSolver.solveSystem(LHSMatrix, RHSMatrix, nConstraints);
+            bc = obj.boundaryConditions;
+            Kred = bc.fullToReducedMatrix(obj.LHS);
+            Fred = bc.fullToReducedVector(obj.RHS);
+            u = obj.solver.solve(Kred,Fred);
+            u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
-            obj.variables.LangMult = L;
-            %%%%%%
 
-% %             builder.createBuilder(s);
-%             [u,R] = builder.solveSystem();
-%             obj.variables.d_u = u;
-%             obj.variables.React = R;
-            z.mesh   = obj.mesh;
-
-%             bc = obj.boundaryConditions;
-%             Kred = bc.fullToReducedMatrix(obj.LHS);
-%             Fred = bc.fullToReducedVector(obj.RHS);
-%             u = obj.solver.solve(Kred,Fred);
-%             u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
-
-%             z.mesh    = obj.mesh;
-
+            z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
             obj.uFun = uFeFun;
@@ -300,7 +197,7 @@ classdef ElasticProblem < handle
             strFun.applyVoigtNotation();
             perm = permute(strFun.fValues, [2 1 3]);
             obj.variables.strain = perm;
-            obj.strainFun = strFun;
+            obj.strainFun= strFun;
             obj.strain = strFun;
         end
 
@@ -321,13 +218,13 @@ classdef ElasticProblem < handle
         end
 
         function computePrincipalDirection(obj)
-            strss  = permute(obj.stressFun.fValues, [2 1 3]);
+            strss  = obj.variables.stress;
             s.type = obj.pdim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
             pcomp.compute(strss);
-%             obj.variables.principalDirections = pcomp.direction;
-%             obj.variables.principalStress     = pcomp.principalStress;
+            obj.variables.principalDirections = pcomp.direction;
+            obj.variables.principalStress     = pcomp.principalStress;
         end
 
     end

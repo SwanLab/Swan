@@ -1,5 +1,6 @@
 classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
     
+    % Does not work anymore
     properties (Access = private)
         pNorm = 2;
         stressHomog
@@ -92,7 +93,7 @@ classdef ShFunc_StressNormInCell < ShFunWithElasticPdes
         
         function computeHomogenizedTensor(obj)
             cellProblem = obj.physProb;
-            Ch = cellProblem.computeChomog();
+            Ch = cellProblem.solve();
             obj.Chomog = Ch;
         end
         

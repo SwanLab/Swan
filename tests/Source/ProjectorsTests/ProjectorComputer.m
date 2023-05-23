@@ -2,6 +2,7 @@ classdef ProjectorComputer < handle
 
     properties (Access = public)
         computation
+        variables
     end
 
     properties (Access = private)
@@ -32,6 +33,8 @@ classdef ProjectorComputer < handle
             computer.compute();
             obj.computation = computer.computation;
             obj.computeProjection();
+            nrows = numel(obj.funProj.fValues);
+            obj.variables.xP = reshape(obj.funProj.fValues,[nrows,1]);
         end
 
     end

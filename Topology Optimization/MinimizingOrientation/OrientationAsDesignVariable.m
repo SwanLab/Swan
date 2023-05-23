@@ -166,6 +166,7 @@ classdef OrientationAsDesignVariable < handle
         
         function updateHomogenizedMaterialProperties(obj)
             obj.hC.computeCtensor(obj.microVariables);
+            obj.phyP.computeStiffnessMatrix();
             obj.phyP.setC(obj.hC.C);
         end
         
