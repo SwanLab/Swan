@@ -1,7 +1,7 @@
-set path "/home/alex/Desktop/tclFiles/"
+set path "/home/joseantonio/Documentos/GitHub/Swan/PostProcess/STL/"
 set tclFile "ExportSTL.tcl"
 source $path$tclFile 
-set input "$path/oe.gid" 
-set output "$path/oeFile.stl" 
-set gidBasPath "/opt/GiDx64/13.0.2/templates/STL.bas" 
+set input "$path/sampleMesh.gid" 
+set output "$path/sampleMeshFile.stl" 
+set gidBasPath "/home/joseantonio/GiDx64/gid-15.0.4/templates/STL.bas" 
 ExportSTL $input $output $gidBasPath 

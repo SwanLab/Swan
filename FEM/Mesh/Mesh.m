@@ -262,10 +262,38 @@ classdef Mesh < handle
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
+        function extrudePreSTL(obj,file)
+            tclFile = file;
+            stlFileTocall = 1;
+        end
+
+        function extrudeSTL(obj, file)
+            s.filename = file;
+            swanPath = '/home/joseantonio/Documentos/GitHub/Swan/';
+            gidPath = '/home/joseantonio/GiDx64/gid-15.0.4/';
+            tclPath = [swanPath, 'PostProcess/STL/'];
+            basPath = [gidPath, 'templates/STL.bas'];
+
+            fid = fopen([file,'.tcl'],'w+');
+            fprintf(fid,['set path "',tclPath,'"\n']);
+            fprintf(fid,['set tclFile "','ExtrudeSTL_template.tcl','"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set input "/home/joseantonio/Documentos/sampleMesh.gid" \n']);
+            fprintf(fid,['set output "$path/outputSTL.stl" \n']);
+            fprintf(fid,['set gidBasPath "',basPath,'" \n']);
+            fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
+            fclose(fid);
+
+            command = [gidPath,'gid -t "source ',tclPath,'callGiD.tcl"'];
+            unix(command);
+            system(command);
+        end
+
         function print(obj, s)
             p1 = P1Function.create(obj,1);
             s.mesh = obj;
             s.fun = {p1};
+            s.type = 'GiD';
             p = FunctionPrinter.create(s);
             p.print();
         end
