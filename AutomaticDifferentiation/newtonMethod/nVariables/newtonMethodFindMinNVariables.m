@@ -1,11 +1,13 @@
 function [plotU,plotVal,plotGrad,plotGrad2,iterations] = newtonMethodFindMinNVariables(u)
 
-iterations = 1;
+iterations = 40;
 
-plotU = zeros(iterations,3);
+[~,numElem] = size(u);
+
+plotU = zeros(iterations,numElem);
 plotVal = zeros(iterations,1);
-plotGrad = zeros(iterations,1);
-plotGrad2 = zeros(iterations,1);
+plotGrad = zeros(iterations,numElem);
+plotGrad2 = zeros(iterations,numElem);
 
 iterations = 0;
 
@@ -13,18 +15,20 @@ grad = 1;
 
 while abs(grad) > 10^(-6)
     iterations = iterations + 1;
-    [val, grad, grad2] = iterativeADNewton(u);
+    [val, grad, grad2] = iterativeADNewtonNVariables(u);
     h = grad2.^(-1);
     h(isinf(h)) = 0;
-    h = [h(1,1) h(2,2) h(3,3)];
-    % u = u - transpose(h * transpose(grad));
+    h = transpose(diag(h));
     u = u - h .* grad;
 
-    plotU(iterations,1:3) = u;
+    plotU(iterations,1:numElem) = u;
     plotVal(iterations) = val;
-    plotGrad(iterations,1:3) = grad;
-    plotGrad2(iterations,1:3) = [grad2(1,1),grad2(2,2),grad2(3,3)];
+    plotGrad(iterations,1:numElem) = grad;
+    plotGrad2(iterations,1:numElem) = transpose(diag(grad2));
 end
+
+
+%%PLOTS
 
 %figure(1); plot(plotU(:,1)); xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,1)) max(plotU(:,1))]);
 figure(2); plot(plotU(:,2)); xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,2)) max(plotU(:,2))]);

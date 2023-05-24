@@ -16,7 +16,7 @@ while abs(grad) > 10^(-6)
     [val, grad, grad2] = iterativeADNewton(u);
     h = grad2.^(-1);
     h(isinf(h)) = 0;
-    h = [h(1,1) h(2,2) h(3,3)];
+    h = transpose(diag(h));
     % u = u - transpose(h * transpose(grad));
     u = u - h .* grad;
 

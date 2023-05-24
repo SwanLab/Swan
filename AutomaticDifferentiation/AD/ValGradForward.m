@@ -30,9 +30,12 @@ classdef ValGradForward
 
         function vec = double(obj) %Convert ValGrad object to vector of doubles.
 
-            if isequal(size(obj.val),[3,3]) || isequal(size(obj.grad),[3,3])
+            [numRowsVal,numColsVal] = size(obj.val);
+            [numRowsGrad,numColsGrad] = size(obj.grad);
+
+            if numRowsVal > 1 && numColsVal > 1 || numRowsGrad > 1 && numColsGrad
                 vec = obj.val;
-                vec(1:3,4:6) = obj.grad;
+                vec(1:numRowsGrad,(1+numColsVal):(numColsVal+numColsGrad)) = obj.grad;
 
             else
 
