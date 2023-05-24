@@ -1,2 +1,2 @@
 clear;
-[plotU,plotVal,plotGrad,iterations] = newtonMethodFindMinHigherOrder(4);
+[plotU,plotVal,plotGrad,plotGrad2,iterations] = newtonMethodFindMinHigherOrder(4);

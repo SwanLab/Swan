@@ -13,6 +13,9 @@ classdef ValGradForward
         function obj = ValGradForward(a,b) %ValGrad class constructor;
             if nargin == 0
             else
+                if isequal(size(a),[3,3])
+                     error
+                end
                 obj.val = a; %given function value
                 obj.grad = b; %given Gradient value or gradient vector
             end
@@ -21,7 +24,14 @@ classdef ValGradForward
 
         function vec = double(obj) %Convert ValGrad object to vector of doubles.
 
-            vec = [ obj.val, obj.grad ];
+            if isequal(size(obj.val),[3,3]) || isequal(size(obj.grad),[3,3])
+                vec = obj.val;
+                vec(1:3,4:6) = obj.grad;
+
+            else
+
+                vec = [ obj.val, obj.grad ];
+            end
 
         end
 

@@ -1,16 +1,16 @@
-function [plotU,plotVal,plotGrad,iterations] = newtonMethodFindMinHigherOrder(u)
-iterations = 11854;
+function [plotU,plotVal,plotGrad,plotGrad2,iterations] = newtonMethodFindMinHigherOrder(u)
+iterations = 11854; %41347
 plotU = zeros(iterations,1);
 plotVal = zeros(iterations,1);
 plotGrad = zeros(iterations,1);
 plotGrad2 = zeros(iterations,1);
 alpha = 0.0001;
 iterations = 0;
-grad2 = 1;
-while abs(grad2) > 10^(-6)
+grad = 1;
+while abs(grad) > 10^(-6)
     iterations = iterations + 1;
     [val, grad, grad2] = iterativeADHigherOrder(u);
-    u = u - alpha * grad2;
+    u = u - grad2^(-1) * grad;
     plotU(iterations) = u;
     plotVal(iterations) = val;
     plotGrad(iterations) = grad;
