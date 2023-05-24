@@ -38,45 +38,31 @@ classdef MappingComputer < handle
             obj.interpolator       = cParams.interpolator;
             obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
-        
-        function LHS = computeLHS(obj)
-            K = obj.computeStiffnessMatrix();
-            In = obj.interpolator;
-            Kn = In'*K*In;
-            LHS = Kn;
-        end
 
         function K = computeStiffnessMatrix(obj)
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
-            s.fun  = P1DiscontinuousFunction.create(obj.mesh,1);
-            lhs    = LHSintegrator.create(s);
-            K      = lhs.compute();
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            lhs = LHSintegrator.create(s);
+            K = lhs.compute();
         end
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = aI.evaluate(q.posgp);            
-            s.fType     = 'Gauss';
-            s.fGauss    = fG;
-            s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.meshDisc.nnodes*1;
+            s.quadratureOrder = q.order;
             s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
-            RHS = rhsV;
+            rhsV = rhs.compute(aI);
+            RHS = rhsV.fValues;
         end
 
         function u = solveSystem(obj,LHS,RHS)
             In = obj.interpolator;            
             LHS = In'*LHS*In;
-            RHS = In'*RHS;            
             a.type = 'DIRECT';
             s = Solver.create(a);
             u = s.solve(LHS,RHS);

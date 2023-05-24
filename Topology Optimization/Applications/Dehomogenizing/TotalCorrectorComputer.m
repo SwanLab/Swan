@@ -130,6 +130,7 @@ classdef TotalCorrectorComputer < handle
             c = CorrectorCoefficientsComputer(s);
             coef = c.compute(b);
         end
+
         
     end
     
