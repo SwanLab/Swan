@@ -67,6 +67,7 @@ classdef TotalCorrectorComputer < handle
             for iS = 1:obj.nCorr
               %  sCoord = obj.singularities.coord(iS,:);
                 iSing  = areSing(iS);
+               % iSing  = areSing(2);
                 cF     = obj.computeCorrectorFunction(iSing);
                 sF     = obj.createShifting(cF);
                 oC{iS} = obj.computeOrthogonalCorrector(cF,sF);

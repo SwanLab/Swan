@@ -66,6 +66,16 @@ classdef DehomogenizingSingularitiesTest < handle
         end
 
         function createMesh(obj)
+%            [p,b,t,nv,nbe,nt,labels]=ffreadmesh('export_mesh.msh');
+
+            % t = t';
+            % p = p';
+            % s.connec = t(:,1:3);
+            % s.coord  = p(:,1:2);
+            % m = Mesh(s);
+            % obj.mesh = m;
+            % 
+
             h = obj.meshSize;
             xv = obj.xmin:h:obj.xmax;
             yv = obj.ymin:h:obj.ymax;
@@ -79,6 +89,7 @@ classdef DehomogenizingSingularitiesTest < handle
 %            s.connec = delaunay(s.coord);
             m = Mesh(s);
             obj.mesh = m;
+            
         end
 
 
