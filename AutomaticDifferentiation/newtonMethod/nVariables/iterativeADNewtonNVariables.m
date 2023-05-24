@@ -3,6 +3,7 @@ function [val, grad, grad2] = iterativeADNewtonNVariables(u0)
 [~,numElem] = size(u0);
 
 %u = zeros(1,numElem);
+%disp = 0;
 
 G = zeros(1,numElem);
 G(1,numElem) = 1;
@@ -27,7 +28,22 @@ for i = 2:numElem
 end
 
 
-W = 0.5 * ( u(1)^2 + 2*u(2)^2 + u(3)^2 - 2*u(1)*u(2) - 2*u(2)*u(3)) - (G(1) * u(1) + G(2) * u(2) + G(3) * u(3));
+%W = 0.5 * ( u(1)^2 + 2*u(2)^2 + u(3)^2 - 2*u(1)*u(2) - 2*u(2)*u(3)) - (G(1) * u(1) + G(2) * u(2) + G(3) * u(3));
+
+disp = (u(1)-u(2))^2;
+
+for i = 2:(numElem-1)
+    disp = disp + (u(i)-u(i+1))^2;
+end
+
+
+force = G(1) * u(1);
+
+for i = 2:numElem
+    force = force + G(i) * u(i);
+end
+
+W = 0.5 * disp - force;
 
 firstGrad = W.val.double;
 secondGrad = W.grad.double;
