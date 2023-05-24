@@ -29,6 +29,9 @@ classdef ShFunc_ComplianceTarget < handle
             obj.complianceShFunc.computeFunctionAndGradient();
             obj.value = obj.complianceShFunc.value - obj.designVariable.bound;
             obj.gradient = [obj.complianceShFunc.gradient;-1];
+            if isempty(obj.value0)
+                obj.value0 = obj.complianceShFunc.value0;
+            end 
         end
 
         function f = getPhysicalProblems(obj)
