@@ -4,8 +4,10 @@ if ~isa(u,'ValGradForward') && ~isa(v,'ValGradForward') %u and v are scalars
     h = ValGradForward(u - v, 0);
 
 elseif ~isa(u,'ValGradForward') %u is a scalar
-    
-    if isequal(size(u),[3,3])
+
+    [numRows,numCols] = size(u);
+
+    if numRows > 1 && numCols > 1
         h = ValGradForward(u(1,:) - v.val(1,:),  - v.grad);
 
     else
@@ -16,7 +18,9 @@ elseif ~isa(u,'ValGradForward') %u is a scalar
 
 elseif ~isa(v,'ValGradForward') %v is a scalar
 
-    if isequal(size(v),[3,3])
+    [numRows,numCols] = size(v);
+
+    if numRows > 1 && numCols > 1
         h = ValGradForward(u.val(1,:) - v(1,:), u.grad);
 
     else
@@ -25,7 +29,7 @@ elseif ~isa(v,'ValGradForward') %v is a scalar
     end
 
 else
-        h = ValGradForward(u.val - v.val, u.grad - v.grad);
+    h = ValGradForward(u.val - v.val, u.grad - v.grad);
 
 end
 end

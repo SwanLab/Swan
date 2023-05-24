@@ -12,10 +12,16 @@ classdef ValGradForward
 
         function obj = ValGradForward(a,b) %ValGrad class constructor;
             if nargin == 0
+
             else
-                if isequal(size(a),[3,3])
-                     error
+
+                [numRows,numCols] = size(a);
+
+                if numRows > 1 && numCols > 1
+                    error('Error occurred. First derivative greater than it should be')
+
                 end
+
                 obj.val = a; %given function value
                 obj.grad = b; %given Gradient value or gradient vector
             end
