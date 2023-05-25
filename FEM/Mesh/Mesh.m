@@ -262,12 +262,16 @@ classdef Mesh < handle
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
+        function extrudeSTL(obj, file)
+            
+        end
+
         function extrudePreSTL(obj,file)
             tclFile = file;
             stlFileTocall = 1;
         end
 
-        function extrudeSTL(obj, file)
+        function extrudeSTL2(obj, file)
             s.filename = file;
             swanPath = '/home/joseantonio/Documentos/GitHub/Swan/';
             gidPath = '/home/joseantonio/GiDx64/gid-15.0.4/';

@@ -1,5 +1,4 @@
 set path "/home/ton/Github/Swan/PostProcess/STL/"
-set tclFile "CreateSurfaceSTL.tcl"
 source $path$tclFile 
 set output "$path/sampleMesh" 
 set inputFile "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
