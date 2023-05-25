@@ -23,6 +23,8 @@ classdef SwanGiDInterface < handle
             obj.writeExportTclFile()
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD.tcl"'];
             system(command);
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD2.tcl"'];
+            system(command);
         end
 
     end
@@ -44,7 +46,7 @@ resultsFile = '/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res';
             fprintf(fid,['set meshFile "$path/sampleMesh" \n']);
             fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
-            fprintf(fid,['CreateSurfaceSTL $inputFile $output $meshFile $gidProjectName $gidBasPath \n']);
+            fprintf(fid,['CreateSurfaceNew $inputFile $output $meshFile $gidProjectName $gidBasPath \n']);
             fclose(fid);
         end
 
