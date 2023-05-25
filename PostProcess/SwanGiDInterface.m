@@ -21,9 +21,15 @@ classdef SwanGiDInterface < handle
         function extrudeAndExport(obj)
             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
             obj.writeTclFile(resultsFile);
+%             obj.writeGenerateMeshTclFile();
             obj.writeExportTclFile();
+
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD.tcl"'];
             system(command);
+
+%             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD11.tcl"'];
+%             system(command);
+
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD2.tcl"'];
             system(command);
         end
@@ -46,6 +52,19 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['CreateSurfaceNew $inputFile $output $meshFile $gidProjectName $gidBasPath \n']);
+            fclose(fid);
+        end
+
+        function writeGenerateMeshTclFile(obj)
+            tclFile = [obj.tclPath,'callGiD11.tcl'];
+            stlFileTocall = 'GenerateMesh.tcl';
+            gidBasPath = [obj.gidPath,'templates/DXF.bas'];
+            fid = fopen(tclFile,'w+');
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
+            fprintf(fid,['GenerateMesh $gidProjectName \n']);
             fclose(fid);
         end
 
