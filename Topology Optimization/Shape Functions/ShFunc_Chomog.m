@@ -30,45 +30,45 @@ classdef ShFunc_Chomog < ShapeFunctional
             funNames = phyNames;
         end
         
-%         function fP = addPrintableVariables(obj)
-%             fP = obj.addMicroVariables();
-%             fP{end+1}.value = obj.gradient;
-%             fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
-%             for i = 1:numel(fH)
-%                 fP{end+1} = fH{i};
-%             end
-%         end
-%         
-%         function fP = addMicroVariables(obj)
-%             p = obj.getPhysicalProblems();
-%             p = p{1};
-%             nMicro = numel(p.variables2print);
-%             fP = cell(nMicro,1);
-%             for i = 1:nMicro
-%                 pV = p;
-%                 pV.variables = p.variables2print{i};
-%                 cParams.physicalProblem = pV;
-%                 g = PdeVariableToPrintGetter(cParams);
-%                 v = g.compute();
-%                 fP{i}.value = v;
-%             end
-%         end
-%         
-%         function fP = createPrintVariables(obj)
-%             types = {'Elasticity','Elasticity','Elasticity','ScalarNodal'};
-%             names = {'Primal1','Primal2','Primal3','Gradient'};
-%             
-%             fP = obj.obtainPrintVariables(types,names);
-%             fP = obj.addHomogPrintVariablesNames(fP);
-%         end
-%         
-%         function v = getVariablesToPlot(obj)
-%             v{1} = obj.value*obj.value0;
-%         end
-%         
-%         function t = getTitlesToPlot(obj)
-%             t{1} = 'C - C not scaled';
-%         end
+        function fP = addPrintableVariables(obj)
+            fP = obj.addMicroVariables();
+            fP{end+1}.value = obj.gradient;
+            fH = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
+            for i = 1:numel(fH)
+                fP{end+1} = fH{i};
+            end
+        end
+        
+        function fP = addMicroVariables(obj)
+            p = obj.getPhysicalProblems();
+            p = p{1};
+            nMicro = numel(p.variables2print);
+            fP = cell(nMicro,1);
+            for i = 1:nMicro
+                pV = p;
+                pV.variables = p.variables2print{i};
+                cParams.physicalProblem = pV;
+                g = PdeVariableToPrintGetter(cParams);
+                v = g.compute();
+                fP{i}.value = v;
+            end
+        end
+        
+        function fP = createPrintVariables(obj)
+            types = {'Elasticity','Elasticity','Elasticity','ScalarNodal'};
+            names = {'Primal1','Primal2','Primal3','Gradient'};
+            
+            fP = obj.obtainPrintVariables(types,names);
+            fP = obj.addHomogPrintVariablesNames(fP);
+        end
+        
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.value*obj.value0;
+        end
+        
+        function t = getTitlesToPlot(obj)
+            t{1} = 'C - C not scaled';
+        end
         
         function q = getQuad(obj)
             q = obj.physicalProblem.getQuadrature();
@@ -103,7 +103,7 @@ classdef ShFunc_Chomog < ShapeFunctional
                 gs = g(:,:,ivar);
                 gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
-            %gf = obj.Msmooth*gf;
+            gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
         end

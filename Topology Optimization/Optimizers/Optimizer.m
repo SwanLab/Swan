@@ -101,7 +101,7 @@ classdef Optimizer < handle
                 zz.funNames = name;
                 pp = FunctionPrinter_Paraview(zz);
                 pp.print();
-                obj.simulationPrinter.appendStep(file);
+%                 obj.simulationPrinter.appendStep(file);
             end
         end
 
@@ -116,7 +116,7 @@ classdef Optimizer < handle
                 d.nDesignVariables = obj.designVariable.nVariables;
                 obj.postProcess = Postprocess('TopOptProblem',d);
                 s.filename = [obj.outFolder,'/',obj.outFilename, '_simulation'];
-                obj.simulationPrinter = SimulationPrinter(s);
+%                 obj.simulationPrinter = SimulationPrinter(s);
             end
         end
 

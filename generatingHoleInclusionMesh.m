@@ -44,7 +44,8 @@ clc; clear; close all
 
 % Create the data container for the FEM problem
 % a.fileName = 'holeinclusion3d';
-a.fileName = 'test3d_micro_cube';
+% a.fileName = 'test3d_micro_cube';
+a.fileName = 'test3d_micro_cube_v2';
 m = FemDataContainer(a);
 
 
@@ -70,4 +71,4 @@ fem = ElasticProblemMicro(m);
 fem.computeChomog();
 % sss.filename = 'fluctHoleGID';
 sss.filename = 'fluctHoleMaterial';
-fem.uFun{1}.print(sss);
+fem.uFun{3}.print(sss);
