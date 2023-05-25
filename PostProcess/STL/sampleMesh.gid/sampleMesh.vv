@@ -1,6 +1,6 @@
 BeginZE
-   x -1.49837708473205566 1.49837708473205566
-   y 1.66666662693023682 -0.666666626930236816
+   x -1.52901589870452881 1.52901589870452881
+   y 1.69052243232727051 -0.690522432327270508
    z -3.5 3.5
    e 1.16666662693023682
    v 0 0 0
@@ -30,4 +30,8 @@ BeginZE
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
 EndZE
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
 
