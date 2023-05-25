@@ -26,19 +26,19 @@ classdef SwanGiDInterface < handle
             obj.writeExportSTLTclFile();
 
             % Create Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
             system(command);
 
             % Extrude Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD12.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
             system(command);
 
             % Generate Mesh
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD11.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
             system(command);
 
             % Export STL
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD2.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
             system(command);
         end
 
@@ -47,7 +47,7 @@ classdef SwanGiDInterface < handle
     methods (Access = private)
 
         function writeTclFile(obj, resultsFile)
-            tclFile = [obj.tclPath,'callGiD.tcl'];
+            tclFile = [obj.tclPath,'callGiD_CreateSurface.tcl'];
             stlFileTocall = 'CreateSurfaceNew.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
@@ -64,7 +64,7 @@ classdef SwanGiDInterface < handle
         end
 
         function writeGenerateMeshTclFile(obj)
-            tclFile = [obj.tclPath,'callGiD11.tcl'];
+            tclFile = [obj.tclPath,'callGiD_GenerateMesh.tcl'];
             stlFileTocall = 'GenerateMesh.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
@@ -77,7 +77,7 @@ classdef SwanGiDInterface < handle
         end
 
         function writeExtrudeTclFile(obj)
-            tclFile = [obj.tclPath,'callGiD12.tcl'];
+            tclFile = [obj.tclPath,'callGiD_Extrude.tcl'];
             stlFileTocall = 'ExtrudeSurface.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
@@ -90,7 +90,7 @@ classdef SwanGiDInterface < handle
         end
 
         function writeExportSTLTclFile(obj)
-            tclFile = [obj.tclPath,'.tcl'];
+            tclFile = [obj.tclPath,'callGiD_ExportSTL.tcl'];
             stlFileTocall = 'ExportSTL.tcl';
             fid = fopen(tclFile,'w+');
             gidBasPath = [obj.gidPath,'templates/STL.bas'];
