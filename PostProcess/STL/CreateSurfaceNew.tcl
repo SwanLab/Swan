@@ -1,4 +1,4 @@
-proc CreateSurfaceSTL {arg1 arg2 arg3 arg4 arg5} {
+proc CreateSurfaceNew {arg1 arg2 arg3 arg4 arg5} {
     set input $arg1
     set output $arg2
     set meshName $arg3
@@ -6,14 +6,15 @@ proc CreateSurfaceSTL {arg1 arg2 arg3 arg4 arg5} {
     set gidBasPath $arg5
     GiD_Process Mescape Postprocess
     GiD_Process Mescape Files Read -rebuildIndex:0 $input
+    GiD_Process Mescape Results Options ExtractBoundaries escape
     GiD_Process Mescape Results IsoSurfaces DisplayStyle ContourFillColor
-    GiD_Process Mescape Results IsoSurfaces Exact LevelSet 1 0.0
+    GiD_Process Mescape Results IsoSurfaces Exact DesignVar1 1 0.0
     GiD_Process Mescape 'Redraw
-    GiD_Process Mescape Results isosurfaces TurnIntoCuts
-    GiD_Process Mescape DoCut TurnIntoMeshes
-    GiD_Process Mescape Results Options ExtractBoundaries
-    GiD_Process Mescape Utilities Delete SurfaceSets {WORKPIECE 1} Yes
-    GiD_Process Mescape Utilities Delete CutSets {IsoSurf LS = 0 WORKPIECE 1} Yes
+    GiD_Process Mescape Results IsoSurfaces TurnIntoCuts escape
+    GiD_Process Mescape DoCut ConvertToSets ALL_CUTSETS escape
+    foreach set_name {"Set0 IsoSurf DesignVar1 = 0 WORKPIECE" "WORKPIECE boundary"} {
+    GidUtils::CreateMeshFromSet $set_name Layer0
+    }
     GiD_Process Mescape files saveall allmeshessets $meshName
     GiD_Process Mescape Preprocess Yes
     GiD_Process Mescape Files MeshRead "$meshName.msh"
