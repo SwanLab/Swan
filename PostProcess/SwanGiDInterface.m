@@ -19,8 +19,9 @@ classdef SwanGiDInterface < handle
         end
 
         function extrudeAndExport(obj)
-            obj.writeTclFile()
-            obj.writeExportTclFile()
+            resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
+            obj.writeTclFile(resultsFile);
+            obj.writeExportTclFile();
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD.tcl"'];
             system(command);
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD2.tcl"'];
@@ -31,11 +32,9 @@ classdef SwanGiDInterface < handle
 
     methods (Access = private)
 
-        function writeTclFile(obj)
-resultsFile = '/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res';
-
+        function writeTclFile(obj, resultsFile)
             tclFile = [obj.tclPath,'callGiD.tcl'];
-            stlFileTocall = 'CreateSurfaceSTL.tcl';
+            stlFileTocall = 'CreateSurfaceNew.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
