@@ -21,15 +21,23 @@ classdef SwanGiDInterface < handle
         function extrudeAndExport(obj)
             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
             obj.writeTclFile(resultsFile);
-%             obj.writeGenerateMeshTclFile();
-            obj.writeExportTclFile();
+            obj.writeExtrudeTclFile();
+            obj.writeGenerateMeshTclFile();
+            obj.writeExportSTLTclFile();
 
+            % Create Surface
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD.tcl"'];
             system(command);
 
-%             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD11.tcl"'];
-%             system(command);
+            % Extrude Surface
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD12.tcl"'];
+            system(command);
 
+            % Generate Mesh
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD11.tcl"'];
+            system(command);
+
+            % Export STL
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD2.tcl"'];
             system(command);
         end
@@ -68,7 +76,20 @@ classdef SwanGiDInterface < handle
             fclose(fid);
         end
 
-        function writeExportTclFile(obj)
+        function writeExtrudeTclFile(obj)
+            tclFile = [obj.tclPath,'callGiD12.tcl'];
+            stlFileTocall = 'ExtrudeSurface.tcl';
+            gidBasPath = [obj.gidPath,'templates/DXF.bas'];
+            fid = fopen(tclFile,'w+');
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
+            fprintf(fid,['ExtrudeSurface $gidProjectName \n']);
+            fclose(fid);
+        end
+
+        function writeExportSTLTclFile(obj)
             tclFile = [obj.tclPath,'.tcl'];
             stlFileTocall = 'ExportSTL.tcl';
             fid = fopen(tclFile,'w+');
