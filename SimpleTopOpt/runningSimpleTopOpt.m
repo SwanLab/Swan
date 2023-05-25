@@ -12,7 +12,7 @@ neededIter = zeros(102,1);
 % save('CounterPol\neededIter.mat', 'neededIter');
 % save('CounterPol\xNew.mat', 'xNew');
 clear
-s.maxIter = 100;
+s.maxIter = 300;
 s.TOL = 1e-12;
 s.topOptProblem = createFullTopOptProblem();
 solver = SimpleShapeOptimizationSolver(s);

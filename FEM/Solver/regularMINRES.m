@@ -6,7 +6,7 @@ classdef regularMINRES < handle
 
     methods (Static)
 
-        function [xNew, rNew, V, H, convIter] = solve(A, b, xPrev, v1, r_0)
+        function [xNew, rNew, V, H, convIter] = solve(A, b, xPrev, v1, r_0, omega)
 
             n = size(A,1);
             k = 3000;
@@ -70,8 +70,8 @@ classdef regularMINRES < handle
                 j = 3;
                 % res = abs(phi);
                 res = norm(A*xj-b);
-
-                while (j<maxiter)&&(res>tol)
+                   
+                while ((j<maxiter)&&(res>tol))||j<(omega+1)
                                         x_prev = xj;
 
                     [Alpha(j), Beta(j+1), V(:,j+1)] = regularMINRES.lanczosProc(A, V(:,j), V(:,j-1), Beta(j));

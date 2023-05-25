@@ -11,8 +11,7 @@ classdef MINRES_Pol < handle
         end
 
 
-        function x_k = solve(obj,A,b)
-        tic
+        function x_k = solve(obj,A,b)        
             if isempty(obj.xPrevIt)
                 obj.xPrevIt = zeros(size(b,1),1);
             end
@@ -105,10 +104,11 @@ classdef MINRES_Pol < handle
                 end
                 x_prev = xj;
             end
-
+            
+            convIter = j-1
             x_k = x_prev;
-            obj.xPrevIt = x_k;
-            toc
+            norm(A*x_k-b)/norm(b)
+            obj.xPrevIt = x_k;            
         end
     end
 
