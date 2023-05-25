@@ -1,7 +1,7 @@
-set input_post_res "/home/joseantonio/Documentos/Github/Swan/Output/hellothere/hellothere1.flavia.res"
-set mesh_element_size "0.028986"
-set mesh_name "hmmmm22"
-set gidpath "/home/joseantonio/GiDx64/gid-15.0.4/"
+set input_post_res "/home/ton/Github/Swan/Output/thisIsUseless/thisIsUseless1.flavia.res"
+set mesh_element_size "0.10526"
+set mesh_name "thisIsUseless2"
+set gidpath "/home/ton/GiDx64/gid-16.1.2d/"
 
 GiD_Process Mescape Postprocess
 GiD_Process Mescape Files Read $input_post_res escape

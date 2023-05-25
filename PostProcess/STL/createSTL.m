@@ -5,11 +5,11 @@ resultsFile = '/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res';
 
 writeTclFile(pathTcl,gidPath,resultsFile)
 writeExportTclFile(pathTcl,gidPath)
-command = [gidPath,'gid -t "source ',pathTcl,'callGiD.tcl"'];
-unix(command);
+command = [gidPath,'gid_offscreen -offscreen -t "source ',pathTcl,'callGiD.tcl"'];
+system(command);
 
-command = [gidPath,'gid -t "source ',pathTcl,'callGiD2.tcl"'];
-unix(command);
+command = [gidPath,'gid_offscreen -offscreen -t "source ',pathTcl,'callGiD2.tcl"'];
+system(command);
 end
 
 function writeTclFile(pathTcl,gidpath,resultsFile)

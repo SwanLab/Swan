@@ -72,10 +72,8 @@ classdef test_InnerMeshExporter < handle
         end
         
         function exportUsingExporter(obj)
-            h = obj.unfittedMesh.innerMesh.mesh.computeMeanCellSize();
             s.type = 'GiD';
             s.filename        = 'hellothere';
-            s.meshElementSize = num2str(h);
             s.meshFileName    = 'hmmmm22';
             s.swanPath        = '/home/joseantonio/Documentos/Github/Swan/';
             s.gidPath         = '/home/joseantonio/GiDx64/gid-15.0.4/';
