@@ -56,14 +56,14 @@ classdef CorrectorCoefficientsComputer < handle
         function createDvolum(obj)
             q = obj.quadrature;
             nDim = obj.mesh.ndim;
-            dV(1,:,:) = obj.mesh.computeDvolume(q)';
+            dV(1,:,:) = obj.mesh.computeDvolume(q);
             dV = repmat(dV,nDim,1,1);
             obj.dVolum = dV;
         end
 
         function LHS = computeLHS(obj)
             dP  = obj.oCorrectorDerivative;
-            dV    = obj.dVolum;
+            dV  = obj.dVolum;
             nSing = numel(obj.orthogonalCorrector);            
             LHS = zeros(nSing,nSing);            
             for iS = 1:nSing
@@ -92,7 +92,8 @@ classdef CorrectorCoefficientsComputer < handle
         function bfG = computeOrientationInGauss(obj,b)
             q      = obj.quadrature;
             xGauss = q.posgp;
-            bfG    = permute(b.evaluate(xGauss),[1 3 2]);
+            bfG    = b.evaluate(xGauss);            
+            %bfG    = permute(b.evaluate(xGauss),[1 3 2]);
         end
  
     end

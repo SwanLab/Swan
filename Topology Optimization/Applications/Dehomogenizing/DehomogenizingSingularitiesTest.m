@@ -23,7 +23,7 @@ classdef DehomogenizingSingularitiesTest < handle
 
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
-            mSize = linspace(0.040,0.042,2);
+            mSize = linspace(0.042,0.040,2);
             %mSize = linspace(0.030526315789474,0.038421052631579,0.034137931034483,0.034482758620690,0.036551724137931);
          %   mSize = linspace(0.04,0.05,30);%linspace(0.042,0.04,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             for iMesh = 1:length(mSize)
@@ -82,7 +82,7 @@ classdef DehomogenizingSingularitiesTest < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-              [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+              [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
               s.coord  = V(:,1:2);
               s.connec = F;
 
@@ -90,6 +90,19 @@ classdef DehomogenizingSingularitiesTest < handle
             m = Mesh(s);
             obj.mesh = m;
             
+            s.filename = 'SingMeshLeft';
+            s.type     = 'GiD';
+            m.print(s);
+
+           m.exportSTL('SingMesh')
+           mesh = msh('SingMesh.stl');
+           mshWriteMsh('/home/alex/Desktop/PerleSingularities/SingMeshLeft.msh',mesh)
+            
+
+            % s.filename= 'SingMesh';
+            % s.type = 'Paraview';
+            % m.print(s)            
+
         end
 
 
@@ -103,6 +116,7 @@ classdef DehomogenizingSingularitiesTest < handle
             v(:,2) = cos(pi*(x2 + s2*x1));
             beta = atan2(v(:,2),v(:,1));
             alpha = beta/2;
+            
             a = [cos(alpha), sin(alpha)];
             obj.orientation = a;
         end

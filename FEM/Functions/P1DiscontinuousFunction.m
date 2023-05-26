@@ -169,7 +169,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function print(obj, s)
-            s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};
             p = FunctionPrinter.create(s);
             p.print();
