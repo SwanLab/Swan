@@ -3,16 +3,13 @@ classdef ShFunc_ComplianceTarget < handle
     properties (Access = public)
         value
         gradient
-        filter
         Msmooth
         dvolu
         value0
-        shNumber
-        regDesignVariable
     end
 
     properties (Access = protected)
-        complianceShFunc
+        shapeFunctionTargetted
         designVariable
     end
 
@@ -20,65 +17,65 @@ classdef ShFunc_ComplianceTarget < handle
 
         function obj = ShFunc_ComplianceTarget(cParams)
             obj.createBound(cParams);
-            obj.createCompliance(cParams);
+            obj.createFunctionalWithTarget(cParams);
             obj.setUpMassMatrixAndVolumen();
             obj.setUpInitialValue();
         end
 
         function computeFunctionAndGradient(obj)
-            obj.complianceShFunc.computeFunctionAndGradient();
-            obj.value = obj.complianceShFunc.value - obj.designVariable.bound;
-            obj.gradient = [obj.complianceShFunc.gradient;-1];
+            obj.shapeFunctionTargetted.computeFunctionAndGradient();
+            obj.value = obj.shapeFunctionTargetted.value - obj.designVariable.bound;
+            obj.gradient = [obj.shapeFunctionTargetted.gradient;-1];
             if isempty(obj.value0)
-                obj.value0 = obj.complianceShFunc.value0;
+                obj.value0 = obj.shapeFunctionTargetted.value0;
             end 
         end
 
         function f = getPhysicalProblems(obj)
-            f = obj.complianceShFunc.getPhysicalProblems();
+            f = obj.shapeFunctionTargetted.getPhysicalProblems();
         end
 
         function f = getRegularizedDesignVariable(obj)
-            f = obj.complianceShFunc.getRegularizedDesignVariable();
+            f = obj.shapeFunctionTargetted.getRegularizedDesignVariable();
         end
 
         function q = getQuad(obj)
-            q = obj.complianceShFunc.getQuad();
+            q = obj.shapeFunctionTargetted.getQuad();
         end
         function fP = addPrintableVariables(obj)
-            fP = obj.complianceShFunc.addPrintableVariables();
+            fP = obj.shapeFunctionTargetted.addPrintableVariables();
         end
         function v = getVariablesToPlot(obj)
-            v = obj.complianceShFunc.getVariablesToPlot();
+            v = obj.shapeFunctionTargetted.getVariablesToPlot();
         end
         function t = getTitlesToPlot(obj)
-            t = obj.complianceShFunc.getTitlesToPlot();
+            t = obj.shapeFunctionTargetted.getTitlesToPlot();
         end
         function fP = createPrintVariables(obj)
-            fP = obj.complianceShFunc.createPrintVariables();
+            fP = obj.shapeFunctionTargetted.createPrintVariables();
         end
         function [fun, funNames] = getFunsToPlot(obj)
-             [fun, funNames] = obj.complianceShFunc.getFunsToPlot();
+             [fun, funNames] = obj.shapeFunctionTargetted.getFunsToPlot();
         end
         function updateTargetParameters(obj)
-            obj.complianceShFunc.updateTargetParameters();
+            obj.shapeFunctionTargetted.updateTargetParameters();
         end
 
     end
     methods (Access = protected)
         
         function setUpMassMatrixAndVolumen(obj)
-            obj.Msmooth = obj.complianceShFunc.Msmooth;
-            obj.dvolu = obj.complianceShFunc.dvolu;
+            obj.Msmooth = obj.shapeFunctionTargetted.Msmooth;
+            obj.dvolu = obj.shapeFunctionTargetted.dvolu;
         end 
         function setUpInitialValue(obj)
-            obj.value0 = obj.complianceShFunc.value0;
+            obj.value0 = obj.shapeFunctionTargetted.value0;
         end 
-        function createCompliance(obj,cParams)
-            cParams.type  = 'compliance';
+        function createFunctionalWithTarget(obj,cParams)
+            cParams.type  = cParams.filterParams.femSettings.shFunType;
             cParams.designVariable = cParams.designVariable.density;
             f = ShapeFunctional_Factory();
-            obj.complianceShFunc = f.create(cParams);
+            obj.shapeFunctionTargetted = f.create(cParams);
         end
         function createBound(obj,cParams)
             obj.designVariable = cParams.designVariable;

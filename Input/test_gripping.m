@@ -7,9 +7,8 @@ cost = {'nonadjoint_compliance'};
 weights = [1];
 constraint = {'volumeConstraint'}; 
 incrementFactor = [1.2];
-optimizerUnconstrained = 'PROJECTED GRADIENT';
 designVariable = 'Density';
-optimizer = 'NullSpace';
+optimizer = 'MMA';
 filterType = 'P1';
 constraint_case = {'INEQUALITY'};
 
