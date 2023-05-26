@@ -8,8 +8,11 @@ clc
 clear all
 close all
 s.testName = 'test_arturo';
+s.filename = s.testName;
 t = TopOptComputer(s);
 t.compute();
-load('swamTestData20iter.mat')
-errorMean = mean(abs(swamTestData20iter-t.computation.designVariable.value))
-errorDeviation = std(abs(swamTestData20iter-t.computation.designVariable.value))
+
+p.mesh    = t.computation.designVariable.mesh;
+p.fValues = t.computation.designVariable.value;
+Result = P1Function(p);
+Result.print(s);

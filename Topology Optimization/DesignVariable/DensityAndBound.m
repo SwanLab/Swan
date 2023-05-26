@@ -6,7 +6,7 @@ classdef DensityAndBound < DesignVariable
     methods (Access = public)
         function obj = DensityAndBound(cParams)
             obj.density = Density(cParams);
-            obj.bound = 5;
+            obj.bound = 1;
             obj.mesh = cParams.mesh;
             obj.type = cParams.type;
             obj.createValue();
@@ -15,6 +15,9 @@ classdef DensityAndBound < DesignVariable
             obj.update@DesignVariable(value);
             obj.density.value = obj.value(1:end-1);
             obj.bound = obj.value(end);
+        end
+        function updateOld(obj)
+            obj.density.updateOld();
         end
         function v = getVariablesToPlot(obj)
             v{1} = obj.density.value;
@@ -25,6 +28,9 @@ classdef DensityAndBound < DesignVariable
         end
         function rho = computeVolumeFraction(obj)
             rho = obj.density.computeVolumeFraction(obj);
+        end
+        function norm = computeL2normIncrement(obj)
+           norm = obj.density.computeL2normIncrement();
         end
     end
     methods (Access = private)
