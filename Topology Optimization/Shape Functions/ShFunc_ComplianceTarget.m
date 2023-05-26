@@ -6,6 +6,7 @@ classdef ShFunc_ComplianceTarget < handle
         Msmooth
         dvolu
         value0
+        shFunTargettedType
     end
 
     properties (Access = protected)
@@ -72,7 +73,8 @@ classdef ShFunc_ComplianceTarget < handle
             obj.value0 = obj.shapeFunctionTargetted.value0;
         end 
         function createFunctionalWithTarget(obj,cParams)
-            cParams.type  = cParams.filterParams.femSettings.shFunType;
+            obj.shFunTargettedType = cParams.filterParams.femSettings.shFunType;
+            cParams.type  = obj.shFunTargettedType;
             cParams.designVariable = cParams.designVariable.density;
             f = ShapeFunctional_Factory();
             obj.shapeFunctionTargetted = f.create(cParams);
