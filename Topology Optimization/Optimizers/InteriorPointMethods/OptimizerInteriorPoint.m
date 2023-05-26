@@ -330,8 +330,8 @@ classdef OptimizerInteriorPoint < Optimizer
              predictUpdated            = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient'*[obj.dx;obj.ds],1));
             reduced                   = obj.mOld - mNew;
             eta                       = 0.2;
-%            if  reduced >= eta*predictUpdated
-             if mNew < obj.mOld
+            if  reduced >= eta*predictUpdated
+%              if mNew < obj.mOld
                 obj.acceptableStep    = true;
 %                   obj.primalUpdater.tau = 1;
                 obj.updateWithAcceptance();
