@@ -33,6 +33,6 @@ TOL.nu_minus = 1/3;
 plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
+monitoring = true;
 monitoring_interval = 1;
 maxiter = 300;
