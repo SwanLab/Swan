@@ -181,6 +181,26 @@ classdef Plotter < handle
             figure(1)
             obj.plotSurface(targets',outputs')
         end
+
+        function image(obj,row)
+
+            targets = obj.data.Ytest;
+            x = obj.data.Xtest;
+            outputs = obj.costFunction.getOutput(x);
+
+            trg_vec = targets(row,:);
+            out_vec = outputs(row,:);
+
+            % Reshape del vector a una matriz de 28x28
+            img_target = reshape(trg_vec, 28, 28);
+            img_output = reshape(out_vec, 28, 28);
+            
+            % Mostrar la imagen
+            figure(1)
+            imshow(img_target);
+            figure(2)
+            imshow(img_output);
+        end
     end
 
     methods (Access = private)

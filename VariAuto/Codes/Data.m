@@ -86,9 +86,10 @@ classdef Data < handle
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
             feat = input(' ');
             x = obj.data(:, feat);
-            ydata = obj.data(:, end);
-            %Autoencoder
-            y = zeros(length(ydata),max(feat));
+
+            ydata = obj.data(:, feat);
+            y = zeros(length(ydata),width(ydata));
+            
             u = unique(ydata);
             for i=1:length(ydata)
                 for j = 1:length(u)

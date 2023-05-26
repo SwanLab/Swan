@@ -8,7 +8,7 @@ s.testRatio       = 30;
 data = Data(s);
 
 hiddenLayers  = [500,250,100,50,10,50,100,250,500];
-learningRate      = 0.01;
+learningRate      = 0.001;
 lambda = 0;
 
 s.networkParams.hiddenLayers    = hiddenLayers;
@@ -20,6 +20,8 @@ s.costParams.lambda             = lambda;
 opt = OptimizationProblem(s);
 opt.solve();
 opt.plotSurface();
+
+opt.plotImage(1);
 
 %% UNCOMMENT FOR PLOTTING SOME WRONG IMAGES
 % [~,OUT]   = max(CostFunction.getOutput(data.Xtest),[],2);

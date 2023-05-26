@@ -41,6 +41,10 @@ classdef OptimizationProblem < handle
        function plotSurface(obj)
            obj.plotter.drawSurfaceResults();
        end
+
+       function plotImage(obj,row)
+           obj.plotter.image(row);
+       end
    end
 
    methods (Access = private)
