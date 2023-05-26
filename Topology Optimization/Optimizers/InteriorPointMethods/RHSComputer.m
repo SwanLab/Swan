@@ -15,6 +15,9 @@ classdef RHSComputer < handle
         invDiagdL
         invDiagdU
         e
+
+        diagonaldL
+        diagonaldU
     end
 
     methods (Access = public, Static)

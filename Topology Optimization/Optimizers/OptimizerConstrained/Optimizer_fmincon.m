@@ -15,13 +15,6 @@ classdef Optimizer_fmincon < Optimizer
         incrementalScheme
         hasConverged
         hasFinished
-        
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
 
@@ -37,7 +30,7 @@ classdef Optimizer_fmincon < Optimizer
 
          function solveProblem(obj)
             obj.cost.computeFunctionAndGradient();
-            obj.designVariable.updateOld();
+            obj.designVariable.updateOld();                
             x = obj.callfmincon();
             obj.designVariable.update(x);
          end
@@ -163,7 +156,7 @@ classdef Optimizer_fmincon < Optimizer
             stop      = false;
             switch state
                 case "init"
-
+                    
                 case "iter"
                     obj.updateIterInfo();
                     obj.designVariable.update(x);

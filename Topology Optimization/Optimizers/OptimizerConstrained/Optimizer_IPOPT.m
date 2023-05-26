@@ -15,7 +15,7 @@ classdef Optimizer_IPOPT < Optimizer
         functions
         nX
         options
-        constraintCase
+        %constraintCase
     end
     
     methods (Access = public)

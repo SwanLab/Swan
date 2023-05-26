@@ -7,6 +7,14 @@ classdef LHSComputer < handle
         H
         constraint
         m
+
+        nX
+        nSlack
+        hessian
+        upperZ
+        lowerZ
+        diagonaldL
+        diagonaldU
     end
 
     methods (Access = public, Static)

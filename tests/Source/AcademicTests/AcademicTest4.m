@@ -1,10 +1,10 @@
 %% ACADEMIC TEST 4 %%
 
-x0 = [-7;-5];
-j.cF = @(x) x(1)^2-2*x(1)*x(2)+4*x(2)^2;
-j.gF = @(x) [2*x(1)-2*x(2);-2*x(1)+8*x(2)];
-c.cF = @(x) -[0.1*x(1)-x(2)-1;-10*x(1)+x(2)-1];
-c.gF = @(x) -[0.1,-1.0;-10.0,1.0]';
+x0                           = [-7;-5];
+j.cF                         = @(x) x(1)^2-2*x(1)*x(2)+4*x(2)^2;
+j.gF                         = @(x) [2*x(1)-2*x(2);-2*x(1)+8*x(2)];
+c.cF                         = @(x) -[0.1*x(1)-x(2)-1;-10*x(1)+x(2)-1];
+c.gF                         = @(x) -[0.1,-1.0;-10.0,1.0];
 s.type                       = "IPM";                                % CONST OPTIMIZER
 s.uncOptimizerSettings.ub    = inf;                                      % UPPER BOUND
 s.uncOptimizerSettings.lb    = -inf;                                     % LOWER BOUND
@@ -15,5 +15,5 @@ s.dualVariable               = [];
 s.maxIter                    = [];
 s.targetParameters.constr_tol = 1e-3;
 s.constraintCase             = {'INEQUALITY','INEQUALITY'};
-s.maxIter                    = 100;
+s.maxIter                    = 15;
 s.postProcessSettings.shallPrint = false;

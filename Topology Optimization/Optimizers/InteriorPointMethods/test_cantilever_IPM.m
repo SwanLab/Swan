@@ -1,4 +1,4 @@
-filename = 'CantileverBeam_Triangle_Linear';
+filename = 'cantileverExample_more_elements';%'cantileverExample';%'CantileverBeam_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -8,7 +8,7 @@ weights = 1;
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-optimizer = 'IPM';%'AlternatingPrimalDual';%
+optimizer = 'IPM';%'AlternatingPrimalDual';%'NullSpace';
 incrementFactor = 1.05; 
 designVariable = 'Density';
 filterType = 'P1';
@@ -16,7 +16,7 @@ line_search_initiator = 'INCREASING LAST STEP';
 
 
 nsteps = 1;
-Vfrac_final = 0.3;
+Vfrac_final = 0.4;
 optimality_final =1e-3;
 constr_final = 1e-5;
 
@@ -35,6 +35,6 @@ TOL.nu_minus = 1/3;
 plotting = true;
 printing = false;
 printing_physics = false;
-monitoring = false;
+monitoring = true;
 monitoring_interval = 1;
 maxiter = 1000;

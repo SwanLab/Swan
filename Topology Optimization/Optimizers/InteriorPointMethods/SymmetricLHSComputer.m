@@ -18,6 +18,7 @@ classdef SymmetricLHSComputer < LHSComputer
     methods (Access = private)
         function computeLHS(obj)
             obj.LHS = [obj.H,obj.constraint.gradient;obj.constraint.gradient',zeros(obj.m,obj.m)];
+%            obj.LHS = [obj.H,obj.constraint.gradient';obj.constraint.gradient,zeros(obj.m,obj.m)];
         end
     end
 end

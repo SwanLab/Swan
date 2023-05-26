@@ -100,11 +100,25 @@ classdef AcademicMonitoring < handle
             title('Constraints violation evolution')
             legend('Constraint 1', 'Constraint 2')
             drawnow
+            vector1 = obj.xVec1;
+            vector2 = obj.xVec2;
+            iterations = obj.iterVec;
+            costVec = obj.cVec;
+            constrVec1 = obj.cnstVec1;
+            constrVec2 = obj.cnstVec2;
+%             save('DesignVariableEvolution_fmincon_IP_Test3.mat','vector1','vector2','-mat')
+%              save('Cost_Const_Test3_fmincon_IP.mat','iterations',"costVec","constrVec1","constrVec2")
         end
         
         function plotNullSpace(obj,cParams)
             disp(obj.designVariable.value);
             disp(obj.cost.value);
+            x    = obj.designVariable.value;
+            obj.xVec1 = [obj.xVec1;x(1)];
+            obj.xVec2 = [obj.xVec2;x(2)];
+            vector1 = obj.xVec1;
+            vector2 = obj.xVec2;
+            %save('DesignVariableEvolution_NullSpace_Test2.mat','vector1','vector2','-mat')
         end
         
         function plotAugmentedLagrangian(obj,x,cParams)
@@ -196,6 +210,37 @@ classdef AcademicMonitoring < handle
                 set(gca,'TickLabelInterpreter','latex')
                 drawnow
             end
+            vector1 = obj.xVec1;
+            vector2 = obj.xVec2;
+            iterations = obj.iterVec;
+            costVec = obj.cVec;
+            constrVec1 = obj.cnstVec1;
+            constrVec2 = obj.cnstVec2;
+%             save('Cost_Const_Test4.mat','iterations',"costVec","constrVec1","constrVec2")
+%             save('DesignVariableEvolution_Test1.mat','vector1','vector2','-mat')
+%             obj.xVec1 = [obj.xVec1;x(1)];
+%             obj.xVec2 = [obj.xVec2;x(2)];
+%             if iter == 0
+%                 open FeasibleRegionTest1_2.fig
+%             end
+%             figure(10)
+%             hold on
+%             v = 0:0.001:5;
+%             [x y] = meshgrid(v);
+%             cond1 = 1./x - y < 0;
+%             cond2 = x+ y - 3 < 0;
+%             cond1 = double(cond1);
+%             cond2 = double(cond2);
+%             cond1(cond1 == 0) = NaN;
+%             cond2(cond2 == 0) = NaN;
+%             cond = cond1.*cond2;
+%             h = surf(x,y,cond);
+%             colormap([0,1,1])
+%             set(h,'edgecolor','none')
+%             view(0,90)
+%             plot(obj.xVec1,obj.xVec2)
+%             hold off
+
         end
                 
     end

@@ -1,0 +1,11 @@
+fileName = 'cantileverExample_more_elements';
+s.testName = [fileName,'.m'];
+s.x1       = 2;
+s.y1       = 1;
+s.N        = 40;
+s.M        = 40;
+s.P        = -1;
+s.DoF      = 2;
+s.problemCase = 'cantilever';
+FEMWriter = FEMInputWriter(s);
+FEMWriter.createTest();
