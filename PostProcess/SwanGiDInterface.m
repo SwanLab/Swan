@@ -18,9 +18,20 @@ classdef SwanGiDInterface < handle
             obj.tclPath  = [obj.swanPath, 'PostProcess/STL/'];
         end
 
+        function generateMesh(obj, resultsFile)
+            obj.writeSurfaceTclFile(resultsFile);
+            obj.writeGenerateMeshTclFile();
+            % Create Surface
+            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
+            system(command);
+            % Generate Mesh
+            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
+            system(command);
+        end
+
         function extrudeAndExport(obj)
             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
-            obj.writeTclFile(resultsFile);
+            obj.writeSurfaceTclFile(resultsFile);
             obj.writeExtrudeTclFile();
             obj.writeGenerateMeshTclFile();
             obj.writeExportSTLTclFile();
@@ -46,7 +57,7 @@ classdef SwanGiDInterface < handle
 
     methods (Access = private)
 
-        function writeTclFile(obj, resultsFile)
+        function writeSurfaceTclFile(obj, resultsFile)
             tclFile = [obj.tclPath,'callGiD_CreateSurface.tcl'];
             stlFileTocall = 'CreateSurfaceNew.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];

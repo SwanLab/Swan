@@ -39,8 +39,9 @@ IM = uMesh.createInnerMesh();
 
 %% Create Inner Mesh And Improve Conditioning
 % ONLY using GiD (MATLAB does not improve conditioning)
-sIMg.filename     = 'thisIsUseless';  % Why?
-sIMg.meshFileName = 'thisIsUseless2'; % Why?
+sIMg.filename     = 'notForLong';  % Why?
+sIMg.meshFileName = 'notForLong2'; % Why?
 sIMg.swanPath     = '/home/ton/Github/Swan/';
 sIMg.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
-IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
+% IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
+IMcond2 = uMesh.createInnerMeshGoodConditioning2(sIMg);

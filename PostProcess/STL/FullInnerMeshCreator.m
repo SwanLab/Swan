@@ -14,7 +14,7 @@ classdef FullInnerMeshCreator < handle
                 case 'GiD'
                     h = cParams.unfittedMesh.innerMesh.mesh.computeMeanCellSize();
                     cParams.meshElementSize = num2str(h);
-                    ime = FullInnerMeshCreator_GiD(cParams);
+                    ime = FullInnerMeshCreator_GiD2(cParams);
             end
         end
         
