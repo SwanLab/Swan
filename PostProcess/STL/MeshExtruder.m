@@ -5,6 +5,8 @@ classdef MeshExtruder < handle
         gidPath
         tclPath
         resFilePath
+        unfittedMesh
+        meshFileName
     end
     
     methods (Access = public)
@@ -13,10 +15,17 @@ classdef MeshExtruder < handle
             obj.init(cParams)
         end
 
-        function extrude(obj)
-            obj.writeTCLfile();
-            obj.writeExportTCLfile();
-            obj.runGiD()
+        function m =  extrude(obj)
+            obj.exportMshThroughGiD();
+            m = obj.readMsh();
+        end
+
+        function exportMshThroughGiD(obj)
+            obj.unfittedMesh.printNew(obj.filename);
+            a = 0;
+            s2g = SwanGiDInterface(a);
+            resFile = obj.getResFilePath();
+            s2g.extrudeMesh(resFile);
         end
         
     end
@@ -24,52 +33,31 @@ classdef MeshExtruder < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.unfittedMesh    = cParams.unfittedMesh;
             obj.filename        = cParams.filename;
-            obj.swanPath        = '/home/ton/Github/Swan/';
-            obj.gidPath         = '/home/ton/GiDx64/gid-16.1.2d/';
-            obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
-%             obj.resFilePath     = obj.getResFilePath();
-            obj.resFilePath     = '/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res';
+%             obj.meshElementSize = cParams.meshElementSize;
+            obj.meshFileName    = cParams.meshFileName;
+%             obj.swanPath        = cParams.swanPath;
+%             obj.gidPath         = cParams.gidPath;
+%             obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
+            obj.resFilePath     = obj.getResFilePath();
         end
 
-        function writeTCLfile(obj)
-            tclFile = [obj.tclPath,'callGiD.tcl'];
-            stlFileTocall = 'CreateSurfaceSTL.tcl';
-            gidBasPath = [obj.gidPath,'templates/DXF.bas'];
-            fid = fopen(tclFile,'w+');
-            fprintf(fid,['set path "',obj.tclPath,'"\n']);
-            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-            fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set output "$path/sampleMesh" \n']);
-            fprintf(fid,['set inputFile "',obj.resFilePath,'"\n']);
-            fprintf(fid,['set meshFile "$path/sampleMesh" \n']);
-            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
-            fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
-            fprintf(fid,['CreateSurfaceSTL $inputFile $output $meshFile $gidProjectName $gidBasPath \n']);
-            fclose(fid);
+        function m = readMsh(obj)
+            s.filePath = obj.getOutputFileName();
+            mR = MshReader(s);
+            m = mR.read();
         end
 
-        function writeExportTCLfile(obj)
-            tclFile = [obj.tclPath,'.tcl'];
-            stlFileTocall = 'ExportSTL.tcl';
-            fid = fopen(tclFile,'w+');
-            gidBasPath = [obj.gidPath,'templates/STL.bas'];
-            fprintf(fid,['set path "',obj.tclPath,'"\n']);
-            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-            fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set input "$path/sampleMesh.gid" \n']);
-            fprintf(fid,['set output "$path/sampleMeshFile.stl" \n']);
-            fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
-            fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
-            fclose(fid);
+        function f = getOutputFileName(obj)
+%             f = [obj.gidPath, obj.meshFileName,'.msh'];
+            f = '/home/ton/Github/Swan/PostProcess/STL/sampleMesh.msh';
         end
 
-        function runGiD(obj)
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD.tcl"'];
-            unix(command);
-            
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD2.tcl"'];
-            unix(command);
+        function f = getResFilePath(obj)
+            name = obj.filename;
+            swan = obj.swanPath;
+            f = [swan, name, '.flavia.res'];
         end
         
     end

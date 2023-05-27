@@ -5,5 +5,4 @@ proc GenerateMesh {arg1} {
     GiD_Process Mescape Meshing Generate Yes 0.11 MeshingParametersFrom=Preferences
     GiD_Process Mescape Files Save -alsoresults:1 -- geoversion:current $gidProjectName
     GiD_Process Mescape Files WriteMesh $gidProjectName.msh
-    GiD_Process Mescape Quit
 }

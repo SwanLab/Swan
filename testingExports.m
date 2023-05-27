@@ -44,4 +44,11 @@ sIMg.meshFileName = 'notForLong2'; % Why?
 sIMg.swanPath     = '/home/ton/Github/Swan/';
 sIMg.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
 % IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
-IMcond2 = uMesh.createInnerMeshGoodConditioning2(sIMg);
+IMcond2 = uMesh.createInnerMeshGoodConditioning(sIMg);
+
+%% Extrude Mesh (improves conditioning)
+sEM.filename     = 'notForLong';  % Why?
+sEM.meshFileName = 'notForLong2'; % Why?
+sEM.swanPath     = '/home/ton/Github/Swan/';
+sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
+EM = uMesh.provideExtrudedMesh(sEM);

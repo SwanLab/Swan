@@ -22,13 +22,33 @@ classdef SwanGiDInterface < handle
             obj.writeSurfaceTclFile(resultsFile);
             obj.writeGenerateMeshTclFile();
             % Create Surface
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
             system(command);
             % Generate Mesh
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
             system(command);
         end
 
+        function extrudeMesh(obj, resultsFile)
+%             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
+            obj.writeSurfaceTclFile(resultsFile);
+            obj.writeExtrudeTclFile();
+            obj.writeGenerateMeshTclFile();
+            obj.writeExportSTLTclFile();
+
+            % Create Surface
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
+            system(command);
+
+            % Extrude Surface
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
+            system(command);
+
+            % Generate Mesh
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
+            system(command);
+        end
+        
         function extrudeAndExport(obj)
             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
             obj.writeSurfaceTclFile(resultsFile);
@@ -94,8 +114,9 @@ classdef SwanGiDInterface < handle
             fid = fopen(tclFile,'w+');
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['set mshname "sampleMesh" \n']);
             fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
+            fprintf(fid,['set gidProjectName "$path$mshname" \n']);
             fprintf(fid,['ExtrudeSurface $gidProjectName \n']);
             fclose(fid);
         end
