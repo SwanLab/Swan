@@ -49,6 +49,14 @@ classdef SwanGiDInterface < handle
             system(command);
         end
         
+        function exportSTL(obj, resFile)
+            obj.writeExportSTLTclFile();
+
+            % Export STL
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
+            system(command);
+        end
+
         function extrudeAndExport(obj)
             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
             obj.writeSurfaceTclFile(resultsFile);

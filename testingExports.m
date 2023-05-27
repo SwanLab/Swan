@@ -32,19 +32,19 @@ sUm.backgroundMesh = bgMesh;
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(levelSet);
 
-%% Create Inner Mesh
-% ONLY using MATLAB (GiD improves conditioning)
-IM = uMesh.createInnerMesh();
-
-
-%% Create Inner Mesh And Improve Conditioning
-% ONLY using GiD (MATLAB does not improve conditioning)
-sIMg.filename     = 'notForLong';  % Why?
-sIMg.meshFileName = 'notForLong2'; % Why?
-sIMg.swanPath     = '/home/ton/Github/Swan/';
-sIMg.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
-% IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
-IMcond2 = uMesh.createInnerMeshGoodConditioning(sIMg);
+% %% Create Inner Mesh
+% % ONLY using MATLAB (GiD improves conditioning)
+% IM = uMesh.createInnerMesh();
+% 
+% 
+% %% Create Inner Mesh And Improve Conditioning
+% % ONLY using GiD (MATLAB does not improve conditioning)
+% sIMg.filename     = 'notForLong';  % Why?
+% sIMg.meshFileName = 'notForLong2'; % Why?
+% sIMg.swanPath     = '/home/ton/Github/Swan/';
+% sIMg.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
+% % IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
+% IMcond2 = uMesh.createInnerMeshGoodConditioning(sIMg);
 
 %% Extrude Mesh (improves conditioning)
 sEM.filename     = 'notForLong';  % Why?
@@ -52,3 +52,8 @@ sEM.meshFileName = 'notForLong2'; % Why?
 sEM.swanPath     = '/home/ton/Github/Swan/';
 sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
 EM = uMesh.provideExtrudedMesh(sEM);
+
+%% Export STL
+sSTL.filename     = 'notForLong';  % Why?
+sSTL.meshFileName = 'notForLong2'; % Why?
+EM = EM.exportSTL(sSTL);
