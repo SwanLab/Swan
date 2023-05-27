@@ -1,6 +1,6 @@
 classdef Volume_constraintWithBound < ShapeFunctional
 
-properties (Access = private)
+properties (Access = public)
     volume
     vTarget
 end

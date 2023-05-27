@@ -107,20 +107,24 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'ComplianceConstraintThreeFieldRhoE'
-                    cParams.filterParams.femSettings.eta  = 0.5+0.45;
-                    cParams.filterParams.femSettings.beta = 1;
+                    load('scaleParameters.mat');
+                    cParams.filterParams.femSettings.eta  = 0.5+scaleParameters.eta;
+                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoI'
+                    load('scaleParameters.mat');
                     cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = 1;
+                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.5-0.45;
-                    cParams.filterParams.femSettings.beta = 1;
+                    load('scaleParameters.mat');
+                    cParams.filterParams.femSettings.eta  = 0.5-scaleParameters.eta;
+                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'VolumeConstraintRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.5-0.45;
-                    cParams.filterParams.femSettings.beta = 1;
+                    load('scaleParameters.mat');
+                    cParams.filterParams.femSettings.eta  = 0.5;
+                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
                     sF = Volume_constraintWithBound(cParams);
                 case 'LinearBoundFunction'
                     sF = LinearBoundFunction(cParams);
