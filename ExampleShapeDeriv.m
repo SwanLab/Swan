@@ -11,12 +11,12 @@ s = FemDataContainer(a);
 mesh = s.mesh;
 % mesh.plot()
 
-% fem = FEM.create(s);
-% fem.solve();
+fem = FEM.create(s);
+fem.solve();
 % u = fem.uFun;
 % u.plot
-% sP.filename = 'Example1';
-% sP.type = 'GiD';
+sP.filename = 'Example1';
+sP.type = 'GiD';
 % u.print(sP)
 
 %%%% Defineixo la funció analítica (el funcional F(Omega)) %%%%
@@ -37,17 +37,19 @@ dVG = mesh.computeDvolume(quad);
 % Calculo la integral de la funció analítica del funcional F(Omega)
 intF = sum(squeeze(fG(:,:,:)).*dVG(:)) ;
 
-
+%%%% Trobo la funció g que fa que gTheta=F'(Omega)(Theta) %%%%
 sP.mesh = mesh;
 sP.connec = mesh.connec;
 h = H1Projector_toP1(sP);
-g = h.project(xFun)
+g = h.project(xFun) ;
+% g.plot() ;
 
-% Projector to P1
-pp1.mesh   = mesh;
-pp1.connec = mesh.connec;
-projP1 = Projector_toP1(pp1);
-p1fun = projP1.project(xFun);
-p1fun.plot();
+
+
+%%%% Càlcul del gradient de g %%%%
+grad1 = g.computeGradient(quad);
+gradientOp = Gradient();
+grad2 = gradientOp.compute(p1fun, quad, mesh);
+
 
 % end
