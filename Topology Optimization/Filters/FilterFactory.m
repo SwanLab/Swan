@@ -13,7 +13,7 @@ classdef FilterFactory < handle
                     end
                 case 'PDE'
                     switch cParams.designVarType
-                        case {'Density','MicroParams'}
+                        case {'Density','MicroParams','Density&Bound'}
                             filter = Filter_PDE_Density(cParams);
                         case 'LevelSet'
                             filter = Filter_PDE_LevelSet(cParams);

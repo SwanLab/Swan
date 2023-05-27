@@ -166,8 +166,8 @@ classdef Optimizer_MMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1*ones(obj.m,1);
-                obj.d = 100*ones(obj.m,1);
+                obj.c = 1*ones(obj.m,1); % VAR 1
+                obj.d = 100*ones(obj.m,1); % VAR 2
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
