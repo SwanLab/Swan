@@ -88,18 +88,18 @@ classdef Data < handle
             x = obj.data(:, feat);
 
             ydata = obj.data(:, feat);
-            y = zeros(length(ydata),width(ydata));
+            % y = zeros(length(ydata),width(ydata));
             
-            u = unique(ydata);
-            for i=1:length(ydata)
-                for j = 1:length(u)
-                    if ydata(i) == u(j)
-                        y(i,j) = 1;
-                    end
-                end
-            end
+            % u = unique(ydata);
+            % for i=1:length(ydata)
+            %     for j = 1:length(u)
+            %         if ydata(i) == u(j)
+            %             y(i,j) = 1;
+            %         end
+            %     end
+            % end
             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            obj.Y = y;
+            obj.Y = ydata;
         end
         
 
