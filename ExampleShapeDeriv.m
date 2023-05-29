@@ -44,12 +44,19 @@ h = H1Projector_toP1(sP);
 g = h.project(xFun) ;
 % g.plot() ;
 
+new_coord = zeros(length(mesh.coord),2) ;
+
+for i = 1:length(mesh.coord)
+    new_coord(i,1) = sAF.mesh.coord(i,1) - g.fValues(i)*0.01 ;
+    new_coord(i,2) = sAF.mesh.coord(i,2) - g.fValues(i)*0.01 ;
+end 
+
+mesh2 = mesh ;
+mesh2.coord = new_coord ;
+mesh2.plot() ;
 
 
-%%%% Càlcul del gradient de g %%%%
-grad1 = g.computeGradient(quad);
-gradientOp = Gradient();
-grad2 = gradientOp.compute(p1fun, quad, mesh);
+
 
 
 % end
