@@ -93,14 +93,14 @@ classdef OptimizerInteriorPoint < Optimizer
                 end
             end
             % Move x variables to be feasible
-            for i = 1:obj.nX
-                if (obj.designVariable.value(i) <= obj.lowerX(i))
-                    obj.designVariable.value(i) = min(obj.upperX(i),obj.lowerX(i)+1e-2);
-                end
-                if (obj.designVariable.value(i) >= obj.upperX(i))
-                    obj.designVariable.value(i) = max(obj.lowerX(i),obj.upperX(i)-1e-2);
-                end
-            end
+%             for i = 1:obj.nX
+%                 if (obj.designVariable.value(i) <= obj.lowerX(i))
+%                     obj.designVariable.value(i) = min(obj.upperX(i),obj.lowerX(i)+1e-2);
+%                 end
+%                 if (obj.designVariable.value(i) >= obj.upperX(i))
+%                     obj.designVariable.value(i) = max(obj.lowerX(i),obj.upperX(i)-1e-2);
+%                 end
+%             end
             % Move slack variables to be feasible
             for i = 1:obj.nSlack
                 if (obj.slack(i) <= obj.lowerSlack(i))
@@ -330,8 +330,8 @@ classdef OptimizerInteriorPoint < Optimizer
              predictUpdated            = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient'*[obj.dx;obj.ds],1));
             reduced                   = obj.mOld - mNew;
             eta                       = 0.2;
-            if  reduced >= eta*predictUpdated
-%              if mNew < obj.mOld
+%             if  reduced >= eta*predictUpdated
+             if mNew < obj.mOld
                 obj.acceptableStep    = true;
 %                   obj.primalUpdater.tau = 1;
                 obj.updateWithAcceptance();
@@ -437,11 +437,11 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function loadIPMVariables(obj)
-            obj.baseVariables.nu         = 25;
-            obj.baseVariables.mu         = 10;
+            obj.baseVariables.nu         = 300;
+            obj.baseVariables.mu         = 0.001;
             obj.baseVariables.slack_init = true;
-            obj.baseVariables.tau_max    = 0.01;
-            obj.baseVariables.k_mu       = 0.5;
+            obj.baseVariables.tau_max    = 0.1;
+            obj.baseVariables.k_mu       = 1;
             obj.computeLinearBounds();
             obj.computeSlackVariables();
             obj.computeUpperAndLowerBounds();
@@ -465,8 +465,8 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function computeUpperAndLowerBounds(obj)
             for i = 1:obj.nX
-                obj.lowerX(i) = -inf;
-                obj.upperX(i) = inf;
+                obj.lowerX(i) = 0.1;
+                obj.upperX(i) = 0.9;
             end
         end
 
