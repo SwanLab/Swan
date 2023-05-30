@@ -28,11 +28,7 @@ classdef RHSintegrator_ElasticMicroNew < handle
                 FvolE = squeeze(obj.computeStrainRHS(vstrain));
                 Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
             end
-%             Fvol       = obj.computeStrainRHS(obj.vstrain);
-%             forces     = squeeze(Fvol);
-%             FextSupVol = obj.assembleVector(forces);
-            Fpoint     = obj.computePunctualFext();
-%             Fext = FextSupVol +  Fpoint;
+            Fpoint = obj.computePunctualFext();
             Fext = Fvol + Fpoint;
         end
 
@@ -91,14 +87,59 @@ classdef RHSintegrator_ElasticMicroNew < handle
             end
         end
         
+        
         function F = computeStrainRHS(obj,vstrain)
+            Cmat  = obj.material.C;
+            nunkn = obj.dim.ndimf;
+            nstre = size(Cmat,1);
+            nelem = size(Cmat,3);
+            nnode = obj.dim.nnodeElem;
             ngaus = obj.quadrature.ngaus;
+
+            eforce = zeros(nunkn*nnode,ngaus,nelem);
+            sigma = zeros(nstre,ngaus,nelem);
+
+            a.mesh       = obj.mesh;
+            a.fValues    = sigma;
+            a.quadrature = obj.quadrature;
+            sigmaF = FGaussDiscontinuousFunction(a);
+
+            sigmaF.ndimf = size(obj.mesh.coord,2); 
+            s.fun  = sigmaF;
+            s.dNdx = sigmaF.computeCartesianDerivatives(obj.quadrature);
+
+            Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
-                sigma  = obj.computeStress(vstrain);
-                eforce = obj.computeEForce(sigma,igaus);
+                Bmat    = Bcomp.compute(igaus);
+                dV(:,1) = obj.dvolume(:,igaus);
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
+                        vj  = vstrain(jstre);
+                        si  = squeeze(sigma(istre,igaus,:));
+                        sigma(istre,igaus,:) = si + Cij*vj;
+                    end
+                end
+                for iv = 1:nnode*nunkn
+                    for istre = 1:nstre
+                        Biv_i = squeeze(Bmat(istre,iv,:));
+                        si    = squeeze(sigma(istre,igaus,:));
+                        Fiv   = squeeze(eforce(iv,igaus,:));
+                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
+                    end
+                end
             end
             F = -eforce;
         end
+
+%         function F = computeStrainRHS(obj,vstrain)
+%             ngaus = obj.quadrature.ngaus;
+%             for igaus = 1:ngaus
+%                 sigma  = obj.computeStress(vstrain);
+%                 eforce = obj.computeEForce(sigma,igaus);
+%             end
+%             F = -eforce;
+%         end
 
         function sigmaFun = computeStress(obj, vstrain)
             Cmat  = obj.material.C;
