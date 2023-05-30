@@ -67,8 +67,8 @@ m.material.C(:,:,holeNodes) = m.material.C(:,:, holeNodes)*1e-3;
 
 
 % % Solve the problem
-fem = ElasticProblemMicro(m);
-fem.computeChomog();
+fem = ElasticProblemMicro_Fast(m);
+fem.solve();
 % sss.filename = 'fluctHoleGID';
 sss.filename = 'fluctHoleMaterial';
 fem.uFun{3}.print(sss);

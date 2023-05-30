@@ -29,7 +29,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             nDofE = nNodE*obj.fun.ndimf;
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
-            Cmat = obj.material.C;
+            Cmat = obj.material.C(:,:,:,1);
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);
                 dV(1,1,:) = dVolu(igaus,:)';

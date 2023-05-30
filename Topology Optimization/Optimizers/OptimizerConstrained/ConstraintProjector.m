@@ -58,8 +58,8 @@ classdef ConstraintProjector < handle
             isLB   = false;
             isUB   = false;
             i      = -15;
-            pow    = 1.1;
-            while ~isLB && ~isUB && i < 1000
+            pow    = 1.1; %1.1
+            while ~isLB && ~isUB && i < 1000 % i < 1000
                 lLB  = lambda - pow^(i);
                 fLB  = obj.computeFeasibleDesignVariable(lLB);
                 lUB  = lambda + pow^(i);
@@ -68,6 +68,7 @@ classdef ConstraintProjector < handle
                 isUB = fUB*fref < 0;
                 i    = i + 1;
             end
+            display(i)
             if isLB
                  lUB = lambda + pow^(i-2);
             else

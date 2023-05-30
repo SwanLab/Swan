@@ -1,4 +1,5 @@
-filename='test3d_micro_cube_v2';
+filename='test3d_micro_cube_hexa';
+% filename='test3d_micro_cube_v2';
 % filename='test3d_micro_cube';
 % filename='holeinclusion3d';
 % filename = 'test2d_micro';
@@ -24,8 +25,9 @@ optimizer = 'DualNestedInPrimal';
 incrementFactor = 1; %%%%%%%%%%% 1.2
 % designVariable = 'Density';
 designVariable = 'LevelSet';
-filterType = 'P1';
+filterType = 'P1'; % P1 / PDE
 fracRadius = 0.4; %%%%%%%%%%% 0.75
+kfrac = 1.1;
 
 nsteps = 50; % 1
 Vfrac_final = 0.7; %%%%% 0.7
@@ -33,7 +35,7 @@ Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.91; %%%%%%%%%%% 1 (primer problema al q intenta convergir)
+Vfrac_initial = 1-4/3*pi*(fracRadius/2)^3; %%%%%%%%%%% 1 (primer problema al q intenta convergir)
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
@@ -56,5 +58,5 @@ micro.beta =[1 0 0 0 0 0]';
 plotting = false;
 printing = true;
 monitoring = true;
-maxiter = nsteps*4;
+maxiter = nsteps*10;
 monitoring_interval = 1;

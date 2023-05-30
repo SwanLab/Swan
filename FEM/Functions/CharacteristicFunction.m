@@ -59,7 +59,7 @@ classdef CharacteristicFunction < L2Function
             obj.coorP1 = P1Function(s);
         end
 
-%         function createLevelSetFunction(obj)
+        function createLevelSetFunction(obj)
 %             fxy = @(x,y) (x-0.5).^2+(y-0.5).^2-0.3.^2;
             fxy = @(x,y,z) -((x-0.5).^2+(y-0.5).^2+(z-0.5).^2 -0.3.^2);
             xy    = obj.coorP1.fValues;
