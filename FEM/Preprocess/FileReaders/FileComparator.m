@@ -57,7 +57,11 @@ classdef FileComparator < handle
                     check = strcmp(Ai,Bi);
                 else
                     b = cell2mat(textscan(char(Bi),'%f'));
-                    err = norm(a - b)/norm(b);
+                    if norm(b) == 0
+                        err = norm(a - b);
+                    else
+                        err = norm(a - b)/norm(b);
+                    end
                     if err<tol
                         check = true;
                     else
