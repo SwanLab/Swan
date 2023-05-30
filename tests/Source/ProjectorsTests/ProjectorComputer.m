@@ -7,7 +7,6 @@ classdef ProjectorComputer < handle
 
     properties (Access = private)
         problemTestName
-        projectFrom
         projectTo
         fun
         funProj
@@ -49,7 +48,6 @@ classdef ProjectorComputer < handle
         function saveConfiguration(obj)
             run(obj.testName);
             obj.problemTestName = problemToSolve;
-            obj.projectFrom     = origin;
             obj.projectTo       = projectDestination;
             obj.var             = variable;
         end
@@ -72,18 +70,7 @@ classdef ProjectorComputer < handle
         end
 
         function selectOrigin(obj)
-            val = obj.computation.(obj.var).fValues;
-            switch obj.projectFrom
-                case {'P0'}
-                    val = squeeze(val)';
-                case {'P1'}
-%                     val = reshape(val,[obj.mesh.ndim,obj.mesh.nnodes])';
-%                     val = squeeze(val)';
-            end
-            z.fValues      = val;
-            z.mesh         = obj.mesh;
-            z.functionType = obj.projectFrom;
-            obj.fun        = FeFunction.create(z);
+            obj.fun = obj.computation.(obj.var);
         end
 
         function selectProjector(obj)
