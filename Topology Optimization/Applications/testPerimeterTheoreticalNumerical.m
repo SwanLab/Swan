@@ -1,5 +1,5 @@
 % Obtain filter
-a.fileName = 'SquareForAniTests';
+%a.fileName = ...;
 s = FemDataContainer(a);
 d.type = 'circleInclusion';
 d.coord = s.mesh.coord;
