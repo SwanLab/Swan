@@ -1,5 +1,6 @@
-% function ExampleShapeDeriv
 
+% function ExampleShapeDeriv
+clear clc
 addpath(genpath(fileparts(mfilename('fullpath')))) ;
 
 
@@ -18,6 +19,7 @@ fem.solve();
 sP.filename = 'Example1';
 sP.type = 'GiD';
 % u.print(sP)
+
 
 %%%% Defineixo la funció analítica (el funcional F(Omega)) %%%%
 sAF.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
@@ -44,16 +46,40 @@ h = H1Projector_toP1(sP);
 g = h.project(xFun) ;
 % g.plot() ;
 
-new_coord = zeros(length(mesh.coord),2) ;
+newCoord = zeros(length(mesh.coord),2) ;
+delta = 0.0245;
+convergeix = 0 ;
+it = 0 ;
+coordAsterisco=sAF.mesh.coord ;
 
-for i = 1:length(mesh.coord)
-    new_coord(i,1) = sAF.mesh.coord(i,1) - g.fValues(i)*0.01 ;
-    new_coord(i,2) = sAF.mesh.coord(i,2) - g.fValues(i)*0.01 ;
-end 
+while convergeix == 0
+    newCoord = coordAsterisco;
+    for i = 1:length(mesh.coord)
+    newCoord(i,1) = newCoord(i,1) - g.fValues(i)*0.1 ;
+    newCoord(i,2) = newCoord(i,2) - g.fValues(i)*0.1 ;
+    end  
+    a.connec = mesh.connec ;
+    a.coord = newCoord ;
+    m = Mesh(a) ;
+    t.mesh = m ;
+    h = H1Projector_toP1(t);
+    g = h.project(xFun) ;
 
-mesh2 = mesh ;
-mesh2.coord = new_coord ;
-mesh2.plot() ;
+    A = max(max(abs(newCoord-coordAsterisco))) 
+    if A < delta
+        convergeix = 1 ;
+    else 
+        coordAsterisco = newCoord ;
+        it = it + 1 ;
+    end
+end
+
+a.connec = mesh.connec ;
+a.coord = newCoord ;
+m = Mesh(a) ;
+m.plot() ;
+xlim([-10,10])
+ylim([-10,10])
 
 
 
