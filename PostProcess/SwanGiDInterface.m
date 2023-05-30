@@ -49,8 +49,13 @@ classdef SwanGiDInterface < handle
             system(command);
         end
         
-        function exportSTL(obj, resFile)
+        function exportSTL(obj, mesh)
+            obj.exportMeshAsMsh(mesh);
             obj.writeExportSTLTclFile();
+
+            % Export MSH
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
+            system(command);
 
             % Export STL
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
@@ -142,6 +147,28 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
             fclose(fid);
+        end
+
+        function exportMeshAsMsh(obj, mesh)
+            % Print mesh
+            s.type = 'GiD';
+            s.filename = 'TempMeshFile';
+            mesh.print(s);
+
+
+            tclFile = [obj.tclPath,'callGiD_ExportMSH.tcl'];
+            stlFileTocall = 'ExportMSH.tcl';
+            fid = fopen(tclFile,'w+');
+            gidBasPath = [obj.gidPath,'templates/DXF.bas'];
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set input "$path/sampleMesh.gid" \n']);
+            fprintf(fid,['set output "$path/sampleMeshFile.stl" \n']);
+            fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
+            fprintf(fid,['ExportMSH $input $gidBasPath \n']);
+            fclose(fid);
+
         end
 
     end

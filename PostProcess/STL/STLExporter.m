@@ -7,6 +7,7 @@ classdef STLExporter < handle
         resFilePath
         unfittedMesh
         meshFileName
+        mesh
     end
     
     methods (Access = public)
@@ -27,7 +28,7 @@ classdef STLExporter < handle
             a = 0;
             s2g = SwanGiDInterface(a);
 %             resFile = obj.getResFilePath();
-            s2g.exportSTL(resFile);
+            s2g.exportSTL(obj.mesh);
         end
         
     end
@@ -43,6 +44,7 @@ classdef STLExporter < handle
 %             obj.gidPath         = cParams.gidPath;
 %             obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
             obj.resFilePath     = obj.getResFilePath();
+            obj.mesh = cParams.mesh;
         end
 
         function m = readMsh(obj)

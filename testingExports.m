@@ -56,4 +56,4 @@ EM = uMesh.provideExtrudedMesh(sEM);
 %% Export STL
 sSTL.filename     = 'notForLong';  % Why?
 sSTL.meshFileName = 'notForLong2'; % Why?
-EM = EM.exportSTL(sSTL);
+EM.exportSTL(sSTL);
