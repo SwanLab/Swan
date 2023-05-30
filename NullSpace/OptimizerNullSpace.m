@@ -47,6 +47,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
+            obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
+            obj.aGmax = obj.rangeSpaceParameterEstimation(cParams);
         end
 
         function solveProblem(obj)
@@ -55,13 +57,13 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.updateNullSpaceCoefficient();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
+                obj.checkParameters();
             end
         end
 
@@ -81,13 +83,45 @@ classdef OptimizerNullSpace < Optimizer
             obj.nX                = length(obj.designVariable.value);
             obj.maxIter           = cParams.maxIter;
             obj.hasConverged      = false;
-            obj.aJmax             = cParams.optimizerNames.aJmax;
-            obj.aGmax             = cParams.optimizerNames.aGmax;
             obj.nIter             = 0;
+        end
+
+        function aJmax = nullSpaceParameterEstimation(obj,cParams)
+            if isfield (cParams.optimizerNames,'aJmax')
+                aJmax = cParams.optimizerNames.aJmax;
+            else
+                DJ = obj.cost.gradient;
+                Dg = obj.constraint.gradient;
+                aJmax = -1/((Dg'*Dg)\Dg'*DJ);
+            end
+        end
+
+        function aGmax = rangeSpaceParameterEstimation(obj,cParams)
+            if isfield (cParams.optimizerNames,'aGmax')
+                aGmax = cParams.optimizerNames.aGmax;
+            else
+                Dg = obj.constraint.gradient;
+                aGmax = 150/(inv(Dg'*Dg));
+            end
+        end
+
+        function checkParameters(obj)
+            if abs(obj.meritNew - obj.mOld) < 10*obj.tol
+                g  = obj.constraint.value;
+                DJ = obj.cost.gradient;
+                if obj.aG <= 0.5*obj.aGmax
+                    exponent = -sign(g)*sign(sum(DJ));
+                    obj.aJmax = obj.aJmax*2^exponent;
+                else
+                    exponent  = 1-sign(obj.checkConstraint());
+                    obj.aGmax = obj.aGmax*2^exponent;
+                end
+            end
         end
 
         function prepareFirstIter(obj)
             obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
@@ -127,6 +161,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function update(obj)
+            obj.updateNullSpaceCoefficient();
             obj.updateRangeSpaceCoefficient();
             obj.updateMaximumVolumeRemoved();
             x0 = obj.designVariable.value;
