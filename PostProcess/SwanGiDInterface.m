@@ -21,12 +21,8 @@ classdef SwanGiDInterface < handle
         function generateMesh(obj, resultsFile)
             obj.writeSurfaceTclFile(resultsFile);
             obj.writeGenerateMeshTclFile();
-            % Create Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
-            system(command);
-            % Generate Mesh
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
-            system(command);
+            obj.runSurfaceTcl();
+            obj.runGenerateMeshTcl();
         end
 
         function extrudeMesh(obj, resultsFile)
@@ -35,28 +31,15 @@ classdef SwanGiDInterface < handle
             obj.writeExtrudeTclFile();
             obj.writeGenerateMeshTclFile();
             obj.writeExportSTLTclFile();
-
-            % Create Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
-            system(command);
-
-            % Extrude Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
-            system(command);
-
-            % Generate Mesh
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
-            system(command);
+            obj.runSurfaceTcl();
+            obj.runExtrudeTcl();
+            obj.runGenerateMeshTcl();
         end
         
         function exportSTL(obj, mesh)
-            obj.exportMeshAsMsh(mesh);
+            obj.writeExportMshTclFile(mesh);
+            obj.runExportMshTcl();
             obj.writeExportSTLTclFile();
-
-            % Export MSH
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
-            system(command);
-            delete HmmLetMeCook.png; delete HmmLetMeCook.res; delete HmmLetMeCook.vv;
             
             % Export STL
             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
@@ -69,22 +52,10 @@ classdef SwanGiDInterface < handle
             obj.writeExtrudeTclFile();
             obj.writeGenerateMeshTclFile();
             obj.writeExportSTLTclFile();
-
-            % Create Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
-            system(command);
-
-            % Extrude Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
-            system(command);
-
-            % Generate Mesh
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
-            system(command);
-
-            % Export STL
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
-            system(command);
+            obj.runSurfaceTcl();
+            obj.runExtrudeTcl();
+            obj.runGenerateMeshTcl();
+            obj.runExportSTLTcl();
         end
 
     end
@@ -108,6 +79,12 @@ classdef SwanGiDInterface < handle
             fclose(fid);
         end
 
+        function runSurfaceTcl(obj)
+            % Create Surface
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
+            system(command);
+        end
+
         function writeGenerateMeshTclFile(obj)
             tclFile = [obj.tclPath,'callGiD_GenerateMesh.tcl'];
             stlFileTocall = 'GenerateMesh.tcl';
@@ -119,6 +96,12 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
             fprintf(fid,['GenerateMesh $gidProjectName \n']);
             fclose(fid);
+        end
+
+        function runGenerateMeshTcl(obj)
+            % Generate Mesh
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
+            system(command);
         end
 
         function writeExtrudeTclFile(obj)
@@ -133,6 +116,12 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set gidProjectName "$path$mshname" \n']);
             fprintf(fid,['ExtrudeSurface $gidProjectName \n']);
             fclose(fid);
+        end
+
+        function runExtrudeTcl(obj)
+            % Extrude Surface
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
+            system(command);
         end
 
         function writeExportSTLTclFile(obj)
@@ -150,7 +139,13 @@ classdef SwanGiDInterface < handle
             fclose(fid);
         end
 
-        function exportMeshAsMsh(obj, mesh)
+        function runExportSTLTcl(obj)
+            % Export STL
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
+            system(command);
+        end
+
+        function writeExportMshTclFile(obj, mesh)
             % Print mesh
             s.type = 'GiD';
             s.filename = 'TempMeshFile';
@@ -170,7 +165,13 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['ExportMSH $input $gidBasPath \n']);
             fclose(fid);
+        end
 
+        function runExportMshTcl(obj)
+            % Export MSH
+            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
+            system(command);
+            delete HmmLetMeCook.png; delete HmmLetMeCook.res; delete HmmLetMeCook.vv;
         end
 
     end
