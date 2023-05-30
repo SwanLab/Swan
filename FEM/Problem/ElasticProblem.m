@@ -6,6 +6,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        failureFun
     end
 
     properties (Access = private)
@@ -44,6 +45,7 @@ classdef ElasticProblem < handle
             obj.computeStrain();
             obj.computeStress();
             obj.computePrincipalDirection();
+            obj.computeFailure();
         end
 
         function plot(obj)
@@ -81,8 +83,8 @@ classdef ElasticProblem < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
-            funNames = {'displacement', 'strain', 'stress'};
+            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:},'obj.failureFun{:}'};
+            funNames = {'displacement', 'strain', 'stress','failure'};
         end
 
     end
@@ -218,6 +220,18 @@ classdef ElasticProblem < handle
             pcomp.compute(strss);
 %             obj.variables.principalDirections = pcomp.direction;
 %             obj.variables.principalStress     = pcomp.principalStress;
+        end
+
+        function computeFailure(obj)
+            stresses = obj.stressFun.fValues; %% Correct order?
+            stressXX = stresses(1,:,:);
+            stressYY = stresses(2,:,:);
+            stressXY = stresses(3,:,:);
+            stressVM = sqrt(stressXX.^2+stressYY.^2-stressXX.*stressYY+3*stressXY.^2);
+            s.fValues = stressVM;
+            s.quadrature = obj.quadrature;
+            s.mesh       = obj.mesh;
+            obj.failureFun = FGaussDiscontinuousFunction(s);
         end
 
     end

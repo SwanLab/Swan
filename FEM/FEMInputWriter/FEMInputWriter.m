@@ -66,7 +66,7 @@ classdef FEMInputWriter < handle
         end
         
         function createMesh(obj)
-            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
+            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh(s);
