@@ -18,7 +18,8 @@ classdef Filter_PDE_Density < Filter
             obj.createQuadrature();
             obj.computeBoundaryConditions();
             obj.createMassMatrix();
-            obj.epsilon = 1*cParams.mesh.computeMeanCellSize(); % Radius of influence !!
+            load('scaleParameters.mat');
+            obj.epsilon = scaleParameters.rad*cParams.mesh.computeMeanCellSize(); % Radius of influence !!
             obj.Anodal2Gauss = obj.computeA();
             lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);

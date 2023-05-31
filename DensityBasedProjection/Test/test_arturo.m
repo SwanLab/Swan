@@ -1,4 +1,4 @@
-filename = 'MeshReplicated';
+filename = 'PuenteMesh2';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -6,14 +6,18 @@ initial_case = 'full';
 cost = {'LinearBoundFunction'};
 widthSquare = 0.01;
 weights = [1];
-constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
-    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
+cost = {'compliance'};
+%constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
+%    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
+constraint = {'volumeConstraint'};
 constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
 incrementFactor = 1.2;
-designVariable = 'Density&Bound';
-filterType = 'Filter&Project';
+%designVariable = 'Density&Bound';
+designVariable = 'Density';
+%filterType = 'Filter&Project';
+filterType = 'PDE';
 nsteps = 1;
 Vfrac_final = 0.5;
 optimality_final =1e-3;
@@ -36,4 +40,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 200;
+maxiter = 150;
