@@ -25,7 +25,7 @@ classdef RHSintegrator_ElasticMicroNew < handle
             Fvol = zeros(obj.dim.ndofs, nVoigt);
             for iVoigt = 1:nVoigt
                 vstrain = basis(iVoigt,:);
-                FvolE = squeeze(obj.computeStrainRHS(vstrain));
+                FvolE = obj.computeStrainRHS(vstrain);
                 Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
             end
             Fpoint = obj.computePunctualFext();
