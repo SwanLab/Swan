@@ -24,7 +24,7 @@ classdef AnalyticalFunction < L2Function
             y = xV(2,:,:);
             xVec = [x;y];
             fxV = obj.fHandle(xV);
-        end
+         end
         
     end
     

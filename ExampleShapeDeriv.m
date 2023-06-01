@@ -1,6 +1,7 @@
 
 % function ExampleShapeDeriv
-clear clc
+clear 
+clc
 addpath(genpath(fileparts(mfilename('fullpath')))) ;
 
 
@@ -22,7 +23,12 @@ sP.type = 'GiD';
 
 
 %%%% Defineixo la funció analítica (el funcional F(Omega)) %%%%
-sAF.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
+% sAF.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
+% sAF.ndimf   = 1;
+% sAF.mesh    = mesh;
+% xFun = AnalyticalFunction(sAF);
+
+sAF.fHandle = @(x) [2*(x(1,:,:)-1); 2*(x(2,:,:)-0.5)];
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
@@ -37,7 +43,8 @@ fG  = xFun.evaluate(quad.posgp);
 % Calculo el diferencial de volum de cada element de la malla
 dVG = mesh.computeDvolume(quad);
 % Calculo la integral de la funció analítica del funcional F(Omega)
-intF = sum(squeeze(fG(:,:,:)).*dVG(:)) ;
+
+intF = sum(squeeze(fG(:,:,:)).*dVG(:)') ;
 
 %%%% Trobo la funció g que fa que gTheta=F'(Omega)(Theta) %%%%
 sP.mesh = mesh;
@@ -47,7 +54,7 @@ g = h.project(xFun) ;
 % g.plot() ;
 
 newCoord = zeros(length(mesh.coord),2) ;
-delta = 0.0245;
+delta = 1e-5;
 convergeix = 0 ;
 it = 0 ;
 coordAsterisco=sAF.mesh.coord ;
