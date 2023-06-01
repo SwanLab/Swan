@@ -6,19 +6,22 @@ coordElem = [ 2 2; 7 1; 5 4];
 % %coordinates of the quadrilater vertex (x1, y1, x2, y2, etc) (random)
 % coordElem = [ 1 1; 3 2; 5 4; 2 5];
 
-if length(coordElem) == 3
+elementShape = length(coordElem);
 
-    [J,N] = TriangleLinearElement(coordElem).assembleJ();
+switch elementShape
 
-elseif length(coordElem) == 4
+    case 3
 
-    [J,N] = QuadrilaterLinearElement(coordElem).assembleJ();
+        [J,N] = TriangleLinearElement(coordElem).assembleJ();
 
-else
+    case 4
 
-    disp("Wrong coordinates matrix");
+        [J,N] = QuadrilaterLinearElement(coordElem).assembleJ();
+
+    otherwise
+
+        disp("Wrong coordinates matrix");
 
 end
 
 detJ = det(J);
-
