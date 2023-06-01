@@ -26,10 +26,6 @@ classdef FullInnerMeshCreator_GiD2 < FullInnerMeshCreator
             s2g = SwanGiDInterface(a);
             resFile = obj.getResFilePath();
             s2g.generateMesh(resFile);
-%             obj.createSurfaceMeshTclFromTemplate();
-%             tclFile = [obj.tclPath,'CreateSurfaceMeshFile.tcl" '];
-%             command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
-%             system(command);
         end
         
     end
@@ -62,18 +58,6 @@ classdef FullInnerMeshCreator_GiD2 < FullInnerMeshCreator
             name = obj.filename;
             swan = obj.swanPath;
             f = [swan, name, '.flavia.res'];
-        end
-
-        function createSurfaceMeshTclFromTemplate(obj)
-            templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
-            targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
-            fid = fopen(targetFile, 'w');
-            fprintf(fid, ['set input_post_res "', obj.resFilePath, '"\n']);
-            fprintf(fid, ['set mesh_element_size "', obj.meshElementSize, '"\n']);
-            fprintf(fid, ['set mesh_name "', obj.meshFileName, '"\n']);
-            fprintf(fid, ['set gidpath "', obj.gidPath, '"\n']);
-            fprintf(fid, ['\n',templateText]);
-            fclose(fid);
         end
         
     end

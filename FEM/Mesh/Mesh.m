@@ -257,16 +257,16 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-%         function exportSTL(obj, file)
-%             obj.triangulateMesh(); % needed in order to use stlwrite
-%             stlwrite(obj.triMesh, [file '.stl'])
-%         end
-
-        function m = exportSTL(obj, s)
-            s.mesh = obj;
-            me = STLExporter(s);
-            m = me.export();
+        function exportSTL(obj, file)
+            obj.triangulateMesh2(); % needed in order to use stlwrite
+            stlwrite(obj.triMesh, [file '.stl'])
         end
+
+%         function m = exportSTL(obj, s)
+%             s.mesh = obj;
+%             me = STLExporter(s);
+%             m = me.export();
+%         end
 
         function print(obj, s)
             p1 = P1Function.create(obj,1);
