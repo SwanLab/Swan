@@ -146,7 +146,7 @@ classdef FEMInputWriter < handle
             Fmat  = obj.computeBoundaryConditionMatrix(obj.DoF,obj.nNeumann);
             nnode = size(Fmat,1)/obj.DoF;
             Pnod  = obj.P/nnode;
-            for i = 1:2:size(Fmat,1) % Gerard, I have changed the first "2" to "1" in order to obtain an axial load!
+            for i = 2:2:size(Fmat,1) % Gerard, I have changed the first "2" to "1" in order to obtain an axial load!
                 Fmat(i,3) = Pnod;
             end
             obj.pointLoads = Fmat;

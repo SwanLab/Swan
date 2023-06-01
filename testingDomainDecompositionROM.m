@@ -13,8 +13,8 @@ s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
 s.x1          = 1;
 s.y1          = 0.5;
-s.N           = 19;
-s.M           = 10;
+s.N           = 49;
+s.M           = 100;
 s.P           = 1;
 s.DoF         = 2;
 
@@ -29,22 +29,19 @@ fem.solve();
 % fem.print(fileName);
 
 % Get main results
-u = fem.uFun{1,1};
+u = fem.uFun(1,1);
 % u.plot();
-e = fem.strainFun{1,1};
+e = fem.strainFun(1,1);
 % e.plot();
-sig = fem.stressFun{1,1};
+sig = fem.stressFun(1,1);
 % sig.plot();
 
 
 %% STEP 0: No domain decomposition (ONLY DIRICHLET)
 % Mesh building
 mesh = s.mesh;
-bb.coord = mesh.coord(mesh.coord(:,1) == 0,:);
-bb.connec = 1:9;
-bb.connec = [bb.connec; bb.connec+1]';
-bb.kFace = -1;
-dirichletMesh =  Mesh(bb);
+boundaryMesh = mesh.createBoundaryMesh();
+boundaryDirichletMesh = boundaryMesh{1};
 
 % Domain's stiffness matrix
 zz.fValues = u.fValues;
@@ -59,6 +56,16 @@ lhs = LHSintegrator.create(sLHS);
 K = lhs.compute();
 
 % 'Mass' matrices assembly
+trialDirichletMesh = P1Function.create(boundaryDirichletMesh.mesh,2);
+testDirichletMesh = P1Function.create(boundaryDirichletMesh.mesh,2);
+
+ss.type  = 'MassMatrix';
+ss.mesh  = boundaryDirichletMesh.mesh;
+ss.test  = testDirichletMesh;
+ss.trial = trialDirichletMesh;
+lhs     = LHSintegrator.create(ss);
+C     = lhs.compute();
+
 idxNodes = 1:1:size(mesh.coord(),1);
 nDofDomainMesh = length(idxNodes)*2;
 DofsDomain = zeros(1,nDofDomainMesh);
@@ -71,19 +78,19 @@ DofsDomainDirichlet = zeros(1,nDofDomainDirichlet);
 DofsDomainDirichlet(1:2:end-1) = 2*idxDirichletNodes-1;
 DofsDomainDirichlet(2:2:end) = 2*idxDirichletNodes;
 
-nDofLagrange = nDofDomainDirichlet;
-initialDofLagrange = max(DofsDomain)+1;
-DofsLagrange = initialDofLagrange:1:(initialDofLagrange+nDofDomainDirichlet-1);
+nDofLagrange = boundaryDirichletMesh.mesh.nnodes*testDirichletMesh.ndimf;
+initialDofLagrange = max(nDofDomainMesh)+1;
+DofsLagrange = initialDofLagrange:1:(initialDofLagrange+nDofLagrange-1);
 
-C = eye(nDofDomainDirichlet);
+%C = eye(nDofDomainDirichlet);
 
 % Global LHS matrix assembly
 nDofTotal = nDofLagrange + nDofDomainMesh;
 GlobalLHS = sparse(nDofTotal);
 
 GlobalLHS(DofsDomain,DofsDomain) = K;
-GlobalLHS(DofsDomainDirichlet,DofsLagrange) = C;
-GlobalLHS(DofsLagrange,DofsDomainDirichlet) = C';
+GlobalLHS(DofsDomainDirichlet,DofsLagrange) = C';
+GlobalLHS(DofsLagrange,DofsDomainDirichlet) = C;
 
 % Global RHS matrix assembly
 GlobalRHS = zeros(nDofTotal,1);
@@ -94,10 +101,15 @@ GlobalRHS(1:nDofDomainMesh) = F;
 
 % Solver (Direct)
 u_dd = GlobalLHS\GlobalRHS;
-u_dd = u_dd(1:nDofDomainMesh);
-uDD = [u_dd(1:2:end-1), u_dd(2:2:end)];
+u_disp = u_dd(1:nDofDomainMesh);
+uDD = [u_disp(1:2:end-1), u_disp(2:2:end)];
 
 Error = max(max(abs(u.fValues-uDD)))
+
+lambdaDirichlet = u_dd(nDofDomainMesh+1:end);
+React = C*lambdaDirichlet
+sum(React)
+lambdaDirichlet = [React(1:2:end-1), React(2:2:end)];
 
 %plots
 zz.fValues = u.fValues;
@@ -109,6 +121,42 @@ zz.fValues = uDD;
 zz.mesh    = mesh;
 plotUDD = P1Function(zz);
 plotUDD.plot
+
+%plot Lagrange values
+zz.fValues = lambdaDirichlet(:,1);
+zz.mesh    = boundaryDirichletMesh.mesh;
+plotX = P1Function(zz);
+plotX.plot
+
+zz.fValues = lambdaDirichlet(:,2);
+zz.mesh    = boundaryDirichletMesh.mesh;
+plotY = P1Function(zz);
+plotY.plot
+
+%%% P1 Plot
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       lambdaDirichlet(:,1),zeros(size(lambdaDirichlet,1),1))
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       zeros(size(lambdaDirichlet,1),1),lambdaDirichlet(:,2))
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       lambdaDirichlet(:,1),lambdaDirichlet(:,2))
+
+%%% P0 plot
+% x=(boundaryDirichletMesh.mesh.coord(:,1));
+% x_avg= (x(1:end-1)+x(2:end))/2;
+% 
+% y=(boundaryDirichletMesh.mesh.coord(:,2));
+% y_avg= (y(1:end-1)+y(2:end))/2;
+% 
+% figure
+% quiver(x_avg,y_avg,lambdaDirichlet(:,1),zeros(size(lambdaDirichlet,1),1))
+% figure
+% quiver(x_avg,y_avg, zeros(size(lambdaDirichlet,1),1),lambdaDirichlet(:,2))
+% figure
+% quiver(x_avg,y_avg,lambdaDirichlet(:,1),lambdaDirichlet(:,2))
 
 %% STEP 1.1: Mesh decomposition
 % 1. Create subdomains
@@ -179,17 +227,17 @@ lhs = LHSintegrator.create(sLHS);
 Kright = lhs.compute();
 
 % 5.1. Dirichlet matrix definition [Cd] (P1 for displacement & P0 for lagrange multipliers)
-ss.mesh      = boundaryDirichletMesh.mesh;
-nnode       = boundaryDirichletMesh.mesh.nnodes;
-ndim        = boundaryDirichletMesh.mesh.ndim;
-ss.fValues   = ones(nnode,ndim);
-P1DirichletMesh = P1Function.create(boundaryDirichletMesh.mesh,1);
+% ss.mesh      = boundaryDirichletMesh.mesh;
+% nnode       = boundaryDirichletMesh.mesh.nnodes;
+% ndim        = boundaryDirichletMesh.mesh.ndim;
+% ss.fValues   = zeros(nnode,ndim);
+P1DirichletMesh = P1Function.create(boundaryDirichletMesh.mesh,2);
 
-ss.mesh      = boundaryDirichletMesh.mesh;
-nelem       = boundaryDirichletMesh.mesh.nelem;
-ndim        = boundaryDirichletMesh.mesh.ndim;
-ss.fValues   = ones(nelem,ndim);
-P0DirichletMesh = P0Function.create(boundaryDirichletMesh.mesh,1);
+% ss.mesh      = boundaryDirichletMesh.mesh;
+% nelem       = boundaryDirichletMesh.mesh.nelem;
+% ndim        = boundaryDirichletMesh.mesh.ndim;
+% ss.fValues   = zeros(nelem,ndim);
+P0DirichletMesh = P0Function.create(boundaryDirichletMesh.mesh,2);
 
 ss.type  = 'MassMatrix';
 ss.mesh  = boundaryDirichletMesh.mesh;
@@ -197,8 +245,6 @@ ss.test  = P0DirichletMesh;
 ss.trial = P1DirichletMesh;
 lhs     = LHSintegrator.create(ss);
 cDirichlet     = lhs.compute();
-
-% 5.2. Lagrange matrices
 
 
 % 6. DOFs allocation
@@ -243,9 +289,9 @@ DofsRightDomain(2:2:end) = 2*idxRightNodes;
 DofsRightDomain = DofsRightDomain + max(DofsLeftDomain);
 
 % Lagrange multipliers' mesh
-nDofLagrangeDirichlet = nDofDirichlet;
+nDofLagrangeDirichlet = boundaryDirichletMesh.mesh.nelem*P0DirichletMesh.ndimf;
 initialDofLagrange = max(DofsRightDomain)+1;
-DofsLagrangeDirichlet = initialDofLagrange:1:(initialDofLagrange+nDofDirichlet-1);
+DofsLagrangeDirichlet = initialDofLagrange:1:(initialDofLagrange+nDofLagrangeDirichlet-1);
 
 nDofLagrangeConnection = nDofConnection; % nDofRightConnection must be the same
 initialDofLagrange = max(DofsLagrangeDirichlet)+1;
@@ -253,22 +299,22 @@ DofsLagrangeConnection = initialDofLagrange:1:(initialDofLagrange+nDofConnection
 
 nDofTotal = max(DofsLagrangeConnection);
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %cDirichlet = eye(nDofDirichlet,nDofLagrangeDirichlet);
 cConnection = eye(nDofConnection, nDofLagrangeConnection);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % 7. Global Assembly
 GlobalLHS = sparse(nDofTotal, nDofTotal);
 GlobalLHS(DofsLeftDomain,DofsLeftDomain) = Kleft;
 GlobalLHS(DofsRightDomain,DofsRightDomain) = Kright;
-GlobalLHS(DofsDirichlet,DofsLagrangeDirichlet) = cDirichlet;
+GlobalLHS(DofsDirichlet,DofsLagrangeDirichlet) = cDirichlet';
 GlobalLHS(DofsLeftConnection,DofsLagrangeConnection) = cConnection;
 GlobalLHS(DofsRightConnection,DofsLagrangeConnection) = -cConnection;
-GlobalLHS(DofsLagrangeDirichlet,DofsDirichlet) = cDirichlet';
-GlobalLHS(DofsLagrangeConnection,DofsLeftConnection) = cConnection';
-GlobalLHS(DofsLagrangeConnection,DofsRightConnection) = -cConnection';
+GlobalLHS(DofsLagrangeDirichlet,DofsDirichlet) = cDirichlet;
+GlobalLHS(DofsLagrangeConnection,DofsLeftConnection) = cConnection;
+GlobalLHS(DofsLagrangeConnection,DofsRightConnection) = -cConnection;
 
 GlobalRHS = zeros(nDofTotal,1);
 GlobalRHS(DofsNeumann) = s.bc.pointload(:,3);
@@ -281,21 +327,47 @@ uLeft = u(1:nDofLeftDomain);
 uLeft = [uLeft(1:2:end-1), uLeft(2:2:end)];
 
 uRight = u(nDofLeftDomain+1:nDofLeftDomain + nDofRightDomain);
-uRight = [uRight(1:2:end-1), uRight(2:2:end)];
+uRight = [uRight(1:2:end), uRight(2:2:end)];
+
+lambdaDirichlet = u(nDofLeftDomain+nDofRightDomain+1:nDofLeftDomain+nDofRightDomain+nDofLagrangeDirichlet);
+lambdaDirichlet = [lambdaDirichlet(1:2:end-1), lambdaDirichlet(2:2:end)];
 
 %plot (subdomains)
-zz.fValues = uLeft;
-zz.mesh    = leftMesh;
-plotLeft = P1Function(zz);
-plotLeft.plot
+% zz.fValues = uLeft;
+% zz.mesh    = leftMesh;
+% plotLeft = P1Function(zz);
+% plotLeft.plot
+% 
+% zz.fValues = uRight;
+% zz.mesh    = rightMesh;
+% plotRight = P1Function(zz);
+% plotRight.plot
 
-zz.fValues = uRight;
-zz.mesh    = rightMesh;
-plotRight = P1Function(zz);
-plotRight.plot
+%plot Lagrange values
+zz.fValues = lambdaDirichlet(:,1);
+zz.mesh    = boundaryDirichletMesh.mesh;
+plotX = P1Function(zz);
+plotX.plot
+
+zz.fValues = lambdaDirichlet(:,2);
+zz.mesh    = boundaryDirichletMesh.mesh;
+plotY = P1Function(zz);
+plotY.plot
+
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       lambdaDirichlet(:,1),zeros(size(lambdaDirichlet,1),1))
+
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       zeros(size(lambdaDirichlet,1),1),lambdaDirichlet(:,2))
+
+figure
+quiver(boundaryDirichletMesh.mesh.coord(:,1),boundaryDirichletMesh.mesh.coord(:,2),...
+       lambdaDirichlet(:,1),lambdaDirichlet(:,2))
 
 % plot (combined)
-uGlobal = [uLeft; uRight];
+%uGlobal = [uLeft; uRight];
 
 %test
 Error = max(max(abs(GlobalLHS(DofsLagrangeConnection,:)*u)))

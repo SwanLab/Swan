@@ -158,8 +158,8 @@ classdef P1DiscontinuousFunction < FeFunction
             for i=1:nelem
                 xPlot = [x(i,1) x(i+1,1)];
                 yPlot = [y(i,1) y(i+1,1)];
-                z = obj.fValues(:,:,1);
-                plot3(xPlot,yPlot,z(i,:))
+                z = obj.fValues(:,:,i);
+                plot3(xPlot,yPlot,z)
             end
         end
 
