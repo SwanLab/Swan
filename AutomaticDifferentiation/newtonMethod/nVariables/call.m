@@ -14,4 +14,3 @@ norma = sqrt(gradquad1);
 
 figure(1); loglog(i,time); xlabel("Log of nodes"); ylabel("Log of iterations"); grid;
 figure(2); semilogx(norma,j); xlabel("Log norma gradient"); ylabel("Iterations"); grid;
-
