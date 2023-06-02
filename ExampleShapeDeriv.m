@@ -1,4 +1,4 @@
-
+function ExampleShapeDeriv
 % function ExampleShapeDeriv
 clear 
 clc
@@ -23,15 +23,8 @@ sP.type = 'GiD';
 
 
 %%%% Defineixo la funció analítica (el funcional F'(Omega)(Theta)) %%%%
-% sAF.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
-% sAF.ndimf   = 1;
-% sAF.mesh    = mesh;
-% xFun = AnalyticalFunction(sAF);
+%f = createFunction(mesh);
 
-sAF.fHandle = @(x) [2*(x(1,:,:)-1); 2*(x(2,:,:)-0.5)];
-sAF.ndimf   = 2;
-sAF.mesh    = mesh;
-xFun = AnalyticalFunction(sAF);
 
 %%%% Defineixo la quadratura de la malla %%%%
 quad = Quadrature.set(s.mesh.type);
@@ -39,56 +32,84 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 % Avaluo la funció analítica a tota la malla, als punts 
-fG  = xFun.evaluate(quad.posgp);
+%c = computeCost(mesh,quad);
+
+%%%% Trobo la funció g que fa que gTheta=F'(Omega)(Theta) %%%%
+% sP.mesh = mesh;
+% sP.connec = mesh.connec;
+% h = H1Projector_toP1(sP);
+% g = h.project(df) ;
+% % g.plot() ;
+
+delta = 0.001;
+
+
+iter = 1;
+tau = 0.01;
+step = 1;
+while step > delta
+    df   = createDerivative(mesh);
+    g    = project(df,mesh);
+    f(iter) = computeCost(mesh,quad);
+    newMesh = updateMesh(mesh,g,tau);
+    figure(1)
+    clf
+    newMesh.plot()
+    newMesh = remesh(newMesh);
+    %pause(1)
+    axis([0 2 0 1])
+    figure(2)
+    plot(f)
+    step = norm(mesh.coord(:) - newMesh.coord(:));
+    mesh = newMesh;
+    iter   = iter + 1;
+end
+
+
+end
+
+function nMesh = updateMesh(mesh,g,tau)
+coord = mesh.coord;
+nCoord(:,1) = coord(:,1) - g.fValues(:,1)*tau ;
+nCoord(:,2) = coord(:,2) - g.fValues(:,2)*tau ;
+s.connec = mesh.connec;
+s.coord  = nCoord;
+nMesh = Mesh(s);
+end
+
+function m = remesh(mesh)
+s.coord  = mesh.coord;
+s.connec = delaunay(mesh.coord);
+m = Mesh(s);
+end
+
+
+function f = createFunction(mesh)
+s.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
+s.ndimf   = 1;
+s.mesh    = mesh;
+f = AnalyticalFunction(s);
+end
+
+function df = createDerivative(mesh)
+s.fHandle = @(x) [2*(x(1,:,:)-1); 2*(x(2,:,:)-0.5)];
+s.ndimf   = 2;
+s.mesh    = mesh;
+df = AnalyticalFunction(s);
+end
+
+function g = project(df,mesh)
+t.mesh = mesh ;
+h = H1Projector_toP1(t);
+g = h.project(df) ;
+end
+
+function c = computeCost(mesh,quad)
+f = createFunction(mesh);
+fG  = f.evaluate(quad.posgp);
 % Calculo el diferencial de volum de cada element de la malla
 dVG = mesh.computeDvolume(quad);
 % Calculo la integral de la funció analítica del funcional F(Omega)
-intF = sum(squeeze(fG(:,:,:)).*dVG(:)') ;
-
-%%%% Trobo la funció g que fa que gTheta=F'(Omega)(Theta) %%%%
-sP.mesh = mesh;
-sP.connec = mesh.connec;
-h = H1Projector_toP1(sP);
-g = h.project(xFun) ;
-% g.plot() ;
-
-newCoord = zeros(length(mesh.coord),2) ;
-delta = 0.001;
-convergeix = 0 ;
-it = 0 ;
-coordAsterisco=sAF.mesh.coord ;
-
-while convergeix == 0
-    newCoord = coordAsterisco;
-    for i = 1:length(mesh.coord)
-    newCoord(i,1) = newCoord(i,1) - g.fValues(i,1)*0.001 ;
-    newCoord(i,2) = newCoord(i,2) - g.fValues(i,2)*0.001 ;
-    end  
-    a.connec = mesh.connec ;
-    a.coord = newCoord ;
-    m = Mesh(a) ;
-    t.mesh = m ;
-    h = H1Projector_toP1(t);
-    g = h.project(xFun) ;
-
-    A = max(max(abs(newCoord-coordAsterisco))) 
-    if A < delta
-        convergeix = 1 ;
-    else 
-        coordAsterisco = newCoord ;
-        it = it + 1 ;
-    end
+c = (squeeze(fG)')*dVG';
 end
-
-a.connec = mesh.connec ;
-a.coord = newCoord ;
-m = Mesh(a) ;
-m.plot() ;
-% xlim([-10,10])
-% ylim([-10,10])
-
-
-
-
-
 % end
