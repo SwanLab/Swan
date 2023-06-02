@@ -1,19 +1,21 @@
 classdef PathVertexesToBoundaryComputer < handle
     
     properties (Access = private)
-       mesh 
        singularityCoord
-    end
-    
-    properties (Access = private)
        boundaryPointCoord               
        pathVector
-       closestVertex
+       initialVertex
        boundaryNodes
        connectedVertex     
-       pathVertexes
+       pathVertexes       
        pathCells
     end
+
+    properties (Access = private)
+       mesh 
+       singularElement
+       isCoherent       
+    end    
     
     methods (Access = public)
         
@@ -22,9 +24,10 @@ classdef PathVertexesToBoundaryComputer < handle
         end
         
         function v = compute(obj)
-            obj.computeBoundaryPointCoord();
+            obj.computeInitialVertex();            
+            obj.computeBoundaryPointCoord();            
+            obj.computeSingularityCoord();            
             obj.createStraightPathVector();
-            obj.computeClosestVertex();
             obj.computeBoundaryNodes();
             obj.computeMeshEdges();
             obj.computePath();
@@ -36,7 +39,7 @@ classdef PathVertexesToBoundaryComputer < handle
             hold on
             obj.plotMesh();
             obj.plotStraightPath();
-            obj.plotClosestVertex();
+            obj.plotInitialVertex();
             obj.plotVerticesPath();
         end        
         
@@ -47,18 +50,33 @@ classdef PathVertexesToBoundaryComputer < handle
         
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.singularityCoord   = cParams.singularityCoord;
+            obj.singularElement   = cParams.singularElement;
+            obj.isCoherent        = cParams.isCoherent;
         end
         
+        function sC = computeSingularElementBaricenter(obj)
+             isS = obj.singularElement;
+             sC  = obj.mesh.computeBaricenter();
+             sC  = transpose(sC);
+             sC  = sC(isS,:);              
+        end
+
+        function computeSingularityCoord(obj)
+            obj.singularityCoord = obj.mesh.coord(obj.initialVertex,:);
+        end
+
+        function computeDistance(a,b)
+
+        end
+
         function computeBoundaryPointCoord(obj)
-        %    obj.computeToyBoundaryPoint();
-         %  obj.computeBenchmarkBoundaryPoint();
-            sC = obj.singularityCoord;
+            sC = obj.computeSingularElementBaricenter();
             bM = obj.mesh.createBoundaryMesh();
             for iB = 1:numel(bM)
                bmI = bM{iB};
                bC  = bmI.mesh.coord;
-               dis = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
+              dis = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
+              % dis = (bC(:,1) - sC(1)).^2; %+ (bC(:,2) - sC(2)).^2;               
                [dM,im] = min(dis);
                nodes(iB) = bmI.globalConnec(im);
                dist(iB) = dM;
@@ -66,38 +84,66 @@ classdef PathVertexesToBoundaryComputer < handle
             [~,iM] = min(dist);
             node = nodes(iM);
             cP = obj.mesh.coord(node,:);
-           % obj.boundaryPointCoord = [1.98    1.3300];
-            obj.boundaryPointCoord = [0.5    1.3500];
-           %obj.boundaryPointCoord = cP;
+       %   obj.boundaryPointCoord = [1.98    1.3300];
+          % obj.boundaryPointCoord = [0.5    1.3900];
+    %       obj.boundaryPointCoord = [2    0.55];
+       %    obj.boundaryPointCoord = cP;
+            coordI = obj.mesh.coord(obj.initialVertex,:);
+            xmin = min(obj.mesh.coord(:,1));
+            obj.boundaryPointCoord = [xmin coordI(2)];
             %obj.boundaryPointCoord(:,2)
         end
-        
-        function computeToyBoundaryPoint(obj)
-            obj.boundaryPointCoord = [0 150];            
-        end        
-
-        function computeBenchmarkBoundaryPoint(obj)
-           obj.boundaryPointCoord(:,2) = obj.singularityCoord(:,2);                       
-           obj.boundaryPointCoord(:,1) = max(obj.mesh.coord(:,1));            
-        end               
+                  
 
         function createStraightPathVector(obj)
             OA = obj.singularityCoord;            
             OB = obj.boundaryPointCoord;
             AB = OB - OA;
             obj.pathVector = AB ;
-        end        
+        end   
 
-        function computeClosestVertex(obj)
-            xy  = obj.mesh.coord;
-            xyS = obj.singularityCoord;
-            xD  = xy(:,1) - xyS(:,1);
-            yD  = xy(:,2) - xyS(:,2);
-            dist = sqrt(xD.^2 + yD.^2);
-            [~,iD] = min(dist);
-            obj.closestVertex = iD;
+        function itIs = isCellAroundCoherent(obj,vertex)
+            cells = obj.mesh.computeAllCellsOfVertex(vertex);
+            isCo = squeeze(obj.isCoherent.fValues(1,:,cells));
+            itIs = all(isCo);
         end
-        
+
+        function computeInitialVertex(obj)
+            isS = obj.singularElement;
+            %  sN  = obj.mesh.connec(isS,:);
+            %  xy  = obj.mesh.coord(sN,:);
+            %  xyS = obj.boundaryPointCoord;
+            %  xD  = xy(:,1) - xyS(:,1);
+            %  yD  = xy(:,2) - xyS(:,2);
+            %  dist = sqrt(xD.^2 + yD.^2);
+            %  [~,iD] = min(dist);
+            % 
+            %  for idof = 1:obj.mesh.nnodeElem
+            %     isC(idof) = obj.isCoherent.isDofContinous(isS,idof);
+            %  end
+            % iD = find(isC);
+
+            for idof = 1:obj.mesh.nnodeElem
+                iVertex = obj.mesh.connec(isS,idof);
+                isCellCoherent = obj.isCellAroundCoherent(iVertex);
+                notCoh(idof) = sum(~isCellCoherent);
+            end
+
+            if all(obj.isCoherent.fValues(1,:,isS))
+                iD = find(notCoh == 1);
+            else
+               [~,iD] = min(notCoh);
+            end
+            firstiD = iD;
+          % iD = 3;
+            cV     = obj.mesh.connec(isS,firstiD);
+            obj.initialVertex = cV;
+        end
+
+        function computeSecondVertex(obj)
+            
+        end
+
         function computeBoundaryNodes(obj)
             coord  = obj.mesh.coord;
             nodesB = boundary(coord);            
@@ -113,14 +159,46 @@ classdef PathVertexesToBoundaryComputer < handle
             itIs = any(node == nodesB);
         end
         
+        function itIs = itIsInFracture(obj,vertex)
+           isAroundCellCoherent = obj.isCellAroundCoherent(vertex);
+           itIs = any(~isAroundCellCoherent);
+        end
+
+        function d = distanceToBoundary(obj,vertex)
+            bc = obj.boundaryPointCoord;
+            cV = obj.mesh.coord(vertex,:);
+            d = (bc(1) - cV(1))^2 + (bc(2) - cV(2))^2;
+        end
+
+        function d = distanceToSingularity(obj,vertex)
+            sc = obj.computeSingularElementBaricenter();            
+            cV = obj.mesh.coord(vertex,:);
+            d = (sc(1) - cV(1))^2 + (sc(2) - cV(2))^2;
+        end        
+
         function computePath(obj)            
             i = 1;
-            vertex       = obj.closestVertex;
+            vertex       = obj.initialVertex;
             pVertexes    = vertex;
             while ~obj.isInBoundary(vertex)
                 otherVertex = obj.mesh.computeConnectedVertex(vertex);
                 iD          = obj.computeOptimalVertex(vertex,otherVertex);  
-                newVertex   = otherVertex(iD);    
+                newVertex   = otherVertex(iD);  
+                if i == 1
+                   if obj.itIsInFracture(newVertex)
+                    oVertex =  obj.mesh.computeConnectedVertex(obj.initialVertex);
+                    itIsNewVertex = newVertex == oVertex;
+                    candidates = oVertex(itIsNewVertex);
+                    sC = obj.computeSingularElementBaricenter();                    
+                    for iVer = 1:length(candidates)
+                        cand = candidates(iVer);
+                        itIsF(iVer) = obj.itIsInFracture(cand);
+                        dB = obj.distanceToBoundary(cand);
+                        dS = obj.distanceToSingularity(cand);
+                   end 
+                   [~,isClosest] = sort(dB);
+                   end
+                end
                 i = i + 1;  
                 vertex       = newVertex;                
                 pVertexes(i) = vertex;              
@@ -147,8 +225,8 @@ classdef PathVertexesToBoundaryComputer < handle
             plot(xP,yP,'+-')
         end
         
-        function plotClosestVertex(obj)
-            cV = obj.closestVertex;
+        function plotInitialVertex(obj)
+            cV = obj.initialVertex;
             x = obj.mesh.coord(cV,1);
             y = obj.mesh.coord(cV,2);
             plot(x,y,'r+')

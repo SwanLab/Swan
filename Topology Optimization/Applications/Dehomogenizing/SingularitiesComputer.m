@@ -43,12 +43,10 @@ classdef SingularitiesComputer < handle
             a3 = zeros(3,obj.mesh.nelem);
             a1(1:2,:) = aD(:,:,1);
             a2(1:2,:) = aD(:,:,2);
-            a3(1:2,:) = aD(:,:,3);
-                      
+            a3(1:2,:) = aD(:,:,3);                     
             a1a2 = dot(a1,a2);
             a1a3 = dot(a1,a3);
-            a2a3 = dot(a2,a3);
-            
+            a2a3 = dot(a2,a3);            
             isS = sign(a1a2.*a1a3.*a2a3)';
             s.fValues = isS<0;
             s.mesh    = obj.mesh;

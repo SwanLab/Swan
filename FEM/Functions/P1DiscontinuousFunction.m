@@ -133,6 +133,19 @@ classdef P1DiscontinuousFunction < FeFunction
             fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
         end
 
+        function isDofCont = isDofContinous(obj,iElem,idof)
+            iLocalVertex = floor(idof/obj.ndimf);
+            iVertex = obj.mesh.connec(iElem,iLocalVertex);
+            cellsAround = obj.mesh.computeAllCellsOfVertex(iVertex);
+            isLocalVertices = obj.mesh.connec(cellsAround,:) == iVertex;
+            fCellsAround = obj.fValues(:,:,cellsAround);
+            for idim = obj.ndimf
+                fCellsA = squeeze(fCellsAround(idim,:,:))';
+                fVertex = fCellsA(isLocalVertices);
+                isDofCont(:,idim) = norm(fVertex - mean(fVertex)) < 1e-14;
+            end
+        end
+
         function plot(obj)
             fD = obj.getFvaluesAsVector();
             mD = obj.mesh.createDiscontinuousMesh();
@@ -170,6 +183,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function print(obj, s)
             s.fun = {obj};
+            s.mesh = obj.mesh.createDiscontinuousMesh();
             p = FunctionPrinter.create(s);
             p.print();
         end

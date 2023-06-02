@@ -19,7 +19,7 @@ classdef CorrectorComputer < handle
     properties (Access = private)
         mesh
         singularElement
-        areCoherent
+        isCoherent
     end
     
     methods (Access = public)
@@ -30,7 +30,6 @@ classdef CorrectorComputer < handle
         end
                 
         function cF = compute(obj) 
-            obj.computeSingularCoord();
             obj.computePathToBoundary();
             obj.computeLeftRightPathElements();
             obj.computeUpperLowerCell();
@@ -49,21 +48,14 @@ classdef CorrectorComputer < handle
         
         function init(obj,cParams)
             obj.mesh            = cParams.mesh;
-            obj.areCoherent     = cParams.isCoherent;
+            obj.isCoherent     = cParams.isCoherent;
             obj.singularElement = cParams.singularElement;
-        end
-
-        function computeSingularCoord(obj)
-            isS = obj.singularElement;
-            sC  = obj.mesh.computeBaricenter();
-            sC  = transpose(sC);
-            sC  = sC(isS,:); 
-            obj.singularCoord = sC;
         end
         
          function computePathToBoundary(obj)
             s.mesh = obj.mesh;
-            s.singularityCoord   = obj.singularCoord;
+            s.singularElement   = obj.singularElement;
+            s.isCoherent        = obj.isCoherent;
             p = PathVertexesToBoundaryComputer(s);
             v = p.compute(); 
             obj.pathVertexes = v(1:end);
@@ -73,6 +65,7 @@ classdef CorrectorComputer < handle
             s.pathVertexes = obj.pathVertexes;
             s.mesh         = obj.mesh;
             s.singularElement = obj.singularElement;
+            s.isCoherent      = obj.isCoherent;
             l = LeftRightCellsOfPathToBoundaryComputer(s);
             [cR,cL] = l.compute();   
           %  l.plot();            
@@ -83,7 +76,7 @@ classdef CorrectorComputer < handle
         function computeUpperLowerCell(obj)
             s.pathVertexes    = obj.pathVertexes;
             s.mesh            = obj.mesh;
-            s.areCoherent     = obj.areCoherent;            
+            s.areCoherent     = obj.isCoherent;            
             u = UpperLowerCellComputer(s);
             u.compute();
             obj.isUpperCell = u.isUpperCell;

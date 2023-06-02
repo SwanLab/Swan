@@ -44,21 +44,21 @@ classdef DehomogenizingExample < handle
         
         function init(obj)
            % filePath = 
-            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            obj.fileName = 'CantileverSymmetricWithoutFixing';
-            obj.iteration = 216;
+        %    obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
+        %    obj.fileName = 'CantileverSymmetricWithoutFixing';
+        %    obj.iteration = 216;
 % 
-%            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%            obj.fileName = 'ExperimentingPlotSuperEllipse';
-%            obj.iteration = 64;
+        %    obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+        %    obj.fileName = 'ExperimentingPlotSuperEllipse';
+        %    obj.iteration = 64;
             
-%            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%            obj.iteration = 665;         
+            obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;         
         
-            obj.nx1    = 22;
-            obj.nx2    = 22;
-            obj.nCells = 42;
+            obj.nx1    = 32;
+            obj.nx2    = 32;
+            obj.nCells = 32;
         end
         
         function loadDataExperiment(obj)
@@ -158,7 +158,7 @@ classdef DehomogenizingExample < handle
             FV.faces    = obj.mesh.connec;
             FV2 = refinepatch(FV);
             FV2 = refinepatch(FV2);
-        %    FV2 = refinepatch(FV2);
+            %FV2 = refinepatch(FV2);
             %FV2 = refinepatch(FV2);
 % 
 %             
@@ -201,7 +201,11 @@ classdef DehomogenizingExample < handle
         function createOrientation(obj)
             x1 = (obj.alphaM(:,1));
             x2 = (obj.alphaM(:,2));
-            obj.theta = atan2(x2,x1);
+            tV = atan2(x2,x1);
+            s.mesh = obj.mesh;
+            s.fValues = tV;
+            tF = P1Function(s);
+            obj.theta = tF;
         end
         
         function createSuperEllipseParams(obj)
@@ -222,8 +226,10 @@ classdef DehomogenizingExample < handle
         
         function createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
-            s.widthH = obj.superEllipse.m1;
-            s.widthV = obj.superEllipse.m2;
+            %s.widthH = obj.superEllipse.m1;
+            %s.widthV = obj.superEllipse.m2;
+            s.widthH = 0.95*ones(size(obj.superEllipse.m1));
+            s.widthV = 0.95*ones(size(obj.superEllipse.m2));            
             s.pnorm  = obj.superEllipse.q;
             s.ndim   = 2;
             obj.cellLevelSetParams = s;

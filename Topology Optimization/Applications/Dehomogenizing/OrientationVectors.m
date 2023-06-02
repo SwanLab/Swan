@@ -46,10 +46,11 @@ classdef OrientationVectors < handle
         end
         
         function createOrientationVector(obj)
-            a1(:,1) = cos(obj.theta);
-            a1(:,2) = sin(obj.theta);
-            a2(:,1) = -sin(obj.theta);
-            a2(:,2) = cos(obj.theta);
+            t       = obj.theta.fValues;
+            a1(:,1) = cos(t);
+            a1(:,2) = sin(t);
+            a2(:,1) = -sin(t);
+            a2(:,2) = cos(t);
             a(:,:,1) = a1;
             a(:,:,2) = a2;
             nDim = obj.mesh.ndim;
@@ -104,6 +105,7 @@ classdef OrientationVectors < handle
             s.orientation = obj.value{1};
             sC = SingularitiesComputer(s);
             sC.compute();
+            sC.plot();
             obj.singularities = sC;%sCoord;
         end          
 
