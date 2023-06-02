@@ -12,7 +12,7 @@ hiddenLayers  = [500,250,100,50,10,50,100,250,500];
 
 
 learningRate      = 0.01;
-lambda = 0.00000001;
+lambda = 0;
 
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.data                          = data;
