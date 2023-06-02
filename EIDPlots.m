@@ -35,6 +35,7 @@ s.femSettings = [];
 s.femSettings.scale = 'MACRO';
 s.femSettings.beta = beta;
 s.femSettings.eta  = eta;
+s.femSettings.mesh = designVariable.mesh;
 Threshold = Filter.create(s);
 rhoI = Threshold.getP0fromP1(rho);
 
