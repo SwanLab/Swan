@@ -4,7 +4,7 @@ clear;clc;close all;addpath ../Codes;
 % Data choose between 32x32 or dct
 s.fileName = '../Datasets/MNIST.csv';
 s.polynomialOrder = 1;
-s.testRatio       = 30;
+s.testRatio       = 20;
 data = Data(s);
 
 hiddenLayers  = [500,250,100,50,10,50,100,250,500];
