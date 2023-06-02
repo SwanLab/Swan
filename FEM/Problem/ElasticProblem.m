@@ -228,7 +228,8 @@ classdef ElasticProblem < handle
             stressYY = stresses(2,:,:);
             stressXY = stresses(3,:,:);
             stressVM = sqrt(stressXX.^2+stressYY.^2-stressXX.*stressYY+3*stressXY.^2);
-            s.fValues = stressVM;
+            yieldStr = 0.00357; % will be input (250MPa/70000MPa)
+            s.fValues = stressVM/yieldStr;
             s.quadrature = obj.quadrature;
             s.mesh       = obj.mesh;
             obj.failureFun = FGaussDiscontinuousFunction(s);
