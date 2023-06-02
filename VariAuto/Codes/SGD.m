@@ -96,7 +96,7 @@ classdef SGD < Trainer
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
                 criteria(5)   = f > obj.fvStop;
-                obj.plotter.image(16)
+                obj.plotter.image(randi(2000))
                 pause(1)
             end
             if criteria(1) == 0

@@ -99,7 +99,7 @@ classdef Network < handle
             obj.createNumberOfLayers();
             if length(cParams) <= 2
                 obj.Costtype = '-loglikelihood';
-                obj.HUtype = 'sigmoid';%'ReLU';
+                obj.HUtype = 'ReLU';%'ReLU';
                 obj.OUtype = 'sigmoid';'softmax';
             else
                 obj.Costtype = cParams{3};
