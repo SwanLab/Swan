@@ -98,8 +98,9 @@ classdef Data < handle
                     end
                 end
             end
+            %y
             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            obj.Y = y;
+            obj.Y = obj.X;
         end
         
 

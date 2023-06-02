@@ -14,12 +14,14 @@ classdef SGD < Trainer
        optTolerance
        earlyStop
        timeStop
+       plotter
     end
 
     methods (Access = public)
 
         function obj = SGD(s)
             obj.init(s)
+            obj.plotter = s.plotter;
             obj.learningRate = s.learningRate;
             obj.maxFunEvals  = s.maxFunEvals;
             obj.Xtrain  = s.Xtrain;

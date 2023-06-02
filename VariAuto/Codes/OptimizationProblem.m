@@ -81,6 +81,7 @@ classdef OptimizationProblem < handle
            s.Ytrain = obj.data.Ytrain;
            s.Xtest = obj.data.Xtest;
            s.Ytest = obj.data.Ytest;
+           s.plotter = obj.plotter;
            op = Trainer.create(s);
            obj.optimizer = op;
        end
