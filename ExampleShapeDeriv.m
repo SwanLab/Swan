@@ -31,17 +31,8 @@ quad = Quadrature.set(s.mesh.type);
 % Trec les dades de la quadratura de gauss (ngaus, weigp, posgp)
 quad.computeQuadrature('LINEAR');
 
-% Avaluo la funció analítica a tota la malla, als punts 
-%c = computeCost(mesh,quad);
 
-%%%% Trobo la funció g que fa que gTheta=F'(Omega)(Theta) %%%%
-% sP.mesh = mesh;
-% sP.connec = mesh.connec;
-% h = H1Projector_toP1(sP);
-% g = h.project(df) ;
-% % g.plot() ;
-
-delta = 0.001;
+delta = 0.0001;
 
 
 iter = 1;
@@ -107,9 +98,8 @@ end
 function c = computeCost(mesh,quad)
 f = createFunction(mesh);
 fG  = f.evaluate(quad.posgp);
-% Calculo el diferencial de volum de cada element de la malla
 dVG = mesh.computeDvolume(quad);
-% Calculo la integral de la funció analítica del funcional F(Omega)
 c = (squeeze(fG)')*dVG';
 end
+
 % end
