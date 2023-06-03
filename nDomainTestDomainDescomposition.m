@@ -9,7 +9,7 @@ s.x1          = 1;
 s.y1          = 0.5;
 s.N           = 49;
 s.M           = 100;
-s.P           = 1000;
+s.P           = 1;
 s.DoF         = 2;
 
 CantileverAxial = FEMInputWriter(s);
@@ -47,7 +47,7 @@ material = data.material;
 [GlobalLHS] = AssemblyGlobalLHS(GlobalK,GlobalC);
 
 % Global RHS matrix assembly
-[GlobalRHS] = AssemblyGlobalRHS(GlobalLHS,subK,subBoundMesh,1000,TotalDofsDomain);
+[GlobalRHS] = AssemblyGlobalRHS(GlobalLHS,subK,subBoundMesh,1,TotalDofsDomain);
 
 % Solver
 s.type = "DIRECT";
@@ -276,7 +276,12 @@ function Plots(U,lambda,subC,subMesh,subBoundMesh)
 
         figure
         quiver(subBoundMesh(i).mesh.coord(:,1),subBoundMesh(i).mesh.coord(:,2),...
-               React(:,1),React(:,2))
+               React(:,1),zeros(size(React(:,1))))
+        title("Reaction X (Boundary"+(i-1)+"-"+(i)+")")
+        figure
+        quiver(subBoundMesh(i).mesh.coord(:,1),subBoundMesh(i).mesh.coord(:,2),...
+               React(:,2), zeros(size(React(:,2))))
+        title("Reaction Y (Boundary"+(i-1)+"-"+(i)+")")
 
         TotalReact = [sum(React(:,1)) sum(React(:,2))]
     end
