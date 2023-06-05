@@ -21,10 +21,5 @@ s.costParams.lambda             = lambda;
 
 opt = OptimizationProblem(s);
 opt.solve();
-opt.plotSurface();
 
 opt.plotImage(1);
-
-save("OutFncTest.mat",out_test)
-
-opt.plotBoundary();
