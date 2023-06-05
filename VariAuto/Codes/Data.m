@@ -3,7 +3,7 @@ classdef Data < handle
     properties (Access = public)
         nFeatures
         nLabels
-
+        
         Xtrain
         Ytrain       
         Xtest
