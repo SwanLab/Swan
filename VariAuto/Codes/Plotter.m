@@ -182,7 +182,7 @@ classdef Plotter < handle
             obj.plotSurface(targets',outputs')
         end
 
-        function image(obj,row)
+        function [out_test] = image(obj,row)
 
             targets = obj.data.Ytest;
             x = obj.data.Xtest;

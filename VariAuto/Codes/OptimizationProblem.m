@@ -45,6 +45,7 @@ classdef OptimizationProblem < handle
        function plotImage(obj,row)
            obj.plotter.image(row);
        end
+
    end
 
    methods (Access = private)
