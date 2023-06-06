@@ -9,8 +9,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
         end
