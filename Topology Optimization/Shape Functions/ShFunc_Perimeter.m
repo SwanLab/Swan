@@ -183,7 +183,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeDiscreteGradient(obj)
-            %    obj.gradient = obj.Msmooth*obj.gradient;
+               obj.gradient = obj.Msmooth*obj.gradient;
         end
         
     end
