@@ -233,6 +233,10 @@ classdef ElasticProblem < handle
             s.quadrature = obj.quadrature;
             s.mesh       = obj.mesh;
             obj.failureFun = FGaussDiscontinuousFunction(s);
+
+            maxFailure = max(obj.failureFun.fValues);
+            p          = 16;
+            pNormFailure = (sum((obj.failureFun.fValues).^p)).^(1/p);
         end
 
     end
