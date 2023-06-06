@@ -28,14 +28,18 @@ classdef SimpleShapeOptimizationSolver < handle
             incX = obj.computeIncX(xOld,xNew);
             iter = 1
             while ~obj.hasConverged(iter,incX)
+                tic
                 [J,dJ] = obj.cost.computeValueAndGradient(xNew);
                 t = obj.computeLineSearch(x,dJ);
                 x = obj.computeGradientStep(x,dJ,t);
                 x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,incX);
-                iter = iter + 1               
+                % if mod(iter,5) == 0
+                    obj.plotCostAndLineSearch(iter,J,t,incX);
+                % end
+                iter = iter + 1
+                toc
             end
          m = obj.designVariable.mesh;
          s.mesh = m;
@@ -111,8 +115,9 @@ classdef SimpleShapeOptimizationSolver < handle
         end
         
         function t = computeLineSearch(obj,x,dJ)
-         %   tC = 100;
-            tC = 1;
+            % tC = 150;
+            % tC = 30;
+            tC = 100;
             incT = 1;
             tA = obj.computeAdimensionalLineSearch(x,dJ);
             t = max(tA,incT*tC);
