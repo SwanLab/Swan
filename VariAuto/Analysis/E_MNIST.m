@@ -8,7 +8,8 @@ s.testRatio       = 30;
 data = Data(s);
 
 
-hiddenLayers  = [500,250,100,50,10,50,100,250,500];
+hiddenLayers  = [250,50,250];
+% hiddenLayers  = [500,250,100,50,10,50,100,250,500];
 
 learningRate      = 0.01;
 lambda = 0;
@@ -22,4 +23,5 @@ s.costParams.lambda             = lambda;
 opt = OptimizationProblem(s);
 opt.solve();
 
-opt.plotImage(1);
+opt.plotImage(1942);
+opt.plotCostFnc

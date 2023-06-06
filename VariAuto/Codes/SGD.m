@@ -15,6 +15,8 @@ classdef SGD < Trainer
        earlyStop
        timeStop
        plotter
+       svepoch
+       fplot
     end
 
     methods (Access = public)
@@ -39,6 +41,7 @@ classdef SGD < Trainer
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 10^-4;
             obj.nPlot       = 1;
+            obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
         end
         
@@ -49,6 +52,16 @@ classdef SGD < Trainer
            obj.optimize(F,x0);
            toc
         end 
+
+        function plotCostFunc(obj)
+            epoch = 1:obj.MaxEpochs;
+            plot(epoch,obj.fplot);
+            xlabel('Epochs')
+            ylabel('Function Values')
+            title('Cost Function')
+            xlim([1,inf])
+        end
+
     end
     
     methods(Access = private)  
@@ -96,8 +109,8 @@ classdef SGD < Trainer
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
                 criteria(5)   = f > obj.fvStop;
-                obj.plotter.image(randi(3000))
-                pause(0.1)
+                % obj.plotter.image(randi(3000))
+                % pause(0.1)
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -175,6 +188,12 @@ classdef SGD < Trainer
                     'Epoch Iteration  Func-count       f(x)        Step-size       optimality\n']);
             end
             fprintf(formatstr,epoch,iter,funcount,f,opt.epsilon,opt.gnorm);
+            
+            if epoch ~= obj.svepoch
+                obj.svepoch = epoch;
+                obj.fplot(1,epoch) = f;
+            end
+
         end
 
         function [x,y] = createMinibatch(obj,order,i)

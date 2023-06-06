@@ -26,6 +26,10 @@ classdef OptimizationProblem < handle
            obj.optimizer.train();
        end
 
+       function plotCostFnc(obj)
+           obj.optimizer.plotCostFunc();
+       end
+
        function plotBoundary(obj,type) 
            obj.plotter.plotBoundary(type);
        end
