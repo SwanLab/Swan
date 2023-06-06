@@ -19,9 +19,8 @@ s.data                          = data;
 s.optimizerParams.learningRate  = learningRate;
 s.costParams.lambda             = lambda;
 
-
 opt = OptimizationProblem(s);
 opt.solve();
 
-opt.plotImage(1942);
+opt.plotImage(2001);
 opt.plotCostFnc

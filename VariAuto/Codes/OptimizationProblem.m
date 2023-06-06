@@ -81,7 +81,6 @@ classdef OptimizationProblem < handle
            s.designVariable = obj.network.getLearnableVariables();
            s.type        = 'SGD';
            s.data        = obj.data;
-           s.maxFunEvals = 2000;
            s.Xtrain = obj.data.Xtrain;
            s.Ytrain = obj.data.Ytrain;
            s.Xtest = obj.data.Xtest;

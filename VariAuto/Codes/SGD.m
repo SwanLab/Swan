@@ -25,11 +25,11 @@ classdef SGD < Trainer
             obj.init(s)
             obj.plotter = s.plotter;
             obj.learningRate = s.learningRate;
-            obj.maxFunEvals  = s.maxFunEvals;
             obj.Xtrain  = s.Xtrain;
             obj.Ytrain  = s.Ytrain;
             obj.Xtest  = s.Xtest;
             obj.Ytest  = s.Ytest;
+            obj.maxFunEvals  = 2000;
             obj.optTolerance = 10^(-6);
             if size(obj.Xtrain,1) > 200
                 obj.batchSize    = 200;
@@ -39,7 +39,7 @@ classdef SGD < Trainer
             obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
             obj.earlyStop   = obj.MaxEpochs;
             obj.timeStop    = Inf([1,1]);
-            obj.fvStop      = 10^-4;
+            obj.fvStop      = 10^(-4);
             obj.nPlot       = 1;
             obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
@@ -54,8 +54,9 @@ classdef SGD < Trainer
         end 
 
         function plotCostFunc(obj)
+            figure(3);
             epoch = 1:obj.MaxEpochs;
-            plot(epoch,obj.fplot);
+            plot(epoch,obj.fplot,'-o');
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
