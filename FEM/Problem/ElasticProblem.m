@@ -164,9 +164,8 @@ classdef ElasticProblem < handle
             % s.type = 'DIRECT';
             % obj.solver = Solver.create(s);
 
-           % obj.solver = MINRES_Pol(); %%BOOOOO
-           obj.solver = rMINRES();
-           % obj.solver = actualMINRES();
+           obj.solver = MINRES_Pol(); %%BOOOOO
+           % obj.solver = rMINRES();
 
         end
 

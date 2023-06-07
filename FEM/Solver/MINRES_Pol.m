@@ -114,7 +114,7 @@ classdef MINRES_Pol < handle
             obj.xPrevIt = x_k;
             obj.convergenceData(obj.currentIter) = convIter;
             if (obj.currentIter == 100)
-                    save('CounterPol\convergenceData.mat', 'obj.convergenceData');
+                    stop = 1;
             end
         end
     end
@@ -137,8 +137,8 @@ classdef MINRES_Pol < handle
 
         function [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = initiateVariables(obj, k, n, b, A)
             %             x0  = load('CounterPol\xNew.mat').xNew;
-            %             x0 = zeros(20200,1);
-            x0 = obj.xPrevIt;
+            x0 = zeros(size(b,1),1);
+            % x0 = obj.xPrevIt;
             r0 = b-A*x0;
 
             Alpha   = zeros(k+1,1);
