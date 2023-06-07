@@ -79,6 +79,8 @@ classdef SGD < Trainer
             criteria(4)   = toc < obj.timeStop;
             criteria(5)   = fv > obj.fvStop;
             while all(criteria == 1)
+                obj.plotter.image(2001)
+                pause(1)
                 if nB == 1 || nB == 0
                     order = 1:nD;
                     nB = 1;
@@ -110,8 +112,8 @@ classdef SGD < Trainer
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
                 criteria(5)   = f > obj.fvStop;
-                % obj.plotter.image(randi(3000))
-                % pause(0.1)
+                %obj.plotter.image(randi(3000))
+                
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
