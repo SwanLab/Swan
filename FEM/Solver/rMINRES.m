@@ -14,8 +14,8 @@ classdef rMINRES < handle
             obj.currentIter = obj.currentIter + 1;
             obj.n       = size(b,1);
             maxIter     = 3000;
-            nRecycling  = 100;
-            tol         = 1e-3;
+            nRecycling  = 50;
+            tol         = 1e-4;
             obj.prepareProblem(A, b);
             V   = zeros(obj.n, maxIter);
             j   = 0;
@@ -179,13 +179,25 @@ classdef rMINRES < handle
                         NCU(i,:) = CU(i,:)*N(i,i);
                     end
                     RHS = [NCU zeros(nRecycling, j); (B'*CU + T'*VU) T(1:j,:)'];
+
+
+
+
                     % Gm      = [N B; zeros(j+1, nRecycling) T];
                     % LHS     = Gm'*Gm;
                     % RHS     = Gm'*(wHat'*vHat);
-                    [~, eigValues]  = eig(LHS,RHS);                    
+
+                    [eigVectors, eigValues]  = eig(LHS,RHS);      
                     eigValues       = diag(eigValues);
                     [~, indices]    = mink(eigValues, nRecycling);
-                    obj.Uprev       = vHat(:,indices);
+
+                    obj.Uprev = vHat*eigVectors(:,indices);
+
+
+                    % obj.Uprev       = vHat(:,indices);
+
+
+                    % [~, eigValues]  = eigs(LHS,RHS,nRecycling,'smallestreal');
                     % obj.Uprev = allVectors(:,randperm(size(allVectors,2),nRecycling));%RANDOM
 
                     
@@ -196,7 +208,7 @@ classdef rMINRES < handle
                 x = obj.x0;
             end
             obj.convergenceData(obj.currentIter) = j;
-            if (obj.currentIter == 100)
+            if (obj.currentIter == 500)
                 disp(a)
             end
         end

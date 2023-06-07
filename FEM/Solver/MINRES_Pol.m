@@ -2,6 +2,8 @@ classdef MINRES_Pol < handle
 
     properties (Access = public)
         xPrevIt
+        convergenceData
+        currentIter
     end
 
     methods (Access = public)
@@ -11,7 +13,8 @@ classdef MINRES_Pol < handle
         end
 
 
-        function x_k = solve(obj,A,b)        
+        function x_k = solve(obj,A,b)
+            obj.currentIter = obj.currentIter + 1;
             if isempty(obj.xPrevIt)
                 obj.xPrevIt = zeros(size(b,1),1);
             end
@@ -19,7 +22,7 @@ classdef MINRES_Pol < handle
             n = size(A,1);
             k = 3000;
             maxiter = k;
-            tol = 10^(-5);
+            tol = 10^(-4);
 
 
             [Alpha, Beta, v_0, V, c, s, Gamma, Delta, Epsilon, phi, d, x0, t] = obj.initiateVariables(k, n, b, A);
@@ -108,7 +111,11 @@ classdef MINRES_Pol < handle
             convIter = j-1
             x_k = x_prev;
             norm(A*x_k-b)/norm(b)
-            obj.xPrevIt = x_k;            
+            obj.xPrevIt = x_k;
+            obj.convergenceData(obj.currentIter) = convIter;
+            if (obj.currentIter == 100)
+                    save('CounterPol\convergenceData.mat', 'obj.convergenceData');
+            end
         end
     end
 
@@ -116,6 +123,8 @@ classdef MINRES_Pol < handle
     methods (Access = private)
 
         function init(obj)
+            obj.currentIter = 0;
+            obj.convergenceData = zeros(500,1);
         end
 
         function [alpha, beta_new, v_new] = lanczosProc(obj, A, vj, v_prev, betaj)
