@@ -2,40 +2,30 @@ clear;
 
 %% DEFINE INITIAL VARIABLES AND MATRIX
 
-x0 = [0 0];
-x = x0;
-xn = x0;
+x = [0 0];
 
 plotX = zeros(50,1);
 plotY = zeros(50,1);
 plotValX = zeros(50,1);
 plotValY = zeros(50,1);
-gradMin = zeros(2,1);
+
 iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 2 VARIABLES
 
-[val, grad] = iterativeAD2var(x0); %Initial Iteration
+[~,numElem] = size(x);
 
-alpha = 0.01;
+grad = 1 + zeros(1,numElem);
 
-while abs(grad(1)) > 10^(-12) && abs(grad(2)) > 10^(-12) && iterations < 10^4 %while grad == 0 or iterations above 50
+alpha = 0.1;
+
+while abs(sum(grad(1,1:end))) > 10^(-10) && iterations < 10^5
 
     iterations = iterations + 1; %iterations counter
 
     [val, grad] = iterativeAD2var(x);
 
-    xn = x - alpha * grad;
-
-    [valN, gradN] = iterativeAD2var(xn);
-
-    if valN > val
-
-        alpha = alpha / 2;
-
-    end
-
-    x = xn;
+    x = x - alpha * grad;
 
     %% PLOT
 
