@@ -8,10 +8,9 @@ s.testRatio       = 30;
 data = Data(s);
 
 
-hiddenLayers  = [250,50,250];
-% hiddenLayers  = [500,250,100,50,10,50,100,250,500];
+hiddenLayers  = [500,100,500];
 
-learningRate      = 0.01;
+learningRate      = 0.04;
 lambda = 0;
 
 s.networkParams.hiddenLayers    = hiddenLayers;

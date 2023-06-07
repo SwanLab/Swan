@@ -29,8 +29,11 @@ classdef SGD < Trainer
             obj.Ytrain  = s.Ytrain;
             obj.Xtest  = s.Xtest;
             obj.Ytest  = s.Ytest;
-            obj.maxFunEvals  = 2000;
+            obj.maxFunEvals  = 5000;
             obj.optTolerance = 10^(-6);
+            obj.timeStop    = Inf([1,1]);
+            obj.fvStop      = 10^(-4);
+            obj.nPlot       = 1;
             if size(obj.Xtrain,1) > 200
                 obj.batchSize    = 200;
             else
@@ -38,9 +41,6 @@ classdef SGD < Trainer
             end
             obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
             obj.earlyStop   = obj.MaxEpochs;
-            obj.timeStop    = Inf([1,1]);
-            obj.fvStop      = 10^(-4);
-            obj.nPlot       = 1;
             obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
         end
@@ -56,7 +56,8 @@ classdef SGD < Trainer
         function plotCostFunc(obj)
             figure(3);
             epoch = 1:obj.MaxEpochs;
-            plot(epoch,obj.fplot,'-o');
+            % plot(epoch,obj.fplot,'-o');
+            plot(epoch,obj.fplot);
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
@@ -79,8 +80,9 @@ classdef SGD < Trainer
             criteria(4)   = toc < obj.timeStop;
             criteria(5)   = fv > obj.fvStop;
             while all(criteria == 1)
-                obj.plotter.image(2001)
-                pause(1)
+                % obj.plotter.image(2001)
+                % pause(1)
+                %obj.plotter.image(randi(3000))
                 if nB == 1 || nB == 0
                     order = 1:nD;
                     nB = 1;
@@ -112,8 +114,6 @@ classdef SGD < Trainer
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
                 criteria(5)   = f > obj.fvStop;
-                %obj.plotter.image(randi(3000))
-                
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)

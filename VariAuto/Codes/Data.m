@@ -84,7 +84,8 @@ classdef Data < handle
             f = fullfile('../Datasets/',obj.fileName);
             obj.data = load(f);
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
+            % feat = input(' ');
+            feat = 1:784;
             x = obj.data(:, feat);
 
             ydata = obj.data(:, feat);
