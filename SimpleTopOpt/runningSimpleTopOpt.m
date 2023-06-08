@@ -11,6 +11,7 @@ for i = 1:length(p.Nvec)
     p.iCase = i;
     p.N = p.Nvec(i);
     p.M = p.Mvec(i);
+    p.O = p.Ovec(i);
     Problem = FEMInputWriter(p);
     Problem.createTest();
     s.topOptProblem = createFullTopOptProblem();
@@ -19,7 +20,8 @@ for i = 1:length(p.Nvec)
     dim = char(string(p.DoF));
     divx = char(string(p.N));
     divy = char(string(p.M));
-    saveName = [p.problemCase,'_',dim,'D_',divx,'x',divy];
+    divz = char(string(p.O));
+    saveName = [p.problemCase,'_',dim,'D_',divx,'x',divy,'x',divz];
     save(['SimpleTopOpt/Results/',saveName,'.mat'],'solver');
     close  all
 end
@@ -42,5 +44,6 @@ p.y1 = 1;
 p.P  = -10; % load
 p.Nvec = [20, 40, 80, 200]; % divisions along x direction
 p.Mvec = [10, 20, 40, 100]; % divisions along y direction
+p.Ovec = [0, 0, 0, 0]; % divisions along z direction (if needed)
 end
 
