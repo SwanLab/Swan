@@ -3,7 +3,9 @@ classdef CorrectorCoefficientsComputer < handle
     properties (Access = private)
         quadrature
         dVolum
-        oCorrectorDerivative        
+        oCorrectorDerivative  
+        LHS
+        RHS
     end
     
     properties (Access = private)
@@ -19,11 +21,13 @@ classdef CorrectorCoefficientsComputer < handle
             obj.createDvolum();
         end
 
-        function c = compute(obj,b)
+        function cOpt = compute(obj,b)
             obj.createOrthogonalCorrectorDerivatives();          
-            LHS = obj.computeLHS();
-            RHS = obj.computeRHS(b);            
-           c = LHS\RHS;
+            obj.computeLHS();
+            obj.computeRHS(b);            
+            c = obj.computeReferenceCoefficients();
+            cOpt = obj.computeBestIntegerCoeff(c);
+          % cOpt = c;
         end                    
                    
     end
@@ -33,6 +37,48 @@ classdef CorrectorCoefficientsComputer < handle
         function init(obj,cParams)
             obj.mesh                = cParams.mesh;
             obj.orthogonalCorrector = cParams.orthogonalCorrector;
+        end
+
+        function cOpt = computeBestIntegerCoeff(obj,c)
+            Jref = obj.computeCost(c);            
+            w    = obj.computeAllBinaryPossibilities(c);
+            Jall = obj.computeCostOfAllIntegerSimilarCoeff(w,c);
+            [Jopt,iOpt] = min(Jall);
+            wOpt = w(iOpt,:);
+            cOpt = obj.computeIntegerCoeff(wOpt,c);
+            %cOpt = c;
+        end
+
+        function w = computeAllBinaryPossibilities(obj,c)
+            nSing = length(c);
+            w  = ff2n(nSing);
+        end   
+
+        function J = computeCostOfAllIntegerSimilarCoeff(obj,w,c)
+            nComb  = size(w,1);
+            J    = zeros(nComb,1);
+            for iComb = 1:nComb
+                wI = w(iComb,:);
+                cI = obj.computeIntegerCoeff(wI,c);
+                J(iComb) = obj.computeCost(cI);                 
+            end                
+        end
+
+        function cI = computeIntegerCoeff(obj,wI,c)
+            cFloor = floor(c);
+            cCeil  = ceil(c);
+            cI = (1-wI').*cFloor + wI'.*cCeil;            
+        end        
+
+        function J = computeCost(obj,c)
+            A = obj.LHS;
+            b = obj.RHS;
+            r = (A*c - b);
+            J = 0.5*(r')*r;
+        end
+
+        function c = computeReferenceCoefficients(obj)            
+            c = obj.LHS\obj.RHS;        
         end
         
         function createQuadrature(obj)
@@ -61,32 +107,34 @@ classdef CorrectorCoefficientsComputer < handle
             obj.dVolum = dV;
         end
 
-        function LHS = computeLHS(obj)
+        function computeLHS(obj)
             dP  = obj.oCorrectorDerivative;
             dV  = obj.dVolum;
             nSing = numel(obj.orthogonalCorrector);            
-            LHS = zeros(nSing,nSing);            
+            lhs = zeros(nSing,nSing);            
             for iS = 1:nSing
                 dPi = dP{iS};
                 for jS = 1:nSing
                     dPj = dP{jS};                    
-                    lhs   = dPi.*dPj.*dV;
-                    LHS(iS,jS) = sum(lhs(:));
+                    lhsIJ   = dPi.*dPj.*dV;
+                    lhs(iS,jS) = sum(lhsIJ(:));
                 end
             end
+            obj.LHS = lhs;
         end
 
-        function RHS = computeRHS(obj,b)
+        function computeRHS(obj,b)
            bG    = obj.computeOrientationInGauss(b);
            nSing = numel(obj.orthogonalCorrector);              
-           RHS = zeros(nSing,1);    
+           rhs = zeros(nSing,1);    
            dP = obj.oCorrectorDerivative;
            dV   = obj.dVolum;           
            for iS = 1:nSing
                 dPi = dP{iS};               
-                rhs = dPi.*bG.*dV;
-                RHS(iS) = sum(rhs(:));
-            end  
+                rhsI = dPi.*bG.*dV;
+                rhs(iS) = sum(rhsI(:));
+           end  
+           obj.RHS = rhs;
         end
 
         function bfG = computeOrientationInGauss(obj,b)

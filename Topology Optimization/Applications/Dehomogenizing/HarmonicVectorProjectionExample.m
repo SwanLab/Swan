@@ -47,13 +47,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
+       %     obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+       %     obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+       %     obj.iteration = 665;
 % 
-%             obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%             obj.fileName = 'ExperimentingPlotSuperEllipse';
-%             obj.iteration = 64;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+             obj.fileName = 'ExperimentingPlotSuperEllipse';
+             obj.iteration = 64;
                         
         end
 
@@ -80,12 +80,32 @@ classdef HarmonicVectorProjectionExample < handle
             aBar(:,2) = sin(alpha); 
         end
 
-        function [aBar,bBar] = createOrientationVector(obj)
+        function [a1,b1] = createOrientationVector(obj)
          %   aBar = obj.createOrientationByHand();
-            aBar = obj.createOrientationFromData();
-            bBar = obj.computeHalfOrientationFromOrientation(aBar);
-            aBar = obj.interpolateOrientation(aBar);
-            bBar = obj.interpolateOrientation(bBar);
+            a0 = obj.createOrientationFromData();
+
+            a0X = squeeze(a0.fValues(1,1,:));
+            a0Y = squeeze(a0.fValues(2,1,:));
+            b0V = obj.createHalfOrientationVector(a0X,a0Y);
+            s.fValues = b0V;
+            s.mesh = obj.mesh;
+            b0 = P0Function(s);
+            b1a = b0.project('P1');
+
+            a1   = a0.project('P1');  
+            a1X = a1.fValues(:,1);
+            a1Y = a1.fValues(:,2);
+            b1V = obj.createHalfOrientationVector(a1X,a1Y);
+            s.fValues = b1V;
+            s.mesh = obj.mesh;
+            b1b = P1Function(s);            
+
+            
+            b1 = b1b;
+            
+         %   b = obj.computeHalfOrientationFromOrientation(a);
+          %  aBar = obj.interpolateOrientation(aBar);
+          %  bBar = obj.interpolateOrientation(bBar);
         end        
 
         function m = createSquareMesh(obj)
@@ -142,6 +162,25 @@ classdef HarmonicVectorProjectionExample < handle
             obj.boundaryMesh = b;
         end
 
+        % function createOrientationVector(obj)
+        %     t       = obj.theta.fValues;
+        %     a1(:,1) = cos(t);
+        %     a1(:,2) = sin(t);
+        %     a2(:,1) = -sin(t);
+        %     a2(:,2) = cos(t);
+        %     a(:,:,1) = a1;
+        %     a(:,:,2) = a2;
+        %     nDim = obj.mesh.ndim;
+        %     orientation = cell(nDim,1);
+        %     for iDim = 1:nDim
+        %         s.fValues = a(:,:,iDim);
+        %         s.mesh   = obj.mesh;
+        %         bf = P1Function(s);
+        %         orientation{iDim} = bf;
+        %     end 
+        %     obj.orientationVectorFunc = orientation;
+        % end
+
         function alpha = createLinealWithNoiseAngle(obj)
              coord0 = obj.mesh.computeBaricenter';
              x1 = coord0(:,1);
@@ -165,9 +204,12 @@ classdef HarmonicVectorProjectionExample < handle
              alpha = alpha;% + 0.5*(2*rand(size(x1))-1)/2;
         end
 
-        function aBar = createOrientationFromData(obj)
+        function aF = createOrientationFromData(obj)
             d = obj.experimentData;
             aBar  = d.dataRes.AlphaGauss;
+            s.mesh    = obj.mesh;
+            s.fValues = aBar;
+            aF = P0Function(s);
         end        
 
         function storeOrientationAngle(obj)
@@ -200,17 +242,17 @@ classdef HarmonicVectorProjectionExample < handle
             q.ShowArrowHead = 'off';            
         end
 
-        function a1 = interpolateOrientation(obj,a0)
-            a1(:,1) = obj.interpolateOrientationComponent(a0(:,1));
-            a1(:,2) = obj.interpolateOrientationComponent(a0(:,2));
-        end
-
-        function vI = interpolateOrientationComponent(obj,v0)
-            s.mesh    = obj.mesh;
-            s.fValues = v0;
-            p = PieceWiseConstantFunction(s);
-            vI = p.projectToLinearNodalFunction(); 
-        end
+        % function a1 = interpolateOrientation(obj,a0)
+        %     a1(:,1) = obj.interpolateOrientationComponent(a0(:,1));
+        %     a1(:,2) = obj.interpolateOrientationComponent(a0(:,2));
+        % end
+        % 
+        % function vI = interpolateOrientationComponent(obj,v0)
+        %     s.mesh    = obj.mesh;
+        %     s.fValues = v0;
+        %     p = PieceWiseConstantFunction(s);
+        %     vI = p.projectToLinearNodalFunction(); 
+        % end
 
 
         function plotOrientation(obj,t,iFigure)
@@ -239,10 +281,16 @@ classdef HarmonicVectorProjectionExample < handle
             c.TickLabels = t;
         end
 
-        function b = computeHalfOrientationFromOrientation(obj,a)
-            aXBar = a(:,1);
-            aYBar = a(:,2);
-            alpha = atan2(aYBar,aXBar);
+        function bF = computeHalfOrientationFromOrientation(obj,a)
+            aXBar = a.fValues(:,1);
+            aYBar = a.fValues(:,2);
+            s.fValues = b;
+            s.mesh    = obj.mesh;
+            bF = P1Function(s);
+        end
+
+        function b = createHalfOrientationVector(obj,aX,aY)
+            alpha = atan2(aY,aX);
             beta  = 2*alpha;
             b(:,1) = cos(beta);
             b(:,2) = sin(beta);
@@ -350,9 +398,14 @@ classdef HarmonicVectorProjectionExample < handle
            [v,lambda] = h.solveProblem(rho,alpha0,vH);
         end
 
+
+        
+
         function createHarmonicProjection(obj)
+            [aBar,bBar] = obj.createOrientationVector();                        
             s.mesh = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;
+            
             h = LinearizedHarmonicProjector(s);
             obj.harmonicProjector = h;
         end

@@ -21,7 +21,7 @@ classdef LinearizedHarmonicProjector < handle
         
         function obj = LinearizedHarmonicProjector(cParams)
             obj.init(cParams);     
-            obj.createField();
+           % obj.createField();
             obj.computeMassMatrix();
             obj.computeStiffnessMatrix();
             obj.createSolver()
@@ -225,8 +225,8 @@ classdef LinearizedHarmonicProjector < handle
         
         function computeMassMatrix(obj)
 
-
-            s.field        = obj.field;
+            
+         %   s.field        = obj.field;
             s.mesh         = obj.mesh;
             s.type         = 'MassMatrix';
             
@@ -241,7 +241,7 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function computeStiffnessMatrix(obj)        
-            s.field        = obj.field;
+          %  s.field        = obj.field;
             s.mesh         = obj.mesh;
             s.type         = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);

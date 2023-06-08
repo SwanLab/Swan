@@ -87,11 +87,12 @@ classdef PathVertexesToBoundaryComputer < handle
        %   obj.boundaryPointCoord = [1.98    1.3300];
           % obj.boundaryPointCoord = [0.5    1.3900];
     %       obj.boundaryPointCoord = [2    0.55];
-       %    obj.boundaryPointCoord = cP;
-            coordI = obj.mesh.coord(obj.initialVertex,:);
-            xmin = min(obj.mesh.coord(:,1));
-            obj.boundaryPointCoord = [xmin coordI(2)];
-            %obj.boundaryPointCoord(:,2)
+           obj.boundaryPointCoord = cP;
+          
+            %coordI = obj.mesh.coord(obj.initialVertex,:);
+            %xmin = min(obj.mesh.coord(:,1));
+            %obj.boundaryPointCoord = [xmin coordI(2)];
+            
         end
                   
 

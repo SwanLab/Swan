@@ -47,6 +47,7 @@ classdef OrientationVectors < handle
         
         function createOrientationVector(obj)
             t       = obj.theta.fValues;
+            t       = squeeze(t);
             a1(:,1) = cos(t);
             a1(:,2) = sin(t);
             a2(:,1) = -sin(t);
@@ -58,8 +59,9 @@ classdef OrientationVectors < handle
             for iDim = 1:nDim
                 s.fValues = a(:,:,iDim);
                 s.mesh   = obj.mesh;
-                bf = P1Function(s);
-                orientation{iDim} = bf;
+                af = P0Function(s);
+                aF = af.project('P1');
+                orientation{iDim} = aF;
             end 
             obj.value = orientation;
         end
@@ -105,7 +107,7 @@ classdef OrientationVectors < handle
             s.orientation = obj.value{1};
             sC = SingularitiesComputer(s);
             sC.compute();
-            sC.plot();
+          %  sC.plot();
             obj.singularities = sC;%sCoord;
         end          
 

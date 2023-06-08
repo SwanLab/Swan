@@ -75,7 +75,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function createRemesher(obj)
             s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels = 2;
+            s.nLevels = 4;
             r  = Remesher(s);
             r.remesh();
             obj.remesher = r;
@@ -109,11 +109,11 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function interpolateM1M2(obj)
             m1 = obj.cellLevelSetParams.widthH;
             m2 = obj.cellLevelSetParams.widthV;
-       %     p  = obj.cellLevelSetParams.pnorm;            
+            p  = obj.cellLevelSetParams.pnorm;            
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
-      %      p = obj.interpolateContinousFunctionToDisc(p); 
-      %      obj.cellLevelSetParams.pnorm = p;
+            p = obj.interpolateContinousFunctionToDisc(p); 
+            obj.cellLevelSetParams.pnorm = p;
         end
 
         function thresholdParameters(obj)
