@@ -41,9 +41,10 @@ function p = uploadMeshCases(p)
 p.problemCase = 'cantilever';
 p.x1 = 2;
 p.y1 = 1;
+p.z1 = 0;
 p.P  = -10; % load
-p.Nvec = [20, 40, 80, 200]; % divisions along x direction
-p.Mvec = [10, 20, 40, 100]; % divisions along y direction
-p.Ovec = [0, 0, 0, 0]; % divisions along z direction (if needed)
+p.Nvec = [20, 40, 80]; % divisions along x direction
+p.Mvec = [10, 20, 40]; % divisions along y direction
+p.Ovec = [0, 0, 0]; % divisions along z direction (if needed)
 end
 

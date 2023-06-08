@@ -45,32 +45,46 @@ classdef FEMInputWriter < handle
             obj.pCase    = cParams.problemCase;
             obj.xmax     = cParams.x1;
             obj.ymax     = cParams.y1;
-%             obj.zmax     = cParams.z1;
+            obj.zmax     = cParams.z1;
             obj.Nx       = cParams.N;
             obj.Ny       = cParams.M;
-%             obj.Nz       = cParams.O;
+            obj.Nz       = cParams.O;
             obj.P        = cParams.P;
             obj.DoF      = cParams.DoF;
         end
-        
+
         function computeMeshGrid(obj)
-            x1        = linspace(0,obj.xmax,obj.Nx);
-            x2        = linspace(0,obj.ymax,obj.Ny);
-%             x3        = linspace(0,obj.zmax,obj.Nz);
-            [X,Y]     = meshgrid(x1,x2);
-%             [X,Y,Z]     = meshgrid(x1,x2);
-            Z         = zeros(size(X));
+            x1        = linspace(0,obj.xmax,obj.Nx+1);
+            x2        = linspace(0,obj.ymax,obj.Ny+1);
+            if obj.DoF == 3
+                x3        = linspace(0,obj.zmax,obj.Nz+1);
+                [X,Y,Z]     = meshgrid(x1,x2,x3);
+            elseif obj.DoF == 2
+                [X,Y]     = meshgrid(x1,x2);
+                Z         = zeros(size(X));
+            end
             obj.xmesh = X;
             obj.ymesh = Y;
             obj.zmesh = Z;
         end
         
         function createMesh(obj)
-            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
-            s.coord  = V(:,1:2);
-            s.connec = F;
+            switch obj.DoF
+                case 2
+                    [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
+                    s.coord  = V(:,1:2);
+                    s.connec = F;
+                case 3
+                    x = [obj.xmesh];
+                    y = [obj.ymesh];
+                    z = [obj.zmesh];
+                    X = [x(:) y(:) z(:)];
+                    Tes = delaunayn(X);
+                    s.coord  = X;
+                    s.connec = Tes;
+            end
             obj.mesh = Mesh(s);
-%             obj.mesh.plot;
+            %             obj.mesh.plot;
         end
 
         function computeCaseBoundaryConditions(obj)
@@ -91,8 +105,8 @@ classdef FEMInputWriter < handle
             m = obj.mesh;
             root = m.coord(:,1) == 0;
             tipLength = m.coord(:,1) == obj.xmax;
-            tipLength2 = m.coord(:,2) > t & m.coord(:,2) < obj.ymax - t;
-            tipLength3 = m.coord(:,3) > t & m.coord(:,3) < obj.zmax - t;
+            tipLength2 = m.coord(:,2) >= t & m.coord(:,2) <= obj.ymax - t;
+            tipLength3 = m.coord(:,3) >= 0 & m.coord(:,3) <= obj.zmax;
             tip            = tipLength & tipLength2 & tipLength3;
             obj.nDirichlet = find(root);
             obj.nNeumann   = find(tip);
@@ -145,7 +159,8 @@ classdef FEMInputWriter < handle
             Fmat  = obj.computeBoundaryConditionMatrix(obj.DoF,obj.nNeumann);
             nnode = size(Fmat,1)/obj.DoF;
             Pnod  = obj.P/nnode;
-            for i = 2:2:size(Fmat,1)
+
+            for i = 2:obj.DoF:size(Fmat,1)
                 Fmat(i,3) = Pnod;
             end
             obj.pointLoads = Fmat;
@@ -174,7 +189,8 @@ classdef FEMInputWriter < handle
         
         function writeCoordinates(obj,fileID)
             COOR        = zeros(size(obj.mesh.coord,1),4);
-            COOR(:,2:3) = obj.mesh.coord;
+            dims        = size(obj.mesh.coord,2);
+            COOR(:,2:dims+1) = obj.mesh.coord;
             COOR(:,1)   = (1:1:size(COOR,1))';
             fprintf(fileID,'%%%% Coordinates\n%% Node\n');
             fprintf(fileID,'gidcoord = [\n');
@@ -186,7 +202,8 @@ classdef FEMInputWriter < handle
         
         function writeConnectivities(obj,fileID)
             Tnod        = zeros(size(obj.mesh.connec,1),5);
-            Tnod(:,2:4) = obj.mesh.connec;
+            dims        = size(obj.mesh.connec,2);
+            Tnod(:,2:dims+1) = obj.mesh.connec;
             Tnod(:,1)   = (1:1:size(Tnod,1))';
             fprintf(fileID,'%%%% Connectivities\n%% Node\n');
             fprintf(fileID,'gidlnods = [\n');
@@ -223,25 +240,39 @@ classdef FEMInputWriter < handle
             fprintf(fileID,'];\n');
         end
 
-        function writeExternalBorderElements(obj,fileID)
+        function writeProblemData(obj,fileID)
+            fprintf(fileID,'%%%% Data\nData_prb = {\n');
+            switch obj.DoF
+                case 2
+                    fprintf(fileID,'''TRIANGLE'';\n''SI'';\n''2D'';\n''Plane_Stress'';\n');
+                case 3
+                    fprintf(fileID,'''TRIANGLE'';\n''SI'';\n''3D'';\n''Plane_Stress'';\n');
+            end
+            fprintf(fileID,'''ELASTIC'';\n''MACRO'';\n};\n');
+        end
+    end
+
+    methods (Access = private, Static)
+
+        function writeExternalBorderElements(fileID)
             fprintf(fileID,'%%%% External Border Elements\n%% Node\n');
             fprintf(fileID,'External_border_elements = [\n');
             fprintf(fileID,'];\n');
-        end        
-    end
-    
-    methods (Access = private, Static)
+        end
+
         function bc = computeBoundaryConditionMatrix(DoF,n)
             bc = zeros(DoF*length(n),3);
             for i = 1:length(n)
-                bc(2*i-1,1:2) = [n(i),1];
-                bc(2*i,1:2)   = [n(i),2];
+                switch DoF
+                    case 2
+                        bc(2*i-1,1:2) = [n(i),1];
+                        bc(2*i,1:2)   = [n(i),2];
+                    case 3
+                        bc(3*i-2,1:2) = [n(i),1];
+                        bc(3*i-1,1:2) = [n(i),2];
+                        bc(3*i,1:2)   = [n(i),3];
+                end
             end
-        end
-        function writeProblemData(fileID)
-            fprintf(fileID,'%%%% Data\nData_prb = {\n');
-            fprintf(fileID,'''TRIANGLE'';\n''SI'';\n''2D'';\n''Plane_Stress'';\n');
-            fprintf(fileID,'''ELASTIC'';\n''MACRO'';\n};\n');
         end
         function writeNodesSolid(fileID)
             fprintf(fileID,'%%%% Nodes solid\n%% Node\n');
