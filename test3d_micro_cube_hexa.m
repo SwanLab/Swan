@@ -7594,56 +7594,47 @@ Materials = [
 %% FUNCTIONS (passar a classes!)
 
 function vertices = get_vertices(gidcoord)
-    vertices = [];
-    for i = 1:length(gidcoord)
-        nodeGID = gidcoord(i,:);
-        nodeCoords = gidcoord(i,2:4);
-        if (isequal(nodeCoords, [0,0,0]) || isequal(nodeCoords, [0,0,1]) || ...
-                isequal(nodeCoords, [0,1,0]) || isequal(nodeCoords, [1,0,0]) || ...
-                isequal(nodeCoords, [0,1,1]) || isequal(nodeCoords, [1,0,1]) || ...
-                isequal(nodeCoords, [1,1,0]) || isequal(nodeCoords, [1,1,1]))
-            vertices = [vertices; nodeGID];
-        end
-    end
+    vertexCoords = [
+        0 0 0;
+        0 0 1;
+        0 1 0;
+        1 0 0;
+        0 1 1;
+        1 0 1;
+        1 1 0;
+        1 1 1
+    ];
+
+    vertices = gidcoord(ismember(gidcoord(:,2:4), vertexCoords, 'rows'), :);
 end
 
-function MS = get_MasterSlave(gidcoord,vertices)
-    MS = [ ];
-    for i = 1:length(gidcoord)
-        nodeCoords = gidcoord(i,2:4);
-        if ismember(gidcoord(i,:),vertices,'rows')
-        else % if node is not a vertice
-            if any(nodeCoords==0)
-                xCoord = gidcoord(i,2);
-                yCoord = gidcoord(i,3);
-                zCoord = gidcoord(i,4);
-                if xCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord+1,yCoord,zCoord];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
-                if yCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord,yCoord+1,zCoord];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
-                if zCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord,yCoord,zCoord+1];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
+function MS = get_MasterSlave(gidcoord, vertices)
+    MS = [];
+    n = length(gidcoord);
+    vertexIndices = ismember(gidcoord(:, 2:4), vertices(:,2:4), 'rows');
+    zeroIndices = any(gidcoord(:, 2:4) == 0, 2);
+
+    for i = 1:n
+        if ~vertexIndices(i)
+            xCoord = gidcoord(i, 2);
+            yCoord = gidcoord(i, 3);
+            zCoord = gidcoord(i, 4);
+
+            if zeroIndices(i)
+                nodeSupposed = [xCoord+1, yCoord, zCoord];
+                xIndices = find(gidcoord(:, 2) == nodeSupposed(1));
+                matchIndices = ismember(gidcoord(xIndices, 2:4), nodeSupposed, 'rows');
+                MS = [MS; repmat(gidcoord(i, 1), sum(matchIndices), 1), gidcoord(xIndices(matchIndices), 1)];
+
+                nodeSupposed = [xCoord, yCoord+1, zCoord];
+                yIndices = find(gidcoord(:, 3) == nodeSupposed(2));
+                matchIndices = ismember(gidcoord(yIndices, 2:4), nodeSupposed, 'rows');
+                MS = [MS; repmat(gidcoord(i, 1), sum(matchIndices), 1), gidcoord(yIndices(matchIndices), 1)];
+
+                nodeSupposed = [xCoord, yCoord, zCoord+1];
+                zIndices = find(gidcoord(:, 4) == nodeSupposed(3));
+                matchIndices = ismember(gidcoord(zIndices, 2:4), nodeSupposed, 'rows');
+                MS = [MS; repmat(gidcoord(i, 1), sum(matchIndices), 1), gidcoord(zIndices(matchIndices), 1)];
             end
         end
     end

@@ -1,4 +1,5 @@
 filename='test3d_micro_cube_hexa';
+% filename='test3d_micro_cube_hexa_v2';
 % filename='test3d_micro_cube_v2';
 % filename='test3d_micro_cube';
 % filename='holeinclusion3d';
@@ -13,12 +14,12 @@ cost={'chomog_alphabeta'};
 weights=[1];
 constraint = {'volumeConstraint'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizerUnconstrained = 'SLERP'; % level set
+% optimizerUnconstrained = 'SLERP'; % level set
 % optimizerUnconstrained = 'PROJECTED GRADIENT'; % density
-optimizer = 'DualNestedInPrimal';
+% optimizer = 'DualNestedInPrimal';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% optimizerUnconstrained = 'SLERP'; 
-% optimizer = 'NullSpace';
+optimizerUnconstrained = 'SLERP'; 
+optimizer = 'NullSpace';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % optimizer = 'MMA';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,8 +30,8 @@ filterType = 'P1'; % P1 / PDE
 fracRadius = 0.4; %%%%%%%%%%% 0.75
 kfrac = 1.1;
 
-nsteps = 50; % 1
-Vfrac_final = 0.7; %%%%% 0.7
+nsteps = 1; % 50
+Vfrac_final = 0.85; %%%%% 0.7
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
@@ -50,7 +51,7 @@ TOL.nu_minus = 1/3;
 epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 0 0 0 0 0]';
-micro.beta =[1 0 0 0 0 0]';
+micro.beta =[-1 0 0 0 0 0]';
 % micro.alpha =[0 0 1]';
 % micro.beta =[0 0 1]';
 
@@ -58,5 +59,6 @@ micro.beta =[1 0 0 0 0 0]';
 plotting = false;
 printing = true;
 monitoring = true;
-maxiter = nsteps*10;
+maxiter = 250;
+% maxiter = nsteps*10;
 monitoring_interval = 1;
