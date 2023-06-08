@@ -70,7 +70,7 @@ classdef FEMInputWriter < handle
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh(s);
-            obj.mesh.plot;
+%             obj.mesh.plot;
         end
 
         function computeCaseBoundaryConditions(obj)
