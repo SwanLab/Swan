@@ -1,6 +1,7 @@
 classdef RHSintegrator_ShapeFunction < RHSintegrator
 
     properties (Access = private)
+        testF
     end
 
     methods (Access = public)
@@ -21,6 +22,9 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
 
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
+            s.mesh              = obj.mesh;
+            s.fValues           = zeros(obj.mesh.nnodes,1);
+            obj.testF           = P1Function(s);            
         end
 
         function rhsC = computeElementalRHS(obj, fun)
@@ -28,7 +32,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
 %             fG     = obj.fun.evaluate(quad.posgp);
             fG     = squeeze(fun.evaluate(quad.posgp)); % only used in 1d funs so far
             dV     = obj.computeDvolume();
-            N = fun.computeShapeFunctions(quad);
+            N = obj.testF.computeShapeFunctions(quad);
             N = permute(N, [1 3 2]);
             nNode  = size(N,1);
             nElem  = obj.mesh.nelem;
@@ -45,7 +49,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
 
         function f = assembleIntegrand(obj,fun,rhsElem)
             integrand = rhsElem;
-            connec = fun.computeDofConnectivity()';
+            connec = obj.testF.computeDofConnectivity()';
             ndofs = max(max(connec));
             nnode  = size(connec,2);
             f = zeros(ndofs,1);

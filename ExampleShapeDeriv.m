@@ -32,7 +32,7 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 
-delta = 0.01;
+delta = 0.001;
 
 
 
