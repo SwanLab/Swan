@@ -1,29 +1,32 @@
 clear;
 
 %% DEFINE INITIAL VARIABLES AND MATRIX
-alpha = 0.1;
-u = [-1 -1 -1];
+u = [0 0 0];
 
-plotGrad = zeros(1000,3);
-plotU = zeros(1000,1);
-plotVal = zeros(1000,1);
+iterations = 349;
+
+plotGrad = zeros(iterations,3);
+plotU = zeros(iterations,1);
+plotVal = zeros(iterations,1);
+
 iterations = 0;
 
 %% ITERATE STARTING WITH A FOR WITH THE 2 VARIABLES
 
-[val(1), grad(1,:)] = iterativeADthreeNodes(u); %Initial Iteration
+[~,numElem] = size(u);
 
-u = u - alpha * grad(1,:);
+grad = 1 + zeros(1,numElem);
 
-while abs(grad(1,2)) > 10^(-12) && abs(grad(1,3)) > 10^(-12) && iterations < 10^5 %while grad == 0 or iterations above 50
+alpha = 1 * 10^(-1);
+
+while abs(sum(grad(1,2:end))) > 10^(-6) && iterations < 10^3 %while grad == 0 or iterations above 50
     %while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
 
-    [val(2), grad(2,:)] = iterativeADthreeNodes(u);
+    [val, grad] = iterativeADthreeNodes(u);
 
-    u = u - alpha * grad(2,:);
-
-    grad(1,:) = grad(2,:);
+    u = u - alpha * grad;
+    u(1) = 0;
 
     %% PLOT
 
@@ -35,57 +38,31 @@ while abs(grad(1,2)) > 10^(-12) && abs(grad(1,3)) > 10^(-12) && iterations < 10^
     plotU(iterations,2) = u(2);
     plotU(iterations,3) = u(3);
 
-    plotVal(iterations) = val(2);
+    plotVal(iterations) = val;
 
 
 end
 
 %% PLOT
 
-figure(1)
+t = tiledlayout(2,2);
 
-plot(plotGrad(:,1)); %plot of the gradient tending to the min.
+nexttile
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotGrad(:,1)) max(plotGrad(:,1))])
+plot(plotGrad(:,2)); xlabel("Num. of iterations"); ylabel("Gradient"); title("Gradient on node 2"); grid; axis([0 iterations -0.3 0.2]) %plot of the gradient tending to the min.
 
-figure(2)
+nexttile
 
-plot(plotGrad(:,2)); %plot of the gradient tending to the min.
+plot(plotGrad(:,3)); xlabel("Num. of iterations"); ylabel("Gradient"); title("Gradient on node 3"); grid; axis([0 iterations -0.3 0.2]) %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotGrad(:,2)) max(plotGrad(:,2))])
+nexttile
 
-figure(3)
+plot(plotU(:,2)); xlabel("Num. of iterations"); ylabel("Displacement"); title("Displacement on node 2"); grid; axis([0 iterations 0 3]) %plot of the gradient tending to the min.
 
-plot(plotGrad(:,3)); %plot of the gradient tending to the min.
+nexttile
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotGrad(:,3)) max(plotGrad(:,3))])
+plot(plotU(:,3)); xlabel("Num. of iterations"); ylabel("Displacement"); title("Displacement on node 3"); grid; axis([0 iterations 0 3]) %plot of the gradient tending to the min.
 
-figure(4)
+%figure(2)
 
-plot(plotU(:,1)); %plot of the gradient tending to the min.
-
-xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,1)) max(plotU(:,1))])
-
-figure(5)
-
-plot(plotU(:,2)); %plot of the gradient tending to the min.
-
-xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,2)) max(plotU(:,2))])
-
-figure(6)
-
-plot(plotU(:,3)); %plot of the gradient tending to the min.
-
-xlabel("Num. of iterations"); ylabel("Displacement"); grid; axis([0 iterations min(plotU(:,3)) max(plotU(:,3))])
-
-figure(7)
-
-plot(plotVal); %plot of the gradient tending to the min.
-
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotVal) max(plotVal)])
-
-
-valMin = u; % Value that minimizes the grad.
-gradMin(1) = grad(1,1); % Value that minimizes the grad.
-gradMin(2) = grad(1,2); % Value that minimizes the grad.
-gradMin(3) = grad(1,3); % Value that minimizes the grad.
+%plot(plotVal); xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotVal) max(plotVal)]) %plot of the gradient tending to the min.

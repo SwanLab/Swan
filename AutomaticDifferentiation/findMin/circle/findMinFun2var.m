@@ -38,29 +38,26 @@ while abs(sum(grad(1,1:end))) > 10^(-10) && iterations < 10^5
 
 end
 
-figure(1)
+% Create plots
+t = tiledlayout(2,2);
 
-plot(plotX); %plot of the gradient tending to the min.
+nexttile
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotX) max(plotX)])
+plot(plotX); xlabel("Num. of iterations"); ylabel("Gradient"); title("Gradient on direction X"); grid; axis([0 iterations -1 1]) %plot of the gradient tending to the min. 
 
-figure(2)
+nexttile
 
-plot(plotY); %plot of the gradient tending to the min.
+plot(plotY); xlabel("Num. of iterations"); ylabel("Gradient"); title("Gradient on direction Y"); grid; axis([0 iterations -1 1]) %plot of the gradient tending to the min.
 
-xlabel("Num. of iterations"); ylabel("Gradient"); grid; axis([0 iterations min(plotY) max(plotY)])
+nexttile
 
-figure(3)
+plot(plotValX); xlabel("Num. of iterations"); ylabel("Value"); title("X values"); grid; axis([0 iterations 0 2]) %plot of the gradient tending to the min.
 
-plot(plotValX); %plot of the gradient tending to the min.
+nexttile
 
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotValX) max(plotValX)])
+plot(plotValY); xlabel("Num. of iterations"); ylabel("Value"); title("Y values"); grid; axis([0 iterations 0 2]) %plot of the gradient tending to the min.
 
-figure(4)
 
-plot(plotValY); %plot of the gradient tending to the min.
-
-xlabel("Num. of iterations"); ylabel("Value"); grid; axis([0 iterations min(plotValY) max(plotValY)])
 
 valMin = x; % Value that minimizes the grad.
 gradMin(1) = grad(1); % Gradient respect to x.
