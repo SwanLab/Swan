@@ -13,16 +13,16 @@ iterations = 0;
 
 grad = 1 + zeros(1,numElem);
 
-while abs(sum(grad(1,3:end))) > 10^(-6) && iterations < 10^5
+while abs(sum(abs(grad(1,3:end)))) > 10^(-6) && iterations < 10^5
     iterations = iterations + 1;
     [val, grad, grad2] = iterativeADNewtonNVariables(u);
     h = grad2.^(-1);
-    h(isinf(h)) = 0;
+    %h(isinf(h)) = 0;
     h = transpose(diag(h));
     u = u - h .* grad;
+    u(1) =  0;
 
     plotU(iterations,1:numElem) = u;
-    plotU(iterations,1) = 0;
     plotVal(iterations) = val;
     plotGrad(iterations,1:numElem) = grad;
     plotGrad2(iterations,1:numElem) = transpose(diag(grad2));
