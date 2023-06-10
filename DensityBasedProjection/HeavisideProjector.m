@@ -35,6 +35,9 @@ classdef HeavisideProjector < handle
         function inputData(obj,cParams)
             obj.beta = cParams.beta;
             obj.eta  = cParams.eta;
+%              load('scaleParameters.mat');
+%              obj.beta = scaleParameters.beta;
+%              obj.eta  = scaleParameters.eta;
         end
         
     end    

@@ -1,4 +1,5 @@
-filename = 'PuenteMesh2';
+filename = 'puenteInclinado';
+%Gripping
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -6,18 +7,19 @@ initial_case = 'full';
 cost = {'LinearBoundFunction'};
 widthSquare = 0.01;
 weights = [1];
-cost = {'compliance'};
-%constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
-%    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
-constraint = {'volumeConstraint'};
+%cost = {'nonadjoint_compliance'};
+constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
+    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
+%constraint = {'volumeConstraint'};
+%constraint_case = {'INEQUALITY'};
 constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
 incrementFactor = 1.2;
-%designVariable = 'Density&Bound';
-designVariable = 'Density';
-%filterType = 'Filter&Project';
-filterType = 'PDE';
+designVariable = 'Density&Bound';
+%designVariable = 'Density';
+filterType = 'Filter&Project';
+%filterType = 'PDE';
 nsteps = 1;
 Vfrac_final = 0.5;
 optimality_final =1e-3;

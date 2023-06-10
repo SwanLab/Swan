@@ -7,8 +7,12 @@
 clc
 clear all
 close all
-s.testName = 'test_arturo';
+s.testName = 'test_grip';
 s.filename = s.testName;
+            scaleParameters.eta = 0.25;
+            scaleParameters.beta = 1.5;
+            scaleParameters.rad = 0.28;
+            save('scaleParameters.mat', 'scaleParameters')
 t = TopOptComputer(s);
 t.compute();
 
