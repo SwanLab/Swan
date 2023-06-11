@@ -14,8 +14,8 @@ classdef rMINRES < handle
             obj.currentIter = obj.currentIter + 1;
             obj.n       = size(b,1);
             maxIter     = 3000;
-            nRecycling  = 50;
-            tol         = 1e-4;
+            nRecycling  = 400;
+            tol         = 1e-3;
             obj.prepareProblem(A, b);
             V   = zeros(obj.n, maxIter);
             j   = 0;
@@ -68,7 +68,6 @@ classdef rMINRES < handle
                         res     = norm(Phi(j+1));
                     end
                     obj.x0 = x;
-                    allVectors = V(:,1:j+1);
 
 
                     Tbar    = T(1:j+1,1:j);
@@ -76,18 +75,13 @@ classdef rMINRES < handle
                     Tend    = Tbar(j+1,j);
                     ej      = zeros(j,1);
                     ej(1)   = 1;
+                    vHat    = V(:,1:j);
 
-
-
-                    LHS = (T+((Tend^2)*(T*(ej*ej'))));
-                    [~, eigValues] = eig(LHS);
-                    eigValues = diag(eigValues);
-                    [~, indices] = mink(eigValues, nRecycling);
-                    tic
-                    obj.Uprev = V(:,indices);
-                    toc
-
-
+                    LHS = (T+((Tend^2)*(T*(ej*ej'))));                    
+                    [eigVectors, eigValues]  = eig(LHS);
+                    eigValues       = diag(eigValues);
+                    [~, indices]    = mink(eigValues, nRecycling);
+                    obj.Uprev = vHat*eigVectors(:,indices);
                 else
                     [U, C] = obj.prepareRecycling(A);
                     rStart = obj.r0-C*(C'*obj.r0);
@@ -187,11 +181,18 @@ classdef rMINRES < handle
                     % LHS     = Gm'*Gm;
                     % RHS     = Gm'*(wHat'*vHat);
 
-                    [eigVectors, eigValues]  = eig(LHS,RHS);      
-                    eigValues       = diag(eigValues);
-                    [~, indices]    = mink(eigValues, nRecycling);
+                    % [eigVectors, eigValues]  = eig(LHS,RHS);      
+                    % eigValues       = diag(eigValues);
+                    % [~, indices]    = mink(eigValues, nRecycling);
+                    % eigVectors = eigVectors(:,indices);
+                    
+                    % [eigVectors,~] = eigs(LHS,RHS,nRecycling,'smallestabs');
+    
 
-                    obj.Uprev = vHat*eigVectors(:,indices);
+                    [eigVectors,~] = eigs(LHS, RHS, nRecycling, 'smallestabs','Tolerance', 1e-3);
+
+
+                    obj.Uprev = vHat*eigVectors;
 
 
                     % obj.Uprev       = vHat(:,indices);
@@ -208,8 +209,8 @@ classdef rMINRES < handle
                 x = obj.x0;
             end
             obj.convergenceData(obj.currentIter) = j;
-            if (obj.currentIter == 500)
-                disp(a)
+            if (obj.currentIter == 100)
+                stop = 1;
             end
         end
 

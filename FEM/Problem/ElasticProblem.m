@@ -7,10 +7,12 @@ classdef ElasticProblem < handle
         strainFun
         stressFun
         solver
-        uPrev
+        uPrev        
     end
 
     properties (Access = private)
+        timeData
+        maxIter
         currentIteration
         displacement
         stiffnessMatrix
@@ -159,13 +161,15 @@ classdef ElasticProblem < handle
 
         function createSolver(obj)
             obj.currentIteration = 0;
+            obj.maxIter = 100;
+            obj.timeData = zeros(obj.maxIter,1);
 
             %s.type =  'MINRES';
             % s.type = 'DIRECT';
             % obj.solver = Solver.create(s);
 
-           obj.solver = MINRES_Pol(); %%BOOOOO
-           % obj.solver = rMINRES();
+           % obj.solver = MINRES_Pol(); %%BOOOOO
+           obj.solver = rMINRES();
 
         end
 
@@ -201,14 +205,12 @@ classdef ElasticProblem < handle
             bc = obj.boundaryConditions;
             Kred = bc.fullToReducedMatrix(obj.LHS);
             Fred = bc.fullToReducedVector(obj.RHS);
+            % tic;
             u = obj.solver.solve(Kred,Fred);
-            % if isempty(obj.uPrev)
-            %     obj.uPrev = zeros(size(Fred,1),1);
+            % obj.timeData(obj.currentIteration) = toc; 
+            % if obj.currentIteration == obj.maxIter
+            %     stop = 1;
             % end
-            % tic
-            % u = minres(Kred,Fred,10e-3,3000,[],[],obj.uPrev);
-            % toc
-            % obj.uPrev = u;
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
             z.mesh   = obj.mesh;
