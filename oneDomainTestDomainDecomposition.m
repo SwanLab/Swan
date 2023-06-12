@@ -20,12 +20,14 @@ a.fileName = fileName;
 data = FemDataContainer(a);
 fem = FEM.create(data);
 fem.solve();
-% fem.print(fileName);
+fem.print(fileName);
 
 % Get main results
 uTest = fem.uFun(1,1);
 e_test = fem.strainFun(1,1);
 sig_test = fem.stressFun(1,1);
+
+
 
 %% DOMAIN DECOMPOSITION (1 SUBDOMAIN + DIRICHLET)
 % Mesh building

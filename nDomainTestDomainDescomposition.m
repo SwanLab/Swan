@@ -20,7 +20,7 @@ a.fileName = fileName;
 data = FemDataContainer(a);
 fem = FEM.create(data);
 fem.solve();
-% fem.print(fileName);
+fem.print(fileName);
 
 % Get main results
 uTest = fem.uFun(1,1);
@@ -28,7 +28,7 @@ e_test = fem.strainFun(1,1);
 sig_test = fem.stressFun(1,1);
 
 %% DOMAIN DECOMPOSITION (N SUBDOMAINS)
-subdomains = 6;
+subdomains = 1;
 mesh = data.mesh;
 material = data.material;
 
@@ -122,7 +122,7 @@ function [subC] = SubdomainMassMatrix(subBoundMesh)
             % inside.
             ndim  = subBoundMesh(i,j).mesh.ndim;
             test  = P1Function.create(subBoundMesh(i,j).mesh,ndim); % disp
-            trial = P0Function.create(subBoundMesh(i,j).mesh,ndim); % lambda
+            trial = P1Function.create(subBoundMesh(i,j).mesh,ndim); % lambda
 
             s.type    = 'MassMatrix';
             s.mesh    = subBoundMesh(i,j).mesh;
@@ -175,8 +175,8 @@ function [GlobalC, TotalDofsDomain] = AssemblyGlobalMass(subC,subBoundMesh,subK,
             DofsLeft(j:2:(end-ndim+j)) = ndim*idxNodesLeft+(-ndim+j) + TotalDofsDomain;
         end
         
-        columnC(DofsRight,:) = columnC(DofsRight,:) - subC{i-1,2};
-        columnC(DofsLeft,:) = columnC(DofsLeft,:) + subC{i,1};
+        columnC(DofsRight,:) = columnC(DofsRight,:) + subC{i-1,2};
+        columnC(DofsLeft,:) = columnC(DofsLeft,:) - subC{i,1};
         GlobalC = [GlobalC columnC];
 
         TotalDofsDomain = TotalDofsDomain + size(subK{i},1);
@@ -271,7 +271,7 @@ function Plots(U,lambda,subC,subMesh,subBoundMesh)
         VectorLambda = zeros(size(lambda{i},1)*size(lambda{i},2),1);
         VectorLambda(1:2:end-1) = lambda{i}(:,1);
         VectorLambda(2:2:end)   = lambda{i}(:,2);
-        React = subC{i,1}*VectorLambda;
+        React = -subC{i,1}*VectorLambda;
         React = [React(1:2:end-1), React(2:2:end)];
 
         figure
@@ -283,7 +283,8 @@ function Plots(U,lambda,subC,subMesh,subBoundMesh)
                React(:,2), zeros(size(React(:,2))))
         title("Reaction Y (Boundary"+(i-1)+"-"+(i)+")")
 
-        TotalReact = [sum(React(:,1)) sum(React(:,2))]
+        RootMoment = sum(React(:,1)'*subBoundMesh(i).mesh.coord(:,2));
+        TotalReact = [sum(React(:,1)) sum(React(:,2)) RootMoment]
     end
 end
 

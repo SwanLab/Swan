@@ -64,7 +64,7 @@ GlobalU = Sol.solve(GlobalLHS,GlobalRHS);
 
 % Results representation 
 %Plots(u,lambda,subC,subMesh,subBoundMesh);
-PrintResults(u,subBoundMesh);
+PrintResults(uFull,subMesh);
 
 % Errors
 [MaxError] = ConnectionErrorLinf(GlobalU,GlobalLHS,subC,totalDofsDomain)
@@ -316,7 +316,7 @@ function PrintResults(u,mesh)
     for i=1:subdomains
         s = [];
         s.fValues = full(u{i});
-        s.mesh    = mesh(i).mesh;
+        s.mesh    = mesh(i);
         p.filename = ['domain',char(string(i))];
         ResultSubDom = P1Function(s);
         ResultSubDom.print(p);
