@@ -67,8 +67,8 @@ classdef ThermalProblem < handle
             pd.scale        = cParams.scale;
             pd.pdim         = '1D';
             pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.dirichlet;
-            pd.bc.pointload = cParams.pointload;
+            pd.bc.dirichlet = cParams.bc.dirichlet;
+            pd.bc.pointload = cParams.bc.pointload;
             obj.problemData = pd;
         end
 

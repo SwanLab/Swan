@@ -5,3 +5,7 @@ Output/*
 Videos/*
 *.m~
 *.asv
+Circle_Mesh.gid/Circle_Mesh.geo
+Circle_Mesh.gid/Circle_Mesh.png
+Circle_Mesh.gid/Circle_Mesh.tree
+Circle_Mesh.gid/Circle_Mesh.vv
