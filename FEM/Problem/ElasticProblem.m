@@ -40,8 +40,8 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
-            obj.computeForces();
+            obj.computeLHS();
+            obj.computeRHS();
             obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
@@ -144,7 +144,7 @@ classdef ElasticProblem < handle
             obj.solver = Solver.create(s);
         end
 
-        function computeStiffnessMatrix(obj)
+        function computeLHS(obj)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = obj.displacementFun;
@@ -153,7 +153,7 @@ classdef ElasticProblem < handle
             obj.LHS = lhs.compute();
         end
 
-        function computeForces(obj)
+        function computeRHS(obj)
             s.type = 'Elastic';
             s.scale    = obj.scale;
             s.dim      = obj.getFunDims();
@@ -178,7 +178,7 @@ classdef ElasticProblem < handle
 %             obj.variables.d_u = u;
 
             z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';% Ep, should be from FeFunction!!!
             uFeFun = P1Function(z);
             obj.uFun = uFeFun;
 

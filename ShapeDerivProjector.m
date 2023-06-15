@@ -8,10 +8,12 @@ classdef ShapeDerivProjector < Projector
 
         function xFun = project(obj,f,df)
             LHS     = obj.computeLHS();
-            RHSfun  = obj.computeRHSFun(df);
-     %       RHSfun2 = obj.computeRHSFun2(df);
-            
-            RHSdfun = obj.computeRHSdFun(f);
+            RHSdfun  = obj.computeRHSdFun(df);
+           % for i = 1:length(df)
+           %     RHSdfun(:,i) = obj.computeRHSdFun2(df{i});
+           % end
+            % 
+            RHSfun = obj.computeRHSFun(f);
             RHS     = RHSfun + RHSdfun;
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
@@ -50,7 +52,7 @@ classdef ShapeDerivProjector < Projector
             LHSK = lhs.compute();
         end
 
-        function RHS = computeRHSdFun(obj,fun)
+        function RHS = computeRHSFun(obj,fun)
             s.type     = 'ShapeDivergence';
             s.mesh     = obj.mesh;
             s.quadratureOrder = 'QUADRATIC';            
@@ -59,7 +61,7 @@ classdef ShapeDerivProjector < Projector
             RHS = rhs.fValues;
         end
 
-        function RHS = computeRHSFun2(obj,dfun)
+        function RHS = computeRHSdFun2(obj,dfun)
             s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh;
             s.quadratureOrder = 'QUADRATIC';            
@@ -67,12 +69,12 @@ classdef ShapeDerivProjector < Projector
             RHS = rhs.compute(dfun);
         end        
 
-        function RHS = computeRHSFun(obj,dfun)
+        function RHS = computeRHSdFun(obj,dfun)
             quad = obj.createRHSQuadrature(dfun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]); %aqui abans en comptes de deriv hi havia shape
+            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]); 
             conne = obj.mesh.connec;
 
             nGaus = quad.ngaus;

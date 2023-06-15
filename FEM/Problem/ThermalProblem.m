@@ -1,26 +1,21 @@
 classdef ThermalProblem < handle
     
     properties (Access = public)
-        variables
+        temperature
     end
 
     properties (Access = private)
-        temperature
         boundaryConditions
-        problemData
-        stiffnessMatrix
-        stiffnessMatrixRed
-        forces
-        solver
-        geometry
-        quadrature        
+        solver        
+        LHS
+        RHS
     end
 
     properties (Access = private)
         mesh        
         scale
-        pdim
-        inputBC          
+        inputBC  
+        rhsVol
     end
 
     methods (Access = public)
@@ -33,28 +28,24 @@ classdef ThermalProblem < handle
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
-            obj.computeForces();
+            obj.computeLHS();
+            obj.computeRHS();
             obj.computeTemperatures();
         end
 
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
+        function print(obj,filename)
+            [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = obj.mesh;
+            a.filename = filename;
+            a.fun      = fun;
+            a.funNames = funNames;
+            pst = FunctionPrinter_Paraview(a);
+            pst.print();
         end
-
-        function print(obj,fileName)
-            s = obj.createPostProcessDataBase(fileName);
-            s.pdim = '2D';
-            s.name = 'temp';
-            s.ptype     = obj.problemData.ptype;
-            s.ndim      = 2;obj.dim.ndim;
-            %s.pdim      = obj.problemData.pdim;
-            postprocess = Postprocess('ScalarNodal',s);
-            q = obj.quadrature;
-            d.fields = obj.variables.d_u;
-            d.quad = q;
-            postprocess.print(1,d);
-        end
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.temperature};
+            funNames = {'Temperature'};
+        end        
 
     end
 
@@ -63,13 +54,12 @@ classdef ThermalProblem < handle
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
             obj.scale       = cParams.scale;
-            obj.pdim        = cParams.dim;
             obj.inputBC     = cParams.bc;
+            obj.rhsVol      = cParams.rhsVol;
         end
 
         function createTemperatureFun(obj)
-            strdim = regexp(obj.pdim,'\d*','Match');
-            nDimf  = str2double(strdim);
+            nDimf  = 1;
             t = P1Function.create(obj.mesh, nDimf);
             obj.temperature = t;
         end
@@ -100,60 +90,39 @@ classdef ThermalProblem < handle
         function createSolver(obj)
             s.type = 'DIRECT';
             obj.solver = Solver.create(s);
-        end
+        end        
 
-        
-
-        function computeStiffnessMatrix(obj)
+        function computeLHS(obj)
             s.type     = 'StiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = obj.temperature;
-            s.material = obj.material;
+            s.test     = obj.temperature;
+            s.trial    = obj.temperature;
             lhs = LHSintegrator.create(s);
             obj.LHS = lhs.compute();
         end
 
-        function computeForces(obj)
-            f    = obj.computeExternalForces();
-            fRed = obj.reduceForcesMatrix(f);
-            obj.forces = fRed;
+        function computeRHS(obj)
+            rhsV    = obj.computeVolumetricRHS();
+            obj.RHS = rhsV;
         end
 
-        function F = computeExternalForces(obj)
-            s.dim         = obj.dim;
-            s.BC          = obj.boundaryConditions; % Neumann
-            s.mesh        = obj.mesh;
-            s.material    = [];
-            s.geometry    = obj.geometry;
-            s.dvolume     = obj.getDvolume();
-            s.globalConnec = obj.mesh.connec;
-            fcomp = ForcesComputer(s);
-            F = fcomp.compute();
-            R = fcomp.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = F + R;
-        end
-
-        function Fred = reduceForcesMatrix(obj, forces)
-            Fred = obj.boundaryConditions.fullToReducedVector(forces);
+        function rhs = computeVolumetricRHS(obj)
+            s.mesh     = obj.mesh;
+            s.type     = 'ShapeFunction';
+            RHSint = RHSintegrator.create(s);
+            f = obj.rhsVol;
+            rhs = RHSint.compute(f);            
         end
 
         function t = computeTemperatures(obj)
-            Kred = obj.stiffnessMatrixRed;
-            Fred = obj.forces;
+            bc = obj.boundaryConditions;
+            Kred = bc.fullToReducedMatrix(obj.LHS);
+            Fred = bc.fullToReducedVector(obj.RHS);
             t = obj.solver.solve(Kred,Fred);
-            t = obj.boundaryConditions.reducedToFullVector(t);
-            obj.variables.d_u = t;
+            t = bc.reducedToFullVector(t);
+            obj.temperature.fValues = t;
         end
 
-        function d = createPostProcessDataBase(obj,fileName)
-            dI.mesh    = obj.mesh;
-            dI.outFileName = fileName;
-            dI.pdim = '2D';
-            dI.ptype = 'THERMAL';
-            ps = PostProcessDataBaseCreator(dI);
-            d = ps.create();
-        end
-        
     end
 
 end

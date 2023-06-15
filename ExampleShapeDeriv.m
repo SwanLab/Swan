@@ -1,8 +1,4 @@
 function ExampleShapeDeriv
-% function ExampleShapeDeriv
-clear 
-clc
-addpath(genpath(fileparts(mfilename('fullpath')))) ;
 
 
 %%%% Trec les propietats de la malla a partir del FemDataContainer %%%%
@@ -108,19 +104,30 @@ end
 
 
 function f = createFunction(mesh)
-% s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
-s.fHandle = @(x) abs(x(1,:,:)-1) + abs(x(2,:,:)-0.5) -1;
+ s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
+%s.fHandle = @(x) abs(x(1,:,:)-1) + abs(x(2,:,:)-0.5) -1;
 s.ndimf   = 1;
 s.mesh    = mesh;
 f = AnalyticalFunction(s);
 end
 
-function df = createDerivative(mesh)
-% s.fHandle = @(x) [2/1.5*(x(1,:,:)-1); 2/0.5*(x(2,:,:)-0.5)];
-s.fHandle = @(x) [x(1,:,:)./abs(x(1,:,:)-1) ;x(2,:,:)./abs(x(2,:,:)-0.5) ] ;
-s.ndimf   = 2;
-s.mesh    = mesh;
-df = AnalyticalFunction(s);
+function dfC = createDerivative(mesh)
+  s.fHandle = @(x) [2*(x(1,:,:)-1)/1.5; 2*(x(2,:,:)-0.5)/0.5];
+  s.ndimf   = 2;
+  s.mesh    = mesh;
+  dfC = AnalyticalFunction(s);
+
+% 
+% df{1} = @(x)  2*(x(1,:,:)-1)/1.5;
+% df{2} = @(x)  2*(x(2,:,:)-0.5)/0.5;
+% %df{1} = @(x) x(1,:,:)./abs(x(1,:,:)-1);
+% %df{2} = @(x) x(2,:,:)./abs(x(2,:,:)-0.5);
+% for i = 1:length(df)
+%     s.fHandle = df{i};
+%     s.ndimf   = 1;
+%     s.mesh    = mesh;
+%     dfC{i} = AnalyticalFunction(s);
+% end
 end
 
 % function g = project1(df,mesh)
