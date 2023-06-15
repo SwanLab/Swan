@@ -64,7 +64,8 @@ classdef PDEShapeDerivative < handle
             s.mesh   = obj.mesh;
             s.rhsVol = obj.createVolumetricRHS();
             fem = FEM.create(s);
-            fem.solve();  
+            fem.solve(); 
+            %fem.print('asa')
             obj.temperature = fem.temperature;
         end
 
