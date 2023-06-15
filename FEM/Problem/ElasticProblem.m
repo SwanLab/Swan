@@ -1,7 +1,6 @@
 classdef ElasticProblem < handle
     
     properties (Access = public)
-%         variables
         boundaryConditions
         uFun
         strainFun
@@ -12,11 +11,14 @@ classdef ElasticProblem < handle
         LHS
         RHS
         solver
-        scale
-        pdim
-        inputBC
         strain
         stress
+    end
+
+    properties (Access = private)
+        scale
+        pdim
+        inputBC        
     end
 
     properties (Access = protected)

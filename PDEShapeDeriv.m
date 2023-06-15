@@ -1,4 +1,4 @@
-function PDEShapeDeriv
+cl C
 
 clear 
 clc
@@ -14,6 +14,8 @@ s = FemDataContainer(a);
 s.type = 'THERMAL' ;
 fem = FEM.create(s);
 % fem.solve();
+
+
 
 
 

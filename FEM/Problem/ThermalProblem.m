@@ -5,31 +5,29 @@ classdef ThermalProblem < handle
     end
 
     properties (Access = private)
+        temperature
         boundaryConditions
-        displacement
         problemData
         stiffnessMatrix
         stiffnessMatrixRed
         forces
         solver
         geometry
+        quadrature        
     end
 
-    properties (Access = protected)
-        quadrature
-        dim
-
-        mesh, interp % For Homogenization
+    properties (Access = private)
+        mesh        
+        scale
+        pdim
+        inputBC          
     end
 
     methods (Access = public)
 
         function obj = ThermalProblem(cParams)
             obj.init(cParams);
-            obj.createInterpolation();
-            obj.createQuadrature();
-            obj.createGeometry();
-            obj.computeDimensions();
+            obj.createTemperatureFun();
             obj.createBoundaryConditions();
             obj.createSolver();
         end
@@ -64,52 +62,39 @@ classdef ThermalProblem < handle
 
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
-            pd.scale        = cParams.scale;
-            pd.pdim         = '1D';
-            pd.ptype        = cParams.type;
-            pd.bc.dirichlet = cParams.bc.dirichlet;
-            pd.bc.pointload = cParams.bc.pointload;
-            obj.problemData = pd;
+            obj.scale       = cParams.scale;
+            obj.pdim        = cParams.dim;
+            obj.inputBC     = cParams.bc;
         end
 
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
-        end
-
-        function computeDimensions(obj)
-            s.ngaus = obj.quadrature.ngaus;
-            s.mesh  = obj.mesh;
-            s.pdim  = obj.problemData.pdim;
-            d       = DimensionVariables(s);
-            d.compute();
-            obj.dim = d;
-        end
-
-        function createInterpolation(obj)
-            int = obj.mesh.interpolation;
-            obj.interp{1} = int;
-        end
-       
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interp{1};
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
+        function createTemperatureFun(obj)
+            strdim = regexp(obj.pdim,'\d*','Match');
+            nDimf  = str2double(strdim);
+            t = P1Function.create(obj.mesh, nDimf);
+            obj.temperature = t;
         end
 
         function createBoundaryConditions(obj)
-            s.dim        = obj.dim;
-            s.mesh       = obj.mesh;
-            s.scale      = obj.problemData.scale;
-            s.bc         = obj.problemData.bc;
+            dim = obj.getFunDims();
+            bc = obj.inputBC;
+            bc.ndimf = dim.ndimf;
+            bc.ndofs = dim.ndofs;
+            s.mesh  = obj.mesh;
+            s.scale = obj.scale;
+            s.bc    = {bc};
+            s.ndofs = dim.ndofs;
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
+        end  
+
+        function dim = getFunDims(obj)
+            d.ndimf  = obj.temperature.ndimf;
+            d.nnodes = size(obj.temperature.fValues, 1);
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
         end
 
         function createSolver(obj)
@@ -117,16 +102,15 @@ classdef ThermalProblem < handle
             obj.solver = Solver.create(s);
         end
 
+        
+
         function computeStiffnessMatrix(obj)
-            s.type = 'StiffnessMatrix';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.dim          = obj.dim;
-            LHS = LHSintegrator.create(s);
-            K   = LHS.compute();
-            Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-            obj.stiffnessMatrix    = K;
-            obj.stiffnessMatrixRed = Kred;
+            s.type     = 'StiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = obj.temperature;
+            s.material = obj.material;
+            lhs = LHSintegrator.create(s);
+            obj.LHS = lhs.compute();
         end
 
         function computeForces(obj)
