@@ -1,13 +1,11 @@
 %% To-do
 
 % 1) ElasticProblemMicro_Fast
-%       - one loop at solve(). displacements+strain+stress+fluct calculated
-%         without adding additional loops
 %       - code cleanup (see computeDisplacements())
-%       - delete vars/variables/whatever -> change functionals
+%       - delete computeChomog & variables there
 
-% 2) FunctionPrinter/ParaviewPostprocessor -> move to Factory
-% 3) Mesh.print
+
+% !!! Extrude STL -> ExportSTL.tcl
 
 %% Comments
 
