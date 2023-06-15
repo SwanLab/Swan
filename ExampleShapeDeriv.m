@@ -1,6 +1,6 @@
 function ExampleShapeDeriv
 
-
+addpath(genpath(fileparts(mfilename('fullpath'))))
 %%%% Trec les propietats de la malla a partir del FemDataContainer %%%%
 file = 'CantileverBeam_Triangle_Linear';
 a.fileName = file;
@@ -28,7 +28,7 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 
-delta = 1e-2;
+delta = 1e-25;
 
 
 
@@ -47,7 +47,8 @@ while step > delta
     newMesh.plot()
     newMesh = remesh(newMesh);
     % axis([0 2 -0.3 1.4])
-    axis([-0.25 2.25 -0.25 1.25])
+    % axis([-0.25 2.25 -0.25 1.25])
+    axis([0 2 -0.5 1.3])
     figure(2)
     plot(c)
     step = norm(mesh.coord(:) - newMesh.coord(:))
@@ -104,15 +105,26 @@ end
 
 
 function f = createFunction(mesh)
- s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
-%s.fHandle = @(x) abs(x(1,:,:)-1) + abs(x(2,:,:)-0.5) -1;
+%%elipse%%
+ % s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
+%%cor%%
+ % s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^3 - (x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^3 ;
+%%flor%%
+ s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^3 - 4*(x(1,:,:)-1).^2.*(x(2,:,:)-0.5).^2 ;
 s.ndimf   = 1;
 s.mesh    = mesh;
 f = AnalyticalFunction(s);
 end
 
 function dfC = createDerivative(mesh)
-  s.fHandle = @(x) [2*(x(1,:,:)-1)/1.5; 2*(x(2,:,:)-0.5)/0.5];
+%%elipse%%
+  % s.fHandle = @(x) [2*(x(1,:,:)-1)/1.5; 2*(x(2,:,:)-0.5)/0.5];
+%%cor%%
+  % s.fHandle = @(x) [ 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^2.*(x(1,:,:)-1) - 2*(x(1,:,:)-1).*(x(2,:,:)-0.3).^3 ;
+  %    6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^2.*(x(2,:,:)-0.3) - 3*(x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^2 ] ;
+ %%flor%%
+  s.fHandle = @(x) [ 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(1,:,:)-1) - 8*(x(1,:,:)-1).*(x(2,:,:)-0.5).^2 ;
+      6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(2,:,:)-0.5) - 8*(x(2,:,:)-0.5).*(x(1,:,:)-1).^2 ] ;
   s.ndimf   = 2;
   s.mesh    = mesh;
   dfC = AnalyticalFunction(s);
