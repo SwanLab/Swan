@@ -38,7 +38,7 @@ tau = 0.01;
 step = 1;
 while step > delta
     df   = createDerivative(mesh);
-    c(iter) = computeCost(mesh,quad);
+    % c(iter) = computeCost(mesh,quad);
     f = createFunction(mesh) ;
     g= project(f,df,mesh);
     newMesh = updateMesh(mesh,g,tau);
@@ -110,11 +110,22 @@ function f = createFunction(mesh)
 %%cor%%
  % s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^3 - (x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^3 ;
 %%flor%%
- s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^3 - 4*(x(1,:,:)-1).^2.*(x(2,:,:)-0.5).^2 ;
+ % s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^3 - 4*(x(1,:,:)-1).^2.*(x(2,:,:)-0.5).^2 ;
+
+%%PDE%%
+a = PDEShapeDerivative() ;
+u = a.computeTemperature() ;
+u_t = a.createTemperatureTarget() ;
+s.fHandle = @(x) u - u_t ;
+
+
 s.ndimf   = 1;
 s.mesh    = mesh;
 f = AnalyticalFunction(s);
 end
+
+
+
 
 function dfC = createDerivative(mesh)
 %%elipse%%
