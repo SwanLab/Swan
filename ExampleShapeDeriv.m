@@ -11,7 +11,7 @@ a.fileName = file;
 s = FemDataContainer(a);
 
 mesh = s.mesh;
-% mesh.plot()
+mesh.plot()
 
 fem = FEM.create(s);
 fem.solve();
@@ -32,7 +32,7 @@ quad = Quadrature.set(s.mesh.type);
 quad.computeQuadrature('LINEAR');
 
 
-delta = 0.001;
+delta = 1e-2;
 
 
 
@@ -50,15 +50,36 @@ while step > delta
     clf
     newMesh.plot()
     newMesh = remesh(newMesh);
-    %pause(1)
-    axis([0 2 0 1])
+    % axis([0 2 -0.3 1.4])
+    axis([-0.25 2.25 -0.25 1.25])
     figure(2)
     plot(c)
-    step = norm(mesh.coord(:) - newMesh.coord(:));
+    step = norm(mesh.coord(:) - newMesh.coord(:))
     mesh = newMesh;
     iter   = iter + 1 ;
 end
 
+figure(2)
+set(groot,'defaultAxesTickLabelInterpreter','latex');  
+set(groot,'defaulttextinterpreter','latex');
+set(groot,'defaultLegendInterpreter','latex');
+
+fig1 = figure(2);
+hold on;
+title("\textbf{Cost vs number of iterations}");
+plot(c, 'b', 'LineWidth', 1);
+xlabel("$Number\ of\ iterations$");
+ylabel("$Cost\  of\  the\  function$ ");
+grid on;
+grid minor;
+box on;
+set(gcf, 'units', 'points', 'position', [50,50,676/2,420/2]);
+hold off;
+
+set(fig1, 'units', 'points');
+pos = get(fig1, 'position');
+set(fig1, 'PaperPositionMode', 'Auto', 'PaperUnits', 'points', ...
+    'PaperSize',[pos(3), pos(4)]);
 
 
 end
@@ -87,14 +108,16 @@ end
 
 
 function f = createFunction(mesh)
-s.fHandle = @(x) (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 -0.5;
+% s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
+s.fHandle = @(x) abs(x(1,:,:)-1) + abs(x(2,:,:)-0.5) -1;
 s.ndimf   = 1;
 s.mesh    = mesh;
 f = AnalyticalFunction(s);
 end
 
 function df = createDerivative(mesh)
-s.fHandle = @(x) [2*(x(1,:,:)-1); 2*(x(2,:,:)-0.5)];
+% s.fHandle = @(x) [2/1.5*(x(1,:,:)-1); 2/0.5*(x(2,:,:)-0.5)];
+s.fHandle = @(x) [x(1,:,:)./abs(x(1,:,:)-1) ;x(2,:,:)./abs(x(2,:,:)-0.5) ] ;
 s.ndimf   = 2;
 s.mesh    = mesh;
 df = AnalyticalFunction(s);
