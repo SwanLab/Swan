@@ -173,7 +173,6 @@ classdef P2Function < FeFunction
             obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'QUADRATIC';
         end
 
         function createInterpolation(obj)

@@ -1,21 +1,26 @@
-classdef LHSintegrator_WeakDivergence < handle
+classdef LHSintegrator_StokesD < handle
 
     properties (Access = private)
-        trial
-        test
+        pressureFun
+        velocityFun
         mesh
         quadrature
     end
 
     methods (Access = public)
 
-        function obj = LHSintegrator_WeakDivergence(cParams)
+        function obj = LHSintegrator_StokesD(cParams)
+            %             obj.init(cParams);
+            %             obj.createQuadrature();
+            %             obj.createInterpolation();
+            %             obj.createGeometry();
             obj.initStokesD(cParams);
             obj.createQuadrature();
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
+%             LHS = obj.assembleStokesD(lhs);
             LHS = obj.assembleMatrix(lhs);
         end
 
@@ -24,9 +29,9 @@ classdef LHSintegrator_WeakDivergence < handle
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxV = obj.test.computeCartesianDerivatives(obj.quadrature);
+            dNdxV = obj.velocityFun.computeCartesianDerivatives(obj.quadrature);
             dvolV = obj.mesh.computeDvolume(obj.quadrature)';
-            shpeP = obj.trial.computeShapeFunctions(obj.quadrature);
+            shpeP = obj.pressureFun.computeShapeFunctions(obj.quadrature);
 
             nElem = obj.mesh.nelem;
             nDimfV = size(dNdxV,1);
@@ -56,9 +61,9 @@ classdef LHSintegrator_WeakDivergence < handle
     methods (Access = private)
 
         function initStokesD(obj, cParams)
-            obj.mesh  = cParams.mesh;
-            obj.trial = cParams.trial;
-            obj.test  = cParams.test;
+            obj.mesh     = cParams.mesh;
+            obj.pressureFun = cParams.pressureFun;
+            obj.velocityFun = cParams.velocityFun;
 %             obj.material = cParams.material;
         end
 
@@ -71,7 +76,7 @@ classdef LHSintegrator_WeakDivergence < handle
         function LHS = assembleMatrix(obj, lhs)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
+            LHS = assembler.assembleFunctions(lhs, obj.velocityFun, obj.pressureFun);
         end
 
     end

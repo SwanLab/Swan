@@ -1,6 +1,9 @@
 classdef Mesh < handle
 
     properties (GetAccess = public, SetAccess = private)
+        nnodeElem
+%         npnod
+        nnodes
         type
         kFace
         geometryType
@@ -8,10 +11,9 @@ classdef Mesh < handle
         coord
         connec
 
-        ndim
         nelem
-        nnodes
-        nnodeElem
+        ndim
+
 
         coordElem
         interpolation
@@ -106,6 +108,10 @@ classdef Mesh < handle
             xmin = min(obj.coord);
             xmax = max(obj.coord);
             L = norm(xmax-xmin);
+        end
+
+        function changeCoordinates(obj,newCoords)
+            obj.coord = newCoords;
         end
 
         function setCoord(obj,newCoord)
@@ -257,18 +263,23 @@ classdef Mesh < handle
             m = r.compute();
         end
 
+
+%         function fP1 = mapP0ToP1Discontinous(obj,f)
+%             nnodeElem = obj.meshDisc.nnodeElem;
+%             fRepeted = zeros(size(f,1),nnodeElem);
+%             for iNode = 1:nnodeElem
+%                 fRepeted(:,iNode) = f;
+%             end
+%             fRepeted = transpose(fRepeted);
+%             fP1 = fRepeted(:);
+%         end
+
+
         function exportSTL(obj, file)
             obj.triangulateMesh();
             stlwrite(obj.triMesh, [file '.stl'])
         end
 
-        function print(obj, s)
-            p1 = P1Function.create(obj,1);
-            s.mesh = obj;
-            s.fun = {p1};
-            p = FunctionPrinter.create(s);
-            p.print();
-        end
 
     end
 

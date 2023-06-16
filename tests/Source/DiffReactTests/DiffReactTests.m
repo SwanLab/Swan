@@ -79,9 +79,8 @@ classdef DiffReactTests < matlab.unittest.TestCase
             f = P1Function(a);
             s.type         = 'MassMatrix';
             s.quadratureOrder     = 'QUADRATICMASS';
-            s.mesh = mesh;
-            s.test  = f;
-            s.trial = f;
+            s.mesh         = mesh;
+            s.fun        = f;
             LHS = LHSintegrator.create(s);
             M = LHS.compute();
         end

@@ -1,13 +1,13 @@
-classdef RHSintegrator_CutMesh < RHSintegrator
+classdef RHSintegrator_CutMesh < handle
 
     properties (Access = private)
         npnod
-%         mesh
+        mesh
         globalConnec
         xGauss
         fGauss
         quadOrder
-%         quadrature
+        quadrature
 
         backgroundMeshType
 
@@ -21,11 +21,11 @@ classdef RHSintegrator_CutMesh < RHSintegrator
         % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_CutMesh(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
         end
 
         function rhs = compute(obj, fNodal)
             obj.computeSubCellConnec();
+            obj.computeQuadrature();
             obj.computeGaussPoints();
             obj.computeFgauss(fNodal);
             rhsCut = obj.computeElementalRHS();
@@ -40,15 +40,24 @@ classdef RHSintegrator_CutMesh < RHSintegrator
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.npnod        = cParams.npnod;
+            obj.quadOrder    = 'LINEAR';
             obj.globalConnec = cParams.globalConnec;
+
+            obj.backgroundMeshType  = cParams.backgroundMeshType;
+
             obj.xCoordsIso   = cParams.xCoordsIso;
-            obj.backgroundMeshType    = cParams.backgroundMeshType;
             obj.cellContainingSubcell = cParams.cellContainingSubcell;
         end
         
         function computeSubCellConnec(obj)
             cells = obj.cellContainingSubcell;
             obj.subCellConnec = obj.globalConnec(cells,:);
+        end
+        
+        function computeQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadOrder);
+            obj.quadrature = q;
         end
         
         function computeGaussPoints(obj)

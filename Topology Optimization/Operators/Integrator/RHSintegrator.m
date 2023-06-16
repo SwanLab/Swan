@@ -1,8 +1,6 @@
 classdef RHSintegrator < handle
 
-    properties (Access = protected)
-        mesh
-        quadrature
+    properties (Access = private)
     end
 
     methods (Access = public, Static)
@@ -16,13 +14,7 @@ classdef RHSintegrator < handle
     
     methods (Access = public)
         
-%         function obj = RHSintegrator(cParams)
-%         end
-
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            obj.quadrature = q;
+        function obj = RHSintegrator(cParams)
         end
 
     end

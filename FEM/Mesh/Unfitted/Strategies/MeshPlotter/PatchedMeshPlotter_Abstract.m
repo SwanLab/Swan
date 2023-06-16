@@ -43,13 +43,13 @@ classdef PatchedMeshPlotter_Abstract < handle
         
         function meshUnfitted = patchCutCellsCoords(obj,meshUnfitted,removedDim,removedDimCoord)
             newCoords = obj.patchCoords(meshUnfitted,removedDim,removedDimCoord);
-            meshUnfitted.setCoord(newCoords);
+            meshUnfitted.changeCoordinates(newCoords);
         end
         
         
         function meshUnfitted = patchFullCellsCoords(obj,meshUnfitted,removedDim,removedDimCoord)
             newCoords = obj.patchCoords(meshUnfitted.meshBackground,removedDim,removedDimCoord);
-            meshUnfitted.meshBackground.setCoord(newCoords);
+            meshUnfitted.meshBackground.changeCoordinates(newCoords);
         end
         
         function newCoords = patchCoords(obj,mesh,removedDim,removedDimCoord)

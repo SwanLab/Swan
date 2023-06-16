@@ -27,10 +27,9 @@ classdef H1Projector_toP1 < Projector
         end
 
         function LHSM = computeMassMatrix(obj)
-            s.test  = P1Function.create(obj.mesh,1);
-            s.trial = P1Function.create(obj.mesh,1);
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
+            s.fun  = P1Function.create(obj.mesh,1);
+            s.mesh = obj.mesh;
+            s.type = 'MassMatrix';
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHSM = lhs.compute();
@@ -39,8 +38,7 @@ classdef H1Projector_toP1 < Projector
         function LHSK = computeStiffnessMatrix(obj)
             s.type = 'StiffnessMatrix';
             s.mesh = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.fun  = P1Function.create(obj.mesh,1);
             s.quadratureOrder = 'CONSTANT';
             lhs = LHSintegrator.create(s);
             LHSK = lhs.compute();

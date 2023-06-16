@@ -1,6 +1,6 @@
 classdef ShFunc_Chomog < ShapeFunctional
     
-    properties (Access = protected)
+    properties (Access = public)
         Chomog
         tstress
         tstrain
@@ -110,10 +110,11 @@ classdef ShFunc_Chomog < ShapeFunctional
         
         function computeChDerivative(obj)
             dC = obj.homogenizedVariablesComputer.dC;
-%             p  = obj.physicalProblem;
-            nStre = obj.getnStre();
-            nelem = obj.getnElem();
-            ngaus = obj.getnGaus;
+            p  = obj.physicalProblem;
+            tstr = p.variables.tstrain;
+            nStre = size(tstr,1);
+            nelem = size(tstr,4);
+            ngaus = size(tstr,2);
             dChV = zeros(nStre,nStre,nelem,ngaus);
             for iStre = 1:nStre
                 for jStre = 1:nStre
@@ -121,9 +122,9 @@ classdef ShFunc_Chomog < ShapeFunctional
                         for kStre =1:nStre
                             for lStre = 1:nStre
                                 dChVij = squeeze(dChV(iStre,jStre,:,igaus));
-                                eik   = squeeze(obj.tstrain{iStre}.fValues(kStre,igaus,:));
+                                eik   = squeeze(obj.tstrain(iStre,igaus,kStre,:));
                                 dCkl  = squeeze(dC(kStre,lStre,:,:,igaus));
-                                ejl   = squeeze(obj.tstrain{jStre}.fValues(lStre,igaus,:));
+                                ejl   = squeeze(obj.tstrain(jStre,igaus,lStre,:));
                                 dChV(iStre,jStre,:,igaus) = dChVij + eik.*dCkl.*ejl;%Original
                             end
                         end
@@ -136,18 +137,18 @@ classdef ShFunc_Chomog < ShapeFunctional
         function initChomog(obj,cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.physicalProblem = cParams.femSettings.physicalProblem;
+            fileName = cParams.femSettings.fileName;
+            a.fileName = fileName;
+            s = FemDataContainer(a);
+            obj.physicalProblem = FEM.create(s);
         end
         
         function solveState(obj)
-            % designVariable -> check if C has changed
-            % if hasCchanged
-            % obj.computeStiffnessMatrix();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
-            obj.physicalProblem.solve();
-            obj.Chomog  = obj.physicalProblem.Chomog;
-            obj.tstrain = obj.physicalProblem.strainFun;
-            obj.tstress = obj.physicalProblem.stressFun;
+            obj.physicalProblem.computeChomog();
+            obj.Chomog  = obj.physicalProblem.variables.Chomog;
+            obj.tstrain = obj.physicalProblem.variables.tstrain;
+            obj.tstress = obj.physicalProblem.variables.tstress;
         end
         
         function updateHomogenizedMaterialProperties(obj)
@@ -174,15 +175,18 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function n = getnStre(obj)
-            n = numel(obj.physicalProblem.uFun);
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,2);
         end
         
         function n = getnGaus(obj)
-            n = obj.physicalProblem.strainFun{1}.quadrature.ngaus;
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,1);
         end
         
         function n = getnElem(obj)
-            n = size(obj.physicalProblem.strainFun{1}.fValues,3);
+            ep = obj.physicalProblem.variables.strain;
+            n  = size(ep,3);
         end
         
     end

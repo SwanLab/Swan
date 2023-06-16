@@ -2,7 +2,6 @@ classdef FemComputer < handle
 
     properties (Access = public)
         computation
-        variables
     end
 
     properties (Access = private)
@@ -26,8 +25,6 @@ classdef FemComputer < handle
             s.interpolationType = obj.interpolationType;
             obj.computation = FEM.create(s);
             obj.computation.solve();
-            d_u = obj.computation.uFun.fValues;
-            obj.variables.d_u = reshape(d_u', [numel(d_u) 1]);
         end
     end
 

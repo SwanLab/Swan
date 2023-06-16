@@ -126,7 +126,7 @@ classdef TotalCorrectorComputer < handle
             nSing = numel(psi);
             for iSing = 1:nSing
                 dPsiV = psi{iSing}.computeGradient(q);
-                dPsi(:,iSing,:,:) = permute(dPsiV.fValues, [1 3 2]) ;
+                dPsi(:,iSing,:,:) = dPsiV.fValues;
             end
 
             LHS = zeros(nSing,nSing);

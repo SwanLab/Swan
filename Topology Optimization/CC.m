@@ -78,7 +78,6 @@ classdef CC < handle & matlab.mixin.Copyable
             for iS = 1:nS
                 s = cParams.shapeFuncSettings{iS};
                 s.designVariable = cParams.designVar;
-                s.femSettings.physicalProblem = cParams.physicalProblem;
                 s.shNumber = iS;
 
                 if isprop(cParams,'homogenizedVarComputer')

@@ -1,3 +1,4 @@
 problemToSolve = 'test2d_triangle';
-variable = 'uFun';
+origin = 'P1';
+variable = 'd_u';
 projectDestination = 'H1P1D';

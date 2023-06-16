@@ -2,7 +2,6 @@ classdef StokesComputer < handle
 
     properties (Access = public)
         computation
-        variables
     end
 
     properties (Access = private)
@@ -20,9 +19,6 @@ classdef StokesComputer < handle
             femSolver = FEM.create(s);
             femSolver.computeVariables;
             obj.computation = femSolver;
-            u = obj.computation.velocityFun.fValues;
-            obj.variables.p = obj.computation.pressureFun.fValues;
-            obj.variables.u = reshape(u', [numel(u) 1]);
         end
     end
 

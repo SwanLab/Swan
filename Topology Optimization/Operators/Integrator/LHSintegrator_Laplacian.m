@@ -1,16 +1,18 @@
 classdef LHSintegrator_Laplacian < handle
 
     properties (Access = private)
+        fun
         mesh
-        test, trial
         quadrature
-        quadratureOrder
 %         material
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_Laplacian(cParams)
+            %             obj.init(cParams);
+            %             obj.createInterpolation();
+            %             obj.createGeometry();
             obj.initLaplacian(cParams);
             obj.createQuadrature();
         end
@@ -25,31 +27,24 @@ classdef LHSintegrator_Laplacian < handle
     methods (Access = protected)
 
         function LHSe = computeElementalLHS(obj)
-            shapesTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            shapesTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            shapes = obj.fun.computeCartesianDerivatives(obj.quadrature);
+            ngaus = size(shapes,4);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
-
-            nGaus = obj.quadrature.ngaus;
-            nNodETs = size(shapesTs,2);
-            nDofETs = nNodETs*obj.test.ndimf;
-            nNodETr = size(shapesTr,2);
-            nDofETr = nNodETr*obj.trial.ndimf;
-            nElem = size(dVolu,2);
+            nDofs = size(shapes,1) * size(shapes,2);
+            nElem = size(shapes,3);
 
 %             material = obj.material;
 %             Cmat = material.mu;
             
-            lhs = zeros(nDofETs, nDofETr, nElem);
-            for iGaus = 1:nGaus
-                dNdxTs = shapesTs(:,:,:,iGaus);
-                dNdxTr = shapesTr(:,:,:,iGaus);
-                BmatTs = obj.computeB(dNdxTs);
-                BmatTr = obj.computeB(dNdxTr);
-                dV(1,1,:) = dVolu(iGaus,:)';
-                Bt   = permute(BmatTs,[2 1 3]);
+            lhs = zeros(nDofs, nDofs, nElem);
+            for igaus = 1:ngaus
+                dNdx = shapes(:,:,:,igaus);
+                dV(1,1,:) = dVolu(igaus,:)';
+                Bmat = obj.computeB(dNdx);
+                Bt   = permute(Bmat,[2 1 3]);
 %                 BtC  = pagemtimes(Bt,Cmat);
 %                 BtCB = pagemtimes(BtC, Bmat);
-                BtB = pagemtimes(Bt,BmatTr);
+                BtB = pagemtimes(Bt,Bmat);
                 lhs = lhs + bsxfun(@times, BtB, dV);
             end
             LHSe = lhs;
@@ -61,8 +56,7 @@ classdef LHSintegrator_Laplacian < handle
 
         function initLaplacian(obj, cParams)
             obj.mesh  = cParams.mesh;
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
+            obj.fun = cParams.fun;
 %             obj.material = cParams.material;
         end
 
@@ -87,9 +81,9 @@ classdef LHSintegrator_Laplacian < handle
         end
 
         function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
+            s.fun    = obj.fun; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
+            LHS = assembler.assemble(lhs);
         end
 
     end

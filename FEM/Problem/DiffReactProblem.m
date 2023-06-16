@@ -2,7 +2,6 @@ classdef DiffReactProblem < handle
     
     properties (GetAccess = public, SetAccess = protected)
         variables
-        x
     end
     
     properties (Access = private)
@@ -30,9 +29,6 @@ classdef DiffReactProblem < handle
             LHS = obj.computeLHS(obj.epsilon);
             x = obj.solver.solve(LHS,RHS);
             obj.variables.x = bc.reducedToFullVector(x);
-            a.mesh = obj.mesh;
-            a.fValues = obj.variables.x;
-            obj.x = P1Function(a);
         end
         
         function LHS = computeLHS(obj, epsilon)

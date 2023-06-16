@@ -1,3 +1,4 @@
 problemToSolve = 'test2d_triangle';
-variable = 'strainFun';
+origin = 'P0';
+variable = 'strain';
 projectDestination = 'P0';

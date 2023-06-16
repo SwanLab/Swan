@@ -2,7 +2,6 @@ classdef MicroComputer < handle
 
     properties (Access = public)
         computation
-        variables
     end
 
     properties (Access = private)
@@ -17,12 +16,9 @@ classdef MicroComputer < handle
         function compute(obj)
             a.fileName = obj.testName;
             s = FemDataContainer(a);
-%             femSolver = ElasticProblemMicro(s);
-%             femSolver = NewElasticProblemMicro(s);
-            femSolver = ElasticProblemMicro_Fast(s);
-            femSolver.solve();
+            femSolver = ElasticProblemMicro(s);
+            femSolver.computeChomog();
             obj.computation = femSolver;
-            obj.variables.Chomog = femSolver.Chomog;
         end
 
     end
