@@ -124,8 +124,8 @@ classdef FEMInputWriter < handle
 
         function computeBridgeBoundaryConditions(obj)
             t              = 0.1*obj.xmax;
-            iCase          = 4;
-            forcePos       = [iCase*10/9,(iCase+1)*10/9];
+            iCase          = [0,1,2,3,4,5,6,7,8];
+            forcePos       = [2,8];%[iCase*10/9,(iCase+1)*10/9];
             m              = obj.mesh;
             sides          = m.coord(:,1) <= t | m.coord(:,1) >= obj.xmax - t;
             bottom         = m.coord(:,2) == 0;

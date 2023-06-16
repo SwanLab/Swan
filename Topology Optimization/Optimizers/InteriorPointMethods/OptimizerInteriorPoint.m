@@ -8,7 +8,7 @@ classdef OptimizerInteriorPoint < Optimizer
         upperX
         lowerLinearBound
         upperLinearBound
-        tol = 1e-6
+        tol = 1e-5
         lowerSlack
         upperSlack
         lowerZ
@@ -85,23 +85,17 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function moveVariablesToFeasible(obj)
-            % move x into feasible region and off boundary initially
-            for i = 1:obj.nX
-                if (obj.designVariable.value(i) <= obj.lowerX(i) || obj.designVariable.value(i) >= obj.upperX(i))
-                    fprintf(1,'Moving x0 to interior region\n')
-                    break
+             for i = 1:obj.nX
+                 x = obj.designVariable.value;
+                if (obj.designVariable.value(i) <= obj.lowerX(i))
+                    x(i) = min(obj.upperX(i),obj.lowerX(i)+1e-2);
+                    obj.designVariable.update(x);
                 end
-            end
-            % Move x variables to be feasible
-%             for i = 1:obj.nX
-%                 if (obj.designVariable.value(i) <= obj.lowerX(i))
-%                     obj.designVariable.value(i) = min(obj.upperX(i),obj.lowerX(i)+1e-2);
-%                 end
-%                 if (obj.designVariable.value(i) >= obj.upperX(i))
-%                     obj.designVariable.value(i) = max(obj.lowerX(i),obj.upperX(i)-1e-2);
-%                 end
-%             end
-            % Move slack variables to be feasible
+                if (obj.designVariable.value(i) >= obj.upperX(i))
+                    x(i) = max(obj.lowerX(i),obj.upperX(i)-1e-2);
+                    obj.designVariable.update(x);
+                end
+             end
             for i = 1:obj.nSlack
                 if (obj.slack(i) <= obj.lowerSlack(i))
                     obj.slack(i) = min(obj.upperSlack(i),obj.lowerSlack(i)+1e-2);
@@ -154,7 +148,7 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function updateConstraint(obj)
             j = 0;
-            for i = 1:size(obj.constraint.value,1) %changed 2 for 1
+            for i = 1:size(obj.constraint.value,1)
                 if (obj.upperLinearBound(i) == obj.lowerLinearBound(i))
                     % equality constant
                     obj.constraint.value(i) = obj.constraint.value(i) - obj.lowerLinearBound(i);
@@ -299,8 +293,6 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateHessian(obj)
-%             obj.hessian = zeros(obj.nX,obj.nX);
-%             obj.hessian = [2,0;0,2];
             for i = 1:obj.nSlack
                 obj.hessian(obj.nX+i,obj.nX+i) = 0.0;
             end
@@ -319,21 +311,9 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function checkStep(obj,x,x0)
             mNew                      = obj.computeMeritFunction(x);
-            pred_phi_1                = obj.cost.gradient*[obj.dx;obj.ds];
-            pred_phi_2                = max(0,0.5*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds]);
-            pred_phi_decrease         = pred_phi_1 + pred_phi_2;
-            theta                     = sum(abs(obj.constraint.value));
-            rho                       = 0.1;
-            nuUpdated                 = pred_phi_decrease / ((1 - rho) * theta);
-            obj.baseVariables.nu      = max(1,min(1000,nuUpdated));
-%            predictUpdated            = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient*[obj.dx;obj.ds],1));
-             predictUpdated            = -obj.alphaPrimal*obj.cost.gradient*[obj.dx;obj.ds] - 0.5*obj.alphaPrimal^2*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds] + obj.baseVariables.nu*(norm(obj.constraint.value',1) - norm(obj.constraint.value' + obj.alphaPrimal*obj.constraint.gradient'*[obj.dx;obj.ds],1));
-            reduced                   = obj.mOld - mNew;
-            eta                       = 0.2;
-%             if  reduced >= eta*predictUpdated
-             if mNew < obj.mOld
+            obj.updateNuValue();
+            if mNew < obj.mOld
                 obj.acceptableStep    = true;
-%                   obj.primalUpdater.tau = 1;
                 obj.updateWithAcceptance();
                 obj.meritNew          = mNew;
             elseif obj.primalUpdater.isTooSmall()
@@ -346,6 +326,16 @@ classdef OptimizerInteriorPoint < Optimizer
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials  = obj.lineSearchTrials + 1;
             end
+        end
+
+        function updateNuValue(obj)
+            costPrediction(1)         = obj.cost.gradient*[obj.dx;obj.ds];
+            costPrediction(2)         = max(0,0.5*[obj.dx;obj.ds]'*obj.H*[obj.dx;obj.ds]);
+            costDecreasePrediction    = sum(costPrediction);
+            theta                     = sum(abs(obj.constraint.value));
+            rho                       = 0.1;
+            nuUpdated                 = costDecreasePrediction/((1 - rho) * theta);
+            obj.baseVariables.nu      = max(1,min(1000,nuUpdated));
         end
 
         function sigmaComputer(obj)
@@ -363,8 +353,8 @@ classdef OptimizerInteriorPoint < Optimizer
             for i = 1:obj.nX+obj.nSlack
                 invdML(i,i)    = 1 / obj.diagonaldL(i,i); 
                 invdMU(i,i)    = 1 / obj.diagonaldU(i,i); 
-                sigL(i,i)      = obj.lowerDiagonalZ(i,i) / obj.diagonaldL(i,i);
-                sigU(i,i)      = obj.upperDiagonalZ(i,i) / obj.diagonaldU(i,i);
+                sigL(i,i)      = obj.lowerDiagonalZ(i,i) / (obj.diagonaldL(i,i));
+                sigU(i,i)      = obj.upperDiagonalZ(i,i) / (obj.diagonaldU(i,i));
              end
              obj.invDiagdL     = invdML;
              obj.invDiagdU     = invdMU;
@@ -373,10 +363,9 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function linearSystemSolver(obj)
-            % compute search direction, solving Ax = b
             obj.computeLHS();
             obj.computeRHS();
-            obj.explicitSol = -pinv(full(obj.LHS))*obj.RHS;
+            obj.explicitSol = -obj.LHS\obj.RHS;
             obj.searchZDirection();
         end
 
@@ -431,17 +420,16 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.constraintCase         = cParams.constraintCase;
             obj.cost.computeFunctionAndGradient();
             obj.hessian = eye(obj.nX);
-            %obj.hessian = zeros(obj.nX,obj.nX);
             obj.constraint.computeFunctionAndGradient();
             obj.loadIPMVariables();
         end
 
         function loadIPMVariables(obj)
-            obj.baseVariables.nu         = 300;
-            obj.baseVariables.mu         = 0.001;
+            obj.baseVariables.nu         = 1e6;
+            obj.baseVariables.mu         = 1e-8;
             obj.baseVariables.slack_init = true;
             obj.baseVariables.tau_max    = 0.1;
-            obj.baseVariables.k_mu       = 1;
+            obj.baseVariables.k_mu       = 0.2;
             obj.computeLinearBounds();
             obj.computeSlackVariables();
             obj.computeUpperAndLowerBounds();
@@ -465,8 +453,8 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function computeUpperAndLowerBounds(obj)
             for i = 1:obj.nX
-                obj.lowerX(i) = 0.1;
-                obj.upperX(i) = 0.9;
+                obj.lowerX(i) = 0 - 1e-6;
+                obj.upperX(i) = 1 + 1e-6;
             end
         end
 
@@ -506,6 +494,13 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hessianComputer();
             obj.constraint.computeFunctionAndGradient();
             obj.updateCC();
+            obj.computeError();
+            if obj.e_mu <= obj.tol
+                obj.hasConverged = true;
+            end
+        end
+
+        function computeError(obj)
             s_max    = 100; % > 1
             s_d      = max(s_max,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(obj.m+2*(obj.nX+obj.nSlack)));
             s_c      = max(s_max,(sum(abs(obj.upperZ))+sum(abs(obj.lowerZ)))/(2*(obj.nX+obj.nSlack)));
@@ -515,16 +510,13 @@ classdef OptimizerInteriorPoint < Optimizer
             part(3)  = max(abs(diag([obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack])*diag(obj.lowerZ)*obj.e))/s_c;
             part(4)  = max(abs(diag([obj.upperX-obj.designVariable.value' obj.upperSlack-obj.slack])*diag(obj.upperZ)*obj.e))/s_c;
             obj.e_mu = max(part);
-            if obj.e_mu <= obj.tol
-                obj.hasConverged = true;
-            end
         end
 
         function checkNewBarrierProblem(obj)
             k_mu                     = obj.baseVariables.k_mu;
             if (obj.e_mu < k_mu * obj.baseVariables.mu)
                 th_mu = 1.5;
-                obj.baseVariables.mu = max(obj.tol/10,min(k_mu*obj.baseVariables.mu,obj.baseVariables.mu^th_mu));
+                obj.baseVariables.mu = k_mu*obj.baseVariables.mu;%max(obj.tol/10,min(k_mu*obj.baseVariables.mu));%,obj.baseVariables.mu^th_mu));
                 obj.barrierTau       = min(obj.baseVariables.tau_max,100*obj.baseVariables.mu);
             end
         end
@@ -541,9 +533,6 @@ classdef OptimizerInteriorPoint < Optimizer
             s.meritNew         = obj.meritNew;
             s.lambda           = obj.dualVariable.value;
             obj.outputFunction.monitoring.compute(s);
-            if ~obj.hasConverged
-                obj.printIteration();
-            end
         end
 
         function updateIterInfo(obj)
@@ -563,13 +552,6 @@ classdef OptimizerInteriorPoint < Optimizer
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
-        end
-
-        function printIteration(obj)
-            if (mod(obj.nIter,15)==1)
-            fprintf(1,'   Iter    Merit      alphaPrimal    alphaDual   log(mu)\n');
-            end
-            fprintf(1, ' %5i  %11.4e  %11.4e  %11.4e  %11.4e\n', obj.nIter,obj.meritNew,obj.alphaPrimal,obj.alphaDual,log(obj.baseVariables.mu));
         end
     end
 end
