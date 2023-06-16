@@ -12,8 +12,7 @@ classdef ShFunc_ComplianceComparison_constraint < ShFunWithElasticPdes
         function obj = ShFunc_ComplianceComparison_constraint(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             obj.createOrientationUpdater();
         end
         
@@ -49,6 +48,7 @@ classdef ShFunc_ComplianceComparison_constraint < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
+%             obj.physicalProblem.computeStiffnessMatrix();
 %             obj.physicalProblem.computeVariables();
             obj.physicalProblem.solve();
         end

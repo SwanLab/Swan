@@ -99,7 +99,7 @@ classdef Optimizer < handle
                 zz.filename = file;
                 zz.fun      = fun;
                 zz.funNames = name;
-                pp = ParaviewPostprocessor(zz);
+                pp = FunctionPrinter_Paraview(zz);
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end

@@ -17,8 +17,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
             obj.name                             = cParams.type;
             obj.loadCase.number                  = cParams.shNumber;
             obj.init(cParams);
-            fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             obj.createOrientationUpdater();
             obj.isFirstIter = true;
         end
@@ -38,6 +37,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
         function c = computeCompliance(obj,n,nv)
             obj.physicalProblem.boundaryConditions.changeBoundaryConditions(n,nv);
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.solve();
             c = obj.computeInitialCompliance();
         end
@@ -69,6 +69,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
             run("bridgeLoadCasesInformation.m");
             obj.physicalProblem.boundaryConditions.changeBoundaryConditions(g.four',g.fourv');
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.solve();
             obj.targetConstraint = obj.computeInitialCompliance();
         end
@@ -208,6 +209,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
             nv = obj.loadCase.neumann_values;
             obj.physicalProblem.boundaryConditions.changeBoundaryConditions(n,nv)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.solve();
         end
         
