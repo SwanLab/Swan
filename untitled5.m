@@ -7,7 +7,7 @@ s.x1          = 1;
 s.y1          = 0.5;
 s.N           = 799; %x dimension
 s.M           = 399; %y dimension
-s.P           = -10;
+s.P           = 1;
 s.DoF         = 2;
 
 CantileverAxial = FEMInputWriter(s);
@@ -20,7 +20,7 @@ fem = FEM.create(data);
 fem.solve();
 fem.uFun.fValues = [fem.uFun.fValues zeros(size(fem.uFun.fValues,1),1)];
 fem.uFun.ndimf = 3;
-%fem.print(fileName);
+fem.print(fileName);
 
 % Get main results
 uTest = fem.uFun(1,1);
