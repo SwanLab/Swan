@@ -1,7 +1,8 @@
 classdef RHSintegrator_ShapeFunction < RHSintegrator
 
     properties (Access = private)
-        testF
+        test
+        quadratureOrder
     end
 
     methods (Access = public)
@@ -22,34 +23,49 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
 
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
-            s.mesh              = obj.mesh;
-            s.fValues           = zeros(obj.mesh.nnodes,1);
-            obj.testF           = P1Function(s);            
+            obj.test = cParams.test;
+            obj.setQuadratureOrder(cParams);
         end
+
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = obj.test.order;
+            end
+        end
+
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
+            obj.quadrature = quad;
+        end        
 
         function rhsC = computeElementalRHS(obj, fun)
             quad = obj.quadrature;
-%             fG     = obj.fun.evaluate(quad.posgp);
-            fG     = squeeze(fun.evaluate(quad.posgp)); % only used in 1d funs so far
+            fG     = fun.evaluate(quad.posgp); 
             dV     = obj.computeDvolume();
-            N = obj.testF.computeShapeFunctions(quad);
+            N = obj.test.computeShapeFunctions(quad);
             N = permute(N, [1 3 2]);
             nNode  = size(N,1);
             nElem  = obj.mesh.nelem;
             nGaus  = quad.ngaus;
             shapes = repmat(N, [1 1 nElem]);
-            int = zeros(nNode,nElem);
-            for iGaus = 1:nGaus
-                fdv = fG(iGaus,:).*dV(iGaus,:);
-                shape = shapes(:, :, iGaus);
-                int = int + bsxfun(@times,shape,fdv);
+            int = zeros(nNode,nElem,fun.ndimf);
+            for iDim = 1:fun.ndimf
+                fGI = squeeze(fG(iDim,:,:));
+                for iGaus = 1:nGaus
+                    fdv = fGI(iGaus,:).*dV(iGaus,:);
+                    shape = shapes(:, :, iGaus);
+                    int = int + bsxfun(@times,shape,fdv);
+                end
             end
-            rhsC = transpose(int);
+            rhsC = permute(int,[2 1 3]);
         end
 
         function f = assembleIntegrand(obj,fun,rhsElem)
             integrand = rhsElem;
-            connec = obj.testF.computeDofConnectivity()';
+            connec = obj.test.computeDofConnectivity()';
             ndofs = max(max(connec));
             nnode  = size(connec,2);
             f = zeros(ndofs,1);

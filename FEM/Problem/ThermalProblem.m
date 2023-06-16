@@ -15,7 +15,7 @@ classdef ThermalProblem < handle
         mesh        
         scale
         inputBC  
-        rhsVol
+        rhsFun
     end
 
     methods (Access = public)
@@ -55,7 +55,7 @@ classdef ThermalProblem < handle
             obj.mesh        = cParams.mesh;
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
-            obj.rhsVol      = cParams.rhsVol;
+            obj.rhsFun      = cParams.rhsFun;
         end
 
         function createTemperatureFun(obj)
@@ -109,8 +109,8 @@ classdef ThermalProblem < handle
         function rhs = computeVolumetricRHS(obj)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
-            RHSint = RHSintegrator.create(s);
-            f = obj.rhsVol;
+            RHSint     = RHSintegrator.create(s);
+            f          = obj.rhsFun;
             rhs = RHSint.compute(f);            
         end
 

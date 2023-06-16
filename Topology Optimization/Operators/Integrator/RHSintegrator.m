@@ -19,11 +19,11 @@ classdef RHSintegrator < handle
 %         function obj = RHSintegrator(cParams)
 %         end
 
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            obj.quadrature = q;
-        end
+        % function createQuadrature(obj)
+        %     q = Quadrature.set(obj.mesh.type);
+        %     q.computeQuadrature('LINEAR');
+        %     obj.quadrature = q;
+        % end
 
     end
     

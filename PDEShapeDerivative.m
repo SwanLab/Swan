@@ -2,6 +2,7 @@ classdef PDEShapeDerivative < handle
     
     properties (Access = private)
         mesh
+        temperatureTarget
         temperature
         adjoint
     end
@@ -9,8 +10,9 @@ classdef PDEShapeDerivative < handle
     methods (Access = public)
         
         function obj = PDEShapeDerivative()
-            obj.init();            
-            obj.createMesh();            
+            obj.init();  
+            obj.createMesh();                        
+            obj.createTemperatureTarget();
             obj.computeTemperature();
             obj.computeAdjoint();
         end
@@ -50,8 +52,8 @@ classdef PDEShapeDerivative < handle
            nodesB = find(nodesB);
         end     
 
-        function rhs = createVolumetricRHS(obj)
-            s.fHandle = @(x,y) 4;
+        function rhs = createFunctionRHS(obj)
+            s.fHandle = @(x,y) 4*ones(size(x));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             rhs = AnalyticalFunction(s);                         
@@ -62,7 +64,7 @@ classdef PDEShapeDerivative < handle
             s.scale  = 'MACRO';
             s.type   = 'THERMAL';
             s.mesh   = obj.mesh;
-            s.rhsVol = obj.createVolumetricRHS();
+            s.rhsFun = obj.createFunctionRHS();
             fem = FEM.create(s);
             fem.solve(); 
             %fem.print('asa')
@@ -70,42 +72,30 @@ classdef PDEShapeDerivative < handle
         end
 
         function computeAdjoint(obj)
-            p1 = obj.computeGeneralAdjoint(obj.temperature);
-            p2 = obj.computeGeneralAdjoint(obj.createTemperatureTarget());
-            p = -2*(p1.fValues - p2.fValues);
-            s.fValues = p;
-            s.mesh    = obj.mesh;
-            p = P1Function(s);
-            obj.adjoint = p;
-        end
-
-        function p = computeGeneralAdjoint(obj,fun)
             s.bc     = obj.createDirichletData(); 
             s.scale  = 'MACRO';
             s.type   = 'THERMAL';
             s.mesh   = obj.mesh;
-            s.rhsVol = fun;
+            s.rhsFun = obj.createRHSFunction();
             fem = FEM.create(s);
             fem.solve();  
             p = fem.temperature;
-        end        
+            obj.adjoint = p;
+        end
 
-        function p = comptueAdjoint2(obj)
-            s.bc     = obj.createDirichletData(); 
-            s.scale  = 'MACRO';
-            s.type   = 'THERMAL';
-            s.mesh   = obj.mesh;
-            s.rhsVol = obj.createTemperatureTarget();
-            fem = FEM.create(s);
-            fem.solve(); 
-            p = fem.temperature;            
-        end        
+        function f = createRHSFunction(obj)
+            s.f1 = obj.temperature;
+            s.f2 = obj.temperatureTarget;
+            s.operation = @(f1,f2) 2*f1 - f2;
+            f = ComposedFunction(s);
+        end     
 
-        function rhs = createTemperatureTarget(obj)
-            s.fHandle = @(x) 0.6^2 - (x(:,1)-0.5).^2 + (x(:,2)-0.5).^2 - 0.5;
+        function t = createTemperatureTarget(obj)
+            s.fHandle = @(x) 0.6^2 - (x(1,:,:)-0.5).^2 + (x(2,:,:)-0.5).^2 - 0.5;
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            rhs = AnalyticalFunction(s);  
+            t = AnalyticalFunction(s);  
+            obj.temperatureTarget = t;
         end
 
 
