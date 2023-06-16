@@ -67,8 +67,9 @@ classdef PDEShapeDerivative < handle
             s.rhsFun = obj.createFunctionRHS();
             fem = FEM.create(s);
             fem.solve(); 
-            %fem.print('asa')
-            obj.temperature = fem.temperature;
+            %fem.print('asa') 
+             obj.temperature = fem.temperature;
+             obj.temperature.plot()
         end
 
         function computeAdjoint(obj)
@@ -81,12 +82,14 @@ classdef PDEShapeDerivative < handle
             fem.solve();  
             p = fem.temperature;
             obj.adjoint = p;
+            obj.adjoint.plot()
         end
 
         function f = createRHSFunction(obj)
             s.f1 = obj.temperature;
             s.f2 = obj.temperatureTarget;
             s.operation = @(f1,f2) 2*f1 - f2;
+            s.ndimf = 1 ;
             f = ComposedFunction(s);
         end     
 

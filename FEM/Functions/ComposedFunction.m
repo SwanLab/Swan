@@ -6,8 +6,8 @@ classdef ComposedFunction < L2Function
         operation
     end
     
-    properties (Access = private)
-        
+    properties (Access = public)
+        ndimf
     end
     
     methods (Access = public)
@@ -30,6 +30,7 @@ classdef ComposedFunction < L2Function
             obj.f1        = cParams.f1;
             obj.f2        = cParams.f2;
             obj.operation = cParams.operation;
+            obj.ndimf     = cParams.ndimf ;
         end
         
     end

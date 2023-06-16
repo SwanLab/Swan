@@ -109,6 +109,7 @@ classdef ThermalProblem < handle
         function rhs = computeVolumetricRHS(obj)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
+            s.test     = obj.temperature ;
             RHSint     = RHSintegrator.create(s);
             f          = obj.rhsFun;
             rhs = RHSint.compute(f);            
