@@ -30,7 +30,7 @@ classdef ShapeDerivProjector < handle
     methods (Access = private)
 
         function init(obj)
-
+            
         end
         
         function LHS = computeLHS(obj)

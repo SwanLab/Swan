@@ -23,7 +23,7 @@ classdef ExampleShapeDeriv < handle
     methods (Access = private)
 
         function init(obj)
-            obj.tolerance = 1e-12;
+            obj.tolerance = 1e-10;
         end
         
         function m = createInitialMesh(obj)
@@ -68,7 +68,7 @@ classdef ExampleShapeDeriv < handle
                 cTrial =  obj.computeCost();                
                 if cTrial < obj.cost(iter-1)
                     obj.cost(iter) = cTrial;
-                    tau = min([1.1*tau,inf]);
+                    tau = 1.1*tau;
                     incC = abs(obj.cost(iter) - obj.cost(iter-1))/abs(obj.cost(iter));
                     hasNotConverged = incC > obj.tolerance;  
                     iter   = iter + 1 ;
@@ -108,9 +108,9 @@ classdef ExampleShapeDeriv < handle
             %%elipse%%
           %  s.fHandle = @(x) (x(1,:,:)-1).^2/1.5 + (x(2,:,:)-0.5).^2/0.5 -1;
             %%cor%%
-              s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^3 - (x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^3 ;
+            %  s.fHandle = @(x) ( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^3 - (x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^3 ;
             %%flor%%
-            % s.fHandle = @(x) ((x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^3 - 4*(x(1,:,:)-1).^2.*(x(2,:,:)-0.5).^2 ;
+             s.fHandle = @(x) ((x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^3 - 4*(x(1,:,:)-1).^2.*(x(2,:,:)-0.5).^2 ;
             
             %%PDE%%
             % a = PDEShapeDerivative() ;
@@ -132,8 +132,8 @@ classdef ExampleShapeDeriv < handle
             df{1} = @(x)  6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5 ).^2.*(x(1,:,:)-1) - 2*(x(1,:,:)-1).*(x(2,:,:)-0.3).^3;
             df{2} = @(x)  6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.3).^2 - 0.5).^2.*(x(2,:,:)-0.3) - 3*(x(1,:,:)-1).^2.*(x(2,:,:)-0.3).^2;                        
             %%flor%%
-            % s.fHandle = @(x) [ 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(1,:,:)-1) - 8*(x(1,:,:)-1).*(x(2,:,:)-0.5).^2 ;
-            %     6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(2,:,:)-0.5) - 8*(x(2,:,:)-0.5).*(x(1,:,:)-1).^2 ] ;
+            df{1} = @(x) 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(1,:,:)-1) - 8*(x(1,:,:)-1).*(x(2,:,:)-0.5).^2 ;
+            df{2} = @(x) 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(2,:,:)-0.5) - 8*(x(2,:,:)-0.5).*(x(1,:,:)-1).^2 ;
             for i = 1:length(df)
                 s.fHandle = df{i};
                 s.ndimf   = 1;
