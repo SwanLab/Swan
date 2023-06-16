@@ -28,12 +28,14 @@ e_test = fem.strainFun(1,1);
 sig_test = fem.stressFun(1,1);
 
 %% DOMAIN DECOMPOSITION (N SUBDOMAINS)
-subdomains = 6;
-mesh = data.mesh;
-material = data.material;
+in.subdomains = 2;
+in.mesh       = data.mesh;
+in.mat        = data.material;
+in.type       = "Three";
 
 % Mesh decomposition
-[subMesh, subBoundMesh, interMesh] = MeshDecomposition(subdomains, mesh);
+[meshDecomposed] = MeshDecomposition(in);
+plotMesh(meshDecomposed);
 
 % Stiffness matrices computation
 [subK] = SubdomainStiffnessMatrix(subMesh,material);
@@ -68,39 +70,6 @@ Plots(u,lambda,subC,subMesh,subBoundMesh);
 PrintResults(u,subMesh);
 
 %% FUNCTIONS
-
-function [subMesh, subBoundMesh, interMesh] = MeshDecomposition(subdomains, mesh)
-    subMesh = [];
-    subBoundMesh = [];
-    interMesh = [];
-
-    xBaricenter = mesh.computeBaricenter();
-    xBaricenter = xBaricenter(1,:);
-
-    lengthDomain = max(mesh.coord(:,1));
-    lengthSubdomain = lengthDomain/subdomains;
-
-    initial_coord = 0;
-    s.coord = mesh.coord;
-    figure
-    for i=1:subdomains
-        isSubdomain = (xBaricenter > initial_coord) & (xBaricenter <= initial_coord + lengthSubdomain);
-        subdomainConnec = mesh.connec(isSubdomain,:);
-        s.connec = subdomainConnec;
-        subdomainMesh = Mesh(s);
-        subMesh = cat(1,subMesh,subdomainMesh.computeCanonicalMesh());
-        subMesh(i).plot
-
-        boundary = subMesh(i).createBoundaryMesh();
-        subBoundMesh = cat(1,subBoundMesh,[boundary{1}, boundary{2}]);
-        subBoundMesh(i,1).mesh.plot
-        subBoundMesh(i,2).mesh.plot
-        
-        interMesh = cat(1,interMesh,subBoundMesh(i,1)); % Interface mesh is equal to its left subdomain.
-
-        initial_coord = initial_coord + lengthSubdomain;
-    end
-end
 
 function [subK] = SubdomainStiffnessMatrix(subMesh,material)
     subdomains = length(subMesh);

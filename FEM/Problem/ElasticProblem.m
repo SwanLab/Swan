@@ -6,11 +6,11 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        LHS
+        RHS
     end
 
     properties (Access = private)
-        LHS
-        RHS
         solver
         scale
         pdim

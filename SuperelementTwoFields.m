@@ -7,9 +7,9 @@ s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
 s.x1          = 1;
 s.y1          = 0.5;
-s.N           = 49;
-s.M           = 100;
-s.P           = 1;
+s.N           = 100;
+s.M           = 49;
+s.P           = -1;
 s.DoF         = 2;
 
 CantileverAxial = FEMInputWriter(s);
