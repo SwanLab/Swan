@@ -84,9 +84,12 @@ classdef Data < handle
             f = fullfile('../Datasets/',obj.fileName);
             obj.data = load(f);
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            % feat = input(' ');
-            feat = 1:784;
+            feat = input(' ');
             x = obj.data(:, feat);
+
+            % IDENTIFIER
+            % ydata = obj.data(:, end);
+            % y = zeros(length(ydata),max(ydata));
 
             ydata = obj.data(:, feat);
             y = zeros(length(ydata),width(ydata));
@@ -99,8 +102,9 @@ classdef Data < handle
                     end
                 end
             end
-            %y
+            
             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
+            % obj.Y = y;
             obj.Y = obj.X;
         end
         
