@@ -5,6 +5,8 @@ classdef PDEShapeDerivative < handle
         temperatureTarget
         temperature
         adjoint
+        costIntegrant
+        costIntegrantDerivative
 
         quadrature
         tolerance
@@ -16,15 +18,10 @@ classdef PDEShapeDerivative < handle
     methods (Access = public)
         
         function obj = PDEShapeDerivative()
-            addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init();  
             obj.createMesh();                        
-            obj.createTemperatureTarget();
-            obj.computeTemperature();
-            obj.computeAdjoint();
-            obj.createFunction() ;
             obj.createQuadrature();
-            obj.createProjector();
+            obj.createProjector();          
             obj.compute()
         end
         
@@ -79,32 +76,11 @@ classdef PDEShapeDerivative < handle
             fem = FEM.create(s);
             fem.solve(); 
             fem.print('asa') 
-             obj.temperature = fem.temperature;
+            obj.temperature = fem.temperature;
              % obj.temperature.plot()
         end
 
-        function computeAdjoint(obj)
-            s.bc     = obj.createDirichletData(); 
-            s.scale  = 'MACRO';
-            s.type   = 'THERMAL';
-            s.mesh   = obj.mesh;
-            s.rhsFun = obj.createRHSFunction();
-            fem = FEM.create(s);
-            fem.solve();  
-            p = fem.temperature;
-            obj.adjoint = p;
-            % obj.adjoint.plot()
-        end
-
-        function f = createRHSFunction(obj)
-            s.f1 = obj.temperature;
-            s.f2 = obj.temperatureTarget;
-            s.operation = @(f1,f2) 2*f1 - f2;
-            s.ndimf = 1 ;
-            f = ComposedFunction(s);
-        end     
-
-        function t = createTemperatureTarget(obj)
+        function createTemperatureTarget(obj)
             s.fHandle = @(x) 0.6^2 - (x(1,:,:)-0.5).^2 + (x(2,:,:)-0.5).^2 - 0.5;
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
@@ -112,31 +88,49 @@ classdef PDEShapeDerivative < handle
             obj.temperatureTarget = t;
         end
 
-        function f = createFunction(obj)
-            %%PDE%%
-            u = obj.temperature ;
-            u_t = obj.temperatureTarget ;
-            s.fHandle = @(x) (u - u_t).^2 ;
-                        
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function f = computeCostIntegrant(obj)
+            s.f1 = obj.temperature;
+            s.f2 = obj.temperatureTarget;
+            s.operation = @(u,u_t) (u - u_t).^2;
+            s.ndimf = 1 ;
+            f = ComposedFunction(s);  
+            obj.costIntegrant = f;
         end
 
-        %%%%%%
-        % function dfC = computeDerivative(obj)
-        %     df{1} = @(x) 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(1,:,:)-1) - 8*(x(1,:,:)-1).*(x(2,:,:)-0.5).^2 ;
-        %     df{2} = @(x) 6*( (x(1,:,:)-1).^2 + (x(2,:,:)-0.5).^2 ).^2.*(x(2,:,:)-0.5) - 8*(x(2,:,:)-0.5).*(x(1,:,:)-1).^2 ;
-        %     for i = 1:length(df)
-        %         s.fHandle = df{i};
-        %         s.ndimf   = 1;
-        %         s.mesh    = obj.mesh;
-        %         dfC{i} = AnalyticalFunction(s);
-        %     end
-        % end
+        function computeCostIntegrantDerivative(obj)
+            s.f1 = obj.temperature;
+            s.f2 = obj.temperatureTarget;
+            s.operation = @(f1,f2) 2*f1 - f2;
+            s.ndimf = 1 ;
+            f = ComposedFunction(s);
+            obj.costIntegrantDerivative = f;
+        end  
+
+        function computeAdjoint(obj)
+            s.bc     = obj.createDirichletData(); 
+            s.scale  = 'MACRO';
+            s.type   = 'THERMAL';
+            s.mesh   = obj.mesh;
+            s.rhsFun = obj.costIntegrantDerivative;
+            fem = FEM.create(s);
+            fem.solve();  
+            p = fem.temperature;
+            obj.adjoint = p;
+            % obj.adjoint.plot()
+        end             
+
+        function g = projectShapeDerivative(obj)
+            m  = obj.mesh;
+            f  = obj.costIntegrant;
+            df = obj.costIntegrantDerivative;
+            u  = obj.temperature;
+            p  = obj.adjoint;
+            g  = obj.projector.project(m,f,df,u,p);
+        end
 
         function c = computeCost(obj)
-            f    = obj.createFunction();
+            obj.computeCostIntegrant();
+            f    = obj.costIntegrant;
             fG   = f.evaluate(obj.quadrature.posgp);
             dVG  = obj.mesh.computeDvolume(obj.quadrature);
             fG   = squeeze(fG);
@@ -145,14 +139,20 @@ classdef PDEShapeDerivative < handle
         end
 
         function compute(obj)
+            obj.createTemperatureTarget();                
+            obj.computeTemperature();            
             obj.cost(1) = obj.computeCost();
             tau = 0.02;
             hasNotConverged = true;
             iter = 2;
-            while hasNotConverged 
-                f  = obj.temperature ;
-                df = obj.adjoint;                
-                g = obj.projector.project(obj.mesh,f,df);
+            
+            while hasNotConverged   
+                obj.createTemperatureTarget();                
+                obj.computeTemperature();
+                obj.computeCostIntegrant();
+                obj.computeCostIntegrantDerivative();
+                obj.computeAdjoint();
+                g = obj.projectShapeDerivative();              
                 obj.updateMesh(g,tau);
                 cTrial =  obj.computeCost();                
                 if cTrial < obj.cost(iter-1)
@@ -192,7 +192,7 @@ classdef PDEShapeDerivative < handle
         end     
 
         function createProjector(obj)
-            p = ShapeDerivProjector();
+            p = PDEShapeDerivProjector();
             obj.projector = p;
         end
         

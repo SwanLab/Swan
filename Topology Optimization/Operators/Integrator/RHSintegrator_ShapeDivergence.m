@@ -17,7 +17,7 @@ classdef RHSintegrator_ShapeDivergence < handle
         function rhsFun = compute(obj, fun)
             rhsElem = obj.computeElementalRHS(fun);
             for iDim = 1:obj.mesh.ndim
-            rhs(:,iDim) = obj.assembleIntegrand(rhsElem(:,:,iDim));
+                rhs(:,iDim) = obj.assembleIntegrand(rhsElem(:,:,iDim));
             end
             s.fValues = rhs;
             s.mesh    = obj.mesh;
@@ -40,9 +40,7 @@ classdef RHSintegrator_ShapeDivergence < handle
             q = Quadrature.create(obj.mesh, obj.quadratureOrder);
             obj.quadrature = q;
         end
-        
      
-
        function rhsC = computeElementalRHS(obj, fun)
             fG    = fun.evaluate(obj.quadrature.posgp);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
