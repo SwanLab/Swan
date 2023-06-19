@@ -37,7 +37,7 @@ uMesh.compute(levelSet);
 IM = uMesh.createInnerMesh();
 
 %% 
-IM.improveConditioning(); % only for 2d, using 3d
+% IM.improveConditioning(); % only for 2d, using 3d
 
 
 %% Create Inner Mesh And Improve Conditioning
@@ -59,8 +59,12 @@ EM = uMesh.provideExtrudedMesh(sEM);
 %% Export STL
 sSTL.filename     = 'notForLong';  % Why?
 sSTL.meshFileName = 'notForLong2'; % Why?
-EM.exportSTL('holahola'); % 2 options: MATLAB/Gid
+
+EM.exportSTL(sSTL); % 2 options: MATLAB/Gid
 % Matlab 1 -> export stl using tetrahedra -> searhco nline
 % Matlab 2 -> use boundary mesh and boundary cut mesh...
+
+%Mescape utilities SwapNormals Surfaces MakeGroupCoherent 1:END escape Yes escape
+
 
 % In short: research STL
