@@ -4,25 +4,23 @@ classdef rMINRES < handle
         Uprev
         x0
         r0
-        n
-        convergenceData
-        currentIter
+        n       
     end
 
     methods (Access = public)
-        function x = solve(obj, A, b)
-            obj.currentIter = obj.currentIter + 1;
+        function x = solve(obj, A, b)            
             obj.n       = size(b,1);
-            maxIter     = 3000;
-            nRecycling  = 400;
-            tol         = 1e-3;
+            maxIter     = 5000;
+            nRecycling  = 25;
+            tol         = 5e-5;
+
             obj.prepareProblem(A, b);
-            V   = zeros(obj.n, maxIter);
+            V   = zeros(obj.n, maxIter+1);            
+            T   = zeros(maxIter+1, maxIter+1);
+            S   = zeros(maxIter+1, maxIter+1);
+            B   = zeros(nRecycling, maxIter+1);
+            Phi = zeros(maxIter+1, 1);
             j   = 0;
-            T   = zeros(maxIter, maxIter);
-            S   = zeros(maxIter, maxIter);
-            B   = zeros(nRecycling, maxIter);
-            Phi     = zeros(maxIter, 1);
             x   = obj.x0;
 
             if (norm(obj.r0) > tol)
@@ -68,20 +66,7 @@ classdef rMINRES < handle
                         res     = norm(Phi(j+1));
                     end
                     obj.x0 = x;
-
-
-                    Tbar    = T(1:j+1,1:j);
-                    T       = T(1:j,1:j);
-                    Tend    = Tbar(j+1,j);
-                    ej      = zeros(j,1);
-                    ej(1)   = 1;
-                    vHat    = V(:,1:j);
-
-                    LHS = (T+((Tend^2)*(T*(ej*ej'))));                    
-                    [eigVectors, eigValues]  = eig(LHS);
-                    eigValues       = diag(eigValues);
-                    [~, indices]    = mink(eigValues, nRecycling);
-                    obj.Uprev = vHat*eigVectors(:,indices);
+                    obj.selectFirstRecycleSubspace(T,V,j,nRecycling);
                 else
                     [U, C] = obj.prepareRecycling(A);
                     rStart = obj.r0-C*(C'*obj.r0);
@@ -90,7 +75,6 @@ classdef rMINRES < handle
                     z = C'*obj.r0;
                     res = norm(obj.r0);
                     beta   = res;
-
                     while ((j<(maxIter-1))&&(res>tol))
                         j = j+1;
                         if j == 1
@@ -110,10 +94,8 @@ classdef rMINRES < handle
                         modif    = Phi(j);
                         Phi(j)   = G1(1)*modif;
                         Phi(j+1) = G1(2)*modif;
-
-
-                        bj = C'*(A*V(:,j));
-                        B(:,j) = bj;
+                        bj      = C'*(A*V(:,j));
+                        B(:,j)  = bj;
                         if j == 1
                             d  = (1/S(j,j))*(V(:,j));
                             d1 = d;
@@ -140,78 +122,13 @@ classdef rMINRES < handle
                         z       = z - incZ;
                         res     = norm(Phi(j+1));
                     end
-                    disp(j);
                     x = x + U*z;
                     obj.x0 = x;
-
-
-                    N       = obj.buildNormalizerMatrix(U);
-                    uTilde  = U*N;
-                    B       = B(:,1:j);
-                    T       = T(1:j+1,1:j);
-                    vHat    = [uTilde V(:,1:j)];
-                    wHat    = [C V(:,1:j+1)];
-                    
-                    NN = zeros(nRecycling);
-                    for i = 1:nRecycling
-                        NN(i,i) = N(i,i)^2;
-                    end
-                    NB = zeros(nRecycling,j);
-                    for i = 1:nRecycling
-                        NB(i,:) = B(i,:)*N(i,i);
-                    end
-                    BN = zeros(j,nRecycling);
-                    for i = 1:nRecycling
-                        BN(:,i) = B(i,:)*N(i,i);
-                    end
-                    LHS = [NN NB;BN (B'*B+T'*T)];
-
-                    CU = C'*uTilde;
-                    VU = V(:,1:j+1)'*uTilde;
-                    NCU = zeros(nRecycling);
-                    for i = 1:nRecycling
-                        NCU(i,:) = CU(i,:)*N(i,i);
-                    end
-                    RHS = [NCU zeros(nRecycling, j); (B'*CU + T'*VU) T(1:j,:)'];
-
-
-
-
-                    % Gm      = [N B; zeros(j+1, nRecycling) T];
-                    % LHS     = Gm'*Gm;
-                    % RHS     = Gm'*(wHat'*vHat);
-
-                    % [eigVectors, eigValues]  = eig(LHS,RHS);      
-                    % eigValues       = diag(eigValues);
-                    % [~, indices]    = mink(eigValues, nRecycling);
-                    % eigVectors = eigVectors(:,indices);
-                    
-                    % [eigVectors,~] = eigs(LHS,RHS,nRecycling,'smallestabs');
-    
-
-                    [eigVectors,~] = eigs(LHS, RHS, nRecycling, 'smallestabs','Tolerance', 1e-3);
-
-
-                    obj.Uprev = vHat*eigVectors;
-
-
-                    % obj.Uprev       = vHat(:,indices);
-
-
-                    % [~, eigValues]  = eigs(LHS,RHS,nRecycling,'smallestreal');
-                    % obj.Uprev = allVectors(:,randperm(size(allVectors,2),nRecycling));%RANDOM
-
-                    
-
-
-                end
+                    obj.selectRecycleSubspace(T,U,B,j,C,V,nRecycling);
+                end            
             else
                 x = obj.x0;
-            end
-            obj.convergenceData(obj.currentIter) = j;
-            if (obj.currentIter == 100)
-                stop = 1;
-            end
+            end            
         end
 
         function obj = rMINRES()
@@ -222,8 +139,6 @@ classdef rMINRES < handle
     
     methods (Access = private)
         function init(obj)
-            obj.currentIter = 0;
-            obj.convergenceData = zeros(500,1);
         end
 
         function prepareProblem(obj, A, b)
@@ -318,5 +233,52 @@ classdef rMINRES < handle
             end
         end
 
+        function selectFirstRecycleSubspace(obj,T,V,j,m)
+            Tbar    = T(1:j+1,1:j);
+            T       = T(1:j,1:j);
+            Tend    = Tbar(j+1,j);
+            vHat    = V(:,1:j);
+            ej      = zeros(j,1);
+            ej(1)   = 1;
+            LHS = (T+((Tend^2)*(T*(ej*ej'))));
+            [eigVectors, eigValues]  = eig(LHS);
+            eigValues       = diag(eigValues);
+            [~, indices]    = mink(eigValues, m);
+            obj.Uprev = vHat*eigVectors(:,indices);
+        end
+
+        function selectRecycleSubspace(obj,T,U,B,j,C,V,m)
+             N              = obj.buildNormalizerMatrix(U);
+             uTilde         = U*N;
+             vHat           = [uTilde V(:,1:j)];
+            [LHS,RHS]       = obj.prepareGenEigenProblem(T,uTilde,N,B,j,C,V,m);
+            [eigVectors,~]  = eigs(LHS, RHS, m, 'smallestabs','Tolerance', 1e-3);
+            obj.Uprev = vHat*eigVectors;
+        end
+
+        function [LHS, RHS] = prepareGenEigenProblem(obj,T,uTilde,N,B,j,C,V,m)
+            B       = B(:,1:j);
+            T       = T(1:j+1,1:j);            
+            NN = zeros(m);
+            for i = 1:m
+                NN(i,i) = N(i,i)^2;
+            end
+            NB = zeros(m,j);
+            for i = 1:m
+                NB(i,:) = B(i,:)*N(i,i);
+            end
+            BN = zeros(j,m);
+            for i = 1:m
+                BN(:,i) = B(i,:)*N(i,i);
+            end
+            LHS = [NN NB;BN (B'*B+T'*T)];
+            CU  = C'*uTilde;
+            VU  = V(:,1:j+1)'*uTilde;
+            NCU = zeros(m);
+            for i = 1:m
+                NCU(i,:) = CU(i,:)*N(i,i);
+            end
+            RHS = [NCU zeros(m, j); (B'*CU + T'*VU) T(1:j,:)'];
+        end
     end
 end

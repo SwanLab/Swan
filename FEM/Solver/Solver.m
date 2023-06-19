@@ -22,8 +22,8 @@ classdef Solver < handle
                 case 'GMRES_MATLAB'
                     stype = GMRES_Matlab();
                    
-                case 'MINRES'
-                    stype = MINRES_Pol();
+                case 'rMINRES'
+                    stype = rMINRES();
 
                 otherwise
                     error('Invalid solver type.')

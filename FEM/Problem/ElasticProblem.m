@@ -6,14 +6,10 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
-        solver
-        uPrev        
+        solver                
     end
 
-    properties (Access = private)
-        timeData
-        maxIter
-        currentIteration
+    properties (Access = private)        
         displacement
         stiffnessMatrix
         RHS        
@@ -45,8 +41,6 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            obj.updateIteration();
-            % obj.updateSolverType();
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
@@ -112,18 +106,6 @@ classdef ElasticProblem < handle
             obj.createQuadrature();
         end
         
-        function updateIteration(obj)
-            obj.currentIteration = obj.currentIteration + 1;
-
-        end
-
-        function updateSolverType(obj)
-            if (obj.currentIteration == 10)
-                currentXprev = obj.solver.xPrevIt;
-                obj.solver = actualMINRES();
-                obj.solver.xPrevIt = currentXprev;
-            end
-        end
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
@@ -159,18 +141,9 @@ classdef ElasticProblem < handle
             obj.boundaryConditions = bc;
         end
 
-        function createSolver(obj)
-            obj.currentIteration = 0;
-            obj.maxIter = 100;
-            obj.timeData = zeros(obj.maxIter,1);
-
-            %s.type =  'MINRES';
-            % s.type = 'DIRECT';
-            % obj.solver = Solver.create(s);
-
-           % obj.solver = MINRES_Pol(); %%BOOOOO
-           obj.solver = rMINRES();
-
+        function createSolver(obj)            
+            s.type = 'rMINRES';
+            obj.solver = Solver.create(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -205,12 +178,7 @@ classdef ElasticProblem < handle
             bc = obj.boundaryConditions;
             Kred = bc.fullToReducedMatrix(obj.LHS);
             Fred = bc.fullToReducedVector(obj.RHS);
-            % tic;
             u = obj.solver.solve(Kred,Fred);
-            % obj.timeData(obj.currentIteration) = toc; 
-            % if obj.currentIteration == obj.maxIter
-            %     stop = 1;
-            % end
             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
             z.mesh   = obj.mesh;
