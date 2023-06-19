@@ -34,7 +34,7 @@ in.mat        = data.material;
 in.type       = "Three";
 
 % Mesh decomposition
-[meshDecomposed] = MeshDecomposition(in);
+[meshDecomposed] = MeshDecomposer(in);
 plotMesh(meshDecomposed);
 
 % Stiffness matrices computation
@@ -263,15 +263,12 @@ end
 function Plots(U,lambda,subC,subMesh,subBoundMesh)
     % Displacement field
     subdomains = size(subMesh,1);
-    for i=1:subdomains
-        s.fValues = full(U{i});
-        s.mesh    = subMesh(i);
-        uField = P1Function(s);
-        uField.plot
-    end
-
-    % Lagrage multipliers in P1
-    %%%%%% TO BE DONE %%%%%%%
+%     for i=1:subdomains
+%         s.fValues = full(U{i});
+%         s.mesh    = subMesh(i);
+%         uField = P1Function(s);
+%         uField.plot
+%     end
 
     % Reactions  
     totalBoundaries = size(subC,1);
@@ -306,11 +303,27 @@ function [RelativeError,TipError] = TipErrorL2(u,subMesh,uTest,mesh)
     RelativeError = TipError/NormUTest;
 end
 
+function [RelativeStressError,StressError] = StressErrorL2(Stress,subBoundMesh, refTestData)
+    refSigma = refTestData.refSigma;
+    refTau = refTestData.refTau;
+
+    idx = subBoundMesh(1,1).mesh.coord(:,1) == 0;
+    Y = subBoundMesh(1,1).mesh.coord(idx,2);
+    
+    Sigma = [interp1(Y,Stress{1}.fValues(:,1),0.05) interp1(Y,Stress{1}.fValues(:,1),0.1)];
+    Tau   = [interp1(Y,Stress{1}.fValues(:,2),0.05) interp1(Y,Stress{1}.fValues(:,2),0.1)];
+   
+    StressError = [sqrt((Sigma-refSigma).^2); sqrt((Tau-refTau).^2)];
+    RelativeStressError = [abs(StressError(1,:)./refSigma);  abs(StressError(2,:)./refTau)];
+end
+
 function PrintResults(u,subMesh)
     subdomains = size(subMesh,1);
     for i=1:subdomains
+        subMesh(i).coord(:,1) = subMesh(i).coord(:,1) + (i-1)*0.001;
         s = [];
         s.fValues = full(u{i});
+        s.fValues = [s.fValues zeros(size(s.fValues,1),1)]; % In order to plot deformed (z=0)
         s.mesh    = subMesh(i);
         p.filename = ['domain',char(string(i))];
         ResultSubDom = P1Function(s);

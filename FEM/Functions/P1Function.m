@@ -218,12 +218,12 @@ classdef P1Function < FeFunction
                         figure()
                         plot(x,y)
                     elseif obj.mesh.ndim == 2
+                        figure()
                         for idim = 1:obj.ndimf
-                            x = obj.mesh.coord(:,1);
+                            x = obj.fValues(:,idim);
                             y = obj.mesh.coord(:,2);
-                            z = diag(obj.fValues(:,idim));
-                            figure()
-                            plot3(x,y,z)
+                            plot(x,y)
+                            hold
                         end
                     end
             end

@@ -150,16 +150,18 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plotLine(obj)
-            x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             nelem = size(obj.fValues,3);
-            figure()
-            hold on
-            for i=1:nelem
-                xPlot = [x(i,1) x(i+1,1)];
-                yPlot = [y(i,1) y(i+1,1)];
-                z = obj.fValues(:,:,i);
-                plot3(xPlot,yPlot,z)
+            ndim  = size(obj.fValues,1);
+            for idim=1:ndim
+                yPlot = []; xPlot = [];
+                for e=1:nelem
+                    yPlot = [yPlot y(e,1) y(e+1,1)];
+                    xPlot = [xPlot obj.fValues(idim,:,e)];
+                    
+                end
+                plot(xPlot,yPlot)
+                hold on
             end
         end
 

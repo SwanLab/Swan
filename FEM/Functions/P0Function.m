@@ -48,9 +48,9 @@ classdef P0Function < FeFunction
         end
 
         function plot(obj)
-            p1DiscFun = obj.project('P1D');
-            %p1DiscFun.plot();
-            p1DiscFun.plotLine();
+            p1Fun = obj.project('P1');
+            p1Fun.plot();
+            %p1Fun.plotLine();
         end
 
         function print(obj, s)

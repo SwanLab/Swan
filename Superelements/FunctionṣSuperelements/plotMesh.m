@@ -5,7 +5,9 @@ function plotMesh(in)
     
     figure
     set(gcf,'units','normalized')
-    set(gcf,'Position',[0, 0.1, 1, 0.9])
+    title('Mesh decomposed')
+    xlabel('Length (L)')
+    ylabel('Height (H)')
     
     for i=1:subdomains
         subMesh(i).plot

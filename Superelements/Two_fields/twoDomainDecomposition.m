@@ -7,9 +7,9 @@ s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
 s.x1          = 1;
 s.y1          = 0.5;
-s.N           = 49;
-s.M           = 100;
-s.P           = 1;
+s.N           = 99;
+s.M           = 49;
+s.P           = -1;
 s.DoF         = 2;
 
 CantileverAxial = FEMInputWriter(s);
@@ -18,14 +18,14 @@ CantileverAxial.createTest();
 % Create elasticity problem
 a.fileName = fileName;
 data = FemDataContainer(a);
-fem = FEM.create(data);
-fem.solve();
+% fem = FEM.create(data);
+% fem.solve();
 % fem.print(fileName);
 
 % Get main results
-uTest = fem.uFun(1,1);
-e_test = fem.strainFun(1,1);
-sig_test = fem.stressFun(1,1);
+% uTest = fem.uFun(1,1);
+% e_test = fem.strainFun(1,1);
+% sig_test = fem.stressFun(1,1);
 
 %% DOMAIN DECOMPOSITION (2 SUBDOMAINS)
 % Mesh building

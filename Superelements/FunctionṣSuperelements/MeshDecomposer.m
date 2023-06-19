@@ -1,4 +1,4 @@
-function [out] = MeshDecomposition(in)
+function [out] = MeshDecomposer(in)
     subdomains = in.subdomains;
     mesh = in.mesh;
     type = in.type;

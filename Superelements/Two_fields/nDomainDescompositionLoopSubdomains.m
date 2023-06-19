@@ -8,8 +8,8 @@ s.testName    = [fileName,'.m'];
 s.problemCase = 'cantilever';
 s.x1          = 1;
 s.y1          = 0.5;
-s.N           = 100; %x dimension
-s.M           = 200; %y dimension
+s.N           = 121; %x dimension
+s.M           = 51; %y dimension
 s.P           = -1;
 s.DoF         = 2;
 
@@ -19,66 +19,26 @@ CantileverAxial.createTest();
 % Create elasticity problem
 a.fileName = fileName;
 data = FemDataContainer(a);
-fem = FEM.create(data);
-fem.solve();
-fem.print(fileName);
 
-% Get main results
-uTest = fem.uFun(1,1);
-e_test = fem.strainFun(1,1);
-sig_test = fem.stressFun(1,1);
-
-%% Reactions plots fem
-
-K = fem.LHS;
-u = zeros(length(uTest.fValues)*2,1);
-u(1:2:end-1) = uTest.fValues(:,1);
-u(2:2:end) = uTest.fValues(:,2);
-Reactions = K(fem.boundaryConditions.dirichlet,:)*u;
-Reactions = [Reactions(1:2:end-1) Reactions(2:2:end)];
-idx = data.mesh.coord(:,1) == 0;
-
-X = data.mesh.coord(idx,1);
-Y = data.mesh.coord(idx,2);
-
-% i=5;
-% figure
-% plot(Reactions(:,1),Y,'.b')
-% hold on
-% plot([0 0],[0 0.5],'-')
-% quiver(X(5:i:end-5),Y(5:i:end-5),Reactions(5:i:end-5,1),zeros(size(Reactions(5:i:end-5,1))),"off",'b')
-% title("Reaction X")
-% xlabel('Force magnitude')
-% ylabel('Section position')
-% 
-% figure
-% plot(Reactions(:,2),Y,'.b')
-% hold on
-% plot([0 0],[0 0.5],'-')
-% quiver(X(5:i:end-5),Y(5:i:end-5),Reactions(5:i:end-5,2),zeros(size(Reactions(5:i:end-5,2))),"off",'b')
-% title("Reaction Y")
-% xlabel('Force magnitude')
-% ylabel('Section position')
-
-RootMoment = sum(Reactions(:,1)'*(Y-0.25));
-TestTotalReact = [sum(Reactions(:,1)) sum(Reactions(:,2)) RootMoment]
-
-
-idxTip = find(data.mesh.coord(:,1) == 1 & data.mesh.coord(:,2) == 0.25);
-uTipTest = uTest.fValues(idxTip,2);
-
-Stress = [2*Reactions(1,:)/(s.y1/(s.M-1)); Reactions(2:end-1,:)/(s.y1/(s.M-1)); 2*Reactions(end,:)/(s.y1/(s.M-1))];
-plot(Stress,Y)
+refTestValues = load('TestReferenceData.mat');
 
 %% DOMAIN DECOMPOSITION (N SUBDOMAINS)
-in.subdomains = 1;
+numberSubdomains = [2,3,4,5,6];
+RelativeTipError    = zeros(1,1,length(numberSubdomains));
+TipError            = zeros(1,1,length(numberSubdomains));
+RelativeStressError = zeros(2,2,length(numberSubdomains));
+StressError         = zeros(2,2,length(numberSubdomains));
+
+
+for k = 1:length(numberSubdomains)
+in.subdomains = numberSubdomains(k);
 in.mesh       = data.mesh;
 in.mat        = data.material;
 in.type       = "Two";
 
 % Mesh decomposition
-[meshDecomposed] = MeshDecomposition(in);
-%plotMesh(meshDecomposed);
+[meshDecomposed] = MeshDecomposer(in);
+plotMesh(meshDecomposed);
 subMesh = meshDecomposed.subMesh;
 subBoundMesh = meshDecomposed.subBoundMesh;
 
@@ -103,18 +63,51 @@ GlobalU = Sol.solve(GlobalLHS,GlobalRHS);
 
 % Decompose solution
 [u,lambda] = DecomposeSolution(GlobalU,subK,subC,TotalDofsDomain);
-%[TotalReact,React,Stress] = Plots(u,lambda,subC,subMesh,subBoundMesh);
+[TotalReact,React,Stress] = ComputeReactionsAndStresses(lambda,subC,subBoundMesh);
+plotStresses(subBoundMesh,Stress,React);
 
 
-[ErrorMax] = ConnectionErrorLinf(GlobalU,GlobalLHS,subC,TotalDofsDomain)
-[ErrorL2]    = ConnectionErrorL2(GlobalU,GlobalLHS,subC,TotalDofsDomain)
-[FullTipRelativeError,FullTipError,RelativeTipError,TipError] = TipErrorL2(u,subMesh,uTest,in.mesh,uTipTest)
+[ErrorMax] = ConnectionErrorLinf(GlobalU,GlobalLHS,subC,TotalDofsDomain);
+[ErrorL2]    = ConnectionErrorL2(GlobalU,GlobalLHS,subC,TotalDofsDomain);
+
+[RelativeTipError(:,:,k),TipError(:,:,k)] = TipErrorL2(u,subMesh,refTestValues);
+[RelativeStressError(:,:,k),StressError(:,:,k)] = StressErrorL2(Stress,subBoundMesh,refTestValues);
 
 %PrintResults(u,subMesh);
-        Stress = [2*React(1,:)/(s.y1/(s.M-1)); React(2:end-1,:)/(s.y1/(s.M-1)); 2*React(end,:)/(s.y1/(s.M-1))];
-        plot(Stress,Y)
+end
+
+PlotErrors(RelativeTipError,RelativeStressError,numberSubdomains)
 
 %% FUNCTIONS
+
+function PlotErrors(RelativeTipError,RelativeStressError,numberSubdomains)
+    figure
+    plot(numberSubdomains,squeeze(RelativeTipError),'-o')
+    title('Relative error vs. subdomains')
+    xlabel('Number of subdomains')
+    ylabel('Relative error')
+    ytickformat('%.2f')
+    ylim([0.0007 0.0008])
+    xticks([2 3 4 5 6])
+    legend('Tip displacement (x=1,y=0.25)')
+
+    figure
+    hold on
+    plot(numberSubdomains,squeeze(RelativeStressError(1,1,:)),'-o')
+    plot(numberSubdomains,squeeze(RelativeStressError(1,2,:)),'-o')
+    plot(numberSubdomains,squeeze(RelativeStressError(2,1,:)),'-o')
+    plot(numberSubdomains,squeeze(RelativeStressError(2,2,:)),'-o')
+    title('Relative error vs. subdomains')
+    xlabel('Number of subdomains')
+    ylabel('Relative error')
+    ytickformat('%.3f')
+    xticks([2 3 4 5 6])
+    legend('Normal stress (x=0,y=0.05)', ...
+            'Normal stress (x=0,y=0.1)', ...
+            'Shear stress (x=0,y=0.05)', ...
+            'Shear stress (x=0,y=0.1)')
+end
+
 
 
 function [subK] = SubdomainStiffnessMatrix(subMesh,material)
@@ -145,7 +138,7 @@ function [subC] = SubdomainMassMatrix(subBoundMesh)
             % inside.
             ndim  = subBoundMesh(i,j).mesh.ndim;
             test  = P1Function.create(subBoundMesh(i,j).mesh,ndim); % disp
-            trial = P0Function.create(subBoundMesh(i,j).mesh,ndim); % lambda
+            trial = P1Function.create(subBoundMesh(i,j).mesh,ndim); % lambda %%%%%%%%%%%%%%%%%%%%%%%%%
 
             s.type    = 'MassMatrix';
             s.mesh    = subBoundMesh(i,j).mesh;
@@ -275,18 +268,22 @@ function [MaxError] = ConnectionErrorL2(GlobalU,GlobalLHS,subC,TotalDofsDomain)
     end
 end
 
-function  [totalReact,React,Stress] = Plots(U,lambda,subC,subMesh,subBoundMesh)
-    % Displacement field
-    subdomains = size(subMesh,1);
-    for i=1:subdomains
-        s.fValues = full(U{i});
-        s.mesh    = subMesh(i);
-        uField = P1Function(s);
-        uField.plot
-    end
 
-    % Lagrage multipliers in P1
-    %%%%%% TO BE DONE %%%%%%%
+function  [totalReact,React,Stress] = ComputeReactionsAndStresses(lambda,subC,subBoundMesh)
+     boundaries = size(subBoundMesh,1);
+     Stress = cell(size(boundaries));
+    % Stresses
+    for i=1:boundaries
+        s.fValues = full(lambda{i});
+        s.mesh = subBoundMesh(i,1).mesh;
+        if size(subC{1,1},1)==size(subC{1,1},2)
+            Stress(i) = {P1Function(s)};
+        else
+            StressFun = P0Function(s);
+            Stress(i) = {StressFun.project('P1')};
+        end
+
+    end
 
     % Reactions  
     totalBoundaries = size(subC,1);
@@ -309,7 +306,7 @@ function  [totalReact,React,Stress] = Plots(U,lambda,subC,subMesh,subBoundMesh)
         plot(React(:,1),Y,'.b')
         hold on
         plot([0 0],[0 0.5],'-')
-        quiver(zeros(size(Y(5:5:end-5))),Y(5:5:end-5),React(5:5:end-5,1),zeros(size(React(5:5:end-5,1))),"off",'b')
+        quiver(zeros(size(Y(2:2:end-2))),Y(2:2:end-2),React(2:2:end-2,1),zeros(size(React(2:2:end-2,1))),"off",'b')
         title("Reaction X (Boundary "+(i-1)+"-"+(i)+")"+" [X="+X+"]")
         xlabel('Force magnitude')
         ylabel('Section position')
@@ -318,28 +315,29 @@ function  [totalReact,React,Stress] = Plots(U,lambda,subC,subMesh,subBoundMesh)
         plot(React(:,2),Y,'.b')
         hold on
         plot([0 0],[0 0.5],'-')
-        quiver(zeros(size(Y(5:5:end-5))),Y(5:5:end-5),React(5:5:end-5,2),zeros(size(React(5:5:end-5,2))),"off",'b')
+        quiver(zeros(size(Y(2:2:end-2))),Y(2:2:end-2),React(2:2:end-2,2),zeros(size(React(2:2:end-2,2))),"off",'b')
         title("Reaction Y (Boundary "+(i-1)+"-"+(i)+")"+" [X="+X+"]")
         xlabel('Force magnitude')
         ylabel('Section position')
-        
+      
         Center = subBoundMesh(i).mesh.coord(end,2)/2;
         RootMoment = sum(React(:,1)'*(subBoundMesh(i).mesh.coord(:,2) - Center));
-        totalReact(i,:) = [sum(React(:,1)) sum(React(:,2)) RootMoment]
-
+        totalReact(i,:) = [sum(React(:,1)) sum(React(:,2)) RootMoment];
 
     end
 end
 
-function [FullTipRelativeError,FullTipError,RelativeTipError,TipError] = TipErrorL2(u,subMesh,uTest,mesh,uTipTest)
-    IsSubBoundary = subMesh(end).coord(:,1) == max(subMesh(end).coord(:,1));
-    IsGloBoundary = mesh.coord(:,1) == max(subMesh(end).coord(:,1));
+function [RelativeTipError,TipError] = TipErrorL2(u,subMesh,refTestData)
+    uTipTest = refTestData.refU;
 
-    ErrorVectorU = full(u{end}(IsSubBoundary,:)) - uTest.fValues(IsGloBoundary,:);
-    FullTipError = sqrt(sum(sum(ErrorVectorU.^2)));
-
-    NormUTest = sqrt(sum(sum(uTest.fValues(IsGloBoundary,:).^2)));
-    FullTipRelativeError = FullTipError/NormUTest;
+%     IsSubBoundary = subMesh(end).coord(:,1) == max(subMesh(end).coord(:,1));
+%     IsGloBoundary = mesh.coord(:,1) == max(subMesh(end).coord(:,1));
+% 
+%     ErrorVectorU = full(u{end}(IsSubBoundary,:)) - uTest.fValues(IsGloBoundary,:);
+%     FullTipError = sqrt(sum(sum(ErrorVectorU.^2)));
+% 
+%     NormUTest = sqrt(sum(sum(uTest.fValues(IsGloBoundary,:).^2)));
+%     FullTipRelativeError = FullTipError/NormUTest;
 
     idxTip = find(subMesh(end).coord(:,1) == 1 & subMesh(end).coord(:,2) == 0.25);
     uTip   = full(u{end}(idxTip,2));
@@ -348,12 +346,28 @@ function [FullTipRelativeError,FullTipError,RelativeTipError,TipError] = TipErro
     RelativeTipError = TipError/abs(uTipTest);
 end
 
+
+function [RelativeStressError,StressError] = StressErrorL2(Stress,subBoundMesh, refTestData)
+    refSigma = refTestData.refSigma;
+    refTau = refTestData.refTau;
+
+    idx = subBoundMesh(1,1).mesh.coord(:,1) == 0;
+    Y = subBoundMesh(1,1).mesh.coord(idx,2);
+    
+    Sigma = [interp1(Y,Stress{1}.fValues(:,1),0.05) interp1(Y,Stress{1}.fValues(:,1),0.1)];
+    Tau   = [interp1(Y,Stress{1}.fValues(:,2),0.05) interp1(Y,Stress{1}.fValues(:,2),0.1)];
+   
+    StressError = [sqrt((Sigma-refSigma).^2); sqrt((Tau-refTau).^2)];
+    RelativeStressError = [abs(StressError(1,:)./refSigma);  abs(StressError(2,:)./refTau)];
+end
+
 function PrintResults(u,subMesh)
     subdomains = size(subMesh,1);
     for i=1:subdomains
         subMesh(i).coord(:,1) = subMesh(i).coord(:,1) + (i-1)*0.1;
         s = [];
         s.fValues = full(u{i});
+        s.fValues = [s.fValues zeros(size(s.fValues,1),1)]; % In order to plot deformed (z=0)
         s.mesh    = subMesh(i);
         p.filename = ['domain',char(string(i))];
         ResultSubDom = P1Function(s);

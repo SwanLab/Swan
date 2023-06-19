@@ -1,26 +1,28 @@
 clc,clear,close all
 
-fileName = 'CantileverAxialLoad';
-s.testName    = [fileName,'.m'];
-s.problemCase = 'cantilever';
-s.x1          = 1;
-s.y1          = 0.5;
-s.N           = 799; %x dimension
-s.M           = 399; %y dimension
-s.P           = 1;
-s.DoF         = 2;
+% fileName = 'CantileverAxialLoad';
+% s.testName    = [fileName,'.m'];
+% s.problemCase = 'cantilever';
+% s.x1          = 1;
+% s.y1          = 0.5;
+% s.N           = 799; %x dimension
+% s.M           = 399; %y dimension
+% s.P           = 1;
+% s.DoF         = 2;
+% 
+% CantileverAxial = FEMInputWriter(s);
+% CantileverAxial.createTest();
+% 
+% % Create elasticity problem
+% a.fileName = fileName;
+% data = FemDataContainer(a);
+% fem = FEM.create(data);
+% fem.solve();
+% fem.uFun.fValues = [fem.uFun.fValues zeros(size(fem.uFun.fValues,1),1)];
+% fem.uFun.ndimf = 3;
+% fem.print(fileName);
 
-CantileverAxial = FEMInputWriter(s);
-CantileverAxial.createTest();
-
-% Create elasticity problem
-a.fileName = fileName;
-data = FemDataContainer(a);
-fem = FEM.create(data);
-fem.solve();
-fem.uFun.fValues = [fem.uFun.fValues zeros(size(fem.uFun.fValues,1),1)];
-fem.uFun.ndimf = 3;
-fem.print(fileName);
+load('TestBendingData.mat')
 
 % Get main results
 uTest = fem.uFun(1,1);
@@ -66,6 +68,9 @@ TestTotalReact = [sum(Reactions2plot(:,1)) sum(Reactions2plot(:,2)) RootMoment]
 idxTip = find(data.mesh.coord(:,1) == 1 & data.mesh.coord(:,2) == 0.25);
 refU = uTest.fValues(idxTip,2);
 
+
+%% REACTIONS AND STRESSES
+
 Boundary = data.mesh.createBoundaryMesh();
 BoundMesh = Boundary{1}.mesh;
 % mass matrix
@@ -79,7 +84,7 @@ s.trial   = trial;
 lhs       = LHSintegrator.create(s);
 M         = lhs.compute();
 
-Stress = M\Reactions;
+Stress = -M\Reactions;
 Stress = [Stress(1:2:end-1) Stress(2:2:end)];
 figure
 plot(Stress,Y)
@@ -87,3 +92,8 @@ title('Stresses at root [x=0]')
 xlabel('Stress magnitude')
 ylabel('Section position')
 legend('Normal stress $\sigma_x$','Shear stress $\tau_{xy}$','interpreter','latex')
+
+
+refSigma = [interp1(Y,Stress(:,1),0.05) interp1(Y,Stress(:,1),0.1)];
+refTau = [interp1(Y,Stress(:,2),0.05) interp1(Y,Stress(:,2),0.1)];
+save('TestReferenceData','refU','refSigma','refTau')
