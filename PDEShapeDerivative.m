@@ -30,7 +30,7 @@ classdef PDEShapeDerivative < handle
     methods (Access = private)
         
         function init(obj)
-            
+            obj.tolerance = 1e-10 ;
         end
         
         function createMesh(obj)
@@ -100,7 +100,7 @@ classdef PDEShapeDerivative < handle
         function computeCostIntegrantDerivative(obj)
             s.f1 = obj.temperature;
             s.f2 = obj.temperatureTarget;
-            s.operation = @(f1,f2) 2*f1 - f2;
+            s.operation = @(f1,f2) 2*(f1 - f2);
             s.ndimf = 1 ;
             f = ComposedFunction(s);
             obj.costIntegrantDerivative = f;
