@@ -1,4 +1,7 @@
-function [subK] = SubdomainStiffnessMatrix(subMesh,material)
+function [subK] = SubdomainStiffnessMatrix(inputs)
+    subMesh = inputs.subMesh;
+    material = inputs.material;
+
     subdomains = length(subMesh);
     subK = cell(subdomains,1);
     for i=1:subdomains
