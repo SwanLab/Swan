@@ -7,6 +7,7 @@ classdef PDEShapeDerivative < handle
         adjoint
         costIntegrant
         costIntegrantDerivative
+        costIntegrantGradient
 
         quadrature
         tolerance
@@ -18,6 +19,7 @@ classdef PDEShapeDerivative < handle
     methods (Access = public)
         
         function obj = PDEShapeDerivative()
+            addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init();  
             obj.createMesh();                        
             obj.createQuadrature();
@@ -106,6 +108,18 @@ classdef PDEShapeDerivative < handle
             obj.costIntegrantDerivative = f;
         end  
 
+        function computeGradientIntegrant(obj)
+            nablaf{1} = @(x) -2*(x(1,:,:)-0.5) ;
+            nablaf{2} = @(x) 2*(x(2,:,:)-0.5) ;
+            for i = 1:length(nablaf)
+                s.fHandle = nablaf{i} ;
+                s.ndimf = 1 ;
+                s.mesh = obj.mesh ;
+                nablafC{i} = AnalyticalFunction(s) ;
+            end
+            obj.costIntegrantGradient = nablafC ;
+        end
+
         function computeAdjoint(obj)
             s.bc     = obj.createDirichletData(); 
             s.scale  = 'MACRO';
@@ -125,7 +139,8 @@ classdef PDEShapeDerivative < handle
             df = obj.costIntegrantDerivative;
             u  = obj.temperature;
             p  = obj.adjoint;
-            g  = obj.projector.project(m,f,df,u,p);
+            nablaf = obj.costIntegrantGradient ;
+            g  = obj.projector.project(m,f,df,u,p,nablaf);
         end
 
         function c = computeCost(obj)
@@ -152,6 +167,7 @@ classdef PDEShapeDerivative < handle
                 obj.computeCostIntegrant();
                 obj.computeCostIntegrantDerivative();
                 obj.computeAdjoint();
+                obj.computeGradientIntegrant() ;
                 g = obj.projectShapeDerivative();              
                 obj.updateMesh(g,tau);
                 cTrial =  obj.computeCost();                

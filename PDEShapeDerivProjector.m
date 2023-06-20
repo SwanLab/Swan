@@ -10,10 +10,10 @@ classdef PDEShapeDerivProjector < handle
             obj.init();
         end
 
-        function xFun = project(obj,m,f,df,u,p)
+        function xFun = project(obj,m,f,df,u,p,nablaf)
             obj.mesh = m;
             LHS     = obj.computeLHS();
-            RHS     = obj.computeRHSterms(f,df,u,p);
+            RHS     = obj.computeRHSterms(f,df,u,p,nablaf);
             % RHS     = RHSfun + RHSdfun;
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
@@ -21,12 +21,13 @@ classdef PDEShapeDerivProjector < handle
             xFun = P1Function(s);
         end
 
-        function RHS = computeRHSterms(obj,f,df,u,p)
+        function RHS = computeRHSterms(obj,f,df,u,p,nablaf)
            RHS1 = obj.computeFirstRHS(f);
            RHS2 = obj.computeSecondRHS(u,p);
            RHS3 = obj.computeThirdRHS(u,p);
            RHS4 = obj.computeFourthRHS(p);
-           RHS = RHS1 + RHS2 + RHS3 + RHS4;
+           RHS5 = obj.computeFifthRHS(df,nablaf) ;
+           RHS = RHS1 + RHS2 + RHS3 + RHS4 + RHS5;
         end
 
         function rhs = computeFirstRHS(obj,f)
@@ -57,6 +58,14 @@ classdef PDEShapeDerivProjector < handle
             rhs_aux = obj.computeRHSFunTimesDivergence(p);
             rhs = -4*rhs_aux;
         end     
+
+        function rhs = computeFifthRHS(obj,df,nablaf)
+            for i = length(nablaf)
+                rhs1(:,i) = obj.computeRHSdFun(nablaf{i}) ;
+            end
+            rhs2 = obj.computeRHSdFun(df) ;
+            rhs = -(rhs1+rhs2) ;
+        end
 
         function q = createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
