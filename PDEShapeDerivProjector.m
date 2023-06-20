@@ -14,8 +14,7 @@ classdef PDEShapeDerivProjector < handle
             obj.mesh = m;
             LHS     = obj.computeLHS();
             RHS     = obj.computeRHSterms(f,df,u,p);
-            % 
-            RHS     = RHSfun + RHSdfun;
+            % RHS     = RHSfun + RHSdfun;
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
             s.fValues = xProj;
@@ -25,7 +24,7 @@ classdef PDEShapeDerivProjector < handle
         function RHS = computeRHSterms(obj,f,df,u,p)
            RHS1 = obj.computeFirstRHS(f);
            RHS2 = obj.computeSecondRHS(u,p);
-           RHS3 = obj.computeThirdRHS();
+           RHS3 = obj.computeThirdRHS(u,p);
            RHS4 = obj.computeFourthRHS(p);
            RHS = RHS1 + RHS2 + RHS3 + RHS4;
         end
@@ -45,11 +44,18 @@ classdef PDEShapeDerivProjector < handle
         end
 
         function rhs = computeThirdRHS(obj,u,p)
-             
+            s.f1 = u;
+            s.f2 = p;
+            s.operation = @(f1,f2) f1.*f2;
+            s.ndimf = 1 ;
+            s.quad  = obj.createQuadrature();
+            f = ComposedGradFunction(s) ;
+            rhs = squeeze(obj.computeRHSFunTimesGradient(f)) ;
         end
 
         function rhs = computeFourthRHS(obj,p)
-          
+            rhs_aux = obj.computeRHSFunTimesDivergence(p);
+            rhs = 4 * rhs_aux;
         end        
 
 
@@ -112,6 +118,16 @@ classdef PDEShapeDerivProjector < handle
             RHS = rhs.compute(dfun);
         end  
 
+        function RHS = computeRHSFunTimesGradient(obj,fun)
+            s.type     = 'ShapeGradient';
+            s.mesh     = obj.mesh;
+            s.quadratureOrder = 'QUADRATIC';            
+            rhs = RHSintegrator.create(s);
+            rhs = rhs.compute(fun);
+            RHS = rhs.fValues;
+        end  
+
+    
     end
 
 end
