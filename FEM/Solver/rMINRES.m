@@ -31,23 +31,25 @@ classdef rMINRES < handle
                     beta   = res;
                     while ((j<maxIter)&&(res>tol))||j<(nRecycling+1)
                         j = j+1;
+                        C = [];
                         if j == 1
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, [], V(:,j), 0, beta);
+                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), 0, beta);
                             T = obj.updateT(j, Tpar, T);
                             [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), [], []);
                         elseif j == 2
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, [], V(:,j), V(:,j-1), beta);
+                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), V(:,j-1), beta);
                             T = obj.updateT(j, Tpar, T);
                             [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), G1, []);
                         else
                             beta = Tpar(2);
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, [], V(:,j), V(:,j-1), beta);
+                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), V(:,j-1), beta);
                             T = obj.updateT(j, Tpar, T);
                             [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), G1, G2);
                         end
-                        modif    = Phi(j);
-                        Phi(j)   = G1(1)*modif;
-                        Phi(j+1) = G1(2)*modif;
+
+                        PhiJ    = Phi(j);
+                        Phi(j)   = G1(1)*PhiJ;
+                        Phi(j+1) = G1(2)*PhiJ;
                         if j == 1
                             d  = (1/S(j,j))*(V(:,j));
                             d1 = d;
@@ -77,24 +79,25 @@ classdef rMINRES < handle
                     beta   = res;
                     while ((j<(maxIter-1))&&(res>tol))
                         j = j+1;
+                 
                         if j == 1
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), 0, beta);
-                            T = obj.updateT(j, Tpar, T);
-                            [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), [], []);
+                            VjOld = 0;
+                            G1 = [];
+                            G2 = [];
                         elseif j == 2
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), V(:,j-1), beta);
-                            T = obj.updateT(j, Tpar, T);
-                            [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), G1, []);
+                            VjOld = V(:,j-1);
                         else
-                            beta = Tpar(2);
-                            [V(:,j+1), Tpar, beta] = obj.arnoldiStep(A, C, V(:,j), V(:,j-1), beta);
-                            T = obj.updateT(j, Tpar, T);
-                            [S(:,j), G1, G2]    = obj.computeScol(j, T(:,j), G1, G2);
+                            VjOld = V(:,j-1);
                         end
-                        modif    = Phi(j);
-                        Phi(j)   = G1(1)*modif;
-                        Phi(j+1) = G1(2)*modif;
-                        bj      = C'*(A*V(:,j));
+                        Vj = V(:,j);
+                        [Snew,G1,G2,T,Vnew,beta,bj] = obj.updateSystem(obj,A,C,Vj,VjOld,beta,G1,G2,T,j);
+                        V(:,j+1) = Vnew;
+                        S(:,j)   = Snew;
+
+                        PhiJ    = Phi(j);
+                        Phi(j)   = G1(1)*PhiJ;
+                        Phi(j+1) = G1(2)*PhiJ;
+                      %  bj      = C'*(A*V(:,j));
                         B(:,j)  = bj;
                         if j == 1
                             d  = (1/S(j,j))*(V(:,j));
@@ -131,6 +134,14 @@ classdef rMINRES < handle
             end            
         end
 
+        function [Snew,G1,G2,T,Vnew,beta,bj] = updateSystem(obj,A,C,Vj,VjOld,beta,G1,G2,T,j)
+            [Vnew, Tpar, beta,bj] = obj.arnoldiStep(A, C, Vj,VjOld, beta);
+            T = obj.updateT(j, Tpar, T);
+            Tj =  T(:,j);
+           % T(:,j) = Tj;
+            [Snew, G1, G2]    = obj.computeScol(j,Tj, G1, G2);
+        end
+
         function obj = rMINRES()
             obj.init();
         end
@@ -155,7 +166,7 @@ classdef rMINRES < handle
             U       = obj.Uprev/R;
         end
 
-        function [vNew, Tpar, betaNew] = arnoldiStep(obj, A, C, v, vold, beta)
+        function [vNew, Tpar, betaNew,b] = arnoldiStep(obj, A, C, v, vold, beta)
             a           = A*v;   
             if isempty(C)
                 C = 0;
