@@ -21,6 +21,8 @@ classdef RHSintegratorFactory < handle
                     obj = RHSintegrator_ShapeDivergence(cParams); 
                 case 'ShapeGradient'
                     obj = RHSintegrator_ShapeGradient(cParams);
+                case 'ShapeSymmetricGradient'
+                    obj = RHSintegrator_ShapeSymmetricGradient(cParams);
                 case 'CutMesh'
                     % Computes the RHS using the NODAL FORCES and SHAPE
                     % FUNCTIONS for CUT meshes

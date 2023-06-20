@@ -142,7 +142,7 @@ classdef PDEShapeDerivative < handle
             obj.createTemperatureTarget();                
             obj.computeTemperature();            
             obj.cost(1) = obj.computeCost();
-            tau = 0.02;
+            tau = 0.00002;
             hasNotConverged = true;
             iter = 2;
             

@@ -49,15 +49,14 @@ classdef PDEShapeDerivProjector < handle
             s.operation = @(f1,f2) f1.*f2;
             s.ndimf = 1 ;
             s.quad  = obj.createQuadrature();
-            f = ComposedGradFunction(s) ;
-            rhs = squeeze(obj.computeRHSFunTimesGradient(f)) ;
+            f = ComposedGradOpenFunction(s);
+            rhs = obj.computeRHSFunTimesSymmetricGradient(f) ;
         end
 
         function rhs = computeFourthRHS(obj,p)
             rhs_aux = obj.computeRHSFunTimesDivergence(p);
-            rhs = 4 * rhs_aux;
-        end        
-
+            rhs = -4*rhs_aux;
+        end     
 
         function q = createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
@@ -126,6 +125,15 @@ classdef PDEShapeDerivProjector < handle
             rhs = rhs.compute(fun);
             RHS = rhs.fValues;
         end  
+
+        function RHS = computeRHSFunTimesSymmetricGradient(obj,fun)
+            s.type     = 'ShapeSymmetricGradient';
+            s.mesh     = obj.mesh;
+            s.quadratureOrder = 'QUADRATIC';            
+            rhs = RHSintegrator.create(s);
+            rhs = rhs.compute(fun);
+            RHS = rhs.fValues;
+        end          
 
     
     end
