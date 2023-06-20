@@ -60,7 +60,7 @@ classdef PDEShapeDerivProjector < handle
         end     
 
         function rhs = computeFifthRHS(obj,df,nablaf)
-            for i = length(nablaf)
+            for i = 1:length(nablaf)
                 rhs1(:,i) = obj.computeRHSdFun(nablaf{i}) ;
             end
             rhs2 = obj.computeRHSdFun(df) ;
