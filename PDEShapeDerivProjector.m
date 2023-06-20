@@ -53,14 +53,10 @@ classdef PDEShapeDerivProjector < handle
         end        
 
 
-
         function q = createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
         end
-
-  
-
 
 
     end
