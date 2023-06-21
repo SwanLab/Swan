@@ -67,6 +67,8 @@ classdef LHSintegratorFactory < handle
                case 'AdvectionMatrix'
                    %cross(b,grad(b))
                    obj = LHSintegrator_Advection(cParams);
+               case 'ShapeFunctionsWithSomeFunctionPowered'
+                   obj = LHSintegrator_ShapeFunctionsWithFunPower(cParams);
            end
        end
    end

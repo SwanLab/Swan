@@ -71,7 +71,48 @@ classdef Quadrature_Quadrilateral < Quadrature
                             obj.posgp(2,igaus) = posgl(jlocs);
                         end
                     end
-                        
+
+                case 'CUBIC' % https://math.stackexchange.com/questions/4537774/integration-points-and-weights-of-16-point-gauss-quadrature-on-a-quadrilateral
+                    obj.ngaus = 16;
+                    a = 0.86113631;
+                    b = 0.33998104;
+                    obj.posgp(:,1) = [ -a,-a];
+                    obj.posgp(:,2) = [ -b,-a];
+                    obj.posgp(:,3) = [ b,-a];
+                    obj.posgp(:,4) = [ a,-a];
+                    obj.posgp(:,5) = [ -a,-b];
+                    obj.posgp(:,6) = [ -b,-b];
+                    obj.posgp(:,7) = [ b,-b];
+                    obj.posgp(:,8) = [ a,-b];
+                    obj.posgp(:,9) = [ -a,b];
+                    obj.posgp(:,10) = [ -b,b];
+                    obj.posgp(:,11) = [ b,b];
+                    obj.posgp(:,12) = [ a,b];
+                    obj.posgp(:,13) = [ -a,a];
+                    obj.posgp(:,14) = [ -b,a];
+                    obj.posgp(:,15) = [ b,a];
+                    obj.posgp(:,16) = [ a,a];
+
+                    a = 0.12100299;
+                    b = 0.22685185;
+                    c = 0.42529330;
+                    obj.weigp(1,1)  = a;
+                    obj.weigp(1,2)  = b;
+                    obj.weigp(1,3)  = b;
+                    obj.weigp(1,4)  = a;
+                    obj.weigp(1,5)  = b;
+                    obj.weigp(1,6)  = c;
+                    obj.weigp(1,7)  = c;
+                    obj.weigp(1,8)  = b;
+                    obj.weigp(1,9)  = b;
+                    obj.weigp(1,10)  = c;
+                    obj.weigp(1,11)  = c;
+                    obj.weigp(1,12)  = b;
+                    obj.weigp(1,13)  = a;
+                    obj.weigp(1,14)  = b;
+                    obj.weigp(1,15)  = b;
+                    obj.weigp(1,16)  = a;
+
                 otherwise
                     error('Invalid interpolation order for element Quadrilateral.');
             end
