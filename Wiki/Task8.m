@@ -5,6 +5,14 @@
 % Instructions: run the following code, selecting previously the 'Swan'
 % main folder as your current matlab path
 
-s.testName = 'test_cantilever2';
+% fclose('all');
+% rmdir('Output','s')
+clc
+close all
+
+%%
+
+s.testName = 'test_micro3d';
+% s.testName = 'test_micro';
 t = TopOptComputer(s);
 t.compute();

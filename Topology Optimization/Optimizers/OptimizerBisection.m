@@ -120,10 +120,11 @@ classdef OptimizerBisection < Optimizer
                 obj.acceptableStep = true;
                 obj.isInitialStep  = false;
             else
-                if J < obj.oldCost
+                if J < obj.oldCost + 1e-5
                     obj.acceptableStep = true;
-                    factor = 1.5;
-                    obj.primalUpdater.increaseStepLength(factor);
+%                     factor = 1.5;
+%                     obj.primalUpdater.increaseStepLength(factor);
+                    obj.primalUpdater.tau = 1;
                 elseif obj.tau < 1e-10
                     error('Convergence could not be achieved (step length too small)')
                 else
