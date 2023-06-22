@@ -1,13 +1,37 @@
 %% To-do
+% Website: think of something to easily add new simulations
+% Readme: take out everything, replace with website, including some
+%         examples, include link to website
 
-% 1) ElasticProblemMicro_Fast
-%       - one loop at solve(). displacements+strain+stress+fluct calculated
-%         without adding additional loops
-%       - code cleanup (see computeDisplacements())
-%       - delete vars/variables/whatever -> change functionals
+% Cleanup files after extruding / exporting to STL / etc.
+% Check path of Swan + GiD automatically
+% Provide extruded mesh should use meshes, not unfitted meshes
+% Print mesh using 1/2 args
+% Print P1, P2, ... using 1/2 args
+% Print ElasticProblem ... using 1/2 args
+% Extrude Mesh should have height as a parameter
 
-% 2) FunctionPrinter/ParaviewPostprocessor -> move to Factory
-% 3) Mesh.print
+% Create a tutorial/example for this
+
+% Tutorials
+% - 0. Create mesh (Ton)
+% - 1. Fem Thermal (Ton) (include plots & prints)
+% - 2. Fem Elasticity (Ton) (include plots & prints)
+% - 3. Create level set functions (square with circle) (Ton)
+%      Extrude+export stl tutorial
+% - 4. Filter (Jose)
+% - 5. TopOpt (Jose)
+%   5.1. Macro
+%   5.2. Micro
+% - 6. Shape optimization (Alex)
+% - 7. Dehomogenization (Alex)
+
+
+% Extras
+% - Projectors (Jose)
+% - Subdomains (Lagrange Multipliers)
+% - Micro elasticity
+% - Optimizers
 
 %% Comments
 

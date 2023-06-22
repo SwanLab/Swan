@@ -268,7 +268,7 @@ classdef Mesh < handle
             m = me.export();
         end
 
-        function print(obj, s)
+        function print(obj, s) % filename, vargin to check if matlab or gid
             p1 = P1Function.create(obj,1);
             s.mesh = obj;
             s.fun = {p1};
