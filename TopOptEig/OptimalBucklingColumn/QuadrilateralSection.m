@@ -30,6 +30,7 @@ classdef QuadrilateralSection < SectionVariablesComputer
                 case 'RectangularHoleColumn'
                     [h,b,eh,eb]=obj.getFourValues();
                     I = (b.*h.^3-(b-2*eb).*(h-2*eh).^3)/12;
+                    %I_total = (1/12) * b * h^3 - (1/12) * (b - 2 * eb) * (h - 2 * eh)^3;
                 otherwise 
                     disp('Wrong Design Variable type');
             end
@@ -47,13 +48,11 @@ classdef QuadrilateralSection < SectionVariablesComputer
                     dI = [dIda; dIdb];
                 case 'RectangularHoleColumn'
                     [h,b,eh,eb] = obj.getFourValues();
-                    dIdh = (3*b.*h.^2-3*(b-2*eb).*(h-2*eh))/12;
+                    dIdh = (b.*h.^2-(b-2*eb).*(h-2*eh).^2)/4;
                     dIdb = (h.^3-(h-2*eh).^3)/12;
                     dIdeh= ((b-2*eb).*(h-2*eh).^2)/2;
-                    dIdeb= (h-2*eh).^3/2;
+                    dIdeb= (h-2*eh).^3/6;
                     dI = [dIdh; dIdb; dIdeh; dIdeb];
-
-
             end
         end
         
@@ -67,9 +66,9 @@ classdef QuadrilateralSection < SectionVariablesComputer
                     A = a.*b;
                 case 'RectangularHoleColumn'
                     [h,b,eh,eb] = obj.getFourValues();
-                    h1 = h-2*eh;
-                    b1 = b-2*eb;
-                    A = (h.*b)-(h1.*b1);
+                    hi = h-2*eh;
+                    bi = b-2*eb;
+                    A = (h.*b)-(hi.*bi);
             end
         end
 
@@ -85,12 +84,12 @@ classdef QuadrilateralSection < SectionVariablesComputer
                     dA = [dAda; dAdb];
                 case 'RectangularHoleColumn'
                     [h,b,eh,eb] = obj.getFourValues();
-                    h1 = h-2*eh;
-                    b1 = b-2*eb;
-                    dAdh = b-b1;
-                    dAdb = h-h1;
-                    dAdeh= 2*b1;
-                    dAdeb= 2*h1;
+                    hi = h-2*eh;
+                    bi = b-2*eb;
+                    dAdh = b-bi;
+                    dAdb = h-hi;
+                    dAdeh= 2*bi;
+                    dAdeb= 2*hi;
                     dA = [dAdh; dAdb; dAdeh; dAdeb];
             end
         end

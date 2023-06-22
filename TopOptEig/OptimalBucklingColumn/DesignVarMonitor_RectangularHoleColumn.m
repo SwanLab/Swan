@@ -1,7 +1,7 @@
 classdef DesignVarMonitor_RectangularHoleColumn < DesignVarMonitor_Abstract
     
     properties (Access = protected)
-        designVarName = 'Square Column'
+        designVarName = 'Rectangular Hole'
     end
     
     properties (Access = private)
@@ -18,6 +18,7 @@ classdef DesignVarMonitor_RectangularHoleColumn < DesignVarMonitor_Abstract
             scale = 0.3;
             obj.createPolygon(scale);
             obj.plotFigure();
+            obj.plotDesignVariable();
         end
         
     end
@@ -58,6 +59,21 @@ classdef DesignVarMonitor_RectangularHoleColumn < DesignVarMonitor_Abstract
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             xlabel('A(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+        end
+
+        function plotDesignVariable(obj)
+            [h,b,eh,eb] = obj.sectionVariables.getFourValues();
+            xMax = max(obj.mesh.coord);
+            x = linspace(0,xMax,length(h));
+            figure(4)
+            clf
+            plot(x,h,x,b,x,h-2*eh,x,b-2*eb);
+            axis([0 xMax 0 4])
+            grid on
+            grid minor
+            title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            legend('h','b','h_i','b_i','location','southeast')
         end
 
     end 

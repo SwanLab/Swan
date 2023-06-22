@@ -52,7 +52,7 @@ classdef RadiusColumn < DesignVariable
                 case 'Constant'
                     x0(1:N+1,1) = 2;%sqrt(1/pi);
                 case 'Random'
-                    x0 = 0.5*rand(N+1,1);
+                    x0 = 1*rand(N+1,1);
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;

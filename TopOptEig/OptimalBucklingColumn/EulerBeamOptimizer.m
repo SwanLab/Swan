@@ -68,19 +68,19 @@ classdef EulerBeamOptimizer < handle
         function init(obj)
             obj.nElem         = 500;
             obj.nConstraints  = 3; 
-            obj.columnLength  = 20; 
-            obj.maxVolume     = 20*pi; %(1e-2)*20^3;
+            obj.columnLength  = 1; 
+            obj.maxVolume     = 1; %(1e-2)*20^3;
             obj.nValues       = obj.nElem+1;
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.makeGIF       = 'N'; %'Y';'N'
-            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Constant'; % Random/Constant/External Value/Sinus
             obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.desVarType    = 'RadiusColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
-            obj.maxIter       = 100;
-            obj.minDesVar = 0; 
-            obj.maxDesVar = 200000; 
+            obj.maxIter       = 1000;
+            obj.minDesVar = 0.25; 
+            obj.maxDesVar = 7; 
             obj.minCost   = 0;
             obj.maxCost   = 10000;
         end
@@ -132,10 +132,12 @@ classdef EulerBeamOptimizer < handle
             sF1.eigModes       = obj.eigenModes;
             sF1.eigNum         = 1;
             sF1.type = 'doubleEig';  
+            sF1.name = '\lambda_1 constraint';
 
             sF2.eigModes       = obj.eigenModes;  
             sF2.eigNum         = 2;
-            sF2.type = 'doubleEig';  
+            sF2.type = 'doubleEig';
+            sF2.name = '\lambda_2 constraint';
 
             sF3.type = 'volumeColumn';    
             sF3.mesh = obj.mesh;

@@ -47,11 +47,11 @@ classdef RectangularColumn < DesignVariable
             switch obj.initValueType
                 case 'Constant'
                     a = 3*ones(N,1);
-                    b = 0.5*ones(N,1);
+                    b = 3*ones(N,1);
                     x0 = [a;b;1];
                 case 'Random'
-                    a = rand(N,1);
-                    b = 0.5*rand(N,1);
+                    a = 3*rand(N,1);
+                    b =0.5*rand(N,1);
                     x0 = [a;b;1];
                 case 'Sinus'
                     x = linspace(0,5*pi,N)';

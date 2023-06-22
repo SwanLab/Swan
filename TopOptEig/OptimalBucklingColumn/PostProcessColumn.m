@@ -69,7 +69,7 @@ classdef PostProcessColumn < handle
             nVar = obj.designVariable.nDesignVar;
             s.designVariableValue = obj.designVariable.value(1:nVar*nElem);
             s.coord = obj.mesh.coord;
-            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'/'rectangularHoleColumn'
+            s.type = 'holedCircle'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'/'rectangularHoleColumn'
             plt = Plot3DBucklingColumn(s);
             plt.compute();
         end
@@ -77,7 +77,7 @@ classdef PostProcessColumn < handle
         function createGIF(obj)
             fr = obj.frames;
             nImages = length(fr);
-            filename = "testAnimated.gif"; 
+            filename = "CircularHole_C23.gif"; 
                 for idx = 1:nImages
                     im = frame2im(fr{idx});
                     [A,map] = rgb2ind(im,256);

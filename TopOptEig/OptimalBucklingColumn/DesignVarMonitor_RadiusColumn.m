@@ -56,7 +56,7 @@ classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
             figure(3)
             clf
             plot(pgon);
-            axis([-10 10 0 yMax])
+            axis([-2 2 0 yMax])
             grid on
             grid minor
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');

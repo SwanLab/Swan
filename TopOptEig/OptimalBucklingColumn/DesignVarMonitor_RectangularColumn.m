@@ -20,7 +20,7 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             obj.createPolygon(scale);
             obj.plotFigure();
             obj.plotDesignVariable();
-            %obj.create3Dplot();
+            obj.create3Dplot();
         end
         
     end
@@ -70,7 +70,7 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             figure(4)
             clf
             plot(x,a,x,b);
-            axis([0 xMax 0 3])
+            axis([0 xMax 0 4])
             grid on
             grid minor
             title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');

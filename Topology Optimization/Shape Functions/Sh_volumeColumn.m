@@ -22,7 +22,7 @@ classdef Sh_volumeColumn < ShapeFunctional
         end
 
         function t = getTitlesToPlot(obj)
-            t{1} = 'Volume Column';
+            t{1} = 'Volume constraint';
         end    
 
         function v = getVariablesToPlot(obj)

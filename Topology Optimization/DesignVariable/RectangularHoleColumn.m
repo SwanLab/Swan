@@ -47,17 +47,17 @@ classdef RectangularHoleColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    a = ones(N,1);
+                    h = ones(N,1);
                     b = ones(N,1);
-                    c = 0.3*ones(N,1);
-                    d = 0.3*ones(N,1);
-                    x0 = [a;b;c;d;1];
+                    eh = 0.3*ones(N,1);
+                    eb = 0.3*ones(N,1);
+                    x0 = [h;b;eh;eb;1];
                 case 'Random'
-                    a = rand(N,1);
+                    h = rand(N,1);
                     b = rand(N,1);
-                    c = 0.3*rand(N,1);
-                    d = 0.3*rand(N,1);
-                    x0 = [a;b;c;d;1];
+                    eh = 0.3*rand(N,1);
+                    eb = 0.3*rand(N,1);
+                    x0 = [h;b;eh;eb;1];
                 otherwise 
                     error('Invalid Initial Value Type.')
             end

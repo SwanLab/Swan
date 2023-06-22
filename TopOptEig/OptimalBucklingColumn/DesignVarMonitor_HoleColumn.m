@@ -16,11 +16,13 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
         end
         
         function plot(obj)
+            obj.nIter= obj.nIter+1;
             scale = 0.3;
             obj.createPolygonArea(scale);
             obj.createPolygonInnerRadius(scale);
             obj.plotArea();
-            obj.plotInnerRadius();
+            obj.plotDesignVariable();
+            obj.create3Dplot();
         end
         
     end
@@ -73,7 +75,7 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             figure(3)
             clf
             plot(pgon);
-            axis([-2 2 0 1])
+            axis([-10 10 0 20])
             grid on
             grid minor
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
@@ -81,17 +83,30 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end
 
-        function plotInnerRadius(obj)
-            pgon = obj.polygonInnerRadius;
+        function plotDesignVariable(obj)
+            [r,e] = obj.sectionVariables.getDoubleValue();
+            xMax = max(obj.mesh.coord);
+            x = linspace(0,xMax,length(r));
             figure(4)
             clf
-            plot(pgon);
-            axis([-2 2 0 1])
+            plot(x,r,x,r+e);
+            axis([0 xMax 0 4])
             grid on
             grid minor
-            title('Column Inner Radius (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
-            xlabel('r1(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
-            ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            legend('r','r+e','location','southeast')
+        end
+
+        function create3Dplot(obj)
+            nElem = obj.sectionVariables.mesh.nelem;
+            nVar = obj.sectionVariables.designVariable.nDesignVar;
+            s.designVariableValue = obj.sectionVariables.designVariable.value(1:nVar*nElem);
+            s.coord = obj.sectionVariables.mesh.coord;
+            s.type = 'holedCircle'; 
+            plt = Plot3DBucklingColumn(s);
+            plt.compute();
+            obj.frames{obj.nIter} = plt.frame;
         end
 
 

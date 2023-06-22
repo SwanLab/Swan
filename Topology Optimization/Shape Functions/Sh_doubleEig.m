@@ -3,6 +3,7 @@ classdef Sh_doubleEig < ShapeFunctional
     properties (Access = private)
         eigNum
         eigModes
+        name
     end
 
     methods (Access = public)
@@ -17,7 +18,7 @@ classdef Sh_doubleEig < ShapeFunctional
         end
 
         function t = getTitlesToPlot(obj)
-            t{1} = 'Double Eigen Value';
+            t{1} = obj.name;
         end  
 
         function v = getVariablesToPlot(obj)
@@ -32,6 +33,7 @@ classdef Sh_doubleEig < ShapeFunctional
             obj.designVariable = cParams.designVariable;
             obj.eigModes = cParams.eigModes;
             obj.eigNum = cParams.eigNum;
+            obj.name = cParams.name;
         end
     end
     
