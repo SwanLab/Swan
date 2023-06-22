@@ -51,7 +51,7 @@ TOL.nu_minus = 1/3;
 epsilon_isotropy_initial=1e-1;
 epsilon_isotropy_final = 1e-3;
 micro.alpha =[1 0 0 0 0 0]';
-micro.beta =[-1 0 0 0 0 0]';
+micro.beta =[1 0 0 0 0 0]';
 % micro.alpha =[0 0 1]';
 % micro.beta =[0 0 1]';
 
@@ -60,5 +60,4 @@ plotting = false;
 printing = true;
 monitoring = true;
 maxiter = 250;
-% maxiter = nsteps*10;
 monitoring_interval = 1;

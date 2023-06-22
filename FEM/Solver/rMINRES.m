@@ -90,7 +90,7 @@ classdef rMINRES < handle
                             VjOld = V(:,j-1);
                         end
                         Vj = V(:,j);
-                        [Snew,G1,G2,T,Vnew,beta,bj] = obj.updateSystem(obj,A,C,Vj,VjOld,beta,G1,G2,T,j);
+                        [Snew,G1,G2,T,Vnew,beta,bj] = obj.updateSystem(A,C,Vj,VjOld,beta,G1,G2,T,j);
                         V(:,j+1) = Vnew;
                         S(:,j)   = Snew;
 

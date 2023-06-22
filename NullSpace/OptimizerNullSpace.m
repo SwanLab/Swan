@@ -111,10 +111,10 @@ classdef OptimizerNullSpace < Optimizer
                 DJ = obj.cost.gradient;
                 if obj.aG <= 0.5*obj.aGmax
                     exponent = -sign(g)*sign(sum(DJ));
-                    obj.aJmax = obj.aJmax*2^exponent;
+                    obj.aJmax = obj.aJmax*1^exponent; % 2
                 else
                     exponent  = 1-sign(obj.checkConstraint());
-                    obj.aGmax = obj.aGmax*2^exponent;
+                    obj.aGmax = obj.aGmax*1^exponent; % 2
                 end
             end
         end
