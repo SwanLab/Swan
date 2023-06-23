@@ -54,7 +54,7 @@ sEM.filename     = 'notForLong';  % Why?
 sEM.meshFileName = 'notForLong2'; % Why?
 sEM.swanPath     = '/home/ton/Github/Swan/';
 sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
-EM = uMesh.provideExtrudedMesh(sEM);
+EM = uMesh.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
 
 %% Export STL
 sSTL.filename     = 'notForLong';  % Why?
