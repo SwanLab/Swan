@@ -1,12 +1,6 @@
 classdef STLExporter < handle
     properties (Access = private)
         filename
-        swanPath
-        gidPath
-        tclPath
-        resFilePath
-        unfittedMesh
-        meshFileName
         mesh
     end
     
@@ -16,19 +10,11 @@ classdef STLExporter < handle
             obj.init(cParams)
         end
 
-        function m =  export(obj)
-%             obj.createMsh();
-            obj.exportSTLThroughGiD();
-            m = obj.readMsh();
-        end
-
-        function exportSTLThroughGiD(obj)
-%             obj.unfittedMesh.printNew(obj.filename);
-            resFile = '/home/ton/Github/Swan/PostProcess/STL/sampleMesh.msh';
+        function m = export(obj)
             a = 0;
             s2g = SwanGiDInterface(a);
-%             resFile = obj.getResFilePath();
             s2g.exportSTL(obj.mesh);
+            m = obj.readMsh();
         end
         
     end
@@ -36,15 +22,8 @@ classdef STLExporter < handle
     methods (Access = private)
         
         function init(obj,cParams)
-%             obj.unfittedMesh    = cParams.unfittedMesh;
-            obj.filename        = cParams.filename;
-%             obj.meshElementSize = cParams.meshElementSize;
-%             obj.meshFileName    = cParams.meshFileName;
-%             obj.swanPath        = cParams.swanPath;
-%             obj.gidPath         = cParams.gidPath;
-%             obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
-            obj.resFilePath     = obj.getResFilePath();
-            obj.mesh = cParams.mesh;
+            obj.filename = cParams.filename;
+            obj.mesh     = cParams.mesh;
         end
 
         function m = readMsh(obj)
