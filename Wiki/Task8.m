@@ -12,10 +12,10 @@ close all
 
 %%
 
-tStart = cputime;
+tic
 
 s.testName = 'test_micro3d';
 t = TopOptComputer(s);
 t.compute();
 
-tEnd = cputime - tStart
+toc
