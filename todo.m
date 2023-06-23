@@ -11,8 +11,8 @@
     % Check path of Swan + GiD automatically
 
 % PRINTING
-    % Print mesh using 1/2 args
-    % Print P1, P2, ... using 1/2 args
+    % (x) Print mesh using 1/2 args
+    % (x) Print P1, P2, ... using 1/2 args
     % Print ElasticProblem ... using 1/2 args
 
 % TUTORIALS

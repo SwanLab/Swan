@@ -268,11 +268,13 @@ classdef Mesh < handle
             m = me.export();
         end
 
-        function print(obj, s) % filename, vargin to check if matlab or gid
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             p1 = P1Function.create(obj,1);
-            s.mesh = obj;
-            s.fun = {p1};
-            s.type = 'GiD';
+            s.filename = filename;
+            s.mesh     = obj;
+            s.fun      = {p1};
+            s.type     = software;
             p = FunctionPrinter.create(s);
             p.print();
         end
