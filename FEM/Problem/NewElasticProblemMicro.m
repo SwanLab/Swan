@@ -58,41 +58,6 @@ classdef NewElasticProblemMicro < handle
             dim = d;
         end
 
-        function obj = computeChomog(obj)
-            nVoigt = obj.material.nstre;
-            nGaus = obj.quadrature.ngaus;
-            nElem = size(obj.material.C,3);
-            nPnod = obj.elasticParams.mesh.nnodes; %size(obj.displacementFun.fValues,1);
-            strdim = regexp(obj.elasticParams.dim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            nDofs = nPnod*nDimf;
-            
-            tStrn  = zeros(nVoigt,nGaus,nVoigt,nElem);
-            tStrss = zeros(nVoigt,nGaus,nVoigt,nElem);
-            tDisp  = zeros(nVoigt,nDofs);
-            Ch = zeros(nVoigt,nVoigt);
-            
-            params  = obj.elasticParams;
-            prob = NewElasticProblem(params);
-
-            for iVoigt = 1:nVoigt
-                vstrain = obj.computeVstrain(iVoigt);
-                prob = obj.solveElasticProblem(prob,vstrain);
-                vars = obj.computeStressStrainFluctuations(prob, vstrain);
-                Ch(:,iVoigt)         = vars.stress_homog;
-                tStrn(iVoigt,:,:,:)  = vars.strain;
-                tStrss(iVoigt,:,:,:) = vars.stress;
-                tDisp(iVoigt,:)      = prob.variables.d_u;
-                obj.uFun{iVoigt}      = prob.uFun;
-                obj.strainFun{iVoigt} = prob.strainFun;
-                obj.stressFun{iVoigt} = prob.stressFun;
-            end
-            obj.variables.Chomog  = Ch;
-            obj.variables.tstrain = tStrn;
-            obj.variables.tstress = tStrss;
-            obj.variables.tdisp   = tDisp;
-        end
-
     end
 
     methods (Access = private)

@@ -1,7 +1,8 @@
 classdef StokesProblem < handle
 
     properties (Access = public)
-        variables
+        velocityFun
+        pressureFun
     end
     
     properties (Access = private)
@@ -13,8 +14,6 @@ classdef StokesProblem < handle
         dtime
         finalTime
         inputBC
-        velocityFun
-        pressureFun
         boundaryConditions
 
         LHS, LHSintegrator
@@ -44,7 +43,6 @@ classdef StokesProblem < handle
             switch obj.state
                 case 'Steady'
                     x = obj.solver.solve(LHSr, RHSr);
-                    obj.variables = obj.separateVariables(x);
 
                 case 'Transient'
                     RHS0 = RHSr;
@@ -65,8 +63,10 @@ classdef StokesProblem < handle
                         RHSr = obj.updateRHS(RHS0, x0(1:free_dof(1)));
                     end
                     x = x_n;
-                    obj.variables = obj.separateVariables(x);
             end
+            vars = obj.separateVariables(x);
+            obj.velocityFun.fValues = obj.splitVelocity(vars.u);
+            obj.pressureFun.fValues = vars.p(:,end);
         end
 
     end
@@ -178,6 +178,18 @@ classdef StokesProblem < handle
             Mred = M(freeV,freeV);
             Mred_x_n = Mred*x_n;
             RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
+        end
+
+        function uM = splitVelocity(obj, vel)
+            u = vel;
+            nu = obj.velocityFun.ndimf;
+            nnode = round(length(u)/nu);
+            nodes = 1:nnode;
+            uM = zeros(nnode,nu);
+            for idim = 1:nu
+                dofs = nu*(nodes-1)+idim;
+                uM(:,idim) = u(dofs, end);
+            end
         end
 
     end
