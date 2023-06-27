@@ -3,5 +3,5 @@ proc ExportMSH {arg1 arg2} {
     set gidBasPath $arg2
     GiD_Process Mescape Postprocess
     GiD_Process Mescape Files Read $input
-    GiD_Process Mescape files saveall allmeshessets "HmmLetMeCook"
+    GiD_Process Mescape files saveall allmeshessets "PostProcess/STL/HmmLetMeCook"
 }

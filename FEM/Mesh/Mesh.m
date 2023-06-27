@@ -262,10 +262,10 @@ classdef Mesh < handle
 %             stlwrite(obj.triMesh, [file '.stl'])
 %         end
 
-        function m = exportSTL(obj, s)
+        function exportSTL(obj, s)
             s.mesh = obj;
             me = STLExporter(s);
-            m = me.export();
+            me.export();
         end
 
         function print(obj, filename, software)

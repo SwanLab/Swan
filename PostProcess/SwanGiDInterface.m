@@ -31,7 +31,7 @@ classdef SwanGiDInterface < handle
             obj.writeSurfaceTclFile(resultsFile);
             obj.writeExtrudeTclFile();
             obj.writeGenerateMeshTclFile();
-            obj.writeExportSTLTclFile();
+%             obj.writeExportSTLTclFile();
             obj.runSurfaceTcl();
             obj.runExtrudeTcl();
             obj.runGenerateMeshTcl();
@@ -42,10 +42,8 @@ classdef SwanGiDInterface < handle
             obj.writeExportMshTclFile(mesh);
             obj.runExportMshTcl();
             obj.writeExportSTLTclFile();
-            
-            % Export STL
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
-            system(command);
+            obj.runExportSTLTcl();
+            obj.cleanupExportSTL();
         end
 
         function extrudeAndExport(obj)
@@ -134,7 +132,7 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
             fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set input "$path/sampleMesh.gid" \n']);
+            fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
             fprintf(fid,['set output "$path/sampleMeshFile.stl" \n']);
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
@@ -149,7 +147,7 @@ classdef SwanGiDInterface < handle
 
         function writeExportMshTclFile(obj, mesh)
             % Print mesh
-            mesh.print(filename, 'GiD');
+            mesh.print('TempMeshFile', 'GiD');
 
             tclFile = [obj.tclPath,'callGiD_ExportMSH.tcl'];
             stlFileTocall = 'ExportMSH.tcl';
@@ -160,7 +158,7 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
             fprintf(fid,['source $path$tclFile \n']);
             fprintf(fid,['set input "$swanpath/TempMeshFile.flavia.res" \n']);
-            fprintf(fid,['set output "$swanpath/resultingMesh.stl" \n']);
+%             fprintf(fid,['set output "$swanpath/resultingMesh.stl" \n']);
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['ExportMSH $input $gidBasPath \n']);
             fclose(fid);
@@ -168,9 +166,11 @@ classdef SwanGiDInterface < handle
 
         function runExportMshTcl(obj)
             % Export MSH
-            command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
+            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
             system(command);
-            delete HmmLetMeCook.png; delete HmmLetMeCook.res; delete HmmLetMeCook.vv;
+            delete PostProcess/STL/HmmLetMeCook.png;
+            delete PostProcess/STL/HmmLetMeCook.res;
+            delete PostProcess/STL/HmmLetMeCook.vv;
         end
 
         % Cleanup
@@ -188,12 +188,19 @@ classdef SwanGiDInterface < handle
             delete PostProcess/STL/callGiD_CreateSurface.tcl
             delete PostProcess/STL/callGiD_Extrude.tcl
             delete PostProcess/STL/callGiD_GenerateMesh.tcl
-            delete PostProcess/STL/callGiD_ExportSTL.tcl
             rmdir('PostProcess/STL/sampleMesh.gid/', 's')
             delete PostProcess/STL/sampleMesh
             delete PostProcess/STL/sampleMesh.png
             delete PostProcess/STL/sampleMesh.res
             delete PostProcess/STL/sampleMesh.vv
+        end
+
+        function cleanupExportSTL(obj)
+            delete PostProcess/STL/callGiD_ExportMSH.tcl
+            delete PostProcess/STL/callGiD_ExportSTL.tcl
+            delete PostProcess/STL/HmmLetMeCook.msh
+            delete TempMeshFile.flavia.msh
+            delete TempMeshFile.flavia.res
         end
 
     end

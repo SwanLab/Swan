@@ -1,4 +1,5 @@
 classdef STLExporter < handle
+
     properties (Access = private)
         filename
         mesh
@@ -10,11 +11,11 @@ classdef STLExporter < handle
             obj.init(cParams)
         end
 
-        function m = export(obj)
+        function export(obj)
             a = 0;
             s2g = SwanGiDInterface(a);
             s2g.exportSTL(obj.mesh);
-            m = obj.readMsh();
+%             m = obj.readMsh();
         end
         
     end
@@ -35,12 +36,6 @@ classdef STLExporter < handle
         function f = getOutputFileName(obj)
 %             f = [obj.gidPath, obj.meshFileName,'.msh'];
             f = '/home/ton/Github/Swan/PostProcess/STL/sampleMesh.msh';
-        end
-
-        function f = getResFilePath(obj)
-            name = obj.filename;
-            swan = obj.swanPath;
-            f = [swan, name, '.flavia.res'];
         end
         
     end
