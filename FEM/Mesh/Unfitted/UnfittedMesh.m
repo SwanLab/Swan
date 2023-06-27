@@ -95,9 +95,7 @@ classdef UnfittedMesh < handle
             sF.fValues = obj.levelSet;
             sF.mesh    = obj.backgroundMesh;
             ls = P1Function(sF);
-            sP.type = 'GiD';
-            sP.filename = filename;
-            ls.print(sP)
+            ls.print(filename, 'GiD');
         end
         
         function m = createFullInnerMesh(obj, s)

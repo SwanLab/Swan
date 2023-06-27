@@ -23,6 +23,7 @@ classdef SwanGiDInterface < handle
             obj.writeGenerateMeshTclFile();
             obj.runSurfaceTcl();
             obj.runGenerateMeshTcl();
+            obj.cleanupGenerateMesh();
         end
 
         function extrudeMesh(obj, resultsFile)
@@ -147,10 +148,7 @@ classdef SwanGiDInterface < handle
 
         function writeExportMshTclFile(obj, mesh)
             % Print mesh
-            s.type = 'GiD';
-            s.filename = 'TempMeshFile';
-            mesh.print(s);
-
+            mesh.print(filename, 'GiD');
 
             tclFile = [obj.tclPath,'callGiD_ExportMSH.tcl'];
             stlFileTocall = 'ExportMSH.tcl';
@@ -172,6 +170,17 @@ classdef SwanGiDInterface < handle
             command = [obj.gidPath,'gid -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
             system(command);
             delete HmmLetMeCook.png; delete HmmLetMeCook.res; delete HmmLetMeCook.vv;
+        end
+
+        % Cleanup
+        function cleanupGenerateMesh(obj)
+            delete PostProcess/STL/callGiD_CreateSurface.tcl
+            delete PostProcess/STL/callGiD_GenerateMesh.tcl
+            delete PostProcess/STL/sampleMesh
+            delete PostProcess/STL/sampleMesh.png
+            delete PostProcess/STL/sampleMesh.res
+            delete PostProcess/STL/sampleMesh.vv
+            rmdir('PostProcess/STL/sampleMesh.gid/', 's')
         end
 
     end

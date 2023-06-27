@@ -1,11 +1,8 @@
 classdef FullInnerMeshCreator_GiD2 < FullInnerMeshCreator
     properties (Access = private)
         filename
-        meshFileName
-        meshElementSize
         swanPath
         gidPath
-        tclPath
         resFilePath
     end
     
@@ -18,6 +15,9 @@ classdef FullInnerMeshCreator_GiD2 < FullInnerMeshCreator
         function m = export(obj)
             obj.exportMshThroughGiD();
             m = obj.readMsh();
+            delete InnerMeshCreator_File.flavia.msh
+            delete InnerMeshCreator_File.flavia.res
+            delete PostProcess/STL/sampleMesh.msh
         end
 
         function exportMshThroughGiD(obj)
@@ -33,14 +33,11 @@ classdef FullInnerMeshCreator_GiD2 < FullInnerMeshCreator
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.unfittedMesh    = cParams.unfittedMesh;
-            obj.filename        = cParams.filename;
-            obj.meshElementSize = cParams.meshElementSize;
-            obj.meshFileName    = cParams.meshFileName;
-            obj.swanPath        = cParams.swanPath;
-            obj.gidPath         = cParams.gidPath;
-            obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
-            obj.resFilePath     = obj.getResFilePath();
+            obj.filename     = 'InnerMeshCreator_File';
+            obj.swanPath     = cParams.swanPath;
+            obj.gidPath      = cParams.gidPath;
+            obj.resFilePath  = obj.getResFilePath();
+            obj.unfittedMesh = cParams.unfittedMesh;
         end
 
         function m = readMsh(obj)
