@@ -191,7 +191,7 @@ classdef OptimizerNullSpace < Optimizer
             x  = obj.designVariable.value;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
-                factor = 1000;
+                factor = 10000;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
                 factor = 1.2;

@@ -2,7 +2,7 @@ classdef ShFunc_PerimeterWithPNorm < ShapeFunctional
     
     properties (GetAccess = public, SetAccess = private)
        regularizedDensity  
-       normExponent = 1
+       normExponent = 8
     end
     
     properties (Access = protected)

@@ -42,7 +42,7 @@ classdef LHSintegrator_ShapeFunctionsWithFunPower < handle
         end
         
         function createQuadrature(obj)
-            quadratureOrder = 'CUBIC';
+            quadratureOrder = 'nGaussPointsPerLine';
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadratureOrder);
             obj.quadrature = quad;

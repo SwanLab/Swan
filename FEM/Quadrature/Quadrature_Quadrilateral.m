@@ -113,6 +113,29 @@ classdef Quadrature_Quadrilateral < Quadrature
                     obj.weigp(1,15)  = b;
                     obj.weigp(1,16)  = a;
 
+                case 'nGaussPointsPerLine'
+                    syms x;
+                    N       = 9; % Generalize
+                    Pn      = legendreP(N,x);
+                    derivPn = diff(Pn,x);
+                    roots   = double(vpasolve(Pn == 0));
+                    for i = 1:length(roots)
+                        x       = roots(i);
+                        dPn     = double(subs(derivPn));
+                        weights(i) = 2/((1-x^2)*dPn^2);
+                    end
+                    
+                    for i = 1:length(roots)
+                        for j = 1:length(roots)
+                            pos = j+(i-1)*length(roots);
+                            posgp(:,pos) = [roots(i),roots(j)];
+                            weigp(1,pos) = weights(i)*weights(j);
+                        end
+                    end
+                    obj.ngaus = N^2;
+                    obj.posgp = posgp;
+                    obj.weigp = weigp;
+
                 otherwise
                     error('Invalid interpolation order for element Quadrilateral.');
             end
