@@ -35,6 +35,7 @@ classdef SwanGiDInterface < handle
             obj.runSurfaceTcl();
             obj.runExtrudeTcl();
             obj.runGenerateMeshTcl();
+            obj.cleanupExtrudeMesh();
         end
         
         function exportSTL(obj, mesh)
@@ -181,6 +182,18 @@ classdef SwanGiDInterface < handle
             delete PostProcess/STL/sampleMesh.res
             delete PostProcess/STL/sampleMesh.vv
             rmdir('PostProcess/STL/sampleMesh.gid/', 's')
+        end
+
+        function cleanupExtrudeMesh(obj)
+            delete PostProcess/STL/callGiD_CreateSurface.tcl
+            delete PostProcess/STL/callGiD_Extrude.tcl
+            delete PostProcess/STL/callGiD_GenerateMesh.tcl
+            delete PostProcess/STL/callGiD_ExportSTL.tcl
+            rmdir('PostProcess/STL/sampleMesh.gid/', 's')
+            delete PostProcess/STL/sampleMesh
+            delete PostProcess/STL/sampleMesh.png
+            delete PostProcess/STL/sampleMesh.res
+            delete PostProcess/STL/sampleMesh.vv
         end
 
     end
