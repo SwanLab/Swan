@@ -52,7 +52,7 @@ classdef MeshExtruder < handle
 
         function f = getOutputFileName(obj)
 %             f = [obj.gidPath, obj.meshFileName,'.msh'];
-            f = '/home/ton/Github/Swan/PostProcess/STL/sampleMesh.msh';
+            f = [pwd,'/PostProcess/STL/sampleMesh.msh'];
         end
 
         function f = getResFilePath(obj)

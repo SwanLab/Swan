@@ -49,17 +49,11 @@ IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
 %% Extrude Mesh (improves conditioning)
 sEM.swanPath     = '/home/ton/Github/Swan/';
 sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
+sEM.height = 0.16;
 EM = uMesh.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
 
 %% Export STL
 sSTL.filename     = 'notForLong';  % Why?
 sSTL.meshFileName = 'notForLong2'; % Why?
 
-EM.exportSTL(sSTL); % 2 options: MATLAB/Gid
-% Matlab 1 -> export stl using tetrahedra -> searhco nline
-% Matlab 2 -> use boundary mesh and boundary cut mesh...
-
-%Mescape utilities SwapNormals Surfaces MakeGroupCoherent 1:END escape Yes escape
-
-
-% In short: research STL
+EM.exportSTL(sSTL);

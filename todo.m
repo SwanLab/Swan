@@ -5,10 +5,10 @@
     %         examples, include link to website
 
 % EXTRUDING AND EXPORTING
-    % Cleanup files after extruding / exporting to STL / etc.
-    % Provide extruded mesh should use meshes, not unfitted meshes
-    % Extrude Mesh should have height as a parameter
-    % Check path of Swan + GiD automatically
+    % (x) Cleanup files after extruding / exporting to STL / etc.
+    % (CANT!) Provide extruded mesh should use meshes, not unfitted meshes
+    % (x) Extrude Mesh should have height as a parameter
+    % (1/2) Check path of Swan + GiD automatically
 
 % PRINTING
     % (x) Print mesh using 1/2 args

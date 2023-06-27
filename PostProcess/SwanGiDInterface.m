@@ -13,9 +13,9 @@ classdef SwanGiDInterface < handle
     methods (Access = public)
 
         function obj = SwanGiDInterface(cParams)
-            obj.swanPath = '/home/ton/Github/Swan/';
+            obj.swanPath = pwd;
             obj.gidPath  = '/home/ton/GiDx64/gid-16.1.2d/';
-            obj.tclPath  = [obj.swanPath, 'PostProcess/STL/'];
+            obj.tclPath  = [obj.swanPath, '/PostProcess/STL/'];
         end
 
         function generateMesh(obj, resultsFile)
@@ -114,7 +114,8 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set mshname "sampleMesh" \n']);
             fprintf(fid,['source $path$tclFile \n']);
             fprintf(fid,['set gidProjectName "$path$mshname" \n']);
-            fprintf(fid,['ExtrudeSurface $gidProjectName \n']);
+            fprintf(fid,['set height 0.16" \n']);
+            fprintf(fid,['ExtrudeSurface $gidProjectName $height \n']);
             fclose(fid);
         end
 
