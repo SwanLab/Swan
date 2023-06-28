@@ -24,11 +24,11 @@ classdef MeshExtruder < handle
         end
 
         function exportMshThroughGiD(obj)
-            obj.unfittedMesh.printNew(obj.filename);
+%             obj.unfittedMesh.printNew(obj.filename);
             a = 0;
             s2g = SwanGiDInterface(a);
-            resFile = obj.getResFilePath();
-            s2g.extrudeMesh(resFile);
+%             resFile = obj.getResFilePath();
+            s2g.extrudeMesh(obj.unfittedMesh);
         end
         
     end

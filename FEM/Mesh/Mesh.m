@@ -268,6 +268,12 @@ classdef Mesh < handle
             me.export();
         end
 
+        function m = provideExtrudedMesh(obj, s)
+            s.unfittedMesh = obj;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+
         function print(obj, filename, software)
             if nargin == 2; software = 'GiD'; end
             p1 = P1Function.create(obj,1);

@@ -26,13 +26,13 @@ classdef SwanGiDInterface < handle
             obj.cleanupGenerateMesh();
         end
 
-        function extrudeMesh(obj, resultsFile)
-%             resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
-            obj.writeSurfaceTclFile(resultsFile);
+        function extrudeMesh(obj, mesh)
+            obj.writeExportMshTclFile(mesh);
+            obj.runExportMshTcl();
+%             obj.writeSurfaceTclFile(resultsFile);
             obj.writeExtrudeTclFile();
             obj.writeGenerateMeshTclFile();
-%             obj.writeExportSTLTclFile();
-            obj.runSurfaceTcl();
+%             obj.runSurfaceTcl();
             obj.runExtrudeTcl();
             obj.runGenerateMeshTcl();
             obj.cleanupExtrudeMesh();
@@ -111,11 +111,12 @@ classdef SwanGiDInterface < handle
             fid = fopen(tclFile,'w+');
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-            fprintf(fid,['set mshname "sampleMesh" \n']);
+            fprintf(fid,['set mshname "sampleMesh.msh" \n']);
             fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set gidProjectName "$path$mshname" \n']);
-            fprintf(fid,['set height 0.16" \n']);
-            fprintf(fid,['ExtrudeSurface $gidProjectName $height \n']);
+            fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
+            fprintf(fid,['set output "$path/sampleMesh" \n']);
+            fprintf(fid,['set height "0.16" \n']);
+            fprintf(fid,['ExtrudeSurface $input $height $output \n']);
             fclose(fid);
         end
 

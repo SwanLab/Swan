@@ -50,7 +50,8 @@ IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
 sEM.swanPath     = '/home/ton/Github/Swan/';
 sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
 sEM.height = 0.16;
-EM = uMesh.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
+% EM = uMesh.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
+EM = IMcond.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
 
 %% Export STL
 sSTL.filename     = 'notForLong';  % Why?
