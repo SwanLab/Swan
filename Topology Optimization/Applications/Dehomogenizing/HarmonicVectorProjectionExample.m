@@ -31,11 +31,12 @@ classdef HarmonicVectorProjectionExample < handle
             obj.loadDataExperiment();
             obj.createMesh();
             obj.createBoundaryMesh();
+          %  obj.trySomething();
             obj.createHarmonicProjection();
-            obj.createUnitBallProjector();
-            obj.storeOrientationAngle();
+           % obj.createUnitBallProjector();
+           % obj.storeOrientationAngle();
           %  obj.dehomogenize(); 
-            obj.computeSingularities();
+           % obj.computeSingularities();
             obj.project()
             obj.computeSingularities();
             obj.dehomogenize();                        
@@ -65,6 +66,91 @@ classdef HarmonicVectorProjectionExample < handle
             obj.experimentData = w;
         end
 
+        function trySomething(obj)
+            
+            %o = obj.tryOrientationCase1(sigma0);
+
+         
+
+
+            oS2 = obj.tryOrientationCase2(sigma1);
+  
+
+
+
+            %a1d(:,1,:) = obj.experimentData.dataRes.AlphaGauss';
+            %tFd = obj.createOrientation(a1d);
+          
+
+        end
+
+        function tF = createVectorFromSigma(obj)
+            s.mesh    = obj.experimentData.mesh;
+            s.fValues = obj.experimentData.dataRes.StressPrimal;
+            sigma0 = P0Function(s);
+            sigma1 = sigma0.project('P1');
+            
+
+            s.type = '2D';
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            pcomp = PrincipalDirectionComputer.create(s);
+            s2(1,:,:) = (sigma1.fValues');
+            pcomp.compute(s2);
+
+            a = pcomp.direction;
+            a1 = a(:,1,:);
+            a2 = a(:,2,:);
+
+            s.fValues = squeeze(a1)';
+            s.mesh    = obj.mesh;
+            aF{1} = P1Function(s);
+
+            s.fValues = squeeze(a2)';
+            s.mesh    = obj.mesh;
+            aF{2} = P1Function(s);
+            tF = aF;
+        end
+
+        function o = tryOrientationCase2(obj,sigma1)
+
+            tF = obj.createVectorFromSigma(sigma1)
+         %   x1 = (a1(1,:));
+         %   x2 = (a1(2,:));
+         %   tV = atan2(x2,x1);
+         %   s.mesh = obj.mesh;
+         %   s.fValues = squeeze(tV');
+         %   tF = P1Function(s);
+         %   tF = tF.project('P0');
+            
+
+           % tF = obj.createOrientation(a1);
+            
+            s.theta = tF;%
+            s.mesh  = obj.mesh;
+            o = OrientationVectors(s);   
+          %  o.computeDeformedCoordinates 
+        end  
+
+
+        function o = tryOrientationCase1(obj,sigma0)
+            s.type = '2D';
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            pcomp = PrincipalDirectionComputer.create(s);
+            s1 = permute(sigma0.fValues,[2 1 3]);
+            pcomp.compute(s1);
+
+            a = pcomp.direction;
+            a1(:,1,:) = a(:,1,:);
+
+            
+            tF = obj.createOrientation(a1);
+            
+            s.theta = tF;
+            s.mesh  = obj.mesh;
+            o = OrientationVectors(s);   
+          %  o.computeDeformedCoordinates 
+        end
+
         function createMesh(obj)
             d = obj.experimentData;
             obj.mesh = d.mesh;          
@@ -78,15 +164,29 @@ classdef HarmonicVectorProjectionExample < handle
            % alpha = obj.createPiDiscontinuityAndNoiseAngle();
             aBar(:,1) = cos(alpha);
             aBar(:,2) = sin(alpha); 
-        end
+      end
+
+        function tF = createOrientation(obj,a)
+            x1 = (a(1,:,:));
+            x2 = (a(2,:,:));
+            tV = atan2(x2,x1);
+            s.mesh = obj.mesh;
+            s.fValues = squeeze(tV);
+            tF = P0Function(s);
+        end      
+      
 
         function [a1,b1] = createOrientationVector(obj)
          %   aBar = obj.createOrientationByHand();
             a0 = obj.createOrientationFromData();
 
+            s.theta = obj.createOrientation(a0.fValues);
+            s.mesh  = obj.mesh;
+            o = OrientationVectors(s);            
+
             a0X = squeeze(a0.fValues(1,1,:));
             a0Y = squeeze(a0.fValues(2,1,:));
-            b0V = obj.createHalfOrientationVector(a0X,a0Y);
+            b0V = obj.createDobleOrientationVector(a0X,a0Y);
             s.fValues = b0V;
             s.mesh = obj.mesh;
             b0 = P0Function(s);
@@ -95,7 +195,7 @@ classdef HarmonicVectorProjectionExample < handle
             a1   = a0.project('P1');  
             a1X = a1.fValues(:,1);
             a1Y = a1.fValues(:,2);
-            b1V = obj.createHalfOrientationVector(a1X,a1Y);
+            b1V = obj.createDobleOrientationVector(a1X,a1Y);
             s.fValues = b1V;
             s.mesh = obj.mesh;
             b1b = P1Function(s);            
@@ -233,11 +333,12 @@ classdef HarmonicVectorProjectionExample < handle
             q.ShowArrowHead = 'off';
         end
 
-        function plotOrientationVector(obj,t)
+        function plotOrientationVector(obj,b)
+            a = obj.createHalfOrientationVector(b(:,1),b(:,2));
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            tx = t(:,1);
-            ty = t(:,2);
+            tx = a(:,1);
+            ty = a(:,2);
             q = quiver(x,y,tx,ty);
             q.ShowArrowHead = 'off';            
         end
@@ -281,20 +382,20 @@ classdef HarmonicVectorProjectionExample < handle
             c.TickLabels = t;
         end
 
-        function bF = computeHalfOrientationFromOrientation(obj,a)
-            aXBar = a.fValues(:,1);
-            aYBar = a.fValues(:,2);
-            s.fValues = b;
-            s.mesh    = obj.mesh;
-            bF = P1Function(s);
-        end
 
-        function b = createHalfOrientationVector(obj,aX,aY)
+        function b = createDobleOrientationVector(obj,aX,aY)
             alpha = atan2(aY,aX);
             beta  = 2*alpha;
             b(:,1) = cos(beta);
             b(:,2) = sin(beta);
         end
+
+        function a = createHalfOrientationVector(obj,bX,bY)
+            beta   = atan2(bY,bX);
+            alpha  = beta/2;
+            a(:,1) = cos(alpha);
+            a(:,2) = sin(alpha);
+        end    
 
         function rho = computeRho(obj)            
             %rho = obj.experimentData.dataRes.DensityGauss;           
@@ -304,19 +405,23 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function project(obj)
-            [aBar,bBar] = obj.createOrientationVector();            
+            aBar = obj.createVectorFromSigma();
+            a1 = aBar{1};
+            a1X = a1.fValues(:,1);
+            a1Y = a1.fValues(:,2);
+            bBar = obj.createDobleOrientationVector(a1X,a1Y);
+           
+            s.fValues = bBar;
+            s.mesh    = obj.mesh;
+            bBarF = P1Function(s);
+          %  bBarF.plotArrowVector();
+
+
+            %[aBar,bBar] = obj.createOrientationVector(); 
+
             figure(23)
-            obj.plotOrientationVector(aBar);
             obj.plotOrientationVector(bBar);
 
-
-
-            figure(24)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            tx = bBar(:,1);
-            ty = bBar(:,2);
-            quiver(x,y,tx,ty)
             
             rho = obj.computeRho();
 
@@ -402,7 +507,6 @@ classdef HarmonicVectorProjectionExample < handle
         
 
         function createHarmonicProjection(obj)
-            [aBar,bBar] = obj.createOrientationVector();                        
             s.mesh = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;
             

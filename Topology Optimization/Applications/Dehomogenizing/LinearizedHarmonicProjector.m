@@ -1,7 +1,7 @@
 classdef LinearizedHarmonicProjector < handle
     
     properties (Access = private)
-        field
+     %   field
         massMatrix
         stiffnessMatrix
         advectionMatrixX
@@ -29,7 +29,9 @@ classdef LinearizedHarmonicProjector < handle
         
         function lambda0 = computeInitalLambda(obj)
             b    = obj.boundaryMesh;
-            nInt = setdiff(1:obj.field.dim.ndofs,b);
+            f = P1Function.create(obj.mesh, 1);
+            ndofs = size(f.fValues,1);
+            nInt  = setdiff(1:ndofs,b);
             lambda0 = 0*ones(length(nInt),1);
         end
 
@@ -39,7 +41,8 @@ classdef LinearizedHarmonicProjector < handle
             i = 1;
             isErrorLarge = true;
             lambda = obj.computeInitalLambda();
-            npnod = obj.field.dim.ndofs;
+            f = P1Function.create(obj.mesh, 1);
+            npnod = size(f.fValues,1);
             eta    = zeros(npnod,1);
             etaOld = eta;
             lambdaOld = lambda;
@@ -118,7 +121,8 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function [iX,iY,iL,iE] = computeIndex(obj)
-            npnod = obj.field.dim.ndofs;
+            f = P1Function.create(obj.mesh, 1);
+            npnod = f.dim.ndofs;
             nInt  = obj.computeNint();
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
@@ -224,15 +228,11 @@ classdef LinearizedHarmonicProjector < handle
         end
         
         function computeMassMatrix(obj)
-
-            
-         %   s.field        = obj.field;
-            s.mesh         = obj.mesh;
-            s.type         = 'MassMatrix';
-            
-
-
-         
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
             %M = diag(sum(M));
@@ -241,7 +241,8 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function computeStiffnessMatrix(obj)        
-          %  s.field        = obj.field;
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
             s.mesh         = obj.mesh;
             s.type         = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);

@@ -24,6 +24,7 @@ classdef OrientationVectors < handle
         end
 
         function dCoord = computeDeformedCoordinates(obj)
+       %     obj.value = obj.theta;
             obj.createOrientationVector();
             obj.computeIsOrientationCoherent();
             obj.computeInterpolator();
