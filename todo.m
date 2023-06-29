@@ -1,20 +1,26 @@
 %% To-do
-% WEBSITE
-    % Website: think of something to easily add new simulations
-    % Readme: take out everything, replace with website, including some
-    %         examples, include link to website
-
-% EXTRUDING AND EXPORTING
-    % (x) Cleanup files after extruding / exporting to STL / etc.
-    % (CANT!) Provide extruded mesh should use meshes, not unfitted meshes
-    % (x) Extrude Mesh should have height as a parameter
-    % (1/2) Check path of Swan + GiD automatically
 
 % PRINTING
     % (x) Print mesh using 1/2 args
     % (x) Print P1, P2, ... using 1/2 args
     % (x) Print ElasticProblem ... using 1/2 args
 
+
+% EXTRUDING AND EXPORTING
+    % (x) Cleanup files after extruding / exporting to STL / etc.
+    % (x) Extrude Mesh should have height as a parameter
+    % (1/2) Check path of Swan + GiD automatically
+    %   - Create a file with user variables -> SwanGiDinterface reads from
+    %     there
+    %   - Setup or sth like that
+    % (CANT!) Provide extruded mesh should use meshes, not unfitted meshes
+
+
+% WEBSITE
+    % Website: think of something to easily add new simulations
+    % Readme: take out everything, replace with website, including some
+    %         examples, include link to website
+    
 % TUTORIALS
     % - 0. Create mesh (Ton)
     % - 1. Fem Thermal (Ton) (include plots & prints)
