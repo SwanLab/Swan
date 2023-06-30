@@ -1,6 +1,6 @@
 classdef LagrangeSimplicial2D < handle
    
-    properties (Access = private)
+    properties (Access = public)
         xSym
         ySym
         shapeFunctionsSym
@@ -25,19 +25,24 @@ classdef LagrangeSimplicial2D < handle
         
         function plotShapeFunctions(obj)
             set(groot,'defaulttextinterpreter','latex');
+            set(groot,'defaultLegendInterpreter','latex');
+            set(groot,'defaultAxesTickLabelInterpreter','latex');
             ndof = obj.ndofs;
             
             m = obj.createPlotMesh();
             for s=1:ndof
                 figure();
+                hold on
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));
-                shading FLAT
+%                 shading FLAT
                 xlim([0 1]); ylim([0 1]);
-                xlabel('x'); ylabel('y'); zlabel('z');
-                title("Shape function (s = "+string(s-1)+")");
+                xlabel('$x_1$'); ylabel('$x_2$'); zlabel('$\theta_i$');
+                title("Shape function (i = "+string(s)+")");
                 grid on
+                shading interp
             end
+            
         end
     
         function z = evaluate(obj,dofs,X,Y)
@@ -86,8 +91,8 @@ classdef LagrangeSimplicial2D < handle
             ndof = obj.ndofs;
             nod = zeros(ndof,2);
             
-            for j = 1:k+1
-                for i = 1:k+1
+            for i = 1:k+1
+                for j = 1:k+1
                     if (i+j)<=(k+2)
                         s = obj.computeMonomialIndeces(i,j);
                         nod(s,1)=(i-1)/k;

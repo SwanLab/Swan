@@ -24,7 +24,7 @@ classdef LagrangeTensorProduct2D < handle
             s.coord = obj.vertices;
             s.connec = [1 2 3;2 3 4];
             m = Mesh(s);
-            for i=1:3
+            for i=1:5
                 m = m.remesh(2);
             end
 
@@ -33,9 +33,10 @@ classdef LagrangeTensorProduct2D < handle
                 m.plot();
                 trisurf(m.connec,m.coord(:,1),m.coord(:,2),obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2)));
                 xlim([0 1]); ylim([0 1]); zlim([-0.5 1]);
-                xlabel('x'); ylabel('y'); zlabel('z');
-                title("s:"+string(s-1))
+                xlabel('$x_1$'); ylabel('$x_2$'); zlabel('$\theta_i$');
+                title("Shape function (i="+string(s)+")");
                 grid on
+                shading interp
             end
             
         end
@@ -81,13 +82,13 @@ classdef LagrangeTensorProduct2D < handle
         end
                 
         function computeShapeFunctions(obj)
-            syms x y
+            syms x_1 x_2
             basisMonomialFormSym = obj.computeBasisInMonomialForm();
             basisMonomialForm = matlabFunction(basisMonomialFormSym);
             shapeFuncs = cell(obj.ndofs,1);
             for s = 1:obj.ndofs
                 a = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
-                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*a,'Vars',[x y]);
+                shapeFuncs{s} = matlabFunction(basisMonomialFormSym*a,'Vars',[x_1 x_2]);
             end
             
             obj.shapeFunctions = shapeFuncs;
@@ -95,11 +96,11 @@ classdef LagrangeTensorProduct2D < handle
         
         function basisMonomialFormSym = computeBasisInMonomialForm(obj)
             k = obj.polynomialOrder;
-            syms x y
+            syms x_1 x_2
             for i = 1:(k+1)
                 for j = 1:(k+1)
                     s = obj.computeMonomialIndeces(i,j);
-                    basisMonomialFormSym(s) = x^(i-1)*y^(j-1);
+                    basisMonomialFormSym(s) = x_1^(i-1)*x_2^(j-1);
                 end
             end
         end

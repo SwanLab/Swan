@@ -19,7 +19,8 @@ classdef FEM < handle
                 case 'ELASTIC'
                     switch s.scale
                         case 'MACRO'
-                            obj = ElasticProblem(s);
+%                             obj = ElasticProblem(s);
+                            obj = ElasticProblem_Pau(s);
                         case 'MICRO'
                             obj = ElasticProblemMicro(s);
                     end

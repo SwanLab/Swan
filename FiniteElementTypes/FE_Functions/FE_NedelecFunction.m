@@ -41,10 +41,23 @@ classdef FE_NedelecFunction < FeFunction
         end
 
         function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
             obj.interpolation.computeShapeDeriv(xV);
             N = obj.interpolation.shape;
+        end
+        
+        function curlN = computeCurlShapeFunctions(obj,quad)
+            dNdx = obj.computeCartesianDerivatives(quad);
+            nDofEl = size(dNdx,2);
+            nElem = size(dNdx,4);
+            nGaus = size(dNdx,5);
+            curlN = zeros(nDofEl,nElem,nGaus);
+            
+            for igaus = 1:nGaus
+                DNydx = dNdx(1,:,2,:,igaus);
+                DNxdy = dNdx(2,:,1,:,igaus);
+                curlN(:,:,igaus)=DNydx-DNxdy; %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            end
         end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
@@ -70,20 +83,31 @@ classdef FE_NedelecFunction < FeFunction
                     dNdx = dN;
                     
                 otherwise
+                    xV = quad.posgp;
+                    obj.interpolation.computeShapeDeriv(xV);
+                    deriv = obj.interpolation.deriv;
+                    
                     nElem = size(obj.mesh.connec,1);
-                    nNode = obj.interpolation.nnode;
-                    nDime = obj.interpolation.ndime;
+                    nNode = size(deriv,2);
+                    nDime = size(deriv,1);
                     nGaus = quad.ngaus;
-                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-                    dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+                    
+                    R = [0,1;-1,0];
+                    JGlob = obj.mesh.computeJacobian(quad);
+                    JGlob = pagemtimes(pagemtimes(R,JGlob),R');
+                    Jdet = obj.mesh.computeJacobianDet(quad);
+                    invJGlob = inv(JGlob);
+                    
+                    dShapeDx  = zeros(nDime,nNode,nDime,nElem,nGaus);
+                    dNi = zeros(nDime,nNode,nDime,nElem);
                     for igaus = 1:nGaus
-                        dShapes = obj.interpolation.deriv(:,:,igaus);
-                        for jDime = 1:nDime
-                            invJ_JI   = invJ(:,jDime,:,igaus);
-                            dShape_KJ = dShapes(jDime,:);
-                            dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                            dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                        end
+                        dShapes = squeeze(deriv(:,:,igaus,:));
+                        dNi = pagemtimes(pagetranspose(dShapes),JGlob);
+                        
+                        dNi(:,:,1,:) = pagemtimes(dNi(:,:,1,:),1./Jdet(:,igaus));
+                        dNi(:,:,2,:) = pagemtimes(dNi(:,:,2,:),1./Jdet(:,igaus));
+                        
+                        dShapeDx(:,:,:,:,igaus) = dShapeDx(:,:,:,igaus) + pagetranspose(pagemtimes(dNi,invJGlob));
                     end
                     dNdx = dShapeDx;
             end
@@ -208,14 +232,15 @@ classdef FE_NedelecFunction < FeFunction
 
                             [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
 %                             a = quiver(x,y,z1,z2,0);
-                            a = quiver(x,y,z1,z2);
+                            a = quiver(x,y,z1,z2,0);
                             a.Color = [0 0 0];
                         end
                         axis equal                        
                         grid on
                         view(0,90)
                         obj.mesh.plot();
-                        title(['dim = ', num2str(idim)]);
+                        xlabel('x');ylabel('y');
+%                         title(['dim = ', num2str(idim)]);
                     end
                   
                 case 'LINE'

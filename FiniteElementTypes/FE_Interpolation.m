@@ -6,7 +6,7 @@ classdef FE_Interpolation < handle
         finiteElement
     end
     
-    properties (Access = private)
+    properties (Access = public)
         order
         
         ndime
@@ -47,8 +47,6 @@ classdef FE_Interpolation < handle
             obj.type  = cParams.mesh.type;
             obj.order = cParams.order;
             obj.finiteElement = cParams.finiteElement;
-%             obj.finiteElement = RaviartThomasElement.create(2); %!!!!!!!!!!!!!!!!!!!!!
-%             obj.finiteElement = NedelecElement.create(2);
         end
         
         function computeParams(obj)
@@ -62,14 +60,15 @@ classdef FE_Interpolation < handle
         
         function computeShapes(obj,posgp)
             ngaus = size(posgp,2);
-            ndim = size(posgp,1);
+%             ndim = 2;
+            ndim = 1;
             x = posgp(1,:,:);
             y = posgp(2,:,:);
             fEl = obj.finiteElement;
             obj.shape = zeros(length(fEl.shapeFunctions),ngaus,ndim);
 
             for s = 1:length(fEl.shapeFunctions)
-                obj.shape(s,:,:) = fEl.shapeFunctions{s}(x',y'); %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                obj.shape(s,:,:) = fEl.shapeFunctions{s}(x',y');
             end
         end
         

@@ -30,17 +30,18 @@ classdef RaviartThomasElement2D < handle
         
         function plotShapeFunctions(obj)
             set(groot,'defaulttextinterpreter','latex');
-            figure();
+%             figure();
             m = obj.createPlotMeshR();
             mm = obj.createPlotMesh();
             for s = 1:3
-                subplot(1,3,s)
+%                 subplot(1,3,s)
+                figure();
                 mm.plot();
                 x = obj.shapeFunctions{s}(m.coord(:,1),m.coord(:,2));
                 quiver(m.coord(:,1),m.coord(:,2),x(:,1),x(:,2),'k');
-                title("Shape function (s = "+string(s-1)+")");
-                xlabel('x'); ylabel('y');
-                xlim([-0.5 1.5]); ylim([-0.5 1.5]);
+                title("Shape function (i = "+string(s)+")");
+                xlabel('$x_1$'); ylabel('$x_2$');
+                xlim([-0.2 1.2]); ylim([-0.2 1.2]);
                 grid on
             end
         end

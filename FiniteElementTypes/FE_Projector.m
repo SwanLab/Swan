@@ -36,19 +36,56 @@ classdef FE_Projector < Projector
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
             s.fun = obj.FE_function;            
-            s.quadratureOrder = 'CUBIC';
-            s.type  = 'MassMatrixVect'; % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            s.quadratureOrder = 'ORDER10';
+            s.type  = 'MassMatrix'; % For Lagrange
+            s.type  = 'MassMatrixVect'; % For Raviart-Thomas or Nedelec
+%             s.type  = 'CurlNCurlN';
+%             s.type  = 'ElasticStiffnessMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
         
         function RHS = computeRHS(obj,fun)
             switch obj.elementType
+                case "Lagrange Simplicial"
+                    RHS = obj.computeRHS_LS(fun);
                 case "Raviart-Thomas"
                     RHS = obj.computeRHS_RT(fun);
                 case "Nedelec"
                     RHS = obj.computeRHS_N(fun);
             end
+        end
+        
+        function RHS = computeRHS_LS(obj,fun)
+            quad = obj.createRHSQuadrature();
+            xV = quad.posgp;
+            dV = obj.mesh.computeDvolume(quad);
+
+            obj.FE_function.interpolation.computeShapeDeriv(xV);
+            shapes = permute(obj.FE_function.interpolation.shape,[1 3 2]);
+            
+            dofsGlob = obj.FE_function.computeDofConnectivity()';
+            nDofs = max(max(dofsGlob));
+            
+            nGaus = quad.ngaus;
+            nFlds = fun.ndimf;
+            nDofel = size(shapes,1);
+            fGaus = fun.evaluate(xV);
+            
+            f     = zeros(nDofs,nFlds);
+            for iField = 1:nFlds
+                for igaus = 1:nGaus
+                    dVg(:,1) = dV(igaus, :);
+                    fG = squeeze(fGaus(iField,igaus,:));
+                    for iDof = 1:nDofel
+                        dofs = dofsGlob(:,iDof);
+                        Ni = shapes(iDof,1,igaus);
+                        int = Ni*fG.*dVg;
+                        f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
+                    end
+                end
+            end
+            RHS = f;
         end
         
         function RHS = computeRHS_RT(obj,fun)
@@ -66,7 +103,6 @@ classdef FE_Projector < Projector
             nFlds = fun.ndimf;
             nDofel = size(shapes,1);
             
-            % I think the problem is here
             fGa = fun.evaluate(xV);
             ndim = size(fGa,2)/nGaus;
             fGaus = zeros(ndim,nGaus,obj.mesh.nelem);
@@ -87,7 +123,7 @@ classdef FE_Projector < Projector
             for iField = 1:nFlds
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
-                    fG = squeeze(fGaus(:,igaus,:)); % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    fG = squeeze(fGaus(:,igaus,:));
                     for iDof = 1:nDofel
                         Jd = Jdet(:,igaus);
                         dofs = dofsGlob(:,iDof);
@@ -156,9 +192,8 @@ classdef FE_Projector < Projector
             RHS = f;
         end
 
-        
         function q = createRHSQuadrature(obj)
-            ord = 'CUBIC';
+            ord = 'ORDER10';
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(ord);
         end

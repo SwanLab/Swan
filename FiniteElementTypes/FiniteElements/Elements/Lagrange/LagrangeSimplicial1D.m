@@ -26,14 +26,15 @@ classdef LagrangeSimplicial1D < handle
             set(groot,'defaultAxesTickLabelInterpreter','latex');
             
             k = obj.polynomialOrder;
-%             obj.fig = figure();
+            obj.fig = figure();
             hold on
             for i = 1:k+1
-%                 subplot(1,k+1,i)
-                figure();
+                subplot(1,k+1,i)
+%                 figure();
                 fplot(obj.shapeFunctions{i},[0 1]);
-                xlabel('x'); ylabel('y');
-                title("$i="+string(i-1)+"$");
+                xlabel('$x_1$'); ylabel('$\theta_i$');
+                
+                title("$i="+string(i)+"$");
                 grid on
             end
             hold off
@@ -46,7 +47,7 @@ classdef LagrangeSimplicial1D < handle
        
         function init(obj,polynomialOrder)
             obj.polynomialOrder = polynomialOrder;
-            obj.simplicial = Simpplicial1D();
+            obj.simplicial = Simplicial1D();
             obj.computeVertices();
             obj.computeNdof();
             obj.computeNodes();
@@ -59,6 +60,7 @@ classdef LagrangeSimplicial1D < handle
         end
         
         function computeNdof(obj)
+            k = obj.polynomialOrder;
             obj.ndofs = nchoosek(1+k,k);
         end
         

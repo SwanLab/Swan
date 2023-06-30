@@ -5,7 +5,7 @@
 % Instructions: run the following code, selecting previously the 'Swan'
 % main folder as your current matlab path
 
-file = 'test2d_triangle';
+file = 'test2d_triangle_3';
 a.fileName = file;
 s = FemDataContainer(a);
 fem = FEM.create(s);

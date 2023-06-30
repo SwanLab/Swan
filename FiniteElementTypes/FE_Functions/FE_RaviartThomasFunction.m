@@ -208,14 +208,15 @@ classdef FE_RaviartThomasFunction < FeFunction
 
                             [z1,z2] = obj.interpolation.finiteElement.evaluate(localDofs,x,y);
 %                             a = quiver(x,y,z1,z2,0);
-                            a = quiver(x,y,z1,z2);
+                            a = quiver(x,y,z1,z2,0);
                             a.Color = [0 0 0];
                         end
                         axis equal                        
                         grid on
                         view(0,90)
                         obj.mesh.plot();
-                        title(['dim = ', num2str(idim)]);
+                        xlabel('x');ylabel('y');
+%                         title(['dim = ', num2str(idim)]);
                     end
                   
                 case 'LINE'

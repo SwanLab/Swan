@@ -16,6 +16,8 @@ classdef LHSintegratorFactory < handle
                    elseif (cParams.fun.interpolation.finiteElement.type == "N")
                        obj = LHSintegrator_Mass_N(cParams);
                    end
+               case 'CurlNCurlN'
+                   obj = LHSintegrator_CurlNCurlN_N(cParams);
                case 'BoundaryMassMatrix'
                    % Integrates the mass matrix over the boundary elements
                    % of the mesh

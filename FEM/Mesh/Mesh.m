@@ -144,6 +144,18 @@ classdef Mesh < handle
             g = obj.geometry;
             invJac = g.computeInverseJacobian(quad,int);
         end
+        
+        function detJ = computeJacobianDet(obj,quad)
+            g = obj.geometry;
+            g.computeGeometry(quad,obj.interpolation);
+            detJ = g.detJ;
+        end
+        
+        function J = computeJacobian(obj,quad)
+            g = obj.geometry;
+            g.computeGeometry(quad,obj.interpolation);
+            J = g.jacobian;
+        end
 
         function n = getNormals(obj)
             quad = Quadrature.set(obj.type);
