@@ -36,25 +36,13 @@ uMesh.compute(levelSet);
 % ONLY using MATLAB (GiD improves conditioning)
 IM = uMesh.createInnerMesh();
 
-%% 
-% IM.improveConditioning(); % only for 2d, using 3d
-
-
 %% Create Inner Mesh And Improve Conditioning
 % ONLY using GiD (MATLAB does not improve conditioning)
-sIMg.swanPath     = '/home/ton/Github/Swan/';
-sIMg.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
-IMcond = uMesh.createInnerMeshGoodConditioning(sIMg);
+IMcond = uMesh.createInnerMeshGoodConditioning();
 
-%% Extrude Mesh (improves conditioning)
-sEM.swanPath     = '/home/ton/Github/Swan/';
-sEM.gidPath      = '/home/ton/GiDx64/gid-16.1.2d/';
-sEM.height = 0.16;
-% EM = uMesh.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
-EM = IMcond.provideExtrudedMesh(sEM); % mesh.provideExtudedMesh
+%% Extrude Mesh
+height = 0.16;
+EM = IMcond.provideExtrudedMesh(height);
 
 %% Export STL
-sSTL.filename     = 'notForLong';  % Why?
-sSTL.meshFileName = 'notForLong2'; % Why?
-
-EM.exportSTL(sSTL);
+EM.exportSTL();

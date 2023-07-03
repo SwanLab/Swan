@@ -3,11 +3,11 @@
 % EXTRUDING AND EXPORTING
     % (x) Cleanup files after extruding / exporting to STL / etc.
     % (x) Extrude Mesh should have height as a parameter
-    % (1/2) Check path of Swan + GiD automatically
+    % (x) Check path of Swan + GiD automatically
     %   - Create a file with user variables -> SwanGiDinterface reads from
     %     there
     %   - Setup or sth like that
-    % (CANT!) Provide extruded mesh should use meshes, not unfitted meshes
+    % (x) Provide extruded mesh should use meshes, not unfitted meshes
 
 
 % WEBSITE

@@ -118,17 +118,11 @@ classdef UnfittedMesh < handle
             m = imc.export();
         end
 
-        function m = createInnerMeshGoodConditioning(obj,s)
+        function m = createInnerMeshGoodConditioning(obj)
             s.type         = 'GiD';
             s.unfittedMesh = obj;
             imc = FullInnerMeshCreator.create(s);
             m = imc.export();
-        end
-
-        function m = provideExtrudedMesh(obj, s)
-            s.unfittedMesh = obj;
-            me = MeshExtruder(s);
-            m = me.extrude();
         end
 
     end

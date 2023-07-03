@@ -12,9 +12,10 @@ classdef SwanGiDInterface < handle
     
     methods (Access = public)
 
-        function obj = SwanGiDInterface(cParams)
+        function obj = SwanGiDInterface()
+            run('UserVariables.m')
             obj.swanPath = pwd;
-            obj.gidPath  = '/home/ton/GiDx64/gid-16.1.2d/';
+            obj.gidPath  = gid_path;
             obj.tclPath  = [obj.swanPath, '/PostProcess/STL/'];
         end
 
@@ -26,13 +27,11 @@ classdef SwanGiDInterface < handle
             obj.cleanupGenerateMesh();
         end
 
-        function extrudeMesh(obj, mesh)
+        function extrudeMesh(obj, mesh, height)
             obj.writeExportMshTclFile(mesh);
             obj.runExportMshTcl();
-%             obj.writeSurfaceTclFile(resultsFile);
-            obj.writeExtrudeTclFile();
+            obj.writeExtrudeTclFile(height);
             obj.writeGenerateMeshTclFile();
-%             obj.runSurfaceTcl();
             obj.runExtrudeTcl();
             obj.runGenerateMeshTcl();
             obj.cleanupExtrudeMesh();
@@ -44,18 +43,6 @@ classdef SwanGiDInterface < handle
             obj.writeExportSTLTclFile();
             obj.runExportSTLTcl();
             obj.cleanupExportSTL();
-        end
-
-        function extrudeAndExport(obj)
-            resultsFile = '/home/ton/Github/Swan/hellouNou.flavia.res';
-            obj.writeSurfaceTclFile(resultsFile);
-            obj.writeExtrudeTclFile();
-            obj.writeGenerateMeshTclFile();
-            obj.writeExportSTLTclFile();
-            obj.runSurfaceTcl();
-            obj.runExtrudeTcl();
-            obj.runGenerateMeshTcl();
-            obj.runExportSTLTcl();
         end
 
     end
@@ -104,7 +91,7 @@ classdef SwanGiDInterface < handle
             system(command);
         end
 
-        function writeExtrudeTclFile(obj)
+        function writeExtrudeTclFile(obj, height)
             tclFile = [obj.tclPath,'callGiD_Extrude.tcl'];
             stlFileTocall = 'ExtrudeSurface.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
@@ -115,7 +102,7 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['source $path$tclFile \n']);
             fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
             fprintf(fid,['set output "$path/sampleMesh" \n']);
-            fprintf(fid,['set height "0.16" \n']);
+            fprintf(fid,['set height "', sprintf('%f', height),'" \n']);
             fprintf(fid,['ExtrudeSurface $input $height $output \n']);
             fclose(fid);
         end
@@ -187,6 +174,7 @@ classdef SwanGiDInterface < handle
         end
 
         function cleanupExtrudeMesh(obj)
+            obj.cleanupExportSTL();
             delete PostProcess/STL/callGiD_CreateSurface.tcl
             delete PostProcess/STL/callGiD_Extrude.tcl
             delete PostProcess/STL/callGiD_GenerateMesh.tcl
