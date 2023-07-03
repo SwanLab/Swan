@@ -1,11 +1,5 @@
 %% To-do
 
-% PRINTING
-    % (x) Print mesh using 1/2 args
-    % (x) Print P1, P2, ... using 1/2 args
-    % (x) Print ElasticProblem ... using 1/2 args
-
-
 % EXTRUDING AND EXPORTING
     % (x) Cleanup files after extruding / exporting to STL / etc.
     % (x) Extrude Mesh should have height as a parameter
