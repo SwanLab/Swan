@@ -19,8 +19,35 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             t{1} = 'Compliance non scaled';
         end
 
+        function fP = createPrintVariables(obj)
+            fP{1}.type  = 'Elasticity';
+            fP{2}.type  = 'Elasticity';
+            fP{1}.name  = 'Primal';
+            fP{2}.name  = 'Dual';
+        end
+
         function v = getVariablesToPlot(obj)
             v{1} = obj.value*obj.value0;
+        end
+
+         function [fun, funNames] = getFunsToPlot(obj)
+            mesh = obj.designVariable.mesh;
+            phy = obj.physicalProblem;
+            strain = phy.strainFun{1}; % !!!
+            stress = phy.stressFun{1}; % !!!
+            displ  = phy.uFun{1}; % !!!
+            compl  = obj.value/obj.value0;
+
+            quad = Quadrature.set(mesh.type);
+            quad.computeQuadrature('LINEAR');
+
+            aa.mesh       = mesh;
+            aa.quadrature = quad;
+            aa.fValues    = permute(compl, [3 2 1]);
+            complFun = FGaussDiscontinuousFunction(aa);
+
+            fun      = {complFun, strain, stress, displ};
+            funNames = {'NeumannDisplacementNRG', 'strain', 'stress', 'u'};
         end
 
     end
@@ -78,13 +105,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             fP{4}.value = abs(obj.designVariable.alpha);
             fP{5}.value = obj.getRegularizedDesignVariable();
             fP{6}.value = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
-        end
-        
-        function fP = createPrintVariables(obj)
-            fP{1}.type  = 'Elasticity';
-            fP{2}.type  = 'Elasticity';
-            fP{1}.name  = 'Primal';
-            fP{2}.name  = 'Dual';
         end
 
     end
