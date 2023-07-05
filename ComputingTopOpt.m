@@ -1,5 +1,7 @@
 function ComputingTopOpt
 
+close all
+
 % Note: You can use FEMInputWriter to create benchmarking tests!
 % Note: Use gid to create harder tests!
 
