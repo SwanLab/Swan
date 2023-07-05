@@ -107,6 +107,8 @@ classdef Optimizer < handle
         end
 
         function obtainGIF(obj)
+            set(0,'DefaultFigureVisible','off');
+
             gifName = 'testingGIF';
             deltaTime = 0.01;
             m = obj.designVariable.mesh;
@@ -156,6 +158,8 @@ classdef Optimizer < handle
                 imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
             end
             close gcf
+
+            set(0,'DefaultFigureVisible','on');
         end
 
     end
