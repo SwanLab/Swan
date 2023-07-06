@@ -39,7 +39,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             compl  = obj.value/obj.value0;
 
             quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('CONSTANT');
 
             aa.mesh       = mesh;
             aa.quadrature = quad;
