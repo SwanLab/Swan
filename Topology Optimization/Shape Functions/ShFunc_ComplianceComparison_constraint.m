@@ -4,7 +4,7 @@ classdef ShFunc_ComplianceComparison_constraint < ShFunWithElasticPdes
         compliance
         fieldToPrint
         adjointProblem
-        comparisonComplianceFrac = 4.6
+        comparisonComplianceFrac = 1.45
     end
     
     methods (Access = public)

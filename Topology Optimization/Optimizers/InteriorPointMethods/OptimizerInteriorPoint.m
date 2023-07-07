@@ -355,18 +355,25 @@ classdef OptimizerInteriorPoint < Optimizer
                 invdMU(i,i)    = 1 / obj.diagonaldU(i,i); 
                 sigL(i,i)      = obj.lowerDiagonalZ(i,i) / (obj.diagonaldL(i,i));
                 sigU(i,i)      = obj.upperDiagonalZ(i,i) / (obj.diagonaldU(i,i));
-             end
-             obj.invDiagdL     = invdML;
-             obj.invDiagdU     = invdMU;
-             obj.lowerSigma    = sigL;
-             obj.upperSigma    = sigU;
+            end
+            obj.invDiagdL     = invdML;
+            obj.invDiagdU     = invdMU;
+            obj.lowerSigma    = sigL;
+            obj.upperSigma    = sigU;
         end
 
         function linearSystemSolver(obj)
             obj.computeLHS();
             obj.computeRHS();
-            obj.explicitSol = -obj.LHS\obj.RHS;
+            obj.solveLinearSystem()
+            %obj.explicitSol = -obj.LHS\obj.RHS;
             obj.searchZDirection();
+        end
+
+        function solveLinearSystem(obj)
+            sLS = rMINRES;
+            x = sLS.solve(-obj.LHS,obj.RHS);
+            obj.explicitSol = x;
         end
 
         function searchZDirection(obj)
@@ -426,7 +433,7 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function loadIPMVariables(obj)
             obj.baseVariables.nu         = 1e6;
-            obj.baseVariables.mu         = 1e-8;
+            obj.baseVariables.mu         = 1e-9;
             obj.baseVariables.slack_init = true;
             obj.baseVariables.tau_max    = 0.1;
             obj.baseVariables.k_mu       = 0.2;
@@ -499,7 +506,6 @@ classdef OptimizerInteriorPoint < Optimizer
                 obj.hasConverged = true;
             end
         end
-
         function computeError(obj)
             s_max    = 100; % > 1
             s_d      = max(s_max,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(obj.m+2*(obj.nX+obj.nSlack)));

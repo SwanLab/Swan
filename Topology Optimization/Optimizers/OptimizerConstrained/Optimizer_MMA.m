@@ -147,7 +147,7 @@ classdef Optimizer_MMA < Optimizer
             %% Re-scale objective function
             % The objective function f(x) should preferably be scaled such that
             % 1 < =  f0(x) < =  100 for reasonable values on the variables.
-            kfun = 1;
+            kfun = 100;
             cfun = 0;
             f = kfun*f + cfun;
             df = kfun*df;
