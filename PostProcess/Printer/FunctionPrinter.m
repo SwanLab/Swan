@@ -31,6 +31,23 @@ classdef FunctionPrinter < handle
             obj.printMesh();
             obj.printResults();
         end
+
+        function printMesh(obj)
+            d = obj.createMeshPostProcessDataBase(obj.filename);
+            p = MeshPrinter();
+            p.print(d);
+        end    
+
+        function printResults(obj,iter)
+            f = obj.filename;
+            fid = fopen([f, '.flavia.res'], 'w');
+            obj.printResHeader(fid);
+            obj.printResGaussInfo(fid);
+            for iFun = 1:numel(obj.fun)
+                obj.printResFValues(fid, iFun,iter);
+            end
+            fclose(fid);
+        end        
         
     end
     
@@ -51,11 +68,7 @@ classdef FunctionPrinter < handle
             end
         end
         
-        function printMesh(obj)
-            d = obj.createMeshPostProcessDataBase(obj.filename);
-            p = MeshPrinter();
-            p.print(d);
-        end
+
 
         function d = createMeshPostProcessDataBase(obj,fileName)
             dI.mesh        = obj.mesh;
@@ -66,16 +79,7 @@ classdef FunctionPrinter < handle
             d.ndim = size(obj.mesh.coord,2); % yolo
         end
 
-        function printResults(obj)
-            f = obj.filename;
-            fid = fopen([f, '.flavia.res'], 'w');
-            obj.printResHeader(fid);
-            obj.printResGaussInfo(fid);
-            for iFun = 1:numel(obj.fun)
-                obj.printResFValues(fid, iFun);
-            end
-            fclose(fid);
-        end
+
 
         function printResHeader(obj, fid)
             fprintf(fid, 'GiD Post Results File 1.0 \n');
@@ -115,11 +119,11 @@ classdef FunctionPrinter < handle
             end
         end
 
-        function printResFValues(obj, fid, iFun)
+        function printResFValues(obj, fid, iFun,iter)
             funTypeStr = obj.getFunctionTypeString(iFun);
             locTypeStr = obj.getFValuesLocationString(iFun);
             funNameStr = obj.funNames{iFun};
-            resHeaderStr = ['\nResult "', funNameStr,'" "FunResults" 0', funTypeStr, locTypeStr,'\n'];
+            resHeaderStr = ['\nResult "', funNameStr,'" "FunResults" ',num2str(iter), funTypeStr, locTypeStr,'\n'];
             compsStr = obj.getComponentString(iFun);
             [results,frmat] =  obj.fun{iFun}.getDataToPrint();
             fprintf(fid, resHeaderStr);

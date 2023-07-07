@@ -143,6 +143,8 @@ classdef ElasticProblem < handle
 
         function createSolver(obj)            
             s.type = 'rMINRES';
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;            
             obj.solver = Solver.create(s);
         end
 

@@ -23,7 +23,7 @@ classdef Solver < handle
                     stype = GMRES_Matlab();
                    
                 case 'rMINRES'
-                    stype = rMINRES();
+                    stype = rMINRES(cParams);
 
                 otherwise
                     error('Invalid solver type.')

@@ -1,6 +1,6 @@
 classdef rMINRES < handle
 
-    properties        
+    properties (Access = private)       
         Uprev
         n
         maxIter
@@ -14,28 +14,68 @@ classdef rMINRES < handle
         B
         T
         S
-        Phi
+        Phi       
+
+        iterG
     end
 
+    properties (Access = private) 
+        mesh
+        boundaryConditions
+    end
+
+
     methods (Access = public)
+
+        function obj = rMINRES(cParams)
+            obj.init(cParams);
+
+            obj.iterG = 0;
+        end
+
+        function plot(obj,x)
+            iter = obj.iterG;
+            x = obj.boundaryConditions.reducedToFullVector(x);
+            z.mesh    = obj.mesh;
+            z.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
+            xF = P1Function(z);   
+
+
+            s.fun      = {xF};
+            s.mesh     = obj.mesh;
+            s.filename = strcat('eo',num2str(iter));   
+            fP = FunctionPrinter(s);
+            %if iter == 1
+            %    fP.printMesh();
+            %end
+            fP.printMesh();            
+            fP.printResults(iter);
+       %     xF.plot()
+        end
+
         function x = solve(obj, A, b)
             obj.n           = size(b,1);
             obj.maxIter     = 5000;
             obj.nRecycling  = 25;
             tol             = 5e-5;
+            
 
             obj.prepareProblem(A, b);
             j   = 0;
+            
             x   = obj.x0;
             if (norm(obj.r0) > tol)
                 [U, C, res, empty]          = obj.prepareRecycling(); 
                 [G1,G2,g1,g2,d1,d2,z,beta]  = obj.prepareLoop(res, C);
                 while ((j<obj.maxIter)&&(res>tol))||j<(obj.nRecycling+1)
                     j = j+1;
+                    obj.iterG = obj.iterG + 1;
                     xOld = x;
                     [x, beta, G1, G2, d1, d2] = obj.computeNewX(j, C, beta, G1, G2, d1, d2, xOld);
                     [z, g1, g2]               = obj.computeNewZ(j, g1, g2, z);
-                    res = norm(obj.Phi(j+1));
+                    res = norm(obj.Phi(j+1));                    
+                    obj.plot(x)
+                    
                 end
                 disp(j);
                 x       = x + U*z;
@@ -51,14 +91,13 @@ classdef rMINRES < handle
         end
 
 
-        function obj = rMINRES()
-            obj.init();
-        end
     end
 
     
     methods (Access = private)
-        function init(obj)
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function prepareProblem(obj, A, b)
