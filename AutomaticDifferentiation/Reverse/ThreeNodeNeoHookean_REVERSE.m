@@ -18,14 +18,12 @@ iterations = 0;
 grad = 1 + zeros(1,numElem);
 
 alpha = 1 * 10^(-2);
-
+tic
 while abs(sum(grad(1,2:end))) > 10^(-6) && iterations < 10^3 %while grad == 0 or iterations above 50
     %while iterations < 10^4 %while grad == 0 or iterations above 50
     iterations = iterations + 1; %iterations counter
     [val, grad] = iterativeADThreeNodeNeoHookean_REVERSE(u);
-%     tic
-%     [val2, grad2] = iterativeADThreeNodeNeoHookean(u);
-%     toc
+    [val, grad] = iterativeADThreeNodeNeoHookean(u);
 
     u = u - alpha * grad;
 
@@ -43,7 +41,7 @@ while abs(sum(grad(1,2:end))) > 10^(-6) && iterations < 10^3 %while grad == 0 or
 
 
 end
-
+toc
 %% PLOT
 
 t = tiledlayout(2,2);

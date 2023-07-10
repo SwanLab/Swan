@@ -4,6 +4,7 @@ classdef ReverseVar < handle
     properties (Access = public)
         value
         children
+        children2ndOrder
         grad_value
     end
 
@@ -25,76 +26,108 @@ classdef ReverseVar < handle
             grad = obj.grad_value;
         end
 
-        function z = mtimes(obj,other)
+        function z = mtimes(a,b)
             % disp('times')
-            if isa(other,'ReverseVar')
-                z = ReverseVar(obj.value * other.value);
-                obj.children{end+1} = {other.value, z};
-                other.children{end+1} = {obj.value, z};
+            if ~isa(a,'ReverseVar') && ~isa(b,'ReverseVar')
+                z = a*b;
+            elseif ~isa(a,'ReverseVar')
+                z = ReverseVar(b.value * a);
+                b.children{end+1} = {a,z};
+            elseif ~isa(b,'ReverseVar')
+                z = ReverseVar(a.value * b);
+                a.children{end+1} = {b,z};
             else
-                z = ReverseVar(obj.value * other);
-                obj.children{end+1} = {other,z};
+                z = ReverseVar(a.value * b.value);
+                a.children{end+1} = {b.value, z, [0,1]};
+                b.children{end+1} = {a.value, z, [0,1]};
             end
         end
 
-        function z = plus(obj,other)
+        function z = plus(a,b)
             % disp('plus')
-            if isa(other,'ReverseVar')
-                z = ReverseVar(obj.value + other.value);
-                obj.children{end+1} = {1, z};
-                other.children{end+1} = {1, z};
+            if ~isa(a,'ReverseVar') && ~isa(b,'ReverseVar')
+                z = a + b;
+            elseif ~isa(a,'ReverseVar')
+                z = ReverseVar(b.value + a);
+                b.children{end+1} = {1,z};
+            elseif ~isa(b,'ReverseVar')
+                z = ReverseVar(a.value + b);
+                a.children{end+1} = {1,z};
             else
-                z = ReverseVar(obj.value + other);
-                obj.children{end+1} = {1,z};
+                z = ReverseVar(a.value + b.value);
+                a.children{end+1} = {1, z};
+                b.children{end+1} = {1, z};
             end
         end
 
-        function z = minus(obj,other)
+        function z = minus(a,b)
             % disp('minus')
-            if isa(other,'ReverseVar')
-                z = ReverseVar(obj.value - other.value);
-                obj.children{end+1} = {1, z};
-                other.children{end+1} = {-1, z};
+            if ~isa(a,'ReverseVar') && ~isa(b,'ReverseVar')
+                z = a - b;
+            elseif ~isa(a,'ReverseVar')
+                z = ReverseVar(b.value - a);
+                b.children{end+1} = {-1,z};
+            elseif ~isa(b,'ReverseVar')
+                z = ReverseVar(a.value - b);
+                a.children{end+1} = {1,z};
             else
-                z = ReverseVar(obj.value - other);
-                obj.children{end+1} = {1,z};
+                z = ReverseVar(a.value - b.value);
+                a.children{end+1} = {1, z};
+                b.children{end+1} = {-1, z};
             end
         end
 
-        function z = mpower(obj,other)
+        function z = mpower(a,b)
             % disp('power')
-            if isa(other,'ReverseVar')
-                z = ReverseVar(obj.value.^other.value);
-                obj.children{end+1} = {other.value.*obj.value.^(other.value - 1), z};
-                other.children{end+1} = {obj.value.^other.value.*log(obj.value), z};
+            if ~isa(a,'ReverseVar') && ~isa(b,'ReverseVar')
+                z = a^b;
+            elseif ~isa(a,'ReverseVar')
+                z = ReverseVar(a^b.value);
+                b.children{end+1} = {a^b.value*b.value*log(a),z};
+            elseif ~isa(b,'ReverseVar')
+                z = ReverseVar(a.value^b);
+                a.children{end+1} = {b*a.value^(b-1),z};
             else
-                z = ReverseVar(obj.value.^other);
-                obj.children{end+1} = {other.*obj.value.^(other - 1),z};
+                z = ReverseVar(a.value^b.value);
+                a.children{end+1} = {b.value*a.value^(b.value - 1), z};
+                b.children{end+1} = {a.value^b.value*log(a.value), z};
             end
         end
 
-        function z = sin(obj)
+        function z = sin(a)
             % disp('sin')
-            z = ReverseVar(sin(obj.value));
-            obj.children{end+1} = {cos(obj.value),z};
+            if isa(a,'ReverseVar')
+                z = ReverseVar(sin(a.value));
+                a.children{end+1} = {cos(a.value),z};
+            else
+                z = sin(a);
+            end
         end
 
-        function z = cos(obj)
+        function z = cos(a)
             % disp('cos')
-            z = ReverseVar(cos(obj.value));
-            obj.children{end+1} = {-sin(obj.value),z};
+            if isa(a,'ReverseVar')
+                z = ReverseVar(cos(a.value));
+                a.children{end+1} = {-sin(a.value),z};
+            else
+                z = cos(a);
+            end
         end
 
-        function z = log(obj)
-            z = ReverseVar(log(obj.value));
-            obj.children{end+1} = {1./obj.value,z};
+        function z = log(a)
+            if isa(a,'ReverseVar')
+                z = ReverseVar(log(a.value));
+                a.children{end+1} = {1./a.value,z};
+            else
+                z = log(a);
+            end
         end
 
     end
 
     methods (Access = public)
 
-        
+
 
     end
 
