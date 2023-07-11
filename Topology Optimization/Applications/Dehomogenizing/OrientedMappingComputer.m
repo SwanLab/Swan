@@ -1,7 +1,8 @@
-classdef OrientationVectors < handle
+classdef OrientedMappingComputer < handle
 
     properties (Access = private)  
-        value        
+        orientationP0
+        orientationP1        
         isCoherent        
         singularities
         interpolator    
@@ -19,13 +20,14 @@ classdef OrientationVectors < handle
     
     methods (Access = public)
         
-        function obj = OrientationVectors(cParams)
+        function obj = OrientedMappingComputer(cParams)
             obj.init(cParams)
         end
 
         function dCoord = computeDeformedCoordinates(obj)
        %     obj.value = obj.theta;
-            obj.createOrientationVector();
+         %   obj.createOrientationVector();
+            obj.projectOrientationToP1();
             obj.computeIsOrientationCoherent();
             obj.computeInterpolator();
             obj.computeSingularities();
@@ -42,36 +44,26 @@ classdef OrientationVectors < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh  = cParams.mesh;
-            obj.theta = cParams.theta;
+            obj.mesh          = cParams.mesh;
+            obj.orientationP0 = cParams.orientationP0;
         end
-        
-        function createOrientationVector(obj)
-            t       = obj.theta.fValues;
-            t       = squeeze(t);
-            a1(:,1) = cos(t);
-            a1(:,2) = sin(t);
-            a2(:,1) = -sin(t);
-            a2(:,2) = cos(t);
-            a(:,:,1) = a1;
-            a(:,:,2) = a2;
+
+        function projectOrientationToP1(obj)
             nDim = obj.mesh.ndim;
             orientation = cell(nDim,1);
             for iDim = 1:nDim
-                s.fValues = a(:,:,iDim);
-                s.mesh   = obj.mesh;
-                af = P0Function(s);
-                aF = af.project('P1');
-                orientation{iDim} = aF;
-            end 
-            obj.value = orientation;
+                a0 = obj.orientationP0;
+                a1 = a0.project('P1');
+                orientation{iDim} = a1;
+            end
+            obj.orientationP1 = orientation;
         end
-        
+              
         function computeIsOrientationCoherent(obj)
             nnode = obj.mesh.nnodeElem;
             nElem = obj.mesh.nelem;
             isCoh = false(1,nnode,nElem);
-            a1D   = obj.value{1}.project('P1D'); 
+            a1D   = obj.orientationP1{1}.project('P1D'); 
             a1    = a1D.fValues;
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
@@ -105,7 +97,7 @@ classdef OrientationVectors < handle
 
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
-            s.orientation = obj.value{1};
+            s.orientation = obj.orientationP1{1};
             sC = SingularitiesComputer(s);
             sC.compute();
           %  sC.plot();
@@ -113,7 +105,7 @@ classdef OrientationVectors < handle
         end          
 
         function computeDilation(obj)
-            s.orientationVector = obj.value;
+            s.orientationVector = obj.orientationP1;
             s.mesh              = obj.mesh;
             dC = DilationComputer(s);
             d  = dC.compute();
@@ -125,7 +117,7 @@ classdef OrientationVectors < handle
             s.mesh    = obj.mesh;
             er = P1Function(s);
             for iDim = 1:obj.mesh.ndim
-                b  = obj.value{iDim};
+                b  = obj.orientationP1{iDim};
                 dO = P1Function.times(er,b);
                 obj.dilatedOrientation{iDim} = dO;
             end

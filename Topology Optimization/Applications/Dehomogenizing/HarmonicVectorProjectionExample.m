@@ -16,12 +16,10 @@ classdef HarmonicVectorProjectionExample < handle
         mesh
         boundaryMesh
         orientationAngle
-        orientationAngleGauss
+        orientationVector
+        doubleOrientationVector        
         harmonicProjector
         unitBallProjector
-        orientationVector
-        backgroundMesh
-        superEllipse
     end
     
     methods (Access = public)
@@ -31,12 +29,9 @@ classdef HarmonicVectorProjectionExample < handle
             obj.loadDataExperiment();
             obj.createMesh();
             obj.createBoundaryMesh();
-          %  obj.trySomething();
+            obj.createOrientationVector();
+            obj.createDoubleOrientationVector();
             obj.createHarmonicProjection();
-           % obj.createUnitBallProjector();
-           % obj.storeOrientationAngle();
-          %  obj.dehomogenize(); 
-           % obj.computeSingularities();
             obj.project()
             obj.computeSingularities();
             obj.dehomogenize();                        
@@ -52,10 +47,9 @@ classdef HarmonicVectorProjectionExample < handle
        %     obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
        %     obj.iteration = 665;
 % 
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
              obj.fileName = 'ExperimentingPlotSuperEllipse';
              obj.iteration = 64;
-                        
         end
 
         function loadDataExperiment(obj)
@@ -66,98 +60,105 @@ classdef HarmonicVectorProjectionExample < handle
             obj.experimentData = w;
         end
 
-        function trySomething(obj)
-            
-            %o = obj.tryOrientationCase1(sigma0);
-
-         
-
-
-            oS2 = obj.tryOrientationCase2(sigma1);
-  
-
-
-
-            %a1d(:,1,:) = obj.experimentData.dataRes.AlphaGauss';
-            %tFd = obj.createOrientation(a1d);
-          
-
-        end
-
-        function tF = createVectorFromSigma(obj)
-            s.mesh    = obj.experimentData.mesh;
-            s.fValues = obj.experimentData.dataRes.StressPrimal;
-            sigma0 = P0Function(s);
-            sigma1 = sigma0.project('P1');
-            
-
-            s.type = '2D';
-            s.eigenValueComputer.type = 'PRECOMPUTED';
-            pcomp = PrincipalDirectionComputer.create(s);
-            s2(1,:,:) = (sigma1.fValues');
-            pcomp.compute(s2);
-
-            a = pcomp.direction;
-            a1 = a(:,1,:);
-            a2 = a(:,2,:);
-
-            s.fValues = squeeze(a1)';
-            s.mesh    = obj.mesh;
-            aF{1} = P1Function(s);
-
-            s.fValues = squeeze(a2)';
-            s.mesh    = obj.mesh;
-            aF{2} = P1Function(s);
-            tF = aF;
-        end
-
-        function o = tryOrientationCase2(obj,sigma1)
-
-            tF = obj.createVectorFromSigma(sigma1)
-         %   x1 = (a1(1,:));
-         %   x2 = (a1(2,:));
-         %   tV = atan2(x2,x1);
-         %   s.mesh = obj.mesh;
-         %   s.fValues = squeeze(tV');
-         %   tF = P1Function(s);
-         %   tF = tF.project('P0');
-            
-
-           % tF = obj.createOrientation(a1);
-            
-            s.theta = tF;%
-            s.mesh  = obj.mesh;
-            o = OrientationVectors(s);   
-          %  o.computeDeformedCoordinates 
-        end  
-
-
-        function o = tryOrientationCase1(obj,sigma0)
-            s.type = '2D';
-            s.eigenValueComputer.type = 'PRECOMPUTED';
-            pcomp = PrincipalDirectionComputer.create(s);
-            s1 = permute(sigma0.fValues,[2 1 3]);
-            pcomp.compute(s1);
-
-            a = pcomp.direction;
-            a1(:,1,:) = a(:,1,:);
-
-            
-            tF = obj.createOrientation(a1);
-            
-            s.theta = tF;
-            s.mesh  = obj.mesh;
-            o = OrientationVectors(s);   
-          %  o.computeDeformedCoordinates 
-        end
-
         function createMesh(obj)
             d = obj.experimentData;
             obj.mesh = d.mesh;          
-         % obj.mesh = obj.createSquareMesh();
-         %  obj.mesh  = obj.createRectangularWithCircularHoleMesh();
+        end    
+
+        function createBoundaryMesh(obj)
+            x = obj.mesh.coord(:,1);
+            y = obj.mesh.coord(:,2);
+            b = boundary(x,y,1);
+            obj.boundaryMesh = b;
+        end        
+
+        function createOrientationVector(obj)
+         %   a1 = obj.createOrientationVectorFromProjectedSigma();            
+            a0 = obj.createOrientationFromSigma();
+            obj.orientationVector = a0;
         end
 
+        function a = createOrientationFromSigma(obj)
+            sigma0  = obj.getSigma0FromData();
+            sigma0V = permute(sigma0.fValues,[2 1 3]);
+            [a1,a2] = obj.obtainPrincipalDirections(sigma0V);   
+            a{1}    = obj.createFunctionP0(a1);
+            a{2}    = obj.createFunctionP0(a2);
+        end              
+
+       function a  = createOrientationVectorFromProjectedSigma(obj)
+            sigma0  = obj.getSigma0FromData();            
+            sigma1 = sigma0.project('P1');
+            sigma1V(1,:,:) = sigma1.fValues';
+            [a1,a2] = obj.obtainPrincipalDirections(sigma1V);
+            a{1}    = obj.createFunctionP1(a1);
+            a{2}    = obj.createFunctionP1(a2);            
+        end        
+
+        function sigma0 = getSigma0FromData(obj)
+            s.mesh    = obj.experimentData.mesh;
+            s.fValues = obj.experimentData.dataRes.StressPrimal;
+            sigma0 = P0Function(s);
+        end
+
+        function [a1,a2] = obtainPrincipalDirections(obj,sigma)
+            s.type = '2D';
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            pcomp = PrincipalDirectionComputer.create(s);
+            pcomp.compute(sigma);
+            a = pcomp.direction;
+            a1 = a(:,1,:);
+            a2 = a(:,2,:);
+        end
+
+        function aF = createFunctionP0(obj,a)
+            s.mesh = obj.mesh;
+            s.fValues = squeeze(a)';
+            aF = P0Function(s);
+        end                     
+
+        function aF = createFunctionP1(obj,a)
+            s.fValues = squeeze(a);
+            s.mesh    = obj.mesh;
+            aF = P1Function(s);
+        end
+
+        function createDoubleOrientationVector(obj)
+            a0 = obj.orientationVector();
+            for iDim = 1:obj.mesh.ndim
+                a0X = squeeze(a0{iDim}.fValues(1,1,:));
+                a0Y = squeeze(a0{iDim}.fValues(2,1,:));
+                b0V = obj.createDobleOrientationVector(a0X,a0Y);
+                s.fValues = b0V;
+                s.mesh    = obj.mesh;
+                b0{iDim} = P0Function(s);
+            end
+            obj.doubleOrientationVector = b0;            
+        end
+
+
+        function createHarmonicProjection(obj)
+            s.mesh         = obj.mesh;
+            s.boundaryMesh = obj.boundaryMesh;            
+            h = LinearizedHarmonicProjector(s);
+            obj.harmonicProjector = h;
+        end     
+
+        function plotOrientationP0(obj,a)
+            m      = obj.mesh;
+            coord0 = m.computeBaricenter';
+            x = coord0(:,1);
+            y = coord0(:,2);
+            tx = squeeze(a.fValues(1,1,:));
+            ty = squeeze(a.fValues(2,1,:));     
+            figure(5)
+            q = quiver(x,y,tx,ty);
+            q.ShowArrowHead = 'off';
+        end
+        
+
+
+ 
       function aBar = createOrientationByHand(obj)
            % alpha = obj.createLinealWithNoiseAngle();
             alpha = obj.createRadialWithNoiseAngle();
@@ -165,121 +166,6 @@ classdef HarmonicVectorProjectionExample < handle
             aBar(:,1) = cos(alpha);
             aBar(:,2) = sin(alpha); 
       end
-
-        function tF = createOrientation(obj,a)
-            x1 = (a(1,:,:));
-            x2 = (a(2,:,:));
-            tV = atan2(x2,x1);
-            s.mesh = obj.mesh;
-            s.fValues = squeeze(tV);
-            tF = P0Function(s);
-        end      
-      
-
-        function [a1,b1] = createOrientationVector(obj)
-         %   aBar = obj.createOrientationByHand();
-            a0 = obj.createOrientationFromData();
-
-            s.theta = obj.createOrientation(a0.fValues);
-            s.mesh  = obj.mesh;
-            o = OrientationVectors(s);            
-
-            a0X = squeeze(a0.fValues(1,1,:));
-            a0Y = squeeze(a0.fValues(2,1,:));
-            b0V = obj.createDobleOrientationVector(a0X,a0Y);
-            s.fValues = b0V;
-            s.mesh = obj.mesh;
-            b0 = P0Function(s);
-            b1a = b0.project('P1');
-
-            a1   = a0.project('P1');  
-            a1X = a1.fValues(:,1);
-            a1Y = a1.fValues(:,2);
-            b1V = obj.createDobleOrientationVector(a1X,a1Y);
-            s.fValues = b1V;
-            s.mesh = obj.mesh;
-            b1b = P1Function(s);            
-
-            
-            b1 = b1b;
-            
-         %   b = obj.computeHalfOrientationFromOrientation(a);
-          %  aBar = obj.interpolateOrientation(aBar);
-          %  bBar = obj.interpolateOrientation(bBar);
-        end        
-
-        function m = createSquareMesh(obj)
-            h = 0.05;
-            [X,Y] = meshgrid(-1:h:1,0:h:1); 
-           s.coord(:,1) = X(:);
-           s.coord(:,2) = Y(:);
-           s.connec = delaunay(s.coord); 
-
-%             [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
-%             s.coord  = V(:,1:2);
-%               s.connec = F;
-
-            m = Mesh(s);            
-            m.plot;
-        end
-
-        function m = createRectangularWithCircularHoleMesh(obj)
-             h = 0.03;
-             model = createpde;
-             vertCoord = [-1 1; 1 1; 1 0; -1 0];
-             x = [-1,1,1,-1];
-             y = [1,1,0,0];
-             R1 = [3,4,vertCoord(:)']';
-
-             centX = 0;
-             centY = 0;
-             rad = 0.1;
-             C1 = [1,centX,centY,rad]';
-             C1 = [C1;zeros(length(R1) - length(C1),1)];
-             gm = [R1,C1];
-             sf = 'R1-C1';
-             ns = char('R1','C1');
-             ns = ns';
-             g = decsg(gm,sf,ns);
-             geometryFromEdges(model,g);
-             me = generateMesh(model,'Hmin',h,'Hmax',2*h,'GeometricOrder','linear');
-             pdegplot(model,'EdgeLabels','on')
-             axis equal
-             xlim([-1.1,1.1])
-             pdeplot(me)
-
-             
-             s.coord  = me.Nodes';
-             s.connec = me.Elements';
-             m = Mesh(s);
-             m.plot()
-        end
-
-        function createBoundaryMesh(obj)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            b = boundary(x,y,1);
-            obj.boundaryMesh = b;
-        end
-
-        % function createOrientationVector(obj)
-        %     t       = obj.theta.fValues;
-        %     a1(:,1) = cos(t);
-        %     a1(:,2) = sin(t);
-        %     a2(:,1) = -sin(t);
-        %     a2(:,2) = cos(t);
-        %     a(:,:,1) = a1;
-        %     a(:,:,2) = a2;
-        %     nDim = obj.mesh.ndim;
-        %     orientation = cell(nDim,1);
-        %     for iDim = 1:nDim
-        %         s.fValues = a(:,:,iDim);
-        %         s.mesh   = obj.mesh;
-        %         bf = P1Function(s);
-        %         orientation{iDim} = bf;
-        %     end 
-        %     obj.orientationVectorFunc = orientation;
-        % end
 
         function alpha = createLinealWithNoiseAngle(obj)
              coord0 = obj.mesh.computeBaricenter';
@@ -321,17 +207,6 @@ classdef HarmonicVectorProjectionExample < handle
             obj.orientationVector = aBar;            
         end
 
-        function plotAlpha0(obj,t)
-            m    = obj.mesh;
-            coord0 = m.computeBaricenter';
-            x = coord0(:,1);
-            y = coord0(:,2);
-            tx = t(:,1);
-            ty = t(:,2);     
-            figure(5)
-            q = quiver(x,y,tx,ty);
-            q.ShowArrowHead = 'off';
-        end
 
         function plotOrientationVector(obj,b)
             a = obj.createHalfOrientationVector(b(:,1),b(:,2));
@@ -405,7 +280,7 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function project(obj)
-            aBar = obj.createVectorFromSigma();
+            aBar = obj.createOrientationVectorFromSigma();
             a1 = aBar{1};
             a1X = a1.fValues(:,1);
             a1Y = a1.fValues(:,2);
@@ -504,15 +379,7 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
 
-        
 
-        function createHarmonicProjection(obj)
-            s.mesh = obj.mesh;
-            s.boundaryMesh = obj.boundaryMesh;
-            
-            h = LinearizedHarmonicProjector(s);
-            obj.harmonicProjector = h;
-        end
 
         function createUnitBallProjector(obj)
             u = UnitBallProjector([]);
@@ -619,36 +486,8 @@ classdef HarmonicVectorProjectionExample < handle
             s.ndim   = 2;
         end       
 
-        function createBackgroundMesh(obj)
-            FV.vertices = [obj.mesh.coord,zeros(size(obj.mesh.coord,1),1)];
-            FV.faces    = obj.mesh.connec;
-            FV2 = FV;
-            FV2 = refinepatch(FV2);
-            FV2 = refinepatch(FV2);
-            FV2 = refinepatch(FV2);
-          %  FV2 = refinepatch(FV2);
-            s.coord = FV2.vertices(:,1:2);
-            s.connec = FV2.faces;
-            m = Mesh(s);
-            obj.backgroundMesh = m;
-        end        
 
-        function createSuperEllipseParams(obj)
-            sE.m1 = obj.interpolateFunction(obj.experimentData.dataRes.DesignVar1);
-            sE.m2 = obj.interpolateFunction(obj.experimentData.dataRes.DesignVar2);
-            sE.q  = obj.interpolateFunction(obj.experimentData.dataRes.SuperEllipseExponent);
-            obj.superEllipse = sE;
-        end
-        
-        function vq = interpolateFunction(obj,v)
-            X = obj.mesh.coord(:,1);
-            Y = obj.mesh.coord(:,2);
-            F = scatteredInterpolant(X,Y,v);
-            xB = obj.backgroundMesh.coord(:,1);
-            yB = obj.backgroundMesh.coord(:,2);
-            vq = F(xB,yB);
-        end        
-
+   
     end
 
 end

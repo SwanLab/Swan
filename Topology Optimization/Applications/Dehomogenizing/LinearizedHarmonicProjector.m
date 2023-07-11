@@ -1,7 +1,6 @@
 classdef LinearizedHarmonicProjector < handle
     
     properties (Access = private)
-     %   field
         massMatrix
         stiffnessMatrix
         advectionMatrixX
