@@ -15,7 +15,7 @@ classdef ElasticProblemMicro_Fast < handle
         material
         quadrature
         displacementFun
-        solver
+        solvers
         boundaryConditions
         strain, stress
         LHS, RHS
@@ -28,7 +28,7 @@ classdef ElasticProblemMicro_Fast < handle
             obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
-            obj.createSolver();
+            obj.createSolvers();
         end
 
         function obj = solve(obj)
@@ -186,9 +186,15 @@ classdef ElasticProblemMicro_Fast < handle
             obj.boundaryConditions = bc;
         end
 
-        function createSolver(obj)
-            s.type =  'DIRECT';
-            obj.solver = Solver.create(s);
+        function createSolvers(obj)
+            s.type      =  'rMINRES';
+            nCases      = obj.material.nstre;            
+            S           = cell(nCases,1);
+
+            for i = 1:nCases     
+                S{i,1} = Solver.create(s);
+            end
+            obj.solvers = S;
         end
 
         function computeRHS(obj)
@@ -207,7 +213,7 @@ classdef ElasticProblemMicro_Fast < handle
 
         function u = computeDisplacements(obj, iVoigt)
             [Kred, Fred] = obj.applyBoundaryConditions(iVoigt);
-            uRed = obj.solver.solve(Kred,Fred);
+            uRed = obj.solvers{iVoigt,1}.solve(Kred,Fred);
             u = obj.boundaryConditions.reducedToFullVector(uRed);
 
             obj.variables.d_u(:,iVoigt) = u;
