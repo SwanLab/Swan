@@ -1,15 +1,5 @@
 %% To-do
 
-% EXTRUDING AND EXPORTING
-    % (x) Cleanup files after extruding / exporting to STL / etc.
-    % (x) Extrude Mesh should have height as a parameter
-    % (x) Check path of Swan + GiD automatically
-    %   - Create a file with user variables -> SwanGiDinterface reads from
-    %     there
-    %   - Setup or sth like that
-    % (x) Provide extruded mesh should use meshes, not unfitted meshes
-
-
 % WEBSITE
     % Website: think of something to easily add new simulations
     % Readme: take out everything, replace with website, including some
@@ -34,6 +24,9 @@
     % - Micro elasticity
     % - Optimizers
 
+% Nesterov? + Arnau
+
+
 %% Comments
 
 %% Questions
@@ -41,9 +34,9 @@
 %% Results
 
 
-%% Long-term
-% Mesh cleanup public
+%% Long-terms
 % Filters -> using only LHS/RHsinteg
+% RHS with test and trial
 
 % CharacteristicFunction should return an UnfittedMesh
 
@@ -54,7 +47,6 @@
 
 
 % - Use FeFunctions in TopOpt_Problem
-% - PDE belongs to Optimizer, not ShapeFunctional
 
 %% Backlog
 % - Move Input folder to a separate repository
@@ -63,10 +55,8 @@
 % EXTRAS
 %  - Investigate: converting data to binary format to save read'n'write
 %                 resources for paraview
-%  - Tutorial for printing
 %  - Study file ouptut size vs time (GiD/Paraview) to see which is better
 %    for printing (test + graph)
-%  - Check XY component of fgaussfunctions
 % - Recuperar gid unfitted mesh photo GiDimagecapturer
 %      density --(project)--> unfittedmesh -> innermesh/photo
 
