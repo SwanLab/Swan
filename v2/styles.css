@@ -1,3 +1,8 @@
+@import url("http://fonts.googleapis.com/css?family=Inter:400,300,200,700,800");
+body {
+    font-family: 'Inter', sans-serif !important;
+  }
+
 .b-example-divider {
     height: 3rem;
     background-color: rgba(0, 0, 0, .1);
