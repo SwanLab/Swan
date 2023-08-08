@@ -9,7 +9,7 @@ function [time,grad] = computeForwardVarEvaluation(values)
     end
     f = 0;
     for i = 2:n-1
-        f = f + x{i}^x{i+1}*cos(i-1)*log(i);
+        f = f + x{i}^x{i+1}*cos(x{i-1})*log(x{i});
     end
     AD = f.double;
     val = AD(:,1);
