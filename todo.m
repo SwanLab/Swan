@@ -1,10 +1,19 @@
 %% To-do
 
 % WEBSITE
-    % Website: think of something to easily add new simulations
-    % Readme: take out everything, replace with website, including some
-    %         examples, include link to website
-    
+    % STEP 1
+    % - Readme: tot fora, portar cap a la web + documentation
+    %           afegir nous exemples visuals per cridar atencio
+    % - Web: nous exemples, afegir manuals/tutorials tipus Firedrake
+    % - Fer tutorial TopOpt (Cantilever compliance -> gif + monitoring)
+    %   -> començar a pensar amb settings
+
+    % STEP 2
+    % FEM nou seguint model idealWorld.m
+
+    % STEP 3
+    % TopOpt nou seguint model idealWorld.m
+
 % TUTORIALS
     % - 0. Create mesh (Ton)
     % - 1. Fem Thermal (Ton) (include plots & prints)
@@ -12,9 +21,9 @@
     % - 3. Create level set functions (square with circle) (Ton)
     %      Extrude+export stl tutorial
     % - 4. Filter (Jose)
-    % - 5. TopOpt (Jose)
-    %   5.1. Macro
-    %   5.2. Micro
+    % - 5. TopOpt 
+    %   5.1. Macro (Ton)
+    %   5.2. Micro (Jose)
     % - 6. Shape optimization (Alex)
     % - 7. Dehomogenization (Alex)
 
