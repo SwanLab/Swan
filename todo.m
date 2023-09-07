@@ -26,9 +26,9 @@
     %   5.2. Micro (Jose)
     % - 6. Shape optimization (Alex)
     % - 7. Dehomogenization (Alex)
+    % - 8. Projectors (Ton)
 
 % EXTRAS
-    % - Projectors (Jose)
     % - Subdomains (Lagrange Multipliers)
     % - Micro elasticity
     % - Optimizers
