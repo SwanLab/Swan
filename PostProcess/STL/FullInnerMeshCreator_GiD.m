@@ -1,11 +1,6 @@
 classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
     properties (Access = private)
         filename
-        meshFileName
-        meshElementSize
-        swanPath
-        gidPath
-        tclPath
         resFilePath
     end
     
@@ -18,14 +13,16 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
         function m = export(obj)
             obj.exportMshThroughGiD();
             m = obj.readMsh();
+            delete InnerMeshCreator_File.flavia.msh
+            delete InnerMeshCreator_File.flavia.res
+            delete PostProcess/STL/sampleMesh.msh
         end
 
         function exportMshThroughGiD(obj)
-            obj.unfittedMesh.print(obj.filename);
-            obj.createSurfaceMeshTclFromTemplate();
-            tclFile = [obj.tclPath,'CreateSurfaceMeshFile.tcl" '];
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',tclFile];
-            system(command);
+            obj.unfittedMesh.printNew(obj.filename);
+            s2g = SwanGiDInterface();
+            resFile = obj.getResFilePath();
+            s2g.generateMesh(resFile);
         end
         
     end
@@ -33,14 +30,8 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.unfittedMesh    = cParams.unfittedMesh;
-            obj.filename        = cParams.filename;
-            obj.meshElementSize = cParams.meshElementSize;
-            obj.meshFileName    = cParams.meshFileName;
-            obj.swanPath        = cParams.swanPath;
-            obj.gidPath         = cParams.gidPath;
-            obj.tclPath         = [obj.swanPath,'PostProcess/STL/'];
-            obj.resFilePath     = obj.getResFilePath();
+            obj.unfittedMesh = cParams.unfittedMesh;
+            obj.filename = 'InnerMeshCreator_File';
         end
 
         function m = readMsh(obj)
@@ -50,25 +41,13 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
         end
 
         function f = getOutputFileName(obj)
-            f = [obj.gidPath, obj.meshFileName,'.msh'];
+            f = [pwd,'/PostProcess/STL/sampleMesh.msh'];
         end
 
         function f = getResFilePath(obj)
             name = obj.filename;
-            swan = obj.swanPath;
-            f = [swan, 'Output/', name , '/', name, '1.flavia.res'];
-        end
-
-        function createSurfaceMeshTclFromTemplate(obj)
-            templateText = fileread('CreateSurfaceMeshFile_Template.tcl');
-            targetFile = ['PostProcess/STL/', 'CreateSurfaceMeshFile.tcl'];
-            fid = fopen(targetFile, 'w');
-            fprintf(fid, ['set input_post_res "', obj.resFilePath, '"\n']);
-            fprintf(fid, ['set mesh_element_size "', obj.meshElementSize, '"\n']);
-            fprintf(fid, ['set mesh_name "', obj.meshFileName, '"\n']);
-            fprintf(fid, ['set gidpath "', obj.gidPath, '"\n']);
-            fprintf(fid, ['\n',templateText]);
-            fclose(fid);
+            swan = pwd;
+            f = [swan, '/', name, '.flavia.res'];
         end
         
     end

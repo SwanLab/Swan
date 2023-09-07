@@ -70,13 +70,15 @@ classdef ElasticProblem < handle
             quad  = obj.quadrature;
         end
        
-        function print(obj,filename)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = FunctionPrinter_Paraview(a);
+            a.type     = software;
+            pst = FunctionPrinter.create(a);
             pst.print();
         end
 
