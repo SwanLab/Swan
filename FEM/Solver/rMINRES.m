@@ -44,12 +44,12 @@ classdef rMINRES < handle
             s.fun      = {xF};
             s.mesh     = obj.mesh;
             s.filename = strcat('eo',num2str(iter));   
-            fP = FunctionPrinter(s);
+            %fP = FunctionPrinter(s);
             %if iter == 1
             %    fP.printMesh();
             %end
-            fP.printMesh();            
-            fP.printResults(iter);
+         %   fP.printMesh();            
+         %   fP.printResults(iter);
        %     xF.plot()
         end
 
@@ -74,7 +74,7 @@ classdef rMINRES < handle
                     [x, beta, G1, G2, d1, d2] = obj.computeNewX(j, C, beta, G1, G2, d1, d2, xOld);
                     [z, g1, g2]               = obj.computeNewZ(j, g1, g2, z);
                     res = norm(obj.Phi(j+1));                    
-                    obj.plot(x)
+              %      obj.plot(x)
                     
                 end
                 disp(j);

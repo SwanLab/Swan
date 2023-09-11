@@ -34,5 +34,5 @@ plotting = true;
 printing = false;
 printing_physics = false;
 monitoring = true;
-monitoring_interval = 5;
-maxiter = 300;
+monitoring_interval = 1;
+maxiter = 1000;
