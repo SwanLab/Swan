@@ -6,12 +6,15 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        solver                
     end
 
-    properties (Access = private)
+    properties (Access = private)        
+        displacement
+        stiffnessMatrix
+        RHS        
+        geometry
         LHS
-        RHS
-        solver
         scale
         pdim
         inputBC
@@ -104,7 +107,7 @@ classdef ElasticProblem < handle
             end
             obj.createQuadrature();
         end
-
+        
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
@@ -140,8 +143,10 @@ classdef ElasticProblem < handle
             obj.boundaryConditions = bc;
         end
 
-        function createSolver(obj)
-            s.type =  'DIRECT';
+        function createSolver(obj)            
+            s.type = 'rMINRES';
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;            
             obj.solver = Solver.create(s);
         end
 
@@ -176,8 +181,6 @@ classdef ElasticProblem < handle
             Fred = bc.fullToReducedVector(obj.RHS);
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
-
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);

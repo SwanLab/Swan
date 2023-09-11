@@ -3,7 +3,7 @@ classdef Solver < handle
     methods (Static)
 
         function stype = create(cParams)
-%             solver_type = 'DIRECT';
+            %             solver_type = 'DIRECT';
             switch cParams.type
                 case {'DIRECT'}
                     stype = Direct_Solver();
@@ -13,10 +13,17 @@ classdef Solver < handle
                     stype = Cholesky_Direct_Solver();
 
                 case {'ITERATIVE'}
-                    error('Not implemented yet')
+                    % error('Not implemented yet')
+                    stype = GMRES_Iterative_Solver();
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
+
+                case 'GMRES_MATLAB'
+                    stype = GMRES_Matlab();
+                   
+                case 'rMINRES'
+                    stype = rMINRES(cParams);
 
                 otherwise
                     error('Invalid solver type.')

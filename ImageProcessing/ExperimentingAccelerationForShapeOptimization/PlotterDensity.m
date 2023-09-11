@@ -40,7 +40,8 @@ classdef PlotterDensity < handle
         
         function createFigure(obj)
             fh = figure('units', 'pixels');
-            fh.set('Position',[4000 1500 3000 500])
+%             fh.set('Position',[4000 1500 3000 500])
+            fh.set('Position',[400 100 1300 700])
             obj.figureNumber = fh;
         end
     
@@ -78,7 +79,7 @@ classdef PlotterDensity < handle
         function plotDensity(obj)
             rho = obj.designVariable.value;
             s.fValues = rho;
-            s.mesh = obj.designVariable.mesh.meshes{1};
+            s.mesh = obj.designVariable.mesh;%.meshes{1};
             fun = P1Function(s);
             funp0 = fun.project('P0');
             rhoElem = squeeze(funp0.fValues);

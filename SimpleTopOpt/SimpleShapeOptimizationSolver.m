@@ -26,17 +26,34 @@ classdef SimpleShapeOptimizationSolver < handle
             xOld = xNew;
             x = xOld;
             incX = obj.computeIncX(xOld,xNew);
-            iter = 1;
-            while ~obj.hasConverged(iter,incX)
-                [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            iter = 1
+            timeData = zeros(obj.maxIter,1);
+            J = 0;
+            Jprev = 0;
+            while ~obj.hasConverged(iter,incX,J,Jprev)
+                % tic;
+                Jprev = J;
+                [J,dJ] = obj.cost.computeValueAndGradient(xNew);                
+                
                 t = obj.computeLineSearch(x,dJ);
                 x = obj.computeGradientStep(x,dJ,t);
                 x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,incX);
-                iter = iter + 1;
+                % if mod(iter,5) == 0
+                    obj.plotCostAndLineSearch(iter,J,t,incX);
+                % end
+                % timeData(iter) = toc;
+                iter = iter + 1                
             end
+         m = obj.designVariable.mesh;
+         s.mesh = m;
+         s.fValues = xNew;
+         p = P1Function(s);
+         sP.mesh = m;
+         sP.filename = 'pol';
+         p.print(sP)
+
         end
         
     end
@@ -94,16 +111,19 @@ classdef SimpleShapeOptimizationSolver < handle
            incX = incX/xNorm;
         end
        
-        function itHas = hasConverged(obj,iter,incX)
+        function itHas = hasConverged(obj,iter,incX, J, Jprev)
             if iter == 1
                 itHas = false;
             else
-                itHas = iter >= obj.maxIter || incX < obj.TOL;
+                itHas = iter >= obj.maxIter || incX < obj.TOL || (abs(J-Jprev)/Jprev < 5e-7 && J < Jprev);
             end
         end
         
         function t = computeLineSearch(obj,x,dJ)
-            tC = 100;
+            % tC = 150;
+            % tC = 150;
+            %tC = 100;
+            tC = 50;
             incT = 1;
             tA = obj.computeAdimensionalLineSearch(x,dJ);
             t = max(tA,incT*tC);

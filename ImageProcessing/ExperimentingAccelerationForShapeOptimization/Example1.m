@@ -1,4 +1,14 @@
-filename='CantileverBeam_Triangle_Linear_Fine';
+ filename='CantileverBeam_Triangle_Linear_Fine';
+%filename='Cantilever3DFine';
+%filename='Cantilever_tetrahedra';
+% filename='Cantileverbeam_Tetrahedra_Linear_Structured_Fine';
+%filename = 'Cantilever3D';
+%filename = 'Cantilever3DLarge';
+% filename = 'Cantilever3DLargeFineFine';
+% filename='CantileverFlat3D';
+% filename='CantileverFlat3DFine';
+%filename = 'LoopOfTests';
+
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
