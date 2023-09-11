@@ -1,5 +1,6 @@
 %% Swan - Wiki
 % The student's guide to clean code development
+% Taclose all
 % Task 8: UML of Topology Optimization code in Swan repository
 
 % Instructions: run the following code, selecting previously the 'Swan'
