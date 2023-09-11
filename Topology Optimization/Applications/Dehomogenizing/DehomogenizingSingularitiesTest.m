@@ -143,7 +143,12 @@ classdef DehomogenizingSingularitiesTest < handle
             s.fValues = a;
             s.mesh    = obj.mesh;
             aF = P1Function(s);            
-            obj.orientation = aF;
+            obj.orientation{1} = aF.project('P0');
+            a = [-sin(al), cos(al)];
+            s.fValues = a;
+            s.mesh    = obj.mesh;
+            aF = P1Function(s);            
+            obj.orientation{2} = aF.project('P0');
         end
 
         function plotOrientation(obj)
@@ -168,7 +173,7 @@ classdef DehomogenizingSingularitiesTest < handle
             s.nCells             = obj.nCells;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-            s.theta              = obj.alpha.project('P0');%atan2(obj.orientation(:,2),obj.orientation(:,1));
+            s.theta              = obj.orientation;%.project('P0');%atan2(obj.orientation(:,2),obj.orientation(:,1));
             d = Dehomogenizer(s);
             ls = d.compute();
             d.plot();

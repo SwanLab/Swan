@@ -44,13 +44,13 @@ classdef DehomogenizingExample < handle
         
         function init(obj)
            % filePath = 
-            % obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            % obj.fileName = 'CantileverSymmetricWithoutFixing';
-            % obj.iteration = 216;
+          %   obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
+          %   obj.fileName = 'CantileverSymmetricWithoutFixing';
+          %   obj.iteration = 216;
 
         %   obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
         %   obj.fileName = 'ExperimentingPlotSuperEllipse';
-       %    obj.iteration = 64;
+        %   obj.iteration = 64;
             
             obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
@@ -224,9 +224,21 @@ classdef DehomogenizingExample < handle
         end
         
         function dehomogenize(obj)
+            s.fValues = obj.alphaM;
+            s.mesh    = obj.mesh;
+            a0{1} = P0Function(s);
+
+
+            s.fValues(:,1) = -obj.alphaM(:,2);
+            s.fValues(:,2) = obj.alphaM(:,1);
+            s.mesh    = obj.mesh;
+            a0{2} = P0Function(s);
+
+          %  a0.plotArrowVector()
+
           %  s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = obj.nCells;
-            s.theta              = obj.theta;
+            s.theta              = a0;
             s.cellLevelSetParams = obj.cellLevelSetParams;
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);

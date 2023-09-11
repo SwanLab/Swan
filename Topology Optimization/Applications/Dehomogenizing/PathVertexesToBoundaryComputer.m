@@ -35,9 +35,9 @@ classdef PathVertexesToBoundaryComputer < handle
         end
 
         function plot(obj)
-            figure()
-            hold on
-            obj.plotMesh();
+            %figure()
+            %hold on
+            %obj.plotMesh();
             obj.plotStraightPath();
             obj.plotInitialVertex();
             obj.plotVerticesPath();
@@ -71,16 +71,22 @@ classdef PathVertexesToBoundaryComputer < handle
 
         function computeBoundaryPointCoord(obj)
             sC = obj.computeSingularElementBaricenter();
-            bM = obj.mesh.createBoundaryMesh();
-            for iB = 1:numel(bM)
-               bmI = bM{iB};
-               bC  = bmI.mesh.coord;
-              dis = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
-              % dis = (bC(:,1) - sC(1)).^2; %+ (bC(:,2) - sC(2)).^2;               
-               [dM,im] = min(dis);
-               nodes(iB) = bmI.globalConnec(im);
-               dist(iB) = dM;
-            end
+            % bM = obj.mesh.createBoundaryMesh();
+            % for iB = 1:numel(bM)
+            %    bmI = bM{iB};
+            %    bC  = bmI.mesh.coord;
+            %   dis = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
+            %   % dis = (bC(:,1) - sC(1)).^2; %+ (bC(:,2) - sC(2)).^2;               
+            %    [dM,im] = min(dis);
+            %    nodes(iB) = bmI.globalConnec(im);
+            %    dist(iB) = dM;
+            % end
+
+            nodes = boundary(obj.mesh.coord,1);
+            bC = obj.mesh.coord(nodes,:);
+            dist = (bC(:,1) - sC(1)).^2 + (bC(:,2) - sC(2)).^2;
+
+
             [~,iM] = min(dist);
             node = nodes(iM);
             cP = obj.mesh.coord(node,:);
@@ -131,7 +137,8 @@ classdef PathVertexesToBoundaryComputer < handle
             end
 
             if all(obj.isCoherent.fValues(1,:,isS))
-                iD = find(notCoh == 1);
+                %iD = find(notCoh == 1);
+                [~,iD] = min(notCoh);
             else
                [~,iD] = min(notCoh);
             end
@@ -147,7 +154,7 @@ classdef PathVertexesToBoundaryComputer < handle
 
         function computeBoundaryNodes(obj)
             coord  = obj.mesh.coord;
-            nodesB = boundary(coord);            
+            nodesB = boundary(coord,1);            
             obj.boundaryNodes = nodesB;
         end
         
@@ -223,21 +230,24 @@ classdef PathVertexesToBoundaryComputer < handle
         function plotStraightPath(obj)
             xP = [obj.singularityCoord(:,1),obj.boundaryPointCoord(:,1)];
             yP = [obj.singularityCoord(:,2),obj.boundaryPointCoord(:,2)];
-            plot(xP,yP,'+-')
+            zP = ones(size(xP));
+            plot3(xP,yP,zP,'+-')
         end
         
         function plotInitialVertex(obj)
             cV = obj.initialVertex;
             x = obj.mesh.coord(cV,1);
             y = obj.mesh.coord(cV,2);
-            plot(x,y,'r+')
+            z = ones(size(x));
+            plot3(x,y,z,'r+')
         end
         
         function plotVerticesPath(obj)
             cV = obj.pathVertexes;
             x = obj.mesh.coord(cV,1);
             y = obj.mesh.coord(cV,2);
-            plot(x,y,'g-','LineWidth',5)
+            z = ones(size(x));
+            plot3(x,y,z,'g-','LineWidth',5)
         end
         
     end

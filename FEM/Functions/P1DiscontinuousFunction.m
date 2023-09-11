@@ -151,7 +151,7 @@ classdef P1DiscontinuousFunction < FeFunction
             mD = obj.mesh.createDiscontinuousMesh();
             x = mD.coord(:,1);
             y = mD.coord(:,2);
-            figure()
+      %      figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);

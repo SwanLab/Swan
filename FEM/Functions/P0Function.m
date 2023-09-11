@@ -52,6 +52,18 @@ classdef P0Function < FeFunction
             p1DiscFun.plot();
         end
 
+        function plotArrowVector(obj)
+            %figure()
+            a = obj.fValues;
+            xy = obj.mesh.computeBaricenter();
+            x = xy(1,:)';
+            y = xy(2,:)';
+            ax = squeeze(a(1,:,:));
+            ay = squeeze(a(2,:,:));
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
+        end        
+
         function print(obj, s)
             s.mesh = obj.mesh;
             s.fun = {obj};

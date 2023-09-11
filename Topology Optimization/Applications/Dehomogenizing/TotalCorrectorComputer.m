@@ -58,7 +58,7 @@ classdef TotalCorrectorComputer < handle
         end     
 
         function computeNumberOfCorrectors(obj)
-            obj.nCorr =  obj.singularities.nSing -1;
+            obj.nCorr =  obj.singularities.nSing - 1;
         end
 
         function computeOrtoghonalCorrector(obj)

@@ -21,6 +21,14 @@ classdef SingularitiesComputer < handle
             obj.computeNumberOfSingularities();
         end
 
+        function are = areTwoSingularElementsSharingNode(obj)
+            nodesS =  obj.mesh.connec(obj.isElemSingular.fValues,:);        
+            allNodes = nodesS(:);
+            [~,indU] = unique(allNodes);
+            nonUnique = unique(allNodes(setdiff((1:length(allNodes)),indU)));
+            are = ~isempty(nonUnique);
+        end
+
         function plot(obj)
             obj.isElemSingular.plot();
         end

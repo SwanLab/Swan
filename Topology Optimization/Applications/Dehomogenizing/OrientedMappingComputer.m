@@ -52,7 +52,7 @@ classdef OrientedMappingComputer < handle
             nDim = obj.mesh.ndim;
             orientation = cell(nDim,1);
             for iDim = 1:nDim
-                a0 = obj.orientationP0;
+                a0 = obj.orientationP0{iDim};
                 a1 = a0.project('P1');
                 orientation{iDim} = a1;
             end
@@ -100,7 +100,7 @@ classdef OrientedMappingComputer < handle
             s.orientation = obj.orientationP1{1};
             sC = SingularitiesComputer(s);
             sC.compute();
-          %  sC.plot();
+            sC.plot();
             obj.singularities = sC;%sCoord;
         end          
 
