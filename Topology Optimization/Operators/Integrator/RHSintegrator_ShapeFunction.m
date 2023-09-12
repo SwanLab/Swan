@@ -10,9 +10,9 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fun)
-            rhsElem = obj.computeElementalRHS(fun);
-            rhs = obj.assembleIntegrand(fun,rhsElem);
+        function rhs = compute(obj,fun,test)
+            rhsElem = obj.computeElementalRHS(fun,test);
+            rhs = obj.assembleIntegrand(test,rhsElem);
         end
 
     end
@@ -23,12 +23,12 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             obj.mesh = cParams.mesh;
         end
 
-        function rhsC = computeElementalRHS(obj, fun)
+        function rhsC = computeElementalRHS(obj, fun,test)
             quad = obj.quadrature;
 %             fG     = obj.fun.evaluate(quad.posgp);
             fG     = squeeze(fun.evaluate(quad.posgp)); % only used in 1d funs so far
             dV     = obj.computeDvolume();
-            N = fun.computeShapeFunctions(quad);
+            N = test.computeShapeFunctions(quad);
             N = permute(N, [1 3 2]);
             nNode  = size(N,1);
             nElem  = obj.mesh.nelem;
@@ -43,9 +43,9 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             rhsC = transpose(int);
         end
 
-        function f = assembleIntegrand(obj,fun,rhsElem)
+        function f = assembleIntegrand(obj,test,rhsElem)
             integrand = rhsElem;
-            connec = fun.computeDofConnectivity()';
+            connec = test.computeDofConnectivity()';
             ndofs = max(max(connec));
             nnode  = size(connec,2);
             f = zeros(ndofs,1);

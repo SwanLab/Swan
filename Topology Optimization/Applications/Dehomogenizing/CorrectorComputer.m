@@ -58,7 +58,7 @@ classdef CorrectorComputer < handle
             s.isCoherent        = obj.isCoherent;
             p = PathVertexesToBoundaryComputer(s);
             v = p.compute(); 
-            p.plot();
+           % p.plot();
             obj.pathVertexes = v(1:end);
         end        
 

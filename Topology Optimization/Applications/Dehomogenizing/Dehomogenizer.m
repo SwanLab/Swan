@@ -52,8 +52,8 @@ classdef Dehomogenizer < handle
 
         function createEpsilons(obj)
             L = obj.mesh.computeCharacteristicLength();
-            obj.epsilons = L./obj.nCells;
-            obj.epsilons
+            e = L./obj.nCells;
+            obj.epsilons = (1 + 0.01*linspace(0,1,1))*e;
         end            
 
         function o = computeOrientedMappingComputer(obj)

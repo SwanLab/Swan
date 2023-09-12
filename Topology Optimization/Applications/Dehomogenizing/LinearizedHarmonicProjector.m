@@ -1,6 +1,7 @@
 classdef LinearizedHarmonicProjector < handle
     
     properties (Access = private)
+        internalDOFs
         massMatrix
         stiffnessMatrix
         advectionMatrixX
@@ -20,32 +21,31 @@ classdef LinearizedHarmonicProjector < handle
         
         function obj = LinearizedHarmonicProjector(cParams)
             obj.init(cParams);     
-           % obj.createField();
+            obj.createInternalDOFs();
             obj.computeMassMatrix();
             obj.computeStiffnessMatrix();
             obj.createSolver()
         end
         
         function lambda0 = computeInitalLambda(obj)
-            b    = obj.boundaryMesh;
-            f = P1Function.create(obj.mesh, 1);
-            ndofs = size(f.fValues,1);
-            nInt  = setdiff(1:ndofs,b);
-            lambda0 = 0*ones(length(nInt),1);
+            iDOFs   = obj.internalDOFs;
+            lambda0 = zeros(length(iDOFs),1);            
+        end
+
+        function eta0 = computeInitialEta(obj)
+            npnod  = obj.mesh.nnodes;
+            eta0    = zeros(npnod,1);
         end
 
         function [bNew,lambda] = solveProblem(obj,rho,bBar,b0)            
-            b = obj.projectUnitBall(b0);
-            obj.plotOrientation(b,1);
+            b = obj.projectUnitBall(squeeze(b0.fValues)');
             i = 1;
             isErrorLarge = true;
-            lambda = obj.computeInitalLambda();
-            f = P1Function.create(obj.mesh, 1);
-            npnod = size(f.fValues,1);
-            eta    = zeros(npnod,1);
-            etaOld = eta;
+            lambda    = obj.computeInitalLambda();
+            eta       = obj.computeInitialEta();
+            etaOld    = eta;
             lambdaOld = lambda;
-            rhs    = obj.computeRHS(rho,bBar);
+            rhs      = obj.computeRHS(rho,bBar);
             while isErrorLarge
              
 
@@ -110,8 +110,8 @@ classdef LinearizedHarmonicProjector < handle
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             resDT = zeros(size(x));
-            nInt = obj.computeNint();
-            resDT(nInt) = resD;
+            iDOFs = obj.internalDOFs;
+            resDT(iDOFs) = resD;
             figure(59)
             clf
             trisurf(obj.mesh.connec,x,y,resDT)
@@ -122,11 +122,11 @@ classdef LinearizedHarmonicProjector < handle
         function [iX,iY,iL,iE] = computeIndex(obj)
             f = P1Function.create(obj.mesh, 1);
             npnod = f.dim.ndofs;
-            nInt  = obj.computeNint();
+            iDOFs = obj.internalDOFs;
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
-            iL = (2*npnod + 1):(2*npnod +length(nInt));
-            iE = (2*npnod + length(nInt) + 1):(2*npnod + length(nInt) + npnod);
+            iL = (2*npnod + 1):(2*npnod +length(iDOFs));
+            iE = (2*npnod + length(iDOFs) + 1):(2*npnod + length(iDOFs) + npnod);
         end
 
         function norm = computeNorm(obj,v)
@@ -216,14 +216,11 @@ classdef LinearizedHarmonicProjector < handle
            obj.mesh             = cParams.mesh;
            obj.boundaryMesh     = cParams.boundaryMesh;
         end
-             
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            f = Field(s);
-            obj.field = f;
+
+        function createInternalDOFs(obj)
+           b     = obj.boundaryMesh;
+           iDOFs = setdiff(1:obj.mesh.nnodes,b); 
+           obj.internalDOFs = iDOFs;
         end
         
         function computeMassMatrix(obj)
@@ -252,7 +249,7 @@ classdef LinearizedHarmonicProjector < handle
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeAdvectionMatrix(obj,rho,vH)
             s.mesh         = obj.mesh;
             s.globalConnec = obj.mesh.connec;
-            s.field        = obj.field;
+%            s.field        = obj.field;
             s.type         = 'AdvectionMatrix';
             s.b            = vH;
             s.rho          = rho;
@@ -263,8 +260,8 @@ classdef LinearizedHarmonicProjector < handle
        end        
 
        function Ared = computeReducedAdvectionMatrix(obj,A)
-           nInt = obj.computeNint();
-           Ared = A(:,nInt);
+           iDOFs = obj.internalDOFs;
+           Ared = A(:,iDOFs);
        end
 
        function createSolver(obj)
@@ -302,42 +299,47 @@ classdef LinearizedHarmonicProjector < handle
        end
 
        function Z = computeZeroMatrix(obj)
-           nInt = obj.computeNint();
-           Z    = zeros(length(nInt),length(nInt));           
+           iDOFs = obj.internalDOFs;
+           Z     = zeros(length(iDOFs),length(iDOFs));           
        end
 
-       function nInt = computeNint(obj)
-            b    = obj.boundaryMesh;
-           nInt = setdiff(1:obj.field.dim.ndofs,b);                     
-       end
+        function rhsV = computeRHS(obj,rho,bBar)
+            bBarV = squeeze(bBar.fValues)';
 
-        function rhs = computeRHS(obj,rho,v)
-%             q = Quadrature.set(obj.mesh.type);
-%             q.computeQuadrature('LINEAR');
-%             s.mesh  = obj.mesh;
-%             s.globalConnec = obj.mesh.connec;
-%             s.npnod = obj.dim.ndofs;
-%             s.dim   = obj.dim;
-%             s.type = 'SIMPLE';
-      %      int = Integrator.create(s);
-      %      rhs1 = int.integrateFnodal(v(:,1),q.order);
-       %     rhs2 = int.integrateFnodal(v(:,2),q.order);
+            % RHS not working for P0
+%             s.fValues = bBarV(:,1);
+%             s.mesh     = obj.mesh;
+%             b1 = P0Function(s);
+% 
+%             s.fValues = bBarV(:,2);
+%             s.mesh     = obj.mesh;
+%             b2 = P0Function(s);
+% 
+%              s.mesh = obj.mesh;
+%              s.fValues = zeros(obj.mesh.nnodes,1);
+%              test = P1Function(s);
+%              s.mesh  = obj.mesh;
+%              s.type = 'ShapeFunction';
+%              rhs    = RHSintegrator.create(s);
+%              rhs1   = rhs.compute(b1,test);
+%              rhs2   = rhs.compute(b2,test);
 
 
+            bBar1 = bBar.project('P1');
             M = obj.massMatrix;
             w = 4*(1-rho).*rho;
-            rhs1 = M*(v(:,1).*w);
-            rhs2 = M*(v(:,2).*w);
+            rhs1 = M*(bBar1.fValues(:,1).*w);
+            rhs2 = M*(bBar1.fValues(:,2).*w);
 
 
-            nInt = obj.computeNint();
-            Z   = zeros(length(nInt),1);
-            I   = ones(size(M,1),1);
+            iDOFs = obj.internalDOFs;
+            Z     = zeros(length(iDOFs),1);
+            I     = ones(size(M,1),1);
 
 %            rhs = [rhs1;rhs2;Z;M*I];
             %M2 = diag(sum(M));
            % rhs = [rhs1;rhs2;Z;M*I];
-            rhs = [rhs1;rhs2;Z;I];
+            rhsV = [rhs1;rhs2;Z;I];
             
 
         end

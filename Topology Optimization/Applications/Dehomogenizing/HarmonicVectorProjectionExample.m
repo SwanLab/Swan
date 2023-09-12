@@ -44,13 +44,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
+  %         obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+  %          obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+  %          obj.iteration = 665;
 % 
-     %        obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-     %        obj.fileName = 'ExperimentingPlotSuperEllipse';
-     %        obj.iteration = 64;
+             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+             obj.fileName = 'ExperimentingPlotSuperEllipse';
+             obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
@@ -215,15 +215,8 @@ classdef HarmonicVectorProjectionExample < handle
             rho(:) = 0.5;
         end
 
-
-        function project(obj)
-            a = obj.orientationVector();
-            a0 = a{1};
-
-            b0 = obj.createDoubleOrientationVector(a0);
-            %a01 = obj.createHalfOrientationVector(b0);
-            
-            for i = 1:5
+        function a0 = projectViaFilterIteration(obj,b0)
+            for i = 1:5000
                 figure(1)
                 a0 = obj.createHalfOrientationVector(b0);
                 a0.plot();
@@ -248,10 +241,10 @@ classdef HarmonicVectorProjectionExample < handle
                 sC.compute();
                 sC.plot();       
 
-                if ~sC.areTwoSingularElementsSharingNode()
+                if ~sC.isSingularityInBoundary() && ~sC.isNodeInTwoSingularElements() && sC.nSing < 3
                     break
                     %%% NOT Touching!!! 
-
+                   % a = 0;
 
                     %  a{1} = a0;
                     % 
@@ -262,51 +255,38 @@ classdef HarmonicVectorProjectionExample < handle
                     % obj.dehomogenize(a);
                 end
             end
+        end
 
-          a{1} = a0;
+        function v = projectViaPicard(obj,b0)  
+            rho = obj.computeRho();            
+            h  = obj.harmonicProjector;
+            [v,lambda] = h.solveProblem(rho,b0,b0);
+        end
 
-          s.fValues(:,2) = a0.fValues(1,1,:);
-          s.fValues(:,1) = -a0.fValues(2,1,:);
-          s.mesh           = obj.mesh;
-          a{2}             = P0Function(s);
-          obj.dehomogenize(a);
+        function project(obj)
+            a = obj.orientationVector();
+            a0 = a{1};
+
+            b0 = obj.createDoubleOrientationVector(a0);
+            %a01 = obj.createHalfOrientationVector(b0);
+            
+        %    a0 = obj.projectViaFilterIteration(b0);
+            a0 = obj.projectViaPicard(b0);
+
+
+            a{1} = a0;
+
+            s.fValues(:,2) = a0.fValues(1,1,:);
+            s.fValues(:,1) = -a0.fValues(2,1,:);
+            s.mesh           = obj.mesh;
+            a{2}             = P0Function(s);
+            obj.dehomogenize(a);
 
 
             b1 = obj.doubleOrientationVector{1};
             b1.plotArrowVector();
 
-            a1 = obj.createHalfOrientationVector(b1);
-        
-            s.mesh        = obj.mesh;
-            s.orientation = a1;
-            sC = SingularitiesComputer(s);
-            sC.compute();
-            sC.plot();
 
-            a1P0 = a1.project('P0');
-            s.mesh          = obj.mesh;
-            s.orientationP0 = a1P0;
-            oC = OrientedMappingComputer(s);
-            dCoord = oC.computeDeformedCoordinates();
-
-            a1P1 = a1P0.project('P1');
-            a1P0 = a1P1.project('P0');
-
-            a1P1 = a1P0.project('P1');
-            a1P0 = a1P1.project('P0');
-
-
-            s.mesh          = obj.mesh;
-            s.orientationP0 = a1P0;
-            oC = OrientedMappingComputer(s);
-            dCoord = oC.computeDeformedCoordinates();
-
-            figure(23)
-            obj.plotOrientationVector(bBar);
-            
-
-            
-            rho = obj.computeRho();
 
             b      = bBar;
             lambda = obj.computeInitialLambda();
