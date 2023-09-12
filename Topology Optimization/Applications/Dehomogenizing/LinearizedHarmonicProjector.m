@@ -37,16 +37,17 @@ classdef LinearizedHarmonicProjector < handle
             eta0    = zeros(npnod,1);
         end
 
-        function [bNew,lambda] = solveProblem(obj,rho,bBar,b0)            
-            b = obj.projectUnitBall(squeeze(b0.fValues)');
+        function [b,lambda] = solveProblem(obj,rho,bBar,bInitial)   
+            b = bInitial;
+            b = obj.projectUnitBall(b.fValues);
             i = 1;
-            isErrorLarge = true;
+            hasNotConverged = true;
             lambda    = obj.computeInitalLambda();
             eta       = obj.computeInitialEta();
             etaOld    = eta;
             lambdaOld = lambda;
             rhs      = obj.computeRHS(rho,bBar);
-            while isErrorLarge
+            while hasNotConverged
              
 
                 obj.computeLHS(rho,b);
@@ -55,7 +56,7 @@ classdef LinearizedHarmonicProjector < handle
 
                 % gradient                            
                 [iX,iY,iL,iE] = obj.computeIndex();
-                x = [b(:,1);b(:,2);lambda;eta];
+                x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
                 res  = lhs*x - rhs;
                 resP = res([iX,iY]);
                 resD = res(iL);
@@ -72,39 +73,72 @@ classdef LinearizedHarmonicProjector < handle
 
                 
                 
-                err(i)  = norm(res);
-                errP(i) = norm(resP);                
-                errD(i) = norm(resD);
-                errE(i) = norm(resE);
-                incX(i) = norm(bNew(:)-b(:));
-                incL(i) = norm(lambda-lambdaOld);
-                incE(i) = norm(eta-etaOld);
+                err(i)  = norm(res)/norm(rhs);
+                errP(i) = norm(resP)/norm(rhs);                
+                errD(i) = norm(resD)/norm(rhs);
+                errE(i) = norm(resE)/norm(rhs);
+                incX(i) = norm(bNew(:)-b.fValues(:))/norm(bNew(:));
+                incL(i) = norm(lambda-lambdaOld)/norm(lambdaOld);
+                incE(i) = norm(eta-etaOld)/norm(etaOld);
 
                 lambdaOld = lambda;
                 etaOld = eta;
-                isErrorLarge = err(i) > 1e-2;%1e-13;
+                errT(i) = max([err(i), incX(i), incL(i),incE(i) ]);
+                hasNotConverged = errT(i) > 1e-3;%1e-13;
 
-                if mod(i,10) == 0
-                    obj.plotOrientation(b,2);                    
-                    figure(99)
-                    semilogy(1:i,([err;errP;errD;errE;incX;incL;incE]))
-                    legend('res','resP','resD','resE','incX','incL','incE')
-                    errN = obj.computeErrorNorm(b);
-                    obj.plotResiudalUnitBall(resE,errN)
-                end                
+                 if mod(i,5) == 0
+%                     obj.plotOrientation(b,2);                    
+                     figure(99)%
+                     semilogy(1:i,([err;errP;errD;errE;incX;incL;incE]))
+                     legend('res','resP','resD','resE','incX','incL','incE')
+%                     errN = obj.computeErrorNorm(b);
+%                     obj.plotResiudalUnitBall(resE,errN)
+                    figure(100)
+                    b.plotArrowVector()
+                    figure(101)
+                    obj.plotSingulairties(b)
+                    drawnow
+                 end                
                                 
                 
-                theta = 0.11;%0.5;
-             %   v = obj.projectUnitBall(v);
-                b = theta*bNew + (1-theta)*b ;    
+                theta = 0.1;%0.5;
+                bNew = obj.projectUnitBall(bNew);
+                bNew = bNew.fValues;
 
+                b = theta*bNew + (1-theta)*b.fValues ;    
+                s.fValues = b;
+                s.mesh = obj.mesh;
+                b = P1Function(s);
 
+                
                 i = i + 1;
             end
 
 
 
         end
+
+        function a1 = createHalfOrientationVectorP1(obj,b1)
+            bX = b1.fValues(:,1);
+            bY = b1.fValues(:,2);
+            beta   = atan2(bY,bX);
+            alpha  = beta/2;
+            aV(:,1) = cos(alpha);
+            aV(:,2) = sin(alpha);
+            s.fValues = aV;
+            s.mesh    = obj.mesh;
+            a1 = P1Function(s);
+        end
+
+        function plotSingulairties(obj,b)
+            a1   = obj.createHalfOrientationVectorP1(b);            
+            s.mesh        = obj.mesh;
+            s.orientation = a1;
+            sC = SingularitiesComputer(s);
+            sC.compute();
+            sC.plot();
+        end
+
 
         function plotHarmonicity(obj,resD)
             x = obj.mesh.coord(:,1);
@@ -119,9 +153,8 @@ classdef LinearizedHarmonicProjector < handle
             colorbar            
         end
 
-        function [iX,iY,iL,iE] = computeIndex(obj)
-            f = P1Function.create(obj.mesh, 1);
-            npnod = f.dim.ndofs;
+        function [iX,iY,iL,iE] = computeIndex(obj)           
+            npnod = obj.mesh.nnodes;
             iDOFs = obj.internalDOFs;
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
@@ -138,6 +171,9 @@ classdef LinearizedHarmonicProjector < handle
         function tp = projectUnitBall(obj,t)
             uP = UnitBallProjector([]);
             tp = uP.project(t);
+            s.fValues = tp;
+            s.mesh    = obj.mesh;
+            tp = P1Function(s);
         end
 
         function plotResiudalUnitBall(obj,resE,errN)
@@ -247,13 +283,17 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeAdvectionMatrix(obj,rho,vH)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-%            s.field        = obj.field;
-            s.type         = 'AdvectionMatrix';
-            s.b            = vH;
-            s.rho          = rho;
-            s.quadType     = 'CUBIC';
+            s.fValues = zeros(obj.mesh.nnodes,1);
+            s.mesh    = obj.mesh;
+            test = P1Function(s);
+            
+            s.mesh            = obj.mesh;
+            s.type            = 'AdvectionMatrix';
+            s.test            = test;
+            s.trial           = test;
+            s.b               = vH;
+            s.rho             = rho;
+            s.quadratureOrder = 'CUBIC';
             
             lhs = LHSintegrator.create(s);
             [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = lhs.compute();
@@ -286,10 +326,10 @@ classdef LinearizedHarmonicProjector < handle
 
            %Ex = diag(sum(Ex));
            %Ey = diag(sum(Ey));
-           Ex2 = diag(vH(:,1));
-           Ey2 = diag(vH(:,2));
-           l = 1;
-           l2 = 0;
+           Ex2 = diag(vH.fValues(:,1));
+           Ey2 = diag(vH.fValues(:,2));
+           l = 0;
+           l2 = 1;
            lhs  = [Mrho+l*(Kxx+Mxx)+l2*K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
                    Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+l2*K,(Dy-Cy) ,Ey;...
                   (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
@@ -304,7 +344,7 @@ classdef LinearizedHarmonicProjector < handle
        end
 
         function rhsV = computeRHS(obj,rho,bBar)
-            bBarV = squeeze(bBar.fValues)';
+         %   bBarV = squeeze(bBar.fValues)';
 
             % RHS not working for P0
 %             s.fValues = bBarV(:,1);
@@ -323,13 +363,14 @@ classdef LinearizedHarmonicProjector < handle
 %              rhs    = RHSintegrator.create(s);
 %              rhs1   = rhs.compute(b1,test);
 %              rhs2   = rhs.compute(b2,test);
+           
+            rhoV = rho.fValues;
 
-
-            bBar1 = bBar.project('P1');
+            %bBar1 = bBar.project('P1');
             M = obj.massMatrix;
-            w = 4*(1-rho).*rho;
-            rhs1 = M*(bBar1.fValues(:,1).*w);
-            rhs2 = M*(bBar1.fValues(:,2).*w);
+            w = 4*(1-rhoV).*rhoV;
+            rhs1 = M*(bBar.fValues(:,1).*w);
+            rhs2 = M*(bBar.fValues(:,2).*w);
 
 
             iDOFs = obj.internalDOFs;

@@ -1,7 +1,7 @@
 classdef OrientedMappingComputer < handle
 
     properties (Access = private)  
-        orientationP0
+     %   orientationP0
         orientationP1        
         isCoherent        
         singularities
@@ -27,7 +27,7 @@ classdef OrientedMappingComputer < handle
         function dCoord = computeDeformedCoordinates(obj)
        %     obj.value = obj.theta;
          %   obj.createOrientationVector();
-            obj.projectOrientationToP1();
+        %    obj.projectOrientationToP1();
             obj.computeIsOrientationCoherent();
             obj.computeInterpolator();
             obj.computeSingularities();
@@ -45,19 +45,20 @@ classdef OrientedMappingComputer < handle
         
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
-            obj.orientationP0 = cParams.orientationP0;
+            %obj.orientationP0 = cParams.orientationP0;
+            obj.orientationP1 = cParams.orientationP1; %%importnat since regul need P1
         end
 
-        function projectOrientationToP1(obj)
-            nDim = obj.mesh.ndim;
-            orientation = cell(nDim,1);
-            for iDim = 1:nDim
-                a0 = obj.orientationP0{iDim};
-                a1 = a0.project('P1');
-                orientation{iDim} = a1;
-            end
-            obj.orientationP1 = orientation;
-        end
+%         function projectOrientationToP1(obj)
+%             nDim = obj.mesh.ndim;
+%             orientation = cell(nDim,1);
+%             for iDim = 1:nDim
+%                 a0 = obj.orientationP0{iDim};
+%                 a1 = a0.project('P1');
+%                 orientation{iDim} = a1;
+%             end
+%             obj.orientationP1 = orientation;
+%         end
               
         function computeIsOrientationCoherent(obj)
             nnode = obj.mesh.nnodeElem;

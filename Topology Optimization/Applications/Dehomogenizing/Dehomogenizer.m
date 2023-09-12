@@ -57,7 +57,7 @@ classdef Dehomogenizer < handle
         end            
 
         function o = computeOrientedMappingComputer(obj)
-            s.orientationP0 = obj.theta;
+            s.orientationP1 = obj.theta;
             s.mesh  = obj.mesh;
             o = OrientedMappingComputer(s);
         end

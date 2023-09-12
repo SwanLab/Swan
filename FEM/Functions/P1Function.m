@@ -220,7 +220,7 @@ classdef P1Function < FeFunction
         end
 
         function plotArrowVector(obj)
-            figure()
+     %       figure()
             a = obj.fValues;
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);

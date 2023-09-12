@@ -54,12 +54,12 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function loadDataExperiment(obj)
-             s.fileName = [obj.fileName,num2str(obj.iteration)];
-             s.folderPath = fullfile(obj.filePath );
-             w = WrapperMshResFiles(s);
-             w.compute();
-          %  d = load('DataExample.mat');
-          %  w = d.w;
+          %   s.fileName = [obj.fileName,num2str(obj.iteration)];
+          %   s.folderPath = fullfile(obj.filePath );
+          %   w = WrapperMshResFiles(s);
+          %   w.compute();
+            d = load('DataExample.mat');
+            w = d.w;
             obj.experimentData = w;
         end
 
@@ -145,7 +145,7 @@ classdef HarmonicVectorProjectionExample < handle
         end        
 
         function plotOrientationVector(obj,b)
-            a = obj.createHalfOrientationVector(b(:,1),b(:,2));
+            a = obj.createHalfOrientationVectorP0(b(:,1),b(:,2));
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             tx = a(:,1);
@@ -182,64 +182,72 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
 
-        function b = createDobleOrientationVector(obj,aX,aY)
+        function b = createDobleOrientationVectorP1(obj,a)
+            aX = squeeze(a.fValues(:,1));
+            aY = squeeze(a.fValues(:,2));            
+            alpha = atan2(aY,aX);
+            beta  = 2*alpha;
+            bV(:,1) = cos(beta);
+            bV(:,2) = sin(beta);       
+            s.fValues = bV;
+            s.mesh    = obj.mesh;
+            b = P1Function(s);
+        end
+
+        function b0 = createDoubleOrientationVectorP0(obj,a0)
+            aX = squeeze(a0.fValues(1,1,:));
+            aY = squeeze(a0.fValues(2,1,:));
             alpha = atan2(aY,aX);
             beta  = 2*alpha;
             b(:,1) = cos(beta);
             b(:,2) = sin(beta);                        
-        end
-
-        function b0 = createDoubleOrientationVector(obj,a0)
-            a0X = squeeze(a0.fValues(1,1,:));
-            a0Y = squeeze(a0.fValues(2,1,:));
-            b0V = obj.createDobleOrientationVector(a0X,a0Y);
-            s.fValues = b0V;
+            s.fValues = b;
             s.mesh    = obj.mesh;
             b0 = P0Function(s);
         end
 
-        function a = createHalfOrientationVector(obj,b)
+        function a = createHalfOrientationVectorP0(obj,b)
             bX = squeeze(b.fValues(1,1,:));
             bY = squeeze(b.fValues(2,1,:));
             beta   = atan2(bY,bX);
             alpha  = beta/2;
             aV(:,1) = cos(alpha);
             aV(:,2) = sin(alpha);
-            a = obj.createFunctionP0(aV');            
+            s.fValues = aV;
+            s.mesh    = obj.mesh;
+            a = P0Function(s);
         end    
 
         function rho = computeRho(obj)            
             %rho = obj.experimentData.dataRes.DensityGauss;           
             %rho = obj.interpolateOrientationComponent(rho);
-            rho = zeros(size(obj.mesh.coord(:,1)));
-            rho(:) = 0.5;
+            rhoV = zeros(size(obj.mesh.coord(:,1)));
+            rhoV(:) = 0.5;
+            s.fValues = rhoV;
+            s.mesh    = obj.mesh;
+            rho = P1Function(s);
         end
 
-        function a0 = projectViaFilterIteration(obj,b0)
+        function b1 = projectViaFilterIteration(obj,b1)
+         a1 = obj.createHalfOrientationVectorP1(b1);
             for i = 1:5000
                 figure(1)
-                a0 = obj.createHalfOrientationVector(b0);
-                a0.plot();
+                a1.plot();
                 figure(2)
-                a0.plotArrowVector();
-                b1 = b0.project('H1P1');
+                a1.plotArrowVector();
+                b1 = b1.project('H1P1');
 
-                v = obj.projectInUnitBall(b1.fValues);
-                b1 = obj.createFunctionP1(v);
+                b1 = obj.projectInUnitBall(b1.fValues);
+                b1 = obj.createFunctionP1(b1);
 
-                b0 = b1.project('P0');
+                a1 = obj.createHalfOrientationVectorP1(b1);
+                a1 = obj.projectInUnitBall(a1.fValues);
+                a1 = obj.createFunctionP1(a1);               
 
-                v = obj.projectInUnitBall(squeeze(b0.fValues)');
-                b0 = obj.createFunctionP0(v');   
-
-
-
-                figure(3)
                 s.mesh        = obj.mesh;
-                s.orientation = a0.project('P1');
+                s.orientation = a1;
                 sC = SingularitiesComputer(s);
                 sC.compute();
-                sC.plot();       
 
                 if ~sC.isSingularityInBoundary() && ~sC.isNodeInTwoSingularElements() && sC.nSing < 3
                     break
@@ -257,29 +265,69 @@ classdef HarmonicVectorProjectionExample < handle
             end
         end
 
-        function v = projectViaPicard(obj,b0)  
+        function b1 = projectViaPicard(obj,b1)  
             rho = obj.computeRho();            
             h  = obj.harmonicProjector;
-            [v,lambda] = h.solveProblem(rho,b0,b0);
+            [b1,lambda] = h.solveProblem(rho,b1,b1);
+        end
+
+        function a1 = createHalfOrientationVectorP1(obj,b1)
+            bX = b1.fValues(:,1);
+            bY = b1.fValues(:,2);
+            beta   = atan2(bY,bX);
+            alpha  = beta/2;
+            aV(:,1) = cos(alpha);
+            aV(:,2) = sin(alpha);
+            s.fValues = aV;
+            s.mesh    = obj.mesh;
+            a1 = P1Function(s);
         end
 
         function project(obj)
             a = obj.orientationVector();
             a0 = a{1};
+            a1 = a0.project('P1');
+            a1 = obj.projectInUnitBall(a1.fValues);
+            a1 = obj.createFunctionP1(a1);            
 
-            b0 = obj.createDoubleOrientationVector(a0);
+
+            b1 = obj.createDobleOrientationVectorP1(a1);
+            b1 = obj.projectInUnitBall(b1.fValues);
+            b1 = obj.createFunctionP1(b1);            
+        
+            figure(3)
+            s.mesh        = obj.mesh;
+            s.orientation = a1;
+            sC = SingularitiesComputer(s);
+            sC.compute();
+            sC.plot();            
+
             %a01 = obj.createHalfOrientationVector(b0);
             
-        %    a0 = obj.projectViaFilterIteration(b0);
-            a0 = obj.projectViaPicard(b0);
+     %       bNew = obj.projectViaFilterIteration(b1);
+     %       a1   = obj.createHalfOrientationVectorP1(bNew);
+            
+            bNew = obj.projectViaPicard(b1);
+            a1   = obj.createHalfOrientationVectorP1(bNew);
+            
+            
+            a1 = obj.projectInUnitBall(a1.fValues);
+            a1 = obj.createFunctionP1(a1);            
+
+            figure(4)
+            s.mesh        = obj.mesh;
+            s.orientation = a1;
+            sC = SingularitiesComputer(s);
+            sC.compute();
+            sC.plot();
 
 
-            a{1} = a0;
+            a{1} = a1;
 
-            s.fValues(:,2) = a0.fValues(1,1,:);
-            s.fValues(:,1) = -a0.fValues(2,1,:);
+            s.fValues(:,2) = a1.fValues(:,1);
+            s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh           = obj.mesh;
-            a{2}             = P0Function(s);
+            a{2}             = P1Function(s);
             obj.dehomogenize(a);
 
 
@@ -423,7 +471,7 @@ classdef HarmonicVectorProjectionExample < handle
             sF.plot();
         end        
 
-       function dehomogenize(obj,a0)
+       function dehomogenize(obj,a1)
 %             obj.createBackgroundMesh();
 %          %   obj.createSuperEllipseParams();
 %             s.backgroundMesh     = obj.backgroundMesh;
@@ -458,7 +506,7 @@ classdef HarmonicVectorProjectionExample < handle
    %         s.theta              = obj.orientationAngle;
             s.nCells  = 55;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
-            s.theta              = a0;
+            s.theta              = a1;
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);
             d.compute();
