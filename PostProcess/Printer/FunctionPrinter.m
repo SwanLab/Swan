@@ -22,30 +22,19 @@ classdef FunctionPrinter < handle
             obj.init(cParams)
         end
 
-        function appendFunction(obj, fun, name)
-            obj.fun{end+1} = fun;
-            obj.funNames{end+1} = name;
-        end
+        function obj = create(cParams)
+            if ~isfield(cParams,'type')
+                run('UserVariables.m')
+                cParams.type = default_export_software;
+            end
 
-        function print(obj)
-            obj.printMesh();
-            obj.printResults();
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.fun      = cParams.fun;
-            obj.mesh     = cParams.mesh;
-            obj.filename = cParams.filename;
-            obj.initFunctionNames(cParams);
-        end
-        
-        function initFunctionNames(obj, cParams)
-            if numel(obj.fun) == 1
-                obj.funNames{1} = 'fValues';
+            if isfield(cParams, 'type')
+                switch cParams.type
+                    case {'GiD', 'Gid', 'gid', 'GID'}
+                        obj = FunctionPrinter_GiD(cParams);
+                    case {'Paraview', 'paraview', 'pvw', 'pv'}
+                        obj = FunctionPrinter_Paraview(cParams);
+                end
             else
                 obj.funNames = cParams.funNames;
             end

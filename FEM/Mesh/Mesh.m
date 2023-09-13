@@ -263,23 +263,35 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-
-%         function fP1 = mapP0ToP1Discontinous(obj,f)
-%             nnodeElem = obj.meshDisc.nnodeElem;
-%             fRepeted = zeros(size(f,1),nnodeElem);
-%             for iNode = 1:nnodeElem
-%                 fRepeted(:,iNode) = f;
-%             end
-%             fRepeted = transpose(fRepeted);
-%             fP1 = fRepeted(:);
-%         end
-
-
-        function exportSTL(obj, file)
-            obj.triangulateMesh();
-            stlwrite(obj.triMesh, [file '.stl'])
+        function exportSTL(obj)
+            s.mesh = obj;
+            me = STLExporter(s);
+            me.export();
         end
 
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
+            p1 = P1Function.create(obj,1);
+            s.filename = filename;
+            s.mesh     = obj;
+            s.fun      = {p1};
+            s.type     = software;
+            p = FunctionPrinter.create(s);
+            p.print();
+        end
+
+        function triMesh = triangulateMesh2(obj)
+            P = obj.coord;
+            T = obj.connec;
+            triMesh = triangulation(T,P);
+        end
 
     end
 
