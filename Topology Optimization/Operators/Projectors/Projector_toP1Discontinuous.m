@@ -23,7 +23,8 @@ classdef Projector_toP1Discontinuous < Projector
         function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.fun   = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -34,7 +35,11 @@ classdef Projector_toP1Discontinuous < Projector
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+
+            trial = P1DiscontinuousFunction.create(obj.mesh, 1);            
+            shapes = trial.computeShapeFunctions(quad);
+
+           % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;

@@ -1,4 +1,4 @@
-classdef RHSintegrator_Unfitted < handle
+classdef RHSintegrator_ShapeFunctionUnfitted < handle
 
     properties (Access = private)
         globalConnec
@@ -8,17 +8,17 @@ classdef RHSintegrator_Unfitted < handle
 
     methods (Access = public)
 
-        function obj = RHSintegrator_Unfitted(cParams)
+        function obj = RHSintegrator_ShapeFunctionUnfitted(cParams)
             obj.init(cParams);
         end
 
-        function int = integrateInDomain(obj,F)
-            obj.computeInteriorIntegrators();
+        function int = integrateInDomain(obj, F)
+            obj.createInteriorIntegrators();
             int = obj.integrators.integrateAndSum(F);
         end
 
         function int = integrateInBoundary(obj,F)
-            obj.computeBoundaryIntegrators();
+            obj.createBoundaryIntegrators();
             int = obj.integrators.integrateAndSum(F);
         end
 
@@ -30,15 +30,16 @@ classdef RHSintegrator_Unfitted < handle
             obj.mesh = cParams.mesh;
         end
 
-        function computeInteriorIntegrators(obj)
+        function createInteriorIntegrators(obj)
             s = obj.createInteriorParams(obj.mesh,obj.mesh.backgroundMesh.connec);
             obj.integrators = RHSintegrator.create(s);
         end
-
+        
         function s = createInteriorParams(obj,mesh,connec)
-            s.type = 'COMPOSITE';
-            s.npnod = mesh.backgroundMesh.nnodes;
+            s.type = 'Composite';
+            s.npnod = obj.mesh.backgroundMesh.nnodes;
             s.compositeParams = cell(0);
+            s.unfittedMesh = mesh;
             if ~isempty(mesh.innerMesh)
                 s.compositeParams{1} = obj.createInnerParams(mesh.innerMesh);
             end
@@ -50,10 +51,8 @@ classdef RHSintegrator_Unfitted < handle
         end
 
         function s = createInnerParams(obj,innerMesh)
-            s.mesh         = innerMesh.mesh;
-            s.type         = 'ShapeFunction';
-            s.globalConnec = innerMesh.globalConnec;
-            s.npnod        = obj.mesh.backgroundMesh.nnodes;
+            s.type = 'ShapeFunction';
+            s.mesh = innerMesh.mesh;
         end
 
         function s = createInnerCutParams(obj,gConnec,mesh)
@@ -67,24 +66,25 @@ classdef RHSintegrator_Unfitted < handle
             s.backgroundMeshType    = mesh.backgroundMesh.type;
         end
 
-        function computeBoundaryIntegrators(obj)
+        function createBoundaryIntegrators(obj)
             uMesh  = obj.mesh;
-            s.type = 'COMPOSITE';
+            s.type = 'Composite';
             s.npnod = uMesh.backgroundMesh.nnodes;
-            s.compositeParams = obj.computeBoundaryParams();
+            s.unfittedMesh = uMesh;
+            s.compositeParams = obj.createBoundaryParams();
             obj.integrators = RHSintegrator.create(s);
         end
 
-        function s = computeBoundaryParams(obj)
+        function s = createBoundaryParams(obj)
             gConnec = obj.mesh.backgroundMesh.connec;
-            s{1} = obj.computeBoundaryCutParams(gConnec);
-            [sU,nMeshes] = obj.computeUnfittedBoundaryMeshParams();
+            s{1} = obj.createBoundaryCutParams(gConnec);
+            [sU,nMeshes] = obj.createUnfittedBoundaryMeshParams();
             if nMeshes > 0
                 s(1+(1:nMeshes)) = sU;
             end
         end
 
-        function [s,nMeshes] = computeUnfittedBoundaryMeshParams(obj)
+        function [s,nMeshes] = createUnfittedBoundaryMeshParams(obj)
             uMesh   = obj.mesh.unfittedBoundaryMesh;
             uMeshes = uMesh.getActiveMesh();
             gConnec = uMesh.getGlobalConnec();
@@ -95,7 +95,7 @@ classdef RHSintegrator_Unfitted < handle
             end
         end
 
-        function s = computeBoundaryCutParams(obj,gConnec)
+        function s = createBoundaryCutParams(obj,gConnec)
             boundaryCutMesh = obj.mesh.boundaryCutMesh;
             s.type                  = 'CutMesh';
             s.mesh                  = boundaryCutMesh.mesh;

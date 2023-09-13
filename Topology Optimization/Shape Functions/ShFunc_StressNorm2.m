@@ -25,8 +25,8 @@ classdef ShFunc_StressNorm2 < ShFunWithElasticPdes
         function obj = ShFunc_StressNorm2(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
             obj.createElementsToOptimize();
@@ -84,6 +84,7 @@ classdef ShFunc_StressNorm2 < ShFunWithElasticPdes
 
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
+            obj.physicalProblem.computeStiffnessMatrix();
             obj.physicalProblem.computeVariables();                                               
         end
         
@@ -96,6 +97,7 @@ classdef ShFunc_StressNorm2 < ShFunWithElasticPdes
         function solveAdjoint(obj)
             obj.computeFadjoint();
             obj.adjointProb.setC(obj.homogenizedVariablesComputer.C);
+            obj.adjointProb.computeStiffnessMatrix();
             obj.adjointProb.computeVariablesWithBodyForces(obj.fAdjoint);            
         end
         

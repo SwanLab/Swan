@@ -86,7 +86,7 @@ classdef P1DiscontinuousFunction < FeFunction
             end
             %  gradt(1,:,:,:) = grad;
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = fVR;
+            s.fValues = permute(fVR, [1 3 2]);
             s.mesh    = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
@@ -166,10 +166,14 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
-        function print(obj, s)
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 

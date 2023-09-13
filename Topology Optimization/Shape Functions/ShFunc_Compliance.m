@@ -12,8 +12,7 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_Compliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             obj.createOrientationUpdater();
         end
         
@@ -47,9 +46,9 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         function [fun, funNames] = getFunsToPlot(obj)
             mesh = obj.designVariable.mesh;
             phy = obj.physicalProblem;
-            strain = phy.strainFun{1}; % !!!
-            stress = phy.stressFun{1}; % !!!
-            displ  = phy.uFun{1}; % !!!
+            strain = phy.strainFun; % !!!
+            stress = phy.stressFun; % !!!
+            displ  = phy.uFun; % !!!
             compl  = obj.compliance/obj.value0;
 
             quad = Quadrature.set(mesh.type);
@@ -66,15 +65,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
 
             fun      = {complFun, strain, stress, displ};
             funNames = {'compliance', 'strain', 'stress', 'u'};
-
-            cc.mesh     = mesh;
-            cc.filename = 'shfunc_compliance';
-            cc.fun      = fun;
-            cc.funNames = funNames;
-%             pvPst = ParaviewPostprocessor(cc);
-%             pvPst.print();
-%             fp = FunctionPrinter(cc);
-%             fp.print();
         end
     end
     
@@ -82,7 +72,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
-%             obj.physicalProblem.computeVariables();
             obj.physicalProblem.solve();
         end
         
@@ -92,16 +81,16 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
         
         function computeFunctionValue(obj)
             phy = obj.physicalProblem;
-            dvolum = phy.getDvolume()';
-            stress = phy.variables.stress;
-            strain = phy.variables.strain;
-            ngaus  = size(strain,1);
+            stress = phy.stressFun.fValues;
+            strain = phy.strainFun.fValues;
+            dvolum = obj.designVariable.mesh.computeDvolume(phy.strainFun.quadrature)';
+            ngaus  = size(strain,2);
             nelem  = size(strain,3);
 
             c = zeros(nelem,ngaus);
             for igaus = 1:ngaus
-                stressG = squeeze(stress(igaus,:,:));
-                strainG  = squeeze(strain(igaus,:,:));
+                stressG = squeeze(stress(:,igaus,:));
+                strainG  = squeeze(strain(:,igaus,:));
                 e = stressG.*strainG;
                 c(:,igaus) = c(:,igaus) + sum(e)';
             end
@@ -117,16 +106,16 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
 
         function computeGradientInGauss(obj)
             phy = obj.physicalProblem;
-            ep    = phy.variables.strain;
-            ngaus  = size(ep,1);
-            nstre  = size(ep,2);
+            ep    = phy.strainFun.fValues;
+            nstre  = size(ep,1);
+            ngaus  = size(ep,2);
             nelem  = size(ep,3);
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        eu_i = squeeze(ep(igaus,istre,:));
-                        ep_j = squeeze(ep(igaus,jstre,:));
+                        eu_i = squeeze(ep(istre,igaus,:));
+                        ep_j = squeeze(ep(jstre,igaus,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
                             g(:,igaus,ivar) = g(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);

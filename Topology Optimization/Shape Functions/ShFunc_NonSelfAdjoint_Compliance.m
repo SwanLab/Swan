@@ -9,8 +9,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
         end
@@ -63,6 +63,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
+%             obj.physicalProblem.computeStiffnessMatrix();
+%             obj.physicalProblem.computeVariables();
         end
 
         function computeGradientValue(obj)
@@ -90,6 +92,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function solveAdjoint(obj)
             obj.adjointProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.adjointProblem.solve();
+%             obj.adjointProblem.computeStiffnessMatrix();
+%             obj.adjointProblem.computeVariables();
         end
         
         function f = getPdesVariablesToPrint(obj)

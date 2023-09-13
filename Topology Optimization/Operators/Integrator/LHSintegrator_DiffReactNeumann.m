@@ -29,7 +29,8 @@ classdef LHSintegrator_DiffReactNeumann < handle
             s      = cParams;  % For anisotropic stiffness
             s.type = cParams.stiffType;
             s.mesh = obj.mesh;
-            s.fun  = P1Function.create(obj.mesh,1);
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
             LHS    = LHSintegrator.create(s);
             obj.K  = LHS.compute();
         end
@@ -37,7 +38,8 @@ classdef LHSintegrator_DiffReactNeumann < handle
         function computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.fun  = P1Function.create(obj.mesh, 1);
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
