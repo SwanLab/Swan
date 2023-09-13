@@ -64,10 +64,13 @@
             p1fun.plot();
         end
 
-        function print(obj, s)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
-            s.fun  = {obj};
-            p = FunctionPrinter(s);
+            s.fun = {obj};
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
