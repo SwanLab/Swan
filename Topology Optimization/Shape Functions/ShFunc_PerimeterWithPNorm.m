@@ -145,8 +145,16 @@ classdef ShFunc_PerimeterWithPNorm < ShapeFunctional
             obj.value     = 2/(obj.epsilon)*((1-rhoe).^p*designVarProj)^(1/p);
 
             obj.valueNonDimensioned = obj.value;
+
+            %
+            ss.mesh = obj.designVariable.mesh;
+            ss.fValues = ((obj.designVariable.value).*(1-obj.regularizedDensity)).^p;
+            ss.filename = 'integrand';
+            integrand = P1Function(ss);
+            integrand.print(ss);
+            %
         end
-        
+
         function computeGradient(obj)
             obj.computeDiscreteGradient();
             obj.normalizeGradient();
