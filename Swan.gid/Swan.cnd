@@ -34,6 +34,18 @@ QUESTION: Fz
 VALUE: 0
 END CONDITION
 
+CONDITION: Point_AdjointLoad
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+HELP: {Here you can define the Load that will be applied to selected points}
+QUESTION: Fx
+VALUE: 0
+QUESTION: Fy
+VALUE: 0
+QUESTION: Fz
+VALUE: 0
+END CONDITION
+
 CONDITION: Point_Constraint
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
@@ -140,6 +152,18 @@ CONDMESHTYPE: over nodes
 HELP: {Here you can define the Load in z direction that will be applied to selected lines}
 QUESTION: Fz
 VALUE: 0    
+END CONDITION
+
+CONDITION: Line_AdjointLoad                                                
+CONDTYPE: over lines                      
+CONDMESHTYPE: over nodes
+HELP: {Here you can define the Load that will be applied to selected lines}
+QUESTION: Fx
+VALUE: 0
+QUESTION: Fy 
+VALUE: 0      
+QUESTION: Fz   
+VALUE: 0      
 END CONDITION
 
 CONDITION: Line_Load_function
