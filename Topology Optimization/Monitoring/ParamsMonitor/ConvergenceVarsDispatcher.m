@@ -8,13 +8,8 @@ classdef ConvergenceVarsDispatcher < handle
                     names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials'};
                 case 'MMA'
                     names = {'kktnorm';'outit'};
-                case {'NullSpace','AlternatingPrimalDual','IPM'}
+                case {'NullSpace','AlternatingPrimalDual'}
                     names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials';'Merit function'};
-                    switch cParams.primal
-                        case 'SLERP'
-                            names{end+1} = '\theta';
-                        otherwise
-                    end
                 case 'IPOPT'
                     names = {'inf_{pr}','inf_{du}','Norm L2'};
                 case 'fmincon'

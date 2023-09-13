@@ -43,9 +43,10 @@ classdef DilationComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.fun  = obj.dilation;
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
+            s.test  = obj.dilation;
+            s.trial = obj.dilation;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -57,17 +58,14 @@ classdef DilationComputer < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
-            s.fType     = 'Gauss';
-            s.fGauss    = obj.computeFieldTimesDivField(q);
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.mesh.nnodes;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.mesh.connec;
+            gradT = obj.computeFieldTimesDivField(q);
+
+            s.mesh = obj.mesh;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsF = rhs.compute(gradT);
+            rhsV = rhsF.fValues;
             obj.RHS = [rhsV;0];
         end
         
@@ -75,8 +73,11 @@ classdef DilationComputer < handle
             a1    = obj.orientationVector{1};
             a2    = obj.orientationVector{2};
             aDa1  = a1.computeFieldTimesDivergence(q);
-            aDa2  = a2.computeFieldTimesDivergence(q);
-            gradT = -aDa1.fValues - aDa2.fValues;
+            aDa2  = a2.computeFieldTimesDivergence(q);        
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = -aDa1.fValues - aDa2.fValues;
+            gradT = FGaussDiscontinuousFunction(s);
         end
         
         function u = solveSystem(obj)
