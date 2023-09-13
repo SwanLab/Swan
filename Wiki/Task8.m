@@ -5,8 +5,6 @@
 % Instructions: run the following code, selecting previously the 'Swan'
 % main folder as your current matlab path
 
-close all
-
 s.testName = 'test_cantilever2';
 t = TopOptComputer(s);
 t.compute();

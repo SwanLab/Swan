@@ -1,5 +1,5 @@
 classdef Optimizer < handle
-    
+
     properties (Access = protected)
         designVariable
         dualVariable
@@ -14,7 +14,7 @@ classdef Optimizer < handle
         constraintCase
         postProcess
     end
-    
+
     properties (GetAccess = public, SetAccess = protected, Abstract)
         type
     end
@@ -27,19 +27,19 @@ classdef Optimizer < handle
         outFilename % !!!
         outFolder
     end
-    
-    
+
+
     methods (Access = public, Static)
-        
+
         function obj = create(cParams)
             f   = OptimizerFactory();
             obj = f.create(cParams);
         end
-        
+
     end
-    
+
     methods (Access = protected)
-        
+
         function initOptimizer(obj,cParams)
             obj.nIter             = 0;
             obj.cost              = cParams.cost;
@@ -60,9 +60,9 @@ classdef Optimizer < handle
 
         function createDualUpdater(obj,cParams)
             f               = DualUpdaterFactory();
-            obj.dualUpdater = f.create(cParams);      
+            obj.dualUpdater = f.create(cParams);
         end
-        
+
         function isAcceptable = checkConstraint(obj)
             for i = 1:length(obj.constraint.value)
                 switch obj.constraintCase{i}
@@ -84,7 +84,7 @@ classdef Optimizer < handle
                 d.fields  = obj.designVariable.getVariablesToPlot();
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
-%               obj.postProcess.print(obj.nIter,d);
+                %                 obj.postProcess.print(obj.nIter,d);
                 [desFun, desName] = obj.designVariable.getFunsToPlot();
                 fun  = desFun;
                 name = desName;
@@ -99,15 +99,15 @@ classdef Optimizer < handle
                 zz.filename = file;
                 zz.fun      = fun;
                 zz.funNames = name;
-                pp = ParaviewPostprocessor(zz);
+                pp = FunctionPrinter_Paraview(zz);
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            obj.obtainGIF();
+            %obj.obtainGIF();
         end
 
         function obtainGIF(obj)
-            set(0,'DefaultFigureVisible','off');
+            %set(0,'DefaultFigureVisible','off');
 
             gifName = 'testingGIF';
             deltaTime = 0.01;
@@ -159,7 +159,7 @@ classdef Optimizer < handle
             end
             close gcf
 
-            set(0,'DefaultFigureVisible','on');
+            %set(0,'DefaultFigureVisible','on');
         end
 
     end
