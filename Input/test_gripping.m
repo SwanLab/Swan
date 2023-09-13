@@ -1,4 +1,4 @@
-filename = 'Gripping_triangle_coarse'; % Try other meshes
+filename = 'Gripping_triangle_coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -7,11 +7,11 @@ cost = {'nonadjoint_compliance'};
 weights = [1];
 constraint = {'volumeConstraint'}; 
 incrementFactor = 1.2;
-optimizerUnconstrained = 'SLERP'; % See PrimalUpdaterFactory
-optimizer = 'NullSpace'; % See OptimizerFactory
-designVariable = 'LevelSet'; % Density/LevelSet
+optimizerUnconstrained = 'SLERP';
+optimizer = 'NullSpace';
+designVariable = 'LevelSet';
 filterType = 'P1';
-constraint_case = {'EQUALITY'}; % EQUALITY or INEQUALITY
+constraint_case = {'EQUALITY'};
 
 nsteps = 1;
 Vfrac_final = 0.5;
@@ -31,9 +31,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = true;
 printing_physics = false;
-monitoring = true;
+monitoring = false;
 monitoring_interval = 1;
-maxiter = 1000;
+maxiter = 3;
