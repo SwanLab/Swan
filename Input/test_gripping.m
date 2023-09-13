@@ -7,9 +7,9 @@ cost = {'nonadjoint_compliance'};
 weights = [1];
 constraint = {'volumeConstraint'}; 
 incrementFactor = 1.2;
-optimizerUnconstrained = 'PROJECTED GRADIENT'; % See PrimalUpdaterFactory
+optimizerUnconstrained = 'SLERP'; % See PrimalUpdaterFactory
 optimizer = 'NullSpace'; % See OptimizerFactory
-designVariable = 'Density'; % Density/LevelSet
+designVariable = 'LevelSet'; % Density/LevelSet
 filterType = 'P1';
 constraint_case = {'EQUALITY'}; % EQUALITY or INEQUALITY
 

@@ -55,30 +55,31 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
 
         function computeFunctionValue(obj)
-            u = obj.physicalProblem.variables.d_u;
-            f = obj.computeDisplacementWeight();
+            ndimf     = obj.physicalProblem.uFun.ndimf;
+            u         = obj.physicalProblem.uFun.fValues;
+            nnode     = size(u,1);
+            u         = reshape(u',[nnode*ndimf,1]);
+            f         = obj.computeDisplacementWeight();
             obj.value = f'*u;
         end
         
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
-%             obj.physicalProblem.computeStiffnessMatrix();
-%             obj.physicalProblem.computeVariables();
         end
 
         function computeGradientValue(obj)
-            eu    = obj.physicalProblem.variables.strain;
-            ep    = obj.adjointProblem.variables.strain;
+            eu    = obj.physicalProblem.strainFun.fValues;
+            ep    = obj.adjointProblem.strainFun.fValues;
             nelem = size(eu,3);
-            ngaus = size(eu,1);
-            nstre = size(eu,2);
+            ngaus = size(eu,2);
+            nstre = size(eu,1);
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        eu_i = squeeze(eu(igaus,istre,:));
-                        ep_j = squeeze(ep(igaus,jstre,:));
+                        eu_i = squeeze(eu(istre,igaus,:));
+                        ep_j = squeeze(ep(jstre,igaus,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
                             g(:,igaus,ivar) = g(:,igaus,ivar) - eu_i.*dCij.*ep_j;
@@ -92,8 +93,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function solveAdjoint(obj)
             obj.adjointProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.adjointProblem.solve();
-%             obj.adjointProblem.computeStiffnessMatrix();
-%             obj.adjointProblem.computeVariables();
         end
         
         function f = getPdesVariablesToPrint(obj)
