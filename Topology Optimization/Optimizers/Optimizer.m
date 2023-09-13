@@ -103,11 +103,11 @@ classdef Optimizer < handle
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            obj.obtainGIF();
+            %obj.obtainGIF();
         end
 
         function obtainGIF(obj)
-            set(0,'DefaultFigureVisible','off');
+            %set(0,'DefaultFigureVisible','off');
 
             gifName = 'testingGIF';
             deltaTime = 0.01;
@@ -159,7 +159,7 @@ classdef Optimizer < handle
             end
             close gcf
 
-            set(0,'DefaultFigureVisible','on');
+            %set(0,'DefaultFigureVisible','on');
         end
 
     end

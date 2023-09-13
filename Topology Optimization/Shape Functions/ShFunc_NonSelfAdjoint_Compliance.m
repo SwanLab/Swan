@@ -33,9 +33,9 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
          function [fun, funNames] = getFunsToPlot(obj)
             mesh = obj.designVariable.mesh;
             phy = obj.physicalProblem;
-            strain = phy.strainFun{end};
-            stress = phy.stressFun{end};
-            displ  = phy.uFun{end};
+            strain = phy.strainFun;
+            stress = phy.stressFun;
+            displ  = phy.uFun;
             compl  = obj.value/obj.value0;
 
             quad = Quadrature.set(mesh.type);
