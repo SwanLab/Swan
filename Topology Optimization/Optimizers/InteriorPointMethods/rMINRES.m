@@ -37,7 +37,6 @@ classdef rMINRES < handle
                     [z, g1, g2]               = obj.computeNewZ(j, g1, g2, z);
                     res = norm(obj.Phi(j+1));
                 end
-                disp(j);
                 x       = x + U*z;
                 obj.x0  = x;                
                 if empty == 1
