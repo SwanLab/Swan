@@ -280,9 +280,9 @@ classdef HarmonicVectorProjectionExample < handle
             end
         end
 
-        function b1 = projectViaPicard(obj,rho,b1)  
+        function bBar = projectViaPicard(obj,rho,bBar,bInitial)  
             h  = obj.harmonicProjector;
-            [b1,lambda] = h.solveProblem(rho,b1,b1);
+            [bBar,lambda] = h.solveProblem(rho,bBar,bInitial);
         end
 
         function a1 = createHalfOrientationVectorP1(obj,b1)
@@ -326,18 +326,19 @@ classdef HarmonicVectorProjectionExample < handle
 
             %a01 = obj.createHalfOrientationVector(b0);
            %%%Via filtering 
-         %   bNew = obj.projectViaFilterIteration(rho,b1);
-         %   a1   = obj.createHalfOrientationVectorP1(bNew);
+        %    bNew = obj.projectViaFilterIteration(rho,b1);
+       %     a1   = obj.createHalfOrientationVectorP1(bNew);
             
-        %     h    = obj.harmonicProjector;
-        %     [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
-        %     hRes.plot();
-        %     lRes.plot();
+%              h    = obj.harmonicProjector;
+%              [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
+%              hRes.plot();
+%              lRes.plot();
 
             
             
             %%%Via picard
-            bNew = obj.projectViaPicard(rho,b1);
+            %b1   = bNew;
+            bNew = obj.projectViaPicard(rho,b1,b1);
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
             h    = obj.harmonicProjector;

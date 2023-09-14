@@ -184,11 +184,15 @@ classdef LinearizedHarmonicProjector < handle
                     figure(101)
                     obj.plotSingulairties(b)
 
-                lRes = obj.evaluateLossResidual(res,bBar,b);            
-                hRes = obj.evaluateHarmonicResidual(res,b);
-                hRes.plot  
-                lRes.plot                    
+                    lRes = obj.evaluateLossResidual(res,bBar,b);
+                    hRes = obj.evaluateHarmonicResidual(res,b);
+                    hRes.plot
+                    lRes.plot
                     drawnow
+
+                     b = b.project('H1P1');
+
+                    b = obj.projectUnitBall(b.fValues);
 
 
                  end                
@@ -422,7 +426,7 @@ classdef LinearizedHarmonicProjector < handle
            Ex2 = diag(vH.fValues(:,1));
            Ey2 = diag(vH.fValues(:,2));
            l = 0;
-           l2 = (20*obj.mesh.computeMeanCellSize).^2;
+           l2 = (0*obj.mesh.computeMeanCellSize).^2;
            lhs  = [Mrho+l*(Kxx+Mxx)+l2*K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
                    Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+l2*K,(Dy-Cy) ,Ey;...
                   (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
