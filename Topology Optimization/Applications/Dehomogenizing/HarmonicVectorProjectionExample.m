@@ -44,7 +44,7 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-  %         obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+  %          obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
   %          obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
   %          obj.iteration = 665;
 % 
@@ -54,12 +54,12 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function loadDataExperiment(obj)
-          %   s.fileName = [obj.fileName,num2str(obj.iteration)];
-          %   s.folderPath = fullfile(obj.filePath );
-          %   w = WrapperMshResFiles(s);
-          %   w.compute();
-            d = load('DataExample.mat');
-            w = d.w;
+             s.fileName = [obj.fileName,num2str(obj.iteration)];
+             s.folderPath = fullfile(obj.filePath );
+             w = WrapperMshResFiles(s);
+             w.compute();
+        %    d = load('DataExample.mat');
+        %    w = d.w;
             obj.experimentData = w;
         end
 
@@ -125,9 +125,6 @@ classdef HarmonicVectorProjectionExample < handle
             s.mesh    = obj.mesh;
             aF = P1Function(s);
         end
-
-
-
 
         function createHarmonicProjection(obj)
             s.mesh         = obj.mesh;
@@ -228,13 +225,26 @@ classdef HarmonicVectorProjectionExample < handle
             rho = P1Function(s);
         end
 
-        function b1 = projectViaFilterIteration(obj,b1)
-         a1 = obj.createHalfOrientationVectorP1(b1);
+        function b1 = projectViaFilterIteration(obj,rho,b1)
+            bInitial = b1;
+
+            h    = obj.harmonicProjector;
+            [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,bInitial,b1);
+            hRes.plot();
+            colorbar
+            hMax = max(hRes.fValues(:));
+            hMin = min(hRes.fValues(:));
+
+            lRes.plot();
+            colorbar
+
+
+            a1 = obj.createHalfOrientationVectorP1(b1);
             for i = 1:5000
-                figure(1)
-                a1.plot();
-                figure(2)
-                a1.plotArrowVector();
+              %  figure(1)
+              %  a1.plot();
+              %  figure(2)
+              %  a1.plotArrowVector();
                 b1 = b1.project('H1P1');
 
                 b1 = obj.projectInUnitBall(b1.fValues);
@@ -249,8 +259,13 @@ classdef HarmonicVectorProjectionExample < handle
                 sC = SingularitiesComputer(s);
                 sC.compute();
 
-                if ~sC.isSingularityInBoundary() && ~sC.isNodeInTwoSingularElements() && sC.nSing < 3
+                
+
+                            
+
+                if ~sC.isSingularityInBoundary() && ~sC.isNodeInTwoSingularElements() && sC.nSing < 1
                     break
+                    sC.plot
                     %%% NOT Touching!!! 
                    % a = 0;
 
@@ -265,8 +280,7 @@ classdef HarmonicVectorProjectionExample < handle
             end
         end
 
-        function b1 = projectViaPicard(obj,b1)  
-            rho = obj.computeRho();            
+        function b1 = projectViaPicard(obj,rho,b1)  
             h  = obj.harmonicProjector;
             [b1,lambda] = h.solveProblem(rho,b1,b1);
         end
@@ -300,16 +314,38 @@ classdef HarmonicVectorProjectionExample < handle
             s.orientation = a1;
             sC = SingularitiesComputer(s);
             sC.compute();
-            sC.plot();            
+            sC.plot();         
+
+            rho = obj.computeRho();                        
+                  
+            h = obj.harmonicProjector;
+            [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,b1);
+            hRes.plot();
+            lRes.plot();                 
+        
 
             %a01 = obj.createHalfOrientationVector(b0);
+           %%%Via filtering 
+         %   bNew = obj.projectViaFilterIteration(rho,b1);
+         %   a1   = obj.createHalfOrientationVectorP1(bNew);
             
-     %       bNew = obj.projectViaFilterIteration(b1);
-     %       a1   = obj.createHalfOrientationVectorP1(bNew);
+        %     h    = obj.harmonicProjector;
+        %     [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
+        %     hRes.plot();
+        %     lRes.plot();
+
             
-            bNew = obj.projectViaPicard(b1);
+            
+            %%%Via picard
+            bNew = obj.projectViaPicard(rho,b1);
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
+            h    = obj.harmonicProjector;
+            hRes = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
+            hRes.plot();
+
+
+
             
             a1 = obj.projectInUnitBall(a1.fValues);
             a1 = obj.createFunctionP1(a1);            

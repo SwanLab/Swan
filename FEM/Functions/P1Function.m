@@ -210,6 +210,7 @@ classdef P1Function < FeFunction
                         shading interp
                         a.EdgeColor = [0 0 0];
                         title(['dim = ', num2str(idim)]);
+                        colorbar
                     end
                 case 'LINE'
                     x = obj.mesh.coord(:,1);

@@ -157,7 +157,7 @@ classdef P1DiscontinuousFunction < FeFunction
                 z = fD(:,idim);
                 a = trisurf(mD.connec,x,y,double(z));
                 view(0,90)
-    %             colorbar
+                colorbar
                 shading interp
                 a.EdgeColor = [0 0 0];
                 title(['dim = ', num2str(idim)]);
