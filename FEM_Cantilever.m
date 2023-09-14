@@ -4,7 +4,7 @@ clc;clear;close all
 
 addpath(genpath(fileparts(mfilename('fullpath'))))
 
-% file = 'Catilever_Mario';
+%file = 'test2d_triangle';
 %a.fileName = file;
 % s = FemDataContainer(a);
 
@@ -48,7 +48,9 @@ isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
 forceNodes = isInRight & isInMiddleEdge;
 nodes = 1:mesh.nnodes;
 bc.dirichlet = nodes(dirichletNodes);
-bc.pointload = nodes(forceNodes);
+bc.pointload(:,1) = nodes(forceNodes);
+bc.pointload(:,2) = 2;
+bc.pointload(:,3) = -1;
 end
 
 function material = createMaterial(mesh,ngaus)
