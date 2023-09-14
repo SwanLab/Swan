@@ -8,7 +8,7 @@ classdef ConvergenceVarsDispatcher < handle
                     names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials'};
                 case 'MMA'
                     names = {'kktnorm';'outit'};
-                case {'NullSpace','AlternatingPrimalDual'}
+                case {'NullSpace','AlternatingPrimalDual','IPM'}
                     names = {'\Deltacost';'Norm L2';'Line Search';'Line Search trials';'Merit function'};
                 case 'IPOPT'
                     names = {'inf_{pr}','inf_{du}','Norm L2'};

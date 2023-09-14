@@ -365,7 +365,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function linearSystemSolver(obj)
             obj.computeLHS();
             obj.computeRHS();
-            obj.solveLinearSystem()
+            obj.solveLinearSystem();
             %obj.explicitSol = -obj.LHS\obj.RHS;
             obj.searchZDirection();
         end
