@@ -91,8 +91,8 @@ classdef TopOpt_Problem < handle
                 obj.incrementalScheme.next();
                 obj.optimizer.solveProblem();
             end
-%             obj.optimizer.saveMonitoring();
-%             obj.optimizer.simulationPrinter.print();
+             obj.optimizer.saveMonitoring();
+             obj.optimizer.simulationPrinter.print();
         end
         
         function postProcess(obj)
