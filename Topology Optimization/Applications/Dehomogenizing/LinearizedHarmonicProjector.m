@@ -116,7 +116,8 @@ classdef LinearizedHarmonicProjector < handle
         function res = evaluateResidual(obj,rho,bBar,b)
             lambda = obj.computeInitalLambda();
             eta    = obj.computeInitialEta();
-            x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
+            %x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
+            x = [b.fValues(:,1);b.fValues(:,2);eta];
             rhs = obj.computeRHS(rho,bBar);
             lhs = obj.computeLHS(rho,b);  
             res  = lhs*x - rhs;            
@@ -140,10 +141,11 @@ classdef LinearizedHarmonicProjector < handle
 
                 % gradient                            
                 [iX,iY,iL,iE] = obj.computeIndex();
-                x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
+                %x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
+                x = [b.fValues(:,1);b.fValues(:,2);eta];
                 res  = lhs*x - rhs;
                 resP = res([iX,iY]);
-                resD = res(iL);
+               % resD = res(iL);
                 resE = res(iE);
            
 
@@ -159,7 +161,7 @@ classdef LinearizedHarmonicProjector < handle
                 
                 err(i)  = norm(res)/norm(rhs);
                 errP(i) = norm(resP)/norm(rhs);                
-                errD(i) = norm(resD)/norm(rhs);
+             %   errD(i) = norm(resD)/norm(rhs);
                 errE(i) = norm(resE)/norm(rhs);
                 incX(i) = norm(bNew(:)-b.fValues(:))/norm(bNew(:));
                 incL(i) = norm(lambda-lambdaOld)/norm(lambdaOld);
@@ -175,8 +177,11 @@ classdef LinearizedHarmonicProjector < handle
                  if mod(i,5) == 0
 %                     obj.plotOrientation(b,2);                    
                      figure(99)%
-                     semilogy(1:i,([err;errP;errD;errE;incX;incL;incE]))
-                     legend('res','resP','resD','resE','incX','incL','incE')
+                     %semilogy(1:i,([err;errP;errD;errE;incX;incL;incE]))                     
+                     %legend('res','resP','resD','resE','incX','incL','incE')
+
+                     semilogy(1:i,([err;errP;errE;incX;incL;incE]))
+                     legend('res','resP','resE','incX','incL','incE')
 %                     errN = obj.computeErrorNorm(b);
 %                     obj.plotResiudalUnitBall(resE,errN)
                     figure(100)
@@ -188,11 +193,24 @@ classdef LinearizedHarmonicProjector < handle
                     hRes = obj.evaluateHarmonicResidual(res,b);
                     hRes.plot
                     lRes.plot
+
+                    quad = Quadrature.set(obj.mesh.type);            
+                    quad.computeQuadrature('LINEAR');
+                    
+
+                    gB = b.computeGradient(quad);
+                    gBV = gB.fValues;
+
+           
+                    s.fValues = abs(gBV([1:4],:)');
+                    s.mesh    = obj.mesh;
+                    gb1 = P0Function(s);
+                    gb1.plot
                     drawnow
 
-                     b = b.project('H1P1');
-
-                    b = obj.projectUnitBall(b.fValues);
+          %           b = b.project('H1P1');
+%
+           %         b = obj.projectUnitBall(b.fValues);
 
 
                  end                
@@ -256,7 +274,8 @@ classdef LinearizedHarmonicProjector < handle
             iX = 1:npnod;
             iY = (npnod) + (1:npnod);
             iL = (2*npnod + 1):(2*npnod +length(iDOFs));
-            iE = (2*npnod + length(iDOFs) + 1):(2*npnod + length(iDOFs) + npnod);
+            %iE = (2*npnod + length(iDOFs) + 1):(2*npnod + length(iDOFs) + npnod);
+            iE = (2*npnod +  1):(2*npnod + npnod);
         end
 
         function norm = computeNorm(obj,v)
@@ -425,14 +444,20 @@ classdef LinearizedHarmonicProjector < handle
            %Ey = diag(sum(Ey));
            Ex2 = diag(vH.fValues(:,1));
            Ey2 = diag(vH.fValues(:,2));
-           l = 0;
-           l2 = (0*obj.mesh.computeMeanCellSize).^2;
-           lhs  = [Mrho+l*(Kxx+Mxx)+l2*K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
-                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+l2*K,(Dy-Cy) ,Ey;...
+           l = 10;
+           l2 = 0.5;%(100*obj.mesh.computeMeanCellSize).^2;
+           Mrho = (1-l2)*Mrho;
+           K    = l2*K;
+           lhs  = [Mrho+l*(Kxx+Mxx)+K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
+                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+K,(Dy-Cy) ,Ey;...
                   (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
                    Ex2',Ey2',Zbred,Zb];
            %lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
            LHS = lhs;
+
+           LHS  = [Mrho+l*(Kxx+Mxx)+K,Zb-l*(Kxy+Mxy),Ex;...
+                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+K,Ey;...                  
+                   Ex2',Ey2',Zb];
        end
 
        function Z = computeZeroMatrix(obj)
@@ -441,17 +466,15 @@ classdef LinearizedHarmonicProjector < handle
        end
 
         function rhsV = computeRHS(obj,rho,bBar)
-         %   bBarV = squeeze(bBar.fValues)';
-
-            % RHS not working for P0
-%             s.fValues = bBarV(:,1);
-%             s.mesh     = obj.mesh;
-%             b1 = P0Function(s);
+%             bBarV = squeeze(bBar.fValues);
 % 
-%             s.fValues = bBarV(:,2);
-%             s.mesh     = obj.mesh;
-%             b2 = P0Function(s);
-% 
+%     %         RHS not working for P0
+%              bB = bBar.project('P0');
+% % 
+%              s.fValues = squeeze(bB.fValues(1,:,:));
+%              s.mesh     = obj.mesh;
+%              b1 = P0Function(s);
+% % 
 %              s.mesh = obj.mesh;
 %              s.fValues = zeros(obj.mesh.nnodes,1);
 %              test = P1Function(s);
@@ -460,11 +483,13 @@ classdef LinearizedHarmonicProjector < handle
 %              rhs    = RHSintegrator.create(s);
 %              rhs1   = rhs.compute(b1,test);
 %              rhs2   = rhs.compute(b2,test);
-           
+%            
             rhoV = rho.fValues;
 
             %bBar1 = bBar.project('P1');
+            l2 = 1;
             M = obj.massMatrix;
+            M = (1-l2)*M;
             w = 4*(1-rhoV).*rhoV;
             rhs1 = M*(bBar.fValues(:,1).*w);
             rhs2 = M*(bBar.fValues(:,2).*w);
@@ -478,7 +503,8 @@ classdef LinearizedHarmonicProjector < handle
             %M2 = diag(sum(M));
            % rhs = [rhs1;rhs2;Z;M*I];
             rhsV = [rhs1;rhs2;Z;I];
-            
+            rhsV = [rhs1;rhs2;I];
+
 
         end
 
