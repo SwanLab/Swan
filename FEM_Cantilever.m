@@ -41,27 +41,27 @@ fem.strainFun.plot()
 end
 
 function bc = createBoundaryConditions(mesh)
-dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
-rightSide  = max(mesh.coord(:,1));
-isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
-forceNodes = isInRight & isInMiddleEdge;
-nodes = 1:mesh.nnodes;
-bc.dirichlet = nodes(dirichletNodes);
-bc.pointload(:,1) = nodes(forceNodes);
-bc.pointload(:,2) = 2;
-bc.pointload(:,3) = -1;
+    dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
+    rightSide  = max(mesh.coord(:,1));
+    isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
+    isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
+    forceNodes = isInRight & isInMiddleEdge;
+    nodes = 1:mesh.nnodes;
+    bc.dirichlet = nodes(dirichletNodes);
+    bc.pointload(:,1) = nodes(forceNodes);
+    bc.pointload(:,2) = 2;
+    bc.pointload(:,3) = -1;
 end
 
 function material = createMaterial(mesh,ngaus)
-I = ones(mesh.nelem,ngaus);
-s.ptype = 'ELASTIC';
-s.pdim  = '2D';
-s.nelem = mesh.nelem;
-s.mesh  = mesh;
-s.kappa = .9107*I;
-s.mu    = .3446*I;
-mat = Material.create(s);
-mat.compute(s);
-material = mat;
+    I = ones(mesh.nelem,ngaus);
+    s.ptype = 'ELASTIC';
+    s.pdim  = '2D';
+    s.nelem = mesh.nelem;
+    s.mesh  = mesh;
+    s.kappa = .9107*I;
+    s.mu    = .3446*I;
+    mat = Material.create(s);
+    mat.compute(s);
+    material = mat;
 end

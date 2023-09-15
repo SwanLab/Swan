@@ -13,7 +13,8 @@ classdef Solver < handle
                     stype = Cholesky_Direct_Solver();
 
                 case {'ITERATIVE'}
-                    error('Not implemented yet')
+                    %error('Not implemented yet')
+                    stype = Jacobian_Solver();
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
