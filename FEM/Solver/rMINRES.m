@@ -39,18 +39,7 @@ classdef rMINRES < handle
             z.mesh    = obj.mesh;
             z.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
             xF = P1Function(z);   
-
-
-            s.fun      = {xF};
-            s.mesh     = obj.mesh;
-            s.filename = strcat('eo',num2str(iter));   
-            fP = FunctionPrinter(s);
-            %if iter == 1
-            %    fP.printMesh();
-            %end
-            fP.printMesh();            
-            fP.printResults(iter);
-       %     xF.plot()
+            xF.print(strcat('eo',num2str(iter)),'Paraview');
         end
 
         function x = solve(obj, A, b)
