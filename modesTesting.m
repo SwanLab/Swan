@@ -13,9 +13,10 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 % s = FemDataContainer(a);
 
 
+
 % Generate coordinates
-x1 = linspace(0,1,5);
-x2 = linspace(0,1,5);
+x1 = linspace(0,2,50);
+x2 = linspace(0,1,25);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -24,33 +25,49 @@ x2 = linspace(0,1,5);
 s.coord = basis(:,1:2);
 s.connec = F;
 mesh = Mesh(s);
+bcV = createRawBoundaryConditions(mesh);
+bc = createBoundaryConditions(mesh,bcV);
 
 s.mesh = mesh;
 s.type = 'ELASTIC';
 s.scale = 'MACRO';
 s.material = createMaterial(mesh,1);
 s.dim = '2D';
-s.bc = createBoundaryConditions(mesh);
-nDimf=2;
+s.bc = bcV;
+s.nDimf=2;
 
-dof=1:1:nDimf*mesh.nnodes;
-const = constDof(s.bc.dirichlet,nDimf);
-freedof=setdiff(dof,const);
+dispFun=P1Function.create(s.mesh, s.nDimf);
 
-dispFun=P1Function.create(s.mesh, nDimf);
-K= computeStiffnessMatrix(s.mesh,s.material,dispFun);
-Kred=K(freedof,freedof);
-[basis,D]=eig(full(Kred));
+K    = computeStiffnessMatrix(s.mesh,s.material,dispFun);
+Kred = bc.fullToReducedMatrix(K);
+[basis,D]=eigs((Kred));
 
-fvalues=zeros(nDimf*mesh.nnodes,1);
-fvalues(s.bc.dirichlet)=0;
-fvalues(freedof)=basis(:,1);
-fvalues=reshape(fvalues,[mesh.ndim,mesh.nnodes])';
 
-dispFun.fValues=fvalues;
-dispFun.plot
+for i = 1:3
+b = basis(:,i);
+b1 = bc.reducedToFullVector(b);
+
+sF.fValues = reshape(b1,2,[])';
+sF.mesh    = mesh;
+bF{i} =P1Function(sF);
+bF.plot
+end
+
+
+s.basis = bF;
+s.coef  = [2 3 -1];
+mF = ModalFunction(s); (%evaluate defined)
+
+m1 = mF.project('P1');
+m1.plot
+
+mF.plot()
+
+
 fem = FEM.create(s);
 fem.solve();
+
+fem.print('DD','Paraview')
 
 % figure(1)
 % fem.uFun.plot()
@@ -74,13 +91,37 @@ fem.solve();
 end
 
 
+function dim = getFunDims(mesh)
+s.fValues = mesh.coord;
+s.mesh = mesh;
+disp = P1Function(s);
+d.ndimf  = disp.ndimf;
+d.nnodes = size(disp.fValues, 1);
+d.ndofs  = d.nnodes*d.ndimf;
+d.nnodeElem = mesh.nnodeElem; % should come from interp..
+d.ndofsElem = d.nnodeElem*d.ndimf;
+dim = d;
+end
+
+function bc = createBoundaryConditions(mesh,bcV)
+dim = getFunDims(mesh);
+bcV.ndimf = dim.ndimf;
+bcV.ndofs = dim.ndofs;
+s.mesh  = mesh;
+s.scale = 'MACRO';
+s.bc    = {bcV};
+s.ndofs = dim.ndofs;
+bc = BoundaryConditions(s);
+bc.compute();
+end
 
 
 
 
 
 
-function bc = createBoundaryConditions(mesh)
+
+function bc = createRawBoundaryConditions(mesh)
 dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
 rightSide  = max(mesh.coord(:,1));
 isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
