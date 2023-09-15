@@ -85,6 +85,8 @@
               </code>
             </pre>
 
+            <img src="swan-tuts/levelset-1.png" class="rounded mx-auto d-block" alt="Sample background mesh">
+
             This will act as the base background mesh, upon which the level set function will live. Next, we will create the boundary mesh of this background mesh:
 
             <pre>
@@ -106,6 +108,10 @@
               </code>
             </pre>
 
+            <img src="swan-tuts/levelset-2.png" class="rounded mx-auto d-block" alt="Boundary edge mesh">
+
+            It is a one-dimensional edge mesh, which corresponds to the left-most part of the mesh.
+
             <h4 class="my-4">Level-set function</h4>
             Let's set aside these boundary meshes and go back to the background mesh, where the level-set function will lay. We can create this function using the following code:
 
@@ -120,6 +126,9 @@
                 levelSet = ls.getValue();
               </code>
             </pre>
+
+
+            <img src="swan-tuts/levelset-3.png" class="rounded mx-auto d-block" alt="Level-set P1Function">
 
             <h4 class="my-4">Unfitted Mesh</h4>
             Having generated both meshes and the level set function, the Unfitted Mesh can now be generated
@@ -140,6 +149,8 @@
                 uMesh.plot
               </code>
             </pre>
+
+            <img src="swan-tuts/levelset-4.png" class="rounded mx-auto d-block" alt="Unfitted mesh">
 
             This Unfitted Mesh is made up of different parts:
             <ul>
