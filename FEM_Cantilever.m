@@ -10,8 +10,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 
 
 % Generate coordinates
-x1 = linspace(0,2,10);
-x2 = linspace(1,2,10);
+x1 = linspace(0,2,3);
+x2 = linspace(1,2,3);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
