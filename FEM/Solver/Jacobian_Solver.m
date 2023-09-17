@@ -7,6 +7,7 @@ classdef Jacobian_Solver < Solver
             tol = 1e-6;
             n = length(LHS);
             x = zeros(n,1);
+            numItr = 0;
             while normVal>tol
             xold=x;
                 for i=1:n
@@ -18,7 +19,8 @@ classdef Jacobian_Solver < Solver
                     end
                     x(i)=(1/LHS(i,i))*(RHS(i)-sigma);
                 end
-                normVal=norm(xold-x);
+                normVal=norm((xold-x)/x);
+                numItr = numItr+1;
             end
         
         end
