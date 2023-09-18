@@ -16,6 +16,7 @@ classdef AcademicMonitoring < handle
         constraint
         designVariable
         dualVariable
+        shallPrint
     end
     
     properties (Access = private)
@@ -27,25 +28,27 @@ classdef AcademicMonitoring < handle
         function obj = AcademicMonitoring(cParams)
             obj.init(cParams);
         end
-        
+
         function compute(obj,cParams)
-            switch obj.optimizerName
-                case 'fmincon'
-                    obj.plotFmincon(cParams);
-                case 'NullSpace'
-                    obj.plotNullSpace(cParams);
-                case 'AlternatingPrimalDual'
-                    obj.plotAugmentedLagrangian(cParams);
-                case 'DualNestedInPrimal'
-                    obj.plotBisection(cParams);
-                case 'IPOPT'
-                    obj.plotIPOPT(cParams);
-                case 'MMA'
-                    obj.plotMMA(cParams);
-                case 'IPM'
-                    obj.plotIPM(cParams);
-                otherwise
-                    error('Optimizer not implemented')
+            if (obj.shallPrint)
+                switch obj.optimizerName
+                    case 'fmincon'
+                        obj.plotFmincon(cParams);
+                    case 'NullSpace'
+                        obj.plotNullSpace(cParams);
+                    case 'AlternatingPrimalDual'
+                        obj.plotAugmentedLagrangian(cParams);
+                    case 'DualNestedInPrimal'
+                        obj.plotBisection(cParams);
+                    case 'IPOPT'
+                        obj.plotIPOPT(cParams);
+                    case 'MMA'
+                        obj.plotMMA(cParams);
+                    case 'IPM'
+                        obj.plotIPM(cParams);
+                    otherwise
+                        error('Optimizer not implemented')
+                end
             end
         end
 
@@ -64,6 +67,7 @@ classdef AcademicMonitoring < handle
             obj.designVariable    = cParams.designVar;
             obj.dualVariable      = cParams.dualVariable;
             obj.incrementalScheme = cParams.incrementalScheme;
+            obj.shallPrint        = cParams.shallPrint;
         end
         
         function plotFmincon(obj,cParams)

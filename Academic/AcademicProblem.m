@@ -15,7 +15,6 @@ classdef AcademicProblem < handle
 
         function obj = AcademicProblem(cParams)
             obj.init(cParams);
-            obj.compute();
         end
 
         function compute(obj)
@@ -43,13 +42,13 @@ classdef AcademicProblem < handle
             s.nConstraints               = nConstr;
             s.dualVariable               = DualVariable(s);
             s.outputFunction.type        = "Academic";
-            s.outputFunction.iterDisplay = "off";
+            s.outputFunction.iterDisplay = "iter";
+            s.shallPrint = shallPrint;
             s.outputFunction.monitoring  = MonitoringManager(s);
             s.optimizerNames.primal     = 'PROJECTED GRADIENT';
             opt = Optimizer.create(s);
             opt.solveProblem();
             obj.result = d.value;
-            close all;
         end
 
     end
