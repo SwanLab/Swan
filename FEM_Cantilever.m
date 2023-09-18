@@ -1,4 +1,4 @@
-function FEM_Cantilever
+%function FEM_Cantilever
 
 clc;clear;close all
 
@@ -37,8 +37,10 @@ fem.stressFun.plot()
 figure(3)
 fem.strainFun.plot()
 
+%fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
 
-end
+%FemPrinter.print('results_fem', 'Paraview') % print using Paraview
+%end
 
 function bc = createBoundaryConditions(mesh)
     dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
