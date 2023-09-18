@@ -366,7 +366,6 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.computeLHS();
             obj.computeRHS();
             obj.solveLinearSystem();
-            %obj.explicitSol = -obj.LHS\obj.RHS;
             obj.searchZDirection();
         end
 
@@ -389,10 +388,9 @@ classdef OptimizerInteriorPoint < Optimizer
             s.H          = obj.H;
             s.m          = obj.m;
             s.constraint = obj.constraint;
-            s.funcType   = 'Symmetric';
-            cLHS         = LHSComputer.create(s);
-            cLHS.compute();
-            obj.LHS      = cLHS.LHS;
+            s.type   = 'IPMSymmetric';
+            cLHS         = LHSintegrator.create(s);
+            obj.LHS      = cLHS.compute();
         end
 
         function computeRHS(obj)

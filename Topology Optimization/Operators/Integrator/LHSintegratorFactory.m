@@ -67,6 +67,8 @@ classdef LHSintegratorFactory < handle
                case 'AdvectionMatrix'
                    %cross(b,grad(b))
                    obj = LHSintegrator_Advection(cParams);
+               case 'IPMSymmetric'
+                   obj = IPMSymmetricLHSComputer(cParams);
            end
        end
    end
