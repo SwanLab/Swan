@@ -371,7 +371,8 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function solveLinearSystem(obj)
-            sLS = rMINRES;
+            s.type = 'DIRECT';
+            sLS = Solver.create(s);
             x = sLS.solve(-obj.LHS,obj.RHS);
             obj.explicitSol = x;
         end

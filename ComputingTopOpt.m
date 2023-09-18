@@ -1,19 +1,20 @@
 function ComputingTopOpt
 
-close all
-
 % Note: You can use FEMInputWriter to create benchmarking tests!
 % Note: Use gid to create harder tests!
 
-s.testName = 'test_cantilever_IPM';%''testJose';
+s.testName = 'test_nullspace';
 t = TopOptComputer(s);
 t.compute();
 
-p.mesh = t.computation.designVariable.mesh;
-p.fValues = t.computation.designVariable.value;
-Result = P1Function(p);
-q.filename = 'results';
-q.type     = 'GiD';
-Result.print(q);
+
+% With the following lines you obtain the result for the last iteration
+% (example: design variable with GiD. Test other results and also ParaView!)
+p1Params.fValues = t.computation.designVariable.value;
+p1Params.mesh    = t.computation.designVariable.mesh;
+Result           = P1Function(p1Params);
+c.type = 'GiD';
+c.filename = [s.testName,'_LastIter'];
+Result.print(c);
 
 end

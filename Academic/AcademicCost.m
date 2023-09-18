@@ -18,7 +18,7 @@ classdef AcademicCost < handle
         end
         
         function computeFunctionAndGradient(obj)
-            x            = obj.designVariable.value';
+            x            = obj.designVariable.value;
             obj.value    = obj.costFunction(x);
             obj.gradient = obj.gradientFunction(x);
         end
