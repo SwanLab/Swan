@@ -388,7 +388,7 @@ classdef OptimizerInteriorPoint < Optimizer
             s.H          = obj.H;
             s.m          = obj.m;
             s.constraint = obj.constraint;
-            s.type   = 'IPMSymmetric';
+            s.type       = 'IPMSymmetric';
             cLHS         = LHSintegrator.create(s);
             obj.LHS      = cLHS.compute();
         end
@@ -406,10 +406,9 @@ classdef OptimizerInteriorPoint < Optimizer
             s.upperZ        = obj.upperZ;
             s.invDiagdL     = obj.invDiagdL;
             s.invDiagdU     = obj.invDiagdU;
-            s.funcType      = 'Symmetric';
-            cRHS            = RHSComputer.create(s);
-            cRHS.compute();
-            obj.RHS         = cRHS.RHS;
+            s.type          = 'IPMSymmetric';
+            cRHS            = RHSintegrator.create(s);
+            obj.RHS         = cRHS.compute();
         end
         
         function init(obj,cParams)
