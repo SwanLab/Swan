@@ -5,10 +5,11 @@ classdef AcademicProblem < handle
     end
     
     properties (Access = private)
+        filename
+        designVariable
         cost
         constraint
         optimizer
-        filename
     end
 
     methods (Access = public)
@@ -19,6 +20,7 @@ classdef AcademicProblem < handle
 
         function compute(obj)
             obj.createOptimizer();
+            obj.solve();
         end
 
     end
@@ -30,25 +32,51 @@ classdef AcademicProblem < handle
         end
 
         function createOptimizer(obj)
-            run(obj.filename);
-            p.x0                         = x0;
-            d                            = DesignVariableAcademic(p);
-            j.dV                         = d;
-            c.dV                         = d;
-            s.designVar                  = d;
-            s.cost                       = AcademicCost(j);
-            s.constraint                 = AcademicConstraint(c);
-            s.constraint.nSF             = nConstr;
-            s.nConstraints               = nConstr;
+            pParams = obj.uploadProblemParameters();
+            s       = pParams.settings;
+
+            obj.prepareDesignVariable(pParams.initialGuess);
+            obj.prepareCostConstraint(pParams);
+
+            s.designVar                  = obj.designVariable;
+            s.cost                       = obj.cost;
+            s.constraint                 = obj.constraint;
+            s.constraint.nSF             = pParams.nConstr;
+            s.nConstraints               = pParams.nConstr;
             s.dualVariable               = DualVariable(s);
             s.outputFunction.type        = "Academic";
             s.outputFunction.iterDisplay = "iter";
-            s.shallPrint = shallPrint;
             s.outputFunction.monitoring  = MonitoringManager(s);
             s.optimizerNames.primal     = 'PROJECTED GRADIENT';
-            opt = Optimizer.create(s);
-            opt.solveProblem();
-            obj.result = d.value;
+            obj.optimizer = Optimizer.create(s);
+        end
+
+        function solve(obj)
+            obj.optimizer.solveProblem();
+            obj.result = obj.designVariable.value;
+        end
+
+        function pParams = uploadProblemParameters(obj)
+            run(obj.filename);
+            pParams.initialGuess     = x0;
+            pParams.costHandle       = cost;
+            pParams.constraintHandle = constraint;
+            pParams.nConstr          = nConstr;
+            pParams.settings         = s;
+        end
+
+        function prepareDesignVariable(obj,x0)
+            p.x0               = x0;
+            obj.designVariable = DesignVariableAcademic(p);
+        end
+
+        function prepareCostConstraint(obj,pParams)
+            j              = pParams.costHandle;
+            c              = pParams.constraintHandle;
+            j.dV           = obj.designVariable;
+            c.dV           = obj.designVariable;
+            obj.cost       = AcademicCost(j);
+            obj.constraint = AcademicConstraint(c);
         end
 
     end

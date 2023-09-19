@@ -1,10 +1,10 @@
 %% ACADEMIC TEST 4 %%
 
 x0 = 0.2;
-j.cF = @(x) (x-1)^2;
-j.gF = @(x) 2*(x - 1);
-c.cF = @(x) -x;
-c.gF = @(x) -1;
+cost.cF = @(x) (x-1)^2;
+cost.gF = @(x) 2*(x - 1);
+constraint.cF = @(x) -x;
+constraint.gF = @(x) -1;
 s.type                       = "fmincon";                                % CONST OPTIMIZER
 s.uncOptimizerSettings.ub    = inf;                                      % UPPER BOUND
 s.uncOptimizerSettings.lb    = -inf;                                     % LOWER BOUND
@@ -17,4 +17,4 @@ s.targetParameters.constr_tol = 1e-3;
 s.constraintCase             = {'INEQUALITY'};
 s.maxIter                    = 100;
 s.postProcessSettings.shallPrint = false;
-shallPrint = false;
+s.shallPrint = false;
