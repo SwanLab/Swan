@@ -31,8 +31,8 @@ classdef AcademicProblem < handle
 
         function createOptimizer(obj)
             run(obj.filename);
-            d                            = DesignVariableAcademic();
-            d.init(x0);
+            p.x0                         = x0;
+            d                            = DesignVariableAcademic(p);
             j.dV                         = d;
             c.dV                         = d;
             s.designVar                  = d;
