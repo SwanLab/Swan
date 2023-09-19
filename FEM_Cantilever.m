@@ -37,9 +37,9 @@ fem.stressFun.plot()
 figure(3)
 fem.strainFun.plot()
 
-%fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
+fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
+fem.print('results_fem2', 'Paraview') % print using Paraview
 
-%FemPrinter.print('results_fem', 'Paraview') % print using Paraview
 %end
 
 function bc = createBoundaryConditions(mesh)
@@ -49,6 +49,11 @@ function bc = createBoundaryConditions(mesh)
     isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
     forceNodes = isInRight & isInMiddleEdge;
     nodes = 1:mesh.nnodes;
+    bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+    bcDir(1:2:end,end+1) = 1;
+    bcDir(2:2:end,end) = 2;
+    bcDir(:,end+1)=0;
+    bc.dirichlet = bcDir;
     bc.dirichlet = nodes(dirichletNodes);
     bc.pointload(:,1) = nodes(forceNodes);
     bc.pointload(:,2) = 2;
