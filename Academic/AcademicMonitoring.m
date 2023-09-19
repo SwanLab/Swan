@@ -1,5 +1,7 @@
 classdef AcademicMonitoring < handle
     
+% (19/09/2023) Pending to refactor, just after all Optimizers refactoring
+
     properties (Access = private)
         xVec1 = []
         xVec2 = []

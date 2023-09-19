@@ -108,16 +108,12 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function computeVariableConstraintMultiplyers(obj)
             obj.barrierTau = min(obj.baseVariables.tau_max,100*obj.baseVariables.mu);
-            % variable constraint multipliers
-            % zL*(x-xL) = mu  =>  zL = mu / (x-xL)
-            % zL(1:n) = 1;
             for i = 1:obj.nX
                 zL(i)           = obj.baseVariables.mu / (obj.designVariable.value(i) - obj.lowerX(i));
             end
             for i = 1:obj.nSlack
                 zL(obj.nX + i)  = obj.baseVariables.mu / (obj.slack(i) - obj.lowerSlack(i));
             end
-            % zU*(xU-x) = mu  =>  zU = mu / (xU-x)
             for i = 1:obj.nX
                 zU(i)           = obj.baseVariables.mu / (obj.upperX(i) - obj.designVariable.value(i));
             end
@@ -150,10 +146,8 @@ classdef OptimizerInteriorPoint < Optimizer
             j = 0;
             for i = 1:size(obj.constraint.value,1)
                 if (obj.upperLinearBound(i) == obj.lowerLinearBound(i))
-                    % equality constant
                     obj.constraint.value(i) = obj.constraint.value(i) - obj.lowerLinearBound(i);
                 else
-                    % inequality slack
                     j = j + 1;
                     obj.constraint.value(i) = obj.constraint.value(i) - obj.slack(j);
                 end
@@ -167,13 +161,12 @@ classdef OptimizerInteriorPoint < Optimizer
             for i = 1:mC
                 if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
                     k                               = k + 1;
-%                     obj.constraint.gradient(i,nC+k) = -1;
                     obj.constraint.gradient(mC+k,nC) = -1;
                 end
             end
         end
 
-        function hessianComputer(obj)
+        function computeHessian(obj)
             hess      = obj.hessian(1:obj.nX,1:obj.nX); 
             deltaX    = obj.designVariable.value - obj.oldDesignVariable;
             deltaCost = obj.cost.gradient - obj.oldCostGradient;
@@ -210,7 +203,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.sigmaComputer();
-            obj.updateHessian();            % -> updateHessianSize()
+            obj.updateHessian();
             obj.linearSystemSolver();
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
@@ -259,7 +252,6 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function pushVariables(obj)
-            % push away from the boundary with tau
             for i = 1:obj.nX
                 if(obj.xa(i) < obj.lowerX(i))
                     obj.xa(i) = obj.lowerX(i) + obj.barrierTau*(obj.designVariable.value(i) - obj.lowerX(i));
@@ -296,7 +288,7 @@ classdef OptimizerInteriorPoint < Optimizer
             for i = 1:obj.nSlack
                 obj.hessian(obj.nX+i,obj.nX+i) = 0.0;
             end
-            obj.H                              = obj.hessian + obj.lowerSigma + obj.upperSigma;
+            obj.H = obj.hessian + obj.lowerSigma + obj.upperSigma;
         end
 
         function obj = saveOldValues(obj,x)
@@ -320,7 +312,7 @@ classdef OptimizerInteriorPoint < Optimizer
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep    = true;
                 obj.primalUpdater.tau = 1;
-                obj.meritNew          = mNew; % Provisional value
+                obj.meritNew          = mNew;
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
@@ -341,7 +333,6 @@ classdef OptimizerInteriorPoint < Optimizer
         function sigmaComputer(obj)
             obj.lowerDiagonalZ = diag(obj.lowerZ);
             obj.upperDiagonalZ = diag(obj.upperZ);
-            % sigmas
             obj.dL             = [obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack];
             obj.dU             = [obj.upperX-obj.designVariable.value' obj.upperSlack-obj.slack];
             obj.diagonaldL     = diag(obj.dL);
@@ -464,7 +455,6 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function computeSlackVariables(obj)
-            % add slack for inequality constraints only
             k              = 0;
             obj.m          = max(size(obj.lowerLinearBound));
             for i = 1:obj.m
@@ -496,7 +486,7 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function checkConvergence(obj)
             obj.cost.computeFunctionAndGradient();
-            obj.hessianComputer();
+            obj.computeHessian();
             obj.constraint.computeFunctionAndGradient();
             obj.updateCC();
             obj.computeError();
@@ -508,7 +498,6 @@ classdef OptimizerInteriorPoint < Optimizer
             s_max    = 100; % > 1
             s_d      = max(s_max,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(obj.m+2*(obj.nX+obj.nSlack)));
             s_c      = max(s_max,(sum(abs(obj.upperZ))+sum(abs(obj.lowerZ)))/(2*(obj.nX+obj.nSlack)));
-%            part(1)  = max(abs(obj.cost.gradient' + obj.constraint.gradient'*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
             part(1) = max(abs(obj.cost.gradient' + obj.constraint.gradient*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
             part(2)  = max(abs(obj.constraint.value));
             part(3)  = max(abs(diag([obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack])*diag(obj.lowerZ)*obj.e))/s_c;
@@ -519,8 +508,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function checkNewBarrierProblem(obj)
             k_mu                     = obj.baseVariables.k_mu;
             if (obj.e_mu < k_mu * obj.baseVariables.mu)
-                th_mu = 1.5;
-                obj.baseVariables.mu = k_mu*obj.baseVariables.mu;%max(obj.tol/10,min(k_mu*obj.baseVariables.mu));%,obj.baseVariables.mu^th_mu));
+                obj.baseVariables.mu = k_mu*obj.baseVariables.mu;
                 obj.barrierTau       = min(obj.baseVariables.tau_max,100*obj.baseVariables.mu);
             end
         end
