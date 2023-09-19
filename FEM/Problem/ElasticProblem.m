@@ -175,7 +175,7 @@ classdef ElasticProblem < handle
             bc = obj.boundaryConditions;
             Kred = bc.fullToReducedMatrix(obj.LHS);
             Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
+            u = obj.solver.solve(Kred,Fred,obj.mesh,bc);
             u = bc.reducedToFullVector(u);
 %             obj.variables.d_u = u;
 
