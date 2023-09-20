@@ -6,7 +6,7 @@ clear
 % Note: You can use FEMInputWriter to create benchmarking tests!
 % Note: Use gid to create harder tests!
 
-s.testName = 'test_boundFormFilterAndProject';
+s.testName = 'test_nullspace';
 t = TopOptComputer(s);
 t.compute();
 
@@ -16,8 +16,7 @@ t.compute();
 p1Params.fValues = t.computation.designVariable.value;
 p1Params.mesh    = t.computation.designVariable.mesh;
 Result           = P1Function(p1Params);
-c.type = 'GiD';
-c.filename = [s.testName,'_LastIter'];
-Result.print(c);
+filename = [s.testName,'_LastIter'];
+Result.print(filename,'GiD');
 
 end
