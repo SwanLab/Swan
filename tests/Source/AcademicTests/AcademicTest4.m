@@ -17,4 +17,4 @@ s.targetParameters.constr_tol = 1e-3;
 s.constraintCase             = {'INEQUALITY'};
 s.maxIter                    = 100;
 s.postProcessSettings.shallPrint = false;
-s.shallPrint = false;
+s.shallPrint = true;
