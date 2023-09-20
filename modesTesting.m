@@ -1,10 +1,7 @@
 function modesTesting
-% file = 'test2d_triangle';
-% a.fileName = file;
-% s = FemDataContainer(a);
-% mesh = s.mesh;
 
-clc;clear;close all
+
+clc;clear all;close all
 
 addpath(genpath(fileparts(mfilename('fullpath'))))
 
@@ -13,20 +10,65 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 % s = FemDataContainer(a);
 
 
+mesh = createMesh();
 
-% Generate coordinates
-x1 = linspace(0,2,50);
-x2 = linspace(0,1,25);
-% Create the grid
-[xv,yv] = meshgrid(x1,x2);
-% Triangulate the mesh to obtain coordinates and connectivities
-[F,basis] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-s.coord = basis(:,1:2);
-s.connec = F;
-mesh = Mesh(s);
 bcV = createRawBoundaryConditions(mesh);
 bc = createBoundaryConditions(mesh,bcV);
+
+% s.mesh = mesh;
+% s.type = 'StiffnessMatrix';
+% s.scale = 'MACRO';
+material = createMaterial(mesh,1);
+% s.dim = '2D';
+% bc = bcV;
+nDimf=2;
+
+dispFun=P1Function.create(mesh, nDimf);
+
+dispFun=P1Function.create(mesh,1);
+
+
+K    = computeStiffnessMatrix(mesh,material,dispFun);
+Kred = bc.fullToReducedMatrix(K);
+
+M= computeMassMatrix(mesh,dispFun);
+Mred= bc.fullToReducedMatrix(M);
+[basis,D]=eigs(M\K);
+
+
+for i = 1:size(basis,2)
+b = basis(:,i);
+% b1 = bc.reducedToFullVector(b);
+% bC{i} = reshape(b1,2,[])';
+ bC{i} = b;
+
+% sF.fValues = reshape(b1,2,[])';
+% sF.mesh    = mesh;
+% bF{i} =P1Function(sF);
+% bF.plot
+end
+
+sM.mesh    = mesh;
+sM.basis   = bC;
+sM.fValues =[1 0 0 0 0 0];
+modal = ModalFunction(sM);
+
+p1FUNC = modal.project('P1');
+% p1FUNC.plot
+p1FUNC.print('prova')
+
+% modal.FEfun{1}.plot
+
+% 
+% s.basis = bF;
+% s.coef  = [2 3 -1];
+% mF = ModalFunction(s); (%evaluate defined)
+% 
+% m1 = mF.project('P1');
+% m1.plot
+% 
+% mF.plot()
+
 
 s.mesh = mesh;
 s.type = 'ELASTIC';
@@ -36,38 +78,11 @@ s.dim = '2D';
 s.bc = bcV;
 s.nDimf=2;
 
-dispFun=P1Function.create(s.mesh, s.nDimf);
-
-K    = computeStiffnessMatrix(s.mesh,s.material,dispFun);
-Kred = bc.fullToReducedMatrix(K);
-[basis,D]=eigs((Kred));
-
-
-for i = 1:3
-b = basis(:,i);
-b1 = bc.reducedToFullVector(b);
-
-sF.fValues = reshape(b1,2,[])';
-sF.mesh    = mesh;
-bF{i} =P1Function(sF);
-bF.plot
-end
-
-
-s.basis = bF;
-s.coef  = [2 3 -1];
-mF = ModalFunction(s); (%evaluate defined)
-
-m1 = mF.project('P1');
-m1.plot
-
-mF.plot()
-
 
 fem = FEM.create(s);
 fem.solve();
 
-fem.print('DD','Paraview')
+fem.print('DD')
 
 % figure(1)
 % fem.uFun.plot()
@@ -90,12 +105,34 @@ fem.print('DD','Paraview')
 
 end
 
+function mesh = createMesh()
+file = 'CantileverBeam_Triangle_Linear_Fine';
+file = 'Cantileverbeam_Quadrilateral_Bilinear';
+a.fileName = file;
+s = FemDataContainer(a);
+mesh = s.mesh;
+
+
+% % Generate coordinates
+% x1 = linspace(0,2,20);
+% x2 = linspace(0,1,20);
+% % Create the grid
+% [xv,yv] = meshgrid(x1,x2);
+% % Triangulate the mesh to obtain coordinates and connectivities
+% [F,basis] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+% 
+% s.coord = basis(:,1:2);
+% s.connec = F;
+% mesh = Mesh(s);
+end
+
 
 function dim = getFunDims(mesh)
 s.fValues = mesh.coord;
 s.mesh = mesh;
 disp = P1Function(s);
 d.ndimf  = disp.ndimf;
+d.ndimf  = 1;
 d.nnodes = size(disp.fValues, 1);
 d.ndofs  = d.nnodes*d.ndimf;
 d.nnodeElem = mesh.nnodeElem; % should come from interp..
@@ -117,10 +154,6 @@ end
 
 
 
-
-
-
-
 function bc = createRawBoundaryConditions(mesh)
 dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
 rightSide  = max(mesh.coord(:,1));
@@ -128,23 +161,19 @@ isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
 isInMiddleEdge = abs(mesh.coord(:,2)-0.5) < 0.1;
 forceNodes = isInRight & isInMiddleEdge;
 nodes = 1:mesh.nnodes;
-bc.dirichlet = nodes(dirichletNodes);
+bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+% bcDir = [nodes(dirichletNodes)'];
+
+nodesdir=size(nodes(dirichletNodes),2);
+bcDir(1:nodesdir,end+1) = 1;
+bcDir(nodesdir+1:end,end) = 2;
+bcDir(:,end+1)=0;
+bc.dirichlet = bcDir;
 bc.pointload(:,1) = nodes(forceNodes);
 bc.pointload(:,2) = 2;
 bc.pointload(:,3) = -1;
 end
 
-function const = constDof(dirichlet,ndimf)
-nnode=length(dirichlet);
-ind=1;
-for i=1:nnode
-    const(ind)=dirichlet(i)*ndimf-1;
-    ind=ind+1;
-    const(ind)=dirichlet(i)*ndimf;
-    ind=ind+1;
-end
-
-end
 
 function material = createMaterial(mesh,ngaus)
 I = ones(mesh.nelem,ngaus);
@@ -161,10 +190,22 @@ end
 
 
 function k= computeStiffnessMatrix(mesh,material,displacementFun)
-s.type     = 'ElasticStiffnessMatrix';
+s.type     = 'StiffnessMatrix';
 s.mesh     = mesh;
-s.fun      = displacementFun;
+% s.fun      = displacementFun;
+s.test      = displacementFun;
+s.trial      = displacementFun;
 s.material = material;
 lhs = LHSintegrator.create(s);
 k=lhs.compute();
+end
+
+function m=computeMassMatrix(mesh,displacementFun)
+   s.type     = 'MassMatrix';
+s.mesh     = mesh;
+s.test      = displacementFun;
+s.trial      = displacementFun;
+s.quadratureOrder = 'QUADRATIC';
+lhs = LHSintegrator.create(s);
+m=lhs.compute();
 end
