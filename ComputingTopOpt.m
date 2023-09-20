@@ -6,7 +6,7 @@ clear
 % Note: You can use FEMInputWriter to create benchmarking tests!
 % Note: Use gid to create harder tests!
 
-s.testName = 'test_arturo';
+s.testName = 'test_boundFormFilterAndProject';
 t = TopOptComputer(s);
 t.compute();
 

@@ -31,9 +31,9 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
-monitoring = true;
+monitoring = false;
 monitoring_interval = 1;
-maxiter = 200;
+maxiter = 5;
