@@ -1,6 +1,6 @@
-set input_post_res "/home/ton/Github/Swan/Output/hellothere/hellothere1.flavia.res"
-set mesh_element_size "0.028986"
-set mesh_name "hmmmm22"
+set input_post_res "/home/ton/Github/Swan/Output/thisIsUseless/thisIsUseless1.flavia.res"
+set mesh_element_size "0.10526"
+set mesh_name "thisIsUseless2"
 set gidpath "/home/ton/GiDx64/gid-16.1.2d/"
 
 GiD_Process Mescape Postprocess

@@ -2,11 +2,11 @@ classdef ProjectorComputer < handle
 
     properties (Access = public)
         computation
+        variables
     end
 
     properties (Access = private)
         problemTestName
-        projectFrom
         projectTo
         fun
         funProj
@@ -32,6 +32,8 @@ classdef ProjectorComputer < handle
             computer.compute();
             obj.computation = computer.computation;
             obj.computeProjection();
+            nrows = numel(obj.funProj.fValues);
+            obj.variables.xP = reshape(obj.funProj.fValues,[nrows,1]);
         end
 
     end
@@ -46,7 +48,6 @@ classdef ProjectorComputer < handle
         function saveConfiguration(obj)
             run(obj.testName);
             obj.problemTestName = problemToSolve;
-            obj.projectFrom     = origin;
             obj.projectTo       = projectDestination;
             obj.var             = variable;
         end
@@ -57,8 +58,6 @@ classdef ProjectorComputer < handle
                     obj.readMesh();
                     obj.selectOrigin();
                     obj.selectProjector();
-                    nrows = numel(obj.funProj.fValues);
-                    obj.computation.variables.xP = reshape(obj.funProj.fValues,[nrows,1]);
                 case {'TOPOPT'}
                     %...
             end
@@ -71,19 +70,7 @@ classdef ProjectorComputer < handle
         end
 
         function selectOrigin(obj)
-            val = obj.computation.variables.(obj.var);
-            switch obj.projectFrom
-                case {'P0'}
-                    val = squeeze(val)';
-                case {'P1'}
-                    val = reshape(val,[obj.mesh.ndim,obj.mesh.nnodes])';
-            end
-            z.fValues      = val;
-%             z.connec       = obj.mesh.connec;
-%             z.type         = obj.mesh.type;
-            z.mesh         = obj.mesh;
-            z.functionType = obj.projectFrom;
-            obj.fun        = FeFunction.create(z);
+            obj.fun = obj.computation.(obj.var);
         end
 
         function selectProjector(obj)

@@ -3,6 +3,7 @@ classdef TopOptComputer < handle
     properties (Access = public)
         computation
         settings
+        variables
     end
 
     properties (Access = private)
@@ -19,6 +20,7 @@ classdef TopOptComputer < handle
             topOptSolver = TopOpt_Problem(obj.settings);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;
+            obj.variables.x = topOptSolver.designVariable.value;
         end
     end
 

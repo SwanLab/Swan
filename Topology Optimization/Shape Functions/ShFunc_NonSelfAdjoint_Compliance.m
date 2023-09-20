@@ -9,8 +9,8 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
         function obj = ShFunc_NonSelfAdjoint_Compliance(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
         end
@@ -19,8 +19,35 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             t{1} = 'Compliance non scaled';
         end
 
+        function fP = createPrintVariables(obj)
+            fP{1}.type  = 'Elasticity';
+            fP{2}.type  = 'Elasticity';
+            fP{1}.name  = 'Primal';
+            fP{2}.name  = 'Dual';
+        end
+
         function v = getVariablesToPlot(obj)
             v{1} = obj.value*obj.value0;
+        end
+
+         function [fun, funNames] = getFunsToPlot(obj)
+            mesh = obj.designVariable.mesh;
+            phy = obj.physicalProblem;
+            strain = phy.strainFun;
+            stress = phy.stressFun;
+            displ  = phy.uFun;
+            compl  = obj.value/obj.value0;
+
+            quad = Quadrature.set(mesh.type);
+            quad.computeQuadrature('CONSTANT');
+
+            aa.mesh       = mesh;
+            aa.quadrature = quad;
+            aa.fValues    = permute(compl, [3 2 1]);
+            complFun = FGaussDiscontinuousFunction(aa);
+
+            fun      = {complFun, strain, stress, displ};
+            funNames = {'NeumannDisplacementNRG', 'strain', 'stress', 'u'};
         end
 
     end
@@ -28,28 +55,31 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = protected)
 
         function computeFunctionValue(obj)
-            u = obj.physicalProblem.variables.d_u;
-            f = obj.computeDisplacementWeight();
+            ndimf     = obj.physicalProblem.uFun.ndimf;
+            u         = obj.physicalProblem.uFun.fValues;
+            nnode     = size(u,1);
+            u         = reshape(u',[nnode*ndimf,1]);
+            f         = obj.computeDisplacementWeight();
             obj.value = f'*u;
         end
-
+        
         function solveState(obj)
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C);
             obj.physicalProblem.solve();
         end
 
         function computeGradientValue(obj)
-            eu    = obj.physicalProblem.variables.strain;
-            ep    = obj.adjointProblem.variables.strain;
+            eu    = obj.physicalProblem.strainFun.fValues;
+            ep    = obj.adjointProblem.strainFun.fValues;
             nelem = size(eu,3);
-            ngaus = size(eu,1);
-            nstre = size(eu,2);
+            ngaus = size(eu,2);
+            nstre = size(eu,1);
             g = zeros(nelem,ngaus,obj.nVariables);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        eu_i = squeeze(eu(igaus,istre,:));
-                        ep_j = squeeze(ep(igaus,jstre,:));
+                        eu_i = squeeze(eu(istre,igaus,:));
+                        ep_j = squeeze(ep(jstre,igaus,:));
                         for ivar = 1:obj.nVariables
                             dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
                             g(:,igaus,ivar) = g(:,igaus,ivar) - eu_i.*dCij.*ep_j;
@@ -79,13 +109,6 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             fP{5}.value = obj.getRegularizedDesignVariable();
             fP{6}.value = obj.homogenizedVariablesComputer.addPrintableVariables(obj.designVariable);
         end
-        
-        function fP = createPrintVariables(obj)
-            fP{1}.type  = 'Elasticity';
-            fP{2}.type  = 'Elasticity';
-            fP{1}.name  = 'Primal';
-            fP{2}.name  = 'Dual';
-        end
 
     end
 
@@ -98,7 +121,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             s.bc.pointload     = fAdj;
             obj.adjointProblem = FEM.create(s);
         end
-
+        
         function f = computeDisplacementWeight(obj)
             nnode = obj.designVariable.mesh.nnodes;
             ndim  = obj.designVariable.mesh.ndim;

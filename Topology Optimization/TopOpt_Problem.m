@@ -5,6 +5,7 @@ classdef TopOpt_Problem < handle
         dualVariable
         cost
         constraint
+        physicalProblem
         optimizer
         incrementalScheme
         optimizerSettings
@@ -22,13 +23,31 @@ classdef TopOpt_Problem < handle
             obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
-            obj.createHomogenizedVarComputer(cParams)
+            obj.createHomogenizedVarComputer(cParams);
+            obj.createEquilibriumProblem(cParams);
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
             obj.createOptimizer(cParams);
             obj.createVideoMaker(cParams);
         end
-        
+
+        function createEquilibriumProblem(obj,cParams)
+            s = cParams.problemData.femData;
+            obj.physicalProblem = FEM.create(s);
+            obj.initPrincipalDirections();
+        end
+
+        function initPrincipalDirections(obj)
+            if isempty(obj.designVariable.alpha)
+                dim = obj.physicalProblem.getDimensions();
+                nelem = obj.designVariable.mesh.nelem;
+                ndim = dim.ndimf;
+                alpha0 = zeros(ndim,nelem);
+                alpha0(1,:) = 1;
+                obj.designVariable.alpha = alpha0;
+            end
+        end
+
         function createOptimizer(obj,settings)
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
@@ -39,7 +58,7 @@ classdef TopOpt_Problem < handle
         end
 
         function computeBounds(obj)
-            switch obj.designVariable.type 
+            switch obj.designVariable.type
                 case 'Density'
                 obj.optimizerSettings.ub = 1;
                 obj.optimizerSettings.lb = 0;
@@ -55,7 +74,7 @@ classdef TopOpt_Problem < handle
 
             end
         end
-        
+
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
@@ -128,6 +147,8 @@ classdef TopOpt_Problem < handle
         end
         
         function createCostAndConstraint(obj,cParams)
+            cParams.costSettings.physicalProblem       = obj.physicalProblem;
+            cParams.constraintSettings.physicalProblem = obj.physicalProblem;
             obj.createCost(cParams);
             obj.createConstraint(cParams);
         end
