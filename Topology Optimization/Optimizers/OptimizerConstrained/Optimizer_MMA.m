@@ -66,12 +66,12 @@ classdef Optimizer_MMA < Optimizer
        end
         
         function update(obj)
-            x = obj.designVariable.value; %updateDataInDesignVariable
-            obj.cost.computeFunctionAndGradient(); %computeCost
-            obj.constraint.computeFunctionAndGradient(); %deriveCostRespectedField
-            obj.checkInitial(x); %Parte del solver
-            obj.outit = obj.outit+1; %Contabiliza iteraciones
-            obj.outeriter = obj.outeriter+1; %Contabiliza iteraciones
+            x = obj.designVariable.value;
+            obj.cost.computeFunctionAndGradient(); 
+            obj.constraint.computeFunctionAndGradient();
+            obj.checkInitial(x);
+            obj.outit = obj.outit+1;
+            obj.outeriter = obj.outeriter+1;
             %%%% The MMA subproblem is solved at the point xval:
             [xmma,ymma,zmma,lam,xsi,eta,mu,zet,s,obj.low,obj.upp] = ...
                 obj.mmasub(obj.m,obj.n,obj.outeriter,x,obj.xmin,obj.xmax,obj.xold1,obj.xold2, ...
@@ -158,16 +158,16 @@ classdef Optimizer_MMA < Optimizer
                 obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = obj.lowerBound.*ones(length(x0),1);
-                obj.xmax = obj.upperBound.*ones(length(x0),1);
+                obj.xmin = obj.lowerBound*ones(length(x0),1);
+                obj.xmax = obj.upperBound*ones(length(x0),1);
                 % obj.low = obj.xmin;
                 obj.low = zeros(length(x0),1);
                 % obj.upp = obj.xmax;
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1*ones(obj.m,1); % VAR 1
-                obj.d = 100*ones(obj.m,1); % VAR 2
+                obj.c = 1000*ones(obj.m,1);
+                obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
