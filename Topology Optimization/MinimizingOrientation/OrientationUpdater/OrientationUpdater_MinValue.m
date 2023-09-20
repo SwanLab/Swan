@@ -1,4 +1,5 @@
-classdef OrientationUpdater_MinValue < OrientationUpdater   
+classdef OrientationUpdater_MinValue < OrientationUpdater
+    
     methods (Access = protected)
         
         function computeOptimalIndexOrientation(obj)
@@ -7,5 +8,6 @@ classdef OrientationUpdater_MinValue < OrientationUpdater
             obj.optimalIndexOrientation = ind;
         end
         
-    end  
+    end
+    
 end

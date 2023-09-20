@@ -1,4 +1,4 @@
-filename = 'MeshReplicated';
+filename = 'MeshHalfBridge';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

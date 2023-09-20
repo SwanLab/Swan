@@ -4,15 +4,7 @@
 
 % Instructions: run the following code, selecting previously the 'Swan'
 % main folder as your current matlab path
-clc
-clear all
-close all
-s.testName = 'test_arturo';
-s.filename = s.testName;
+
+s.testName = 'test_cantilever2';
 t = TopOptComputer(s);
 t.compute();
-
-p.mesh    = t.computation.designVariable.mesh;
-p.fValues = t.computation.designVariable.value;
-Result = P1Function(p);
-Result.print(s);
