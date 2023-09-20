@@ -21,7 +21,6 @@ classdef FEMInputWriter < handle
         edgeNodes
         pCase
         designVarSettings
-        root
     end
     
     methods (Access = public)
@@ -160,9 +159,8 @@ classdef FEMInputWriter < handle
             obj.edgeNodes = sort(edge);
         end
         
-        function writeFile(obj)      
-            %'C:\Users\artur\Documents\GitHub\SWAM\Swan\DensityBasedProjection\MeshCreator\Input\mesh.m'
-            fileID = fopen(obj.fileName,'w');
+        function writeFile(obj)
+            fileID = fopen(['Input/',obj.fileName],'w');
             obj.writeProblemData(fileID);
             obj.writeCoordinates(fileID);
             obj.writeConnectivities(fileID);
@@ -229,10 +227,7 @@ classdef FEMInputWriter < handle
             fprintf(fileID,'%%%% External Border Elements\n%% Node\n');
             fprintf(fileID,'External_border_elements = [\n');
             fprintf(fileID,'];\n');
-        end
-%         function createFile(obj)
-%             if obj.fileName 
-%         end
+        end        
     end
     
     methods (Access = private, Static)
@@ -253,4 +248,4 @@ classdef FEMInputWriter < handle
             fprintf(fileID,'nodesolid = unique(pointload_complete(:,1));\n');
         end
     end
-    end
+end
