@@ -5,6 +5,7 @@ classdef TopOpt_Problem < handle
         dualVariable
         cost
         constraint
+        physicalProblem
         optimizer
         incrementalScheme
         optimizerSettings
@@ -22,13 +23,31 @@ classdef TopOpt_Problem < handle
             obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
-            obj.createHomogenizedVarComputer(cParams)
+            obj.createHomogenizedVarComputer(cParams);
+            obj.createEquilibriumProblem(cParams);
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
             obj.createOptimizer(cParams);
             obj.createVideoMaker(cParams);
         end
-        
+
+        function createEquilibriumProblem(obj,cParams)
+            s = cParams.problemData.femData;
+            obj.physicalProblem = FEM.create(s);
+            obj.initPrincipalDirections();
+        end
+
+        function initPrincipalDirections(obj)
+            if isempty(obj.designVariable.alpha)
+                dim = obj.physicalProblem.getDimensions();
+                nelem = obj.designVariable.mesh.nelem;
+                ndim = dim.ndimf;
+                alpha0 = zeros(ndim,nelem);
+                alpha0(1,:) = 1;
+                obj.designVariable.alpha = alpha0;
+            end
+        end
+
         function createOptimizer(obj,settings)
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
@@ -39,15 +58,15 @@ classdef TopOpt_Problem < handle
         end
 
         function computeBounds(obj)
-            switch obj.designVariable.type 
+            switch obj.designVariable.type
                 case 'Density'
-                obj.optimizerSettings.ub = 1;
-                obj.optimizerSettings.lb = 0;
+                    obj.optimizerSettings.ub = 1;
+                    obj.optimizerSettings.lb = 0;
                 otherwise
 
             end
         end
-        
+
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
             s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
@@ -96,7 +115,7 @@ classdef TopOpt_Problem < handle
         
         function createIncrementalScheme(obj,cParams)
             s = cParams.incrementalSchemeSettings;
-            s.mesh = obj.mesh.innerMeshOLD;
+            s.mesh = obj.mesh;
         %    s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
@@ -105,7 +124,7 @@ classdef TopOpt_Problem < handle
             s = cParams.designVarSettings;
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
-            s.scalarProductSettings.mesh    = obj.mesh.innerMeshOLD;
+            s.scalarProductSettings.mesh    = obj.mesh;
             obj.designVariable = DesignVariable.create(s);
         end
         
@@ -120,6 +139,8 @@ classdef TopOpt_Problem < handle
         end
         
         function createCostAndConstraint(obj,cParams)
+            cParams.costSettings.physicalProblem       = obj.physicalProblem;
+            cParams.constraintSettings.physicalProblem = obj.physicalProblem;
             obj.createCost(cParams);
             obj.createConstraint(cParams);
         end
@@ -148,10 +169,19 @@ classdef TopOpt_Problem < handle
         
         function createMesh(obj,cParams)
             s = cParams.designVarSettings;
-            sM.coord  = s.femData.mesh.coord;
-            sM.connec = s.femData.mesh.connec;
-            obj.mesh = Mesh_Total(sM);
-            obj.mesh.innerMeshOLD.setMasterSlaveNodes(s.femData.mesh.masterSlaveNodes);
+
+            a.coord  = s.femData.mesh.coord;
+            a.connec = s.femData.mesh.connec;
+            innerMesh = Mesh(a);
+            boundMesh = innerMesh.createBoundaryMesh();
+            sM.backgroundMesh = innerMesh;
+            sM.boundaryMesh   = boundMesh;
+%             obj.mesh = UnfittedMesh(sM);
+            obj.mesh = innerMesh;
+%             sM.coord  = s.femData.mesh.coord;
+%             sM.connec = s.femData.mesh.connec;
+%             obj.mesh = Mesh_Total(sM);
+%             obj.mesh.innerMeshOLD.setMasterSlaveNodes(s.femData.mesh.masterSlaveNodes);
         end
         
     end

@@ -13,14 +13,12 @@ classdef Poperator < handle
        connec
        diffReacProb
        M
-       field
    end
     
    methods (Access = public)
        
        function obj = Poperator(cParams)
            obj.init(cParams);
-           obj.createField();
            obj.createMassMatrix();
            obj.createOperator();
        end
@@ -36,19 +34,13 @@ classdef Poperator < handle
             obj.connec = cParams.connec;
             obj.mesh   = cParams.diffReactEq.mesh;
         end
-    
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATICMASS';
-            obj.field = Field(s);
-        end
        
         function createMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end

@@ -6,12 +6,14 @@ classdef Filter_P1_Density < Filter
         x_reg
         M
         Kernel
+        quadrature
     end
 
     methods (Access = public)
 
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createMassMatrix();
             obj.createPoperator(cParams);
             obj.createFilterKernel();
@@ -26,8 +28,8 @@ classdef Filter_P1_Density < Filter
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
-                x0 = zeros(length(xR),obj.field.quadrature.ngaus);
-                for igaus = 1:obj.field.quadrature.ngaus
+                x0 = zeros(length(xR),obj.quadrature.ngaus);
+                for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
             else
@@ -40,13 +42,18 @@ classdef Filter_P1_Density < Filter
 
     methods (Access = private)
 
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            obj.quadrature = q;
+        end
+
         function createMassMatrix(obj)
-            s.dim          = obj.fieldM.dim;
-            s.type         = 'MassMatrix';
-            s.quadType     = 'QUADRATICMASS';
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.field        = obj.fieldM;
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
@@ -81,10 +88,9 @@ classdef Filter_P1_Density < Filter
         function intX = integrateRHS(obj,x)
             intX = zeros(obj.mesh.nelem,1);
             ng = size(x,2);
-            dV = obj.mesh.computeDvolume(obj.field.quadrature)';
+            dV = obj.mesh.computeDvolume(obj.quadrature)';
             for igaus = 1:ng
                 dvolu = dV(:,igaus);
-%                 dvolu = obj.field.geometry.dvolu(:,igaus);
                 intX = intX + dvolu.*x(:,igaus);
             end
         end

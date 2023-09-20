@@ -16,7 +16,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithProjectedGradient', ...
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter',...
-            'test_anisotropy','test_anisotropy_interior'
+            'test_anisotropy','test_anisotropy_interior','test_nullspace','test_gripping'
             }
         macro = {'test_bridge2', ...
             'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
@@ -24,8 +24,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'testDualNestedInPrimal_WithSlerp', ...
             'test_interiorPerimeter'
             }
-%        micro = {'test_micro', 'test_micro2'}
-         micro = {'test_micro'}
+       micro = {'test_micro', 'test_micro2'}
+%          micro = {'test_micro2'}
 %         compTestsToPass = {'test_bridge'}
 %         compTestsToPass = {'test_interiorPerimeter'}
         cantileverTests = {'test_cantilever2', 'test_cantilever3'}

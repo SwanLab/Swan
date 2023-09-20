@@ -14,8 +14,8 @@ classdef FileComparatorTest < handle
         end
 
         function areEqual = computeError(obj)
-            refFile      = [obj.testResultsName,'1','.flavia.res'];
-            currentFile  = ['Output/',obj.testName,'/',obj.testName,'1','.flavia.res'];
+            refFile      = [obj.testResultsName,'_1','.vtu'];
+            currentFile  = ['Output/',obj.testName,'/',obj.testName,'_1','.vtu'];
             c            = FileComparator;
             areDifferent = c.areFilesDifferent(currentFile,refFile);
             areEqual     = ~areDifferent;

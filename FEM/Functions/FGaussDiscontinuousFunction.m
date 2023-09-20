@@ -27,6 +27,26 @@
             assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
         end
+        
+        function dNdx  = computeCartesianDerivatives(obj, quad)
+            assert(isequal(quad,obj.quadrature), 'Quadrature does not match');
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.mesh.interpolation.nnode;
+            nDime = obj.mesh.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = obj.mesh.computeInverseJacobian(quad,obj.mesh.interpolation);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for igaus = 1:nGaus
+                dShapes = obj.mesh.interpolation.deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+        end
 
         function applyVoigtNotation(obj)
             switch obj.ndimf
@@ -44,10 +64,13 @@
             p1fun.plot();
         end
 
-        function print(obj, s)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
-            s.fun  = {obj};
-            p = FunctionPrinter(s);
+            s.fun = {obj};
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -60,6 +83,24 @@
             s.fValues = obj.getFormattedFValues();
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
+        end
+
+        function dofConnec = computeDofConnectivity(obj)
+            % This assumes that FGaussDiscFun comes from a P1Fun...
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
         end
 
     end

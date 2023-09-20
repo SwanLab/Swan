@@ -8,13 +8,14 @@ classdef DilationComputer < handle
     properties (Access = private)
         mesh
         orientationVector
+        dilation
     end
     
     methods (Access = public)
         
         function obj = DilationComputer(cParams)
             obj.init(cParams);
-            obj.createField();
+            obj.createDilationFun();
         end
 
         function rF = compute(obj)
@@ -23,7 +24,7 @@ classdef DilationComputer < handle
             r = obj.solveSystem();
             s.mesh = obj.mesh;
             s.fValues = r;
-            rF = P1Function(s);            
+            rF = P1Function(s);
         end
         
     end
@@ -42,46 +43,42 @@ classdef DilationComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.createField();
+            s.test  = obj.dilation;
+            s.trial = obj.dilation;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-        end  
+        end
 
-        function f = createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            f = Field(s);
-        end        
+        function createDilationFun(obj)
+            obj.dilation = P1Function.create(obj.mesh, 1);
+        end
         
         function computeRHS(obj)
-            f = obj.createField();
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CUBIC');
-            s.fType     = 'Gauss';
-            s.fGauss    = obj.computeFieldTimesDivField(q);
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = f.dim.ndofs;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.mesh.connec;
+            gradT = obj.computeFieldTimesDivField(q);
+
+            s.mesh = obj.mesh;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsF = rhs.compute(gradT);
+            rhsV = rhsF.fValues;
             obj.RHS = [rhsV;0];
         end
         
         function gradT = computeFieldTimesDivField(obj,q)
             a1    = obj.orientationVector{1};
-            a2    = obj.orientationVector{2};            
+            a2    = obj.orientationVector{2};
             aDa1  = a1.computeFieldTimesDivergence(q);
-            aDa2  = a2.computeFieldTimesDivergence(q);
-            gradT = -aDa1.fValues - aDa2.fValues;
-        end        
+            aDa2  = a2.computeFieldTimesDivergence(q);        
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = -aDa1.fValues - aDa2.fValues;
+            gradT = FGaussDiscontinuousFunction(s);
+        end
         
         function u = solveSystem(obj)
             a.type = 'DIRECT';

@@ -19,7 +19,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            % Goal: develop this function
             func = obj.fValues;
             obj.interpolation.computeShapeDeriv(xV);
             shapes = obj.interpolation.shape;
@@ -36,24 +35,30 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
-         function dNdx  = computeCartesianDerivatives(obj,quad)
-            nElem = size(obj.mesh.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                end
-            end
-            dNdx = dShapeDx;
-         end   
+        function N = computeShapeFunctions(obj, quad)
+            obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+%             obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
+        end
+
+        function dNdx  = computeCartesianDerivatives(obj,quad)
+           nElem = size(obj.mesh.connec,1);
+           nNode = obj.interpolation.nnode;
+           nDime = obj.interpolation.ndime;
+           nGaus = quad.ngaus;
+           invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+           dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+           for igaus = 1:nGaus
+               dShapes = obj.interpolation.deriv(:,:,igaus);
+               for jDime = 1:nDime
+                   invJ_JI   = invJ(:,jDime,:,igaus);
+                   dShape_KJ = dShapes(jDime,:);
+                   dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                   dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+               end
+           end
+           dNdx = dShapeDx;
+        end   
 
         function gradFun = computeGradient(obj, quad)
             dNdx = obj.computeCartesianDerivatives(quad);
@@ -81,11 +86,11 @@ classdef P1DiscontinuousFunction < FeFunction
             end
             %  gradt(1,:,:,:) = grad;
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = fVR;
+            s.fValues = permute(fVR, [1 3 2]);
             s.mesh    = obj.mesh;
             s.quadrature = quad;
             gradFun = FGaussDiscontinuousFunction(s);
-        end         
+        end
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
@@ -98,6 +103,25 @@ classdef P1DiscontinuousFunction < FeFunction
             s.fValues = fAll;
             p1fun = P1Function(s);
             fFine = p1fun.project('P1D');
+        end
+
+        function dofConnec = computeDofConnectivity(obj)
+            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
+            nodes  = 1:nNodes;
+            conne = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+            nDimf  = obj.ndimf;
+            nNodeE = size(conne, 2);
+            nDofsE = nNodeE*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNodeE
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
         end
 
         function fV = getFvaluesAsVector(obj)
@@ -139,13 +163,17 @@ classdef P1DiscontinuousFunction < FeFunction
                 view(0,90)
                 colorbar
                 title(['dim = ', num2str(idim)]);
-            end            
+            end
         end
 
-        function print(obj, s)
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh.createDiscontinuousMesh();
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -173,6 +201,12 @@ classdef P1DiscontinuousFunction < FeFunction
             fS = P1DiscontinuousFunction(s);
         end
 
+        function p1d = create(mesh, ndimf)
+            a.mesh    = mesh;
+            a.fValues = zeros(ndimf, mesh.nnodeElem, mesh.nelem);
+            p1d = P1DiscontinuousFunction(a);
+        end
+
     end
 
     methods (Access = private)
@@ -181,6 +215,7 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,1);
+            obj.order   = 'LINEAR';
         end
 
         function createInterpolation(obj)

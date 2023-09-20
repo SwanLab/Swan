@@ -6,7 +6,6 @@ classdef RHSintegrator_ElasticMicro < handle
         boundaryConditions
         vstrain
         material
-        geometry
         dvolume
         globalConnec
         quadrature
@@ -17,7 +16,6 @@ classdef RHSintegrator_ElasticMicro < handle
         function obj = RHSintegrator_ElasticMicro(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createGeometry();
             obj.computeDvolume();
         end
 
@@ -60,16 +58,6 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.quadrature = q;
         end
 
-        function createGeometry(obj)
-            q = obj.quadrature;
-            int = obj.mesh.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
-        end
-
         function computeDvolume(obj)
             q = obj.quadrature;
             obj.dvolume = obj.mesh.computeDvolume(q)';
@@ -103,22 +91,28 @@ classdef RHSintegrator_ElasticMicro < handle
             F = -eforce;
         end
 
-        function sigma = computeStress(obj, vstrain)
+        function sigmaFun = computeStress(obj, vstrain)
             Cmat  = obj.material.C;
             nElem = size(Cmat,3);
             vStr  = repmat(vstrain', [1  1 nElem]);
             sigma = pagemtimes(Cmat, vStr);
+
+            a.mesh       = obj.mesh;
+            a.fValues    = sigma;
+            a.quadrature = obj.quadrature;
+            sigmaFun = FGaussDiscontinuousFunction(a);
         end
 
         function eforce = computeEForce(obj, sigma, igaus)
-            s.dim      = obj.dim;
-            s.geometry = obj.geometry;
+            sigma.ndimf = size(obj.mesh.coord,2); 
+            s.fun  = sigma;
+            s.dNdx = sigma.computeCartesianDerivatives(obj.quadrature);
             Bcomp = BMatrixComputer(s);
             Bmat    = Bcomp.compute(igaus);
             
             dV(1,1,:) = obj.dvolume(:,igaus);
             Bok = permute(Bmat, [2 1 3]);
-            Bsig = pagemtimes(Bok, sigma);
+            Bsig = pagemtimes(Bok, sigma.fValues);
             eforce = pagemtimes(Bsig,dV);
         end
 
