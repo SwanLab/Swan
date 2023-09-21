@@ -13,15 +13,15 @@ classdef DualUpdater_IPM < handle
     end
 
     methods (Access = public)
+        
         function obj = DualUpdater_IPM(cParams)
             obj.init(cParams);
         end
 
         function compute(obj,lz,uz)
             c   = obj.constraint.gradient';
-            g = obj.cost.gradient;
-            l = (c*c')\(c*(lz' - uz' - g'));
-%            l = pinv(full(c'*c))*c'*(lz' - uz' - g');
+            g   = obj.cost.gradient;
+            l   = (c*c')\(c*(lz' - uz' - g'));
             obj.dualVariable.value = l';
         end
 
@@ -32,6 +32,7 @@ classdef DualUpdater_IPM < handle
 
 
     methods (Access = private)
+
         function init(obj,cParams)
             obj.dualVariable = cParams.dualVariable;
             obj.constraint     = cParams.constraint;
@@ -39,5 +40,7 @@ classdef DualUpdater_IPM < handle
             obj.nConstr        = cParams.constraint.nSF;
             obj.cost           = cParams.cost;
         end
+
     end
+
 end
