@@ -1,4 +1,4 @@
-classdef ShapeOptimizationSolver < handle
+classdef MMAShapeOptimizationSolver < handle
 
     properties (Access = public)
         tV
@@ -16,11 +16,12 @@ classdef ShapeOptimizationSolver < handle
         maxIter
         momentumParameter
         momentumParams
+        MMA
     end
 
     methods (Access = public)
 
-        function obj = ShapeOptimizationSolver(cParams)
+        function obj = MMAShapeOptimizationSolver(cParams)
             obj.init(cParams);
         end
 
@@ -33,12 +34,13 @@ classdef ShapeOptimizationSolver < handle
                 [J,dJ] = obj.cost.computeValueAndGradient(xNew);
                 beta = obj.computeBeta(iter);
                 x = obj.addMomentumTerm(xOld,xNew,beta);
-                t = obj.computeLineSearch(x,dJ);
-                x = obj.computeGradientStep(x,dJ,t);
-                x = obj.computeProjection(x);
+                x = obj.MMA.computeIteration(x);
+                % t = obj.computeLineSearch(x,dJ);
+                % x = obj.computeGradientStep(x,dJ,t);
+                % x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
                 incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,beta,incX);
+                obj.plotCostAndLineSearch(iter,J,beta,incX);
                 iter = iter + 1;
             end
         end
@@ -51,13 +53,13 @@ classdef ShapeOptimizationSolver < handle
             xNewNew = xNew + beta*(xNew - xOld);
         end
 
-        function x = computeGradientStep(x,dJ,t)
-            x = x - t*dJ;
-        end
-
-        function x = computeProjection(x)
-            x = max(min(x,1),0);
-        end
+        % function x = computeGradientStep(x,dJ,t)
+        %     x = x - t*dJ;
+        % end
+        % 
+        % function x = computeProjection(x)
+        %     x = max(min(x,1),0);
+        % end
 
         function [xOld,xNew] = updateXnewXold(xNew,xNewNew)
             xOld = xNew;
@@ -82,11 +84,21 @@ classdef ShapeOptimizationSolver < handle
             obj.createCost();
             % obj.createPlotter();
             obj.createMomentumParameter();
+            obj.createMMA();
         end
 
         function createMomentumParameter(obj)
             s = obj.momentumParams;
             obj.momentumParameter = MomentumParameter.create(s);
+        end
+
+        function createMMA(obj)
+            s.upperBound = 1;
+            s.lowerBound = 0;
+            s.constraintCase = 'INEQUALITY';
+            s.cost = obj.cost;
+            s.designVariable = obj.designVariable;
+            obj.MMA = Nesterov_MMA(s);
         end
 
         function createSettings(obj)
@@ -108,10 +120,10 @@ classdef ShapeOptimizationSolver < handle
             obj.cost = CostComplianceVolume(s);
         end
 
-        function createPlotter(obj)
-            s.designVariable = obj.designVariable;
-            obj.plotter = PlotterDensity(s);
-        end
+        % function createPlotter(obj)
+        %     s.designVariable = obj.designVariable;
+        %     obj.plotter = PlotterDensity(s);
+        % end
 
         function x0 = computeInitialValue(obj)
             x0 = obj.designVariable.value;
@@ -131,22 +143,22 @@ classdef ShapeOptimizationSolver < handle
             end
         end
 
-        function t = computeLineSearch(obj,x,dJ)
-            tC = 10;
-            incT = 1;
-            tA = obj.computeAdimensionalLineSearch(x,dJ);
-            t = max(tA,incT*tC);
-        end
+        % function t = computeLineSearch(obj,x,dJ)
+        %     tC = 100;
+        %     incT = 1;
+        %     tA = obj.computeAdimensionalLineSearch(x,dJ);
+        %     t = max(tA,incT*tC);
+        % end
+        % 
+        % function t0 = computeAdimensionalLineSearch(obj,x,dJ)
+        %     nX  = obj.computeNorm(x);
+        %     ndJ = obj.computeNorm(dJ);
+        %     t0 = ndJ/nX;
+        % end
 
-        function t0 = computeAdimensionalLineSearch(obj,x,dJ)
-            nX  = obj.computeNorm(x);
-            ndJ = obj.computeNorm(dJ);
-            t0 = ndJ/nX;
-        end
-
-        function plotCostAndLineSearch(obj,iter,J,t,beta,incX)
+        function plotCostAndLineSearch(obj,iter,J,beta,incX)
             obj.JV(iter) = J;
-            obj.tV(iter) = t;
+            % obj.tV(iter) = t;
             obj.betaV(iter) = beta;
             obj.incXvalues(iter) = incX;
             % obj.plotter.plot(obj.JV,obj.tV,obj.betaV,obj.incXvalues);

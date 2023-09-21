@@ -6,6 +6,11 @@ classdef CostComplianceVolume < handle
         volume
     end
 
+    properties (Access = public)
+        value
+        gradient
+    end
+
     properties (Access = private)
         designVariable
         topOpt
@@ -24,6 +29,13 @@ classdef CostComplianceVolume < handle
             obj.volume.computeFunctionAndGradient();
             J  = obj.computeCost;
             dJ = obj.computeGradient;
+        end
+
+        function computeFunctionAndGradient(obj)
+            obj.compliance.computeFunctionAndGradient();
+            obj.volume.computeFunctionAndGradient();
+            obj.value = obj.computeCost;
+            obj.gradient = obj.computeGradient;
         end
 
     end
