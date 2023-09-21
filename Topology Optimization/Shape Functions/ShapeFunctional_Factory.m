@@ -110,17 +110,17 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.eta  = 0.5+0.25;
                     cParams.filterParams.femSettings.beta = 1;
                     cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceTarget(cParams);
+                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoI'
                     cParams.filterParams.femSettings.eta  = 0.5;
                     cParams.filterParams.femSettings.beta = 1;
                     cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceTarget(cParams);
+                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoD'
                     cParams.filterParams.femSettings.eta  = 0.5-0.25;
                     cParams.filterParams.femSettings.beta = 1;
                     cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceTarget(cParams);
+                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
                 case 'VolumeConstraintRhoD'
                     cParams.filterParams.femSettings.eta  = 0.5;
                     cParams.filterParams.femSettings.beta = 1;

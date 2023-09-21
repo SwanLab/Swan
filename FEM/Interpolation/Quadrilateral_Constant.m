@@ -17,9 +17,9 @@ classdef Quadrilateral_Constant < Interpolation
     methods (Access = private)
 
         function computeParams(obj)
-            obj.type = 'QUAD';
-            obj.ndime = 2;
-            obj.nnode = 1;
+            obj.type      = 'QUAD';
+            obj.ndime     = 2;
+            obj.nnode     = 1;
             obj.pos_nodes = [0 0];
         end
 

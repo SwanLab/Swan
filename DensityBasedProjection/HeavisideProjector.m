@@ -14,27 +14,40 @@ classdef HeavisideProjector < handle
     methods (Access = public)
 
         function obj = HeavisideProjector(cParams)
-            obj.inputData(cParams);
+            obj.init(cParams);
         end
 
-        function updateFilteredField(obj,x_filter)
-            obj.filteredField = x_filter;
+        function updateFilteredField(obj,xFilter)
+            obj.filteredField = xFilter;
         end
 
         function project(obj)
-            obj.projectedField = (tanh(obj.beta*obj.eta) + tanh(obj.beta*(obj.filteredField-obj.eta)))/(tanh(obj.beta*obj.eta) + tanh(obj.beta*(1-obj.eta)));
+            a = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum();
+            b = obj.computeExpressionInDen();
+            obj.projectedField = a/b;
         end
 
         function derive(obj)
-            obj.derivatedProjectedField = obj.beta*(1 - (tanh(obj.beta*(obj.filteredField-obj.eta))).^2)/(tanh(obj.beta*obj.eta) + tanh(obj.beta*(1-obj.eta)));    
+            a = 1 - obj.computeExpressionInNum().^2;
+            b = obj.computeExpressionInDen();
+            obj.derivatedProjectedField = obj.beta*a/b;
         end
 
     end
+
     methods (Access = private)
 
-        function inputData(obj,cParams)
+        function init(obj,cParams)
             obj.beta = cParams.beta;
             obj.eta  = cParams.eta;
+        end
+
+        function num = computeExpressionInNum(obj)
+            num = tanh(obj.beta*(obj.filteredField-obj.eta));
+        end
+
+        function den = computeExpressionInDen(obj)
+            den = tanh(obj.beta*obj.eta) + tanh(obj.beta*(1-obj.eta));
         end
         
     end    

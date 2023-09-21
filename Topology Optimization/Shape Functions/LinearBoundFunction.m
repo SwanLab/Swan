@@ -7,7 +7,7 @@ classdef LinearBoundFunction < ShapeFunctional
         end
 
         function computeFunctionAndGradient(obj)
-            obj.value         = obj.designVariable.value(end);
+            obj.value         = obj.designVariable.bound;
             obj.gradient      = zeros(length(obj.designVariable.value),1);
             obj.gradient(end) = 1;
         end
@@ -17,7 +17,7 @@ classdef LinearBoundFunction < ShapeFunctional
         end
 
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value(end);
+            v{1} = obj.value;
         end
 
     end
