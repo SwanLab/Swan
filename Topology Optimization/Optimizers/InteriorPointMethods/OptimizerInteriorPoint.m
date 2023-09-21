@@ -1,7 +1,5 @@
 classdef OptimizerInteriorPoint < Optimizer
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'IPM';
-    end
+          
     properties (Access = private)
         slack
         lowerX
@@ -55,6 +53,7 @@ classdef OptimizerInteriorPoint < Optimizer
     end
 
     methods (Access = public)
+
         function obj = OptimizerInteriorPoint(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
@@ -62,6 +61,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
         end
+
         function solveProblem(obj)
             obj.hasConverged = false;
             obj.hasFinished = false;
@@ -125,9 +125,14 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateCost(obj)
-             for i = 1:obj.nX              
-                obj.cost.value    = obj.cost.value - obj.baseVariables.mu * (log(obj.designVariable.value(i) - obj.lowerX(i)) + log(obj.upperX(i) - obj.designVariable.value(i)));
-             end
+             x = obj.designVariable.value;
+             lb = obj.lowerX';
+             ub = obj.upperX';
+             mu = obj.baseVariables.mu;
+             c  = obj.cost.value;             
+             cNew = c - mu*sum(log(x-lb) + log(ub-x));
+             obj.cost.value = cNew;
+
              j = 0;
              for i = 1:obj.m
                 if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
@@ -498,7 +503,7 @@ classdef OptimizerInteriorPoint < Optimizer
             s_max    = 100; % > 1
             s_d      = max(s_max,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(obj.m+2*(obj.nX+obj.nSlack)));
             s_c      = max(s_max,(sum(abs(obj.upperZ))+sum(abs(obj.lowerZ)))/(2*(obj.nX+obj.nSlack)));
-            part(1) = max(abs(obj.cost.gradient' + obj.constraint.gradient*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
+            part(1)  = max(abs(obj.cost.gradient' + obj.constraint.gradient*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/s_d;
             part(2)  = max(abs(obj.constraint.value));
             part(3)  = max(abs(diag([obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack])*diag(obj.lowerZ)*obj.e))/s_c;
             part(4)  = max(abs(diag([obj.upperX-obj.designVariable.value' obj.upperSlack-obj.slack])*diag(obj.upperZ)*obj.e))/s_c;
