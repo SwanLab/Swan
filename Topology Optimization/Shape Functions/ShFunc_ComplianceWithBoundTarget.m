@@ -3,10 +3,10 @@ classdef ShFunc_ComplianceWithBoundTarget < handle
     properties (Access = public)
         value
         gradient
-        shFunTargettedType
     end
 
     properties (Access = private)
+        shFunTargettedType
         shapeFunctionTargetted
         designVariable
     end

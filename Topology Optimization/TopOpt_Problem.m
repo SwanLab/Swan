@@ -66,10 +66,7 @@ classdef TopOpt_Problem < handle
                     obj.optimizerSettings.uncOptimizerSettings.ub = ones(length(obj.designVariable.value),1);
                     obj.optimizerSettings.uncOptimizerSettings.ub(end) = 1000;
                     obj.optimizerSettings.uncOptimizerSettings.lb = zeros(length(obj.designVariable.value),1);
-                    switch obj.constraint.shapeFunctions{1,1}.shFunTargettedType % Poner bonito
-                        case 'nonadjoint_compliance'
-                            obj.optimizerSettings.uncOptimizerSettings.lb(end) = -1000;
-                    end
+                    obj.optimizerSettings.uncOptimizerSettings.lb(end) = -1000;
                 otherwise
 
             end

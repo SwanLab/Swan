@@ -1,21 +1,21 @@
 classdef Volume_constraintWithBound < ShapeFunctional
 
-properties (Access = public)
-    volume
-    vTarget
-end
+    properties (Access = private)
+        volume
+        vTarget
+    end
 
     methods (Access = public)
 
         function obj = Volume_constraintWithBound(cParams)
             cParams.designVariable = cParams.designVariable.density;
-            obj.volume = Volume_constraint(cParams);
+            obj.volume  = Volume_constraint(cParams);
             obj.vTarget = cParams.targetParameters.Vfrac;
         end
 
         function computeFunctionAndGradient(obj)
             obj.volume.computeFunctionAndGradient();
-            obj.value = obj.volume.value;
+            obj.value    = obj.volume.value;
             obj.gradient = [obj.volume.gradient;0];
         end
 
