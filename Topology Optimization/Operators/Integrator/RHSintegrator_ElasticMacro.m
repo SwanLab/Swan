@@ -4,6 +4,7 @@ classdef RHSintegrator_ElasticMacro < handle
         dim
         mesh
         boundaryConditions
+        newBCs
     end
     
     methods (Access = public)
@@ -42,6 +43,7 @@ classdef RHSintegrator_ElasticMacro < handle
             obj.dim                = cParams.dim;
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
+            obj.newBCs = cParams.newBCs;
         end
 
         function Fp = computePunctualFext(obj)
@@ -52,6 +54,7 @@ classdef RHSintegrator_ElasticMacro < handle
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
+            Fp = reshape(obj.newBCs{2}.fun.fValues', [82 1]);
         end
 
     end

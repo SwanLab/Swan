@@ -22,9 +22,23 @@ clc; clear; close all
     bc.pointload(:,2) = 2;
     bc.pointload(:,1) = nodes(forceNodes);
 
+    isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+    isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+    isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) < 0.1);
+
+    dir_dom = @(coor) isLeft(coor);
+    dir_dir = [1,2];
+    dir_val = 30;
+    dirich = DirichletCondition(mesh, dir_dom, dir_dir, dir_val);
+
+    pl_dom = @(coor) isRight(coor) & isMiddle(coor);
+    pl_dir = 2;
+    pl_val = -1;
+    pl = PointLoad(mesh, pl_dom, pl_dir, pl_val);
+
 
 % (3) Create the material
-% material = createMaterial();
+% material = createMaterial(); % analytical functions
     I = ones(mesh.nelem,1);
     s.ptype = 'ELASTIC';
     s.pdim  = '2D';
@@ -43,6 +57,7 @@ clc; clear; close all
     s.scale = 'MACRO';
     s.material = material;
     s.bc = bc;
+    s.newBCs = {dirich, pl};
 %     problem = FEM.create(s);
     problem = NewElasticProblem(s);
 
@@ -58,6 +73,7 @@ clc; clear; close all
 % - time for boundary conditions
 %       - pass coords of point load -> coord2dof matching
 %       - logical functions for boundaries?
+%       - what about stokes? others use FunctionSpace...
 
 % - materials
 %       - kappa + mu // E + nu

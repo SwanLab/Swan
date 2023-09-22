@@ -16,6 +16,7 @@ classdef NewElasticProblem < handle
         inputBC
         strain
         stress
+        newBCs
     end
 
     properties (Access = protected)
@@ -108,6 +109,7 @@ classdef NewElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.pdim        = cParams.mesh.ndim;
             obj.inputBC     = cParams.bc;
+            obj.newBCs  = cParams.newBCs;
             if isprop(cParams, 'interpolationType') % later on for P2
                 obj.interpolationType = cParams.interpolationType;
             else
@@ -169,6 +171,7 @@ classdef NewElasticProblem < handle
             s.scale    = obj.scale;
             s.dim      = obj.getFunDims();
             s.BC       = obj.boundaryConditions;
+            s.newBCs   = obj.newBCs;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;

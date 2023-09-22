@@ -1,5 +1,7 @@
 %% To-do
 
+% print paraview tercer argument pq printegi??
+
 % WEBSITE
     % STEP 1
     % - Readme: tot fora, portar cap a la web + documentation
