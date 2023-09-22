@@ -1,4 +1,4 @@
-filename='BridgeArchSmall';
+filename='BridgeArch';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

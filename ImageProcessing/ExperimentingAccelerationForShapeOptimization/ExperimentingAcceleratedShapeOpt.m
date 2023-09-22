@@ -1,5 +1,5 @@
 function [exp1,exp2,exp3,exp4,exp5,exp6] = ExperimentingAcceleratedShapeOpt()
-
+% 
 exp1 = computeStandardCase();
 exp2 = computeMomentumCase();
 exp3 = computeConstantOne();

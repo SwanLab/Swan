@@ -413,6 +413,9 @@ classdef Nesterov_MMA < handle
                         Alam = spdiags(diaglamyi,0,m,m) + GG*spdiags(diagxinv,0,n,n)*GG';
                         AA = [Alam     a
                             a'    -zet/z ];
+                        if abs(AA(1,1)) + abs(AA(1,2)) < 1 && abs(bb(1)) < 1e-3 % -> Invented by Arnau to avoid singular Matrix (does not change the result)
+                            AA(1,1) = 1;
+                        end
                         solut = AA\bb;
                         dlam = solut(1:m);
                         dz = solut(m+1);
