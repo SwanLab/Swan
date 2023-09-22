@@ -1,5 +1,8 @@
 classdef OptimizerInteriorPoint < Optimizer
           
+% treure fors
+% newZDir in another class
+
     properties (Access = private)
         slack
         lowerX
@@ -79,67 +82,49 @@ classdef OptimizerInteriorPoint < Optimizer
     methods(Access = private)
         function previousComputations(obj)
             obj.moveVariablesToFeasible();
-            obj.computeVariableConstraintMultiplyers();
+            obj.computeVariableConstraintMultipliers();
             obj.updateCC();
             obj.dualUpdater.compute(obj.lowerZ,obj.upperZ);
         end
 
         function moveVariablesToFeasible(obj)
-             for i = 1:obj.nX
-                 x = obj.designVariable.value;
-                if (obj.designVariable.value(i) <= obj.lowerX(i))
-                    x(i) = min(obj.upperX(i),obj.lowerX(i)+1e-2);
-                    obj.designVariable.update(x);
-                end
-                if (obj.designVariable.value(i) >= obj.upperX(i))
-                    x(i) = max(obj.lowerX(i),obj.upperX(i)-1e-2);
-                    obj.designVariable.update(x);
-                end
-             end
-            for i = 1:obj.nSlack
-                if (obj.slack(i) <= obj.lowerSlack(i))
-                    obj.slack(i) = min(obj.upperSlack(i),obj.lowerSlack(i)+1e-2);
-                end
-                if (obj.slack(i) >= obj.upperSlack(i))
-                    obj.slack(i) = max(obj.lowerSlack(i),obj.upperSlack(i)-1e-2);
-                end
-            end
+            s.x      = obj.designVariable.value;
+            s.upperX = obj.upperX;
+            s.lowerX = obj.lowerX;
+            x        = obj.replaceOutOfBoundsVariables(s);
+            obj.designVariable.update(x);
+            s.x       = obj.slack;
+            s.upperX  = obj.upperSlack;
+            s.lowerX  = obj.lowerSlack;
+            obj.slack = obj.replaceOutOfBoundsVariables(s);
         end
 
-        function computeVariableConstraintMultiplyers(obj)
+        function computeVariableConstraintMultipliers(obj)
             obj.barrierTau = min(obj.baseVariables.tau_max,100*obj.baseVariables.mu);
-            for i = 1:obj.nX
-                zL(i)           = obj.baseVariables.mu / (obj.designVariable.value(i) - obj.lowerX(i));
-            end
-            for i = 1:obj.nSlack
-                zL(obj.nX + i)  = obj.baseVariables.mu / (obj.slack(i) - obj.lowerSlack(i));
-            end
-            for i = 1:obj.nX
-                zU(i)           = obj.baseVariables.mu / (obj.upperX(i) - obj.designVariable.value(i));
-            end
-            for i = 1:obj.nSlack
-                zU(obj.nX+i)    = obj.baseVariables.mu / (obj.upperSlack(i) - obj.slack(i));
-            end
+            zL = obj.baseVariables.mu./(obj.designVariable.value' - obj.lowerX);
+            zL = [zL,obj.baseVariables.mu./(obj.slack' - obj.lowerSlack)];
+            zU = obj.baseVariables.mu./(obj.upperX - obj.designVariable.value');
+            zU = [zU,obj.baseVariables.mu./(obj.upperSlack - obj.slack')];
+
             obj.lowerZ = zL;
             obj.upperZ = zU;
         end
 
         function updateCost(obj)
-             x = obj.designVariable.value;
-             lb = obj.lowerX';
-             ub = obj.upperX';
-             mu = obj.baseVariables.mu;
-             c  = obj.cost.value;             
+             x    = obj.designVariable.value;
+             lb   = obj.lowerX';
+             ub   = obj.upperX';
+             mu   = obj.baseVariables.mu;
+             c    = obj.cost.value;             
              cNew = c - mu*sum(log(x-lb) + log(ub-x));
-             obj.cost.value = cNew;
 
-             j = 0;
-             for i = 1:obj.m
-                if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
-                   j = j + 1;
-                   obj.cost.value = obj.cost.value - obj.baseVariables.mu * (log(obj.slack(j) - obj.lowerLinearBound(i)) + log(obj.upperLinearBound(i) - obj.slack(j)));
-                end
-             end
+             sl        = obj.slack;
+             isUpperLB = obj.upperLinearBound > obj.lowerLinearBound;
+             lowerLB   = obj.lowerLinearBound(isUpperLB);
+             upperLB   = obj.upperLinearBound(isUpperLB);
+             cNew      = cNew - sum(mu*(log(sl - lowerLB) + log(upperLB - sl)));
+
+             obj.cost.value = cNew;
         end
 
         function updateCostGradient(obj)
@@ -148,27 +133,23 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateConstraint(obj)
-            j = 0;
-            for i = 1:size(obj.constraint.value,1)
-                if (obj.upperLinearBound(i) == obj.lowerLinearBound(i))
-                    obj.constraint.value(i) = obj.constraint.value(i) - obj.lowerLinearBound(i);
-                else
-                    j = j + 1;
-                    obj.constraint.value(i) = obj.constraint.value(i) - obj.slack(j);
-                end
-            end
+            c  = obj.constraint.value;
+            ub = obj.upperLinearBound(:,1);
+            lb = obj.lowerLinearBound(:,1);
+            sl = obj.slack;
+            areBoundsEqual = ub == lb;
+            c(areBoundsEqual)    = c(areBoundsEqual) - lb(areBoundsEqual);
+            c(~areBoundsEqual)   = c(~areBoundsEqual) - sl;
+            obj.constraint.value = c;
         end
 
         function updateConstraintGradient(obj)
             mC = size(obj.constraint.gradient,1);
             nC = size(obj.constraint.gradient,2);
-            k  = 0;
-            for i = 1:mC
-                if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
-                    k                               = k + 1;
-                    obj.constraint.gradient(mC+k,nC) = -1;
-                end
-            end
+            isUpper = obj.upperLinearBound > obj.lowerLinearBound;
+            dk = length(find(isUpper==true));
+            i  = mC+1:mC+dk;
+            obj.constraint.gradient(i,nC) = -1;
         end
 
         function computeHessian(obj)
@@ -257,29 +238,20 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function pushVariables(obj)
-            for i = 1:obj.nX
-                if(obj.xa(i) < obj.lowerX(i))
-                    obj.xa(i) = obj.lowerX(i) + obj.barrierTau*(obj.designVariable.value(i) - obj.lowerX(i));
-                end
-                if(obj.xa(i) > obj.upperX(i))
-                    obj.xa(i) = obj.upperX(i) - obj.barrierTau*(obj.upperX(i) - obj.designVariable.value(i));
-                end
-                if(obj.zLa(i) < 0)
-                    obj.zLa(i) = obj.barrierTau*(obj.lowerZ(i));
-                end
-                if(obj.zUa(i) < 0)
-                    obj.zUa(i) = obj.barrierTau*(obj.upperZ(i));
-                end
-            end
-            for i = 1:obj.nSlack
-                if(obj.sa(i) < obj.lowerSlack(i))
-                    obj.sa(i) = obj.lowerSlack(i) + obj.barrierTau*(obj.slack(i) - obj.lowerSlack(i));
-
-                end
-                if(obj.sa(i) > obj.upperSlack(i))
-                    obj.sa(i) = obj.upperSlack(i) - obj.barrierTau*(obj.upperSlack(i) - obj.slack(i));
-                end
-            end
+            isLower = obj.xa<obj.lowerX;
+            isUpper = obj.xa>obj.upperX;
+            dxl     = obj.barrierTau*(obj.designVariable.value(isLower) - obj.lowerX(isLower));
+            dxu     = obj.barrierTau*(obj.upperX(isUpper) - obj.designVariable.value(isUpper));
+            obj.xa(isLower) = obj.lowerX(isLower) + dxl;
+            obj.xa(isUpper) = obj.upperX(isUpper) - dxu;
+            obj.zLa(obj.zLa<0) = obj.barrierTau*(obj.lowerZ(obj.zLa<0));
+            obj.zUa(obj.zUa<0) = obj.barrierTau*(obj.upperZ(obj.zUa<0));
+            isLower = obj.sa<obj.lowerSlack;
+            isUpper = obj.sa>obj.upperSlack;
+            dsl     = obj.barrierTau*(obj.slack(isLower) - obj.lowerSlack(isLower));
+            dsu     = obj.barrierTau*(obj.upperSlack(isUpper) - obj.slack(isUpper));
+            obj.sa(isLower) = obj.lowerSlack(isLower) + dsl;
+            obj.sa(isUpper) = obj.upperSlack(isUpper) - dsu;
         end
 
         function updateWithAcceptance(obj)
@@ -290,9 +262,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateHessian(obj)
-            for i = 1:obj.nSlack
-                obj.hessian(obj.nX+i,obj.nX+i) = 0.0;
-            end
+            obj.hessian(obj.nX+1:obj.nX+obj.nSlack) = 0;
             obj.H = obj.hessian + obj.lowerSigma + obj.upperSigma;
         end
 
@@ -439,51 +409,36 @@ classdef OptimizerInteriorPoint < Optimizer
         function computeLinearBounds(obj)
             for i = 1:length(obj.constraintCase)
                 if strcmp(obj.constraintCase{i},'INEQUALITY')
-                    for j = 1:obj.nX
-                        obj.lowerLinearBound(i,j) = -inf;
-                        obj.upperLinearBound(i,j) = 0;
-                    end
+                    obj.lowerLinearBound(i,:) = -inf;
+                    obj.upperLinearBound(i,:) = 0;
                 else
-                    for j = 1:obj.nX
-                        obj.lowerLinearBound(i,j) = 0;
-                        obj.upperLinearBound(i,j) = 0;
-                    end
+                    obj.lowerLinearBound(i,:) = 0;
+                    obj.upperLinearBound(i,:) = 0;
                 end
             end
         end
 
         function computeUpperAndLowerBounds(obj)
-            for i = 1:obj.nX
-                obj.lowerX(i) = 0 - 1e-6;
-                obj.upperX(i) = 1 + 1e-6;
-            end
+            n = obj.nX;
+            obj.lowerX = (-1e-6)*ones(1,n);
+            obj.upperX = (1+1e-6)*ones(1,n);
         end
 
         function computeSlackVariables(obj)
-            k              = 0;
-            obj.m          = max(size(obj.lowerLinearBound));
-            for i = 1:obj.m
-                if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
-                    k = k + 1;
-                    obj.slack(k) = 0;
-                    obj.lowerSlack(k) = obj.lowerLinearBound(i);
-                    obj.upperSlack(k) = obj.upperLinearBound(i);
-                end
-            end
-            obj.nSlack  = max(size(obj.slack));
+            obj.m   = max(size(obj.lowerLinearBound));
+            isUpper = obj.upperLinearBound > obj.lowerLinearBound;
+            slPos   = 1:length(find(isUpper==true));
+            obj.slack(slPos)      = 0;
+            obj.lowerSlack(slPos) = obj.lowerLinearBound(isUpper);
+            obj.upperSlack(slPos) = obj.upperLinearBound(isUpper);
+            obj.nSlack            = max(size(obj.slack));
             obj.updateConstraint();
-            obj.m       = max(size(obj.constraint.value));
-            obj.e       = ones(obj.nX + obj.nSlack,1);
-            k = 0;
-            for i = 1:obj.m
-                if(obj.upperLinearBound(i) > obj.lowerLinearBound(i))
-                    k = k + 1;
-                    if (obj.baseVariables.slack_init)
-                        obj.slack(k) = obj.constraint.value(i);
-                    else
-                        obj.slack(k) = 0.01;
-                    end
-                end
+            obj.m = max(size(obj.constraint.value));
+            obj.e = ones(obj.nX + obj.nSlack,1);
+            if (obj.baseVariables.slack_init)
+                obj.slack(slPos) = obj.constraint.value(isUpper);
+            else
+                obj.slack(slPos) = 0.01;
             end
             obj.alphaPrimal = 1.0;
             obj.alphaDual   = 1.0;
@@ -551,4 +506,19 @@ classdef OptimizerInteriorPoint < Optimizer
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
     end
+
+    methods (Access = private,Static)
+
+        function x = replaceOutOfBoundsVariables(s)
+            x          = s.x;
+            upperX     = s.upperX;
+            lowerX     = s.lowerX;
+            isLower    = x<=lowerX;
+            isUpper    = x>=upperX;
+            x(isLower) = min(upperX(isLower),lowerX(isLower)+1e-2);
+            x(isUpper) = max(lowerX(isUpper),upperX(isUpper)-1e-2);
+        end
+
+    end
+
 end
