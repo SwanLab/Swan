@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
+   <UnstructuredGrid>
+      <Piece NumberOfCells="16" NumberOfPoints="13">
+         <Points>
+            <DataArray Name="Points" NumberOfComponents="3" format="ascii" type="Float32">
+0.0000 1.0000 0.0000
+0.0000 1.5000 0.0000
+0.0000 2.0000 0.0000
+1.0000 1.0000 0.0000
+1.0000 1.5000 0.0000
+1.0000 2.0000 0.0000
+2.0000 1.0000 0.0000
+2.0000 1.5000 0.0000
+2.0000 2.0000 0.0000
+0.5000 1.2500 0.0000
+0.5000 1.7500 0.0000
+1.5000 1.2500 0.0000
+1.5000 1.7500 0.0000</DataArray>
+         </Points>
+         <Cells>
+            <DataArray Name="connectivity" format="ascii" type="Int32">
+ 1 0 9
+ 2 1 10
+ 4 3 11
+ 5 4 12
+ 4 1 9
+ 5 2 10
+ 7 4 11
+ 8 5 12
+ 3 4 9
+ 4 5 10
+ 6 7 11
+ 7 8 12
+ 0 3 9
+ 1 4 10
+ 3 6 11
+ 4 7 12</DataArray>
+            <DataArray Name="offsets" format="ascii" type="Int32">3 6 9 12 15 18 21 24 27 30 33 36 39 42 45 48 </DataArray>
+            <DataArray Name="types" format="ascii" type="UInt8">5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 </DataArray>
+         </Cells>
+         <PointData>
+            <DataArray Name="fValues" NumberOfComponents="3" format="ascii" type="Float64">
+-2.71948e-16  5.43896e-16        00000 
+-5.09204e-17 -9.16568e-16        00000 
+ 1.48704e-16  1.04499e-15        00000 
+-4.61005e+00 -7.02224e+00        00000 
+ 8.51912e-16 -6.46750e+00        00000 
+ 4.61005e+00 -7.02224e+00        00000 
+-6.29953e+00 -2.00478e+01        00000 
+ 4.67333e-16 -2.02919e+01        00000 
+ 6.29953e+00 -2.00478e+01        00000 
+-1.05583e+00 -2.97858e+00        00000 
+ 1.05583e+00 -2.97858e+00        00000 
+-2.86354e+00 -1.33038e+01        00000 
+ 2.86354e+00 -1.33038e+01        00000 </DataArray>
+         </PointData>
+         <CellData/>
+      </Piece>
+   </UnstructuredGrid>
+</VTKFile>

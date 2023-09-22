@@ -20,7 +20,7 @@ classdef Gauss_Solver < Solver
 %                         end
 %                     end
                 x=L\(RHS-U*xold);
-%             Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
+             Gauss_Solver.plotSolution(x,mesh,bc,numItr)
 %                 end
 %             normVal=norm((xold-x)/x);
             normVal=norm(x-xold);
@@ -37,6 +37,7 @@ classdef Gauss_Solver < Solver
             xF = P1Function(s);
             %xF.plot();
             xF.print(['sol',num2str(numItr)],'Paraview')
+            fclose('all');
         end
     end
 
