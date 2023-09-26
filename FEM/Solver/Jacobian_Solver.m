@@ -6,7 +6,7 @@ classdef Jacobian_Solver < Solver
             normVal = Inf;
             tol = 1e-6;
             n = length(LHS);
-            x = zeros(n,1);
+            x = rand(n,1);
             numItr = 0;
             D = diag(diag(LHS));
             T = LHS - D;
@@ -23,7 +23,7 @@ classdef Jacobian_Solver < Solver
                     
 %             x=D\(RHS-T*x);
                 x=w*(D\(RHS-T*xold))+(1-w)*xold;
-             Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
+%             Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
 %                 end
 %             normVal=norm((xold-x)/x);
             normVal=norm(x-xold);
