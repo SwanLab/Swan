@@ -390,19 +390,23 @@ classdef OptimizerInteriorPoint < Optimizer
                 obj.hasConverged = true;
             end
         end
-        
+
         function computeError(obj)
-            sMax      = 100;
-            nConstr   = obj.constraint.nSF;
-            nnode     = obj.designVariable.mesh.nnodes;
-            e         = ones(nnode + obj.nSlack,1);
-            sD        = max(sMax,(sum(abs(obj.dualVariable.value))+sum(abs(obj.lowerZ))+sum(abs(obj.upperZ)))/(nConstr+2*(nnode+obj.nSlack)));
-            sC        = max(sMax,(sum(abs(obj.upperZ))+sum(abs(obj.lowerZ)))/(2*(nnode+obj.nSlack)));
-            part(1)   = max(abs(obj.cost.gradient' + obj.constraint.gradient*obj.dualVariable.value' - obj.lowerZ' + obj.upperZ'))/sD;
-            part(2)   = max(abs(obj.constraint.value));
-            part(3)   = max(abs(diag([obj.designVariable.value'-obj.lowerX obj.slack-obj.lowerSlack])*diag(obj.lowerZ)*e))/sC;
-            part(4)   = max(abs(diag([obj.upperX-obj.designVariable.value' obj.upperSlack-obj.slack])*diag(obj.upperZ)*e))/sC;
-            obj.error = max(part);
+            s.sMax           = 100;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.slack          = obj.slack;
+            s.lowerBounds.X  = obj.lowerX;
+            s.lowerBounds.S  = obj.lowerSlack;
+            s.lowerBounds.Z  = obj.lowerZ;
+            s.upperBounds.X  = obj.upperX;
+            s.upperBounds.S  = obj.upperSlack;
+            s.upperBounds.Z  = obj.upperZ;
+            eps              = IPMErrorComputer(s);
+            eps.compute();
+            obj.error        = eps.error;
         end
 
         function checkNewBarrierProblem(obj)

@@ -20,6 +20,9 @@ classdef IPMErrorComputer < handle
         gradRef
         fieldRef
         errorGrad
+        errorConstr
+        errorDesVarLB
+        errorDesVarUB
     end
 
     methods (Access = public)
@@ -31,6 +34,10 @@ classdef IPMErrorComputer < handle
             obj.computeGradientReference();
             obj.computeFieldReference();
             obj.computeErrorDueToGradients();
+            obj.computeErrorDueToConstraint();
+            obj.computeErrorDueToLowerBoundMargins();
+            obj.computeErrorDueToUpperBoundMargins();
+            obj.computeLinfinityNorm();
         end
     end
 
@@ -75,6 +82,44 @@ classdef IPMErrorComputer < handle
             uZ            = obj.upperBounds.Z';
             sD            = obj.gradRef;
             obj.errorGrad = max(abs(DJ + Dg*l - lZ + uZ))/sD;
+        end
+
+        function computeErrorDueToConstraint(obj)
+            g               = obj.constraint.value;
+            obj.errorConstr = max(abs(g));
+        end
+
+        function computeErrorDueToLowerBoundMargins(obj)
+            x                 = obj.designVariable.value';
+            lX                = obj.lowerBounds.X;
+            s                 = obj.slack;
+            lS                = obj.lowerBounds.S;
+            lZ                = obj.lowerBounds.Z;
+            nnode             = obj.designVariable.mesh.nnodes;
+            e                 = ones(nnode+obj.nSlack,1);
+            sC                = obj.fieldRef;
+            obj.errorDesVarLB = max(abs(diag([x-lX s-lS])*diag(lZ)*e))/sC;
+        end
+
+        function computeErrorDueToUpperBoundMargins(obj)
+            x                 = obj.designVariable.value';
+            uX                = obj.upperBounds.X;
+            s                 = obj.slack;
+            uS                = obj.upperBounds.S;
+            uZ                = obj.upperBounds.Z;
+            nnode             = obj.designVariable.mesh.nnodes;
+            e                 = ones(nnode+obj.nSlack,1);
+            sC                = obj.fieldRef;
+            obj.errorDesVarUB = max(abs(diag([uX-x uS-s])*diag(uZ)*e))/sC;
+        end
+
+        function computeLinfinityNorm(obj)
+            e1        = obj.errorGrad;
+            e2        = obj.errorConstr;
+            e3        = obj.errorDesVarLB;
+            e4        = obj.errorDesVarUB;
+            e         = [e1,e2,e3,e4];
+            obj.error = max(e);
         end
     end
 end
