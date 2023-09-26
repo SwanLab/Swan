@@ -2,9 +2,7 @@ classdef IPMDirectionComputer < handle
 
     properties (Access = public)
         gradients
-        lowerSigma
-        upperSigma
-        H
+        updatedHessian
     end
 
     properties (Access = private)
@@ -25,6 +23,8 @@ classdef IPMDirectionComputer < handle
     properties (Access = private)
         invLowerDesignVarMargin
         invUpperDesignVarMargin
+        lowerSigma
+        upperSigma
         LHS
         RHS
         sol
@@ -54,8 +54,8 @@ classdef IPMDirectionComputer < handle
             obj.dualVariable   = cParams.dualVariable;
             obj.baseVariables  = cParams.baseVariables;
             obj.hessian        = cParams.hessian;
-            obj.nConstr        = cParams.nConstr;
-            obj.nnode          = cParams.nX;
+            obj.nConstr        = cParams.constraint.nSF;
+            obj.nnode          = cParams.designVariable.mesh.nnodes;
             obj.nSlack         = cParams.nSlack;
             obj.lowerBounds    = cParams.lowerBounds;
             obj.upperBounds    = cParams.upperBounds;
@@ -75,11 +75,11 @@ classdef IPMDirectionComputer < handle
 
         function updateHessian(obj)
             obj.hessian(obj.nnode+1:obj.nnode+obj.nSlack) = 0;
-            obj.H = obj.hessian + obj.lowerSigma + obj.upperSigma;
+            obj.updatedHessian = obj.hessian + obj.lowerSigma + obj.upperSigma;
         end
 
         function computeLHS(obj)
-            s.H          = obj.H;
+            s.H          = obj.updatedHessian;
             s.m          = obj.nConstr;
             s.constraint = obj.constraint;
             s.type       = 'IPMSymmetric';
@@ -106,21 +106,27 @@ classdef IPMDirectionComputer < handle
         end
 
         function solveLinearSystem(obj)
-            s.type   = 'DIRECT';
-            sLS      = Solver.create(s);
-            obj.sol      = sLS.solve(-obj.LHS,obj.RHS);
+            s.type  = 'DIRECT';
+            sLS     = Solver.create(s);
+            obj.sol = sLS.solve(-obj.LHS,obj.RHS);
         end
 
         function searchNewDirections(obj)
+            obj.gradients.dx   = obj.sol(1:obj.nnode,1);
+            obj.gradients.ds   = obj.sol(obj.nnode+1:obj.nnode+obj.nSlack,1);
+            obj.gradients.dlam = obj.sol(obj.nnode+obj.nSlack+1:end,1);
+            
             mu                 = obj.baseVariables.mu;
             e                  = ones(obj.nnode + obj.nSlack,1);
             invDiagdLX         = obj.invLowerDesignVarMargin;
             invDiagdUX         = obj.invUpperDesignVarMargin;
-            obj.gradients.dx   = obj.sol(1:obj.nnode,1);
-            obj.gradients.ds   = obj.sol(obj.nnode+1:obj.nnode+obj.nSlack,1);
-            obj.gradients.dlam = obj.sol(obj.nnode + obj.nSlack + 1:obj.nnode + obj.nSlack + obj.nConstr,1);
-            obj.gradients.dzL  = mu*invDiagdLX*e-obj.lowerBounds.Z'-obj.lowerSigma*[obj.gradients.dx; obj.gradients.ds];
-            obj.gradients.dzU  = mu*invDiagdUX*e-obj.upperBounds.Z'+obj.upperSigma*[obj.gradients.dx; obj.gradients.ds];
+            lZ                 = obj.lowerBounds.Z';
+            uZ                 = obj.upperBounds.Z';
+            lSig               = obj.lowerSigma;
+            uSig               = obj.upperSigma;
+            desVarGrad         = [obj.gradients.dx; obj.gradients.ds];
+            obj.gradients.dzL  = mu*invDiagdLX*e-lZ-lSig*desVarGrad;
+            obj.gradients.dzU  = mu*invDiagdUX*e-uZ+uSig*desVarGrad;
         end
     end
 end
