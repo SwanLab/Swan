@@ -38,6 +38,8 @@ classdef RHSintegratorFactory < handle
                     obj = RHSintegrator_ElasticMicroNew(cParams);
                 case 'Stokes'
                     obj = RHSintegrator_Stokes(cParams);
+                case 'functionWithShapeFunction'
+                    obj = RHSintegrator_functionWithShapeFunction(cParams);
             end
         end
 

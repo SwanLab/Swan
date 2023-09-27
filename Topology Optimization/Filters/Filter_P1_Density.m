@@ -4,8 +4,6 @@ classdef Filter_P1_Density < Filter
         Poper
         x
         x_reg
-        M
-        Kernel
         quadrature
     end
 
@@ -14,20 +12,35 @@ classdef Filter_P1_Density < Filter
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createMassMatrix();
             obj.createPoperator(cParams);
-            obj.createFilterKernel();
         end
 
-        function x_reg = getP1fromP0(obj,x0)
-            RHS = obj.integrateRHS(x0);
-            P = obj.Poper.value;
-            x_reg = P'*RHS;
+        function xReg = getP1fromP0(obj,x0)
+            s.fValues = x0;
+            s.mesh    = obj.mesh;
+            f         = P0Function(s);
+            xReg      = obj.getP1Function(f);
+        end
+
+        function xReg = getP1Function(obj,f)
+            P          = obj.Poper.value;
+            A          = P';
+            s.type     = 'functionWithShapeFunction';
+            s.quadType = 'LINEAR';
+            s.mesh     = obj.mesh;
+            s.fun      = f;
+            s.trial    = P0Function.create(obj.mesh, 1);
+            in         = RHSintegrator.create(s);
+            b          = in.RHS;
+            xReg       = A*b;
         end
         
         function x0 = getP0fromP1(obj,x)
             if obj.xHasChanged(x)
-                xR = obj.computeP0fromP1(x);
+                s.fValues = x;
+                s.mesh = obj.mesh;
+                f = P1Function(s);
+                xR = obj.getP0Function(f);
                 x0 = zeros(length(xR),obj.quadrature.ngaus);
                 for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
@@ -38,6 +51,19 @@ classdef Filter_P1_Density < Filter
             obj.updateStoredValues(x,x0);
         end
 
+        function xReg = getP0Function(obj,f)
+            P          = obj.Poper.value;
+            A          = P;
+            s.type     = 'functionWithShapeFunction';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            s.fun      = f;
+            s.trial    = P1Function.create(obj.mesh, 1);
+            in         = RHSintegrator.create(s);
+            b          = in.RHS;
+            xReg       = A*b;
+        end
+
     end
 
     methods (Access = private)
@@ -46,16 +72,6 @@ classdef Filter_P1_Density < Filter
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
             obj.quadrature = q;
-        end
-
-        function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
-            s.quadratureOrder = 'QUADRATICMASS';
-            LHS = LHSintegrator.create(s);
-            obj.M = LHS.compute();
         end
 
         function createPoperator(obj,cPar)
@@ -74,25 +90,6 @@ classdef Filter_P1_Density < Filter
         function updateStoredValues(obj,x,x0)
             obj.x = x;
             obj.x_reg = x0;
-        end
-
-        function x0 = computeP0fromP1(obj,x)
-            x0 = obj.Kernel*x;
-        end
-
-        function createFilterKernel(obj)
-            P = obj.Poper.value;
-            obj.Kernel = P*obj.M;
-        end
-
-        function intX = integrateRHS(obj,x)
-            intX = zeros(obj.mesh.nelem,1);
-            ng = size(x,2);
-            dV = obj.mesh.computeDvolume(obj.quadrature)';
-            for igaus = 1:ng
-                dvolu = dV(:,igaus);
-                intX = intX + dvolu.*x(:,igaus);
-            end
         end
 
     end
