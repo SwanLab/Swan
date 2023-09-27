@@ -28,6 +28,8 @@ classdef InterpolationFactory < handle
                     end
                 case 'QUAD'
                     switch order
+                        case 'CONSTANT'
+                            obj = Quadrilateral_Constant(cParams);
                         case 'LINEAR'
                             obj = Quadrilateral_Bilinear(cParams);
                         case 'QUADRATIC'

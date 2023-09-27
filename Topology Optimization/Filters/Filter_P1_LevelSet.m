@@ -2,8 +2,6 @@ classdef Filter_P1_LevelSet <  Filter
     
     properties (Access = private)
         Poper
-        x
-        x_reg
         projector
         quadrature
     end
@@ -17,25 +15,46 @@ classdef Filter_P1_LevelSet <  Filter
             obj.createPoperator(cParams);
             obj.disableDelaunayWarning();
         end
-        
-        function x_reg = getP1fromP0(obj,x0)
-            RHS = obj.integrateRHS(x0);
-            P = obj.Poper.value;
-            x_reg = P'*RHS;
+
+        function rhs = computeRHSintegrator(obj,cParams)
+            s.type     = 'functionWithShapeFunction';
+            s.quadType = cParams.quadType;
+            s.mesh     = obj.mesh;
+            s.fun      = cParams.fun;
+            s.trial    = cParams.trial;
+            rhs        = RHSintegrator.create(s);
         end
-        
+
+        function x_reg = getP1fromP0(obj,x0)
+            nelem     = size(x0,1);
+            ngaus     = size(x0,2);
+            s.fValues = reshape(x0',[1,ngaus,nelem]);
+            s.mesh = obj.mesh;
+            s.quadrature = obj.quadrature;
+            f = FGaussDiscontinuousFunction(s);
+            x_reg = obj.getP1Function(f);
+        end
+
+        function xReg = getP1Function(obj,f)
+            s.quadType = 'LINEAR';
+            s.fun      = f;
+            s.trial    = P0Function.create(obj.mesh, 1);
+            in         = obj.computeRHSintegrator(s);
+            P          = obj.Poper.value;
+            A          = P';
+            b          = in.RHS;
+            xReg       = A*b;
+        end
+
         function x0 = getP0fromP1(obj,x)
-            if obj.xHasChanged(x)
                 xR = obj.computeP0fromP1(x);
                 x0 = zeros(length(xR),obj.quadrature.ngaus);
                 for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
-            else
-                x0 = obj.x_reg;
-            end
-            obj.updateStoredValues(x,x0);
         end
+
+        % getP0Function ... time to include the unfitted mesh!
 
     end
 
@@ -67,25 +86,6 @@ classdef Filter_P1_LevelSet <  Filter
             s.type = cParams.mesh.type;
             s.domainType = cParams.domainType;
             obj.projector = ShapeFunctionProjector.create(s);
-        end
-        
-        function intX = integrateRHS(obj,x)
-            intX = zeros(obj.mesh.nelem,1);
-            ngaus = size(x,2);
-            dV = obj.mesh.computeDvolume(obj.quadrature)';
-            for igaus = 1:ngaus
-                dvolu = dV(:,igaus);
-                intX = intX + dvolu.*x(:,igaus);
-            end
-        end
-        
-        function itHas = xHasChanged(obj,x)
-            itHas = ~isequal(x,obj.x);
-        end
-        
-        function updateStoredValues(obj,x,x0)
-            obj.x = x;
-            obj.x_reg = x0;
         end
 
     end
