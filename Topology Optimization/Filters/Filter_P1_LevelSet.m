@@ -11,8 +11,8 @@ classdef Filter_P1_LevelSet <  Filter
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createProjector(cParams);
-            obj.createPoperator(cParams);
+            obj.createRHSProjector(cParams);
+            obj.createPoperator();
             obj.disableDelaunayWarning();
         end
 
@@ -47,14 +47,23 @@ classdef Filter_P1_LevelSet <  Filter
         end
 
         function x0 = getP0fromP1(obj,x)
-                xR = obj.computeP0fromP1(x);
+                s.fValues = x;
+                s.mesh = obj.mesh;
+                f = P1Function(s);
+                xR = obj.getP0Function(f);
                 x0 = zeros(length(xR),obj.quadrature.ngaus);
                 for igaus = 1:obj.quadrature.ngaus
                     x0(:,igaus) = xR;
                 end
         end
 
-        % getP0Function ... time to include the unfitted mesh!
+        function xReg = getP0Function(obj,f)
+            levelSet = f.fValues;
+            b    = obj.projector.project(levelSet);
+            P    = obj.Poper.value;
+            A    = P;
+            xReg = A*b;
+        end
 
     end
 
@@ -66,22 +75,12 @@ classdef Filter_P1_LevelSet <  Filter
             obj.quadrature = q;
         end
 
-        function x0 = computeP0fromP1(obj,x)
-            xN = obj.projector.project(x);
-            P  = obj.Poper.value;
-            x0 = P*xN;
-        end
-
-        function createPoperator(obj,cParams)
-            s.nnode  = obj.mesh.nnodeElem;
-            s.npnod  = obj.mesh.nnodes;
-            s.connec = obj.mesh.connec;
-            s.nelem  = obj.mesh.nelem;
-            s.diffReactEq = cParams.femSettings;
+        function createPoperator(obj)
+            s.mesh   = obj.mesh;
             obj.Poper = Poperator(s);
         end
         
-        function createProjector(obj,cParams)
+        function createRHSProjector(obj,cParams)
             s.mesh = cParams.mesh;
             s.type = cParams.mesh.type;
             s.domainType = cParams.domainType;

@@ -10,7 +10,7 @@ classdef Filter_P1_Density < Filter
         function obj = Filter_P1_Density(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createPoperator(cParams);
+            obj.createPoperator();
         end
 
         function rhs = computeRHSintegrator(obj,cParams)
@@ -75,13 +75,9 @@ classdef Filter_P1_Density < Filter
             obj.quadrature = q;
         end
 
-        function createPoperator(obj,cPar)
-            cParams.nelem  = obj.mesh.nelem;
-            cParams.nnode  = obj.mesh.nnodeElem;
-            cParams.npnod  = obj.mesh.nnodes;
-            cParams.connec = obj.mesh.connec;
-            cParams.diffReactEq = cPar.femSettings;
-            obj.Poper = Poperator(cParams);
+        function createPoperator(obj)
+            s.mesh    = obj.mesh;
+            obj.Poper = Poperator(s);
         end
 
     end

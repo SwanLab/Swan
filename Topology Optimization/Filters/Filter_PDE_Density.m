@@ -4,7 +4,6 @@ classdef Filter_PDE_Density < Filter
         epsilon
         Acomp
         Anodal2Gauss
-        M
         x_reg
         LHS
         bc
@@ -17,7 +16,6 @@ classdef Filter_PDE_Density < Filter
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeBoundaryConditions();
-            obj.createMassMatrix();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeA();
             lhs = obj.createProblemLHS();
@@ -33,7 +31,22 @@ classdef Filter_PDE_Density < Filter
         end
 
         function RHS = integrate_L2_function_with_shape_function(obj,x)
-            RHS = obj.M*x;
+            p.fValues = x;
+            p.mesh = obj.mesh;
+            f = P1Function(p);
+            s.fun = f;
+            s.quadType = 'QUADRATICMASS';
+            RHS = obj.computeRHS(s);
+        end
+
+        function RHS = computeRHS(obj,s)
+            s.quadType = s.quadType;
+            s.fun      = s.fun;
+            s.trial    = P1Function.create(obj.mesh, 1);
+            s.type     = 'functionWithShapeFunction';
+            s.mesh     = obj.mesh;
+            in        = RHSintegrator.create(s);
+            RHS          = in.RHS;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -44,18 +57,22 @@ classdef Filter_PDE_Density < Filter
             end
         end
 
-        function x_reg = getP1fromP1(obj,x)
-            RHS = obj.integrate_L2_function_with_shape_function(x);
-            x_reg = obj.solveFilter(RHS);
+        function xReg = getP1fromP1(obj,x)
+            RHS  = obj.integrate_L2_function_with_shape_function(x);
+            xReg = obj.solveFilter(RHS);
         end
 
-        function x_reg = getP1fromP0(obj,x0)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            s.dV = obj.mesh.computeDvolume(quad)';
-            s.x        = x0;
-            RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
-            x_reg      = obj.solveFilter(RHS);
+        function xReg = getP1fromP0(obj,x0)
+            nelem     = size(x0,1);
+            ngaus     = size(x0,2);
+            s.fValues = reshape(x0',[1,ngaus,nelem]);
+            s.mesh    = obj.mesh;
+            s.quadrature = obj.quadrature;
+            f         = FGaussDiscontinuousFunction(s);
+            a.quadType = 'LINEAR'; % may be an input !!
+            a.fun = f;
+            RHS = obj.computeRHS(a);
+            xReg      = obj.solveFilter(RHS);
         end
 
     end
@@ -66,16 +83,6 @@ classdef Filter_PDE_Density < Filter
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
             obj.quadrature = q;
-        end
-
-        function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
-            s.quadratureOrder = 'QUADRATICMASS';
-            lhs = LHSintegrator.create(s);
-            obj.M = lhs.compute();
         end
 
         function A_nodal_2_gauss = computeA(obj)
