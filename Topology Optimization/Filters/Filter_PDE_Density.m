@@ -2,9 +2,7 @@ classdef Filter_PDE_Density < Filter
     
     properties (Access = private)
         epsilon
-        Acomp
         Anodal2Gauss
-        x_reg
         LHS
         bc
         quadrature
@@ -23,10 +21,10 @@ classdef Filter_PDE_Density < Filter
         end
 
         function x0 = getP0fromP1(obj,x)
-            obj.x_reg =  obj.getP1fromP1(x);
+            xR =  obj.getP1fromP1(x);
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
+                x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
             end
         end
 
@@ -39,9 +37,9 @@ classdef Filter_PDE_Density < Filter
             RHS = obj.computeRHS(s);
         end
 
-        function RHS = computeRHS(obj,s)
-            s.quadType = s.quadType;
-            s.fun      = s.fun;
+        function RHS = computeRHS(obj,cParams)
+            s.quadType = cParams.quadType;
+            s.fun      = cParams.fun;
             s.trial    = P1Function.create(obj.mesh, 1);
             s.type     = 'functionWithShapeFunction';
             s.mesh     = obj.mesh;
@@ -93,9 +91,9 @@ classdef Filter_PDE_Density < Filter
             s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
             s.shape   = p1f.computeShapeFunctions(obj.quadrature);
-            obj.Acomp = Anodal2gausComputer(s);
-            obj.Acomp.compute();
-            A_nodal_2_gauss = obj.Acomp.A_nodal_2_gauss;
+            Acomp = Anodal2gausComputer(s);
+            Acomp.compute();
+            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)

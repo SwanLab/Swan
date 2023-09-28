@@ -2,7 +2,6 @@ classdef Filter_PDE_LevelSet < Filter
 
     properties (Access = private)
         levelSet
-        Acomp
         Anodal2Gauss
         epsilon
         x_reg
@@ -25,15 +24,30 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function RHS = integrate_L2_function_with_shape_function(obj,x)
-            ls = obj.levelSet.value;
+            % given design variable...
+            p.fValues = x;
+            p.mesh = obj.mesh;
+            f = P1Function(p);
+            %ls = obj.levelSet.value;
+            ls = f.fValues;
             F = ones(size(ls));
-            RHS = obj.computeRHS(F);
+            RHS = obj.computeRHSProjection(F);
         end
-        
+
+        function RHS = computeRHS(obj,cParams)
+            s.quadType = cParams.quadType;
+            s.fun      = cParams.fun;
+            s.trial    = P1Function.create(obj.mesh, 1);
+            s.type     = 'functionWithShapeFunction';
+            s.mesh     = obj.mesh;
+            in        = RHSintegrator.create(s);
+            RHS          = in.RHS;
+        end
+
         function RHS = integrateFunctionAlongFacets(obj,F)
             RHS = obj.computeRHSinBoundary(F);
         end
-        
+
         function x_reg = regularize(obj,F)
             RHS = obj.integrateFunctionAlongFacets(F);
             x_reg = obj.solveFilter(RHS);
@@ -53,24 +67,24 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function x0 = getP0fromP1(obj,x)
-            % Actually getting FGaussDiscFun
             obj.x_reg =  obj.getP1fromP1(x);
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
-%             s.fValues = obj.x_reg;
-%             s.mesh = obj.mesh;
-%             p1 = P1Function(s);
-%             p0 = p1.project('P0');
-%             x0 = squeeze(p0.fValues);
         end
 
-        function x_reg = getP1fromP0(obj,x0)
-            s.dV = obj.mesh.computeDvolume(obj.quadrature)';
-            s.x        = x0;
-            RHS        = obj.Acomp.integrateP1FunctionWithShapeFunction(s);
-            x_reg      = obj.solveFilter(RHS);
+        function xReg = getP1fromP0(obj,x0)
+            nelem     = size(x0,1);
+            ngaus     = size(x0,2);
+            s.fValues = reshape(x0',[1,ngaus,nelem]);
+            s.mesh    = obj.mesh;
+            s.quadrature = obj.quadrature;
+            f         = FGaussDiscontinuousFunction(s);
+            a.quadType = 'LINEAR';
+            a.fun = f;
+            RHS = obj.computeRHS(a);
+            xReg      = obj.solveFilter(RHS);
         end
 
     end
@@ -91,7 +105,7 @@ classdef Filter_PDE_LevelSet < Filter
             itHas = var > 1e-15;
         end
 
-        function fInt = computeRHS(obj,fNodes)
+        function fInt = computeRHSProjection(obj,fNodes)
             ls = obj.levelSet.value;
             int  = obj.obtainRHSintegrator();
             if all(ls>0)
@@ -116,9 +130,9 @@ classdef Filter_PDE_LevelSet < Filter
             s.ngaus   = obj.quadrature.ngaus;
             s.connec  = obj.mesh.connec;
             s.shape   = p1f.computeShapeFunctions(obj.quadrature);
-            obj.Acomp = Anodal2gausComputer(s);
-            obj.Acomp.compute();
-            A = obj.Acomp.A_nodal_2_gauss;
+            Acomp = Anodal2gausComputer(s);
+            Acomp.compute();
+            A = Acomp.A_nodal_2_gauss;
         end
 
         function x_reg = solveFilter(obj,RHS)
