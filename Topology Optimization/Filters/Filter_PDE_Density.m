@@ -1,8 +1,12 @@
-classdef Filter_PDE_Density < Filter
+classdef Filter_PDE_Density < handle
     
     properties (Access = private)
+        mesh
+        LHStype
+        scale
         epsilon
         Anodal2Gauss
+        problemLHS
         LHS
         bc
         quadrature
@@ -16,7 +20,7 @@ classdef Filter_PDE_Density < Filter
             obj.computeBoundaryConditions();
             obj.epsilon = cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeA();
-            lhs = obj.createProblemLHS();
+            lhs = obj.createProblemLHS(cParams);
             obj.LHS = decomposition(lhs);
         end
 
@@ -42,7 +46,7 @@ classdef Filter_PDE_Density < Filter
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                lhs = obj.createProblemLHS();
+                lhs = obj.computeLHS();
                 obj.LHS = decomposition(lhs);
             end
         end
@@ -62,6 +66,16 @@ classdef Filter_PDE_Density < Filter
     end
 
     methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh    = cParams.mesh;
+            obj.scale   = cParams.scale;
+            if isfield(cParams,'LHStype')
+                obj.LHStype = cParams.LHStype;
+            else
+                obj.LHStype = 'DiffReactNeumann';
+            end
+        end
 
         function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
@@ -99,7 +113,7 @@ classdef Filter_PDE_Density < Filter
         end
 
         function computeBoundaryConditions(obj)
-            s.scale        = obj.femSettings.scale;
+            s.scale        = obj.scale;
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
@@ -110,13 +124,16 @@ classdef Filter_PDE_Density < Filter
             obj.bc.compute();
         end
 
-        function lhs = createProblemLHS(obj)
-            s          = obj.femSettings;
-            s.mesh     = obj.mesh;
-            s.type     = obj.LHStype;
-            problemLHS = LHSintegrator.create(s);
-            lhs        = problemLHS.compute(obj.epsilon);
-            lhs        = obj.bc.fullToReducedMatrix(lhs);
+        function lhs = createProblemLHS(obj,s)
+            s.mesh         = obj.mesh;
+            s.type         = obj.LHStype;
+            obj.problemLHS = LHSintegrator.create(s);
+            lhs            = obj.computeLHS();
+        end
+
+        function lhs = computeLHS(obj)
+            lhs = obj.problemLHS.compute(obj.epsilon);
+            lhs = obj.bc.fullToReducedMatrix(lhs);
         end
 
     end

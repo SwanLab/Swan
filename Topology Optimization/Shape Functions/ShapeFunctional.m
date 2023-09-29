@@ -86,10 +86,13 @@ classdef ShapeFunctional < handle
     methods (Access = private)
         
         function createFilter(obj,cParams)
-            s = cParams.filterParams;
-            s.femSettings.mesh = s.mesh;
+            s                = cParams.filterParams.femSettings;
+            s.mesh           = cParams.filterParams.mesh;
+            s.domainType     = cParams.filterParams.domainType;
+            s.filterType     = cParams.filterParams.filterType;
+            s.designVarType  = cParams.filterParams.designVarType;
             s.designVariable = cParams.designVariable;
-            obj.filter = Filter.create(s);
+            obj.filter       = Filter.create(s);
         end
         
         function createMsmoothAndDvolu(obj,cParams)

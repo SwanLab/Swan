@@ -68,11 +68,12 @@ classdef HamiltonJacobi < handle
         end
 
         function setupFilter(obj,e,designVar)
-            s                   = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            set                 = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            s                   = set.femSettings;
             s.mesh              = designVar.mesh;
             s.designVarType     = designVar.type;
-            s.quadratureOrder   = 'LINEAR';
-            s.femSettings.scale = 'MACRO';
+            s.scale             = 'MACRO';
+            s.filterType        = set.filterType;
             s.designVariable    = designVar;
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);
