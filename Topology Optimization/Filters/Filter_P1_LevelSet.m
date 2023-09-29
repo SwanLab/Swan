@@ -25,18 +25,8 @@ classdef Filter_P1_LevelSet <  Filter
             rhs        = RHSintegrator.create(s);
         end
 
-        function x_reg = getP1fromP0(obj,x0)
-            nelem     = size(x0,1);
-            ngaus     = size(x0,2);
-            s.fValues = reshape(x0',[1,ngaus,nelem]);
-            s.mesh = obj.mesh;
-            s.quadrature = obj.quadrature;
-            f = FGaussDiscontinuousFunction(s);
-            x_reg = obj.getP1Function(f);
-        end
-
-        function xReg = getP1Function(obj,f)
-            s.quadType = 'LINEAR';
+        function xReg = getP1Function(obj,f,quadType)
+            s.quadType = quadType;
             s.fun      = f;
             s.trial    = P0Function.create(obj.mesh, 1);
             in         = obj.computeRHSintegrator(s);
@@ -46,23 +36,17 @@ classdef Filter_P1_LevelSet <  Filter
             xReg       = A*b;
         end
 
-        function x0 = getP0fromP1(obj,x)
-                s.fValues = x;
-                s.mesh = obj.mesh;
-                f = P1Function(s);
-                xR = obj.getP0Function(f);
-                x0 = zeros(length(xR),obj.quadrature.ngaus);
-                for igaus = 1:obj.quadrature.ngaus
-                    x0(:,igaus) = xR;
-                end
-        end
-
-        function xReg = getP0Function(obj,f)
+        function xReg = getP0Function(obj,f,quadType)
             levelSet = f.fValues;
-            b    = obj.projector.project(levelSet);
-            P    = obj.Poper.value;
-            A    = P;
-            xReg = A*b;
+            b        = obj.projector.project(levelSet);
+            P        = obj.Poper.value;
+            A        = P;
+            xR       = A*b;
+            x0       = zeros(length(xR),obj.quadrature.ngaus);
+            for igaus = 1:obj.quadrature.ngaus
+                x0(:,igaus) = xR;
+            end
+            xReg = x0;
         end
 
     end

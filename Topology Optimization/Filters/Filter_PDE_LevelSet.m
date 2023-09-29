@@ -23,18 +23,15 @@ classdef Filter_PDE_LevelSet < Filter
             obj.LHS = decomposition(lhs);
         end
 
-        function RHS = integrate_L2_function_with_shape_function(obj,x)
+        function RHS = computeRHS(obj,f,quadType)
             % given design variable...
-            p.fValues = x;
-            p.mesh = obj.mesh;
-            f = P1Function(p);
             %ls = obj.levelSet.value;
             ls = f.fValues;
             F = ones(size(ls));
             RHS = obj.computeRHSProjection(F);
         end
 
-        function RHS = computeRHS(obj,cParams)
+        function RHS = computeRHSoriginal(obj,cParams)
             s.quadType = cParams.quadType;
             s.fun      = cParams.fun;
             s.trial    = P1Function.create(obj.mesh, 1);
@@ -61,29 +58,23 @@ classdef Filter_PDE_LevelSet < Filter
             end
         end
 
-        function x_reg = getP1fromP1(obj,x)
-            RHS = obj.integrate_L2_function_with_shape_function(x);
+        function x_reg = getP1fromP1(obj,f,quadType)
+            RHS = obj.computeRHS(f,quadType);
             x_reg = obj.solveFilter(RHS);
         end
 
-        function x0 = getP0fromP1(obj,x)
-            obj.x_reg =  obj.getP1fromP1(x);
+        function x0 = getP0Function(obj,f,quadType)
+            obj.x_reg =  obj.getP1fromP1(f,quadType);
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
             end
         end
 
-        function xReg = getP1fromP0(obj,x0)
-            nelem     = size(x0,1);
-            ngaus     = size(x0,2);
-            s.fValues = reshape(x0',[1,ngaus,nelem]);
-            s.mesh    = obj.mesh;
-            s.quadrature = obj.quadrature;
-            f         = FGaussDiscontinuousFunction(s);
-            a.quadType = 'LINEAR';
+        function xReg = getP1Function(obj,f,quadType)
+            a.quadType = quadType;
             a.fun = f;
-            RHS = obj.computeRHS(a);
+            RHS = obj.computeRHSoriginal(a);
             xReg      = obj.solveFilter(RHS);
         end
 

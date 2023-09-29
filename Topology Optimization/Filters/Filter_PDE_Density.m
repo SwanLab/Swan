@@ -20,26 +20,17 @@ classdef Filter_PDE_Density < Filter
             obj.LHS = decomposition(lhs);
         end
 
-        function x0 = getP0fromP1(obj,x)
-            xR =  obj.getP1fromP1(x);
+        function x0 = getP0Function(obj,f,quadType)
+            xR =  obj.getP1fromP1(f,quadType);
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
             end
         end
 
-        function RHS = integrate_L2_function_with_shape_function(obj,x)
-            p.fValues = x;
-            p.mesh = obj.mesh;
-            f = P1Function(p);
+        function RHS = computeRHS(obj,f,quadType)
             s.fun = f;
-            s.quadType = 'QUADRATICMASS';
-            RHS = obj.computeRHS(s);
-        end
-
-        function RHS = computeRHS(obj,cParams)
-            s.quadType = cParams.quadType;
-            s.fun      = cParams.fun;
+            s.quadType = quadType;
             s.trial    = P1Function.create(obj.mesh, 1);
             s.type     = 'functionWithShapeFunction';
             s.mesh     = obj.mesh;
@@ -55,21 +46,13 @@ classdef Filter_PDE_Density < Filter
             end
         end
 
-        function xReg = getP1fromP1(obj,x)
-            RHS  = obj.integrate_L2_function_with_shape_function(x);
+        function xReg = getP1fromP1(obj,f,quadType)
+            RHS  = obj.computeRHS(f,quadType);
             xReg = obj.solveFilter(RHS);
         end
 
-        function xReg = getP1fromP0(obj,x0)
-            nelem     = size(x0,1);
-            ngaus     = size(x0,2);
-            s.fValues = reshape(x0',[1,ngaus,nelem]);
-            s.mesh    = obj.mesh;
-            s.quadrature = obj.quadrature;
-            f         = FGaussDiscontinuousFunction(s);
-            a.quadType = 'LINEAR'; % may be an input !!
-            a.fun = f;
-            RHS = obj.computeRHS(a);
+        function xReg = getP1Function(obj,f,quadType)
+            RHS = obj.computeRHS(f,quadType);
             xReg      = obj.solveFilter(RHS);
         end
 
