@@ -1,6 +1,7 @@
-classdef Filter_P1_Density < Filter
+classdef Filter_P1_Density < handle
 
     properties (Access = private)
+        mesh
         Poper
         quadrature
     end
@@ -11,15 +12,6 @@ classdef Filter_P1_Density < Filter
             obj.init(cParams);
             obj.createQuadrature();
             obj.createPoperator();
-        end
-
-        function rhs = computeRHSintegrator(obj,cParams)
-            s.type     = 'functionWithShapeFunction';
-            s.quadType = cParams.quadType;
-            s.mesh     = obj.mesh;
-            s.fun      = cParams.fun;
-            s.trial    = cParams.trial;
-            rhs        = RHSintegrator.create(s);
         end
 
         function xReg = getP1Function(obj,f,quadType)
@@ -53,6 +45,10 @@ classdef Filter_P1_Density < Filter
 
     methods (Access = private)
 
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+        end
+
         function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
@@ -62,6 +58,15 @@ classdef Filter_P1_Density < Filter
         function createPoperator(obj)
             s.mesh    = obj.mesh;
             obj.Poper = Poperator(s);
+        end
+
+        function rhs = computeRHSintegrator(obj,cParams)
+            s.type     = 'functionWithShapeFunction';
+            s.quadType = cParams.quadType;
+            s.mesh     = obj.mesh;
+            s.fun      = cParams.fun;
+            s.trial    = cParams.trial;
+            rhs        = RHSintegrator.create(s);
         end
 
     end

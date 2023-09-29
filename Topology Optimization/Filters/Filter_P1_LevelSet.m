@@ -1,6 +1,7 @@
-classdef Filter_P1_LevelSet <  Filter
+classdef Filter_P1_LevelSet <  handle
     
     properties (Access = private)
+        mesh
         Poper
         projector
         quadrature
@@ -14,15 +15,6 @@ classdef Filter_P1_LevelSet <  Filter
             obj.createRHSProjector(cParams);
             obj.createPoperator();
             obj.disableDelaunayWarning();
-        end
-
-        function rhs = computeRHSintegrator(obj,cParams)
-            s.type     = 'functionWithShapeFunction';
-            s.quadType = cParams.quadType;
-            s.mesh     = obj.mesh;
-            s.fun      = cParams.fun;
-            s.trial    = cParams.trial;
-            rhs        = RHSintegrator.create(s);
         end
 
         function xReg = getP1Function(obj,f,quadType)
@@ -53,6 +45,10 @@ classdef Filter_P1_LevelSet <  Filter
 
     methods (Access = private)
 
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+        end
+
         function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
@@ -63,7 +59,7 @@ classdef Filter_P1_LevelSet <  Filter
             s.mesh   = obj.mesh;
             obj.Poper = Poperator(s);
         end
-        
+
         function createRHSProjector(obj,cParams)
             s.mesh = cParams.mesh;
             s.type = cParams.mesh.type;
@@ -71,9 +67,18 @@ classdef Filter_P1_LevelSet <  Filter
             obj.projector = ShapeFunctionProjector.create(s);
         end
 
+        function rhs = computeRHSintegrator(obj,cParams)
+            s.type     = 'functionWithShapeFunction';
+            s.quadType = cParams.quadType;
+            s.mesh     = obj.mesh;
+            s.fun      = cParams.fun;
+            s.trial    = cParams.trial;
+            rhs        = RHSintegrator.create(s);
+        end
+
     end
-    
-     methods (Access = private, Static)
+
+    methods (Access = private, Static)
      
         function disableDelaunayWarning()
             MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';

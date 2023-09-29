@@ -20,9 +20,6 @@ classdef AnalyticalFunction < L2Function
 
         function fxV = evaluate(obj, xGLoc)
             xV = obj.mesh.computeXgauss(xGLoc);
-            x = xV(1,:,:);
-            y = xV(2,:,:);
-            xVec = [x;y];
             fxV = obj.fHandle(xV);
         end
         

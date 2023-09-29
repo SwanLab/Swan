@@ -31,9 +31,9 @@ classdef Filter_PDE_LevelSet < Filter
             RHS = obj.computeRHSProjection(F);
         end
 
-        function RHS = computeRHSoriginal(obj,cParams)
-            s.quadType = cParams.quadType;
-            s.fun      = cParams.fun;
+        function RHS = computeRHSoriginal(obj,f,quadType)
+            s.quadType = quadType;
+            s.fun      = f;
             s.trial    = P1Function.create(obj.mesh, 1);
             s.type     = 'functionWithShapeFunction';
             s.mesh     = obj.mesh;
@@ -59,7 +59,7 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function x_reg = getP1fromP1(obj,f,quadType)
-            RHS = obj.computeRHS(f,quadType);
+            RHS   = obj.computeRHS(f,quadType);
             x_reg = obj.solveFilter(RHS);
         end
 
@@ -72,10 +72,8 @@ classdef Filter_PDE_LevelSet < Filter
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            a.quadType = quadType;
-            a.fun = f;
-            RHS = obj.computeRHSoriginal(a);
-            xReg      = obj.solveFilter(RHS);
+            RHS  = obj.computeRHSoriginal(f,quadType);
+            xReg = obj.solveFilter(RHS);
         end
 
     end

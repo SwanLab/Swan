@@ -47,13 +47,12 @@ classdef Filter_PDE_Density < Filter
         end
 
         function xReg = getP1fromP1(obj,f,quadType)
-            RHS  = obj.computeRHS(f,quadType);
-            xReg = obj.solveFilter(RHS);
+            xReg = obj.getP1Function(f,quadType);
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            RHS = obj.computeRHS(f,quadType);
-            xReg      = obj.solveFilter(RHS);
+            RHS  = obj.computeRHS(f,quadType);
+            xReg = obj.solveFilter(RHS);
         end
 
     end
