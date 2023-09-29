@@ -21,8 +21,9 @@ classdef Filter_PDE_Density < Filter
         end
 
         function x0 = getP0Function(obj,f,quadType)
-            xR =  obj.getP1fromP1(f,quadType);
-            x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
+            xRP1 =  obj.getP1fromP1(f,quadType);
+            xR   = xRP1.fValues;
+            x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
             end
@@ -51,8 +52,11 @@ classdef Filter_PDE_Density < Filter
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            RHS  = obj.computeRHS(f,quadType);
-            xReg = obj.solveFilter(RHS);
+            RHS       = obj.computeRHS(f,quadType);
+            xR        = obj.solveFilter(RHS);
+            p.fValues = xR;
+            p.mesh    = obj.mesh;
+            xReg      = P1Function(p);
         end
 
     end

@@ -57,7 +57,8 @@ classdef ShFunc_Volume < ShapeFunctional
                 s.mesh       = obj.designVariable.mesh;
                 s.quadrature = q;
                 f            = FGaussDiscontinuousFunction(s);
-                gf(:,ivar)   = obj.filter.getP1Function(f,'LINEAR');
+                gradP1       = obj.filter.getP1Function(f,'LINEAR');
+                gf(:,ivar)   = gradP1.fValues;
             end
             g = obj.Msmooth*gf;
             obj.gradient = g(:);

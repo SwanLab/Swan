@@ -25,7 +25,9 @@ classdef Filter_P1_LevelSet <  handle
             P          = obj.Poper.value;
             A          = P';
             b          = in.RHS;
-            xReg       = A*b;
+            p.fValues  = A*b;
+            p.mesh     = obj.mesh;
+            xReg       = P1Function(p);
         end
 
         function xReg = getP0Function(obj,f,quadType)

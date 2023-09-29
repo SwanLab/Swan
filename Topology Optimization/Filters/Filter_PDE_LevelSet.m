@@ -4,7 +4,6 @@ classdef Filter_PDE_LevelSet < Filter
         levelSet
         Anodal2Gauss
         epsilon
-        x_reg
         LHS
         bc
         quadrature
@@ -58,22 +57,29 @@ classdef Filter_PDE_LevelSet < Filter
             end
         end
 
-        function x_reg = getP1fromP1(obj,f,quadType)
-            RHS   = obj.computeRHS(f,quadType);
-            x_reg = obj.solveFilter(RHS);
+        function xReg = getP1fromP1(obj,f,quadType)
+            RHS       = obj.computeRHS(f,quadType);
+            xR        = obj.solveFilter(RHS);
+            p.fValues = xR;
+            p.mesh    = obj.mesh;
+            xReg      = P1Function(p);
         end
 
         function x0 = getP0Function(obj,f,quadType)
-            obj.x_reg =  obj.getP1fromP1(f,quadType);
+            xRP1 =  obj.getP1fromP1(f,quadType);
+            xR   = xRP1.fValues;
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = obj.Anodal2Gauss{igaus}*obj.x_reg;
+                x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
             end
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            RHS  = obj.computeRHSoriginal(f,quadType);
-            xReg = obj.solveFilter(RHS);
+            RHS       = obj.computeRHSoriginal(f,quadType);
+            xR        = obj.solveFilter(RHS);
+            p.fValues = xR;
+            p.mesh    = obj.mesh;
+            xReg      = P1Function(p);
         end
 
     end

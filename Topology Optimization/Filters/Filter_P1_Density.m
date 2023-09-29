@@ -22,7 +22,9 @@ classdef Filter_P1_Density < handle
             P          = obj.Poper.value;
             A          = P';
             b          = in.RHS;
-            xReg       = A*b;
+            p.fValues  = A*b;
+            p.mesh     = obj.mesh;
+            xReg       = P1Function(p);
         end
 
         function xReg = getP0Function(obj,f,quadType)
@@ -36,9 +38,10 @@ classdef Filter_P1_Density < handle
             xR         = A*b;
             x0         = zeros(length(xR),obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = xR;
+                x0(:,igaus) = xR; % Not a P0!
             end
             xReg = x0;
+            % FGauss...?
         end
 
     end
