@@ -11,20 +11,11 @@ classdef Gauss_Solver < Solver
             L = tril(LHS);
             U = triu(LHS,1);
             while normVal>tol
-            xold=x;
-%                 for i=1:n
-%                     sigma=0;
-%                     for j=1:n
-%                         if j~=i
-%                             sigma=sigma+LHS(i,j)*x(j);
-%                         end
-%                     end
+                xold=x;
                 x=L\(RHS-U*xold);
-%             Gauss_Solver.plotSolution(x,mesh,bc,numItr)
-%                 end
-%             normVal=norm((xold-x)/x);
-            normVal=norm(x-xold);
-            numItr = numItr+1;
+                %Gauss_Solver.plotSolution(x,mesh,bc,numItr)
+                normVal=norm(x-xold);
+                numItr = numItr+1;
             end
         end
 

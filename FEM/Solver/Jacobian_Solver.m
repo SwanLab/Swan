@@ -7,31 +7,20 @@ classdef Jacobian_Solver < Solver
             tol = 1e-6;
             n = length(LHS);
             x = rand(n,1);
-            numItr = 0;
+            iter = 0;
             D = diag(diag(LHS));
             T = LHS - D;
             w=0.9;
             while normVal>tol
-            xold=x;
-%                 for i=1:n
-%                     sigma=0;
-%                     for j=1:n
-%                         if j~=i
-%                             sigma=sigma+LHS(i,j)*x(j);
-%                         end
-%                     end
-                    
-%             x=D\(RHS-T*x);
+                xold=x;
                 x=w*(D\(RHS-T*xold))+(1-w)*xold;
-%             Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
-%                 end
-%             normVal=norm((xold-x)/x);
-            normVal=norm(x-xold);
-            numItr = numItr+1;
+                %Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
+                normVal = norm(x-xold);
+                iter  = iter+1;
             end
-        
+
         end
-        
+
         function plotSolution(x,mesh,bc,numItr)
             xFull = bc.reducedToFullVector(x);
             s.fValues = reshape(xFull,2,[])';
