@@ -6,7 +6,7 @@ classdef Jacobian_Solver < Solver
             normVal = Inf;
             tol = 1e-6;
             n = length(LHS);
-            x = rand(n,1);
+            x = zeros(n,1);
             iter = 0;
             D = diag(diag(LHS));
             T = LHS - D;
@@ -14,14 +14,15 @@ classdef Jacobian_Solver < Solver
             while normVal>tol
                 xold=x;
                 x=w*(D\(RHS-T*xold))+(1-w)*xold;
-                %Jacobian_Solver.plotSolution(x,mesh,bc,numItr)
+                Jacobian_Solver.plotSolution(x,mesh,bc,iter)
                 normVal = norm(x-xold);
                 iter  = iter+1;
+                residu(iter) = normVal;
             end
-
+            save('residuJacobiZeros.mat','residu')
         end
 
-        function plotSolution(x,mesh,bc,numItr)
+        function plotSolution(x,mesh,bc,iter)
             xFull = bc.reducedToFullVector(x);
             s.fValues = reshape(xFull,2,[])';
             s.mesh = mesh;
@@ -29,7 +30,7 @@ classdef Jacobian_Solver < Solver
             s.ndimf = 3;
             xF = P1Function(s);
             %xF.plot();
-            xF.print(['sol',num2str(numItr)],'Paraview')
+            xF.print(['sol',num2str(iter)],'Paraview')
             fclose('all');
         end
     end
