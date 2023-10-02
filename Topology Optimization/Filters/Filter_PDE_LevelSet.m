@@ -27,9 +27,10 @@ classdef Filter_PDE_LevelSet < handle
         end
 
         function RHS = computeRHS(obj,f,quadType)
-            % given design variable...
-            %ls = obj.levelSet.value;
-            ls = f.fValues;
+            % brainstroming
+            % F... = f.fValues (des de fora switch- density entra P1Fun de
+            %                 density; levelset entra P1Fun d'una f(chi(psi)))
+            ls = obj.levelSet.value;
             F = ones(size(ls));
             RHS = obj.computeRHSProjection(F);
         end
@@ -39,7 +40,7 @@ classdef Filter_PDE_LevelSet < handle
             s.fun      = f;
             s.trial    = P1Function.create(obj.mesh, 1);
             s.type     = 'functionWithShapeFunction';
-            s.mesh     = obj.mesh;
+            s.mesh     = obj.mesh; % unfitted mesh in a future
             in        = RHSintegrator.create(s);
             RHS          = in.RHS;
         end
@@ -79,7 +80,7 @@ classdef Filter_PDE_LevelSet < handle
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            RHS       = obj.computeRHSoriginal(f,quadType);
+            RHS       = obj.computeRHSoriginal(f,quadType); % for gradients
             xR        = obj.solveFilter(RHS);
             p.fValues = xR;
             p.mesh    = obj.mesh;
@@ -157,7 +158,7 @@ classdef Filter_PDE_LevelSet < handle
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
-            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndimf     = 1; % periodic BCs
             s.bc{1}.ndofs     = [];
             s.ndofs        = obj.mesh.nnodes;
             obj.bc         = BoundaryConditions(s);
