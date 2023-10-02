@@ -1,16 +1,16 @@
-FemTestsSuite;
-MicroShapeTestsSuite;
-DiffReactTestsSuite;
-UnfittedIntegrationTestsSuite;
-VectorizedTriangulationTestsSuite;
+FemTestsSuite; % OK
+MicroShapeTestsSuite; % OK
+DiffReactTestsSuite; % OK
+UnfittedIntegrationTestsSuite; % OK
+VectorizedTriangulationTestsSuite; % OK
 close all;
-TopOptTestsSuite;
-ReadingFilesTestsSuite;
-PlottingTestsSuite;
+TopOptTestsSuite; % OK
+ReadingFilesTestsSuite; % OK
+PlottingTestsSuite; 
 close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
 PostProcTestsSuite;
 ProjectorsTestsSuite;
-% RemeshingTestsSuite;
+RemeshingTestsSuite;
 DehomogenizationTestsSuite;
