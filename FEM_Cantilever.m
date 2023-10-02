@@ -30,18 +30,20 @@ s.bc = createBoundaryConditions(mesh);
 fem = FEM.create(s);
 fem.solve();
 
-figure(1)
+figure
 fem.uFun.plot()
-figure(2)
+figure
 fem.stressFun.plot()
-figure(3)
+figure
 fem.strainFun.plot()
 
 fem.uFun.fValues(:,end+1) = 0;
 fem.uFun.ndimf = 3;
 
-fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
-fem.print('results_fem2', 'Paraview') % print using Paraview
+%fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
+%fem.print('results_fem2', 'Paraview') % print using Paraview
+
+plotError()
 
 %end
 
