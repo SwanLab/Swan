@@ -30,7 +30,7 @@ classdef Filter < handle
             if isfield(cParams.femSettings,'LHStype')
                 obj.LHStype = cParams.femSettings.LHStype;
             else
-                obj.LHStype = 'DiffReactNeumann';
+                obj.LHStype = 'DiffReactRobin';
             end
         end
 
