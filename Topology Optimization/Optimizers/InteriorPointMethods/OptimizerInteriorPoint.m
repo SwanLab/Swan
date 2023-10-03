@@ -62,15 +62,9 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function moveVariablesToFeasible(obj)
-            s.x      = obj.designVariable.value;
-            s.upperX = obj.bounds.xUB;
-            s.lowerX = obj.bounds.xLB;
-            x        = obj.replaceOutOfBoundsVariables(s);
+            x         = obj.replaceOutOfDesignVarBounds();
             obj.designVariable.update(x);
-            s.x       = obj.slack;
-            s.upperX  = obj.bounds.sUB;
-            s.lowerX  = obj.bounds.sLB;
-            obj.slack = obj.replaceOutOfBoundsVariables(s);
+            obj.slack = obj.replaceOutOfSlackBounds();
         end
 
         function computeDualVariableBounds(obj)
@@ -205,17 +199,17 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x   = obj.designVariable.value;
-            g   = -obj.dx;
-            x   = obj.primalUpdater.update(g,x);
+            x = obj.designVariable.value;
+            g = -obj.dx;
+            x = obj.primalUpdater.update(g,x);
         end
 
         function updatePrimalVariables(obj)
-            alphaPrimal = obj.primalUpdater.tau;
+            alphaPrimal  = obj.primalUpdater.tau;
             if obj.nSlack >= 1
-                obj.sNew      = obj.slack + alphaPrimal * obj.ds';
+                obj.sNew = obj.slack + alphaPrimal * obj.ds';
             else
-                obj.sNew      = [];
+                obj.sNew = [];
             end
         end
 
@@ -313,16 +307,16 @@ classdef OptimizerInteriorPoint < Optimizer
         end
         
         function init(obj,cParams)
-            obj.bounds.xUB             = cParams.uncOptimizerSettings.ub;
-            obj.bounds.xLB             = cParams.uncOptimizerSettings.lb;
-            obj.cost                   = cParams.cost;
-            obj.constraint             = cParams.constraint;
-            obj.designVariable         = cParams.designVar;
-            obj.dualVariable           = cParams.dualVariable;
-            obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.maxIter                = cParams.maxIter;
-            obj.nIter                  = 0;
-            obj.constraintCase         = cParams.constraintCase;
+            obj.bounds.xUB        = cParams.uncOptimizerSettings.ub;
+            obj.bounds.xLB        = cParams.uncOptimizerSettings.lb;
+            obj.cost              = cParams.cost;
+            obj.constraint        = cParams.constraint;
+            obj.designVariable    = cParams.designVar;
+            obj.dualVariable      = cParams.dualVariable;
+            obj.incrementalScheme = cParams.incrementalScheme;
+            obj.maxIter           = cParams.maxIter;
+            obj.nIter             = 0;
+            obj.constraintCase    = cParams.constraintCase;
             obj.cost.computeFunctionAndGradient();
             obj.hessian = eye(obj.designVariable.mesh.nnodes);
             obj.constraint.computeFunctionAndGradient();
@@ -435,18 +429,31 @@ classdef OptimizerInteriorPoint < Optimizer
             nStep = obj.incrementalScheme.nSteps;
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
+
+        function x = replaceOutOfDesignVarBounds(obj)
+            s.x   = obj.designVariable.value;
+            s.xUB = obj.bounds.xUB;
+            s.xLB = obj.bounds.xLB;
+            x     = obj.computeOutOfBounds(s);
+        end
+
+        function x = replaceOutOfSlackBounds(obj)
+            s.x   = obj.slack;
+            s.xUB = obj.bounds.sUB;
+            s.xLB = obj.bounds.sLB;
+            x     = obj.computeOutOfBounds(s);
+        end
+
     end
 
     methods (Access = private,Static)
 
-        function x = replaceOutOfBoundsVariables(s)
+        function x = computeOutOfBounds(s)
             x          = s.x;
-            upperX     = s.upperX;
-            lowerX     = s.lowerX;
-            isLower    = x<=lowerX;
-            isUpper    = x>=upperX;
-            x(isLower) = min(upperX(isLower),lowerX(isLower)+1e-2);
-            x(isUpper) = max(lowerX(isUpper),upperX(isUpper)-1e-2);
+            isLower    = x<=s.xLB;
+            isUpper    = x>=s.xUB;
+            x(isLower) = min(s.xUB(isLower),s.xLB(isLower)+1e-2);
+            x(isUpper) = max(s.xLB(isUpper),s.xUB(isUpper)-1e-2);
         end
 
         function penalty = computeLogPenaltyTerm(s)
