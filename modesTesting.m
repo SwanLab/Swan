@@ -25,22 +25,21 @@ nDimf=2;
 
 dispFun=P1Function.create(mesh, nDimf);
 
-dispFun=P1Function.create(mesh,1);
 
 
 K    = computeStiffnessMatrix(mesh,material,dispFun);
 Kred = bc.fullToReducedMatrix(K);
 
-M= computeMassMatrix(mesh,dispFun);
-Mred= bc.fullToReducedMatrix(M);
-[basis,D]=eigs(M\K);
-
+% M= computeMassMatrix(mesh,dispFun);
+% Mred= bc.fullToReducedMatrix(M);
+% [basis,D]=eigs(M\K);
+ [basis,D]=eigs(Kred,6,'smallestabs');
 
 for i = 1:size(basis,2)
 b = basis(:,i);
-% b1 = bc.reducedToFullVector(b);
-% bC{i} = reshape(b1,2,[])';
- bC{i} = b;
+b1 = bc.reducedToFullVector(b);
+bC{i} = reshape(b1,2,[])';
+%  bC{i} = b;
 
 % sF.fValues = reshape(b1,2,[])';
 % sF.mesh    = mesh;
@@ -50,7 +49,7 @@ end
 
 sM.mesh    = mesh;
 sM.basis   = bC;
-sM.fValues =[1 0 0 0 0 0];
+sM.fValues =[1 1 1 1 1 1];
 modal = ModalFunction(sM);
 
 p1FUNC = modal.project('P1');
@@ -132,7 +131,6 @@ s.fValues = mesh.coord;
 s.mesh = mesh;
 disp = P1Function(s);
 d.ndimf  = disp.ndimf;
-d.ndimf  = 1;
 d.nnodes = size(disp.fValues, 1);
 d.ndofs  = d.nnodes*d.ndimf;
 d.nnodeElem = mesh.nnodeElem; % should come from interp..
@@ -190,11 +188,11 @@ end
 
 
 function k= computeStiffnessMatrix(mesh,material,displacementFun)
-s.type     = 'StiffnessMatrix';
+s.type     = 'ElasticStiffnessMatrix';
 s.mesh     = mesh;
-% s.fun      = displacementFun;
-s.test      = displacementFun;
-s.trial      = displacementFun;
+s.fun      = displacementFun;
+% s.test      = displacementFun;
+% s.trial      = displacementFun;
 s.material = material;
 lhs = LHSintegrator.create(s);
 k=lhs.compute();
