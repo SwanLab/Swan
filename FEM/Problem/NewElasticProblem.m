@@ -37,10 +37,11 @@ classdef NewElasticProblem < handle
             obj.createSolver();
         end
 
-        function [LHS, RHS, bc] = getSolverData(obj)
+        function [LHS, RHS, bc, newbc] = getSolverData(obj)
             LHS = obj.computeStiffnessMatrix;
             RHS = obj.computeForces;
             bc  = obj.boundaryConditions;
+            newbc = obj.newBCs;
         end
 
         function setVariable(obj, u)

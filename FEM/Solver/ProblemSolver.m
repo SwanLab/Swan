@@ -19,9 +19,9 @@ classdef ProblemSolver < handle
     methods (Static, Access = public)
 
         function solve(problem)
-            [LHS, RHS, bc] = problem.getSolverData();
-            Kred = bc.fullToReducedMatrix(LHS);
-            Fred = bc.fullToReducedVector(RHS);
+            [LHS, RHS, bc, newbc] = problem.getSolverData();
+            LHSred = BCApplier.reduceLHS(LHS, newbc);
+            RHSred = BCApplier.reduceLHS(RHS, newbc);
             u = Direct_Solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
             problem.setVariable(u);

@@ -3,6 +3,7 @@ classdef DirichletCondition < BoundaryCondition
     properties (Access = public)
         fun
         domain
+        direction
         type = 'Dirichlet';
     end
     
@@ -20,6 +21,14 @@ classdef DirichletCondition < BoundaryCondition
             obj.fun    = fun;
             obj.domain = domain;
             obj.mesh   = mesh;
+            obj.direction = direction;
+        end
+
+        function dofs = getDofs(obj)
+            ndimf = obj.fun.ndimf;
+            nodes = find(obj.domain(obj.mesh.coord));
+            dofs = ndimf*(nodes - 1) + obj.direction;
+            dofs = dofs(:);
         end
         
     end
