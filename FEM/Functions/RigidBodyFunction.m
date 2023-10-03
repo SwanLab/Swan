@@ -39,6 +39,10 @@ classdef RigidBodyFunction < L2Function
             fxV = u*phiU + v*phiV + theta*phiT;
         end
         
+        function computeBasisFunction(obj,xGloc)
+            basis{1} = obj.horizontalTranslationBase.
+        end
+
     end
     
     methods (Access = private)
