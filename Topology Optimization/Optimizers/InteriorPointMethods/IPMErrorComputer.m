@@ -12,8 +12,7 @@ classdef IPMErrorComputer < handle
         dualVariable
         slack
         nSlack
-        lowerBounds
-        upperBounds
+        bounds
     end
 
     properties (Access = private)
@@ -50,15 +49,14 @@ classdef IPMErrorComputer < handle
             obj.dualVariable   = cParams.dualVariable;
             obj.slack          = cParams.slack;
             obj.nSlack         = length(obj.slack);
-            obj.lowerBounds    = cParams.lowerBounds;
-            obj.upperBounds    = cParams.upperBounds;
+            obj.bounds         = cParams.bounds;
         end
 
         function computeGradientReference(obj)
             lb          = obj.sMax;
             l           = obj.dualVariable.value;
-            lZ          = obj.lowerBounds.Z;
-            uZ          = obj.upperBounds.Z;
+            lZ          = obj.bounds.zLB;
+            uZ          = obj.bounds.zUB;
             nConstr     = obj.constraint.nSF;
             nnode       = obj.designVariable.mesh.nnodes;
             den         = nConstr+2*(nnode+obj.nSlack);
@@ -67,8 +65,8 @@ classdef IPMErrorComputer < handle
 
         function computeFieldReference(obj)
             lb           = obj.sMax;
-            lZ           = obj.lowerBounds.Z;
-            uZ           = obj.upperBounds.Z;
+            lZ           = obj.bounds.zLB;
+            uZ           = obj.bounds.zUB;
             nnode        = obj.designVariable.mesh.nnodes;
             den          = 2*(nnode+obj.nSlack);
             obj.fieldRef = max(lb,(sum(abs(uZ))+sum(abs(lZ)))/den);
@@ -78,8 +76,8 @@ classdef IPMErrorComputer < handle
             DJ            = obj.cost.gradient';
             Dg            = obj.constraint.gradient;
             l             = obj.dualVariable.value';
-            lZ            = obj.lowerBounds.Z';
-            uZ            = obj.upperBounds.Z';
+            lZ            = obj.bounds.zLB';
+            uZ            = obj.bounds.zUB';
             sD            = obj.gradRef;
             obj.errorGrad = max(abs(DJ + Dg*l - lZ + uZ))/sD;
         end
@@ -91,10 +89,10 @@ classdef IPMErrorComputer < handle
 
         function computeErrorDueToLowerBoundMargins(obj)
             x                 = obj.designVariable.value';
-            lX                = obj.lowerBounds.X;
+            lX                = obj.bounds.xLB;
             s                 = obj.slack;
-            lS                = obj.lowerBounds.S;
-            lZ                = obj.lowerBounds.Z;
+            lS                = obj.bounds.sLB;
+            lZ                = obj.bounds.zLB;
             nnode             = obj.designVariable.mesh.nnodes;
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;
@@ -103,10 +101,10 @@ classdef IPMErrorComputer < handle
 
         function computeErrorDueToUpperBoundMargins(obj)
             x                 = obj.designVariable.value';
-            uX                = obj.upperBounds.X;
+            uX                = obj.bounds.xUB;
             s                 = obj.slack;
-            uS                = obj.upperBounds.S;
-            uZ                = obj.upperBounds.Z;
+            uS                = obj.bounds.sUB;
+            uZ                = obj.bounds.zUB;
             nnode             = obj.designVariable.mesh.nnodes;
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;

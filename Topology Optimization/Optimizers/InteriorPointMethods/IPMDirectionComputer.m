@@ -16,13 +16,12 @@ classdef IPMDirectionComputer < handle
         nConstr
         nnode
         nSlack
-        lowerBounds
-        upperBounds
+        bounds
     end
 
     properties (Access = private)
-        invLowerDesignVarMargin
-        invUpperDesignVarMargin
+        dLX
+        dUX
         lowerSigma
         upperSigma
         LHS
@@ -36,6 +35,7 @@ classdef IPMDirectionComputer < handle
         end
 
         function compute(obj)
+            obj.computeBoundsMargins();
             obj.computeSigma();
             obj.updateHessian();
             obj.computeLHS();
@@ -57,20 +57,19 @@ classdef IPMDirectionComputer < handle
             obj.nConstr        = cParams.constraint.nSF;
             obj.nnode          = cParams.designVariable.mesh.nnodes;
             obj.nSlack         = cParams.nSlack;
-            obj.lowerBounds    = cParams.lowerBounds;
-            obj.upperBounds    = cParams.upperBounds;
+            obj.bounds         = cParams.bounds;
+        end
+
+        function computeBoundsMargins(obj)
+            x       = obj.designVariable.value';
+            s       = obj.slack;
+            obj.dLX = [x-obj.bounds.xLB s-obj.bounds.sLB];
+            obj.dUX = [obj.bounds.xUB-x obj.bounds.sUB-s];
         end
 
         function computeSigma(obj)
-            x   = obj.designVariable.value';
-            s   = obj.slack;
-            dLX = [x-obj.lowerBounds.X s-obj.lowerBounds.s];
-            dUX = [obj.upperBounds.X-x obj.upperBounds.s-s];
-
-            obj.invLowerDesignVarMargin = diag(1./dLX);
-            obj.invUpperDesignVarMargin = diag(1./dUX);
-            obj.lowerSigma = diag(obj.lowerBounds.Z./dLX);
-            obj.upperSigma = diag(obj.upperBounds.Z./dUX);
+            obj.lowerSigma = diag(obj.bounds.zLB./obj.dLX);
+            obj.upperSigma = diag(obj.bounds.zUB./obj.dUX);
         end
 
         function updateHessian(obj)
@@ -79,30 +78,24 @@ classdef IPMDirectionComputer < handle
         end
 
         function computeLHS(obj)
-            s.H          = obj.updatedHessian;
-            s.m          = obj.nConstr;
-            s.constraint = obj.constraint;
-            s.type       = 'IPMSymmetric';
-            cLHS         = LHSintegrator.create(s);
-            obj.LHS      = cLHS.compute();
+            sizeg   = obj.nConstr;
+            H       = obj.updatedHessian;
+            Dg      = obj.constraint.gradient;
+            lhsX    = [H,Dg];
+            lhsLam  = [Dg',zeros(sizeg)];
+            obj.LHS = [lhsX;lhsLam];
         end
 
         function computeRHS(obj)
-            s.baseVariables = obj.baseVariables;
-            s.e             = ones(obj.nnode + obj.nSlack,1);
-            s.nX            = obj.nnode;
-            s.nSlack        = obj.nSlack;
-            s.m             = obj.nConstr;
-            s.cost          = obj.cost;
-            s.constraint    = obj.constraint;
-            s.lambda        = obj.dualVariable.value;
-            s.lowerZ        = obj.lowerBounds.Z;
-            s.upperZ        = obj.upperBounds.Z;
-            s.invDiagdL     = obj.invLowerDesignVarMargin;
-            s.invDiagdU     = obj.invUpperDesignVarMargin;
-            s.type          = 'IPMSymmetric';
-            cRHS            = RHSintegrator.create(s);
-            obj.RHS         = cRHS.compute();
+            sizeg   = obj.nConstr;
+            l       = obj.dualVariable.value;
+            mu      = obj.baseVariables.mu;
+            g       = obj.constraint.value;
+            DJ      = obj.cost.gradient;
+            Dg      = obj.constraint.gradient;
+            rhsX    = (DJ + l*Dg'- mu./obj.dLX + mu./obj.dUX)';
+            rhsLam  = g(1:sizeg)';
+            obj.RHS = [rhsX;rhsLam];
         end
 
         function solveLinearSystem(obj)
@@ -117,16 +110,13 @@ classdef IPMDirectionComputer < handle
             obj.gradients.dlam = obj.sol(obj.nnode+obj.nSlack+1:end,1);
             
             mu                 = obj.baseVariables.mu;
-            e                  = ones(obj.nnode + obj.nSlack,1);
-            invDiagdLX         = obj.invLowerDesignVarMargin;
-            invDiagdUX         = obj.invUpperDesignVarMargin;
-            lZ                 = obj.lowerBounds.Z';
-            uZ                 = obj.upperBounds.Z';
+            lZ                 = obj.bounds.zLB';
+            uZ                 = obj.bounds.zUB';
             lSig               = obj.lowerSigma;
             uSig               = obj.upperSigma;
             desVarGrad         = [obj.gradients.dx; obj.gradients.ds];
-            obj.gradients.dzL  = mu*invDiagdLX*e-lZ-lSig*desVarGrad;
-            obj.gradients.dzU  = mu*invDiagdUX*e-uZ+uSig*desVarGrad;
+            obj.gradients.dzL  = mu*obj.dLX'-lZ-lSig*desVarGrad;
+            obj.gradients.dzU  = mu*obj.dUX'-uZ+uSig*desVarGrad;
         end
     end
 end
