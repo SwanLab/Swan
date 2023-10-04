@@ -22,9 +22,12 @@ classdef L2Function < handle
             
         end
 
-        function fun = project(obj,target)
+        function fun = project(obj,target,refPoint)
             s.mesh          = obj.mesh;
             s.projectorType = target;
+            if nargin == 3
+                s.refPoint=refPoint;
+            end
             proj = Projector.create(s);
             fun = proj.project(obj);
         end

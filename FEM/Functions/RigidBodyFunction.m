@@ -39,10 +39,37 @@ classdef RigidBodyFunction < L2Function
             fxV = u*phiU + v*phiV + theta*phiT;
         end
         
-        function computeBasisFunction(obj,xGloc)
-            basis{1} = obj.horizontalTranslationBase.
+        function basis = computeBasisFunction(obj,xGloc)
+            basis{1} = obj.horizontalTranslationBase.evaluate(xGloc);
+            basis{2} = obj.verticalTranslationBase.evaluate(xGloc);
+            basis{3} = obj.rotationalBase.evaluate(xGloc);
         end
 
+    end
+
+    methods (Access = public, Static)
+
+        function RB = create(mesh, ndimf,refPoint)
+            s.fvalues  = zeros(mesh.nnodes, ndimf);
+            s.mesh     = mesh;
+            s.refPoint = refPoint;
+            RB = RigidBodyFunction(s);
+        end
+
+        function fS = times(f1,f2)
+            fS = f1.fValues.*f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = RigidBodyFunction(s);
+        end
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues+f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = RigidBodyFunction(s);
+        end
+        
     end
     
     methods (Access = private)
