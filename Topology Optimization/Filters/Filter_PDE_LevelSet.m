@@ -18,7 +18,7 @@ classdef Filter_PDE_LevelSet < Filter
             obj.createQuadrature();
             obj.computeBoundaryConditions();
             obj.levelSet = cParams.designVariable;
-            obj.epsilon = 1.5*cParams.mesh.computeMeanCellSize();
+            obj.epsilon = 1*cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeA();
             lhs = obj.createProblemLHS();
             obj.LHS = decomposition(lhs);

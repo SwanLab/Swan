@@ -4,7 +4,7 @@ function ComputingTopOpt_2Stage
 rho0Name = 'TFM.mat';
 jumpTo2ndPart = false;
 
-if jumpTo2ndPart == false
+if jumpTo2ndPart == true
 
 %     fileName = 'jaCantilever';
 %     % Data input
