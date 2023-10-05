@@ -16,12 +16,12 @@ classdef Filter_P1_Density < handle
 
         function xReg = getP1Function(obj,f,quadType)
             s.quadType = quadType;
-            s.fun      = f;
-            s.trial    = P0Function.create(obj.mesh, 1);
+            fun        = f;
+            test       = P0Function.create(obj.mesh, 1);
             in         = obj.computeRHSintegrator(s);
             P          = obj.Poper.value;
             A          = P';
-            b          = in.RHS;
+            b          = in.computeRHS(fun,test);
             p.fValues  = A*b;
             p.mesh     = obj.mesh;
             xReg       = P1Function(p);
@@ -29,12 +29,12 @@ classdef Filter_P1_Density < handle
 
         function xReg = getP0Function(obj,f,quadType)
             s.quadType = quadType;
-            s.fun      = f;
-            s.trial    = P1Function.create(obj.mesh, 1);
+            fun        = f;
+            test       = P1Function.create(obj.mesh, 1);
             in         = obj.computeRHSintegrator(s);
             P          = obj.Poper.value;
             A          = P;
-            b          = in.RHS;
+            b          = in.computeRHS(fun,test);
             xR         = A*b;
             x0         = zeros(length(xR),obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
@@ -68,11 +68,9 @@ classdef Filter_P1_Density < handle
         end
 
         function rhs = computeRHSintegrator(obj,cParams)
-            s.type     = 'functionWithShapeFunction';
+            s.type     = 'ShapeFunction';
             s.quadType = cParams.quadType;
             s.mesh     = obj.mesh;
-            s.fun      = cParams.fun;
-            s.trial    = cParams.trial;
             rhs        = RHSintegrator.create(s);
         end
 

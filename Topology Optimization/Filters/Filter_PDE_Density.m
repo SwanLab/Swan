@@ -40,13 +40,13 @@ classdef Filter_PDE_Density < handle
         end
 
         function RHS = computeRHS(obj,f,quadType)
-            s.fun = f;
+            fun = f;
             s.quadType = quadType;
-            s.trial    = P1Function.create(obj.mesh, 1);
-            s.type     = 'functionWithShapeFunction';
+            test    = P1Function.create(obj.mesh, 1);
+            s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh;
             in        = RHSintegrator.create(s);
-            RHS          = in.RHS;
+            RHS          = in.computeRHS(fun,test);
         end
 
         function obj = updateEpsilon(obj,epsilon)

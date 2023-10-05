@@ -32,17 +32,17 @@ classdef Filter_PDE_LevelSet < handle
             %                 density; levelset entra P1Fun d'una f(chi(psi)))
             ls = obj.levelSet.value;
             F = ones(size(ls));
-            RHS = obj.computeRHSProjection(F);
+            RHS = obj.computeRHSProjection(F,quadType);
         end
 
         function RHS = computeRHSoriginal(obj,f,quadType)
             s.quadType = quadType;
-            s.fun      = f;
-            s.trial    = P1Function.create(obj.mesh, 1);
-            s.type     = 'functionWithShapeFunction';
+            fun      = f;
+            test    = P1Function.create(obj.mesh, 1);
+            s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh; % unfitted mesh in a future
             in        = RHSintegrator.create(s);
-            RHS          = in.RHS;
+            RHS          = in.computeRHS(fun,test);
         end
 
         function RHS = integrateFunctionAlongFacets(obj,F)
@@ -121,9 +121,9 @@ classdef Filter_PDE_LevelSet < handle
             itHas = var > 1e-15;
         end
 
-        function fInt = computeRHSProjection(obj,fNodes)
+        function fInt = computeRHSProjection(obj,fNodes,quadType)
             ls = obj.levelSet.value;
-            int  = obj.obtainRHSintegrator();
+            int  = obj.obtainRHSintegrator(quadType);
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
@@ -131,10 +131,12 @@ classdef Filter_PDE_LevelSet < handle
             end
         end
 
-        function int = obtainRHSintegrator(obj)
+        function int = obtainRHSintegrator(obj,quadType)
             uMesh = obj.levelSet.getUnfittedMesh();
             s.mesh = uMesh;
             s.type = 'ShapeFunction';
+            s.quadType = quadType;
+            s.test = P1Function.create(obj.mesh, 1);
             int = RHSintegrator.create(s);
         end
 
@@ -191,6 +193,8 @@ classdef Filter_PDE_LevelSet < handle
                 uMesh = obj.levelSet.getUnfittedMesh();
                 s.mesh = uMesh;
                 s.type = 'ShapeFunction';
+                s.quadType = 'LINEAR';
+                s.test = P1Function.create(obj.mesh,1);
                 int = RHSintegrator.create(s);
                 fInt = int.integrateInBoundary(fNodes);
             end

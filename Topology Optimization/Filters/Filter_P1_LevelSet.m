@@ -19,12 +19,12 @@ classdef Filter_P1_LevelSet <  handle
 
         function xReg = getP1Function(obj,f,quadType)
             s.quadType = quadType;
-            s.fun      = f;
-            s.trial    = P0Function.create(obj.mesh, 1);
+            fun      = f;
+            test    = P0Function.create(obj.mesh, 1);
             in         = obj.computeRHSintegrator(s);
             P          = obj.Poper.value;
             A          = P';
-            b          = in.RHS;
+            b          = in.computeRHS(fun,test);
             p.fValues  = A*b;
             p.mesh     = obj.mesh;
             xReg       = P1Function(p);
@@ -32,7 +32,8 @@ classdef Filter_P1_LevelSet <  handle
 
         function xReg = getP0Function(obj,f,quadType)
             levelSet = f.fValues;
-            b        = obj.projector.project(levelSet);
+            test     = P1Function.create(obj.mesh, 1);
+            b        = obj.projector.project(levelSet,quadType,test);
             P        = obj.Poper.value;
             A        = P;
             xR       = A*b;
@@ -75,11 +76,9 @@ classdef Filter_P1_LevelSet <  handle
         end
 
         function rhs = computeRHSintegrator(obj,cParams)
-            s.type     = 'functionWithShapeFunction';
+            s.type     = 'ShapeFunction';
             s.quadType = cParams.quadType;
             s.mesh     = obj.mesh;
-            s.fun      = cParams.fun;
-            s.trial    = cParams.trial;
             rhs        = RHSintegrator.create(s);
         end
 

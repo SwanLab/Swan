@@ -10,6 +10,7 @@ classdef RHSintegrator_Composite < handle
         RHScells
         RHSsubcells
         unfittedMesh
+        test
     end
 
     methods (Access = public)
@@ -34,7 +35,9 @@ classdef RHSintegrator_Composite < handle
                     int = integrator.integrateAndSum(nodalFunc);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     p1 = obj.createInnerP1(nodalFunc);
-                    intLoc = integrator.compute(p1);
+                    testHandle = class(obj.test);
+                    test = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
+                    intLoc = integrator.computeRHS(p1,test);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
                 else
                     int = integrator.compute(nodalFunc);
@@ -51,12 +54,15 @@ classdef RHSintegrator_Composite < handle
             obj.nInt = numel(cParams.compositeParams);
             obj.npnod = cParams.npnod;
             obj.unfittedMesh = cParams.unfittedMesh;
+            obj.test   = cParams.test;
         end
 
         function createIntegrators(obj,cParams)
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
                 s = params{iInt};
+                s.quadType = cParams.quadType;
+                s.test = cParams.test;
                 integrator = RHSintegrator.create(s);
                 obj.integrators{end+1} = integrator;
             end

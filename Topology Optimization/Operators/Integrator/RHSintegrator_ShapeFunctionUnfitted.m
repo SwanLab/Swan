@@ -4,6 +4,8 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         globalConnec
         mesh
         integrators
+        quadType
+        test
     end
 
     methods (Access = public)
@@ -28,10 +30,14 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.quadType = cParams.quadType;
+            obj.test = cParams.test;
         end
 
         function createInteriorIntegrators(obj)
             s = obj.createInteriorParams(obj.mesh,obj.mesh.backgroundMesh.connec);
+            s.quadType = obj.quadType;
+            s.test = obj.test;
             obj.integrators = RHSintegrator.create(s);
         end
         
@@ -72,6 +78,8 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             s.npnod = uMesh.backgroundMesh.nnodes;
             s.unfittedMesh = uMesh;
             s.compositeParams = obj.createBoundaryParams();
+            s.test = obj.test;
+            s.quadType = 'LINEAR';
             obj.integrators = RHSintegrator.create(s);
         end
 
