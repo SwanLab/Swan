@@ -12,7 +12,7 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.createQuadrature();
         end
 
-        function RHS = computeRHS(obj,fun,test)
+        function RHS = integrateInDomain(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
             dV   = obj.mesh.computeDvolume(quad);

@@ -27,12 +27,11 @@ classdef Filter_PDE_LevelSet < handle
         end
 
         function RHS = computeRHS(obj,f,quadType)
-            % brainstroming
-            % F... = f.fValues (des de fora switch- density entra P1Fun de
-            %                 density; levelset entra P1Fun d'una f(chi(psi)))
             ls = obj.levelSet.value;
             F = ones(size(ls));
-            RHS = obj.computeRHSProjection(F,quadType);
+            test    = P1Function.create(obj.mesh, 1);
+            int = obj.computeRHSProjection(quadType);
+            RHS = int.integrateInDomain(F,test);
         end
 
         function RHS = computeRHSoriginal(obj,f,quadType)
@@ -41,8 +40,8 @@ classdef Filter_PDE_LevelSet < handle
             test    = P1Function.create(obj.mesh, 1);
             s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh; % unfitted mesh in a future
-            in        = RHSintegrator.create(s);
-            RHS          = in.computeRHS(fun,test);
+            int        = RHSintegrator.create(s);
+            RHS          = int.integrateInDomain(fun,test);
         end
 
         function RHS = integrateFunctionAlongFacets(obj,F)
@@ -121,14 +120,8 @@ classdef Filter_PDE_LevelSet < handle
             itHas = var > 1e-15;
         end
 
-        function fInt = computeRHSProjection(obj,fNodes,quadType)
-            ls = obj.levelSet.value;
+        function int = computeRHSProjection(obj,quadType)
             int  = obj.obtainRHSintegrator(quadType);
-            if all(ls>0)
-                fInt = zeros(size(ls));
-            else
-                fInt = int.integrateInDomain(fNodes);
-            end
         end
 
         function int = obtainRHSintegrator(obj,quadType)
@@ -194,9 +187,9 @@ classdef Filter_PDE_LevelSet < handle
                 s.mesh = uMesh;
                 s.type = 'ShapeFunction';
                 s.quadType = 'LINEAR';
-                s.test = P1Function.create(obj.mesh,1);
+                test = P1Function.create(obj.mesh,1);
                 int = RHSintegrator.create(s);
-                fInt = int.integrateInBoundary(fNodes);
+                fInt = int.integrateInBoundary(fNodes,test);
             end
         end
 

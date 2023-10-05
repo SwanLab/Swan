@@ -3,8 +3,8 @@ classdef Filter_P1_LevelSet <  handle
     properties (Access = private)
         mesh
         Poper
-        projector
         quadrature
+        levelSet
     end
     
     methods (Access = public)
@@ -12,28 +12,28 @@ classdef Filter_P1_LevelSet <  handle
         function obj = Filter_P1_LevelSet(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createRHSProjector(cParams);
             obj.createPoperator();
             obj.disableDelaunayWarning();
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            s.quadType = quadType;
-            fun      = f;
             test    = P0Function.create(obj.mesh, 1);
-            in         = obj.computeRHSintegrator(s);
+            m   = obj.mesh;
+            int         = obj.computeRHSintegrator(m,quadType);
+            b = int.integrateInDomain(f,test);
             P          = obj.Poper.value;
             A          = P';
-            b          = in.computeRHS(fun,test);
             p.fValues  = A*b;
             p.mesh     = obj.mesh;
             xReg       = P1Function(p);
         end
 
         function xReg = getP0Function(obj,f,quadType)
-            levelSet = f.fValues;
+            ls       = f.fValues;
             test     = P1Function.create(obj.mesh, 1);
-            b        = obj.projector.project(levelSet,quadType,test);
+            uMesh    = obj.levelSet.getUnfittedMesh();
+            int        = obj.computeRHSintegrator(uMesh,quadType);
+            b   = int.integrateInDomain(ones(size(ls)),test);
             P        = obj.Poper.value;
             A        = P;
             xR       = A*b;
@@ -54,7 +54,8 @@ classdef Filter_P1_LevelSet <  handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh     = cParams.mesh;
+            obj.levelSet = cParams.designVariable;
         end
 
         function createQuadrature(obj)
@@ -68,18 +69,11 @@ classdef Filter_P1_LevelSet <  handle
             obj.Poper = Poperator(s);
         end
 
-        function createRHSProjector(obj,cParams)
-            s.mesh = cParams.mesh;
-            s.type = cParams.mesh.type;
-            s.domainType = cParams.domainType;
-            obj.projector = ShapeFunctionProjector.create(s);
-        end
-
-        function rhs = computeRHSintegrator(obj,cParams)
-            s.type     = 'ShapeFunction';
-            s.quadType = cParams.quadType;
-            s.mesh     = obj.mesh;
-            rhs        = RHSintegrator.create(s);
+        function int = computeRHSintegrator(obj,mesh,quadType)
+            s.mesh = mesh;
+            s.type = 'ShapeFunction';
+            s.quadType = quadType;
+            int = RHSintegrator.create(s);
         end
 
     end

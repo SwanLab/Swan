@@ -45,8 +45,8 @@ classdef Filter_PDE_Density < handle
             test    = P1Function.create(obj.mesh, 1);
             s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh;
-            in        = RHSintegrator.create(s);
-            RHS          = in.computeRHS(fun,test);
+            int        = RHSintegrator.create(s);
+            RHS          = int.integrateInDomain(fun,test);
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -123,7 +123,7 @@ classdef Filter_PDE_Density < handle
             s.mesh         = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
-            s.bc{1}.ndimf     = [];
+            s.bc{1}.ndimf     = 1; % periodic BCs
             s.bc{1}.ndofs     = [];
             s.ndofs        = obj.mesh.nnodes;
             obj.bc         = BoundaryConditions(s);

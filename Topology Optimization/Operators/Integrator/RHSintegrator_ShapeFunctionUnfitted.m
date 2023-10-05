@@ -5,7 +5,6 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         mesh
         integrators
         quadType
-        test
     end
 
     methods (Access = public)
@@ -14,13 +13,13 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             obj.init(cParams);
         end
 
-        function int = integrateInDomain(obj, F)
-            obj.createInteriorIntegrators();
+        function int = integrateInDomain(obj, F, test)
+            obj.createInteriorIntegrators(test);
             int = obj.integrators.integrateAndSum(F);
         end
 
-        function int = integrateInBoundary(obj,F)
-            obj.createBoundaryIntegrators();
+        function int = integrateInBoundary(obj,F,test)
+            obj.createBoundaryIntegrators(test);
             int = obj.integrators.integrateAndSum(F);
         end
 
@@ -31,13 +30,12 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.quadType = cParams.quadType;
-            obj.test = cParams.test;
         end
 
-        function createInteriorIntegrators(obj)
+        function createInteriorIntegrators(obj,test)
             s = obj.createInteriorParams(obj.mesh,obj.mesh.backgroundMesh.connec);
             s.quadType = obj.quadType;
-            s.test = obj.test;
+            s.test = test;
             obj.integrators = RHSintegrator.create(s);
         end
         
@@ -72,14 +70,14 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             s.backgroundMeshType    = mesh.backgroundMesh.type;
         end
 
-        function createBoundaryIntegrators(obj)
+        function createBoundaryIntegrators(obj,test)
             uMesh  = obj.mesh;
             s.type = 'Composite';
             s.npnod = uMesh.backgroundMesh.nnodes;
             s.unfittedMesh = uMesh;
             s.compositeParams = obj.createBoundaryParams();
-            s.test = obj.test;
             s.quadType = 'LINEAR';
+            s.test = test;
             obj.integrators = RHSintegrator.create(s);
         end
 

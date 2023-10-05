@@ -235,9 +235,9 @@ classdef UnfittedMesh < handle
             s.mesh = obj;
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
-            s.test     = P1Function.create(obj.backgroundMesh,1);
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInDomain(f);
+            fInt = integrator.integrateInDomain(f,test);
             %%Now to check IntegrateNodal, later by obj.mesh.computeMass
             %disp('Interior')
             %sum(fInt<0)/size(fInt,1)
@@ -250,9 +250,9 @@ classdef UnfittedMesh < handle
             s.mesh = obj;
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
-            s.test     = P1Function.create(obj.backgroundMesh,1);
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInBoundary(f);
+            fInt = integrator.integrateInBoundary(f,test);
             %%Now to check IntegrateNodal, later by obj.mesh.computeMass
             %disp('Boundary')
             %sum(fInt<0)/size(fInt,1)

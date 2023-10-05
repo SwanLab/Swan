@@ -36,8 +36,8 @@ classdef RHSintegrator_Composite < handle
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     p1 = obj.createInnerP1(nodalFunc);
                     testHandle = class(obj.test);
-                    test = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
-                    intLoc = integrator.computeRHS(p1,test);
+                    testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
+                    intLoc = integrator.integrateInDomain(p1,testFun);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
                 else
                     int = integrator.compute(nodalFunc);
