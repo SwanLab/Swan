@@ -50,7 +50,7 @@ classdef RadiusColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    x0(1:N+1,1) = 2;%sqrt(1/pi);
+                    x0(1:N+1,1) = sqrt(1/pi);
                 case 'Random'
                     x0 = 0.5*rand(N+1,1);
                 case 'External Value'

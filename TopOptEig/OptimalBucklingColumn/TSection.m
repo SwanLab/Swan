@@ -1,4 +1,4 @@
-classdef LSection < SectionVariablesComputer
+classdef TSection < SectionVariablesComputer
     
     properties (Access = public)
         
@@ -22,7 +22,7 @@ classdef LSection < SectionVariablesComputer
     
     methods (Access = public)
         
-        function obj = LSection(cParams)
+        function obj = TSection(cParams)
             obj.init(cParams)
             obj.computeAreaAndInertiaInSymbolic()
         end
@@ -39,7 +39,6 @@ classdef LSection < SectionVariablesComputer
            dIydh = obj.dIydh(h,tw);
            dIxdtw = obj.dIxdtw(h,tw);
            dIxdh = obj.dIxdh(h,tw);
-
         end
         
         function A = computeArea(obj)
@@ -53,7 +52,6 @@ classdef LSection < SectionVariablesComputer
            dAdh = obj.dAdh(h,tw);
            dAdtw = obj.dAdtw(h,tw);
            dA = [dAdh; dAdtw];
-
         end        
   
     end
@@ -66,20 +64,18 @@ classdef LSection < SectionVariablesComputer
             h = sym('h','real');
             b = h;
             tf = tw;
-            A  = tw*h + tf*b - tf*tw;
-            xC = 1/(2*A)*(h*tw^2 + b^2*tf-tw^2*tf);
-            Iy0 = 1/3*(h*tw^3+b^3*tf-tw^3*tf);
-            Iy = Iy0 - A*xC^2;
+            A  = (b-tw)*tf+h*tw;
+            
+            Iy = ((h-2*tf)*tw^3/12)+(tf*b^3/12);
+
+            yc = (tw*h^2/2+(b-tw)*tf^2/2);
+            Ix1 = tw*h^3/3+(b-tw)*tf^3/3;
+            Ix = Ix1-1/A*yc^2;
             
             dAdtw = diff(A,tw);
             dAdh = diff(A,h)
             dIydtw = diff(Iy,tw);
             dIydh = diff(Iy,h);
-
-
-            yC = 1/(2*A)*(h^2*tw + b*tf^2-tw*tf^2);
-            Ix0 = 1/3*(h^3*tw+b*tf^3-tw*tf^3);
-            Ix = Ix0 - A*yC^2;
 
             dIxdtw = diff(Ix,tw);
             dIxdh = diff(Ix,h);

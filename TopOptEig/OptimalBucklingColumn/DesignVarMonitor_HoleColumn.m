@@ -16,11 +16,13 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
         end
         
         function plot(obj)
+            obj.nIter= obj.nIter+1;
             scale = 0.3;
             obj.createPolygonArea(scale);
             obj.createPolygonInnerRadius(scale);
             obj.plotArea();
-            obj.plotInnerRadius();
+            obj.plotDesignVariable();
+            %obj.create3Dplot();
         end
         
     end
@@ -67,13 +69,13 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             vertex(nodes,1) = - fliplr(vertex(1:dimFig*nElem,1)')';
             vertex(dimFig*nElem+1:vertElem*nElem,2) = fliplr(vertex(1:dimFig*nElem,2)')';
         end
-
+        
         function plotArea(obj)
             pgon = obj.polygonArea;
             figure(3)
             clf
             plot(pgon);
-            axis([-2 2 0 1])
+            axis([-10 10 0 20])
             grid on
             grid minor
             title('Column Profile (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
@@ -81,19 +83,34 @@ classdef DesignVarMonitor_HoleColumn <  DesignVarMonitor_Abstract
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
         end
 
-        function plotInnerRadius(obj)
-            pgon = obj.polygonInnerRadius;
+        function plotDesignVariable(obj)
+            [r,e] = obj.sectionVariables.getDoubleValue();
+            xMax = max(obj.mesh.coord);
+            x = linspace(0,xMax,length(r));
             figure(4)
             clf
-            plot(pgon);
-            axis([-2 2 0 1])
+            %plot(x,r,x,r+e);
+            plot(r,x,r+e,x);
+            axis([0 2 0 xMax])
             grid on
             grid minor
-            title('Column Inner Radius (2D)','Interpreter', 'latex','FontSize',20, 'fontweight','b');
-            xlabel('r1(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            %title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            xlabel('r, r+e','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            %legend('r','r+e','location','southeast')
+            set(gcf, 'Position',  [100, 100, 200, 500])
         end
 
+        function create3Dplot(obj)
+            nElem = obj.sectionVariables.mesh.nelem;
+            nVar = obj.sectionVariables.designVariable.nDesignVar;
+            s.designVariableValue = obj.sectionVariables.designVariable.value(1:nVar*nElem);
+            s.coord = obj.sectionVariables.mesh.coord;
+            s.type = 'holedCircle'; 
+            plt = Plot3DBucklingColumn(s);
+            plt.compute();
+            obj.frames{obj.nIter} = plt.frame;
+        end
 
     end 
     

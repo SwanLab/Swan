@@ -69,12 +69,14 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             x = linspace(0,xMax,length(a));
             figure(4)
             clf
-            plot(x,a,x,b);
-            axis([0 xMax 0 3])
+            plot(a,x,b,x);
+            axis([0.5 3.5 0 xMax])
             grid on
             grid minor
-            title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
-            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            %title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            xlabel('a,b','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            set(gcf, 'Position',  [100, 100, 200, 500])
         end
 
         function create3Dplot(obj)

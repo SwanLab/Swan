@@ -70,13 +70,14 @@ classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
             x = linspace(0,xMax,length(y));
             figure(4)
             clf
-            plot(x,y);
-            axis([0 xMax 0 2])
+            plot(y,x);
+            axis([0 1 0 xMax])
             grid on
             grid minor
-            title('Design Variable','Interpreter', 'latex','FontSize',20, 'fontweight','b');
-            xlabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
-            ylabel('R(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            %title('Design Variable','Interpreter', 'latex','FontSize',20, 'fontweight','b');
+            ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            xlabel('R(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
+            set(gcf, 'Position',  [100, 100, 500, 500])
         end
 
         function create3Dplot(obj)

@@ -1,8 +1,8 @@
-classdef HoleColumn < DesignVariable
+classdef TshapeColumn < DesignVariable
     
     properties (Access = public)
         nDesignVar = 2
-        sectionType = 'Circular'
+        sectionType = 'TSection'
     end
     
     properties (Access = private)
@@ -12,9 +12,9 @@ classdef HoleColumn < DesignVariable
        
     methods (Access = public)
         
-        function obj = HoleColumn(cParams)
+        function obj = TshapeColumn(cParams)
             obj.init(cParams);
-            obj.type = 'HoleColumn';
+            obj.type = 'TshapeColumn';
             obj.createInitialValue();
         end
         
@@ -46,18 +46,10 @@ classdef HoleColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    r = 1*ones(N,1);
-                    e = 0.3*ones(N,1);
-                    x0 = [r;e;1];
+                    x0 = ones(2*N+1,1);
                 case 'Random'
-                    r = rand(N,1);
-                    e = 0.3*rand(N,1);
-                    x0 = [r;e;1];
-                case 'Sinus'
-                    x = linspace(0,5*pi,N)';
-                    r = 0.4*sin(x)+1;
-                    e = 0.2*sin(x)+0.3;
-                    x0 = [r;e;1];
+                    x0(1:N,1) = rand(N,1);
+                    x0(N+1:2*N+1,1) = 0.5*rand(N+1,1);
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;
