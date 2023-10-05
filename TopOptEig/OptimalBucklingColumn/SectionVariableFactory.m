@@ -8,6 +8,8 @@ classdef SectionVariableFactory < handle
                     section = CircularSection(cParams);
                 case 'Quadrilateral'
                     section = QuadrilateralSection(cParams);
+                case 'LSection'
+                    section = LSection(cParams);
             end
         end
         
