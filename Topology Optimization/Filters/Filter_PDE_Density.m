@@ -18,14 +18,22 @@ classdef Filter_PDE_Density < handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeBoundaryConditions();
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
-            obj.Anodal2Gauss = obj.computeA();
-            lhs = obj.createProblemLHS(cParams);
-            obj.LHS = decomposition(lhs);
+            obj.epsilon      = cParams.mesh.computeMeanCellSize();
+            obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
+            lhs              = obj.createProblemLHS(cParams);
+            obj.LHS          = decomposition(lhs);
+        end
+
+        function xReg = getP1Function(obj,f,quadType)
+            RHS       = obj.computeRHS(f,quadType);
+            xR        = obj.solveFilter(RHS);
+            p.fValues = xR;
+            p.mesh    = obj.mesh;
+            xReg      = P1Function(p);
         end
 
         function xReg = getP0Function(obj,f,quadType)
-            xRP1 =  obj.getP1fromP1(f,quadType);
+            xRP1 =  obj.getP1Function(f,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
@@ -39,34 +47,22 @@ classdef Filter_PDE_Density < handle
             xReg         = FGaussDiscontinuousFunction(s);
         end
 
-        function RHS = computeRHS(obj,f,quadType)
-            fun = f;
-            s.quadType = quadType;
-            test    = P1Function.create(obj.mesh, 1);
-            s.type     = 'ShapeFunction';
-            s.mesh     = obj.mesh;
-            int        = RHSintegrator.create(s);
-            RHS          = int.integrateInDomain(fun,test);
-        end
-
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                lhs = obj.computeLHS();
-                obj.LHS = decomposition(lhs);
+                lhs         = obj.computeLHS();
+                obj.LHS     = decomposition(lhs);
             end
         end
 
-        function xReg = getP1fromP1(obj,f,quadType)
-            xReg = obj.getP1Function(f,quadType);
-        end
-
-        function xReg = getP1Function(obj,f,quadType)
-            RHS       = obj.computeRHS(f,quadType);
-            xR        = obj.solveFilter(RHS);
-            p.fValues = xR;
-            p.mesh    = obj.mesh;
-            xReg      = P1Function(p);
+        function RHS = computeRHS(obj,f,quadType)
+            fun        = f;
+            s.quadType = quadType;
+            test       = P1Function.create(obj.mesh, 1);
+            s.type     = 'ShapeFunction';
+            s.mesh     = obj.mesh;
+            int        = RHSintegrator.create(s);
+            RHS        = int.integrateInDomain(fun,test);
         end
 
     end
@@ -89,17 +85,17 @@ classdef Filter_PDE_Density < handle
             obj.quadrature = q;
         end
 
-        function A_nodal_2_gauss = computeA(obj)
-            p1f = P1Function.create(obj.mesh,1);
-            s.nnode   = obj.mesh.nnodeElem;
-            s.nelem   = obj.mesh.nelem;
-            s.npnod   = obj.mesh.nnodes;
-            s.ngaus   = obj.quadrature.ngaus;
-            s.connec  = obj.mesh.connec;
-            s.shape   = p1f.computeShapeFunctions(obj.quadrature);
-            Acomp = Anodal2gausComputer(s);
+        function A = computeNodesGaussMatrix(obj)
+            p1f      = P1Function.create(obj.mesh,1);
+            s.nnode  = obj.mesh.nnodeElem;
+            s.nelem  = obj.mesh.nelem;
+            s.npnod  = obj.mesh.nnodes;
+            s.ngaus  = obj.quadrature.ngaus;
+            s.connec = obj.mesh.connec;
+            s.shape  = p1f.computeShapeFunctions(obj.quadrature);
+            Acomp    = Anodal2gausComputer(s);
             Acomp.compute();
-            A_nodal_2_gauss = Acomp.A_nodal_2_gauss;
+            A = Acomp.A_nodal_2_gauss;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
@@ -111,22 +107,22 @@ classdef Filter_PDE_Density < handle
         end
 
         function x_reg = solveFilter(obj,RHS)
-            RHS = obj.bc.fullToReducedVector(RHS);
+            RHS    = obj.bc.fullToReducedVector(RHS);
             s.type = 'DIRECT';
-            Solv = Solver.create(s);
-            x = Solv.solve(obj.LHS,RHS);
-            x_reg = obj.bc.reducedToFullVector(x);
+            Solv   = Solver.create(s);
+            x      = Solv.solve(obj.LHS,RHS);
+            x_reg  = obj.bc.reducedToFullVector(x);
         end
 
         function computeBoundaryConditions(obj)
-            s.scale        = obj.scale;
-            s.mesh         = obj.mesh;
+            s.scale           = obj.scale;
+            s.mesh            = obj.mesh;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = 1; % periodic BCs
             s.bc{1}.ndofs     = [];
-            s.ndofs        = obj.mesh.nnodes;
-            obj.bc         = BoundaryConditions(s);
+            s.ndofs           = obj.mesh.nnodes;
+            obj.bc            = BoundaryConditions(s);
             obj.bc.compute();
         end
 

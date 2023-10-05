@@ -108,7 +108,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             s.fValues = obj.designVariable.value;
             s.mesh    = obj.designVariable.mesh;
             f         = P1Function(s);
-            rhoe      = obj.filter.getP1fromP1(f,'QUADRATICMASS');
+            rhoe      = obj.filter.getP1Function(f,'QUADRATICMASS');
             obj.regularizedDensity = rhoe.fValues;
          end
         

@@ -13,31 +13,30 @@ classdef Filter_P1_LevelSet <  handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.createPoperator();
-            obj.disableDelaunayWarning();
         end
 
         function xReg = getP1Function(obj,f,quadType)
-            test    = P0Function.create(obj.mesh, 1);
-            m   = obj.mesh;
-            int         = obj.computeRHSintegrator(m,quadType);
-            b = int.integrateInDomain(f,test);
-            P          = obj.Poper.value;
-            A          = P';
-            p.fValues  = A*b;
-            p.mesh     = obj.mesh;
-            xReg       = P1Function(p);
+            test      = P0Function.create(obj.mesh, 1);
+            m         = obj.mesh;
+            int       = obj.computeRHSintegrator(m,quadType);
+            b         = int.integrateInDomain(f,test);
+            P         = obj.Poper.value;
+            A         = P';
+            p.fValues = A*b;
+            p.mesh    = obj.mesh;
+            xReg      = P1Function(p);
         end
 
         function xReg = getP0Function(obj,f,quadType)
-            ls       = f.fValues;
-            test     = P1Function.create(obj.mesh, 1);
-            uMesh    = obj.levelSet.getUnfittedMesh();
-            int        = obj.computeRHSintegrator(uMesh,quadType);
-            b   = int.integrateInDomain(ones(size(ls)),test);
-            P        = obj.Poper.value;
-            A        = P;
-            xR       = A*b;
-            x0       = zeros(length(xR),obj.quadrature.ngaus);
+            ls    = f.fValues;
+            test  = P1Function.create(obj.mesh, 1);
+            uMesh = obj.levelSet.getUnfittedMesh();
+            int   = obj.computeRHSintegrator(uMesh,quadType);
+            b     = int.integrateInDomain(ones(size(ls)),test); % to be included in CharFun
+            P     = obj.Poper.value;
+            A     = P;
+            xR    = A*b;
+            x0    = zeros(length(xR),obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = xR;
             end
@@ -65,27 +64,17 @@ classdef Filter_P1_LevelSet <  handle
         end
 
         function createPoperator(obj)
-            s.mesh   = obj.mesh;
+            s.mesh    = obj.mesh;
             obj.Poper = Poperator(s);
         end
 
         function int = computeRHSintegrator(obj,mesh,quadType)
-            s.mesh = mesh;
-            s.type = 'ShapeFunction';
+            s.type     = 'ShapeFunction';
             s.quadType = quadType;
-            int = RHSintegrator.create(s);
+            s.mesh     = mesh;
+            int        = RHSintegrator.create(s);
         end
 
     end
-
-    methods (Access = private, Static)
-     
-        function disableDelaunayWarning()
-            MSGID = 'MATLAB:delaunayTriangulation:DupPtsWarnId';
-            warning('off', MSGID)
-        end
-        
-    end
-    
     
 end
