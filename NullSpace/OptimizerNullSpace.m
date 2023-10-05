@@ -155,7 +155,7 @@ classdef OptimizerNullSpace < Optimizer
                 if obj.aG <= 0.5*obj.aGmax
                     obj.eta = 0.05;
                 else
-                    obj.eta = 0.05;
+                    obj.eta = 0.01;
                 end
             end
         end

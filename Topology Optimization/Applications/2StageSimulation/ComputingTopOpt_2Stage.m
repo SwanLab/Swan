@@ -1,10 +1,10 @@
 function ComputingTopOpt_2Stage
 % checkout: git checkout origin/master -- path/to/file
 % PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
-rho0Name = 'TFM.mat';
-jumpTo2ndPart = false;
+rho0Name = 'inverterPartI.mat';
+jumpTo2ndPart = true;
 
-if jumpTo2ndPart == true
+if jumpTo2ndPart == false
 
 %     fileName = 'jaCantilever';
 %     % Data input
@@ -63,7 +63,7 @@ if jumpTo2ndPart == true
 %     system(command);
 else
     load(rho0Name);
-    fileName = 'test_anisotropy_cantilever_rho0';
+    fileName = 'test_gripping';
 
     s = Settings(fileName);
     s.warningHoleBC = false;

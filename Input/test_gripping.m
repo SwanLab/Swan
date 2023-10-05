@@ -3,22 +3,22 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'nonadjoint_compliance'};
-weights = [1];
+cost = {'nonadjoint_compliance','anisotropicPerimeterInterior2D'};
+weights = [1,0.7];
 constraint = {'volumeConstraint'}; 
 incrementFactor = 1.2;
 optimizerUnconstrained = 'SLERP';
 optimizer = 'NullSpace';
 designVariable = 'LevelSet';
 filterType = 'P1';
-constraint_case = {'INEQUALITY'};
+constraint_case = {'EQUALITY'};
 
 nsteps = 1;
-Vfrac_final = 0.35;
+Vfrac_final = 0.3;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.35;
+Vfrac_initial = 0.3;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
