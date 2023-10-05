@@ -75,7 +75,9 @@ classdef ShFunc_Volume < ShapeFunctional
                 xs        = x(i0:iF);
                 s.fValues = xs;
                 f         = P1Function(s);
-                xf{ivar}  = obj.filter.getP0Function(f,'QUADRATICMASS');
+                fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
+                xP0       = squeeze(fP0.fValues);
+                xf{ivar}  = reshape(xP0',[s.mesh.nelem,fP0.quadrature.ngaus]);
             end
             obj.homogenizedVariablesComputer.computeDensity(xf);
         end

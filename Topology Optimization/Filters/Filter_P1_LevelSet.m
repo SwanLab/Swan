@@ -40,7 +40,12 @@ classdef Filter_P1_LevelSet <  handle
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = xR;
             end
-            xReg = x0;
+            ngaus        = obj.quadrature.ngaus;
+            nelem        = obj.mesh.nelem;
+            s.fValues    = reshape(x0',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = obj.quadrature;
+            xReg         = FGaussDiscontinuousFunction(s);
         end
 
     end

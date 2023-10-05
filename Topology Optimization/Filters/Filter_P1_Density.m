@@ -38,10 +38,14 @@ classdef Filter_P1_Density < handle
             xR         = A*b;
             x0         = zeros(length(xR),obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = xR; % Not a P0!
+                x0(:,igaus) = xR;
             end
-            xReg = x0;
-            % FGauss...?
+            ngaus        = obj.quadrature.ngaus;
+            nelem        = obj.mesh.nelem;
+            s.fValues    = reshape(x0',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = obj.quadrature;
+            xReg         = FGaussDiscontinuousFunction(s);
         end
 
     end

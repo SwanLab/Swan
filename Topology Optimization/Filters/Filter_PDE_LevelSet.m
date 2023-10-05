@@ -70,13 +70,19 @@ classdef Filter_PDE_LevelSet < handle
             xReg      = P1Function(p);
         end
 
-        function x0 = getP0Function(obj,f,quadType)
+        function xReg = getP0Function(obj,f,quadType)
             xRP1 =  obj.getP1fromP1(f,quadType);
             xR   = xRP1.fValues;
             x0 = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
                 x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
             end
+            ngaus        = obj.quadrature.ngaus;
+            nelem        = obj.mesh.nelem;
+            s.fValues    = reshape(x0',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = obj.quadrature;
+            xReg         = FGaussDiscontinuousFunction(s);
         end
 
         function xReg = getP1Function(obj,f,quadType)
