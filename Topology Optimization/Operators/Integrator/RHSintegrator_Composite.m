@@ -69,6 +69,7 @@ classdef RHSintegrator_Composite < handle
         end
 
         function p1 = createInnerP1(obj, F)
+            % F.getDoFsElements, P1 and P0 -> F.restrict2cell(cells) 
             innerMesh = obj.unfittedMesh.innerMesh;
             connecIG = innerMesh.globalConnec;
             connecIL  = innerMesh.mesh.connec;
