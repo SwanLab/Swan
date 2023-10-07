@@ -43,7 +43,7 @@ fem.uFun.ndimf = 3;
 %fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
 %fem.print('results_fem2', 'Paraview') % print using Paraview
 
-%plotError()
+plotError()
 
 %end
 
