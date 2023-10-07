@@ -4,18 +4,21 @@ classdef Jacobian_Solver < Solver
 
         function x = solve(LHS,RHS,mesh,bc)
             normVal = Inf;
-            tol = 1e-6;
+            tol = 1e-2;
             n = length(LHS);
             x = RHS;
             iter = 0;
             D = diag(diag(LHS));
             T = LHS - D;
-            w=0.9;
+            w=2/3;
             while normVal>tol
                 xold=x;
                 x=w*(D\(RHS-T*xold))+(1-w)*xold;
-                %Jacobian_Solver.plotSolution(x,mesh,bc,iter)
-                normVal = norm(x-xold);
+                if mod(iter,10) == 0
+                    Jacobian_Solver.plotSolution(x,mesh,bc,iter)
+                end
+                %normVal = norm(x-xold);
+                normVal = max(LHS*x - RHS);
                 iter  = iter+1;
                 residu(iter) = normVal;
             end

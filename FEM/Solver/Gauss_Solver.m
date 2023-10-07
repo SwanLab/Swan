@@ -4,7 +4,7 @@ classdef Gauss_Solver < Solver
 
         function x = solve(LHS,RHS,mesh,bc)
             normVal = Inf;
-            tol = 1e-6;
+            tol = 1e-3;
             n = length(LHS);
             x = RHS;
             iter = 0;
@@ -13,8 +13,11 @@ classdef Gauss_Solver < Solver
             while normVal>tol
                 xold=x;
                 x=L\(RHS-U*xold);
-                Gauss_Solver.plotSolution(x,mesh,bc,iter)
-                normVal=norm(x-xold);
+                if mod(iter,100) == 0
+                    Gauss_Solver.plotSolution(x,mesh,bc,iter)
+                end
+                %normVal=norm(x-xold);
+                normVal = max(LHS*x - RHS);
                 iter = iter+1;
                 residu(iter) = normVal;
             end
