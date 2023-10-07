@@ -28,20 +28,20 @@ classdef plotError < handle
             obj.init;
             
             figure
-            plot(obj.numIterConjugateB,obj.residuConjugateB.residu,obj.numIterConjugateRand,obj.residuConjugateRand.residu,obj.numIterConjugateZeros,obj.residuConjugateZeros.residu)
+            plot(obj.numIterConjugateB,log(obj.residuConjugateB.residu),obj.numIterConjugateRand,log(obj.residuConjugateRand.residu),obj.numIterConjugateZeros,log(obj.residuConjugateZeros.residu))
             title('Conjugate Gradient')
             xlabel('Iteration')
             ylabel('Error')
             legend({'B', 'Random', 'Zeros'}, 'Location', 'northeast')
             figure
-            plot(obj.numIterGaussB,obj.residuGaussB.residu,obj.numIterGaussRand,obj.residuGaussRand.residu,obj.numIterGaussZeros,obj.residuGaussZeros.residu)
+            plot(obj.numIterGaussB,log(obj.residuGaussB.residu),obj.numIterGaussRand,log(obj.residuGaussRand.residu),obj.numIterGaussZeros,log(obj.residuGaussZeros.residu))
             title('Gauss-Seidel')
             xlabel('Iteration')
             ylabel('Error')
             legend({'B', 'Random', 'Zeros'}, 'Location', 'northeast')
             %xlim ([0 100])
             figure
-            plot(obj.numIterJacobiB,obj.residuJacobiB.residu,obj.numIterJacobiRand,obj.residuJacobiRand.residu,obj.numIterJacobiZeros,obj.residuJacobiZeros.residu)
+            plot(obj.numIterJacobiB,log(obj.residuJacobiB.residu),obj.numIterJacobiRand,log(obj.residuJacobiRand.residu),obj.numIterJacobiZeros,log(obj.residuJacobiZeros.residu))
             title('Jacobi')
             xlabel('Iteration')
             ylabel('Error')
