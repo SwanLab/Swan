@@ -1,7 +1,7 @@
 function ComputingTopOpt_2Stage
 % checkout: git checkout origin/master -- path/to/file
 % PENDING: AUTOMATIZE THIS FUNCTION WITH GID PICTUREsss
-rho0Name = 'inverterPartI.mat';
+rho0Name = 'inverterPrePDEFilter.mat';
 jumpTo2ndPart = true;
 
 if jumpTo2ndPart == false
@@ -63,6 +63,8 @@ if jumpTo2ndPart == false
 %     system(command);
 else
     load(rho0Name);
+    close all;
+    rho0=computation.designVariable.value;
     fileName = 'test_gripping';
 
     s = Settings(fileName);

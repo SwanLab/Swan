@@ -16,7 +16,7 @@ classdef OptimizerFactory < handle
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
                     cParams.optimizerNames.aJmax = 0;
-                    cParams.optimizerNames.aGmax = 3e-3;
+                    cParams.optimizerNames.aGmax = 0.0125;
                     op = OptimizerNullSpace(cParams);
                 otherwise
                     error('Invalid optimizer.')

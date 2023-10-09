@@ -150,12 +150,12 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = 0.10;
+                obj.eta = 0.001; % 0.05
             else
                 if obj.aG <= 0.5*obj.aGmax
-                    obj.eta = 0.05;
-                else
                     obj.eta = 0.01;
+                else
+                    obj.eta = 0.001;
                 end
             end
         end
