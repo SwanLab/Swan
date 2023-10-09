@@ -16,6 +16,8 @@ classdef ProjectorFactory < handle
                     obj = H1Projector_toP1Discontinuous(cParams);
                 case 'RigidBody'
                     obj = Projector_toRigidBody(cParams);
+                case 'ModalFunction'
+                    obj = Projector_toModalFunction(cParams);
             end
         end
 

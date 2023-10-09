@@ -27,9 +27,17 @@ classdef FeFunction < handle
         function obj = FeFunction()
         end
 
-        function fun = project(obj,target)
+        function fun = project(obj,target,vargin)
             s.mesh          = obj.mesh;
             s.projectorType = target;
+            if nargin == 3
+                switch target
+                    case 'RigidBody'
+                        s.refPoint=vargin;
+                    case 'ModalFunction'
+                        s.basis=vargin;
+                end
+            end
             proj = Projector.create(s);
             fun = proj.project(obj);
         end

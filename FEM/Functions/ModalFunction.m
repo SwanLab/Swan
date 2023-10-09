@@ -2,15 +2,13 @@ classdef ModalFunction < L2Function
 
     properties (Access = public)
         ndimf
+        nbasis
+        fValues
+        basisFunctions
     end
 
     properties (Access = private)
-         fValues
-%         mesh
         basisValues
-        basisFunctions
-        FEfun
-        nbasis
     end
 
     properties (Access = private)
@@ -25,7 +23,9 @@ classdef ModalFunction < L2Function
         end
 
         function fxV = evaluate(obj, xGLoc)
-            fxV = zeros(size(xGLoc));
+            nelem=obj.mesh.nelem;
+            sizeaux= [obj.ndimf,size(xGLoc,2),nelem];
+            fxV = zeros(sizeaux);
             for ibasis = 1:obj.nbasis
                 fI   = obj.fValues(ibasis);
                 phiI = obj.basisFunctions{ibasis}.evaluate(xGLoc);
@@ -33,6 +33,39 @@ classdef ModalFunction < L2Function
             end
         end
 
+        function fxV = evaluateBasisFunctions(obj,xGLoc)
+            for ibasis=1:obj.nbasis
+               phiI = obj.basisFunctions{ibasis}.evaluate(xGLoc);
+               fxV{ibasis}=phiI;
+            end    
+        end
+
+    end
+
+    methods (Access = public, Static)
+
+        function MF = create(mesh,basis)
+            nbasis = numel(basis);
+            s.fValues  = zeros(nbasis,1);
+            s.mesh     = mesh;
+            s.basis    = basis;
+            MF = ModalFunction(s);
+        end
+
+        function fS = times(f1,f2)
+            fS = f1.fValues.*f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = RigidBodyFunction(s);
+        end
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues+f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = RigidBodyFunction(s);
+        end
+        
     end
 
     methods (Access = private)
@@ -68,7 +101,7 @@ classdef ModalFunction < L2Function
             for ibasis=1:obj.nbasis
                s.fValues = obj.basisValues{ibasis};
                obj.basisFunctions{ibasis} = P1Function(s);
-               obj.basisFunctions{ibasis}.plot
+%                obj.basisFunctions{ibasis}.plot
             end    
         end
 

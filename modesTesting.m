@@ -51,10 +51,12 @@ sM.mesh    = mesh;
 sM.basis   = bC;
 sM.fValues =[1 1 1 1 1 1];
 modal = ModalFunction(sM);
-
 p1FUNC = modal.project('P1');
+
+
+modal2=p1FUNC.project('ModalFunction',bC);
 % p1FUNC.plot
-p1FUNC.print('prova')
+% p1FUNC.print('prova')
 
 % modal.FEfun{1}.plot
 
@@ -82,6 +84,8 @@ fem = FEM.create(s);
 fem.solve();
 
 fem.print('DD')
+
+
 
 % figure(1)
 % fem.uFun.plot()

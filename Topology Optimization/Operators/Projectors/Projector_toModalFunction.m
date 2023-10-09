@@ -1,14 +1,14 @@
-classdef Projector_toRigidBody < Projector
+classdef Projector_toModalFunction < Projector
 
     properties (Access = private)
-        refPoint
+        basis
     end
 
     methods (Access = public)
 
-        function obj = Projector_toRigidBody(cParams)
+        function obj = Projector_toModalFunction(cParams)
             obj.init(cParams);
-            obj.refPoint = cParams.refPoint;
+            obj.basis = cParams.basis;
         end
 
         function xFun = project(obj, x)
@@ -16,9 +16,9 @@ classdef Projector_toRigidBody < Projector
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
-            s.fvalues = xProj;
-            s.refPoint = obj.refPoint;
-            xFun = RigidBodyFunction(s);
+            s.fValues = xProj;
+            s.basis = obj.basis;
+            xFun = ModalFunction(s);
         end
 
     end
@@ -27,17 +27,17 @@ classdef Projector_toRigidBody < Projector
 
         function LHS = computeLHS(obj)
             mesh     = obj.mesh;
-            refPoint = obj.refPoint;
+            basis    = obj.basis;
 
-            test  = RigidBodyFunction.create(mesh,refPoint);
+            test  = ModalFunction.create(mesh,basis);
             quad  = obj.createRHSQuadrature(test);
             xV    = quad.posgp;
             dV    = obj.mesh.computeDvolume(quad);
             ngaus = quad.ngaus;
 
-            basisTest  = test.computeBasisFunction(xV);
+            basisTest  = test.evaluateBasisFunctions(xV);
             basisTrial = basisTest;
-            nbasis     = size(basisTest,2);
+            nbasis     = test.nbasis;
 
             LHS   = zeros(nbasis);
             nFlds = test.ndimf;
@@ -54,16 +54,16 @@ classdef Projector_toRigidBody < Projector
 
         function RHS = computeRHS(obj,fun)
             mesh     = obj.mesh;
-            refPoint = obj.refPoint;
+            basis    = obj.basis;
 
-            test  = RigidBodyFunction.create(mesh,refPoint);
+            test  = ModalFunction.create(mesh,basis);
 
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
 
-            basisTest  = test.computeBasisFunction(xV);
-            nbasis     = size(basisTest,2);
+            basisTest  = test.evaluateBasisFunctions(xV);
+            nbasis     = test.nbasis;
 
             nGaus = quad.ngaus;
             nFlds = fun.ndimf;

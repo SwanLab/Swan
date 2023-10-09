@@ -49,7 +49,8 @@ classdef RigidBodyFunction < L2Function
 
     methods (Access = public, Static)
 
-        function RB = create(mesh, ndimf,refPoint)
+        function RB = create(mesh,refPoint)
+            ndimf=mesh.ndim;
             s.fvalues  = zeros(mesh.nnodes, ndimf);
             s.mesh     = mesh;
             s.refPoint = refPoint;
