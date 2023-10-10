@@ -2,12 +2,10 @@ classdef RHSintegrator_CutMesh < RHSintegrator
 
     properties (Access = private)
         npnod
-%         mesh
         globalConnec
         xGauss
         fGauss
         quadOrder
-%         quadrature
 
         backgroundMeshType
 
@@ -18,7 +16,6 @@ classdef RHSintegrator_CutMesh < RHSintegrator
 
     methods (Access = public)
 
-        % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_CutMesh(cParams)
             obj.init(cParams);
             obj.createQuadrature();
@@ -79,19 +76,15 @@ classdef RHSintegrator_CutMesh < RHSintegrator
             mmm.connec = obj.subCellConnec;
             mmm.type   = obj.backgroundMeshType;
             s.mesh = mmm;
-%             s.connec = obj.subCellConnec;
-%             s.type   = obj.backgroundMeshType;
-%             s.mesh   = obj.mesh; % !!!
             f = P1Function(s);
             fG = f.evaluate(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end
         
-        function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
+        function rhsC = computeElementalRHS(obj)
             fG     = obj.fGauss;
             dV     = obj.computeDvolume();
-%             fdV    = (fG.*dV);
             shapes = obj.computeShapeFunctions();
             nnode  = size(shapes,1);
             nelem  = size(shapes,2);

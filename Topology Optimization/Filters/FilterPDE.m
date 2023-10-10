@@ -1,12 +1,11 @@
-classdef Filter_PDE_LevelSet < handle
-
+classdef FilterPDE < handle
+    
     properties (Access = private)
         mesh
         LHStype
         scale
-        levelSet
-        Anodal2Gauss
         epsilon
+        Anodal2Gauss
         problemLHS
         LHS
         bc
@@ -15,11 +14,10 @@ classdef Filter_PDE_LevelSet < handle
 
     methods (Access = public)
 
-        function obj = Filter_PDE_LevelSet(cParams)
+        function obj = FilterPDE(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeBoundaryConditions();
-            obj.levelSet     = cParams.designVariable;
             obj.epsilon      = cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
             lhs              = obj.createProblemLHS(cParams);
@@ -58,27 +56,13 @@ classdef Filter_PDE_LevelSet < handle
         end
 
         function RHS = computeRHS(obj,f,quadType)
-            switch class(f)
-                case 'P1Function'
-                    m  = obj.levelSet.getUnfittedMesh();
-                    ls = f.fValues;
-                    F  = ones(size(ls)); % pending to be included in CharacteristicFunction
-                otherwise
-                    m = obj.mesh;
-                    F = f;
-            end
-            int  = obj.computeRHSintegrator(m,quadType);
-            test = P1Function.create(obj.mesh, 1);
-            RHS  = int.integrateInDomain(F,test);
-        end
-
-        function RHS = integrateFunctionAlongFacets(obj,F)
-            RHS = obj.computeRHSinBoundary(F);
-        end
-
-        function x_reg = regularize(obj,F)
-            RHS   = obj.integrateFunctionAlongFacets(F);
-            x_reg = obj.solveFilter(RHS);
+            fun        = f;
+            s.quadType = quadType;
+            test       = P1Function.create(obj.mesh, 1);
+            s.type     = 'ShapeFunction';
+            s.mesh     = obj.mesh;
+            int        = RHSintegrator.create(s);
+            RHS        = int.integrateInDomain(fun,test);
         end
 
     end
@@ -101,13 +85,6 @@ classdef Filter_PDE_LevelSet < handle
             obj.quadrature = q;
         end
 
-        function int = computeRHSintegrator(obj,mesh,quadType)
-            s.mesh     = mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadType;
-            int        = RHSintegrator.create(s);
-        end
-
         function A = computeNodesGaussMatrix(obj)
             p1f      = P1Function.create(obj.mesh,1);
             s.nnode  = obj.mesh.nnodeElem;
@@ -120,7 +97,6 @@ classdef Filter_PDE_LevelSet < handle
             Acomp.compute();
             A = Acomp.A_nodal_2_gauss;
         end
-
 
         function itHas = hasEpsilonChanged(obj,eps)
             if isempty(obj.epsilon)
@@ -160,21 +136,6 @@ classdef Filter_PDE_LevelSet < handle
         function lhs = computeLHS(obj)
             lhs = obj.problemLHS.compute(obj.epsilon);
             lhs = obj.bc.fullToReducedMatrix(lhs);
-        end
-
-        function fInt = computeRHSinBoundary(obj,fNodes)
-            ls = obj.levelSet.value;
-            if all(ls>0)
-                fInt = zeros(size(ls));
-            else
-                uMesh      = obj.levelSet.getUnfittedMesh();
-                s.mesh     = uMesh;
-                s.type     = 'ShapeFunction';
-                s.quadType = 'LINEAR';
-                test       = P1Function.create(obj.mesh,1);
-                int        = RHSintegrator.create(s);
-                fInt       = int.integrateInBoundary(fNodes,test);
-            end
         end
 
     end

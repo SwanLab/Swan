@@ -1,4 +1,4 @@
-classdef Filter_P1_LevelSet <  handle
+classdef FilterP1Unfitted <  handle
     
     properties (Access = private)
         mesh
@@ -9,7 +9,7 @@ classdef Filter_P1_LevelSet <  handle
     
     methods (Access = public)
         
-        function obj = Filter_P1_LevelSet(cParams)
+        function obj = FilterP1Unfitted(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.createPoperator();

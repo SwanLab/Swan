@@ -34,7 +34,7 @@ classdef RHSintegrator_Composite < handle
                 if contains(class(integrator),'Composite')
                     int = integrator.integrateAndSum(nodalFunc);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
-                    p1 = obj.createInnerP1(nodalFunc);
+                    p1 = obj.createInnerFunction(nodalFunc);
                     testHandle = class(obj.test);
                     testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
                     intLoc = integrator.integrateInDomain(p1,testFun);
@@ -68,25 +68,13 @@ classdef RHSintegrator_Composite < handle
             end
         end
 
-        function p1 = createInnerP1(obj, F)
-            % F.getDoFsElements, P1 and P0 -> F.restrict2cell(cells) 
-            innerMesh = obj.unfittedMesh.innerMesh;
-            connecIG = innerMesh.globalConnec;
-            connecIL  = innerMesh.mesh.connec;
-            innerL2G(connecIL(:)) = connecIG(:);
-
-            innerDofsGlobal = unique(connecIG(:));
-            innerDofs = unique(connecIL);
-
-            fV_global = zeros(length(F),1);
-            fV_global(innerDofsGlobal) = F(innerDofsGlobal);
-
-            fV_localInner = zeros(length(innerDofs),1);
-            fV_localInner(innerDofs) = fV_global(innerL2G(innerDofs));
-
-            s.mesh = innerMesh.mesh;
-            s.fValues = fV_localInner;
-            p1  = P1Function(s);
+        function fun = createInnerFunction(obj, F)
+            s.mesh    = obj.unfittedMesh.backgroundMesh;
+            s.fValues = F;
+            p1Old     = P1Function(s);
+            innerMesh = obj.unfittedMesh.innerMesh.mesh;
+            connecIG  = obj.unfittedMesh.innerMesh.globalConnec;
+            fun       = p1Old.restrict2cell(innerMesh,connecIG);
         end
 
         function int = computeGlobalIntegralFromLocal(obj, intLoc)

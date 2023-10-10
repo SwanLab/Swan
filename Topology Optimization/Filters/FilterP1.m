@@ -1,4 +1,4 @@
-classdef Filter_P1_Density < handle
+classdef FilterP1 < handle
 
     properties (Access = private)
         mesh
@@ -8,7 +8,7 @@ classdef Filter_P1_Density < handle
 
     methods (Access = public)
 
-        function obj = Filter_P1_Density(cParams)
+        function obj = FilterP1(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.createPoperator();
