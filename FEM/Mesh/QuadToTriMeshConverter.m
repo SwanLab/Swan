@@ -6,6 +6,7 @@ classdef QuadToTriMeshConverter < handle
     
     properties (Access = private)
         mesh
+        lastNode
         localConnec
         fullCoord
         fullConnec
@@ -17,8 +18,8 @@ classdef QuadToTriMeshConverter < handle
     
     methods (Access = public)
         
-        function tMesh = convert(obj, qMesh)
-            obj.init(qMesh);
+        function tMesh = convert(obj, qMesh, lastNode)
+            obj.init(qMesh, lastNode);
             obj.createLocalConnectivities();
             obj.computeFullCoordinates();
             obj.computeFullConnectivities();
@@ -29,8 +30,9 @@ classdef QuadToTriMeshConverter < handle
     
     methods (Access = private)
         
-        function init(obj,m)
-            obj.mesh = m;
+        function init(obj,m,lastNode)
+            obj.mesh     = m;
+            obj.lastNode = lastNode;
         end
 
         function createLocalConnectivities(obj)
@@ -55,9 +57,8 @@ classdef QuadToTriMeshConverter < handle
             nSubElem = 4;
             nNodeTri = 3;
             nElem    = obj.mesh.nelem;
-            nNodes   = obj.mesh.nnodes;
             nodes = obj.mesh.connec;
-            newNodes = nNodes + (1:nElem);
+            newNodes = obj.createNewNodes();
             allNodes = [nodes, newNodes'];
             fConnec = zeros(nElem*nSubElem, nNodeTri);
             for iSubElem = 1:nSubElem
@@ -68,6 +69,10 @@ classdef QuadToTriMeshConverter < handle
             obj.fullConnec = fConnec;
         end  
         
+        function newNodes = createNewNodes(obj)
+            newNodes = obj.lastNode + (1:obj.mesh.nelem);
+        end
+
         function m = createTriMesh(obj)
             s.coord  = obj.fullCoord;
             s.connec = obj.fullConnec;

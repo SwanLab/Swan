@@ -38,11 +38,11 @@ IM = uMesh.createInnerMesh();
 
 %% Create Inner Mesh And Improve Conditioning
 % ONLY using GiD (MATLAB does not improve conditioning)
-IMcond = uMesh.createInnerMeshGoodConditioning();
+% IMcond = uMesh.createInnerMeshGoodConditioning();
 
 %% Extrude Mesh
 height = 0.16;
-EM = IMcond.provideExtrudedMesh(height);
+EM = IM.provideExtrudedMesh(height);
 
 %% Export STL
 EM.exportSTL();
