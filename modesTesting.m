@@ -47,14 +47,18 @@ bC{i} = reshape(b1,2,[])';
 % bF.plot
 end
 
+functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
+
 sM.mesh    = mesh;
 sM.basis   = bC;
 sM.fValues =[1 1 1 1 1 1];
+sM.functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
 modal = ModalFunction(sM);
 p1FUNC = modal.project('P1');
 
 
-modal2=p1FUNC.project('ModalFunction',bC);
+
+modal2=p1FUNC.project('ModalFunction',bC,functionType);
 % p1FUNC.plot
 % p1FUNC.print('prova')
 
@@ -109,8 +113,8 @@ fem.print('DD')
 end
 
 function mesh = createMesh()
-file = 'CantileverBeam_Triangle_Linear_Fine';
-file = 'Cantileverbeam_Quadrilateral_Bilinear';
+file = 'CantileverBeam_Triangle_Linear';
+% file = 'Cantileverbeam_Quadrilateral_Bilinear';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;

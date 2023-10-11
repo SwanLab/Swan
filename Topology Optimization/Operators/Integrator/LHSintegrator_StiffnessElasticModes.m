@@ -1,4 +1,4 @@
-classdef LHSintegrator_StiffnessElastic < LHSintegrator
+classdef LHSintegrator_StiffnessElasticModes < LHSintegrator
 
     properties (Access = private)
         material
@@ -6,14 +6,14 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegrator_StiffnessElastic(cParams)
+        function obj = LHSintegrator_StiffnessElasticModes(cParams)
             obj@LHSintegrator(cParams)
             obj.material = cParams.material;
         end
 
         function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            LHS = obj.computeElementalLHS();
+%             LHS = obj.assembleMatrix(lhs);
         end
 
     end

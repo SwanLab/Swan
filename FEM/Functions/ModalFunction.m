@@ -9,11 +9,9 @@ classdef ModalFunction < L2Function
 
     properties (Access = private)
         basisValues
+        functionType
     end
 
-    properties (Access = private)
-
-    end
 
     methods (Access = public)
 
@@ -44,11 +42,12 @@ classdef ModalFunction < L2Function
 
     methods (Access = public, Static)
 
-        function MF = create(mesh,basis)
-            nbasis = numel(basis);
-            s.fValues  = zeros(nbasis,1);
-            s.mesh     = mesh;
-            s.basis    = basis;
+        function MF = create(mesh,basis,functionType)
+            nbasis         = numel(basis);
+            s.fValues      = zeros(nbasis,1);
+            s.mesh         = mesh;
+            s.basis        = basis;
+            s.functionType = functionType;
             MF = ModalFunction(s);
         end
 
@@ -56,14 +55,14 @@ classdef ModalFunction < L2Function
             fS = f1.fValues.*f2.fValues;
             s.fValues = fS;
             s.mesh    = f1.mesh;
-            fS = RigidBodyFunction(s);
+            fS = ModalFunction(s);
         end
 
         function fS = sum(f1,f2)
             fS = f1.fValues+f2.fValues;
             s.fValues = fS;
             s.mesh    = f1.mesh;
-            fS = RigidBodyFunction(s);
+            fS = ModalFunction(s);
         end
         
     end
@@ -71,11 +70,12 @@ classdef ModalFunction < L2Function
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.ndimf       = obj.mesh.ndim;
-            obj.fValues     = cParams.fValues;
-            obj.basisValues = cParams.basis;
-            obj.nbasis  = numel(cParams.basis);
+            obj.mesh         = cParams.mesh;
+            obj.ndimf        = obj.mesh.ndim;
+            obj.fValues      = cParams.fValues;
+            obj.basisValues  = cParams.basis;
+            obj.functionType = cParams.functionType;
+            obj.nbasis       = numel(cParams.basis);
         end
 
 %         function fvalue = dof2nodesFields(obj,basis)
@@ -99,8 +99,10 @@ classdef ModalFunction < L2Function
         function computeBasisFunctions(obj)
             s.mesh  = obj.mesh;
             for ibasis=1:obj.nbasis
-               s.fValues = obj.basisValues{ibasis};
-               obj.basisFunctions{ibasis} = P1Function(s);
+               s.fValues      = obj.basisValues{ibasis};
+               s.functionType = obj.functionType{ibasis};
+               obj.basisFunctions{ibasis} = FunctionFactory.create(s);
+%                obj.basisFunctions{ibasis} = P1Function(s);
 %                obj.basisFunctions{ibasis}.plot
             end    
         end

@@ -22,15 +22,16 @@ classdef L2Function < handle
 
         end
 
-        function fun = project(obj,target,vargin)
+        function fun = project(obj,target,vargin,vargin2)
             s.mesh          = obj.mesh;
             s.projectorType = target;
-            if nargin == 3
+            if nargin == 4
                 switch target
                     case 'RigidBody'
                         s.refPoint=vargin;
                     case 'ModalFunction'
                         s.basis=vargin;
+                        s.functionType=vargin2;
                 end
             end
             proj = Projector.create(s);

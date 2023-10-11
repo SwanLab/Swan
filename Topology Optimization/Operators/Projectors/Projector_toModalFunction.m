@@ -2,6 +2,7 @@ classdef Projector_toModalFunction < Projector
 
     properties (Access = private)
         basis
+        functionType
     end
 
     methods (Access = public)
@@ -9,6 +10,7 @@ classdef Projector_toModalFunction < Projector
         function obj = Projector_toModalFunction(cParams)
             obj.init(cParams);
             obj.basis = cParams.basis;
+            obj.functionType = cParams.functionType;
         end
 
         function xFun = project(obj, x)
@@ -18,6 +20,7 @@ classdef Projector_toModalFunction < Projector
             s.mesh    = obj.mesh;
             s.fValues = xProj;
             s.basis = obj.basis;
+            s.functionType = obj.functionType;
             xFun = ModalFunction(s);
         end
 
@@ -26,10 +29,11 @@ classdef Projector_toModalFunction < Projector
     methods (Access = private)
 
         function LHS = computeLHS(obj)
-            mesh     = obj.mesh;
-            basis    = obj.basis;
+            mesh         = obj.mesh;
+            basis        = obj.basis;
+            functionType = obj.functionType;
 
-            test  = ModalFunction.create(mesh,basis);
+            test  = ModalFunction.create(mesh,basis,functionType);
             quad  = obj.createRHSQuadrature(test);
             xV    = quad.posgp;
             dV    = obj.mesh.computeDvolume(quad);
@@ -55,8 +59,9 @@ classdef Projector_toModalFunction < Projector
         function RHS = computeRHS(obj,fun)
             mesh     = obj.mesh;
             basis    = obj.basis;
+            functionType = obj.functionType;
 
-            test  = ModalFunction.create(mesh,basis);
+            test  = ModalFunction.create(mesh,basis,functionType);
 
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
