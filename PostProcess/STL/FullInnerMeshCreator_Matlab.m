@@ -8,10 +8,22 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
         end
 
         function m = export(obj)
-            coordInner     = obj.unfittedMesh.innerMesh.mesh.coord;
-            connecInner    = obj.unfittedMesh.innerMesh.mesh.connec;
-            coordCutInner  = obj.unfittedMesh.innerCutMesh.mesh.coord;
-            connecCutInner = obj.unfittedMesh.innerCutMesh.mesh.connec;
+            uM = obj.unfittedMesh;
+            switch uM.innerMesh.mesh.type
+                case 'TRI'
+                    coordInner     = uM.innerMesh.mesh.coord;
+                    connecInner    = uM.innerMesh.mesh.connec;
+                    coordCutInner  = uM.innerCutMesh.mesh.coord;
+                    connecCutInner = uM.innerCutMesh.mesh.connec;
+
+                case 'QUAD'
+                    innerMeshQuad = uM.innerMesh.mesh;
+                    innerMeshTri = innerMeshQuad.convertToTriangleMesh();
+                    coordInner  = innerMeshTri.coord;
+                    connecInner = innerMeshTri.connec;
+                    coordCutInner  = uM.innerCutMesh.mesh.coord;
+                    connecCutInner = uM.innerCutMesh.mesh.connec;
+            end
             ncoord = size(coordInner,1);
             connecCutInner = connecCutInner + ncoord;
             s.coord  = [coordInner;  coordCutInner];

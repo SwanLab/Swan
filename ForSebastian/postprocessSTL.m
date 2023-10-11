@@ -10,4 +10,5 @@ close all
 
 levelSet = computation.designVariable;
 uMesh    = levelSet.getUnfittedMesh();
-IMcond   = uMesh.createInnerMeshGoodConditioning();
+% IMcond   = uMesh.createInnerMeshGoodConditioning();
+IMcond   = uMesh.createInnerMesh();
