@@ -6,14 +6,14 @@ classdef FilterFactory < handle
             switch cParams.filterType
                 case 'P1'
                     switch cParams.designVarType
-                        case {'Density','MicroParams'}
+                        case {'Continuous','Density','MicroParams'}
                             filter = FilterP1(cParams);
                         case 'LevelSet'
                             filter = FilterP1Unfitted(cParams);
                     end
                 case 'PDE'
                     switch cParams.designVarType
-                        case {'Density','MicroParams'}
+                        case {'Continuous','Density','MicroParams'}
                             filter = FilterPDE(cParams);
                         case 'LevelSet'
                             filter = FilterPDEUnfitted(cParams);

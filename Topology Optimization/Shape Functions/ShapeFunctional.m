@@ -4,6 +4,7 @@ classdef ShapeFunctional < handle
         value
         gradient
         filter
+        gradientFilter
         Msmooth
         dvolu
         value0
@@ -44,6 +45,7 @@ classdef ShapeFunctional < handle
         
         function init(obj,cParams)
             obj.createFilter(cParams);
+            obj.createGradientFilter(cParams);
             obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
@@ -84,7 +86,7 @@ classdef ShapeFunctional < handle
     end
     
     methods (Access = private)
-        
+
         function createFilter(obj,cParams)
             s                = cParams.filterParams.femSettings;
             s.mesh           = cParams.filterParams.mesh;
@@ -94,7 +96,16 @@ classdef ShapeFunctional < handle
             s.designVariable = cParams.designVariable;
             obj.filter       = Filter.create(s);
         end
-        
+
+        function createGradientFilter(obj,cParams)
+            s                  = cParams.filterParams.femSettings;
+            s.mesh             = cParams.filterParams.mesh;
+            s.domainType       = cParams.filterParams.domainType;
+            s.filterType       = cParams.filterParams.filterType;
+            s.designVarType    = 'Continuous';
+            obj.gradientFilter = Filter.create(s);
+        end
+
         function createMsmoothAndDvolu(obj,cParams)
             obj.mesh = cParams.mesh;
             q = Quadrature.set(cParams.mesh.type);
@@ -102,7 +113,7 @@ classdef ShapeFunctional < handle
             obj.Msmooth = obj.computeMassMatrix();
             obj.dvolu = cParams.mesh.computeDvolume(q)';
         end
-        
+
         function M = computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
