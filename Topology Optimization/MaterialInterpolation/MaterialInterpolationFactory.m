@@ -29,6 +29,8 @@ classdef MaterialInterpolationFactory < handle
                             obj = SimpInterpolationAdaptative(cParams);
                         case 'SIMP_P3'
                             obj = SimpInterpolationP3(cParams);
+                        case 'SIMPThermal'
+                            obj = SIMPThermalInterpolation(cParams);                            
                         otherwise
                             error('Invalid Material Interpolation method.');
                     end

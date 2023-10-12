@@ -8,6 +8,7 @@ classdef ConnectivityComputer < handle
        mesh
        levelSet
        density
+       conductivity
     end
     
     properties (Access = private)
@@ -21,6 +22,8 @@ classdef ConnectivityComputer < handle
             obj.createMesh();
             obj.createLevelSet();
             obj.filterCharacteristicFunction();
+            obj.createMaterialInterpolator();
+            obj.createStiffnessMatrix();
             obj.density.plot()
             figure
             obj.levelSet.getUnfittedMesh().plot()
@@ -56,7 +59,6 @@ classdef ConnectivityComputer < handle
             obj.levelSet   = DesignVariable.create(sD);
         end
  
-
         function filterCharacteristicFunction(obj)
             s.mesh = obj.mesh;
             s.quadratureOrder = [];
@@ -67,6 +69,30 @@ classdef ConnectivityComputer < handle
             s.fValues = dens;
             s.mesh    = obj.mesh;
             obj.density = P0Function(s);
+        end
+
+        function createMaterialInterpolator(obj)
+            s.typeOfMaterial = 'ISOTROPIC';
+            s.interpolation  = 'SIMPThermal';
+            s.alpha0         = 1e-3;
+            s.alpha1         = 1;
+            m = MaterialInterpolation.create(s);
+            mp = m.computeMatProp(obj.density.fValues);
+            s.fHandle = mp.alpha;
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            a = AnalyticalFunction(s);
+            obj.conductivity = a;
+        end
+
+        function createStiffnessMatrix(obj)
+            s.test  = P1Function.create(obj.mesh,1); 
+            s.trial = P1Function.create(obj.mesh,1); 
+            s.mesh  = obj.mesh;
+            s.quadratureOrder = 'QUADRATIC';
+            s.function        = obj.conductivity;
+            s.type            = 'StiffnessMatrixWithFunction';
+            LHS = LHSintegrator.create(s);
         end
         
     end
