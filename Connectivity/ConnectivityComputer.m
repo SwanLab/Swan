@@ -19,9 +19,11 @@ classdef ConnectivityComputer < handle
         function obj = ConnectivityComputer()
             obj.init();
             obj.createMesh();
-            obj.createBoundaryMesh();
             obj.createLevelSet();
             obj.filterCharacteristicFunction();
+            obj.density.plot()
+            figure
+            obj.levelSet.getUnfittedMesh().plot()
         end
         
     end
@@ -41,15 +43,6 @@ classdef ConnectivityComputer < handle
             s.connec = F;
             m = Mesh(s);            
             obj.mesh = m;
-        end
-
-        function createBoundaryMesh(obj)
-            s.backgroundMesh = obj.mesh;
-            s.dimension      = 1:3;
-            s.type = 'FromReactangularBox';
-            bM = BoundaryMeshCreator.create(s);
-            m  = bM.create();
-            obj.boundaryMesh = m;
         end
 
         function createLevelSet(obj)
