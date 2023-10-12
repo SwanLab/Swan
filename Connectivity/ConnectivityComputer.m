@@ -7,8 +7,7 @@ classdef ConnectivityComputer < handle
     properties (Access = private)
        mesh
        levelSet
-       uMesh
-       boundaryMesh
+       density
     end
     
     properties (Access = private)
@@ -22,7 +21,7 @@ classdef ConnectivityComputer < handle
             obj.createMesh();
             obj.createBoundaryMesh();
             obj.createLevelSet();
-            obj.createUnfittedMesh();
+            obj.filterCharacteristicFunction();
         end
         
     end
@@ -40,9 +39,7 @@ classdef ConnectivityComputer < handle
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            m = Mesh(s);
-            figure()
-            m.plot();
+            m = Mesh(s);            
             obj.mesh = m;
         end
 
@@ -56,23 +53,27 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type       = 'circleInclusion';
-            s.mesh       = obj.mesh;
             s.ndim       = 2;
             s.fracRadius = 0.4;
             s.coord      = obj.mesh.coord;
-            ls = LevelSetCreator.create(s);
-            obj.levelSet = ls.getValue();
+            sD.type = 'LevelSet';
+            sD.mesh = obj.mesh;
+            sD.creatorSettings = s;
+            sD.initialCase = 'circleInclusion';
+            obj.levelSet   = DesignVariable.create(sD);
         end
-        
-        function createUnfittedMesh(obj)
-            s.boundaryMesh   = obj.boundaryMesh;
-            s.backgroundMesh = obj.mesh;
-            m = UnfittedMesh(s);
-            m.compute(obj.levelSet);
-            figure
-            m.plot()
-            obj.uMesh = m;
+ 
+
+        function filterCharacteristicFunction(obj)
+            s.mesh = obj.mesh;
+            s.quadratureOrder = [];
+            s.femSettings.scale = 'MACRO';
+            s.designVariable = obj.levelSet;
+            f = Filter_PDE_LevelSet(s);
+            dens = f.getP0fromP1([]);
+            s.fValues = dens;
+            s.mesh    = obj.mesh;
+            obj.density = P0Function(s);
         end
         
     end
