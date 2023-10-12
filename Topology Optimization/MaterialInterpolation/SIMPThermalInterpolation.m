@@ -1,8 +1,13 @@
-classdef SIMPThermalInterpolation < handle
-       
+classdef SIMPThermalInterpolation < L2Function
+    
+    properties (Access = public)
+        ndimf
+    end
+
     properties (Access = private)
        alpha0
        alpha1
+       density       
     end
     
     properties (Access = private)
@@ -18,9 +23,9 @@ classdef SIMPThermalInterpolation < handle
             obj.computeConductivityFunctionAndDerivative();
         end
         
-        function mp = computeMatProp(obj,rho)
-            mp.alpha  = obj.alpha(rho);
-            mp.dalpha = obj.dalpha(rho);
+        function alpha = evaluate(obj,xV)
+            rho = obj.density.evaluate(xV);
+            alpha  = obj.alpha(rho);
         end
         
     end
@@ -30,7 +35,9 @@ classdef SIMPThermalInterpolation < handle
         function init(obj,cParams)
             obj.alpha0 = cParams.alpha0;
             obj.alpha1 = cParams.alpha1;
-            obj.pExp = 3;            
+            obj.density = cParams.density; 
+            obj.pExp = 3;        
+            obj.ndimf = 1;
         end
         
         function  computeConductivityFunctionAndDerivative(obj)

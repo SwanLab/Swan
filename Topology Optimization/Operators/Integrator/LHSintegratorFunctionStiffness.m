@@ -13,11 +13,9 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
         function obj = LHSintegratorFunctionStiffness(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.initAnisotropicTensor(cParams);
         end
 
         function LHS = compute(obj)
-            obj.assemblyCMatrix();
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
@@ -47,8 +45,8 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
                 BmatTr = BcompTr.compute(iGaus);
                 dV(1,1,:) = dVolu(iGaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
-                BtC  = pagemtimes(Bt,Cmat);
-                BtCB = pagemtimes(BtC, BmatTr);
+                BtF  = pagemtimes(Bt,fV);
+                BtCB = pagemtimes(BtF, BmatTr);
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
@@ -90,24 +88,7 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
             assembler = AssemblerFun(s);
             LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
         end
-
-        function initAnisotropicTensor(obj,cParams)
-            CLocal = cParams.CAnisotropic;
-            obj.alphaDeg = cParams.aniAlphaDeg;
-            obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
-        end
-
-        function CGlobal = rotateAnisotropicMatrix(obj,CLocal)
-            R = [cosd(obj.alphaDeg),-sind(obj.alphaDeg)
-                sind(obj.alphaDeg), cosd(obj.alphaDeg)];
-            CGlobal = R*CLocal*R';
-        end
-
-        function assemblyCMatrix(obj)
-            nelem = size(obj.mesh.connec,1);
-            C = repmat(obj.CAnisotropic, [1 1 nelem]);
-            obj.Celas = C;
-        end
+  
     end
 
 end
