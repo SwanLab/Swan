@@ -6,10 +6,7 @@ classdef DualUpdater_IPM < handle
         nConstr
         constraintCase
         cost
-        lam
-        zLa
-        zUa
-        alphaDualMax
+        alpha
     end
 
     methods (Access = public)
@@ -25,8 +22,27 @@ classdef DualUpdater_IPM < handle
             obj.dualVariable.value = l';
         end
 
-        function obj = update(obj,tau,g)
+        function updateAlpha(obj,a)
+            obj.alpha = a;
+        end
+
+        function obj = update(obj,g)
+            tau                    = obj.alpha;
             obj.dualVariable.value = obj.dualVariable.value + tau * g';
+        end
+
+        function zLB = updateLowerBound(obj,bounds)
+            tau  = obj.alpha;
+            zLB  = bounds.zLB;
+            dzLB = bounds.dzLB;
+            zLB  = zLB + tau*dzLB';
+        end
+
+        function zUB = updateUpperBound(obj,bounds)
+            tau  = obj.alpha;
+            zUB  = bounds.zUB;
+            dzUB = bounds.dzUB;
+            zUB  = zUB + tau*dzUB';
         end
     end
 
@@ -34,7 +50,7 @@ classdef DualUpdater_IPM < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.dualVariable = cParams.dualVariable;
+            obj.dualVariable   = cParams.dualVariable;
             obj.constraint     = cParams.constraint;
             obj.constraintCase = cParams.constraintCase;
             obj.nConstr        = cParams.constraint.nSF;

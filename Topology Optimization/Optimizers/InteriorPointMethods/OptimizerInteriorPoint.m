@@ -9,8 +9,8 @@ classdef OptimizerInteriorPoint < Optimizer
         lineSearch
         lineSearchTrials
         error
-        H
         hessian
+        hessianUpdated
         dx
         ds 
         dlam
@@ -214,10 +214,10 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateDual(obj)
-            alphaDual = obj.primalUpdater.tau;
-            obj.dualUpdater.update(alphaDual,obj.dlam);
-            obj.bounds.zNewLB = obj.bounds.zLB + alphaDual*obj.bounds.dzLB';
-            obj.bounds.zNewUB = obj.bounds.zUB + alphaDual*obj.bounds.dzUB';  
+            obj.dualUpdater.updateAlpha(obj.primalUpdater.tau);
+            obj.dualUpdater.update(obj.dlam);
+            obj.bounds.zNewLB = obj.dualUpdater.updateLowerBound(obj.bounds);
+            obj.bounds.zNewUB = obj.dualUpdater.updateLowerBound(obj.bounds);  
             obj.pusher.updateBounds(obj.bounds);
         end
 
@@ -266,34 +266,32 @@ classdef OptimizerInteriorPoint < Optimizer
         function updateNuValue(obj)
             DJ                     = obj.cost.gradient;
             Dx                     = [obj.dx;obj.ds];
-            hess                   = obj.H;
-            costPrediction(1)      = DJ*Dx;
-            costPrediction(2)      = max(0,0.5*Dx'*hess*Dx);
-            costDecreasePrediction = sum(costPrediction);
+            hess                   = obj.hessianUpdated;
+            costDecreasePrediction = DJ*Dx + max(0,0.5*Dx'*hess*Dx);
             theta                  = sum(abs(obj.constraint.value));
-            rho                    = 0.1;
-            nuUpdated              = costDecreasePrediction/((1-rho)*theta);
+            r                      = 0.1;
+            nuUpdated              = costDecreasePrediction/((1-r)*theta);
             obj.baseVariables.nu   = max(1,min(1000,nuUpdated));
         end
 
         function computeOptimizerDirections(obj)
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.slack          = obj.slack;
-            s.dualVariable   = obj.dualVariable;
-            s.baseVariables  = obj.baseVariables;
-            s.hessian        = obj.hessian;
-            s.nSlack         = obj.nSlack;
-            s.bounds         = obj.bounds;
-            dirs             = IPMDirectionComputer(s);
+            s.cost             = obj.cost;
+            s.constraint       = obj.constraint;
+            s.designVariable   = obj.designVariable;
+            s.slack            = obj.slack;
+            s.dualVariable     = obj.dualVariable;
+            s.baseVariables    = obj.baseVariables;
+            s.hessian          = obj.hessian;
+            s.nSlack           = obj.nSlack;
+            s.bounds           = obj.bounds;
+            dirs               = IPMDirectionComputer(s);
             dirs.compute();
-            obj.dx           = dirs.gradients.dx;
-            obj.ds           = dirs.gradients.ds;
-            obj.dlam         = dirs.gradients.dlam;
-            obj.bounds.dzLB  = dirs.gradients.dzL;
-            obj.bounds.dzUB  = dirs.gradients.dzU;
-            obj.H            = dirs.updatedHessian;
+            obj.dx             = dirs.gradients.dx;
+            obj.ds             = dirs.gradients.ds;
+            obj.dlam           = dirs.gradients.dlam;
+            obj.bounds.dzLB    = dirs.gradients.dzL;
+            obj.bounds.dzUB    = dirs.gradients.dzU;
+            obj.hessianUpdated = dirs.updatedHessian;
         end
         
         function init(obj,cParams)
