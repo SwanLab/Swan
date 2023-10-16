@@ -56,7 +56,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function previousComputations(obj)
             obj.moveVariablesToFeasible();
             obj.computeInitialBarrierParameter();
-            obj.computeDualVariableBounds();
+            obj.computeInitialDualVariableBounds();
             obj.updateCostAndConstraintWithPenalty();
             obj.dualUpdater.compute(obj.bounds.zLB,obj.bounds.zUB);
         end
@@ -67,20 +67,13 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.slack = obj.replaceOutOfSlackBounds();
         end
 
-        function computeDualVariableBounds(obj)
-            mu = obj.baseVariables.mu;
-            x  = obj.designVariable.value';
-            lx = obj.bounds.xLB;
-            ux = obj.bounds.xUB;
-            s  = obj.slack';
-            ls = obj.bounds.sLB;
-            us = obj.bounds.sUB;
-            zL = mu./(x-lx);
-            zL = [zL,mu./(s-ls)];
-            zU = mu./(ux-x);
-            zU = [zU,mu./(us-s)];
-            obj.bounds.zLB = zL;
-            obj.bounds.zUB = zU;
+        function computeInitialDualVariableBounds(obj)
+            s.mu             = obj.baseVariables.mu;
+            s.designVariable = obj.designVariable;
+            s.slack          = obj.slack;
+            s.bounds         = obj.bounds;
+            obj.bounds.zLB   = obj.dualUpdater.computeLowerBound(s);
+            obj.bounds.zUB   = obj.dualUpdater.computeUpperBound(s);
         end
 
         function computeInitialBarrierParameter(obj)
@@ -117,39 +110,34 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function updateCostGradient(obj)
-            nS = size(obj.slack,2);
+            nS                = size(obj.slack,2);
             obj.cost.gradient = [obj.cost.gradient' zeros(1,nS)];
         end
 
         function updateConstraint(obj)
             g                      = obj.constraint.value;
             gLB                    = obj.bounds.constraintLB(:,1);
-            sl                     = obj.slack;
+            s                      = obj.slack;
             g(~obj.isInequality()) = g(~obj.isInequality()) - gLB(~obj.isInequality());
-            g(obj.isInequality())  = g(obj.isInequality()) - sl;
+            g(obj.isInequality())  = g(obj.isInequality()) - s;
             obj.constraint.value   = g;
         end
 
         function updateConstraintGradient(obj)
-            mC = size(obj.constraint.gradient,1);
-            nC = size(obj.constraint.gradient,2);
-            dk = length(find(obj.isInequality()==true));
-            i  = mC+1:mC+dk;
-            obj.constraint.gradient(i,nC) = -1;
+            ndof    = size(obj.constraint.gradient,1);
+            iSl     = ndof+1:ndof+obj.nSlack;
+            iConstr = obj.isInequality()==true;
+            obj.constraint.gradient(iSl,iConstr) = -1;
         end
 
         function computeHessian(obj)
-            nnode     = obj.designVariable.mesh.nnodes;
-            hess      = obj.hessian; 
-            deltaX    = obj.designVariable.value - obj.oldDesignVariable;
-            deltaCost = obj.cost.gradient - obj.oldCostGradient;
-            if deltaCost == zeros(size(deltaCost))
-                obj.hessian = zeros(nnode,nnode);
-            else
-                costFrac    = (deltaCost*deltaCost')/(deltaCost'*deltaX);
-                xFrac       = (hess*deltaX*(hess*deltaX)')/(deltaX'*hess*deltaX);
-                obj.hessian = hess + costFrac - xFrac;
-            end
+            s.initHessian             = obj.hessian;
+            s.designVariable.value    = obj.designVariable.value;
+            s.designVariable.valueOld = obj.oldDesignVariable;
+            s.cost.gradient           = obj.cost.gradient;
+            s.cost.gradientOld        = obj.oldCostGradient;
+            h                         = HessianComputer(s);
+            obj.hessian               = h.compute();
         end
 
         function meritF = computeMeritFunction(obj,x)
@@ -158,7 +146,8 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
             g      = obj.constraint.value;
-            meritF = J + obj.baseVariables.nu*sum(abs(g));
+            nu     = obj.baseVariables.nu;
+            meritF = J + nu*sum(abs(g));
             obj.updateCostAndConstraintWithPenalty();
         end
 
@@ -220,7 +209,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.bounds.zNewUB = obj.bounds.zUB + alphaDual*obj.bounds.dzUB';           
         end
 
-        function pushVariables(obj)
+        function pushVariables(obj) % HERE
             s.field                    = obj.xNew;
             s.lowerBound               = obj.bounds.xLB;
             s.upperBound               = obj.bounds.xUB;
