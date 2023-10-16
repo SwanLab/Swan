@@ -13,7 +13,6 @@ proc ExtrudeSurface {arg1 arg2 arg3} {
     GiD_Process Mescape Meshing CreateBoundary Yes
     GiD_Process 'Layers Delete Layer0 Delete WORKPIECE Yes escape
     GiD_Process Mescape Geometry Edit ReConstruction OneLineForEachElement 1:end escape
-    GiD_Process Mescape Geometry Edit JoinLines 1:end escape escape
     GiD_Process Mescape Geometry Create NurbsSurface 1:end escape escape
 
     GiD_Process Mescape Utilities Copy Surfaces DoExtrude Surfaces MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,$height InvertSelection escape
