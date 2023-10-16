@@ -3,6 +3,7 @@ classdef OptimizerInteriorPoint < Optimizer
     properties (Access = private)
         slack
         bounds
+        pusher
         tol = 1e-5
         barrierTau
         lineSearch
@@ -53,18 +54,28 @@ classdef OptimizerInteriorPoint < Optimizer
     end
 
     methods(Access = private)
+        function createVariablesPusher(obj)
+            s.tau            = obj.barrierTau;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.slack          = obj.slack;
+            s.bounds         = obj.bounds;
+            obj.pusher       = IPMVariablesPusher(s);
+        end
+
         function previousComputations(obj)
-            obj.moveVariablesToFeasible();
             obj.computeInitialBarrierParameter();
+            obj.createVariablesPusher();
+            obj.moveVariablesToFeasible();
             obj.computeInitialDualVariableBounds();
             obj.updateCostAndConstraintWithPenalty();
             obj.dualUpdater.compute(obj.bounds.zLB,obj.bounds.zUB);
         end
 
         function moveVariablesToFeasible(obj)
-            x         = obj.replaceOutOfDesignVarBounds();
+            x         = obj.pusher.replaceOutOfDesignVarBounds();
             obj.designVariable.update(x);
-            obj.slack = obj.replaceOutOfSlackBounds();
+            obj.slack = obj.pusher.replaceOutOfSlackBounds();
         end
 
         function computeInitialDualVariableBounds(obj)
@@ -206,24 +217,14 @@ classdef OptimizerInteriorPoint < Optimizer
             alphaDual = obj.primalUpdater.tau;
             obj.dualUpdater.update(alphaDual,obj.dlam);
             obj.bounds.zNewLB = obj.bounds.zLB + alphaDual*obj.bounds.dzLB';
-            obj.bounds.zNewUB = obj.bounds.zUB + alphaDual*obj.bounds.dzUB';           
+            obj.bounds.zNewUB = obj.bounds.zUB + alphaDual*obj.bounds.dzUB';  
+            obj.pusher.updateBounds(obj.bounds);
         end
 
-        function pushVariables(obj) % HERE
-            s.field                    = obj.xNew;
-            s.lowerBound               = obj.bounds.xLB;
-            s.upperBound               = obj.bounds.xUB;
-            s.tau                      = obj.barrierTau;
-            obj.xNew                   = obj.pushVarsFunction(s);
-            s.field                    = obj.slack;
-            s.lowerBound               = obj.bounds.sLB;
-            s.upperBound               = obj.bounds.sUB;
-            obj.sNew                   = obj.pushVarsFunction(s);
-            isZLNeg                    = obj.bounds.zNewLB<0;
-            isZUNeg                    = obj.bounds.zNewUB<0;
-            tau                        = obj.barrierTau;
-            obj.bounds.zNewLB(isZLNeg) = tau*(obj.bounds.zLB(isZLNeg));
-            obj.bounds.zNewUB(isZUNeg) = tau*(obj.bounds.zUB(isZUNeg));
+        function pushVariables(obj)
+            obj.xNew   = obj.pusher.pushDesignVariable(obj.xNew);
+            obj.sNew   = obj.pusher.pushSlack();
+            obj.bounds = obj.pusher.pushDualVariableBounds();
         end
 
         function updateWithAcceptance(obj)
@@ -264,10 +265,10 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function updateNuValue(obj)
             DJ                     = obj.cost.gradient;
-            gradDesVar             = [obj.dx;obj.ds];
+            Dx                     = [obj.dx;obj.ds];
             hess                   = obj.H;
-            costPrediction(1)      = DJ*gradDesVar;
-            costPrediction(2)      = max(0,0.5*gradDesVar'*hess*gradDesVar);
+            costPrediction(1)      = DJ*Dx;
+            costPrediction(2)      = max(0,0.5*Dx'*hess*Dx);
             costDecreasePrediction = sum(costPrediction);
             theta                  = sum(abs(obj.constraint.value));
             rho                    = 0.1;
@@ -419,31 +420,9 @@ classdef OptimizerInteriorPoint < Optimizer
             itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
 
-        function x = replaceOutOfDesignVarBounds(obj)
-            s.x   = obj.designVariable.value;
-            s.xUB = obj.bounds.xUB;
-            s.xLB = obj.bounds.xLB;
-            x     = obj.computeOutOfBounds(s);
-        end
-
-        function x = replaceOutOfSlackBounds(obj)
-            s.x   = obj.slack;
-            s.xUB = obj.bounds.sUB;
-            s.xLB = obj.bounds.sLB;
-            x     = obj.computeOutOfBounds(s);
-        end
-
     end
 
     methods (Access = private,Static)
-
-        function x = computeOutOfBounds(s)
-            x          = s.x;
-            isLower    = x<=s.xLB;
-            isUpper    = x>=s.xUB;
-            x(isLower) = min(s.xUB(isLower),s.xLB(isLower)+1e-2);
-            x(isUpper) = max(s.xLB(isUpper),s.xUB(isUpper)-1e-2);
-        end
 
         function penalty = computeLogPenaltyTerm(s)
             x       = s.field;
@@ -451,20 +430,6 @@ classdef OptimizerInteriorPoint < Optimizer
             ub      = s.upperBound;
             penalty = sum(log(x-lb) + log(ub-x));
         end
-
-        function x = pushVarsFunction(s)
-            tau        = s.tau;
-            x          = s.field;
-            lb         = s.lowerBound;
-            ub         = s.upperBound;
-            isLower    = x<lb;
-            isUpper    = x>ub;
-            dxl        = tau*(x(isLower) - lb(isLower));
-            dxu        = tau*(ub(isUpper) - x(isUpper));
-            x(isLower) = lb(isLower) + dxl;
-            x(isUpper) = ub(isUpper) - dxu;
-        end
-
 
     end
 
