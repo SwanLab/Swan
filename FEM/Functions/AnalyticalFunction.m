@@ -22,6 +22,11 @@ classdef AnalyticalFunction < L2Function
             xV = obj.mesh.computeXgauss(xGLoc);
             fxV = obj.fHandle(xV);
         end
+
+        function plot(obj)
+            p1D = obj.project('P1D');
+            p1D.plot();
+        end
         
     end
     
