@@ -3,7 +3,7 @@ proc ExtrudeSurface {arg1 arg2 arg3} {
     set height $arg2
     set output $arg3
     GiD_Process Mescape PreProcess
-    GiD_Process Files MeshRead -createLayers:0 -- /home/ton/Github/Swan/PostProcess/STL/HmmLetMeCook.msh
+    GiD_Process Files MeshRead -createLayers:0 -- $input
     GiD_Process escape Utilities Collapse mesh Yes
 
     GiD_Process 'Layers New Layer1 escape
