@@ -10,6 +10,15 @@ function [tauGrid,betaGrid,iters,converged] = computeTauVsBetaNesterov()
             fprintf('Beta: %.3f, Tau: %.3f, Iterations: %.0f\n',betaGrid(i,j),tauGrid(i,j),iters(i,j));
         end
     end
+    save Tau_vs_Beta tauGrid betaGrid iters converged;
+    % figure()
+    % s = surf(betaGrid,tauGrid,iters);
+    % xlabel('Momentum term ($\beta$)')
+    % ylabel('Line search ($\tau$)')
+    % s.EdgeColor = "none";
+    % s.FaceColor = "interp";
+    % c = colorbar;
+    % colormap(flipud(jet));
 end
 
 function [it,converged] = computeShapeOptimization(beta,tau)
