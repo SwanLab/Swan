@@ -16,12 +16,53 @@ classdef ShapeOptimizationSolver < handle
         maxIter
         momentumParameter
         momentumParams
+        isAccepted
+        tau
     end
 
     methods (Access = public)
 
         function obj = ShapeOptimizationSolver(cParams)
             obj.init(cParams);
+        end
+
+        function solveAdaptative(obj)
+            xNew = obj.computeInitialValue();
+            xOld = xNew;
+            incX = obj.computeIncX(xOld,xNew);
+            iter = 1;
+            [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            Jold = J;
+            t = obj.computeLineSearch(xNew,dJ);
+            while ~obj.hasConverged(iter,incX)
+                obj.isAccepted = false;
+                % [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+                beta = obj.computeBeta(iter);
+                y = obj.addMomentumTerm(xOld,xNew,beta);
+                y = obj.computeProjection(y);
+                while ~obj.isAccepted         
+                    [~,dJ] = obj.cost.computeValueAndGradient(y);
+                    x = obj.computeGradientStep(y,dJ,t);
+                    x = obj.computeProjection(x);
+                    [J,~] = obj.cost.computeValueAndGradient(x);
+                    % incX = obj.computeIncX(xOld,x);
+                    obj.isAccepted = J <= Jold;% && incX < 0.1;
+                    if obj.isAccepted
+                        t = 1.5*t;
+                    elseif ~obj.isAccepted
+                        t = t/2;
+                        % x = y;
+                    end
+                    if t < 1e-12
+                        error('Failed to converge')
+                    end
+                end
+                [xOld,xNew] = obj.updateXnewXold(xNew,x);
+                incX = obj.computeIncX(xOld,xNew);
+                obj.plotCostAndLineSearch(iter,J,t,beta,incX);
+                Jold = J;
+                iter = iter + 1;
+            end
         end
 
         function solve(obj)
@@ -77,6 +118,7 @@ classdef ShapeOptimizationSolver < handle
             obj.momentumParams = cParams.momentumParams;
             obj.TOL = cParams.TOL;
             obj.maxIter = cParams.maxIter;
+            obj.tau = cParams.tau;
             obj.createSettings();
             obj.createDesignVariable();
             obj.createCost();
@@ -90,7 +132,7 @@ classdef ShapeOptimizationSolver < handle
         end
 
         function createSettings(obj)
-            settings = Settings('Example2');
+            settings = Settings('Example1');
             translator = SettingsTranslator();
             translator.translate(settings);
             fileName = translator.fileName;
@@ -132,7 +174,7 @@ classdef ShapeOptimizationSolver < handle
         end
 
         function t = computeLineSearch(obj,x,dJ)
-            tC = 10;
+            tC = obj.tau;
             incT = 1;
             tA = obj.computeAdimensionalLineSearch(x,dJ);
             t = max(tA,incT*tC);
