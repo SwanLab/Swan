@@ -4,6 +4,9 @@ classdef SwanGiDInterface < handle
         swanPath
         gidPath
         tclPath
+
+        gidMode = 'gid_offscreen -offscreen '; % 'gid '
+%         gidMode = 'gid '; % 'gid '
     end
     
     properties (Access = private)
@@ -68,7 +71,7 @@ classdef SwanGiDInterface < handle
 
         function runSurfaceTcl(obj)
             % Create Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_CreateSurface.tcl"'];
+            command = obj.callGiDFunctionFile('callGiD_CreateSurface.tcl"');
             system(command);
         end
 
@@ -87,7 +90,7 @@ classdef SwanGiDInterface < handle
 
         function runGenerateMeshTcl(obj)
             % Generate Mesh
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_GenerateMesh.tcl"'];
+            command = obj.callGiDFunctionFile('callGiD_GenerateMesh.tcl"');
             system(command);
         end
 
@@ -109,7 +112,7 @@ classdef SwanGiDInterface < handle
 
         function runExtrudeTcl(obj)
             % Extrude Surface
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_Extrude.tcl"'];
+            command = obj.callGiDFunctionFile('callGiD_Extrude.tcl"');
             system(command);
         end
 
@@ -130,7 +133,7 @@ classdef SwanGiDInterface < handle
 
         function runExportSTLTcl(obj)
             % Export STL
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportSTL.tcl"'];
+            command = obj.callGiDFunctionFile('callGiD_ExportSTL.tcl"');
             system(command);
         end
 
@@ -155,7 +158,7 @@ classdef SwanGiDInterface < handle
 
         function runExportMshTcl(obj)
             % Export MSH
-            command = [obj.gidPath,'gid_offscreen -offscreen -t "source ',obj.tclPath,'callGiD_ExportMSH.tcl"'];
+            command = obj.callGiDFunctionFile('callGiD_ExportMSH.tcl"');
             system(command);
             delete PostProcess/STL/HmmLetMeCook.png;
             delete PostProcess/STL/HmmLetMeCook.res;
@@ -191,6 +194,10 @@ classdef SwanGiDInterface < handle
             delete PostProcess/STL/HmmLetMeCook.msh
             delete TempMeshFile.flavia.msh
             delete TempMeshFile.flavia.res
+        end
+
+        function c = callGiDFunctionFile(obj, file)
+            c = [obj.gidPath,obj.gidMode,'-t "source ',obj.tclPath, file];
         end
 
     end

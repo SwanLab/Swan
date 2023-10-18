@@ -3,7 +3,9 @@
 clear
 clc
 
-testName = 'gripping'; % gripping/inverter
+% grippingPostPDEFilter, inverterPrePDEFilter
+% testName = 'grippingPostPDEFilter'; % gripping/inverter
+testName = 'inverterPrePDEFilter'; % gripping/inverter
 
 load([testName,'.mat']);
 close all
