@@ -44,6 +44,9 @@ classdef FilterP1Unfitted <  handle
             s.mesh       = obj.mesh;
             s.quadrature = obj.quadrature;
             xReg         = FGaussDiscontinuousFunction(s);
+
+            sss.levelSet = obj.levelSet;
+            CharFun      = CharacteristicFunction(sss);
         end
 
     end
