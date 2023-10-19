@@ -27,6 +27,9 @@ classdef FilterP1Unfitted <  handle
         end
 
         function xReg = getP0Function(obj,f,quadType)
+            sss.levelSet = obj.levelSet;
+            CharFun      = CharacteristicFunction(sss);
+
             ls    = f.fValues;
             test  = P1Function.create(obj.mesh, 1);
             int   = obj.computeRHSintegrator(quadType);
@@ -44,9 +47,6 @@ classdef FilterP1Unfitted <  handle
             s.mesh       = obj.mesh;
             s.quadrature = obj.quadrature;
             xReg         = FGaussDiscontinuousFunction(s);
-
-            sss.levelSet = obj.levelSet;
-            CharFun      = CharacteristicFunction(sss);
         end
 
     end

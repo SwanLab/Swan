@@ -25,9 +25,7 @@ classdef FilterPDEUnfitted < handle
             lhs              = obj.createProblemLHS(cParams);
             obj.LHS          = decomposition(lhs);
         end
-        % crear FilterPDE per filtrar density+gradients
-        % crear FilterPDEUnfitted per filtrar chi(psi)
-        % crear CharacteristicFunction with evaluate and F, kind of fValues
+
         function xReg = getP1Function(obj,f,quadType)
             RHS       = obj.computeRHS(f,quadType);
             xR        = obj.solveFilter(RHS);
@@ -37,6 +35,9 @@ classdef FilterPDEUnfitted < handle
         end
 
         function xReg = getP0Function(obj,f,quadType)
+            sss.levelSet = obj.levelSet;
+            CharFun      = CharacteristicFunction(sss);
+
             xRP1 =  obj.getP1Function(f,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
@@ -165,18 +166,17 @@ classdef FilterPDEUnfitted < handle
         end
 
         function fInt = computeRHSinBoundary(obj,fNodes)
-            ls = obj.levelSet.value;
-            if all(ls>0)
-                fInt = zeros(size(ls));
-            else
-                uMesh      = obj.levelSet.getUnfittedMesh();
-                s.mesh     = uMesh;
-                s.type     = 'ShapeFunction';
-                s.quadType = 'LINEAR';
-                test       = P1Function.create(obj.mesh,1);
-                int        = RHSintegrator.create(s);
-                fInt       = int.integrateInBoundary(fNodes,test);
-            end
+            sss.levelSet = obj.levelSet;
+            sss.F        = fNodes;
+            CharFun      = CharacteristicFunction(sss);
+
+            uMesh      = obj.levelSet.getUnfittedMesh();
+            s.mesh     = uMesh;
+            s.type     = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test       = P1Function.create(obj.mesh,1);
+            int        = RHSintegrator.create(s);
+            fInt       = int.integrateInBoundary(fNodes,test);
         end
 
     end
