@@ -21,10 +21,10 @@ classdef RHSintegrator_CutMesh < RHSintegrator
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fNodal)
+        function rhs = compute(obj, charFun)
             obj.computeSubCellConnec();
             obj.computeGaussPoints();
-            obj.computeFgauss(fNodal);
+            obj.computeFgauss(charFun);
             rhsCut = obj.computeElementalRHS();
             rhsCells = obj.assembleSubcellsInCells(rhsCut);
             rhs = obj.assembleIntegrand(rhsCells);
@@ -71,8 +71,8 @@ classdef RHSintegrator_CutMesh < RHSintegrator
             lConnec = reshape(1:nElem*nNode,nNode,nElem)';
         end
 
-        function computeFgauss(obj, fNodal)
-            s.fValues = fNodal;
+        function computeFgauss(obj, charFun)
+            s.fValues = charFun.fValues;
             mmm.connec = obj.subCellConnec;
             mmm.type   = obj.backgroundMeshType;
             s.mesh = mmm;

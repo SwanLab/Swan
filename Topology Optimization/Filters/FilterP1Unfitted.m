@@ -15,10 +15,10 @@ classdef FilterP1Unfitted <  handle
             obj.createPoperator();
         end
 
-        function xReg = getP1Function(obj,f,quadType)
+        function xReg = getP1Function(obj,charFun,quadType)
             test      = P0Function.create(obj.mesh, 1);
             int       = obj.computeRHSintegrator(quadType);
-            b         = int.integrateInDomain(f,test);
+            b         = int.integrateInDomain(charFun,test);
             P         = obj.Poper.value;
             A         = P';
             p.fValues = A*b;
@@ -26,14 +26,10 @@ classdef FilterP1Unfitted <  handle
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,f,quadType)
-            sss.levelSet = obj.levelSet;
-            CharFun      = CharacteristicFunction(sss);
-
-            ls    = f.fValues;
+        function xReg = getP0Function(obj,charFun,quadType)
             test  = P1Function.create(obj.mesh, 1);
             int   = obj.computeRHSintegrator(quadType);
-            b     = int.integrateInDomain(ones(size(ls)),test); % to be included in CharFun
+            b     = int.integrateInDomain(charFun,test);
             P     = obj.Poper.value;
             A     = P;
             xR    = A*b;

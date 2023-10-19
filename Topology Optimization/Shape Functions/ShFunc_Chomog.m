@@ -160,12 +160,12 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            s.fValues = obj.designVariable.value;
-            s.mesh    = obj.designVariable.mesh;
-            f         = P1Function(s);
-            fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
-            xP0       = squeeze(fP0.fValues);
-            rhoV{1}   = reshape(xP0',[s.mesh.nelem,fP0.quadrature.ngaus]);
+            obj.designVariable.updateFunction();
+            mesh    = obj.designVariable.mesh;
+            f       = obj.designVariable.fun;
+            fP0     = obj.filter.getP0Function(f,'QUADRATICMASS');
+            xP0     = squeeze(fP0.fValues);
+            rhoV{1} = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
             obj.regDesignVariable = rhoV{1};
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
             obj.homogenizedVariablesComputer.computeDensity(rhoV);

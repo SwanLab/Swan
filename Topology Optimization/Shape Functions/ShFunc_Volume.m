@@ -65,20 +65,12 @@ classdef ShFunc_Volume < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            nx     = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x      = obj.designVariable.value;
-            xf     = cell(obj.designVariable.nVariables,1);
-            s.mesh = obj.designVariable.mesh;
-            for ivar = 1:obj.nVariables
-                i0        = nx*(ivar-1) + 1;
-                iF        = nx*ivar;
-                xs        = x(i0:iF);
-                s.fValues = xs;
-                f         = P1Function(s);
-                fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
-                xP0       = squeeze(fP0.fValues);
-                xf{ivar}  = reshape(xP0',[s.mesh.nelem,fP0.quadrature.ngaus]);
-            end
+            obj.designVariable.updateFunction();
+            mesh      = obj.designVariable.mesh;
+            f         = obj.designVariable.fun;
+            fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
+            xP0       = squeeze(fP0.fValues);
+            xf{1}     = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
             obj.homogenizedVariablesComputer.computeDensity(xf);
         end
         

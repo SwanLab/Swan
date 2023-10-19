@@ -2,12 +2,12 @@ classdef CharacteristicFunction < L2Function
 
     properties (Access = public)
         ndimf
+        levelSet
+        fValues
     end
 
     properties (Access = private)
-        levelSet
         backgroundMesh
-        fValues
     end
 
     properties (Access = private)

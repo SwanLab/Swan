@@ -63,26 +63,19 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.filterDesignVariable();
             obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
         end
-        
+
         function filterDesignVariable(obj)
-            nx     = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x      = obj.designVariable.value;
-            xf     = cell(obj.designVariable.nVariables,1);
-            s.mesh = obj.designVariable.mesh;
-            for ivar = 1:obj.designVariable.nVariables
-                i0        = nx*(ivar-1) + 1;
-                iF        = nx*ivar;
-                xs        = x(i0:iF);
-                s.fValues = xs;
-                f         = P1Function(s);
-                fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
-                xP0       = squeeze(fP0.fValues);
-                xf{ivar}  = reshape(xP0',[s.mesh.nelem,fP0.quadrature.ngaus]);
-            end
-            xf{ivar+1} = obj.designVariable.alpha;
+            obj.designVariable.updateFunction();
+            mesh      = obj.designVariable.mesh;
+            f         = obj.designVariable.fun;
+            fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
+            xP0       = squeeze(fP0.fValues);
+            xf        = cell(2,1);
+            xf{1}     = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
+            xf{2}     = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end
-        
+
         function filterGradient(obj)
             g     = obj.gradient;
             nelem = size(g,1);

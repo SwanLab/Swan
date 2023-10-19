@@ -26,19 +26,16 @@ classdef FilterPDEUnfitted < handle
             obj.LHS          = decomposition(lhs);
         end
 
-        function xReg = getP1Function(obj,f,quadType)
-            RHS       = obj.computeRHS(f,quadType);
+        function xReg = getP1Function(obj,charFun,quadType)
+            RHS       = obj.computeRHS(charFun,quadType);
             xR        = obj.solveFilter(RHS);
             p.fValues = xR;
             p.mesh    = obj.mesh;
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,f,quadType)
-            sss.levelSet = obj.levelSet;
-            CharFun      = CharacteristicFunction(sss);
-
-            xRP1 =  obj.getP1Function(f,quadType);
+        function xReg = getP0Function(obj,charFun,quadType)
+            xRP1 =  obj.getP1Function(charFun,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
@@ -60,19 +57,10 @@ classdef FilterPDEUnfitted < handle
             end
         end
 
-        function RHS = computeRHS(obj,f,quadType)
-            switch class(f)
-                case 'P1Function'
-                    m  = obj.levelSet.getUnfittedMesh();
-                    ls = f.fValues;
-                    F  = ones(size(ls)); % pending to be included in CharacteristicFunction
-                otherwise
-                    m = obj.mesh;
-                    F = f;
-            end
-            int  = obj.computeRHSintegrator(m,quadType);
+        function RHS = computeRHS(obj,charFun,quadType)
+            int  = obj.computeRHSintegrator(quadType);
             test = P1Function.create(obj.mesh, 1);
-            RHS  = int.integrateInDomain(F,test);
+            RHS  = int.integrateInDomain(charFun,test);
         end
 
         function RHS = integrateFunctionAlongFacets(obj,F)
@@ -104,8 +92,8 @@ classdef FilterPDEUnfitted < handle
             obj.quadrature = q;
         end
 
-        function int = computeRHSintegrator(obj,mesh,quadType)
-            s.mesh     = mesh;
+        function int = computeRHSintegrator(obj,quadType)
+            s.mesh     = obj.levelSet.getUnfittedMesh();
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
@@ -168,7 +156,7 @@ classdef FilterPDEUnfitted < handle
         function fInt = computeRHSinBoundary(obj,fNodes)
             sss.levelSet = obj.levelSet;
             sss.F        = fNodes;
-            CharFun      = CharacteristicFunction(sss);
+            charFun      = CharacteristicFunction(sss);
 
             uMesh      = obj.levelSet.getUnfittedMesh();
             s.mesh     = uMesh;
@@ -176,7 +164,7 @@ classdef FilterPDEUnfitted < handle
             s.quadType = 'LINEAR';
             test       = P1Function.create(obj.mesh,1);
             int        = RHSintegrator.create(s);
-            fInt       = int.integrateInBoundary(fNodes,test);
+            fInt       = int.integrateInBoundary(charFun,test);
         end
 
     end
