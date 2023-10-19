@@ -36,7 +36,7 @@ classdef Projector_toP1 < Projector
             obj.mesh.interpolation.computeShapeDeriv(xV);
             %shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             
-            trial = P1DiscontinuousFunction.create(obj.mesh, 1);            
+            trial = P1Function.create(obj.mesh, 1);            
             shapes = trial.computeShapeFunctions(quad);
 
             conne = obj.mesh.connec;
