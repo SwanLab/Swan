@@ -13,16 +13,14 @@ classdef ShapeFunctionProjector_General < ShapeFunctionProjector
             obj.createUnfittedMesh();
         end
         
-        function fInt = project(obj,ls,quadType,test)
+        function fInt = project(obj,ls)
             if all(ls>0)
                 fInt = zeros(size(ls));
             else
                 fNodes = ones(size(ls));
                 obj.unfittedMesh.compute(ls);
                 s.mesh = obj.unfittedMesh;
-                s.quadType = quadType;
                 s.type = 'ShapeFunction';
-                s.test = test;
                 integrator = RHSintegrator.create(s);
                 fInt = integrator.integrateInDomain(fNodes);
             end
