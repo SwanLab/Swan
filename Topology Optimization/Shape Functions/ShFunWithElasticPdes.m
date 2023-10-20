@@ -68,10 +68,10 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
             f         = obj.designVariable.fun;
-            fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
-            xP0       = squeeze(fP0.fValues);
+            fG        = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
+            xP0       = squeeze(fG.fValues);
             xf        = cell(2,1);
-            xf{1}     = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
+            xf{1}     = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
             xf{2}     = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end

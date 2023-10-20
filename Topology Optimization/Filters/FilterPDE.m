@@ -32,7 +32,7 @@ classdef FilterPDE < handle
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,fun,quadType)
+        function xReg = getFGaussFunction(obj,fun,quadType)
             xRP1 =  obj.getP1Function(fun,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);

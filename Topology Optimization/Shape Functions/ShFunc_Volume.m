@@ -68,9 +68,9 @@ classdef ShFunc_Volume < ShapeFunctional
             obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
             f         = obj.designVariable.fun;
-            fP0       = obj.filter.getP0Function(f,'QUADRATICMASS');
-            xP0       = squeeze(fP0.fValues);
-            xf{1}     = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
+            fG        = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
+            xP0       = squeeze(fG.fValues);
+            xf{1}     = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
             obj.homogenizedVariablesComputer.computeDensity(xf);
         end
         

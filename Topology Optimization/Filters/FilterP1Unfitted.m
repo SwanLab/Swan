@@ -26,7 +26,7 @@ classdef FilterP1Unfitted <  handle
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,charFun,quadType)
+        function xReg = getFGaussFunction(obj,charFun,quadType)
             test  = P1Function.create(obj.mesh, 1);
             int   = obj.computeRHSintegrator(quadType);
             P     = obj.Poper.value;

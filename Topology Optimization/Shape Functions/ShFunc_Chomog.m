@@ -149,9 +149,6 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function solveState(obj)
-            % designVariable -> check if C has changed
-            % if hasCchanged
-            % obj.computeStiffnessMatrix();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.solve();
             obj.Chomog  = obj.physicalProblem.Chomog;
@@ -163,9 +160,9 @@ classdef ShFunc_Chomog < ShapeFunctional
             obj.designVariable.updateFunction();
             mesh    = obj.designVariable.mesh;
             f       = obj.designVariable.fun;
-            fP0     = obj.filter.getP0Function(f,'QUADRATICMASS');
-            xP0     = squeeze(fP0.fValues);
-            rhoV{1} = reshape(xP0',[mesh.nelem,fP0.quadrature.ngaus]);
+            fG      = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
+            xP0     = squeeze(fG.fValues);
+            rhoV{1} = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
             obj.regDesignVariable = rhoV{1};
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
             obj.homogenizedVariablesComputer.computeDensity(rhoV);

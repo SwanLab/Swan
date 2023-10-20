@@ -25,7 +25,7 @@ classdef FilterP1 < handle
             xReg       = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,fun,quadType)
+        function xReg = getFGaussFunction(obj,fun,quadType)
             test       = P1Function.create(obj.mesh, 1);
             int        = obj.computeRHSintegrator(quadType);
             P          = obj.Poper.value;

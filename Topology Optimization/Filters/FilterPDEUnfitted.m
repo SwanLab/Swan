@@ -34,7 +34,7 @@ classdef FilterPDEUnfitted < handle
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,charFun,quadType)
+        function xReg = getFGaussFunction(obj,charFun,quadType)
             xRP1 =  obj.getP1Function(charFun,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
