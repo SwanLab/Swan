@@ -15,25 +15,27 @@ classdef FilterP1Unfitted <  handle
             obj.createPoperator();
         end
 
-        function xReg = getP1Function(obj,charFun,quadType)
-            test      = P0Function.create(obj.mesh, 1);
-            int       = obj.computeRHSintegrator(quadType);
-            P         = obj.Poper.value;
-            A         = P';
-            b         = int.integrateInDomain(charFun,test);
-            p.fValues = A*b;
-            p.mesh    = obj.mesh;
-            xReg      = P1Function(p);
+        function xReg = getP1Function(obj,charFun,quadType) % NOT OPERATIVE
+            obj.levelSet = charFun.levelSet;
+            test         = P0Function.create(obj.mesh, 1);
+            int          = obj.computeRHSintegrator(quadType);
+            P            = obj.Poper.value;
+            A            = P';
+            b            = int.integrateInDomain(charFun,test);
+            p.fValues    = A*b;
+            p.mesh       = obj.mesh;
+            xReg         = P1Function(p);
         end
 
         function xReg = getFGaussFunction(obj,charFun,quadType)
-            test  = P1Function.create(obj.mesh, 1);
-            int   = obj.computeRHSintegrator(quadType);
-            P     = obj.Poper.value;
-            A     = P;
-            b     = int.integrateInDomain(charFun,test);
-            xR    = A*b;
-            xReg  = obj.expressInFilterGaussPoints(xR);
+            obj.levelSet = charFun.levelSet;
+            test         = P1Function.create(obj.mesh, 1);
+            int          = obj.computeRHSintegrator(quadType);
+            P            = obj.Poper.value;
+            A            = P;
+            b            = int.integrateInDomain(charFun,test);
+            xR           = A*b;
+            xReg         = obj.expressInFilterGaussPoints(xR);
         end
 
     end
@@ -42,7 +44,6 @@ classdef FilterP1Unfitted <  handle
 
         function init(obj,cParams)
             obj.mesh     = cParams.mesh;
-            obj.levelSet = cParams.designVariable;
         end
 
         function createQuadrature(obj,cParams)

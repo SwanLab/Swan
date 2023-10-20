@@ -23,21 +23,22 @@ classdef FilterPDEUnfitted < handle
             obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
             lhs              = obj.createProblemLHS(cParams);
             obj.LHS          = decomposition(lhs);
-            obj.levelSet     = cParams.designVariable;
         end
 
         function xReg = getP1Function(obj,charFun,quadType)
-            RHS       = obj.computeRHS(charFun,quadType);
-            xR        = obj.solveFilter(RHS);
-            p.fValues = xR;
-            p.mesh    = obj.mesh;
-            xReg      = P1Function(p);
+            obj.levelSet = charFun.levelSet;
+            RHS          = obj.computeRHS(charFun,quadType);
+            xR           = obj.solveFilter(RHS);
+            p.fValues    = xR;
+            p.mesh       = obj.mesh;
+            xReg         = P1Function(p);
         end
 
         function xReg = getFGaussFunction(obj,charFun,quadType)
-            xRP1 =  obj.getP1Function(charFun,quadType);
-            xR   = xRP1.fValues;
-            xReg = obj.expressInFilterGaussPoints(xR);
+            obj.levelSet = charFun.levelSet;
+            xRP1         =  obj.getP1Function(charFun,quadType);
+            xR           = xRP1.fValues;
+            xReg         = obj.expressInFilterGaussPoints(xR);
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -55,8 +56,9 @@ classdef FilterPDEUnfitted < handle
         end
 
         function xReg = regularizeBoundary(obj,charFun)
-            RHS   = obj.computeRHSinBoundary(charFun);
-            xReg  = obj.solveFilter(RHS);
+            obj.levelSet = charFun.levelSet;
+            RHS          = obj.computeRHSinBoundary(charFun);
+            xReg         = obj.solveFilter(RHS);
         end
 
     end

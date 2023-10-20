@@ -1,5 +1,9 @@
 classdef FilterFactory < handle
 
+    % Refactoring ToDo:
+% - Test P0Function in unfitted not available
+% - 'evaluate' method of CharacteristicFunction inside RHSUnfitted?
+
     methods (Access = public, Static)
 
         function filter = create(cParams)
