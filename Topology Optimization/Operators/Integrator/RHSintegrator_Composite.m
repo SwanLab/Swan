@@ -37,7 +37,7 @@ classdef RHSintegrator_Composite < handle
                     p1 = obj.createInnerFunction(charFun);
                     testHandle = class(obj.test);
                     testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
-                    intLoc = integrator.integrateInDomain(p1,testFun);
+                    intLoc = integrator.compute(p1,testFun);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
                 else
                     int = integrator.compute(charFun);

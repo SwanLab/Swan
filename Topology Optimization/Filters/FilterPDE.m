@@ -24,16 +24,16 @@ classdef FilterPDE < handle
             obj.LHS          = decomposition(lhs);
         end
 
-        function xReg = getP1Function(obj,f,quadType)
-            RHS       = obj.computeRHS(f,quadType);
+        function xReg = getP1Function(obj,fun,quadType)
+            RHS       = obj.computeRHS(fun,quadType);
             xR        = obj.solveFilter(RHS);
             p.fValues = xR;
             p.mesh    = obj.mesh;
             xReg      = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,f,quadType)
-            xRP1 =  obj.getP1Function(f,quadType);
+        function xReg = getP0Function(obj,fun,quadType)
+            xRP1 =  obj.getP1Function(fun,quadType);
             xR   = xRP1.fValues;
             x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
@@ -55,14 +55,10 @@ classdef FilterPDE < handle
             end
         end
 
-        function RHS = computeRHS(obj,f,quadType)
-            fun        = f;
-            s.quadType = quadType;
+        function RHS = computeRHS(obj,fun,quadType)
+            int        = obj.computeRHSintegrator(quadType);
             test       = P1Function.create(obj.mesh, 1);
-            s.type     = 'ShapeFunction';
-            s.mesh     = obj.mesh;
-            int        = RHSintegrator.create(s);
-            RHS        = int.integrateInDomain(fun,test);
+            RHS        = int.compute(fun,test);
         end
 
     end
@@ -83,6 +79,13 @@ classdef FilterPDE < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
             obj.quadrature = q;
+        end
+
+        function int = computeRHSintegrator(obj,quadType)
+            s.mesh     = obj.mesh;
+            s.type     = 'ShapeFunction';
+            s.quadType = quadType;
+            int        = RHSintegrator.create(s);
         end
 
         function A = computeNodesGaussMatrix(obj)

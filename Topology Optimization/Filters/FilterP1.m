@@ -14,27 +14,23 @@ classdef FilterP1 < handle
             obj.createPoperator();
         end
 
-        function xReg = getP1Function(obj,f,quadType)
-            s.quadType = quadType;
-            fun        = f;
+        function xReg = getP1Function(obj,fun,quadType)
             test       = P0Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(s);
+            int        = obj.computeRHSintegrator(quadType);
             P          = obj.Poper.value;
             A          = P';
-            b          = int.integrateInDomain(fun,test);
+            b          = int.compute(fun,test);
             p.fValues  = A*b;
             p.mesh     = obj.mesh;
             xReg       = P1Function(p);
         end
 
-        function xReg = getP0Function(obj,f,quadType)
-            s.quadType = quadType;
-            fun        = f;
+        function xReg = getP0Function(obj,fun,quadType)
             test       = P1Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(s);
+            int        = obj.computeRHSintegrator(quadType);
             P          = obj.Poper.value;
             A          = P;
-            b          = int.integrateInDomain(fun,test);
+            b          = int.compute(fun,test);
             xR         = A*b;
             x0         = zeros(length(xR),obj.quadrature.ngaus);
             for igaus = 1:obj.quadrature.ngaus
@@ -67,9 +63,9 @@ classdef FilterP1 < handle
             obj.Poper = Poperator(s);
         end
 
-        function rhs = computeRHSintegrator(obj,cParams)
+        function rhs = computeRHSintegrator(obj,quadType)
             s.type     = 'ShapeFunction';
-            s.quadType = cParams.quadType;
+            s.quadType = quadType;
             s.mesh     = obj.mesh;
             rhs        = RHSintegrator.create(s);
         end

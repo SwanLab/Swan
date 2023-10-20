@@ -4,13 +4,13 @@ classdef FilterPDEUnfitted < handle
         mesh
         LHStype
         scale
-        levelSet
-        Anodal2Gauss
         epsilon
+        Anodal2Gauss
         problemLHS
         LHS
         bc
         quadrature
+        levelSet
     end
 
     methods (Access = public)
@@ -19,11 +19,11 @@ classdef FilterPDEUnfitted < handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.computeBoundaryConditions();
-            obj.levelSet     = cParams.designVariable;
             obj.epsilon      = cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
             lhs              = obj.createProblemLHS(cParams);
             obj.LHS          = decomposition(lhs);
+            obj.levelSet     = cParams.designVariable;
         end
 
         function xReg = getP1Function(obj,charFun,quadType)
@@ -67,9 +67,9 @@ classdef FilterPDEUnfitted < handle
             RHS = obj.computeRHSinBoundary(F);
         end
 
-        function x_reg = regularize(obj,F)
+        function xReg = regularize(obj,F)
             RHS   = obj.integrateFunctionAlongFacets(F);
-            x_reg = obj.solveFilter(RHS);
+            xReg  = obj.solveFilter(RHS);
         end
 
     end
