@@ -29,8 +29,10 @@ classdef MaterialInterpolationFactory < handle
                             obj = SimpInterpolationAdaptative(cParams);
                         case 'SIMP_P3'
                             obj = SimpInterpolationP3(cParams);
-                        case 'PhaseField'
-                            obj = PhaseFieldInterpolator(cParams);
+                        case 'PhaseFieldI'
+                            obj = PhaseFieldInternalEnergyInterpolator(cParams);
+                        case 'PhaseFieldD'
+                            obj = PhaseFieldDissipationInterpolator(cParams);
 
                         otherwise
                             error('Invalid Material Interpolation method.');

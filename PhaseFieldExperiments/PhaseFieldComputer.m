@@ -10,6 +10,7 @@ classdef PhaseFieldComputer < handle
         materialInterpolation
         material
         phaseField
+        fem
     end
 
 
@@ -22,6 +23,7 @@ classdef PhaseFieldComputer < handle
             obj.createPhaseField();
             obj.createMaterialInterpolation();
             obj.computeFEM();
+            obj.createFGaussEnergyFunction();
         end
 
     end
@@ -101,7 +103,7 @@ classdef PhaseFieldComputer < handle
 
         function createMaterialInterpolation(obj)
             c.typeOfMaterial = 'ISOTROPIC';
-            c.interpolation = 'PhaseField';
+            c.interpolation = 'PhaseFieldI';
             c.nElem = obj.mesh.nelem;
             c.dim = '2D';
             c.constitutiveProperties.rho_plus = 1;
@@ -117,19 +119,14 @@ classdef PhaseFieldComputer < handle
 
 
         function mat = createMaterial(obj)
-
             phi0 = obj.phaseField.project('P0');
             mat  = obj.materialInterpolation.computeMatProp(squeeze(phi0.fValues));
-            % ngaus = 6;
-            % I = ones(obj.mesh.nelem,ngaus);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
             s.nelem = obj.mesh.nelem;
             s.mesh  = obj.mesh;
             s.kappa = mat.kappa;
-            % s.kappa = .9107*I;
             s.mu    = mat.mu;
-            % s.mu    = .3446*I;
             mat = Material.create(s);
             mat.compute(s);
             obj.material = mat;
@@ -143,30 +140,31 @@ classdef PhaseFieldComputer < handle
             s.material = obj.createMaterial();
             s.dim = '2D';
             s.bc = obj.boundaryConditions;
-            fem = FEM.create(s);
-            fem.solve();
+            obj.fem = FEM.create(s);
+            obj.fem.solve();
 
-            figure()
-            fem.uFun.plot()
-            figure()
-            fem.stressFun.plot()
-            figure()
-            fem.strainFun.plot()
-            
-            fem.uFun.fValues(:,end+1) = 0;
-            fem.uFun.ndimf = 3;
-            fem.print('Example','Paraview')
+            obj.fem.uFun.plot()
+            obj.fem.stressFun.plot()
+            obj.fem.strainFun.plot()
+
+            obj.fem.uFun.fValues(:,end+1) = 0;
+            obj.fem.uFun.ndimf = 3;
+            obj.fem.print('Example','Paraview')
         end
 
-        function createFGaussEnergyFunction
-
+        function createFGaussEnergyFunction(obj)
+            e = obj.fem.strainFun;
+            s.fValues = sum(e.fValues.*e.fValues);
+            s.quadrature = e.quadrature;
+            s.mesh = obj.mesh;
+            energy = FGaussDiscontinuousFunction(s);
 
             energy.plot();
         end
 
         function createEnergyMassMatrix()
             s.function =  obj.createFGaussEnergyFunction()
-            
+
             LHS
             M = LHS.create(); 
         end

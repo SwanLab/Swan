@@ -1,57 +1,65 @@
-classdef PhaseFieldInterpolator < handle
-    
+classdef PhaseFieldInternalEnergyInterpolator < handle
+
     properties (Access = public)
-        
+
     end
-    
+
     properties (Access = private)
         isoMaterial
         mu0
         mu1
-        kappa1
         kappa0
+        kappa1
+        mu
+        dmu
+        ddmu
+        kappa
+        dkappa
+        ddkappa
     end
-    
+
     properties (Access = private)
        constitutiveProperties        
     end
-    
+
     methods (Access = public)
-        
-        function obj = PhaseFieldInterpolator(cParams)
+
+        function obj = PhaseFieldInternalEnergyInterpolator(cParams)
             obj.init(cParams)    
             obj.createIsotropicMaterial()
             obj.computeShearAndBulkModulus()
+            obj.createInternalEnergyInterpolation()
         end
-        
-        function mat = computeMatProp(obj,phi)
-            % Constant distribution
-            mat.mu = obj.mu1;
-            mat.kappa = obj.kappa1;
 
-            % Linear distribution of g(phi)
-            % mat.mu = obj.mu1*phi + obj.mu0*(1-phi);
-            % mat.kappa = obj.kappa1*phi + obj.kappa0*(1-phi);
-            
-            % Quadratic distribution of g(phi)
-            % mat.mu = (obj.mu1-obj.mu0)*phi.^2+ obj.mu0;
-            % mat.kappa = (obj.kappa1-obj.kappa0)*phi.^2+ obj.kappa0;
+        function mat = computeMatProp(obj,phi)
+            mat.mu = obj.mu(phi);
+            mat.kappa = obj.kappa(phi);
         end
-        
+
+        function mat = computeDMatProp(obj,phi)
+            mat.dmu = obj.dmu(phi);
+            mat.dkappa = obj.dkappa(phi);
+        end
+
+        function mat = computeDDMatProp(obj,phi)
+            mat.ddmu = obj.ddmu(phi);
+            mat.ddkappa = obj.ddkappa(phi);
+        end
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.constitutiveProperties = cParams.constitutiveProperties;
         end
-        
+
         function createIsotropicMaterial(obj)
             s.pdim  = '2D';
             s.ptype = 'ELASTIC';
             obj.isoMaterial = Material.create(s);
         end        
-        
+
         function computeShearAndBulkModulus(obj)
              E1 = obj.constitutiveProperties.E_plus;
              nu1 = obj.constitutiveProperties.nu_plus;
@@ -63,7 +71,22 @@ classdef PhaseFieldInterpolator < handle
              obj.mu0 = obj.isoMaterial.computeMuFromYoungAndNu(E0,nu0);
              obj.kappa0 = obj.isoMaterial.computeKappaFromYoungAndNu(E0,nu0);
         end
-        
+
+        function createInternalEnergyInterpolation(obj)
+            m0 = obj.mu0;
+            m1 = obj.mu1;
+            k0 = obj.kappa0;
+            k1 = obj.kappa1;
+            p = 2;
+
+            obj.mu      = @(phi) (1-phi).^p*m0 + m1;
+            obj.kappa   = @(phi) (1-phi).^p*k0 + k1;
+            obj.dmu     = @(phi) -p*(1-phi).^(p-1)*m0 + m1;
+            obj.dkappa  = @(phi) -p*(1-phi).^(p-1)*k0 + k1;
+            obj.ddmu    = @(phi) p*(p-1)*(1-phi).^(p-2)*m0 + m1;
+            obj.ddkappa = @(phi) p*(p-1)*(1-phi).^(p-2)*k0 + k1;
+        end
+
     end
-    
+
 end
