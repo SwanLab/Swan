@@ -54,12 +54,8 @@ classdef FilterPDEUnfitted < handle
             RHS  = int.integrateInDomain(charFun,test);
         end
 
-        function RHS = integrateFunctionAlongFacets(obj,F)
-            RHS = obj.computeRHSinBoundary(F);
-        end
-
-        function xReg = regularize(obj,F)
-            RHS   = obj.integrateFunctionAlongFacets(F);
+        function xReg = regularizeBoundary(obj,charFun)
+            RHS   = obj.computeRHSinBoundary(charFun);
             xReg  = obj.solveFilter(RHS);
         end
 
@@ -144,18 +140,10 @@ classdef FilterPDEUnfitted < handle
             lhs = obj.bc.fullToReducedMatrix(lhs);
         end
 
-        function fInt = computeRHSinBoundary(obj,fNodes)
-            sss.levelSet = obj.levelSet;
-            sss.F        = fNodes;
-            charFun      = CharacteristicFunction(sss);
-
-            uMesh      = obj.levelSet.getUnfittedMesh();
-            s.mesh     = uMesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = 'LINEAR';
-            test       = P1Function.create(obj.mesh,1);
-            int        = RHSintegrator.create(s);
-            fInt       = int.integrateInBoundary(charFun,test);
+        function fInt = computeRHSinBoundary(obj,charFun)
+            test = P1Function.create(obj.mesh,1);
+            int  = obj.computeRHSintegrator('LINEAR');
+            fInt = int.integrateInBoundary(charFun,test);
         end
 
         function xG = expressInFilterGaussPoints(obj,x)

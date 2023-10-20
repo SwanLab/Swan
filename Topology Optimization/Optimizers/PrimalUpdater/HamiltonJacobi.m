@@ -49,7 +49,10 @@ classdef HamiltonJacobi < handle
         end
 
         function computeVelocity(obj,g)
-            V            = -obj.filter.regularize(g);
+            s.levelSet   = obj.phi;
+            s.F          = g;
+            charFun      = CharacteristicFunction(s);
+            V            = -obj.filter.regularizeBoundary(charFun);
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
         end
