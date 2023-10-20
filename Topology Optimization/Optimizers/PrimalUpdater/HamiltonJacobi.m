@@ -74,6 +74,7 @@ classdef HamiltonJacobi < handle
             s.designVarType     = designVar.type;
             s.scale             = 'MACRO';
             s.filterType        = set.filterType;
+            s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);

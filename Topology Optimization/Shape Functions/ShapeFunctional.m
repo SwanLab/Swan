@@ -92,6 +92,7 @@ classdef ShapeFunctional < handle
             s.mesh           = cParams.filterParams.mesh;
             s.domainType     = cParams.filterParams.domainType;
             s.filterType     = cParams.filterParams.filterType;
+            s.quadType       = 'LINEAR';
             s.designVarType  = cParams.filterParams.designVarType;
             s.designVariable = cParams.designVariable;
             obj.filter       = Filter.create(s);
@@ -102,6 +103,7 @@ classdef ShapeFunctional < handle
             s.mesh             = cParams.filterParams.mesh;
             s.domainType       = cParams.filterParams.domainType;
             s.filterType       = cParams.filterParams.filterType;
+            s.quadType         = 'LINEAR';
             s.designVarType    = 'Continuous';
             obj.gradientFilter = Filter.create(s);
         end

@@ -16,7 +16,7 @@ classdef FilterPDE < handle
 
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
+            obj.createQuadrature(cParams);
             obj.computeBoundaryConditions();
             obj.epsilon      = cParams.mesh.computeMeanCellSize();
             obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
@@ -35,16 +35,7 @@ classdef FilterPDE < handle
         function xReg = getFGaussFunction(obj,fun,quadType)
             xRP1 =  obj.getP1Function(fun,quadType);
             xR   = xRP1.fValues;
-            x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = obj.Anodal2Gauss{igaus}*xR;
-            end
-            ngaus        = obj.quadrature.ngaus;
-            nelem        = obj.mesh.nelem;
-            s.fValues    = reshape(x0',[1,ngaus,nelem]);
-            s.mesh       = obj.mesh;
-            s.quadrature = obj.quadrature;
-            xReg         = FGaussDiscontinuousFunction(s);
+            xReg = obj.expressInFilterGaussPoints(xR);
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -75,9 +66,9 @@ classdef FilterPDE < handle
             end
         end
 
-        function createQuadrature(obj)
+        function createQuadrature(obj,cParams)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q.computeQuadrature(cParams.quadType);
             obj.quadrature = q;
         end
 
@@ -139,6 +130,19 @@ classdef FilterPDE < handle
         function lhs = computeLHS(obj)
             lhs = obj.problemLHS.compute(obj.epsilon);
             lhs = obj.bc.fullToReducedMatrix(lhs);
+        end
+
+        function xG = expressInFilterGaussPoints(obj,x)
+            x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
+            for igaus = 1:obj.quadrature.ngaus
+                x0(:,igaus) = obj.Anodal2Gauss{igaus}*x;
+            end
+            ngaus        = obj.quadrature.ngaus;
+            nelem        = obj.mesh.nelem;
+            s.fValues    = reshape(x0',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = obj.quadrature;
+            xG           = FGaussDiscontinuousFunction(s);
         end
 
     end

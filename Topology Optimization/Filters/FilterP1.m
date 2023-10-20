@@ -10,7 +10,7 @@ classdef FilterP1 < handle
 
         function obj = FilterP1(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
+            obj.createQuadrature(cParams);
             obj.createPoperator();
         end
 
@@ -32,16 +32,7 @@ classdef FilterP1 < handle
             A          = P;
             b          = int.compute(fun,test);
             xR         = A*b;
-            x0         = zeros(length(xR),obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = xR;
-            end
-            ngaus        = obj.quadrature.ngaus;
-            nelem        = obj.mesh.nelem;
-            s.fValues    = reshape(x0',[1,ngaus,nelem]);
-            s.mesh       = obj.mesh;
-            s.quadrature = obj.quadrature;
-            xReg         = FGaussDiscontinuousFunction(s);
+            xReg       = obj.expressInFilterGaussPoints(xR);
         end
 
     end
@@ -52,9 +43,9 @@ classdef FilterP1 < handle
             obj.mesh = cParams.mesh;
         end
 
-        function createQuadrature(obj)
+        function createQuadrature(obj,cParams)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q.computeQuadrature(cParams.quadType);
             obj.quadrature = q;
         end
 
@@ -68,6 +59,19 @@ classdef FilterP1 < handle
             s.quadType = quadType;
             s.mesh     = obj.mesh;
             rhs        = RHSintegrator.create(s);
+        end
+
+        function xG = expressInFilterGaussPoints(obj,x)
+            x0 = zeros(length(x),obj.quadrature.ngaus);
+            for igaus = 1:obj.quadrature.ngaus
+                x0(:,igaus) = x;
+            end
+            ngaus        = obj.quadrature.ngaus;
+            nelem        = obj.mesh.nelem;
+            s.fValues    = reshape(x0',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = obj.quadrature;
+            xG           = FGaussDiscontinuousFunction(s);
         end
 
     end
