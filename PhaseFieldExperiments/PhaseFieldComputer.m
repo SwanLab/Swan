@@ -158,6 +158,19 @@ classdef PhaseFieldComputer < handle
             fem.print('Example','Paraview')
         end
 
+        function createFGaussEnergyFunction
+
+
+            energy.plot();
+        end
+
+        function createEnergyMassMatrix()
+            s.function =  obj.createFGaussEnergyFunction()
+            
+            LHS
+            M = LHS.create(); 
+        end
+
 
     end
 
