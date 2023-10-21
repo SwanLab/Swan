@@ -5,7 +5,7 @@ classdef conjugateGradient_Solver < Solver
         function x = solve(LHS,RHS,mesh,bc)
             tol = 1e-6;
             n = length(RHS);
-            x = RHS; 
+            x = zeros(n,1); 
             r = RHS - LHS * x; 
             p = r; 
             rsold = r' * r;
@@ -26,11 +26,11 @@ classdef conjugateGradient_Solver < Solver
                 p = r + (rsnew / rsold) * p;
                 rsold = rsnew;
                 iter = iter + 1;
-                residu(iter) = max(LHS*x - RHS); %Ax - b 
+                residu(iter) = norm(LHS*x - RHS); %Ax - b 
                 
-                conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
+                %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
             end
-            save('residuConjugateB.mat', 'residu')
+            save('residuConjugateZeros.mat', 'residu')
         end
         
         function plotSolution(x,mesh,bc,numItr)
