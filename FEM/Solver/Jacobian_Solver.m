@@ -15,7 +15,7 @@ classdef Jacobian_Solver < Solver
                 xold=x;
                 x=w*(D\(RHS-T*xold))+(1-w)*xold;
                 if mod(iter,10) == 0
-                    Jacobian_Solver.plotSolution(x,mesh,bc,iter)
+                    %Jacobian_Solver.plotSolution(x,mesh,bc,iter)
                 end
                 %normVal = norm(x-xold);
                 normVal = max(LHS*x - RHS);
