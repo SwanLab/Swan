@@ -160,7 +160,8 @@ classdef P2Function < FeFunction
     methods (Access = public, Static)
 
         function p2 = create(mesh, ndimf)
-            s.fValues = zeros(mesh.nnodes, ndimf); % wrong
+%             s.fValues = zeros(mesh.nnodes, ndimf); % wrong
+            s.fValues = zeros(6, ndimf); % wrong
             s.mesh    = mesh;
             p2 = P2Function(s);
         end
@@ -173,7 +174,7 @@ classdef P2Function < FeFunction
             obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'QUADRATIC';
+            obj.order   = 'ORDER4';
         end
 
         function createInterpolation(obj)
