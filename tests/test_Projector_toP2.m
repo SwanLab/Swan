@@ -10,3 +10,4 @@ sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
 p2fun = xFun.project('P2');
+p2fun.plot()
