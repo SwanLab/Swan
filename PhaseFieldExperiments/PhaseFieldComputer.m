@@ -23,7 +23,7 @@ classdef PhaseFieldComputer < handle
             obj.createPhaseField();
             obj.createMaterialInterpolation();
             obj.computeFEM();
-            obj.createFGaussEnergyFunction();
+            obj.createEnergyMassMatrix();
         end
 
     end
@@ -152,7 +152,7 @@ classdef PhaseFieldComputer < handle
             obj.fem.print('Example','Paraview')
         end
 
-        function createFGaussEnergyFunction(obj)
+        function energy = createFGaussEnergyFunction(obj)
             e = obj.fem.strainFun;
             s.fValues = sum(e.fValues.*e.fValues);
             s.quadrature = e.quadrature;
@@ -162,11 +162,16 @@ classdef PhaseFieldComputer < handle
             energy.plot();
         end
 
-        function createEnergyMassMatrix()
-            s.function =  obj.createFGaussEnergyFunction()
-
-            LHS
-            M = LHS.create(); 
+        function createEnergyMassMatrix(obj)
+            energyFun =  obj.createFGaussEnergyFunction(); 
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.function = energyFun;
+            s.mesh = obj.mesh;
+            s.type = 'MassMatrixWithFunction';
+            s.quadratureOrder = energyFun.quadrature.order;
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute(); 
         end
 
 
