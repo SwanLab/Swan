@@ -160,8 +160,7 @@ classdef P2Function < FeFunction
     methods (Access = public, Static)
 
         function p2 = create(mesh, ndimf)
-%             s.fValues = zeros(mesh.nnodes, ndimf); % wrong
-            s.fValues = zeros(6, ndimf); % wrong
+            s.fValues = zeros(mesh.nnodes, ndimf); % wrong
             s.mesh    = mesh;
             p2 = P2Function(s);
         end
@@ -190,6 +189,11 @@ classdef P2Function < FeFunction
             obj.coord  = c.coord;
             obj.connec = c.connec;
             nDimf = size(obj.fValues,2);
+            
+            if all(obj.fValues == 0)
+                obj.fValues = zeros(size(c.coord,1),nDimf);
+            end
+            
             if isequal(size(obj.mesh.coord,1), size(obj.fValues,1))
                 obj.fValues = zeros(size(obj.coord,1),nDimf);
             end
