@@ -8,6 +8,8 @@ classdef ProjectorFactory < handle
                     obj = Projector_toP0(cParams);
                 case 'P1'
                     obj = Projector_toP1(cParams);
+                case 'P2'
+                    obj = Projector_toP2(cParams);
                 case 'P1D'
                     obj = Projector_toP1Discontinuous(cParams);
                 case 'H1P1'

@@ -36,9 +36,9 @@ classdef FE_Projector < Projector
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
             s.fun = obj.FE_function;            
-            s.quadratureOrder = 'ORDER10';
+            s.quadratureOrder = 'ORDER4';
             s.type  = 'MassMatrix'; % For Lagrange
-            s.type  = 'MassMatrixVect'; % For Raviart-Thomas or Nedelec
+%             s.type  = 'MassMatrixVect'; % For Raviart-Thomas or Nedelec
 %             s.type  = 'CurlNCurlN';
 %             s.type  = 'ElasticStiffnessMatrix';
             lhs = LHSintegrator.create(s);

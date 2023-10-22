@@ -26,8 +26,8 @@ mesh = m;
 % AnalyticalFunction
 
 
-% sAF.fHandle = @(x,y) x(1,:,:).*x(1,:,:).*x(1,:,:).*x(1,:,:);
-sAF.fHandle = @(x,y) [-x(2,:,:)./10,x(1,:,:)./10];
+sAF.fHandle = @(x,y) x(1,:,:);
+% sAF.fHandle = @(x,y) [-x(2,:,:)./10,x(1,:,:)./10];
 sAF.ndimf   = 1;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
@@ -45,9 +45,9 @@ xFun = AnalyticalFunction(sAF);
 clc
 pp1.mesh   = mesh;
 pp1.connec = mesh.connec;
-pp1.polynomialOrder = 1;
-pp1.feParams.type = "Nedelec";
-pp1.feParams.order = 1;
+pp1.polynomialOrder = 2;
+pp1.feParams.type = "Lagrange Simplicial";
+pp1.feParams.order = 2;
 pp1.feParams.dim = 2;
 projP1 = FE_Projector(pp1);
 p1fun = projP1.project(xFun);

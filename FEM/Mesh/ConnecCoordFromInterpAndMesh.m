@@ -26,6 +26,18 @@ classdef ConnecCoordFromInterpAndMesh < handle
             Tinterp = zeros(m.nelem,obj.interp.nnode);
 
             inode = 1;
+            
+            xNode = zeros(1,obj.interp.ndime);
+            for inodeMesh = 1:m.nnodeElem
+                node = Tmesh(1,inodeMesh);
+                shapes = shapesInVarNodes(1,inodeMesh);
+                xNode = xNode + shapes*xPointsMesh(node,:);
+            end
+            
+            if xNode == [0 0]
+                inode = inode+1;
+            end
+            
             for ielem = 1:m.nelem
                 for inodeVar = 1:obj.interp.nnode
                     xNode = zeros(1,obj.interp.ndime);
