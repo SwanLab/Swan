@@ -19,7 +19,7 @@ classdef Projector < handle
         function ord = determineQuadratureOrder(fun)
             switch fun.fType
                 case 'L2'
-                    ord = 'ORDER4';
+                    ord = 'ORDER4'; % wrong
 %                     ord = 'QUADRATIC';
                 case 'FE'
 %                     ord = 'LINEAR';
