@@ -108,8 +108,8 @@ classdef P2Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function plot(obj, m) % 2D domains only
-            s.mesh          = m;
+        function plot(obj) % 2D domains only
+            s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
             c = ConnecCoordFromInterpAndMesh(s);
             c.compute();
