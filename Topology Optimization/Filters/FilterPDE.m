@@ -2,12 +2,13 @@ classdef FilterPDE < handle
     
     properties (Access = private)
         mesh
-        trial
+        filteredField
         scale
         epsilon
         LHStype
         problemLHS
         LHS
+        RHS
         bc
     end
 
@@ -20,11 +21,10 @@ classdef FilterPDE < handle
             obj.LHS = decomposition(lhs);
         end
 
-        function xReg = compute(obj,fun,quadType)
-            RHS               = obj.computeRHS(fun,quadType);
-            xR                = obj.solveFilter(RHS);
-            obj.trial.fValues = xR;
-            xReg              = obj.trial;
+        function xF = compute(obj,fun,quadType)
+            obj.computeRHS(fun,quadType);
+            obj.solveFilter();
+            xF = obj.filteredField;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -41,20 +41,36 @@ classdef FilterPDE < handle
 
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
-            obj.trial = P1Function.create(obj.mesh,1);
+            obj.filteredField = P1Function.create(obj.mesh,1);
             obj.scale = cParams.scale;
             if isfield(cParams,'LHStype')
                 obj.LHStype = cParams.LHStype;
             else
                 obj.LHStype = 'DiffReactNeumann';
             end
+
+            % Factory!
+            switch cParams.boundaryType
+                case 'Neumann'
+                    obj.LHStype = 'StiffnessMass';
+                    obj.scale   = 'MACRO';
+                case 'Robin'
+                    obj.LHSType = 'StiffnessMass';
+                    obj.scale   = 'MICRO';
+                % Iso and ani depending of cParams
+            end
+
+
+
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
-        function RHS = computeRHS(obj,fun,quadType)
+        function computeRHS(obj,fun,quadType)
             int  = obj.computeRHSintegrator(quadType);
-            test = P1Function.create(obj.mesh, 1);
-            RHS  = int.compute(fun,test);
+            test = obj.filteredField;
+            rhs  = int.compute(fun,test);
+            rhsR = obj.bc.fullToReducedVector(rhs);            
+            obj.RHS = rhsR;
         end
 
         function int = computeRHSintegrator(obj,quadType)
@@ -72,12 +88,12 @@ classdef FilterPDE < handle
             itHas = var > 1e-15;
         end
 
-        function x_reg = solveFilter(obj,RHS)
-            RHS    = obj.bc.fullToReducedVector(RHS);
+        function solveFilter(obj,RHS)
             s.type = 'DIRECT';
-            Solv   = Solver.create(s);
-            x      = Solv.solve(obj.LHS,RHS);
-            x_reg  = obj.bc.reducedToFullVector(x);
+            solver = Solver.create(s);
+            x   = solver.solve(obj.LHS,obj.RHS);
+            xR  = obj.bc.reducedToFullVector(x);
+            obj.filteredField.fValues = xR;  
         end
 
         function computeBoundaryConditions(obj)
@@ -93,7 +109,7 @@ classdef FilterPDE < handle
         end
 
         function lhs = createProblemLHS(obj,s)
-            s.trial        = obj.trial;
+            s.trial        = obj.filteredField;
             s.mesh         = obj.mesh;
             s.type         = obj.LHStype;
             obj.problemLHS = LHSintegrator.create(s);
