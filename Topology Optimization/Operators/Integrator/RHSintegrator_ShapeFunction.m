@@ -10,7 +10,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fun)
+        function rhs = compute(obj, fun,test)
             rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(test,rhsElem);
         end
