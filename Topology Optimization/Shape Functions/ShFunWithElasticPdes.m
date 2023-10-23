@@ -67,11 +67,12 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function filterDesignVariable(obj)
             obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
+            q         = obj.getQuad;
             f         = obj.designVariable.fun;
-            fG        = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
-            xP0       = squeeze(fG.fValues);
+            fP1       = obj.filter.compute(f,'QUADRATICMASS');
+            xP0       = squeeze(fP1.evaluate(q.posgp));
             xf        = cell(2,1);
-            xf{1}     = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
+            xf{1}     = reshape(xP0',[mesh.nelem,q.ngaus]);
             xf{2}     = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end
@@ -89,7 +90,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
                 s.mesh       = obj.designVariable.mesh;
                 s.quadrature = q;
                 f            = FGaussDiscontinuousFunction(s);
-                gradP1       = obj.gradientFilter.getP1Function(f,'LINEAR');
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
                 gf(:,ivar)   = gradP1.fValues;
             end
             gf           = obj.Msmooth*gf;

@@ -2,40 +2,29 @@ classdef FilterPDE < handle
     
     properties (Access = private)
         mesh
-        LHStype
+        trial
         scale
         epsilon
-        Anodal2Gauss
+        LHStype
         problemLHS
         LHS
         bc
-        quadrature
     end
 
     methods (Access = public)
 
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            obj.createQuadrature(cParams);
             obj.computeBoundaryConditions();
-            obj.epsilon      = cParams.mesh.computeMeanCellSize();
-            obj.Anodal2Gauss = obj.computeNodesGaussMatrix();
-            lhs              = obj.createProblemLHS(cParams);
-            obj.LHS          = decomposition(lhs);
+            lhs     = obj.createProblemLHS(cParams);
+            obj.LHS = decomposition(lhs);
         end
 
-        function xReg = getP1Function(obj,fun,quadType)
-            RHS       = obj.computeRHS(fun,quadType);
-            xR        = obj.solveFilter(RHS);
-            p.fValues = xR;
-            p.mesh    = obj.mesh;
-            xReg      = P1Function(p);
-        end
-
-        function xReg = getFGaussFunction(obj,fun,quadType)
-            xRP1 =  obj.getP1Function(fun,quadType);
-            xR   = xRP1.fValues;
-            xReg = obj.expressInFilterGaussPoints(xR);
+        function xReg = compute(obj,fun,quadType)
+            RHS               = obj.computeRHS(fun,quadType);
+            xR                = obj.solveFilter(RHS);
+            obj.trial.fValues = xR;
+            xReg              = obj.trial;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -46,30 +35,26 @@ classdef FilterPDE < handle
             end
         end
 
-        function RHS = computeRHS(obj,fun,quadType)
-            int        = obj.computeRHSintegrator(quadType);
-            test       = P1Function.create(obj.mesh, 1);
-            RHS        = int.compute(fun,test);
-        end
-
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh    = cParams.mesh;
-            obj.scale   = cParams.scale;
+            obj.mesh  = cParams.mesh;
+            obj.trial = P1Function.create(obj.mesh,1);
+            obj.scale = cParams.scale;
             if isfield(cParams,'LHStype')
                 obj.LHStype = cParams.LHStype;
             else
                 obj.LHStype = 'DiffReactNeumann';
             end
+            obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
-        function createQuadrature(obj,cParams)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(cParams.quadType);
-            obj.quadrature = q;
+        function RHS = computeRHS(obj,fun,quadType)
+            int  = obj.computeRHSintegrator(quadType);
+            test = P1Function.create(obj.mesh, 1);
+            RHS  = int.compute(fun,test);
         end
 
         function int = computeRHSintegrator(obj,quadType)
@@ -77,19 +62,6 @@ classdef FilterPDE < handle
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
-        end
-
-        function A = computeNodesGaussMatrix(obj)
-            p1f      = P1Function.create(obj.mesh,1);
-            s.nnode  = obj.mesh.nnodeElem;
-            s.nelem  = obj.mesh.nelem;
-            s.npnod  = obj.mesh.nnodes;
-            s.ngaus  = obj.quadrature.ngaus;
-            s.connec = obj.mesh.connec;
-            s.shape  = p1f.computeShapeFunctions(obj.quadrature);
-            Acomp    = Anodal2gausComputer(s);
-            Acomp.compute();
-            A = Acomp.A_nodal_2_gauss;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
@@ -121,6 +93,7 @@ classdef FilterPDE < handle
         end
 
         function lhs = createProblemLHS(obj,s)
+            s.trial        = obj.trial;
             s.mesh         = obj.mesh;
             s.type         = obj.LHStype;
             obj.problemLHS = LHSintegrator.create(s);
@@ -130,19 +103,6 @@ classdef FilterPDE < handle
         function lhs = computeLHS(obj)
             lhs = obj.problemLHS.compute(obj.epsilon);
             lhs = obj.bc.fullToReducedMatrix(lhs);
-        end
-
-        function xG = expressInFilterGaussPoints(obj,x)
-            x0   = zeros(obj.mesh.nelem,obj.quadrature.ngaus);
-            for igaus = 1:obj.quadrature.ngaus
-                x0(:,igaus) = obj.Anodal2Gauss{igaus}*x;
-            end
-            ngaus        = obj.quadrature.ngaus;
-            nelem        = obj.mesh.nelem;
-            s.fValues    = reshape(x0',[1,ngaus,nelem]);
-            s.mesh       = obj.mesh;
-            s.quadrature = obj.quadrature;
-            xG           = FGaussDiscontinuousFunction(s);
         end
 
     end

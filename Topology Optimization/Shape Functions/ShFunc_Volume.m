@@ -57,7 +57,7 @@ classdef ShFunc_Volume < ShapeFunctional
                 s.mesh       = obj.designVariable.mesh;
                 s.quadrature = q;
                 f            = FGaussDiscontinuousFunction(s);
-                gradP1       = obj.gradientFilter.getP1Function(f,'LINEAR');
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
                 gf(:,ivar)   = gradP1.fValues;
             end
             g = obj.Msmooth*gf;
@@ -67,10 +67,12 @@ classdef ShFunc_Volume < ShapeFunctional
         function updateHomogenizedMaterialProperties(obj)
             obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
+            q         = Quadrature.set(mesh.type);
+            q.computeQuadrature('LINEAR');
             f         = obj.designVariable.fun;
-            fG        = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
-            xP0       = squeeze(fG.fValues);
-            xf{1}     = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
+            fP1       = obj.filter.compute(f,'QUADRATICMASS');
+            xP0       = squeeze(fP1.evaluate(q.posgp));
+            xf{1}     = reshape(xP0',[mesh.nelem,q.ngaus]);
             obj.homogenizedVariablesComputer.computeDensity(xf);
         end
         

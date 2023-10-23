@@ -1,6 +1,7 @@
 classdef LHSintegrator_DiffReactRobin < handle
 
     properties (GetAccess = public, SetAccess = private)
+        test, trial
         M
         K
         Mr
@@ -13,7 +14,7 @@ classdef LHSintegrator_DiffReactRobin < handle
     methods (Access = public)
 
         function obj = LHSintegrator_DiffReactRobin(cParams)
-            obj.mesh  = cParams.mesh;
+            obj.init(cParams);
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -26,11 +27,16 @@ classdef LHSintegrator_DiffReactRobin < handle
     end
 
     methods (Access = private)
+        function init(obj,cParams)
+            obj.mesh  = cParams.mesh;
+            obj.test  = cParams.trial;
+            obj.trial = cParams.trial;
+        end
 
         function computeStiffnessMatrix(obj,cParams)
             s      = cParams; % For anisotropic stiffness
-            s.test  = P1Function.create(obj.mesh,1);
-            s.trial  = P1Function.create(obj.mesh,1);
+            s.test  = obj.test;
+            s.trial  = obj.trial;
             s.type = cParams.stiffType;
             s.mesh = obj.mesh;
             LHS    = LHSintegrator.create(s);
@@ -40,8 +46,8 @@ classdef LHSintegrator_DiffReactRobin < handle
         function computeMassMatrix(obj)
             s.type = 'MassMatrix';
             s.mesh = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = obj.test;
+            s.trial = obj.trial;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
