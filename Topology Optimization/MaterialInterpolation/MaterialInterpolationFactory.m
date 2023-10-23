@@ -32,7 +32,7 @@ classdef MaterialInterpolationFactory < handle
                         case 'PhaseFieldI'
                             obj = PhaseFieldInternalEnergyInterpolator(cParams);
                         case 'PhaseFieldD'
-                            obj = PhaseFieldDissipationInterpolator(cParams);
+                            obj = PhaseFieldDissipationInterpolator();
                         case 'SIMPThermal'
                             obj = SIMPThermalInterpolation(cParams);                            
                         otherwise

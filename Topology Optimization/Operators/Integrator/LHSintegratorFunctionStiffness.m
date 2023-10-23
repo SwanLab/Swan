@@ -36,7 +36,7 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
-            fV  = obj.fun.evaluate(obj.quadrature);
+            fV  = obj.fun.evaluate(obj.quadrature.posgp);
             BcompTs = obj.createBComputer(obj.test, dNdxTs);
             BcompTr = obj.createBComputer(obj.trial, dNdxTr);
             lhs = zeros(nDofETs,nDofETr,nElem);

@@ -9,14 +9,24 @@ classdef PhaseFieldComputer < handle
         boundaryConditions
         materialInterpolation
         material
+        dissipationInterpolation
         phaseField
         fem
     end
 
+    properties (Access = private)
+        Mi
+        Md
+        K
+        Fi
+        Fd
+        DF
+    end
 
     methods (Access = public)
 
         function obj = PhaseFieldComputer()
+            close all %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             obj.init()
             obj.computeMesh();
             obj.createBoundaryConditions();
@@ -24,6 +34,11 @@ classdef PhaseFieldComputer < handle
             obj.createMaterialInterpolation();
             obj.computeFEM();
             obj.createEnergyMassMatrix();
+            obj.createDissipationMassMatrix();
+            obj.createStiffnessMatrix();
+            obj.createEnergyForceVector();
+            obj.createDissipationForceVector();
+            obj.createForceDerivativeVector();
         end
 
     end
@@ -152,27 +167,128 @@ classdef PhaseFieldComputer < handle
             obj.fem.print('Example','Paraview')
         end
 
-        function energy = createFGaussEnergyFunction(obj)
-            e = obj.fem.strainFun;
-            s.fValues = sum(e.fValues.*e.fValues);
-            s.quadrature = e.quadrature;
+        %% PHASE-FIELD EQUATION (LHS)
+        % Internal energy mass matrix
+        function DDenergy = createFGaussDDEnergyFunction(obj)
+            s.fValues = obj.computeSecondEnergyDerivativeField();
+            s.quadrature = obj.fem.strainFun.quadrature;
             s.mesh = obj.mesh;
-            energy = FGaussDiscontinuousFunction(s);
+            DDenergy = FGaussDiscontinuousFunction(s);
+            DDenergy.plot();
+        end
 
-            energy.plot();
+        function en = computeSecondEnergyDerivativeField(obj)
+            e = obj.fem.strainFun;
+            en = sum(e.fValues.*e.fValues);
         end
 
         function createEnergyMassMatrix(obj)
-            energyFun =  obj.createFGaussEnergyFunction(); 
+            DDenergyFun =  obj.createFGaussDDEnergyFunction(); 
             s.trial = P1Function.create(obj.mesh,2);
             s.test = P1Function.create(obj.mesh,2);
-            s.function = energyFun;
+            s.function = DDenergyFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = energyFun.quadrature.order;
+            s.quadratureOrder = DDenergyFun.quadrature.order;
             LHS = LHSintegrator.create(s);
-            M = LHS.compute(); 
+            obj.Mi = LHS.compute(); 
         end
+        
+        % Dissipation mass matrix
+        function DDalpha = createFGaussDDDissipationFunction(obj)
+            c.typeOfMaterial = 'ISOTROPIC';
+            c.interpolation = 'PhaseFieldD';
+
+            disInt = MaterialInterpolation.create(c);
+            obj.dissipationInterpolation = disInt;
+
+            phi0 = obj.phaseField.project('P0');
+            s.fValues = reshape(obj.dissipationInterpolation.computeDDAlphaProp(squeeze(phi0.fValues)),1,1,[]);
+            s.quadrature = obj.fem.strainFun.quadrature;
+            s.mesh = obj.mesh;
+            DDalpha = FGaussDiscontinuousFunction(s);
+        end
+
+        function createDissipationMassMatrix(obj)
+            DDalphaFun =  obj.createFGaussDDDissipationFunction(); 
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.function = DDalphaFun;
+            s.mesh = obj.mesh;
+            s.type = 'MassMatrixWithFunction';
+            s.quadratureOrder = DDalphaFun.quadrature.order;
+            LHS = LHSintegrator.create(s);
+            obj.Md = LHS.compute(); 
+        end
+
+        % Stiffness matrix
+        function createStiffnessMatrix(obj)
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.mesh = obj.mesh;
+            s.type = 'StiffnessMatrix';
+            LHS = LHSintegrator.create(s);
+            obj.K = LHS.compute();      
+        end
+
+        %% PHASE-FIELD EQUATION (LHS)
+        % Internal energy force vector
+        function Denergy = createFGaussDEnergyFunction(obj)
+            s.fValues = obj.computeFirstEnergyDerivativeField();
+            s.quadrature = obj.fem.strainFun.quadrature;
+            s.mesh = obj.mesh;
+            Denergy = FGaussDiscontinuousFunction(s);
+            Denergy.plot();
+        end
+
+        function en = computeFirstEnergyDerivativeField(obj)
+            e = obj.fem.strainFun;
+            en = sum(e.fValues.*e.fValues);
+        end
+
+        function createEnergyForceVector(obj)
+            DenergyFun =  obj.createFGaussDEnergyFunction(); 
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.mesh = obj.mesh;
+            s.type = 'ShapeFunction';
+            RHS = RHSintegrator.create(s);
+            obj.Fi = RHS.compute(DenergyFun); 
+        end
+        
+        % Dissipation force vector
+        function Dalpha = createFGaussDDissipationFunction(obj)
+            phi0 = obj.phaseField.project('P0');
+            s.fValues = reshape(obj.dissipationInterpolation.computeDAlphaProp(squeeze(phi0.fValues)),1,1,[]);
+            s.quadrature = obj.fem.strainFun.quadrature;
+            s.mesh = obj.mesh;
+            Dalpha = FGaussDiscontinuousFunction(s);
+        end   
+
+        function createDissipationForceVector(obj)
+            DalphaFun =  obj.createFGaussDDissipationFunction(); 
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.function = DalphaFun;
+            s.mesh = obj.mesh;
+            s.type = 'ShapeFunction';
+            s.quadratureOrder = DalphaFun.quadrature.order;
+            RHS = RHSintegrator.create(s);
+            obj.Fd = RHS.compute();     
+        end
+
+         
+        
+        % Force derivative vector
+        function createForceDerivativeVector(obj)
+            s.trial = P1Function.create(obj.mesh,2);
+            s.test = P1Function.create(obj.mesh,2);
+            s.mesh = obj.mesh;
+            s.type = 'ShapeDerivative';
+            RHS = RHSintegrator.create(s);
+            obj.DF = RHS.compute(DenergyFun); 
+        end
+
 
 
     end

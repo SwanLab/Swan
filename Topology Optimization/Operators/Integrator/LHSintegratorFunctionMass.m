@@ -40,14 +40,15 @@ classdef LHSintegratorFunctionMass < handle
             fG = squeeze(obj.fun.evaluate(quad.posgp));
 
             M = zeros(nDofTest, nDofTrial, nElem);
-%             for igaus = 1:nGaus
-%                 dv(1,1,:) = dVolu(igaus,:);
-%                 Nv = shapesTest(:,igaus);
-%                 Nu = shapesTrial(:,igaus);
-%                 NvNu = Nv*Nu';
-%                 Aij = bsxfun(@times,NvNu,dv);
-%                 lhs = lhs + Aij;
-%             end
+            % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);
+            % for igaus = 1:nGaus
+            %     dv(1,1,:) = dVolu(igaus,:);
+            %     Nv = shapesTest(:,igaus);
+            %     Nu = shapesTrial(:,igaus);
+            %     NvNu = Nv*Nu';
+            %     Aij = bsxfun(@times,NvNu,dv);
+            %     lhs = lhs + Aij;
+            % end
             for igauss = 1 :nGaus
                 for inode= 1:nNodeTest
                     for jnode= 1:nNodeTrial
