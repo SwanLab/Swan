@@ -36,7 +36,7 @@ classdef SIMPThermalInterpolation < L2Function
             obj.alpha0 = cParams.alpha0;
             obj.alpha1 = cParams.alpha1;
             obj.density = cParams.density; 
-            obj.pExp = 3;        
+            obj.pExp = 7;        
             obj.ndimf = 1;
         end
         

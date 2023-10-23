@@ -48,8 +48,8 @@ classdef ConnectivityComputer < handle
         end
         
         function createMesh(obj)
-            x1 = linspace(-1,1,40);
-            x2 = linspace(-1,1,40);
+            x1 = linspace(-1,1,100);
+            x2 = linspace(-1,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -77,7 +77,8 @@ classdef ConnectivityComputer < handle
             %s.domainType = obj.mesh.type;
             f = Filter_PDE_LevelSet(s);
             dens = f.getP0fromP1([]);
-            s.fValues = 1-dens;
+            w    = max(0,min(1,1-dens));
+            s.fValues = floor(2*(w-0.5))+1;
             s.mesh    = obj.mesh;
             obj.density = P0Function(s);
         end
@@ -85,7 +86,7 @@ classdef ConnectivityComputer < handle
         function createMaterialInterpolator(obj)
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPThermal';
-            s.alpha0         = 1e-3;
+            s.alpha0         = 1e-5;
             s.alpha1         = 1;
             s.density        = obj.density;
             a = MaterialInterpolation.create(s);
@@ -124,15 +125,31 @@ classdef ConnectivityComputer < handle
             bc  = obj.boundaryConditions;
             Kr = bc.fullToReducedMatrix(K);
             Mr = bc.fullToReducedMatrix(M);
-            eigLHS  = eigs(K,M,10,'smallestabs');
-            eigLHSr = eigs(Kr,Mr,10,'smallestabs');
+            [V,eigLHS]  = eigs(K,M,10,'smallestabs');
+            [Vr,eigLHSr] = eigs(Kr,Mr,10,'smallestabs');
+
+            fV = zeros(size(V(:,1)));
+            fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
+            fV(obj.boundaryConditions.free,1) = Vr(:,1);
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            vV = P1Function(s);
+            vV.plot()
+
+
+            fV = V(:,2);
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            vN = P1Function(s);
+            vN.plot()
+
         end
 
         function createBoundaryConditions(obj)
             bMesh  = obj.mesh.createBoundaryMesh();
             allNodes = [];
             for i = 1:4
-                nodes = bMesh{1}.globalConnec;
+                nodes = bMesh{i}.globalConnec;
                 allNodes = [nodes;allNodes];
             end
             uNodes = unique(allNodes(:));
