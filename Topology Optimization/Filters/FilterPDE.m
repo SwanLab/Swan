@@ -40,29 +40,12 @@ classdef FilterPDE < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh  = cParams.mesh;
-            obj.filteredField = P1Function.create(obj.mesh,1);
-            obj.scale = cParams.scale;
-            if isfield(cParams,'LHStype')
-                obj.LHStype = cParams.LHStype;
-            else
-                obj.LHStype = 'DiffReactNeumann';
-            end
-
-            % Factory!
-            switch cParams.boundaryType
-                case 'Neumann'
-                    obj.LHStype = 'StiffnessMass';
-                    obj.scale   = 'MACRO';
-                case 'Robin'
-                    obj.LHSType = 'StiffnessMass';
-                    obj.scale   = 'MICRO';
-                % Iso and ani depending of cParams
-            end
-
-
-
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            f                 = FilterPDEFactory(cParams);
+            obj.LHStype       = f.LHStype;
+            obj.scale         = f.scale;
+            obj.mesh          = cParams.mesh;
+            obj.filteredField = P1Function.create(obj.mesh,1); % trial will come from outside
+            obj.epsilon       = cParams.mesh.computeMeanCellSize();
         end
 
         function computeRHS(obj,fun,quadType)
@@ -88,7 +71,7 @@ classdef FilterPDE < handle
             itHas = var > 1e-15;
         end
 
-        function solveFilter(obj,RHS)
+        function solveFilter(obj)
             s.type = 'DIRECT';
             solver = Solver.create(s);
             x   = solver.solve(obj.LHS,obj.RHS);

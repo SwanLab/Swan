@@ -32,25 +32,25 @@ classdef LHSintegratorFactory < handle
                    % computing the *global* B matrix, the *global* C
                    % matrix, and then multiplying B*C*B globally.
                    % Per results, it is less efficient.
-               case 'DiffReactRobin'
+               case 'StiffnessMassBoundaryMass'
                    % Creates a composite LHS for DiffReact problems with
                    % the ROBIN TERM. Includes a stiffness matrix, a mass
                    % matrix, and a boundary mass matrix.
                    cParams.stiffType = 'StiffnessMatrix';
                    obj = LHSintegrator_DiffReactRobin(cParams);
-               case 'DiffReactNeumann'
+               case 'StiffnessMass'
                    % Creates a composite LHS for DiffReact problems with
                    % NO ROBIN TERM. Includes a stiffness matrix and a mass
                    % matrix, and NO boundary mass matrix.
                    cParams.stiffType = 'StiffnessMatrix';
                    obj = LHSintegrator_DiffReactNeumann(cParams);
-               case 'AnisotropicDiffReactRobin'
+               case 'AnisotropicStiffnessMassBoundaryMass'
                    % Creates a composite LHS for DiffReact problems with
                    % the ROBIN TERM. Includes a stiffness matrix, a mass
                    % matrix, and a boundary mass matrix.
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegrator_DiffReactRobin(cParams);
-               case 'AnisotropicDiffReactNeumann'
+               case 'AnisotropicStiffnessMass'
                    % Creates a composite LHS for DiffReact problems with
                    % NO ROBIN TERM. Includes a stiffness matrix and a mass
                    % matrix, and NO boundary mass matrix.
