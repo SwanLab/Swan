@@ -10,7 +10,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fun,test)
+        function rhs = compute(obj, fun, test)
             rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(test,rhsElem);
         end
@@ -43,9 +43,9 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             rhsC = transpose(int);
         end
 
-        function f = assembleIntegrand(obj,test,rhsElem)
+        function f = assembleIntegrand(obj,fun,rhsElem)
             integrand = rhsElem;
-            connec = test.computeDofConnectivity()';
+            connec = fun.computeDofConnectivity()';
             ndofs = max(max(connec));
             nnode  = size(connec,2);
             f = zeros(ndofs,1);
