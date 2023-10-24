@@ -17,8 +17,8 @@ classdef FilterPDE < handle
         function obj = FilterPDE(cParams)
             obj.init(cParams);
             obj.computeBoundaryConditions();
-            lhs     = obj.createProblemLHS(cParams);
-            obj.LHS = decomposition(lhs);
+            obj.createProblemLHS(cParams);
+            obj.computeLHS();
         end
 
         function xF = compute(obj,fun,quadType)
@@ -30,8 +30,7 @@ classdef FilterPDE < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                lhs         = obj.computeLHS();
-                obj.LHS     = decomposition(lhs);
+                obj.computeLHS();
             end
         end
 
@@ -48,37 +47,6 @@ classdef FilterPDE < handle
             obj.epsilon       = cParams.mesh.computeMeanCellSize();
         end
 
-        function computeRHS(obj,fun,quadType)
-            int  = obj.computeRHSintegrator(quadType);
-            test = obj.filteredField;
-            rhs  = int.compute(fun,test);
-            rhsR = obj.bc.fullToReducedVector(rhs);            
-            obj.RHS = rhsR;
-        end
-
-        function int = computeRHSintegrator(obj,quadType)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadType;
-            int        = RHSintegrator.create(s);
-        end
-
-        function itHas = hasEpsilonChanged(obj,eps)
-            if isempty(obj.epsilon)
-                obj.epsilon = 0;
-            end
-            var = abs(eps - obj.epsilon)/eps;
-            itHas = var > 1e-15;
-        end
-
-        function solveFilter(obj)
-            s.type = 'DIRECT';
-            solver = Solver.create(s);
-            x   = solver.solve(obj.LHS,obj.RHS);
-            xR  = obj.bc.reducedToFullVector(x);
-            obj.filteredField.fValues = xR;  
-        end
-
         function computeBoundaryConditions(obj)
             s.scale           = obj.scale;
             s.mesh            = obj.mesh;
@@ -91,17 +59,45 @@ classdef FilterPDE < handle
             obj.bc.compute();
         end
 
-        function lhs = createProblemLHS(obj,s)
+        function createProblemLHS(obj,s)
             s.trial        = obj.filteredField;
             s.mesh         = obj.mesh;
             s.type         = obj.LHStype;
             obj.problemLHS = LHSintegrator.create(s);
-            lhs            = obj.computeLHS();
         end
 
-        function lhs = computeLHS(obj)
-            lhs = obj.problemLHS.compute(obj.epsilon);
-            lhs = obj.bc.fullToReducedMatrix(lhs);
+        function computeLHS(obj)
+            lhs     = obj.problemLHS.compute(obj.epsilon);
+            lhs     = obj.bc.fullToReducedMatrix(lhs);
+            obj.LHS = lhs;
+        end
+
+        function computeRHS(obj,fun,quadType)
+            int     = obj.computeRHSintegrator(quadType);
+            test    = obj.filteredField;
+            rhs     = int.compute(fun,test);
+            rhsR    = obj.bc.fullToReducedVector(rhs);
+            obj.RHS = rhsR;
+        end
+
+        function int = computeRHSintegrator(obj,quadType)
+            s.mesh     = obj.mesh;
+            s.type     = 'ShapeFunction';
+            s.quadType = quadType;
+            int        = RHSintegrator.create(s);
+        end
+
+        function solveFilter(obj)
+            s.type = 'DIRECT';
+            solver = Solver.create(s);
+            x      = solver.solve(obj.LHS,obj.RHS);
+            xR     = obj.bc.reducedToFullVector(x);
+            obj.filteredField.fValues = xR;
+        end
+
+        function itHas = hasEpsilonChanged(obj,eps)
+            var   = abs(eps - obj.epsilon)/eps;
+            itHas = var > 1e-15;
         end
 
     end
