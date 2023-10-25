@@ -3,7 +3,6 @@ classdef FilterPDE < handle
     properties (Access = private)
         mesh
         filteredField
-        scale
         epsilon
         LHStype
         problemLHS
@@ -13,10 +12,9 @@ classdef FilterPDE < handle
     end
 
     methods (Access = public)
-
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            obj.computeBoundaryConditions();
+            obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
@@ -33,23 +31,18 @@ classdef FilterPDE < handle
                 obj.computeLHS();
             end
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            f                 = FilterPDEFactory(cParams);
-            obj.LHStype       = f.LHStype;
-            obj.scale         = f.scale;
+            obj.LHStype       = cParams.LHStype;
             obj.mesh          = cParams.mesh;
             obj.filteredField = P1Function.create(obj.mesh,1); % trial will come from outside
             obj.epsilon       = cParams.mesh.computeMeanCellSize();
         end
 
-        function computeBoundaryConditions(obj)
-            s.scale           = obj.scale;
-            s.mesh            = obj.mesh;
+        function computeBoundaryConditions(obj,cParams)
+            s                 = cParams;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = 1; % periodic BCs
@@ -73,18 +66,14 @@ classdef FilterPDE < handle
         end
 
         function computeRHS(obj,fun,quadType)
-            int     = obj.computeRHSintegrator(quadType);
-            test    = obj.filteredField;
-            rhs     = int.compute(fun,test);
-            rhsR    = obj.bc.fullToReducedVector(rhs);
-            obj.RHS = rhsR;
-        end
-
-        function int = computeRHSintegrator(obj,quadType)
+            test       = obj.filteredField;
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
+            rhs        = int.compute(fun,test);
+            rhsR       = obj.bc.fullToReducedVector(rhs);
+            obj.RHS    = rhsR;
         end
 
         function solveFilter(obj)
@@ -99,7 +88,5 @@ classdef FilterPDE < handle
             var   = abs(eps - obj.epsilon)/eps;
             itHas = var > 1e-15;
         end
-
     end
-
 end

@@ -1,11 +1,10 @@
 classdef FilterFactory < handle
 
- % Refactoring ToDo:
-  % General:
-    % - separate f*chi*N (define characteristic function inside filter + f
-    % coming from outside)
-    % - Test P0Function in unfitted not available
+    % Refactoring ToDo:
+    % General:
+    % - think about f*chi*N
     % - 'evaluate' method inside RHSUnfitted
+    % - Test P0Function in unfitted not available
 
     methods (Access = public, Static)
 
@@ -19,6 +18,28 @@ classdef FilterFactory < handle
                             filter = FilterP1Unfitted(cParams);
                     end
                 case 'PDE'
+                    if not(isfield(cParams,'boundaryType'))
+                        cParams.boundaryType = 'Neumann';
+                    end
+                    if not(isfield(cParams,'metric'))
+                        cParams.metric       = 'Isotropy';
+                    end
+                    switch cParams.boundaryType
+                        case {'Neumann','Periodic'}
+                            switch cParams.metric
+                                case 'Isotropy'
+                                    cParams.LHStype = 'StiffnessMass';
+                                case 'Anisotropy'
+                                    cParams.LHStype = 'AnisotropicStiffnessMass';
+                            end
+                        case 'Robin'
+                            switch cParams.metric
+                                case 'Isotropy'
+                                    cParams.LHStype = 'StiffnessMassBoundaryMass';
+                                case 'Anisotropy'
+                                    cParams.LHStype = 'AnisotropicStiffnessMassBoundaryMass';
+                            end
+                    end
                     switch cParams.designVarType
                         case {'Continuous','Density','MicroParams'}
                             filter = FilterPDE(cParams);
