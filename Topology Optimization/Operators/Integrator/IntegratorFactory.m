@@ -4,6 +4,8 @@ classdef IntegratorFactory < handle
 
         function int = create(cParams)
             switch cParams.type
+                case 'Function'
+                    int = IntegratorFunction(cParams);
                 case 'ScalarProduct'
                     int = IntegratorScalarProduct(cParams);
             end
