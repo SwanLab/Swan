@@ -32,24 +32,23 @@ classdef PhaseFieldComputer < handle
             obj.computeMesh();
             obj.createBoundaryConditions();
             obj.createPhaseField();
+            obj.createMaterialInterpolation();
+            obj.createDissipationInterpolation();
 
-            for i = 1:20
+            for i = 1:5
             obj.phaseField.plot;
             title('Phase Field')
-            obj.createMaterialInterpolation();
             obj.computeFEM();
 
-                for j = 1:1
-                obj.createEnergyMassMatrix();
-                obj.createDissipationMassMatrix();
-                obj.createStiffnessMatrix();
-                obj.createEnergyForceVector();
-                obj.createDissipationForceVector();
-                obj.createForceDerivativeVector();
-                obj.solvePhaseFieldEquation();
+            obj.createEnergyMassMatrix();
+            obj.createDissipationMassMatrix();
+            obj.createStiffnessMatrix();
+            obj.createEnergyForceVector();
+            obj.createDissipationForceVector();
+            obj.createForceDerivativeVector();
+            obj.solvePhaseFieldEquation();
 
-                obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
-                end
+            obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
             end
 
             obj.phaseField.plot;
@@ -104,7 +103,7 @@ classdef PhaseFieldComputer < handle
 
             bc.pointload(:,1) = nodes(forceNodes);
             bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -10;
+            bc.pointload(:,3) = -0.05;
             obj.boundaryConditions = bc;
         end
 
@@ -149,7 +148,15 @@ classdef PhaseFieldComputer < handle
             obj.materialInterpolation = matInt;
         end
 
+        function createDissipationInterpolation(obj)
+            c.typeOfMaterial = 'ISOTROPIC';
+            c.interpolation = 'PhaseFieldD';
 
+            disInt = MaterialInterpolation.create(c);
+            obj.dissipationInterpolation = disInt;
+        end
+
+        %% ELASTIC EQUATION 
         function mat = createMaterial(obj)
             phi0 = obj.phaseField.project('P0');
             mat  = obj.materialInterpolation.computeMatProp(squeeze(phi0.fValues));
@@ -163,7 +170,6 @@ classdef PhaseFieldComputer < handle
             mat.compute(s);
             obj.material = mat;
         end
-
 
         function computeFEM(obj)
             s.mesh = obj.mesh;
@@ -229,12 +235,6 @@ classdef PhaseFieldComputer < handle
         
         % Dissipation mass matrix
         function DDalpha = createFGaussDDDissipationFunction(obj)
-            c.typeOfMaterial = 'ISOTROPIC';
-            c.interpolation = 'PhaseFieldD';
-
-            disInt = MaterialInterpolation.create(c);
-            obj.dissipationInterpolation = disInt;
-
             phi0 = obj.phaseField.project('P0');
             s.fValues = reshape(obj.dissipationInterpolation.computeDDAlphaProp(squeeze(phi0.fValues)),1,1,[]);
             s.quadrature = obj.fem.strainFun.quadrature;
