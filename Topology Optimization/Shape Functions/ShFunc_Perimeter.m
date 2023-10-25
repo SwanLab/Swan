@@ -134,22 +134,22 @@ classdef ShFunc_Perimeter < ShapeFunctional
             per = 2/(obj.epsilon)*((1 - obj.filteredDensity.fValues).*(obj.Msmooth\obj.regularizedDensityProjection));
             %value2 =  sum(obj.Msmooth*per);
         end
-        
+
         function computePerimeterValue(obj)
-            mesh        = obj.designVariable.mesh;
             obj.designVariable.updateFunction();
-            xi          = obj.designVariable.fun.fValues;
-            rhoei       = obj.filteredDensity.fValues;
-            s.fValues   = rhoei.*xi;
-            s.mesh      = mesh;
-            f           = P1Function(s);
-            ss.type     = 'ShapeFunction';
-            ss.mesh     = mesh; % may be this or the unfitted for ls
-            ss.quadType = 'QUADRATICMASS';
-            RHS         = RHSintegrator.create(ss);
-            test        = P1Function.create(mesh, 1);
-            peri        = RHS.compute(f,test);
-            obj.value   =  2/(obj.epsilon)*sum(peri);
+            rho        = obj.designVariable.fun;
+            rhoe       = obj.filteredDensity;
+            rhoei      = rhoe.fValues;
+            s.fValues  = 1-rhoei;
+            s.mesh     = obj.designVariable.mesh;
+            f          = P1Function(s);
+            i.type     = 'ScalarProduct';
+            i.quadType = 'QUADRATICMASS';
+            i.mesh     = obj.designVariable.mesh;
+            int        = Integrator.create(i);
+            result     = int.compute(f,rho);
+            per        = 2/(obj.epsilon)*result;
+            obj.value  = per;
         end
         
         function computeGradient(obj)
