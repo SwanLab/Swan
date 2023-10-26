@@ -1,13 +1,5 @@
 classdef LSection < SectionVariablesComputer
-    
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
+      
     properties (Access = private)
         A
         Iy
@@ -18,6 +10,7 @@ classdef LSection < SectionVariablesComputer
         dIydh
         dIxdtw
         dIxdh
+        ind
     end
     
     methods (Access = public)
@@ -27,25 +20,33 @@ classdef LSection < SectionVariablesComputer
             obj.computeAreaAndInertiaInSymbolic()
         end
 
-       function [Ix,Iy] = computeInertia(obj)
+       function I= computeInertia(obj)
            [h,tw] = obj.getDoubleValue();
            Ix = obj.Ix(h,tw);
            Iy = obj.Iy(h,tw);
+           [I,index] = min([Ix,Iy],[],2);
+           obj.ind = index;
         end
         
-        function [dIydtw, dIydh, dIxdtw, dIxdh] = computeInertiaDerivative(obj)
+        function dI = computeInertiaDerivative(obj)
            [h,tw] = obj.getDoubleValue();
            dIydtw = obj.dIydtw(h,tw);
            dIydh = obj.dIydh(h,tw);
            dIxdtw = obj.dIxdtw(h,tw);
            dIxdh = obj.dIxdh(h,tw);
+           
+           dIdtwT = [dIxdtw,dIydtw];
+           dIdhT = [dIxdh,dIydh];
+
+           idx = sub2ind(size(dIdtwT), [1:size(dIdtwT,1)]', obj.ind);
+           dI = [dIdtwT(idx); dIdhT(idx)];
+
 
         end
         
         function A = computeArea(obj)
            [h,tw] = obj.getDoubleValue();
            A = obj.A(h,tw);
-
         end
 
         function dA = computeAreaDerivative(obj)
@@ -53,7 +54,6 @@ classdef LSection < SectionVariablesComputer
            dAdh = obj.dAdh(h,tw);
            dAdtw = obj.dAdtw(h,tw);
            dA = [dAdh; dAdtw];
-
         end        
   
     end
@@ -72,7 +72,7 @@ classdef LSection < SectionVariablesComputer
             Iy = Iy0 - A*xC^2;
             
             dAdtw = diff(A,tw);
-            dAdh = diff(A,h)
+            dAdh = diff(A,h);
             dIydtw = diff(Iy,tw);
             dIydh = diff(Iy,h);
 

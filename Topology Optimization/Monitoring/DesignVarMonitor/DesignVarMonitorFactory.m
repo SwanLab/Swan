@@ -63,7 +63,7 @@ classdef DesignVarMonitorFactory < handle
                     obj.monitor = DesignVarMonitor_AreaColumn(mS);
                 case 'RadiusColumn'
                     obj.monitor = DesignVarMonitor_RadiusColumn(mS);
-                case 'SquareColumn'
+                case {'SquareColumn','LshapeColumn'}
                     obj.monitor = DesignVarMonitor_SquareColumn(mS);
                 case 'RectangularColumn'
                     obj.monitor = DesignVarMonitor_RectangularColumn(mS);
