@@ -28,7 +28,7 @@ classdef conjugateGradient_Solver < Solver
                 iter = iter + 1;
                 residu(iter) = norm(LHS*x - RHS); %Ax - b 
                 
-                %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
+                conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
             end
             save('residuConjugateZeros.mat', 'residu')
         end
