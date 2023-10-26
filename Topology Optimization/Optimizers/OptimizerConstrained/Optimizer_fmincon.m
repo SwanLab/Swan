@@ -59,8 +59,17 @@ classdef Optimizer_fmincon < Optimizer
         end
 
         function x = callfmincon(obj)
+            obj.updateIterInfo();
+            %obj.designVariable.update(x);
+            params.algorithm   = obj.algorithm;
+            params.nIter       = obj.nIter;
+            params.hasFinished = obj.hasFinished; 
+            params.firstorderopt=1;
+            params.trustregionradius=1;
+            obj.outputFunction.monitoring.compute(params);
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;
+            
             x = fmincon(PROBLEM);
         end
 

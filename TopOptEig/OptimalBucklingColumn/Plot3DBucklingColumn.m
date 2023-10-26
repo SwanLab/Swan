@@ -42,9 +42,9 @@ classdef Plot3DBucklingColumn < handle
         
         function createBackgroundMesh(obj)
             nElem = length(obj.coordinates)-1;
-            x = linspace(0,2,30);%5
-            y = linspace(0,2,30);
-            z = linspace(0,1,nElem); %linspace(0,20,nElem)
+            x = linspace(0,5,20);%5
+            y = linspace(0,5,20);
+            z = linspace(0,20,nElem); %linspace(0,20,nElem)
             [X,Y,Z] = meshgrid(x,y,z);   
             coord  = [X(:) Y(:) Z(:)];
             d = delaunayTriangulation(coord);

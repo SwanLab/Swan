@@ -71,13 +71,13 @@ classdef DesignVarMonitor_RadiusColumn < DesignVarMonitor_Abstract
             figure(4)
             clf
             plot(y,x);
-            axis([0 1 0 xMax])
+            axis([0 2 0 xMax])
             grid on
             grid minor
             %title('Design Variable','Interpreter', 'latex','FontSize',20, 'fontweight','b');
             ylabel('x','Interpreter', 'latex','fontsize',14,'fontweight','b');
             xlabel('R(x)','Interpreter', 'latex','fontsize',14,'fontweight','b');
-            set(gcf, 'Position',  [100, 100, 500, 500])
+            set(gcf, 'Position',  [100, 100, 200, 500])
         end
 
         function create3Dplot(obj)

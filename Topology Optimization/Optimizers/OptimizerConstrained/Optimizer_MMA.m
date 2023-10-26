@@ -53,6 +53,8 @@ classdef Optimizer_MMA < Optimizer
 %             obj.printOptimizerVariable();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
+            obj.KKTnorm = 1;
+            obj.updateMonitoring()
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
