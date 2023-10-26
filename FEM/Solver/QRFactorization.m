@@ -2,26 +2,26 @@ classdef QRFactorization < Solver
 
     methods(Static)
 
-        function [Q, R] = householder_qr(LHS,RHS,mesh,bc)
-            [m, n] = size(LHS);
-            Q = eye(m); 
+        function [Q, R] = solve(LHS,RHS,mesh,bc)
 
-            for k = 1:min(m-1, n)
-                x = LHS(k:m, k);
-                e1 = zeros(length(x), 1);
-                e1(1) = 1;
-                v = sign(x(1)) * norm(x) * e1 + x;
-                v = v / norm(v);
-                H = eye(m);
-                H(k:m, k:m) = eye(length(x)) - 2 * (v * v');
-                LHS = H * LHS;
-                Q = Q * H';
-                QRFactorization.plotQ(Q,mesh,bc,iter)
+            [m, n] = size(LHS);
+            Q = zeros(m, n);
+            R = zeros(n, n);
+   
+            for j = 1:n
+                v = LHS(:, j);
+                for i = 1:j-1
+                    R(i, j) = Q(:, i)' * LHS(:, j);
+                    v = v - R(i, j) * Q(:, i);
+                end
+                R(j, j) = norm(v);
+                Q(:, j) = v / R(j, j);
+                %QRFactorization.plotQ(Q(:,j),mesh,bc,j)
+                Ap = Q(:,j).*R;
+                x = (Ap'*Ap)\(Ap'*RHS);
+                res = Ap*x - RHS;
+                QRFactorization.plotRes(res,mesh,bc,j)
             end
-            
-            R = LHS;
-            res = norm(LHS*x - RHS);
-            QRFactorization.plotQ(res,mesh,bc,iter)
         end
 
         function plotQ(Q,mesh,bc,iter)
@@ -36,7 +36,7 @@ classdef QRFactorization < Solver
             fclose('all');
         end
 
-        function plotSolution(res,mesh,bc,iter)
+        function plotRes(res,mesh,bc,iter)
             xFull = bc.reducedToFullVector(res);
             s.fValues = reshape(xFull,2,[])';
             s.mesh = mesh;
