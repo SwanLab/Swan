@@ -22,7 +22,7 @@ classdef ProblemSolver < handle
             [LHS, RHS, bc, newbc] = problem.getSolverData();
             LHSred = BCApplier.reduceLHS(LHS, newbc);
             RHSred = BCApplier.reduceLHS(RHS, newbc);
-            u = Direct_Solver.solve(Kred,Fred);
+            u = Direct_Solver.solve(LHSred,RHSred);
             u = bc.reducedToFullVector(u);
             problem.setVariable(u);
         end

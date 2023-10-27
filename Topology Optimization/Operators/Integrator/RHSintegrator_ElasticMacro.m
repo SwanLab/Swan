@@ -54,7 +54,13 @@ classdef RHSintegrator_ElasticMacro < handle
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
-            Fp = reshape(obj.newBCs{2}.fun.fValues', [82 1]);
+            for iBc = 1:length(obj.newBCs)
+                bc = obj.newBCs{iBc};
+                if (strcmp(bc.type,'Neumann'))
+                    f = bc.fun.fValues;
+                    Fp = reshape(f', [size(f,1)*size(f,2) 1]);
+                end
+            end
         end
 
     end
