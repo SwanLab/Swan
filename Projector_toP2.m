@@ -12,7 +12,8 @@ classdef Projector_toP2 < Projector
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
             s.fValues = xProj;
-            xFun = P2Function(s);
+            s.order = 'QUADRATIC';
+            xFun = LagrangianFunction(s);
         end
 
     end
