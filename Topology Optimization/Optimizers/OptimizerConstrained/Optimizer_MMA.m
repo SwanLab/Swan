@@ -48,13 +48,13 @@ classdef Optimizer_MMA < Optimizer
         end
 
        function solveProblem(obj)
-            % obj.cost.computeFunctionAndGradient();
-            % obj.constraint.computeFunctionAndGradient();
+             obj.cost.computeFunctionAndGradient();
+             obj.constraint.computeFunctionAndGradient();
 %             obj.printOptimizerVariable();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
             obj.KKTnorm = 1;
-            obj.updateMonitoring()
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();

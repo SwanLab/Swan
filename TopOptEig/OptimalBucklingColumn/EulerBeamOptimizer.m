@@ -74,7 +74,7 @@ classdef EulerBeamOptimizer < handle
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.makeGIF       = 'N'; %'Y';'N'
-            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Constant'; % Random/Constant/External Value/Sinus
             obj.meshType      = 'Structured'; %Structured/Unstructured
             obj.desVarType    = 'RadiusColumn';%'LshapeColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
