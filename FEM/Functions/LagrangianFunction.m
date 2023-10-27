@@ -159,13 +159,13 @@ classdef LagrangianFunction < FeFunction
 
     methods (Access = public, Static)
 
-        function p2 = create(mesh, ndimf, ord)
+        function pL = create(mesh, ndimf, ord)
             s.mesh    = mesh;
             s.order   = ord;
             s.ndimf   = ndimf;
             c = DOFsComputer(s);
-            s.fValues = c.computeNumberDofs();
-            p2 = P2Function(s);
+            s.fValues = zeros(c.computeNumberDofs(),ndimf);
+            pL = LagrangianFunction(s);
         end
 
     end

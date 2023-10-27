@@ -15,7 +15,7 @@ sAF.mesh = createMesh(N);
 xFun = AnalyticalFunction(sAF);
 
 % Project to P1 and P2
-p2fun = xFun.project('P2');
+p2fun = xFun.project('LINEAR');
 p2fun.plot()
 
 function m = createMesh(N)
@@ -27,5 +27,8 @@ function m = createMesh(N)
     [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
     sBg.coord  = V(:,1:2);
     sBg.connec = F;
+    
+    sBg.coord  = [0,0;1,0;0,1];
+    sBg.connec = [1 2 3];
     m = Mesh(sBg);
 end

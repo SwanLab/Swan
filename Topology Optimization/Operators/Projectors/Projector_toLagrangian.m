@@ -8,7 +8,7 @@ classdef Projector_toLagrangian < Projector
 
         function obj = Projector_toLagrangian(cParams)
             obj.init(cParams);
-            obj.order = cParams.order;
+            obj.order = cParams.projectorType;
         end
 
         function xFun = project(obj, x)
@@ -27,9 +27,9 @@ classdef Projector_toLagrangian < Projector
         
         function LHS = computeLHS(obj)
             s.mesh  = obj.mesh;
-            s.test  = P2Function.create(obj.mesh, 1);
-            s.trial = P2Function.create(obj.mesh, 1);
-            s.quadratureOrder = 'ORDER4';
+            s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
+            s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
+            s.quadratureOrder = 'ORDER4'; % no
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -40,7 +40,7 @@ classdef Projector_toLagrangian < Projector
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             
-            f = P2Function.create(obj.mesh, 1);
+            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
             shapes = f.computeShapeFunctions(quad);
             conne = f.computeDofConnectivity()';
 

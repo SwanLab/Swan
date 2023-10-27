@@ -1,6 +1,6 @@
 % Reset Workspace
 clear
-close all
+% close all
 clc
 
 % Define number of elements
@@ -22,8 +22,8 @@ for i = 1:length(N)
     xFun = AnalyticalFunction(sAF);
     
     % Project to P1 and P2
-    p1fun = xFun.project('P1');
-    p2fun = xFun.project('P2');
+    p1fun = xFun.project('LINEAR');
+    p2fun = xFun.project('QUADRATIC');
     
     % Define the quadrature to integrate the norm
     xG = defineGaussPoints(sAF.mesh);
