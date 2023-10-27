@@ -109,24 +109,48 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            s.mesh          = obj.mesh;
-            s.interpolation = obj.interpolation;
-            c = ConnecCoordFromInterpAndMesh(s);
-            c.compute();
-            coord = c.coord;
-            connec = obj.connec(:, [1 4 2 5 3 6]);
-            x = coord(:,1);
-            y = coord(:,2);
-            figure()
-            for idim = 1:obj.ndimf
-                subplot(1,obj.ndimf,idim);
-                z = obj.fValues(:,idim);
-                a = trisurf(connec,x,y,z);
-                view(0,90)
-    %             colorbar
-                shading interp
-                a.EdgeColor = [0 0 0];
-                title(['dim = ', num2str(idim)]);
+            if obj.order == 'LINEAR'
+                switch obj.mesh.type
+                case {'TRIANGLE','QUAD'}
+                    x = obj.mesh.coord(:,1);
+                    y = obj.mesh.coord(:,2);
+                    figure()
+                    for idim = 1:obj.ndimf
+                        subplot(1,obj.ndimf,idim);
+                        z = obj.fValues(:,idim);
+                        a = trisurf(obj.mesh.connec,x,y,z);
+                        view(0,90)
+                        %             colorbar
+                        shading interp
+                        a.EdgeColor = [0 0 0];
+                        title(['dim = ', num2str(idim)]);
+                    end
+                case 'LINE'
+                    x = obj.mesh.coord(:,1);
+                    y = obj.fValues;
+                    figure()
+                    plot(x,y)
+                end
+            else
+                s.mesh          = obj.mesh;
+                s.interpolation = obj.interpolation;
+                c = ConnecCoordFromInterpAndMesh(s);
+                c.compute();
+                coord = c.coord;
+                connec = obj.connec(:, [1 4 2 5 3 6]);
+                x = coord(:,1);
+                y = coord(:,2);
+                figure()
+                for idim = 1:obj.ndimf
+                    subplot(1,obj.ndimf,idim);
+                    z = obj.fValues(:,idim);
+                    a = trisurf(connec,x,y,z);
+                    view(0,90)
+        %             colorbar
+                    shading interp
+                    a.EdgeColor = [0 0 0];
+                    title(['dim = ', num2str(idim)]);
+                end
             end
         end
 
@@ -192,14 +216,6 @@ classdef LagrangianFunction < FeFunction
             obj.coord  = c.coord;
             obj.connec = c.connec;
             nDimf = size(obj.fValues,2);
-            
-            if all(obj.fValues == 0)
-                obj.fValues = zeros(size(c.coord,1),nDimf);
-            end
-            
-            if isequal(size(obj.mesh.coord,1), size(obj.fValues,1))
-                obj.fValues = zeros(size(obj.coord,1),nDimf);
-            end
         end
 
     end
