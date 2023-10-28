@@ -65,7 +65,7 @@ classdef DehomogenizingSingularitiesTest < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            s.connec = delaunay(s.coord);
+            s.connec = delaunayn(s.coord);
             m = Mesh(s);
             obj.mesh = m;
         end

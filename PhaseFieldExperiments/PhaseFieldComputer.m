@@ -1,7 +1,10 @@
 classdef PhaseFieldComputer < handle
 
-    properties (Access = public)
-
+    properties (Constant, Access = public)
+        tolErrU = 1e-6
+        tolErrPhi = 1e-6
+        Gc = 1;
+        fc = 1;
     end
 
     properties (Access = private)
@@ -22,6 +25,8 @@ classdef PhaseFieldComputer < handle
         Fi
         Fd
         DF
+        Constant
+        l0
     end
 
     methods (Access = public)
@@ -30,29 +35,52 @@ classdef PhaseFieldComputer < handle
             close all %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             obj.init()
             obj.computeMesh();
-            obj.createBoundaryConditions();
             obj.createPhaseField();
             obj.createMaterialInterpolation();
             obj.createDissipationInterpolation();
-
-            for i = 1:5
             obj.phaseField.plot;
-            title('Phase Field')
-            obj.computeFEM();
+            title('Initial phase field')
+            obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
+            obj.Constant = obj.Gc/(4*0.5);
 
-            obj.createEnergyMassMatrix();
-            obj.createDissipationMassMatrix();
-            obj.createStiffnessMatrix();
-            obj.createEnergyForceVector();
-            obj.createDissipationForceVector();
-            obj.createForceDerivativeVector();
-            obj.solvePhaseFieldEquation();
+            niter = 100;
+            ForceDisplacement = zeros(2,niter);
+            for i = 1:niter
+                obj.createBoundaryConditions(i,niter);
+                errorU = 1;
+                Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
+                numIterU = 1;
+                while (errorU > obj.tolErrU) && (numIterU < 100)
+                    obj.computeFEM();
+                    obj.computeTotalEnergy()
+                    errorPhi = 1;
+                    numIterP = 1;
+                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
+                        obj.createEnergyMassMatrix();
+                        obj.createDissipationMassMatrix();
+                        obj.createStiffnessMatrix();
+                        obj.createEnergyForceVector();
+                        obj.createDissipationForceVector();
+                        obj.createForceDerivativeVector();
+                        obj.solvePhaseFieldEquation();
 
-            obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
+                        obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
+                        res = obj.computeResidual();
+                        errorPhi = norm(res)
+                        numIterP = numIterP + 1;
+                    end
+                    errorU = norm(obj.fem.uFun.fValues - Uold)
+                    Uold = obj.fem.uFun.fValues;
+                    numIterU = numIterU + 1;
+                end
+                ForceDisplacement(1,i) = obj.boundaryConditions.pointload(1,3);
+                ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
+                %obj.fem.uFun.plot;
+                %obj.phaseField.plot;
+                %title('Final phase field')
+                fprintf('%%%%%%%%%% NEXT ITERATION %%%%%%%%%%%')
             end
-
-            obj.phaseField.plot;
-            title('Phase Field')
+            plot(-ForceDisplacement(1,:),ForceDisplacement(2,:))
         end
 
     end
@@ -85,7 +113,7 @@ classdef PhaseFieldComputer < handle
             obj.mesh = m;
         end
 
-        function createBoundaryConditions(obj)
+        function createBoundaryConditions(obj,Fstep,niter)
             dirichletNodes = abs(obj.mesh.coord(:,1)-0) < 1e-12;
             rightSide  = max(obj.mesh.coord(:,1));
             isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
@@ -103,7 +131,7 @@ classdef PhaseFieldComputer < handle
 
             bc.pointload(:,1) = nodes(forceNodes);
             bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -0.05;
+            bc.pointload(:,3) = -10*(Fstep/niter);
             obj.boundaryConditions = bc;
         end
 
@@ -185,9 +213,10 @@ classdef PhaseFieldComputer < handle
             %obj.fem.stressFun.plot()
             %obj.fem.strainFun.plot()
 
-            obj.fem.uFun.fValues(:,end+1) = 0;
-            obj.fem.uFun.ndimf = 3;
-            obj.fem.print('Example','Paraview')
+            %obj.fem.uFun.fValues(:,end+1) = 0;
+            %obj.fem.uFun.ndimf = 3;
+
+            %obj.fem.print('Example','Paraview')
         end
 
         %% PHASE-FIELD EQUATION (LHS)
@@ -198,6 +227,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             DDenergy = FGaussDiscontinuousFunction(s);
             %DDenergy.plot();
+            %title('DDEnergy')
         end
 
         function DDenergyVal = computeSecondEnergyDerivativeField(obj)
@@ -213,11 +243,18 @@ classdef PhaseFieldComputer < handle
             s.mu    = DDmat.ddmu;
             DDmat = Material.create(s);
             DDmat.compute(s);
-            
-            nGauss = length(e.fValues);
-            DDenergyVal = zeros(1,nGauss);
-            for iGauss=1:nGauss
-                DDenergyVal(iGauss) = e.fValues(:,:,iGauss)'*(DDmat.C(:,:,iGauss)*e.fValues(:,:,iGauss));
+
+            nstre = size(e.fValues,1);
+            nGauss = size(e.fValues,2);
+            nelem = size(e.fValues,3);
+            DDenergyVal = zeros(1,nGauss,nelem);
+            for iStre = 1:nstre
+                for jStre=1:nstre
+                    for iGauss=1:nGauss
+                        eStre = e.fValues(iStre,iGauss,:).*(DDmat.C(iStre,jStre,:,iGauss).*e.fValues(jStre,iGauss,:));
+                        DDenergyVal(iGauss,:) = DDenergyVal(iGauss,:) + squeeze(eStre)';
+                    end
+                end
             end
         end
 
@@ -261,7 +298,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             s.type = 'StiffnessMatrix';
             LHS = LHSintegrator.create(s);
-            obj.K = LHS.compute();      
+            obj.K = 2*LHS.compute();  
         end
 
         %% PHASE-FIELD EQUATION (LHS)
@@ -272,6 +309,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             Denergy = FGaussDiscontinuousFunction(s);
             %Denergy.plot();
+            %title('DEnergy')
         end
 
         function DenergyVal = computeFirstEnergyDerivativeField(obj)
@@ -287,11 +325,18 @@ classdef PhaseFieldComputer < handle
             s.mu    = Dmat.dmu;
             Dmat = Material.create(s);
             Dmat.compute(s);
-            
-            nGauss = length(e.fValues);
-            DenergyVal = zeros(1,nGauss);
-            for iGauss=1:nGauss
-                DenergyVal(iGauss) = e.fValues(:,:,iGauss)'*(Dmat.C(:,:,iGauss)*e.fValues(:,:,iGauss));
+
+            nstre = size(e.fValues,1);
+            nGauss = size(e.fValues,2);
+            nelem = size(e.fValues,3);
+            DenergyVal = zeros(1,nGauss,nelem);
+            for iStre = 1:nstre
+                for jStre=1:nstre
+                    for iGauss=1:nGauss
+                        eStre = e.fValues(iStre,iGauss,:).*(Dmat.C(iStre,jStre,:,iGauss).*e.fValues(jStre,iGauss,:));
+                        DenergyVal(1,iGauss,:) = DenergyVal(iGauss,:) + squeeze(eStre)';
+                    end
+                end
             end
         end
 
@@ -333,14 +378,43 @@ classdef PhaseFieldComputer < handle
             s.type = 'ShapeDerivative';
             RHS = RHSintegrator.create(s);
             forceVector = RHS.compute(PhiGradient, test); 
-            obj.DF = forceVector.fValues;
+            obj.DF = 2*forceVector.fValues;
         end
 
         % Matrix euqation
         function solvePhaseFieldEquation(obj)
-            LHS = obj.Mi + obj.Md + obj.K;
-            RHS = -(obj.Fi + obj.Fd + obj.DF);
+            LHS = obj.Mi + (obj.Constant/obj.l0)*obj.Md + (obj.Constant*obj.l0)*obj.K;
+            RHS = obj.computeResidual();
             obj.deltaPhi = LHS\RHS;
+        end
+
+        function res = computeResidual(obj)
+            res = -(obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
+        end
+
+        function computeTotalEnergy(obj)
+            e = obj.fem.strainFun;
+            mat = obj.material;
+
+            nstre = size(e.fValues,1);
+            nGauss = size(e.fValues,2);
+            nelem = size(e.fValues,3);
+            energyVal = zeros(1,nGauss,nelem);
+            for iStre = 1:nstre
+                for jStre=1:nstre
+                    for iGauss=1:nGauss
+                        eStre = e.fValues(iStre,iGauss,:).*(mat.C(iStre,jStre,:,iGauss).*e.fValues(jStre,iGauss,:));
+                        energyVal(iGauss,:) = energyVal(iGauss,:) + squeeze(eStre)';
+                    end
+                end
+            end
+
+            s.fValues = reshape(energyVal,[1,1,nelem]); %% CHANGE IN FGAUSS
+            s.quadrature = obj.fem.strainFun.quadrature;
+            s.mesh = obj.mesh;
+            energy = FGaussDiscontinuousFunction(s);
+            %energy.plot()
+            %title('Energy')
         end
 
     end
