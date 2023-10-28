@@ -194,7 +194,7 @@ classdef NewElasticProblem < handle
 
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
+            strFun = strFun.transformInVoigtNotation();
             perm = permute(strFun.fValues, [2 1 3]);
             obj.variables.strain = perm;
             obj.strainFun= strFun;

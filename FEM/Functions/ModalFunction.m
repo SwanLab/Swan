@@ -38,6 +38,11 @@ classdef ModalFunction < L2Function
             end    
         end
 
+         function plot(obj)
+            p1DiscFun = obj.project('P1D');
+            p1DiscFun.plot();
+        end
+
     end
 
     methods (Access = public, Static)

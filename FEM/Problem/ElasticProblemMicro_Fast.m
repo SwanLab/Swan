@@ -209,7 +209,7 @@ classdef ElasticProblemMicro_Fast < handle
 
         function computeStrain(obj, iVoigt)
             strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
+            strFun = strFun.transformInVoigtNotation();
             obj.strainFluctFun{iVoigt} = strFun;
         end
 

@@ -18,7 +18,13 @@ bc = createBoundaryConditions(mesh,bcV);
 % s.mesh = mesh;
 % s.type = 'StiffnessMatrix';
 % s.scale = 'MACRO';
-material = createMaterial(mesh,1);
+
+
+quad = Quadrature.set(mesh.type);
+quad.computeQuadrature('QUADRATIC');
+
+
+material = createMaterial(mesh,quad.ngaus);
 % s.dim = '2D';
 % bc = bcV;
 nDimf=2;
@@ -46,7 +52,7 @@ bC{i} = reshape(b1,2,[])';
 % bF{i} =P1Function(sF);
 % bF.plot
 end
-
+kbb=basis'*Kred*basis
 functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
 
 sM.mesh    = mesh;
@@ -55,10 +61,31 @@ sM.fValues =[1 1 1 1 1 1];
 sM.functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
 modal = ModalFunction(sM);
 p1FUNC = modal.project('P1');
-
-
-
 modal2=p1FUNC.project('ModalFunction',bC,functionType);
+
+
+modalFun=ModalFunction.create(mesh,bC,functionType);
+
+sL.material=material;
+sL.test= modalFun;
+sL.trial=modalFun;
+sL.mesh=mesh;
+sL.quadratureOrder = quad.order;
+LHS=LHS_integratorStiffnessGlobal(sL);
+lHS=LHS.compute();
+
+
+refPoint = [0,0];
+RB=RigidBodyFunction.create(mesh,refPoint);
+
+sL.material=material;
+sL.test= RB;
+sL.trial=modalFun;
+sL.mesh=mesh;
+sL.quadratureOrder = quad.order;
+LHS=LHS_integratorStiffnessGlobal(sL);
+lHS=LHS.compute();
+
 % p1FUNC.plot
 % p1FUNC.print('prova')
 

@@ -28,20 +28,16 @@ classdef Projector_toRigidBody < Projector
         function LHS = computeLHS(obj)
             mesh     = obj.mesh;
             refPoint = obj.refPoint;
-
             test  = RigidBodyFunction.create(mesh,refPoint);
             quad  = obj.createRHSQuadrature(test);
             xV    = quad.posgp;
             dV    = obj.mesh.computeDvolume(quad);
             ngaus = quad.ngaus;
-
             basisTest  = test.computeBasisFunction(xV);
             basisTrial = basisTest;
             nbasis     = size(basisTest,2);
-
             LHS   = zeros(nbasis);
             nFlds = test.ndimf;
-
             for i = 1:nbasis
                 for j = 1:nbasis
                     for iField = 1:nFlds
