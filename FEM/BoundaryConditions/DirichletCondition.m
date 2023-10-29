@@ -14,11 +14,17 @@ classdef DirichletCondition < BoundaryCondition
     methods (Access = public)
         
         function obj = DirichletCondition(mesh, domain, direction, value)
+            % P1
             fun = P1Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
             pl_dofs = domain(mesh.coord);
             fun.fValues(pl_dofs,direction) = value;
             
-            obj.fun    = fun;
+            % P2
+            fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
+            pl_nods = fun2.getNodesFromCondition(domain);
+            fun2.fValues(pl_nods,direction) = value;
+
+            obj.fun    = fun2;
             obj.domain = domain;
             obj.mesh   = mesh;
             obj.direction = direction;
