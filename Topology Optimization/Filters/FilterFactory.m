@@ -2,7 +2,9 @@ classdef FilterFactory < handle
 
     % Refactoring ToDo:
     % General:
-    % - think about f*chi*N
+    % - GeometricalFunction
+    % - delete: computeRHSInBoundaries, FilterPDEUnfitted
+    % - create: UnfittedFunction, BoundaryUnfittedFunction
     % - 'evaluate' method inside RHSUnfitted
     % - Test P0Function in unfitted not available
 

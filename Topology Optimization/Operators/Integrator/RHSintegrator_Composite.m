@@ -70,7 +70,7 @@ classdef RHSintegrator_Composite < handle
 
         function fun = createInnerFunction(obj, charFun)
             s.mesh    = obj.unfittedMesh.backgroundMesh;
-            s.fValues = charFun.fValues;
+            s.fValues = charFun.evaluate([1;1])*ones(s.mesh.nnodes,1); % !!
             p1Old     = P1Function(s);
             innerMesh = obj.unfittedMesh.innerMesh.mesh;
             connecIG  = obj.unfittedMesh.innerMesh.globalConnec;
