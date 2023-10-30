@@ -14,7 +14,7 @@ classdef GeometricalFunction < handle
             s.ndimf   = 1;
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
-            ls        = aFun.project('toP1');
+            ls        = aFun.project('P1');
         end
     end
 
