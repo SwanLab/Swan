@@ -179,6 +179,19 @@ classdef LagrangianFunction < FeFunction
             dof = sort(dofMat(:));
         end
 
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
+            sF.fValues = obj.fValues;
+            sF.mesh = obj.mesh;
+            p1 = P1Function(sF);
+            s.mesh = obj.mesh;
+            s.fun = {p1};
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
+            p.print();
+        end
+
     end
 
     methods (Access = public, Static)

@@ -27,7 +27,7 @@ classdef PointLoad < BoundaryCondition
             pl_nods = fun2.getNodesFromCondition(domain);
             fun2.fValues(pl_nods,direction) = value;
             
-            obj.fun    = fun2;
+            obj.fun    = fun;
             obj.domain = domain;
             obj.mesh   = mesh;
         end
