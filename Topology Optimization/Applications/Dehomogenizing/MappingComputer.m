@@ -56,8 +56,10 @@ classdef MappingComputer < handle
             s.quadratureOrder = q.order;
             s.type      = 'ShapeDerivative';
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute(aI);
-            RHS = rhsV.fValues;
+            rhsF = rhs.compute(aI,aI);
+            In = obj.interpolator;
+            rhsV = In'*rhsF.fValues;
+            obj.RHS = rhsV;
         end
 
         function u = solveSystem(obj,LHS,RHS)

@@ -23,7 +23,8 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
             obj.mesh = cParams.mesh;
         end
 
-        function rhsC = computeElementalRHS(obj, fun,test)
+
+        function rhsC = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
 %             fG     = obj.fun.evaluate(quad.posgp);
             fG     = squeeze(fun.evaluate(quad.posgp)); % only used in 1d funs so far
