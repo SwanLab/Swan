@@ -54,12 +54,12 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function loadDataExperiment(obj)
-             s.fileName = [obj.fileName,num2str(obj.iteration)];
-             s.folderPath = fullfile(obj.filePath );
-             w = WrapperMshResFiles(s);
-             w.compute();
-        %    d = load('DataExample.mat');
-        %    w = d.w;
+        %     s.fileName = [obj.fileName,num2str(obj.iteration)];
+        %     s.folderPath = fullfile(obj.filePath );
+        %     w = WrapperMshResFiles(s);
+        %     w.compute();
+            d = load('DataExample.mat');
+            w = d.w;
             obj.experimentData = w;
         end
 
@@ -325,8 +325,9 @@ classdef HarmonicVectorProjectionExample < handle
         
 
             %a01 = obj.createHalfOrientationVector(b0);
-           %%%Via filtering 
-        %    bNew = obj.projectViaFilterIteration(rho,b1);
+      
+            %%%Via filtering 
+            bNew = obj.projectViaFilterIteration(rho,b1);
        %     a1   = obj.createHalfOrientationVectorP1(bNew);
             
 %              h    = obj.harmonicProjector;
@@ -338,7 +339,7 @@ classdef HarmonicVectorProjectionExample < handle
             
             %%%Via picard
             %b1   = bNew;
-            bNew = obj.projectViaPicard(rho,b1,b1);
+      %      bNew = obj.projectViaPicard(rho,b1,b1);
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
             h    = obj.harmonicProjector;

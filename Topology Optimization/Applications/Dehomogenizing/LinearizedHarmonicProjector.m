@@ -15,6 +15,8 @@ classdef LinearizedHarmonicProjector < handle
     properties (Access = private)
        mesh   
        boundaryMesh
+       l1
+       l2
     end
     
     methods (Access = public)
@@ -38,8 +40,26 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function hRes = evaluateHarmonicResidual(obj,res,b)
-%             quad = Quadrature.set(obj.mesh.type);            
-%             quad.computeQuadrature('LINEAR');
+            quad = Quadrature.set(obj.mesh.type);            
+            quad.computeQuadrature('QUADRATIC');
+
+            bG  = b.evaluate(quad.posgp);
+            b1  = bG(1,:,:);
+            b2  = bG(2,:,:);
+            gbG = b.computeGradient(quad);
+            gb1 = gbG.fValues(1:2,:,:);
+            gb2 = gbG.fValues(3:4,:,:);
+
+            s.fValues(1,:,:) = -b2.*gb1(1,:,:) + b1.*gb2(1,:,:);
+            s.fValues(2,:,:) = -b2.*gb1(2,:,:) + b1.*gb2(2,:,:);
+            s.mesh = obj.mesh;
+            s.quadrature = quad;
+            hRes = FGaussDiscontinuousFunction(s);
+            
+%             b2(1,:) = squeeze(b0.fValues(2,1,:));
+%             b2(2,:) = squeeze(b0.fValues(2,1,:));
+
+
 % 
 %             s.fValues = atan2(b.fValues(:,2),b.fValues(:,1)); 
 %             s.mesh = obj.mesh; 
@@ -76,15 +96,15 @@ classdef LinearizedHarmonicProjector < handle
 %             hRes = gH2;
 % 
 %             s.fValues = abs(squeeze(gradB.fValues)'-squeeze(gradB2.fValues)');s.mesh = obj.mesh; e = P0Function(s); e.plot            
-
-            [iX,~,iL,~] = obj.computeIndex();
-            resH  = res(iL);
-            resHv = zeros(length(iX),1);
-            iDOFs = obj.internalDOFs;
-            resHv(iDOFs) = abs(resH);
-            s.fValues = resHv;
-            s.mesh    = obj.mesh;
-            hRes = P1Function(s);
+% 
+%             [iX,~,iL,~] = obj.computeIndex();
+%             resH  = res(iL);
+%             resHv = zeros(length(iX),1);
+%             iDOFs = obj.internalDOFs;
+%             resHv(iDOFs) = abs(resH);
+%             s.fValues = resHv;
+%             s.mesh    = obj.mesh;
+%             hRes = P1Function(s);
         end
 
         function lRes = evaluateLossResidual(obj,res,bBar,b)
@@ -114,13 +134,14 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function res = evaluateResidual(obj,rho,bBar,b)
-            lambda = obj.computeInitalLambda();
-            eta    = obj.computeInitialEta();
+
+           lambda = obj.computeInitalLambda();
+           eta    = obj.computeInitialEta();
             %x = [b.fValues(:,1);b.fValues(:,2);lambda;eta];
-            x = [b.fValues(:,1);b.fValues(:,2);eta];
-            rhs = obj.computeRHS(rho,bBar);
-            lhs = obj.computeLHS(rho,b);  
-            res  = lhs*x - rhs;            
+           x = [b.fValues(:,1);b.fValues(:,2);eta];
+           rhs = obj.computeRHS(rho,bBar);
+           lhs = obj.computeLHS(rho,b);  
+           res  = lhs*x - rhs;            
         end
 
 
@@ -367,6 +388,8 @@ classdef LinearizedHarmonicProjector < handle
         function init(obj,cParams)
            obj.mesh             = cParams.mesh;
            obj.boundaryMesh     = cParams.boundaryMesh;
+           obj.l1 = 100;%(100*obj.mesh.computeMeanCellSize).^2;                        
+           obj.l2 = 100;           
         end
 
         function createInternalDOFs(obj)
@@ -382,9 +405,7 @@ classdef LinearizedHarmonicProjector < handle
             s.trial = P1Function.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATICMASS';
             lhs = LHSintegrator.create(s);
-            M = lhs.compute();
-            %M = diag(sum(M));
-            %M = eye(size(M,1));
+            M = lhs.compute();           
             obj.massMatrix = M;
         end
 
@@ -428,6 +449,8 @@ classdef LinearizedHarmonicProjector < handle
 
 
        function  LHS = computeLHS(obj,rho,vH)
+           l1 = obj.l1;
+           l2 = obj.l2;
           
            [Cx,Cy,Dx,Dy,Ex,Ey,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = obj.computeAdvectionMatrix(rho,vH);
            Cx = obj.computeReducedAdvectionMatrix(Cx);
@@ -444,19 +467,15 @@ classdef LinearizedHarmonicProjector < handle
            %Ey = diag(sum(Ey));
            Ex2 = diag(vH.fValues(:,1));
            Ey2 = diag(vH.fValues(:,2));
-           l = 10;
-           l2 = 0.5;%(100*obj.mesh.computeMeanCellSize).^2;
-           Mrho = (1-l2)*Mrho;
-           K    = l2*K;
-           lhs  = [Mrho+l*(Kxx+Mxx)+K,Zb-l*(Kxy+Mxy),(-Dx+Cx),Ex;...
-                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+K,(Dy-Cy) ,Ey;...
-                  (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
-                   Ex2',Ey2',Zbred,Zb];
+   %        lhs  = [Mrho+l2*(Kxx+Mxx)+K,Zb-l2*(Kxy+Mxy),(-Dx+Cx),Ex;...
+   %                Zb-l2*(Kxy+Mxy),Mrho+l2*(Kyy+Myy)+K,(Dy-Cy) ,Ey;...
+   %               (-Dx+Cx)',(Dy-Cy)',Z,Zbred';...
+   %                Ex2',Ey2',Zbred,Zb];
            %lhs  = [M,Zb,(-Dx+Cx),Ex;Zb,M,(Dy-Cy),Ey;(-Dx+Cx)',(Dy-Cy)',Z,Zbred';Ex',Ey',Zbred,Zb];
-           LHS = lhs;
+      %     LHS = lhs;
 
-           LHS  = [Mrho+l*(Kxx+Mxx)+K,Zb-l*(Kxy+Mxy),Ex;...
-                   Zb-l*(Kxy+Mxy),Mrho+l*(Kyy+Myy)+K,Ey;...                  
+           LHS  = [Mrho+l1*K+l2*(Kxx+Mxx),Zb-l2*(Kxy+Mxy),Ex;...
+                   Zb-l2*(Kxy+Mxy),Mrho+l1*K+l2*(Kyy+Myy),Ey;...                  
                    Ex2',Ey2',Zb];
        end
 
@@ -485,12 +504,11 @@ classdef LinearizedHarmonicProjector < handle
 %              rhs2   = rhs.compute(b2,test);
 %            
             rhoV = rho.fValues;
+            l1 = obj.l1;
 
             %bBar1 = bBar.project('P1');
-            l2 = 1;
-            M = obj.massMatrix;
-            M = (1-l2)*M;
             w = 4*(1-rhoV).*rhoV;
+            M = obj.massMatrix;            
             rhs1 = M*(bBar.fValues(:,1).*w);
             rhs2 = M*(bBar.fValues(:,2).*w);
 
@@ -502,7 +520,9 @@ classdef LinearizedHarmonicProjector < handle
 %            rhs = [rhs1;rhs2;Z;M*I];
             %M2 = diag(sum(M));
            % rhs = [rhs1;rhs2;Z;M*I];
-            rhsV = [rhs1;rhs2;Z;I];
+          
+           
+           % rhsV = [rhs1;rhs2;Z;I];
             rhsV = [rhs1;rhs2;I];
 
 

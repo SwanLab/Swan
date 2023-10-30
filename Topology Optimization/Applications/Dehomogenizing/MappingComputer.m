@@ -50,6 +50,7 @@ classdef MappingComputer < handle
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
+            aI = aI.project('P1D');
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             s.mesh      = obj.mesh;
@@ -58,8 +59,8 @@ classdef MappingComputer < handle
             rhs  = RHSintegrator.create(s);
             rhsF = rhs.compute(aI,aI);
             In = obj.interpolator;
-            rhsV = In'*rhsF.fValues;
-            obj.RHS = rhsV;
+            rhsV = In'*rhsF.fValues;          
+            RHS = rhsV;
         end
 
         function u = solveSystem(obj,LHS,RHS)
