@@ -45,7 +45,7 @@ classdef FilterPDE < handle
             s                 = cParams;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
-            s.bc{1}.ndimf     = 1; % periodic BCs
+            s.bc{1}.ndimf     = 1;
             s.bc{1}.ndofs     = [];
             s.ndofs           = obj.mesh.nnodes;
             obj.bc            = BoundaryConditions(s);
