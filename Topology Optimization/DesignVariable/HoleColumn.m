@@ -46,18 +46,18 @@ classdef HoleColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    r = 2*ones(N,1);
+                    r = 1*ones(N,1);
                     e = 0.3*ones(N,1);
-                    x0 = [r;e;1];
+                    x0 = [r;e;0];
                 case 'Random'
                     r = rand(N,1);
                     e = 0.3*rand(N,1);
-                    x0 = [r;e;1];
+                    x0 = [r;e;0];
                 case 'Sinus'
                     x = linspace(0,5*pi,N)';
                     r = 0.4*sin(x)+1;
                     e = 0.2*sin(x)+0.3;
-                    x0 = [r;e;1];
+                    x0 = [r;e;0];
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;

@@ -58,7 +58,7 @@ classdef EulerBeamOptimizer < handle
             obj.createOptimizer();
             obj.optimizer.solveProblem();
             obj.value = obj.designVariable.value;
-           % obj.postProcess();
+            obj.postProcess();
         end
 
     end
@@ -74,10 +74,10 @@ classdef EulerBeamOptimizer < handle
             obj.youngModulus  = 1;
             obj.inertiaMoment = 1;  
             obj.makeGIF       = 'N'; %'Y';'N'
-            obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
+            obj.optimizerType = 'fmincon'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Constant'; % Random/Constant/External Value/Sinus
             obj.meshType      = 'Structured'; %Structured/Unstructured
-            obj.desVarType    = 'RadiusColumn';%'LshapeColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
+            obj.desVarType    = 'HoleColumn';%'LshapeColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
             obj.maxIter       = 100;
             obj.minDesVar = 0; 
             obj.maxDesVar = 2; 
