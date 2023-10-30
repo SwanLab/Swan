@@ -88,25 +88,6 @@ classdef CantileverBeamMeshCreator < handle
 
         function computeConnec3D(obj, xdiv, ydiv)
             conn = [];
-%             for z = 0:1:ydiv-1
-%                 for j = 0:1:ydiv-1
-%                     for i = 1:1:xdiv
-%                         addZ = (xdiv+1)*(ydiv+1)*z;
-%                         addZ1 = (xdiv+1)*(ydiv+1)*(z+1);
-%                         node1 = j*(xdiv+1)+i + addZ;
-%                         node2 = j*(xdiv+1)+i+1 + addZ;
-%                         node3 = (j+1)*(xdiv+1)+i + addZ;
-%                         node4 = (j+1)*(xdiv+1)+i+1 + addZ;
-%                         node5 = j*(xdiv+1)+i + addZ1;
-%                         node6 = j*(xdiv+1)+i+1 + addZ1;
-%                         node7 = (j+1)*(xdiv+1)+i + addZ1;
-%                         node8 = (j+1)*(xdiv+1)+i+1 + addZ1;
-%                         elem = [node1, node2, node3, node4, ...
-%                                 node5, node6, node7, node8];
-%                         conn = [conn; elem];
-%                     end
-%                 end
-%             end
             for z = 0:1:ydiv
                 for j = 0:1:xdiv-1
                     for i = 1:1:ydiv
