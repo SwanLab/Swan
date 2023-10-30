@@ -27,6 +27,8 @@ classdef UnfittedFunction < handle
                 fG                = squeeze(f(1,iGaus,:));
                 fxV(:,iGaus,fG>0) = 0;
             end
+
+            m = obj.levelSet.getUnfittedMesh(); % ?? vull canviar levelSet -> unfMesh
         end
 
     end
