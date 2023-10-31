@@ -13,13 +13,14 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             obj.init(cParams);
         end
 
-        function int = integrateInDomain(obj, F, test)
-            ls = F.levelSet.value;
-            if all(ls>0)
+        function int = integrateInDomain(obj, unfFun, test)
+            noIMesh  = isempty(unfFun.unfittedMesh.innerMesh);
+            noICMesh = isempty(unfFun.unfittedMesh.innerCutMesh);
+            if noIMesh && noICMesh
                 int = zeros(size(ls));
             else
                 obj.createInteriorIntegrators(test);
-                int = obj.integrators.integrateAndSum(F);
+                int = obj.integrators.integrateAndSum(unfFun);
             end
         end
 

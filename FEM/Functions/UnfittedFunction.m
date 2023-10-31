@@ -2,12 +2,8 @@ classdef UnfittedFunction < handle
 
     properties (Access = public)
         ndimf
-        levelSet
+        unfittedMesh
         fun
-    end
-
-    properties (Access = private)
-        backgroundMesh
     end
 
     methods (Access = public)
@@ -17,18 +13,18 @@ classdef UnfittedFunction < handle
         end
 
         function fxV = evaluate(obj,xV)
-            s.fValues = obj.levelSet.value;
-            s.mesh    = obj.backgroundMesh;
-            ls        = P1Function(s);
-            f         = ls.evaluate(xV);
-            fxV       = obj.fun.evaluate(xV);
-            nGaus     = size(f,2);
-            for iGaus = 1:nGaus
-                fG                = squeeze(f(1,iGaus,:));
-                fxV(:,iGaus,fG>0) = 0;
-            end
+            gMesh     = obj.unfittedMesh.backgroundMesh;
+            inMesh    = obj.unfittedMesh.innerMesh;
+            %inCutMesh = obj.unfittedMesh.innerCutMesh;
 
-            m = obj.levelSet.getUnfittedMesh(); % ?? vull canviar levelSet -> unfMesh
+            gCoor   = gMesh.computeXgauss(xV);
+            inCoor  = inMesh.mesh.computeXgauss(xV);
+            gCoor1  = squeeze(gCoor(:,1,:))';
+            inCoor1 = squeeze(inCoor(:,1,:))';
+            isVoid = not(ismember(gCoor1,inCoor1,'rows'));
+
+            fxV             = obj.fun.evaluate(xV);
+            fxV(:,:,isVoid) = 0;
         end
 
     end
@@ -36,8 +32,7 @@ classdef UnfittedFunction < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.levelSet       = cParams.levelSet;
-            obj.backgroundMesh = cParams.levelSet.mesh;
+            obj.unfittedMesh   = cParams.uMesh;
             obj.fun            = cParams.fun;
             obj.ndimf          = cParams.fun.ndimf;
         end

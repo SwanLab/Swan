@@ -76,8 +76,7 @@ classdef FilterPDEUnfitted < handle
 
         function computeRHS(obj,unfFun,quadType)
             test         = obj.filteredField;
-            obj.levelSet = unfFun.levelSet;
-            s.mesh       = obj.levelSet.getUnfittedMesh();
+            s.mesh       = unfFun.unfittedMesh;
             s.type       = 'ShapeFunction';
             s.quadType   = quadType;
             int          = RHSintegrator.create(s);
