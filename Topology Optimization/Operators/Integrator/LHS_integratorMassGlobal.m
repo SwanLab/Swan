@@ -1,11 +1,11 @@
-classdef LHS_integratorStiffnessGlobal < handle
+classdef LHS_integratorMassGlobal < handle
 
     properties (Access = public)
 
     end
 
     properties (Access = private)
-        material
+%         material
         test
         trial
         quadrature
@@ -19,32 +19,32 @@ classdef LHS_integratorStiffnessGlobal < handle
 
     methods (Access = public)
 
-        function obj = LHS_integratorStiffnessGlobal(cParams)
+        function obj = LHS_integratorMassGlobal(cParams)
             obj.init(cParams)
             obj.createQuadrature();
         end
 
         function LHS = compute(obj)
             quad  = obj.quadrature;
+            posgp = quad.posgp;
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
-            Cmat  = obj.material.C(:,:,:,:);
             LHS   = zeros(obj.trial.nbasis,obj.test.nbasis);
+            LHS2   = zeros(obj.trial.nbasis,obj.test.nbasis);
+            nFlds = obj.test.ndimf;
+            basisTest  = obj.test.evaluateBasisFunctions(posgp);
+            basisTrial = basisTest;
             for iBasis = 1: obj.trial.nbasis
                 uI   = obj.trial.basisFunctions{iBasis};
-                defI = uI.computeSymmetricGradient(quad);
-                defI = defI.transformInVoigtNotation();
+                fI   = uI.evaluate(posgp);
                 for jBasis = 1:obj.test.nbasis
                     vJ   = obj.test.basisFunctions{jBasis};
-                    defJ = vJ.computeSymmetricGradient(quad);
-                    defJ = defJ.transformInVoigtNotation();
-                    for kStre = 1:3
-                        for lStre = 1:3
-                            Ckl = squeeze(Cmat(kStre,lStre,:,:))';
-                            ek  = squeeze(defI.fValues(kStre,:,:));
-                            el  = squeeze(defJ.fValues(lStre,:,:));
-                            kij = ek.*Ckl.*el.*dVolu;
-                            LHS(iBasis,jBasis) = LHS(iBasis,jBasis) + sum(kij(:));
-                        end
+                    fJ   = vJ.evaluate(posgp);
+                    for iField = nFlds
+                        uv = squeeze(fI(iField,:,:).*fJ(iField,:,:));
+                        uv2= squeeze(basisTest{iBasis}(iField,:,:).*basisTrial{jBasis}(iField,:,:));
+                        
+                        LHS(iBasis,jBasis)  = LHS(iBasis,jBasis) + sum(uv.*dVolu,'all');
+                        LHS2(iBasis,jBasis)  = LHS2(iBasis,jBasis) + sum(uv2.*dVolu,'all');
                     end
                 end
             end
@@ -58,7 +58,8 @@ classdef LHS_integratorStiffnessGlobal < handle
             obj.test     = cParams.test;
             obj.trial    = cParams.trial;
             obj.mesh     = cParams.mesh;
-            obj.material = cParams.material;
+%             obj.material = cParams.material; %may we need for dynamic
+%             problems?
             obj.setQuadratureOrder(cParams);
         end
 

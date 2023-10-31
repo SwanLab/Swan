@@ -32,33 +32,44 @@ nDimf=2;
 dispFun=P1Function.create(mesh, nDimf);
 
 
-
 K    = computeStiffnessMatrix(mesh,material,dispFun);
 Kred = bc.fullToReducedMatrix(K);
 
-% M= computeMassMatrix(mesh,dispFun);
-% Mred= bc.fullToReducedMatrix(M);
+dim.ndimf  = dispFun.ndimf;
+dim.nnodes = size(dispFun.fValues, 1);
+dim.ndofs  = dim.nnodes*dim.ndimf;
+dim.nnodeElem = mesh.nnodeElem; % should come from interp..
+dim.ndofsElem = dim.nnodeElem*dim.ndimf;
+c.dim=dim;
+c.mesh=mesh;
+c.BC = bc;
+RHS    = RHSintegrator_ElasticMacro(c);
+Fext = RHS.compute();
+Fred = bc.fullToReducedVector(Fext);
+
+M= computeMassMatrix(mesh,dispFun);
+Mred= bc.fullToReducedMatrix(M);
 % [basis,D]=eigs(M\K);
- [basis,D]=eigs(Kred,6,'smallestabs');
+[basis,D]=eigs(Kred,6,'smallestabs');
 
 for i = 1:size(basis,2)
-b = basis(:,i);
-b1 = bc.reducedToFullVector(b);
-bC{i} = reshape(b1,2,[])';
-%  bC{i} = b;
+    b = basis(:,i);
+    b1 = bc.reducedToFullVector(b);
+    bC{i} = reshape(b1,2,[])';
+    %  bC{i} = b;
 
-% sF.fValues = reshape(b1,2,[])';
-% sF.mesh    = mesh;
-% bF{i} =P1Function(sF);
-% bF.plot
+    % sF.fValues = reshape(b1,2,[])';
+    % sF.mesh    = mesh;
+    % bF{i} =P1Function(sF);
+    % bF.plot
 end
-kbb=basis'*Kred*basis
-functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
+kbb=basis'*Kred*basis;
+functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1', 'P1', 'P1', 'P1', 'P1'};
 
 sM.mesh    = mesh;
 sM.basis   = bC;
-sM.fValues =[1 1 1 1 1 1];
-sM.functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1'};
+sM.fValues =[1 1 1 1 1 1 1 1 1 1];
+sM.functionType = {'P1' , 'P1' , 'P1' , 'P1',  'P1',  'P1', 'P1', 'P1', 'P1', 'P1'};
 modal = ModalFunction(sM);
 p1FUNC = modal.project('P1');
 modal2=p1FUNC.project('ModalFunction',bC,functionType);
@@ -72,36 +83,59 @@ sL.trial=modalFun;
 sL.mesh=mesh;
 sL.quadratureOrder = quad.order;
 LHS=LHS_integratorStiffnessGlobal(sL);
-lHS=LHS.compute();
+lhs=LHS.compute();
+LHSmass = LHS_integratorMassGlobal(sL);
+lhsMass = LHSmass.compute();
+
+% kprecon =
+
+% refPoint = [0,0];
+% RB=RigidBodyFunction.create(mesh,refPoint);
+%
+% sL.material=material;
+% sL.test= RB;
+% sL.trial=modalFun;
+% sL.mesh=mesh;
+% sL.quadratureOrder = quad.order;
+% LHS=LHS_integratorStiffnessGlobal(sL);
+% lHS=LHS.compute();
 
 
-refPoint = [0,0];
-RB=RigidBodyFunction.create(mesh,refPoint);
 
-sL.material=material;
-sL.test= RB;
-sL.trial=modalFun;
-sL.mesh=mesh;
-sL.quadratureOrder = quad.order;
-LHS=LHS_integratorStiffnessGlobal(sL);
-lHS=LHS.compute();
 
 % p1FUNC.plot
 % p1FUNC.print('prova')
 
 % modal.FEfun{1}.plot
 
-% 
+%
 % s.basis = bF;
 % s.coef  = [2 3 -1];
 % mF = ModalFunction(s); (%evaluate defined)
-% 
+%
 % m1 = mF.project('P1');
 % m1.plot
-% 
+%
 % mF.plot()
 
+[xCG,residualCG] = conjugateGradient(Kred,Fred);
 
+M = basis*inv(lhs)*basis';
+M = sparse(eye(size(xCG,1))./diag(Kred));
+
+M = basis*lhs*basis';
+
+
+Apr = sparse(diag(diag(Kred))\Kred);
+bpr = sparse(diag(diag(Kred))\Fred);
+%[xCG,residualCG] = conjugateGradient(Apr,bpr);
+% xCG2 = pcg(Apr,bpr,1E-6,1000);
+[xCG2,residualCG2] = conjugateGradient(Kred,Fred,M);
+
+
+x= Kred\Fred;
+x2 = pcg(Kred,Fred,1E-6,1000);
+X3 = pcg(M*Kred,M*Fred,1E-6,1000);
 s.mesh = mesh;
 s.type = 'ELASTIC';
 s.scale = 'MACRO';
@@ -140,24 +174,24 @@ fem.print('DD')
 end
 
 function mesh = createMesh()
-file = 'CantileverBeam_Triangle_Linear';
-% file = 'Cantileverbeam_Quadrilateral_Bilinear';
-a.fileName = file;
-s = FemDataContainer(a);
-mesh = s.mesh;
+% file = 'CantileverBeam_Triangle_Linear';
+% % file = 'Cantileverbeam_Quadrilateral_Bilinear';
+% a.fileName = file;
+% s = FemDataContainer(a);
+% mesh = s.mesh;
 
 
-% % Generate coordinates
-% x1 = linspace(0,2,20);
-% x2 = linspace(0,1,20);
-% % Create the grid
-% [xv,yv] = meshgrid(x1,x2);
-% % Triangulate the mesh to obtain coordinates and connectivities
-% [F,basis] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-% 
-% s.coord = basis(:,1:2);
-% s.connec = F;
-% mesh = Mesh(s);
+% Generate coordinates
+x1 = linspace(0,2,3);
+x2 = linspace(0,1,3);
+% Create the grid
+[xv,yv] = meshgrid(x1,x2);
+% Triangulate the mesh to obtain coordinates and connectivities
+[F,basis] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+s.coord = basis(:,1:2);
+s.connec = F;
+mesh = Mesh(s);
 end
 
 
@@ -193,6 +227,7 @@ rightSide  = max(mesh.coord(:,1));
 isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
 isInMiddleEdge = abs(mesh.coord(:,2)-0.5) < 0.1;
 forceNodes = isInRight & isInMiddleEdge;
+forceNodes = isInRight;
 nodes = 1:mesh.nnodes;
 bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
 % bcDir = [nodes(dirichletNodes)'];
@@ -234,11 +269,77 @@ k=lhs.compute();
 end
 
 function m=computeMassMatrix(mesh,displacementFun)
-   s.type     = 'MassMatrix';
+s.type     = 'MassMatrix';
 s.mesh     = mesh;
 s.test      = displacementFun;
 s.trial      = displacementFun;
 s.quadratureOrder = 'QUADRATIC';
 lhs = LHSintegrator.create(s);
 m=lhs.compute();
+end
+
+function [x,residual] = conjugateGradient(A,B,M)
+if nargin == 3
+    LHS=full(M*A*M');
+    RHS=M*B;
+else
+    LHS=A;
+    RHS=B;
+    M = sparse(eye(size(B,1)));
+end
+tol = 1e-6;
+n = length(RHS);
+x = zeros(n,1);
+r = RHS - LHS * x;
+p = r;
+rsold = r' * r;
+iter = 0;
+
+hasNotConverged = true;
+
+while hasNotConverged
+    Ap = LHS * p;
+    alpha = rsold / (p' * Ap);
+    x = x + alpha * p;
+    r = r - alpha * Ap;
+    rsnew = r' * r;
+
+    %hasNotConverged = sqrt(rsnew) > tol;
+    hasNotConverged = norm(LHS*x - RHS) > tol;
+
+    p = r + (rsnew / rsold) * p;
+    rsold = rsnew;
+    iter = iter + 1;
+    residual(iter) = norm(LHS*x - RHS); %Ax - b
+end
+x=inv(M)'*x;
+end
+
+
+function a = ichol(a)
+n = size(a,1);
+
+for k = 1:n
+    a(k,k) = sqrt(a(k,k));
+    for i = (k+1):n
+        if (a(i,k) ~= 0)
+            a(i,k) = a(i,k)/a(k,k);
+            endif
+            endfor
+            for j = (k+1):n
+                for i = j:n
+                    if (a(i,j) ~= 0)
+                        a(i,j) = a(i,j) - a(i,k)*a(j,k);
+                    end
+                end
+            end
+        end
+
+        for i = 1:n
+            for j = i+1:n
+                a(i,j) = 0;
+            end
+        end
+    end
+end
 end
