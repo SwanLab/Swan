@@ -41,15 +41,15 @@ classdef ShapeFunctional_Factory < handle
                     %sF = ShFunc_StressNorm2(cParams);
                     %sF = ShFunc_StressNorm3(cParams);
                 case 'perimeter'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactRobin';
+                    cParams.filterParams.femSettings.boundaryType = 'Robin';
                     %cParams.designVariable = cParams.designVariable.value;
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterInterior'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactNeumann';
+                    cParams.filterParams.femSettings.boundaryType = 'Neumann';
                     %cParams.designVariable = cParams.designVariable.value;
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactRobin';
+                    cParams.filterParams.femSettings.boundaryType = 'Robin';
                     %cParams.designVariable = cParams.designVariable.value;
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
@@ -89,7 +89,7 @@ classdef ShapeFunctional_Factory < handle
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
                 case 'anisotropicPerimeter2D'
-                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
+                    cParams.filterParams.femSettings.boundaryType = 'Robin';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     u = 60;
@@ -98,7 +98,7 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'anisotropicPerimeterInterior2D'
-                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
+                    cParams.filterParams.femSettings.boundaryType = 'Neumann';
                     %cParams.designVariable = cParams.designVariable.value;
                     cParams.filterParams.femSettings.isAnisotropyAdded = true;
                     u = 60;

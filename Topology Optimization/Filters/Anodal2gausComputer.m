@@ -22,16 +22,6 @@ classdef Anodal2gausComputer < handle
             obj.computeA();
         end
 
-        function intX = integrateP1FunctionWithShapeFunction(obj,cParams)
-            ndof = size(obj.A_nodal_2_gauss{1},2);
-            intX = zeros(ndof,1);
-            for igaus = 1:obj.ngaus
-                dVG  = cParams.dV(:,igaus);
-                xG   = cParams.x(:,igaus);
-                A    = obj.A_nodal_2_gauss{igaus};
-                intX = intX + A'*(xG.*dVG);
-            end
-        end
     end
 
     methods (Access = private)

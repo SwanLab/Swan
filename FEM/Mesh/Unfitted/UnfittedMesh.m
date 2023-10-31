@@ -230,28 +230,32 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            l.creatorSettings.value = obj.levelSet;
+            l.initialCase = 'given';
+            l.mesh = obj.backgroundMesh;
+            fPar.levelSet = LevelSet(l);
+            f = CharacteristicFunction(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInDomain(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Interior')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.integrateInDomain(f,test);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            l.creatorSettings.value = obj.levelSet;
+            l.initialCase = 'given';
+            l.mesh = obj.backgroundMesh;
+            fPar.levelSet = LevelSet(l);
+            f = CharacteristicFunction(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInBoundary(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Boundary')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.integrateInBoundary(f,test);
             mass = sum(fInt);
         end
         

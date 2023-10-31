@@ -71,9 +71,18 @@ classdef BoundaryConditions < handle
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.scale          = cParams.scale;
+            if isfield(cParams,'boundaryType')
+                switch cParams.boundaryType
+                    case 'Periodic'
+                        obj.scale = 'MICRO';
+                    otherwise
+                        obj.scale = 'MACRO';
+                end
+            else
+                obj.scale = cParams.scale;
+            end
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.ndimf          = cParams.bc{1}.ndimf; % Elastic
             obj.initPeriodicMasterSlave(cParams);

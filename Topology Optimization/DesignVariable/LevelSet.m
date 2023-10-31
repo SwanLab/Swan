@@ -8,6 +8,7 @@ classdef LevelSet < DesignVariable
     methods (Access = public)
         
         function obj = LevelSet(cParams)
+            cParams.type = 'LevelSet';
             obj.nVariables = 1;
             obj.init(cParams);
             obj.creatorSettings      = cParams.creatorSettings;
@@ -23,7 +24,12 @@ classdef LevelSet < DesignVariable
             end
             obj.updateUnfittedMesh();
         end
-        
+
+        function updateFunction(obj)
+            s.levelSet = obj;
+            obj.fun    = CharacteristicFunction.create(s);
+        end
+
         function m = getUnfittedMesh(obj)
             m = obj.unfittedMesh;
         end

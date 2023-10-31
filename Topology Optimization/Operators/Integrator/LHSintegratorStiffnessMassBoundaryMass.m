@@ -1,6 +1,7 @@
-classdef LHSintegrator_DiffReactRobin < handle
+classdef LHSintegratorStiffnessMassBoundaryMass < handle
 
     properties (GetAccess = public, SetAccess = private)
+        test, trial
         M
         K
         Mr
@@ -12,8 +13,8 @@ classdef LHSintegrator_DiffReactRobin < handle
 
     methods (Access = public)
 
-        function obj = LHSintegrator_DiffReactRobin(cParams)
-            obj.mesh  = cParams.mesh;
+        function obj = LHSintegratorStiffnessMassBoundaryMass(cParams)
+            obj.init(cParams);
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -26,34 +27,35 @@ classdef LHSintegrator_DiffReactRobin < handle
     end
 
     methods (Access = private)
+        function init(obj,cParams)
+            obj.mesh  = cParams.mesh;
+            obj.test  = cParams.trial;
+            obj.trial = cParams.trial;
+        end
 
         function computeStiffnessMatrix(obj,cParams)
-            s      = cParams; % For anisotropic stiffness
-            s.test  = P1Function.create(obj.mesh,1);
-            s.trial  = P1Function.create(obj.mesh,1);
-            s.type = cParams.stiffType;
-            s.mesh = obj.mesh;
-            LHS    = LHSintegrator.create(s);
-            obj.K  = LHS.compute();
+            s       = cParams;
+            s.test  = obj.test;
+            s.trial = obj.trial;
+            s.type  = cParams.stiffType;
+            s.mesh  = obj.mesh;
+            LHS     = LHSintegrator.create(s);
+            obj.K   = LHS.compute();
         end
 
         function computeMassMatrix(obj)
-            s.type = 'MassMatrix';
-            s.mesh = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = obj.test;
+            s.trial = obj.trial;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end
 
         function computeBoundaryMassMatrix(obj)
-%             g.mesh    = obj.mesh;
-%             g.fValues = zeros(size(obj.mesh.coord,1),1);
-%             f = P1Function(g);
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
-%             s.fun   = f;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS     = LHSintegrator.create(s);
             obj.Mr  = LHS.compute();

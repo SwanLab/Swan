@@ -1,4 +1,4 @@
-classdef Triangle_Constant < Interpolation
+classdef Hexahedra_Constant < Interpolation
 
     properties (Access = private)
         ngaus
@@ -6,7 +6,7 @@ classdef Triangle_Constant < Interpolation
        
     methods (Access = public)
 
-        function obj = Triangle_Constant(cParams)
+        function obj = Hexahedra_Constant(cParams)
             obj.init(cParams);
             obj.computeParams();
         end
@@ -22,10 +22,10 @@ classdef Triangle_Constant < Interpolation
     methods (Access = private)
 
         function computeParams(obj)
-            obj.type = 'TRIANGLE';
-            obj.ndime = 2;
+            obj.type = 'HEXAHEDRA';
+            obj.ndime = 3;
             obj.nnode = 1;
-            obj.pos_nodes = [1/3 1/3];
+            obj.pos_nodes = [0 0 0];
         end
 
         function computeShapes(obj)

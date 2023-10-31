@@ -49,7 +49,10 @@ classdef HamiltonJacobi < handle
         end
 
         function computeVelocity(obj,g)
-            V            = -obj.filter.regularize(g);
+            s.levelSet   = obj.phi;
+            s.F          = g;
+            charFun      = CharacteristicFunction(s);
+            V            = -obj.filter.regularizeBoundary(charFun);
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
         end
@@ -68,11 +71,13 @@ classdef HamiltonJacobi < handle
         end
 
         function setupFilter(obj,e,designVar)
-            s                   = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            set                 = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            s                   = set.femSettings;
             s.mesh              = designVar.mesh;
             s.designVarType     = designVar.type;
-            s.quadratureOrder   = 'LINEAR';
-            s.femSettings.scale = 'MACRO';
+            s.scale             = 'MACRO';
+            s.filterType        = set.filterType;
+            s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);

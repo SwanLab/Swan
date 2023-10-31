@@ -10,6 +10,7 @@ classdef RHSintegrator_Composite < handle
         RHScells
         RHSsubcells
         unfittedMesh
+        test
     end
 
     methods (Access = public)
@@ -26,18 +27,20 @@ classdef RHSintegrator_Composite < handle
             end
         end
 
-        function f = integrateAndSum(obj,nodalFunc)
+        function f = integrateAndSum(obj,charFun)
             f = 0;
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
-                    int = integrator.integrateAndSum(nodalFunc);
+                    int = integrator.integrateAndSum(charFun);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
-                    p1 = obj.createInnerP1(nodalFunc);
-                    intLoc = integrator.compute(p1,p1);
+                    p1 = obj.createInnerFunction(charFun);
+                    testHandle = class(obj.test);
+                    testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
+                    intLoc = integrator.compute(p1,testFun);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
                 else
-                    int = integrator.compute(nodalFunc);
+                    int = integrator.compute(charFun);
                 end
                 f = f + int;
             end
@@ -51,35 +54,27 @@ classdef RHSintegrator_Composite < handle
             obj.nInt = numel(cParams.compositeParams);
             obj.npnod = cParams.npnod;
             obj.unfittedMesh = cParams.unfittedMesh;
+            obj.test   = cParams.test;
         end
 
         function createIntegrators(obj,cParams)
             params = cParams.compositeParams;
             for iInt = 1:obj.nInt
                 s = params{iInt};
+                s.quadType = cParams.quadType;
+                s.test = cParams.test;
                 integrator = RHSintegrator.create(s);
                 obj.integrators{end+1} = integrator;
             end
         end
 
-        function p1 = createInnerP1(obj, F)
-            innerMesh = obj.unfittedMesh.innerMesh;
-            connecIG = innerMesh.globalConnec;
-            connecIL  = innerMesh.mesh.connec;
-            innerL2G(connecIL(:)) = connecIG(:);
-
-            innerDofsGlobal = unique(connecIG(:));
-            innerDofs = unique(connecIL);
-
-            fV_global = zeros(length(F),1);
-            fV_global(innerDofsGlobal) = F(innerDofsGlobal);
-
-            fV_localInner = zeros(length(innerDofs),1);
-            fV_localInner(innerDofs) = fV_global(innerL2G(innerDofs));
-
-            s.mesh = innerMesh.mesh;
-            s.fValues = fV_localInner;
-            p1  = P1Function(s);
+        function fun = createInnerFunction(obj, charFun)
+            s.mesh    = obj.unfittedMesh.backgroundMesh;
+            s.fValues = charFun.evaluate([1;1])*ones(s.mesh.nnodes,1); % !!
+            p1Old     = P1Function(s);
+            innerMesh = obj.unfittedMesh.innerMesh.mesh;
+            connecIG  = obj.unfittedMesh.innerMesh.globalConnec;
+            fun       = p1Old.restrict2cell(innerMesh,connecIG);
         end
 
         function int = computeGlobalIntegralFromLocal(obj, intLoc)
