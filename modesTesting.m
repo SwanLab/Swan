@@ -120,22 +120,24 @@ lhsMass = LHSmass.compute();
 
 [xCG,residualCG] = conjugateGradient(Kred,Fred);
 
-M = basis*inv(lhs)*basis';
-M = sparse(eye(size(xCG,1))./diag(Kred));
+%M = basis*inv(lhs)*basis';
+%M = sparse(eye(size(xCG,1))./diag(Kred));
 
-M = basis*lhs*basis';
+%M = basis*lhs*basis';
 
-
+M2 = spdiags(1./sqrt(diag((Kred))),0,size(Kred,1),size(Kred,1));
+L = ichol(Kred);
 Apr = sparse(diag(diag(Kred))\Kred);
 bpr = sparse(diag(diag(Kred))\Fred);
 %[xCG,residualCG] = conjugateGradient(Apr,bpr);
 % xCG2 = pcg(Apr,bpr,1E-6,1000);
-[xCG2,residualCG2] = conjugateGradient(Kred,Fred,M);
+[xCG2,residualCG2] = conjugateGradient(Kred,Fred,M2);
 
 
 x= Kred\Fred;
-x2 = pcg(Kred,Fred,1E-6,1000);
-X3 = pcg(M*Kred,M*Fred,1E-6,1000);
+[X1,FLAG1,RELRES1,iter1] = pcg(Kred,Fred,1E-6,1000,L,L');
+[X2,FLAG2,RELRES2,iter2] = pcg(Kred,Fred,1E-6,1000,M2,M2');
+[X3,FLAG3,RELRES3,iter3] = pcg(Kred,Fred,1E-6,1000);
 s.mesh = mesh;
 s.type = 'ELASTIC';
 s.scale = 'MACRO';
@@ -182,8 +184,8 @@ function mesh = createMesh()
 
 
 % Generate coordinates
-x1 = linspace(0,2,3);
-x2 = linspace(0,1,3);
+x1 = linspace(0,2,20);
+x2 = linspace(0,1,20);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -280,12 +282,12 @@ end
 
 function [x,residual] = conjugateGradient(A,B,M)
 if nargin == 3
-    LHS=full(M*A*M');
+    LHS=(M*A*M');
     RHS=M*B;
 else
     LHS=A;
     RHS=B;
-    M = sparse(eye(size(B,1)));
+    M = speye(size(B,1));
 end
 tol = 1e-6;
 n = length(RHS);
@@ -312,34 +314,34 @@ while hasNotConverged
     iter = iter + 1;
     residual(iter) = norm(LHS*x - RHS); %Ax - b
 end
-x=inv(M)'*x;
+x=(M)*x;
 end
 
-
-function a = ichol(a)
-n = size(a,1);
-
-for k = 1:n
-    a(k,k) = sqrt(a(k,k));
-    for i = (k+1):n
-        if (a(i,k) ~= 0)
-            a(i,k) = a(i,k)/a(k,k);
-            endif
-            endfor
-            for j = (k+1):n
-                for i = j:n
-                    if (a(i,j) ~= 0)
-                        a(i,j) = a(i,j) - a(i,k)*a(j,k);
-                    end
-                end
-            end
-        end
-
-        for i = 1:n
-            for j = i+1:n
-                a(i,j) = 0;
-            end
-        end
-    end
-end
-end
+% 
+% function a = ichol(a)
+% n = size(a,1);
+% 
+% for k = 1:n
+%     a(k,k) = sqrt(a(k,k));
+%     for i = (k+1):n
+%         if (a(i,k) ~= 0)
+%             a(i,k) = a(i,k)/a(k,k);
+%             endif
+%             endfor
+%             for j = (k+1):n
+%                 for i = j:n
+%                     if (a(i,j) ~= 0)
+%                         a(i,j) = a(i,j) - a(i,k)*a(j,k);
+%                     end
+%                 end
+%             end
+%         end
+% 
+%         for i = 1:n
+%             for j = i+1:n
+%                 a(i,j) = 0;
+%             end
+%         end
+%     end
+% end
+% end
