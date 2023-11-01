@@ -51,11 +51,15 @@ M= computeMassMatrix(mesh,dispFun);
 Mred= bc.fullToReducedMatrix(M);
 % [basis,D]=eigs(M\K);
 [basis,D]=eigs(Kred,6,'smallestabs');
+psi = Kred*basis;
 
 for i = 1:size(basis,2)
     b = basis(:,i);
     b1 = bc.reducedToFullVector(b);
     bC{i} = reshape(b1,2,[])';
+    a = psi(:,i);
+    a1=bc.reducedToFullVector(a);
+    psiD{i}=reshape(a1,2,[])';
     %  bC{i} = b;
 
     % sF.fValues = reshape(b1,2,[])';
@@ -87,6 +91,53 @@ lhs=LHS.compute();
 LHSmass = LHS_integratorMassGlobal(sL);
 lhsMass = LHSmass.compute();
 
+
+%% create eifem matrices
+bMesh = mesh.createBoundaryMesh();
+
+rbDom = createRBfun(mesh);
+rbBd = createRBfun(bMesh);
+phib = createBoundaryDefFun(bMesh,bC,functionType);
+psib = createBoundaryDefFun(bMesh,psiD,functionType);
+nbound = size(bMesh,1);
+
+for ibound=1:nbound
+    sL.test  = phib{ibound};
+    sL.trial = rbBd{ibound};
+    sL.mesh  = bMesh{ibound}.mesh;
+    sL.quadratureOrder = quad.order;
+    lhs2{ibound} = LHS_integratorMassGlobal(sL);
+    Hhat{ibound} = lhs2{ibound}.compute();
+end
+
+for ibound=1:nbound
+    sL.test  = phib{ibound};
+    sL.trial = psib{ibound};
+    sL.mesh  = bMesh{ibound}.mesh;
+    sL.quadratureOrder = quad.order;
+    lhs2{ibound} = LHS_integratorMassGlobal(sL);
+    H{ibound} = lhs2{ibound}.compute();
+end
+
+for ibound=1:nbound
+    sL.test  = rbBd{ibound};
+    sL.trial = rbBd{ibound};
+    sL.mesh  = bMesh{ibound}.mesh;
+    sL.quadratureOrder = quad.order;
+    lhs2{ibound} = LHS_integratorMassGlobal(sL);
+    G{ibound} = lhs2{ibound}.compute();
+end
+
+for ibound=1:nbound
+    sL.test  = psib{ibound};
+    sL.trial = rbBd{ibound};
+    sL.mesh  = bMesh{ibound}.mesh;
+    sL.quadratureOrder = quad.order;
+    lhs2{ibound} = LHS_integratorMassGlobal(sL);
+    G{ibound} = lhs2{ibound}.compute();
+end
+
+%%
 % kprecon =
 
 % refPoint = [0,0];
@@ -95,7 +146,7 @@ lhsMass = LHSmass.compute();
 % sL.material=material;
 % sL.test= RB;
 % sL.trial=modalFun;
-% sL.mesh=mesh;
+% sL.mesh=mesh;k
 % sL.quadratureOrder = quad.order;
 % LHS=LHS_integratorStiffnessGlobal(sL);
 % lHS=LHS.compute();
@@ -184,8 +235,8 @@ function mesh = createMesh()
 
 
 % Generate coordinates
-x1 = linspace(0,2,20);
-x2 = linspace(0,1,20);
+x1 = linspace(0,2,5);
+x2 = linspace(0,1,5);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -317,17 +368,56 @@ end
 x=(M)*x;
 end
 
-% 
+
+function rbFun = createRBfun(mesh)
+%domain
+if size(mesh,1)==1
+    centroid = [sum(mesh.coord(:,1))/mesh.nnodes,sum(mesh.coord(:,2))/mesh.nnodes];
+    rbFun = RigidBodyFunction.create(mesh,centroid);
+else
+    %boundary
+    for i=1:size(mesh,1)
+        meshb = mesh{i}.mesh;
+        centroid = [sum(meshb.coord(:,1))/meshb.nnodes,sum(meshb.coord(:,2))/meshb.nnodes];
+        rbFun{i} = RigidBodyFunction.create(meshb,centroid);
+    end
+end
+end
+
+
+function defFun = createBoundaryDefFun(bmesh,basis,functionType)
+for imesh=1:size(bmesh,1)
+    nodes = unique(bmesh{imesh}.globalConnec);
+    %         nnode= length(nodes);
+    %         for inode=1:nnode
+    %             dof = 2*(nodes(inode)-1)+1;
+    %             dofs(dof)=dof;
+    %             dofs(dof+1)=dof+1;
+    %         end
+    %         dofs=dofs(dofs>0);
+    for ibasis=1:length(basis)
+        basisb{ibasis} = basis{ibasis}(nodes,:);
+    end
+
+    meshb = bmesh{imesh}.mesh;
+    defFun{imesh} = ModalFunction.create(meshb,basisb,functionType);
+    clear dofs;
+end
+end
+
+
+
+%
 % function a = ichol(a)
 % n = size(a,1);
-% 
+%
 % for k = 1:n
 %     a(k,k) = sqrt(a(k,k));
 %     for i = (k+1):n
 %         if (a(i,k) ~= 0)
 %             a(i,k) = a(i,k)/a(k,k);
-%             endif
-%             endfor
+%             end
+%             end
 %             for j = (k+1):n
 %                 for i = j:n
 %                     if (a(i,j) ~= 0)
@@ -336,7 +426,7 @@ end
 %                 end
 %             end
 %         end
-% 
+%
 %         for i = 1:n
 %             for j = i+1:n
 %                 a(i,j) = 0;

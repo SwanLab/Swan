@@ -29,22 +29,16 @@ classdef LHS_integratorMassGlobal < handle
             posgp = quad.posgp;
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             LHS   = zeros(obj.trial.nbasis,obj.test.nbasis);
-            LHS2   = zeros(obj.trial.nbasis,obj.test.nbasis);
             nFlds = obj.test.ndimf;
-            basisTest  = obj.test.evaluateBasisFunctions(posgp);
-            basisTrial = basisTest;
             for iBasis = 1: obj.trial.nbasis
                 uI   = obj.trial.basisFunctions{iBasis};
                 fI   = uI.evaluate(posgp);
                 for jBasis = 1:obj.test.nbasis
                     vJ   = obj.test.basisFunctions{jBasis};
                     fJ   = vJ.evaluate(posgp);
-                    for iField = nFlds
+                    for iField = 1:nFlds
                         uv = squeeze(fI(iField,:,:).*fJ(iField,:,:));
-                        uv2= squeeze(basisTest{iBasis}(iField,:,:).*basisTrial{jBasis}(iField,:,:));
-                        
                         LHS(iBasis,jBasis)  = LHS(iBasis,jBasis) + sum(uv.*dVolu,'all');
-                        LHS2(iBasis,jBasis)  = LHS2(iBasis,jBasis) + sum(uv2.*dVolu,'all');
                     end
                 end
             end
