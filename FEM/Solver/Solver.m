@@ -14,10 +14,10 @@ classdef Solver < handle
 
                 case {'ITERATIVE'}
                     %error('Not implemented yet')
-                    %stype = Jacobian_Solver();
+                    stype = Jacobian_Solver();
                     %stype = Gauss_Solver();
                     %stype = conjugateGradient_Solver();
-                    stype = QRFactorization();
+                    %stype = QRFactorization();
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
