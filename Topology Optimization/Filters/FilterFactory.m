@@ -5,8 +5,8 @@ classdef FilterFactory < handle
     % - GeometricalFunction
     % - delete: computeRHSInBoundaries, FilterPDEUnfitted
     % - create: UnfittedFunction, BoundaryUnfittedFunction
-    % - 'evaluate' method inside RHSUnfitted
-    % - Test P0Function in unfitted not available
+    % - 'evaluate' method inside RHSUnfitted (Thursday)
+    % - Restrict2Cell P0Function, P1Function... in UnfittedFunction (Thursday)
 
     methods (Access = public, Static)
 

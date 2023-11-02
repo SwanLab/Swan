@@ -14,14 +14,8 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         end
 
         function int = integrateInDomain(obj, unfFun, test)
-            noIMesh  = isempty(unfFun.unfittedMesh.innerMesh);
-            noICMesh = isempty(unfFun.unfittedMesh.innerCutMesh);
-            if noIMesh && noICMesh
-                int = zeros(size(ls));
-            else
-                obj.createInteriorIntegrators(test);
-                int = obj.integrators.integrateAndSum(unfFun);
-            end
+            obj.createInteriorIntegrators(test);
+            int = obj.integrators.integrateAndSum(unfFun);
         end
 
         function int = integrateInBoundary(obj,F,test)

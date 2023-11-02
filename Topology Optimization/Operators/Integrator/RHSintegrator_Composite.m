@@ -27,20 +27,20 @@ classdef RHSintegrator_Composite < handle
             end
         end
 
-        function f = integrateAndSum(obj,charFun)
-            f = 0;
+        function f = integrateAndSum(obj,unfFun)
+            f = zeros(size(obj.test.fValues));
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
-                    int = integrator.integrateAndSum(charFun);
+                    int = integrator.integrateAndSum(unfFun);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
-                    p1 = obj.createInnerFunction(charFun);
+                    p1 = obj.createInnerFunction(unfFun);
                     testHandle = class(obj.test);
                     testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
                     intLoc = integrator.compute(p1,testFun);
                     int = obj.computeGlobalIntegralFromLocal(intLoc);
                 else
-                    int = integrator.compute(charFun);
+                    int = integrator.compute(unfFun);
                 end
                 f = f + int;
             end
