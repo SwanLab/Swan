@@ -27,8 +27,8 @@ classdef FilterPDEUnfitted < handle
             xF = obj.filteredField;
         end
 
-        function xReg = computeInBoundary(obj,unfFun)
-            obj.computeRHSinBoundary(unfFun);
+        function xReg = computeInBoundary(obj,unfFun,quadType)
+            obj.computeRHSinBoundary(unfFun,quadType);
             obj.solveFilter();
             xReg = obj.filteredField;
         end
@@ -85,14 +85,13 @@ classdef FilterPDEUnfitted < handle
             obj.RHS      = rhsR;
         end
 
-         function computeRHSinBoundary(obj,charFun)
+        function computeRHSinBoundary(obj,unfFun,quadType)
             test         = obj.filteredField;
-            obj.levelSet = unfFun.levelSet;
-            s.mesh       = obj.levelSet.getUnfittedMesh();
+            s.mesh       = unfFun.unfittedMesh;
             s.type       = 'ShapeFunction';
             s.quadType   = quadType;
             int          = RHSintegrator.create(s);
-            rhs          = int.integrateInBoundary(charFun,test);
+            rhs          = int.integrateInBoundary(unfFun,test);
             rhsR         = obj.bc.fullToReducedVector(rhs);
             obj.RHS      = rhsR;
         end

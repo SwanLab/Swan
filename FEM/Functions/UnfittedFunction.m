@@ -20,7 +20,7 @@ classdef UnfittedFunction < handle
             inMesh = obj.unfittedMesh.innerCutMesh;
             obj.fun.updateMesh(inMesh.mesh);
             fxV    = obj.fun.evaluate(xV);
-            obj.fun.updateMesh(obj.unfittedMesh.backgroundMesh);
+            %obj.fun.updateMesh(obj.unfittedMesh.backgroundMesh);
         end
 
     end

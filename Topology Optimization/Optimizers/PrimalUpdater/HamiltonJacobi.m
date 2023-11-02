@@ -49,10 +49,12 @@ classdef HamiltonJacobi < handle
         end
 
         function computeVelocity(obj,g)
-            s.levelSet   = obj.phi;
-            s.F          = g;
-            charFun      = CharacteristicFunction(s);
-            V            = -obj.filter.regularizeBoundary(charFun);
+            s.mesh       = obj.phi.mesh;
+            s.fValues    = g;
+            ss.fun       = P1Function(s);
+            ss.uMesh     = obj.phi.getUnfittedMesh();
+            unfFun      = UnfittedFunction(ss);
+            V            = -obj.filter.computeInBoundary(unfFun,'QUADRATICMASS');
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
         end

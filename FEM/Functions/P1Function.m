@@ -265,6 +265,10 @@ classdef P1Function < FeFunction
             p1        = P1Function(s);
         end
 
+        function updateMesh(obj,mNew)
+            % How to change mesh and therefore the fValues ??
+        end
+
     end
 
     methods (Access = public, Static)
