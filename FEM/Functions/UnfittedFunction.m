@@ -13,17 +13,14 @@ classdef UnfittedFunction < handle
         end
 
         function fxV = evaluate(obj,xV)
-            gMesh     = obj.unfittedMesh.backgroundMesh;
-            inMesh    = obj.unfittedMesh.innerMesh;
-            %inCutMesh = obj.unfittedMesh.innerCutMesh;
-
+            fxV     = obj.fun.evaluate(xV);
+            gMesh   = obj.unfittedMesh.backgroundMesh;
+            inMesh  = obj.unfittedMesh.innerMesh;
             gCoor   = gMesh.computeXgauss(xV);
             inCoor  = inMesh.mesh.computeXgauss(xV);
             gCoor1  = squeeze(gCoor(:,1,:))';
             inCoor1 = squeeze(inCoor(:,1,:))';
-            isVoid = not(ismember(gCoor1,inCoor1,'rows'));
-
-            fxV             = obj.fun.evaluate(xV);
+            isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
             fxV(:,:,isVoid) = 0;
         end
 
