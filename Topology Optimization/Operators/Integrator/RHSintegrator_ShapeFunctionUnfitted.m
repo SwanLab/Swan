@@ -56,7 +56,7 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
 
         function s = createInnerParams(obj,innerMesh)
             s.type = 'ShapeFunction';
-            s.mesh = innerMesh.mesh;
+            s.mesh = innerMesh.backgroundMesh;
         end
 
         function s = createInnerCutParams(obj,gConnec,mesh)
