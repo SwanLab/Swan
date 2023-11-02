@@ -1,10 +1,9 @@
 classdef FilterFactory < handle
 
-    % Refactoring ToDo:
-    % General:
+    % - create: BoundaryUnfittedFunction (boundaryCutMesh OR boundaryCutMesh&unfittedBoundaryMesh??)
+    % - 'evaluate' method inside RHSUnfittedCut: How to change PnFunction mesh and therefore the fValues ??
     % - delete: computeRHSInBoundaries, FilterPDEUnfitted
-    % - create: BoundaryUnfittedFunction
-    % - 'evaluate' method inside RHSUnfittedBoundary
+    % - complete FilterP1 analogously
 
     methods (Access = public, Static)
 

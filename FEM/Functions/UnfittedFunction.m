@@ -17,10 +17,16 @@ classdef UnfittedFunction < handle
         end
 
         function fxV = evaluateInnerCut(obj,xV)
-            inMesh = obj.unfittedMesh.innerCutMesh;
-            obj.fun.updateMesh(inMesh.mesh);
-            fxV    = obj.fun.evaluate(xV);
-            %obj.fun.updateMesh(obj.unfittedMesh.backgroundMesh);
+            mesh      = obj.unfittedMesh.backgroundMesh;
+            inCMesh   = obj.unfittedMesh.innerCutMesh;
+            connec    = mesh.connec;
+            inCConnec = connec(inCMesh.cellContainingSubcell,:);
+            s.connec  = inCConnec;
+            s.coord   = inCMesh.mesh.coord;
+            meshNew   = Mesh(s);
+            obj.fun.updateMesh(meshNew);
+            fxV       = obj.fun.evaluate(xV);
+            obj.fun.updateMesh(mesh);
         end
 
     end
