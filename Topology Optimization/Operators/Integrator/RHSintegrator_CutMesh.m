@@ -72,7 +72,7 @@ classdef RHSintegrator_CutMesh < RHSintegrator
         end
 
         function computeFgauss(obj, unfFun)
-            fG = unfFun.evaluateInnerCut(obj.xGauss);
+            fG = unfFun.evaluateCutElements(obj.xGauss);
             fG = permute(fG,[2 3 1]);
             obj.fGauss = fG;
         end

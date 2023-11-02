@@ -17,7 +17,7 @@ classdef RHSintegrator_ShapeFunction < handle
             xV   = quad.posgp;
             dV   = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = test.computeShapeFunctions(quad);
+            shapes = obj.mesh.interpolation.shape;
             nGaus = quad.ngaus;
             nFlds = fun.ndimf;
             nDofElem = size(shapes,1);

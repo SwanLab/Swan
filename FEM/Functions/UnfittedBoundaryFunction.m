@@ -1,4 +1,4 @@
-classdef UnfittedFunction < handle
+classdef UnfittedBoundaryFunction < handle
 
     properties (Access = public)
         ndimf
@@ -8,21 +8,21 @@ classdef UnfittedFunction < handle
 
     methods (Access = public)
 
-        function obj = UnfittedFunction(cParams)
+        function obj = UnfittedBoundaryFunction(cParams)
             obj.init(cParams);
         end
 
         function fxV = evaluate(obj,xV)
-            fxV = obj.evaluateInner(xV);
+            % Will be analogous to inner in UnfittedFunction and then the whole boundaryUnfitted will be necessary
         end
 
         function fxV = evaluateCutElements(obj,xV)
             mesh      = obj.unfittedMesh.backgroundMesh;
-            inCMesh   = obj.unfittedMesh.innerCutMesh;
+            bCMesh    = obj.unfittedMesh.boundaryCutMesh;
             connec    = mesh.connec;
-            inCConnec = connec(inCMesh.cellContainingSubcell,:);
+            inCConnec = connec(bCMesh.cellContainingSubcell,:);
             s.connec  = inCConnec;
-            s.coord   = inCMesh.mesh.coord;
+            s.coord   = bCMesh.mesh.coord;
             meshNew   = Mesh(s);
             obj.fun.updateMesh(meshNew);
             fxV       = obj.fun.evaluate(xV);
@@ -37,18 +37,6 @@ classdef UnfittedFunction < handle
             obj.unfittedMesh   = cParams.uMesh;
             obj.fun            = cParams.fun;
             obj.ndimf          = cParams.fun.ndimf;
-        end
-
-        function fxV = evaluateInner(obj,xV)
-            fxV     = obj.fun.evaluate(xV);
-            gMesh   = obj.unfittedMesh.backgroundMesh;
-            inMesh  = obj.unfittedMesh.innerMesh;
-            gCoor   = gMesh.computeXgauss(xV);
-            inCoor  = inMesh.mesh.computeXgauss(xV);
-            gCoor1  = squeeze(gCoor(:,1,:))';
-            inCoor1 = squeeze(inCoor(:,1,:))';
-            isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
-            fxV(:,:,isVoid) = 0;
         end
 
     end

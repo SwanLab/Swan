@@ -1,7 +1,6 @@
 classdef FilterFactory < handle
 
-    % - create: BoundaryUnfittedFunction (boundaryCutMesh OR boundaryCutMesh&unfittedBoundaryMesh??)
-    % - 'evaluate' method inside RHSUnfittedCut: How to change PnFunction mesh and therefore the fValues ??
+    % - 'evaluate' method inside UnfittedBoundaryFunction
     % - delete: computeRHSInBoundaries, FilterPDEUnfitted
     % - complete FilterP1 analogously
 
