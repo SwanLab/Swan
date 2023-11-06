@@ -50,7 +50,7 @@ Fred = bc.fullToReducedVector(Fext);
 M= computeMassMatrix(mesh,dispFun);
 Mred= bc.fullToReducedMatrix(M);
 % [basis,D]=eigs(M\K);
-[basis,D]=eigs(Kred,6,'smallestabs');
+[basis,D]=eigs(Kred,5,'smallestabs');
 psi = Kred*basis;
 
 for i = 1:size(basis,2)
@@ -134,7 +134,7 @@ for ibound=1:nbound
     sL.mesh  = bMesh{ibound}.mesh;
     sL.quadratureOrder = quad.order;
     lhs2{ibound} = LHS_integratorMassGlobal(sL);
-    G{ibound} = lhs2{ibound}.compute();
+    Gtest{ibound} = lhs2{ibound}.compute(); %this should be 0 accoring joaquin's article
 end
 
 %%
@@ -180,10 +180,17 @@ M2 = spdiags(1./sqrt(diag((Kred))),0,size(Kred,1),size(Kred,1));
 L = ichol(Kred);
 Apr = sparse(diag(diag(Kred))\Kred);
 bpr = sparse(diag(diag(Kred))\Fred);
+M=basis*(lhs\basis');
+Mb{1}=basis';
+Mb{2}= inv(lhs);
+Mb{3}=basis;
+% Mb{1}=eye(size(Kred,1));
+% M=M+M2;
 %[xCG,residualCG] = conjugateGradient(Apr,bpr);
 % xCG2 = pcg(Apr,bpr,1E-6,1000);
-[xCG2,residualCG2] = conjugateGradient(Kred,Fred,M2);
+% [xCG2,residualCG2] = conjugateGradient(Kred,Fred,M2);
 
+[xCG2,residualCG2] = preconditionedConjugateGradient(Kred,Fred,Mb);
 
 x= Kred\Fred;
 [X1,FLAG1,RELRES1,iter1] = pcg(Kred,Fred,1E-6,1000,L,L');
@@ -235,8 +242,8 @@ function mesh = createMesh()
 
 
 % Generate coordinates
-x1 = linspace(0,2,5);
-x2 = linspace(0,1,5);
+x1 = linspace(0,2,4);
+x2 = linspace(0,1,4);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -366,6 +373,45 @@ while hasNotConverged
     residual(iter) = norm(LHS*x - RHS); %Ax - b
 end
 x=(M)*x;
+end
+
+
+function [x,residual] = preconditionedConjugateGradient(A,B,M)
+tol = 1e-6;
+n = length(B);
+x = zeros(n,1);
+r = B - A * x;
+z = matVecProd(M,r);
+p = z;
+rzold = r' * z;
+iter = 0;
+
+hasNotConverged = true;
+
+while hasNotConverged
+    Ap = A * p;
+    alpha = rzold / (p' * Ap);
+    x = x + alpha * p;
+    r = r - alpha * Ap;
+    z = matVecProd(M,r);
+    rznew = r' * z;
+
+    %hasNotConverged = sqrt(rsnew) > tol;
+    hasNotConverged = norm(r) > tol;
+
+    p = z + (rznew / rzold) * p;
+    rzold = rznew;
+    iter = iter + 1;
+    residual(iter) = norm(r); %Ax - b
+end
+% x=(M)*x;
+end
+
+function v = matVecProd(M,x)
+    for i = 1:size(M,2)
+        x=M{i}*x;
+    end
+    v = x;
 end
 
 
