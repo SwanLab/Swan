@@ -394,6 +394,7 @@ while hasNotConverged
     x = x + alpha * p;
     r = r - alpha * Ap;
     z = matVecProd(M,r);
+    z = r-z;
     rznew = r' * z;
 
     %hasNotConverged = sqrt(rsnew) > tol;
