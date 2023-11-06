@@ -35,6 +35,19 @@ classdef FilterP1 < handle
             xReg       = obj.expressInFilterGaussPoints(xR);
         end
 
+        function xReg = compute(obj,fun,quadType)
+            test       = P1Function.create(obj.mesh, 1);
+            int        = obj.computeRHSintegrator(quadType);
+            P          = obj.Poper.value;
+            A          = P;
+            b          = int.compute(fun,test);
+            xR         = A*b;
+            p.fValues  = xR;
+            p.mesh     = obj.mesh;
+            xRegP0     = P0Function(p);
+            xReg       = xRegP0.project('P1');
+        end
+
     end
 
     methods (Access = private)
