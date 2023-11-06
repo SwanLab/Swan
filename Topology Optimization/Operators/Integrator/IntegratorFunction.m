@@ -22,16 +22,13 @@ classdef IntegratorFunction < handle
             nGaus     = quad.ngaus;
             fGaus     = f.evaluate(xV);
             nFields   = size(fGaus,1);
-            nnodeElem = obj.mesh.nnodeElem;
             h         = 0;
             for iField = 1:nFields
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG       = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nnodeElem
-                        int = fG.*dVg;
-                        h   = h + sum(int);
-                    end
+                    int      = fG.*dVg;
+                    h        = h + sum(int);
                 end
             end
             int = h;

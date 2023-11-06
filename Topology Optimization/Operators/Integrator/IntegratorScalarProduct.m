@@ -23,18 +23,15 @@ classdef IntegratorScalarProduct < handle
             fGaus     = f.evaluate(xV);
             gGaus     = g.evaluate(xV);
             nFields   = size(fGaus,1);
-            nnodeElem = obj.mesh.nnodeElem;
             h         = 0;
             for iField = 1:nFields
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG       = squeeze(fGaus(iField,igaus,:));
                     gG       = squeeze(gGaus(iField,igaus,:));
-                    for inode = 1:nnodeElem
-                        fg  = fG.*gG;
-                        int = fg.*dVg;
-                        h   = h + sum(int);
-                    end
+                    fg       = fG.*gG;
+                    int      = fg.*dVg;
+                    h        = h + sum(int);
                 end
             end
             int = h;

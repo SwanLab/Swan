@@ -148,7 +148,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             i.mesh     = obj.designVariable.mesh;
             int        = Integrator.create(i);
             result     = int.compute(f,rho);
-            per        = 1/(2*obj.epsilon)*result;
+            per        = 2/(obj.epsilon)*result;
             obj.value  = per;
         end
         
