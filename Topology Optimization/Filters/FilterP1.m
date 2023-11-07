@@ -4,6 +4,7 @@ classdef FilterP1 < handle
         mesh
      %   Poper
         M
+        M2
         I
         filteredField        
         testFunction
@@ -15,18 +16,39 @@ classdef FilterP1 < handle
             obj.init(cParams);
           %  obj.createPoperator();
             obj.createMassMatrix();
+            obj.createMassMatrix2();
             obj.createSupportMatrix();
         end
 
         function xReg = compute(obj,fun,quadType)
-            RHS = computeRHS(obj,fun,quadType);            % computeNew
-            Iki        = obj.I;
-            sM         = sum(obj.M,2);
-            LHS        = Iki*sM;
-            P          = Iki./LHS;
-            xR         = P*RHS;
+            RHS  = computeRHS(obj,fun,quadType);            % computeNew
+            Iki  = obj.I;
+            %sM   = sum(obj.M,2);
+            %LHS  = Iki*sM;
+            %IM = Iki*obj.M;
+            %LHS = sum(IM,2);
+
+            It   = ones(size(obj.M,2),1);
+            LHS  = Iki*obj.M*It;            
+            xR   = diag(LHS)\(Iki*RHS);
+
+            %It2  = diag(It);
+            %LHS2 = Iki*obj.M*It2';
+            %xR2  = (LHS2)\(Iki*RHS);
+
+            LHS2 = Iki*obj.M2;%*It2;
+            xR2  = (LHS2)\(Iki*RHS);
+
+%             P    = Iki./LHS;
+%             xR   = P*RHS;
+
+            
+
+
+
+         %   xR2  = LHS2\(Iki*RHS);
             obj.filteredField.fValues(:,1) = xR;
-        %    obj.filteredField.fValues(1,1,:) = xR;
+        %  obj.filteredField.fValues(1,1,:) = xR;
             xReg = obj.filteredField;
         end
       
@@ -54,6 +76,16 @@ classdef FilterP1 < handle
             LHS   = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
+
+        function createMassMatrix2(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = obj.testFunction;
+            s.trial = obj.filteredField;
+            s.quadratureOrder = 'QUADRATICMASS';
+            LHS   = LHSintegrator.create(s);
+            obj.M2 = LHS.compute();
+        end        
 
 %         function createNeighborElementsMatrix(obj)
 %             nelem     = obj.mesh.nelem;
