@@ -2,7 +2,7 @@ classdef FilterP1 < handle
 
     properties (Access = private)
         mesh
-     %   Poper
+       Poper
         M
         M2
         I
@@ -14,52 +14,42 @@ classdef FilterP1 < handle
 
         function obj = FilterP1(cParams)
             obj.init(cParams);
-          %  obj.createPoperator();
+           obj.createPoperator();
             obj.createMassMatrix();
             obj.createMassMatrix2();
             obj.createSupportMatrix();
         end
 
         function xReg = compute(obj,fun,quadType)
-            RHS  = computeRHS(obj,fun,quadType);            % computeNew
+            RHS  = obj.computeRHS(fun,quadType);
             Iki  = obj.I;
-            %sM   = sum(obj.M,2);
-            %LHS  = Iki*sM;
-            %IM = Iki*obj.M;
-            %LHS = sum(IM,2);
-
-            It   = ones(size(obj.M,2),1);
-            LHS  = Iki*obj.M*It;            
-            xR   = diag(LHS)\(Iki*RHS);
-
-            %It2  = diag(It);
-            %LHS2 = Iki*obj.M*It2';
-            %xR2  = (LHS2)\(Iki*RHS);
-
-            LHS2 = Iki*obj.M2;%*It2;
-            xR2  = (LHS2)\(Iki*RHS);
-
-%             P    = Iki./LHS;
-%             xR   = P*RHS;
-
-            
-
-
-
-         %   xR2  = LHS2\(Iki*RHS);
-            obj.filteredField.fValues(:,1) = xR;
-        %  obj.filteredField.fValues(1,1,:) = xR;
+            %             It  = ones(size(obj.M,2),1);
+            %             LHS = Iki*obj.M*It;
+            %             xR  = diag(LHS)\(Iki*RHS);
+            It2  = ones(size(obj.M2,2),1);
+            LHS2 = Iki*obj.M2*It2;
+            xR   = diag(LHS2)\(Iki*RHS);
+            obj.filteredField.fValues(:) = xR;
             xReg = obj.filteredField;
         end
-      
+
+        function xReg = compute2(obj,fun,quadType) % computeWorking DELETE ASAP
+            switch class(fun)
+                case 'FGaussDiscontinuousFunction'
+                    xReg = obj.getP1Function(fun,quadType);
+                otherwise
+                    xReg = obj.getFGaussFunction(fun,quadType);
+            end
+        end
+
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
-            obj.filteredField = P1Function.create(obj.mesh,1); % trial will come from outside
-            obj.testFunction  = P0Function.create(obj.mesh,1);
+            obj.filteredField = cParams.trial;
+            obj.testFunction  = cParams.test;
         end
 
         function createPoperator(obj)
@@ -86,22 +76,6 @@ classdef FilterP1 < handle
             LHS   = LHSintegrator.create(s);
             obj.M2 = LHS.compute();
         end        
-
-%         function createNeighborElementsMatrix(obj)
-%             nelem     = obj.mesh.nelem;
-%             nodesElem = obj.mesh.nnodeElem;
-%             connec    = obj.mesh.connec;
-%             T = zeros(nelem,nelem);
-%             for ielem = 1:nelem
-%                 for inode=1:nodesElem
-%                     node = connec(ielem,inode);
-%                     neigElems = connec==node;
-%                     neigElems = any(neigElems');
-%                     T(ielem,neigElems) = 1;
-%                 end
-%             end
-%             obj.IElems = T;
-%         end
 
         function createSupportMatrix(obj)
             connecTrial = obj.filteredField.computeDofConnectivity();
@@ -131,29 +105,25 @@ classdef FilterP1 < handle
             test       = obj.testFunction;
             RHS  = rhsI.compute(fun,test);     
         end
-% 
-%         function xReg = getP1Function(obj,fun,quadType)
-%             test       = P0Function.create(obj.mesh, 1);
-%             int        = obj.computeRHSintegrator(quadType);
-%             P          = obj.Poper.value;
-%             A          = P';
-%             b          = int.compute(fun,test);
-%             p.fValues  = A*b;
-%             p.mesh     = obj.mesh;
-%             xReg       = P1Function(p);
-%         end
-% 
-%         function xReg = getFGaussFunction(obj,fun,quadType)
-%             test       = P1Function.create(obj.mesh, 1);
-%             int        = obj.computeRHSintegrator(quadType);
-%             P          = obj.Poper.value;
-%             A          = P;
-%             b          = int.compute(fun,test);
-%             xR         = A*b;
-%             p.fValues  = xR;
-%             p.mesh     = obj.mesh;
-%             xReg       = P0Function(p);
-%         end
+
+        function xReg = getP1Function(obj,fun,quadType)
+            b        = obj.computeRHS(fun,quadType);
+            P          = obj.Poper.value;
+            A          = P';
+            p.fValues  = A*b;
+            p.mesh     = obj.mesh;
+            xReg       = P1Function(p);
+        end
+
+        function xReg = getFGaussFunction(obj,fun,quadType)
+            b        = obj.computeRHS(fun,quadType);
+            P          = obj.Poper.value;
+            A          = P;
+            xR         = A*b;
+            p.fValues  = xR;
+            p.mesh     = obj.mesh;
+            xReg       = P0Function(p);
+        end
 
     end
 
