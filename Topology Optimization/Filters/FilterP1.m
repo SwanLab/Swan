@@ -17,28 +17,7 @@ classdef FilterP1 < handle
             obj.createSupportMatrix();
         end
 
-        function xReg = getP1Function(obj,fun,quadType)
-            test       = P0Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(quadType);
-            P          = obj.Poper.value;
-            A          = P';
-            b          = int.compute(fun,test);
-            p.fValues  = A*b;
-            p.mesh     = obj.mesh;
-            xReg       = P1Function(p);
-        end
-
-        function xReg = getFGaussFunction(obj,fun,quadType)
-            test       = P1Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(quadType);
-            P          = obj.Poper.value;
-            A          = P;
-            b          = int.compute(fun,test);
-            xR         = A*b;
-            xReg       = obj.expressInFilterGaussPoints(xR);
-        end
-
-        function xReg = compute(obj,fun,quadType)
+        function xReg = computeNew(obj,fun,quadType) % computeNew
             test       = P1Function.create(obj.mesh, 1);
             int        = obj.computeRHSintegrator(quadType);
             Iki        = obj.I;
@@ -51,6 +30,15 @@ classdef FilterP1 < handle
             p.fValues  = xR;
             p.mesh     = obj.mesh;
             xReg       = P1Function(p);
+        end
+
+        function xReg = compute(obj,fun,quadType) % computeWorking DELETE ASAP
+            switch class(fun)
+                case 'P1Function'
+                    xReg = obj.getFGaussFunction(fun,quadType);
+                case 'FGaussDiscontinuousFunction'
+                    xReg = obj.getP1Function(fun,quadType);
+            end
         end
 
     end
@@ -76,6 +64,22 @@ classdef FilterP1 < handle
             LHS   = LHSintegrator.create(s);
             obj.M = LHS.compute();
         end
+
+%         function createNeighborElementsMatrix(obj)
+%             nelem     = obj.mesh.nelem;
+%             nodesElem = obj.mesh.nnodeElem;
+%             connec    = obj.mesh.connec;
+%             T = zeros(nelem,nelem);
+%             for ielem = 1:nelem
+%                 for inode=1:nodesElem
+%                     node = connec(ielem,inode);
+%                     neigElems = connec==node;
+%                     neigElems = any(neigElems');
+%                     T(ielem,neigElems) = 1;
+%                 end
+%             end
+%             obj.IElems = T;
+%         end
 
         function createSupportMatrix(obj)
             connecField = obj.filteredField.computeDofConnectivity;
@@ -103,6 +107,29 @@ classdef FilterP1 < handle
             s.quadType = quadType;
             s.mesh     = obj.mesh;
             rhs        = RHSintegrator.create(s);
+        end
+
+        function xReg = getP1Function(obj,fun,quadType)
+            test       = P0Function.create(obj.mesh, 1);
+            int        = obj.computeRHSintegrator(quadType);
+            P          = obj.Poper.value;
+            A          = P';
+            b          = int.compute(fun,test);
+            p.fValues  = A*b;
+            p.mesh     = obj.mesh;
+            xReg       = P1Function(p);
+        end
+
+        function xReg = getFGaussFunction(obj,fun,quadType)
+            test       = P1Function.create(obj.mesh, 1);
+            int        = obj.computeRHSintegrator(quadType);
+            P          = obj.Poper.value;
+            A          = P;
+            b          = int.compute(fun,test);
+            xR         = A*b;
+            p.fValues  = xR;
+            p.mesh     = obj.mesh;
+            xReg       = P0Function(p);
         end
 
     end

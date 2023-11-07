@@ -15,27 +15,13 @@ classdef FilterP1Unfitted <  handle
             obj.createPoperator();
         end
 
-        function xReg = getP1Function(obj,charFun,quadType) % NOT OPERATIVE
-            obj.levelSet = charFun.levelSet;
-            test         = P0Function.create(obj.mesh, 1);
-            int          = obj.computeRHSintegrator(quadType);
-            P            = obj.Poper.value;
-            A            = P';
-            b            = int.integrateInDomain(charFun,test);
-            p.fValues    = A*b;
-            p.mesh       = obj.mesh;
-            xReg         = P1Function(p);
-        end
-
-        function xReg = getFGaussFunction(obj,charFun,quadType)
-            obj.levelSet = charFun.levelSet;
-            test         = P1Function.create(obj.mesh, 1);
-            int          = obj.computeRHSintegrator(quadType);
-            P            = obj.Poper.value;
-            A            = P;
-            b            = int.integrateInDomain(charFun,test);
-            xR           = A*b;
-            xReg         = obj.expressInFilterGaussPoints(xR);
+        function xReg = compute(obj,fun,quadType) % computeWorking DELETE ASAP
+            switch class(fun)
+                case 'FGaussDiscontinuousFunction'
+                    xReg = obj.getP1Function(fun,quadType);
+                otherwise
+                    xReg = obj.getFGaussFunction(fun,quadType);
+            end
         end
 
     end
@@ -57,10 +43,10 @@ classdef FilterP1Unfitted <  handle
             obj.Poper = Poperator(s);
         end
 
-        function int = computeRHSintegrator(obj,quadType)
+        function int = computeRHSintegrator(obj,unfFun,quadType)
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
-            s.mesh     = obj.levelSet.getUnfittedMesh();
+            s.mesh     = unfFun.unfittedMesh;
             int        = RHSintegrator.create(s);
         end
 
@@ -75,6 +61,27 @@ classdef FilterP1Unfitted <  handle
             s.mesh       = obj.mesh;
             s.quadrature = obj.quadrature;
             xG           = FGaussDiscontinuousFunction(s);
+        end
+
+        function xReg = getP1Function(obj,unfFun,quadType) % NOT OPERATIVE
+            test         = P0Function.create(obj.mesh, 1);
+            int          = obj.computeRHSintegrator(unfFun,quadType);
+            P            = obj.Poper.value;
+            A            = P';
+            b            = int.integrateInDomain(unfFun,test);
+            p.fValues    = A*b;
+            p.mesh       = obj.mesh;
+            xReg         = P1Function(p);
+        end
+
+        function xReg = getFGaussFunction(obj,unfFun,quadType)
+            test         = P1Function.create(obj.mesh, 1);
+            int          = obj.computeRHSintegrator(unfFun,quadType);
+            P            = obj.Poper.value;
+            A            = P;
+            b            = int.integrateInDomain(unfFun,test);
+            xR           = A*b;
+            xReg         = obj.expressInFilterGaussPoints(xR);
         end
 
     end
