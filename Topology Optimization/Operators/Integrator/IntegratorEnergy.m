@@ -1,4 +1,4 @@
-classdef IntegratorFunction < handle
+classdef IntegratorEnergy < handle
 
     properties (Access = private)
         quadType
@@ -10,26 +10,29 @@ classdef IntegratorFunction < handle
     end
 
     methods (Access = public)
-        function obj = IntegratorFunction(cParams)
+        function obj = IntegratorEnergy(cParams)
             obj.init(cParams);
             obj.createQuadrature();
         end
 
-        function int = compute(obj,f)
+        function int = compute(obj,e,C)
             quad      = obj.quadrature;
             xV        = quad.posgp;
             dV        = obj.mesh.computeDvolume(quad);
             nGaus     = quad.ngaus;
-            fGaus     = f.evaluate(xV);
-            nFields   = size(fGaus,1);
+            eGaus     = e.evaluate(xV);
+            nFields   = size(eGaus,1);
             h         = 0;
             for iField = 1:nFields
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    fG       = squeeze(fGaus(iField,igaus,:));
+                for jField = 1:nFields
+                    for igaus = 1:nGaus
+                        dVg(:,1) = dV(igaus, :);
+                        energy = eGaus(iField,igaus,:).*C(iField,jField,:,igaus).*eGaus(jField,igaus,:);
+                        energyG       = squeeze(energy);
 
-                    int = fG.*dVg;
-                    h   = h + sum(int);
+                        int = energyG.*dVg;
+                        h   = h + sum(int);
+                    end
                 end
             end
             int = h;

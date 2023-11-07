@@ -26,7 +26,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
         function rhsC = computeElementalRHS(obj, fun, test)
             quad = obj.quadrature;
 %             fG     = obj.fun.evaluate(quad.posgp);
-            fG     = squeeze(fun.evaluate(quad.posgp)); % only used in 1d funs so far
+            fG     = squeezeParticular(fun.evaluate(quad.posgp),1); % only used in 1d funs so far
             dV     = obj.computeDvolume();
             N = test.computeShapeFunctions(quad);
             N = permute(N, [1 3 2]);

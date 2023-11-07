@@ -1,14 +1,16 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-6
-        tolErrPhi = 1e-6
-        Gc = 1;
+        tolErrU = 1e-4;
+        tolErrPhi = 1e-2;
+        Gc = 100;
         fc = 1;
+        Force = 0.3;
     end
 
     properties (Access = private)
         mesh
+        quadrature
         boundaryConditions
         materialInterpolation
         material
@@ -35,27 +37,34 @@ classdef PhaseFieldComputer < handle
             close all %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             obj.init()
             obj.computeMesh();
+            obj.createQuadrature();
             obj.createPhaseField();
             obj.createMaterialInterpolation();
             obj.createDissipationInterpolation();
             obj.phaseField.plot;
             title('Initial phase field')
-            obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
+
+            %obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
             obj.Constant = obj.Gc/(4*0.5);
 
+            obj.l0 = 0.2;
+            %obj.Constant = 1;
+
             niter = 100;
+            Energy = zeros(4,niter);
             ForceDisplacement = zeros(2,niter);
+            Iterations = zeros(2,niter);
             for i = 1:niter
                 obj.createBoundaryConditions(i,niter);
                 errorU = 1;
                 Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
                 numIterU = 1;
+                numIterP = 1;
                 while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    obj.computeTotalEnergy()
+                    %obj.fem.uFun.plot()
                     errorPhi = 1;
-                    numIterP = 1;
-                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
+                    while (errorPhi > obj.tolErrPhi) && (numIterP < 1000)
                         obj.createEnergyMassMatrix();
                         obj.createDissipationMassMatrix();
                         obj.createStiffnessMatrix();
@@ -63,24 +72,58 @@ classdef PhaseFieldComputer < handle
                         obj.createDissipationForceVector();
                         obj.createForceDerivativeVector();
                         obj.solvePhaseFieldEquation();
+                        %obj.computeTotalEnergy()
 
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
                         res = obj.computeResidual();
                         errorPhi = norm(res)
                         numIterP = numIterP + 1;
+                        %obj.phaseField.plot;  
                     end
                     errorU = norm(obj.fem.uFun.fValues - Uold)
                     Uold = obj.fem.uFun.fValues;
                     numIterU = numIterU + 1;
                 end
+
+                Energy(1,i) = obj.computeTotalExternalWork();
+                Energy(2,i) = obj.computeTotalEnergy();
+                Energy(3,i) = obj.computeTotalDissipationLocal();
+                Energy(4,i) = obj.computeTotalDissipationNonLocal();
+                Iterations(1,i) = numIterU;
+                Iterations(2,i) = numIterP;
                 ForceDisplacement(1,i) = obj.boundaryConditions.pointload(1,3);
                 ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
+
                 %obj.fem.uFun.plot;
-                %obj.phaseField.plot;
-                %title('Final phase field')
+
+                %obj.phaseField.plot;                
+                colorbar
+                clim([0 1])
+                title('Final phase field')
                 fprintf('%%%%%%%%%% NEXT ITERATION %%%%%%%%%%%')
+                %obj.fem.print(['Example',num2str(i)],'Paraview')
+                %obj.phaseField.print(['Example',num2str(i),'Phi'],'Paraview')
             end
-            plot(-ForceDisplacement(1,:),ForceDisplacement(2,:))
+            figure
+            plot(Energy(1,:))
+            hold on
+            plot(Energy(2,:))
+            hold on
+            plot(Energy(3,:))
+            hold on
+            plot(Energy(4,:))
+            legend('External Work','Internal Energy','Local surface energy','Non-local surface energy')
+
+            figure
+            plot(ForceDisplacement(2,:),-ForceDisplacement(1,:))
+            figure
+            plot(ForceDisplacement(2,:))
+
+            figure
+            plot(Iterations(1,:))
+            hold on
+            plot(Iterations(2,:))
+            legend('U','phi')
         end
 
     end
@@ -91,7 +134,6 @@ classdef PhaseFieldComputer < handle
     methods (Access = private)
 
         function init(obj)
-
         end
 
         function computeMesh(obj)
@@ -100,7 +142,7 @@ classdef PhaseFieldComputer < handle
             % s = FemDataContainer(a);
 
             % Generate coordinates
-            x1 = linspace(0,2,20);
+            x1 = linspace(0,1,20);
             x2 = linspace(1,2,20);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
@@ -113,26 +155,10 @@ classdef PhaseFieldComputer < handle
             obj.mesh = m;
         end
 
-        function createBoundaryConditions(obj,Fstep,niter)
-            dirichletNodes = abs(obj.mesh.coord(:,1)-0) < 1e-12;
-            rightSide  = max(obj.mesh.coord(:,1));
-            isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
-            isInMiddleEdge = abs(obj.mesh.coord(:,2)-1.5) < 0.1;
-            forceNodes = isInRight & isInMiddleEdge;
-            nodes = 1:obj.mesh.nnodes;
-
-            ndim = 2;
-            bc.dirichlet = zeros(ndim*length(nodes(dirichletNodes)),3);
-            for i=1:ndim
-                bc.dirichlet(i:2:end,1) = nodes(dirichletNodes);
-                bc.dirichlet(i:2:end,2) = i;
-            end
-            bc.dirichlet(:,3) = 0;
-
-            bc.pointload(:,1) = nodes(forceNodes);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -10*(Fstep/niter);
-            obj.boundaryConditions = bc;
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            obj.quadrature = quad;
         end
 
         function createPhaseField(obj)
@@ -148,15 +174,14 @@ classdef PhaseFieldComputer < handle
             % scatter3(obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.phi);
 
             xmax = max(obj.mesh.coord(:,1));
+            sAF.fHandle = @(x) (x(1,:,:)-x(1,:,:))/xmax;
             %sAF.fHandle = @(x) x(1,:,:)/xmax;
-            sAF.fHandle = @(x) x(1,:,:)-x(1,:,:);
+            %sAF.fHandle = @(x) (x(1,:,:).^2)/xmax;
             sAF.ndimf   = 1;
             sAF.mesh    = obj.mesh;
             xFun = AnalyticalFunction(sAF);
 
             phi = xFun.project('P1');
-            %phi.plot();
-            %title('Initial phi')
             obj.phaseField = phi;
         end
 
@@ -184,7 +209,29 @@ classdef PhaseFieldComputer < handle
             obj.dissipationInterpolation = disInt;
         end
 
-        %% ELASTIC EQUATION 
+        function createBoundaryConditions(obj,Fstep,niter)
+            dirichletNodes = abs(obj.mesh.coord(:,1)-0) < 1e-12;
+            rightSide  = max(obj.mesh.coord(:,1));
+            isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
+            isInMiddleEdge = abs(obj.mesh.coord(:,2)-1.5) < 0.1;
+            forceNodes = isInRight & isInMiddleEdge;
+            nodes = 1:obj.mesh.nnodes;
+
+            ndim = 2;
+            bc.dirichlet = zeros(ndim*length(nodes(dirichletNodes)),3);
+            for i=1:ndim
+                bc.dirichlet(i:2:end,1) = nodes(dirichletNodes);
+                bc.dirichlet(i:2:end,2) = i;
+            end
+            bc.dirichlet(:,3) = 0;
+
+            bc.pointload(:,1) = nodes(forceNodes);
+            bc.pointload(:,2) = 2;
+            bc.pointload(:,3) = -obj.Force*(Fstep/niter);
+            obj.boundaryConditions = bc;
+        end
+
+        %% %%%%%%%%%%%%%%%%%%%%%% ELASTIC EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function mat = createMaterial(obj)
             phi0 = obj.phaseField.project('P0');
             mat  = obj.materialInterpolation.computeMatProp(squeeze(phi0.fValues));
@@ -215,15 +262,15 @@ classdef PhaseFieldComputer < handle
 
             %obj.fem.uFun.fValues(:,end+1) = 0;
             %obj.fem.uFun.ndimf = 3;
-
             %obj.fem.print('Example','Paraview')
         end
 
-        %% PHASE-FIELD EQUATION (LHS)
+        %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
+
         % Internal energy mass matrix
         function DDenergy = createFGaussDDEnergyFunction(obj)
             s.fValues = obj.computeSecondEnergyDerivativeField();
-            s.quadrature = obj.fem.strainFun.quadrature;
+            s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             DDenergy = FGaussDiscontinuousFunction(s);
             %DDenergy.plot();
@@ -265,7 +312,7 @@ classdef PhaseFieldComputer < handle
             s.function = DDenergyFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = DDenergyFun.quadrature.order;
+            s.quadratureOrder = obj.quadrature.order;
             LHS = LHSintegrator.create(s);
             obj.Mi = LHS.compute(); 
         end
@@ -274,7 +321,7 @@ classdef PhaseFieldComputer < handle
         function DDalpha = createFGaussDDDissipationFunction(obj)
             phi0 = obj.phaseField.project('P0');
             s.fValues = reshape(obj.dissipationInterpolation.computeDDAlphaProp(squeeze(phi0.fValues)),1,1,[]);
-            s.quadrature = obj.fem.strainFun.quadrature;
+            s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             DDalpha = FGaussDiscontinuousFunction(s);
         end
@@ -286,7 +333,7 @@ classdef PhaseFieldComputer < handle
             s.function = DDalphaFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = DDalphaFun.quadrature.order;
+            s.quadratureOrder = obj.quadrature.order;
             LHS = LHSintegrator.create(s);
             obj.Md = LHS.compute(); 
         end
@@ -305,7 +352,7 @@ classdef PhaseFieldComputer < handle
         % Internal energy force vector
         function Denergy = createFGaussDEnergyFunction(obj)
             s.fValues = obj.computeFirstEnergyDerivativeField();
-            s.quadrature = obj.fem.strainFun.quadrature;
+            s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             Denergy = FGaussDiscontinuousFunction(s);
             %Denergy.plot();
@@ -353,7 +400,7 @@ classdef PhaseFieldComputer < handle
         function Dalpha = createFGaussDDissipationFunction(obj)
             phi0 = obj.phaseField.project('P0');
             s.fValues = reshape(obj.dissipationInterpolation.computeDAlphaProp(squeeze(phi0.fValues)),1,1,[]);
-            s.quadrature = obj.fem.strainFun.quadrature;
+            s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             Dalpha = FGaussDiscontinuousFunction(s);
         end   
@@ -363,17 +410,16 @@ classdef PhaseFieldComputer < handle
             test = P1Function.create(obj.mesh,1);
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
-            s.quadratureOrder = DalphaFun.quadrature.order;
+            s.quadratureOrder = obj.quadrature.order;
             RHS = RHSintegrator.create(s);
             obj.Fd = RHS.compute(DalphaFun, test);     
         end
        
         % Force derivative vector
         function createForceDerivativeVector(obj)
-            quad = obj.fem.strainFun.quadrature;
-            PhiGradient = obj.phaseField.computeGradient(quad);
-            test = P1Function.create(obj.mesh,2);
-            s.quadratureOrder = quad.order;
+            PhiGradient = obj.phaseField.computeGradient(obj.quadrature);
+            test = P1Function.create(obj.mesh,1);
+            s.quadratureOrder = obj.quadrature.order;
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             RHS = RHSintegrator.create(s);
@@ -392,7 +438,7 @@ classdef PhaseFieldComputer < handle
             res = -(obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
         end
 
-        function computeTotalEnergy(obj)
+        function totVal = computeTotalEnergy(obj)
             e = obj.fem.strainFun;
             mat = obj.material;
 
@@ -409,12 +455,64 @@ classdef PhaseFieldComputer < handle
                 end
             end
 
-            s.fValues = reshape(energyVal,[1,1,nelem]); %% CHANGE IN FGAUSS
-            s.quadrature = obj.fem.strainFun.quadrature;
+            s.fValues = reshape(energyVal,[1,1,nelem]);
+            s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             energy = FGaussDiscontinuousFunction(s);
             %energy.plot()
             %title('Energy')
+            
+            q.mesh = obj.mesh;
+            q.quadType = 'LINEAR';
+            q.type = 'InternalEnergy';
+            int = Integrator.create(q);
+            totVal = int.compute(e,mat.C);
+        end
+
+        function totVal = computeTotalDissipationLocal(obj)
+            phi0 = obj.phaseField.project('P0');
+            aValues = obj.dissipationInterpolation.computeAlphaProp(squeeze(phi0.fValues));
+            s.mesh = obj.mesh;
+            s.fValues = aValues;
+            alpha = P0Function(s);
+
+            q.mesh = obj.mesh;
+            q.quadType = 'LINEAR';
+            q.type = 'Function';
+            int = Integrator.create(q);
+            totVal = (obj.Constant/obj.l0)*int.compute(alpha);
+        end
+
+        function totVal = computeTotalDissipationNonLocal(obj)
+            PhiGradient = obj.phaseField.computeGradient(obj.quadrature);
+            GradGrad = sum(PhiGradient.fValues.^2);
+            s.mesh = obj.mesh;
+            s.fValues = GradGrad;
+            GradGradFun = P0Function(s);
+            
+            q.mesh = obj.mesh;
+            q.quadType = 'LINEAR';
+            q.type = 'Function';
+            int = Integrator.create(q);
+            totVal = (obj.Constant*obj.l0)*int.compute(GradGradFun);
+        end
+
+        function totVal = computeTotalExternalWork(obj)
+            u = obj.fem.uFun;
+            forceValues = zeros(size(u.fValues));
+            pLoad = obj.boundaryConditions.pointload;
+            idx = sub2ind(size(forceValues),pLoad(:,1),pLoad(:,2));
+            forceValues(idx) = pLoad(:,3);
+
+            s.mesh = obj.mesh;
+            s.fValues = forceValues;
+            f = P1Function(s);
+            
+            q.mesh = obj.mesh;
+            q.quadType = 'LINEAR';
+            q.type = 'ScalarProduct';
+            int = Integrator.create(q);
+            totVal = int.compute(u,f);
         end
 
     end
