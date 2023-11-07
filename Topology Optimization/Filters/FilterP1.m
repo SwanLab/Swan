@@ -2,45 +2,34 @@ classdef FilterP1 < handle
 
     properties (Access = private)
         mesh
-        filteredField
-        Poper
+     %   Poper
         M
         I
+        filteredField        
+        testFunction
     end
 
     methods (Access = public)
 
         function obj = FilterP1(cParams)
             obj.init(cParams);
-            obj.createPoperator();
+          %  obj.createPoperator();
             obj.createMassMatrix();
             obj.createSupportMatrix();
         end
 
-        function xReg = compute(obj,fun,quadType) % computeNew
-            test       = P1Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(quadType);
+        function xReg = compute(obj,fun,quadType)
+            RHS = computeRHS(obj,fun,quadType);            % computeNew
             Iki        = obj.I;
             sM         = sum(obj.M,2);
-            den        = Iki*sM;
-            P          = Iki./den;
-            A          = P;
-            b          = int.compute(fun,test);
-            xR         = A*b;
-            p.fValues  = xR;
-            p.mesh     = obj.mesh;
-            xReg       = P1Function(p);
+            LHS        = Iki*sM;
+            P          = Iki./LHS;
+            xR         = P*RHS;
+            obj.filteredField.fValues(:,1) = xR;
+        %    obj.filteredField.fValues(1,1,:) = xR;
+            xReg = obj.filteredField;
         end
-
-%         function xReg = compute(obj,fun,quadType) % computeWorking DELETE ASAP
-%             switch class(fun)
-%                 case 'P1Function'
-%                     xReg = obj.getFGaussFunction(fun,quadType);
-%                 case 'FGaussDiscontinuousFunction'
-%                     xReg = obj.getP1Function(fun,quadType);
-%             end
-%         end
-
+      
     end
 
     methods (Access = private)
@@ -48,6 +37,7 @@ classdef FilterP1 < handle
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
             obj.filteredField = P1Function.create(obj.mesh,1); % trial will come from outside
+            obj.testFunction  = P0Function.create(obj.mesh,1);
         end
 
         function createPoperator(obj)
@@ -58,8 +48,8 @@ classdef FilterP1 < handle
         function createMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = obj.testFunction;
+            s.trial = obj.testFunction;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS   = LHSintegrator.create(s);
             obj.M = LHS.compute();
@@ -82,55 +72,56 @@ classdef FilterP1 < handle
 %         end
 
         function createSupportMatrix(obj)
-            connecField = obj.filteredField.computeDofConnectivity;
-            connecP1    = obj.mesh.connec';
-            nelem       = obj.mesh.nelem;
-            nnodes      = obj.mesh.nnodes;
-            nDofs       = max(connecField, [], 'all');
-            nodesElem   = obj.mesh.nnodeElem;
-            nDofElem    = size(connecField,1);
-            T           = zeros(nDofs,nnodes);
-            for ielem = 1:nelem
-                for kdof = 1:nDofElem
-                    for inode = 1:nodesElem
-                        dofs  = connecField(kdof,ielem);
-                        nodes = connecP1(inode,ielem);
-                        T(dofs,nodes) = 1;
-                    end
+            connecTrial = obj.filteredField.computeDofConnectivity();
+            connecTest  = obj.testFunction.computeDofConnectivity();
+            nDofsP1     = max(connecTest, [], 'all');
+            nDofsField  = max(connecTrial, [], 'all');
+            nDofElemP1  = size(connecTest,1);
+            nDofElemF   = size(connecTrial,1);
+            T = sparse(nDofsField,nDofsP1);
+            for kDof = 1:nDofElemF
+                for iDof = 1:nDofElemP1
+                    dofsF  = connecTrial(kDof,:);
+                    dofsP1 = connecTest(iDof,:);
+                    Iv     = ones(obj.mesh.nelem,1);
+                    incT   = sparse(dofsF,dofsP1,Iv,nDofsField,nDofsP1);
+                    T      = T + incT;
                 end
             end
             obj.I = T;
         end
 
-        function rhs = computeRHSintegrator(obj,quadType)
+        function RHS = computeRHS(obj,fun,quadType)
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             s.mesh     = obj.mesh;
-            rhs        = RHSintegrator.create(s);
+            rhsI       = RHSintegrator.create(s);            
+            test       = obj.testFunction;
+            RHS  = rhsI.compute(fun,test);     
         end
-
-        function xReg = getP1Function(obj,fun,quadType)
-            test       = P0Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(quadType);
-            P          = obj.Poper.value;
-            A          = P';
-            b          = int.compute(fun,test);
-            p.fValues  = A*b;
-            p.mesh     = obj.mesh;
-            xReg       = P1Function(p);
-        end
-
-        function xReg = getFGaussFunction(obj,fun,quadType)
-            test       = P1Function.create(obj.mesh, 1);
-            int        = obj.computeRHSintegrator(quadType);
-            P          = obj.Poper.value;
-            A          = P;
-            b          = int.compute(fun,test);
-            xR         = A*b;
-            p.fValues  = xR;
-            p.mesh     = obj.mesh;
-            xReg       = P0Function(p);
-        end
+% 
+%         function xReg = getP1Function(obj,fun,quadType)
+%             test       = P0Function.create(obj.mesh, 1);
+%             int        = obj.computeRHSintegrator(quadType);
+%             P          = obj.Poper.value;
+%             A          = P';
+%             b          = int.compute(fun,test);
+%             p.fValues  = A*b;
+%             p.mesh     = obj.mesh;
+%             xReg       = P1Function(p);
+%         end
+% 
+%         function xReg = getFGaussFunction(obj,fun,quadType)
+%             test       = P1Function.create(obj.mesh, 1);
+%             int        = obj.computeRHSintegrator(quadType);
+%             P          = obj.Poper.value;
+%             A          = P;
+%             b          = int.compute(fun,test);
+%             xR         = A*b;
+%             p.fValues  = xR;
+%             p.mesh     = obj.mesh;
+%             xReg       = P0Function(p);
+%         end
 
     end
 
