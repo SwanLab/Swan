@@ -17,7 +17,7 @@ classdef FilterP1 < handle
             obj.createSupportMatrix();
         end
 
-        function xReg = computeNew(obj,fun,quadType) % computeNew
+        function xReg = compute(obj,fun,quadType) % computeNew
             test       = P1Function.create(obj.mesh, 1);
             int        = obj.computeRHSintegrator(quadType);
             Iki        = obj.I;
@@ -32,14 +32,14 @@ classdef FilterP1 < handle
             xReg       = P1Function(p);
         end
 
-        function xReg = compute(obj,fun,quadType) % computeWorking DELETE ASAP
-            switch class(fun)
-                case 'P1Function'
-                    xReg = obj.getFGaussFunction(fun,quadType);
-                case 'FGaussDiscontinuousFunction'
-                    xReg = obj.getP1Function(fun,quadType);
-            end
-        end
+%         function xReg = compute(obj,fun,quadType) % computeWorking DELETE ASAP
+%             switch class(fun)
+%                 case 'P1Function'
+%                     xReg = obj.getFGaussFunction(fun,quadType);
+%                 case 'FGaussDiscontinuousFunction'
+%                     xReg = obj.getP1Function(fun,quadType);
+%             end
+%         end
 
     end
 
