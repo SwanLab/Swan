@@ -7,6 +7,7 @@ classdef QRFactorization < Solver
             [m, n] = size(LHS);
             Q = zeros(m, n);
             R = zeros(n, n);
+            x = zeros(m, 1);
    
             for j = 1:n
                 v = LHS(:, j);
@@ -17,10 +18,11 @@ classdef QRFactorization < Solver
                 R(j, j) = norm(v);
                 Q(:, j) = v / R(j, j);
                 %QRFactorization.plotQ(Q(:,j),mesh,bc,j)
-                Ap = Q(:,j).*R;
-                x = (Ap'*Ap)\(Ap'*RHS);
-                res = Ap*x - RHS;
-                QRFactorization.plotRes(res,mesh,bc,j)
+                %Ap = Q(:,j).*R;
+                Ap = Q(:,1:j)*R(1:j,1:j);
+                x(1:j,1) = (Ap'*Ap)\(Ap'*RHS);
+                res = Ap*x(1:j,1) - RHS;
+                QRFactorization.plotRes(x,mesh,bc,j)
             end
         end
 
