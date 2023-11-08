@@ -50,7 +50,7 @@ Fred = bc.fullToReducedVector(Fext);
 M= computeMassMatrix(mesh,dispFun);
 Mred= bc.fullToReducedMatrix(M);
 % [basis,D]=eigs(M\K);
-[basis,D]=eigs(Kred,5,'smallestabs');
+[basis,D]=eigs(Kred,8,'smallestabs');
 psi = Kred*basis;
 
 for i = 1:size(basis,2)
@@ -242,8 +242,8 @@ function mesh = createMesh()
 
 
 % Generate coordinates
-x1 = linspace(0,2,4);
-x2 = linspace(0,1,4);
+x1 = linspace(0,2,20);
+x2 = linspace(0,1,20);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -382,6 +382,7 @@ n = length(B);
 x = zeros(n,1);
 r = B - A * x;
 z = matVecProd(M,r);
+z=r-z;
 p = z;
 rzold = r' * z;
 iter = 0;
