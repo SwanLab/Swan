@@ -29,7 +29,7 @@ classdef ConnectivityComputer < handle
             obj.createBoundaryConditions();            
             obj.createStiffnessMatrix();
             obj.computeMassMatrix();
-            [eigLHS,eigLHSr] = obj.obtainLowestEigenValues();
+            [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
             obj.density.plot()
             shading flat
             colormap('gray');
@@ -48,8 +48,8 @@ classdef ConnectivityComputer < handle
         end
         
         function createMesh(obj)
-            x1 = linspace(-1,1,100);
-            x2 = linspace(-1,1,100);
+            x1 = linspace(-0.5,0.5,100);
+            x2 = linspace(-0.5,0.5,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -59,14 +59,27 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
+%             s.ndim       = 2;
+%             s.fracRadius = 0.5;
+%             s.coord      = obj.mesh.coord;
+%             sD.type = 'LevelSet';
+%             sD.mesh = obj.mesh;
+%             sD.creatorSettings = s;
+%             sD.initialCase = 'circleInclusion';
+%             obj.levelSet   = DesignVariable.create(sD);
+
+
             s.ndim       = 2;
-            s.fracRadius = 0.45;
+            s.widthH = 1;
+            s.widthV = 0.5;
             s.coord      = obj.mesh.coord;
             sD.type = 'LevelSet';
             sD.mesh = obj.mesh;
             sD.creatorSettings = s;
-            sD.initialCase = 'circleInclusion';
+            sD.initialCase = 'rectangleInclusion';
             obj.levelSet   = DesignVariable.create(sD);
+
+
         end
  
         function filterCharacteristicFunction(obj)
@@ -77,8 +90,10 @@ classdef ConnectivityComputer < handle
             %s.domainType = obj.mesh.type;
             f = Filter_PDE_LevelSet(s);
             dens = f.getP0fromP1([]);
-            w    = max(0,min(1,1-dens));
-            s.fValues = floor(2*(w-0.5))+1;
+           % w    = max(0,min(1,1-dens));
+            w = 1 - dens;
+            w(:) = 1;
+            s.fValues = w;%floor(2*(w-0.5))+1;
             s.mesh    = obj.mesh;
             obj.density = P0Function(s);
         end
@@ -119,14 +134,18 @@ classdef ConnectivityComputer < handle
             obj.Mmatrix = lhs.compute();            
         end
 
-        function [eigLHS,eigLHSr] = obtainLowestEigenValues(obj)
+        function [eigLHSNewman,eigLHSDirichlet] = obtainLowestEigenValues(obj)
             K = obj.Kmatrix;
             M = obj.Mmatrix;
             bc  = obj.boundaryConditions;
             Kr = bc.fullToReducedMatrix(K);
             Mr = bc.fullToReducedMatrix(M);
-            [V,eigLHS]  = eigs(K,M,10,'smallestabs');
-            [Vr,eigLHSr] = eigs(Kr,Mr,10,'smallestabs');
+            [V,eigLHSNewman]  = eigs(K,M,10,'smallestabs');
+            [Vr,eigLHSDirichlet] = eigs(Kr,Mr,10,'smallestabs');
+
+        %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');
+         %   [Vr,eigLHSDirichlet] = eigs(Kr,[],10,'smallestabs');
+
 
             fV = zeros(size(V(:,1)));
             fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
