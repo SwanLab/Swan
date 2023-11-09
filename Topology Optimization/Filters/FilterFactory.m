@@ -11,7 +11,7 @@ classdef FilterFactory < handle
                 case 'P1'
                     switch cParams.designVarType
                         case {'Continuous','Density','MicroParams'}
-                            filter = FilterP1(cParams);
+                            filter = FilterKernel(cParams);
                         case 'LevelSet'
                             filter = FilterP1Unfitted(cParams);
                     end
