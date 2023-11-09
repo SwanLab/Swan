@@ -54,10 +54,10 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function loadDataExperiment(obj)
-        %     s.fileName = [obj.fileName,num2str(obj.iteration)];
-        %     s.folderPath = fullfile(obj.filePath );
-        %     w = WrapperMshResFiles(s);
-        %     w.compute();
+           % s.fileName = [obj.fileName,num2str(obj.iteration)];
+           %  s.folderPath = fullfile(obj.filePath );
+           %  w = WrapperMshResFiles(s);
+           %  w.compute();
             d = load('DataExample.mat');
             w = d.w;
             obj.experimentData = w;
@@ -83,7 +83,7 @@ classdef HarmonicVectorProjectionExample < handle
 
         function a = createOrientationFromSigma(obj)
             sigma0  = obj.getSigma0FromData();
-            sigma0V = permute(sigma0.fValues,[2 1 3]);
+            sigma0V(1,:,:) = sigma0.fValues';
             [a1,a2] = obj.obtainPrincipalDirections(sigma0V);   
             a{1}    = obj.createFunctionP0(a1);
             a{2}    = obj.createFunctionP0(a2);

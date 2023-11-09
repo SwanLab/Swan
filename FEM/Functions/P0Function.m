@@ -24,7 +24,7 @@ classdef P0Function < FeFunction
             nFlds = size(obj.fValues,2);
             nElem = size(obj.fValues,1);
             fxV = zeros(nFlds,nGaus,nElem);
-            fVals = reshape(obj.fValues,[nFlds, 1, nElem]);
+            fVals = reshape(obj.fValues',[nFlds, 1, nElem]);
             for iGaus = 1:nGaus
                 fxV(:,iGaus,:) = squeeze(fVals);
             end
