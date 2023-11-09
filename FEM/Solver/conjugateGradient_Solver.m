@@ -5,7 +5,7 @@ classdef conjugateGradient_Solver < Solver
         function x = solve(LHS,RHS,mesh,bc)
             tol = 1e-6;
             n = length(RHS);
-            x = zeros(n,1); 
+            x = rand(n,1); 
             r = RHS - LHS * x; 
             p = r; 
             rsold = r' * r;
