@@ -53,8 +53,8 @@ classdef HamiltonJacobi < handle
             s.fValues    = g;
             ss.fun       = P1Function(s);
             ss.uMesh     = obj.phi.getUnfittedMesh();
-            unfFun      = UnfittedBoundaryFunction(ss);
-            V            = -obj.filter.computeInBoundary(unfFun,'QUADRATICMASS');
+            unfFun       = UnfittedBoundaryFunction(ss);
+            V            = -obj.filter.compute(unfFun,'QUADRATICMASS');
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
         end

@@ -13,14 +13,14 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             obj.init(cParams);
         end
 
-        function int = integrateInDomain(obj, unfFun, test)
-            obj.createInteriorIntegrators(test);
+        function int = compute(obj,unfFun,test)
+            switch class(unfFun)
+                case 'UnfittedFunction'
+                    obj.createInteriorIntegrators(test);
+                case 'UnfittedBoundaryFunction'
+                    obj.createBoundaryIntegrators(test);
+            end
             int = obj.integrators.integrateAndSum(unfFun);
-        end
-
-        function int = integrateInBoundary(obj,F,test)
-            obj.createBoundaryIntegrators(test);
-            int = obj.integrators.integrateAndSum(F);
         end
 
     end

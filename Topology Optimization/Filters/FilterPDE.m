@@ -5,6 +5,9 @@ classdef FilterPDE < handle
         filteredField
         epsilon
         LHStype
+    end
+
+    properties (Access = private)
         problemLHS
         LHS
         RHS
@@ -66,11 +69,16 @@ classdef FilterPDE < handle
         end
 
         function computeRHS(obj,fun,quadType)
-            test       = obj.filteredField;
-            s.mesh     = obj.mesh;
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                otherwise
+                    s.mesh = obj.mesh;
+            end
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
+            test       = obj.filteredField;
             rhs        = int.compute(fun,test);
             rhsR       = obj.bc.fullToReducedVector(rhs);
             obj.RHS    = rhsR;

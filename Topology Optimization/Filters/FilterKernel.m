@@ -7,12 +7,12 @@ classdef FilterKernel < handle
     end
 
     properties (Access = private)
-        M
-        I
+        massMatrix
+        supportMatrix
+        RHS
     end
 
     methods (Access = public)
-
         function obj = FilterKernel(cParams)
             obj.init(cParams);
             obj.createMassMatrix();
@@ -20,12 +20,8 @@ classdef FilterKernel < handle
         end
 
         function xReg = compute(obj,fun,quadType)
-            RHSi = obj.computeRHS(fun,quadType);
-            Iki  = obj.I;
-            Mi   = sum(obj.M);            
-            Pki  = Iki./(Iki*Mi');
-            xRk  = Pki*RHSi;
-            obj.filteredField.fValues(:) = xRk;
+            obj.computeRHS(fun,quadType);
+            obj.solveFilter();
             xReg = obj.filteredField;
         end
 
@@ -46,7 +42,7 @@ classdef FilterKernel < handle
             s.trial           = obj.testField;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS               = LHSintegrator.create(s);
-            obj.M             = LHS.compute();
+            obj.massMatrix    = LHS.compute();
         end      
 
         function createSupportMatrix(obj)
@@ -63,19 +59,33 @@ classdef FilterKernel < handle
                     dofsP1 = connecTest(iDof,:);
                     Iv     = ones(obj.mesh.nelem,1);
                     incT   = sparse(dofsF,dofsP1,Iv,nDofsField,nDofsP1);
-                    T      = T + incT;
+                    T      = boolean(T + incT);
                 end
             end
-            obj.I = min(T,1);
+            obj.supportMatrix = T;
         end
 
-        function RHS = computeRHS(obj,fun,quadType)
+        function computeRHS(obj,fun,quadType)
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                otherwise
+                    s.mesh = obj.mesh;
+            end
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
-            s.mesh     = obj.mesh;
             rhsI       = RHSintegrator.create(s);            
             test       = obj.testField;
-            RHS        = rhsI.compute(fun,test);     
+            obj.RHS    = rhsI.compute(fun,test);     
+        end
+
+        function solveFilter(obj)
+            RHSi = obj.RHS;
+            Iki  = obj.supportMatrix;
+            Mi   = sum(obj.massMatrix);            
+            Pki  = Iki./(Iki*Mi');
+            xRk  = Pki*RHSi;
+            obj.filteredField.fValues = xRk;
         end
 
     end
