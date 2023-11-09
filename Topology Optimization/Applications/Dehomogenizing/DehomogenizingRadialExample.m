@@ -104,9 +104,27 @@ classdef DehomogenizingRadialExample < handle
         end
         
         function dehomogenize(obj)
+
+            alphaM(:,2) = cos(obj.theta);
+            alphaM(:,1) = sin(obj.theta);
+            
+
+            s.fValues = alphaM;
+            s.mesh    = obj.backgroundMesh;
+            a1{1} = P1Function(s);
+            %a1{1} = a0{1}.project('P1');
+
+
+            s.fValues(:,1) = -alphaM(:,2);
+            s.fValues(:,2) = alphaM(:,1);
+            s.mesh    = obj.backgroundMesh;
+            a1{2} = P1Function(s);
+            %a1{2} = a0{2}.project('P1');
+
+
             s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = obj.nCells;
-            s.theta              = obj.theta;
+            s.theta              = a1;
             s.cellLevelSetParams = obj.cellLevelSetParams;
             s.mesh               = obj.backgroundMesh;
             d = Dehomogenizer(s);

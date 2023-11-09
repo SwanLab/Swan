@@ -47,7 +47,7 @@ classdef RHSintegrator_ShapeFunction < RHSintegrator
         function f = assembleIntegrand(obj,test,rhsElem)
             integrand = rhsElem;
             connec = test.computeDofConnectivity()';
-            ndofs = max(max(connec));
+            ndofs  = max(max(connec));
             nnode  = size(connec,2);
             f = zeros(ndofs,1);
             for iNode = 1:nnode

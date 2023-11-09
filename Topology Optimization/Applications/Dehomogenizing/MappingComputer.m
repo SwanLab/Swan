@@ -56,11 +56,11 @@ classdef MappingComputer < handle
             s.mesh      = obj.mesh;
             s.quadratureOrder = q.order;
             s.type      = 'ShapeDerivative';
+            test = P1DiscontinuousFunction.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);
-            rhsF = rhs.compute(aI,aI);
+            rhsV = rhs.compute(aI,test);
             In = obj.interpolator;
-            rhsV = In'*rhsF.fValues;          
-            RHS = rhsV;
+            RHS = In'*rhsV;          
         end
 
         function u = solveSystem(obj,LHS,RHS)
