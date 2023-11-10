@@ -59,25 +59,25 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-%             s.ndim       = 2;
-%             s.fracRadius = 0.5;
-%             s.coord      = obj.mesh.coord;
-%             sD.type = 'LevelSet';
-%             sD.mesh = obj.mesh;
-%             sD.creatorSettings = s;
-%             sD.initialCase = 'circleInclusion';
-%             obj.levelSet   = DesignVariable.create(sD);
-
-
             s.ndim       = 2;
-            s.widthH = 1;
-            s.widthV = 0.5;
+            s.fracRadius = 0.5;
             s.coord      = obj.mesh.coord;
             sD.type = 'LevelSet';
             sD.mesh = obj.mesh;
             sD.creatorSettings = s;
-            sD.initialCase = 'rectangleInclusion';
+            sD.initialCase = 'circleInclusion';
             obj.levelSet   = DesignVariable.create(sD);
+
+
+%             s.ndim       = 2;
+%             s.widthH = 1;
+%             s.widthV = 0.5;
+%             s.coord      = obj.mesh.coord;
+%             sD.type = 'LevelSet';
+%             sD.mesh = obj.mesh;
+%             sD.creatorSettings = s;
+%             sD.initialCase = 'rectangleInclusion';
+%             obj.levelSet   = DesignVariable.create(sD);
 
 
         end
@@ -90,9 +90,9 @@ classdef ConnectivityComputer < handle
             %s.domainType = obj.mesh.type;
             f = Filter_PDE_LevelSet(s);
             dens = f.getP0fromP1([]);
-           % w    = max(0,min(1,1-dens));
-            w = 1 - dens;
-            w(:) = 1;
+           w    = max(0,min(1,1-dens));
+           % w = 1 - dens;
+           % w(:) = 1;
             s.fValues = w;%floor(2*(w-0.5))+1;
             s.mesh    = obj.mesh;
             obj.density = P0Function(s);
@@ -128,10 +128,11 @@ classdef ConnectivityComputer < handle
             s.test  = P1Function.create(obj.mesh,1); 
             s.trial = P1Function.create(obj.mesh,1); 
             s.mesh  = obj.mesh;
+            s.function = obj.density;
             s.quadratureOrder = 'QUADRATIC';
-            s.type            = 'MassMatrix';
+            s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
-            obj.Mmatrix = lhs.compute();            
+            obj.Mmatrix = lhs.compute();       
         end
 
         function [eigLHSNewman,eigLHSDirichlet] = obtainLowestEigenValues(obj)
