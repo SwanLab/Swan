@@ -13,8 +13,8 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.createQuadrature();
         end
 
-        function rhsFun = compute(obj, fun)
-            rhsElem = obj.computeElementalRHS(fun);
+        function rhsFun = compute(obj, fun, test)
+            rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(rhsElem);
             s.fValues = rhs;
             s.mesh    = obj.mesh;
@@ -35,10 +35,10 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.quadrature = q;
         end
         
-        function rhsC = computeElementalRHS(obj, fun)
+        function rhsC = computeElementalRHS(obj, fun, test)
             fG    = fun.evaluate(obj.quadrature.posgp);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx  = fun.computeCartesianDerivatives(obj.quadrature);
+            dNdx  = test.computeCartesianDerivatives(obj.quadrature);
             nDim  = size(dNdx,1);
             nNode = size(dNdx,2);
             nElem = size(dNdx,3);

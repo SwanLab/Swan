@@ -1,6 +1,8 @@
 classdef P1Function < FeFunction
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
 
     properties (Access = private)
@@ -17,6 +19,7 @@ classdef P1Function < FeFunction
         function obj = P1Function(cParams)
             obj.init(cParams);
             obj.createInterpolation();
+            obj.computeNDofs();
         end
 
         function fxV = evaluate(obj, xV)
@@ -120,14 +123,14 @@ classdef P1Function < FeFunction
             grad = obj.computeGradient(quad);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
-            nGaus = size(grad.fValues, 2);
-            nElem = size(grad.fValues, 3);
+            nElem = size(grad.fValues, 2);
+            nGauss = size(grad.fValues, 3);
 
-            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
+            gradReshp = reshape(grad.fValues, [nDims,nDimf,nElem,nGauss]);
             gradT = permute(gradReshp, [2 1 3 4]);
             symGrad = 0.5*(gradReshp + gradT);
             
-            rshp = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+            rshp = reshape(symGrad, [nDims*nDimf,nElem,nGauss]);
             s.fValues    = permute(rshp, [1 3 2]);
             s.quadrature = quad;
             s.mesh       = obj.mesh;
@@ -289,6 +292,11 @@ classdef P1Function < FeFunction
         function createInterpolation(obj)
             m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
+        end
+
+        function computeNDofs(obj)
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
+            obj.nDofs = obj.ndimf * size(obj.fValues, 1);
         end
 
         % Printing
