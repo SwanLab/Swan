@@ -28,10 +28,13 @@ clc; clear; close all
 
     dir_dom = @(coor) isLeft(coor);
     dir_dir = [1,2];
-    dir_val = 30;
+    dir_val = 1;
     dirich = DirichletCondition(mesh, dir_dom, dir_dir, dir_val);
 
-    pl_dom = @(coor) isRight(coor) & isMiddle(coor);
+    % pl_dom = @(coor) isRight(coor) & isMiddle(coor);
+    % pl_dom = @(coor) (abs(coor(:,1) - max(coor(:,1))) < 1e-12) & (abs(coor(:,2) - max(coor(:,2)/2)) < 0.1);
+    
+    pl_dom = @(coor) isMiddle(coor) & isRight(coor);
     pl_dir = 2;
     pl_val = -1;
     pl = PointLoad(mesh, pl_dom, pl_dir, pl_val);

@@ -33,6 +33,9 @@ classdef BCApplier < handle
                 HSr = HS(free);
             end
         end
+
+        function fullVector(u, bcs)
+        end
     end
     
     methods (Static, Access = private)
