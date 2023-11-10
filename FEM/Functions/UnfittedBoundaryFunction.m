@@ -17,16 +17,26 @@ classdef UnfittedBoundaryFunction < handle
         end
 
         function fxV = evaluateCutElements(obj,xV)
-            mesh      = obj.unfittedMesh.backgroundMesh;
-            bCMesh    = obj.unfittedMesh.boundaryCutMesh;
-            connec    = mesh.connec;
-            inCConnec = connec(bCMesh.cellContainingSubcell,:);
-            s.connec  = inCConnec;
-            s.coord   = bCMesh.mesh.coord;
-            meshNew   = Mesh(s);
-            obj.fun.updateMesh(meshNew);
-            fxV       = obj.fun.evaluate(xV);
-            obj.fun.updateMesh(mesh);
+            % FeFunction:
+            mesh          = obj.unfittedMesh.backgroundMesh;
+            coordOriginal = mesh.coord;
+            n0            = size(coordOriginal,1)+1;
+            bCMesh        = obj.unfittedMesh.boundaryCutMesh;
+            coordComplete = bCMesh.mesh.coord;
+            oldfValues = obj.fun.fValues;
+            x          = coordOriginal(:,1);
+            y          = coordOriginal(:,2);
+            F          = scatteredInterpolant(x,y,oldfValues);
+            newfValues = F(coordComplete(n0:end,:));
+            s.fValues = [oldfValues;newfValues];
+            s.mesh    = bCMesh.mesh;
+            newFun    = eval([class(obj.fun),'(s)']);
+            fxV       = newFun.evaluate(xV);
+
+            % L2:
+%             obj.fun.updateMesh(bCMesh.mesh);
+%             fxV       = obj.fun.evaluate(xV);
+%             obj.fun.updateMesh(mesh);
         end
 
     end

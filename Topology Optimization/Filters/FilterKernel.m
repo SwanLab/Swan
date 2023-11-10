@@ -67,15 +67,19 @@ classdef FilterKernel < handle
 
         function computeRHS(obj,fun,quadType)
             switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                case 'UnfittedFunction'
                     s.mesh = fun.unfittedMesh;
+                    test   = obj.testField;
+                case 'UnfittedBoundaryFunction'
+                    s.mesh = fun.unfittedMesh;
+                    test   = [];%% change also in pde
                 otherwise
                     s.mesh = obj.mesh;
+                    test   = obj.testField;
             end
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             rhsI       = RHSintegrator.create(s);            
-            test       = obj.testField;
             obj.RHS    = rhsI.compute(fun,test);     
         end
 
