@@ -17,7 +17,8 @@ classdef Solver < handle
                     %stype = Jacobian_Solver();
                     %stype = Gauss_Solver();
                     %stype = conjugateGradient_Solver();
-                    stype = QRFactorization();
+                    stype = preconditionedConjugateGradient();
+                    %stype = QRFactorization();
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
