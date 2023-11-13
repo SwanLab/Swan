@@ -53,7 +53,7 @@ classdef Projector_toP0 < Projector
 
         function computeQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('QUADRATICMASS');
             obj.quadrature = quad;
         end
     end
