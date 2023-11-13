@@ -28,11 +28,18 @@ classdef RHSintegrator_Composite < handle
         end
 
         function f = integrateAndSum(obj,unfFun)
-            f = zeros(size(obj.test.fValues));
+            f         = zeros(size(obj.test.fValues));
+            iBoundary = 0;
+            if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
+                bcMesh   = unfFun.unfittedMesh.boundaryCutMesh.mesh;
+                obj.test = eval([class(obj.test),'.create(bcMesh,1)']);
+            end
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
-                    int = integrator.integrateAndSum(unfFun);
+                    iBoundary = iBoundary + 1;
+                    newUnfFun = unfFun.obtainFunctionAtExternalBoundary(iBoundary);
+                    int       = integrator.integrateAndSum(newUnfFun);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     int = integrator.compute(unfFun,obj.test);
                 else

@@ -12,8 +12,10 @@ classdef UnfittedBoundaryFunction < handle
             obj.init(cParams);
         end
 
-        function fxV = evaluate(obj,xV)
-            % Will be analogous to inner in UnfittedFunction and then the whole boundaryUnfitted will be necessary
+        function f = obtainFunctionAtExternalBoundary(obj,iBoundary)
+            s.uMesh = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
+            s.fun   = obj.fun;
+            f       = UnfittedFunction(s);
         end
 
         function fxV = evaluateCutElements(obj,xV)
@@ -21,15 +23,15 @@ classdef UnfittedBoundaryFunction < handle
             mesh          = obj.unfittedMesh.backgroundMesh;
             coordOriginal = mesh.coord;
             n0            = size(coordOriginal,1)+1;
-            bCMesh        = obj.unfittedMesh.boundaryCutMesh;
-            coordComplete = bCMesh.mesh.coord;
+            bCMesh        = obj.unfittedMesh.boundaryCutMesh.mesh;
+            coordComplete = bCMesh.coord;
             oldfValues = obj.fun.fValues;
             x          = coordOriginal(:,1);
             y          = coordOriginal(:,2);
             F          = scatteredInterpolant(x,y,oldfValues);
             newfValues = F(coordComplete(n0:end,:));
             s.fValues = [oldfValues;newfValues];
-            s.mesh    = bCMesh.mesh;
+            s.mesh    = bCMesh;
             newFun    = eval([class(obj.fun),'(s)']);
             fxV       = newFun.evaluate(xV);
 
