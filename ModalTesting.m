@@ -113,7 +113,7 @@ classdef ModalTesting < handle
 
         function init(obj)
             obj.nDimf   = 2;
-            obj.nbasis = 20;
+            obj.nbasis = 10;
             funTyp='P1';
             for i=1:obj.nbasis
                 obj.functionType{i}=funTyp;
@@ -181,7 +181,9 @@ classdef ModalTesting < handle
         end
 
         function [basis,basisVec,eigenVec] = computeBasis(obj,K)
-            [eigenVec,D]=eigs(K,obj.nbasis,'smallestabs');
+            [eigenVec,D]=eigs(K,obj.nbasis/2,'smallestabs');
+%             [eigenVec2,D]=eigs(K,obj.nbasis/2);
+%             eigenVec=[eigenVec eigenVec2];
             psi = K*eigenVec;
 
             for i = 1:size(eigenVec,2)
@@ -237,7 +239,7 @@ classdef ModalTesting < handle
                 %hasNotConverged = sqrt(rsnew) > tol;
                 hasNotConverged = norm(r) > tol;
 
-                p = z + 0*(rznew / rzold) * p;
+                p = z + (rznew / rzold) * p;
                 rzold = rznew;
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
@@ -287,8 +289,8 @@ classdef ModalTesting < handle
 
 
             % Generate coordinates
-            x1 = linspace(0,2,5);
-            x2 = linspace(0,1,5);
+            x1 = linspace(0,2,20);
+            x2 = linspace(0,1,20);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -371,7 +373,7 @@ classdef ModalTesting < handle
                 %hasNotConverged = sqrt(rsnew) > tol;
                 hasNotConverged = norm(LHS*x - RHS) > tol;
 
-                p = r + 0*(rsnew / rsold) * p;
+                p = r + (rsnew / rsold) * p;
                 rsold = rsnew;
                 iter = iter + 1;
                 residual(iter) = norm(LHS*x - RHS); %Ax - b

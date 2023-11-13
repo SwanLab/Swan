@@ -21,8 +21,8 @@ classdef DomainDecompositionManager < handle
         globalMeshConnecSubDomain
         interfaceMeshConnecSubDomain
         subDomainContact
-        MasterSlaveConnec
         cornerNodes
+        quad
     end
 
     methods (Access = public)
@@ -36,6 +36,8 @@ classdef DomainDecompositionManager < handle
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
             obj.createBoundaryConditions();
+            obj.quad = Quadrature.set(obj.meshDomain.type);
+            obj.quad.computeQuadrature('QUADRATIC');
             obj.createDomainMaterial();
             obj.solveDomainProblem();
         end
@@ -60,11 +62,24 @@ classdef DomainDecompositionManager < handle
         end
 
         function createReferenceMesh(obj)
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mS         = femD.mesh;
+%             filename   = 'lattice_ex1';
+%             a.fileName = filename;
+%             femD       = FemDataContainer(a);
+%             mS         = femD.mesh;
+%             bS         = mS.createBoundaryMesh();
+             % Generate coordinates
+            x1 = linspace(0,1,10);
+            x2 = linspace(0,1,10);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectivities
+            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+            s.coord    = coord(:,1:2);
+            s.connec   = F;
+            mS         = Mesh(s);
             bS         = mS.createBoundaryMesh();
+
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
             obj.ninterfaces = length(bS);
@@ -87,9 +102,9 @@ classdef DomainDecompositionManager < handle
         end
 
         function createDomainMaterial(obj)
-            ngaus = 1;        
+%             ngaus = 1;        
             m = obj.meshDomain;                      
-            obj.material = obj.createMaterial(m,ngaus);
+            obj.material = obj.createMaterial(m);
         end
         
         function L = computeReferenceMeshLength(obj)
@@ -150,18 +165,28 @@ classdef DomainDecompositionManager < handle
 
         function obtainCornerNodes(obj)
             ninterface = obj.ninterfaces;
-            corner = zeros(ninterface,1);
+%             corner = zeros(ninterface,1);
             icorner=1;
-            for i=1:ninterface-1
-                nodesi=obj.interfaceMeshReference{i,1}.globalConnec;
-                for j=i+1:ninterface
-                    nodesj=obj.interfaceMeshReference{j,1}.globalConnec;
-                    nodes=intersect(nodesi,nodesj);
-                    if ~isempty(nodes)
-                        corner(icorner)= nodes;
-                        icorner=icorner+1;
-                    end
-                end
+%             for i=1:ninterface-1
+%                 nodesi=obj.interfaceMeshReference{i,1}.globalConnec;
+%                 for j=i+1:ninterface
+%                     nodesj=obj.interfaceMeshReference{j,1}.globalConnec;
+%                     nodes=intersect(nodesi,nodesj);
+%                     if ~isempty(nodes)
+%                         corner(icorner)= nodes;
+%                         icorner=icorner+1;
+%                     end
+%                 end
+%             end
+            for i=1:ninterface
+                [coordmax]  = max(obj.interfaceMeshReference{i}.mesh.coord);
+                [coordmin]  = max(obj.interfaceMeshReference{i}.mesh.coord);
+                
+                corner(icorner) = indmax;
+                icorner         = icorner+1;
+                
+                corner(icorner) = indmin;
+                icorner         = icorner+1;
             end
             obj.cornerNodes = corner;
         end
@@ -202,8 +227,8 @@ classdef DomainDecompositionManager < handle
             cond = cond(2:end,:);
         end
 
-        function material = createMaterial(obj,mesh,ngaus)
-            I = ones(mesh.nelem,ngaus);
+        function material = createMaterial(obj,mesh)
+            I = ones(mesh.nelem,obj.quad.ngaus);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
             s.nelem = mesh.nelem;
@@ -214,5 +239,6 @@ classdef DomainDecompositionManager < handle
             mat.compute(s);
             material = mat;
         end
+
     end
 end
