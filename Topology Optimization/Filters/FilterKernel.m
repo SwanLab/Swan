@@ -10,6 +10,7 @@ classdef FilterKernel < handle
         massMatrix
         M2
         M3
+        M4
         supportMatrix
         RHS
         RHS2
@@ -69,6 +70,15 @@ classdef FilterKernel < handle
             obj.M3    = LHS.compute();
         end   
 
+        function createMassMatrix4(obj)
+            s.type            = 'MassMatrix';
+            s.mesh            = obj.mesh;
+            s.test            = obj.filteredField;
+            s.trial           = obj.testField;
+            s.quadratureOrder = 'QUADRATICMASS';
+            LHS               = LHSintegrator.create(s);
+            obj.M4    = LHS.compute();
+        end 
         function createSupportMatrix(obj)
             connecTrial = obj.filteredField.computeDofConnectivity();
             connecTest  = obj.testField.computeDofConnectivity();
@@ -120,8 +130,11 @@ classdef FilterKernel < handle
         function solveFilter(obj)
             obj.createMassMatrix2();
             obj.createMassMatrix3();
+            obj.createMassMatrix4();
 
             RHSi = obj.RHS;
+            rhs2 = obj.RHS2;
+
             Iki  = obj.supportMatrix;
             
             M2   = obj.M2;
@@ -137,8 +150,14 @@ classdef FilterKernel < handle
             %norm(LHS(:)-LHS2(:))/norm(LHS(:))
             xRk  = LHS\(Iki*RHSi);
             
+
+            LHS = Iki'*M2';
+            LHS  = obj.lumpMatrix(LHS);
+            xRk3 =  LHS\(Iki'*rhs2);
+      %      xRk3 = (Iki)*xRk3;
+
+
          %   M   = obj.massMatrix;
-            rhs2 = obj.RHS2;
             M3    = obj.M3;
             LHS2 = Iki'*M3*Iki;
             LHS2 = obj.lumpMatrix(LHS2);
@@ -147,6 +166,10 @@ classdef FilterKernel < handle
 
             norm(xRk - xRk2)/norm(xRk) 
           %  xRk2  = Iki'*xRk2;
+
+
+
+
 
             obj.filteredField.fValues = xRk;
         end
