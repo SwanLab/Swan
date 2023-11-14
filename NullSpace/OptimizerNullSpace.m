@@ -153,9 +153,9 @@ classdef OptimizerNullSpace < Optimizer
                 obj.eta = inf;
             else
                 if obj.aG <= 0.5*obj.aGmax
-                    obj.eta = 0.01;
+                    obj.eta = 0.05;
                 else
-                    obj.eta = 0.001;
+                    obj.eta = 0.01;
                 end
             end
         end
@@ -191,7 +191,7 @@ classdef OptimizerNullSpace < Optimizer
             x  = obj.designVariable.value;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
-                factor = 1;
+                factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
                 factor = 1.2;
