@@ -1,4 +1,4 @@
-s.testName = 'test_nullspace';
+s.testName = 'testAlvaro';
 t = TopOptComputer(s);
 t.compute();
 
