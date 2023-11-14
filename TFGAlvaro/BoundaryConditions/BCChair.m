@@ -6,16 +6,22 @@ run('TFGAlvaro/GiD/ChairAlvaro.gid/ChairAlvaro.m')
 lnodes             = [];
 pointload_complete = [];
 coor               = gidcoord(:,2:end);
+connec             = gidlnods(:,2:end-1);
 
 
 % Eliminating duplicated nodes from connec matrix
+if(true)
 [u,I,J] = unique(coor, 'rows', 'first');
 nodesRepeated = J(find(not(ismember(J,I,'rows'))));
-% loop
-nodesPair = find(ismember(coor,coor(nodesRepeated(1),:),'rows'));
-nodesCorrected(1) = nodesPair(not(nodesPair==nodesRepeated(1)));
-%
+for i = 1:length(nodesRepeated)
+    nodeRepeated  = nodesRepeated(i);
+    nodesPair     = find(ismember(coor,coor(nodeRepeated,:),'rows'));
+    nodeCorrected = nodesPair(not(nodesPair==nodeRepeated));
 
+    connec(connec==nodeRepeated) = nodeCorrected;
+end
+gidlnods(:,2:end-1) = connec;
+end
 
 
 % Nodes constrained
@@ -57,4 +63,4 @@ pointload_complete(2:3:end,2) = 2;
 pointload_complete(3:3:end,2) = 3;
 pointload_complete(3:3:end,3) = -1;
 
-save('TFGAlvaro/BoundaryConditions/dataChair.mat','lnodes','pointload_complete');
+save('TFGAlvaro/BoundaryConditions/dataChair.mat','lnodes','pointload_complete'); % GIDLNODS! + Mathcha Kernel...
