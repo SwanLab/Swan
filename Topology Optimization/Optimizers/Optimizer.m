@@ -1,5 +1,5 @@
 classdef Optimizer < handle
-    
+
     properties (Access = protected)
         designVariable
         dualVariable
@@ -14,7 +14,7 @@ classdef Optimizer < handle
         constraintCase
         postProcess
     end
-    
+
     properties (GetAccess = public, SetAccess = protected, Abstract)
         type
     end
@@ -27,19 +27,19 @@ classdef Optimizer < handle
         outFilename % !!!
         outFolder
     end
-    
-    
+
+
     methods (Access = public, Static)
-        
+
         function obj = create(cParams)
             f   = OptimizerFactory();
             obj = f.create(cParams);
         end
-        
+
     end
-    
+
     methods (Access = protected)
-        
+
         function initOptimizer(obj,cParams)
             obj.nIter             = 0;
             obj.cost              = cParams.cost;
@@ -60,9 +60,9 @@ classdef Optimizer < handle
 
         function createDualUpdater(obj,cParams)
             f               = DualUpdaterFactory();
-            obj.dualUpdater = f.create(cParams);      
+            obj.dualUpdater = f.create(cParams);
         end
-        
+
         function isAcceptable = checkConstraint(obj)
             for i = 1:length(obj.constraint.value)
                 switch obj.constraintCase{i}
@@ -84,7 +84,7 @@ classdef Optimizer < handle
                 d.fields  = obj.designVariable.getVariablesToPlot();
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
-%                 obj.postProcess.print(obj.nIter,d);
+                %                 obj.postProcess.print(obj.nIter,d);
                 [desFun, desName] = obj.designVariable.getFunsToPlot();
                 fun  = desFun;
                 name = desName;
@@ -103,6 +103,63 @@ classdef Optimizer < handle
                 pp.print();
 %                 obj.simulationPrinter.appendStep(file);
             end
+            %obj.obtainGIF();
+        end
+
+        function obtainGIF(obj)
+            %set(0,'DefaultFigureVisible','off');
+
+            gifName = 'testingGIF';
+            deltaTime = 0.01;
+            m = obj.designVariable.mesh;
+            xmin = min(m.coord(:,1));
+            xmax = max(m.coord(:,1));
+            ymin = min(m.coord(:,2));
+            ymax = max(m.coord(:,2));
+
+            f = obj.designVariable.value;
+            switch obj.designVariable.type
+                case 'LevelSet'
+                    uMesh = obj.designVariable.getUnfittedMesh();
+                    uMesh.compute(f);
+                    figure
+                    uMesh.plotStructureInColor('black');
+                    hold on
+                case 'Density'
+                    p1.mesh    = m;
+                    p1.fValues = f;
+                    RhoNodal   = P1Function(p1);
+                    q = Quadrature.set(m.type);
+                    q.computeQuadrature('CONSTANT');
+                    xV = q.posgp;
+                    RhoElem = squeeze(RhoNodal.evaluate(xV));
+
+                    figHandle = figure;
+                    axis off
+                    axis equal
+                    axes = figHandle.Children;
+                    patchHandle = patch(axes,'Faces',m.connec,'Vertices',m.coord,...
+                        'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+                    set(axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
+                    set(patchHandle,'FaceVertexAlphaData',RhoElem,'FaceAlpha','flat');
+            end
+            fig = gcf;
+            fig.CurrentAxes.XLim = [xmin xmax];
+            fig.CurrentAxes.YLim = [ymin ymax];
+            axis([xmin xmax ymin ymax])
+            gifname = [gifName,'.gif'];
+            set(gca, 'Visible', 'off')
+
+            frame = getframe(fig);
+            [A,map] = rgb2ind(frame.cdata,256);
+            if obj.nIter == 0
+                imwrite(A,map,gifname,"gif","LoopCount",0,"DelayTime",deltaTime);
+            else
+                imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
+            end
+            close gcf
+
+            %set(0,'DefaultFigureVisible','on');
         end
 
     end

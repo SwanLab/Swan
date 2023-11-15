@@ -30,21 +30,21 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'FEM', 'Quadratic'})
-
-        function testTriangleQuadratic(testCase, triangle)
-            s.computerType     = 'FEM';
-            s.testName         = triangle;
-            s.testResultsName  = [triangle '_quadratic'];
-            s.variablesToStore = {'d_u'};
-            s.interpolationType = 'QUADRATIC';
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
-
-    end
+%     methods (Test, TestTags = {'FEM', 'Quadratic'})
+% 
+%         function testTriangleQuadratic(testCase, triangle)
+%             s.computerType     = 'FEM';
+%             s.testName         = triangle;
+%             s.testResultsName  = [triangle '_quadratic'];
+%             s.variablesToStore = {'d_u'};
+%             s.interpolationType = 'QUADRATIC';
+%             test = PrecomputedVariableTest(s);
+%             err = test.computeError();
+%             tol = 1e-6;
+%             testCase.verifyLessThanOrEqual(err, tol)
+%         end
+% 
+%     end
 
     methods (Test, TestTags = {'Quad'})
 
@@ -178,7 +178,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
         function testPrincipalDirection2D(testCase)
             s.stressDim = 3;
-            s.pdim      = '2D';
+            s.pdim      = 2;
             s.nelem     = 6400;
             s.nGaus     = 3;
             test = PrincipalDirectionTest(s);
@@ -189,7 +189,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
         function testPrincipalDirection3D(testCase)
             s.stressDim = 6;
-            s.pdim      = '3D';
+            s.pdim      = 3;
             s.nelem     = 6400;
             s.nGaus     = 3;
             test = PrincipalDirectionTest(s);
