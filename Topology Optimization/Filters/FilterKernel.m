@@ -4,6 +4,7 @@ classdef FilterKernel < handle
         mesh
         filteredField
         testField
+        approach
     end
 
     properties (Access = private)
@@ -38,6 +39,7 @@ classdef FilterKernel < handle
             obj.mesh          = cParams.mesh;
             obj.filteredField = cParams.trial;
             obj.testField     = cParams.test;
+            obj.approach      = cParams.approach;
         end
 
         function createMassMatrix(obj)
@@ -136,38 +138,36 @@ classdef FilterKernel < handle
             rhs2 = obj.RHS2;
 
             Iki  = obj.supportMatrix;
-            
-            M2   = obj.M2;
-            %I1     = ones(size(M,2),1);
-            %I2     = ones(size(M2,2),1);
-            %LHSp  = Iki*M;
-            LHS = Iki*M2;
-            %Mi   = sum(M,2);  
-            %Mi  = M*I1;
-            %LHS  = diag(LHSp*I1);
-            %LHS2 = diag(LHSp2*I2);
-            LHS  = obj.lumpMatrix(LHS);
-            %norm(LHS(:)-LHS2(:))/norm(LHS(:))
-            xRk  = LHS\(Iki*RHSi);
-            
 
-            LHS = Iki'*M2';
-            LHS  = obj.lumpMatrix(LHS);
-            xRk3 =  LHS\(Iki'*rhs2);
-      %      xRk3 = (Iki)*xRk3;
+            switch (obj.approach)
 
+                case {'B'}
 
-         %   M   = obj.massMatrix;
-            M3    = obj.M3;
-            LHS2 = Iki'*M3*Iki;
-            LHS2 = obj.lumpMatrix(LHS2);
-            xRk2  = LHS2\(Iki'*rhs2);
-            xRk2 = (Iki)*xRk2;
+                    M2   = obj.M2;
+                    %I1     = ones(size(M,2),1);
+                    %I2     = ones(size(M2,2),1);
+                    %LHSp  = Iki*M;
+                    LHS = Iki*M2;
+                    %Mi   = sum(M,2);
+                    %Mi  = M*I1;
+                    %LHS  = diag(LHSp*I1);
+                    %LHS2 = diag(LHSp2*I2);
+                    LHS  = obj.lumpMatrix(LHS);
+                    %norm(LHS(:)-LHS2(:))/norm(LHS(:))
+                    xRk  = LHS\(Iki*RHSi);
 
-            norm(xRk - xRk2)/norm(xRk) 
-          %  xRk2  = Iki'*xRk2;
+                case {'A'}
 
+                    M3    = obj.M3;
+                    LHS2 = Iki'*M3*Iki;
+                    LHS2 = obj.lumpMatrix(LHS2);
+                    xRk  = LHS2\(Iki'*rhs2);
+                    xRk = (Iki)*xRk;
 
+                    %norm(xRk - xRk2)/norm(xRk)
+                    %  xRk2  = Iki'*xRk2;
+
+            end
 
 
 
