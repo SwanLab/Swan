@@ -3,7 +3,7 @@ ptype = 'MICRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';
 initial_case = 'circleInclusion';
-cost = {'chomog_alphabeta'}; % chomog_alphabeta chomog_fraction enforceCh_CCstar_L2
+cost = {'chomog_fraction';'perimeter'};
 weights = [1 0.1];
 constraint = {'volumeConstraint'};
 constraint_case = {'INEQUALITY'};
@@ -15,11 +15,11 @@ filterType = 'P1';
 fracRadius = 0.5;
 
 nsteps = 1;
-Vfrac_final = 0.3;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.9;
+Vfrac_initial = 0.5;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
@@ -35,14 +35,12 @@ TOL.nu_minus = 1/3;
 target_parameters.epsilon_isotropy = 1e-3;%%%%%%
 epsilon_isotropy_final=target_parameters.epsilon_isotropy;
 epsilon_isotropy_initial=1e-1;
-% selectiveC_Cstar = 'IsotropyHexagon';
-% 
-micro.alpha =[1 1 1]';%[1 0 0]'
-micro.beta =[0 0 0]';%[0 -1 0]'
+micro.alpha =[1 0 0]';
+micro.beta =[0 -1 0]';
 
 % For all tests
-plotting = true;
+plotting = false;
 printing = false;
 printing_physics = false;
-monitoring = true;
-maxiter = 150;
+monitoring = false;
+maxiter = 3;
