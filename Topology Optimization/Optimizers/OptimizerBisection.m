@@ -120,7 +120,7 @@ classdef OptimizerBisection < Optimizer
                 obj.acceptableStep = true;
                 obj.isInitialStep  = false;
             else
-                if J < obj.oldCost + 1e-5
+                if J < obj.oldCost
                     obj.acceptableStep = true;
 %                     factor = 1.5;
 %                     obj.primalUpdater.increaseStepLength(factor);
