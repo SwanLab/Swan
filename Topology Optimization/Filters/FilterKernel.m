@@ -154,14 +154,14 @@ classdef FilterKernel < handle
                     %LHS2 = diag(LHSp2*I2);
                     LHS  = obj.lumpMatrix(LHS);
                     %norm(LHS(:)-LHS2(:))/norm(LHS(:))
-                    xRk  = LHS\(Iki*RHSi);
+                    xRk  = (Iki*RHSi)./LHS;
 
                 case {'A'}
 
                     M3    = obj.M3;
                     LHS2 = Iki'*M3*Iki;
                     LHS2 = obj.lumpMatrix(LHS2);
-                    xRk  = LHS2\(Iki'*rhs2);
+                    xRk  = (Iki'*rhs2)./LHS2;
                     xRk = (Iki)*xRk;
 
                     %norm(xRk - xRk2)/norm(xRk)
@@ -180,7 +180,7 @@ classdef FilterKernel < handle
                     %LHS2 = diag(LHSp2*I2);
                     LHS  = obj.lumpMatrix(LHS);
                     %norm(LHS(:)-LHS2(:))/norm(LHS(:))
-                    P    = LHS\(Iki);
+                    P    = (Iki)./LHS;
                     xRk  = P'*rhs2;
                     obj.filteredField = P1Function.create(obj.mesh,1);
 
@@ -193,7 +193,7 @@ classdef FilterKernel < handle
 
         function Al = lumpMatrix(obj,A)
             I  = ones(size(A,2),1);
-            Al = diag(A*I);
+            Al = A*I;
         end
 
     end
