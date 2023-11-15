@@ -167,6 +167,23 @@ classdef FilterKernel < handle
                     %norm(xRk - xRk2)/norm(xRk)
                     %  xRk2  = Iki'*xRk2;
 
+                case {'C'}
+
+                    M2   = obj.M2;
+                    %I1     = ones(size(M,2),1);
+                    %I2     = ones(size(M2,2),1);
+                    %LHSp  = Iki*M;
+                    LHS = Iki*M2;
+                    %Mi   = sum(M,2);
+                    %Mi  = M*I1;
+                    %LHS  = diag(LHSp*I1);
+                    %LHS2 = diag(LHSp2*I2);
+                    LHS  = obj.lumpMatrix(LHS);
+                    %norm(LHS(:)-LHS2(:))/norm(LHS(:))
+                    P    = LHS\(Iki);
+                    xRk  = P'*rhs2;
+                    obj.filteredField = P1Function.create(obj.mesh,1);
+
             end
 
 
