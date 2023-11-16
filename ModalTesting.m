@@ -7,6 +7,8 @@ classdef ModalTesting < handle
     properties (Access = private)
         nDimf
         mesh
+        bMesh
+        nbound
         boundaryConditions
         material
         quad
@@ -22,6 +24,12 @@ classdef ModalTesting < handle
         Lt
         Kred
         Lchol
+        RBdomain
+        RBboundary
+        interfaceModes
+        interfaceFunTyp
+        phiB
+        psi
     end
 
     properties (Access = private)
@@ -33,8 +41,10 @@ classdef ModalTesting < handle
         function obj = ModalTesting()
             close all;
             obj.init()
-            obj.mesh = obj.createMesh();
-            rawBc    = obj.createRawBoundaryConditions();
+            obj.mesh  = obj.createMesh();
+            obj.bMesh = obj.mesh.createBoundaryMesh();
+            obj.nbound = size(obj.bMesh);
+            rawBc     = obj.createRawBoundaryConditions();
             obj.boundaryConditions = obj.createBoundaryConditions(rawBc);
             obj.quad = Quadrature.set(obj.mesh.type);
             obj.quad.computeQuadrature('QUADRATIC');
@@ -44,8 +54,8 @@ classdef ModalTesting < handle
 
             K    = obj.computeStiffnessMatrix(obj.mesh,obj.material,dispFun);
             obj.Kred = obj.boundaryConditions.fullToReducedMatrix(K);
-            R = sprand((obj.Kred));
-%            obj.Kred=0.5*(R'*R);
+            %             R = sprand((obj.Kred));
+            %            obj.Kred=0.5*(R'*R);
             obj.D = diag(diag(obj.Kred));
             obj.L = tril(obj.Kred,-1);
             obj.Lt= obj.L';
@@ -74,37 +84,40 @@ classdef ModalTesting < handle
 
             [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(obj.Kred,Fred,x);
 
-            GD.x        = xCG; 
-            GD.residual = residualCG; 
-            GD.err      = errCG;
-            GD.errA     = errACG;
+            CG.x        = xCG;
+            CG.residual = residualCG;
+            CG.err      = errCG;
+            CG.errA     = errACG;
 
             [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
 
-            PGDbasis20.x        = xPCG; 
-            PGDbasis20.residual = residualPCG; 
-            PGDbasis20.err      = errPCG;
-            PGDbasis20.errA     = errAPCG;
+            PCGbasis20.x        = xPCG;
+            PCGbasis20.residual = residualPCG;
+            PCGbasis20.err      = errPCG;
+            PCGbasis20.errA     = errAPCG;
 
-            plot(residualCG); hold on; plot(residualPCG);
-            set(gca, 'YScale', 'log')
-            legend('GD','PCG (ssor)')
-            xlabel('iteration')
-            ylabel('residual')
+            obj.computeBasisRom();
+            [Hhat,H,G,T,That] = computeEifemMat(obj);
+            nphi=obj.phiB{1}.nbasis;
+            npsi=obj.psi{1}.nbasis;
+            nrb= obj.RBboundary{1}.nbasis;
+            A = [ obj.Kmodal        zeros(nphi,nrb)     -Hhat              -H              ;
+                  zeros(nrb,nphi)   zeros(nrb,nrb)      -G                 zeros(nrb,npsi) ;
+                  Hhat'             G'                  zeros(nrb,nrb)     zeros(nrb,npsi) ;
+                  H'                zeros(npsi,nrb)     zeros(npsi,nrb)    zeros(npsi,npsi)];
+                
+            b = zeros(size(A(:,1),1),obj.interfaceModes{1}.nbasis);
+            rv = That*eye(obj.interfaceModes{1}.nbasis,obj.interfaceModes{1}.nbasis);
+            psiv = T*eye(obj.interfaceModes{1}.nbasis,obj.interfaceModes{1}.nbasis);
+            b(nphi+nrb+1:end,:) = [rv;psiv];
+            x=A\b;
+            kcoarse = x(nphi+nrb+1:end,:);
+            basis=cell2mat(obj.basisVec);
+            Udef=basis*inv(H)*T;
+            %             ModalTesting.plotRes(residualCG,residualPCG,errCG,errPCG,errACG,errAPCG)
 
-            figure
-            plot(errCG); hold on; plot(errPCG)
-            set(gca, 'YScale', 'log')
-            legend('GD','PCG (ssor)')
-            xlabel('iteration')
-            ylabel('||x-x*||')
 
-            figure
-            plot(errACG); hold on; plot(errAPCG)
-            set(gca, 'YScale', 'log')
-            legend('GD','PCG (ssor)')
-            xlabel('iteration')
-            ylabel('||x-x*||_{A}')
+
         end
 
     end
@@ -113,11 +126,16 @@ classdef ModalTesting < handle
 
         function init(obj)
             obj.nDimf   = 2;
-            obj.nbasis = 10;
+            obj.nbasis = 5;
             funTyp='P1';
             for i=1:obj.nbasis
                 obj.functionType{i}=funTyp;
             end
+            intFunTyp='P1';
+            for i=1:4*obj.nDimf
+                obj.interfaceFunTyp{i}=intFunTyp;
+            end
+
 
         end
 
@@ -181,9 +199,9 @@ classdef ModalTesting < handle
         end
 
         function [basis,basisVec,eigenVec] = computeBasis(obj,K)
-            [eigenVec,D]=eigs(K,obj.nbasis/2,'smallestabs');
-%             [eigenVec2,D]=eigs(K,obj.nbasis/2);
-%             eigenVec=[eigenVec eigenVec2];
+            [eigenVec,D]=eigs(K,obj.nbasis,'smallestabs');
+            %             [eigenVec2,D]=eigs(K,obj.nbasis/2);
+            %             eigenVec=[eigenVec eigenVec2];
             psi = K*eigenVec;
 
             for i = 1:size(eigenVec,2)
@@ -248,35 +266,188 @@ classdef ModalTesting < handle
             end
         end
         %
-                function z = applyPreconditioner(obj,r)
-                    lhs=obj.Kmodal;
-                    phi=obj.eigenVec;
-                    r1=phi'*r;
-                    zP=lhs\r1;
-                    z=phi*zP;
-                    %z = r;
-                    z = r-z;
+        function z = applyPreconditioner(obj,r)
+            lhs=obj.Kmodal;
+            phi=obj.eigenVec;
+            r1=phi'*r;
+            zP=lhs\r1;
+            z=phi*zP;
+            %z = r;
+            z = r-z;
+        end
+        %
+        %                 function z = applyPreconditioner(obj,r)
+        %                     w=1;
+        %                     DF = obj.D-w*obj.L;
+        %                     DR = obj.D-w*obj.Lt;
+        %                     z=mldivide(DF,r);
+        %                     r=obj.D*z;
+        %                     z=mldivide(DR,r);
+        %                     z=w*(2-w)*z;
+        %                 end
+        %
+        %                 function z = applyPreconditioner(obj,r)
+        %                     z=obj.D\r;
+        %                 end
+        %
+        %         function z = applyPreconditioner(obj,r)
+        %             Lchol=obj.Lchol;
+        %             z = Lchol\r;
+        %             z = (Lchol')\z;
+        %         end
+
+
+
+        function computeBasisRom(obj)
+            obj.RBdomain       = obj.createRBfun(obj.mesh);
+            obj.RBboundary     = obj.createRBfun(obj.bMesh);
+            obj.phiB           = obj.createBoundaryDefFun();
+            obj.psi            = obj.phiB;
+            obj.interfaceModes = obj.computeBasisInterface();   
+        end
+
+        function modes = computeBasisInterface(obj)
+            cCoord = obj.getFictitiousCornerCoord();
+            lx = max(cCoord(:,1))-min(cCoord(:,1));
+            ly = max(cCoord(:,2))-min(cCoord(:,2));
+            cCoord = [ cCoord(end,:); cCoord];
+            for ibound=1:size(obj.bMesh,1)
+                ibasis=1;
+                for icorner=2:size(cCoord,1)
+                    x = obj.bMesh{ibound}.mesh.coord;
+                    for idim=1:obj.nDimf
+                        f=zeros(size(x));
+
+                        if x(2,1) == cCoord(icorner,1)
+                            f(:,idim) = 1-(abs((x(:,2)-cCoord(icorner,2)))/ly);
+                            basis{ibasis}=f;
+                            ibasis=ibasis+1;
+                            %                            imodes{ibound}{icorner,idim}= ModalFunction.create(obj.bMesh{ibound}.mesh,f,obj.interfaceFunTyp);
+                            %                             f(:,2) = zeros(size(x(:,1)));
+                        elseif x(2,2) == cCoord(icorner,2)
+                            %                             f(:,2) = zeros(size(x(:,1)));
+                            f(:,idim) = 1-(abs((x(:,1)-cCoord(icorner,1)))/lx);
+                            basis{ibasis}=f;
+                            ibasis=ibasis+1;
+                            %                             imodes{ibound}{icorner,idim}= ModalFunction.create(obj.bMesh{ibound}.mesh,f,obj.interfaceFunTyp);
+                        else
+                            basis{ibasis}=f;
+                            ibasis=ibasis+1;
+                            %                             imodes{ibound}{icorner,idim}= ModalFunction.create(obj.bMesh{ibound}.mesh,f,obj.interfaceFunTyp);
+
+                        end
+                    end
+
                 end
-        %
-%                 function z = applyPreconditioner(obj,r)
-%                     w=1;
-%                     DF = obj.D-w*obj.L;
-%                     DR = obj.D-w*obj.Lt;
-%                     z=mldivide(DF,r);
-%                     r=obj.D*z;
-%                     z=mldivide(DR,r);
-%                     z=w*(2-w)*z;
-%                 end
-        %
-%                 function z = applyPreconditioner(obj,r)
-%                     z=obj.D\r;
-%                 end
-% 
-%         function z = applyPreconditioner(obj,r)
-%             Lchol=obj.Lchol;
-%             z = Lchol\r;
-%             z = (Lchol')\z;
-%         end
+                modes{ibound}= ModalFunction.create(obj.bMesh{ibound}.mesh,basis,obj.interfaceFunTyp);
+            end
+
+        end
+
+        function coord = getFictitiousCornerCoord(obj)
+            xmax = max(obj.mesh.coord(:,1));
+            xmin = min(obj.mesh.coord(:,1));
+            ymax = max(obj.mesh.coord(:,2));
+            ymin = min(obj.mesh.coord(:,2));
+            coord(1,1) = xmax;
+            coord(1,2) = ymin;
+            coord(2,1) = xmax;
+            coord(2,2) = ymax;
+            coord(3,1) = xmin;
+            coord(3,2) = ymax;
+            coord(4,1) = xmin;
+            coord(4,2) = ymin;
+
+        end
+
+        function defFun = createBoundaryDefFun(obj)
+            for imesh=1:obj.nbound
+                nodes = unique(obj.bMesh{imesh}.globalConnec);
+
+                for ibasis=1:length(obj.basisFvalues)
+                    basisb{ibasis} = obj.basisFvalues{ibasis}(nodes,:);
+                end
+
+                meshb = obj.bMesh{imesh}.mesh;
+                defFun{imesh} = ModalFunction.create(meshb,basisb,obj.functionType);
+            end
+        end
+
+        function [Hhat,H,G,T,That] = computeEifemMat(obj)
+                Hhat = obj.computeHhat();
+                H    = obj.computeH();
+                G    = obj.computeG();
+                T    = obj.computeT();
+                That = obj.computeThat();
+                 
+        end
+
+        function Hhat = computeHhat(obj)
+            Hhat = zeros(obj.phiB{1}.nbasis,obj.RBboundary{1}.nbasis);
+            for ibound=1:obj.nbound
+                sL.test  = obj.phiB{ibound};
+                sL.trial = obj.RBboundary{ibound};
+                sL.mesh  = obj.bMesh{ibound}.mesh;
+                sL.quadratureOrder = obj.quad.order;
+                lhs2{ibound} = LHS_integratorMassGlobal(sL);
+                Hhat = Hhat + lhs2{ibound}.compute();
+%                 Hhat{ibound} = lhs2{ibound}.compute();
+            end
+        end
+
+        function H = computeH(obj)
+            H = zeros(obj.psi{1}.nbasis,obj.phiB{1}.nbasis);
+            for ibound=1:obj.nbound
+                sL.test  = obj.psi{ibound};
+                sL.trial = obj.phiB{ibound};
+                sL.mesh  = obj.bMesh{ibound}.mesh;
+                sL.quadratureOrder = obj.quad.order;
+                lhs2{ibound} = LHS_integratorMassGlobal(sL);
+                H = H + lhs2{ibound}.compute();
+%                 H{ibound} = lhs2{ibound}.compute();
+            end
+        end
+
+        function G = computeG(obj)
+            G = zeros(obj.RBboundary{1}.nbasis,obj.RBboundary{1}.nbasis);
+            for ibound=1:obj.nbound
+                sL.test  = obj.RBboundary{ibound};
+                sL.trial = obj.RBboundary{ibound};
+                sL.mesh  = obj.bMesh{ibound}.mesh;
+                sL.quadratureOrder = obj.quad.order;
+                lhs2{ibound} = LHS_integratorMassGlobal(sL);
+                G = G + lhs2{ibound}.compute();
+%                 G{ibound} = lhs2{ibound}.compute();
+            end
+        end
+
+        function T = computeT(obj)
+            T = zeros(obj.psi{1}.nbasis,obj.interfaceModes{1}.nbasis);
+            for ibound=1:obj.nbound
+                sL.test  = obj.psi{ibound};
+                sL.trial = obj.interfaceModes{ibound};
+                sL.mesh  = obj.bMesh{ibound}.mesh;
+                sL.quadratureOrder = obj.quad.order;
+                lhs2{ibound} = LHS_integratorMassGlobal(sL);
+                T = T + lhs2{ibound}.compute();
+%                 T{ibound} = lhs2{ibound}.compute();
+            end
+        end
+
+        function That = computeThat(obj)
+            That = zeros(obj.RBboundary{1}.nbasis,obj.interfaceModes{1}.nbasis);
+            for ibound=1:obj.nbound
+                sL.test  = obj.RBboundary{ibound};
+                sL.trial = obj.interfaceModes{ibound};
+                sL.mesh  = obj.bMesh{ibound}.mesh;
+                sL.quadratureOrder = obj.quad.order;
+                lhs2{ibound} = LHS_integratorMassGlobal(sL);
+                That = That + lhs2{ibound}.compute();
+%                 T{ibound} = lhs2{ibound}.compute();
+            end
+        end
+
+
     end
 
     methods (Access = public, Static)
@@ -377,13 +548,48 @@ classdef ModalTesting < handle
                 rsold = rsnew;
                 iter = iter + 1;
                 residual(iter) = norm(LHS*x - RHS); %Ax - b
-                 err(iter)=norm(x-xsol);
+                err(iter)=norm(x-xsol);
                 errAnorm(iter)=((x-xsol)')*LHS*(x-xsol);
                 f(iter)= 0.5*(x'*LHS*x)-RHS'*x;
             end
         end
 
+        function plotRes(residualCG,residualPCG,errCG,errPCG,errACG,errAPCG)
+            plot(residualCG); hold on; plot(residualPCG);
+            set(gca, 'YScale', 'log')
+            legend('GD','PCG (ssor)')
+            xlabel('iteration')
+            ylabel('residual')
 
+            figure
+            plot(errCG); hold on; plot(errPCG)
+            set(gca, 'YScale', 'log')
+            legend('GD','PCG (ssor)')
+            xlabel('iteration')
+            ylabel('||x-x*||')
+
+            figure
+            plot(errACG); hold on; plot(errAPCG)
+            set(gca, 'YScale', 'log')
+            legend('GD','PCG (ssor)')
+            xlabel('iteration')
+            ylabel('||x-x*||_{A}')
+        end
+
+        function rbFun = createRBfun(mesh)
+            %domain
+            if size(mesh,1)==1
+                centroid = [sum(mesh.coord(:,1))/mesh.nnodes,sum(mesh.coord(:,2))/mesh.nnodes];
+                rbFun = RigidBodyFunction.create(mesh,centroid);
+            else
+                %boundary
+                for i=1:size(mesh,1)
+                    meshb = mesh{i}.mesh;
+                    centroid = [sum(meshb.coord(:,1))/meshb.nnodes,sum(meshb.coord(:,2))/meshb.nnodes];
+                    rbFun{i} = RigidBodyFunction.create(meshb,centroid);
+                end
+            end
+        end
 
         %         function v = applyPreconditioner(M,x)
         %             for i = 1:size(M,2)

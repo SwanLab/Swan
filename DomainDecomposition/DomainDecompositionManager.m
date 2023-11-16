@@ -179,9 +179,13 @@ classdef DomainDecompositionManager < handle
 %                 end
 %             end
             for i=1:ninterface
+                aux = CellNodesDescriptor(obj.interfaceMeshReference{i}.mesh.coord);
+                corner = unique(aux.cornerNodes);
+                
+
                 [coordmax]  = max(obj.interfaceMeshReference{i}.mesh.coord);
                 [coordmin]  = max(obj.interfaceMeshReference{i}.mesh.coord);
-                
+
                 corner(icorner) = indmax;
                 icorner         = icorner+1;
                 
