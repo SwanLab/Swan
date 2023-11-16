@@ -137,7 +137,7 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type =  'CHOLEVSKY';
+            s.type =  'rMINRES';
             obj.solver = Solver.create(s);
         end
 

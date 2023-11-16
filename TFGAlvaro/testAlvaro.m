@@ -36,4 +36,4 @@ printing = false; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 300; % Maximum number of iterations
+maxiter = 50; % Maximum number of iterations
