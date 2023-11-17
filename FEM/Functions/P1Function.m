@@ -1,6 +1,8 @@
 classdef P1Function < FeFunction
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
 
     properties (Access = private)
@@ -17,6 +19,7 @@ classdef P1Function < FeFunction
         function obj = P1Function(cParams)
             obj.init(cParams);
             obj.createInterpolation();
+            obj.computeNDofs();
         end
 
         function fxV = evaluate(obj, xV)
@@ -290,6 +293,11 @@ classdef P1Function < FeFunction
         function createInterpolation(obj)
             m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
+        end
+
+        function computeNDofs(obj)
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
+            obj.nDofs = obj.ndimf * size(obj.fValues, 1);
         end
 
         % Printing
