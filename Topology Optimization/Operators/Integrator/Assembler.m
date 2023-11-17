@@ -148,22 +148,25 @@ classdef Assembler < handle
             dofsInElem = obj.computeDofConnectivity();
             ndofPerElem = obj.dim.ndofsElem;
             ndof        = obj.dim.ndofs;
+            ngaus       = size(F,2);
             V = zeros(ndof,1);
             for iDof = 1:ndofPerElem
-                dofs = dofsInElem(iDof,:);
-                c = F(iDof,:);
-                Fadd = obj.computeAddVectorBySparse(dofs, c, ndof);
-                % Fadd = obj.computeAddVectorByAccumarray(dofs, c, ndof);
-                V = V + Fadd;
+                for igaus = 1:ngaus
+                    dofs = dofsInElem(iDof,:);
+                    c = squeeze(F(iDof,igaus,:));
+                    Fadd = obj.computeAddVectorBySparse(dofs, c, ndof);
+                    % Fadd = obj.computeAddVectorByAccumarray(dofs, c, ndof);
+                    V = V + Fadd;
+                end
             end
         end
 
         function Vadd = computeAddVectorBySparse(obj,dofs, c, ndof)
-           Vadd = sparse(dofs,1,c',ndof,1);
+           Vadd = sparse(dofs,1,c,ndof,1);
         end
 
         function Vadd = computeAddVectorByAccumarray(obj,dofs,c, ndof)
-           Vadd = accumarray(dofs',c',[ndof 1]);
+           Vadd = accumarray(dofs',c,[ndof 1]);
         end
       
         %% With Fields

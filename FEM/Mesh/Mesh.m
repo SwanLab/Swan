@@ -257,17 +257,34 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-        function exportSTL(obj, file)
-            obj.triangulateMesh();
-            stlwrite(obj.triMesh, [file '.stl'])
+        function exportSTL(obj)
+            s.mesh = obj;
+            me = STLExporter(s);
+            me.export();
         end
 
-        function print(obj, s)
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             p1 = P1Function.create(obj,1);
-            s.mesh = obj;
-            s.fun = {p1};
+            s.filename = filename;
+            s.mesh     = obj;
+            s.fun      = {p1};
+            s.type     = software;
             p = FunctionPrinter.create(s);
             p.print();
+        end
+
+        function triMesh = triangulateMesh2(obj)
+            P = obj.coord;
+            T = obj.connec;
+            triMesh = triangulation(T,P);
         end
 
     end

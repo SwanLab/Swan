@@ -15,7 +15,6 @@ classdef ElasticProblem < handle
         integratorBuilder
         geometry
         scale
-        pdim
         inputBC
         strain
         stress
@@ -75,18 +74,20 @@ classdef ElasticProblem < handle
             quad  = obj.quadrature;
         end
        
-        function print(obj,filename)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-            pst = FunctionPrinter_Paraview(a);
+            a.type     = software;
+            pst = FunctionPrinter.create(a);
             pst.print();
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+            fun = {obj.uFun, obj.strainFun, obj.stressFun};
             funNames = {'displacement', 'strain', 'stress'};
         end
 
@@ -98,7 +99,6 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.pdim        = cParams.dim;
             obj.inputBC     = cParams.bc;
 
 %             obj.btype       = cParams.builderType;
@@ -106,8 +106,8 @@ classdef ElasticProblem < handle
             obj.solType = cParams.solType;                        
 %             if isprop(cParams, 'interpolationType')
 
-            if isprop(cParams, 'interpolationType') % later on for P2
-
+            obj.mesh        = cParams.mesh;
+            if isprop(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
@@ -122,9 +122,7 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            strdim = regexp(obj.pdim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            obj.displacementFun = P1Function.create(obj.mesh, nDimf);
+            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
         end
 
         function dim = getFunDims(obj)
@@ -322,7 +320,7 @@ classdef ElasticProblem < handle
 
         function computePrincipalDirection(obj)
             strss  = permute(obj.stressFun.fValues, [2 1 3]);
-            s.type = obj.pdim;
+            s.type = obj.mesh.ndim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
             pcomp.compute(strss);

@@ -35,8 +35,8 @@ TOL.nu_minus = 1/3;
 target_parameters.epsilon_isotropy = 1e-3;%%%%%%
 epsilon_isotropy_final=target_parameters.epsilon_isotropy;
 epsilon_isotropy_initial=1e-1;
-micro.alpha =[1 0 0]';%[1 0 0]'
-micro.beta =[0 -1 0]';%[0 -1 0]'
+micro.alpha =[1 0 0]';
+micro.beta =[0 -1 0]';
 
 % For all tests
 plotting = false;

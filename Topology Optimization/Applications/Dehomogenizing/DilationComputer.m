@@ -64,7 +64,7 @@ classdef DilationComputer < handle
             s.type = 'ShapeDerivative';
             s.quadratureOrder = q.order;
             rhs  = RHSintegrator.create(s);
-            rhsF = rhs.compute(gradT);
+            rhsF = rhs.compute(gradT,gradT);
             rhsV = rhsF.fValues;
             obj.RHS = [rhsV;0];
         end

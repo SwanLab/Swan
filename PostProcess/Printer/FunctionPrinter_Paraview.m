@@ -191,9 +191,16 @@ classdef FunctionPrinter_Paraview < handle
             projP1 = Projector_toP1(ppar);
             % fvalues
             func = projP1.project(obj.fun{iFun});
-            nDimf = func.ndimf;
+            if func.ndimf < 3
+                nExtr = 3-func.ndimf;
+                nDimf = 3;
+                fVals = [func.fValues, repmat(zeros(size(func.fValues, 1),1), [1 nExtr])];
+            else
+                nDimf = func.ndimf;
+                fVals = func.fValues;
+            end
             formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
-            dispStr = sprintf(formatStr, squeeze(func.fValues)');
+            dispStr = sprintf(formatStr, squeeze(fVals)');
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');
             n.setAttribute('type', 'Float64');

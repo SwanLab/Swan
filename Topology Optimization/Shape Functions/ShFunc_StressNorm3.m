@@ -26,8 +26,8 @@ classdef ShFunc_StressNorm3 < ShFunWithElasticPdes
         function obj = ShFunc_StressNorm3(cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
             obj.createAdjointProblem(fileName);
             obj.createOrientationUpdater();
             obj.createElementsToOptimize();

@@ -59,13 +59,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.orientationUpdater = OrientationUpdater.create(cParams);
         end
         
-        function createEquilibriumProblem(obj,fileName)
-            a.fileName = fileName;
-            s = FemDataContainer(a);
-            obj.physicalProblem = FEM.create(s);
-            obj.initPrincipalDirections();
-        end
-        
         function updateHomogenizedMaterialProperties(obj)
             obj.filterDesignVariable();
             obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
@@ -147,18 +140,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         function gidParams = createGiDparameters(obj,file)
             gidReader = FemInputReader_GiD();
             gidParams = gidReader.read(file);
-        end
-        
-        function initPrincipalDirections(obj)
-            if isempty(obj.designVariable.alpha)
-                dim = obj.physicalProblem.getDimensions();
-                nelem = size(obj.dvolu,1);
-                ndim = dim.ndimf; %dim.ndim
-                alpha0 = zeros(ndim,nelem);
-                alpha0(1,:) = 1;
-                obj.designVariable.alpha = alpha0;
-            end
-%             obj.physicalProblem.variables.principalDirections = obj.designVariable.alpha;
         end
     
     end

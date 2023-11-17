@@ -16,19 +16,14 @@ classdef MaterialFactory < handle
                     end
                     
                 case 'HYPERELASTIC'
-                    switch cParams.pdim
-                        case '2D'
-                            cParams.connec = cParams.mesh.connec;
-                            cParams.dNdx   = cParams.geometry.dNdx;
-                            cParams.nnode  = cParams.mesh.nnodeElem;
-                            cParams.coord  = cParams.mesh.coord;
-                            material = Isotropic2dHyperElasticMaterial(cParams);
-                    end
+                    error('Still not implemented.')
                     
                 case 'THERMAL'
                     error('Still not implemented.')
+
                 case 'Stokes'
                     material = Material_Stokes(cParams);
+                    
                 otherwise
                     error('Invalid ptype.')
             end

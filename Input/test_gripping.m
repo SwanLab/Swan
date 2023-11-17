@@ -1,4 +1,4 @@
-filename = 'Tests_Triangle_Linear';
+filename = 'Gripping_triangle_coarse';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -6,16 +6,15 @@ initial_case = 'full';
 cost = {'nonadjoint_compliance'};
 weights = [1];
 constraint = {'volumeConstraint'}; 
-incrementFactor = [];
-optimizer = 'SLERP';
+incrementFactor = 1.2;
+optimizerUnconstrained = 'SLERP';
+optimizer = 'NullSpace';
 designVariable = 'LevelSet';
 filterType = 'P1';
-constraint_case = 'INEQUALITY';
-
-shFuncParamsName = 'paramsTestGripping';
+constraint_case = {'EQUALITY'};
 
 nsteps = 1;
-Vfrac_final = 1;
+Vfrac_final = 0.5;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -33,7 +32,8 @@ TOL.nu_minus = 1/3;
 
 % For all tests
 plotting = false;
-printing = false;
+printing = true;
 printing_physics = false;
 monitoring = false;
+monitoring_interval = 1;
 maxiter = 3;

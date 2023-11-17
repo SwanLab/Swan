@@ -13,7 +13,7 @@ incrementFactor = 1.2;
 designVariable = 'LevelSet';
 filterType = 'P1';
 nsteps = 1;
-Vfrac_final = 0.4;
+Vfrac_final = 0.1;
 optimality_final =1e-3;
 constr_final =1e-3;
 

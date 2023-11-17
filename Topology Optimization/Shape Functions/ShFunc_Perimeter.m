@@ -46,7 +46,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            mesh = obj.designVariable.mesh.meshes{1};
+            mesh = obj.designVariable.mesh;
 
             aa.mesh    = mesh;
             aa.fValues = obj.gradient;

@@ -2,14 +2,14 @@ classdef LevelSetWithSphereInclusion < LevelSetSphereNdim
     
     methods (Access = public)
         
-        function obj = LevelSetSphere(cParams)
-            obj.fracRadius = cParams;
+        function obj = LevelSetWithSphereInclusion(cParams)
+            obj.fracRadius = cParams.fracRadius;
             obj.compute(cParams);
         end
     end
     
     methods (Access = protected)
-        function computeLevelSet(obj)
+        function computeLevelSetValue(obj)
             ls = 1 - obj.dist;
             obj.levelSet = ls;
         end

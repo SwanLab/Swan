@@ -25,6 +25,11 @@ classdef AnalyticalFunction < L2Function
             xVec = [x;y];
             fxV = obj.fHandle(xV);
         end
+
+        function plot(obj)
+            p1D = obj.project('P1D');
+            p1D.plot();
+        end
         
     end
     

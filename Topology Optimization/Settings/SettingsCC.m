@@ -12,6 +12,7 @@ classdef SettingsCC < AbstractSettings
         targetParameters
         femData
         filterType
+        physicalProblem
     end
     
     methods (Access = public)

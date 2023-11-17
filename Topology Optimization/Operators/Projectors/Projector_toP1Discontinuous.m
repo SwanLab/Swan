@@ -35,7 +35,11 @@ classdef Projector_toP1Discontinuous < Projector
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+
+            trial = P1DiscontinuousFunction.create(obj.mesh, 1);            
+            shapes = trial.computeShapeFunctions(quad);
+
+           % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;

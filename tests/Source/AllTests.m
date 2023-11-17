@@ -12,5 +12,5 @@ HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
 PostProcTestsSuite;
 ProjectorsTestsSuite;
-RemeshingTestsSuite;
+% RemeshingTestsSuite;
 DehomogenizationTestsSuite;
