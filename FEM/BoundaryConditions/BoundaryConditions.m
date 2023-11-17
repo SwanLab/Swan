@@ -19,7 +19,7 @@ classdef BoundaryConditions < handle
     end
 
     properties (Access = private)
-        mesh
+        % mesh
         ndimf
 %         ndofs
         scale
