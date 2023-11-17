@@ -1,11 +1,11 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-4;
+        tolErrU = 1e-6;
         tolErrPhi = 1e-6;
-        Gc = 100;
+        Gc = 0.02;
         fc = 1;
-        Force = 0.3;
+        Force = 100;
     end
 
     properties (Access = private)
@@ -41,14 +41,11 @@ classdef PhaseFieldComputer < handle
             obj.createPhaseField();
             obj.createMaterialInterpolation();
             obj.createDissipationInterpolation();
-            obj.phaseField.plot;
-            title('Initial phase field')
 
             %obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
             obj.Constant = obj.Gc/(4*0.5);
 
-            obj.l0 = 0.2;
-            %obj.Constant = 1;
+            obj.l0 = 0.001;
 
             niter = 100;
             Energy = zeros(4,niter);
@@ -63,9 +60,9 @@ classdef PhaseFieldComputer < handle
                 numIterP = 1;
                 while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    obj.fem.uFun.plot()
+                    %obj.fem.uFun.plot()
                     errorPhi = 1;
-                    while (errorPhi > obj.tolErrPhi) && (numIterP < 3000)
+                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.createEnergyMassMatrix();
                         obj.createDissipationMassMatrix();
                         obj.createStiffnessMatrix();
@@ -101,13 +98,13 @@ classdef PhaseFieldComputer < handle
 
                 %obj.fem.uFun.plot;
 
-                %obj.phaseField.plot;                
+                obj.phaseField.plot;                
                 colorbar
                 clim([0 1])
                 title('Final phase field')
                 fprintf('%%%%%%%%%% NEXT ITERATION %%%%%%%%%%%')
-                obj.fem.print(['Example',num2str(i)],'GiD')
-                obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
+                %obj.fem.print(['Example',num2str(i)],'GiD')
+                %obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
             end
             figure
             plot(F(1,:))
@@ -129,7 +126,7 @@ classdef PhaseFieldComputer < handle
             legend('External Work','Internal Energy','Local surface energy','Non-local surface energy')
 
             figure
-            plot(ForceDisplacement(2,:),-ForceDisplacement(1,:))
+            plot(ForceDisplacement(2,:),ForceDisplacement(1,:))
             figure
             plot(ForceDisplacement(2,:))
 
@@ -160,7 +157,34 @@ classdef PhaseFieldComputer < handle
             % x2 = linspace(1,2,20);
             % % Create the grid
             % [xv,yv] = meshgrid(x1,x2);
-            % % Triangulate the mesh to obtain coordinates and connectivities
+            % % Triangulate the mesh to obtain coordinates and connectiviti            % x1 = linspace(0,1,20);
+            % x2 = linspace(0,1,20);
+            % [xv,yv] = meshgrid(x1,x2);
+            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            % sBg.coord  = V(:,1:2);
+            % sBg.connec = F;
+            % bgMesh = Mesh(sBg);
+            % bdMesh  = bgMesh.createBoundaryMesh();
+            % 
+            % sLS.type       = 'circleInclusion';
+            % sLS.mesh       = bgMesh;
+            % sLS.ndim       = 2;
+            % sLS.fracRadius = 0.4;
+            % sLS.coord      = bgMesh.coord;
+            % ls = LevelSetCreator.create(sLS);
+            % levelSet = ls.getValue();
+            % 
+            % sUm.backgroundMesh = bgMesh;
+            % sUm.boundaryMesh   = bdMesh;
+            % uMesh = UnfittedMesh(sUm);
+            % uMesh.compute(levelSet);
+            % 
+            % obj.mesh = uMesh.createInnerMesh();
+            % obj.mesh = obj.mesh.computeCanonicalMesh();
+            % %obj.mesh = bgMesh;
+            % 
+            % figure
+            % uMesh.plotes
             % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             % 
             % s.coord = V(:,1:2);
@@ -168,41 +192,49 @@ classdef PhaseFieldComputer < handle
             % m = Mesh(s);
             % obj.mesh = m;
 
-            x1 = linspace(0,1,20);
-            x2 = linspace(0,1,20);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            sBg.coord  = V(:,1:2);
-            sBg.connec = F;
-            bgMesh = Mesh(sBg);
-            figure
-            bgMesh.plot()
+            % x1 = linspace(0,1,20);
+            % x2 = linspace(0,1,20);
+            % [xv,yv] = meshgrid(x1,x2);
+            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            % sBg.coord  = V(:,1:2);
+            % sBg.connec = F;
+            % bgMesh = Mesh(sBg);
+            % bdMesh  = bgMesh.createBoundaryMesh();
+            % 
+            % sLS.type       = 'circleInclusion';
+            % sLS.mesh       = bgMesh;
+            % sLS.ndim       = 2;
+            % sLS.fracRadius = 0.4;
+            % sLS.coord      = bgMesh.coord;
+            % ls = LevelSetCreator.create(sLS);
+            % levelSet = ls.getValue();
+            % 
+            % sUm.backgroundMesh = bgMesh;
+            % sUm.boundaryMesh   = bdMesh;
+            % uMesh = UnfittedMesh(sUm);
+            % uMesh.compute(levelSet);
+            % 
+            % obj.mesh = uMesh.createInnerMesh();
+            % obj.mesh = obj.mesh.computeCanonicalMesh();
+            % %obj.mesh = bgMesh;
+            % 
+            % figure
+            % uMesh.plot
 
-            bdMesh  = bgMesh.createBoundaryMesh();
+            sM.coord = [0,0;
+                        0,1;
+                        1,1;
+                        1,0];
+            sM.connec = [1 2 3 4];
+            m = Mesh(sM);
+            m.plot();
+            obj.mesh = m;
 
-            sLS.type       = 'circleInclusion';
-            sLS.mesh       = bgMesh;
-            sLS.ndim       = 2;
-            sLS.fracRadius = 0.4;
-            sLS.coord      = bgMesh.coord;
-            ls = LevelSetCreator.create(sLS);
-            levelSet = ls.getValue();
-
-            sUm.backgroundMesh = bgMesh;
-            sUm.boundaryMesh   = bgMesh.createBoundaryMesh;
-            uMesh = UnfittedMesh(sUm);
-            uMesh.compute(levelSet);
-
-            obj.mesh = uMesh.createInnerMesh();
-            %obj.mesh = bgMesh;
-
-            figure
-            uMesh.plot
         end
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
+            quad.computeQuadrature('CONSTANT');
             obj.quadrature = quad;
         end
 
@@ -219,7 +251,7 @@ classdef PhaseFieldComputer < handle
             % scatter3(obj.mesh.coord(:,1),obj.mesh.coord(:,2),obj.phi);
 
             xmax = max(obj.mesh.coord(:,1));
-            sAF.fHandle = @(x) 0;
+            sAF.fHandle = @(x) x(1,:,:)-x(1,:,:);
             %sAF.fHandle = @(x) x(1,:,:)/xmax;
             %sAF.fHandle = @(x) (x(1,:,:).^2)/xmax;
             sAF.ndimf   = 1;
@@ -237,9 +269,9 @@ classdef PhaseFieldComputer < handle
             c.dim = '2D';
             c.constitutiveProperties.rho_plus = 1;
             c.constitutiveProperties.rho_minus = 0;
-            c.constitutiveProperties.E_plus = 1;
+            c.constitutiveProperties.E_plus = 3000;
             c.constitutiveProperties.E_minus = 1e-3;
-            c.constitutiveProperties.nu_plus = 1/3;
+            c.constitutiveProperties.nu_plus = 0.39;
             c.constitutiveProperties.nu_minus = 1/3;
 
             matInt = MaterialInterpolation.create(c);
@@ -337,8 +369,8 @@ classdef PhaseFieldComputer < handle
             s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             DDenergy = FGaussDiscontinuousFunction(s);
-            %DDenergy.plot();
-            %title('DDEnergy')
+            DDenergy.plot();
+            title('DDEnergy')
         end
 
         function DDenergyVal = computeSecondEnergyDerivativeField(obj)
@@ -420,8 +452,8 @@ classdef PhaseFieldComputer < handle
             s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             Denergy = FGaussDiscontinuousFunction(s);
-            %Denergy.plot();
-            %title('DEnergy')
+            Denergy.plot();
+            title('DEnergy')
         end
 
         function DenergyVal = computeFirstEnergyDerivativeField(obj)
@@ -525,11 +557,11 @@ classdef PhaseFieldComputer < handle
             s.quadrature = obj.quadrature;
             s.mesh = obj.mesh;
             energy = FGaussDiscontinuousFunction(s);
-            %energy.plot()
-            %title('Energy')
+            energy.plot()
+            title('Energy')
             
             q.mesh = obj.mesh;
-            q.quadType = 'LINEAR';
+            q.quadType = 'CONSTANT';
             q.type = 'InternalEnergy';
             int = Integrator.create(q);
             totVal = int.compute(e,mat.C);
@@ -543,7 +575,7 @@ classdef PhaseFieldComputer < handle
             alpha = P0Function(s);
 
             q.mesh = obj.mesh;
-            q.quadType = 'LINEAR';
+            q.quadType = 'CONSTANT';
             q.type = 'Function';
             int = Integrator.create(q);
             totVal = (obj.Constant/obj.l0)*int.compute(alpha);
@@ -557,7 +589,7 @@ classdef PhaseFieldComputer < handle
             GradGradFun = P0Function(s);
             
             q.mesh = obj.mesh;
-            q.quadType = 'LINEAR';
+            q.quadType = 'CONSTANT';
             q.type = 'Function';
             int = Integrator.create(q);
             totVal = 0.5*(obj.Constant*obj.l0)*int.compute(GradGradFun);
@@ -575,7 +607,7 @@ classdef PhaseFieldComputer < handle
             f = P1Function(s);
             
             q.mesh = obj.mesh;
-            q.quadType = 'LINEAR';
+            q.quadType = 'CONSTANT';
             q.type = 'ScalarProduct';
             int = Integrator.create(q);
             totVal = int.compute(u,f);

@@ -107,7 +107,7 @@ classdef ElasticProblem < handle
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('CONSTANT'); %%%%%%%%%%%%%%%%%%%%%%%
             obj.quadrature = quad;
         end
 

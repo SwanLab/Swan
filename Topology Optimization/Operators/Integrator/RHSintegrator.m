@@ -21,7 +21,7 @@ classdef RHSintegrator < handle
 
         function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q.computeQuadrature('CONSTANT'); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             obj.quadrature = q;
         end
 
