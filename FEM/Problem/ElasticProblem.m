@@ -13,7 +13,6 @@ classdef ElasticProblem < handle
         RHS
         solver
         scale
-        pdim
         inputBC
         strain
         stress
@@ -95,7 +94,6 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.pdim        = cParams.dim;
             obj.inputBC     = cParams.bc;
             if isprop(cParams, 'interpolationType') % later on for P2
                 obj.interpolationType = cParams.interpolationType;
@@ -112,9 +110,7 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            strdim = regexp(obj.pdim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            obj.displacementFun = P1Function.create(obj.mesh, nDimf);
+            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
         end
 
         function dim = getFunDims(obj)
@@ -214,7 +210,7 @@ classdef ElasticProblem < handle
 
         function computePrincipalDirection(obj)
             strss  = permute(obj.stressFun.fValues, [2 1 3]);
-            s.type = obj.pdim;
+            s.type = obj.mesh.ndim;
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
             pcomp.compute(strss);
