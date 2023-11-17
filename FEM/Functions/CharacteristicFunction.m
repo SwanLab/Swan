@@ -9,7 +9,6 @@ classdef CharacteristicFunction < L2Function
     end
 
     properties (Access = private)
-%         mesh
         fxy
         levelSet
         unfittedMesh

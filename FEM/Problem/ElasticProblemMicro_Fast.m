@@ -123,6 +123,22 @@ classdef ElasticProblemMicro_Fast < handle
             dim = d;
         end
 
+        function [fun, funNames] = getFunsToPlot(obj)
+            if isempty(obj.stressFun)
+                fun = [];
+                funNames = [];
+            else
+                dispN = obj.createFunctionNames('displacement');
+                strsN = obj.createFunctionNames('stress');
+                strnN = obj.createFunctionNames('strain');
+                fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+                funNames = {dispN{:}, strsN{:}, strnN{:}};
+                obj.uFun = {};
+                obj.strainFun = {};
+                obj.stressFun = {};
+            end
+        end
+
     end
 
     methods (Access = private)
@@ -288,6 +304,15 @@ classdef ElasticProblemMicro_Fast < handle
             vars.stress_homog = stressHomog;
             obj.variables = vars;
         end
+
+        function n = createFunctionNames(obj, name)
+            nStre = numel(obj.uFun);
+            nums = 1:nStre;
+            n = cellstr([repmat(name, [nStre,1]), num2str(nums')])';
+        end
+        
     end
+
+    
 
 end
