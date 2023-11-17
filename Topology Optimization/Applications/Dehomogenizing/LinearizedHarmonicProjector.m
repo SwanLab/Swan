@@ -127,7 +127,7 @@ classdef LinearizedHarmonicProjector < handle
             nB  = b'*(obj.massMatrix*b);
         end
 
-        function [hRes,lRes] = evaluateModificationAndHarmonicResidual(obj,rho,bBar,b)
+        function [hRes,lRes] = evaluateAllResiduals(obj,rho,bBar,b)
             res = obj.evaluateResidual(rho,bBar,b);
             lRes = obj.evaluateLossResidual(res,bBar,b);            
             hRes = obj.evaluateHarmonicResidual(res,b);

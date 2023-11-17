@@ -253,6 +253,16 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
+        end
+
+
     end
 
     methods (Access = public, Static)
@@ -276,6 +286,7 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
+        
         
     end
 

@@ -129,7 +129,7 @@ classdef HarmonicVectorProjectionExample < handle
         function createHarmonicProjection(obj)
             s.mesh         = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;            
-            h = LinearizedHarmonicProjector(s);
+            h = LinearizedHarmonicProjector2(s);
             obj.harmonicProjector = h;
         end     
 
@@ -229,7 +229,7 @@ classdef HarmonicVectorProjectionExample < handle
             bInitial = b1;
 
             h    = obj.harmonicProjector;
-            [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,bInitial,b1);
+            [hRes,lRes] = h.evaluateAllResiduals(rho,bInitial,b1);
             hRes.plot();
             colorbar
             hMax = max(hRes.fValues(:));
@@ -319,7 +319,7 @@ classdef HarmonicVectorProjectionExample < handle
             rho = obj.computeRho();                        
                   
             h = obj.harmonicProjector;
-            [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,b1);
+            [hRes,lRes] = h.evaluateAllResiduals(b1,b1);
             hRes.plot();
             lRes.plot();                 
         
@@ -331,7 +331,7 @@ classdef HarmonicVectorProjectionExample < handle
        %     a1   = obj.createHalfOrientationVectorP1(bNew);
             
 %              h    = obj.harmonicProjector;
-%              [hRes,lRes] = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
+%              [hRes,lRes] = h.evaluateAllResiduals(rho,b1,bNew);
 %              hRes.plot();
 %              lRes.plot();
 
@@ -343,7 +343,7 @@ classdef HarmonicVectorProjectionExample < handle
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
             h    = obj.harmonicProjector;
-            hRes = h.evaluateModificationAndHarmonicResidual(rho,b1,bNew);
+            hRes = h.evaluateAllResiduals(rho,b1,bNew);
             hRes.plot();
 
 
