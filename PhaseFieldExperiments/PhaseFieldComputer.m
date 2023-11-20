@@ -5,7 +5,7 @@ classdef PhaseFieldComputer < handle
         tolErrPhi = 1e-6;
         Gc = 0.02;
         fc = 1;
-        Force = 100;
+        Force = 1;
     end
 
     properties (Access = private)
@@ -60,7 +60,7 @@ classdef PhaseFieldComputer < handle
                 numIterP = 1;
                 while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    %obj.fem.uFun.plot()
+                    obj.fem.uFun.plot()
                     errorPhi = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.createEnergyMassMatrix();
@@ -221,10 +221,10 @@ classdef PhaseFieldComputer < handle
             % figure
             % uMesh.plot
 
-            sM.coord = [0,0;
-                        0,1;
+            sM.coord = [-1,-1;
+                        1,-1;
                         1,1;
-                        1,0];
+                        -1,1];
             sM.connec = [1 2 3 4];
             m = Mesh(sM);
             m.plot();
@@ -234,7 +234,7 @@ classdef PhaseFieldComputer < handle
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('CONSTANT');
+            quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
         end
 
@@ -269,9 +269,9 @@ classdef PhaseFieldComputer < handle
             c.dim = '2D';
             c.constitutiveProperties.rho_plus = 1;
             c.constitutiveProperties.rho_minus = 0;
-            c.constitutiveProperties.E_plus = 3000;
+            c.constitutiveProperties.E_plus = 1;
             c.constitutiveProperties.E_minus = 1e-3;
-            c.constitutiveProperties.nu_plus = 0.39;
+            c.constitutiveProperties.nu_plus = 1/3;
             c.constitutiveProperties.nu_minus = 1/3;
 
             matInt = MaterialInterpolation.create(c);
@@ -307,7 +307,7 @@ classdef PhaseFieldComputer < handle
             % bc.pointload(:,3) = -obj.Force*(Fstep/niter);
             % obj.boundaryConditions = bc;
 
-            dirichletNodes = abs(obj.mesh.coord(:,2)-0) < 1e-12;
+            dirichletNodes = abs(obj.mesh.coord(:,2)-(-1)) < 1e-12;
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             forceNodes = isInUp;
@@ -349,6 +349,7 @@ classdef PhaseFieldComputer < handle
             s.material = obj.createMaterial();
             s.dim = '2D';
             s.bc = obj.boundaryConditions;
+            s.interpolationType = 'LINEAR';
             obj.fem = FEM.create(s);
             obj.fem.solve();
 

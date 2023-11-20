@@ -79,12 +79,12 @@ classdef PhaseFieldInternalEnergyInterpolator < handle
             k1 = obj.kappa1;
             p = 2;
 
-            obj.mu      = @(phi) ((1-phi).^p)*m1 + m0;
-            obj.kappa   = @(phi) ((1-phi).^p)*k1 + k0;
-            obj.dmu     = @(phi) -p*((1-phi).^(p-1))*m1 + m0;
-            obj.dkappa  = @(phi) -p*((1-phi).^(p-1))*k1 + k0;
-            obj.ddmu    = @(phi) p*(p-1)*((1-phi).^(p-2))*m1 + m0;
-            obj.ddkappa = @(phi) p*(p-1)*((1-phi).^(p-2))*k1 + k0;
+            obj.mu      = @(phi) ((1-phi).^p)*m1;%+ m0;
+            obj.kappa   = @(phi) ((1-phi).^p)*k1;% + k0;
+            obj.dmu     = @(phi) -p*((1-phi).^(p-1))*m1;% + m0;
+            obj.dkappa  = @(phi) -p*((1-phi).^(p-1))*k1;% + k0;
+            obj.ddmu    = @(phi) p*(p-1)*((1-phi).^(p-2))*m1;% + m0;
+            obj.ddkappa = @(phi) p*(p-1)*((1-phi).^(p-2))*k1;% + k0;
         end
 
     end
