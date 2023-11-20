@@ -257,6 +257,12 @@ classdef Mesh < handle
             m = r.compute();
         end
 
+        function m = convertToTriangleMesh(obj, lastNode)
+            if nargin == 1; lastNode = obj.nnodes; end
+            q2t = QuadToTriMeshConverter();
+            m = q2t.convert(obj, lastNode);
+        end
+
         function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
