@@ -1,6 +1,7 @@
 classdef FilterFactory < handle
 
-    % - 'evaluate' method inside UnfittedBoundaryFunction !!
+    % - H-J: 'evaluate' method inside UnfittedBoundaryFunction !!
+    % - try Clement, fVali=pi(Vi)
 
     methods (Access = public, Static)
 
