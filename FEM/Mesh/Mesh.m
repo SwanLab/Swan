@@ -68,7 +68,7 @@ classdef Mesh < handle
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
             n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-            n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
+            n23 = sqrt(x2x13(:,1).^2 + x2x3(:,2).^2);
             n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
             hs = min([n12,n23,n13],[],2);
             hMin = min(hs);
@@ -378,13 +378,6 @@ classdef Mesh < handle
                 end
             end
         end
-
-        % function triangulateMesh(obj)
-        %     P = obj.coord;
-        %     T = obj.connec;
-        %     obj.triMesh = triangulation(T,P);
-        % end
-
     end
 
     methods (Access = private, Static)
