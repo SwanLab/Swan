@@ -39,7 +39,9 @@ classdef FilterKernel < handle
             obj.mesh          = cParams.mesh;
             obj.filteredField = cParams.trial;
             obj.testField     = cParams.test;
-            obj.approach      = cParams.approach;
+            if not(isfield(cParams,'approach'))
+                obj.approach      = 'B';
+            end
         end
 
         function createMassMatrix(obj)
