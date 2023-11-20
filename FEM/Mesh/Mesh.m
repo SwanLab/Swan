@@ -257,6 +257,12 @@ classdef Mesh < handle
             m = r.compute();
         end
 
+        function m = convertToTriangleMesh(obj, lastNode)
+            if nargin == 1; lastNode = obj.nnodes; end
+            q2t = QuadToTriMeshConverter();
+            m = q2t.convert(obj, lastNode);
+        end
+
         function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
@@ -281,10 +287,10 @@ classdef Mesh < handle
             p.print();
         end
 
-        function triMesh = triangulateMesh2(obj)
-            P = obj.coord;
-            T = obj.connec;
-            triMesh = triangulation(T,P);
+        function m = triangulateMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = delaunayn(obj.coord);
+            m = Mesh(s);
         end
 
     end
