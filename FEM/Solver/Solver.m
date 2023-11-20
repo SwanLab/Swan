@@ -19,7 +19,7 @@ classdef Solver < handle
                     stype = NonLinear_Solver(cParams);
 
                 case 'rMINRES'
-                    stype = rMINRES(cParams);
+                    stype = rMINRES();
 
                 otherwise
                     error('Invalid solver type.')
