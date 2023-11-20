@@ -83,7 +83,8 @@ classdef ConnecCoordFromInterpAndMesh < handle
         function ind = findPointInList(node,xPoints)
             match = true(size(xPoints,1),1);
             for idime = 1:size(node,2)
-                match = match & xPoints(:,idime) == node(idime);
+%                 match = match & xPoints(:,idime) == node(idime);
+                match = match & abs(xPoints(:,idime) - node(idime))<10e-8; % NOOOOOOO
             end
             ind = find(match);
         end

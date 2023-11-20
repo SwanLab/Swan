@@ -4,7 +4,7 @@ close all
 clc
 
 % Define number of elements
-N = [4 8 16 32 64];
+N = [2 8 16 32];
 
 % Prepare analytical function
 sAF.fHandle = @(x) sin(x(1,:,:)*2*pi); % f(x) = sin(x)
@@ -22,9 +22,9 @@ for i = 1:length(N)
     xFun = AnalyticalFunction(sAF);
     
     % Project to P1 and P2
-    p1fun = xFun.project('LINEAR');
-    p2fun = xFun.project('QUADRATIC');
-%     p3fun = xFun.project('CUBIC');
+    %p1fun = xFun.project('LINEAR');
+    %p2fun = xFun.project('QUADRATIC');
+    p3fun = xFun.project('CUBIC');
     
     % Define the quadrature to integrate the norm
     xG = defineGaussPoints(sAF.mesh);
