@@ -118,7 +118,7 @@ classdef FilterKernel < handle
         function computeRHS2(obj,fun,quadType)
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
+                    s.mesh = obj.mesh;
                 otherwise
                     s.mesh = obj.mesh;
             end
