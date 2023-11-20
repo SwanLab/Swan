@@ -59,7 +59,8 @@
 
         function plot(obj)
             s.mesh = obj.mesh;
-            proj = Projector_toP1(s);
+            s.projectorType = 'P1D';
+            proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
         end
@@ -102,6 +103,15 @@
             end
             dofConnec = dofsElem;
         end
+
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
+        end        
 
     end
     

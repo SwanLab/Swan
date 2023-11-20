@@ -297,6 +297,30 @@ classdef HarmonicVectorProjectionExample < handle
             a1 = P1Function(s);
         end
 
+        function plotAll(obj,bInit,b)
+            h = obj.harmonicProjector;
+            [resL,resH,resB,resG] = h.evaluateAllResiduals(bInit,b);
+
+            a1   = obj.createHalfOrientationVectorP1(b);
+            a1 = obj.projectInUnitBall(a1.fValues);
+            a1 = obj.createFunctionP1(a1);
+            figure()
+            s.mesh        = obj.mesh;
+            s.orientation = a1;
+            sC = SingularitiesComputer(s);
+            sC.compute();
+            sC.plot();
+            title('Singularities')
+            resL.plot
+            title('L2Distance')
+            resH.plot
+            title('Harmonicity')
+            resB.plot
+            title('UnitBall')
+            resG.plot
+            title('Gradient')
+        end
+
         function project(obj)
             a = obj.orientationVector();
             a0 = a{1};
@@ -309,55 +333,24 @@ classdef HarmonicVectorProjectionExample < handle
             b1 = obj.projectInUnitBall(b1.fValues);
             b1 = obj.createFunctionP1(b1);            
         
-            figure(3)
-            s.mesh        = obj.mesh;
-            s.orientation = a1;
-            sC = SingularitiesComputer(s);
-            sC.compute();
-            sC.plot();         
+       
+            bInit = b1;
 
-            rho = obj.computeRho();                        
-                  
-            h = obj.harmonicProjector;
-            [hRes,lRes] = h.evaluateAllResiduals(b1,b1);
-            hRes.plot();
-            lRes.plot();                 
-        
-
-            %a01 = obj.createHalfOrientationVector(b0);
-      
-            %%%Via filtering 
-            bNew = obj.projectViaFilterIteration(rho,b1);
-       %     a1   = obj.createHalfOrientationVectorP1(bNew);
-            
-%              h    = obj.harmonicProjector;
-%              [hRes,lRes] = h.evaluateAllResiduals(rho,b1,bNew);
-%              hRes.plot();
-%              lRes.plot();
-
+            obj.plotAll(bInit,bInit)
             
             
-            %%%Via picard
-            %b1   = bNew;
-      %      bNew = obj.projectViaPicard(rho,b1,b1);
-            a1   = obj.createHalfOrientationVectorP1(bNew);
-            
-            h    = obj.harmonicProjector;
-            hRes = h.evaluateAllResiduals(rho,b1,bNew);
-            hRes.plot();
+            bNew = obj.harmonicProjector.solveProblem(bInit,bInit);
+            obj.plotAll(bInit,bNew);
 
 
-
-            
+            a1 = obj.createHalfOrientationVectorP1(bNew);            
             a1 = obj.projectInUnitBall(a1.fValues);
-            a1 = obj.createFunctionP1(a1);            
+            a1 = obj.createFunctionP1(a1);     
+            bNewP = obj.createDobleOrientationVectorP1(a1);
 
-            figure(4)
-            s.mesh        = obj.mesh;
-            s.orientation = a1;
-            sC = SingularitiesComputer(s);
-            sC.compute();
-            sC.plot();
+            obj.plotAll(bInit,bNewP);
+
+
 
 
             a{1} = a1;

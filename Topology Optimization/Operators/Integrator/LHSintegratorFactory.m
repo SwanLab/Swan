@@ -72,6 +72,8 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorFunctionStiffness(cParams);
                case 'MassMatrixWithFunction'
                    obj = LHSintegratorFunctionMass(cParams);
+               case 'AdvectionMatrixWithFunction'
+                   obj = LHSintegratorFunctionAdvection(cParams);                   
            end
        end
    end

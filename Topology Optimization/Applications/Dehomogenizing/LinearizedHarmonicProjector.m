@@ -41,7 +41,7 @@ classdef LinearizedHarmonicProjector < handle
 
         function hRes = evaluateHarmonicResidual(obj,res,b)
             quad = Quadrature.set(obj.mesh.type);            
-            quad.computeQuadrature('QUADRATIC');
+            quad.computeQuadrature('QUADRATICMASS');
 
             bG  = b.evaluate(quad.posgp);
             b1  = bG(1,:,:);
