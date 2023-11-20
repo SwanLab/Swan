@@ -17,7 +17,7 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
             switch uM.innerMesh.mesh.type
                 case 'TRIANGLE'
                     coordInner     = innerMesh.coord;
-                    connecInner    = innerMesh.connec;
+                    connecInner    = uM.innerMesh.globalConnec;
 
                 case 'QUAD'
                     innerMeshQuad = innerMesh;
@@ -27,8 +27,8 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
                     connecInner = innerMeshTri.connec;
             end
             ncoord = size(coordInner,1);
-            connecCutInner = connecCutInner + ncoord;
-            s.coord  = [coordInner;  coordCutInner];
+            % connecCutInner = connecCutInner + ncoord;
+            s.coord  = [coordCutInner];
             s.connec = [connecInner; connecCutInner];
             m = Mesh(s);
         end
