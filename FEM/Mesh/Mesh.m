@@ -373,12 +373,6 @@ classdef Mesh < handle
             end
         end
 
-        function triangulateMesh(obj)
-            P = obj.coord;
-            T = obj.connec;
-            obj.triMesh = triangulation(T,P);
-        end
-
     end
 
     methods (Access = private, Static)
