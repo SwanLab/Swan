@@ -43,22 +43,22 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
+           %  obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+           %  obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+           % obj.iteration = 665;
 % 
-           %  obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-           %  obj.fileName = 'ExperimentingPlotSuperEllipse';
-           %  obj.iteration = 64;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+            obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-             s.fileName = [obj.fileName,num2str(obj.iteration)];
-             s.folderPath = fullfile(obj.filePath );
-             w = WrapperMshResFiles(s);
-             w.compute();
-       %     d = load('DataExample.mat');
-       %     w = d.w;
+         %    s.fileName = [obj.fileName,num2str(obj.iteration)];
+        %     s.folderPath = fullfile(obj.filePath );
+        %     w = WrapperMshResFiles(s);
+       %      w.compute();
+            d = load('DataExample.mat');
+           w = d.w;
             obj.experimentData = w;
         end
 
@@ -360,7 +360,7 @@ classdef HarmonicVectorProjectionExample < handle
                 end
                 close all
 
-                bInit = bNewP;
+                bInit = bNew;
                 end                
 
             end
@@ -379,7 +379,7 @@ classdef HarmonicVectorProjectionExample < handle
             obj.dehomogenize(a);
 
 
-            b1 = obj.doubleOrientationVector{1};
+            xb1 = obj.doubleOrientationVector{1};
             b1.plotArrowVector();
 
 

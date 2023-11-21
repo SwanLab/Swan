@@ -33,7 +33,7 @@ classdef LinearizedHarmonicProjector2 < handle
             res = norm(LHS*x - RHS)/norm(x);            
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.1;
+            theta = 0.5;
             while res(i) > 1e-6
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;    
@@ -137,7 +137,7 @@ classdef LinearizedHarmonicProjector2 < handle
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
            obj.epsilon          = cParams.epsilon;
-           obj.eta     = 4*(obj.mesh.computeMeanCellSize)^2;                            
+           obj.eta     = 100*(obj.mesh.computeMeanCellSize)^2;                            
         end
         
         function computeMassMatrix(obj)
