@@ -148,89 +148,89 @@ classdef PhaseFieldComputer < handle
         end
 
         function computeMesh(obj)
-            % %file = 'test2d_triangle';
-            % %a.fileName = file;
-            % % s = FemDataContainer(a);
-            % 
-            % % Generate coordinates
-            % x1 = linspace(0,1,20);
-            % x2 = linspace(1,2,20);
-            % % Create the grid
-            % [xv,yv] = meshgrid(x1,x2);
-            % % Triangulate the mesh to obtain coordinates and connectiviti            % x1 = linspace(0,1,20);
-            % x2 = linspace(0,1,20);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % sBg.coord  = V(:,1:2);
-            % sBg.connec = F;
-            % bgMesh = Mesh(sBg);
-            % bdMesh  = bgMesh.createBoundaryMesh();
-            % 
-            % sLS.type       = 'circleInclusion';
-            % sLS.mesh       = bgMesh;
-            % sLS.ndim       = 2;
-            % sLS.fracRadius = 0.4;
-            % sLS.coord      = bgMesh.coord;
-            % ls = LevelSetCreator.create(sLS);
-            % levelSet = ls.getValue();
-            % 
-            % sUm.backgroundMesh = bgMesh;
-            % sUm.boundaryMesh   = bdMesh;
-            % uMesh = UnfittedMesh(sUm);
-            % uMesh.compute(levelSet);
-            % 
-            % obj.mesh = uMesh.createInnerMesh();
-            % obj.mesh = obj.mesh.computeCanonicalMesh();
-            % %obj.mesh = bgMesh;
-            % 
-            % figure
-            % uMesh.plot
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % 
-            % s.coord = V(:,1:2);
-            % s.connec = F;
-            % m = Mesh(s);
-            % obj.mesh = m;
-            % 
-            % x1 = linspace(0,1,20);
-            % x2 = linspace(0,1,20);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % sBg.coord  = V(:,1:2);
-            % sBg.connec = F;
-            % bgMesh = Mesh(sBg);
-            % bdMesh  = bgMesh.createBoundaryMesh();
-            % 
-            % sLS.type       = 'circleInclusion';
-            % sLS.mesh       = bgMesh;
-            % sLS.ndim       = 2;
-            % sLS.fracRadius = 0.4;
-            % sLS.coord      = bgMesh.coord;
-            % ls = LevelSetCreator.create(sLS);
-            % levelSet = ls.getValue();
-            % 
-            % sUm.backgroundMesh = bgMesh;
-            % sUm.boundaryMesh   = bdMesh;
-            % uMesh = UnfittedMesh(sUm);
-            % uMesh.compute(levelSet);
-            % 
-            % obj.mesh = uMesh.createInnerMesh();
-            % %obj.mesh = uMesh.createInnerMeshGoodConditioning()
-            % %obj.mesh = obj.mesh.computeCanonicalMesh();
-            % obj.mesh.plot;
-            % %obj.mesh = bgMesh;
-            % 
-            % figure
-            %uMesh.plot
-
-            sM.coord = [-1,-1;
-                        1,-1;
-                        1,1;
-                        -1,1];
-            sM.connec = [1 2 3 4];
-            m = Mesh(sM);
-            m.plot();
+            %file = 'test2d_triangle';
+            %a.fileName = file;
+            % s = FemDataContainer(a);
+            
+            % Generate coordinates
+            x1 = linspace(0,1,20);
+            x2 = linspace(1,2,20);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectiviti            % x1 = linspace(0,1,20);
+            x2 = linspace(0,1,20);
+            [xv,yv] = meshgrid(x1,x2);
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            sBg.coord  = V(:,1:2);
+            sBg.connec = F;
+            bgMesh = Mesh(sBg);
+            bdMesh  = bgMesh.createBoundaryMesh();
+            
+            sLS.type       = 'circleInclusion';
+            sLS.mesh       = bgMesh;
+            sLS.ndim       = 2;
+            sLS.fracRadius = 0.4;
+            sLS.coord      = bgMesh.coord;
+            ls = LevelSetCreator.create(sLS);
+            levelSet = ls.getValue();
+            
+            sUm.backgroundMesh = bgMesh;
+            sUm.boundaryMesh   = bdMesh;
+            uMesh = UnfittedMesh(sUm);
+            uMesh.compute(levelSet);
+            
+            obj.mesh = uMesh.createInnerMesh();
+            obj.mesh = obj.mesh.computeCanonicalMesh();
+            %obj.mesh = bgMesh;
+            
+            figure
+            uMesh.plot
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            
+            s.coord = V(:,1:2);
+            s.connec = F;
+            m = Mesh(s);
             obj.mesh = m;
+            
+            x1 = linspace(0,1,20);
+            x2 = linspace(0,1,20);
+            [xv,yv] = meshgrid(x1,x2);
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            sBg.coord  = V(:,1:2);
+            sBg.connec = F;
+            bgMesh = Mesh(sBg);
+            bdMesh  = bgMesh.createBoundaryMesh();
+            
+            sLS.type       = 'circleInclusion';
+            sLS.mesh       = bgMesh;
+            sLS.ndim       = 2;
+            sLS.fracRadius = 0.4;
+            sLS.coord      = bgMesh.coord;
+            ls = LevelSetCreator.create(sLS);
+            levelSet = ls.getValue();
+            
+            sUm.backgroundMesh = bgMesh;
+            sUm.boundaryMesh   = bdMesh;
+            uMesh = UnfittedMesh(sUm);
+            uMesh.compute(levelSet);
+            
+            obj.mesh = uMesh.createInnerMesh();
+            %obj.mesh = uMesh.createInnerMeshGoodConditioning()
+            %obj.mesh = obj.mesh.computeCanonicalMesh();
+            obj.mesh.plot;
+            obj.mesh = bgMesh;
+            
+            figure
+            uMesh.plot
+
+%             sM.coord = [-1,-1;
+%                         1,-1;
+%                         1,1;
+%                         -1,1];
+%             sM.connec = [1 2 3 4];
+%             m = Mesh(sM);
+%             m.plot();
+%             obj.mesh = m;
 
         end
 
@@ -409,7 +409,8 @@ classdef PhaseFieldComputer < handle
             s.quadrature = quad;
 
             s.mesh = obj.mesh;
-            DDenergy = FGaussDiscontinuousFunction(s);
+            DDenergy = P0Function(s);
+            DDenergy = DDenergy.project('P1');
             DDenergy.plot();
             title('DDEnergy')
         end
@@ -450,7 +451,7 @@ classdef PhaseFieldComputer < handle
             s.function = DDenergyFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = 'CONSTANT';
+            s.quadratureOrder = 'LINEAR';
             LHS = LHSintegrator.create(s);
             obj.Mi = LHS.compute(); 
         end
