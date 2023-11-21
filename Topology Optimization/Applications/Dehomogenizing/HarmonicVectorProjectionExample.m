@@ -31,7 +31,6 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createBoundaryMesh();
             obj.createOrientationVector();
           %  obj.createDoubleOrientationVector();
-            obj.createHarmonicProjection();
             obj.createUnitBallProjector();
             obj.project()
             obj.computeSingularities();
@@ -44,22 +43,22 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-  %          obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-  %          obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-  %          obj.iteration = 665;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;
 % 
-             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-             obj.fileName = 'ExperimentingPlotSuperEllipse';
-             obj.iteration = 64;
+           %  obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+           %  obj.fileName = 'ExperimentingPlotSuperEllipse';
+           %  obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-           % s.fileName = [obj.fileName,num2str(obj.iteration)];
-           %  s.folderPath = fullfile(obj.filePath );
-           %  w = WrapperMshResFiles(s);
-           %  w.compute();
-            d = load('DataExample.mat');
-            w = d.w;
+             s.fileName = [obj.fileName,num2str(obj.iteration)];
+             s.folderPath = fullfile(obj.filePath );
+             w = WrapperMshResFiles(s);
+             w.compute();
+       %     d = load('DataExample.mat');
+       %     w = d.w;
             obj.experimentData = w;
         end
 
@@ -126,11 +125,11 @@ classdef HarmonicVectorProjectionExample < handle
             aF = P1Function(s);
         end
 
-        function createHarmonicProjection(obj)
+        function h = createHarmonicProjection(obj,epsilon)
             s.mesh         = obj.mesh;
-            s.boundaryMesh = obj.boundaryMesh;            
+            s.boundaryMesh = obj.boundaryMesh;  
+            s.epsilon      = epsilon;
             h = LinearizedHarmonicProjector2(s);
-            obj.harmonicProjector = h;
         end     
 
         function aF = createOrientationFromData(obj)
@@ -297,9 +296,8 @@ classdef HarmonicVectorProjectionExample < handle
             a1 = P1Function(s);
         end
 
-        function plotAll(obj,bInit,b)
-            h = obj.harmonicProjector;
-            [resL,resH,resB,resG] = h.evaluateAllResiduals(bInit,b);
+        function resHNorm = plotAll(obj,h,bBar,b)
+            [resL,resH,resB,resG] = h.evaluateAllResiduals(bBar,b);
 
             a1   = obj.createHalfOrientationVectorP1(b);
             a1 = obj.projectInUnitBall(a1.fValues);
@@ -319,6 +317,7 @@ classdef HarmonicVectorProjectionExample < handle
             title('UnitBall')
             resG.plot
             title('Gradient')
+            resHNorm = resH.computeL2norm();
         end
 
         function project(obj)
@@ -333,22 +332,40 @@ classdef HarmonicVectorProjectionExample < handle
             b1 = obj.projectInUnitBall(b1.fValues);
             b1 = obj.createFunctionP1(b1);            
         
-       
+            bBar  = b1;
             bInit = b1;
 
-            obj.plotAll(bInit,bInit)
-            
-            
-            bNew = obj.harmonicProjector.solveProblem(bInit,bInit);
-            obj.plotAll(bInit,bNew);
+            epsilons = linspace(0,10,50);
+            for i = 1:length(epsilons)
+                epsilon = epsilons(i);
+                
+                for k = 1:1
+                h = obj.createHarmonicProjection(epsilon);
+
+                obj.plotAll(h,bBar,bInit);
+                bNew = h.solveProblem(bBar,bInit);
+                obj.plotAll(h,bBar,bNew);
 
 
-            a1 = obj.createHalfOrientationVectorP1(bNew);            
-            a1 = obj.projectInUnitBall(a1.fValues);
-            a1 = obj.createFunctionP1(a1);     
-            bNewP = obj.createDobleOrientationVectorP1(a1);
+                a1 = obj.createHalfOrientationVectorP1(bNew);
+                a1 = obj.projectInUnitBall(a1.fValues);
+                a1 = obj.createFunctionP1(a1);
+                bNewP = obj.createDobleOrientationVectorP1(a1);
 
-            obj.plotAll(bInit,bNewP);
+
+
+                hnorm(i) = obj.plotAll(h,bBar,bNewP);
+                for j = 1:i
+                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                end
+                close all
+
+                bInit = bNewP;
+                end                
+
+            end
+
+
 
 
 
