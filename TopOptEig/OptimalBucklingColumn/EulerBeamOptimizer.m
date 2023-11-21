@@ -78,10 +78,10 @@ classdef EulerBeamOptimizer < handle
             obj.optimizerType = 'MMA'; %NullSpace';%'MMA';'AlternatingPrimalDual';%'fmincon'; % IPOPT';
             obj.initValueType = 'Constant'; % Random/Constant/External Value/Sinus
             obj.meshType      = 'Structured'; %Structured/Unstructured
-            obj.desVarType    = 'RadiusColumn';%'LshapeColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
-            obj.maxIter       = 1000;
-            obj.minDesVar = 0; 
-            obj.maxDesVar = 1; 
+            obj.desVarType    = 'HoleColumn';%'LshapeColumn'; %AreaColumn/RadiusColumn/SquareColumn/RectangularColumn/HoleColumn/RectangularHoleColumn
+            obj.maxIter       = 3000;
+            obj.minDesVar = 0.2; 
+            obj.maxDesVar = 2; 
             obj.minCost   = 0;
             obj.maxCost   = 10000;
         end

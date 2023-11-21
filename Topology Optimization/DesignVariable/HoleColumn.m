@@ -46,7 +46,7 @@ classdef HoleColumn < DesignVariable
             N = obj.mesh.nelem;
             switch obj.initValueType
                 case 'Constant'
-                    r = 1*ones(N,1);
+                    r = 2*ones(N,1);
                     e = 0.3*ones(N,1);
                     x0 = [r;e;0];
                 case 'Random'

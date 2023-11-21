@@ -47,7 +47,7 @@ classdef Optimizer_fmincon < Optimizer
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.algorithm              = 'interior-point';
+            obj.algorithm              = 'interior-point';%interior-point';
             cParams.optimizerNames.alg = obj.algorithm;
             obj.upperBound             = cParams.uncOptimizerSettings.ub;
             obj.lowerBound             = cParams.uncOptimizerSettings.lb;
