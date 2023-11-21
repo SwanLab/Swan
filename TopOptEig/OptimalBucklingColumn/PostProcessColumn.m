@@ -69,7 +69,7 @@ classdef PostProcessColumn < handle
             nVar = obj.designVariable.nDesignVar;
             s.designVariableValue = obj.designVariable.value(1:nVar*nElem);
             s.coord = obj.mesh.coord;
-            s.type = 'holedCircle'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'/'rectangularHoleColumn'
+            s.type = 'cylinderBuckling'; %'cylinderBuckling'/'holedCircle'/'rectangularColumn'/'rectangularHoleColumn'
             plt = Plot3DBucklingColumn(s);
             plt.compute();
         end

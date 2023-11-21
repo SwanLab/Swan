@@ -1,8 +1,8 @@
 clear all;
 close all;
 
-path = 'C:\Users\berna\Desktop\TFG\CASES\Circular Column\';
-cases = [24;23;25;26;28;27]; %[1;2;5;13;15;16;19;23];
+path = 'C:\Users\berna\Desktop\TFG\CASES\Rectangular New\';
+cases = [8;9;10;11;12;13]; %[1;2;5;13;15;16;19;23];
 nCases = length(cases);
 
 for iCase=1:nCases

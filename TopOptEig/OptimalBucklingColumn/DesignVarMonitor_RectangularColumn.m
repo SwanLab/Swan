@@ -70,7 +70,7 @@ classdef DesignVarMonitor_RectangularColumn < DesignVarMonitor_Abstract
             figure(4)
             clf
             plot(a,x,b,x);
-            axis([0.5 3.5 0 xMax])
+            axis([0 3 0 xMax])
             grid on
             grid minor
             %title('Design Variables','Interpreter', 'latex','FontSize',20, 'fontweight','b');

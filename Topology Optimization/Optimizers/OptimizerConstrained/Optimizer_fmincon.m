@@ -66,6 +66,7 @@ classdef Optimizer_fmincon < Optimizer
 %             params.hasFinished = obj.hasFinished; 
 %             params.firstorderopt=1;
 %             params.trustregionradius=1;
+%             %params.stepsize = 1;
 %            obj.outputFunction.monitoring.compute(params);
             PROBLEM         = obj.problem;
             PROBLEM.options = obj.options;

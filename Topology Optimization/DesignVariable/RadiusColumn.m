@@ -51,13 +51,13 @@ classdef RadiusColumn < DesignVariable
             switch obj.initValueType
                 case 'Constant'
                     x0(1:N,1) = 2;
-                    x0(N+1,1)=0;
+                    x0(N+1,1) = 0;
                 case 'Random'
                     x0 = 0.5*rand(N+1,1);
                 case 'Sinus'
                     x = linspace(pi/2,9*pi/2,N)';
                     a = 0.2*sin(x)+1;
-                    x0 = [a;1];
+                    x0 = [a;0];
                 case 'External Value'
                     x0 = obj.initValue;
                     x0=x0+norm(x0)*rand(size(x0))*0.01;
