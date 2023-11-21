@@ -100,7 +100,7 @@ classdef FilterKernel < handle
                     T      = boolean(T + incT);
                 end
             end
-            obj.supportMatrix = T/3;
+            obj.supportMatrix = T;
         end
 
         function computeRHS(obj,fun,quadType)
