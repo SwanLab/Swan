@@ -12,11 +12,13 @@ classdef ClementInterpolator < handle
         localMeshes
         local2GlobalDofs
         RHS
+        IElems
     end
 
     methods (Access = public)
         function obj = ClementInterpolator(cParams)
             obj.init(cParams);
+            obj.createNeighborElementsMatrix();
             obj.createSupportMatrix();
             obj.createLocalMeshes();
             obj.createLocalMassMatrices();
@@ -56,7 +58,7 @@ classdef ClementInterpolator < handle
                     T      = boolean(T + incT);
                 end
             end
-            obj.supportMatrix = T;
+            obj.supportMatrix = min(T,1); % obj.IElems !!! generalize
         end
 
         function createLocalMeshes(obj)
@@ -123,12 +125,27 @@ classdef ClementInterpolator < handle
             fVal   = zeros(size(obj.trial.fValues));
             for i = 1:obj.mesh.nnodes
                 Mi      = locM{i};
+                Mi      = obj.lumpMatrix(Mi);
                 RHSi    = locRHS{i};
                 xi      = Mi\RHSi;
                 fVal(i) = xi(obj.local2GlobalDofs(i));
             end
 
             obj.trial.fValues = fVal;
+        end
+
+        function Al = lumpMatrix(obj,A)
+            I  = ones(size(A,2),1);
+            Al = diag(A*I);
+        end
+
+        function createNeighborElementsMatrix(obj)
+            connec       = obj.mesh.connec;
+            nodes(1,1,:) = 1:obj.mesh.nnodes;
+            neig         = sum(connec==nodes,2);
+            neig         = squeeze(neig);
+            T            = neig*neig';
+            obj.IElems   = min(T,1);
         end
 
     end

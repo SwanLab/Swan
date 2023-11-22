@@ -3,13 +3,14 @@ classdef RHSintegrator_Composite < handle
     properties (GetAccess = public, SetAccess = private)
         integrators
         nInt
-        npnod
+        dofs
     end
 
     properties (Access = private)
         RHScells
         RHSsubcells
         unfittedMesh
+        testClass
         test
     end
 
@@ -28,7 +29,7 @@ classdef RHSintegrator_Composite < handle
         end
 
         function f = integrateAndSum(obj,unfFun)
-            f         = zeros(size(obj.test.fValues));
+            f         = zeros(obj.dofs);
             iBoundary = 0;
             if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
                 bcMesh   = unfFun.unfittedMesh.boundaryCutMesh.mesh;
@@ -54,10 +55,12 @@ classdef RHSintegrator_Composite < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.nInt = numel(cParams.compositeParams);
-            obj.npnod = cParams.npnod;
+            obj.nInt         = numel(cParams.compositeParams);
+            %obj.dofs         = cParams.npnod;
+            obj.dofs         = size(cParams.test.fValues);
             obj.unfittedMesh = cParams.unfittedMesh;
-            obj.test   = cParams.test;
+            obj.testClass    = class(cParams.test); % EL HACK
+            obj.test         = cParams.test;
         end
 
         function createIntegrators(obj,cParams)
@@ -87,7 +90,7 @@ classdef RHSintegrator_Composite < handle
             innerL2G(connecIL(:)) = connecIG(:);
             innerDofs = unique(connecIL);
 
-            int = zeros(obj.npnod,1);
+            int = zeros(obj.dofs,1);
             int(innerL2G(innerDofs)) = intLoc(innerDofs);
         end
 

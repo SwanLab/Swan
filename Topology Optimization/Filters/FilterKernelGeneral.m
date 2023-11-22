@@ -4,6 +4,7 @@ classdef FilterKernelGeneral < handle
         mesh
         filteredField
         testField
+        patchOrder
     end
 
     properties (Access = private)
@@ -35,6 +36,7 @@ classdef FilterKernelGeneral < handle
             obj.mesh          = cParams.mesh;
             obj.filteredField = cParams.trial;
             obj.testField     = cParams.test;
+            obj.patchOrder    = cParams.patchOrder;
         end 
 
         function createMassMatrix(obj)
@@ -50,7 +52,7 @@ classdef FilterKernelGeneral < handle
         function createNeighborElementsMatrix(obj)
             connec       = obj.mesh.connec;
             nodes(1,1,:) = 1:obj.mesh.nnodes;
-            neig         = sum(connec==nodes,2); % Be careful! Maybe shared edges, not shared nodes
+            neig         = sum(connec==nodes,2);
             neig         = squeeze(neig);
             T            = neig*neig';
             obj.IElems   = min(T,1);
@@ -59,15 +61,10 @@ classdef FilterKernelGeneral < handle
         function createGlobalSupportMatrix(obj)
             elems             = 1:obj.mesh.nelem;
             locSM             = obj.createLocalSupportMatrix(elems);
-            nElem             = obj.mesh.nelem;
-            IEl               = reshape(obj.IElems,[nElem,1,nElem]);
-            neigsElem         = sum(squeeze(IEl),2)-1;
-            maxNeig           = max(neigsElem);
-            for i = 1:maxNeig
-                iNeig(1,1,:) = neigsElem>=i;
-                IEl.*iNeig % here I stayed
-            end
-            obj.supportMatrix = min(locSM,1);
+            IEl               = obj.IElems;
+            p                 = obj.patchOrder;
+            patchMat          = IEl^(p-1);
+            obj.supportMatrix = min(locSM*patchMat,1);
         end
 
         function locSM = createLocalSupportMatrix(obj,elems)

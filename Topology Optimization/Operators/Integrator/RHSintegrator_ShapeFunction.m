@@ -28,9 +28,9 @@ classdef RHSintegrator_ShapeFunction < handle
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nDofElem
-                        dofs = conne(:,inode);
-                        Ni = shapes(inode,igaus);
+                    for idof = 1:nDofElem
+                        dofs = conne(:,idof);
+                        Ni = shapes(idof,igaus);
                         int = Ni*fG.*dVg;
                         f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
                     end

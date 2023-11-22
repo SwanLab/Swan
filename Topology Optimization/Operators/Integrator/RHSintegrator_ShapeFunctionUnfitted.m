@@ -41,7 +41,7 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         
         function s = createInteriorParams(obj,mesh,connec)
             s.type = 'Composite';
-            s.npnod = obj.mesh.backgroundMesh.nnodes;
+            s.npnod = obj.mesh.backgroundMesh.nnodes; % test fValues better
             s.compositeParams = cell(0);
             s.unfittedMesh = mesh;
             if ~isempty(mesh.innerMesh)

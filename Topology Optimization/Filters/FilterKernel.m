@@ -40,7 +40,9 @@ classdef FilterKernel < handle
             obj.filteredField = cParams.trial;
             obj.testField     = cParams.test;
             if not(isfield(cParams,'approach'))
-                obj.approach      = 'B';
+                obj.approach = 'B';
+            else
+                obj.approach = cParams.approach;
             end
         end
 
