@@ -19,6 +19,7 @@ classdef Multigrid < handle
         Lt
         K
         Lchol
+        Kred
     end
     
     methods (Access = public)
@@ -28,22 +29,23 @@ classdef Multigrid < handle
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init()
             obj.mesh = obj.createMesh();
-            obj.boundaryConditions = obj.createBoundaryConditions();
+            rawBc    = obj.createRawBoundaryConditions();
+            obj.boundaryConditions = obj.createBoundaryConditions(rawBc);
             obj.material = obj.createMaterial();
             
             dispFun = P1Function.create(obj.mesh, obj.nDimf);
             
             obj.K    = obj.computeStiffnessMatrix(obj.mesh,obj.material,dispFun);
-%             obj.Kred = obj.boundaryConditions.fullToReducedMatrix(K);
+            obj.Kred = obj.boundaryConditions.fullToReducedMatrix(obj.K);
 %             R = sprand((obj.Kred));
-%             obj.D = diag(diag(obj.Kred));
+             obj.D = diag(diag(obj.Kred));
 %             obj.L = tril(obj.Kred,-1);
 %             obj.Lt= obj.L';
 %             obj.Lchol=ichol(obj.Kred);
             
             RHS  = obj.createRHS(obj.mesh,dispFun,obj.boundaryConditions);
             Fext = RHS.compute();
-            %Fred = obj.boundaryConditions.fullToReducedVector(Fext);
+            Fred = obj.boundaryConditions.fullToReducedVector(Fext);
             
             x=obj.K\Fext;
             
@@ -54,19 +56,19 @@ classdef Multigrid < handle
 %             LHSK   = obj.createLHSstiffnessGlobal(obj.mesh,obj.quad,obj.material,modalFun);
 %             obj.Kmodal = LHSK.compute();
             
-            [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(obj.K,RHS,x);
+            [xCG,residualCG]   = obj.conjugateGradient(obj.Kred,Fred,x);
 
-            GD.x        = xCG; 
-            GD.residual = residualCG; 
-            GD.err      = errCG;
-            GD.errA     = errACG;
+%             GD.x        = xCG; 
+%             GD.residual = residualCG; 
+%             GD.err      = errCG;
+%             GD.errA     = errACG;
             
-            [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.K,Fred,x);
+            [xPCG,residualPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
 
-            PGDbasis20.x        = xPCG; 
-            PGDbasis20.residual = residualPCG; 
-            PGDbasis20.err      = errPCG;
-            PGDbasis20.errA     = errAPCG;            
+%             PGDbasis20.x        = xPCG; 
+%             PGDbasis20.residual = residualPCG; 
+%             PGDbasis20.err      = errPCG;
+%             PGDbasis20.errA     = errAPCG;            
             
         end
     end
@@ -82,7 +84,7 @@ classdef Multigrid < handle
 %             end
         end
                 
-        function bc = createBoundaryConditions(obj)
+        function bc = createRawBoundaryConditions(obj)
             dirichletNodes = abs(obj.mesh.coord(:,1)-0) < 1e-12;
             rightSide  = max(obj.mesh.coord(:,1));
             isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
@@ -98,6 +100,30 @@ classdef Multigrid < handle
             bc.pointload(:,1) = nodes(forceNodes);
             bc.pointload(:,2) = 2;
             bc.pointload(:,3) = -1;
+        end
+        
+        function bc = createBoundaryConditions(mesh,bcV)
+            dim = getFunDims(mesh);
+            bcV.ndimf = dim.ndimf;
+            bcV.ndofs = dim.ndofs;
+            s.mesh  = mesh;
+            s.scale = 'MACRO';
+            s.bc    = {bcV};
+            s.ndofs = dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+        end
+        
+        function dim = getFunDims(obj)
+            s.fValues = obj.mesh.coord;
+            s.mesh = obj.mesh;
+            disp = P1Function(s);
+            d.ndimf  = disp.ndimf;
+            d.nnodes = size(disp.fValues, 1);
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
         end
         
         function material = createMaterial(obj)
@@ -133,7 +159,7 @@ classdef Multigrid < handle
 
         end
         
-        function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol)
+        function [x,residual] = preconditionedConjugateGradient(obj,A,B,xsol)
             tol = 1e-6;
             n = length(B);
             x = zeros(n,1);
@@ -163,20 +189,23 @@ classdef Multigrid < handle
                 rzold = rznew;
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
-                err(iter)=norm(x-xsol);
-                errAnorm(iter)=((x-xsol)')*A*(x-xsol);
+%                 err(iter)=norm(x-xsol);
+%                 errAnorm(iter)=((x-xsol)')*A*(x-xsol);
             end
         end
         %
-                function z = applyPreconditioner(obj,r)
-                    lhs=obj.Kmodal;
-                    phi=obj.eigenVec;
-                    r1=phi'*r;
-                    zP=lhs\r1;
-                    z=phi*zP;
-                    %z = r;
-                    z = r-z;
-                end
+%                 function z = applyPreconditioner(obj,r)
+%                     lhs=obj.Kmodal;
+%                     phi=obj.eigenVec;
+%                     r1=phi'*r;
+%                     zP=lhs\r1;
+%                     z=phi*zP;
+%                     %z = r;
+%                     z = r-z;
+%                 end
+                 function z = applyPreconditioner(obj,r)
+                     z=obj.D\r;
+                 end
         %
     end
     
@@ -228,7 +257,7 @@ classdef Multigrid < handle
             LHSglobal = LHS_integratorStiffnessGlobal(sL);
         end
         
-        function [x,residual,err,errAnorm] = conjugateGradient(LHS,RHS,xsol)
+        function [x,residual] = conjugateGradient(LHS,RHS,xsol)
             tol = 1e-6;
             n = length(RHS);
             x = zeros(n,1);
@@ -249,13 +278,13 @@ classdef Multigrid < handle
                 %hasNotConverged = sqrt(rsnew) > tol;
                 hasNotConverged = norm(LHS*x - RHS) > tol;
 
-                p = r + 0*(rsnew / rsold) * p;
+                p = r + (rsnew / rsold) * p;
                 rsold = rsnew;
                 iter = iter + 1;
                 residual(iter) = norm(LHS*x - RHS); %Ax - b
-                 err(iter)=norm(x-xsol);
-                errAnorm(iter)=((x-xsol)')*LHS*(x-xsol);
-                f(iter)= 0.5*(x'*LHS*x)-RHS'*x;
+%                 err(iter)=norm(x-xsol);
+%                 errAnorm(iter)=((x-xsol)')*LHS*(x-xsol);
+%                 f(iter)= 0.5*(x'*LHS*x)-RHS'*x;
             end
         end
         
