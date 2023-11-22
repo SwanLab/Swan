@@ -83,16 +83,21 @@ classdef AssemblerFun < handle
             nDofsEl   = obj.fun.nDofsElem;
             nDofs     = obj.fun.nDofs;
             nGaus     = size(F,2);
-            V = zeros(nDofs,1);
+            nElem     = size(F,3);
+            strt = 1;
+            fnsh = nElem;
+            res = zeros(nDofsEl * nElem, 2);
             for iDof = 1:nDofsEl
                 for igaus = 1:nGaus
                     dofs = dofConnec(iDof,:);
                     c = squeeze(F(iDof,igaus,:));
-                    Fadd = obj.computeAddVectorBySparse(dofs, c, nDofs);
-                    % Fadd = obj.computeAddVectorByAccumarray(dofs, c, ndof);
-                    V = V + Fadd;
+                    matRes = [dofs', c];
+                    res(strt:fnsh,:) = matRes;
+                    strt = strt + nElem;
+                    fnsh = fnsh + nElem;
                 end
             end
+            V = sparse(res(:,1), 1, res(:,2), nDofs, 1);
         end
 
         function Vadd = computeAddVectorBySparse(obj,dofs, c, ndof)
