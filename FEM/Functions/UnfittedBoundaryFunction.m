@@ -14,7 +14,7 @@ classdef UnfittedBoundaryFunction < handle
 
         function f = obtainFunctionAtExternalBoundary(obj,iBoundary)
             s.uMesh = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
-            s.fun   = obj.fun;
+            s.fun   = obj.fun; % CHANGE MESH IN FUN
             f       = UnfittedFunction(s);
         end
 

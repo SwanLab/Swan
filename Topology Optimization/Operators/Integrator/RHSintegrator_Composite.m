@@ -34,6 +34,9 @@ classdef RHSintegrator_Composite < handle
             if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
                 bcMesh   = unfFun.unfittedMesh.boundaryCutMesh.mesh;
                 obj.test = eval([class(obj.test),'.create(bcMesh,1)']);
+            else
+                mesh     = unfFun.unfittedMesh.backgroundMesh;
+                obj.test = eval([obj.testClass,'.create(mesh,1)']);
             end
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
