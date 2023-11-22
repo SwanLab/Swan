@@ -105,7 +105,7 @@ classdef ElasticProblem < handle
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('CONSTANT'); %%%%%%%%%%%%%%%%%%%%%%%
+            quad.computeQuadrature('QUADRATIC'); %%%%%%%%%%%%%%%%%%%%%%%
             obj.quadrature = quad;
         end
 
@@ -186,8 +186,8 @@ classdef ElasticProblem < handle
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
             strFun.applyVoigtNotation();
-            perm = permute(strFun.fValues, [2 1 3]);
-%             obj.variables.strain = perm;
+          %  perm = permute(strFun.fValues, [2 1 3]);
+           % obj.variables.strain = perm;
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
@@ -204,7 +204,7 @@ classdef ElasticProblem < handle
             strFun = FGaussDiscontinuousFunction(z);
 
             obj.stress = strFun;
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+%            obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun = strFun;
         end
 
