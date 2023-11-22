@@ -54,7 +54,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             s.fun    = obj.fun; % !!!
             assembler = AssemblerFun(s);
 %             LHS = assembler.assemble(lhs);
-            LHS = assembler.assembleFunctionsViaIndices(lhs, obj.fun, obj.fun);
+            LHS = assembler.assembleFunctions(lhs, obj.fun, obj.fun);
         end
     end
 
