@@ -14,12 +14,12 @@ cost={'chomog_alphabeta'};
 weights=[1];
 constraint = {'volumeConstraint'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% optimizerUnconstrained = 'SLERP'; % level set
+optimizerUnconstrained = 'SLERP'; % level set
 % optimizerUnconstrained = 'PROJECTED GRADIENT'; % density
-% optimizer = 'DualNestedInPrimal';
+optimizer = 'DualNestedInPrimal';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-optimizerUnconstrained = 'SLERP'; 
-optimizer = 'NullSpace';
+% optimizerUnconstrained = 'SLERP'; 
+% optimizer = 'NullSpace';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % optimizer = 'MMA';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,16 +27,16 @@ incrementFactor = 1; %%%%%%%%%%% 1.2
 % designVariable = 'Density';
 designVariable = 'LevelSet';
 filterType = 'P1'; % P1 / PDE
-fracRadius = 0.4; %%%%%%%%%%% 0.75
+fracRadius = 0.5; %%%%%%%%%%% 0.4, 0.75
 kfrac = 1.1;
 
 nsteps = 1; % 50
-Vfrac_final = 0.85; %%%%% 0.7
+Vfrac_final = 0.5; %%%%% 0.85, 0.7
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 1-4/3*pi*(fracRadius/2)^3; %%%%%%%%%%% 1 (primer problema al q intenta convergir)
+Vfrac_initial = 0.5; %1-4/3*pi*(fracRadius/2)^3; %%%%%%%%%%% 1 (primer problema al q intenta convergir)
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 
@@ -57,8 +57,8 @@ micro.beta =[-1 0 0 0 0 0]';
 
 % For all tests
 plotting = false;
-printing = true;
-monitoring = true;
-maxiter = 250;
+printing = false;
+monitoring = false;
+maxiter = 1;
 % maxiter = nsteps*10;
 monitoring_interval = 1;

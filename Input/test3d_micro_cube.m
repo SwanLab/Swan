@@ -8,9 +8,6 @@
 % Micro/Macro: MICRO
 %
 %==================================================================
-clc
-close all
-clear
 
 %% Data
 
@@ -7507,46 +7504,3 @@ function vertices = get_vertices(gidcoord)
         end
     end
 end
-
-function MS = get_MasterSlave(gidcoord,vertices)
-    MS = [ ];
-    for i = 1:length(gidcoord)
-        nodeCoords = gidcoord(i,2:4);
-        if ismember(gidcoord(i,:),vertices,'rows')
-        else % if node is not a vertice
-            if any(nodeCoords==0)
-                xCoord = gidcoord(i,2);
-                yCoord = gidcoord(i,3);
-                zCoord = gidcoord(i,4);
-                if xCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord+1,yCoord,zCoord];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
-                if yCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord,yCoord+1,zCoord];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
-                if zCoord==0
-                    for j = 1:length(gidcoord)
-                        nodeCompared = gidcoord(j,2:4);
-                        nodeSuposed = [xCoord,yCoord,zCoord+1];
-                        if (isequal(nodeCompared,nodeSuposed))
-                            MS = [MS; [gidcoord(i,1) gidcoord(j,1)]];
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-

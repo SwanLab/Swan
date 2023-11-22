@@ -68,7 +68,6 @@ classdef ConstraintProjector < handle
                 isUB = fUB*fref < 0;
                 i    = i + 1;
             end
-            display(i)
             if isLB
                  lUB = lambda + pow^(i-2);
             else
