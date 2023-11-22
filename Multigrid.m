@@ -17,7 +17,7 @@ classdef Multigrid < handle
         D
         L
         Lt
-        Kred
+        K
         Lchol
     end
     
@@ -25,6 +25,7 @@ classdef Multigrid < handle
         
         function obj = Multigrid()
             close all;
+            addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init()
             obj.mesh = obj.createMesh();
             obj.boundaryConditions = obj.createBoundaryConditions();
@@ -32,7 +33,7 @@ classdef Multigrid < handle
             
             dispFun = P1Function.create(obj.mesh, obj.nDimf);
             
-            K    = obj.computeStiffnessMatrix(obj.mesh,obj.material,dispFun);
+            obj.K    = obj.computeStiffnessMatrix(obj.mesh,obj.material,dispFun);
 %             obj.Kred = obj.boundaryConditions.fullToReducedMatrix(K);
 %             R = sprand((obj.Kred));
 %             obj.D = diag(diag(obj.Kred));
@@ -41,24 +42,26 @@ classdef Multigrid < handle
 %             obj.Lchol=ichol(obj.Kred);
             
             RHS  = obj.createRHS(obj.mesh,dispFun,obj.boundaryConditions);
-            %Fext = RHS.compute();
+            Fext = RHS.compute();
             %Fred = obj.boundaryConditions.fullToReducedVector(Fext);
             
-            [obj.basisFvalues,obj.basisVec,obj.eigenVec] = obj.computeBasis(obj.Kred);
+            x=obj.K\Fext;
             
-            modalFun  = ModalFunction.create(obj.mesh,obj.basisFvalues,obj.functionType);
-
-            LHSK   = obj.createLHSstiffnessGlobal(obj.mesh,obj.quad,obj.material,modalFun);
-            obj.Kmodal = LHSK.compute();
+            [obj.basisFvalues,obj.basisVec,obj.eigenVec] = obj.computeBasis(obj.K);
             
-            [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(Kred,Fext,x);
+%             modalFun  = ModalFunction.create(obj.mesh,obj.basisFvalues,obj.functionType);
+% 
+%             LHSK   = obj.createLHSstiffnessGlobal(obj.mesh,obj.quad,obj.material,modalFun);
+%             obj.Kmodal = LHSK.compute();
+            
+            [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(obj.K,RHS,x);
 
             GD.x        = xCG; 
             GD.residual = residualCG; 
             GD.err      = errCG;
             GD.errA     = errACG;
             
-            [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
+            [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.K,Fred,x);
 
             PGDbasis20.x        = xPCG; 
             PGDbasis20.residual = residualPCG; 
@@ -120,11 +123,11 @@ classdef Multigrid < handle
 
             for i = 1:size(eigenVec,2)
                 b = eigenVec(:,i);
-                b1 = obj.boundaryConditions.reducedToFullVector(b);
-                basis{i} = reshape(b1,2,[])';
-                basisVec{i}= b1;
-                a = psi(:,i);
-                a1=obj.boundaryConditions.reducedToFullVector(a);
+                %b1 = obj.boundaryConditions.reducedToFullVector(b);
+                basis{i} = reshape(b,2,[])';
+                basisVec{i}= b;
+                %a = psi(:,i);
+                %a1=obj.boundaryConditions.reducedToFullVector(a);
                 %psiD{i}=reshape(a1,2,[])';
             end
 
