@@ -7,7 +7,12 @@
 
 % fclose('all');
 % rmdir('Output','s')
+clc
+close all
 
-s.testName = 'test_cantilever2';
+%%
+
+s.testName = 'test_micro3d';
+% s.testName = 'test_micro';
 t = TopOptComputer(s);
 t.compute();
