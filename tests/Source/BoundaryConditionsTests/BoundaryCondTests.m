@@ -27,7 +27,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testName         = triangle;
             s.variablesToStore = {'d_u'};
             s.computerType = 'FEM';
-            s.solType   = 'MONOLITIC';
+            s.solType   = 'REDUCED';
             s.solMode   = 'DISP';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
