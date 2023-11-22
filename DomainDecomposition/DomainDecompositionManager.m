@@ -31,7 +31,7 @@ classdef DomainDecompositionManager < handle
             close all
             obj.init();
             obj.createReferenceMesh();
-            obj.obtainCornerNodes();
+%             obj.obtainCornerNodes();
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
@@ -49,6 +49,11 @@ classdef DomainDecompositionManager < handle
             s.type     = 'ELASTIC';
             s.scale    = 'MACRO';
             s.dim      = '2D';
+            s.solverTyp = 'ITERATIVE';
+            s.iterativeSolverTyp = 'PCG';
+            s.preconditionerType = 'JACOBI';
+            s.tol = 1e-6;
+            
             fem        = FEM.create(s);
             fem.solve();
         end
@@ -62,23 +67,23 @@ classdef DomainDecompositionManager < handle
         end
 
         function createReferenceMesh(obj)
-%             filename   = 'lattice_ex1';
-%             a.fileName = filename;
-%             femD       = FemDataContainer(a);
-%             mS         = femD.mesh;
-%             bS         = mS.createBoundaryMesh();
-             % Generate coordinates
-            x1 = linspace(0,1,10);
-            x2 = linspace(0,1,10);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-            s.coord    = coord(:,1:2);
-            s.connec   = F;
-            mS         = Mesh(s);
+            filename   = 'lattice_ex1';
+            a.fileName = filename;
+            femD       = FemDataContainer(a);
+            mS         = femD.mesh;
             bS         = mS.createBoundaryMesh();
+% %              % Generate coordinates
+% %             x1 = linspace(0,1,10);
+% %             x2 = linspace(0,1,10);
+% %             % Create the grid
+% %             [xv,yv] = meshgrid(x1,x2);
+% %             % Triangulate the mesh to obtain coordinates and connectivities
+% %             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+% % 
+% %             s.coord    = coord(:,1:2);
+% %             s.connec   = F;
+% %             mS         = Mesh(s);
+% %             bS         = mS.createBoundaryMesh();
 
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;

@@ -98,22 +98,25 @@ classdef ModalTesting < handle
 
             obj.computeBasisRom();
             [Hhat,H,G,T,That] = computeEifemMat(obj);
-            nphi=obj.phiB{1}.nbasis;
-            npsi=obj.psi{1}.nbasis;
-            nrb= obj.RBboundary{1}.nbasis;
-            A = [ obj.Kmodal        zeros(nphi,nrb)     -Hhat              -H              ;
-                  zeros(nrb,nphi)   zeros(nrb,nrb)      -G                 zeros(nrb,npsi) ;
-                  Hhat'             G'                  zeros(nrb,nrb)     zeros(nrb,npsi) ;
+            nphi = obj.phiB{1}.nbasis;
+            npsi = obj.psi{1}.nbasis;
+            nrb  = obj.RBboundary{1}.nbasis;
+            A = [ obj.Kmodal        zeros(nphi,nrb)     -Hhat              -H               ;
+                  zeros(nrb,nphi)   zeros(nrb,nrb)      -G                 zeros(nrb,npsi)  ;
+                  Hhat'             G'                  zeros(nrb,nrb)     zeros(nrb,npsi)  ;
                   H'                zeros(npsi,nrb)     zeros(npsi,nrb)    zeros(npsi,npsi)];
                 
-            b = zeros(size(A(:,1),1),obj.interfaceModes{1}.nbasis);
-            rv = That*eye(obj.interfaceModes{1}.nbasis,obj.interfaceModes{1}.nbasis);
+            b    = zeros(size(A(:,1),1),obj.interfaceModes{1}.nbasis);
+            rv   = That*eye(obj.interfaceModes{1}.nbasis,obj.interfaceModes{1}.nbasis);
             psiv = T*eye(obj.interfaceModes{1}.nbasis,obj.interfaceModes{1}.nbasis);
             b(nphi+nrb+1:end,:) = [rv;psiv];
-            x=A\b;
+            x = A\b;
             kcoarse = x(nphi+nrb+1:end,:);
-            basis=cell2mat(obj.basisVec);
-            Udef=basis*inv(H)*T;
+            basis   = cell2mat(obj.basisVec);
+            Udef    = basis*inv(H)*T;
+            kcoarse = (Udef')*K*Udef;
+
+
             %             ModalTesting.plotRes(residualCG,residualPCG,errCG,errPCG,errACG,errAPCG)
 
 

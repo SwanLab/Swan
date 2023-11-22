@@ -16,6 +16,7 @@ classdef ElasticProblem < handle
         inputBC
         strain
         stress
+        preconditioner
     end
 
     properties (Access = protected)
@@ -24,7 +25,11 @@ classdef ElasticProblem < handle
         vstrain
         mesh % For Homogenization
         interpolationType
+        solverTyp
         displacementFun
+        preconditionerType
+        iterativeSolverTyp
+        tol
     end
 
     methods (Access = public)
@@ -33,12 +38,13 @@ classdef ElasticProblem < handle
             obj.init(cParams);
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
-            obj.createSolver();
+%             obj.createSolver();
         end
 
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
+            %obj.createSolver();
             obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
@@ -102,7 +108,26 @@ classdef ElasticProblem < handle
             else
                 obj.interpolationType = 'LINEAR';
             end
+           
             obj.createQuadrature();
+            
+            obj.solverTyp = '';
+            obj.iterativeSolverTyp = '';
+            obj.preconditionerType = '';
+            obj.tol = 0;
+            if isfield(cParams, 'solverTyp')
+                obj.solverTyp = cParams.solverTyp;
+                if strcmp('ITERATIVE',obj.solverTyp) 
+                    obj.iterativeSolverTyp = cParams.iterativeSolverTyp;
+                    obj.tol = cParams.tol;
+                    if  strcmp('PCG',obj.iterativeSolverTyp) 
+                        obj.preconditionerType = cParams.preconditionerType;
+                    end
+                end
+            else
+                obj.solverTyp = 'DIRECT';
+            end
+
         end
 
         function createQuadrature(obj)
@@ -138,9 +163,19 @@ classdef ElasticProblem < handle
             obj.boundaryConditions = bc;
         end
 
-        function createSolver(obj)
-            s.type =  'DIRECT';
+        function createSolver(obj,cParams)
+            s.type = obj.solverTyp ;
+            s.iterativeSolverTyp = obj.iterativeSolverTyp;
+            s.preconditionerType = obj.preconditionerType;
+            s.preconditioner = obj.computePreconditioner(cParams);
+            s.tol = obj.tol;
             obj.solver = Solver.create(s);
+        end
+
+        function preconditioner = computePreconditioner(obj,cParams)
+            s.preconditionerType = obj.preconditionerType ;
+            s.lhs = cParams.lhs;
+            preconditioner = Preconditioner.create(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -169,10 +204,13 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
+            bc    = obj.boundaryConditions;
+            Kred  = bc.fullToReducedMatrix(obj.LHS);
+            Fred  = bc.fullToReducedVector(obj.RHS);
+            s.lhs = Kred;
+            obj.createSolver(s);
+            x0 = zeros(size(Kred,1),1);
+            u = obj.solver.solve(Kred,Fred,x0);
             u = bc.reducedToFullVector(u);
 %             obj.variables.d_u = u;
 
