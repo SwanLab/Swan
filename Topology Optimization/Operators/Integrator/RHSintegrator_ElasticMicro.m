@@ -9,6 +9,8 @@ classdef RHSintegrator_ElasticMicro < handle
         dvolume
         globalConnec
         quadrature
+
+        fun
     end
     
     methods (Access = public)
@@ -54,7 +56,7 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.boundaryConditions = cParams.BC;
             obj.material           = cParams.material;
             obj.globalConnec       = cParams.globalConnec;
-%             obj.vstrain            = cParams.vstrain;
+            obj.fun                = cParams.fun;
         end
        
         function createQuadrature(obj)
@@ -73,8 +75,9 @@ classdef RHSintegrator_ElasticMicro < handle
             s.globalConnec = obj.globalConnec;
             s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
 %             F(:,1,:) = forces;
-            assembler = Assembler(s);
-            b = assembler.assembleV(forces);
+            s.fun = obj.fun;
+            assembler = AssemblerFun(s);
+            b = assembler.assembleV(forces, obj.fun);
         end
 
         function Fp = computePunctualFext(obj)

@@ -98,7 +98,7 @@ classdef RHSintegrator_Stokes < handle
         function RHS = assemble(obj, rhs)
             s.fun = [];
             assembler = AssemblerFun(s);
-            RHS = assembler.assembleVectorFunctions(rhs, obj.velocityFun, obj.pressureFun);
+            RHS = assembler.assembleVectorStokes(rhs, obj.velocityFun, obj.pressureFun);
         end
 
     end

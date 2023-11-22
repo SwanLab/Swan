@@ -163,6 +163,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeRHS(obj)
+            s.fun  = obj.displacementFun;
             s.type = 'ElasticMicro';
             s.dim      = obj.getFunDims();
             s.BC       = obj.boundaryConditions;

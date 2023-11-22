@@ -77,6 +77,28 @@ classdef AssemblerFun < handle
             A = sparse(res(:,1), res(:,2), res(:,3), nDofs1, nDofs2);
         end
 
+        function V = assembleV(obj, F, fun)
+            % Via indices
+            dofConnec = obj.fun.computeDofConnectivity();
+            nDofsEl   = obj.fun.nDofsElem;
+            nDofs     = obj.fun.nDofs;
+            nGaus     = size(F,2);
+            V = zeros(nDofs,1);
+            for iDof = 1:nDofsEl
+                for igaus = 1:nGaus
+                    dofs = dofConnec(iDof,:);
+                    c = squeeze(F(iDof,igaus,:));
+                    Fadd = obj.computeAddVectorBySparse(dofs, c, nDofs);
+                    % Fadd = obj.computeAddVectorByAccumarray(dofs, c, ndof);
+                    V = V + Fadd;
+                end
+            end
+        end
+
+        function Vadd = computeAddVectorBySparse(obj,dofs, c, ndof)
+           Vadd = sparse(dofs,1,c,ndof,1);
+        end
+
         function A = assembleMatrixViaIndices(obj, Ae)
             connec    = obj.globalConnec;
 %             dofConnec = obj.computeDofConnectivity()';
@@ -106,7 +128,8 @@ classdef AssemblerFun < handle
             A = sparse(res(:,1), res(:,2), res(:,3), ndofs, ndofs);
         end
 
-        function F = assembleVectorFunctions(obj, FelemCell, f1, f2)
+        function F = assembleVectorStokes(obj, FelemCell, f1, f2)
+            % Stokes
             funs = {f1,f2};
             nFields = numel(funs);
             b_global = cell(nFields,1);
