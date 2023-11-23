@@ -12,6 +12,7 @@ classdef ConnectivityComputer < handle
        boundaryConditions
        Kmatrix
        Mmatrix
+       materialInterpolation
     end
     
     properties (Access = private)
@@ -24,19 +25,18 @@ classdef ConnectivityComputer < handle
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
-            % obj.filterCharacteristicFunction();
-            % obj.createMaterialInterpolator();
-            % obj.createBoundaryConditions();            
-            % obj.createStiffnessMatrix();
-            % obj.computeMassMatrix();
-            % [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
-            % obj.density.plot()
-            % shading flat
-            % colormap('gray');
-            % colormap(flipud(gray));  
-            % colorbar
-            % figure
-            % obj.levelSet.getUnfittedMesh().plot()
+             obj.filterCharacteristicFunction();
+
+             obj.levelSet.getUnfittedMesh().plot()
+             obj.density.plot()
+            shading flat
+            colormap('gray');
+            colormap(flipud(gray));  
+            colorbar
+            figure
+
+             obj.computeEigenValue()
+          
             obj.computeCompliance();
         end
         
@@ -47,13 +47,41 @@ classdef ConnectivityComputer < handle
         function init(obj)
             
         end
+
+        function computeEigenValue(obj)
+             obj.createMaterialInterpolator();            
+             obj.createBoundaryConditions();               
+             obj.createStiffnessMatrix();
+             obj.computeMassMatrix();
+             [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
+            
+        end
         
         function computeCompliance(obj)
-            material = obj.computeMaterialInterpolation();
-            bC       = obj.createBoundaryConditionsForElasticity();
+            obj.materialInterpolation = obj.computeMaterialInterpolation();
+            s.mesh = obj.mesh;
+            s.type    = 'ELASTIC';
+            s.scale = 'MACRO';
+            s.material = obj.createMaterial();
+            s.dim = '2D';
+            s.bc = obj.createBoundaryConditionsForElasticity();
+            s.interpolationType = 'LINEAR';
             fem = FEM.create(s);
-            fem.solve();            
+            fem.solve();
 
+        end
+
+        function mat = createMaterial(obj)
+            dens = 1- obj.density.fValues;
+            mat  = obj.materialInterpolation.computeMatProp(dens);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = obj.mesh.nelem;
+            s.mesh  = obj.mesh;
+            s.kappa = mat.kappa;
+            s.mu    = mat.mu;
+            mat = Material.create(s);
+            mat.compute(s);
         end
     
         function matInt = computeMaterialInterpolation(obj)
@@ -71,18 +99,7 @@ classdef ConnectivityComputer < handle
             matInt = MaterialInterpolation.create(c);
         end
 
-        function material = createMaterial(obj,mesh)
-            I = ones(mesh.nelem,obj.quad.ngaus);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.nelem = mesh.nelem;
-            s.mesh  = mesh;
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
-            mat = Material.create(s);
-            mat.compute(s);
-            material = mat;
-        end        
+  
 
         function bc = createBoundaryConditionsForElasticity(obj)
             bM = obj.mesh.createBoundaryMesh();
@@ -92,7 +109,7 @@ classdef ConnectivityComputer < handle
             dirichletBc.value=[0,0];
             newmanBc.boundaryId=2;
             newmanBc.dof=[2];
-            newmanBc.value=[10];
+            newmanBc.value=[-1];
 
             [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
             bc.dirichlet=dirichlet;
