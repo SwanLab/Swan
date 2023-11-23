@@ -9,6 +9,7 @@ classdef RHSintegrator_ShapeFunction < handle
     methods (Access = public)
         function obj = RHSintegrator_ShapeFunction(cParams)
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 
