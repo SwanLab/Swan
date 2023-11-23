@@ -19,7 +19,8 @@ classdef Solver < handle
                     stype = NonLinear_Solver(cParams);
 
                 case 'rMINRES'
-                    stype = rMINRES();
+                    %stype = rMINRES();
+                    stype = CGsolver();
 
                 otherwise
                     error('Invalid solver type.')
