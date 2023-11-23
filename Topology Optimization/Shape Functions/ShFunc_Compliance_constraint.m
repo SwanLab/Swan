@@ -17,8 +17,7 @@ classdef ShFunc_Compliance_constraint < ShFunWithElasticPdes
             obj.name                             = cParams.type;
             obj.loadCase.number                  = cParams.shNumber;
             obj.init(cParams);
-            fileName = cParams.femSettings.fileName;
-            obj.createEquilibriumProblem(fileName);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
             obj.createOrientationUpdater();
             obj.isFirstIter = true;
         end

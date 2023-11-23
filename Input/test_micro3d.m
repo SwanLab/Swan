@@ -30,12 +30,13 @@ optimizer = 'NullSpace';
 incrementFactor = 1; %%%%%%%%%%% 1.2
 designVariable = 'LevelSet';
 %designVariable = 'LevelSet';
-filterType = 'P1'; % P1 / PDE
-fracRadius = 0.6; %%%%%%%%%%% 0.75
+filterType = 'PDE'; % P1 / PDE
+fracRadius = 0.4; %%%%%%%%%%% 0.75
+
 kfrac = 1.1;
 
 nsteps = 1; % 50
-Vfrac_final = 0.27; %%%%% 0.7
+Vfrac_final = 0.45; %%%%% 0.7
 Perimeter_target=1;
 optimality_final =1e-3;
 constr_final =1e-3;

@@ -1,6 +1,8 @@
 classdef P0Function < FeFunction
     
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
     
     properties (Access = private)
@@ -11,19 +13,20 @@ classdef P0Function < FeFunction
         
         function obj = P0Function(cParams)
             obj.init(cParams);
-            obj.createFvaluesByElem();
             obj.createInterpolation();
+            obj.computeNDofs();
         end
 
         function fxV = evaluate(obj, xV)
             % Its a p0 function, so no true need to interpolate -- the
             % value is constant
             nGaus = size(xV,2);
-            nFlds = size(obj.fValues,1);
-            nElem = size(obj.fValues,3);
+            nFlds = size(obj.fValues,2);
+            nElem = size(obj.fValues,1);
             fxV = zeros(nFlds,nGaus,nElem);
+            fVals = reshape(obj.fValues,[nFlds, 1, nElem]);
             for iGaus = 1:nGaus
-                fxV(:,iGaus,:) = squeeze(obj.fValues);
+                fxV(:,iGaus,:) = squeeze(fVals);
             end
         end
 
@@ -52,9 +55,12 @@ classdef P0Function < FeFunction
             p1DiscFun.plot();
         end
 
-        function print(obj, s)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
+            s.type = software;
+            s.filename = filename;
             p = FunctionPrinter.create(s);
             p.print();
         end
@@ -90,7 +96,7 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'LINEAR';                        
+            obj.order   = 'LINEAR';
         end
 
         function createInterpolation(obj)
@@ -98,11 +104,9 @@ classdef P0Function < FeFunction
             obj.interpolation = Interpolation.create(m,'CONSTANT');
         end
 
-        function createFvaluesByElem(obj)
-            f = obj.fValues;
-            nElem = size(f,1);
-            nDime = size(f,2);
-            obj.fValues = reshape(f',[nDime, 1, nElem]);
+        function computeNDofs(obj)
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
+            obj.nDofs = obj.ndimf * size(obj.fValues, 1);
         end
 
         % Printing

@@ -46,7 +46,6 @@ classdef LevelSet < DesignVariable
             aa.mesh = obj.mesh;
             aa.fValues = obj.value;
             valFun = P1Function(aa);
-
             fun = {valFun};
             funNames = {'value'};
         end
