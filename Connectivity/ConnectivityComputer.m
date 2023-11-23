@@ -47,6 +47,14 @@ classdef ConnectivityComputer < handle
             
         end
         
+        function computeCompliance(obj)
+        
+            fem = FEM.create(s);
+            fem.solve();            
+
+        end
+
+
         function createMesh(obj)
             x1 = linspace(-0.5,0.5,100);
             x2 = linspace(-0.5,0.5,100);
