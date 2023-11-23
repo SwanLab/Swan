@@ -25,7 +25,7 @@ classdef ConnectivityComputer < handle
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
-             obj.filterCharacteristicFunction();
+            obj.filterCharacteristicFunction();
 
              obj.levelSet.getUnfittedMesh().plot()
              obj.density.plot()
