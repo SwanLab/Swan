@@ -41,8 +41,8 @@ classdef EigModes < handle
        function grad = provideDerivative(obj,eigNum)
             obj.reorderModes(obj.lambda,obj.V,obj.D);
             Belem =  obj.bendingMatComputer.elementalBendingMatrix;
-            eigV1 = obj.D(1,1);
-            eigV2 = obj.D(2,2);
+            eigV1 = obj.D(1,1)
+            eigV2 = obj.D(2,2)
             difEigs = abs(eigV2-eigV1);
             if difEigs > 1 
                 dfdx = obj.computeSimpleEig(Belem);
