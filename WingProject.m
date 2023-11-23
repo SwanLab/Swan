@@ -1,4 +1,4 @@
-classdef Multigrid < handle
+classdef WingProject < handle
     
     
     properties (Access = public)
@@ -24,7 +24,7 @@ classdef Multigrid < handle
     
     methods (Access = public)
         
-        function obj = Multigrid()
+        function obj = WingProject()
             close all;
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init()
@@ -136,8 +136,13 @@ classdef Multigrid < handle
             s.pdim  = '2D';
             s.nelem = obj.mesh.nelem;
             s.mesh  = obj.mesh;
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
+            E = 70e9; 
+            nu = 0.35;
+            kappa = E/(2*(1-nu));
+            s.kappa = kappa*I;
+            %mu = (kappa - kappa*nu)/(1 + nu);
+            mu = E./(2*(1+nu));
+            s.mu    = mu*I;
             mat = Material.create(s);
             mat.compute(s);
             material = mat;
