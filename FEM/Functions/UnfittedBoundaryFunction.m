@@ -12,9 +12,21 @@ classdef UnfittedBoundaryFunction < handle
             obj.init(cParams);
         end
 
-        function f = obtainFunctionAtExternalBoundary(obj,iBoundary)
+        function f = obtainFunctionAtExternalBoundary(obj,iBoundary) % Only for FeFun so far...
             s.uMesh = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
-            s.fun   = obj.fun; % CHANGE MESH IN FUN
+
+
+            coord      = obj.unfittedMesh.backgroundMesh.coord;
+            x          = coord(:,1);
+            y          = coord(:,2);
+            f          = obj.fun.fValues;
+            F          = scatteredInterpolant(x,y,f);
+            bCoord     = s.uMesh.backgroundMesh.coord;
+            ss.fValues = F(bCoord);
+            ss.mesh    = s.uMesh.backgroundMesh;
+
+
+            s.fun   = P1Function(ss);
             f       = UnfittedFunction(s);
         end
 
