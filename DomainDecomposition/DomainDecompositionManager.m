@@ -27,7 +27,7 @@ classdef DomainDecompositionManager < handle
 
     methods (Access = public)
 
-        function obj = DomainDecompositionManager()
+        function obj = TestingPreconditioners()
             close all
             obj.init();
             obj.createReferenceMesh();
@@ -39,7 +39,17 @@ classdef DomainDecompositionManager < handle
             obj.quad = Quadrature.set(obj.meshDomain.type);
             obj.quad.computeQuadrature('QUADRATIC');
             obj.createDomainMaterial();
-            obj.solveDomainProblem();
+            
+            s.referenceMesh = obj.referenceMesh;
+            mC = MeshCreatorFromSubmeshes();
+            obj.meshDomain = mC.mesh;
+
+            preconditioner = obj.createPreconditioner(mC.submeshes);
+
+            obj.solveDomainProblem(precontioner);
+
+
+
         end
         
         function solveDomainProblem(obj)
