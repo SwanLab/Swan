@@ -26,7 +26,7 @@ optimizer = 'NullSpace';
 incrementFactor = 1; %%%%%%%%%%% 1.2
 % designVariable = 'Density';
 designVariable = 'LevelSet';
-filterType = 'P1'; % P1 / PDE
+filterType = 'PDE'; % P1 / PDE
 fracRadius = 0.4; %%%%%%%%%%% 0.75
 kfrac = 1.1;
 
