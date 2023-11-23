@@ -24,19 +24,20 @@ classdef ConnectivityComputer < handle
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
-            obj.filterCharacteristicFunction();
-            obj.createMaterialInterpolator();
-            obj.createBoundaryConditions();            
-            obj.createStiffnessMatrix();
-            obj.computeMassMatrix();
-            [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
-            obj.density.plot()
-            shading flat
-            colormap('gray');
-            colormap(flipud(gray));  
-            colorbar
-            figure
-            obj.levelSet.getUnfittedMesh().plot()
+            % obj.filterCharacteristicFunction();
+            % obj.createMaterialInterpolator();
+            % obj.createBoundaryConditions();            
+            % obj.createStiffnessMatrix();
+            % obj.computeMassMatrix();
+            % [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
+            % obj.density.plot()
+            % shading flat
+            % colormap('gray');
+            % colormap(flipud(gray));  
+            % colorbar
+            % figure
+            % obj.levelSet.getUnfittedMesh().plot()
+            obj.computeCompliance();
         end
         
     end
@@ -48,16 +49,65 @@ classdef ConnectivityComputer < handle
         end
         
         function computeCompliance(obj)
-        
+            material = obj.createMaterial;
+            bC       = obj.createBoundaryConditionsForElasticity();
             fem = FEM.create(s);
             fem.solve();            
 
         end
 
+        function material = createMaterial(obj,mesh)
+            I = ones(mesh.nelem,obj.quad.ngaus);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = mesh.nelem;
+            s.mesh  = mesh;
+            s.kappa = .9107*I;
+            s.mu    = .3446*I;
+            mat = Material.create(s);
+            mat.compute(s);
+            material = mat;
+        end        
+
+        function bc = createBoundaryConditionsForElasticity(obj)
+            bM = obj.mesh.createBoundaryMesh();
+            
+            dirichletBc.boundaryId=1;
+            dirichletBc.dof=[1,2];
+            dirichletBc.value=[0,0];
+            newmanBc.boundaryId=2;
+            newmanBc.dof=[2];
+            newmanBc.value=[10];
+
+            [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
+            bc.dirichlet=dirichlet;
+            bc.pointload=pointload;   
+        end        
+
+        function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
+            dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
+            pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
+        end
+
+        function cond = createBondaryCondition(obj,bM,condition)
+            nbound = length(condition.boundaryId);
+            cond = zeros(1,3);
+            for ibound=1:nbound
+                ncond  = length(condition.dof(nbound,:));
+                nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
+                nbd   = length(nodeId);
+                for icond=1:ncond
+                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
+                    cond=[cond;bdcond];
+                end
+            end
+            cond = cond(2:end,:);
+        end        
+
 
         function createMesh(obj)
-            x1 = linspace(-0.5,0.5,100);
-            x2 = linspace(-0.5,0.5,100);
+            x1 = linspace(0,2,100);
+            x2 = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
