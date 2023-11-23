@@ -29,7 +29,7 @@ classdef RHSintegrator_Composite < handle
         end
 
         function f = integrateAndSum(obj,unfFun)
-            f         = zeros(obj.dofs);
+            f         = zeros(obj.dofs,1);
             iBoundary = 0;
             if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
                 bcMesh   = unfFun.unfittedMesh.boundaryCutMesh.mesh;
@@ -43,6 +43,7 @@ classdef RHSintegrator_Composite < handle
                     int       = integrator.integrateAndSum(newUnfFun);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     int = integrator.compute(unfFun,obj.test);
+                    int = obj.computeGlobalIntegralFromLocal(int);
                 else
                     int = integrator.compute(unfFun);
                 end
@@ -55,12 +56,12 @@ classdef RHSintegrator_Composite < handle
     methods (Access = private)
 
         function init(obj, cParams)
+            obj.dofs         = size(cParams.test.fValues,1);
             obj.nInt         = numel(cParams.compositeParams);
             obj.unfittedMesh = cParams.unfittedMesh;
             obj.testClass    = class(cParams.test);
             mesh             = cParams.unfittedMesh.backgroundMesh;
             obj.test         = eval([obj.testClass,'.create(mesh,1)']);
-            obj.dofs         = size(obj.test.fValues);
         end
 
         function createIntegrators(obj,cParams)
@@ -84,14 +85,16 @@ classdef RHSintegrator_Composite < handle
         end
 
         function int = computeGlobalIntegralFromLocal(obj, intLoc)
-            innerMesh = obj.unfittedMesh.innerMesh;
-            connecIG = innerMesh.globalConnec;
-            connecIL  = innerMesh.mesh.connec;
-            innerL2G(connecIL(:)) = connecIG(:);
-            innerDofs = unique(connecIL);
-
-            int = zeros(obj.dofs,1);
-            int(innerL2G(innerDofs)) = intLoc(innerDofs);
+            if not(size(intLoc,1)==obj.dofs)
+                innerMesh             = obj.unfittedMesh.innerMesh;
+                connecIG              = innerMesh.globalConnec;
+                connecIL              = innerMesh.mesh.connec;
+                innerL2G(connecIL(:)) = connecIG(:);
+                int                   = zeros(obj.dofs,1);
+                int(innerL2G)         = intLoc(innerL2G);
+            else
+                int = intLoc;
+            end
         end
 
     end
