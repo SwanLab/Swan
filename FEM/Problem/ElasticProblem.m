@@ -95,7 +95,8 @@ classdef ElasticProblem < handle
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
-            if isfield(cParams, "interpolationType") % later on for P2
+            obj.mesh        = cParams.mesh;
+            if isfield(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
