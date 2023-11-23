@@ -49,11 +49,26 @@ classdef ConnectivityComputer < handle
         end
         
         function computeCompliance(obj)
-            material = obj.createMaterial;
+            material = obj.computeMaterialInterpolation();
             bC       = obj.createBoundaryConditionsForElasticity();
             fem = FEM.create(s);
             fem.solve();            
 
+        end
+    
+        function matInt = computeMaterialInterpolation(obj)
+            c.typeOfMaterial = 'ISOTROPIC';
+            c.interpolation = 'SIMPALL';
+            c.nElem = obj.mesh.nelem;
+            c.dim = '2D';
+            c.constitutiveProperties.rho_plus = 1;
+            c.constitutiveProperties.rho_minus = 0;
+            c.constitutiveProperties.E_plus = 1;
+            c.constitutiveProperties.E_minus = 1e-3;
+            c.constitutiveProperties.nu_plus = 1/3;
+            c.constitutiveProperties.nu_minus = 1/3;
+
+            matInt = MaterialInterpolation.create(c);
         end
 
         function material = createMaterial(obj,mesh)
