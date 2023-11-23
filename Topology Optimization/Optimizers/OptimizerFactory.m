@@ -15,8 +15,13 @@ classdef OptimizerFactory < handle
                 case 'fmincon'
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
-                    cParams.optimizerNames.aJmax = 8; % 4
-                    cParams.optimizerNames.aGmax = 0.05; % 0.10
+                    %aJmax --> constrain, weight to decrease cost
+                    %aGmax --> constrain, weight constaint value
+                    %cParams.optimizerNames.aJmax = 8; % 4 
+                    %cParams.optimizerNames.aGmax = 0.05; % 0.10
+                    cParams.optimizerNames.aJmax = 2.5; % earlier calibrated 2
+                    cParams.optimizerNames.aGmax = 0.15; % earlier calibrated 0.1
+                    %cParams.optimizerNames.aGmax = 0.0;
                     op = OptimizerNullSpace(cParams);
                 otherwise
                     error('Invalid optimizer.')

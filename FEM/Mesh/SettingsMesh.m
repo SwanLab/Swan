@@ -33,6 +33,7 @@ classdef SettingsMesh < AbstractSettings
             s.nnodeElem    = size(obj.connec,2);
             m = MeshTypeComputer(s);
             obj.type = m.compute();
+            %obj.type = 'HEXAHEDRA';
         end
         
         function g = computeGeometryType(obj)

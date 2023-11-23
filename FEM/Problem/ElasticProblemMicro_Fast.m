@@ -188,6 +188,7 @@ classdef ElasticProblemMicro_Fast < handle
 
         function createSolvers(obj)
             s.type      =  'rMINRES';
+            %s.type      =  'DIRECT';
             nCases      = obj.material.nstre;            
             S           = cell(nCases,1);
 
