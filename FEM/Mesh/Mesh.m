@@ -257,17 +257,40 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-        function exportSTL(obj, file)
-            obj.triangulateMesh();
-            stlwrite(obj.triMesh, [file '.stl'])
+        function m = convertToTriangleMesh(obj, lastNode)
+            if nargin == 1; lastNode = obj.nnodes; end
+            q2t = QuadToTriMeshConverter();
+            m = q2t.convert(obj, lastNode);
         end
 
-        function print(obj, s)
-            p1 = P1Function.create(obj,1);
+        function exportSTL(obj)
             s.mesh = obj;
-            s.fun = {p1};
+            me = STLExporter(s);
+            me.export();
+        end
+
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
+            p1 = P1Function.create(obj,1);
+            s.filename = filename;
+            s.mesh     = obj;
+            s.fun      = {p1};
+            s.type     = software;
             p = FunctionPrinter.create(s);
             p.print();
+        end
+
+        function m = triangulateMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = delaunayn(obj.coord);
+            m = Mesh(s);
         end
 
     end
@@ -354,12 +377,6 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end
-
-        function triangulateMesh(obj)
-            P = obj.coord;
-            T = obj.connec;
-            obj.triMesh = triangulation(T,P);
         end
 
     end

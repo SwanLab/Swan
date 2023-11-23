@@ -109,7 +109,7 @@ classdef P2Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            s.mesh          = m;
+            s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
             c = ConnecCoordFromInterpAndMesh(s);
             c.compute();
@@ -153,6 +153,14 @@ classdef P2Function < FeFunction
             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
             dofMat = obj.ndimf*(iNode - 1) + dofElem;
             dof = sort(dofMat(:));
+        end
+
+        function nod = getNodesFromCondition(obj, condition)
+            nodes = condition(obj.coord);
+            iNode = find(nodes==1);
+%             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+%             dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            nod = sort(iNode(:));
         end
 
     end

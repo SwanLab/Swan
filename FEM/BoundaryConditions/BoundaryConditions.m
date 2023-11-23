@@ -75,7 +75,7 @@ classdef BoundaryConditions < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh   = cParams.mesh;
+%             obj.mesh   = cParams.mesh;
             obj.scale          = cParams.scale;
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.ndimf          = cParams.bc{1}.ndimf; % Elastic
@@ -141,8 +141,8 @@ classdef BoundaryConditions < handle
                     end
                     MS = obj.masterSlave;
                     if isempty(MS)
-                        mesh = cParams.mesh;
-                        MS = obj.computeMasterSlave(mesh.coord);
+                        obj.mesh = cParams.mesh;
+                        MS = obj.computeMasterSlave(obj.mesh.coord);
                         obj.masterSlave = MS;
                     end
                     obj.periodic_free = obj.computePeriodicNodes(MS(:,1));
@@ -252,16 +252,15 @@ classdef BoundaryConditions < handle
            MS = mR.getRelation();
            obj.nodesEdges = mR.getRepeatedEdges();
 
-            masters = MS(:,1);
-            slaves = MS(:,2);
-            fV = zeros(size(obj.mesh.coord,1),1);
-            fV(masters,:)  = 1;
-            fV(slaves, :) = -1;
-            s.fValues = fV;
-            s.mesh = obj.mesh;
-            p1f = P1Function(s);
-            a.filename = 'masterslaveprova';
-            p1f.print(a);
+           masters = MS(:,1);
+           slaves = MS(:,2);
+           fV = zeros(size(obj.mesh.coord,1),1);
+           fV(masters,:)  = 1;
+           fV(slaves, :) = -1;
+           s.fValues = fV;
+           s.mesh = obj.mesh;
+           p1f = P1Function(s);
+%            p1f.print('masterslaveprova');
         end
 
     end

@@ -91,6 +91,13 @@ classdef UnfittedMesh < handle
             postProcess.print(1,d)
         end
 
+        function printNew(obj,filename)
+            sF.fValues = obj.levelSet;
+            sF.mesh    = obj.backgroundMesh;
+            ls = P1Function(sF);
+            ls.print(filename, 'GiD');
+        end
+        
         function m = createFullInnerMesh(obj, s)
             s.unfittedMesh = obj;
             imc = FullInnerMeshCreator.create(s);
@@ -102,6 +109,20 @@ classdef UnfittedMesh < handle
             sp = UnfittedMeshSplitter(s);
             sp.split();
             sp.plot();
+        end
+
+        function m = createInnerMesh(obj)
+            s.type         = 'Matlab';
+            s.unfittedMesh = obj;
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
+        end
+
+        function m = createInnerMeshGoodConditioning(obj)
+            s.type         = 'GiD';
+            s.unfittedMesh = obj;
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
         end
 
     end

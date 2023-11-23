@@ -103,14 +103,14 @@ classdef ShFunc_Chomog < ShapeFunctional
                 gs = g(:,:,ivar);
                 gf(:,ivar) = obj.filter.getP1fromP0(gs);
             end
-            gf = obj.Msmooth*gf;
+            %gf = obj.Msmooth*gf;
             g = gf(:);
             obj.gradient = g;
         end
         
         function computeChDerivative(obj)
             dC = obj.homogenizedVariablesComputer.dC;
-            p  = obj.physicalProblem;
+%             p  = obj.physicalProblem;
             nStre = obj.getnStre();
             nelem = obj.getnElem();
             ngaus = obj.getnGaus;
@@ -136,10 +136,7 @@ classdef ShFunc_Chomog < ShapeFunctional
         function initChomog(obj,cParams)
             cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            fileName = cParams.femSettings.fileName;
-            a.fileName = fileName;
-            s = FemDataContainer(a);
-            obj.physicalProblem = FEM.create(s);
+            obj.physicalProblem = cParams.femSettings.physicalProblem;
         end
         
         function solveState(obj)
