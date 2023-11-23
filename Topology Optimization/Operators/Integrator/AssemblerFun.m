@@ -2,7 +2,6 @@ classdef AssemblerFun < handle
 
     properties (Access = private)
         fun
-        connec
     end
 
     methods (Access = public)
@@ -11,20 +10,7 @@ classdef AssemblerFun < handle
             obj.init(cParams);
         end
 
-        function A = assemble(obj, Aelem)
-            dofs   = obj.fun.computeDofConnectivity();
-            nDofsE = size(dofs,1);
-            nDofs  = numel(obj.fun.fValues);
-            A = sparse(nDofs,nDofs);
-            for i = 1:nDofsE
-                for j = 1:nDofsE
-                    a = squeeze(Aelem(i,j,:));
-                    A = A + sparse(dofs(i,:),dofs(j,:),a,nDofs,nDofs);
-                end
-            end
-        end
-
-        function A = assembleFunctions(obj, Aelem, f1, f2)
+        function A = assemble(obj, Aelem, f1, f2)
             dofsF1 = f1.computeDofConnectivity()';
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
@@ -77,39 +63,6 @@ classdef AssemblerFun < handle
                 end
             end
             V = sparse(res(:,1), 1, res(:,2), nDofs, 1);
-        end
-
-        function Vadd = computeAddVectorBySparse(obj,dofs, c, ndof)
-           Vadd = sparse(dofs,1,c,ndof,1);
-        end
-
-        function A = assembleMatrixViaIndices(obj, Ae)
-            connec    = obj.globalConnec;
-%             dofConnec = obj.computeDofConnectivity()';
-            nnodes  = obj.dim.nnodes;
-            ndimf   = obj.dim.ndimf;
-            ndofs   = ndimf*nnodes;
-            nelem   = size(connec, 1);
-%             nnodeEl = obj.nnodeEl;
-            dofConnec = obj.computeDofConnectivity()';
-            ndofEl  = size(dofConnec,2);
-            res = zeros(ndofEl^2 * nelem, 3);
-            strt = 1;
-            fnsh = nelem;
-            ndofEl1 = size(Ae,1);
-            ndofEl2 = size(Ae,2);
-            for i = 1:ndofEl1
-                dofsI = dofConnec(:,i);
-                for j = 1:ndofEl2
-                    dofsJ = dofConnec(:,j);
-                    a = squeeze(Ae(i,j,:));
-                    matRes = [dofsI, dofsJ, a];
-                    res(strt:fnsh,:) = matRes;
-                    strt = strt + nelem;
-                    fnsh = fnsh + nelem;
-                end
-            end
-            A = sparse(res(:,1), res(:,2), res(:,3), ndofs, ndofs);
         end
 
         function F = assembleVectorStokes(obj, FelemCell, f1, f2)

@@ -51,10 +51,9 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         end
 
         function LHS = assembleMatrix(obj, lhs)
-            s.fun    = obj.fun; % !!!
+            s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-%             LHS = assembler.assemble(lhs);
-            LHS = assembler.assembleFunctions(lhs, obj.fun, obj.fun);
+            LHS = assembler.assemble(lhs, obj.fun, obj.fun);
         end
     end
 
