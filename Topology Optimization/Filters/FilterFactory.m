@@ -1,7 +1,7 @@
 classdef FilterFactory < handle
 
-    % - H-J: 'evaluate' method inside UnfittedBoundaryFunction !!
-    % - try Clement, fVali=pi(Vi)
+    % - H-J: compare iter by iter RHSShapeFunction
+    % - Unfitted and UnfittedBoundary: evaluate method generically
 
     methods (Access = public, Static)
 
