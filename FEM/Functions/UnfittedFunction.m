@@ -23,6 +23,9 @@ classdef UnfittedFunction < handle
             inCConnec = connec(inCMesh.cellContainingSubcell,:);
             s.connec  = inCConnec;
             s.coord   = inCMesh.mesh.coord;
+            if size(s.coord,2)==2 && size(s.connec,2)==2
+                s.kFace = -1;
+            end
             meshNew   = Mesh(s);
             obj.fun.updateMesh(meshNew);
             fxV       = obj.fun.evaluate(xV);
