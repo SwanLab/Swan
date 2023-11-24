@@ -137,7 +137,7 @@ classdef LinearizedHarmonicProjector2 < handle
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
            obj.epsilon          = cParams.epsilon;
-           obj.eta     = 100*(obj.mesh.computeMeanCellSize)^2;                            
+           obj.eta     = (80*obj.mesh.computeMeanCellSize)^2;                            
         end
         
         function computeMassMatrix(obj)

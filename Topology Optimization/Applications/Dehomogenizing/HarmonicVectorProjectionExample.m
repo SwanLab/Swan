@@ -43,23 +43,23 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-           %  obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-           %  obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-           % obj.iteration = 665;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+           obj.iteration = 665;
 % 
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+%             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+%             obj.fileName = 'ExperimentingPlotSuperEllipse';
+%             obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-         %    s.fileName = [obj.fileName,num2str(obj.iteration)];
-        %     s.folderPath = fullfile(obj.filePath );
-        %     w = WrapperMshResFiles(s);
-       %      w.compute();
-            d = load('DataExample.mat');
-           w = d.w;
-            obj.experimentData = w;
+            s.fileName = [obj.fileName,num2str(obj.iteration)];
+            s.folderPath = fullfile(obj.filePath );
+            w = WrapperMshResFiles(s);
+            w.compute();
+%            d = load('DataExample.mat');
+%            w = d.w;
+             obj.experimentData = w;
         end
 
         function createMesh(obj)
@@ -335,7 +335,7 @@ classdef HarmonicVectorProjectionExample < handle
             bBar  = b1;
             bInit = b1;
 
-            epsilons = linspace(0,10,50);
+            epsilons = linspace(0,1,3);
             for i = 1:length(epsilons)
                 epsilon = epsilons(i);
                 
