@@ -35,9 +35,9 @@ classdef PathVertexesToBoundaryComputer < handle
         end
 
         function plot(obj)
-            %figure()
-            %hold on
-            %obj.plotMesh();
+            figure()
+            hold on
+            obj.plotMesh();
             obj.plotStraightPath();
             obj.plotInitialVertex();
             obj.plotVerticesPath();

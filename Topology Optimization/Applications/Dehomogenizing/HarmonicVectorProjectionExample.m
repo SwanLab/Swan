@@ -379,64 +379,7 @@ classdef HarmonicVectorProjectionExample < handle
             obj.dehomogenize(a);
 
 
-            xb1 = obj.doubleOrientationVector{1};
-            b1.plotArrowVector();
-
-
-
-            b      = bBar;
-            lambda = obj.computeInitialLambda();
-            isErrorLarge = true;
-            i = 1;
-            while isErrorLarge
-                cost(i)      = obj.computeCost(b,bBar);
-              %  optPrimal(i) = obj.computePrimalOptimaility(lambda,u,alpha0);
-              %  optDual(i)   = obj.computeDualHarmonicOptimality(u);
-              %  error = norm([optPrimal,optDual]);
-                
-%                 theta = atan2(u(:,2),u(:,1));
-%                 u2(:,1) = cos(2*theta);
-%                 u2(:,2) = sin(2*theta);
-                [uNew,lambda] = obj.solveProblem(rho,bBar,b);
-                beta = atan2(uNew(:,2),uNew(:,1));                               
-                uNew = obj.projectInUnitBall(uNew);
-                
-             %   uNew2 = u2;
-                
-                err(i) = norm(uNew(:)-b(:))/norm(b(:));
-                
-                b = uNew;
-                figure(200)
-                clf
-                plot(cost,'-+')                
-
-                figure(201)
-                plot(err,'-+')    
-
-                isErrorLarge = err(i) > 1e-2;%1e-13;
-                i = i +1;
-                obj.plotOrientation(b,2) 
-                alpha = beta/2;
-                obj.orientationAngle = alpha;
-
-            end
-
-            
-            bOpt = b;
-            obj.plotOrientationBarAndOptimal(bBar,bOpt);            
-
-            alpha = beta/2;
-            aOpt(:,1) = cos(alpha);
-            aOpt(:,2) = sin(alpha);
-            obj.plotOrientationBarAndOptimal(aBar,aOpt);
-           
-            figure()
-            subplot(1,2,1)
-            obj.plotAngleField(bBar)
-            title('$\bar{\beta}$','Interpreter','latex','FontSize',15)
-            subplot(1,2,2)
-            obj.plotAngleField(b)
-            title('${\beta}^*$','Interpreter','latex','FontSize',15)            
+               
         end
 
         function plotOrientationBarAndOptimal(obj,bBar,bOpt)

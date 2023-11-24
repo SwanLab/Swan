@@ -90,22 +90,6 @@ classdef LinearizedHarmonicProjector2 < handle
             resV = (-Kb2'+Nb2')*b1V + (Kb1'-Nb1')*b2V;
             resV(obj.boundaryNodes) = 0;
             resH = obj.createP1Function(abs(resV));   
-% 
-%             quad = Quadrature.set(obj.mesh.type);            
-%             quad.computeQuadrature('QUADRATICMASS');
-% 
-%             bG  = b.evaluate(quad.posgp);
-%             b1  = bG(1,:,:);
-%             b2  = bG(2,:,:);
-%             gbG = b.computeGradient(quad);
-%             gb1 = gbG.fValues(1:2,:,:);
-%             gb2 = gbG.fValues(3:4,:,:);
-% 
-%             s.fValues(1,:,:) = abs(-b2.*gb1(1,:,:) + b1.*gb2(1,:,:));
-%             s.fValues(2,:,:) = abs(-b2.*gb1(2,:,:) + b1.*gb2(2,:,:));
-%             s.mesh = obj.mesh;
-%             s.quadrature = quad;
-%             resH = FGaussDiscontinuousFunction(s);            
         end
 
         function resB = evaluateUnitNormResidual(obj,b)
@@ -137,7 +121,7 @@ classdef LinearizedHarmonicProjector2 < handle
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
            obj.epsilon          = cParams.epsilon;
-           obj.eta     = (80*obj.mesh.computeMeanCellSize)^2;                            
+           obj.eta     = (20*obj.mesh.computeMeanCellSize)^2;                            
         end
         
         function computeMassMatrix(obj)
