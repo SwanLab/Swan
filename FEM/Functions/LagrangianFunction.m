@@ -132,25 +132,11 @@ classdef LagrangianFunction < FeFunction
                     plot(x,y)
                 end
             else
-                s.mesh          = obj.mesh;
+                pl = LagrangianPlotter();
+                s.func = obj;
+                s.mesh = obj.mesh;
                 s.interpolation = obj.interpolation;
-                c = ConnecCoordFromInterpAndMesh(s);
-                c.compute();
-                coord = c.coord;
-                connec = obj.connec(:, [1 4 2 5 3 6]);
-                x = coord(:,1);
-                y = coord(:,2);
-                figure()
-                for idim = 1:obj.ndimf
-                    subplot(1,obj.ndimf,idim);
-                    z = obj.fValues(:,idim);
-                    a = trisurf(connec,x,y,z);
-                    view(0,90)
-        %             colorbar
-                    shading interp
-                    a.EdgeColor = [0 0 0];
-                    title(['dim = ', num2str(idim)]);
-                end
+                pl.plot(s);
             end
         end
 

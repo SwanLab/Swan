@@ -10,6 +10,8 @@ classdef ProjectorFactory < handle
                     obj = Projector_toLagrangian(cParams);
                 case 'CUBIC'
                     obj = Projector_toLagrangian(cParams);
+                case 'ORDER4'
+                    obj = Projector_toLagrangian(cParams);
                 case 'P1D'
                     obj = Projector_toP1Discontinuous(cParams);
                 case 'H1P1'

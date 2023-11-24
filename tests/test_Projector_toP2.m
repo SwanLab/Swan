@@ -4,7 +4,7 @@ close all
 clc
 
 % Define number of elements
-N = [4 8 16 32];
+N = [2 4 8 16 32];
 
 % Prepare analytical function
 sAF.fHandle = @(x) sin(x(1,:,:)*2*pi); % f(x) = sin(x)
@@ -13,6 +13,7 @@ sAF.ndimf   = 1;
 % Variables to store the error
 e_p1 = zeros(size(N));
 e_p2 = zeros(size(N));
+e_p3 = zeros(size(N));
 
 for i = 1:length(N)
     % Create the mesh of N(i) elements
@@ -34,12 +35,12 @@ for i = 1:length(N)
     f = xFun.evaluate(xG);
     p1 = p1fun.evaluate(xG);
     p2 = p2fun.evaluate(xG);
-%     p3 = p3fun.evaluate(xG);
+    p3 = p3fun.evaluate(xG);
     
     % Compute the error with the norm of L^2
     e_p1(i) = sum(sum((f - p1).^2));
     e_p2(i) = sum(sum((f - p2).^2));
-%     e_p3(i) = sum(sum((f - p3).^2));
+    e_p3(i) = sum(sum((f - p3).^2));
 end
 
 % ----------------------------------------------------------------------- %
@@ -52,15 +53,17 @@ figure()
 loglog(1./N,e_p1,'-x')
 hold on
 loglog(1./N,e_p2,'-x')
-% loglog(1./N,e_p3,'-x')
+loglog(1./N,e_p3,'-x')
 loglog(1./N,1./N.^2,'-x')
 loglog(1./N,1./N.^4,'-x')
-% loglog(1./N,1./N.^6,'-x')
+loglog(1./N,1./N.^6,'-x')
 grid on
-legend('P1 error','P2 error','$h^2$','$h^4$','Location','best')
+% legend('P1 error','P2 error','$h^2$','$h^4$','Location','best')
+legend('P1 error','P2 error','P3 error','$h^2$','$h^4$','$h^6$','Location','best')
 xlabel('h')
 ylabel('Error')
-title('P1 and P2 Projections Validation')
+% title('P1 and P2 Projections Validation')
+title('P1, P2 and P3 Projections Validation')
 
 %% ----------------------------------------------------------------------- %
 % FUNCTIONS
