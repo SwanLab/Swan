@@ -6,7 +6,7 @@ classdef Gauss_Solver < Solver
             normVal = Inf;
             tol = 1e-3;
             n = length(LHS);
-            x = zeros(n,1);
+            x = RHS;
             iter = 0;
             L = tril(LHS);
             U = triu(LHS,1);
@@ -15,13 +15,15 @@ classdef Gauss_Solver < Solver
                 x=L\(RHS-U*xold);
                 if mod(iter,100) == 0
                     %Gauss_Solver.plotSolution(x,mesh,bc,iter)
+                    res = LHS*x - RHS;
+                    Gauss_Solver.plotRes(res,mesh,bc,iter)
                 end
                 %normVal=norm(x-xold);
                 normVal = norm(LHS*x - RHS);
                 iter = iter+1;
                 residu(iter) = normVal;
             end
-            save('residuGaussZeros.mat','residu')
+            %save('residuGaussZeros.mat','residu')
         end
 
         function plotSolution(x,mesh,bc,iter)
@@ -33,6 +35,18 @@ classdef Gauss_Solver < Solver
             xF = P1Function(s);
             %xF.plot();
             xF.print(['sol',num2str(iter)],'Paraview')
+            fclose('all');
+        end
+        
+        function plotRes(res,mesh,bc,numItr)
+            xFull = bc.reducedToFullVector(res);
+            s.fValues = reshape(xFull,2,[])';
+            s.mesh = mesh;
+            s.fValues(:,end+1) = 0;
+            s.ndimf = 3;
+            xF = P1Function(s);
+            %xF.plot();
+            xF.print(['Res',num2str(numItr)],'Paraview')
             fclose('all');
         end
     end

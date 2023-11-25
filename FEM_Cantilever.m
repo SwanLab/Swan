@@ -10,8 +10,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 
 
 % Generate coordinates
-x1 = linspace(0,2,30);
-x2 = linspace(1,2,30);
+x1 = linspace(0,2,10);
+x2 = linspace(1,2,10);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -43,7 +43,7 @@ fem.uFun.ndimf = 3;
 %fem.uFun.print('results_fem_disp', 'Paraview') % print using Paraview
 %fem.print('results_fem2', 'Paraview') % print using Paraview
 
-plotError()
+%plotError()
 
 %end
 
