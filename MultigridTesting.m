@@ -50,7 +50,7 @@ classdef MultigridTesting < handle
             Fext = RHS.compute();
             Fred = obj.boundaryConditions.fullToReducedVector(Fext);
             
-            x=obj.K\Fred;
+            x=obj.Kred\Fred;
             
             [obj.basisFvalues,obj.basisVec,obj.eigenVec] = obj.computeBasis(obj.K);
             
@@ -74,9 +74,7 @@ classdef MultigridTesting < handle
             RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditions);
             FextCoarse = RHSCoarse.compute();
             FredCoarse = obj.boundaryConditions.fullToReducedVector(FextCoarse);
-            x=obj.KCoarse\FredCoarse;
-            
-
+            xCoarse=obj.KCoarse\FredCoarse;
 
             [xPCG,residualPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
 
@@ -180,27 +178,37 @@ classdef MultigridTesting < handle
             x = zeros(n,1);
             r = B - A * x;
             %             z = ModalTesting.applyPreconditioner(M,r);
-            z = obj.applyPreconditioner(r);
+            % z = obj.applyPrecoditionerMultigrid(r);
             %             z=r-z;
-            p = z;
-            rzold = r' * z;
+            p = r;
+            rzold = r' * r;
             iter = 0;
 
             hasNotConverged = true;
 
             while hasNotConverged
+                
                 Ap = A * p;
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
                 r = r - alpha * Ap;
-                %                 z = ModalTesting.applyPreconditioner(M,r);
-                z = obj.applyPreconditioner(r);
-                rznew = r' * z;
+                if iter == 0 || hasPartiallyConverged == true 
+                    ri = r;
+                end
+                %                 z = ModalTesting.applyPreconditioner(M,r)
+                rznew = r' * r;
 
                 %hasNotConverged = sqrt(rsnew) > tol;
                 hasNotConverged = norm(r) > tol;
+                hasPartiallyConverged = norm(r)/norm(ri) < 0.5;
 
-                p = z + (rznew / rzold) * p;
+                if hasPartiallyConverged
+                    z = obj.applyPrecoditionerMultigrid(r,KredCoarse,FredCoarse);
+                    r = z;
+                end
+
+                p = (rznew / rzold) * p;
+                p = r + p;
                 rzold = rznew;
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
@@ -218,10 +226,69 @@ classdef MultigridTesting < handle
 %                     %z = r;
 %                     z = r-z;
 %                 end
-                 function z = applyPreconditioner(obj,r)
-                     z=obj.D\r;
+%                 function z = applyPreconditioner(obj,r)
+%                     z=obj.D\r;
+%                 end
+                 function z = applyPrecoditionerMultigrid(~,u,A,B)
+                    %R = generateR(u);
+                    j = 1;
+                    for i=1:2:length(u)-1
+                       R(j,i) = 1;
+                       R(j,i+1) = 2;
+                       R(j,i+2) = 1;
+                       j = j+1;
+                    end
+                    R(:,i) = [];
+                    z = 1/4 .* R * u;
+
+                    r = z;
+
+                    n = length(B);
+                    x = zeros(n,1);
+                    p = r;
+                    rzold = r' * r;
+                    iter = 0;
+        
+                    hasNotPartyallyConverged = true;
+        
+                    while hasNotPartyallyConverged
+                        
+                        Ap = A * p;
+                        alpha = rzold / (p' * Ap);
+                        x = x + alpha * p;
+                        r = r - alpha * Ap;
+
+                        rznew = r' * r;
+        
+                        %hasNotPartyallyConverged = ;
+        
+                        p = (rznew / rzold) * p;
+                        p = r + p;
+                        rzold = rznew;
+                        iter = iter + 1;
+                        residual(iter) = norm(r); %Ax - b
+                    end
+
+                    j = 1;
+                    for i=1:2:length(u)
+                       I(i,j) = 1;
+                       I(i+1,j) = 2;
+                       I(i+2,j) = 1;
+                       j = j+1;
+                    end   
+                    z = 1/2 .* I .* u;                        
                  end
-        %
+
+%                 function R = generateR(~,u)
+%                     j = 1;
+%                    for i=1:2:length(u)
+%                        R(i,j) = 1;
+%                        R(i+1,j) = 2;
+%                        R(1+2,j) = 1;
+%                        j = j+1;
+%                    end        
+%                 end
+                 
     end
     
     methods (Access = public, Static)
