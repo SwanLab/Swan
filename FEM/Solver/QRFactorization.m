@@ -22,7 +22,8 @@ classdef QRFactorization < Solver
                 Ap = Q(:,1:j)*R(1:j,1:j);
                 x(1:j,1) = (Ap'*Ap)\(Ap'*RHS);
                 res = Ap*x(1:j,1) - RHS;
-                QRFactorization.plotRes(x,mesh,bc,j)
+                QRFactorization.plotX(x,mesh,bc,j)
+                QRFactorization.plotRes(res,mesh,bc,j)
             end
         end
 
@@ -35,6 +36,18 @@ classdef QRFactorization < Solver
             xF = P1Function(s);
             %xF.plot();
             xF.print(['Q',num2str(iter)],'Paraview')
+            fclose('all');
+        end
+        
+        function plotX(x,mesh,bc,iter)
+            xFull = bc.reducedToFullVector(x);
+            s.fValues = reshape(xFull,2,[])';
+            s.mesh = mesh;
+            s.fValues(:,end+1) = 0;
+            s.ndimf = 3;
+            xF = P1Function(s);
+            %xF.plot();
+            xF.print(['X',num2str(iter)],'Paraview')
             fclose('all');
         end
 
