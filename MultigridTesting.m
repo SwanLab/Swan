@@ -20,6 +20,9 @@ classdef MultigridTesting < handle
         K
         Lchol
         Kred
+        coarseMesh
+        KCoarse
+        KredCoarse
     end
     
     methods (Access = public)
@@ -47,7 +50,7 @@ classdef MultigridTesting < handle
             Fext = RHS.compute();
             Fred = obj.boundaryConditions.fullToReducedVector(Fext);
             
-            x=obj.K\Fext;
+            x=obj.K\Fred;
             
             [obj.basisFvalues,obj.basisVec,obj.eigenVec] = obj.computeBasis(obj.K);
             
@@ -63,6 +66,18 @@ classdef MultigridTesting < handle
 %             GD.err      = errCG;
 %             GD.errA     = errACG;
             
+
+            obj.coarseMesh = obj.createCoarseMesh();
+            dispCoarseFun = P1Function.create(obj.coarseMesh, obj.nDimf);
+            obj.KCoarse    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.material,dispCoarseFun);
+            obj.KredCoarse = obj.boundaryConditions.fullToReducedMatrix(obj.K);
+            RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditions);
+            FextCoarse = RHSCoarse.compute();
+            FredCoarse = obj.boundaryConditions.fullToReducedVector(FextCoarse);
+            x=obj.KCoarse\FredCoarse;
+            
+
+
             [xPCG,residualPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
 
 %             PGDbasis20.x        = xPCG; 
@@ -223,6 +238,20 @@ classdef MultigridTesting < handle
             s.coord = V(:,1:2);
             s.connec = F;
             mesh = Mesh(s);
+        end
+
+        function coarsemesh = createCoarseMesh()
+            % Generate coordinates
+            x1 = linspace(0,2,15);
+            x2 = linspace(1,2,15);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectivities
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+            s.coord = V(:,1:2);
+            s.connec = F;
+            coarsemesh = Mesh(s);
         end
         
         function k = computeStiffnessMatrix(mesh,material,displacementFun)
