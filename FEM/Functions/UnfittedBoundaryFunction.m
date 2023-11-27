@@ -14,13 +14,19 @@ classdef UnfittedBoundaryFunction < handle
 
         function f = obtainFunctionAtExternalBoundary(obj,iBoundary) % Only for FeFun so far...
             s.uMesh = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
+            fType  = obj.fun.fType;
 
+
+            switch fType
+                case 'L2' % Provisional
+                    fP1 = obj.fun.project('P1');
+                    f   = fP1.fValues;
+                otherwise
+                    f   = obj.fun.fValues;
+            end
 
             coord      = obj.unfittedMesh.backgroundMesh.coord;
-            x          = coord(:,1);
-            y          = coord(:,2);
-            f          = obj.fun.fValues;
-            F          = scatteredInterpolant(x,y,f);
+            F          = scatteredInterpolant(coord,f);
             bCoord     = s.uMesh.backgroundMesh.coord;
             ss.fValues = F(bCoord);
             ss.mesh    = s.uMesh.backgroundMesh;
@@ -32,10 +38,10 @@ classdef UnfittedBoundaryFunction < handle
 
         function fxV = evaluateCutElements(obj,xV)
             % FeFunction:
-%             mesh          = obj.unfittedMesh.backgroundMesh;
-%             coordOriginal = mesh.coord;
-%             n0            = size(coordOriginal,1)+1;
-%             bCMesh        = obj.unfittedMesh.boundaryCutMesh.mesh;
+            %             mesh          = obj.unfittedMesh.backgroundMesh;
+            %             coordOriginal = mesh.coord;
+            %             n0            = size(coordOriginal,1)+1;
+            %             bCMesh        = obj.unfittedMesh.boundaryCutMesh.mesh;
 %             coordComplete = bCMesh.coord;
 %             oldfValues = obj.fun.fValues;
 %             x          = coordOriginal(:,1);
@@ -54,16 +60,32 @@ classdef UnfittedBoundaryFunction < handle
 
 
             % Old:
-            s.fValues  = obj.fun.fValues;
-            mesh       = obj.unfittedMesh.backgroundMesh;
-            bcMesh     = obj.unfittedMesh.boundaryCutMesh;
-            connec     = mesh.connec;
-            bcConnec   = connec(bcMesh.cellContainingSubcell,:);
-            mmm.connec = bcConnec;
-            mmm.type   = mesh.type;
-            s.mesh     = mmm;
-            f          = P1Function(s);
-            fxV        = f.evaluate(xV);
+            fType = obj.fun.fType;
+            switch fType
+                case 'L2' % Only works for tetrahedra
+                    mesh       = obj.unfittedMesh.backgroundMesh;
+                    bcMesh     = obj.unfittedMesh.boundaryCutMesh;
+                    connec     = mesh.connec;
+                    bcConnec   = connec(bcMesh.cellContainingSubcell,:);
+                    bcCoord    = bcMesh.mesh.coord;
+                    mmm.connec = bcConnec;
+                    mmm.coord  = bcCoord;
+                    m = Mesh(mmm);
+                    obj.fun.updateMesh(m);
+                    fxV        = obj.fun.evaluate(xV);
+                    obj.fun.updateMesh(mesh);
+                otherwise
+                    s.fValues  = obj.fun.fValues;
+                    mesh       = obj.unfittedMesh.backgroundMesh;
+                    bcMesh     = obj.unfittedMesh.boundaryCutMesh;
+                    connec     = mesh.connec;
+                    bcConnec   = connec(bcMesh.cellContainingSubcell,:);
+                    mmm.connec = bcConnec;
+                    mmm.type   = mesh.type;
+                    s.mesh     = mmm;
+                    f          = P1Function(s);
+                    fxV        = f.evaluate(xV);
+            end
         end
 
     end

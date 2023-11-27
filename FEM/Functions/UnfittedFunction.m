@@ -20,16 +20,20 @@ classdef UnfittedFunction < handle
             mesh      = obj.unfittedMesh.backgroundMesh;
             inCMesh   = obj.unfittedMesh.innerCutMesh;
             connec    = mesh.connec;
-            inCConnec = connec(inCMesh.cellContainingSubcell,:);
-            s.connec  = inCConnec;
-            s.coord   = inCMesh.mesh.coord;
-            if size(s.coord,2)==2 && size(s.connec,2)==2
-                s.kFace = -1;
+            if isempty(inCMesh)
+                fxV = 0;
+            else
+                inCConnec = connec(inCMesh.cellContainingSubcell,:);
+                s.connec  = inCConnec;
+                s.coord   = inCMesh.mesh.coord;
+                if size(s.coord,2)==2 && size(s.connec,2)==2
+                    s.kFace = -1;
+                end
+                meshNew   = Mesh(s);
+                obj.fun.updateMesh(meshNew);
+                fxV       = obj.fun.evaluate(xV);
+                obj.fun.updateMesh(mesh);
             end
-            meshNew   = Mesh(s);
-            obj.fun.updateMesh(meshNew);
-            fxV       = obj.fun.evaluate(xV);
-            obj.fun.updateMesh(mesh);
         end
 
     end
@@ -46,12 +50,16 @@ classdef UnfittedFunction < handle
             fxV     = obj.fun.evaluate(xV);
             gMesh   = obj.unfittedMesh.backgroundMesh;
             inMesh  = obj.unfittedMesh.innerMesh;
-            gCoor   = gMesh.computeXgauss(xV);
-            inCoor  = inMesh.mesh.computeXgauss(xV);
-            gCoor1  = squeeze(gCoor(:,1,:))';
-            inCoor1 = squeeze(inCoor(:,1,:))';
-            isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
-            fxV(:,:,isVoid) = 0;
+            if isempty(inMesh)
+                fxV(:,:,:) = 0;
+            else
+                gCoor   = gMesh.computeXgauss(xV);
+                inCoor  = inMesh.mesh.computeXgauss(xV);
+                gCoor1  = squeeze(gCoor(:,1,:))';
+                inCoor1 = squeeze(inCoor(:,1,:))';
+                isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
+                fxV(:,:,isVoid) = 0;
+            end
         end
 
     end

@@ -85,25 +85,11 @@ classdef RHSintegrator_Composite < handle
         end
 
         function int = computeGlobalIntegralFromLocal(obj, intLoc, iBoundary)
-            if not(size(intLoc,1)==obj.dofs)
-                bMesh                 = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
-                connecBG              = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{iBoundary};
-                connecBL              = bMesh.backgroundMesh.connec;
-                innerMesh             = bMesh.innerMesh;
-                connecIG              = innerMesh.globalConnec;
-                connecIL              = innerMesh.mesh.connec;
-                connecBG = connecBG(connecIG);
-              %  connecBL = connecBL(connecIG);
-
-                innerL2G(connecIL(:)) = connecIG(:);
-                boundaryL2G(connecIL(:)) = connecBG(:);
-%                 boundaryL2G
-                int                   = zeros(obj.dofs,1);
-                int(boundaryL2G)      = intLoc(innerL2G);
-
-            else
-                int = intLoc;
-            end
+            connecBG              = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{iBoundary};
+            connecBL              = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary}.backgroundMesh.connec;
+            loc2glob(connecBL(:)) = connecBG(:);
+            int                   = zeros(obj.dofs,1);
+            int(loc2glob)         = intLoc;
         end
 
     end

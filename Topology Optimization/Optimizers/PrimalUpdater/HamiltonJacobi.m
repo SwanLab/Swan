@@ -49,7 +49,6 @@ classdef HamiltonJacobi < handle
         end
 
         function computeVelocity(obj,g)
-            load('HamiltonDelete.mat','g');
             s.mesh       = obj.phi.mesh;
             s.fValues    = g;
             ss.fun       = P1Function(s);

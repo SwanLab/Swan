@@ -230,32 +230,26 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            l.creatorSettings.value = obj.levelSet;
-            l.initialCase = 'given';
-            l.mesh = obj.backgroundMesh;
-            fPar.levelSet = LevelSet(l);
-            f = CharacteristicFunction(fPar);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.create(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
             test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInDomain(f,test);
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
-            l.creatorSettings.value = obj.levelSet;
-            l.initialCase = 'given';
-            l.mesh = obj.backgroundMesh;
-            fPar.levelSet = LevelSet(l);
-            f = CharacteristicFunction(fPar);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.createAtBoundary(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
             test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInBoundary(f,test);
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
