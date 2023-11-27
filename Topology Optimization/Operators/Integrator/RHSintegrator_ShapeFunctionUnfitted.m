@@ -41,7 +41,7 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         
         function s = createInteriorParams(obj,mesh,connec)
             s.type = 'Composite';
-            s.npnod = obj.mesh.backgroundMesh.nnodes; % test fValues better
+            s.npnod = mesh.backgroundMesh.nnodes; % test fValues better
             s.compositeParams = cell(0);
             s.unfittedMesh = mesh;
             if ~isempty(mesh.innerMesh)
@@ -66,7 +66,7 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
             s.xCoordsIso            = innerCutMesh.xCoordsIso;
             s.cellContainingSubcell = innerCutMesh.cellContainingSubcell;
             s.globalConnec          = gConnec;
-            s.npnod                 = obj.mesh.backgroundMesh.nnodes;
+            s.npnod                 = mesh.backgroundMesh.nnodes;
             s.backgroundMeshType    = mesh.backgroundMesh.type;
         end
 
@@ -93,11 +93,11 @@ classdef RHSintegrator_ShapeFunctionUnfitted < handle
         function [s,nMeshes] = createUnfittedBoundaryMeshParams(obj)
             uMesh   = obj.mesh.unfittedBoundaryMesh;
             uMeshes = uMesh.getActiveMesh();
-            gConnec = uMesh.getGlobalConnec();
             nMeshes = numel(uMeshes);
             s = cell(nMeshes,1);
             for iMesh = 1:nMeshes
-                s{iMesh} = obj.createInteriorParams(uMeshes{iMesh},gConnec{iMesh});
+                connec = uMeshes{iMesh}.backgroundMesh.connec;
+                s{iMesh} = obj.createInteriorParams(uMeshes{iMesh},connec);
             end
         end
 
