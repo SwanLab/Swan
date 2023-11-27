@@ -271,8 +271,7 @@ classdef MultigridTesting < handle
                     r = z;
                 end
 
-                p = (rznew / rzold) * p;
-                p = r + p;
+                p = r + (rznew / rzold) * p;
                 rzold = rznew;
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
