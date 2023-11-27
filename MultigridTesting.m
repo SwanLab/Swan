@@ -75,13 +75,13 @@ classdef MultigridTesting < handle
             obj.coarseMaterial = obj.createCoarseMaterial();
             dispCoarseFun = P1Function.create(obj.coarseMesh, obj.nDimf);
             obj.KCoarse    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,dispCoarseFun);
-            obj.KredCoarse = obj.boundaryConditions.fullToReducedMatrix(obj.KCoarse);
+            obj.KredCoarse = obj.boundaryConditionsCoarse.fullToReducedMatrix(obj.KCoarse);
             RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditions);
             FextCoarse = RHSCoarse.compute();
-            FredCoarse = obj.boundaryConditions.fullToReducedVector(FextCoarse);
-            xCoarse=obj.KCoarse\FredCoarse;
+            FredCoarse = obj.boundaryConditionsCoarse.fullToReducedVector(FextCoarse);
+            %xCoarse=obj.KCoarse\FredCoarse;
 
-            [xPCG,residualPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
+            [xPCG,residualPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x,obj.KredCoarse,FredCoarse);
 
 %             PGDbasis20.x        = xPCG; 
 %             PGDbasis20.residual = residualPCG; 
@@ -236,7 +236,7 @@ classdef MultigridTesting < handle
 
         end
         
-        function [x,residual] = preconditionedConjugateGradient(obj,A,B,xsol)
+        function [x,residual] = preconditionedConjugateGradient(obj,A,B,xsol,Acoarse,Bcoarse)
             tol = 1e-6;
             n = length(B);
             x = zeros(n,1);
@@ -267,7 +267,7 @@ classdef MultigridTesting < handle
                 hasPartiallyConverged = norm(r)/norm(ri) < 0.5;
 
                 if hasPartiallyConverged
-                    z = obj.applyPrecoditionerMultigrid(r,KredCoarse,FredCoarse);
+                    z = obj.applyPrecoditionerMultigrid(r,Acoarse,Bcoarse);
                     r = z;
                 end
 
