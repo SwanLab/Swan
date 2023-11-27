@@ -33,7 +33,7 @@ classdef MultigridTesting < handle
             close all;
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init()
-            obj.mesh = obj.createMesh(30);
+            obj.mesh = obj.createMesh(10,10);
             rawBc    = obj.createRawBoundaryConditions();
             obj.boundaryConditions = obj.createBoundaryConditions(rawBc);
             obj.material = obj.createMaterial();
@@ -69,14 +69,14 @@ classdef MultigridTesting < handle
 %             GD.errA     = errACG;
             
 
-            obj.coarseMesh = obj.createMesh(15);
+            obj.coarseMesh = obj.createMesh(5,5);
             rawBcCoarse = obj.createRawBoundaryConditionsCoarse();
             obj.boundaryConditionsCoarse = obj.createBoundaryConditionsCoarse(rawBcCoarse);
             obj.coarseMaterial = obj.createCoarseMaterial();
             dispCoarseFun = P1Function.create(obj.coarseMesh, obj.nDimf);
             obj.KCoarse    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,dispCoarseFun);
             obj.KredCoarse = obj.boundaryConditionsCoarse.fullToReducedMatrix(obj.KCoarse);
-            RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditions);
+            RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditionsCoarse);
             FextCoarse = RHSCoarse.compute();
             FredCoarse = obj.boundaryConditionsCoarse.fullToReducedVector(FextCoarse);
             %xCoarse=obj.KCoarse\FredCoarse;
@@ -107,7 +107,8 @@ classdef MultigridTesting < handle
             rightSide  = max(obj.mesh.coord(:,1));
             isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
             isInMiddleEdge = abs(obj.mesh.coord(:,2)-1.5) < 0.1;
-            forceNodes = isInRight & isInMiddleEdge;
+            %forceNodes = isInRight & isInMiddleEdge;
+            forceNodes = isInRight;
             nodes = 1:obj.mesh.nnodes;
             bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
             nodesdir=size(nodes(dirichletNodes),2);
@@ -149,7 +150,8 @@ classdef MultigridTesting < handle
             rightSide  = max(obj.coarseMesh.coord(:,1));
             isInRight = abs(obj.coarseMesh.coord(:,1)-rightSide)< 1e-12;
             isInMiddleEdge = abs(obj.coarseMesh.coord(:,2)-1.5) < 0.1;
-            forceNodes = isInRight & isInMiddleEdge;
+            %forceNodes = isInRight & isInMiddleEdge;
+            forceNodes = isInRight;
             nodes = 1:obj.coarseMesh.nnodes;
             bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
             nodesdir=size(nodes(dirichletNodes),2);
@@ -267,7 +269,7 @@ classdef MultigridTesting < handle
                 hasPartiallyConverged = norm(r)/norm(ri) < 0.5;
 
                 if hasPartiallyConverged
-                    z = obj.applyPrecoditionerMultigrid(r,Acoarse,Bcoarse);
+                    z = obj.applyPrecoditionerMultigrid(r,Acoarse,Bcoarse,A,B);
                     r = z;
                 end
 
@@ -292,17 +294,30 @@ classdef MultigridTesting < handle
 %                 function z = applyPreconditioner(obj,r)
 %                     z=obj.D\r;
 %                 end
-                 function z = applyPrecoditionerMultigrid(~,u,A,B)
+                  function z = applyPrecoditionerMultigrid(~,u,A,B,Afine,Bfine)
                     %R = generateR(u);
-                    j = 1;
-                    for i=1:2:length(u)-1
-                       R(j,i) = 1;
-                       R(j,i+1) = 2;
-                       R(j,i+2) = 1;
-                       j = j+1;
+                    index = 1;
+                    Rnode = [1 0 2 0 1 0;
+                            0 1 0 2 0 1];
+                    R = zeros(size(A(:,1),1),length(u));
+                    for i=1:2:size(A(:,1),1)
+                        R(i:i+1,index:index+5) = Rnode;
+                        index = index + 4;
                     end
+                    j = 1;
+                    % for i=1:5:length(u)-1
+                    %    R(j,i) = 1;
+                    %    R(j,i+1) = 0;
+                    %    R(j,i+2) = 2;
+                    %    R(j,1+3) = 0;
+                    %    R(j,i+4) = 1;
+                    %    R(j,i+5) = 0;
+                    %    j = j+1;
+                    % end
                     R(:,i) = [];
-                    z = 1/4 .* R * u;
+                    I = 1/2 .* R';
+                    R = 1/4 .* R;
+                    z = R * u;
 
                     r = z;
 
@@ -333,14 +348,14 @@ classdef MultigridTesting < handle
                         residual(iter) = norm(r); %Ax - b
                     end
 
-                    j = 1;
-                    for i=1:2:length(u)
-                       I(i,j) = 1;
-                       I(i+1,j) = 2;
-                       I(i+2,j) = 1;
-                       j = j+1;
-                    end   
-                    z = 1/2 .* I .* u;                        
+                    % j = 1;
+                    % for i=1:2:length(u)
+                    %    I(i,j) = 1;
+                    %    I(i+1,j) = 2;
+                    %    I(i+2,j) = 1;
+                    %    j = j+1;
+                    % end   
+                                          
                  end
 
 %                 function R = generateR(~,u)
@@ -357,18 +372,19 @@ classdef MultigridTesting < handle
     
     methods (Access = public, Static)
         
-        function mesh = createMesh(numero)
-            % Generate coordinates
-            x1 = linspace(0,2,numero);
-            x2 = linspace(1,2,numero);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-            s.coord = V(:,1:2);
-            s.connec = F;
-            mesh = Mesh(s);
+        function mesh = createMesh(numero1,numero2)
+            mesh = UnitQuadMesh(numero1,numero2);
+            % % Generate coordinates
+            % x1 = linspace(0,2,numero1);
+            % x2 = linspace(1,2,numero2);
+            % % Create the grid
+            % [xv,yv] = meshgrid(x1,x2);
+            % % Triangulate the mesh to obtain coordinates and connectivities
+            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            % 
+            % s.coord = V(:,1:2);
+            % s.connec = F;
+            % mesh = Mesh(s);
         end
         
         function k = computeStiffnessMatrix(mesh,material,displacementFun)
