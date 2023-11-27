@@ -23,6 +23,8 @@ classdef MultigridTesting < handle
         coarseMesh
         KCoarse
         KredCoarse
+        coarseMaterial
+        boundaryConditionsCoarse
     end
     
     methods (Access = public)
@@ -31,7 +33,7 @@ classdef MultigridTesting < handle
             close all;
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init()
-            obj.mesh = obj.createMesh();
+            obj.mesh = obj.createMesh(30);
             rawBc    = obj.createRawBoundaryConditions();
             obj.boundaryConditions = obj.createBoundaryConditions(rawBc);
             obj.material = obj.createMaterial();
@@ -67,10 +69,13 @@ classdef MultigridTesting < handle
 %             GD.errA     = errACG;
             
 
-            obj.coarseMesh = obj.createCoarseMesh();
+            obj.coarseMesh = obj.createMesh(15);
+            rawBcCoarse = obj.createRawBoundaryConditionsCoarse();
+            obj.boundaryConditionsCoarse = obj.createBoundaryConditionsCoarse(rawBcCoarse);
+            obj.coarseMaterial = obj.createCoarseMaterial();
             dispCoarseFun = P1Function.create(obj.coarseMesh, obj.nDimf);
-            obj.KCoarse    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.material,dispCoarseFun);
-            obj.KredCoarse = obj.boundaryConditions.fullToReducedMatrix(obj.K);
+            obj.KCoarse    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,dispCoarseFun);
+            obj.KredCoarse = obj.boundaryConditions.fullToReducedMatrix(obj.KCoarse);
             RHSCoarse  = obj.createRHS(obj.coarseMesh,dispCoarseFun,obj.boundaryConditions);
             FextCoarse = RHSCoarse.compute();
             FredCoarse = obj.boundaryConditions.fullToReducedVector(FextCoarse);
@@ -138,6 +143,48 @@ classdef MultigridTesting < handle
             d.ndofsElem = d.nnodeElem*d.ndimf;
             dim = d;
         end
+
+        function bc = createRawBoundaryConditionsCoarse(obj)
+            dirichletNodes = abs(obj.coarseMesh.coord(:,1)-0) < 1e-12;
+            rightSide  = max(obj.coarseMesh.coord(:,1));
+            isInRight = abs(obj.coarseMesh.coord(:,1)-rightSide)< 1e-12;
+            isInMiddleEdge = abs(obj.coarseMesh.coord(:,2)-1.5) < 0.1;
+            forceNodes = isInRight & isInMiddleEdge;
+            nodes = 1:obj.coarseMesh.nnodes;
+            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+            nodesdir=size(nodes(dirichletNodes),2);
+            bcDir(1:nodesdir,end+1) = 1;
+            bcDir(nodesdir+1:end,end) = 2;
+            bcDir(:,end+1)=0;
+            bc.dirichlet = bcDir;
+            bc.pointload(:,1) = nodes(forceNodes);
+            bc.pointload(:,2) = 2;
+            bc.pointload(:,3) = -1;
+        end
+        
+        function bc = createBoundaryConditionsCoarse(coarseMesh,bcV)
+            dim = getFunDimsCoarse(coarseMesh);
+            bcV.ndimf = dim.ndimf;
+            bcV.ndofs = dim.ndofs;
+            s.mesh  = coarseMesh;
+            s.scale = 'MACRO';
+            s.bc    = {bcV};
+            s.ndofs = dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+        end
+        
+        function dim = getFunDimsCoarse(obj)
+            s.fValues = obj.coarseMesh.coord;
+            s.mesh = obj.coarseMesh;
+            disp = P1Function(s);
+            d.ndimf  = disp.ndimf;
+            d.nnodes = size(disp.fValues, 1);
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.coarseMesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
+        end
         
         function material = createMaterial(obj)
             s.mesh = obj.mesh;
@@ -154,6 +201,23 @@ classdef MultigridTesting < handle
             mat = Material.create(s);
             mat.compute(s);
             material = mat;
+        end
+
+        function coarseMaterial = createCoarseMaterial(obj)
+            s.mesh = obj.coarseMesh;
+            s.type = 'ELASTIC';
+            s.scale = 'MACRO';
+            ngaus = 1;
+            I = ones(obj.coarseMesh.nelem,ngaus);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = obj.coarseMesh.nelem;
+            s.mesh  = obj.coarseMesh;
+            s.kappa = .9107*I;
+            s.mu    = .3446*I;
+            mat = Material.create(s);
+            mat.compute(s);
+            coarseMaterial = mat;
         end
         
         function [basis,basisVec,eigenVec] = computeBasis(obj,K)
@@ -243,6 +307,7 @@ classdef MultigridTesting < handle
 
                     r = z;
 
+                    tol = 1e-3;
                     n = length(B);
                     x = zeros(n,1);
                     p = r;
@@ -260,7 +325,7 @@ classdef MultigridTesting < handle
 
                         rznew = r' * r;
         
-                        %hasNotPartyallyConverged = ;
+                        hasNotPartyallyConverged = norm(r) > tol;
         
                         p = (rznew / rzold) * p;
                         p = r + p;
@@ -293,10 +358,10 @@ classdef MultigridTesting < handle
     
     methods (Access = public, Static)
         
-        function mesh = createMesh()
+        function mesh = createMesh(numero)
             % Generate coordinates
-            x1 = linspace(0,2,30);
-            x2 = linspace(1,2,30);
+            x1 = linspace(0,2,numero);
+            x2 = linspace(1,2,numero);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -305,20 +370,6 @@ classdef MultigridTesting < handle
             s.coord = V(:,1:2);
             s.connec = F;
             mesh = Mesh(s);
-        end
-
-        function coarsemesh = createCoarseMesh()
-            % Generate coordinates
-            x1 = linspace(0,2,15);
-            x2 = linspace(1,2,15);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-            s.coord = V(:,1:2);
-            s.connec = F;
-            coarsemesh = Mesh(s);
         end
         
         function k = computeStiffnessMatrix(mesh,material,displacementFun)
