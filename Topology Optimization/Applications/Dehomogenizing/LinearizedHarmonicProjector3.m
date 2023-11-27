@@ -1,4 +1,4 @@
-classdef LinearizedHarmonicProjector2 < handle
+classdef LinearizedHarmonicProjector3 < handle
     
     properties (Access = public)
         
@@ -19,7 +19,7 @@ classdef LinearizedHarmonicProjector2 < handle
     
     methods (Access = public)
         
-        function obj = LinearizedHarmonicProjector2(cParams)
+        function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams)
             obj.createInternalDOFs();
             obj.computeMassMatrix();
@@ -28,13 +28,15 @@ classdef LinearizedHarmonicProjector2 < handle
 
         function b = solveProblem(obj,bBar,b)
             RHS = obj.computeRHS(bBar);
-            LHS = obj.computeLHS(b);    
-            x = [b.fValues(:);zeros(size(obj.internalDOFs,2),1)];
+            LHS = obj.computeLHS(b);   
+            nInt = size(obj.internalDOFs,2);
+            nB   = size(b.fValues,1);            
+            x = [b.fValues(:);zeros(nInt,1);zeros(nB,1)];
             res = norm(LHS*x - RHS)/norm(x);            
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.5;
-            while res(i) > 1e-9
+            theta = 0.05;
+            while res(i) > 1e-5
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;    
                 b   = obj.createVectorFromSolution(x);
@@ -45,7 +47,7 @@ classdef LinearizedHarmonicProjector2 < handle
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
             end
             figure()
-            plot(1:i,([res; resL; resH; resB; resG]))
+            plot(1:i,log([res; resL; resH; resB; resG]))
             legend('LHS*x-RHS','resDistance','resHarmonic','resUnitBall','resGradient')
         end
 
@@ -58,9 +60,9 @@ classdef LinearizedHarmonicProjector2 < handle
         end
 
 
-        function b = createVectorFromSolution(obj,x)
+        function b = createVectorFromSolution(obj,x)            
             nB = length(x) - length(obj.internalDOFs);
-            bV = x(1:nB);
+            bV = x(1:(nB*2/3));
             s.fValues = reshape(bV,[],2);
             s.mesh    = obj.mesh;
             b = P1Function(s);
@@ -120,7 +122,6 @@ classdef LinearizedHarmonicProjector2 < handle
         function init(obj,cParams)
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
-           obj.epsilon          = cParams.epsilon;
            obj.eta     = (60*obj.mesh.computeMeanCellSize)^2;                            
         end
         
@@ -201,10 +202,11 @@ classdef LinearizedHarmonicProjector2 < handle
             Mf = lhs.compute();
         end                
 
-        function Mf = createUnitNormMassMatrix(obj,b)
-            nB  = obj.computeUnitNormFunction(b);
-            nBF = obj.createP1Function(nB);            
-            Mf  = obj.createMassMatrixWithFunction(nBF);
+        function [Mb1,Mb2] = createMassMatrixWithB(obj,b)
+            b1  = obj.createScalarFunctions(b,1);
+            b2  = obj.createScalarFunctions(b,2);    
+            Mb1  = obj.createMassMatrixWithFunction(b1);
+            Mb2  = obj.createMassMatrixWithFunction(b2);
         end
 
         function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
@@ -223,20 +225,27 @@ classdef LinearizedHarmonicProjector2 < handle
         function LHS = computeLHS(obj,b)
             M  = obj.massMatrix;
             K  = obj.stiffnessMatrix;
-            Mf = obj.createUnitNormMassMatrix(b);
+            nInt = size(obj.internalDOFs,2);
+            nB   = size(b.fValues,1);
+            [Mb1,Mb2] = obj.createMassMatrixWithB(b);
             [Kb1,Kb2,Nb1,Nb2] = obj.computeHarmonicMatrix(b);
-            Z  = sparse(size(b.fValues,1),size(b.fValues,1));
-            Zh = sparse(size(obj.internalDOFs,2),size(obj.internalDOFs,2));
-            A  = M + obj.eta*K + obj.epsilon*Mf;
-            LHS = [A, Z, (-Kb2+Nb2); Z, A, (Kb1-Nb1); (-Kb2+Nb2)' (Kb1-Nb1)' Zh];
+            Z  = sparse(nB,nB);
+            Zh = sparse(nInt,nInt);
+            Zb = sparse(nInt,nB);
+            A  = M + obj.eta*K;
+            LHS = [A, Z, (-Kb2+Nb2), Mb1;       ...
+                   Z, A, (Kb1-Nb1) , Mb2;         ...
+                   (-Kb2+Nb2)', (Kb1-Nb1)', Zh,Zb;...
+                   Mb1, Mb2, Zb', Z];
         end
 
         function RHS = computeRHS(obj,bI)
             M    = obj.massMatrix;
             bI1  = obj.createScalarFunctions(bI,1);
             bI2  = obj.createScalarFunctions(bI,2);               
-            Z    = zeros(size(obj.internalDOFs,2),1);            
-            RHS  = [M*bI1.fValues;M*bI2.fValues;Z];
+            Z    = zeros(size(obj.internalDOFs,2),1); 
+            I    = ones(size(bI1.fValues,1),1);
+            RHS  = [M*bI1.fValues;M*bI2.fValues;Z;M*I];
         end
 
        function Ared = computeReducedAdvectionMatrix(obj,A)

@@ -32,7 +32,8 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createOrientationVector();
           %  obj.createDoubleOrientationVector();
             obj.createUnitBallProjector();
-            obj.project()
+            %obj.harmonizeWithPenalizedUnitNorm();
+            obj.harmonize();
             obj.computeSingularities();
             obj.dehomogenize();                        
         end
@@ -125,12 +126,18 @@ classdef HarmonicVectorProjectionExample < handle
             aF = P1Function(s);
         end
 
-        function h = createHarmonicProjection(obj,epsilon)
+        function h = createHarmonicProjectionWithPenalizedUnitNorm(obj,epsilon)
             s.mesh         = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;  
             s.epsilon      = epsilon;
             h = LinearizedHarmonicProjector2(s);
         end     
+
+        function h = createHarmonicProjection(obj)
+            s.mesh         = obj.mesh;
+            s.boundaryMesh = obj.boundaryMesh;  
+            h = LinearizedHarmonicProjector3(s);
+        end            
 
         function aF = createOrientationFromData(obj)
             d = obj.experimentData;
@@ -224,61 +231,6 @@ classdef HarmonicVectorProjectionExample < handle
             rho = P1Function(s);
         end
 
-        function b1 = projectViaFilterIteration(obj,rho,b1)
-            bInitial = b1;
-
-            h    = obj.harmonicProjector;
-            [hRes,lRes] = h.evaluateAllResiduals(rho,bInitial,b1);
-            hRes.plot();
-            colorbar
-            hMax = max(hRes.fValues(:));
-            hMin = min(hRes.fValues(:));
-
-            lRes.plot();
-            colorbar
-
-
-            a1 = obj.createHalfOrientationVectorP1(b1);
-            for i = 1:5000
-              %  figure(1)
-              %  a1.plot();
-              %  figure(2)
-              %  a1.plotArrowVector();
-                b1 = b1.project('H1P1');
-
-                b1 = obj.projectInUnitBall(b1.fValues);
-                b1 = obj.createFunctionP1(b1);
-
-                a1 = obj.createHalfOrientationVectorP1(b1);
-                a1 = obj.projectInUnitBall(a1.fValues);
-                a1 = obj.createFunctionP1(a1);               
-
-                s.mesh        = obj.mesh;
-                s.orientation = a1;
-                sC = SingularitiesComputer(s);
-                sC.compute();
-
-                
-
-                            
-
-                if ~sC.isSingularityInBoundary() && ~sC.isNodeInTwoSingularElements() && sC.nSing < 1
-                    break
-                    sC.plot
-                    %%% NOT Touching!!! 
-                   % a = 0;
-
-                    %  a{1} = a0;
-                    % 
-                    %  s.fValues(:,2) = a0.fValues(1,1,:);
-                    %  s.fValues(:,1) = -a0.fValues(2,1,:);
-                    %  s.mesh           = obj.mesh;
-                    %  a{2}             = P0Function(s);
-                    % obj.dehomogenize(a);
-                end
-            end
-        end
-
         function bBar = projectViaPicard(obj,rho,bBar,bInitial)  
             h  = obj.harmonicProjector;
             [bBar,lambda] = h.solveProblem(rho,bBar,bInitial);
@@ -320,7 +272,7 @@ classdef HarmonicVectorProjectionExample < handle
             resHNorm = resH.computeL2norm();
         end
 
-        function project(obj)
+        function bInit = obtainInitialOrientationVector(obj)
             a = obj.orientationVector();
             a0 = a{1};
             a1 = a0.project('P1');
@@ -328,19 +280,24 @@ classdef HarmonicVectorProjectionExample < handle
             a1 = obj.createFunctionP1(a1);            
 
 
-            b1 = obj.createDobleOrientationVectorP1(a1);
-            b1 = obj.projectInUnitBall(b1.fValues);
-            b1 = obj.createFunctionP1(b1);            
-        
-            bBar  = b1;
-            bInit = b1;
+            bInit = obj.createDobleOrientationVectorP1(a1);
+            bInit = obj.projectInUnitBall(bInit.fValues);
+            bInit = obj.createFunctionP1(bInit);            
+
+        end
+
+        function harmonizeWithPenalizedUnitNorm(obj)
+
+            bInit = obj.obtainInitialOrientationVector();        
+            bBar  = bInit;
 
             epsilons = linspace(0,1,3);
+           
             for i = 1:length(epsilons)
                 epsilon = epsilons(i);
                 
                 for k = 1:1
-                h = obj.createHarmonicProjection(epsilon);
+                h = obj.createHarmonicProjectionWithPenalizedUnitNorm(epsilon);
 
                 obj.plotAll(h,bBar,bInit);
                 bNew = h.solveProblem(bBar,bInit);
@@ -367,6 +324,50 @@ classdef HarmonicVectorProjectionExample < handle
 
 
 
+            a{1} = a1;
+
+            s.fValues(:,2) = a1.fValues(:,1);
+            s.fValues(:,1) = -a1.fValues(:,2);
+            s.mesh         = obj.mesh;
+            a{2}           = P1Function(s);
+            obj.dehomogenize(a);
+
+
+               
+        end
+
+        function harmonize(obj)
+
+            bInit = obj.obtainInitialOrientationVector();        
+            bBar  = bInit;
+
+            epsilons = linspace(0,1,3);
+           
+                
+                for k = 1:5
+                h = obj.createHarmonicProjection();
+
+                obj.plotAll(h,bBar,bInit);
+                bNew = h.solveProblem(bBar,bInit);
+                obj.plotAll(h,bBar,bNew);
+
+
+                a1 = obj.createHalfOrientationVectorP1(bNew);
+                a1 = obj.projectInUnitBall(a1.fValues);
+                a1 = obj.createFunctionP1(a1);
+                bNewP = obj.createDobleOrientationVectorP1(a1);
+
+
+
+                hnorm(k) = obj.plotAll(h,bBar,bNewP);
+                for j = 1:k
+                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                end
+                close all
+
+                bInit = bNew;
+                end                
+
 
 
 
@@ -374,38 +375,19 @@ classdef HarmonicVectorProjectionExample < handle
 
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
-            s.mesh           = obj.mesh;
-            a{2}             = P1Function(s);
+            s.mesh         = obj.mesh;
+            a{2}           = P1Function(s);
             obj.dehomogenize(a);
 
 
                
-        end
+        end        
 
-        function plotOrientationBarAndOptimal(obj,bBar,bOpt)
-            figure()
-            subplot(1,2,1)
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            tx = bBar(:,1);
-            ty = bBar(:,2);
-            q = quiver(x,y,tx,ty);
-         %   q.ShowArrowHead = 'off';
-            subplot(1,2,2)
-            tx = bOpt(:,1);
-            ty = bOpt(:,2);            
-            q = quiver(x,y,tx,ty);
-         %   q.ShowArrowHead = 'off';
-
-
-        end
 
         function [v,lambda] = solveProblem(obj,rho,alpha0,vH)
            h  = obj.harmonicProjector;
            [v,lambda] = h.solveProblem(rho,alpha0,vH);
         end
-
-
 
 
         function createUnitBallProjector(obj)
@@ -463,38 +445,7 @@ classdef HarmonicVectorProjectionExample < handle
         end        
 
        function dehomogenize(obj,a1)
-%             obj.createBackgroundMesh();
-%          %   obj.createSuperEllipseParams();
-%             s.backgroundMesh     = obj.backgroundMesh;
-%             s.nCells             = 46;
-% 
-% %              x1 = obj.backgroundMesh.coord(:,1);
-% %              x2 = obj.backgroundMesh.coord(:,2);
-% %              alpha = zeros(size(x1)) + (pi/2);
-% %              alpha(x1<0) = pi + (pi/2);
-% %              alpha = alpha;
-% % 
-% %             
-%              alpha  = obj.createRadialWithNoiseAngle();                
-%              alpha = obj.interpolateOrientationComponent(alpha);
-%              x1 = obj.mesh.coord(:,1);
-%              x2 = obj.mesh.coord(:,2);   
-%              alpha(x1<0) = alpha(x1<0)  + (pi);
-% 
-%              s.theta              = alpha;
-%            
-%                 v = 2*obj.orientationAngle;
-%                 X = obj.mesh.coord(:,1);
-%                 Y = obj.mesh.coord(:,2);
-%                 F = scatteredInterpolant(X,Y,v);
-%                 xB = obj.backgroundMesh.coord(:,1);
-%                 yB = obj.backgroundMesh.coord(:,2);
-%                 vq = F(xB,yB);
-%                 obj.mesh = obj.backgroundMesh;
-%                 s.theta = vq/2;
-
        
-   %         s.theta              = obj.orientationAngle;
             s.nCells  = 55;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.theta              = a1;
