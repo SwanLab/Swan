@@ -95,8 +95,8 @@ classdef ShapeFunctional < handle
             s.quadType       = 'LINEAR';
             s.designVarType  = cParams.filterParams.designVarType;
             s.designVariable = cParams.designVariable;
-            s.test           = P1Function.create(s.mesh,1);
-            s.trial          = P0Function.create(s.mesh,1);
+            s.test           = P1Function.create(s.mesh,1); % P0
+            s.trial          = P0Function.create(s.mesh,1); % P1; after solving P0 Unfitted
             obj.filter       = Filter.create(s);
         end
 
