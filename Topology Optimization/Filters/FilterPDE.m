@@ -2,7 +2,7 @@ classdef FilterPDE < handle
     
     properties (Access = private)
         mesh
-        filteredField
+        trial
         epsilon
         LHStype
     end
@@ -23,9 +23,13 @@ classdef FilterPDE < handle
         end
 
         function xF = compute(obj,fun,quadType)
+            s.feFunType = class(obj.trial);
+            s.mesh      = obj.mesh;
+            s.ndimf     = 1;
+            xF          = FeFunction.createEmpty(s);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF = obj.filteredField;
+            xF.fValues  = obj.trial.fValues;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -38,9 +42,11 @@ classdef FilterPDE < handle
 
     methods (Access = private)
         function init(obj,cParams)
+            cParams.feFunType = 'P1Function'; % class(trial) will come from outside
+            cParams.ndimf     = 1;
+            obj.trial         = FeFunction.createEmpty(cParams);
             obj.LHStype       = cParams.LHStype;
             obj.mesh          = cParams.mesh;
-            obj.filteredField = P1Function.create(obj.mesh,1); % trial will come from outside
             obj.epsilon       = cParams.mesh.computeMeanCellSize();
         end
 
@@ -56,7 +62,7 @@ classdef FilterPDE < handle
         end
 
         function createProblemLHS(obj,s)
-            s.trial        = obj.filteredField;
+            s.trial        = obj.trial;
             s.mesh         = obj.mesh;
             s.type         = obj.LHStype;
             obj.problemLHS = LHSintegrator.create(s);
@@ -78,7 +84,7 @@ classdef FilterPDE < handle
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
-            test       = obj.filteredField;
+            test       = obj.trial;
             rhs        = int.compute(fun,test);
             rhsR       = obj.bc.fullToReducedVector(rhs);
             obj.RHS    = rhsR;
@@ -89,7 +95,7 @@ classdef FilterPDE < handle
             solver = Solver.create(s);
             x      = solver.solve(obj.LHS,obj.RHS);
             xR     = obj.bc.reducedToFullVector(x);
-            obj.filteredField.fValues = xR;
+            obj.trial.fValues = xR;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)

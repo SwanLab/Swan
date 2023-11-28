@@ -82,6 +82,7 @@ classdef HamiltonJacobi < handle
             s.filterType        = set.filterType;
             s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
+            s.trial             = P1Function.create(s.mesh,1);
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);
         end

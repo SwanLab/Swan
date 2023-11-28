@@ -1,8 +1,5 @@
 classdef FilterFactory < handle
 
-    % - H-J: compare iter by iter RHSShapeFunction
-    % - Unfitted and UnfittedBoundary: evaluate method generically
-
     methods (Access = public, Static)
 
         function filter = create(cParams)
