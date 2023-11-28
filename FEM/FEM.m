@@ -21,9 +21,7 @@ classdef FEM < handle
                         case 'MACRO'
                             obj = ElasticProblem(s);
                         case 'MICRO'
-%                             obj = ElasticProblemMicro(s);
-%                             obj = NewElasticProblemMicro(s);
-                            obj = ElasticProblemMicro_Fast(s);
+                            obj = ElasticProblemMicro(s);
                     end
                 case 'THERMAL'
                     obj = ThermalProblem(s);

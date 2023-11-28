@@ -3,6 +3,7 @@ classdef RHSintegrator < handle
     properties (Access = protected)
         mesh
         quadrature
+        quadratureOrder
     end
 
     methods (Access = public, Static)
@@ -21,8 +22,16 @@ classdef RHSintegrator < handle
 
         function createQuadrature(obj)
             q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR'); 
+            q.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = q;
+        end
+
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = 'LINEAR';
+            end
         end
 
     end
