@@ -29,6 +29,9 @@ classdef UnfittedFunction < handle
                 if size(s.coord,2)==2 && size(s.connec,2)==2
                     s.kFace = -1;
                 end
+                if size(s.coord,2)==3 && size(s.connec,2)==3
+                    s.kFace = -1;
+                end
                 meshNew   = Mesh(s);
                 obj.fun.updateMesh(meshNew);
                 fxV       = obj.fun.evaluate(xV);

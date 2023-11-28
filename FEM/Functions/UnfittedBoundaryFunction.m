@@ -13,8 +13,9 @@ classdef UnfittedBoundaryFunction < handle
         end
 
         function f = obtainFunctionAtExternalBoundary(obj,iBoundary) % Only for FeFun so far...
-            s.uMesh = obj.unfittedMesh.unfittedBoundaryMesh.meshes{iBoundary};
-            fType  = obj.fun.fType;
+            meshes  = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
+            s.uMesh = meshes{iBoundary};
+            fType   = obj.fun.fType;
 
 
             switch fType
@@ -62,18 +63,18 @@ classdef UnfittedBoundaryFunction < handle
             % Old:
             fType = obj.fun.fType;
             switch fType
-                case 'L2' % Only works for tetrahedra
+                case 'L2' % Provisional
+                    fP1        = obj.fun.project('P1');
+                    s.fValues  = fP1.fValues;
                     mesh       = obj.unfittedMesh.backgroundMesh;
                     bcMesh     = obj.unfittedMesh.boundaryCutMesh;
                     connec     = mesh.connec;
                     bcConnec   = connec(bcMesh.cellContainingSubcell,:);
-                    bcCoord    = bcMesh.mesh.coord;
                     mmm.connec = bcConnec;
-                    mmm.coord  = bcCoord;
-                    m = Mesh(mmm);
-                    obj.fun.updateMesh(m);
-                    fxV        = obj.fun.evaluate(xV);
-                    obj.fun.updateMesh(mesh);
+                    mmm.type   = mesh.type;
+                    s.mesh     = mmm;
+                    f          = P1Function(s);
+                    fxV        = f.evaluate(xV);
                 otherwise
                     s.fValues  = obj.fun.fValues;
                     mesh       = obj.unfittedMesh.backgroundMesh;
