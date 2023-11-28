@@ -37,7 +37,7 @@ classdef LHSintegratorFunctionMass < handle
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            fG = squeeze(obj.fun.evaluate(quad.posgp));
+            fG = squeezeParticular(obj.fun.evaluate(quad.posgp),1);
 
             M = zeros(nDofTest, nDofTrial, nElem);
             % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);

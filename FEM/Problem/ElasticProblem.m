@@ -20,6 +20,7 @@ classdef ElasticProblem < handle
 
     properties (Access = protected)
         quadrature
+        quadratureOrder
         material
         vstrain
         mesh % For Homogenization
@@ -31,6 +32,7 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
@@ -95,18 +97,30 @@ classdef ElasticProblem < handle
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
-            obj.mesh        = cParams.mesh;
+            obj.mesh        = cParams.mesh; 
+            obj.setInterpolationType(cParams);
+            obj.setQuadratureOrder(cParams);
+        end
+
+        function setInterpolationType(obj, cParams)
             if isfield(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
             end
-            obj.createQuadrature();
         end
 
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = 'LINEAR';
+            end
+        end
+        
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC'); %%%%%%%%%%%%%%%%%%%%%%%
+            quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
@@ -147,6 +161,7 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.fun      = obj.displacementFun;
             s.material = obj.material;
+            s.quadratureOrder = obj.quadratureOrder;
             lhs = LHSintegrator.create(s);
             obj.LHS = lhs.compute();
         end
