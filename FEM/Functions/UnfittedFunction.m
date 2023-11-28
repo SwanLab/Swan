@@ -21,7 +21,7 @@ classdef UnfittedFunction < handle
             inCMesh   = obj.unfittedMesh.innerCutMesh;
             connec    = mesh.connec;
             if isempty(inCMesh)
-                fxV = 0;
+                fxV = zeros(1,100,1);
             else
                 inCConnec = connec(inCMesh.cellContainingSubcell,:);
                 s.connec  = inCConnec;
