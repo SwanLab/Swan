@@ -33,7 +33,8 @@ classdef HarmonicVectorProjectionExample < handle
           %  obj.createDoubleOrientationVector();
             obj.createUnitBallProjector();
             %obj.harmonizeWithPenalizedUnitNorm();
-            obj.harmonize();
+            obj.harmonizeWithPenalizedHarmonizity();
+            %obj.harmonize();
             obj.computeSingularities();
             obj.dehomogenize();                        
         end
@@ -125,6 +126,13 @@ classdef HarmonicVectorProjectionExample < handle
             s.mesh    = obj.mesh;
             aF = P1Function(s);
         end
+
+        function h = createHarmonicProjectionWithPenalizedHarmonizity(obj,epsilon)
+            s.mesh         = obj.mesh;
+            s.boundaryMesh = obj.boundaryMesh;  
+            s.epsilon      = epsilon;
+            h = LinearizedHarmonicProjector4(s);
+        end            
 
         function h = createHarmonicProjectionWithPenalizedUnitNorm(obj,epsilon)
             s.mesh         = obj.mesh;
@@ -283,6 +291,53 @@ classdef HarmonicVectorProjectionExample < handle
             bInit = obj.createDobleOrientationVectorP1(a1);
             bInit = obj.projectInUnitBall(bInit.fValues);
             bInit = obj.createFunctionP1(bInit);            
+
+        end
+
+        function harmonizeWithPenalizedHarmonizity(obj)
+            bInit = obj.obtainInitialOrientationVector();        
+            bBar  = bInit;
+
+            epsilons = linspace(0,1,3);
+           
+            for i = 1:length(epsilons)
+                epsilon = epsilons(i);
+                
+                for k = 1:1
+                h = obj.createHarmonicProjectionWithPenalizedHarmonizity(epsilon);
+
+                obj.plotAll(h,bBar,bInit);
+                bNew = h.solveProblem(bBar,bInit);
+                obj.plotAll(h,bBar,bNew);
+
+
+                a1 = obj.createHalfOrientationVectorP1(bNew);
+                a1 = obj.projectInUnitBall(a1.fValues);
+                a1 = obj.createFunctionP1(a1);
+                bNewP = obj.createDobleOrientationVectorP1(a1);
+
+
+
+                hnorm(i) = obj.plotAll(h,bBar,bNewP);
+                for j = 1:i
+                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                end
+                close all
+
+                bInit = bNew;
+                end                
+
+            end
+
+
+
+            a{1} = a1;
+
+            s.fValues(:,2) = a1.fValues(:,1);
+            s.fValues(:,1) = -a1.fValues(:,2);
+            s.mesh         = obj.mesh;
+            a{2}           = P1Function(s);
+            obj.dehomogenize(a);                
 
         end
 

@@ -1,4 +1,4 @@
-classdef LinearizedHarmonicProjector3 < handle
+classdef LinearizedHarmonicProjector4 < handle
     
     properties (Access = public)
         
@@ -10,6 +10,7 @@ classdef LinearizedHarmonicProjector3 < handle
         internalDOFs
         massMatrix
         stiffnessMatrix
+        divergenceMatrix
     end
     
     properties (Access = private)
@@ -19,11 +20,12 @@ classdef LinearizedHarmonicProjector3 < handle
     
     methods (Access = public)
         
-        function obj = LinearizedHarmonicProjector3(cParams)
+        function obj = LinearizedHarmonicProjector4(cParams)
             obj.init(cParams)
             obj.createInternalDOFs();
             obj.computeMassMatrix();
             obj.computeStiffnessMatrix();
+            obj.computeDivergenceMatrix();
         end
 
         function b = solveProblem(obj,bBar,b)
@@ -85,8 +87,8 @@ classdef LinearizedHarmonicProjector3 < handle
             b2  = obj.createScalarFunctions(b,2);
             Kb1 = obj.createStiffNessMatrixWithFunction(b1);
             Kb2 = obj.createStiffNessMatrixWithFunction(b2);
-            Nb1 = obj.createAdvectionMatrixWithFunction(b1);
-            Nb2 = obj.createAdvectionMatrixWithFunction(b2);
+            Nb1 = obj.createAdvectionMatrixWithFunctionDerivative(b1);
+            Nb2 = obj.createAdvectionMatrixWithFunctionDerivative(b2);
             b1V = b1.fValues;
             b2V = b2.fValues;
             resV = (-Kb2'+Nb2')*b1V + (Kb1'-Nb1')*b2V;
@@ -151,6 +153,16 @@ classdef LinearizedHarmonicProjector3 < handle
             K = lhs.compute();
             obj.stiffnessMatrix = K;
         end   
+
+        function computeDivergenceMatrix(obj)
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
+            s.mesh         = obj.mesh;
+            s.type         = 'DivergenceMatrix';
+            lhs = LHSintegrator.create(s);
+            D = lhs.compute();
+            obj.divergenceMatrix = D;
+        end
         
         function createInternalDOFs(obj)
            bNodes = obj.boundaryNodes;
@@ -180,8 +192,19 @@ classdef LinearizedHarmonicProjector3 < handle
             f = P1Function(s);
         end
 
-        function Nf = createAdvectionMatrixWithFunction(obj,f)
+        function Nf = createAdvectionMatrixWithFunctionDerivative(obj,f)
             s.test     = P1Function.create(obj.mesh, 1);
+            s.trial    = P1Function.create(obj.mesh, 1);
+            s.function = f;
+            s.mesh     = obj.mesh;
+            s.quadratureOrder = 'QUADRATICMASS';            
+            s.type  = 'AdvectionMatrixWithFunctionDerivative';
+            lhs = LHSintegrator.create(s);
+            Nf = lhs.compute();
+        end        
+
+        function Nf = createAdvectionMatrixWithFunction(obj,f)
+            s.test     = P1Function.create(obj.mesh, obj.mesh.ndim);
             s.trial    = P1Function.create(obj.mesh, 1);
             s.function = f;
             s.mesh     = obj.mesh;
@@ -190,6 +213,7 @@ classdef LinearizedHarmonicProjector3 < handle
             lhs = LHSintegrator.create(s);
             Nf = lhs.compute();
         end        
+        
 
         function Mf = createMassMatrixWithFunction(obj,f)
             s.test     = P1Function.create(obj.mesh, 1);
@@ -200,52 +224,73 @@ classdef LinearizedHarmonicProjector3 < handle
             s.type  = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             Mf = lhs.compute();
-        end                
+        end     
+
+        function Mf = createMassMatrixWithFunctionDerivative(obj,f)
+            s.test     = P1Function.create(obj.mesh, obj.mesh.ndim);
+            s.trial    = P1Function.create(obj.mesh, 1);
+            s.function = f;
+            s.mesh     = obj.mesh;
+            s.quadratureOrder = 'QUADRATICMASS';            
+            s.type  = 'MassMatrixWithFunctionDerivative';
+            lhs = LHSintegrator.create(s);
+            Mf = lhs.compute();
+        end             
+
+        function [Mdb1,Mdb2] = createMassMatrixWithDb(obj,b)
+            b1  = obj.createScalarFunctions(b,1);
+            b2  = obj.createScalarFunctions(b,2);    
+            Mdb1  = obj.createMassMatrixWithFunctionDerivative(b1);
+            Mdb2  = obj.createMassMatrixWithFunctionDerivative(b2);
+        end
 
         function [Mb1,Mb2] = createMassMatrixWithB(obj,b)
             b1  = obj.createScalarFunctions(b,1);
             b2  = obj.createScalarFunctions(b,2);    
             Mb1  = obj.createMassMatrixWithFunction(b1);
             Mb2  = obj.createMassMatrixWithFunction(b2);
-        end
+        end        
 
-        function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
+        function [Nb1,Nb2] = computeAdvectionWithB(obj,b)
             b1  = obj.createScalarFunctions(b,1);
             b2  = obj.createScalarFunctions(b,2);            
-            Kb1 = obj.createStiffNessMatrixWithFunction(b1);
-            Kb2 = obj.createStiffNessMatrixWithFunction(b2);
             Nb1 = obj.createAdvectionMatrixWithFunction(b1);
-            Nb2 = obj.createAdvectionMatrixWithFunction(b2);            
-            Kb1 = obj.computeReducedAdvectionMatrix(Kb1);
-            Kb2 = obj.computeReducedAdvectionMatrix(Kb2);
-            Nb1 = obj.computeReducedAdvectionMatrix(Nb1);
-            Nb2 = obj.computeReducedAdvectionMatrix(Nb2);
+            Nb2 = obj.createAdvectionMatrixWithFunction(b2);                    
         end
 
         function LHS = computeLHS(obj,b)
             M  = obj.massMatrix;
             K  = obj.stiffnessMatrix;
-            nInt = size(obj.internalDOFs,2);
+            D  = obj.divergenceMatrix;
+            nD   = obj.mesh.ndim;
             nB   = size(b.fValues,1);
+            nE   = nB*nD;
+            [Mdb1,Mdb2] = obj.createMassMatrixWithDb(b);
             [Mb1,Mb2] = obj.createMassMatrixWithB(b);
-            [Kb1,Kb2,Nb1,Nb2] = obj.computeHarmonicMatrix(b);
-            Z  = sparse(nB,nB);
-            Zh = sparse(nInt,nInt);
-            Zb = sparse(nInt,nB);
+            [Nb1,Nb2] = obj.computeAdvectionWithB(b);
+            
+            Zbb  = sparse(nB,nB);
+            Zeb = sparse(nE,nB);
+            Zee = sparse(nE,nE);
+            Me = [M,Zbb,Zbb;Zbb,M,Zbb;Zbb,Zbb,M];
             A  = M + obj.eta*K;
-            LHS = [A, Z, (-Kb2+Nb2), Mb1;       ...
-                   Z, A, (Kb1-Nb1) , Mb2;         ...
-                   (-Kb2+Nb2)', (Kb1-Nb1)', Zh,Zb;...
-                   Mb1', Mb2', Zb', Z];
+            LHS = [           A,        Zbb,        Zee, (-Nb2+Mdb2), Mb1;...
+                            Zbb,          A,        Zee,  (Nb1-Mdb1), Mb2;...
+                            Zeb,        Zeb,          D,       -2*Me, Zeb;... 
+                   (-Nb2+Mdb2)',(Nb1-Mdb1)',      -2*Me,         Zee, Zeb;...
+                   Mb1'        ,       Mb2',       Zeb',        Zeb', Zbb];
         end
 
         function RHS = computeRHS(obj,bI)
+            nD   = obj.mesh.ndim;
+            nB   = size(bI.fValues,1);
+            nE   = nB*nD;          
             M    = obj.massMatrix;
             bI1  = obj.createScalarFunctions(bI,1);
             bI2  = obj.createScalarFunctions(bI,2);               
-            Z    = zeros(size(obj.internalDOFs,2),1); 
-            I    = ones(size(bI1.fValues,1),1);
-            RHS  = [M*bI1.fValues;M*bI2.fValues;Z;M*I];
+            Z    = zeros(nE,1); 
+            I    = ones(nB,1);
+            RHS  = [M*bI1.fValues;M*bI2.fValues;Z;Z;M*I];
         end
 
        function Ared = computeReducedAdvectionMatrix(obj,A)
