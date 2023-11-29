@@ -61,11 +61,16 @@ classdef OptimizerNullSpace < Optimizer
                 obj.update();
                 obj.updateIterInfo();
                 obj.updateMonitoring();
+                s.fValues = obj.designVariable.value;
+                s.mesh = obj.designVariable.mesh; 
+                d = P1Function(s);
+                d.print(['Example',num2str(obj.nIter)],'Paraview')                
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
                 obj.checkParameters();
             end
         end
+
 
     end
 

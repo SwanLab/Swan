@@ -1,6 +1,6 @@
 % ONLY CHANGE PARAMETERS WITH COMMENTS
 
-filename = 'CantileverAlvaro'; % Diff meshes
+filename = 'CantileverAlvaro'; %'CubeChairAlvaro' % Diff meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -9,10 +9,10 @@ cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
-optimizerUnconstrained = 'SLERP';
+optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'NullSpace';
 incrementFactor = 1.2;
-designVariable = 'LevelSet';
+designVariable = 'Density';
 filterType = 'P1';
 nsteps = 1;
 Vfrac_final = 0.3; % Final volume fraction
@@ -36,4 +36,4 @@ printing = false; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 50; % Maximum number of iterations
+maxiter = 150; % Maximum number of iterations
