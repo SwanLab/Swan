@@ -1,12 +1,12 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-6;
-        tolErrPhi = 1e-6;
+        tolErrU = 1e-12;
+        tolErrPhi = 1e-12;
         Gc = 5e-3;
         fc = 1;
         Force = 1.4;
-        Displacement = 1e-3;
+        Displacement = 1e-4;
 
         E = 210;
         nu = 0.3;
@@ -54,7 +54,8 @@ classdef PhaseFieldComputer < handle
             Energy = zeros(4,niter);
             ForceDisplacement = zeros(2,niter);
             Iterations = zeros(2,niter);
-            F = zeros(3,11);
+            F = zeros(3,niter);
+            PhaseField = zeros(1,niter);
             for i = 1:niter
                 
                 obj.createBoundaryConditions(i,niter);
@@ -105,12 +106,13 @@ classdef PhaseFieldComputer < handle
                 Iterations(2,i) = numIterP;
                 ForceDisplacement(1,i) = obj.computeIntTotalForce();
                 ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
+                PhaseField(1,i) = max(obj.phaseField.fValues);
 
 
                 figure(100)
-                plot(ForceDisplacement(2,1:end-1),ForceDisplacement(1,1:end-1))
+                plot(ForceDisplacement(2,:),ForceDisplacement(1,:))
                 figure(101)
-                plot(ForceDisplacement(2,:))
+                plot(ForceDisplacement(2,:),PhaseField)
                 %obj.fem.uFun.plot;
 
                 % obj.phaseField.plot;                
@@ -250,10 +252,10 @@ classdef PhaseFieldComputer < handle
             % m.plot();
             % obj.mesh = m;
 
-            sM.coord = [-1,-1;
-                        1,-1;
+            sM.coord = [0,0;
+                        1,0;
                         1,1;
-                        -1,1];
+                        0,1];
             sM.connec = [1 2 3 4];
 
             m = Mesh(sM);

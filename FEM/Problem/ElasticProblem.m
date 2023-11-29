@@ -211,7 +211,7 @@ classdef ElasticProblem < handle
         function computeStress(obj)
             strn  = permute(obj.strain.fValues,[1 3 2]);
             strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs =squeezeParticular(pagemtimes(obj.material.C,strn2),2);
             strs = permute(strs, [1 3 2]);
 
             z.mesh       = obj.mesh;
