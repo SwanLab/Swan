@@ -202,7 +202,7 @@ classdef P1Function < FeFunction
                 case {'TRIANGLE','QUAD'}
                     x = obj.mesh.coord(:,1);
                     y = obj.mesh.coord(:,2);
-                    figure()
+                    figure(102)
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         z = obj.fValues(:,idim);

@@ -5,8 +5,6 @@ classdef PhaseFieldComputer < handle
         tolErrPhi = 1e-12;
         Gc = 5e-3;
         fc = 1;
-        Force = 1.4;
-        Displacement = 1e-4;
 
         E = 210;
         nu = 0.3;
@@ -36,10 +34,8 @@ classdef PhaseFieldComputer < handle
 
     methods (Access = public)
 
-        function obj = PhaseFieldComputer()
-            close all %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            obj.init()
-            obj.computeMesh();
+        function obj = PhaseFieldComputer(cParams)
+            obj.init(cParams)
             obj.createQuadrature();
             obj.createPhaseField();
             obj.createMaterialInterpolation();
@@ -48,7 +44,7 @@ classdef PhaseFieldComputer < handle
             %obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
             obj.Constant = obj.Gc/(4*0.5);
 
-            obj.l0 = 0.1;
+            obj.l0 = 10*1e-1;
 
             niter = 1000;
             Energy = zeros(4,niter);
@@ -65,19 +61,14 @@ classdef PhaseFieldComputer < handle
                 numIterP = 1;
 
                 disp([newline '%%%%%%%%%% NEW STEP %%%%%%%%%%%'])
-                disp(['Force: ',num2str(obj.boundaryConditions.pointload(1,3))])
+                disp(['Setp Number: ',num2str(i)])
                 while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    %obj.fem.uFun.plot()
+        %            obj.fem.uFun.plot()
                     errorPhi = 1;
                     numIterP = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
-                        obj.createEnergyMassMatrix();
-                        obj.createDissipationMassMatrix();
-                        obj.createStiffnessMatrix();
-                        obj.createEnergyForceVector();
-                        obj.createDissipationForceVector();
-                        obj.createForceDerivativeVector();
+
                         obj.solvePhaseFieldEquation();
                         %obj.computeTotalEnergy()
 
@@ -114,10 +105,13 @@ classdef PhaseFieldComputer < handle
                 figure(101)
                 plot(ForceDisplacement(2,:),PhaseField)
                 %obj.fem.uFun.plot;
-
-                % obj.phaseField.plot;                
-                % colorbar
-                % clim([0 1])
+                
+                 
+                 obj.phaseField.plot;                
+                 colorbar
+                 caxis([0 1]);
+                 %clim([0 1])
+                 drawnow
                 % title('Final phase field')
                 % %obj.fem.print(['Example',num2str(i)],'GiD')
                 %obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
@@ -160,113 +154,21 @@ classdef PhaseFieldComputer < handle
 
     methods (Access = private)
 
-        function init(obj)
-        end
-
-        function computeMesh(obj)
-            % %file = 'test2d_triangle';
-            % %a.fileName = file;
-            % % s = FemDataContainer(a);
-            % 
-            % % Generate coordinates
-            % x1 = linspace(0,1,20);
-            % x2 = linspace(1,2,20);
-            % % Create the grid
-            % [xv,yv] = meshgrid(x1,x2);
-            % % Triangulate the mesh to obtain coordinates and connectiviti            % x1 = linspace(0,1,20);
-            % x2 = linspace(0,1,20);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % sBg.coord  = V(:,1:2);
-            % sBg.connec = F;
-            % bgMesh = Mesh(sBg);
-            % bdMesh  = bgMesh.createBoundaryMesh();
-            % 
-            % sLS.type       = 'circleInclusion';
-            % sLS.mesh       = bgMesh;
-            % sLS.ndim       = 2;
-            % sLS.fracRadius = 0.4;
-            % sLS.coord      = bgMesh.coord;
-            % ls = LevelSetCreator.create(sLS);
-            % levelSet = ls.getValue();
-            % 
-            % sUm.backgroundMesh = bgMesh;
-            % sUm.boundaryMesh   = bdMesh;
-            % uMesh = UnfittedMesh(sUm);
-            % uMesh.compute(levelSet);
-            % 
-            % obj.mesh = uMesh.createInnerMesh();
-            % obj.mesh = obj.mesh.computeCanonicalMesh();
-            % %obj.mesh = bgMesh;
-            % 
-            % figure
-            % uMesh.plot
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % 
-            % s.coord = V(:,1:2);
-            % s.connec = F;
-            % m = Mesh(s);
-            % obj.mesh = m;
-            % 
-            % x1 = linspace(0,1,20);
-            % x2 = linspace(0,1,20);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % sBg.coord  = V(:,1:2);
-            % sBg.connec = F;
-            % bgMesh = Mesh(sBg);
-            % bdMesh  = bgMesh.createBoundaryMesh();
-            % 
-            % sLS.type       = 'circleInclusion';
-            % sLS.mesh       = bgMesh;
-            % sLS.ndim       = 2;
-            % sLS.fracRadius = 0.4;
-            % sLS.coord      = bgMesh.coord;
-            % ls = LevelSetCreator.create(sLS);
-            % levelSet = ls.getValue();
-            % 
-            % sUm.backgroundMesh = bgMesh;
-            % sUm.boundaryMesh   = bdMesh;
-            % uMesh = UnfittedMesh(sUm);
-            % uMesh.compute(levelSet);
-            % 
-            % obj.mesh = uMesh.createInnerMesh();
-            % %obj.mesh = uMesh.createInnerMeshGoodConditioning()
-            % %obj.mesh = obj.mesh.computeCanonicalMesh();
-            % obj.mesh.plot;
-            % obj.mesh = bgMesh;
-            % 
-            % figure
-            % uMesh.plot
-
-            % sM.coord = [-1,-1;
-            %             1,-1;
-            %             1,1;
-            %             -1,1;
-            %             -1 3;
-            %             1 3];
-            % sM.connec = [1 2 3 4
-            %              3 4 5 6];
-            % 
-            % m = Mesh(sM);
-            % m.plot();
-            % obj.mesh = m;
-
-            sM.coord = [0,0;
-                        1,0;
-                        1,1;
-                        0,1];
-            sM.connec = [1 2 3 4];
-
-            m = Mesh(sM);
-            m.plot();
-            obj.mesh = m;
+        function init(obj,cParams)
+            obj.mesh               = cParams.mesh; 
         end
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
+        end
+
+        function createBoundaryConditions(obj,i,nIter)
+            s.mesh = obj.mesh;
+            bc = BoundaryContionsForPhaseFieldCreator(s);
+            bC = bc.create(i,nIter);
+            obj.boundaryConditions = bC;
         end
 
         function createPhaseField(obj)
@@ -290,6 +192,7 @@ classdef PhaseFieldComputer < handle
             xFun = AnalyticalFunction(sAF);
 
             phi = xFun.project('P1');
+            %phi.fValues = 0.
             obj.phaseField = phi;
         end
 
@@ -317,90 +220,6 @@ classdef PhaseFieldComputer < handle
             obj.dissipationInterpolation = disInt;
         end
 
-        function createBoundaryConditions(obj,Fstep,niter)
-
-            %%%%%% BENDING BC %%%%%%%%%%%%
-            % dirichletNodes = abs(obj.mesh.coord(:,1)-0) < 1e-12;
-            % rightSide  = max(obj.mesh.coord(:,1));
-            % isInRight = abs(obj.mesh.coord(:,1)-rightSide)< 1e-12;
-            % isInMiddleEdge = abs(obj.mesh.coord(:,2)-1.5) < 0.1;
-            % forceNodes = isInRight & isInMiddleEdge;
-            % nodes = 1:obj.mesh.nnodes;
-            % 
-            % ndim = 2;
-            % bc.dirichlet = zeros(ndim*length(nodes(dirichletNodes)),3);
-            % for i=1:ndim
-            %     bc.dirichlet(i:2:end,1) = nodes(dirichletNodes);
-            %     bc.dirichlet(i:2:end,2) = i;
-            % end
-            % bc.dirichlet(:,3) = 0;
-            % 
-            % bc.pointload(:,1) = nodes(forceNodes);
-            % bc.pointload(:,2) = 2;
-            % bc.pointload(:,3) = -obj.Force*(Fstep/niter);
-            % obj.boundaryConditions = bc;
-            
-
-            %%%%%%%%%%%% FORCE TRACTION BC %%%%%%%%%%
-            % DownSide = min(obj.mesh.coord(:,2));
-            % isInDown = abs(obj.mesh.coord(:,2)-DownSide) < 1e-12;
-            % UpSide  = max(obj.mesh.coord(:,2));
-            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
-            % forceNodes = isInUp;
-            % nodes = 1:obj.mesh.nnodes;
-            % 
-            % ndim = 2;
-            % bc.dirichlet = zeros(ndim*length(nodes(isInDown)),3);
-            % for i=1:ndim
-            %     bc.dirichlet(i:2:end,1) = nodes(isInDown);
-            %     bc.dirichlet(i:2:end,2) = 1;
-            % end
-            % bc.dirichlet(2:2:end,3) = 0;
-            % bc.dirichlet = [1 1 0; 
-            %                 1 2 0;
-            %                 2 1 0;
-            %                 2 2 0;
-            %                 3 1 0;
-            %                 4 1 0];
-            % 
-            % bc.pointload(:,1) = nodes(forceNodes);
-            % bc.pointload(:,2) = 2;
-            % bc.pointload(:,3) = obj.Force*(Fstep/niter);
-            % obj.boundaryConditions = bc;
-
-            %%%%%% DISPLACEMENT TRACTION BC %%%%%%%%%%%%%
-            DownSide = min(obj.mesh.coord(:,2));
-            isInDown = abs(obj.mesh.coord(:,2)-DownSide) < 1e-12;
-            UpSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
-            forceNodes = isInUp;
-            nodes = 1:obj.mesh.nnodes;
-
-            ndim = 2;
-            DirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-            DirichletUp = zeros(ndim*length(nodes(isInUp)),3);
-            for i=1:ndim
-                DirichletDown(i:2:end,1) = nodes(isInDown);
-                DirichletDown(i:2:end,2) = i;
-
-                DirichletUp(i:2:end,1) = nodes(isInUp);
-                DirichletUp(i:2:end,2) = i;
-            end
-            DirichletDown(:,3) = 0;
-%            DirichletUp(1:2:end,3) = 0;
-            DirichletUp(2:2:end,3) = obj.Displacement*(Fstep);
-
-            DirichletUp = [3 2 0; 4 2 0];
-            DirichletUp(:,3) = obj.Displacement*(Fstep);
-
-            bc.dirichlet = [DirichletDown; DirichletUp];
-
-            bc.pointload(:,1) = nodes(forceNodes);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = 0;
-            obj.boundaryConditions = bc;
-
-        end
 
         %% %%%%%%%%%%%%%%%%%%%%%% ELASTIC EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function mat = createMaterial(obj)
@@ -604,6 +423,12 @@ classdef PhaseFieldComputer < handle
 
         % Matrix euqation
         function solvePhaseFieldEquation(obj)
+            obj.createEnergyMassMatrix();
+            obj.createDissipationMassMatrix();
+            obj.createStiffnessMatrix();
+            obj.createEnergyForceVector();
+            obj.createDissipationForceVector();
+            obj.createForceDerivativeVector();
             LHS = obj.Mi + (obj.Constant/obj.l0)*obj.Md + (obj.Constant*obj.l0)*obj.K;
             RHS = obj.computeResidual();
             obj.deltaPhi = LHS\RHS;
@@ -688,18 +513,23 @@ classdef PhaseFieldComputer < handle
             u = obj.fem.uFun;
             forceValues = zeros(size(u.fValues));
             pLoad = obj.boundaryConditions.pointload;
-            idx = sub2ind(size(forceValues),pLoad(:,1),pLoad(:,2));
-            forceValues(idx) = pLoad(:,3);
+            if isempty(pLoad)
+                totVal = 0;
+            else 
+                idx = sub2ind(size(forceValues),pLoad(:,1),pLoad(:,2));
+                forceValues(idx) = pLoad(:,3);
 
-            s.mesh = obj.mesh;
-            s.fValues = forceValues;
-            f = P1Function(s);
-            
-            q.mesh = obj.mesh;
-            q.quadType = 'CONSTANT';
-            q.type = 'ScalarProduct';
-            int = Integrator.create(q);
-            totVal = int.compute(u,f);
+                s.mesh = obj.mesh;
+                s.fValues = forceValues;
+                f = P1Function(s);
+
+                q.mesh = obj.mesh;
+                q.quadType = 'CONSTANT';
+                q.type = 'ScalarProduct';
+                int = Integrator.create(q);
+                totVal = int.compute(u,f);
+            end
+
         end
 
         function totVal = computeIntTotalForce(obj)
