@@ -44,7 +44,7 @@ classdef PhaseFieldComputer < handle
             %obj.l0 = (27/256)*(1*obj.Gc/obj.fc^2);
             obj.Constant = obj.Gc/(4*0.5);
 
-            obj.l0 = 10*1e-1;
+            obj.l0 = 1*1e-1;
 
             niter = 1000;
             Energy = zeros(4,niter);
