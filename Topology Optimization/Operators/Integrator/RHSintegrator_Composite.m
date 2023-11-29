@@ -45,7 +45,9 @@ classdef RHSintegrator_Composite < handle
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     int = integrator.compute(unfFun,obj.test);
                 else
-                    int = integrator.compute(unfFun);
+                    mesh    = obj.unfittedMesh.backgroundMesh;
+                    testFun = eval([obj.testClass,'.create(mesh,1)']);
+                    int     = integrator.compute(unfFun,testFun);
                 end
                 f = f + int;
             end

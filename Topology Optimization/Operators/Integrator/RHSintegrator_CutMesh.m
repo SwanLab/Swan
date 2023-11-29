@@ -22,13 +22,13 @@ classdef RHSintegrator_CutMesh < RHSintegrator
             obj.createQuadrature();
         end
 
-        function rhs = compute(obj, unfFun)
+        function rhs = compute(obj, unfFun, test)
             obj.computeSubCellConnec();
             obj.computeGaussPoints();
             obj.computeFgauss(unfFun);
-            rhsCut = obj.computeElementalRHS();
-            rhsCells = obj.assembleSubcellsInCells(rhsCut);
-            rhs = obj.assembleIntegrand(rhsCells);
+            rhsCut = obj.computeElementalRHS(test);
+            rhsCells = obj.assembleSubcellsInCells(rhsCut,test);
+            rhs = obj.assembleIntegrand(rhsCells,test);
         end
 
     end
@@ -78,57 +78,53 @@ classdef RHSintegrator_CutMesh < RHSintegrator
             obj.fGauss = fG;
         end
         
-        function rhsC = computeElementalRHS(obj)
+        function rhsC = computeElementalRHS(obj,test)
             fG     = obj.fGauss;
-            dV     = obj.computeDvolume();
-            shapes = obj.computeShapeFunctions();
-            nnode  = size(shapes,1);
-            nelem  = size(shapes,2);
-            int = zeros(nnode,nelem);
+            q      = obj.quadrature;
+            dV     = obj.mesh.computeDvolume(q);
+            shapes = obj.evalShapes(test);
+            dofs   = size(shapes,1);
+            nelem  = obj.mesh.nelem;
+            int = zeros(dofs,nelem);
             for igaus = 1:obj.quadrature.ngaus
                 fdv = fG(igaus,:).*dV(igaus,:);
-                shape = shapes(:, :, igaus);
+                shape = shapes(:,:,igaus);
                 int = int + bsxfun(@times,shape,fdv);
             end
             rhsC = transpose(int);
         end
         
-        function rhsCells = assembleSubcellsInCells(obj,rhsCut)
-            nnode = size(obj.globalConnec,2);
-            nelem = size(obj.globalConnec,1);
+        function rhsCells = assembleSubcellsInCells(obj,rhsCut,test)
+            dofs = test.nDofsElem;
+            nelem  = size(obj.globalConnec,1);
             cellNum = obj.cellContainingSubcell;
-            totalInt = zeros(nelem,nnode);
-            for iNode = 1:nnode
-                int = rhsCut(:,iNode);
+            totalInt = zeros(nelem,dofs);
+            for idof = 1:dofs
+                int = rhsCut(:,idof);
                 intGlobal = accumarray(cellNum,int,[nelem,1],@sum,0);
-                totalInt(:,iNode) = totalInt(:,iNode) + intGlobal;
+                totalInt(:,idof) = totalInt(:,idof) + intGlobal;
             end
             rhsCells = totalInt;
         end
 
-        function f = assembleIntegrand(obj,rhsCells)
+        function f = assembleIntegrand(obj,rhsCells,test)
             integrand = rhsCells;
-            ndofs = obj.npnod;
-            connec = obj.globalConnec;
-            nnode  = size(connec,2);
+            ndofs = test.nDofs;
+            connec = test.computeDofConnectivity()';
+            ndof   = size(connec,2);
             f = zeros(ndofs,1);
-            for inode = 1:nnode
-                int = integrand(:,inode);
-                con = connec(:,inode);
+            for idof = 1:ndof
+                int = integrand(:,idof);
+                con = connec(:,idof);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
-        
-        function dV = computeDvolume(obj)
-            q = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);
-        end
-        
-        function shapes = computeShapeFunctions(obj)
+
+        function shapeAtGauss = evalShapes(obj,test)
             m.type = obj.backgroundMeshType;
-            int = Interpolation.create(m,'LINEAR');
+            int    = Interpolation.create(m,test.order);
             int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);
+            shapeAtGauss = permute(int.shape,[1 3 2]);
         end
 
     end
