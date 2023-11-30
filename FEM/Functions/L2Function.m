@@ -28,10 +28,6 @@ classdef L2Function < handle
             proj = Projector.create(s);
             fun = proj.project(obj);
         end
-
-        function updateMesh(obj,newMesh)
-            obj.mesh = newMesh;
-        end
         
     end
     
