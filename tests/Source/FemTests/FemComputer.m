@@ -28,7 +28,7 @@ classdef FemComputer < handle
             a.fileName = obj.testName;
             s = FemDataContainer(a);
             s.interpolationType = obj.interpolationType;
-            s = ObjectSaver.saveObj(s);
+%             s = ObjectSaver.saveObj(s);
             s.solType = obj.solType;
             s.solMode = obj.solMode;
 %             s.builderType = obj.builderType;

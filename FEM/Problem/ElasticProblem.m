@@ -9,8 +9,8 @@ classdef ElasticProblem < handle
     end
 
     properties (Access = private)
-        LHS
-        RHS
+        stiffness
+        forces
         solver
         integratorBuilder
         geometry
@@ -18,6 +18,8 @@ classdef ElasticProblem < handle
         inputBC
         strain
         stress
+
+        newBC
     end
 
     properties (Access = protected)
@@ -100,6 +102,7 @@ classdef ElasticProblem < handle
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
+            obj.newBC = cParams.newBC;
 
 %             obj.btype       = cParams.builderType;
             obj.solMode = cParams.solMode;
@@ -170,7 +173,7 @@ classdef ElasticProblem < handle
             s.fun      = obj.displacementFun;
             s.material = obj.material;
             lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
+            obj.stiffness = lhs.compute();
         end
 
         function computeForces(obj)
@@ -197,18 +200,20 @@ classdef ElasticProblem < handle
 
             obj.variables.fext = rhs;
 
-%             R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs +R;
-
-
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
+            R = RHSint.computeReactions(obj.stiffness);
 %             obj.variables.fext = rhs + R;
 
-            obj.RHS = rhs;
+            obj.forces = rhs;
         end
         
+        function u = compDisp(obj)
+            s.stiffness = obj.stiffness;
+            s.forces = obj.forces;
+            s.boundaryconditions = obj.boundaryConditions;
+            [LHS, RHS] = ProblemBuilder.compute(s);
+            u = ProblemSolver.solve(LHS,RHS);
+        end
+
         function u = computeDisplacements(obj)
 
 %             bc = obj.boundaryConditions;
@@ -222,8 +227,8 @@ classdef ElasticProblem < handle
             bc            = obj.boundaryConditions;
 %             builder       = bc.integratorBuilder;
 %             s.LHS         = obj.stiffnessMatrix;
-            s.LHS         = obj.LHS;
-            s.RHS         = obj.RHS;
+            s.LHS         = obj.stiffness;
+            s.RHS         = obj.forces;
             s.bc          = bc;
             s.builderType = obj.btype;
             s.solver      = obj.solver;
@@ -233,57 +238,31 @@ classdef ElasticProblem < handle
             s.dim         = dim;
             
             % ConstraintSolver
-            s.RHS         = obj.RHS;
+            s.RHS         = obj.forces;
             s.bc          = obj.boundaryConditions;
-            s.K           = obj.LHS;
+            s.K           = obj.stiffness;
             s.solver      = obj.solver;
 %             if ~isempty(obj.vstrain)
 %                 s.vstrain = obj.vstrain;
 %             end
-%             
-%             if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
-%                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
-%             end
-% 
-%             s.solMode = obj.solMode;
+
             s.solType = obj.solType;
-% 
-%             BoundaryCondSolver = ConstraintSolverFactory(s);
-%             GlobalLHS = BoundaryCondSolver.assembleGlobalLHS;
-%             GlobalRHS = BoundaryCondSolver.assembleGlobalRHS;
-%             [u, L]  =  BoundaryCondSolver.solveSystem(GlobalLHS, GlobalRHS);
-%             obj.variables.d_u = u;
-%             obj.variables.LangMult = L;
-            %%%%%
             
             %REFORMULATED ARCHITECTURE
             if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
                     bc.computeMonoliticMicroConditionDisp();
             end
 
-            f = ConstraintSolverFactory();
-            BoundaryCondSolver = f.create(s);
+%             f = ConstraintSolverFactory();
+            bcSolver = ConstraintSolverFactory.create(s);
             [LHSMatrix, nConstraints] = bc.computeBoundaryCondLHS(s.LHS);
             RHSMatrix = bc.computeBoundaryCondRHS(s);
-            [u, L] = BoundaryCondSolver.solveSystem(LHSMatrix, RHSMatrix, nConstraints);
+            [u, L] = bcSolver.solveSystem(LHSMatrix, RHSMatrix, nConstraints);
             obj.variables.d_u = u;
             obj.variables.LangMult = L;
-            %%%%%%
-
-% %             builder.createBuilder(s);
-%             [u,R] = builder.solveSystem();
-%             obj.variables.d_u = u;
-%             obj.variables.React = R;
+            
             z.mesh   = obj.mesh;
 
-%             bc = obj.boundaryConditions;
-%             Kred = bc.fullToReducedMatrix(obj.LHS);
-%             Fred = bc.fullToReducedVector(obj.RHS);
-%             u = obj.solver.solve(Kred,Fred);
-%             u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
-
-%             z.mesh    = obj.mesh;
 
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);

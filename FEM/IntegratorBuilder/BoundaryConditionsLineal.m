@@ -13,7 +13,7 @@ classdef BoundaryConditionsLineal < BoundaryConditions
                     BCMatrix = Ct;
                     nConst   = obj.nConstraints;
                 case 'REDUCED'
-                    fullLHS  = obj.fullToReducedMatrix(K);
+                    fullLHS  = obj.fullToReducedMatrix(K); % nope should be in solver
                     BCMatrix = fullLHS;
                     nConst   = 0;
             end
