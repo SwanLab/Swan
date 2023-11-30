@@ -1,4 +1,4 @@
-classdef UnfittedFunction < handle
+classdef UnfittedFunction < L2Function
 
     properties (Access = public)
         ndimf
@@ -13,43 +13,37 @@ classdef UnfittedFunction < handle
         end
 
         function fxV = evaluate(obj,xV)
-            fxV = obj.evaluateInner(xV);
+            fxV = obj.evaluateInnerElements(xV);
         end
 
-        function fxV = evaluateCutElements(obj,q)
-             mesh      = obj.unfittedMesh.backgroundMesh;
-%             inCMesh   = obj.unfittedMesh.innerCutMesh;
-%             connec    = mesh.connec;
-%             if isempty(inCMesh)
-%                 fxV = zeros(1,100,1);
-%             else
-%                 inCConnec = connec(inCMesh.cellContainingSubcell,:);
-%                 s.connec  = inCConnec;
-%                 s.coord   = inCMesh.mesh.coord;
-%                 if size(s.coord,2)==2 && size(s.connec,2)==2
-%                     s.kFace = -1;
-%                 end
-%                 if size(s.coord,2)==3 && size(s.connec,2)==3
-%                     s.kFace = -1;
-%                 end
-%                 meshNew   = Mesh(s);
-
-
-                funClass = class(obj.fun);
-% 
-%                 obj.fun.updateMesh(meshNew);
-%                 fxV       = obj.fun.evaluate(xV);
-
-
-                meshNew = obj.unfittedMesh.innerCutMesh.mesh;
-              %  meshNew = meshNew.computeCanonicalMesh;
-                q = Quadrature.set(meshNew.type);
-                q.computeQuadrature('QUADRATIC');
-                xV2 = q.posgp;
-                obj.fun.updateMesh(meshNew);
-                fxV = obj.fun.evaluate(xV2);
-                obj.fun.updateMesh(mesh);
-%             end
+        function fxV = evaluateCutElements(obj,xVloc)
+            funClass = obj.fun.fType;
+            switch funClass
+                case 'L2'
+                    f = obj.fun.project('P1');
+                case 'FE'
+                    f = obj.fun;
+            end
+            c            = obj.unfittedMesh.backgroundMesh.coord;
+            c            = c(:,sum(diff(c),1)~=0);
+            meshNew      = obj.unfittedMesh.innerCutMesh.mesh;
+            cNew         = meshNew.coord;
+            cNew         = cNew(:,sum(diff(cNew),1)~=0);
+            if size(c,2) == 1
+                newFValues = interp1(c,f.fValues,cNew);
+            else
+                F          = scatteredInterpolant(c,f.fValues);
+                newFValues = F(cNew);
+            end
+            s.feFunType  = class(f);
+            s.mesh       = meshNew;
+            s.ndimf      = obj.ndimf;
+            fNew         = FeFunction.createEmpty(s);
+            fNew.fValues = newFValues;
+            q = Quadrature.set(meshNew.type);
+            q.computeQuadrature('QUADRATIC');
+            xV2 = q.posgp;
+            fxV = fNew.evaluate(xV2);
         end
 
     end
@@ -62,20 +56,16 @@ classdef UnfittedFunction < handle
             obj.ndimf          = cParams.fun.ndimf;
         end
 
-        function fxV = evaluateInner(obj,xV)
+        function fxV = evaluateInnerElements(obj,xV)
             fxV     = obj.fun.evaluate(xV);
             gMesh   = obj.unfittedMesh.backgroundMesh;
             inMesh  = obj.unfittedMesh.innerMesh;
-            if isempty(inMesh)
-                fxV(:,:,:) = 0;
-            else
-                gCoor   = gMesh.computeXgauss(xV);
-                inCoor  = inMesh.mesh.computeXgauss(xV);
-                gCoor1  = squeeze(gCoor(:,1,:))';
-                inCoor1 = squeeze(inCoor(:,1,:))';
-                isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
-                fxV(:,:,isVoid) = 0;
-            end
+            gCoor   = gMesh.computeXgauss(xV);
+            inCoor  = inMesh.mesh.computeXgauss(xV);
+            gCoor1  = squeeze(gCoor(:,1,:))';
+            inCoor1 = squeeze(inCoor(:,1,:))';
+            isVoid  = not(ismember(gCoor1,inCoor1,'rows'));
+            fxV(:,:,isVoid) = 0;
         end
 
     end

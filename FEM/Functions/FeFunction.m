@@ -34,10 +34,6 @@ classdef FeFunction < handle
             fun = proj.project(obj);
         end
 
-        function updateMesh(obj,newMesh)
-            obj.mesh = newMesh;
-        end
-
     end
 
     methods (Static, Access = public)
