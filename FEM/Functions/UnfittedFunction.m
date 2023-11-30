@@ -16,27 +16,40 @@ classdef UnfittedFunction < handle
             fxV = obj.evaluateInner(xV);
         end
 
-        function fxV = evaluateCutElements(obj,xV)
-            mesh      = obj.unfittedMesh.backgroundMesh;
-            inCMesh   = obj.unfittedMesh.innerCutMesh;
-            connec    = mesh.connec;
-            if isempty(inCMesh)
-                fxV = zeros(1,100,1);
-            else
-                inCConnec = connec(inCMesh.cellContainingSubcell,:);
-                s.connec  = inCConnec;
-                s.coord   = inCMesh.mesh.coord;
-                if size(s.coord,2)==2 && size(s.connec,2)==2
-                    s.kFace = -1;
-                end
-                if size(s.coord,2)==3 && size(s.connec,2)==3
-                    s.kFace = -1;
-                end
-                meshNew   = Mesh(s);
+        function fxV = evaluateCutElements(obj,q)
+             mesh      = obj.unfittedMesh.backgroundMesh;
+%             inCMesh   = obj.unfittedMesh.innerCutMesh;
+%             connec    = mesh.connec;
+%             if isempty(inCMesh)
+%                 fxV = zeros(1,100,1);
+%             else
+%                 inCConnec = connec(inCMesh.cellContainingSubcell,:);
+%                 s.connec  = inCConnec;
+%                 s.coord   = inCMesh.mesh.coord;
+%                 if size(s.coord,2)==2 && size(s.connec,2)==2
+%                     s.kFace = -1;
+%                 end
+%                 if size(s.coord,2)==3 && size(s.connec,2)==3
+%                     s.kFace = -1;
+%                 end
+%                 meshNew   = Mesh(s);
+
+
+                funClass = class(obj.fun);
+% 
+%                 obj.fun.updateMesh(meshNew);
+%                 fxV       = obj.fun.evaluate(xV);
+
+
+                meshNew = obj.unfittedMesh.innerCutMesh.mesh;
+              %  meshNew = meshNew.computeCanonicalMesh;
+                q = Quadrature.set(meshNew.type);
+                q.computeQuadrature('QUADRATIC');
+                xV2 = q.posgp;
                 obj.fun.updateMesh(meshNew);
-                fxV       = obj.fun.evaluate(xV);
+                fxV = obj.fun.evaluate(xV2);
                 obj.fun.updateMesh(mesh);
-            end
+%             end
         end
 
     end

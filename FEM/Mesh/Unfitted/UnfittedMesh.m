@@ -195,7 +195,8 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            obj.innerCutMesh = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh      = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh.mesh = obj.innerCutMesh.mesh.computeCanonicalMesh();
         end
         
         function computeBoundaryCutMesh(obj)
