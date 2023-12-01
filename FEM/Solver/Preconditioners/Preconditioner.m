@@ -13,7 +13,7 @@ classdef Preconditioner < handle
                     ptype = Cholesky_Direct_Solver();
 
                 otherwise
-                    error('Invalid preconditioner type.')
+%                     error('Invalid preconditioner type.')
             end
         end
 

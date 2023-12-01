@@ -96,12 +96,15 @@ classdef DomainMeshComputer < handle
             updtConnecGlob = obj.connecGlob;
             rCconnec       = obj.interfaceConnec;
             nref           = size(rCconnec,1);
-            ncopies        = size(rCconnec,2);
+%             ncopies        = size(rCconnec,2);
             for iref=1:nref
-                for icopy=2:ncopies
-                    updtConnecGlob(updtConnecGlob==rCconnec(iref,icopy))=rCconnec(iref,1);
-                    updtConnecGlob(updtConnecGlob>rCconnec(iref,icopy))=updtConnecGlob(updtConnecGlob>rCconnec(iref,icopy))-1;
-                    rCconnec(rCconnec>rCconnec(iref,icopy))=rCconnec(rCconnec>rCconnec(iref,icopy))-1;
+                aux = rCconnec(iref,:);
+                aux = aux(aux>0);
+                for icopy=2:length(aux)
+                    updtConnecGlob(updtConnecGlob==aux(icopy))  = aux(1);
+                    updtConnecGlob(updtConnecGlob>aux(icopy))   = updtConnecGlob(updtConnecGlob>aux(icopy))-1;
+                    aux(aux>aux(icopy)) =  aux(aux>aux(icopy))-1;
+                    rCconnec(rCconnec>aux(icopy)) = rCconnec(rCconnec>aux(icopy))-1;
                 end
             end
             obj.connecGlob=updtConnecGlob;

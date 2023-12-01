@@ -56,13 +56,15 @@ classdef InterfaceCoupling < handle
                         %although it says global is in subdomain
                         %conecctivity
                         conecInter = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
-                        nodeIntSub = unique(conecInter);
+                        nodeIntSub = reshape(unique(conecInter),[],1);
                         nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
                         GlNodeBd   = [GlNodeBd; nodeIntGl];
                     end
                 end
             end
-            obj.coordBdGl = coordBdGl(2:end,:);
+            [GlNodeBd,ind]  = unique(GlNodeBd);
+            coordBdGl       = coordBdGl(ind,:);
+            obj.coordBdGl   = coordBdGl(2:end,:);
 %             subDomNode = subDomNode(2:end,:);
             obj.GlNodeBd  = GlNodeBd(2:end,:);
          end
@@ -82,10 +84,11 @@ classdef InterfaceCoupling < handle
                 NodeCoord = coordAux(iBdNode,:);
                 aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
                 ind       = find(aux == 1);
-                if length(ind)>1
-                    sameNode_aux = GlNodeAux(ind);
-                    sameNode(imaster,:) = sort(sameNode_aux);
-                    imaster=imaster+1;
+                if length(ind)>1                   
+                        sameNode_aux = GlNodeAux(ind);
+                        nsame = length(sameNode_aux);
+                        sameNode(imaster,1:nsame) = sort(sameNode_aux);
+                        imaster=imaster+1;                    
                 end
             end
             obj.interfaceConnec=unique(sameNode,'rows');

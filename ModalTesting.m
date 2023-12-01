@@ -59,7 +59,7 @@ classdef ModalTesting < handle
             obj.D = diag(diag(obj.Kred));
             obj.L = tril(obj.Kred,-1);
             obj.Lt= obj.L';
-            obj.Lchol=ichol(obj.Kred);
+%             obj.Lchol=ichol(obj.Kred);
 
             M    = obj.computeMassMatrix(obj.mesh,dispFun);
             Mred = obj.boundaryConditions.fullToReducedMatrix(M);
@@ -82,19 +82,19 @@ classdef ModalTesting < handle
 
             %             precond = obj.createModalPreconditioner();
 
-            [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(obj.Kred,Fred,x);
+%             [xCG,residualCG,errCG,errACG]   = obj.conjugateGradient(obj.Kred,Fred,x);
 
-            CG.x        = xCG;
-            CG.residual = residualCG;
-            CG.err      = errCG;
-            CG.errA     = errACG;
+%             CG.x        = xCG;
+%             CG.residual = residualCG;
+%             CG.err      = errCG;
+%             CG.errA     = errACG;
 
-            [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
+%             [xPCG,residualPCG,errPCG,errAPCG] = obj.preconditionedConjugateGradient(obj.Kred,Fred,x);
 
-            PCGbasis20.x        = xPCG;
-            PCGbasis20.residual = residualPCG;
-            PCGbasis20.err      = errPCG;
-            PCGbasis20.errA     = errAPCG;
+%             PCGbasis20.x        = xPCG;
+%             PCGbasis20.residual = residualPCG;
+%             PCGbasis20.err      = errPCG;
+%             PCGbasis20.errA     = errAPCG;
 
             obj.computeBasisRom();
             [Hhat,H,G,T,That] = computeEifemMat(obj);
@@ -114,7 +114,13 @@ classdef ModalTesting < handle
             kcoarse = x(nphi+nrb+1:end,:);
             basis   = cell2mat(obj.basisVec);
             Udef    = basis*inv(H)*T;
+%             Urb     = obj.RBdomain*inv(G)*(That-Hhat*inv(H)*T);
             kcoarse = (Udef')*K*Udef;
+
+            rom.kcoarse=kcoarse;
+            rom.udef=Udef;
+            rom.basis=basis;
+
 
 
             %             ModalTesting.plotRes(residualCG,residualPCG,errCG,errPCG,errACG,errAPCG)
@@ -461,18 +467,24 @@ classdef ModalTesting < handle
             % s = FemDataContainer(a);
             % mesh = s.mesh;
 
+            filename   = 'lattice_ex1';
+            a.fileName = filename;
+            femD       = FemDataContainer(a);
+            mesh       = femD.mesh;
+%             bS         = mS.createBoundaryMesh();
 
-            % Generate coordinates
-            x1 = linspace(0,2,20);
-            x2 = linspace(0,1,20);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
 
-            s.coord = coord(:,1:2);
-            s.connec = F;
-            mesh = Mesh(s);
+%             % Generate coordinates
+%             x1 = linspace(0,2,20);
+%             x2 = linspace(0,1,20);
+%             % Create the grid
+%             [xv,yv] = meshgrid(x1,x2);
+%             % Triangulate the mesh to obtain coordinates and connectivities
+%             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+% 
+%             s.coord = coord(:,1:2);
+%             s.connec = F;
+%             mesh = Mesh(s);
         end
 
         function k = computeStiffnessMatrix(mesh,material,displacementFun)

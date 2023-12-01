@@ -115,6 +115,18 @@ classdef ElasticProblem < handle
             obj.iterativeSolverTyp = '';
             obj.preconditionerType = '';
             obj.tol = 0;
+            if isfield(cParams, 'solverTyp')
+                obj.solverTyp = cParams.solverTyp;
+                if strcmp('ITERATIVE',obj.solverTyp) 
+                    obj.iterativeSolverTyp = cParams.iterativeSolverTyp;
+                    obj.tol = cParams.tol;
+                    if  strcmp('PCG',obj.iterativeSolverTyp) 
+                        obj.preconditionerType = cParams.preconditionerType;
+                    end
+                end
+            else
+                obj.solverTyp = 'DIRECT';
+            end
         
         end
 
@@ -153,37 +165,20 @@ classdef ElasticProblem < handle
 
         function createSolver(obj,cParams)
 
-            if isfield(cParams, 'solverTyp')
-                obj.solverTyp = cParams.solverTyp;
-                if strcmp('ITERATIVE',obj.solverTyp) 
-                    obj.iterativeSolverTyp = cParams.iterativeSolverTyp;
-                    obj.tol = cParams.tol;
-                    if  strcmp('PCG',obj.iterativeSolverTyp) 
-                        obj.preconditionerType = cParams.preconditionerType;
-                    end
-                switch cParams.preconditionerType
-                    case 'Jacobi'
-                        s.lhs = cParams.lhs;
-                    case 'EIFEM'
-                        s.submeshes = cParams.submeshes;
-                end
-
-                end
-            else
-                obj.solverTyp = 'DIRECT';
-            end
+            
             
             s.type = obj.solverTyp ;
             s.iterativeSolverTyp = obj.iterativeSolverTyp;
             s.preconditionerType = obj.preconditionerType;
-            s.preconditioner = obj.computePreconditioner(sP);
+            s.preconditioner = obj.computePreconditioner(cParams);
             s.tol = obj.tol;
             obj.solver = Solver.create(s);
         end
 
         function preconditioner = computePreconditioner(obj,cParams)
             s.preconditionerType = obj.preconditionerType ;
-                    cParam.submesh
+%                     cParam.submesh
+            s.lhs = cParams.lhs;
             preconditioner = Preconditioner.create(s);
         end
 

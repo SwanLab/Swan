@@ -27,11 +27,24 @@ classdef DomainDecompositionManager < handle
 
     methods (Access = public)
 
-        function obj = TestingPreconditioners()
+        function obj = DomainDecompositionManager()
             close all
             obj.init();
             obj.createReferenceMesh();
+           
+            s.nsubdomains = obj.nSubdomains; %nx ny
+            s.meshReference = obj.meshReference;         
+            mRVE = MeshFromRVE(s);
+            [meshDomain,meshSubDomain,interfaceConnec] = mRVE.create();
+    
+            cMesh = createCoarseMesh(obj);
+            s.nsubdomains = obj.nSubdomains; %nx ny
+            s.meshReference = cMesh;         
+            mRVECoarse = MeshFromRVE(s);
+            [meshDomainCoarse,meshSubDomainCoarse,interfaceConnecCoarse] = mRVECoarse.create();
+            
 %             obj.obtainCornerNodes();
+%             fineMesh = MeshFromRVE
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
@@ -40,13 +53,13 @@ classdef DomainDecompositionManager < handle
             obj.quad.computeQuadrature('QUADRATIC');
             obj.createDomainMaterial();
             
-            s.referenceMesh = obj.referenceMesh;
-            mC = MeshCreatorFromSubmeshes();
-            obj.meshDomain = mC.mesh;
+%             s.referenceMesh = obj.referenceMesh;
+%             mC = MeshCreatorFromSubmeshes();
+%             obj.meshDomain = mC.mesh;
 
-            preconditioner = obj.createPreconditioner(mC.submeshes);
+%             preconditioner = obj.createPreconditioner(mC.submeshes);
 
-            obj.solveDomainProblem(precontioner);
+            obj.solveDomainProblem();
 
 
 
@@ -73,31 +86,50 @@ classdef DomainDecompositionManager < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains = [3 3]; %nx ny
+            obj.nSubdomains = [2 2]; %nx ny
         end
 
         function createReferenceMesh(obj)
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mS         = femD.mesh;
+%             filename   = 'lattice_ex1';
+%             a.fileName = filename;
+%             femD       = FemDataContainer(a);
+%             mS         = femD.mesh;
+%             bS         = mS.createBoundaryMesh();
+             % Generate coordinates
+            x1 = linspace(0,1,2);
+            x2 = linspace(0,1,2);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectivities
+            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+            s.coord    = coord(:,1:2);
+            s.connec   = F;
+            mS         = Mesh(s);
             bS         = mS.createBoundaryMesh();
-% %              % Generate coordinates
-% %             x1 = linspace(0,1,10);
-% %             x2 = linspace(0,1,10);
-% %             % Create the grid
-% %             [xv,yv] = meshgrid(x1,x2);
-% %             % Triangulate the mesh to obtain coordinates and connectivities
-% %             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-% % 
-% %             s.coord    = coord(:,1:2);
-% %             s.connec   = F;
-% %             mS         = Mesh(s);
-% %             bS         = mS.createBoundaryMesh();
 
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
             obj.ninterfaces = length(bS);
+        end
+
+        function cMesh = createCoarseMesh(obj)
+            xmax = max(obj.meshReference.coord(:,1));
+            xmin = min(obj.meshReference.coord(:,1));
+            ymax = max(obj.meshReference.coord(:,2));
+            ymin = min(obj.meshReference.coord(:,2));
+            coord(1,1) = xmax;
+            coord(1,2) = ymin;
+            coord(2,1) = xmax;
+            coord(2,2) = ymax;
+            coord(3,1) = xmin;
+            coord(3,2) = ymax;
+            coord(4,1) = xmin;
+            coord(4,2) = ymin;
+            connec = [4 1 2 3];
+            s.coord = coord;
+            s.connec = connec;
+            cMesh = Mesh(s);
         end
 
        function createDomainMesh(obj)
