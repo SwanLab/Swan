@@ -16,7 +16,7 @@ classdef UnfittedFunction < L2Function
             fxV = obj.evaluateInnerElements(xV);
         end
 
-        function fxV = evaluateCutElements(obj,xVloc)
+        function fxV = evaluateCutElements(obj,q)
             funClass = obj.fun.fType;
             switch funClass
                 case 'L2'
@@ -40,10 +40,19 @@ classdef UnfittedFunction < L2Function
             s.ndimf      = obj.ndimf;
             fNew         = FeFunction.createEmpty(s);
             fNew.fValues = newFValues;
-            q = Quadrature.set(meshNew.type);
-            q.computeQuadrature('QUADRATIC');
-            xV2 = q.posgp;
-            fxV = fNew.evaluate(xV2);
+            xV = q.posgp;
+            fxV = fNew.evaluate(xV);
+
+
+%             xC=obj.unfittedMesh.innerCutMesh.xCoordsIso;
+%             a1=obj.unfittedMesh.backgroundMesh.computeXgauss(xC);
+%             a2=obj.fun.evaluate(xC);
+%             dim=size(a1,1);
+%             nnode=size(a1,2);
+%             nelem=size(a1,3);
+%             dimf=size(a2,1);
+%             a1=reshape(permute(a1,[2 3 1]),[nnode*nelem,dim]);
+%             a2=reshape(permute(a2,[2 3 1]),[nnode*nelem,dimf]);
         end
 
     end

@@ -201,7 +201,8 @@ classdef UnfittedMesh < handle
         
         function computeBoundaryCutMesh(obj)
             if ~isequal(obj.backgroundMesh.geometryType,'Line')
-                obj.boundaryCutMesh = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh      = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh.mesh = obj.boundaryCutMesh.mesh.computeCanonicalMesh();
             end
             
         end
