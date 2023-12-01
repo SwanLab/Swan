@@ -23,6 +23,9 @@ classdef MaterialFactory < handle
 
                 case 'Stokes'
                     material = Material_Stokes(cParams);
+
+                case 'PhaseField'
+                    material = MaterialPhaseField(cParams);
                     
                 otherwise
                     error('Invalid ptype.')

@@ -111,8 +111,10 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
                DirichletUp(i:2:end,1) = nodes(isInUp);
                DirichletUp(i:2:end,2) = i;                
             end            
-       
             DirichletUp(2:2:end,3) = DisplacementStep*(iter);
+
+            DirichletUp = [3 2 DisplacementStep*iter;
+                           4 2 DisplacementStep*iter];
 
             bc.dirichlet = [DirichletDown; DirichletUp];
             bc.pointload = [];

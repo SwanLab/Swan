@@ -6,16 +6,11 @@ classdef PhaseFieldInternalEnergyInterpolator < handle
 
     properties (Access = private)
         isoMaterial
-        mu0
-        mu1
-        kappa0
-        kappa1
+        g
+        d1g
+        d2g
         mu
-        dmu
-        ddmu
         kappa
-        dkappa
-        ddkappa
     end
 
     properties (Access = private)
@@ -31,21 +26,34 @@ classdef PhaseFieldInternalEnergyInterpolator < handle
             obj.createInternalEnergyInterpolation()
         end
 
-        function mat = computeMatProp(obj,phi)
-            mat.mu = obj.mu(phi);
-            mat.kappa = obj.kappa(phi);
+        function g = computeDegradation(obj,phi,deriv)
+            if deriv == 0
+                g = obj.g(phi);
+            elseif deriv == 1
+                g = obj.d1g(phi);
+            elseif driv == 2
+                g = obj.d2g(phi);
+            else
+                error(['Degree ',num2str(deriv),' derivative not implemented'])
+            end
         end
 
-        function mat = computeDMatProp(obj,phi)
-            mat.dmu = obj.dmu(phi);
-            mat.dkappa = obj.dkappa(phi);
+        function mat = computeMatProp(obj,phi,deriv)
+            m = obj.mu;
+            k = obj.kappa;
+            if deriv == 0
+                mat.mu    = obj.g(phi)*m;
+                mat.kappa = obj.g(phi)*k;
+            elseif deriv == 1
+                mat.mu    = obj.d1g(phi)*m;
+                mat.kappa = obj.d1g(phi)*k;
+            elseif deriv == 2
+                mat.mu    = obj.d2g(phi)*m;
+                mat.kappa = obj.d2g(phi)*k;
+            else
+                error(['Degree ',num2str(deriv),' derivative not implemented'])
+            end
         end
-
-        function mat = computeDDMatProp(obj,phi)
-            mat.ddmu = obj.ddmu(phi);
-            mat.ddkappa = obj.ddkappa(phi);
-        end
-
     end
 
     methods (Access = private)
@@ -61,30 +69,18 @@ classdef PhaseFieldInternalEnergyInterpolator < handle
         end        
 
         function computeShearAndBulkModulus(obj)
-             E1 = obj.constitutiveProperties.E_plus;
-             nu1 = obj.constitutiveProperties.nu_plus;
-             obj.mu1 = obj.isoMaterial.computeMuFromYoungAndNu(E1,nu1);
-             obj.kappa1 = obj.isoMaterial.computeKappaFromYoungAndNu(E1,nu1);
-
-             E0 = obj.constitutiveProperties.E_minus;
-             nu0 = obj.constitutiveProperties.nu_minus;
-             obj.mu0 = obj.isoMaterial.computeMuFromYoungAndNu(E0,nu0);
-             obj.kappa0 = obj.isoMaterial.computeKappaFromYoungAndNu(E0,nu0);
+             E = obj.constitutiveProperties.E;
+             nu = obj.constitutiveProperties.nu;
+             obj.mu = obj.isoMaterial.computeMuFromYoungAndNu(E,nu);
+             obj.kappa = obj.isoMaterial.computeKappaFromYoungAndNu(E,nu);
         end
 
         function createInternalEnergyInterpolation(obj)
-            m0 = obj.mu0;
-            m1 = obj.mu1;
-            k0 = obj.kappa0;
-            k1 = obj.kappa1;
             p = 2;
 
-            obj.mu      = @(phi) ((1-phi).^p)*m1;%+ m0;
-            obj.kappa   = @(phi) ((1-phi).^p)*k1;% + k0;
-            obj.dmu     = @(phi) -p*((1-phi).^(p-1))*m1;% + m0;
-            obj.dkappa  = @(phi) -p*((1-phi).^(p-1))*k1;% + k0;
-            obj.ddmu    = @(phi) p*(p-1)*((1-phi).^(p-2))*m1;% + m0;
-            obj.ddkappa = @(phi) p*(p-1)*((1-phi).^(p-2))*k1;% + k0;
+            obj.g      = @(phi) ((1-phi).^p);
+            obj.d1g     = @(phi) -p*((1-phi).^(p-1));
+            obj.d2g = @(phi) p*(p-1)*((1-phi).^(p-2));
         end
 
     end
