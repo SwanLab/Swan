@@ -20,8 +20,6 @@ classdef ElasticProblem < handle
         stress
 
         newBC
-        LHS2
-        RHS2
     end
 
     properties (Access = protected)
@@ -214,9 +212,9 @@ classdef ElasticProblem < handle
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
             s.boundaryConditions = obj.newBC;
-            pb = ProblemBuilder(s);
-            [obj.LHS2, obj.RHS2] = pb.compute();
-            u = 1;
+            pb = ProblemSolver(s);
+            u = pb.solve();
+            % u = 1;
             % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
         end
 

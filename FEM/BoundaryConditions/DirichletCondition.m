@@ -5,6 +5,9 @@ classdef DirichletCondition < BoundaryCondition
         domain
         direction
         type = 'Dirichlet';
+
+        dofs
+        values
     end
     
     properties (Access = private)
@@ -28,6 +31,8 @@ classdef DirichletCondition < BoundaryCondition
             obj.domain = s.domain;
             obj.mesh   = mesh;
             obj.direction = s.direction;
+            obj.dofs = obj.getDofs();
+            obj.values = obj.getValues();
         end
 
         function dofs = getDofs(obj)
@@ -41,6 +46,14 @@ classdef DirichletCondition < BoundaryCondition
             dofs = obj.domain(obj.mesh.coord);
             vals = obj.fun.fValues(dofs, obj.direction);
             v = vals(:);
+        end
+
+        function Ct = computeLinearConditionsMatrix(obj)
+            % dir_dofs = sort(dirich.getDofs());
+            dir_dofs = obj.getDofs();
+            nDofs = obj.fun.nDofs;
+            nDirich = length(dir_dofs);
+            Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
         end
         
     end
