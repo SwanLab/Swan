@@ -8,8 +8,12 @@ classdef LinearizedHarmonicProjector3 < handle
         eta
         epsilon
         internalDOFs
-        massMatrix
+        massMatrixBB
+        massMatrixGG
         stiffnessMatrix
+        fB
+        fS
+        fG
     end
     
     properties (Access = private)
@@ -20,9 +24,10 @@ classdef LinearizedHarmonicProjector3 < handle
     methods (Access = public)
         
         function obj = LinearizedHarmonicProjector3(cParams)
-            obj.init(cParams)
-            obj.createInternalDOFs();
-            obj.computeMassMatrix();
+            obj.init(cParams);
+            obj.initializeFunctions();            
+            obj.createInternalDOFs();            
+            obj.computeAllMassMatrix();
             obj.computeStiffnessMatrix();
         end
 
@@ -30,8 +35,7 @@ classdef LinearizedHarmonicProjector3 < handle
             RHS = obj.computeRHS(bBar);
             LHS = obj.computeLHS(b);   
             nInt = size(obj.internalDOFs,2);
-            nB   = size(b.fValues,1);            
-            x = [b.fValues(:);zeros(nInt,1);zeros(nB,1)];
+            x = [b.fValues(:);zeros(nInt,1);zeros(obj.fG.nDofs,1)];
             res = norm(LHS*x - RHS)/norm(x);            
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
@@ -59,10 +63,9 @@ classdef LinearizedHarmonicProjector3 < handle
             resGnorm = resG.computeL2norm();
         end
 
-
         function b = createVectorFromSolution(obj,x)            
-            nB = length(x) - length(obj.internalDOFs);
-            bV = x(1:(nB*2/3));
+            nB = obj.fB.nDofs;
+            bV = x(1:2*nB);
             s.fValues = reshape(bV,[],2);
             s.mesh    = obj.mesh;
             b = P1Function(s);
@@ -122,19 +125,29 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
-           obj.eta     = (60*obj.mesh.computeMeanCellSize)^2;                            
+           obj.eta     = (4*obj.mesh.computeMeanCellSize)^2;                            
         end
+
+        function initializeFunctions(obj)
+           obj.fB = P1Function.create(obj.mesh,1);
+           obj.fS = P1Function.create(obj.mesh,1);
+           obj.fG = P1Function.create(obj.mesh,1);
+        end        
         
-        function computeMassMatrix(obj)
+        function computeAllMassMatrix(obj)
+            obj.massMatrixBB = obj.computeMassMatrix(obj.fB,obj.fB);
+            obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
+        end
+
+        function M = computeMassMatrix(obj,test,trial)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = test;
+            s.trial = trial;
             s.quadratureOrder = 'QUADRATICMASS';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();           
-            obj.massMatrix = M;
-        end    
+        end 
 
         function nB = computeUnitNormFunction(obj,b)
             b1V  = b.fValues(:,1);
@@ -143,10 +156,10 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function computeStiffnessMatrix(obj)        
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
-            s.mesh         = obj.mesh;
-            s.type         = 'StiffnessMatrix';
+            s.test  = obj.fB;
+            s.trial = obj.fB;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             obj.stiffnessMatrix = K;
@@ -154,13 +167,13 @@ classdef LinearizedHarmonicProjector3 < handle
         
         function createInternalDOFs(obj)
            bNodes = obj.boundaryNodes;
-           iDOFs  = setdiff(1:obj.mesh.nnodes,bNodes); 
+           iDOFs  = setdiff(1:obj.fS.nDofs,bNodes); 
            obj.internalDOFs = iDOFs;
         end   
 
         function Kf = createStiffNessMatrixWithFunction(obj,f)
-            s.test     = P1Function.create(obj.mesh, 1);
-            s.trial    = P1Function.create(obj.mesh, 1);
+            s.test     = obj.fB;
+            s.trial    = obj.fS;
             s.function = f;
             s.mesh     = obj.mesh;
             s.type  = 'StiffnessMatrixWithFunction';
@@ -181,8 +194,8 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function Nf = createAdvectionMatrixWithFunction(obj,f)
-            s.test     = P1Function.create(obj.mesh, 1);
-            s.trial    = P1Function.create(obj.mesh, 1);
+            s.test     = obj.fB;
+            s.trial    = obj.fS;
             s.function = f;
             s.mesh     = obj.mesh;
             s.quadratureOrder = 'QUADRATICMASS';            
@@ -192,8 +205,8 @@ classdef LinearizedHarmonicProjector3 < handle
         end        
 
         function Mf = createMassMatrixWithFunction(obj,f)
-            s.test     = P1Function.create(obj.mesh, 1);
-            s.trial    = P1Function.create(obj.mesh, 1);
+            s.test     = obj.fB;
+            s.trial    = obj.fG;
             s.function = f;
             s.mesh     = obj.mesh;
             s.quadratureOrder = 'QUADRATICMASS';            
@@ -223,29 +236,30 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function LHS = computeLHS(obj,b)
-            M  = obj.massMatrix;
-            K  = obj.stiffnessMatrix;
+            Mbb  = obj.massMatrixBB;
+            K    = obj.stiffnessMatrix;
             nInt = size(obj.internalDOFs,2);
-            nB   = size(b.fValues,1);
             [Mb1,Mb2] = obj.createMassMatrixWithB(b);
             [Kb1,Kb2,Nb1,Nb2] = obj.computeHarmonicMatrix(b);
-            Z  = sparse(nB,nB);
+            Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);
             Zh = sparse(nInt,nInt);
-            Zb = sparse(nInt,nB);
-            A  = M + obj.eta*K;
-            LHS = [A, Z, (-Kb2+Nb2), Mb1;       ...
-                   Z, A, (Kb1-Nb1) , Mb2;         ...
-                   (-Kb2+Nb2)', (Kb1-Nb1)', Zh,Zb;...
-                   Mb1', Mb2', Zb', Z];
+            Zsg = sparse(nInt,obj.fG.nDofs);
+            Zgg = sparse(obj.fG.nDofs,obj.fG.nDofs);
+            A  = Mbb + obj.eta*K;
+            LHS = [A          ,         Z,(-Kb2+Nb2),Mb1;       ...
+                   Z          ,         A, (Kb1-Nb1),Mb2;         ...
+                   (-Kb2+Nb2)',(Kb1-Nb1)',        Zh,Zsg;...
+                          Mb1',      Mb2',       Zsg',Zgg];
         end
 
         function RHS = computeRHS(obj,bI)
-            M    = obj.massMatrix;
+            Mbb  = obj.massMatrixBB;
+            Mgg  = obj.massMatrixGG;
             bI1  = obj.createScalarFunctions(bI,1);
             bI2  = obj.createScalarFunctions(bI,2);               
-            Z    = zeros(size(obj.internalDOFs,2),1); 
-            I    = ones(size(bI1.fValues,1),1);
-            RHS  = [M*bI1.fValues;M*bI2.fValues;Z;M*I];
+            Zs   = zeros(size(obj.internalDOFs,2),1); 
+            Ig    = ones(obj.fG.nDofs,1);
+            RHS  = [Mbb*bI1.fValues;Mbb*bI2.fValues;Zs;Mgg*Ig];
         end
 
        function Ared = computeReducedAdvectionMatrix(obj,A)

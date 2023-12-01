@@ -44,7 +44,7 @@ classdef LHSintegratorDivergenceMatrix < handle
                     for jNode = 1:nNodeTrial
                         for iDim = 1:obj.test.ndimf
                             for jDim = 1:obj.trial.ndimf
-                                dVG   = dVolu(iGaus,:);                                
+                                dVG   = dVolu(iGaus,:)';                                
                                 idof = obj.test.ndimf*(iNode-1)+iDim;
                                 jdof = obj.trial.ndimf*(jNode-1)+jDim;
                                 dNi = squeeze(dNdxTr(iDim,iNode,:,iGaus));

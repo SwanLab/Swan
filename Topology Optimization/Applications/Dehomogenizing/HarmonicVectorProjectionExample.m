@@ -33,8 +33,8 @@ classdef HarmonicVectorProjectionExample < handle
           %  obj.createDoubleOrientationVector();
             obj.createUnitBallProjector();
             %obj.harmonizeWithPenalizedUnitNorm();
-            obj.harmonizeWithPenalizedHarmonizity();
-            %obj.harmonize();
+          %  obj.harmonizeWithPenalizedHarmonizity();
+           obj.harmonize();
             obj.computeSingularities();
             obj.dehomogenize();                        
         end
@@ -49,18 +49,18 @@ classdef HarmonicVectorProjectionExample < handle
             obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
            obj.iteration = 665;
 % 
-%             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%             obj.fileName = 'ExperimentingPlotSuperEllipse';
-%             obj.iteration = 64;
+             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+             obj.fileName = 'ExperimentingPlotSuperEllipse';
+             obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-            s.fileName = [obj.fileName,num2str(obj.iteration)];
-            s.folderPath = fullfile(obj.filePath );
-            w = WrapperMshResFiles(s);
-            w.compute();
-%            d = load('DataExample.mat');
-%            w = d.w;
+%            s.fileName = [obj.fileName,num2str(obj.iteration)];
+%            s.folderPath = fullfile(obj.filePath );
+%            w = WrapperMshResFiles(s);
+%            w.compute();
+           d = load('DataExample.mat');
+            w = d.w;
              obj.experimentData = w;
         end
 
