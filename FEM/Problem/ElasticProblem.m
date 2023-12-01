@@ -20,6 +20,8 @@ classdef ElasticProblem < handle
         stress
 
         newBC
+        LHS2
+        RHS2
     end
 
     properties (Access = protected)
@@ -46,6 +48,7 @@ classdef ElasticProblem < handle
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
+            obj.compDisp();
             obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
@@ -207,11 +210,14 @@ classdef ElasticProblem < handle
         end
         
         function u = compDisp(obj)
+            s.type = 'MONOLITHIC';
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
-            s.boundaryconditions = obj.boundaryConditions;
-            [LHS, RHS] = ProblemBuilder.compute(s);
-            u = ProblemSolver.solve(LHS,RHS);
+            s.boundaryConditions = obj.newBC;
+            pb = ProblemBuilder(s);
+            [obj.LHS2, obj.RHS2] = pb.compute();
+            u = 1;
+            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
         end
 
         function u = computeDisplacements(obj)

@@ -1,25 +1,18 @@
 %% To-do
 
-% (1) Dirichlet P2  working
+% Current approach to Elastic Problem. Limitations
+%   - Just dirichlet and one pointload
+%   - All tests need to be refactored -> opportunity for coverage analysis
+%   and see what we want to maintain
+
+% Backlog
 % (2) Instead of returning dofs, return a c = [1 0 0  0] matrix
 %       and bcapplier -> (linear)conditionsapplier which chooses between
 %       gauss elim/monolitic/etc
+
 % (3) conditions from \int lambda · u(x) -> lambda eg dirac, u(x) is your
 %      function
 
-% WEBSITE
-    % STEP 1
-    % - Readme: tot fora, portar cap a la web + documentation
-    %           afegir nous exemples visuals per cridar atencio
-    % - Web: nous exemples, afegir manuals/tutorials tipus Firedrake
-    % - Fer tutorial TopOpt (Cantilever compliance -> gif + monitoring)
-    %   -> començar a pensar amb settings
-
-    % STEP 2
-    % FEM nou seguint model idealWorld.m
-
-    % STEP 3
-    % TopOpt nou seguint model idealWorld.m
 
 % TUTORIALS
     % - 0. Create mesh (Ton)

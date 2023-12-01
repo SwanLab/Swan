@@ -36,6 +36,12 @@ classdef DirichletCondition < BoundaryCondition
             dofs = ndimf*(nodes - 1) + obj.direction;
             dofs = dofs(:);
         end
+
+        function v = getValues(obj)
+            dofs = obj.domain(obj.mesh.coord);
+            vals = obj.fun.fValues(dofs, obj.direction);
+            v = vals(:);
+        end
         
     end
     

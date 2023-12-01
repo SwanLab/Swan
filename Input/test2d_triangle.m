@@ -80,20 +80,20 @@ pointload_complete = [
 11 2 -1
 ];
 
-    isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
-    isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-    isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) < 0.1);
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
 
-    sDir.domain    = @(coor) isLeft(coor);
-    sDir.direction = [1,2];
-    sDir.value     = 30;
-    
-%     dirich = DirichletCondition(mesh, dir_dom, dir_dir, dir_val);
+% Dirichlet
+sDir.domain    = @(coor) isLeft(coor);
+sDir.direction = [1,2];
+sDir.value     = 0;
 
-    sPL.domain    = @(coor) isMiddle(coor) & isRight(coor);
-    sPL.direction = 2;
-    sPL.value     = -1;
-%     pl = PointLoad(mesh, pl_dom, pl_dir, pl_val);
+% Point load
+sPL.domain    = @(coor) isMiddle(coor) & isRight(coor);
+sPL.direction = 2;
+sPL.value     = -1;
+
 %% Volumetric Force
 % Element        Dim                Force_Dim
 
