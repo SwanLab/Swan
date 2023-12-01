@@ -51,13 +51,10 @@ classdef MicroComputer < handle
 
 %             femSolver = ElasticProblemMicro(s);
 %             femSolver = NewElasticProblemMicro(s);
-
-%% ELASTIC PROBLEM MICRO MASTER
-%             femSolver = ElasticProblemMicro_Fast(s);
-%             femSolver.solve();
-%             obj.computation = femSolver;
-%             obj.variables.Chomog = femSolver.Chomog;
-
+            femSolver = ElasticProblemMicro(s);
+            femSolver.solve();
+            obj.computation = femSolver;
+            obj.variables.Chomog = femSolver.Chomog;
         end
 
     end

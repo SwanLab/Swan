@@ -90,7 +90,7 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
         function LHS = assembleMatrix(obj, lhs)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
         function initAnisotropicTensor(obj,cParams)

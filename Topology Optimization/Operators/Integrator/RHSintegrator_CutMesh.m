@@ -21,6 +21,7 @@ classdef RHSintegrator_CutMesh < RHSintegrator
         % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_CutMesh(cParams)
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 

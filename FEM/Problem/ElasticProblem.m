@@ -113,7 +113,7 @@ classdef ElasticProblem < handle
 %             if isprop(cParams, 'interpolationType')
 
             obj.mesh        = cParams.mesh;
-            if isprop(cParams, 'interpolationType')
+            if isfield(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
@@ -206,7 +206,7 @@ classdef ElasticProblem < handle
             R = RHSint.computeReactions(obj.stiffness);
 %             obj.variables.fext = rhs + R;
 
-            obj.forces = rhs;
+            obj.forces = rhs + R;
         end
         
         function u = compDisp(obj)

@@ -1,17 +1,19 @@
-classdef RHSintegrator_Stokes < handle
+classdef RHSintegrator_Stokes < RHSintegrator
 
     properties (Access = private)
-        mesh
+%         mesh
         velocityFun
         pressureFun
         forcesFormula
-        quadrature
+%         quadrature
     end
 
     methods (Access = public)
 
         function obj = RHSintegrator_Stokes(cParams)
+            cParams.quadratureOrder = 'QUADRATIC';
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 
@@ -30,11 +32,11 @@ classdef RHSintegrator_Stokes < handle
             obj.forcesFormula = cParams.forcesFormula;
         end
 
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC'); % ehhh
-            obj.quadrature = q;
-        end
+%         function createQuadrature(obj)
+%             q = Quadrature.set(obj.mesh.type);
+%             q.computeQuadrature('QUADRATIC'); % ehhh
+%             obj.quadrature = q;
+%         end
 
         function RHS = computeRHS(obj)
             Fext = obj.computeVolumetricFext();
@@ -98,7 +100,7 @@ classdef RHSintegrator_Stokes < handle
         function RHS = assemble(obj, rhs)
             s.fun = [];
             assembler = AssemblerFun(s);
-            RHS = assembler.assembleVectorFunctions(rhs, obj.velocityFun, obj.pressureFun);
+            RHS = assembler.assembleVectorStokes(rhs, obj.velocityFun, obj.pressureFun);
         end
 
     end

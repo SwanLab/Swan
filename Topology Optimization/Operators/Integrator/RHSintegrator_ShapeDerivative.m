@@ -1,15 +1,10 @@
-classdef RHSintegrator_ShapeDerivative < handle
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
-        quadrature
-    end
+classdef RHSintegrator_ShapeDerivative < RHSintegrator
 
     methods (Access = public)
 
         function obj = RHSintegrator_ShapeDerivative(cParams)
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 
@@ -28,11 +23,6 @@ classdef RHSintegrator_ShapeDerivative < handle
         function init(obj, cParams)
             obj.mesh         = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
-        end
-
-        function createQuadrature(obj)
-            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
-            obj.quadrature = q;
         end
         
         function rhsC = computeElementalRHS(obj, fun, test)
