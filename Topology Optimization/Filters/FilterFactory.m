@@ -6,8 +6,6 @@ classdef FilterFactory < handle
             switch cParams.filterType
                 case 'P1'
                     filter = FilterKernel(cParams);
-                case 'AugmentedKernel'
-                    filter = FilterKernelGeneral(cParams);
                 case 'PDE'
                     if not(isfield(cParams,'boundaryType'))
                         cParams.boundaryType = 'Neumann';

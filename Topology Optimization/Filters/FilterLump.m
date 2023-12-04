@@ -5,79 +5,70 @@ classdef FilterLump < handle
         mesh
     end
 
+    properties (Access = private)
+        LHS
+    end
+
     methods (Access = public)
 
         function obj = FilterLump(cParams)
             obj.init(cParams);
+            obj.computeLHS();
         end
 
         function xFun = compute(obj, x, quadType)
-            LHS = obj.computeLHS();
-            LHS = diag(sum(LHS));
-            RHS = obj.computeRHS(x, quadType);
-            xProj = LHS\RHS;
-            s.mesh    = obj.mesh;
-            s.fValues = xProj;
-            xFun = P1Function(s);
+            s.feFunType  = class(obj.trial);
+            s.mesh       = obj.mesh;
+            s.ndimf      = 1;
+            xFun         = FeFunction.createEmpty(s);
+            lhs          = obj.LHS;
+            rhs          = obj.computeRHS(x, quadType);
+            xProj        = rhs./lhs;
+            xFun.fValues = xProj;
         end
 
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            cParams.feFunType = 'P1Function'; % class(trial) will come from outside
+            cParams.feFunType = class(cParams.trial);
             cParams.ndimf     = 1;
             obj.trial         = FeFunction.createEmpty(cParams);
             obj.mesh          = cParams.mesh;
         end
 
-        function LHS = computeLHS(obj)
-            s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+        function computeLHS(obj)
+            s.mesh            = obj.mesh;
+            s.test            = obj.trial;
+            s.trial           = obj.trial;
             s.quadratureOrder = 'QUADRATIC';
-            s.type  = 'MassMatrix';
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
+            s.type            = 'MassMatrix';
+            int               = LHSintegrator.create(s);
+            lhs               = int.compute();
+            obj.LHS           = obj.lumpMatrix(lhs);
         end
 
-        function RHS = computeRHS(obj,fun, quadType)
-            quad = obj.createRHSQuadrature(quadType);
-            xV = quad.posgp;
-            dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            
-            shapes = obj.trial.computeShapeFunctions(quad);
-
-            conne = obj.mesh.connec;
-
-            nGaus = quad.ngaus;
-            nFlds = fun.ndimf;
-            nNode = size(conne,2);
-            nDofs = obj.mesh.nnodes;
-
-            fGaus = fun.evaluate(xV);
-            f     = zeros(nDofs,nFlds);
-            for iField = 1:nFlds
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    fG = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nNode
-                        dofs = conne(:,inode);
-                        Ni = shapes(inode,igaus);
-                        int = Ni*fG.*dVg;
-                        f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
-                    end
-                end
+        function rhs = computeRHS(obj,fun, quadType)
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                otherwise
+                    s.mesh = obj.mesh;
             end
-            RHS = f;
+            s.type     = 'ShapeFunction';
+            s.quadType = quadType;
+            int        = RHSintegrator.create(s);
+            test       = obj.trial;
+            rhs        = int.compute(fun,test);
         end
 
-        function q = createRHSQuadrature(obj, quadType)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(quadType);
+    end
+
+    methods (Access = private, Static)
+        function Al = lumpMatrix(A)
+            I  = ones(size(A,2),1);
+            Al = A*I;
         end
-        
     end
 
 end

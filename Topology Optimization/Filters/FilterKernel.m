@@ -2,33 +2,34 @@ classdef FilterKernel < handle
 
     properties (Access = private)
         mesh
-        filteredField
-        testField
-        approach
+        trial
+        test
+        nLevels
     end
 
     properties (Access = private)
         massMatrix
-        M2
-        M3
-        M4
+        IElems
         supportMatrix
         RHS
-        RHS2
     end
 
     methods (Access = public)
         function obj = FilterKernel(cParams)
             obj.init(cParams);
             obj.createMassMatrix();
-            obj.createSupportMatrix();
+            obj.createNeighborElementsMatrix();
+            obj.createGlobalSupportMatrix();
         end
 
         function xReg = compute(obj,fun,quadType)
+            s.feFunType = class(obj.trial);
+            s.mesh      = obj.mesh;
+            s.ndimf     = 1;
+            xReg        = FeFunction.createEmpty(s);
             obj.computeRHS(fun,quadType);
-            obj.computeRHS2(fun,quadType);
             obj.solveFilter();
-            xReg = obj.filteredField;
+            xReg.fValues = obj.trial.fValues;
         end
 
     end
@@ -36,73 +37,64 @@ classdef FilterKernel < handle
     methods (Access = private)
 
         function init(obj,cParams)
+            cParams.feFunType = class(cParams.trial);
+            cParams.ndimf     = 1;
+            obj.trial         = FeFunction.createEmpty(cParams);
+            obj.test          = cParams.test;
             obj.mesh          = cParams.mesh;
-            obj.filteredField = cParams.trial;
-            obj.testField     = cParams.test;
-            if not(isfield(cParams,'approach'))
-                obj.approach = 'B';
-            else
-                obj.approach = cParams.approach;
-            end
-        end
+            obj.nLevels       = 1; % Must be defined before entering the class
+        end 
 
         function createMassMatrix(obj)
             s.type            = 'MassMatrix';
             s.mesh            = obj.mesh;
-            s.test            = obj.testField;
-            s.trial           = obj.testField;
+            s.test            = obj.test;
+            s.trial           = obj.trial;
             s.quadratureOrder = 'QUADRATICMASS';
             LHS               = LHSintegrator.create(s);
             obj.massMatrix    = LHS.compute();
-        end    
-
-        function createMassMatrix2(obj)
-            s.type            = 'MassMatrix';
-            s.mesh            = obj.mesh;
-            s.test            = obj.testField;
-            s.trial           = obj.filteredField;
-            s.quadratureOrder = 'QUADRATICMASS';
-            LHS               = LHSintegrator.create(s);
-            obj.M2    = LHS.compute();
         end 
 
-        function createMassMatrix3(obj)
-            s.type            = 'MassMatrix';
-            s.mesh            = obj.mesh;
-            s.test            = obj.filteredField;
-            s.trial           = obj.filteredField;
-            s.quadratureOrder = 'QUADRATICMASS';
-            LHS               = LHSintegrator.create(s);
-            obj.M3    = LHS.compute();
-        end   
+        function createNeighborElementsMatrix(obj)
+            connec       = obj.mesh.connec;
+            nodes(1,1,:) = 1:obj.mesh.nnodes;
+            neig         = sum(connec==nodes,2);
+            neig         = squeeze(neig);
+            T            = neig*neig';
+            obj.IElems   = min(T,1);
+        end
 
-        function createMassMatrix4(obj)
-            s.type            = 'MassMatrix';
-            s.mesh            = obj.mesh;
-            s.test            = obj.filteredField;
-            s.trial           = obj.testField;
-            s.quadratureOrder = 'QUADRATICMASS';
-            LHS               = LHSintegrator.create(s);
-            obj.M4    = LHS.compute();
-        end 
-        function createSupportMatrix(obj)
-            connecTrial = obj.filteredField.computeDofConnectivity();
-            connecTest  = obj.testField.computeDofConnectivity();
-            nDofsP1     = max(connecTest, [], 'all');
-            nDofsField  = max(connecTrial, [], 'all');
-            nDofElemP1  = size(connecTest,1);
-            nDofElemF   = size(connecTrial,1);
-            T = sparse(nDofsField,nDofsP1);
+        function createGlobalSupportMatrix(obj)
+            elems = 1:obj.mesh.nelem;
+            locSM = obj.createLocalSupportMatrix(elems);
+            if obj.nLevels == 1 % Provisional solution before solving issue
+                obj.supportMatrix = locSM;
+            else % not generalized:
+                IEl               = obj.IElems;
+                p                 = obj.nLevels;
+                patchMat          = IEl^(p-1);
+                obj.supportMatrix = min(locSM*patchMat,1);
+            end
+        end
+
+        function locSM = createLocalSupportMatrix(obj,elems)
+            connecTrial  = obj.trial.computeDofConnectivity();
+            connecTest   = obj.test.computeDofConnectivity();
+            nDofsTest    = obj.test.nDofs;
+            nDofsField   = obj.trial.nDofs;
+            nDofElemTest = size(connecTest,1);
+            nDofElemF    = size(connecTrial,1);
+            T            = sparse(nDofsField,nDofsTest);
             for kDof = 1:nDofElemF
-                for iDof = 1:nDofElemP1
-                    dofsF  = connecTrial(kDof,:);
-                    dofsP1 = connecTest(iDof,:);
-                    Iv     = ones(obj.mesh.nelem,1);
-                    incT   = sparse(dofsF,dofsP1,Iv,nDofsField,nDofsP1);
-                    T      = boolean(T + incT);
+                for iDof = 1:nDofElemTest
+                    dofsF    = connecTrial(kDof,elems);
+                    dofsTest = connecTest(iDof,elems);
+                    Iv       = ones(obj.mesh.nelem,1);
+                    incT     = sparse(dofsF,dofsTest,Iv,nDofsField,nDofsTest);
+                    T        = T + incT;
                 end
             end
-            obj.supportMatrix = T;
+            locSM = min(T,1);
         end
 
         function computeRHS(obj,fun,quadType)
@@ -115,87 +107,24 @@ classdef FilterKernel < handle
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
             rhsI       = RHSintegrator.create(s);
-            test       = obj.testField;
-            obj.RHS    = rhsI.compute(fun,test);
-        end
-
-        function computeRHS2(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = obj.mesh;
-                otherwise
-                    s.mesh = obj.mesh;
-            end
-            s.type     = 'ShapeFunction';
-            s.quadType = quadType;
-            rhsI       = RHSintegrator.create(s);
-            test       = obj.filteredField;
-            obj.RHS2    = rhsI.compute(fun,test);
+            obj.RHS    = rhsI.compute(fun,obj.test);
         end
 
         function solveFilter(obj)
-            obj.createMassMatrix2();
-            obj.createMassMatrix3();
-            obj.createMassMatrix4();
-
-            RHSi = obj.RHS;
-            rhs2 = obj.RHS2;
-
-            Iki  = obj.supportMatrix;
-
-            switch (obj.approach)
-
-                case {'B'}
-
-                    M2   = obj.M2;
-                    %I1     = ones(size(M,2),1);
-                    %I2     = ones(size(M2,2),1);
-                    %LHSp  = Iki*M;
-                    LHS = Iki*M2;
-                    %Mi   = sum(M,2);
-                    %Mi  = M*I1;
-                    %LHS  = diag(LHSp*I1);
-                    %LHS2 = diag(LHSp2*I2);
-                    LHS  = obj.lumpMatrix(LHS);
-                    %norm(LHS(:)-LHS2(:))/norm(LHS(:))
-                    xRk  = (Iki*RHSi)./LHS;
-
-                case {'A'}
-
-                    M3    = obj.M3;
-                    LHS2 = Iki'*M3*Iki;
-                    LHS2 = obj.lumpMatrix(LHS2);
-                    xRk  = (Iki'*rhs2)./LHS2;
-                    xRk = (Iki)*xRk;
-
-                    %norm(xRk - xRk2)/norm(xRk)
-                    %  xRk2  = Iki'*xRk2;
-
-                case {'C'}
-
-                    M2   = obj.M2;
-                    %I1     = ones(size(M,2),1);
-                    %I2     = ones(size(M2,2),1);
-                    %LHSp  = Iki*M;
-                    LHS = Iki*M2;
-                    %Mi   = sum(M,2);
-                    %Mi  = M*I1;
-                    %LHS  = diag(LHSp*I1);
-                    %LHS2 = diag(LHSp2*I2);
-                    LHS  = obj.lumpMatrix(LHS);
-                    %norm(LHS(:)-LHS2(:))/norm(LHS(:))
-                    P    = (Iki)./LHS;
-                    xRk  = P'*rhs2;
-                    obj.filteredField = P1Function.create(obj.mesh,1);
-
-            end
-
-
-
-            obj.filteredField.fValues = xRk;
+            rhs = obj.RHS;
+            Iki = obj.supportMatrix;
+            M   = obj.massMatrix;
+            LHS = Iki*M;
+            LHS = obj.lumpMatrix(LHS);
+            xRk = (Iki*rhs)./LHS;
+            obj.trial.fValues = xRk;
         end
 
-        function Al = lumpMatrix(obj,A)
+    end
+
+    methods (Static, Access = private)
+
+        function Al = lumpMatrix(A)
             I  = ones(size(A,2),1);
             Al = A*I;
         end

@@ -42,7 +42,7 @@ classdef FilterPDE < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            cParams.feFunType = 'P1Function'; % class(trial) will come from outside
+            cParams.feFunType = class(cParams.trial);
             cParams.ndimf     = 1;
             obj.trial         = FeFunction.createEmpty(cParams);
             obj.LHStype       = cParams.LHStype;

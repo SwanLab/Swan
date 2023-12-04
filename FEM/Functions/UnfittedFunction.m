@@ -3,6 +3,9 @@ classdef UnfittedFunction < L2Function
     properties (Access = public)
         ndimf
         unfittedMesh
+    end
+
+    properties (Access = private)
         fun
     end
 

@@ -1,8 +1,11 @@
 classdef UnfittedBoundaryFunction < handle
 
     properties (Access = public)
-        ndimf
         unfittedMesh
+    end
+
+    properties (Access = private)
+        ndimf
         fun
     end
 
