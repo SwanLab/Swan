@@ -4,11 +4,11 @@ close all
 clc
 
 % Define number of elements
-N = [4 8 16 32];
+N = [2 4 8 16 32];
 
 % Prepare analytical function
 sAF.fHandle = @(x) sin(x(1,:,:)*2*pi); % f(x) = sin(x)
-% sAF.fHandle = @(x) x(1,:,:).*x(1,:,:).*x(1,:,:)+x(2,:,:).*x(2,:,:).*x(2,:,:);
+sAF.fHandle = @(x) x(1,:,:).*x(1,:,:).*x(1,:,:)+x(2,:,:).*x(2,:,:).*x(2,:,:);
 sAF.ndimf   = 1;
 
 % Variables to store the error
@@ -63,13 +63,13 @@ figure()
 loglog(1./N,e_p1,'-x')
 hold on
 loglog(1./N,e_p2,'-x')
-% loglog(1./N,e_p3,'-x')
+loglog(1./N,e_p3,'-x')
 loglog(1./N,1./N.^2,'-x')
 loglog(1./N,1./N.^4,'-x')
-% loglog(1./N,1./N.^6,'-x')
+loglog(1./N,1./N.^6,'-x')
 grid on
-legend('P1 error','P2 error','$h^2$','$h^4$','Location','best')
-% legend('P1 error','P2 error','P3 error','$h^2$','$h^4$','$h^6$','Location','best')
+% legend('P1 error','P2 error','$h^2$','$h^4$','Location','best')
+legend('P1 error','P2 error','P3 error','$h^2$','$h^4$','$h^6$','Location','best')
 xlabel('h')
 ylabel('Error')
 % title('P1 and P2 Projections Validation')
