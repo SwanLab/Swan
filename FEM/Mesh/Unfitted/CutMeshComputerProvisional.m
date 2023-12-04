@@ -32,7 +32,7 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.computeSubCellCases();
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();
-            obj.coord = obj.cutCoordComputer.coord;
+            obj.coord = obj.cutCoordComputer.fValues;
            % obj.computeCutPointsInElemComputer();
            % obj.computeConnec();
             obj.computeConnecNew();
@@ -54,7 +54,7 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
             obj.cutEdgesParams.levelSet     = obj.levelSet;
            
-            obj.cutCoordParams.coord = obj.backgroundMesh.coord;
+            obj.cutCoordParams.oldfValues = obj.backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             
             cEparams = obj.cutEdgesComputerParams;
@@ -105,7 +105,7 @@ classdef CutMeshComputerProvisional < CutMesh
             s = obj.cutCoordParams;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            cComputer = CutCoordinatesComputer(s);
+            cComputer = CutFunctionValuesComputer(s);
             cComputer.compute();
             obj.cutCoordComputer = cComputer;
         end
@@ -344,7 +344,7 @@ classdef CutMeshComputerProvisional < CutMesh
         end
         
         function computeBoundaryMesh(obj)
-            s.coord  = obj.cutCoordComputer.coord;
+            s.coord  = obj.cutCoordComputer.fValues;
             s.connec = obj.connecB;%obj.cutPointsInElemComputer.edgeCutPointInElem;
             s.kFace  = obj.backgroundMesh.kFace -1;
             obj.boundaryMesh = Mesh(s);

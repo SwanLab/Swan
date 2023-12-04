@@ -125,6 +125,15 @@ classdef UnfittedMesh < handle
             m = imc.export();
         end
 
+        function c = obtainCutMeshParams(obj)
+            obj.backgroundMesh.computeEdges();
+            e              = obj.backgroundMesh.edges;
+            s.levelSet     = obj.levelSet;
+            s.nodesInEdges = e.nodesInEdges;
+            c              = CutEdgesComputer(s);
+            c.compute();
+        end
+
     end
     
     methods (Access = private)
