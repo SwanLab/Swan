@@ -12,12 +12,10 @@ classdef UnfittedBoundaryFunction < handle
             obj.init(cParams);
         end
 
-        function f = obtainFunctionAtExternalBoundary(obj,iBoundary) % Only for FeFun so far...
+        function f = obtainFunctionAtExternalBoundary(obj,iBoundary)
             meshes  = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
             s.uMesh = meshes{iBoundary};
             fType   = obj.fun.fType;
-
-
             switch fType
                 case 'L2' % Provisional
                     fP1 = obj.fun.project('P1');
@@ -26,14 +24,19 @@ classdef UnfittedBoundaryFunction < handle
                     f   = obj.fun.fValues;
             end
 
+            % Provisional solution: ----------------------------
             coord      = obj.unfittedMesh.backgroundMesh.coord;
             F          = scatteredInterpolant(coord,f);
             bCoord     = s.uMesh.backgroundMesh.coord;
             ss.fValues = F(bCoord);
             ss.mesh    = s.uMesh.backgroundMesh;
+            s.fun   = P1Function(ss); % ------------------------
+
+             % PENDING - The solution that should be:-----------
+             % Use CutMeshFunctionComputer class
+             % -------------
 
 
-            s.fun   = P1Function(ss);
             f       = UnfittedFunction(s);
         end
 
@@ -45,6 +48,8 @@ classdef UnfittedBoundaryFunction < handle
                 case 'FE'
                     f = obj.fun;
             end
+
+            % Provisional solution:------------------------
             c            = obj.unfittedMesh.backgroundMesh.coord;
             c            = c(:,sum(diff(c),1)~=0);
             meshNew      = obj.unfittedMesh.boundaryCutMesh.mesh;
@@ -60,8 +65,18 @@ classdef UnfittedBoundaryFunction < handle
             s.mesh       = meshNew;
             s.ndimf      = obj.ndimf;
             fNew         = FeFunction.createEmpty(s);
-            fNew.fValues = newFValues;
-            xV = q.posgp;
+            fNew.fValues = newFValues; % ----------------------
+
+            % PENDING - The solution that should be:-----------
+%             s                = [];
+%             mesh             = obj.unfittedMesh.backgroundMesh;
+%             bCutMesh         = obj.unfittedMesh.boundaryCutMesh.mesh;
+%             s.backgroundMesh = mesh;
+%             s.cutMesh        = bCutMesh;
+%             c                = CutMeshFunctionComputer(s);
+%             fNew             = c.compute(f); % ---------------
+
+            xV  = q.posgp;
             fxV = fNew.evaluate(xV);
         end
 

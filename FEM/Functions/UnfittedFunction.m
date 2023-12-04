@@ -24,6 +24,8 @@ classdef UnfittedFunction < L2Function
                 case 'FE'
                     f = obj.fun;
             end
+
+            % Provisional solution:------------------------
             c            = obj.unfittedMesh.backgroundMesh.coord;
             c            = c(:,sum(diff(c),1)~=0);
             meshNew      = obj.unfittedMesh.innerCutMesh.mesh;
@@ -39,20 +41,19 @@ classdef UnfittedFunction < L2Function
             s.mesh       = meshNew;
             s.ndimf      = obj.ndimf;
             fNew         = FeFunction.createEmpty(s);
-            fNew.fValues = newFValues;
-            xV = q.posgp;
+            fNew.fValues = newFValues; % -------------------
+
+            % PENDING - The solution that should be:-----------
+%             s                = [];
+%             mesh             = obj.unfittedMesh.backgroundMesh;
+%             innerCutMesh     = obj.unfittedMesh.innerCutMesh.mesh;
+%             s.backgroundMesh = mesh;
+%             s.cutMesh        = innerCutMesh;
+%             c                = CutMeshFunctionComputer(s);
+%             fNew             = c.compute(f); % ---------------
+
+            xV  = q.posgp;
             fxV = fNew.evaluate(xV);
-
-
-%             xC=obj.unfittedMesh.innerCutMesh.xCoordsIso;
-%             a1=obj.unfittedMesh.backgroundMesh.computeXgauss(xC);
-%             a2=obj.fun.evaluate(xC);
-%             dim=size(a1,1);
-%             nnode=size(a1,2);
-%             nelem=size(a1,3);
-%             dimf=size(a2,1);
-%             a1=reshape(permute(a1,[2 3 1]),[nnode*nelem,dim]);
-%             a2=reshape(permute(a2,[2 3 1]),[nnode*nelem,dimf]);
         end
 
     end

@@ -77,15 +77,8 @@ classdef CutMeshFunctionComputer < handle
         end
 
         function computeParallelEdgesMatrix(obj)
-            eB                = obj.edgesBackgr;
-            e                 = obj.edgesCutGlobal;
-            vB                = obj.computeEdgesVectorMatrix(eB);
-            v                 = obj.computeEdgesVectorMatrix(e);
-            parallelBgrNodes  = (abs(v*vB'-1)<=1e-6)*eB;
-            eFinal            = [e,parallelBgrNodes(:,2)];
-            notZeros          = not(sum(ismember(eFinal,0),2));
-            eFinal            = eFinal(notZeros,:);
-            obj.parallelEdges = eFinal;
+            parallelBgrNodes  = obj.computeBckgrNodesOfParallelEdges();
+            obj.parallelEdges = parallelBgrNodes;
         end
 
         function v = computeEdgesVectorMatrix(obj,e)
@@ -94,6 +87,16 @@ classdef CutMeshFunctionComputer < handle
             e2        = e(:,2);
             v         = coordGlob(e2,:)-coordGlob(e1,:);
             v         = v./sqrt(sum(v.^2,2));
+        end
+
+        function p = computeBckgrNodesOfParallelEdges(obj)
+            eB    = obj.edgesBackgr;
+            e     = obj.edgesCutGlobal;
+            vB    = obj.computeEdgesVectorMatrix(eB);
+            v     = obj.computeEdgesVectorMatrix(e);
+            a     = abs(v*vB');
+            [r,c] = find(abs(a-1)<=1e-6);
+            p     = [e(r,:),eB(c,2)];
         end
 
         function f = computeRemainingOldFValuesAtCutMesh(obj,fB)
