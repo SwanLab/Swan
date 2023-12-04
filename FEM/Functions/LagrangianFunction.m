@@ -177,6 +177,15 @@ classdef LagrangianFunction < FeFunction
             p = FunctionPrinter.create(s);
             p.print();
         end
+        
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
+        end
 
     end
 

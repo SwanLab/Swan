@@ -27,6 +27,17 @@ for i = 1:length(N)
     p2fun = xFun.project('QUADRATIC');
     p3fun = xFun.project('CUBIC');
     
+    
+    s1.mesh = sAF.mesh;
+    s1.order = 'LINEAR';
+    
+    s2.mesh = sAF.mesh;
+    s2.order = 'QUADRATIC';
+    
+    s3.mesh = sAF.mesh;
+    s3.order = 'CUBIC';
+    
+    
     % Define the quadrature to integrate the norm
     xG = defineGaussPoints(sAF.mesh);
     
@@ -84,7 +95,7 @@ function xG = defineGaussPoints(mesh)
     % Returns the gauss points for an integration of order4 for the given
     % mesh 
     quad = Quadrature.set(mesh.type);
-    quad.computeQuadrature('ORDER4');
+    quad.computeQuadrature('ORDER6');
     xG = quad.posgp;
 end
 
