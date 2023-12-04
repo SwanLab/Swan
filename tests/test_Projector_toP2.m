@@ -33,9 +33,9 @@ for i = 1:length(N)
     r.type = 'Error';
     int = Integrator.create(r);
     
-    e_p1(i) = int.compute(p1fun,xFun);
-    e_p2(i) = int.compute(p2fun,xFun);
-    e_p3(i) = int.compute(p3fun,xFun);
+    e_p1(i) = int.compute(p1fun,xFun)/p1fun.computeL2norm();
+    e_p2(i) = int.compute(p2fun,xFun)/p2fun.computeL2norm();
+    e_p3(i) = int.compute(p3fun,xFun)/p3fun.computeL2norm();
     
 %     % Define the quadrature to integrate the norm
 %     xG = defineGaussPoints(sAF.mesh);
@@ -81,8 +81,8 @@ title('P1, P2 and P3 Projections Validation')
 function m = createMesh(N)
     % Defines a 2D squared mesh of triangles of N nodes by side in a domain
     % between 0 and 1 in both axes
-    x1 = linspace(0,1,N);
-    x2 = linspace(0,1,N);
+    x1 = linspace(0,130,N);
+    x2 = linspace(0,130,N);
     [xv,yv] = meshgrid(x1,x2);
     [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
     sBg.coord  = V(:,1:2);
