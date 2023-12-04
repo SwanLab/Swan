@@ -26,6 +26,9 @@ classdef PhaseFieldComputer < handle
         DF
         Constant
         l0
+
+        H
+        H_old
     end
 
     methods (Access = public)
@@ -35,8 +38,8 @@ classdef PhaseFieldComputer < handle
 
             %obj.l0 = (27/256)*(1*obj.material.Gc/obj.material.fc^2);
             obj.Constant = obj.materialPhaseField.Gc/(4*0.5);
-
             obj.l0 = 1*1e-1;
+            obj.createHistoryVariable();
 
             niter = 1000;
             Energy = zeros(4,niter);
@@ -56,22 +59,26 @@ classdef PhaseFieldComputer < handle
                 disp(['Step Number: ',num2str(i)])
                 while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    %obj.fem.uFun.plot()
+                    obj.computeIrreversibility();
+
+                    figure(4)
+                    obj.phaseField.plot();
+
                     errorPhi = 1;
                     numIterP = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.solvePhaseFieldEquation();
-
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
                         res = obj.computeResidual();
                         errorPhi = norm(res);
+
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
-                        numIterP = numIterP + 1;
-                        %obj.phaseField.plot;  
+                        numIterP = numIterP + 1; 
                     end
                     errorU = norm(obj.fem.uFun.fValues - Uold);
-                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU)])
                     Uold = obj.fem.uFun.fValues;
+
+                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU)])
                     numIterU = numIterU + 1;
                 end
 
@@ -89,19 +96,17 @@ classdef PhaseFieldComputer < handle
                 ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
                 PhaseField(1,i) = max(obj.phaseField.fValues);
 
+                figure(103)
+                obj.phaseField.plot
+                colorbar
+                clim([0 1])
+                drawnow
 
                 figure(100)
                 plot(ForceDisplacement(2,1:i),ForceDisplacement(1,1:i))
                 figure(101)
                 plot(ForceDisplacement(2,1:i),PhaseField(1:i))
-                %obj.fem.uFun.plot;
                 
-                 
-                 obj.phaseField.plot;                
-                 colorbar
-                 clim([0 1])
-                 drawnow
-                % title('Final phase field')
                 % %obj.fem.print(['Example',num2str(i)],'GiD')
                 %obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
             end
@@ -184,7 +189,15 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy mass matrix
         function createInternalEnergyMassMatrix(obj)
-            DDenergyFun =  obj.createEnergyFunction('LINEAR',2); 
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            phiVal     = obj.phaseField.evaluate(quad.posgp);           
+            d2g = obj.materialPhaseField.materialInterpolation.computeDegradation(phiVal,2);
+
+            s.fValues = d2g.*obj.H.fValues;
+            s.quadrature = quad;
+            s.mesh = obj.mesh;
+            DDenergyFun = FGaussDiscontinuousFunction(s);
 
             s.function = DDenergyFun;
             s.trial = P1Function.create(obj.mesh,1);
@@ -234,9 +247,17 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (RHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy force vector
         function createInternalEnergyForceVector(obj)
-            DenergyFun =  obj.createEnergyFunction('LINEAR',1); 
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            phiVal     = obj.phaseField.evaluate(quad.posgp);           
+            d1g = obj.materialPhaseField.materialInterpolation.computeDegradation(phiVal,1);
+
+            s.fValues = d1g.*obj.H.fValues;
+            s.quadrature = quad;
+            s.mesh = obj.mesh;
+            DenergyFun = FGaussDiscontinuousFunction(s);
+
             test = P1Function.create(obj.mesh,1);
-            
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             RHS = RHSintegrator.create(s);
@@ -398,21 +419,18 @@ classdef PhaseFieldComputer < handle
             energyVal = 0.5*energyVal;
         end
 
-        function energyFun = createEnergyFunction(obj,quadOrder,deriv)
+        function energyFun = createIsoEnergyFunction(obj,quadOrder)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
 
             e = obj.fem.uFun.computeSymmetricGradient(quad);
             e.applyVoigtNotation();
 
-            s.quadrature = quad;
-            s.phi = obj.phaseField;
-            s.derivative = deriv;
-            obj.materialPhaseField.computeMatInt(s);
+            obj.materialPhaseField.computeMatIso(quad);
             C = obj.materialPhaseField.material.C;
-            DDenergyVal = obj.computeEnergyField(e,C);
+            energyVal = obj.computeEnergyField(e,C);
 
-            s.fValues = DDenergyVal;
+            s.fValues = energyVal;
             s.quadrature = quad;
             s.mesh = obj.mesh;
             energyFun = FGaussDiscontinuousFunction(s);
@@ -428,6 +446,35 @@ classdef PhaseFieldComputer < handle
             Vol = obj.mesh.computeVolume();
 
             totVal = int.compute(stress)/Vol;
+        end
+
+        function createHistoryVariable(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+
+            s.fValues = zeros(1,quad.ngaus,obj.mesh.nelem);
+            s.quadrature = quad;
+            s.mesh = obj.mesh;
+            obj.H_old = FGaussDiscontinuousFunction(s);
+            obj.H = obj.H_old;
+        end
+
+        function computeIrreversibility(obj)
+            energyFun = obj.createIsoEnergyFunction('LINEAR');
+            obj.H.fValues = max(obj.H_old.fValues,energyFun.fValues);
+            obj.H.fValues = energyFun.fValues;
+
+            % figure(1)
+            % obj.H.plot();
+            % title('H')
+            % figure(2)
+            % obj.H_old.plot();
+            % title('H old')
+            % figure(3)
+            % energyFun.plot();
+            % title('E')
+
+            obj.H_old = obj.H;
         end
     end
 

@@ -2,13 +2,13 @@ classdef MaterialPhaseField < handle
     
     properties (Access = public)
         material
+        materialInterpolation 
         Gc
         fc
     end
     
     properties (Access = private)
         mesh
-        materialInterpolation
         E
         nu
     end

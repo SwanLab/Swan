@@ -31,7 +31,7 @@ classdef PhaseFieldInternalEnergyInterpolator < handle
                 g = obj.g(phi);
             elseif deriv == 1
                 g = obj.d1g(phi);
-            elseif driv == 2
+            elseif deriv == 2
                 g = obj.d2g(phi);
             else
                 error(['Degree ',num2str(deriv),' derivative not implemented'])
