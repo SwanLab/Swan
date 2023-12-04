@@ -8,6 +8,7 @@ classdef LinearizedHarmonicProjector4 < handle
         eta
         epsilon
         massMatrixBB
+        massMatrixEE
         massMatrixES
         massMatrixGG
         stiffnessMatrix
@@ -133,11 +134,12 @@ classdef LinearizedHarmonicProjector4 < handle
            obj.fB = P1Function.create(obj.mesh,1);
            obj.fE = P1Function.create(obj.mesh,obj.mesh.ndim);
            obj.fS = P1Function.create(obj.mesh,obj.mesh.ndim);
-           obj.fG = P1Function.create(obj.mesh,1);
+           obj.fG = P0Function.create(obj.mesh,1);
         end
 
         function computeAllMassMatrix(obj)
             obj.massMatrixBB = obj.computeMassMatrix(obj.fB,obj.fB);
+            obj.massMatrixEE = obj.computeMassMatrix(obj.fE,obj.fE);
             obj.massMatrixES = obj.computeMassMatrix(obj.fE,obj.fS);
             obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
         end
@@ -268,6 +270,7 @@ classdef LinearizedHarmonicProjector4 < handle
         function LHS = computeLHS(obj,b)
             Mbb  = obj.massMatrixBB;
             Mes  = obj.massMatrixES;
+            Mee  = 0*obj.massMatrixEE;
             K  = obj.stiffnessMatrix;
             D  = obj.divergenceMatrix;
             De = obj.epsilon*D;
@@ -285,7 +288,7 @@ classdef LinearizedHarmonicProjector4 < handle
             A  = Mbb + obj.eta*K;
             LHS = [          A,       Zbb,        Zeb', (-Nb2+Mdb2), Mb1;...
                            Zbb,         A,        Zeb',  (Nb1-Mdb1), Mb2;...
-                           Zeb,       Zeb,        2*De,       -2*Mes, Zeg;... 
+                           Zeb,       Zeb,    2*De+2*Mee,       -2*Mes, Zeg;... 
                    (-Nb2+Mdb2)',(Nb1-Mdb1)',    -2*Mes',         Zss, Zsg;...
                    Mb1'        ,       Mb2',       Zeg',        Zsg', Zgg];
         end

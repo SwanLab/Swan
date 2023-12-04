@@ -6,7 +6,6 @@ classdef LinearizedHarmonicProjector3 < handle
     
     properties (Access = private)
         eta
-        epsilon
         internalDOFs
         massMatrixBB
         massMatrixGG
@@ -39,8 +38,8 @@ classdef LinearizedHarmonicProjector3 < handle
             res = norm(LHS*x - RHS)/norm(x);            
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.05;
-            while res(i) > 1e-5
+            theta = 0.5;
+            while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;    
                 b   = obj.createVectorFromSolution(x);
@@ -125,7 +124,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
            obj.mesh             = cParams.mesh;
            obj.boundaryNodes    = cParams.boundaryMesh;
-           obj.eta     = (4*obj.mesh.computeMeanCellSize)^2;                            
+           obj.eta     = (2*obj.mesh.computeMeanCellSize)^2;                            
         end
 
         function initializeFunctions(obj)

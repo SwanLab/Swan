@@ -32,9 +32,10 @@ classdef HarmonicVectorProjectionExample < handle
             obj.createOrientationVector();
           %  obj.createDoubleOrientationVector();
             obj.createUnitBallProjector();
+            obj.harmonize();
             %obj.harmonizeWithPenalizedUnitNorm();
-          %  obj.harmonizeWithPenalizedHarmonizity();
-           obj.harmonize();
+            %obj.harmonizeWithPenalizedHarmonizity();
+          
             obj.computeSingularities();
             obj.dehomogenize();                        
         end
@@ -45,20 +46,20 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-           obj.iteration = 665;
+%            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+%            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%           obj.iteration = 665;
 % 
-             obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-             obj.fileName = 'ExperimentingPlotSuperEllipse';
-             obj.iteration = 64;
+              obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+              obj.fileName = 'ExperimentingPlotSuperEllipse';
+              obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-%            s.fileName = [obj.fileName,num2str(obj.iteration)];
-%            s.folderPath = fullfile(obj.filePath );
-%            w = WrapperMshResFiles(s);
-%            w.compute();
+ %          s.fileName = [obj.fileName,num2str(obj.iteration)];
+ %          s.folderPath = fullfile(obj.filePath );
+ %          w = WrapperMshResFiles(s);
+ %          w.compute();
            d = load('DataExample.mat');
             w = d.w;
              obj.experimentData = w;
@@ -396,7 +397,6 @@ classdef HarmonicVectorProjectionExample < handle
             bInit = obj.obtainInitialOrientationVector();        
             bBar  = bInit;
 
-            epsilons = linspace(0,1,3);
            
                 
                 for k = 1:5
@@ -416,7 +416,7 @@ classdef HarmonicVectorProjectionExample < handle
 
                 hnorm(k) = obj.plotAll(h,bBar,bNewP);
                 for j = 1:k
-                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                disp(['kIter ',num2str(k),' hNorm ',num2str(hnorm(j))])
                 end
                 close all
 
