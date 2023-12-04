@@ -105,17 +105,21 @@ classdef ClementInterpolator < handle
         function computeLocalRHS(obj,fun,quadType)
             s.type     = 'ShapeFunction';
             s.quadType = quadType;
+            if fun.fType == "L2"
+                f = fun.project('P1');
+            else
+                f = fun;
+            end
             for i = 1:obj.mesh.nnodes
                 msh = obj.localMeshes{i};
-                fun.updateMesh(msh);
-                switch class(fun)
-                    case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                        s.mesh = fun.unfittedMesh;
-                    otherwise
-                        s.mesh = msh;
-                end
+                s.mesh  = msh;
+                ss.mesh = msh;
+                ss.feFunType = class(f);
+                ss.ndimf     = f.ndimf;
+                funLoc          = FeFunction.createEmpty(ss);
+                funLoc.fValues = f.fValues(ismember(obj.mesh.coord,msh.coord,'rows'),:);
                 rhsI       = RHSintegrator.create(s);
-                obj.RHS{i} = rhsI.compute(fun,P1Function.create(msh,1));
+                obj.RHS{i} = rhsI.compute(funLoc,P1Function.create(msh,1));
             end
         end
 

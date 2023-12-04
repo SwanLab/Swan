@@ -18,7 +18,7 @@ classdef FilterKernel < handle
         function obj = FilterKernel(cParams)
             obj.init(cParams);
             obj.createMassMatrix();
-            obj.createNeighborElementsMatrix();
+            %obj.createNeighborElementsMatrix();
             obj.createGlobalSupportMatrix();
         end
 
