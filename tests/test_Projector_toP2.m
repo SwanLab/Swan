@@ -4,11 +4,11 @@ close all
 clc
 
 % Define number of elements
-N = [2 4 8 16 32];
+N = [4 8 16 32 64];
 
 % Prepare analytical function
-sAF.fHandle = @(x) sin(x(1,:,:)*2*pi); % f(x) = sin(x)
-sAF.fHandle = @(x) x(1,:,:).*x(1,:,:).*x(1,:,:)+x(2,:,:).*x(2,:,:).*x(2,:,:);
+sAF.fHandle = @(x) sin(2*x(1,:,:)*2*pi); % f(x) = sin(x)
+%sAF.fHandle = @(x) x(1,:,:).*x(1,:,:).*x(1,:,:)+x(2,:,:).*x(2,:,:).*x(2,:,:);
 sAF.ndimf   = 1;
 
 % Variables to store the error
@@ -29,7 +29,7 @@ for i = 1:length(N)
     p3fun = xFun.project('CUBIC');
     
     r.mesh = sAF.mesh;
-    r.quadType = 'ORDER6';
+    r.quadType = 'ORDER10';
     r.type = 'Error';
     int = Integrator.create(r);
     
@@ -81,13 +81,16 @@ title('P1, P2 and P3 Projections Validation')
 function m = createMesh(N)
     % Defines a 2D squared mesh of triangles of N nodes by side in a domain
     % between 0 and 1 in both axes
-    x1 = linspace(0,130,N);
-    x2 = linspace(0,130,N);
+    x1 = linspace(0,1,N);
+    x2 = linspace(0,1,N);
     [xv,yv] = meshgrid(x1,x2);
     [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
     sBg.coord  = V(:,1:2);
     sBg.connec = F;
+    figure
     m = Mesh(sBg);
+    m.plot
+    drawnow
 end
 
 % function xG = defineGaussPoints(mesh)
