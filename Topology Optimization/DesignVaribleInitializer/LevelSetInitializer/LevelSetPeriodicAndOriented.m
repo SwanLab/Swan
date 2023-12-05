@@ -75,7 +75,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function createRemesher(obj)
             s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels = 5;
+            s.nLevels = 4;
             r  = Remesher(s);
             r.remesh();
             obj.remesher = r;

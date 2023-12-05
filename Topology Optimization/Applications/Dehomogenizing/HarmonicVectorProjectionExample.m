@@ -26,13 +26,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function obj = HarmonicVectorProjectionExample()
             obj.init();
-          %  obj.loadDataExperiment();
-          %  obj.createMesh();
-          %  obj.createBoundaryMesh();
-          %  obj.createOrientationVector();
-          %  obj.createDoubleOrientationVector();
-          %  obj.createUnitBallProjector();
-          %  obj.harmonize();
+            % obj.loadDataExperiment();
+            % obj.createMesh();
+            % obj.createBoundaryMesh();
+            % obj.createOrientationVector();
+            % %obj.createDoubleOrientationVector();
+            % obj.createUnitBallProjector();
+            % obj.harmonize();
             %obj.harmonizeWithPenalizedUnitNorm();
             %obj.harmonizeWithPenalizedHarmonizity();
           
@@ -45,22 +45,22 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-           obj.iteration = 665;
-% 
-              % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-              % obj.fileName = 'ExperimentingPlotSuperEllipse';
-              % obj.iteration = 64;
+ %           obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+ %           obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+%           obj.iteration = 665;
+ 
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+            obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-           s.fileName = [obj.fileName,num2str(obj.iteration)];
-           s.folderPath = fullfile(obj.filePath );
-           w = WrapperMshResFiles(s);
-           w.compute();
- %          d = load('DataExample.mat');
- %           w = d.w;
+     %      s.fileName = [obj.fileName,num2str(obj.iteration)];
+     %      s.folderPath = fullfile(obj.filePath );
+     %      w = WrapperMshResFiles(s);
+     %      w.compute();
+           d = load('DataExample.mat');
+            w = d.w;
              obj.experimentData = w;
         end
 
@@ -501,7 +501,7 @@ classdef HarmonicVectorProjectionExample < handle
             s = load('HarmonicVector');
             obj.harmonicVector = s.a;
             obj.mesh = s.m;
-            obj.experimentData = s.e;
+           obj.experimentData = s.e;
 
             a = obj.harmonicVector;
                 
@@ -516,21 +516,13 @@ classdef HarmonicVectorProjectionExample < handle
 
         function s = createLevelSetCellParams(obj)
 
-        
-
-            s.type   = 'smoothRectangle';
+             s.type   = 'smoothRectangle';
            % s.type   = 'rectangleInclusion';
             s.widthH = obj.experimentData.dataRes.DesignVar1;%0.85*ones(size(obj.mesh.coord,1),1);
             s.widthV = obj.experimentData.dataRes.DesignVar2;%0.85*ones(size(obj.mesh.coord,1),1);
             s.pnorm  = obj.experimentData.dataRes.SuperEllipseExponent;
             s.ndim   = 2;
         end       
-
-
-
-
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
