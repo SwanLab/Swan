@@ -36,8 +36,7 @@ classdef UnfittedBoundaryFunction < handle
             s.fun   = P1Function(ss); % ------------------------
 
              % PENDING - The solution that should be:-----------
-             % Use CutMeshFunctionComputer class
-             % -------------
+             % fNew2        = obj.unfittedMesh.obtainFunctionAtCutMesh(f);
 
 
             f       = UnfittedFunction(s);
@@ -71,13 +70,7 @@ classdef UnfittedBoundaryFunction < handle
             fNew.fValues = newFValues; % ----------------------
 
             % PENDING - The solution that should be:-----------
-%             s                = [];
-%             mesh             = obj.unfittedMesh.backgroundMesh;
-%             bCutMesh         = obj.unfittedMesh.boundaryCutMesh.mesh;
-%             s.backgroundMesh = mesh;
-%             s.cutMesh        = bCutMesh;
-%             c                = CutMeshFunctionComputer(s);
-%             fNew             = c.compute(f); % ---------------
+%             fNew2        = obj.unfittedMesh.obtainFunctionAtCutMesh(f);
 
             xV  = q.posgp;
             fxV = fNew.evaluate(xV);

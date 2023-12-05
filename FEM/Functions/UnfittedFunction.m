@@ -47,13 +47,7 @@ classdef UnfittedFunction < L2Function
             fNew.fValues = newFValues; % -------------------
 
             % PENDING - The solution that should be:-----------
-%             s                = [];
-%             mesh             = obj.unfittedMesh.backgroundMesh;
-%             innerCutMesh     = obj.unfittedMesh.innerCutMesh.mesh;
-%             s.backgroundMesh = mesh;
-%             s.cutMesh        = innerCutMesh;
-%             c                = CutMeshFunctionComputer(s);
-%             fNew             = c.compute(f); % ---------------
+            %fNew2        = obj.unfittedMesh.obtainFunctionAtCutMesh(f);
 
             xV  = q.posgp;
             fxV = fNew.evaluate(xV);

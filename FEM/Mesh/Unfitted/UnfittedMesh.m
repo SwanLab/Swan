@@ -125,19 +125,59 @@ classdef UnfittedMesh < handle
             m = imc.export();
         end
 
-        function c = obtainCutMeshParams(obj)
+        function newf = obtainFunctionAtCutMesh(obj,fun)
+            switch fun.fType
+                case 'L2'
+                    f = fun.project('P1');
+                otherwise
+                    f = fun;
+            end
             obj.backgroundMesh.computeEdges();
             e              = obj.backgroundMesh.edges;
             s.levelSet     = obj.levelSet;
             s.nodesInEdges = e.nodesInEdges;
-            c              = CutEdgesComputer(s);
-            c.compute();
+            ce             = CutEdgesComputer(s);
+            ce.compute();
+            s.oldfValues    = f.fValues;
+            s.xCutEdgePoint = ce.xCutEdgePoint;
+            s.isEdgeCut     = ce.isEdgeCut;
+            cf              = CutFunctionValuesComputer(s);
+            cf.compute();
+            subCells            = obj.innerCutMesh.cellContainingSubcell;
+            nodes                = unique(obj.backgroundMesh.connec(subCells,:));
+            lsICMesh             = obj.levelSet(nodes);
+            innerCutMeshOldNodes = nodes(lsICMesh<0);
+            oldfValuesAtCutMesh  = cf.fValues(innerCutMeshOldNodes);
+
+            switch obj.backgroundMesh.type
+                case {'QUAD','HEXAHEDRA'}
+                    q = Quadrature.set(obj.backgroundMesh.type);
+                    q.computeQuadrature('CONSTANT');
+                    xV = q.posgp;
+                    sls.fValues = obj.levelSet;
+                    sls.mesh    = obj.backgroundMesh;
+                    fls         = P1Function(sls);
+                    lsSubMesh = squeeze(fls.evaluate(xV));
+                    lsSubMesh = lsSubMesh(unique(subCells));
+                    fSubMesh = squeeze(f.evaluate(xV));
+                    fSubMesh = fSubMesh(unique(subCells));
+                    fSubMesh = fSubMesh(lsSubMesh<0);
+                otherwise
+                    fSubMesh = [];
+            end
+
+            fValues              = [oldfValuesAtCutMesh;fSubMesh;cf.newfValues];
+            ss.mesh              = obj.innerCutMesh.mesh;
+            ss.ndimf             = f.ndimf;
+            ss.feFunType         = class(f);
+            newf                 = FeFunction.createEmpty(ss);
+            newf.fValues         = fValues;
         end
 
     end
-    
+
     methods (Access = private)
-        
+
         function dvolume = computeInnerDvolume(obj,quad)
             nelem = obj.backgroundMesh.nelem;
             ngaus = quad.ngaus;
