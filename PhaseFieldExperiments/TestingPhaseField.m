@@ -59,6 +59,7 @@ classdef TestingPhaseField < handle
             xFun = AnalyticalFunction(sAF);
 
             phi = xFun.project('P1');
+            phi.fValues([5 16]) = 1;
             obj.initialPhaseField = phi;
         end
 

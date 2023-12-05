@@ -2,7 +2,7 @@ classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
         tolErrU = 1e-12;
-        tolErrPhi = 1e-12;
+        tolErrPhi = 1e-2;
     end
 
     properties (Access = private)
@@ -38,57 +38,85 @@ classdef PhaseFieldComputer < handle
 
             obj.l0 = 1*1e-1;
 
-            niter = 1000;
+            niter = 135;
             Energy = zeros(4,niter);
             ForceDisplacement = zeros(2,niter);
             Iterations = zeros(2,niter);
-            F = zeros(3,niter);
+            Fmat = zeros(3,niter);
             PhaseField = zeros(1,niter);
+
+            stressStrainDmg = zeros(2,niter);
+            phaseFieldDmg = zeros(1,niter);
+            stressStrainNoDmg = zeros(2,niter);
+            phaseFieldNoDmg = zeros(1,niter);
+
+            phaseFieldOld = obj.phaseField.fValues;
+
             for i = 1:niter
                 
                 obj.createBoundaryConditions(i,niter);
                 errorU = 1;
                 Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
                 numIterU = 1;
-                numIterP = 1;
 
                 disp([newline '%%%%%%%%%% NEW STEP %%%%%%%%%%%'])
                 disp(['Step Number: ',num2str(i)])
-                while (errorU > obj.tolErrU) && (numIterU < 100)
+                while (errorU > obj.tolErrU) && (numIterU < 1000)
                     obj.computeFEM();
                     %obj.fem.uFun.plot()
                     errorPhi = 1;
                     numIterP = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.solvePhaseFieldEquation();
-
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
+
+                        obj.phaseField.fValues = max(phaseFieldOld, obj.phaseField.fValues);
+
                         res = obj.computeResidual();
                         errorPhi = norm(res);
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
                         numIterP = numIterP + 1;
-                        %obj.phaseField.plot;  
                     end
                     errorU = norm(obj.fem.uFun.fValues - Uold);
                     disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU)])
                     Uold = obj.fem.uFun.fValues;
                     numIterU = numIterU + 1;
                 end
+                phaseFieldOld = obj.phaseField.fValues;
 
-                F(1,i) = mean(obj.Fi);
-                F(2,i) = mean(obj.Fd);
-                F(3,i) = mean(obj.DF);
+                Fmat(1,i) = mean(obj.Fi);
+                Fmat(2,i) = mean(obj.Fd);
+                Fmat(3,i) = mean(obj.DF);
 
                 Energy(1,i) = obj.computeTotalExternalWork();
                 Energy(2,i) = obj.computeTotalEnergy();
                 Energy(3,i) = obj.computeTotalDissipationLocal();
                 Energy(4,i) = obj.computeTotalDissipationNonLocal();
+
                 Iterations(1,i) = numIterU;
                 Iterations(2,i) = numIterP;
+
                 ForceDisplacement(1,i) = obj.computeIntTotalForce();
                 ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
-                PhaseField(1,i) = max(obj.phaseField.fValues);
 
+                stressStrainNoDmg(1,i) = obj.fem.stressFun.fValues(2,5,53);
+                stressStrainNoDmg(2,i) = obj.fem.strainFun.fValues(2,5,53);
+                stressStrainDmg(1,i) = obj.fem.stressFun.fValues(2,5,56);
+                stressStrainDmg(2,i) = obj.fem.strainFun.fValues(2,5,56);
+
+                phaseFieldDmg(1,i) = obj.phaseField.fValues(61);
+                phaseFieldNoDmg(1,i) = obj.phaseField.fValues(59);
+
+
+                figure(200)
+                plot(stressStrainDmg(2,1:i),stressStrainDmg(1,1:i));
+                hold on
+                plot(stressStrainNoDmg(2,1:i),stressStrainNoDmg(1,1:i));
+
+                figure(201)
+                plot(phaseFieldDmg(1,1:i));
+                hold on
+                plot(phaseFieldNoDmg(1,1:i));
 
                 figure(100)
                 plot(ForceDisplacement(2,1:i),ForceDisplacement(1,1:i))
@@ -106,11 +134,11 @@ classdef PhaseFieldComputer < handle
                 %obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
             end
             figure
-            plot(F(1,:))
+            plot(Fmat(1,:))
             hold on
-            plot(F(2,:))
+            plot(Fmat(2,:))
             hold on
-            plot(F(3,:))
+            plot(Fmat(3,:))
             legend('Fi','Fd','DF')
 
 
