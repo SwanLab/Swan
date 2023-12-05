@@ -32,8 +32,11 @@ classdef RHSintegrator_Composite < handle
             f         = zeros(obj.dofs,1);
             iBoundary = 0;
             if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
-                bcMesh   = unfFun.unfittedMesh.boundaryCutMesh.mesh;
-                obj.test = eval([class(obj.test),'.create(bcMesh,1)']);
+                bcMesh      = unfFun.unfittedMesh.boundaryCutMesh.mesh;
+                s.mesh      = bcMesh;
+                s.feFunType = obj.testClass;
+                s.ndimf     = obj.test.ndimf;
+                obj.test    = FeFunction.createEmpty(s);
             end
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
@@ -45,9 +48,11 @@ classdef RHSintegrator_Composite < handle
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     int = integrator.compute(unfFun,obj.test);
                 else
-                    mesh    = obj.unfittedMesh.backgroundMesh;
-                    testFun = eval([obj.testClass,'.create(mesh,1)']);
-                    int     = integrator.compute(unfFun,testFun);
+                    s.mesh      = obj.unfittedMesh.backgroundMesh;
+                    s.feFunType = obj.testClass;
+                    s.ndimf     = obj.test.ndimf;
+                    testFun     = FeFunction.createEmpty(s);
+                    int         = integrator.compute(unfFun,testFun);
                 end
                 f = f + int;
             end
@@ -61,8 +66,10 @@ classdef RHSintegrator_Composite < handle
             obj.nInt         = numel(cParams.compositeParams);
             obj.unfittedMesh = cParams.unfittedMesh;
             obj.testClass    = class(cParams.test);
-            mesh             = cParams.unfittedMesh.backgroundMesh;
-            obj.test         = eval([obj.testClass,'.create(mesh,1)']);
+            s.mesh           = cParams.unfittedMesh.backgroundMesh;
+            s.feFunType      = obj.testClass;
+            s.ndimf          = cParams.test.ndimf;
+            obj.test         = FeFunction.createEmpty(s);
             obj.dofs         = size(obj.test.fValues,1);
         end
 
@@ -75,15 +82,6 @@ classdef RHSintegrator_Composite < handle
                 integrator = RHSintegrator.create(s);
                 obj.integrators{end+1} = integrator;
             end
-        end
-
-        function fun = createInnerFunction(obj, charFun)
-            s.mesh    = obj.unfittedMesh.backgroundMesh;
-            s.fValues = unique(charFun.evaluate(ones(2,1)))*ones(s.mesh.nnodes,1); % !!
-            p1Old     = P1Function(s);
-            innerMesh = obj.unfittedMesh.innerMesh.mesh;
-            connecIG  = obj.unfittedMesh.innerMesh.globalConnec;
-            fun       = p1Old.restrict2cell(innerMesh,connecIG);
         end
 
         function int = computeGlobalIntegralFromLocal(obj, intLoc, iBoundary)

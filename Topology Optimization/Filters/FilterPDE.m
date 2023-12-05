@@ -71,7 +71,7 @@ classdef FilterPDE < handle
         function computeLHS(obj)
             lhs     = obj.problemLHS.compute(obj.epsilon);
             lhs     = obj.bc.fullToReducedMatrix(lhs);
-            obj.LHS = lhs;
+            obj.LHS = decomposition(lhs);
         end
 
         function computeRHS(obj,fun,quadType)

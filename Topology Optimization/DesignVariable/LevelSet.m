@@ -8,7 +8,6 @@ classdef LevelSet < DesignVariable
     methods (Access = public)
         
         function obj = LevelSet(cParams)
-            cParams.type = 'LevelSet';
             obj.nVariables = 1;
             obj.init(cParams);
             obj.creatorSettings      = cParams.creatorSettings;
