@@ -1,8 +1,8 @@
 classdef CutFunctionValuesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-      fValues
-      newfValues
+      allValues
+      cutValues
     end
     
     properties (Access = private)
@@ -11,7 +11,7 @@ classdef CutFunctionValuesComputer < handle
     end
     
     properties (Access = private)
-        backgroundfValues
+        fValues
         xCutEdgePoint
     end
     
@@ -33,7 +33,7 @@ classdef CutFunctionValuesComputer < handle
             obj.isEdgeCut       = cParams.isEdgeCut;
             obj.nodesInEdges    = cParams.nodesInEdges;
             obj.xCutEdgePoint   = cParams.xCutEdgePoint;
-            obj.backgroundfValues = cParams.oldfValues;
+            obj.fValues         = cParams.fValues;
         end
         
         function computeCutPoints(obj)
@@ -42,14 +42,14 @@ classdef CutFunctionValuesComputer < handle
             shapeB = shapes(:,2);
             node1 = obj.nodesInEdges(obj.isEdgeCut,1);
             node2 = obj.nodesInEdges(obj.isEdgeCut,2);
-            fA  = obj.backgroundfValues(node1,:);
-            fB  = obj.backgroundfValues(node2,:);
+            fA  = obj.fValues(node1,:);
+            fB  = obj.fValues(node2,:);
             fCut = zeros(size(fA));
             nnode = size(fA,2);
             for idim = 1:nnode
                 fCut(:,idim) = fA(:,idim).*shapeA + fB(:,idim).*shapeB;
             end
-            obj.newfValues = fCut;
+            obj.cutValues = fCut;
         end
         
         function shapes = computeShapes(obj)
@@ -63,7 +63,7 @@ classdef CutFunctionValuesComputer < handle
         end
         
         function computeCutMeshCoordinates(obj)
-            obj.fValues = [obj.backgroundfValues;obj.newfValues];
+            obj.allValues = [obj.fValues;obj.cutValues];
         end
         
     end

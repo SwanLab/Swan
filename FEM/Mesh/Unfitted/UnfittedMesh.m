@@ -138,16 +138,18 @@ classdef UnfittedMesh < handle
             s.nodesInEdges = e.nodesInEdges;
             ce             = CutEdgesComputer(s);
             ce.compute();
-            s.oldfValues    = f.fValues;
+            s.fValues       = f.fValues;
             s.xCutEdgePoint = ce.xCutEdgePoint;
             s.isEdgeCut     = ce.isEdgeCut;
             cf              = CutFunctionValuesComputer(s);
             cf.compute();
-            subCells            = obj.innerCutMesh.cellContainingSubcell;
-            nodes                = unique(obj.backgroundMesh.connec(subCells,:));
-            lsICMesh             = obj.levelSet(nodes);
-            innerCutMeshOldNodes = nodes(lsICMesh<0);
-            oldfValuesAtCutMesh  = cf.fValues(innerCutMeshOldNodes);
+            cutValues = cf.cutValues;
+
+            subCells      = obj.innerCutMesh.cellContainingSubcell;
+            nodes         = unique(obj.backgroundMesh.connec(subCells,:));
+            lsICMesh      = obj.levelSet(nodes);
+            innerNodes    = nodes(lsICMesh<0);
+            innerValues   = f.fValues(innerNodes);
 
             switch obj.backgroundMesh.type
                 case {'QUAD','HEXAHEDRA'}
@@ -157,16 +159,16 @@ classdef UnfittedMesh < handle
                     sls.fValues = obj.levelSet;
                     sls.mesh    = obj.backgroundMesh;
                     fls         = P1Function(sls);
-                    lsSubMesh = squeeze(fls.evaluate(xV));
-                    lsSubMesh = lsSubMesh(unique(subCells));
-                    fSubMesh = squeeze(f.evaluate(xV));
-                    fSubMesh = fSubMesh(unique(subCells));
-                    fSubMesh = fSubMesh(lsSubMesh<0);
+                    lsSubMesh   = squeeze(fls.evaluate(xV));
+                    lsSubMesh   = lsSubMesh(unique(subCells));
+                    subMeshValues = squeeze(f.evaluate(xV));
+                    subMeshValues = subMeshValues(unique(subCells));
+                    subMeshValues = subMeshValues(lsSubMesh<0);
                 otherwise
-                    fSubMesh = [];
+                    subMeshValues = [];
             end
 
-            fValues              = [oldfValuesAtCutMesh;fSubMesh;cf.newfValues];
+            fValues              = [innerValues;subMeshValues;cutValues];
             ss.mesh              = obj.innerCutMesh.mesh;
             ss.ndimf             = f.ndimf;
             ss.feFunType         = class(f);
