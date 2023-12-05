@@ -1,12 +1,9 @@
-function LaunchKinematics
+function LaunchKinematicsWithDrag
 
 
 
-
-
-
-dy0A = 100;
-dy0B = 1;
+dy0A = pi/2.1-1e-12;
+dy0B = 0.01+1e-12;
 
 
 [LA] = computeDistance(dy0A);
@@ -43,14 +40,16 @@ end
 
 [Ls] = computeDistance(x);
 
-dy0 = a;
+v0 = 10;
 fun = @(t,y)  LaunchFunction(t,y);
-tspan = [0:0.01:40];
+tspan = [0:0.001:40];
+x0 = 0;
 y0 = 0;
-yT0 = [y0,dy0];
+theta0 = a;
+yT0 = [x0,y0,v0,theta0];
 [t,y] = ode45(fun, tspan, yT0);
-posY = y(:,1)>0;
-plot(t(posY),y(posY,1))
+posY = y(:,2)>0;
+plot(y(posY,1),y(posY,2))
 
 end
 end
@@ -60,24 +59,31 @@ L = computeDistance(dy0);
 error = L - Lf;
 end
 
-function [L] = computeDistance(dy0)
+function [L] = computeDistance(theta0)
+x0 = 0;
 y0 = 0;
+v0 = 10;
 fun = @(t,y)  LaunchFunction(t,y);
-tspan = [0:0.01:4];
-yT0 = [y0,dy0];
+tspan = [0:0.001:40];
+yT0 = [x0,y0,v0,theta0];
 [t,y] = ode45(fun, tspan, yT0);
 
-posY = y(:,1)>0;
+posY = y(:,2)>0;
 
 dx0 = 1;
-tpos = t(posY);
-L = dx0*tpos(end);
-%plot(t(posY),y(posY,1))
+xPos = y(posY,1);
+L = xPos(end);
+plot(y(posY,1),y(posY,2))
 
 
 end
 
 function f = LaunchFunction(t,y)
+mu = 0.00001;
+xv = y(1);
+yv = y(2);
+v  = y(3);
+theta = y(4);
 g = 9.81;
-f = [y(2);-g];
+f = [v*cos(theta);v*sin(theta);-g*sin(theta)-mu*v^2;-g*cos(theta)/v];
 end
