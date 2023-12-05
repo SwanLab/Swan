@@ -5,7 +5,7 @@ classdef HarmonicVectorProjectionExample < handle
     end
 
     properties (Access = private)
-
+        harmonicVector
     end
 
     properties (Access = private)
@@ -26,17 +26,16 @@ classdef HarmonicVectorProjectionExample < handle
 
         function obj = HarmonicVectorProjectionExample()
             obj.init();
-            obj.loadDataExperiment();
-            obj.createMesh();
-            obj.createBoundaryMesh();
-            obj.createOrientationVector();
+          %  obj.loadDataExperiment();
+          %  obj.createMesh();
+          %  obj.createBoundaryMesh();
+          %  obj.createOrientationVector();
           %  obj.createDoubleOrientationVector();
-            obj.createUnitBallProjector();
-            obj.harmonize();
+          %  obj.createUnitBallProjector();
+          %  obj.harmonize();
             %obj.harmonizeWithPenalizedUnitNorm();
             %obj.harmonizeWithPenalizedHarmonizity();
           
-            obj.computeSingularities();
             obj.dehomogenize();                        
         end
 
@@ -46,22 +45,22 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-%            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%           obj.iteration = 665;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+           obj.iteration = 665;
 % 
-              obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-              obj.fileName = 'ExperimentingPlotSuperEllipse';
-              obj.iteration = 64;
+              % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+              % obj.fileName = 'ExperimentingPlotSuperEllipse';
+              % obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
- %          s.fileName = [obj.fileName,num2str(obj.iteration)];
- %          s.folderPath = fullfile(obj.filePath );
- %          w = WrapperMshResFiles(s);
- %          w.compute();
-           d = load('DataExample.mat');
-            w = d.w;
+           s.fileName = [obj.fileName,num2str(obj.iteration)];
+           s.folderPath = fullfile(obj.filePath );
+           w = WrapperMshResFiles(s);
+           w.compute();
+ %          d = load('DataExample.mat');
+ %           w = d.w;
              obj.experimentData = w;
         end
 
@@ -332,13 +331,17 @@ classdef HarmonicVectorProjectionExample < handle
 
 
 
+
+
             a{1} = a1;
 
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
             a{2}           = P1Function(s);
-            obj.dehomogenize(a);                
+
+            obj.harmonicVector = a;
+            
 
         end
 
@@ -386,8 +389,9 @@ classdef HarmonicVectorProjectionExample < handle
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
             a{2}           = P1Function(s);
-            obj.dehomogenize(a);
 
+            obj.harmonicVector = a;
+            
 
                
         end
@@ -399,7 +403,7 @@ classdef HarmonicVectorProjectionExample < handle
 
            
                 
-                for k = 1:5
+                for k = 1:1
                 h = obj.createHarmonicProjection();
 
                 obj.plotAll(h,bBar,bInit);
@@ -424,15 +428,17 @@ classdef HarmonicVectorProjectionExample < handle
                 end                
 
 
-
-
+            
+            
             a{1} = a1;
 
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
             a{2}           = P1Function(s);
-            obj.dehomogenize(a);
+
+            obj.harmonicVector = a;
+
 
 
                
@@ -490,20 +496,18 @@ classdef HarmonicVectorProjectionExample < handle
             dualOptT = u.computeDualOptimality(v);
         end    
 
-        function computeSingularities(obj)
-            s.mesh        = obj.mesh;
-            s.orientation(:,1) = cos(obj.orientationAngle);
-            s.orientation(:,2) = sin(obj.orientationAngle);
-            sF = SingularitiesFinder(s);
-            isS = sF.computeSingularElements();
-            sF.plot();
-        end        
+       function dehomogenize(obj)
+            
+            s = load('HarmonicVector');
+            obj.harmonicVector = s.a;
+            obj.mesh = s.m;
+            obj.experimentData = s.e;
 
-       function dehomogenize(obj,a1)
-       
+            a = obj.harmonicVector;
+                
             s.nCells  = 55;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
-            s.theta              = a1;
+            s.theta              = a;
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);
             d.compute();
