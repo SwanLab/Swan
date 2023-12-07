@@ -7,7 +7,7 @@ classdef ShapeFunctional_Factory < handle
         targetParameters
     end
     
-    methods (Access = public)
+    methods (Access = public) % WHERE PERIODIC !?
         
         function sF = create(obj,cParams)
             obj.designVar        = cParams.designVariable;
