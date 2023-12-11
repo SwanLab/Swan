@@ -170,6 +170,7 @@ classdef ComputingInnerAndBoundaryCutMesh < handle
             s.xCoordsIso            = xCoordsIso;
             s.cellContainingSubcell = cellContainingSubcell;
             inCutMesh = InnerCutMesh(s);
+            inCutMesh.mesh = inCutMesh.mesh.computeCanonicalMesh();
             
             obj.innerCutMesh = inCutMesh;
             
