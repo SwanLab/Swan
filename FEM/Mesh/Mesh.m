@@ -164,7 +164,6 @@ classdef Mesh < handle
 
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
-            s.type        = obj.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             obj.edges = edge;
