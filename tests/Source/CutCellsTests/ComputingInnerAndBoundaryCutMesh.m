@@ -56,11 +56,11 @@ classdef ComputingInnerAndBoundaryCutMesh < handle
         
         function computeCutCoordinateComputer(obj)
             e = obj.backgroundMesh.edges;
-            sC.coord            = obj.backgroundMesh.coord;
+            sC.fValues          = obj.backgroundMesh.coord;
             sC.nodesInEdges     = e.nodesInEdges;
             sC.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             sC.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            cComputer = CutCoordinatesComputer(sC);
+            cComputer = CutFunctionValuesComputer(sC);
             cComputer.compute();
             obj.cutCoordComputer = cComputer;
         end
@@ -69,7 +69,7 @@ classdef ComputingInnerAndBoundaryCutMesh < handle
             obj.computeSubCellCases();
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();
-            obj.coord = obj.cutCoordComputer.coord;
+            obj.coord = obj.cutCoordComputer.allValues;
             
             e = obj.backgroundMesh.edges;
             s.edgesInElem   = e.edgesInElem;
