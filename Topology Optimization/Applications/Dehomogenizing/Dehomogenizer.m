@@ -29,13 +29,17 @@ classdef Dehomogenizer < handle
         function plot(obj)
             ls = obj.levelSet;
             for i = 1:numel(ls)
-                figure(1)
+                fh = figure(1);
                 clf
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
                 drawnow
-                %    uM.plotComponents();
+                %uM.plotComponents();
              %   obj.saveImage()
+           %     fh.WindowState = 'maximized';
+           %     axis off
+           %    saveas(gcf,['/home/alex/Desktop/CantileverDehomog/Example',num2str(i),'.png'])
+
             end
         end
 
@@ -53,7 +57,7 @@ classdef Dehomogenizer < handle
         function createEpsilons(obj)
             L = obj.mesh.computeCharacteristicLength();
             e = L./obj.nCells;
-            obj.epsilons = (1 + 0.01*linspace(0,1,10))*e;
+            obj.epsilons = (1 + 0.01*linspace(0,100,1))*e;
         end            
 
         function o = computeOrientedMappingComputer(obj)

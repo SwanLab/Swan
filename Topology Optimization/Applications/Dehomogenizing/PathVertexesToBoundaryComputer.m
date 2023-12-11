@@ -137,8 +137,8 @@ classdef PathVertexesToBoundaryComputer < handle
             end
 
             if all(obj.isCoherent.fValues(1,:,isS))
-                %iD = find(notCoh == 1);
-                [~,iD] = min(notCoh);
+                iD = find(notCoh == 1);
+               % [~,iD] = min(notCoh);
             else
                [~,iD] = min(notCoh);
             end

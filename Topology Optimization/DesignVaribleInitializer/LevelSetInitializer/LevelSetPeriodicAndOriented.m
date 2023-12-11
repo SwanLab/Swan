@@ -27,7 +27,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             obj.createDeformedCoord();
             obj.createRemesher();
             obj.interpolateDeformedCoord();
-            %obj.interpolateDilatation();
+%            obj.interpolateDilatation();
             obj.interpolateM1M2();
         end
 
@@ -108,10 +108,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function interpolateM1M2(obj)
             m1 = obj.cellLevelSetParams.widthH;
-            m2 = obj.cellLevelSetParams.widthV;
-            p  = obj.cellLevelSetParams.pnorm;            
+            m2 = obj.cellLevelSetParams.widthV;               
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
+            p  = obj.cellLevelSetParams.pnorm;                 
             p = obj.interpolateContinousFunctionToDisc(p); 
             obj.cellLevelSetParams.pnorm = p;
         end
@@ -127,21 +127,21 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
  
-
+% 
 %         function interpolateDilatation(obj)
-%             r  = obj.orientationVectors.dilation.fValues;
+%             r  = obj.orientationVectors.getDilatation();
 %             r  = obj.interpolateContinousFunctionToDisc(r);
 %             obj.dilation = r;
 %         end
 
         function t = computeMinLengthInUnitCell(obj)
-        %    r = obj.dilation;
-        %    hC = obj.epsilon*exp(-r);
-        %    hmin = min(hC);
-        %    hmax = max(hC);
-            % hcut = (hmax+hmin)/0.6;%/4;%/2;
-         %   hcut = 0;%0.00001*obj.epsilon;
-         %   t = hcut./hC;
+%            r = obj.dilation;
+%            hC = obj.epsilon*exp(-r);
+%            hmin = min(hC);
+%            hmax = max(hC);
+%             hcut = (hmax+hmin)/4;%/4;%/2;
+%            %hcut = 0;%0.00001*obj.epsilon;
+%            t = hcut./hC;
             t = 0;
         end
 
