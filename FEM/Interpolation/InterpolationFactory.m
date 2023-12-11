@@ -17,7 +17,7 @@ classdef InterpolationFactory < handle
                     end
                 case 'TRIANGLE'
                     switch order
-                        case 'CONSTANT'
+                        case 'CONSTANT' 
                             obj = Triangle_Constant(cParams);
                         case 'LINEAR'
                             obj = Triangle_Linear(cParams);

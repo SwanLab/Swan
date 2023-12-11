@@ -213,18 +213,29 @@ classdef LagrangianFunction < FeFunction
 
         function createInterpolation(obj)
             m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,obj.order);
+            obj.interpolation = Interpolation.create(m,obj.orderTextual());
         end
 
         function createDOFCoordConnec(obj)
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
-            s.order = OrderTextInterpreter.compute(obj.order);
+            s.order = obj.order;
             c = ConnecCoordFromInterpAndMesh(s);
             c.compute();
             obj.coord  = c.coord;
             obj.connec = c.connec;
             nDimf = size(obj.fValues,2);
+        end
+        
+        function ord = orderTextual(obj)
+            switch obj.order
+                case 'P1'
+                    ord = 'LINEAR';
+                case 'P2'
+                    ord = 'QUADRATIC';
+                case 'P3'
+                    ord = 'CUBIC';
+            end
         end
 
     end
