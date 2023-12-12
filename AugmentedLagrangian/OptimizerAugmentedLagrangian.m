@@ -185,8 +185,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.primalUpdater.isTooSmall()
-%                 error('Convergence could not be achieved (step length too small)')
-                warning('Convergence could not be achieved (step length too small)')
+                %warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew = mNew; % Provisional value
             else

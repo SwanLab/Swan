@@ -14,7 +14,13 @@ classdef Density < DesignVariable
             obj.creatorSettings  = cParams.creatorSettings;
             obj.createValue();
         end
-        
+
+        function updateFunction(obj)
+            s.mesh    = obj.mesh;
+            s.fValues = obj.value;
+            obj.fun   = P1Function(s);
+        end
+
         function v = getVariablesToPlot(obj)
             v{1} = obj.value;
         end

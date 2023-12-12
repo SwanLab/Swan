@@ -4,7 +4,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
 %         file = {'testDiffReactHexagon', 'testDiffReactTorus', 'testDiffReactCube'}
         file = {'testDiffReactHexagon'}
         file3d = {'testDiffReactTorus', 'testDiffReactCube'}
-        LHStype = {'DiffReactNeumann', 'DiffReactRobin'}
+        LHStype = {'StiffnessMass', 'StiffnessMassBoundaryMass'}
     end
 
     methods (Test, TestTags = {'DiffReact', '2D'})
@@ -26,7 +26,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
     methods (Test, TestTags = {'DiffReact', '3D'})
 
         function test3D(testCase, file3d)
-            lhstype = 'DiffReactNeumann';
+            lhstype = 'StiffnessMass';
             s   = testCase.createFEMparameters(file3d, lhstype);
             RHS = testCase.createRHS(s.mesh);
             fem = FEM.create(s);
