@@ -63,30 +63,38 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.filterDesignVariable();
             obj.homogenizedVariablesComputer.computeCtensor(obj.regDesignVariable);
         end
-        
+
         function filterDesignVariable(obj)
-            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x  = obj.designVariable.value;
-            xf = cell(obj.designVariable.nVariables,1);
-            for ivar = 1:obj.designVariable.nVariables
-                i0 = nx*(ivar-1) + 1;
-                iF = nx*ivar;
-                xs = x(i0:iF);
-                xf{ivar} = obj.filter.getP0fromP1(xs);
-            end
-            xf{ivar+1} = obj.designVariable.alpha;
+            obj.designVariable.updateFunction();
+            mesh      = obj.designVariable.mesh;
+            q         = obj.getQuad;
+            f         = obj.designVariable.fun;
+            fP1       = obj.filter.compute(f,'QUADRATICMASS');
+            xP0       = squeeze(fP1.evaluate(q.posgp));
+            xf        = cell(2,1);
+            xf{1}     = reshape(xP0',[mesh.nelem,q.ngaus]);
+            xf{2}     = obj.designVariable.alpha;
             obj.regDesignVariable = xf;
         end
-        
+
         function filterGradient(obj)
-            g = obj.gradient;
-            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            g     = obj.gradient;
+            nelem = size(g,1);
+            ngaus = size(g,2);
+            gf    = zeros(size(obj.Msmooth,1),obj.nVariables);
+            q     = Quadrature.set(obj.designVariable.mesh.type);
+            q.computeQuadrature('LINEAR');
             for ivar = 1:obj.nVariables
-                gs = g(:,:,ivar);
-                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+                gs           = g(:,:,ivar);
+                s.fValues    = reshape(gs',[1,ngaus,nelem]);
+                s.mesh       = obj.designVariable.mesh;
+                s.quadrature = q;
+                f            = FGaussDiscontinuousFunction(s);
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
+                gf(:,ivar)   = gradP1.fValues;
             end
-            gf = obj.Msmooth*gf;
-            g = gf(:);
+            gf           = obj.Msmooth*gf;
+            g            = gf(:);
             obj.gradient = g;
         end
         

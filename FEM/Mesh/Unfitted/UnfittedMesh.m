@@ -81,7 +81,7 @@ classdef UnfittedMesh < handle
             dvC = obj.computeInnerCutDvolume(quad);
             dv = dvC + dvI;
         end
-        
+
         function print(obj, filename)
             d = obj.createPostProcessDataBase(filename);
             d.fields           = {obj.levelSet};
@@ -97,7 +97,7 @@ classdef UnfittedMesh < handle
             ls = P1Function(sF);
             ls.print(filename, 'GiD');
         end
-        
+
         function m = createFullInnerMesh(obj, s)
             s.unfittedMesh = obj;
             imc = FullInnerMeshCreator.create(s);
@@ -125,10 +125,96 @@ classdef UnfittedMesh < handle
             m = imc.export();
         end
 
+        function newf = obtainFunctionAtCutMesh(obj,f)
+            switch obj.backgroundMesh.type
+                case 'HEXAHEDRA'
+                    cutPointsCalculator   = CutPointsCalculator();
+                    s.backgroundCutCells  = obj.cutCells;
+                    s.backgroundMesh      = obj.backgroundMesh;
+                    s.levelSet_background = obj.levelSet;
+                    cutPointsCalculator.init(s);
+                    cutPointsCalculator.computeCutPoints();
+                    connec    = obj.backgroundMesh.connec;
+                    fValues = [];
+                    coorGlob = [];
+                    sls.fValues = obj.levelSet;
+                    sls.mesh    = obj.backgroundMesh;
+                    lsP1        = P1Function(sls);
+                    for i = 1:length(obj.cutCells)
+                        nodes    = connec(obj.cutCells(i),:)';
+                        isActive = obj.levelSet(nodes)<=0;
+                        dofs     = nodes(isActive);
+                        xV       = cutPointsCalculator.getThisCellCutPoints(i).ISO';
+                        lsxV     = lsP1.evaluate(xV);
+                        lsxV     = lsxV(:,:,obj.cutCells(i))';
+                        fxV      = f.evaluate(xV);
+                        fxV      = fxV(:,:,obj.cutCells(i))';
+                        xxV      = obj.backgroundMesh.computeXgauss(xV);
+                        xxV      = xxV(:,:,obj.cutCells(i))';
+                        fValues  = [fValues;f.fValues(dofs,:);fxV(lsxV<=1e-8,:)];
+                        coorGlob = [coorGlob;obj.backgroundMesh.coord(dofs,:);xxV(lsxV<=1e-8,:)];
+                    end
+                    [~,v] = unique(coorGlob,'stable','rows');
+                    fValues = fValues(v);
+                otherwise
+                    subCells      = obj.innerCutMesh.cellContainingSubcell;
+                    nodes         = unique(obj.backgroundMesh.connec(subCells,:));
+                    lsICMesh      = obj.levelSet(nodes);
+                    innerNodes    = nodes(lsICMesh<0);
+                    innerValues   = f.fValues(innerNodes);
+                    switch obj.backgroundMesh.type
+                        case {'QUAD','HEXAHEDRA'}
+                            q = Quadrature.set(obj.backgroundMesh.type);
+                            q.computeQuadrature('CONSTANT');
+                            xV = q.posgp;
+                            sls.fValues = obj.levelSet;
+                            sls.mesh    = obj.backgroundMesh;
+                            fls         = P1Function(sls);
+                            lsSubMesh   = squeeze(fls.evaluate(xV));
+                            lsSubMesh   = lsSubMesh(unique(subCells));
+                            subMeshValues = squeeze(f.evaluate(xV));
+                            subMeshValues = subMeshValues(unique(subCells));
+                            subMeshValues = subMeshValues(lsSubMesh<0);
+                        otherwise
+                            subMeshValues = [];
+                    end
+
+                    switch obj.backgroundMesh.type
+                        case 'QUAD'
+                            ssub.mesh        = obj.backgroundMesh;
+                            ssub.lastNode    = obj.backgroundMesh.nnodes;
+                            subMesher = SubMesher(ssub);
+                            subMesher.subMesh.computeEdges();
+                            e = subMesher.subMesh.edges;
+                            s.levelSet     = [obj.levelSet;lsSubMesh];
+                            s.fValues       = [f.fValues;subMeshValues];
+                        otherwise
+                            obj.backgroundMesh.computeEdges();
+                            e              = obj.backgroundMesh.edges;
+                            s.levelSet     = obj.levelSet;
+                            s.fValues       = f.fValues;
+                    end
+                    s.nodesInEdges = e.nodesInEdges;
+                    ce             = CutEdgesComputer(s);
+                    ce.compute();
+                    s.xCutEdgePoint = ce.xCutEdgePoint;
+                    s.isEdgeCut     = ce.isEdgeCut;
+                    cf              = CutFunctionValuesComputer(s);
+                    cf.compute();
+                    fValues = cf.cutValues;
+                    fValues              = [innerValues;subMeshValues;fValues];
+            end
+            ss.mesh      = obj.innerCutMesh.mesh;
+            ss.ndimf     = f.ndimf;
+            ss.feFunType = class(f);
+            newf         = FeFunction.createEmpty(ss);
+            newf.fValues = fValues;
+        end
+
     end
-    
+
     methods (Access = private)
-        
+
         function dvolume = computeInnerDvolume(obj,quad)
             nelem = obj.backgroundMesh.nelem;
             ngaus = quad.ngaus;
@@ -195,12 +281,14 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            obj.innerCutMesh = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh      = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh.mesh = obj.innerCutMesh.mesh.computeCanonicalMesh();
         end
         
         function computeBoundaryCutMesh(obj)
             if ~isequal(obj.backgroundMesh.geometryType,'Line')
-                obj.boundaryCutMesh = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh      = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh.mesh = obj.boundaryCutMesh.mesh.computeCanonicalMesh();
             end
             
         end
@@ -230,28 +318,26 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.create(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInDomain(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Interior')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.createAtBoundary(fPar);
             s.mesh = obj;
             s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInBoundary(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Boundary')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
