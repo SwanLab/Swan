@@ -91,17 +91,6 @@ classdef ShapeFunctional < handle
             obj.gradientFilter = cParams.gradientFilter;
         end
 
-        function createGradientFilter(obj,cParams)
-            s                  = cParams.filterParams.femSettings;
-            s.mesh             = cParams.filterParams.mesh;
-            s.domainType       = cParams.filterParams.domainType;
-            s.filterType       = cParams.filterParams.filterType;
-            s.quadType         = 'LINEAR';
-            s.test             = P0Function.create(s.mesh,1);
-            s.trial            = P1Function.create(s.mesh,1);
-            obj.gradientFilter = Filter.create(s);
-        end
-
         function createMsmoothAndDvolu(obj,cParams)
             obj.mesh = cParams.mesh;
             q = Quadrature.set(cParams.mesh.type);
