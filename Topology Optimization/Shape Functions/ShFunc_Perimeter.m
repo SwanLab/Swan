@@ -18,10 +18,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
     methods (Access = public)
         
         function obj = ShFunc_Perimeter(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';
-            cParams.filterParams.filterType = 'PDE';
-            obj.init(cParams);
-          %  obj.initFrame();
+          obj.init(cParams);
           obj.computeFunctionAndGradient();
         end
         

@@ -194,6 +194,15 @@ classdef NumericalHomogenizer < handle
             d.mesh = mesh;
 %             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
+
+            sF            = d.filterParams.femSettings;
+            sF.filterType = d.filterParams.filterType;
+            sF.mesh       = d.designVariable.mesh;
+            sF.test       = P0Function.create(sF.mesh,1);
+            sF.trial      = P1Function.create(sF.mesh,1);
+            d.femSettings.designVariableFilter = Filter.create(sF);
+            d.femSettings.gradientFilter       = Filter.create(sF);
+
             vComputer = ShFunc_Volume(d);
             vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;

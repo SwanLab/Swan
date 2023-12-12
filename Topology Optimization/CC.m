@@ -87,6 +87,8 @@ classdef CC < handle & matlab.mixin.Copyable
                 if isprop(cParams,'targetParameters')
                     s.targetParameters = cParams.targetParameters;
                 end
+                s.femSettings.designVariableFilter = obj.createFilter(s);
+                s.femSettings.gradientFilter       = obj.createFilter(s);
                 shapeFunction = ShapeFunctional.create(s);
                 obj.append(shapeFunction);
             end
@@ -98,5 +100,48 @@ classdef CC < handle & matlab.mixin.Copyable
         end
        
     end
-    
+
+    methods (Static, Access = private)
+        function filter = createFilter(cParams)
+            functionalType = cParams.type;
+            s              = cParams.filterParams.femSettings;
+            switch functionalType
+                case {'perimeter','perimeterConstraint'}
+                    s.filterType   = 'PDE';
+                    s.boundaryType = 'Robin';
+                case {'perimeterInterior'}
+                    s.filterType = 'PDE';
+                    if s.scale == "MICRO"
+                        s.boundaryType = 'Periodic';
+                    else
+                        s.boundaryType = 'Neumann';
+                    end
+                case {'anisotropicPerimeter2D'}
+                    s.filterType        = 'PDE';
+                    s.boundaryType      = 'Robin';
+                    u                   = 60;
+                    s.CAnisotropic      = [tand(u),0;0,1/tand(u)];
+                    s.aniAlphaDeg       = 90;
+                    s.metric            = 'Anisotropy';
+                case {'anisotropicPerimeterInterior2D'}
+                    s.filterType        = 'PDE';
+                    u                   = 60;
+                    s.CAnisotropic      = [tand(u),0;0,1/tand(u)];
+                    s.aniAlphaDeg       = 90;
+                    s.metric            = 'Anisotropy';
+                    if s.scale == "MICRO"
+                        s.boundaryType = 'Periodic';
+                    else
+                        s.boundaryType = 'Neumann';
+                    end
+                otherwise
+                    s.filterType = cParams.filterParams.filterType;
+            end
+            s.mesh  = cParams.designVariable.mesh;
+            s.test  = P0Function.create(s.mesh,1);
+            s.trial = P1Function.create(s.mesh,1);
+            filter  = Filter.create(s);
+        end
+    end
+
 end

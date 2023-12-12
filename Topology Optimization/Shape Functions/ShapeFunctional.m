@@ -44,8 +44,7 @@ classdef ShapeFunctional < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.createFilter(cParams);
-            obj.createGradientFilter(cParams);
+            obj.storeFilters(cParams.femSettings);
             obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
@@ -87,29 +86,9 @@ classdef ShapeFunctional < handle
     
     methods (Access = private)
 
-        function createFilter(obj,cParams)
-            s                = cParams.filterParams.femSettings;
-            s.mesh           = cParams.filterParams.mesh;
-            s.domainType     = cParams.filterParams.domainType;
-            s.filterType     = cParams.filterParams.filterType;
-            s.quadType       = 'LINEAR';
-            s.designVarType  = cParams.filterParams.designVarType;
-            s.designVariable = cParams.designVariable;
-            s.test           = P0Function.create(s.mesh,1);
-            s.trial          = P1Function.create(s.mesh,1);
-            obj.filter       = Filter.create(s);
-        end
-
-        function createGradientFilter(obj,cParams)
-            s                  = cParams.filterParams.femSettings;
-            s.mesh             = cParams.filterParams.mesh;
-            s.domainType       = cParams.filterParams.domainType;
-            s.filterType       = cParams.filterParams.filterType;
-            s.quadType         = 'LINEAR';
-            s.designVarType    = 'Continuous';
-            s.test             = P0Function.create(s.mesh,1);
-            s.trial            = P1Function.create(s.mesh,1);
-            obj.gradientFilter = Filter.create(s);
+        function storeFilters(obj,cParams)
+            obj.filter         = cParams.designVariableFilter;
+            obj.gradientFilter = cParams.gradientFilter;
         end
 
         function createMsmoothAndDvolu(obj,cParams)
