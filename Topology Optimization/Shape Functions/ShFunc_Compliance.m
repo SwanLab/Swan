@@ -10,7 +10,6 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
     methods (Access = public)
         
         function obj = ShFunc_Compliance(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
             obj.physicalProblem = cParams.femSettings.physicalProblem;
             obj.createOrientationUpdater();

@@ -4,6 +4,7 @@ classdef DesignVariable < handle
         mesh
         type
         nVariables
+        fun
         value
     end
     

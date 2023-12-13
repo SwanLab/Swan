@@ -42,6 +42,14 @@ classdef FeFunction < handle
             fun = FunctionFactory();
             obj = fun.create(cParams);
         end
+
+        function obj = createEmpty(cParams)
+            feFunType = cParams.feFunType;
+            mesh      = cParams.mesh;
+            ndimf     = int2str(cParams.ndimf);
+            specs     = ['.create(mesh,',ndimf,')'];
+            obj       = eval([feFunType,specs]);
+        end
         
     end
 

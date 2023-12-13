@@ -23,7 +23,12 @@ classdef LevelSet < DesignVariable
             end
             obj.updateUnfittedMesh();
         end
-        
+
+        function updateFunction(obj)
+            s.uMesh = obj.getUnfittedMesh();
+            obj.fun = CharacteristicFunction.create(s);
+        end
+
         function m = getUnfittedMesh(obj)
             m = obj.unfittedMesh;
         end

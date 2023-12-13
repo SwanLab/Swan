@@ -45,28 +45,34 @@ classdef ShFunc_Volume < ShapeFunctional
 
         function computeGradient(obj)
             drho = obj.homogenizedVariablesComputer.drho;
-            g = drho;
-            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            g     = drho;
+            gf    = zeros(size(obj.Msmooth,1),obj.nVariables);
+            q     = Quadrature.set(obj.designVariable.mesh.type);
+            q.computeQuadrature('LINEAR');
             for ivar = 1:obj.nVariables
-                gs = g{ivar}/obj.geometricVolume;
-                gf(:,ivar) = obj.filter.getP1fromP0((gs));
+                gs           = g{ivar}/obj.geometricVolume;
+                nelem        = size(gs,1);
+                ngaus        = size(gs,2);
+                s.fValues    = reshape(gs',[1,ngaus,nelem]);
+                s.mesh       = obj.designVariable.mesh;
+                s.quadrature = q;
+                f            = FGaussDiscontinuousFunction(s);
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
+                gf(:,ivar)   = gradP1.fValues;
             end
             g = obj.Msmooth*gf;
-            %g = gf;
             obj.gradient = g(:);
-            %obj.gradient = ones(size(g(:)))/obj.geometricVolume;
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            nx = length(obj.designVariable.value)/obj.designVariable.nVariables;
-            x  = obj.designVariable.value;
-            xf = cell(obj.designVariable.nVariables,1);
-            for ivar = 1:obj.nVariables
-                i0 = nx*(ivar-1) + 1;
-                iF = nx*ivar;
-                xs = x(i0:iF);
-                xf{ivar} = obj.filter.getP0fromP1(xs);
-            end
+            obj.designVariable.updateFunction();
+            mesh      = obj.designVariable.mesh;
+            q         = Quadrature.set(mesh.type);
+            q.computeQuadrature('LINEAR');
+            f         = obj.designVariable.fun;
+            fP1       = obj.filter.compute(f,'QUADRATICMASS');
+            xP0       = squeeze(fP1.evaluate(q.posgp));
+            xf{1}     = reshape(xP0',[mesh.nelem,q.ngaus]);
             obj.homogenizedVariablesComputer.computeDensity(xf);
         end
         
