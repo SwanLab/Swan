@@ -30,7 +30,8 @@ classdef conjugateGradient_Solver < Solver
                 res = LHS*x - RHS;
                 
                 conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
-                conjugateGradient_Solver.plotRes(res,mesh,bc,iter)
+                
+                %conjugateGradient_Solver.plotRes(res,mesh,bc,iter)
             end
             %save('residuConjugateZeros.mat', 'residu')
         end
@@ -43,7 +44,7 @@ classdef conjugateGradient_Solver < Solver
             s.ndimf = 3;
             xF = P1Function(s);
             %xF.plot();
-            xF.print(['sol',num2str(numItr)],'GiD')
+            xF.print(['sol',num2str(numItr)],'Paraview')
             fclose('all');
         end
         
@@ -55,7 +56,7 @@ classdef conjugateGradient_Solver < Solver
             s.ndimf = 3;
             xF = P1Function(s);
             %xF.plot();
-            xF.print(['Res',num2str(numItr)],'GiD')
+            xF.print(['Res',num2str(numItr)],'Paraview')
             fclose('all');
         end
     end

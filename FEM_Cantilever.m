@@ -10,8 +10,8 @@ addpath(genpath(fileparts(mfilename('fullpath'))))
 
 
 % Generate coordinates
-x1 = linspace(0,2,30);
-x2 = linspace(1,2,30);
+x1 = linspace(0,7,15);
+x2 = linspace(1,2,15);
 % Create the grid
 [xv,yv] = meshgrid(x1,x2);
 % Triangulate the mesh to obtain coordinates and connectivities
@@ -65,10 +65,12 @@ function bc = createBoundaryConditions(mesh)
 %     bc.pointload(:,3) = -1;
 %     
     dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
-    rightSide  = max(mesh.coord(:,1));
-    isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-    isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
-    forceNodes = isInRight & isInMiddleEdge;
+    % rightSide  = max(mesh.coord(:,1));
+    % isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
+    % isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
+    topSide = max(mesh.coord(1,:));
+    isOnTop = abs(mesh.coord(:,1)-topSide)< 1e-12;
+    forceNodes = isOnTop;
     nodes = 1:mesh.nnodes;
     bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
     nodesdir=size(nodes(dirichletNodes),2);
@@ -78,17 +80,41 @@ function bc = createBoundaryConditions(mesh)
     bc.dirichlet = bcDir;
     bc.pointload(:,1) = nodes(forceNodes);
     bc.pointload(:,2) = 2;
-    bc.pointload(:,3) = -1;
+
+    n = 15;
+    x = linspace(0,13,n);
+    y = zeros(1,length(x));
+    suma = 0;
+    for i = 1:length(x)
+        y(i) = sqrt((1 - x(i)^2/(13^2)) * (0.52^2));
+        suma = suma + y(i);
+    end
+    v =  150;
+    S = 55/2;
+    rho = 1.225 *((288.15-6.5e-3*6500)/288.15)^(-1+9.81/(287*6.5e-3));    
+    y = 1/8 * rho * v^2 * S*y; %Lift
+    for i = 1:length(nodes(forceNodes))-1
+        bc.pointload(i,3) = -y(i);
+    end
 end
 
 function material = createMaterial(mesh,ngaus)
+    s.mesh = mesh;
+    s.type = 'ELASTIC';
+    s.scale = 'MACRO';
+    ngaus = 1;
     I = ones(mesh.nelem,ngaus);
     s.ptype = 'ELASTIC';
     s.pdim  = '2D';
     s.nelem = mesh.nelem;
     s.mesh  = mesh;
-    s.kappa = .9107*I;
-    s.mu    = .3446*I;
+    E = 70e9; 
+    nu = 0.35;
+    kappa = E/(2*(1-nu));
+    s.kappa = kappa*I;
+    %mu = (kappa - kappa*nu)/(1 + nu);
+    mu = E./(2*(1+nu));
+    s.mu    = mu*I;
     mat = Material.create(s);
     mat.compute(s);
     material = mat;
