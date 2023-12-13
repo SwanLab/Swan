@@ -27,11 +27,11 @@ classdef ConnectivityComputer < handle
             obj.createLevelSet();
             obj.filterCharacteristicFunction();
 
-             obj.levelSet.getUnfittedMesh().plot()
-             obj.density.plot()
+            obj.levelSet.getUnfittedMesh().plot()
+            obj.density.plot()
             shading flat
             colormap('gray');
-            colormap(flipud(gray));  
+            colormap(flipud(gray));
             colorbar
             figure
 
@@ -49,12 +49,17 @@ classdef ConnectivityComputer < handle
         end
 
         function computeEigenValue(obj)
-             obj.createMaterialInterpolator();            
-             obj.createBoundaryConditions();               
-             obj.createStiffnessMatrix();
-             obj.computeMassMatrix();
-             [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
+            d = obj.density.project('P0');
             
+            %d.fValues = 
+            
+            d.fValues = 1-d.fValues; 
+            d.fValues = round(d.fValues);              
+          
+            s.density = obj.density;
+            s.mesh    = obj.mesh;
+            s = StiffnessEigenModesComputer(s);
+            [eigNeuman,eigDirichlet]  = s.compute();
         end
         
         function computeCompliance(obj)
@@ -68,6 +73,10 @@ classdef ConnectivityComputer < handle
             s.interpolationType = 'LINEAR';
             fem = FEM.create(s);
             fem.solve();
+
+
+            s.type = 'compliance';
+            sh = ShapeFunctional.create(s);
 
         end
 
@@ -157,7 +166,7 @@ classdef ConnectivityComputer < handle
             sD.creatorSettings = s;
             sD.initialCase = 'circleInclusion';
             obj.levelSet   = DesignVariable.create(sD);
-
+            obj.levelSet.updateFunction();
 
 %             s.ndim       = 2;
 %             s.widthH = 1;
@@ -173,111 +182,27 @@ classdef ConnectivityComputer < handle
         end
  
         function filterCharacteristicFunction(obj)
-            s.mesh = obj.mesh;
-            s.quadratureOrder = [];
-            s.femSettings.scale = 'MACRO';
-            s.designVariable = obj.levelSet;
-            %s.domainType = obj.mesh.type;
-            f = Filter_PDE_LevelSet(s);
-            dens = f.getP0fromP1([]);
-           w    = max(0,min(1,1-dens));
+            s.filterType = 'Lump';
+            s.mesh  = obj.mesh;
+            s.trial = P1Function.create(obj.mesh,1);
+            f = Filter.create(s);
+            dens = f.compute(obj.levelSet.fun,'QUADRATIC');
+           %w    = max(0,min(1,1-dens));
            % w = 1 - dens;
            % w(:) = 1;
-            s.fValues = w;%floor(2*(w-0.5))+1;
-            s.mesh    = obj.mesh;
-            obj.density = P0Function(s);
+%            s.fValues = w;%floor(2*(w-0.5))+1;
+%            s.mesh    = obj.mesh;
+%            obj.density = P0Function(s);
+            obj.density = dens;
         end
 
-        function createMaterialInterpolator(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPThermal';
-            s.alpha0         = 1e-5;
-            s.alpha1         = 1;
-            s.density        = obj.density;
-            a = MaterialInterpolation.create(s);
-            obj.conductivity = a;
-            
-            sP.mesh          = obj.mesh;
-            sP.projectorType = 'P1D';
-            proj = Projector.create(sP);
-            a1   = proj.project(a);
-        end
-
-        function createStiffnessMatrix(obj)
-            s.test  = P1Function.create(obj.mesh,1); 
-            s.trial = P1Function.create(obj.mesh,1); 
-            s.mesh  = obj.mesh;
-            s.quadratureOrder = 'QUADRATIC';
-            s.function        = obj.conductivity;
-            s.type            = 'StiffnessMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
-            obj.Kmatrix = lhs.compute();
-        end
-
-        function computeMassMatrix(obj)
-            s.test  = P1Function.create(obj.mesh,1); 
-            s.trial = P1Function.create(obj.mesh,1); 
-            s.mesh  = obj.mesh;
-            s.function = obj.density;
-            s.quadratureOrder = 'QUADRATIC';
-            s.type            = 'MassMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
-            obj.Mmatrix = lhs.compute();       
-        end
-
-        function [eigLHSNewman,eigLHSDirichlet] = obtainLowestEigenValues(obj)
-            K = obj.Kmatrix;
-            M = obj.Mmatrix;
-            bc  = obj.boundaryConditions;
-            Kr = bc.fullToReducedMatrix(K);
-            Mr = bc.fullToReducedMatrix(M);
-            [V,eigLHSNewman]  = eigs(K,M,10,'smallestabs');
-            [Vr,eigLHSDirichlet] = eigs(Kr,Mr,10,'smallestabs');
-
-        %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');
-         %   [Vr,eigLHSDirichlet] = eigs(Kr,[],10,'smallestabs');
 
 
-            fV = zeros(size(V(:,1)));
-            fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
-            fV(obj.boundaryConditions.free,1) = Vr(:,1);
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            vV = P1Function(s);
-            vV.plot()
 
 
-            fV = V(:,2);
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            vN = P1Function(s);
-            vN.plot()
+    
 
-        end
-
-        function createBoundaryConditions(obj)
-            bMesh  = obj.mesh.createBoundaryMesh();
-            allNodes = [];
-            for i = 1:4
-                nodes = bMesh{i}.globalConnec;
-                allNodes = [nodes;allNodes];
-            end
-            uNodes = unique(allNodes(:));
-
-            bc{1}.ndimf = 1;
-            bc{1}.ndofs = obj.mesh.nnodes;
-            bc{1}.pointload = [];
-            bc{1}.dirichlet(:,1) = uNodes;    
-            bc{1}.dirichlet(:,2) = 1;    
-            bc{1}.dirichlet(:,3) = 0;    
-
-            s.scale   = 'MACRO';
-            s.ndofs  = obj.mesh.nnodes;
-            s.ndimf  = bc{1}.ndimf; 
-            s.bc     = bc;
-            bC = BoundaryConditions(s);
-            obj.boundaryConditions = bC;
-        end
+   
         
     end
     
