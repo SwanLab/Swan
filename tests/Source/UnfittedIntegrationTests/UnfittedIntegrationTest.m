@@ -1,22 +1,21 @@
-classdef UnfittedIntegrationTest < testUnfitted
+classdef UnfittedIntegrationTest < handle
     
-    properties (Access = protected)
-        testName;
-        analyticalValue;
-        meshType;
-        meshIncludeBoxContour;
+    properties (Access = private)
+        mesh
+        meshType
+        levelSet
+        analyticalValue
     end
 
     properties (Access = private)
+        unfittedMesh
         varAdim
     end
     
     methods (Access = public)
-
         
         function obj = UnfittedIntegrationTest(cParams)
             obj.init(cParams);
-            obj.createTopOpt();
             obj.integrateSurface();
         end
         
@@ -29,37 +28,34 @@ classdef UnfittedIntegrationTest < testUnfitted
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.testName        = cParams.testName;
+            obj.mesh            = cParams.mesh;
             obj.meshType        = cParams.meshType;
+            obj.levelSet        = cParams.levelSet;
             obj.analyticalValue = cParams.analyticalValue;
-            obj.meshIncludeBoxContour = cParams.meshIncludeBoxContour;
         end
         
         function integrateSurface(obj)
             obj.createMesh();
-            geomVar = obj.computeGeometricalVariable();
+            geomVar     = obj.computeGeometricalVariable();
             obj.varAdim = geomVar/obj.analyticalValue;
         end
-        
+
+        function createMesh(obj)
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            obj.unfittedMesh = UnfittedMesh(s);
+            obj.unfittedMesh.compute(obj.levelSet);
+        end
+
         function totalIntegral = computeGeometricalVariable(obj)
-            switch obj.meshType  
+            switch obj.meshType
                 case 'INTERIOR'
                     totalIntegral = obj.unfittedMesh.computeMass();
                 case 'BOUNDARY'
                     totalIntegral = obj.unfittedMesh.computePerimeter();
             end
         end
-        
+
     end
 
-    %% Heredat de testUnfitted, s'ha de declarar buit
-    methods (Access = protected)
-        function printTestNotPassed()
-        end
-        function printTestPassed()
-        end
-        function hasPassed()
-        end
-    end
 end
-
