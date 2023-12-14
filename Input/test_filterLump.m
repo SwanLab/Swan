@@ -11,7 +11,7 @@ optimizer = 'NullSpace';
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 incrementFactor = 1;
 designVariable = 'Density';
-filterType = 'Lump';
+filterType = 'LUMP';
 
 nsteps = 1;
 Vfrac_final = 0.3;

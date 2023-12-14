@@ -70,6 +70,15 @@ classdef ShapeFunctional < handle
                 fP{nP+i} = fH{i};
             end
         end
+
+        function f = obtainDomainFunction(obj)
+            switch obj.designVariable.type
+                case 'Density'
+                    f = obj.designVariable.fun;
+                case 'LevelSet'
+                    f = obj.designVariable.getCharacteristicFunction();
+            end
+        end
     end
     
     methods (Access = protected, Static)

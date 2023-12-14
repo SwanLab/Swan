@@ -60,7 +60,7 @@ classdef CC < handle & matlab.mixin.Copyable
         
         function obj = init(obj,cParams)
             obj.nSF   = 0;
-            obj.sizeDesigVar = size(cParams.designVar.value);
+            obj.sizeDesigVar = size(cParams.designVar.fun.fValues);
             obj.createShapeFunctions(cParams);
         end
         
