@@ -76,19 +76,25 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
 
         function testSurfaceSphere(testCase, sphereTests)
             testCase.fixFolder();
-
             run(sphereTests)
-            a.fileName = filename;
-            f = FemDataContainer(a);
-            mesh = f.mesh;
-
-            s.testName              = sphereTests;
-            s.analyticalValue       = 4*pi;
-            s.meshType              = 'BOUNDARY';
-            s.meshIncludeBoxContour = false;
+            a.fileName        = filename;
+            f                 = FemDataContainer(a);
+            mesh              = f.mesh;
+            gPar.type         = 'Sphere';
+            gPar.radius       = 0.98; % !!
+            gPar.xCoorCenter  = 1;
+            gPar.yCoorCenter  = 1;
+            gPar.zCoorCenter  = 1;
+            g                 = GeometricalFunction(gPar);
+            phiFun            = g.computeLevelSetFunction(mesh);
+            phi               = phiFun.fValues;
+            s.analyticalValue = 4*pi;
+            s.meshType        = 'BOUNDARY';
+            s.mesh            = mesh;
+            s.levelSet        = phi;
             test = UnfittedIntegrationTest(s);
-            err = test.computeError();
-            tol = 6e-2;
+            err  = test.computeError();
+            tol  = 6e-2;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
@@ -98,19 +104,25 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
 
         function testVolumeSphere(testCase, sphereTests)
             testCase.fixFolder();
-
             run(sphereTests)
-            a.fileName = filename;
-            f = FemDataContainer(a);
-            mesh = f.mesh;
-
-            s.testName              = sphereTests;
-            s.analyticalValue       = (4/3)*pi;
-            s.meshType              = 'INTERIOR';
-            s.meshIncludeBoxContour = false;
+            a.fileName        = filename;
+            f                 = FemDataContainer(a);
+            mesh              = f.mesh;
+            gPar.type         = 'Sphere';
+            gPar.radius       = 1;
+            gPar.xCoorCenter  = 1;
+            gPar.yCoorCenter  = 1;
+            gPar.zCoorCenter  = 1;
+            g                 = GeometricalFunction(gPar);
+            phiFun            = g.computeLevelSetFunction(mesh);
+            phi               = phiFun.fValues;
+            s.analyticalValue = (4/3)*pi;
+            s.meshType        = 'INTERIOR';
+            s.mesh            = mesh;
+            s.levelSet        = phi;
             test = UnfittedIntegrationTest(s);
-            err = test.computeError();
-            tol = 6e-2;
+            err  = test.computeError();
+            tol  = 6e-2;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
@@ -121,23 +133,23 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
         function testSurfaceCylinder(testCase, cylinderTests)
             testCase.fixFolder();
             run(cylinderTests)
-            a.fileName = filename;
-            f = FemDataContainer(a);
-            mesh = f.mesh;
-            gPar.type               = 'Cylinder';
-            gPar.radius             = 1;
-            gPar.xCoorCenter        = 1;
-            gPar.yCoorCenter        = 1;
-            g                       = GeometricalFunction(gPar);
-            phiFun                  = g.computeLevelSetFunction(mesh);
-            phi                     = phiFun.fValues;
-            s.analyticalValue       = pi*2+2*pi*2;
-            s.meshType              = 'BOUNDARY';
-            s.mesh                  = mesh;
-            s.levelSet              = phi;
+            a.fileName        = filename;
+            f                 = FemDataContainer(a);
+            mesh              = f.mesh;
+            gPar.type         = 'Cylinder';
+            gPar.radius       = 1;
+            gPar.xCoorCenter  = 1;
+            gPar.yCoorCenter  = 1;
+            g                 = GeometricalFunction(gPar);
+            phiFun            = g.computeLevelSetFunction(mesh);
+            phi               = phiFun.fValues;
+            s.analyticalValue = pi*2+2*pi*2;
+            s.meshType        = 'BOUNDARY';
+            s.mesh            = mesh;
+            s.levelSet        = phi;
             test = UnfittedIntegrationTest(s);
-            err = test.computeError();
-            tol = 6e-2;
+            err  = test.computeError();
+            tol  = 6e-2;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
@@ -148,23 +160,23 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
         function testVolumeCylinder(testCase, cylinderTests)
             testCase.fixFolder();
             run(cylinderTests)
-            a.fileName = filename;
-            f = FemDataContainer(a);
-            mesh = f.mesh;
-            gPar.type               = 'Cylinder';
-            gPar.radius             = 1;
-            gPar.xCoorCenter        = 1;
-            gPar.yCoorCenter        = 1;
-            g                       = GeometricalFunction(gPar);
-            phiFun                  = g.computeLevelSetFunction(mesh);
-            phi                     = phiFun.fValues;
-            s.analyticalValue       = pi*2;
-            s.meshType              = 'INTERIOR';
-            s.mesh                  = mesh;
-            s.levelSet              = phi;
+            a.fileName        = filename;
+            f                 = FemDataContainer(a);
+            mesh              = f.mesh;
+            gPar.type         = 'Cylinder';
+            gPar.radius       = 1;
+            gPar.xCoorCenter  = 1;
+            gPar.yCoorCenter  = 1;
+            g                 = GeometricalFunction(gPar);
+            phiFun            = g.computeLevelSetFunction(mesh);
+            phi               = phiFun.fValues;
+            s.analyticalValue = pi*2;
+            s.meshType        = 'INTERIOR';
+            s.mesh            = mesh;
+            s.levelSet        = phi;
             test = UnfittedIntegrationTest(s);
-            err = test.computeError();
-            tol = 6e-2;
+            err  = test.computeError();
+            tol  = 6e-2;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 

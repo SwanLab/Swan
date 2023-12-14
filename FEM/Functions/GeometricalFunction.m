@@ -42,6 +42,14 @@ classdef GeometricalFunction < handle
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
 
+                case 'Sphere'
+                    r  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2+(x3(x)-z0).^2-r^2;
+                    obj.fHandle = fH;
+
                 case 'VerticalFiber'
                     l  = cParams.width;
                     x0 = cParams.xCoorCenter;
