@@ -13,6 +13,7 @@ classdef ConnectivityComputer < handle
        Kmatrix
        Mmatrix
        materialInterpolation
+       filter
     end
     
     properties (Access = private)
@@ -27,7 +28,7 @@ classdef ConnectivityComputer < handle
             obj.createLevelSet();
             obj.filterCharacteristicFunction();
 
-            obj.levelSet.getUnfittedMesh().plot()
+           % obj.levelSet.getUnfittedMesh().plot()
             obj.density.plot()
             shading flat
             colormap('gray');
@@ -35,8 +36,7 @@ classdef ConnectivityComputer < handle
             colorbar
             figure
 
-             obj.computeEigenValue()
-          
+             obj.computeEigenValue()          
             obj.computeCompliance();
         end
         
@@ -75,13 +75,28 @@ classdef ConnectivityComputer < handle
             fem.solve();
 
 
+            s.type       = 'Given';
+            s.rho0 = obj.density.fValues;
+            sD.type = 'Density';
+            sD.mesh = obj.mesh;
+            sD.creatorSettings = s;
+            sD.initialCase = 'Given';
+            dens   = DesignVariable.create(sD);            
+
             s.type = 'compliance';
+            s.designVariable = dens;
+            s.femSettings.physicalProblem = fem;
+            s.femSettings.designVariableFilter = obj.filter;
+            s.femSettings.gradientFilter = obj.filter;
             sh = ShapeFunctional.create(s);
 
         end
 
         function mat = createMaterial(obj)
-            dens = 1- obj.density.fValues;
+            d = obj.density.project('P0');
+          %  d.fValues = round(d.fValues);              
+            
+            dens  = d.fValues;
             mat  = obj.materialInterpolation.computeMatProp(dens);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
@@ -166,7 +181,6 @@ classdef ConnectivityComputer < handle
             sD.creatorSettings = s;
             sD.initialCase = 'circleInclusion';
             obj.levelSet   = DesignVariable.create(sD);
-            obj.levelSet.updateFunction();
 
 %             s.ndim       = 2;
 %             s.widthH = 1;
@@ -182,11 +196,12 @@ classdef ConnectivityComputer < handle
         end
  
         function filterCharacteristicFunction(obj)
-            s.filterType = 'Lump';
+            s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = P1Function.create(obj.mesh,1);
             f = Filter.create(s);
-            dens = f.compute(obj.levelSet.fun,'QUADRATIC');
+            obj.filter = f;
+            dens = obj.filter.compute(obj.levelSet.getCharacteristicFunction,'QUADRATIC');
            %w    = max(0,min(1,1-dens));
            % w = 1 - dens;
            % w(:) = 1;
