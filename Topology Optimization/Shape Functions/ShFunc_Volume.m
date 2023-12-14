@@ -65,7 +65,6 @@ classdef ShFunc_Volume < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
             q         = Quadrature.set(mesh.type);
             q.computeQuadrature('LINEAR');

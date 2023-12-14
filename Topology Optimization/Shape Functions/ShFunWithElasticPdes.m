@@ -65,7 +65,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
         end
 
         function filterDesignVariable(obj)
-            obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
             q         = obj.getQuad;
             f         = obj.obtainDomainFunction();

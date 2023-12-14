@@ -61,7 +61,7 @@ classdef HamiltonJacobi < handle
         end
 
         function x = computeNewLevelSet(obj)
-            x = obj.phi.value;
+            x = obj.phi.fun.fValues;
             t = obj.tau;
             x = x - t*obj.velocity;
             x = obj.normalizeFunction(x);

@@ -101,7 +101,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-            obj.designVariable.updateFunction();
             f   = obj.obtainDomainFunction();
             rho = obj.filter.compute(f,'QUADRATICMASS');
             obj.filteredDensity = rho;
@@ -126,8 +125,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
 
         function computePerimeterValue(obj)
-            obj.designVariable.updateFunction();
-            rho        = obj.designVariable.fun;
+            rho        = obj.obtainDomainFunction();
             rhoe       = obj.filteredDensity;
             rhoei      = rhoe.fValues;
             s.fValues  = 1-rhoei;
