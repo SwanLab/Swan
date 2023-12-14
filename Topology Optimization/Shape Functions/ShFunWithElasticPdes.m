@@ -68,7 +68,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
             obj.designVariable.updateFunction();
             mesh      = obj.designVariable.mesh;
             q         = obj.getQuad;
-            f         = obj.designVariable.fun;
+            f         = obj.obtainDomainFunction();
             fP1       = obj.filter.compute(f,'QUADRATICMASS');
             xP0       = squeeze(fP1.evaluate(q.posgp));
             xf        = cell(2,1);
