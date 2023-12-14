@@ -157,7 +157,6 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            obj.designVariable.updateFunction();
             mesh    = obj.designVariable.mesh;
             q       = obj.getQuad;
             f       = obj.obtainDomainFunction();
