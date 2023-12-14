@@ -30,7 +30,7 @@ classdef FilterFactory < handle
                             end
                     end
                     filter = FilterPDE(cParams);
-                case 'Lump'
+                case 'LUMP'
                     filter = FilterLump(cParams);
             end
         end
