@@ -34,7 +34,6 @@ classdef UnfittedFunction < L2Function
             c(:,all(diffc == 0))=[];
             meshNew      = obj.unfittedMesh.innerCutMesh.mesh;
             cNew         = meshNew.coord;
-            diffc        = diff(cNew);
             cNew(:,all(diffc == 0))=[];
             if size(c,2) == 1
                 newFValues = interp1(c,f.fValues,cNew);

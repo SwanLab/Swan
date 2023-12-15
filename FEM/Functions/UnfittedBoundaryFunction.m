@@ -29,9 +29,18 @@ classdef UnfittedBoundaryFunction < handle
 
             % Provisional solution: ----------------------------
             coord      = obj.unfittedMesh.backgroundMesh.coord;
-            F          = scatteredInterpolant(coord,f);
+            diffc      = diff(coord);
+            coord(:,all(diffc == 0))=[];
             bCoord     = s.uMesh.backgroundMesh.coord;
-            ss.fValues = F(bCoord);
+            bCoord(:,all(diffc == 0))=[];
+            if size(coord,2) == 1
+                newFValues = interp1(coord,f,bCoord);
+            else
+                F          = scatteredInterpolant(coord,f);
+                newFValues = F(bCoord);
+            end
+
+            ss.fValues = newFValues;
             ss.mesh    = s.uMesh.backgroundMesh;
             s.fun   = P1Function(ss); % ------------------------
 
