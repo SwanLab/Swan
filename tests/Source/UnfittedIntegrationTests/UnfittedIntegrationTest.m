@@ -53,6 +53,13 @@ classdef UnfittedIntegrationTest < handle
                     totalIntegral = obj.unfittedMesh.computeMass();
                 case 'BOUNDARY'
                     totalIntegral = obj.unfittedMesh.computePerimeter();
+                case 'SUBBOUNDARY'
+                    totalIntegral = 0;
+                    meshes        = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
+                    nBoundary     = size(meshes,2);
+                    for i = 1:nBoundary
+                        totalIntegral = totalIntegral + meshes{i}.computePerimeter();
+                    end
             end
         end
 

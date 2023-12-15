@@ -35,6 +35,18 @@ classdef GeometricalFunction < handle
                     fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
                     obj.fHandle = fH;
 
+                case 'Rectangle'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    xm = x0-sx/2;
+                    xM = x0+sx/2;
+                    ym = y0-sy/2;
+                    yM = y0+sy/2;
+                    fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
+                    obj.fHandle = fH;
+
                 case {'Circle','Cylinder'}
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;
