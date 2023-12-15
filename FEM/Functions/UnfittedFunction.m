@@ -30,10 +30,12 @@ classdef UnfittedFunction < L2Function
 
             % Provisional solution:------------------------
             c            = obj.unfittedMesh.backgroundMesh.coord;
-            c            = c(:,sum(diff(c),1)~=0);
+            diffc        = diff(c);
+            c(:,all(diffc == 0))=[];
             meshNew      = obj.unfittedMesh.innerCutMesh.mesh;
             cNew         = meshNew.coord;
-            cNew         = cNew(:,sum(diff(cNew),1)~=0);
+            diffc        = diff(cNew);
+            cNew(:,all(diffc == 0))=[];
             if size(c,2) == 1
                 newFValues = interp1(c,f.fValues,cNew);
             else

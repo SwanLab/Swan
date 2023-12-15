@@ -81,7 +81,7 @@ classdef UnfittedIntegrationTests < handle & matlab.unittest.TestCase
             f                 = FemDataContainer(a);
             mesh              = f.mesh;
             gPar.type         = 'Sphere';
-            gPar.radius       = 0.98; % !!
+            gPar.radius       = 1;
             gPar.xCoorCenter  = 1;
             gPar.yCoorCenter  = 1;
             gPar.zCoorCenter  = 1;
