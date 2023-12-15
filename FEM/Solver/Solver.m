@@ -16,8 +16,8 @@ classdef Solver < handle
                     %error('Not implemented yet')
                     %stype = Jacobian_Solver();
                     %stype = Gauss_Solver();
-                    %stype = conjugateGradient_Solver();
-                    stype = preconditionedConjugateGradient();
+                    stype = conjugateGradient_Solver();
+                    %stype = preconditionedConjugateGradient();
                     %stype = QRFactorization();
 
                 case 'Nonlinear'
