@@ -196,7 +196,8 @@ classdef LagrangianFunction < FeFunction
             s.order   = ord;
             s.ndimf   = ndimf;
             c = DOFsComputer(s);
-            s.fValues = zeros(c.computeNumberDofs(),ndimf);
+            c.computeDofs();
+            s.fValues = zeros(c.getNumberDofs(),ndimf);
             pL = LagrangianFunction(s);
         end
 
@@ -220,10 +221,12 @@ classdef LagrangianFunction < FeFunction
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
             s.order = obj.order;
-            c = ConnecCoordFromInterpAndMesh(s);
-            c.compute();
-            obj.coord  = c.coord;
-            obj.connec = c.connec;
+            s.ndimf = obj.ndimf;
+            c = DOFsComputer(s);
+            c.computeDofs();
+            c.computeCoord();
+            obj.coord  = c.getCoord();
+            obj.connec = c.getDofs();
             nDimf = size(obj.fValues,2);
         end
         
