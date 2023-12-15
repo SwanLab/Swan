@@ -89,7 +89,7 @@ classdef ConstraintProjector < handle
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             l  = obj.dualVariable.value;
-            x  = obj.designVariable.value;
+            x  = obj.designVariable.fun.fValues;
             g  = DJ + l*Dg;
             x  = obj.primalUpdater.update(g,x);
             obj.designVariable.update(x);

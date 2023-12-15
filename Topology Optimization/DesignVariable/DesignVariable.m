@@ -5,7 +5,6 @@ classdef DesignVariable < handle
         type
         nVariables
         fun
-        value
     end
     
     properties (Access = public)
@@ -47,14 +46,16 @@ classdef DesignVariable < handle
         end
         
         function update(obj,value)
-            obj.value = value;
             if ~isempty(obj.isFixed)
-               obj.value(obj.isFixed.nodes) = obj.isFixed.values;
+                value(obj.isFixed.nodes) = obj.isFixed.values;
             end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            obj.fun   = P1Function(s);
         end
         
         function updateOld(obj)
-            obj.valueOld = obj.value;
+            obj.valueOld = obj.fun.fValues;
             obj.alphaOld = obj.alpha;
         end
         
@@ -63,7 +64,7 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           x  = obj.value;
+           x  = obj.fun.fValues;
            x0 = obj.valueOld;
            incX  = x - x0;
            nIncX = obj.scalarProduct.computeSP_M(incX,incX);
@@ -94,13 +95,16 @@ classdef DesignVariable < handle
         function initValue(obj,cParams)
             if isfield(cParams,'value')
                 if isempty(cParams.value)
-                 obj.value = ones(size(obj.mesh.coord,1),1);
+                    value = ones(size(obj.mesh.coord,1),1);
                 else
-                    obj.value = cParams.value;
+                    value = cParams.value;
                 end
-             else
-                obj.value = ones(size(obj.mesh.coord,1),1);
+            else
+                value = ones(size(obj.mesh.coord,1),1);
             end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            obj.fun   = P1Function(s);
         end
         
         function createScalarProduct(obj,cParams)
@@ -110,8 +114,5 @@ classdef DesignVariable < handle
             obj.scalarProduct = ScalarProduct(s);
         end
         
-    end
-
-    
+    end 
 end
-

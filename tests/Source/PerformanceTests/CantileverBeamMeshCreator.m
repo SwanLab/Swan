@@ -66,7 +66,7 @@ classdef CantileverBeamMeshCreator < handle
                     node2 = node1 + 1;
                     node3 = node1 + (ydiv+1);
                     node4 = node2 + (ydiv+1);
-                    elem = [node1, node2, node4, node3];
+                    elem = [node1, node3, node4, node2];
                     conn = [conn; elem];
                 end
             end

@@ -20,7 +20,7 @@ classdef TopOptComputer < handle
             topOptSolver = TopOpt_Problem(obj.settings);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;
-            obj.variables.x = topOptSolver.designVariable.value;
+            obj.variables.x = topOptSolver.designVariable.fun.fValues;
         end
     end
 
