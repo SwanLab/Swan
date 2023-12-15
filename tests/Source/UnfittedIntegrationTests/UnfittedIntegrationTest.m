@@ -57,8 +57,26 @@ classdef UnfittedIntegrationTest < handle
                     totalIntegral = 0;
                     meshes        = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
                     nBoundary     = size(meshes,2);
+                    uniqueCoord   = cell(0);
                     for i = 1:nBoundary
-                        totalIntegral = totalIntegral + meshes{i}.computePerimeter();
+                        subUnfMesh    = meshes{i};
+                        subMeshes     = subUnfMesh.unfittedBoundaryMesh.getActiveMesh();
+                        nSubMeshes    = size(subMeshes,2);
+                        for j = 1:nSubMeshes
+                            coordj        = subMeshes{j}.backgroundMesh.coord;
+                            prevCoord     = cell2mat(uniqueCoord);
+                            if i>1
+                                isRepeated    = all(ismember(coordj,prevCoord,'rows'));
+                                if(isRepeated)
+                                    subMeshes{j}.compute(ones(1000,1));
+                                else
+                                    uniqueCoord   = [uniqueCoord;coordj];
+                                end
+                            else
+                                uniqueCoord   = [uniqueCoord;coordj];
+                            end
+                        end
+                        totalIntegral = totalIntegral + subUnfMesh.computePerimeter();
                     end
             end
         end
