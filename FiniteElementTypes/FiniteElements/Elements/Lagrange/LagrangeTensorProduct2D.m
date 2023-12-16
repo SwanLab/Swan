@@ -75,6 +75,7 @@ classdef LagrangeTensorProduct2D < handle
                 end
             end
             obj.nodes = node;
+            obj.nodes = [-1,-1 ; 1 -1 ; -1,1 ; 1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; -1/3,1 ; 1/3,1 ; -1,-1/3 ; -1,1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
         end
         
         function s = computeMonomialIndeces(obj,i,j)
