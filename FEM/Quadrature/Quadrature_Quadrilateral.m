@@ -1,6 +1,7 @@
 classdef Quadrature_Quadrilateral < Quadrature
 
     methods (Access = public)
+        
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order

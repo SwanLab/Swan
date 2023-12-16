@@ -227,7 +227,6 @@ classdef LagrangianFunction < FeFunction
             c.computeCoord();
             obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
-            nDimf = size(obj.fValues,2);
         end
         
         function ord = orderTextual(obj)
