@@ -56,7 +56,7 @@ classdef LagrangeTensorProduct2D < handle
         
         function computeVertices(obj)
             obj.n_vertices = 4;
-            obj.vertices = [0,0;0,1;1,0;1,1];
+            obj.vertices = [-1,-1;-1,1;1,-1;1,1];
         end
         
         function computeNdof(obj)
@@ -88,6 +88,7 @@ classdef LagrangeTensorProduct2D < handle
             shapeFuncs = cell(obj.ndofs,1);
             for s = 1:obj.ndofs
                 a = obj.computeShapeFunctionCoefficients(basisMonomialForm,s);
+                SH{s} = basisMonomialFormSym*a;
                 shapeFuncs{s} = matlabFunction(basisMonomialFormSym*a,'Vars',[x_1 x_2]);
             end
             
