@@ -37,7 +37,7 @@ classdef InterpolationFactory < handle
                         case 'QUADRATIC'
                             obj = Quadrilateral_Quadratic(cParams);
 %                             obj = Quadrilateral_Serendipity(cParams);
-                        case 'CBUIC'
+                        case 'CUBIC'
                             obj = Quadrilateral_Cubic(cParams);
                         otherwise
                             error('Invalid order for element QUADRILATERAL.');

@@ -17,10 +17,10 @@ classdef Quadrilateral_Cubic < Interpolation
     methods (Access = private)
         
         function computeParams(obj)
-            obj.type = 'QUADRILATERAL_QUADRATIC';
+            obj.type = 'QUADRILATERAL_CUBIC';
             obj.ndime = 2;
             obj.nnode = 9;
-            obj.pos_nodes = [0,0 ; 1 0 ; 0,1 ; 1,1 ; 0.5,0 ; 1,0.5 ; 0.5,1 ; 0,0.5 ; 0.5,0.5];
+            obj.pos_nodes = [0,0 ; 1 0 ; 0,1 ; 1,1 ; 1/3,0 ; 2/3,0 ; 1,1/3 ; 1,2/3 ; 1/3,1 ; 2/3,1 ; 0,1/3 ; 0,2/3 ; 1/3,1/3 ; 2/3,1/3 ; 1/3,2/3 ; 2/3,2/3];
         end
         
         function computeShapes(obj,posgp)
