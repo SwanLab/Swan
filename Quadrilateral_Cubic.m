@@ -1,8 +1,8 @@
-classdef Quadrilateral_Quadratic < Interpolation
+classdef Quadrilateral_Cubic < Interpolation
     
     methods (Access = public)
         
-        function obj = Quadrilateral_Quadratic(cParams)
+        function obj = Quadrilateral_Cubic(cParams)
             obj.init(cParams);
             obj.computeParams();
         end
