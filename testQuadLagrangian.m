@@ -2,7 +2,7 @@ close all;
 clear;
 clc
 
-mesh = UnitQuadMesh(3,3);
+mesh = UnitQuadMesh(1,1);
 
 sAF.fHandle = @(x) sin(2*pi*x(1,:,:));
 sAF.ndimf   = 1;
