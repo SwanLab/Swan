@@ -18,6 +18,7 @@ lnodes(2:3:end,2) = 2;
 lnodes(3:3:end,2) = 3;
 
 % External forces
+t2        = 0.6;
 t         = 0.3; % Hole size (0.3A x 0.3A)
 xTip      = max(x);
 y         = coor(:,2);
@@ -27,7 +28,7 @@ zMax      = max(z);
 ref       = min(yMax,zMax);
 nForcesx  = find(x==xTip);
 nForcesy  = find(y>=(yMax-t*ref)/2 & y<=(yMax+t*ref)/2);
-nForcesz  = find(z>=(zMax-t*ref)/2 & z<=(zMax+t*ref)/2);
+nForcesz  = find(z>=(zMax-t2*ref)/2 & z<=(zMax+t2*ref)/2);
 nForcesyx = nForcesx(ismember(nForcesx,nForcesy,'rows'));
 nForceszx = nForcesx(ismember(nForcesx,nForcesz,'rows'));
 nForces   = nForcesyx(ismember(nForcesyx,nForceszx,'rows'));
