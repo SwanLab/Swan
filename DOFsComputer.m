@@ -80,7 +80,7 @@ classdef DOFsComputer < handle
             
             if obj.order~=1
                 for ielem = 1:nelem
-                    nodesMesh = obj.mesh.coord(obj.mesh.connec(ielem,1:obj.mesh.nnodes),:);
+                    nodesMesh = obj.mesh.coord(obj.mesh.connec(ielem,1:obj.mesh.nnodeElem),:);
                     coor(obj.dofs(ielem,:),:) = obj.computeNodesElement(nodesMesh);
                 end
                 obj.coord = coor;
@@ -141,7 +141,7 @@ classdef DOFsComputer < handle
 
         
         function ndofsElements = computeNdofsElements(obj,polOrder)
-            d = 6-obj.mesh.nnodes; % PROVISIONAL
+            d = 6-obj.mesh.nnodeElem; % PROVISIONAL
             ord = polOrder - d;
             ndofsElements = 0;
             if ord == 0
