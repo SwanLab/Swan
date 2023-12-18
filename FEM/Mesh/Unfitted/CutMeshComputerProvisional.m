@@ -160,26 +160,12 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.xCoordsIso            = subCell.xCoordsIso;
             obj.cellContainingSubcell = subCell.cellContainingSubcell;
         end
-        
-        function computeConnecNew(obj)
-            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();
+
+        function cE = compuTeCutPointInElem(obj,isEdgeCutInElemCase,t)
+                e = obj.backgroundMesh.edges;
             
-            e = obj.backgroundMesh.edges;
-            nEdgesCutCase   = [2 3 4];
-            nSubCellsByElem = [3 4 6];
-            
-            subCell = cell(length(nEdgesCutCase),1);
-            cN = cell(length(nEdgesCutCase),1);
-            tP = cell(length(nEdgesCutCase),1);
-            
-            nCutEdges = sum(isEdgeCutInElem,1);
-            for icases = 1:length(nEdgesCutCase)
-                t = nCutEdges == nEdgesCutCase(icases);
-                isEdgeCutInElemCase = isEdgeCutInElem(:,t);
-                
                 s.isEdgeCutInElem = isEdgeCutInElemCase;
-                all2Cut = AllEdges2CutEdgesComputer(s);
-                
+                all2Cut = AllEdges2CutEdgesComputer(s);            
                 cEp.all2Cut = all2Cut;
                 cEp.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
                 cEp.allNodesinElemParams.connec = obj.backgroundMesh.connec(t,:);
@@ -191,7 +177,25 @@ classdef CutMeshComputerProvisional < CutMesh
                 cEp.isEdgeCutInElem = isEdgeCutInElemCase;
                 cE = CutPointsInElemComputer(cEp);
                 cE.compute();
-                
+        end
+        
+        function computeConnecNew(obj)
+            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();
+            
+            nEdgesCutCase   = [2 3 4];
+            nSubCellsByElem = [3 4 6];
+            
+            subCell = cell(length(nEdgesCutCase),1);
+            cN = cell(length(nEdgesCutCase),1);
+            tP = cell(length(nEdgesCutCase),1);
+            
+            nCutEdges = sum(isEdgeCutInElem,1);
+            for icases = 1:length(nEdgesCutCase)
+                t = nCutEdges == nEdgesCutCase(icases);
+                isEdgeCutInElemCase = isEdgeCutInElem(:,t);
+                         
+                cE = obj.compuTeCutPointInElem(isEdgeCutInElemCase,t);
+
                 tP{icases} = t;
                 
                 if sum(t) ~= 0
@@ -214,7 +218,7 @@ classdef CutMeshComputerProvisional < CutMesh
                     
                     sI.allSubCellsConnecParams = sA;
                     sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
-                    sI.cutElems = obj.cutCells;
+                    sI.cutElems = obj.cutCells(t);
                     
                     sI.nSubCellsByElem = nSubCellsByElem(icases);
                     

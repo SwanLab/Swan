@@ -870,7 +870,7 @@ Micro_slave = [
 % Nodes that must remain 
 % Nodes
 
-nodesolid = unique(pointload_complete(:,1));
+%nodesolid = unique(pointload_complete(:,1));
 
 %% External border Elements
 % Detect the elements that define the edge of the domain

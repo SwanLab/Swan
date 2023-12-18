@@ -48,7 +48,7 @@ classdef UnfittedFunction < L2Function
             fNew.fValues = newFValues; % -------------------
 
             % PENDING - The solution that should be:-----------
-            %fNew2        = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(f);
+            fNew2        = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(f);
 
             xV  = q.posgp;
             fxV = fNew.evaluate(xV);
