@@ -135,22 +135,16 @@ classdef UnfittedMeshFunction < handle
             connec   = obj.unfittedMesh.backgroundMesh.connec;
             fValues  = [];
             coorGlob = [];
-            sls.fValues = obj.levelSet;
-            sls.mesh    = obj.unfittedMesh.backgroundMesh;
-            lsP1        = P1Function(sls);
             for i = 1:length(obj.cutCells)
                 nodes    = connec(obj.cutCells(i),:)';
                 isActive = obj.isInterior(obj.levelSet(nodes));
                 dofs     = nodes(isActive);
                 xV       = cutPointsCalculator.getThisCellCutPoints(i).ISO';
-                lsxV     = lsP1.evaluate(xV);
-                lsxV     = lsxV(:,:,obj.cutCells(i))';
                 fxV      = obj.funP1.evaluate(xV);
                 fxV      = fxV(:,:,obj.cutCells(i))';
-                xxV      = obj.unfittedMesh.backgroundMesh.computeXgauss(xV);
-                xxV      = xxV(:,:,obj.cutCells(i))';
-                fValues  = [fValues;obj.funP1.fValues(dofs,:);fxV(obj.isInterior(lsxV),:)];
-                coorGlob = [coorGlob;obj.unfittedMesh.backgroundMesh.coord(dofs,:);xxV(obj.isInterior(lsxV),:)];
+                xxV      = cutPointsCalculator.getThisCellCutPoints(i).GLOBAL;
+                fValues  = [fValues;obj.funP1.fValues(dofs,:);fxV];
+                coorGlob = [coorGlob;obj.unfittedMesh.backgroundMesh.coord(dofs,:);xxV];
             end
             [~,v]       = unique(coorGlob,'stable','rows');
             fValues     = fValues(v);
