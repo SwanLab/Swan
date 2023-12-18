@@ -175,9 +175,9 @@ classdef DOFsComputer < handle
             nodesBase = obj.interp.pos_nodes';          
             base = nodesBase(:,1:obj.mesh.nnodeElem);
             
-            transfMatrix = (coords-coords(1,:))'/base;
+            transfMatrix = (coords-coords(1,:))'/(base-base(:,1));
             transfVect = coords(1,:)';
-            coor = transfMatrix*nodesBase+transfVect;
+            coor = transfMatrix*(nodesBase-nodesBase(:,1))+transfVect;
             coor = coor';
         end
         
