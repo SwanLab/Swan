@@ -2,7 +2,7 @@ close all;
 clear;
 clc
 
-mesh = UnitQuadMesh(1,1);
+mesh = UnitQuadMesh(2,2);
 
 sAF.fHandle = @(x) x(1,:,:);
 sAF.ndimf   = 1;
