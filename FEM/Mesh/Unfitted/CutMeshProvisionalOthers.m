@@ -5,7 +5,7 @@ classdef CutMeshProvisionalOthers < CutMesh
     end
     
     properties (Access = private)
-        subcellsMesher
+        subMesh
         cutPointsCalculator
         memoryManager
         nCutCells
@@ -45,11 +45,19 @@ classdef CutMeshProvisionalOthers < CutMesh
         end
         
         function computeThisInnerCutMesh(obj)
-            obj.type  = 'INTERIOR';
-            obj.createSubCellsMesher();
-            obj.createMemoryManager();
-            obj.createCutPointsCalculator();
+            % New approach
             obj.computeSubcells();
+            % fullSubCells and cutSubCells
+            % CutMesh.create using cutSubCells, subMesh and levelSet at subMesh
+            % coord iso and coord innercut
+            % connec innercut
+            % cell containingsubcell innercut
+            % coord iso and coord boundaryCut
+            % connec boundaryCut
+            % cell containingsubcell boundaryCut
+            % InnerCutMesh
+            % BoundaryCutMesh
+
             obj.computeCoord();
             obj.computeConnec();
             obj.computeMesh();
@@ -69,7 +77,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             sS.posNodes           = inter.pos_nodes;
             sS.levelSetBackground = obj.levelSet;
             sS.coordsBackground   = obj.backgroundMesh.coord;
-            obj.subcellsMesher    = SubcellsMesher.create(sS);
+            obj.subMesh    = SubcellsMesher.create(sS);
         end
         
          function createMemoryManager(obj)
@@ -101,17 +109,25 @@ classdef CutMeshProvisionalOthers < CutMesh
         end
         
         function obj = computeSubcells(obj)
-            obj.memoryManager.allocateMemory();
-            obj.computeCutPoints();
-            for icut = 1:obj.nCutCells %Vectorize
-                icell = obj.cutCells(icut);
-                newSubcells = obj.computeThisCellSubcells(icut,icell);
-                newCellContainingNodes   = repmat(icell,[newSubcells.nNodes 1]);
-                newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);
-                obj.memoryManager.saveNewSubcells(newSubcells,newCellContainingNodes,newCellContainingSubcell);
-            end
-            obj.memoryManager.freeSpareMemory();
-            
+            bCutMesh = obj.backgroundMesh;
+            Xiso     =  [-1 ,-1, -1;...
+                        1, -1, -1;...
+                        1, 1, -1;...
+                        -1, 1, -1;...
+                        -1, -1, 1;...
+                        1, -1, 1;...
+                        1, 1, 1;...
+                        -1, 1, 1;];
+            connecIso    = delaunay(Xiso);
+            nElemIso     = size(connecIso,1);
+            nnodeSubMesh = size(connecIso,2);
+            nelem        = bCutMesh.nelem;
+            bCutConnec   = bCutMesh.connec;
+            subConnec    = bCutConnec(:,connecIso');
+            subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
+            s.coord      = bCutMesh.coord;
+            s.connec     = subConnec;
+            obj.subMesh  = Mesh(s);
         end
         
         function computeCutPoints(obj)
@@ -127,8 +143,8 @@ classdef CutMeshProvisionalOthers < CutMesh
             conn      = obj.backgroundMesh.connec(icell,:);
             sS.cellConnec = conn;
             sS.cutPoints  = cutPoints;
-            obj.subcellsMesher.computeSubcells(sS);
-            subcells = obj.subcellsMesher.subcells;
+            obj.subMesh.computeSubcells(sS);
+            subcells = obj.subMesh.subcells;
         end
         
         function computeConnec(obj)
