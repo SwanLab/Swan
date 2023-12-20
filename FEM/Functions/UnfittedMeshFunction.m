@@ -144,7 +144,7 @@ classdef UnfittedMeshFunction < handle
             end
         end
 
-        function computeCutMeshFunctionQuadrilateral(obj)
+        function computeCutMeshFunctionQuadrilateral(obj) % May be merged with computeCutMeshFunctionStandard
             mesh             = obj.unfittedMesh.backgroundMesh;
             sls.fValues      = obj.levelSet;
             sls.mesh         = mesh;
