@@ -25,7 +25,7 @@ classdef HarmonicVectorProjectionExample < handle
     methods (Access = public)
 
         function obj = HarmonicVectorProjectionExample()
-            obj.init();
+             obj.init();
              obj.loadDataExperiment();
              obj.createMesh();
              obj.createBoundaryMesh();

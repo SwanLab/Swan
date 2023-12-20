@@ -111,9 +111,9 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             m2 = obj.cellLevelSetParams.widthV;               
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
-            p  = obj.cellLevelSetParams.pnorm;                 
-            p = obj.interpolateContinousFunctionToDisc(p); 
-            obj.cellLevelSetParams.pnorm = p;
+          %  p  = obj.cellLevelSetParams.pnorm;                 
+          %  p = obj.interpolateContinousFunctionToDisc(p); 
+          %  obj.cellLevelSetParams.pnorm = p;
         end
 
         function thresholdParameters(obj)
