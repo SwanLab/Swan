@@ -47,9 +47,9 @@ classdef TestingPhaseField < handle
 
         function createMesh(obj)
             %obj.createOneElementMesh();
-            %obj.createTwoElementMesh();
+         %   obj.createTwoElementMesh();
             obj.createArbitraryElementMesh(10);
-            %obj.createOpenHoleMesh();
+          %  obj.createOpenHoleMesh();
         end
 
         function createInitialPhaseField(obj)
@@ -60,6 +60,7 @@ classdef TestingPhaseField < handle
 
             phi = xFun.project('P1');
             phi.fValues([5 16]) = 1;
+        %    phi.fValues(4) = 1;
             obj.initialPhaseField = phi;
         end
 

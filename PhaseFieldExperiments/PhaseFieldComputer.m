@@ -2,7 +2,7 @@ classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
         tolErrU = 1e-12;
-        tolErrPhi = 1e-2;
+        tolErrPhi = 1e-9;
     end
 
     properties (Access = private)
@@ -51,36 +51,37 @@ classdef PhaseFieldComputer < handle
             phaseFieldNoDmg = zeros(1,niter);
 
             phaseFieldOld = obj.phaseField.fValues;
+            errorU = -1*ones(1000,niter);
 
             for i = 1:niter
                 
                 obj.createBoundaryConditions(i,niter);
-                errorU = 1;
                 Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
                 numIterU = 1;
+                errorU(numIterU,i)=1;
 
                 disp([newline '%%%%%%%%%% NEW STEP %%%%%%%%%%%'])
                 disp(['Step Number: ',num2str(i)])
-                while (errorU > obj.tolErrU) && (numIterU < 1000)
+                while (errorU(numIterU,i) > obj.tolErrU) && (numIterU < 1000)
                     obj.computeFEM();
                     %obj.fem.uFun.plot()
                     errorPhi = 1;
                     numIterP = 1;
-                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
+                    c(1) = obj.computeCostFunction();
+                    while (errorPhi > obj.tolErrPhi) && (numIterP < 20)
                         obj.solvePhaseFieldEquation();
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
 
                         obj.phaseField.fValues = max(phaseFieldOld, obj.phaseField.fValues);
-
-                        res = obj.computeResidual();
-                        errorPhi = norm(res);
+                        c(numIterP+1) = obj.computeCostFunction();
+                        errorPhi = abs(c(end)-c(end-1));
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
                         numIterP = numIterP + 1;
                     end
-                    errorU = norm(obj.fem.uFun.fValues - Uold);
-                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU)])
-                    Uold = obj.fem.uFun.fValues;
                     numIterU = numIterU + 1;
+                    errorU(numIterU,i) = norm(obj.fem.uFun.fValues - Uold);
+                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(numIterU,i))])
+                    Uold = obj.fem.uFun.fValues;
                 end
                 phaseFieldOld = obj.phaseField.fValues;
 
@@ -91,7 +92,7 @@ classdef PhaseFieldComputer < handle
                 Energy(1,i) = obj.computeTotalExternalWork();
                 Energy(2,i) = obj.computeTotalEnergy();
                 Energy(3,i) = obj.computeTotalDissipationLocal();
-                Energy(4,i) = obj.computeTotalDissipationNonLocal();
+                Energy(4,i) = obj.computeTotalRegularizationTerm();
 
                 Iterations(1,i) = numIterU;
                 Iterations(2,i) = numIterP;
@@ -212,7 +213,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy mass matrix
         function createInternalEnergyMassMatrix(obj)
-            DDenergyFun =  obj.createEnergyFunction('LINEAR',2); 
+            DDenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',2); 
 
             s.function = DDenergyFun;
             s.trial = P1Function.create(obj.mesh,1);
@@ -262,7 +263,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (RHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy force vector
         function createInternalEnergyForceVector(obj)
-            DenergyFun =  obj.createEnergyFunction('LINEAR',1); 
+            DenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',1); 
             test = P1Function.create(obj.mesh,1);
             
             s.mesh = obj.mesh;
@@ -316,39 +317,38 @@ classdef PhaseFieldComputer < handle
             obj.createInternalEnergyMassMatrix();
             obj.createDissipationMassMatrix();
             obj.createStiffnessMatrix();
-            obj.createInternalEnergyForceVector();
-            obj.createDissipationForceVector();
-            obj.createForceDerivativeVector();
+           
 
             LHS = obj.Mi + (obj.Constant/obj.l0)*obj.Md + (obj.Constant*obj.l0)*obj.K;
             RHS = obj.computeResidual();
-            obj.deltaPhi = LHS\RHS;
+            %norm(RHS)
+            %norm(LHS,'fro')
+            %obj.deltaPhi = -LHS\RHS;
+            tau = 1e3;
+            obj.deltaPhi = -tau*RHS;
+          %  norm(obj.deltaPhi)
         end
 
         function res = computeResidual(obj)
-            res = -(obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
+            obj.createInternalEnergyForceVector();
+            obj.createDissipationForceVector();
+            obj.createForceDerivativeVector();            
+            res = (obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
         end
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalEnergy(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
-
-            e = obj.fem.uFun.computeSymmetricGradient(quad);
-            e.applyVoigtNotation();
-
-            obj.materialPhaseField.computeMatIso(quad);
-            C = obj.materialPhaseField.material.C;
+            e = obj.createAbstractDerivativeEnergyFunction('QUADRATICMASS',0);
 
             q.mesh = obj.mesh;
-            q.quadType = 'QUADRATIC';
-            q.type = 'InternalEnergy';
+            q.quadType = 'QUADRATICMASS';
+            q.type = 'Function';
             int = Integrator.create(q);
-            totVal = int.compute(e,C);
+            totVal = int.compute(e);
         end
 
         function totVal = computeTotalDissipationLocal(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
+            quad.computeQuadrature('QUADRATICMASS');
 
             phiV = obj.phaseField.evaluate(quad.posgp);
             aValues = obj.dissipationInterpolation.computeAlphaProp(phiV);
@@ -359,13 +359,13 @@ classdef PhaseFieldComputer < handle
             alpha = FGaussDiscontinuousFunction(s);
 
             q.mesh = obj.mesh;
-            q.quadType = 'QUADRATIC';
+            q.quadType = 'QUADRATICMASS';
             q.type = 'Function';
             int = Integrator.create(q);
             totVal = (obj.Constant/obj.l0)*int.compute(alpha);
         end
 
-        function totVal = computeTotalDissipationNonLocal(obj)
+        function totVal = computeTotalRegularizationTerm(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('CONSTANT');
 
@@ -426,7 +426,7 @@ classdef PhaseFieldComputer < handle
             energyVal = 0.5*energyVal;
         end
 
-        function energyFun = createEnergyFunction(obj,quadOrder,deriv)
+        function energyFun = createAbstractDerivativeEnergyFunction(obj,quadOrder,deriv)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
 
@@ -445,6 +445,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             energyFun = FGaussDiscontinuousFunction(s);
         end
+        
 
         function totVal = computeIntTotalForce(obj)
             stress = obj.fem.stressFun;
@@ -456,6 +457,14 @@ classdef PhaseFieldComputer < handle
             Vol = obj.mesh.computeVolume();
 
             totVal = int.compute(stress)/Vol;
+        end
+
+        function e = computeCostFunction(obj)
+            eW = obj.computeTotalExternalWork();
+            eT = obj.computeTotalEnergy();
+            eD = obj.computeTotalDissipationLocal();
+            eR = obj.computeTotalRegularizationTerm();
+            e = eW+eT+eD+eR;
         end
     end
 
