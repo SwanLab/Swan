@@ -42,14 +42,7 @@ classdef UnfittedFunction < L2Function
         end
 
         function computeUnfittedMeshFunction(obj)
-            fType = obj.fun.fType;
-            switch fType
-                case 'L2' % Provisional
-                    f = obj.fun.project('P1');
-                otherwise
-                    f = obj.fun;
-            end
-            uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(f);
+            uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(obj.fun);
             obj.unfittedMeshFunction = uMeshFun;
         end
 

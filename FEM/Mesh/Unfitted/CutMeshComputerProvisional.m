@@ -33,12 +33,8 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();
             obj.coord = obj.cutCoordComputer.allValues;
-           % obj.computeCutPointsInElemComputer();
-           % obj.computeConnec();
             obj.computeConnecNew();
             obj.computeMesh();
-           % obj.computeBoundaryXCoordsIso();
-          %  obj.computeBoundaryCellContainingSubCell();
             obj.computeBoundaryMesh();
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
@@ -89,16 +85,6 @@ classdef CutMeshComputerProvisional < CutMesh
             s.levelSet = obj.levelSet;
             obj.subCellCases = SubCellsCasesComputer(s);
             obj.subCellCases.compute();
-%             
-%            switch numel(subCells.caseInfo)
-%                case 1
-%                     caseInfo = subCells.caseInfo{1};
-%                 case 2
-%                     caseInfo = subCells.caseInfo{2};
-%             end
-%             
-%             obj.subCellCases      = caseInfo.subCellCases;
-%             obj.isSubCellInterior = caseInfo.isSubCellsInterior;
         end
      
         function computeCutCoordinateComputer(obj)
@@ -161,7 +147,7 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cellContainingSubcell = subCell.cellContainingSubcell;
         end
 
-        function cE = compuTeCutPointInElem(obj,isEdgeCutInElemCase,t)
+        function cE = computeCutPointInElem(obj,isEdgeCutInElemCase,t)
                 e = obj.backgroundMesh.edges;
             
                 s.isEdgeCutInElem = isEdgeCutInElemCase;
@@ -194,7 +180,7 @@ classdef CutMeshComputerProvisional < CutMesh
                 t = nCutEdges == nEdgesCutCase(icases);
                 isEdgeCutInElemCase = isEdgeCutInElem(:,t);
                          
-                cE = obj.compuTeCutPointInElem(isEdgeCutInElemCase,t);
+                cE = obj.computeCutPointInElem(isEdgeCutInElemCase,t);
 
                 tP{icases} = t;
                 

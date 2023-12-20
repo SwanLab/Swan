@@ -128,7 +128,6 @@ classdef UnfittedMesh < handle
         function uMeshFun = obtainFunctionAtUnfittedMesh(obj,f)
             sUmf.uMesh    = obj;
             sUmf.levelSet = obj.levelSet;
-            sUmf.cutCells = obj.cutCells;
             uMeshFun      = UnfittedMeshFunction(sUmf);
             uMeshFun.compute(f);
         end

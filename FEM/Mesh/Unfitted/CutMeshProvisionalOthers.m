@@ -17,6 +17,7 @@ classdef CutMeshProvisionalOthers < CutMesh
         end
         
         function compute(obj)
+            obj.computeLocalSubMeshHexahedra();
             obj.computeSubcells();
             obj.classifyCells();
             obj.computeCutSubMesh();
@@ -34,9 +35,8 @@ classdef CutMeshProvisionalOthers < CutMesh
     end
   
     methods (Access = private)
-        
-        function obj = computeSubcells(obj)
-            bCutMesh = obj.backgroundMesh;
+
+        function computeLocalSubMeshHexahedra(obj)
             Xiso     =  [-1 ,-1, -1;...
                         1, -1, -1;...
                         1, 1, -1;...
@@ -45,19 +45,24 @@ classdef CutMeshProvisionalOthers < CutMesh
                         1, -1, 1;...
                         1, 1, 1;...
                         -1, 1, 1;];
-            connecIso    = delaunay(Xiso);
-            nElemIso     = size(connecIso,1);
-            nnodeSubMesh = size(connecIso,2);
+            connecIso     = delaunay(Xiso);
+            s.coord       = Xiso;
+            s.connec      = connecIso;
+            obj.localMesh = Mesh(s);
+        end
+
+        function obj = computeSubcells(obj)
+            bCutMesh     = obj.backgroundMesh;
             nelem        = bCutMesh.nelem;
             bCutConnec   = bCutMesh.connec;
+            connecIso    = obj.localMesh.connec;
+            nElemIso     = size(connecIso,1);
+            nnodeSubMesh = size(connecIso,2);
             subConnec    = bCutConnec(:,connecIso');
             subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
             s.coord      = bCutMesh.coord;
             s.connec     = subConnec;
             obj.subMesh  = Mesh(s);
-            ss.coord      = Xiso;
-            ss.connec     = connecIso;
-            obj.localMesh = Mesh(ss);
         end
 
         function classifyCells(obj)

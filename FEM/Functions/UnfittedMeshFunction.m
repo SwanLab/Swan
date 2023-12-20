@@ -3,7 +3,6 @@ classdef UnfittedMeshFunction < handle
     properties (Access = private)
         unfittedMesh
         levelSet
-        cutCells
     end
 
     properties (Access = private)
@@ -26,7 +25,7 @@ classdef UnfittedMeshFunction < handle
         end
 
         function compute(obj,f)
-            obj.backgroundFunction = f.project('P1');
+            obj.computeBackgroundFunction(f);
             obj.computeInnerMeshFunction();
             obj.computeInnerCutMeshFunction();
             obj.computeBoundaryCutMeshFunction();
@@ -45,11 +44,13 @@ classdef UnfittedMeshFunction < handle
                         a1    = trisurf(iMesh.connec,x1,y1,z1);
                     end
                     hold on
-                    iCMesh = obj.unfittedMesh.innerCutMesh.mesh;
-                    x2     = iCMesh.coord(:,1);
-                    y2     = iCMesh.coord(:,2);
-                    z2     = obj.innerCutMeshFunction.fValues;
-                    a2 = trisurf(iCMesh.connec,x2,y2,z2);
+                    if ~isempty(obj.unfittedMesh.innerCutMesh)
+                        iCMesh = obj.unfittedMesh.innerCutMesh.mesh;
+                        x2     = iCMesh.coord(:,1);
+                        y2     = iCMesh.coord(:,2);
+                        z2     = obj.innerCutMeshFunction.fValues;
+                        a2 = trisurf(iCMesh.connec,x2,y2,z2);
+                    end
                     hold off
                     view(0,90)
                     shading interp
@@ -66,9 +67,6 @@ classdef UnfittedMeshFunction < handle
         function init(obj,cParams)
             obj.unfittedMesh = cParams.uMesh;
             obj.levelSet     = cParams.levelSet;
-            if isfield(cParams,'cutCells')
-                obj.cutCells = cParams.cutCells;
-            end
         end
 
         function computeSubMeshQuadrature(obj)
@@ -76,6 +74,15 @@ classdef UnfittedMeshFunction < handle
             q    = Quadrature.set(mesh.type);
             q.computeQuadrature('CONSTANT');
             obj.subMeshQuad = q;
+        end
+
+        function computeBackgroundFunction(obj,f)
+            fType = f.fType;
+            switch fType
+                case 'L2' % Provisional
+                    f = f.project('P1');
+            end
+            obj.backgroundFunction = f;
         end
 
         function computeInnerMeshFunction(obj)
@@ -118,8 +125,8 @@ classdef UnfittedMeshFunction < handle
         end
 
         function computeUnfittedBoundaryMeshFunction(obj)
-            uBoundMesh   = obj.unfittedMesh.unfittedBoundaryMesh;
-            fP1          = obj.backgroundFunction;
+            uBoundMesh = obj.unfittedMesh.unfittedBoundaryMesh;
+            fP1        = obj.backgroundFunction;
             if ~isempty(uBoundMesh.meshes)
                 activeMeshes = uBoundMesh.getActiveMesh();
                 for i = 1:length(activeMeshes)
