@@ -1,18 +1,11 @@
 classdef CutMeshProvisionalOthers < CutMesh
     
-    properties (Access = public)
-       type
-    end
-    
     properties (Access = private)
         localMesh
         subMesh
         cutSubMesh
         fullSubCells
         cutSubCells
-        cutPointsCalculator
-        memoryManager
-        nCutCells
         coord
         connec
     end
@@ -21,7 +14,6 @@ classdef CutMeshProvisionalOthers < CutMesh
         
         function obj = CutMeshProvisionalOthers(cParams)
             obj.init(cParams);
-            obj.nCutCells = length(obj.cutCells);
         end
         
         function compute(obj)

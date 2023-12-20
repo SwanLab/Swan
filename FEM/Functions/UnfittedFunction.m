@@ -9,10 +9,15 @@ classdef UnfittedFunction < L2Function
         fun
     end
 
+    properties (Access = private)
+        unfittedMeshFunction
+    end
+
     methods (Access = public)
 
         function obj = UnfittedFunction(cParams)
             obj.init(cParams);
+            obj.computeUnfittedMeshFunction();
         end
 
         function fxV = evaluate(obj,xV)
@@ -20,38 +25,10 @@ classdef UnfittedFunction < L2Function
         end
 
         function fxV = evaluateCutElements(obj,q)
-            funClass = obj.fun.fType;
-            switch funClass
-                case 'L2'
-                    f = obj.fun.project('P1');
-                case 'FE'
-                    f = obj.fun;
-            end
-
-            % Provisional solution:------------------------
-            c            = obj.unfittedMesh.backgroundMesh.coord;
-            diffc        = diff(c);
-            c(:,all(diffc == 0))=[];
-            meshNew      = obj.unfittedMesh.innerCutMesh.mesh;
-            cNew         = meshNew.coord;
-            cNew(:,all(diffc == 0))=[];
-            if size(c,2) == 1
-                newFValues = interp1(c,f.fValues,cNew);
-            else
-                F          = scatteredInterpolant(c,f.fValues);
-                newFValues = F(cNew);
-            end
-            s.feFunType  = class(f);
-            s.mesh       = meshNew;
-            s.ndimf      = obj.ndimf;
-            fNew         = FeFunction.createEmpty(s);
-            fNew.fValues = newFValues; % -------------------
-
-            % PENDING - The solution that should be:-----------
-            fNew2        = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(f);
-
-            xV  = q.posgp;
-            fxV = fNew.evaluate(xV);
+            uMeshFun = obj.unfittedMeshFunction;
+            fNew     = uMeshFun.innerCutMeshFunction;
+            xV       = q.posgp;
+            fxV      = fNew.evaluate(xV);
         end
 
     end
@@ -62,6 +39,18 @@ classdef UnfittedFunction < L2Function
             obj.unfittedMesh   = cParams.uMesh;
             obj.fun            = cParams.fun;
             obj.ndimf          = cParams.fun.ndimf;
+        end
+
+        function computeUnfittedMeshFunction(obj)
+            fType = obj.fun.fType;
+            switch fType
+                case 'L2' % Provisional
+                    f = obj.fun.project('P1');
+                otherwise
+                    f = obj.fun;
+            end
+            uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(f);
+            obj.unfittedMeshFunction = uMeshFun;
         end
 
         function fxV = evaluateInnerElements(obj,xV)

@@ -8,7 +8,6 @@ classdef UnfittedMeshFunction < handle
 
     properties (Access = private)
         subMeshQuad
-        funP1
         fCutValues
     end
 
@@ -17,6 +16,7 @@ classdef UnfittedMeshFunction < handle
         innerCutMeshFunction
         boundaryCutMeshFunction
         unfittedBoundaryMeshFunction
+        backgroundFunction
     end
 
     methods (Access = public)
@@ -26,7 +26,7 @@ classdef UnfittedMeshFunction < handle
         end
 
         function compute(obj,f)
-            obj.funP1 = f.project('P1');
+            obj.backgroundFunction = f.project('P1');
             obj.computeInnerMeshFunction();
             obj.computeInnerCutMeshFunction();
             obj.computeBoundaryCutMeshFunction();
@@ -80,7 +80,7 @@ classdef UnfittedMeshFunction < handle
 
         function computeInnerMeshFunction(obj)
             if ~isempty(obj.unfittedMesh.innerMesh)
-                fP1        = obj.funP1;
+                fP1        = obj.backgroundFunction;
                 iMesh      = obj.unfittedMesh.innerMesh;
                 connecLoc  = iMesh.mesh.connec;
                 connecGlob = iMesh.globalConnec;
@@ -107,7 +107,7 @@ classdef UnfittedMeshFunction < handle
             if ~isempty(obj.unfittedMesh.boundaryCutMesh)
                 bCutMesh    = obj.unfittedMesh.boundaryCutMesh.mesh;
                 ls          = obj.levelSet;
-                f           = obj.funP1.fValues;
+                f           = obj.backgroundFunction.fValues;
                 innerValues = f(ls==0);
                 cutValues   = obj.fCutValues;
                 s.mesh      = bCutMesh;
@@ -119,7 +119,7 @@ classdef UnfittedMeshFunction < handle
 
         function computeUnfittedBoundaryMeshFunction(obj)
             uBoundMesh   = obj.unfittedMesh.unfittedBoundaryMesh;
-            fP1          = obj.funP1;
+            fP1          = obj.backgroundFunction;
             if ~isempty(uBoundMesh.meshes)
                 activeMeshes = uBoundMesh.getActiveMesh();
                 for i = 1:length(activeMeshes)
@@ -146,7 +146,7 @@ classdef UnfittedMeshFunction < handle
             subCells         = unique(iCMesh.cellContainingSubcell);
             innerValues      = obj.computeInnerValuesFromCutMesh(subCells);
             lsSubMesh        = obj.computeSubMeshValues(fls);
-            subMesh          = obj.computeSubMeshValues(obj.funP1);
+            subMesh          = obj.computeSubMeshValues(obj.backgroundFunction);
             lsSubCutMesh     = lsSubMesh.values(subCells);
             subCutMeshValues = subMesh.values(subCells);
             subCutMeshValues = subCutMeshValues(obj.isInterior(lsSubCutMesh));
@@ -171,7 +171,7 @@ classdef UnfittedMeshFunction < handle
             innerValues      = obj.computeInnerValuesFromCutMesh(subCells);
             c.mesh           = obj.unfittedMesh.backgroundMesh;
             c.levelSet       = obj.levelSet;
-            c.fValues        = obj.funP1.fValues;
+            c.fValues        = obj.backgroundFunction.fValues;
             cutValues        = obj.computeCutValues(c);
             fValues          = [innerValues;cutValues];
             ss.mesh          = iCMesh.mesh;
@@ -182,7 +182,7 @@ classdef UnfittedMeshFunction < handle
         end
 
         function innerValues = computeInnerValuesFromCutMesh(obj,subCells)
-            fP1         = obj.funP1;
+            fP1         = obj.backgroundFunction;
             mesh        = obj.unfittedMesh.backgroundMesh;
             nodes       = unique(mesh.connec(subCells,:));
             ls          = obj.levelSet(nodes);
