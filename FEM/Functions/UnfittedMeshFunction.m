@@ -97,8 +97,6 @@ classdef UnfittedMeshFunction < handle
                 switch obj.unfittedMesh.backgroundMesh.type
                     case 'QUAD'
                         obj.computeCutMeshFunctionQuadrilateral();
-                    case 'HEXAHEDRA'
-                        obj.computeCutMeshFunctionStandard();
                     otherwise
                         obj.computeCutMeshFunctionStandard();
                 end
@@ -163,42 +161,6 @@ classdef UnfittedMeshFunction < handle
             ss.mesh          = iCMesh.mesh;
             ss.fValues       = fValues;
             fP1InnerCut      = P1Function(ss);
-            obj.innerCutMeshFunction = fP1InnerCut;
-            obj.fCutValues           = cutValues;
-        end
-
-        function computeCutMeshFunctionHexahedra(obj)
-            cutPointsCalculator   = CutPointsCalculator();
-            s.backgroundCutCells  = obj.cutCells;
-            s.backgroundMesh      = obj.unfittedMesh.backgroundMesh;
-            s.levelSet_background = obj.levelSet;
-            cutPointsCalculator.init(s);
-            cutPointsCalculator.computeCutPoints();
-            connec    = obj.unfittedMesh.backgroundMesh.connec;
-            fValues   = [];
-            cutValues = [];
-            coorGlob  = [];
-            cutCoord  = [];
-            for i = 1:length(obj.cutCells)
-                nodes     = connec(obj.cutCells(i),:)';
-                isActive  = obj.isInterior(obj.levelSet(nodes));
-                dofs      = nodes(isActive);
-                xV        = cutPointsCalculator.getThisCellCutPoints(i).ISO';
-                fxV       = obj.funP1.evaluate(xV);
-                fxV       = fxV(:,:,obj.cutCells(i))';
-                xxV       = cutPointsCalculator.getThisCellCutPoints(i).GLOBAL;
-                fValues   = [fValues;obj.funP1.fValues(dofs,:);fxV];
-                cutValues = [cutValues;fxV];
-                coorGlob  = [coorGlob;obj.unfittedMesh.backgroundMesh.coord(dofs,:);xxV];
-                cutCoord  = [cutCoord;xxV];
-            end
-            [~,v]       = unique(coorGlob,'stable','rows');
-            fValues     = fValues(v);
-            [~,v]       = unique(cutCoord,'stable','rows');
-            cutValues   = cutValues(v);
-            ss.mesh     = obj.unfittedMesh.innerCutMesh.mesh;
-            ss.fValues  = fValues;
-            fP1InnerCut = P1Function(ss);
             obj.innerCutMeshFunction = fP1InnerCut;
             obj.fCutValues           = cutValues;
         end
