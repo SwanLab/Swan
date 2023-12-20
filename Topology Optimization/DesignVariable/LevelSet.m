@@ -1,7 +1,6 @@
 classdef LevelSet < DesignVariable
     
     properties (Access = private)
-        creatorSettings
         unfittedMesh
     end
     
@@ -10,9 +9,6 @@ classdef LevelSet < DesignVariable
         function obj = LevelSet(cParams)
             obj.nVariables = 1;
             obj.init(cParams);
-            obj.creatorSettings      = cParams.creatorSettings;
-            obj.creatorSettings.type = cParams.initialCase;
-            obj.createValue();
             obj.createUnfittedMesh();
         end
 
@@ -56,17 +52,6 @@ classdef LevelSet < DesignVariable
     end
     
     methods (Access = private)
-        
-        function createValue(obj)
-            s          = obj.creatorSettings;
-            s.ndim     = obj.mesh.ndim;
-            s.coord    = obj.mesh.coord;
-            lsCreator  = LevelSetCreator.create(s);
-            lsValue    = lsCreator.getValue();
-            ss.fValues = lsValue;
-            ss.mesh    = obj.mesh;
-            obj.fun    = P1Function(ss);
-        end
 
         function createUnfittedMesh(obj)
             s.backgroundMesh = obj.mesh;

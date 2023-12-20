@@ -125,6 +125,18 @@ classdef TopOpt_Problem < handle
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             s.scalarProductSettings.mesh    = obj.mesh;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = obj.mesh.ndim;
+            sLs.coord  = obj.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            ss.fValues = lsCreator.getValue();
+            ss.mesh    = obj.mesh;
+            s.levelSetFunction = P1Function(ss);
+
             obj.designVariable = DesignVariable.create(s);
         end
         
