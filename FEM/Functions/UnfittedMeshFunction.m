@@ -98,7 +98,7 @@ classdef UnfittedMeshFunction < handle
                     case 'QUAD'
                         obj.computeCutMeshFunctionQuadrilateral();
                     case 'HEXAHEDRA'
-                        obj.computeCutMeshFunctionHexahedra();
+                        obj.computeCutMeshFunctionStandard();
                     otherwise
                         obj.computeCutMeshFunctionStandard();
                 end
