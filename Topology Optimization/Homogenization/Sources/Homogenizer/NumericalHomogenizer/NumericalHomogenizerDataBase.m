@@ -57,11 +57,22 @@ classdef NumericalHomogenizerDataBase < handle
             meshT = Mesh(cParams);
             
             s.mesh = meshT;
-            
+
             scalarPr.epsilon = 1e-3;
             scalarPr.mesh = meshT;
             s.scalarProductSettings = scalarPr;
-            
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = s.mesh.ndim;
+            sLs.coord  = s.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            ss.fValues = lsCreator.getValue();
+            ss.mesh    = s.mesh;
+            s.levelSetFunction = P1Function(ss);
+
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
             d.femSettings.scale = 'MICRO';

@@ -4,7 +4,7 @@ classdef DesignVariable < handle
         mesh
         type
         nVariables
-        value
+        fun
     end
     
     properties (Access = public)
@@ -46,14 +46,16 @@ classdef DesignVariable < handle
         end
         
         function update(obj,value)
-            obj.value = value;
             if ~isempty(obj.isFixed)
-               obj.value(obj.isFixed.nodes) = obj.isFixed.values;
+                value(obj.isFixed.nodes) = obj.isFixed.values;
             end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            obj.fun   = P1Function(s);
         end
         
         function updateOld(obj)
-            obj.valueOld = obj.value;
+            obj.valueOld = obj.fun.fValues;
             obj.alphaOld = obj.alpha;
         end
         
@@ -62,7 +64,7 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           x  = obj.value;
+           x  = obj.fun.fValues;
            x0 = obj.valueOld;
            incX  = x - x0;
            nIncX = obj.scalarProduct.computeSP_M(incX,incX);
@@ -91,15 +93,19 @@ classdef DesignVariable < handle
     methods (Access = private)
 
         function initValue(obj,cParams)
-            if isfield(cParams,'value')
-                if isempty(cParams.value)
-                 obj.value = ones(size(obj.mesh.coord,1),1);
-                else
-                    obj.value = cParams.value;
-                end
-             else
-                obj.value = ones(size(obj.mesh.coord,1),1);
+            phiFun      = cParams.levelSetFunction;
+            s.feFunType = class(phiFun);
+            s.mesh      = obj.mesh;
+            s.ndimf     = 1;
+            obj.fun     = FeFunction.createEmpty(s);
+            phi         = phiFun.fValues;
+            switch obj.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
             end
+            obj.fun.fValues = value;
         end
         
         function createScalarProduct(obj,cParams)
@@ -109,8 +115,5 @@ classdef DesignVariable < handle
             obj.scalarProduct = ScalarProduct(s);
         end
         
-    end
-
-    
+    end 
 end
-

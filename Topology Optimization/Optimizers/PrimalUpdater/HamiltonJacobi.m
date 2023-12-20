@@ -49,13 +49,19 @@ classdef HamiltonJacobi < handle
         end
 
         function computeVelocity(obj,g)
-            V            = -obj.filter.regularize(g);
+            s.mesh       = obj.phi.mesh;
+            s.fValues    = g;
+            ss.fun       = P1Function(s);
+            ss.uMesh     = obj.phi.getUnfittedMesh();
+            unfFun       = UnfittedBoundaryFunction(ss);
+            gFilter      = obj.filter.compute(unfFun,'QUADRATICMASS');
+            V            = -gFilter.fValues;
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
         end
 
         function x = computeNewLevelSet(obj)
-            x = obj.phi.value;
+            x = obj.phi.fun.fValues;
             t = obj.tau;
             x = x - t*obj.velocity;
             x = obj.normalizeFunction(x);
@@ -68,12 +74,15 @@ classdef HamiltonJacobi < handle
         end
 
         function setupFilter(obj,e,designVar)
-            s                   = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            set                 = SettingsFilter('paramsFilter_PDE_Boundary.json');
+            s                   = set.femSettings;
             s.mesh              = designVar.mesh;
             s.designVarType     = designVar.type;
-            s.quadratureOrder   = 'LINEAR';
-            s.femSettings.scale = 'MACRO';
+            s.scale             = 'MACRO';
+            s.filterType        = set.filterType;
+            s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
+            s.trial             = P1Function.create(s.mesh,1);
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);
         end

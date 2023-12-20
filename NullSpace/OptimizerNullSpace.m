@@ -80,7 +80,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualVariable      = cParams.dualVariable;
             obj.incrementalScheme = cParams.incrementalScheme;
             obj.nConstr           = cParams.constraint.nSF;
-            obj.nX                = length(obj.designVariable.value);
+            obj.nX                = obj.designVariable.fun.nDofs;
             obj.maxIter           = cParams.maxIter;
             obj.hasConverged      = false;
             obj.nIter             = 0;
@@ -164,7 +164,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateNullSpaceCoefficient();
             obj.updateRangeSpaceCoefficient();
             obj.updateMaximumVolumeRemoved();
-            x0 = obj.designVariable.value;
+            x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
             obj.saveOldValues(x0);
             obj.calculateInitialStep();
@@ -188,7 +188,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function calculateInitialStep(obj)
-            x  = obj.designVariable.value;
+            x  = obj.designVariable.fun.fValues;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
                 factor = 1;
@@ -200,7 +200,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x       = obj.designVariable.value;
+            x       = obj.designVariable.fun.fValues;
             g       = obj.meritGradient;
             x       = obj.primalUpdater.update(g,x);
         end

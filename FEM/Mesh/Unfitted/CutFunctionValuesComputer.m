@@ -1,8 +1,8 @@
-classdef CutCoordinatesComputer < handle
+classdef CutFunctionValuesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-      coord
-      xCutPoints
+      allValues
+      cutValues
     end
     
     properties (Access = private)
@@ -11,13 +11,13 @@ classdef CutCoordinatesComputer < handle
     end
     
     properties (Access = private)
-        backgroundCoord
+        fValues
         xCutEdgePoint
     end
     
     methods (Access = public)
         
-        function obj = CutCoordinatesComputer(cParams)
+        function obj = CutFunctionValuesComputer(cParams)
             obj.init(cParams)
         end
         
@@ -33,7 +33,7 @@ classdef CutCoordinatesComputer < handle
             obj.isEdgeCut       = cParams.isEdgeCut;
             obj.nodesInEdges    = cParams.nodesInEdges;
             obj.xCutEdgePoint   = cParams.xCutEdgePoint;
-            obj.backgroundCoord = cParams.coord;
+            obj.fValues         = cParams.fValues;
         end
         
         function computeCutPoints(obj)
@@ -42,14 +42,14 @@ classdef CutCoordinatesComputer < handle
             shapeB = shapes(:,2);
             node1 = obj.nodesInEdges(obj.isEdgeCut,1);
             node2 = obj.nodesInEdges(obj.isEdgeCut,2);
-            xA  = obj.backgroundCoord(node1,:);
-            xB  = obj.backgroundCoord(node2,:);
-            xCut = zeros(size(xA));
-            nnode = size(xA,2);
+            fA  = obj.fValues(node1,:);
+            fB  = obj.fValues(node2,:);
+            fCut = zeros(size(fA));
+            nnode = size(fA,2);
             for idim = 1:nnode
-                xCut(:,idim) = xA(:,idim).*shapeA + xB(:,idim).*shapeB;
+                fCut(:,idim) = fA(:,idim).*shapeA + fB(:,idim).*shapeB;
             end
-            obj.xCutPoints = xCut;
+            obj.cutValues = fCut;
         end
         
         function shapes = computeShapes(obj)
@@ -63,7 +63,7 @@ classdef CutCoordinatesComputer < handle
         end
         
         function computeCutMeshCoordinates(obj)
-            obj.coord = [obj.backgroundCoord;obj.xCutPoints];
+            obj.allValues = [obj.fValues;obj.cutValues];
         end
         
     end

@@ -47,7 +47,7 @@ classdef SLERP < handle
         end
 
         function computeTheta(obj,g)
-            pN   = obj.normalizeFunction(obj.phi.value);
+            pN   = obj.normalizeFunction(obj.phi.fun.fValues);
             gN   = obj.normalizeFunction(g);
             phiG = obj.scalar_product.computeSP(pN,gN);
             obj.theta = max(acos(phiG),1e-14);
@@ -56,7 +56,7 @@ classdef SLERP < handle
         function p = computeNewLevelSet(obj,g)
             k  = obj.tau;
             t  = obj.theta;
-            pN = obj.normalizeFunction(obj.phi.value);
+            pN = obj.normalizeFunction(obj.phi.fun.fValues);
             gN = obj.normalizeFunction(g);
             a  = sin((1-k)*t)*pN;
             b  = sin(k*t)*gN;
