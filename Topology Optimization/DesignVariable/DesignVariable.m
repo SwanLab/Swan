@@ -93,18 +93,19 @@ classdef DesignVariable < handle
     methods (Access = private)
 
         function initValue(obj,cParams)
-            if isfield(cParams,'value')
-                if isempty(cParams.value)
-                    value = ones(size(obj.mesh.coord,1),1);
-                else
-                    value = cParams.value;
-                end
-            else
-                value = ones(size(obj.mesh.coord,1),1);
+            phiFun      = cParams.levelSetFunction;
+            s.feFunType = class(phiFun);
+            s.mesh      = obj.mesh;
+            s.ndimf     = 1;
+            obj.fun     = FeFunction.createEmpty(s);
+            phi         = phiFun.fValues;
+            switch obj.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
             end
-            s.mesh    = obj.mesh;
-            s.fValues = value;
-            obj.fun   = P1Function(s);
+            obj.fun.fValues = value;
         end
         
         function createScalarProduct(obj,cParams)

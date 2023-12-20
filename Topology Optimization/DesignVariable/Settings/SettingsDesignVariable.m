@@ -5,7 +5,7 @@ classdef SettingsDesignVariable < AbstractSettings
     end
     
     properties (Access = public)
-        value
+        levelSetFunction
         mesh
         type
         initialCase
