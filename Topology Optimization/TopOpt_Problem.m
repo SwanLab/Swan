@@ -133,9 +133,16 @@ classdef TopOpt_Problem < handle
             sLs.coord  = obj.mesh.coord;
             sLs.type   = s.initialCase;
             lsCreator  = LevelSetCreator.create(sLs);
-            ss.fValues = lsCreator.getValue();
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
             ss.mesh    = obj.mesh;
-            s.levelSetFunction = P1Function(ss);
+            s.fun      = P1Function(ss);
 
             obj.designVariable = DesignVariable.create(s);
         end

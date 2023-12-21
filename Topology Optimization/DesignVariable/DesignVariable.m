@@ -77,12 +77,12 @@ classdef DesignVariable < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type    = cParams.type;
-            obj.mesh    = cParams.mesh;
+            obj.type = cParams.type;
+            obj.mesh = cParams.mesh;
+            obj.fun  = cParams.fun;
             if isfield(cParams,'isFixed')            
               obj.isFixed = cParams.isFixed;
             end
-            obj.initValue(cParams);
             if isprop(cParams,'scalarProductSettings')  
                 obj.createScalarProduct(cParams);
             end
@@ -91,22 +91,6 @@ classdef DesignVariable < handle
     end
     
     methods (Access = private)
-
-        function initValue(obj,cParams)
-            phiFun      = cParams.levelSetFunction;
-            s.feFunType = class(phiFun);
-            s.mesh      = obj.mesh;
-            s.ndimf     = 1;
-            obj.fun     = FeFunction.createEmpty(s);
-            phi         = phiFun.fValues;
-            switch obj.type
-                case 'Density'
-                    value = 1 - heaviside(phi);
-                case 'LevelSet'
-                    value = phi;
-            end
-            obj.fun.fValues = value;
-        end
         
         function createScalarProduct(obj,cParams)
             s = cParams.scalarProductSettings;
