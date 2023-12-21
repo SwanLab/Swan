@@ -12,10 +12,6 @@ classdef DesignVariable < handle
         rho
     end
     
-    properties (GetAccess = public, SetAccess = private)
-        scalarProduct
-    end
-    
     properties (Access = private)
         valueOld
         alphaOld
@@ -64,12 +60,17 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           x  = obj.fun.fValues;
-           x0 = obj.valueOld;
-           incX  = x - x0;
-           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
-           nX0   = obj.scalarProduct.computeSP_M(x0,x0);
-           norm  = nIncX/nX0;
+           x           = obj.fun.fValues;
+           x0          = obj.valueOld;
+           siF.fValues = x-x0;
+           siF.mesh    = obj.mesh;
+           incFun      = P1Function(siF);
+           s0.fValues  = x0;
+           s0.mesh     = obj.mesh;
+           oldFun      = P1Function(s0);
+           nIncX       = incFun.computeScalarProduct();
+           nX0         = oldFun.computeScalarProduct();
+           norm        = nIncX/nX0;
         end
         
     end
@@ -83,21 +84,8 @@ classdef DesignVariable < handle
             if isfield(cParams,'isFixed')            
               obj.isFixed = cParams.isFixed;
             end
-            if isprop(cParams,'scalarProductSettings')  
-                obj.createScalarProduct(cParams);
-            end
         end
         
     end
-    
-    methods (Access = private)
-        
-        function createScalarProduct(obj,cParams)
-            s = cParams.scalarProductSettings;
-            s.nVariables = obj.nVariables;
-            s.femSettings.mesh = obj.mesh;
-            obj.scalarProduct = ScalarProduct(s);
-        end
-        
-    end 
+
 end
