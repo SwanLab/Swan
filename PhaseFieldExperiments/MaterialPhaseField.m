@@ -45,7 +45,7 @@ classdef MaterialPhaseField < handle
             obj.E = cParams.E;
             obj.nu = cParams.nu;
             obj.Gc = cParams.Gc;
-            obj.fc = cParams.fc;
+            %obj.fc = cParams.fc;
         end
         
         function computeMatIsoParams(obj,quad)
