@@ -69,8 +69,8 @@ classdef DesignVariable < handle
            s0.fValues  = x0;
            s0.mesh     = obj.mesh;
            oldFun      = P1Function(s0);
-           nIncX       = incFun.computeScalarProduct(order);
-           nX0         = oldFun.computeScalarProduct(order);
+           nIncX       = incFun.computeScalarProduct(incFun,order);
+           nX0         = oldFun.computeScalarProduct(oldFun,order);
            norm        = nIncX/nX0;
         end
         

@@ -47,9 +47,9 @@ classdef SLERP < handle
         end
 
         function computeTheta(obj,g)
-            pN   = obj.normalizeFunction(obj.phi.fun.fValues);
-            gN   = obj.normalizeFunction(g);
-            phiG = obj.scalar_product.computeSP(pN,gN);
+            pN        = obj.normalizeFunction(obj.phi.fun.fValues);
+            gN        = obj.normalizeFunction(g);
+            phiG      = obj.computeCompleteScalarProduct(pN,gN);
             obj.theta = max(acos(phiG),1e-14);
         end
 
@@ -65,12 +65,12 @@ classdef SLERP < handle
         end
 
         function x = normalizeFunction(obj,x)
-            norm  = obj.computeCompleteScalarProduct(x);
+            norm  = obj.computeCompleteScalarProduct(x,x);
             xNorm = sqrt(norm);
             x     = x/xNorm;
         end
 
-        function sp = computeCompleteScalarProduct(obj,x)
+        function sp = computeCompleteScalarProduct(obj,x,y)
             e          = obj.scalar_product.femSettings.epsilon;
             mesh       = obj.phi.mesh;
             order      = 'QUADRATIC';
@@ -78,10 +78,13 @@ classdef SLERP < handle
             q.computeQuadrature(order);
             s.fValues  = x;
             s.mesh     = mesh;
-            newFun     = P1Function(s);
-            gradNewFun = newFun.computeGradient(q);
-            spM        = newFun.computeScalarProduct(order);
-            spK        = gradNewFun.computeScalarProduct(order);
+            fun        = P1Function(s);
+            s.fValues  = y;
+            argFun     = P1Function(s);
+            gradNewFun = fun.computeGradient(q);
+            gradArgFun = argFun.computeGradient(q);
+            spM        = fun.computeScalarProduct(argFun,order);
+            spK        = gradNewFun.computeScalarProduct(gradArgFun,order);
             sp         = spM+e^2*spK;
         end
     end
