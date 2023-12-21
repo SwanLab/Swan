@@ -49,11 +49,13 @@ classdef TopOpt_Problem < handle
         end
 
         function createOptimizer(obj,settings)
+            epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
             obj.optimizerSettings.outputFunction.type        = 'Topology';
             obj.optimizerSettings.outputFunction.iterDisplay = 'none';
             obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
+            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon = epsilon;
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
 

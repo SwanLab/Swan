@@ -43,8 +43,6 @@ classdef HamiltonJacobi < handle
         function init(obj,cParams)
             obj.phi            = cParams.designVar;
             obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
-            epsilon            = cParams.incrementalScheme.targetParams.epsilon;
-            obj.scalar_product.femSettings.epsilon = epsilon;
         end
 
         function computeVelocity(obj,g)

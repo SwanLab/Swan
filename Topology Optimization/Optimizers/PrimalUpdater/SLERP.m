@@ -65,11 +65,25 @@ classdef SLERP < handle
         end
 
         function x = normalizeFunction(obj,x)
-            norm2 = obj.scalar_product.computeSP(x,x);
-            xNorm = sqrt(norm2);
-            x = x/xNorm;
+            norm  = obj.computeCompleteScalarProduct(x);
+            xNorm = sqrt(norm);
+            x     = x/xNorm;
         end
 
+        function sp = computeCompleteScalarProduct(obj,x)
+            e          = obj.scalar_product.femSettings.epsilon;
+            mesh       = obj.phi.mesh;
+            order      = 'QUADRATIC';
+            q          = Quadrature.set(mesh.type);
+            q.computeQuadrature(order);
+            s.fValues  = x;
+            s.mesh     = mesh;
+            newFun     = P1Function(s);
+            gradNewFun = newFun.computeGradient(q);
+            spM        = newFun.computeScalarProduct(order);
+            spK        = gradNewFun.computeScalarProduct(order);
+            sp         = spM+e^2*spK;
+        end
     end
 
 end
