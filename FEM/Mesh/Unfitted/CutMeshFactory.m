@@ -12,7 +12,6 @@ classdef CutMeshFactory < handle
                     s.levelSet          = cParams.levelSet;
                     c = CutMeshProvisionalLine(s);
                 case {'TRIANGLE','TETRAHEDRA'}
-                %case {'TRIANGLE'}
                     s.backgroundMesh = bCutMesh;
                     s.cutCells       = cParams.cutCells;
                     s.levelSet       = cParams.levelSet;
@@ -25,7 +24,7 @@ classdef CutMeshFactory < handle
                     s.lastNode          = max(cParams.backgroundMesh.connec(:));
                     c = CutMeshProvisionalQuadrilater(s);
                 otherwise
-                    s.backgroundMesh    = bMesh;
+                    s.backgroundMesh    = bCutMesh;
                     s.cutCells          = cParams.cutCells;
                     s.levelSet          = cParams.levelSet;
                     c = CutMeshProvisionalOthers(s);
