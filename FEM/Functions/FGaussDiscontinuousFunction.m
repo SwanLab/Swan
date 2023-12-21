@@ -103,10 +103,17 @@
             dofConnec = dofsElem;
         end
 
+        function totVal = computeScalarProduct(obj,order)
+            q.mesh     = obj.mesh;
+            q.quadType = order;
+            q.type     = 'ScalarProduct';
+            int        = Integrator.create(q);
+            totVal     = int.compute(obj,obj);
+        end
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;

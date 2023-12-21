@@ -16,9 +16,9 @@ classdef L2Function < handle
             fun = proj.project(obj);
         end
 
-        function totVal = computeScalarProduct(obj)
+        function totVal = computeScalarProduct(obj,order)
             q.mesh     = obj.mesh;
-            q.quadType = 'QUADRATIC';
+            q.quadType = order;
             q.type     = 'ScalarProduct';
             int        = Integrator.create(q);
             totVal     = int.compute(obj,obj);

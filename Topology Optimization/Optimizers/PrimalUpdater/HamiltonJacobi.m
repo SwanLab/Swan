@@ -12,11 +12,9 @@ classdef HamiltonJacobi < handle
     end
 
     methods (Access = public)
-        
         function obj = HamiltonJacobi(cParams)
             obj.init(cParams);
-            epsilon = cParams.incrementalScheme.targetParams.epsilon;
-            obj.setupFilter(epsilon,obj.phi);
+            obj.setupFilter();
         end
 
         function x = update(obj,g,~)
@@ -39,14 +37,14 @@ classdef HamiltonJacobi < handle
         function decreaseStepLength(obj)
             obj.tau = obj.tau/2;
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
             obj.phi            = cParams.designVar;
             obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
+            epsilon            = cParams.incrementalScheme.targetParams.epsilon;
+            obj.scalar_product.femSettings.epsilon = epsilon;
         end
 
         function computeVelocity(obj,g)
@@ -69,15 +67,29 @@ classdef HamiltonJacobi < handle
         end
 
         function x = normalizeFunction(obj,x)
-            s.fValues = x;
-            s.mesh    = obj.phi.mesh;
-            newFun    = P1Function(s);
-            norm2     = newFun.computeScalarProduct();
-            xNorm     = sqrt(norm2);
-            x         = x/norm(x);
+            norm  = obj.computeCompleteScalarProduct(x);
+            xNorm = sqrt(norm);
+            x     = x/xNorm;
         end
 
-        function setupFilter(obj,e,designVar)
+        function sp = computeCompleteScalarProduct(obj,x)
+            e          = obj.scalar_product.femSettings.epsilon;
+            mesh       = obj.phi.mesh;
+            order      = 'QUADRATIC';
+            q          = Quadrature.set(mesh.type);
+            q.computeQuadrature(order);
+            s.fValues  = x;
+            s.mesh     = mesh;
+            newFun     = P1Function(s);
+            gradNewFun = newFun.computeGradient(q);
+            spM        = newFun.computeScalarProduct(order);
+            spK        = gradNewFun.computeScalarProduct(order);
+            sp         = spM+e^2*spK;
+        end
+
+        function setupFilter(obj)
+            designVar           = obj.phi;
+            e                   = obj.scalar_product.femSettings.epsilon;
             set                 = SettingsFilter('paramsFilter_PDE_Boundary.json');
             s                   = set.femSettings;
             s.mesh              = designVar.mesh;
@@ -90,9 +102,6 @@ classdef HamiltonJacobi < handle
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(e);
         end
-
-
     end
-
 
 end
