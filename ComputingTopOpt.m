@@ -31,7 +31,7 @@ end
 
 dir_init = strcat(cd,'/','Output/test_micro3d');
 dir_server = 'P:/03_Foerderprojekte/Bayern/BStMWi-CC40-MAI_rapidSkelett/03_Simulation/2_Runs/SWAN/autocopyCalib/';
-folder_server = 'OScomp_AF_aJ_2.5_aG_015_MINRES_SphereRad_04_v045_mesh005_P1_msmooth_it8';
+folder_server = 'OScomp_AFsmooth_aJ_2.5_aG_015_MINRES_LS111_04_v045_mesh005_P1_it145';
 path_server = append(dir_server, folder_server);
 if exist(path_server,'dir') == 0, mkdir(path_server); end
 myFiles = dir(fullfile(dir_init,'*.vtu'));
