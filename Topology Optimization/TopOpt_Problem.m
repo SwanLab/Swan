@@ -69,7 +69,6 @@ classdef TopOpt_Problem < handle
 
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
-            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             
             s.uncOptimizerSettings.targetParameters = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;

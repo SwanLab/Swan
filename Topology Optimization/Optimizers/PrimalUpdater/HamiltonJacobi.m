@@ -15,7 +15,8 @@ classdef HamiltonJacobi < handle
         
         function obj = HamiltonJacobi(cParams)
             obj.init(cParams);
-            obj.setupFilter(obj.scalar_product.epsilon,obj.phi);
+            epsilon = cParams.incrementalScheme.targetParams.epsilon;
+            obj.setupFilter(epsilon,obj.phi);
         end
 
         function x = update(obj,g,~)
@@ -68,9 +69,12 @@ classdef HamiltonJacobi < handle
         end
 
         function x = normalizeFunction(obj,x)
-            norm2 = obj.scalar_product.computeSP(x,x);
-            xNorm = sqrt(norm2);
-            x = x/xNorm;
+            s.fValues = x;
+            s.mesh    = obj.phi.mesh;
+            newFun    = P1Function(s);
+            norm2     = newFun.computeScalarProduct();
+            xNorm     = sqrt(norm2);
+            x         = x/norm(x);
         end
 
         function setupFilter(obj,e,designVar)
