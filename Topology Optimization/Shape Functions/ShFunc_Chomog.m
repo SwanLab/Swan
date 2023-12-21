@@ -93,15 +93,24 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
     end
-    
+
     methods (Access = protected)
-        
+
         function filterGradient(obj)
-            g = obj.gradient;
-            gf = zeros(size(obj.Msmooth,1),obj.nVariables);
+            g     = obj.gradient;
+            nelem = size(g,1);
+            ngaus = size(g,2);
+            gf    = zeros(size(obj.Msmooth,1),obj.nVariables);
+            q     = Quadrature.set(obj.designVariable.mesh.type);
+            q.computeQuadrature('LINEAR');
             for ivar = 1:obj.nVariables
-                gs = g(:,:,ivar);
-                gf(:,ivar) = obj.filter.getP1fromP0(gs);
+                gs           = g(:,:,ivar);
+                s.fValues    = reshape(gs',[1,ngaus,nelem]);
+                s.mesh       = obj.designVariable.mesh;
+                s.quadrature = q;
+                f            = FGaussDiscontinuousFunction(s);
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
+                gf(:,ivar)   = gradP1.fValues;
             end
             gf = obj.Msmooth*gf;
             g = gf(:);
@@ -140,9 +149,6 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function solveState(obj)
-            % designVariable -> check if C has changed
-            % if hasCchanged
-            % obj.computeStiffnessMatrix();
             obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C)
             obj.physicalProblem.solve();
             obj.Chomog  = obj.physicalProblem.Chomog;
@@ -151,7 +157,12 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            rhoV{1} = obj.filter.getP0fromP1(obj.designVariable.value);
+            mesh    = obj.designVariable.mesh;
+            q       = obj.getQuad;
+            f       = obj.obtainDomainFunction();
+            fP1     = obj.filter.compute(f,'QUADRATICMASS');
+            xP0     = squeeze(fP1.evaluate(q.posgp));
+            rhoV{1} = reshape(xP0',[mesh.nelem,q.ngaus]);
             obj.regDesignVariable = rhoV{1};
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
             obj.homogenizedVariablesComputer.computeDensity(rhoV);

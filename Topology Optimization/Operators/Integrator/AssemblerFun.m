@@ -2,7 +2,6 @@ classdef AssemblerFun < handle
 
     properties (Access = private)
         fun
-        connec
     end
 
     methods (Access = public)
@@ -11,42 +10,7 @@ classdef AssemblerFun < handle
             obj.init(cParams);
         end
 
-        function A = assemble(obj, Aelem)
-            dofs   = obj.fun.computeDofConnectivity();
-            nDofsE = size(dofs,1);
-            nDofs  = numel(obj.fun.fValues);
-            A = sparse(nDofs,nDofs);
-            for i = 1:nDofsE
-                for j = 1:nDofsE
-                    a = squeeze(Aelem(i,j,:));
-                    A = A + sparse(dofs(i,:),dofs(j,:),a,nDofs,nDofs);
-                end
-            end
-        end
-
-        function A = assembleFunctions(obj, Aelem, f1, f2)
-            dofsF1 = f1.computeDofConnectivity();
-            if isequal(f1, f2)
-                dofsF2 = dofsF1;
-            else
-                dofsF2 = f2.computeDofConnectivity();
-            end
-            
-            nDofs1 = numel(f1.fValues);
-            nDofs2 = numel(f2.fValues);
-            ndofsElem1 = size(Aelem,1);
-            ndofsElem2 = size(Aelem,2);
-            A = sparse(nDofs1,nDofs2);
-            for i = 1:ndofsElem1
-                for j = 1:ndofsElem2
-                    a = squeeze(Aelem(i,j,:));
-                    A = A + sparse(dofsF1(i,:),dofsF2(j,:),a,nDofs1,nDofs2);
-                end
-            end
-
-        end
-
-        function A = assembleFunctionsViaIndices(obj, Aelem, f1, f2)
+        function A = assemble(obj, Aelem, f1, f2)
             dofsF1 = f1.computeDofConnectivity()';
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
@@ -60,7 +24,7 @@ classdef AssemblerFun < handle
             ndofsElem1 = size(Aelem,1);
             ndofsElem2 = size(Aelem,2);
 
-            res = zeros(ndofsElem1^2 * nElem, 3);
+            res = zeros(ndofsElem1*ndofsElem2 * nElem, 3);
             strt = 1;
             fnsh = nElem;
             for i = 1:ndofsElem1
@@ -75,38 +39,34 @@ classdef AssemblerFun < handle
                 end
             end
             A = sparse(res(:,1), res(:,2), res(:,3), nDofs1, nDofs2);
+
         end
 
-        function A = assembleMatrixViaIndices(obj, Ae)
-            connec    = obj.globalConnec;
-%             dofConnec = obj.computeDofConnectivity()';
-            nnodes  = obj.dim.nnodes;
-            ndimf   = obj.dim.ndimf;
-            ndofs   = ndimf*nnodes;
-            nelem   = size(connec, 1);
-%             nnodeEl = obj.nnodeEl;
-            dofConnec = obj.computeDofConnectivity()';
-            ndofEl  = size(dofConnec,2);
-            res = zeros(ndofEl^2 * nelem, 3);
+        function V = assembleV(obj, F, fun)
+            % Via indices
+            dofConnec = obj.fun.computeDofConnectivity();
+            nDofsEl   = obj.fun.nDofsElem;
+            nDofs     = obj.fun.nDofs;
+            nGaus     = size(F,2);
+            nElem     = size(F,3);
             strt = 1;
-            fnsh = nelem;
-            ndofEl1 = size(Ae,1);
-            ndofEl2 = size(Ae,2);
-            for i = 1:ndofEl1
-                dofsI = dofConnec(:,i);
-                for j = 1:ndofEl2
-                    dofsJ = dofConnec(:,j);
-                    a = squeeze(Ae(i,j,:));
-                    matRes = [dofsI, dofsJ, a];
+            fnsh = nElem;
+            res = zeros(nDofsEl * nElem, 2);
+            for iDof = 1:nDofsEl
+                for igaus = 1:nGaus
+                    dofs = dofConnec(iDof,:);
+                    c = squeeze(F(iDof,igaus,:));
+                    matRes = [dofs', c];
                     res(strt:fnsh,:) = matRes;
-                    strt = strt + nelem;
-                    fnsh = fnsh + nelem;
+                    strt = strt + nElem;
+                    fnsh = fnsh + nElem;
                 end
             end
-            A = sparse(res(:,1), res(:,2), res(:,3), ndofs, ndofs);
+            V = sparse(res(:,1), 1, res(:,2), nDofs, 1);
         end
 
-        function F = assembleVectorFunctions(obj, FelemCell, f1, f2)
+        function F = assembleVectorStokes(obj, FelemCell, f1, f2)
+            % Stokes
             funs = {f1,f2};
             nFields = numel(funs);
             b_global = cell(nFields,1);

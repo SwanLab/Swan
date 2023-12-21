@@ -187,6 +187,18 @@ classdef NumericalHomogenizer < handle
             scalarPr.mesh = mesh;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = s.mesh.ndim;
+            sLs.coord  = s.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            ss.fValues = lsCreator.getValue();
+            ss.mesh    = s.mesh;
+            s.levelSetFunction = P1Function(ss);
+
             desVar = DesignVariable.create(s);
             d.filterParams.mesh = desVar.mesh;
             d.filterParams.designVarType = desVar.type;
@@ -194,6 +206,15 @@ classdef NumericalHomogenizer < handle
             d.mesh = mesh;
 %             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
+
+            sF            = d.filterParams.femSettings;
+            sF.filterType = d.filterParams.filterType;
+            sF.mesh       = d.designVariable.mesh;
+            sF.test       = P0Function.create(sF.mesh,1);
+            sF.trial      = P1Function.create(sF.mesh,1);
+            d.femSettings.designVariableFilter = Filter.create(sF);
+            d.femSettings.gradientFilter       = Filter.create(sF);
+
             vComputer = ShFunc_Volume(d);
             vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;

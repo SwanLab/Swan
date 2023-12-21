@@ -96,7 +96,7 @@ classdef P0Function < FeFunction
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'LINEAR';
+            obj.order   = 'CONSTANT';
         end
 
         function createInterpolation(obj)

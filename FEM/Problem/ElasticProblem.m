@@ -167,7 +167,7 @@ classdef ElasticProblem < handle
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.LHS);
 %             obj.variables.fext = rhs + R;
-            obj.RHS = rhs;
+            obj.RHS = rhs+R;
         end
 
         function u = computeDisplacements(obj)
