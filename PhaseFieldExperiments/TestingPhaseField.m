@@ -4,7 +4,7 @@ classdef TestingPhaseField < handle
         E = 210;
         nu = 0.3;
         Gc = 5e-3;
-        fc = 1;
+        %fc = 1;
     end
 
     properties (Access = private)
@@ -47,9 +47,9 @@ classdef TestingPhaseField < handle
 
         function createMesh(obj)
             %obj.createOneElementMesh();
-         %   obj.createTwoElementMesh();
+            %obj.createTwoElementMesh();
             obj.createArbitraryElementMesh(10);
-          %  obj.createOpenHoleMesh();
+            %obj.createOpenHoleMesh();
         end
 
         function createInitialPhaseField(obj)
@@ -59,9 +59,12 @@ classdef TestingPhaseField < handle
             xFun = AnalyticalFunction(sAF);
 
             phi = xFun.project('P1');
-            phi.fValues([5 16]) = 1;
-        %    phi.fValues(4) = 1;
             obj.initialPhaseField = phi;
+            obj.initialPhaseField.plot()
+            title('Initial phase field')
+            colorbar
+            clim([0 1])
+            drawnow
         end
 
         function createMaterialPhaseField(obj)
@@ -70,7 +73,7 @@ classdef TestingPhaseField < handle
             s.E = obj.E;
             s.nu = obj.nu;
             s.Gc = obj.Gc;
-            s.fc = obj.fc;
+            %s.fc = obj.fc;
             obj.materialPhaseField = MaterialPhaseField(s);
         end
 

@@ -2,7 +2,9 @@ classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
         tolErrU = 1e-12;
-        tolErrPhi = 1e-9;
+        tolErrPhi = 1e-12;
+        steps = 1000;
+        tau = 1e2;
     end
 
     properties (Access = private)
@@ -26,6 +28,13 @@ classdef PhaseFieldComputer < handle
         DF
         Constant
         l0
+
+        forceMat
+        displacementMat
+        damageMat
+        stressStrainMat
+        energyMat
+        iterMat
     end
 
     methods (Access = public)
@@ -33,136 +42,48 @@ classdef PhaseFieldComputer < handle
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
 
-            %obj.l0 = (27/256)*(1*obj.material.Gc/obj.material.fc^2);
             obj.Constant = obj.materialPhaseField.Gc/(4*0.5);
-
             obj.l0 = 1*1e-1;
-
-            niter = 135;
-            Energy = zeros(4,niter);
-            ForceDisplacement = zeros(2,niter);
-            Iterations = zeros(2,niter);
-            Fmat = zeros(3,niter);
-            PhaseField = zeros(1,niter);
-
-            stressStrainDmg = zeros(2,niter);
-            phaseFieldDmg = zeros(1,niter);
-            stressStrainNoDmg = zeros(2,niter);
-            phaseFieldNoDmg = zeros(1,niter);
-
+            
             phaseFieldOld = obj.phaseField.fValues;
-            errorU = -1*ones(1000,niter);
-
-            for i = 1:niter
-                
-                obj.createBoundaryConditions(i,niter);
-                Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
+            Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
+            for i = 1:obj.steps
+                disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
+                obj.createBoundaryConditions(i,obj.steps);
                 numIterU = 1;
-                errorU(numIterU,i)=1;
-
-                disp([newline '%%%%%%%%%% NEW STEP %%%%%%%%%%%'])
-                disp(['Step Number: ',num2str(i)])
-                while (errorU(numIterU,i) > obj.tolErrU) && (numIterU < 1000)
+                errorU = [1];
+                costFun = [];
+                while (errorU(end) > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    %obj.fem.uFun.plot()
-                    errorPhi = 1;
+                    costFun(end+1) = obj.computeCostFunction();
+
                     numIterP = 1;
-                    c(1) = obj.computeCostFunction();
-                    while (errorPhi > obj.tolErrPhi) && (numIterP < 20)
+                    errorPhi = 1;
+                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.solvePhaseFieldEquation();
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
-
                         obj.phaseField.fValues = max(phaseFieldOld, obj.phaseField.fValues);
-                        c(numIterP+1) = obj.computeCostFunction();
-                        errorPhi = abs(c(end)-c(end-1));
+
+                        costFun(end+1) = obj.computeCostFunction();
+                        errorPhi = abs(costFun(end)-costFun(end-1));
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
+
                         numIterP = numIterP + 1;
                     end
+                    errorU(end+1) = norm(obj.fem.uFun.fValues - Uold);
+                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(end))])
+
                     numIterU = numIterU + 1;
-                    errorU(numIterU,i) = norm(obj.fem.uFun.fValues - Uold);
-                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(numIterU,i))])
                     Uold = obj.fem.uFun.fValues;
                 end
                 phaseFieldOld = obj.phaseField.fValues;
 
-                Fmat(1,i) = mean(obj.Fi);
-                Fmat(2,i) = mean(obj.Fd);
-                Fmat(3,i) = mean(obj.DF);
-
-                Energy(1,i) = obj.computeTotalExternalWork();
-                Energy(2,i) = obj.computeTotalEnergy();
-                Energy(3,i) = obj.computeTotalDissipationLocal();
-                Energy(4,i) = obj.computeTotalRegularizationTerm();
-
-                Iterations(1,i) = numIterU;
-                Iterations(2,i) = numIterP;
-
-                ForceDisplacement(1,i) = obj.computeIntTotalForce();
-                ForceDisplacement(2,i) = max(abs(obj.fem.uFun.fValues(:,2)));
-
-                stressStrainNoDmg(1,i) = obj.fem.stressFun.fValues(2,5,53);
-                stressStrainNoDmg(2,i) = obj.fem.strainFun.fValues(2,5,53);
-                stressStrainDmg(1,i) = obj.fem.stressFun.fValues(2,5,56);
-                stressStrainDmg(2,i) = obj.fem.strainFun.fValues(2,5,56);
-
-                phaseFieldDmg(1,i) = obj.phaseField.fValues(61);
-                phaseFieldNoDmg(1,i) = obj.phaseField.fValues(59);
-
-
-                figure(200)
-                plot(stressStrainDmg(2,1:i),stressStrainDmg(1,1:i));
-                hold on
-                plot(stressStrainNoDmg(2,1:i),stressStrainNoDmg(1,1:i));
-
-                figure(201)
-                plot(phaseFieldDmg(1,1:i));
-                hold on
-                plot(phaseFieldNoDmg(1,1:i));
-
-                figure(100)
-                plot(ForceDisplacement(2,1:i),ForceDisplacement(1,1:i))
-                figure(101)
-                plot(ForceDisplacement(2,1:i),PhaseField(1:i))
-                %obj.fem.uFun.plot;
-                
-                 
-                 obj.phaseField.plot;                
-                 colorbar
-                 clim([0 1])
-                 drawnow
-                % title('Final phase field')
-                % %obj.fem.print(['Example',num2str(i)],'GiD')
-                %obj.phaseField.print(['Example',num2str(i),'Phi'],'GiD')
+                s.step = i;
+                s.numIterU = numIterU;
+                s.numIterP = numIterP;
+                obj.saveData(s);
+                obj.printPlots(i);
             end
-            figure
-            plot(Fmat(1,:))
-            hold on
-            plot(Fmat(2,:))
-            hold on
-            plot(Fmat(3,:))
-            legend('Fi','Fd','DF')
-
-
-            figure
-            plot(Energy(1,:))
-            hold on
-            plot(Energy(2,:))
-            hold on
-            plot(Energy(3,:))
-            hold on
-            plot(Energy(4,:))
-            legend('External Work','Internal Energy','Local surface energy','Non-local surface energy')
-
-            figure
-            plot(ForceDisplacement(2,:),ForceDisplacement(1,:))
-            figure
-            plot(ForceDisplacement(2,:))
-
-            figure
-            plot(Iterations(1,:))
-            hold on
-            plot(Iterations(2,:))
-            legend('U','phi')
         end
 
     end
@@ -177,6 +98,13 @@ classdef PhaseFieldComputer < handle
             obj.phaseField               = cParams.initialPhaseField;
             obj.materialPhaseField       = cParams.materialPhaseField;
             obj.dissipationInterpolation = cParams.dissipationPhaseField;
+
+            obj.forceMat = zeros(1,obj.steps);
+            obj.displacementMat = zeros(1,obj.steps);
+            obj.damageMat = zeros(1,obj.steps);
+            obj.stressStrainMat = zeros(2,obj.steps);
+            obj.energyMat = zeros(4,obj.steps);
+            obj.iterMat = zeros(2,obj.steps);
         end
 
         function createBoundaryConditions(obj,i,nIter)
@@ -321,12 +249,8 @@ classdef PhaseFieldComputer < handle
 
             LHS = obj.Mi + (obj.Constant/obj.l0)*obj.Md + (obj.Constant*obj.l0)*obj.K;
             RHS = obj.computeResidual();
-            %norm(RHS)
-            %norm(LHS,'fro')
-            %obj.deltaPhi = -LHS\RHS;
-            tau = 1e3;
-            obj.deltaPhi = -tau*RHS;
-          %  norm(obj.deltaPhi)
+            obj.deltaPhi = -LHS\RHS;
+            %obj.deltaPhi = -obj.tau*RHS;
         end
 
         function res = computeResidual(obj)
@@ -335,6 +259,7 @@ classdef PhaseFieldComputer < handle
             obj.createForceDerivativeVector();            
             res = (obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
         end
+
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalEnergy(obj)
             e = obj.createAbstractDerivativeEnergyFunction('QUADRATICMASS',0);
@@ -466,6 +391,76 @@ classdef PhaseFieldComputer < handle
             eR = obj.computeTotalRegularizationTerm();
             e = eW+eT+eD+eR;
         end
+
+        %% %%%%%%%%%%%%%%%%%% PLOTS %%%%%%%%%%%%%%% %%
+
+        function saveData(obj,cParams)
+            step = cParams.step;
+
+            obj.forceMat(step) = obj.computeIntTotalForce();
+            obj.displacementMat(step) = max(abs(obj.fem.uFun.fValues(:,2)));
+            obj.damageMat(step) = max(obj.phaseField.fValues);
+
+            obj.energyMat(1,step) = obj.computeTotalExternalWork();
+            obj.energyMat(2,step) = obj.computeTotalEnergy();
+            obj.energyMat(3,step) = obj.computeTotalDissipationLocal();
+            obj.energyMat(4,step) = obj.computeTotalRegularizationTerm();
+
+            obj.stressStrainMat(1,step);
+            obj.stressStrainMat(2,step);
+
+            obj.iterMat(1,step) = cParams.numIterU;              
+            obj.iterMat(2,step) = cParams.numIterP;
+        end
+
+        function printPlots(obj,step)
+            figure(100)
+            plot(obj.displacementMat(1:step),obj.forceMat(1:step))
+            title('Force-displacement diagram')
+            xlabel('Displacement [mm]')
+            ylabel('Force [kN]')
+
+            figure(101)
+            plot(obj.displacementMat(1:step),obj.damageMat(1:step))
+            title('Damage-displacement diagram')
+            xlabel('Displacement [mm]')
+            ylabel('Damage [-]')
+
+            figure(200)
+            hold on
+            plot(obj.energyMat(1,1:step))
+            plot(obj.energyMat(2,1:step))
+            plot(obj.energyMat(3,1:step))
+            plot(obj.energyMat(4,1:step))
+            title('Energy values at each step')
+            legend('External Work', ...
+                   'Internal Energy', ...
+                   'Local surface energy', ...
+                   'Non-local surface energy')
+            xlabel('Steps [-]')
+            ylabel('Energy [J]')
+            
+            figure(300)
+            hold on
+            plot(obj.iterMat(1,1:step))
+            plot(obj.iterMat(2,1:step))
+            title('Iterations needed')
+            legend('U','phi')
+            xlabel('Step')
+            ylabel('Iterations')
+
+            obj.phaseField.plot;
+            colorbar
+            clim([0 1])
+            drawnow
+            title(['Damage at step ',num2str(step)])
+        end
+
+        function printResults(obj,step)
+            obj.fem.print(['PhaseFieldFEM_Step',step],'GiD');
+            obj.phaseField.print(['PhaseFieldDamage_Step',step],'GiD');
+        end
+
     end
 
 end
