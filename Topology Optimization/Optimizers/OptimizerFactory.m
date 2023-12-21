@@ -18,9 +18,9 @@ classdef OptimizerFactory < handle
                     %aJmax --> constrain, weight to decrease cost
                     %aGmax --> constrain, weight constaint value
                     %cParams.optimizerNames.aJmax = 8; % 4 
-                    %cParams.optimizerNames.aGmax = 0.05; % 0.10
-                    cParams.optimizerNames.aJmax = 2.5; % earlier calibrated 2
-                    cParams.optimizerNames.aGmax = 0.15; % earlier calibrated 0.1
+                    %aJ previous: 10e-04
+                    cParams.optimizerNames.aJmax = 2.5; % earlier calibrated 2.5
+                    cParams.optimizerNames.aGmax = 0.15; % earlier calibrated 0.15
                     %cParams.optimizerNames.aGmax = 0.0;
                     op = OptimizerNullSpace(cParams);
                 otherwise
