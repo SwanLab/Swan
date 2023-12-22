@@ -18,10 +18,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
     methods (Access = public)
         
         function obj = ShFunc_Perimeter(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';
-            cParams.filterParams.filterType = 'PDE';
-            obj.init(cParams);
-          %  obj.initFrame();
+          obj.init(cParams);
           obj.computeFunctionAndGradient();
         end
         
@@ -33,7 +30,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
         function computeFunction(obj)
             obj.updateProtectedVariables();
             obj.computeRegularizedDensity();
-            obj.computeRegularizedDensityProjection();
             obj.computePerimeterValue();
             obj.normalizeFunction();
         end
@@ -105,16 +101,9 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
         
         function computeRegularizedDensity(obj)
-            obj.designVariable.updateFunction();
-            f   = obj.designVariable.fun;
+            f   = obj.obtainDomainFunction();
             rho = obj.filter.compute(f,'QUADRATICMASS');
             obj.filteredDensity = rho;
-         end
-        
-        function computeRegularizedDensityProjection(obj)
-            obj.designVariable.updateFunction();
-            f = obj.designVariable.fun;
-%             obj.regularizedDensityProjection = obj.filter.computeRHS(f,'QUADRATICMASS');
         end
         
         function per0 = computePerimeterIntegrandP0(obj)
@@ -136,8 +125,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         end
 
         function computePerimeterValue(obj)
-            obj.designVariable.updateFunction();
-            rho        = obj.designVariable.fun;
+            rho        = obj.obtainDomainFunction();
             rhoe       = obj.filteredDensity;
             rhoei      = rhoe.fValues;
             s.fValues  = 1-rhoei;
@@ -148,7 +136,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
             i.mesh     = obj.designVariable.mesh;
             int        = Integrator.create(i);
             result     = int.compute(f,rho);
-            per        = 1/(2*obj.epsilon)*result;
+            per        = 2/(obj.epsilon)*result;
             obj.value  = per;
         end
         

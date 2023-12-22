@@ -23,10 +23,6 @@ classdef FeFunction < handle
     end
     
     methods (Access = public)
-
-        function obj = FeFunction()
-        end
-
         function fun = project(obj,target)
             s.mesh          = obj.mesh;
             s.projectorType = target;
@@ -34,24 +30,28 @@ classdef FeFunction < handle
             fun = proj.project(obj);
         end
 
+        function totVal = computeScalarProduct(obj,f,order)
+            q.mesh     = obj.mesh;
+            q.quadType = order;
+            q.type     = 'ScalarProduct';
+            int        = Integrator.create(q);
+            totVal     = int.compute(obj,f);
+        end
     end
 
     methods (Static, Access = public)
-
         function obj = create(cParams)
             fun = FunctionFactory();
             obj = fun.create(cParams);
         end
-        
-    end
 
-    methods (Access = private)
-        
-        function init(obj, cParams)
-
+        function obj = createEmpty(cParams)
+            feFunType = cParams.feFunType;
+            mesh      = cParams.mesh;
+            ndimf     = int2str(cParams.ndimf);
+            specs     = ['.create(mesh,',ndimf,')'];
+            obj       = eval([feFunType,specs]);
         end
-
     end
 
 end
-

@@ -109,7 +109,7 @@ classdef ShFunc_Chomog < ShapeFunctional
                 s.mesh       = obj.designVariable.mesh;
                 s.quadrature = q;
                 f            = FGaussDiscontinuousFunction(s);
-                gradP1       = obj.gradientFilter.getP1Function(f,'LINEAR');
+                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
                 gf(:,ivar)   = gradP1.fValues;
             end
             %gf = obj.Msmooth*gf;
@@ -157,12 +157,12 @@ classdef ShFunc_Chomog < ShapeFunctional
         end
         
         function updateHomogenizedMaterialProperties(obj)
-            obj.designVariable.updateFunction();
             mesh    = obj.designVariable.mesh;
-            f       = obj.designVariable.fun;
-            fG      = obj.filter.getFGaussFunction(f,'QUADRATICMASS');
-            xP0     = squeeze(fG.fValues);
-            rhoV{1} = reshape(xP0',[mesh.nelem,fG.quadrature.ngaus]);
+            q       = obj.getQuad;
+            f       = obj.obtainDomainFunction();
+            fP1     = obj.filter.compute(f,'QUADRATICMASS');
+            xP0     = squeeze(fP1.evaluate(q.posgp));
+            rhoV{1} = reshape(xP0',[mesh.nelem,q.ngaus]);
             obj.regDesignVariable = rhoV{1};
             obj.homogenizedVariablesComputer.computeCtensor(rhoV);
             obj.homogenizedVariablesComputer.computeDensity(rhoV);

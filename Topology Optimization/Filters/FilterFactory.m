@@ -1,24 +1,11 @@
 classdef FilterFactory < handle
 
-    % Refactoring ToDo:
-    % General:
-    % - GeometricalFunction
-    % - delete: computeRHSInBoundaries, FilterPDEUnfitted
-    % - create: UnfittedFunction, BoundaryUnfittedFunction
-    % - 'evaluate' method inside RHSUnfitted
-    % - Test P0Function in unfitted not available
-
     methods (Access = public, Static)
 
         function filter = create(cParams)
             switch cParams.filterType
                 case 'P1'
-                    switch cParams.designVarType
-                        case {'Continuous','Density','MicroParams'}
-                            filter = FilterP1(cParams);
-                        case 'LevelSet'
-                            filter = FilterP1Unfitted(cParams);
-                    end
+                    filter = FilterKernel(cParams);
                 case 'PDE'
                     if not(isfield(cParams,'boundaryType'))
                         cParams.boundaryType = 'Neumann';
@@ -42,12 +29,9 @@ classdef FilterFactory < handle
                                     cParams.LHStype = 'AnisotropicStiffnessMassBoundaryMass';
                             end
                     end
-                    switch cParams.designVarType
-                        case {'Continuous','Density','MicroParams'}
-                            filter = FilterPDE(cParams);
-                        case 'LevelSet'
-                            filter = FilterPDEUnfitted(cParams);
-                    end
+                    filter = FilterPDE(cParams);
+                case 'LUMP'
+                    filter = FilterLump(cParams);
             end
         end
 

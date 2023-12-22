@@ -251,21 +251,6 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function p1 = restrict2cell(obj,mNew,oldConnecSample) % model to adapt for P0Function/Analytic... as function to be integrated in RHSUnfitted
-            connecGlob             = oldConnecSample;
-            newConnec              = mNew.connec;
-            newDofs                = unique(newConnec);
-            nFields                = size(obj.fValues,2);
-            fValGlob               = obj.fValues;
-            fValLoc                = zeros(length(newDofs),nFields);
-            DoFsL2G(newConnec(:))  = connecGlob(:);
-            fValLoc(newDofs)       = fValGlob(DoFsL2G(newDofs));
-
-            s.mesh    = mNew;
-            s.fValues = fValLoc;
-            p1        = P1Function(s);
-        end
-
     end
 
     methods (Access = public, Static)

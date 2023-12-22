@@ -10,6 +10,8 @@ classdef IntegratorFactory < handle
                     int = IntegratorScalarProduct(cParams);
                 case 'InternalEnergy'
                     int = IntegratorEnergy(cParams);
+                case 'Error'
+                    int = IntegratorError(cParams);
             end
         end
 

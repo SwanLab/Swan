@@ -44,8 +44,7 @@ classdef ShapeFunctional < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.createFilter(cParams);
-            obj.createGradientFilter(cParams);
+            obj.storeFilters(cParams.femSettings);
             obj.createMsmoothAndDvolu(cParams);
             obj.homogenizedVariablesComputer = cParams.homogVarComputer;
             obj.designVariable = cParams.designVariable;
@@ -71,6 +70,15 @@ classdef ShapeFunctional < handle
                 fP{nP+i} = fH{i};
             end
         end
+
+        function f = obtainDomainFunction(obj)
+            switch obj.designVariable.type
+                case 'Density'
+                    f = obj.designVariable.fun;
+                case 'LevelSet'
+                    f = obj.designVariable.getCharacteristicFunction();
+            end
+        end
     end
     
     methods (Access = protected, Static)
@@ -87,25 +95,9 @@ classdef ShapeFunctional < handle
     
     methods (Access = private)
 
-        function createFilter(obj,cParams)
-            s                = cParams.filterParams.femSettings;
-            s.mesh           = cParams.filterParams.mesh;
-            s.domainType     = cParams.filterParams.domainType;
-            s.filterType     = cParams.filterParams.filterType;
-            s.quadType       = 'LINEAR';
-            s.designVarType  = cParams.filterParams.designVarType;
-            s.designVariable = cParams.designVariable;
-            obj.filter       = Filter.create(s);
-        end
-
-        function createGradientFilter(obj,cParams)
-            s                  = cParams.filterParams.femSettings;
-            s.mesh             = cParams.filterParams.mesh;
-            s.domainType       = cParams.filterParams.domainType;
-            s.filterType       = cParams.filterParams.filterType;
-            s.quadType         = 'LINEAR';
-            s.designVarType    = 'Continuous';
-            obj.gradientFilter = Filter.create(s);
+        function storeFilters(obj,cParams)
+            obj.filter         = cParams.designVariableFilter;
+            obj.gradientFilter = cParams.gradientFilter;
         end
 
         function createMsmoothAndDvolu(obj,cParams)

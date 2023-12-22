@@ -1,66 +1,26 @@
 classdef Density < DesignVariable
     
-    properties (Access = private)
-        creatorSettings
-        initCase
-    end
-    
     methods (Access = public)
         
         function obj = Density(cParams)
             obj.nVariables = 1;
             obj.init(cParams);
-            obj.initCase = cParams.initialCase;
-            obj.creatorSettings  = cParams.creatorSettings;
-            obj.createValue();
-        end
-
-        function updateFunction(obj)
-            s.mesh    = obj.mesh;
-            s.fValues = obj.value;
-            obj.fun   = P1Function(s);
         end
 
         function v = getVariablesToPlot(obj)
-            v{1} = obj.value;
+            v{1} = obj.fun.fValues;
         end
         
         function [fun, funNames] = getFunsToPlot(obj)
-            aa.mesh = obj.mesh;
-            aa.fValues = obj.value;
-            valFun = P1Function(aa);
-
-            fun = {valFun};
+            fun = {obj.fun};
             funNames = {'Density'};
         end
         
         function rho = computeVolumeFraction(obj)
-            s.mesh   = obj.mesh;
-            s.fValues = obj.value;
-            f = P1Function(s);
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;
-            rho = f.evaluate(xV);
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function createValue(obj)
-            s = obj.creatorSettings;
-            switch s.type 
-                case 'FromLevelSet'
-                    s.ndim  = obj.mesh.ndim;
-                    s.coord = obj.mesh.coord;
-                    s.type  = obj.initCase;
-                    lsCreator  = LevelSetCreator.create(s);
-                    phi        = lsCreator.getValue();
-                    obj.value  = 1 - heaviside(phi);
-                case 'Given'
-                    obj.value = s.rho0.*ones(size(obj.mesh.coord,1),1);
-            end
+            rho = obj.fun.evaluate(xV);
         end
         
     end

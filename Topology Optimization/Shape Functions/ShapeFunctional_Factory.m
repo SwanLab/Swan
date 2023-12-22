@@ -38,19 +38,9 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_ComplianceComparison_constraint(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
-                    %sF = ShFunc_StressNorm2(cParams);
-                    %sF = ShFunc_StressNorm3(cParams);
-                case 'perimeter'
-                    cParams.filterParams.femSettings.boundaryType = 'Robin';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    sF = ShFunc_Perimeter(cParams);
-                case 'perimeterInterior'
-                    cParams.filterParams.femSettings.boundaryType = 'Neumann';
-                    %cParams.designVariable = cParams.designVariable.value;
+                case {'perimeter','perimeterInterior','anisotropicPerimeter2D','anisotropicPerimeterInterior2D'}
                     sF = ShFunc_Perimeter(cParams);
                 case 'perimeterConstraint'
-                    cParams.filterParams.femSettings.boundaryType = 'Robin';
-                    %cParams.designVariable = cParams.designVariable.value;
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
                     sF = ShFunc_Chomog_alphabeta(cParams);
@@ -88,24 +78,6 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
-                case 'anisotropicPerimeter2D'
-                    cParams.filterParams.femSettings.boundaryType = 'Robin';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 60;
-                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
-                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
-                    sF = ShFunc_Perimeter(cParams);
-                case 'anisotropicPerimeterInterior2D'
-                    cParams.filterParams.femSettings.boundaryType = 'Neumann';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 60;
-                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
-                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
-                    sF = ShFunc_Perimeter(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

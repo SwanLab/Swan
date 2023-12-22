@@ -3,13 +3,14 @@ classdef RHSintegrator_Composite < handle
     properties (GetAccess = public, SetAccess = private)
         integrators
         nInt
-        npnod
+        dofs
     end
 
     properties (Access = private)
         RHScells
         RHSsubcells
         unfittedMesh
+        testClass
         test
     end
 
@@ -27,20 +28,31 @@ classdef RHSintegrator_Composite < handle
             end
         end
 
-        function f = integrateAndSum(obj,charFun)
-            f = 0;
+        function f = integrateAndSum(obj,unfFun)
+            f         = zeros(obj.dofs,1);
+            iBoundary = 0;
+            if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
+                bcMesh      = unfFun.unfittedMesh.boundaryCutMesh.mesh;
+                s.mesh      = bcMesh;
+                s.feFunType = obj.testClass;
+                s.ndimf     = obj.test.ndimf;
+                obj.test    = FeFunction.createEmpty(s);
+            end
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
                 if contains(class(integrator),'Composite')
-                    int = integrator.integrateAndSum(charFun);
+                    iBoundary = iBoundary + 1;
+                    newUnfFun = unfFun.obtainFunctionAtExternalBoundary(iBoundary);
+                    intLoc    = integrator.integrateAndSum(newUnfFun);
+                    int       = obj.computeGlobalIntegralFromLocal(intLoc,iBoundary);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
-                    p1 = obj.createInnerFunction(charFun);
-                    testHandle = class(obj.test);
-                    testFun = eval([testHandle,'.create(obj.unfittedMesh.innerMesh.mesh,1)']);
-                    intLoc = integrator.compute(p1,testFun);
-                    int = obj.computeGlobalIntegralFromLocal(intLoc);
+                    int = integrator.compute(unfFun,obj.test);
                 else
-                    int = integrator.compute(charFun);
+                    s.mesh      = obj.unfittedMesh.backgroundMesh;
+                    s.feFunType = obj.testClass;
+                    s.ndimf     = obj.test.ndimf;
+                    testFun     = FeFunction.createEmpty(s);
+                    int         = integrator.compute(unfFun,testFun);
                 end
                 f = f + int;
             end
@@ -51,10 +63,14 @@ classdef RHSintegrator_Composite < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.nInt = numel(cParams.compositeParams);
-            obj.npnod = cParams.npnod;
+            obj.nInt         = numel(cParams.compositeParams);
             obj.unfittedMesh = cParams.unfittedMesh;
-            obj.test   = cParams.test;
+            obj.testClass    = class(cParams.test);
+            s.mesh           = cParams.unfittedMesh.backgroundMesh;
+            s.feFunType      = obj.testClass;
+            s.ndimf          = cParams.test.ndimf;
+            obj.test         = FeFunction.createEmpty(s);
+            obj.dofs         = size(obj.test.fValues,1);
         end
 
         function createIntegrators(obj,cParams)
@@ -68,24 +84,13 @@ classdef RHSintegrator_Composite < handle
             end
         end
 
-        function fun = createInnerFunction(obj, charFun)
-            s.mesh    = obj.unfittedMesh.backgroundMesh;
-            s.fValues = charFun.evaluate([1;1])*ones(s.mesh.nnodes,1); % !!
-            p1Old     = P1Function(s);
-            innerMesh = obj.unfittedMesh.innerMesh.mesh;
-            connecIG  = obj.unfittedMesh.innerMesh.globalConnec;
-            fun       = p1Old.restrict2cell(innerMesh,connecIG);
-        end
-
-        function int = computeGlobalIntegralFromLocal(obj, intLoc)
-            innerMesh = obj.unfittedMesh.innerMesh;
-            connecIG = innerMesh.globalConnec;
-            connecIL  = innerMesh.mesh.connec;
-            innerL2G(connecIL(:)) = connecIG(:);
-            innerDofs = unique(connecIL);
-
-            int = zeros(obj.npnod,1);
-            int(innerL2G(innerDofs)) = intLoc(innerDofs);
+        function int = computeGlobalIntegralFromLocal(obj, intLoc, iBoundary)
+            connecBG              = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{iBoundary};
+            meshes                = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
+            connecBL              = meshes{iBoundary}.backgroundMesh.connec;
+            loc2glob(connecBL(:)) = connecBG(:);
+            int                   = zeros(obj.dofs,1);
+            int(loc2glob)         = intLoc;
         end
 
     end
