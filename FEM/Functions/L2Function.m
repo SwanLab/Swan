@@ -8,31 +8,21 @@ classdef L2Function < handle
         mesh
     end
     
-    properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
     methods (Access = public)
-        
-        function obj = L2Function(cParams)
-            
-        end
-
         function fun = project(obj,target)
             s.mesh          = obj.mesh;
             s.projectorType = target;
             proj = Projector.create(s);
             fun = proj.project(obj);
         end
-        
+
+        function totVal = computeScalarProduct(obj,f,order)
+            q.mesh     = obj.mesh;
+            q.quadType = order;
+            q.type     = 'ScalarProduct';
+            int        = Integrator.create(q);
+            totVal     = int.compute(obj,f);
+        end
     end
-    
-    methods (Access = private)
-        
-    end
-    
+
 end
