@@ -19,12 +19,13 @@ classdef StiffnessEigenModesComputer < handle
     methods (Access = public)
         
         function obj = StiffnessEigenModesComputer(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)  
+            obj.createBoundaryConditions();            
         end
 
-        function [eigNeuman,eigDirichlet]  = compute(obj)
-            obj.createMaterialInterpolator();
-            obj.createBoundaryConditions();
+        function [eigNeuman,eigDirichlet]  = compute(obj,dens)
+            obj.density = dens;
+            obj.createMaterialInterpolator();            
             obj.createStiffnessMatrix();
             obj.computeMassMatrix();
             [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
@@ -35,24 +36,8 @@ classdef StiffnessEigenModesComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.density = cParams.density;
             obj.mesh    = cParams.mesh;
         end
-
-
-        function createMaterialInterpolator(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPThermal';
-            s.alpha0         = 1e-5;
-            s.alpha1         = 1;
-            s.density        = obj.density;
-            a = MaterialInterpolation.create(s);
-            obj.conductivity = a;            
-%             sP.mesh          = obj.mesh;
-%             sP.projectorType = 'P1D';
-%             proj = Projector.create(sP);
-%             a1   = proj.project(a);
-        end    
 
         function createBoundaryConditions(obj)
             bMesh  = obj.mesh.createBoundaryMesh();
@@ -78,16 +63,15 @@ classdef StiffnessEigenModesComputer < handle
             obj.boundaryConditions = bC;
         end        
 
-        function computeMassMatrix(obj)
-            s.test  = P1Function.create(obj.mesh,1); 
-            s.trial = P1Function.create(obj.mesh,1); 
-            s.mesh  = obj.mesh;
-            s.function = obj.density;
-            s.quadratureOrder = 'QUADRATIC';
-            s.type            = 'MassMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
-            obj.Mmatrix = lhs.compute();       
-        end        
+        function createMaterialInterpolator(obj)
+            s.typeOfMaterial = 'ISOTROPIC';
+            s.interpolation  = 'SIMPThermal';
+            s.alpha0         = 1e-5;
+            s.alpha1         = 1;
+            s.density        = obj.density;
+            a = MaterialInterpolation.create(s);
+            obj.conductivity = a;            
+        end            
 
         function createStiffnessMatrix(obj)
             s.test  = P1Function.create(obj.mesh,1); 
@@ -99,8 +83,18 @@ classdef StiffnessEigenModesComputer < handle
             lhs = LHSintegrator.create(s);
             obj.Kmatrix = lhs.compute();
         end
-        
-        
+
+        function computeMassMatrix(obj)
+            s.test  = P1Function.create(obj.mesh,1); 
+            s.trial = P1Function.create(obj.mesh,1); 
+            s.mesh  = obj.mesh;
+            s.function = obj.density;
+            s.quadratureOrder = 'QUADRATIC';
+            s.type            = 'MassMatrixWithFunction';
+            lhs = LHSintegrator.create(s);
+            obj.Mmatrix = lhs.compute();       
+        end       
+                
         function [eigLHSNewman,eigLHSDirichlet] = obtainLowestEigenValues(obj)
             K = obj.Kmatrix;
             M = obj.Mmatrix;
@@ -114,20 +108,20 @@ classdef StiffnessEigenModesComputer < handle
          %   [Vr,eigLHSDirichlet] = eigs(Kr,[],10,'smallestabs');
 
 
-            fV = zeros(size(V(:,1)));
-            fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
-            fV(obj.boundaryConditions.free,1) = Vr(:,1);
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            vV = P1Function(s);
-            vV.plot()
-
-
-            fV = V(:,2);
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            vN = P1Function(s);
-            vN.plot()
+            % fV = zeros(size(V(:,1)));
+            % fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
+            % fV(obj.boundaryConditions.free,1) = Vr(:,1);
+            % s.fValues = fV;
+            % s.mesh    = obj.mesh;
+            % vV = P1Function(s);
+            % vV.plot()
+            % 
+            % 
+            % fV = V(:,2);
+            % s.fValues = fV;
+            % s.mesh    = obj.mesh;
+            % vN = P1Function(s);
+            % vN.plot()
 
         end   
 
