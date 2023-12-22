@@ -65,12 +65,12 @@ connec = [
 % Node            Dimension                Value
 
 dirichlet_data = [
-                            1 1 1
-                            1 2 2
-                            3 1 1
-                            3 2 0
-                            8 1 1
-                            8 2 1
+    1 1 1
+    1 2 1
+    3 1 1
+    3 2 1
+    8 1 1
+    8 2 1
 ];
 
 %% Force Prescribed

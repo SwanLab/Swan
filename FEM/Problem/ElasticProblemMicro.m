@@ -40,7 +40,7 @@ classdef ElasticProblemMicro < handle
                 obj.computeDisplacements(i);
                 obj.computeStrain(i);
                 obj.computeStress(i);
-                obj.computeFluctuations(i);
+                obj.computeFluctuations(i); % fluct red
 %                 obj.computeStressStrainFluctuations()
             end
         end

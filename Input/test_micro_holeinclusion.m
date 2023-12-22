@@ -748,7 +748,8 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-dirichlet_data = [1 1 0
+dirichlet_data = [
+    1 1 0
     1 2 0
     204 1 0
     204 2 0
@@ -757,6 +758,18 @@ dirichlet_data = [1 1 0
     265 1 0
     265 2 0
 ];
+
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) == 0);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) == 0);
+
+% Dirichlet
+sDir.domain    = @(coor) (isTop(coor) & isLeft(coor)) | (isTop(coor) & isRight(coor))...
+                        | (isBottom(coor) & isLeft(coor)) | (isBottom(coor) & isRight(coor));
+sDir.direction = [1,2];
+sDir.value     = 0;
 
 %% Force Prescribed
 % Node                Dimension                Value

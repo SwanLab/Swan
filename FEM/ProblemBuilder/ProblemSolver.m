@@ -32,7 +32,7 @@ classdef ProblemSolver < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.type               = cParams.type';
+            obj.type               = cParams.type;
             obj.stiffness          = cParams.stiffness;
             obj.forces             = cParams.forces;
             obj.boundaryConditions = cParams.boundaryConditions;
@@ -52,8 +52,8 @@ classdef ProblemSolver < handle
             switch obj.type
                 case 'MONOLITHIC'
                     nDisp = size(obj.stiffness,1);
-                    u = sol(1:nDisp);
-                    L = sol( (nDisp+1):end );
+                    u = sol(1:nDisp, :);
+                    L = sol( (nDisp+1):end, : );
                     
                 case 'REDUCED'
                     dofs = 1:size(obj.stiffness);
@@ -91,7 +91,8 @@ classdef ProblemSolver < handle
             switch obj.type
                 case 'MONOLITHIC'
                     dir_vals = dirich.values;
-                    Ct = dir_vals;
+                    nCases = size(obj.forces,2);
+                    Ct = repmat(dir_vals, [1 nCases]);
                     RHS = [obj.forces; Ct];
                     
                 case 'REDUCED'

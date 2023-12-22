@@ -51,17 +51,45 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
         function testTriangleDispRed(testCase, triangle)
             s.computerType     = 'FEM';
-            s.testName         = [triangle '_non_null'];
+            s.testName         = [triangle '_non_null2'];
             s.variablesToStore = {'d_u'};
             s.computerType = 'FEM';
             s.solType   = 'REDUCED';
             s.solMode   = 'DISP';
-            s.testResultsName  = [triangle '_non_null'];
+            s.testResultsName  = [triangle '_non_null2'];
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol);
         end
+
+        % function testTriangleDispMon_Original(testCase, triangle)
+        %     s.computerType     = 'FEM';
+        %     s.testName         = [triangle '_non_null'];
+        %     s.variablesToStore = {'d_u'};
+        %     s.computerType = 'FEM';
+        %     s.solType   = 'MONOLITIC';
+        %     s.solMode   = 'DISP';
+        %     s.testResultsName  = [triangle '_non_null'];
+        %     test = PrecomputedVariableTest(s);
+        %     err = test.computeError();
+        %     tol = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol);
+        % end
+        % 
+        % function testTriangleDispRed_Original(testCase, triangle)
+        %     s.computerType     = 'FEM';
+        %     s.testName         = [triangle '_non_null'];
+        %     s.variablesToStore = {'d_u'};
+        %     s.computerType = 'FEM';
+        %     s.solType   = 'REDUCED';
+        %     s.solMode   = 'DISP';
+        %     s.testResultsName  = [triangle '_non_null'];
+        %     test = PrecomputedVariableTest(s);
+        %     err = test.computeError();
+        %     tol = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol);
+        % end
 
     end
 

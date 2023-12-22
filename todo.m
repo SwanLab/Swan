@@ -1,5 +1,7 @@
 %% To-do
 
+% - max one dirichlet condition... how do we refactor that?
+% - same with periodic... how do we do that?
 % Current approach to Elastic Problem. Limitations
 %   - Just dirichlet and one pointload
 %   - All tests need to be refactored -> opportunity for coverage analysis

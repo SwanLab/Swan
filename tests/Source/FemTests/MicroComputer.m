@@ -24,7 +24,7 @@ classdef MicroComputer < handle
             a.fileName = obj.testName;
             s = FemDataContainer(a);
 
-            s = ObjectSaver.saveObj(s);
+            % s = ObjectSaver.saveObj(s);
 %             s.builderType = obj.builderType;
             s.solType = obj.solType;
             s.solMode = obj.solMode;

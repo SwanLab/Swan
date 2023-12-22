@@ -178,6 +178,7 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
+            s.fun = obj.displacementFun;
             s.type = 'Elastic';
             s.scale    = obj.scale;
             s.dim      = obj.getFunDims();
