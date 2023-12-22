@@ -60,7 +60,7 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           order       = 'QUADRATIC';
+           l2Norm      = L2Norm(obj.mesh);
            x           = obj.fun.fValues;
            x0          = obj.valueOld;
            siF.fValues = x-x0;
@@ -69,8 +69,8 @@ classdef DesignVariable < handle
            s0.fValues  = x0;
            s0.mesh     = obj.mesh;
            oldFun      = P1Function(s0);
-           nIncX       = incFun.computeScalarProduct(incFun,order);
-           nX0         = oldFun.computeScalarProduct(oldFun,order);
+           nIncX       = l2Norm.compute(incFun);
+           nX0         = l2Norm.compute(oldFun);
            norm        = nIncX/nX0;
         end
         
