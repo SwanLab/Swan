@@ -21,20 +21,23 @@ classdef MinimumEigenValueFunctional < handle
         end
         
         function computeFunctionAndGradient(obj)            
-            obj.computeFunction();
-            obj.computeGradient();
+            obj.computeDensity();
+            [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);
+            obj.value = f;  
+            obj.gradient = dfdx;            
         end
         
         function computeFunction(obj)
             obj.computeDensity();
-            obj.value = obj.eigModes.compute(obj.density);
+            [f,~]= obj.eigModes.computeFunctionAndGradient(obj.density);
+            obj.value = f;
             %obj.normalizeFunction();
         end
         
         function computeGradient(obj)
             obj.computeDensity();
-            dfdx = obj.eigModes.computeGradient(eigN);
-            obj.gradient = dfdx';
+            [~,dfdx] = obj.eigModes.computeFunctionAndGradient(obj.density);
+            obj.gradient = dfdx;
             %obj.normalizeGradient();
         end
         

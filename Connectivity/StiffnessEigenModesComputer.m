@@ -6,6 +6,7 @@ classdef StiffnessEigenModesComputer < handle
     
     properties (Access = private)
         conductivity 
+        massInterpolator
         boundaryConditions
         Kmatrix
         Mmatrix        
@@ -20,17 +21,24 @@ classdef StiffnessEigenModesComputer < handle
         
         function obj = StiffnessEigenModesComputer(cParams)
             obj.init(cParams)  
-            obj.createBoundaryConditions();            
+            obj.createBoundaryConditions();    
+            obj.createConductivityInterpolator();   
+            obj.createMassInterpolator();                        
         end
 
-        function [eigNeuman,eigDirichlet]  = compute(obj,dens)
+        function [lambda,dlambda]  = computeFunctionAndGradient(obj,dens)
             obj.density = dens;
-            obj.createMaterialInterpolator();            
-            obj.createStiffnessMatrix();
-            obj.computeMassMatrix();
-            [eigNeuman,eigDirichlet] = obj.obtainLowestEigenValues();
+            alpha  = obj.conductivity.fun;
+            dalpha = obj.conductivity.dfun;
+            m      = obj.massInterpolator.fun;
+            dm     = obj.massInterpolator.dfun;            
+            K  = obj.createStiffnessMatrixWithFunction(alpha);
+            M  = obj.computeMassMatrixWithFunction(m);
+            dK = obj.createStiffnessMatrixWithFunction(dalpha);
+            dM = obj.computeMassMatrixWithFunction(dm);            
+            [lambda,phi] = obj.obtainLowestEigenValuesAndFunction(K,M);
+            dlambda = phi'*dK*phi - lambda*phi'*dM*phi;
         end
-
     end
 
     methods (Access = private)
@@ -62,34 +70,47 @@ classdef StiffnessEigenModesComputer < handle
             bC = BoundaryConditions(s);
             obj.boundaryConditions = bC;
         end        
-
-        function createMaterialInterpolator(obj)
+        
+        function createConductivityInterpolator(obj)
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPThermal';
-            s.alpha0         = 1e-5;
-            s.alpha1         = 1;
-            s.density        = obj.density;
+            s.f0   = 1e-5;
+            s.f1   = 1;
+            s.pExp = 8;
             a = MaterialInterpolation.create(s);
             obj.conductivity = a;            
         end            
 
-        function createStiffnessMatrix(obj)
+        function createMassInterpolator(obj)
+            s.typeOfMaterial = 'ISOTROPIC';
+            s.interpolation  = 'SIMPThermal';
+            s.f0   = 1e-5;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = MaterialInterpolation.create(s);
+            obj.massInterpolator = a;            
+        end            
+
+        function K = createStiffnessMatrixWithFunction(obj,fun)
             s.test  = P1Function.create(obj.mesh,1); 
             s.trial = P1Function.create(obj.mesh,1); 
             s.mesh  = obj.mesh;
             s.quadratureOrder = 'QUADRATIC';
-            s.function        = obj.conductivity;
+            s.function        = obj.createCompositeFunction(fun);
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
-            obj.Kmatrix = lhs.compute();
+            K = lhs.compute();
+            K = obj.boundaryConditions.fullToReducedMatrix(K);
         end
 
-        function createAnaliticalFunction(obj)
-            
-
+        function f = createCompositeFunction(obj,fun)
+            s.l2function     = obj.density;
+            s.handleFunction = fun;
+            s.mesh           = obj.mesh;
+            f = CompositionFunction(s);
         end
 
-        function computeMassMatrix(obj)
+        function M = computeMassMatrixWithFunction(obj,fun)
             s.test  = P1Function.create(obj.mesh,1); 
             s.trial = P1Function.create(obj.mesh,1); 
             s.mesh  = obj.mesh;
@@ -97,17 +118,15 @@ classdef StiffnessEigenModesComputer < handle
             s.quadratureOrder = 'QUADRATIC';
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
-            obj.Mmatrix = lhs.compute();       
+            M = lhs.compute();   
+            M = obj.boundaryConditions.fullToReducedMatrix(M);
         end       
                 
-        function [eigLHSNewman,eigLHSDirichlet] = obtainLowestEigenValues(obj)
-            K = obj.Kmatrix;
-            M = obj.Mmatrix;
-            bc  = obj.boundaryConditions;
-            Kr = bc.fullToReducedMatrix(K);
-            Mr = bc.fullToReducedMatrix(M);
-            [V,eigLHSNewman]  = eigs(K,M,10,'smallestabs');
-            [Vr,eigLHSDirichlet] = eigs(Kr,Mr,10,'smallestabs');
+        function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M)
+            [eigF,eigV] = eigs(K,M,2,'smallestabs');
+            eigV1 = eigV(1);
+            eigF1 = eigF(1);
+            
 
         %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');
          %   [Vr,eigLHSDirichlet] = eigs(Kr,[],10,'smallestabs');
@@ -127,7 +146,7 @@ classdef StiffnessEigenModesComputer < handle
             % s.mesh    = obj.mesh;
             % vN = P1Function(s);
             % vN.plot()
-
+    
         end   
 
 
