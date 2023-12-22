@@ -51,7 +51,7 @@ classdef PhaseFieldComputer < handle
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 obj.createBoundaryConditions(i,obj.steps);
                 numIterU = 1;
-                errorU = [1];
+                errorU = 1;
                 costFun = null(2,1);
                 while (errorU(end) > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
@@ -63,7 +63,7 @@ classdef PhaseFieldComputer < handle
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
                         obj.solvePhaseFieldEquation();
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
-                        obj.phaseField.fValues = max(phaseFieldOld, obj.phaseField.fValues);
+                        obj.phaseField.fValues = min(max(phaseFieldOld, obj.phaseField.fValues),1);
 
                         costFun(1,end+1) = obj.computeCostFunction();
                         costFun(2,end) = 1;
@@ -73,7 +73,7 @@ classdef PhaseFieldComputer < handle
 
                         numIterP = numIterP + 1;
                     end
-                    errorU(end+1) = computeDisplacementError();
+                    errorU(end+1) = obj.computeDisplacementError(Uold);
                     disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(end))])
 
                     numIterU = numIterU + 1;
@@ -177,10 +177,11 @@ classdef PhaseFieldComputer < handle
 
         % Dissipation mass matrix
         function createDissipationMassMatrix(obj)
-            DDalphaFun =  obj.createFGaussDDDissipationFunction(); 
+            ddAlphaFun =  obj.createSecondDerivativeDissipationFunction();
+
             s.trial = P1Function.create(obj.mesh,1);
             s.test = P1Function.create(obj.mesh,1);
-            s.function = DDalphaFun;
+            s.function = ddAlphaFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = 'LINEAR';
@@ -188,16 +189,11 @@ classdef PhaseFieldComputer < handle
             obj.Md = LHS.compute(); 
         end
 
-        function DDalpha = createFGaussDDDissipationFunction(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-
-            phiV     = obj.phaseField.evaluate(quad.posgp);
-            DDalphaV = obj.dissipationInterpolation.computeDDAlphaProp(phiV);
-            s.fValues = DDalphaV;
-            s.quadrature = quad;
+        function ddAlpha = createSecondDerivativeDissipationFunction(obj)
             s.mesh = obj.mesh;
-            DDalpha = FGaussDiscontinuousFunction(s);
+            s.handleFunction = obj.dissipationInterpolation.ddfun;
+            s.l2function = obj.phaseField;
+            ddAlpha = CompositionFunction(s);
         end
 
         % Stiffness matrix
@@ -218,32 +214,28 @@ classdef PhaseFieldComputer < handle
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
             RHS = RHSintegrator.create(s);
             obj.Fi = RHS.compute(DenergyFun,test); 
         end
         
         % Dissipation force vector
         function createDissipationForceVector(obj)
-            DalphaFun =  obj.createFGaussDDissipationFunction(); 
+            dAlphaFun =  obj.createFirstDerivativeDissipationFunction(); 
             test = P1Function.create(obj.mesh,1);
 
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
-            s.quadratureOrder = 'LINEAR';
+            s.quadType = 'LINEAR';
             RHS = RHSintegrator.create(s);
-            obj.Fd = RHS.compute(DalphaFun, test);     
+            obj.Fd = RHS.compute(dAlphaFun, test);     
         end
 
-        function Dalpha = createFGaussDDissipationFunction(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-
-            phiV     = obj.phaseField.evaluate(quad.posgp);
-            DalphaV = obj.dissipationInterpolation.computeDAlphaProp(phiV);
-            s.fValues = DalphaV;
-            s.quadrature = quad;
+        function dAlpha = createFirstDerivativeDissipationFunction(obj)
             s.mesh = obj.mesh;
-            Dalpha = FGaussDiscontinuousFunction(s);
+            s.handleFunction = obj.dissipationInterpolation.dfun;
+            s.l2function = obj.phaseField;
+            dAlpha = CompositionFunction(s);
         end  
        
         % Force derivative vector
@@ -294,23 +286,21 @@ classdef PhaseFieldComputer < handle
         end
 
         function totVal = computeTotalDissipationLocal(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATICMASS');
-
-            phiV = obj.phaseField.evaluate(quad.posgp);
-            aValues = obj.dissipationInterpolation.computeAlphaProp(phiV);
-           
-            s.fValues = aValues;
-            s.quadrature = quad;
-            s.mesh = obj.mesh;
-            alpha = FGaussDiscontinuousFunction(s);
+            alphaFun = obj.createDissipationFunction();
 
             q.mesh = obj.mesh;
             q.quadType = 'QUADRATICMASS';
             q.type = 'Function';
             int = Integrator.create(q);
-            totVal = (obj.Constant/obj.l0)*int.compute(alpha);
+            totVal = (obj.Constant/obj.l0)*int.compute(alphaFun);
         end
+
+        function dAlpha = createDissipationFunction(obj)
+            s.mesh = obj.mesh;
+            s.handleFunction = obj.dissipationInterpolation.dfun;
+            s.l2function = obj.phaseField;
+            dAlpha = CompositionFunction(s);
+        end  
 
         function totVal = computeTotalRegularizationTerm(obj)
             quad = Quadrature.set(obj.mesh.type);
@@ -414,16 +404,18 @@ classdef PhaseFieldComputer < handle
             e = eW+eT+eD+eR;
         end
 
-        function e = computeDisplacementError(obj)
+        function error = computeDisplacementError(obj,f)
             s.mesh = obj.mesh;
-            s.fValues = forceValues;
+            s.fValues = obj.fem.uFun.fValues - f.fValues;
             f = P1Function(s);
 
             q.mesh = obj.mesh;
             q.quadType = 'CONSTANT';
             q.type = 'ScalarProduct';
             int = Integrator.create(q);
-            totVal = int.compute(u,f);
+            error = sqrt(int.compute(f,f));
+
+            error2 = norm(s.fValues);
         end
 
         %% %%%%%%%%%%%%%%%%%% PLOTS %%%%%%%%%%%%%%% %%
@@ -462,10 +454,10 @@ classdef PhaseFieldComputer < handle
 
             figure(200)
             hold on
-            plot(obj.energyMat(1,1:step))
-            plot(obj.energyMat(2,1:step))
-            plot(obj.energyMat(3,1:step))
-            plot(obj.energyMat(4,1:step))
+            plot(obj.energyMat(1,1:step),'Color',"#0072BD")
+            plot(obj.energyMat(2,1:step),'Color',"#D95319")
+            plot(obj.energyMat(3,1:step),'Color',"#EDB120")
+            plot(obj.energyMat(4,1:step),'Color',"#7E2F8E")
             title('Energy values at each step')
             legend('External Work', ...
                    'Internal Energy', ...
@@ -476,13 +468,14 @@ classdef PhaseFieldComputer < handle
             
             figure(300)
             hold on
-            plot(obj.iterMat(1,1:step))
-            plot(obj.iterMat(2,1:step))
+            plot(obj.iterMat(1,1:step),'b')
+            plot(obj.iterMat(2,1:step),'r')
             title('Iterations needed')
             legend('U','phi')
             xlabel('Step')
             ylabel('Iterations')
-
+            
+            figure(400)
             obj.phaseField.plot;
             colorbar
             clim([0 1])

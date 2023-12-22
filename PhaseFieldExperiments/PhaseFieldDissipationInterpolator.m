@@ -1,46 +1,38 @@
 classdef PhaseFieldDissipationInterpolator < handle
 
     properties (Access = public)
-
+        fun
+        dfun
+        ddfun
     end
 
     properties (Access = private)
-        alpha
-        dalpha
-        ddalpha
-    end
-
-    properties (Access = private)
-       constitutiveProperties        
+        pExp
     end
 
     methods (Access = public)
-
-        function obj = PhaseFieldDissipationInterpolator()   
-            obj.createDissipationInterpolation()
+        function obj = PhaseFieldDissipationInterpolator(cParams)
+            obj.init(cParams)
+            obj.computeDissipationFunctionAndDerivatives();
         end
-
-        function alpha = computeAlphaProp(obj,phi)
-            alpha = obj.alpha(phi);
-        end
-
-        function dalpha = computeDAlphaProp(obj,phi)
-            dalpha = obj.dalpha(phi);
-        end
-
-        function ddalpha = computeDDAlphaProp(obj,phi)
-            ddalpha = obj.ddalpha(phi);
-        end
-
     end
 
     methods (Access = private)
-        function createDissipationInterpolation(obj)
-            p = 2;
 
-            obj.alpha    = @(phi) phi.^p;
-            obj.dalpha   = @(phi) p*(phi).^(p-1);
-            obj.ddalpha  = @(phi) p*(p-1)*(phi).^(p-2);
+        function init(obj,cParams)
+            obj.pExp = cParams.pExp;
+        end
+
+        function computeDissipationFunctionAndDerivatives(obj)
+            p = obj.pExp;
+            
+            obj.fun      = @(phi) phi.^p;
+            obj.dfun     = @(phi) p*(phi).^(p-1);
+            if p == 1
+                obj.ddfun  = @(phi) 0*(phi);
+            else
+                obj.ddfun  = @(phi) p*(p-1)*(phi).^(p-2);
+            end
         end
 
     end

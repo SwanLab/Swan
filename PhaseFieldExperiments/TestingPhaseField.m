@@ -46,9 +46,9 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            %obj.createOneElementMesh();
+            obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            obj.createArbitraryElementMesh(10);
+            %obj.createArbitraryElementMesh(10);
             %obj.createOpenHoleMesh();
         end
 
@@ -80,6 +80,7 @@ classdef TestingPhaseField < handle
         function createDissipationInterpolation(obj)
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation = 'PhaseFieldD';
+            s.pExp = 1;
             obj.dissipationPhaseField = MaterialInterpolation.create(s);
         end
 
