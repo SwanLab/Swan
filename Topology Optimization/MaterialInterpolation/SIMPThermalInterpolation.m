@@ -23,10 +23,16 @@ classdef SIMPThermalInterpolation < L2Function
             obj.computeConductivityFunctionAndDerivative();
         end
         
-        function alpha = evaluate(obj,xV)
-            rho = obj.density.evaluate(xV);
-            alpha  = obj.alpha(rho);
+        function a = getFunction(obj)
+            s.fHandle = cParams.fHandle;
+            s.ndimf   = cParams.ndimf;
+            s.mesh    = cParams.mesh;            
+            a  = obj.alpha;
         end
+
+        function a = getDerivative(obj)
+            a  = obj.alpha;
+        end        
         
     end
     

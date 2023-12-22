@@ -84,6 +84,11 @@ classdef StiffnessEigenModesComputer < handle
             obj.Kmatrix = lhs.compute();
         end
 
+        function createAnaliticalFunction(obj)
+            
+
+        end
+
         function computeMassMatrix(obj)
             s.test  = P1Function.create(obj.mesh,1); 
             s.trial = P1Function.create(obj.mesh,1); 
