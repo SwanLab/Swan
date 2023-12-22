@@ -46,16 +46,17 @@ classdef PhaseFieldComputer < handle
             obj.l0 = 1*1e-1;
             
             phaseFieldOld = obj.phaseField.fValues;
-            Uold = zeros(obj.mesh.nnodes,obj.mesh.ndim);
+            Uold = P1Function.create(obj.mesh,2);
             for i = 1:obj.steps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 obj.createBoundaryConditions(i,obj.steps);
                 numIterU = 1;
                 errorU = [1];
-                costFun = [];
+                costFun = null(2,1);
                 while (errorU(end) > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
-                    costFun(end+1) = obj.computeCostFunction();
+                    costFun(1,end+1) = obj.computeCostFunction();
+                    costFun(2,end) = 0;
 
                     numIterP = 1;
                     errorPhi = 1;
@@ -64,17 +65,19 @@ classdef PhaseFieldComputer < handle
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
                         obj.phaseField.fValues = max(phaseFieldOld, obj.phaseField.fValues);
 
-                        costFun(end+1) = obj.computeCostFunction();
-                        errorPhi = abs(costFun(end)-costFun(end-1));
+                        costFun(1,end+1) = obj.computeCostFunction();
+                        costFun(2,end) = 1;
+
+                        errorPhi = abs(costFun(1,end)-costFun(1,end-1));
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
 
                         numIterP = numIterP + 1;
                     end
-                    errorU(end+1) = norm(obj.fem.uFun.fValues - Uold);
+                    errorU(end+1) = computeDisplacementError();
                     disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(end))])
 
                     numIterU = numIterU + 1;
-                    Uold = obj.fem.uFun.fValues;
+                    Uold.fValues = obj.fem.uFun.fValues;
                 end
                 phaseFieldOld = obj.phaseField.fValues;
 
@@ -83,6 +86,25 @@ classdef PhaseFieldComputer < handle
                 s.numIterP = numIterP;
                 obj.saveData(s);
                 obj.printPlots(i);
+
+                figure(500)
+                for k = 2:size(costFun,2)
+                    if costFun(2,k) == 0
+                        points = [k   , costFun(1,k-1);
+                                  k   , costFun(1,k)  ;
+                                  k+1 , costFun(1,k)  ];
+                        plot(points(:,1),points(:,2),'b')
+                        hold on
+                    elseif costFun(2,k) == 1
+                        points = [k   , costFun(1,k-1);
+                                  k   , costFun(1,k)  ;
+                                  k+1 , costFun(1,k)  ];
+                        plot(points(:,1),points(:,2),'r')
+                        hold on
+                    end
+
+                end
+                hold off
             end
         end
 
@@ -390,6 +412,18 @@ classdef PhaseFieldComputer < handle
             eD = obj.computeTotalDissipationLocal();
             eR = obj.computeTotalRegularizationTerm();
             e = eW+eT+eD+eR;
+        end
+
+        function e = computeDisplacementError(obj)
+            s.mesh = obj.mesh;
+            s.fValues = forceValues;
+            f = P1Function(s);
+
+            q.mesh = obj.mesh;
+            q.quadType = 'CONSTANT';
+            q.type = 'ScalarProduct';
+            int = Integrator.create(q);
+            totVal = int.compute(u,f);
         end
 
         %% %%%%%%%%%%%%%%%%%% PLOTS %%%%%%%%%%%%%%% %%
