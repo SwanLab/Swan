@@ -25,7 +25,7 @@ classdef DehomogenizingSingularitiesTest < handle
         function obj = DehomogenizingSingularitiesTest(cParams)
             obj.init(cParams);
             %mSize = 0.02;
-            mSize = linspace(0.02,0.03,20);
+            mSize = linspace(0.02,0.03,2);
             %mSize = linspace(0.030526315789474,0.038421052631579,0.034137931034483,0.034482758620690,0.036551724137931);
          %   mSize = linspace(0.04,0.05,30);%linspace(0.042,0.04,2);%0.09;%0.0221;%0.09;%0.0221;%0.09;%0.0221;%0.0521 %0.0221;0.0921
             for iMesh = 1:length(mSize)
@@ -143,12 +143,12 @@ classdef DehomogenizingSingularitiesTest < handle
             s.fValues = a;
             s.mesh    = obj.mesh;
             aF = P1Function(s);            
-            obj.orientation{1} = aF;%.project('P0');
+            obj.orientation{1} = aF;
             a = [-sin(al), cos(al)];
             s.fValues = a;
             s.mesh    = obj.mesh;
             aF = P1Function(s);            
-            obj.orientation{2} = aF;%.project('P0');
+            obj.orientation{2} = aF;
         end
 
         function plotOrientation(obj)
