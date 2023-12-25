@@ -7,7 +7,7 @@ classdef HamiltonJacobi < handle
     properties (Access = private)
         phi
         filter
-        scalar_product
+        epsilon
         velocity
     end
 
@@ -41,8 +41,8 @@ classdef HamiltonJacobi < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.phi            = cParams.designVar;
-            obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
+            obj.phi     = cParams.designVar;
+            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
         end
 
         function computeVelocity(obj,g)
@@ -65,30 +65,26 @@ classdef HamiltonJacobi < handle
         end
 
         function x = normalizeFunction(obj,x)
-            h1Norm    = H1Norm(obj.phi.mesh);
-            epsilon   = obj.scalar_product.femSettings.epsilon;
+            m         = obj.phi.mesh;
             s.fValues = x;
-            s.mesh    = obj.phi.mesh;
+            s.mesh    = m;
             xFun      = P1Function(s);
-            norm      = h1Norm.compute(xFun,epsilon);
+            norm      = Norm.computeH1(m,xFun,obj.epsilon);
             xNorm     = sqrt(norm);
             x         = x/xNorm;
         end
 
         function setupFilter(obj)
             designVar           = obj.phi;
-            e                   = obj.scalar_product.femSettings.epsilon;
-            set                 = SettingsFilter('paramsFilter_PDE_Boundary.json');
-            s                   = set.femSettings;
             s.mesh              = designVar.mesh;
             s.designVarType     = designVar.type;
             s.scale             = 'MACRO';
-            s.filterType        = set.filterType;
+            s.filterType        = 'PDE';
             s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
             s.trial             = P1Function.create(s.mesh,1);
             obj.filter          = Filter.create(s);
-            obj.filter.updateEpsilon(e);
+            obj.filter.updateEpsilon(obj.epsilon);
         end
     end
 

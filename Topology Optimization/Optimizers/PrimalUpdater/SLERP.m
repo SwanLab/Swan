@@ -7,7 +7,7 @@ classdef SLERP < handle
     properties (Access = private)
         phi
         theta
-        scalar_product
+        epsilon
     end
 
     methods (Access = public)
@@ -42,11 +42,12 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi            = cParams.designVar;
-            obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
+            obj.phi     = cParams.designVar;
+            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
         end
 
         function computeTheta(obj,g)
+            m         = obj.phi.mesh;            
             pN        = obj.normalizeFunction(obj.phi.fun.fValues);
             gN        = obj.normalizeFunction(g);
             s.fValues = pN;
@@ -54,9 +55,7 @@ classdef SLERP < handle
             pNfun     = P1Function(s);
             s.fValues = gN;
             gNfun     = P1Function(s);
-            h1sp      = H1ScalarProduct(obj.phi.mesh);
-            epsilon   = obj.scalar_product.femSettings.epsilon;
-            phiG      = h1sp.compute(pNfun,gNfun,epsilon);
+            phiG      = ScalarProduct.computeH1(m,pNfun,gNfun,obj.epsilon);
             obj.theta = max(acos(phiG),1e-14);
         end
 
@@ -72,12 +71,11 @@ classdef SLERP < handle
         end
 
         function x = normalizeFunction(obj,x)
-            h1Norm    = H1Norm(obj.phi.mesh);
-            epsilon   = obj.scalar_product.femSettings.epsilon;
+            m         = obj.phi.mesh;
             s.fValues = x;
-            s.mesh    = obj.phi.mesh;
+            s.mesh    = m;
             xFun      = P1Function(s);
-            norm      = h1Norm.compute(xFun,epsilon);
+            norm      = Norm.computeH1(m,xFun,obj.epsilon);
             xNorm     = sqrt(norm);
             x         = x/xNorm;
         end

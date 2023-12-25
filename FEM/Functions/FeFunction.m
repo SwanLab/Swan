@@ -29,6 +29,11 @@ classdef FeFunction < handle
             proj = Projector.create(s);
             fun = proj.project(obj);
         end
+
+        function n = computeL2norm(obj)
+            l2Norm = L2Norm(obj.mesh);
+            n = l2Norm.compute(obj);
+        end
     end
 
     methods (Static, Access = public)
