@@ -7,7 +7,7 @@ classdef SLERP < handle
     properties (Access = private)
         phi
         theta
-        scalar_product
+        epsilon
     end
 
     methods (Access = public)
@@ -42,14 +42,20 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi            = cParams.designVar;
-            obj.scalar_product = cParams.uncOptimizerSettings.scalarProductSettings;
+            obj.phi     = cParams.designVar;
+            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
         end
 
         function computeTheta(obj,g)
+            m         = obj.phi.mesh;            
             pN        = obj.normalizeFunction(obj.phi.fun.fValues);
             gN        = obj.normalizeFunction(g);
-            phiG      = obj.computeCompleteScalarProduct(pN,gN);
+            s.fValues = pN;
+            s.mesh    = obj.phi.mesh;
+            pNfun     = P1Function(s);
+            s.fValues = gN;
+            gNfun     = P1Function(s);
+            phiG      = ScalarProduct.computeH1(m,pNfun,gNfun,obj.epsilon);
             obj.theta = max(acos(phiG),1e-14);
         end
 
@@ -65,27 +71,13 @@ classdef SLERP < handle
         end
 
         function x = normalizeFunction(obj,x)
-            norm  = obj.computeCompleteScalarProduct(x,x);
-            xNorm = sqrt(norm);
-            x     = x/xNorm;
-        end
-
-        function sp = computeCompleteScalarProduct(obj,x,y)
-            e          = obj.scalar_product.femSettings.epsilon;
-            mesh       = obj.phi.mesh;
-            order      = 'QUADRATIC';
-            q          = Quadrature.set(mesh.type);
-            q.computeQuadrature(order);
-            s.fValues  = x;
-            s.mesh     = mesh;
-            fun        = P1Function(s);
-            s.fValues  = y;
-            argFun     = P1Function(s);
-            gradNewFun = fun.computeGradient(q);
-            gradArgFun = argFun.computeGradient(q);
-            spM        = fun.computeScalarProduct(argFun,order);
-            spK        = gradNewFun.computeScalarProduct(gradArgFun,order);
-            sp         = spM+e^2*spK;
+            m         = obj.phi.mesh;
+            s.fValues = x;
+            s.mesh    = m;
+            xFun      = P1Function(s);
+            norm      = Norm.computeH1(m,xFun,obj.epsilon);
+            xNorm     = sqrt(norm);
+            x         = x/xNorm;
         end
     end
 
