@@ -105,18 +105,13 @@
         end
 
         function v = computeL2norm(obj)
-            s.type     = 'ScalarProduct';
-            s.quadType = 'QUADRATICMASS';
-            s.mesh     = obj.mesh;
-            int = Integrator.create(s);
-            ff  = int.compute(obj,obj);
-            v   = sqrt(ff);
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
         end        
 
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;

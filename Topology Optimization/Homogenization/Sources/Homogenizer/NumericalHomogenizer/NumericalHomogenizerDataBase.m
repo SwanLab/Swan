@@ -69,9 +69,16 @@ classdef NumericalHomogenizerDataBase < handle
             sLs.coord  = s.mesh.coord;
             sLs.type   = s.initialCase;
             lsCreator  = LevelSetCreator.create(sLs);
-            ss.fValues = lsCreator.getValue();
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
             ss.mesh    = s.mesh;
-            s.levelSetFunction = P1Function(ss);
+            s.fun      = P1Function(ss);
 
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
