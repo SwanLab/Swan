@@ -1,16 +1,12 @@
 classdef MappingComputer < handle
 
-    properties (Access = private)
-        LHS
-        RHS
-    end
 
     properties (Access = private)
         meshDisc
         mesh
-        orientation
-        interp
         interpolator
+        dilatedOrientation
+        field
     end
 
     methods (Access = public)
@@ -20,12 +16,13 @@ classdef MappingComputer < handle
         end
 
         function uF = compute(obj)
-            obj.computeLHS();
-            obj.computeRHS();
-            uC = obj.solveSystem();
-            In = obj.interpolator;
-            u  = In*uC;
-            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]);
+            LHS = obj.computeStiffnessMatrix();
+            for iDim = 1:obj.mesh.ndim
+                RHS = obj.computeRHS(iDim);
+                uC  = obj.solveSystem(LHS,RHS);
+                uC  = reshape(uC,obj.mesh.nnodeElem,[]);
+                uV(iDim,:,:) = uC;
+            end
             s.mesh    = obj.mesh;
             s.fValues = uV;
             uF = P1DiscontinuousFunction(s);
@@ -36,17 +33,10 @@ classdef MappingComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation  = cParams.orientation;
-            obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
-        end
-        
-        function computeLHS(obj)
-            K = obj.computeStiffnessMatrix();
-            In = obj.interpolator;
-            Kn = In'*K*In;
-            obj.LHS = Kn;
+            obj.mesh               = cParams.mesh;
+            obj.dilatedOrientation = cParams.dilatedOrientation;
+            obj.interpolator       = cParams.interpolator;
+            obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
 
         function K = computeStiffnessMatrix(obj)
@@ -58,25 +48,29 @@ classdef MappingComputer < handle
             K = lhs.compute();
         end
 
-        function computeRHS(obj)
+        function RHS = computeRHS(obj,iDim)
+            aI = obj.dilatedOrientation{iDim};
+            aI = aI.project('P1D');
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-%             fG = obj.orientation.evaluate(q.posgp);
-            s.mesh  = obj.meshDisc;
-            s.type = 'ShapeDerivative';
+            s.mesh      = obj.mesh;
             s.quadratureOrder = q.order;
+            s.type      = 'ShapeDerivative';
+            test = P1DiscontinuousFunction.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);
-            rhsF = rhs.compute(obj.orientation,obj.orientation);
+            rhsV = rhs.compute(aI,test);
             In = obj.interpolator;
-            rhsV = In'*rhsF.fValues;
-            obj.RHS = rhsV;
+            RHS = In'*rhsV;          
         end
 
-        function u = solveSystem(obj)
+        function u = solveSystem(obj,LHS,RHS)
+            In = obj.interpolator;            
+            LHS = In'*LHS*In;
             a.type = 'DIRECT';
             s = Solver.create(a);
-            u = s.solve(obj.LHS,obj.RHS);
-            u = u(1:end);
+            u = s.solve(LHS,RHS);
+            u = In*u;            
+            u = u(1:end);            
         end
 
     end

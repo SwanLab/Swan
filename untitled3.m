@@ -1,5 +1,2 @@
-for i = 1:1000
-   TestingPathFormSingularityToBoundary
-   i
-   drawnow
-end
+s.testName='s';
+d = DehomogenizingSingularitiesTest(s);
