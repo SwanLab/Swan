@@ -68,13 +68,26 @@ classdef TopOptTestTutorial < handle
         end
 
        function mat = createMaterial(obj)
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = 1;
+            s.poisson = 1/3;
+            mat1 = Material.create(s);
+
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = 1e-3;
+            s.poisson = 1/3;
+            mat2 = Material.create(s);            
+
             matI = obj.computeMaterialInterpolation();           
             d = obj.designVariable.fun.project('P0');            
             dens    = d.fValues;
             mat     = matI.computeMatProp(dens);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
-            s.nelem = obj.mesh.nelem;
             s.mesh  = obj.mesh;
             s.kappa = mat.kappa;
             s.mu    = mat.mu;
@@ -85,16 +98,16 @@ classdef TopOptTestTutorial < handle
         function matInt = computeMaterialInterpolation(obj)
             c.typeOfMaterial = 'ISOTROPIC';
             c.interpolation  = 'SIMPALL';
-            c.nElem          = obj.mesh.nelem;
             c.dim            = '2D';
             
-            cp.rho_plus = 1;
-            cp.rho_minus = 0;
-            cp.E_plus = 1;
-            cp.E_minus = 1e-3;
-            cp.nu_plus = 1/3;
-            cp.nu_minus = 1/3;
-            c.constitutiveProperties = cp;
+
+
+
+            cp.E1   = 1;
+            cp.E0   = 1e-3;
+            cp.nu1  = 1/3;
+            cp.nu0  = 1/3;
+            c.matProp = cp;
 
             matInt = MaterialInterpolation.create(c);
         end       
