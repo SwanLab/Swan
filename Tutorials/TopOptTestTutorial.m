@@ -8,7 +8,7 @@ classdef TopOptTestTutorial < handle
         
         function obj = TopOptTestTutorial()
             obj.init()
-            
+            obj.createMesh();
         end
         
     end
@@ -16,6 +16,10 @@ classdef TopOptTestTutorial < handle
     methods (Access = private)
         
         function init(obj)
+            
+        end
+
+        function createMesh(obj)
             
         end
         
