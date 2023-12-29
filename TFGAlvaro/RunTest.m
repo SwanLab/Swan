@@ -12,6 +12,6 @@ Result           = P1Function(p1Params);
 
 
 
-ResultsName = 'Cube_chair_03_final';
+ResultsName = 'Chair_02';
 type   = 'Paraview'; % GiD/Paraview
 Result.print(['TFGAlvaro/Results/',ResultsName],type);

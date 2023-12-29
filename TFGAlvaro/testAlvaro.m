@@ -1,6 +1,6 @@
 % ONLY CHANGE PARAMETERS WITH COMMENTS
 
-filename = 'CubeChairAlvaro'; % Diff meshes
+filename = 'ChairAlvaro'; % Diff meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -15,7 +15,7 @@ incrementFactor = 1.2;
 designVariable = 'LevelSet';
 filterType = 'P1';
 nsteps = 1;
-Vfrac_final = 0.3; % Final volume fraction
+Vfrac_final = 0.2; % Final volume fraction
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -36,4 +36,4 @@ printing = false; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 100; % Maximum number of iterations
+maxiter = 120; % Maximum number of iterations
