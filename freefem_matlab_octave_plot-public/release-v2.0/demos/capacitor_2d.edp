@@ -1,0 +1,115 @@
+/* 2D parallel plate capacitor problem
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-05-19
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+
+include "ffmatlib.idp"
+
+verbosity=0;
+int CA=3, CK=4, CB=5;
+
+//width, height, distance
+real w2=1.0, h=0.4, d2=0.5;
+
+// Anode Terminal
+border bottomA(t=-w2,w2){ x=t; y=d2; label=CA;};
+border rightA(t=d2,d2+h){ x=w2; y=t; label=CA;};
+border topA(t=w2,-w2){ x=t; y=d2+h; label=CA;};
+border leftA(t=d2+h,d2){ x=-w2; y=t; label=CA;};
+
+// Cathode Terminal
+border bottomK(t=-w2,w2){ x=t; y=-d2-h; label=CK;};
+border rightK(t=-d2-h,-d2){ x=w2; y=t; label=CK;};
+border topK(t=w2,-w2){ x=t; y=-d2; label=CK;};
+border leftK(t=-d2,-d2-h){ x=-w2; y=t; label=CK;};
+
+// Infinity; Neumann Condition
+border enclosure(t=0,2*pi){x=5*cos(t); y=5*sin(t); label=CB;}
+
+// Zooming area
+border bzoom(t=0,2*pi) { x=3*cos(t); y=3*sin(t); }
+
+int n=15;
+mesh Th = buildmesh(enclosure(3*n)+
+                    bottomA(-w2*n)+topA(-w2*n)+rightA(-h*n)+leftA(-h*n)+
+                    bottomK(-w2*n)+topK(-w2*n)+rightK(-h*n)+leftK(-h*n));
+
+mesh Zoom = buildmesh(bzoom(2*n)+
+                      bottomA(-w2*n)+topA(-w2*n)+rightA(-h*n)+leftA(-h*n)+
+                      bottomK(-w2*n)+topK(-w2*n)+rightK(-h*n)+leftK(-h*n));
+fespace Vh(Th,P2);
+fespace ZVh(Zoom,P2);
+
+Vh u,v;
+//Terminal K on Ground
+//Arbitrary Anode Voltage
+real u0=2.0;
+
+problem Laplace(u,v,solver=LU) =
+          int2d(Th)(dx(u)*dx(v) + dy(u)*dy(v))
+        + on(CA,u=u0)+on(CK,u=0) ;
+
+
+real error=0.01;
+for (int i=0;i<1;i++){
+  Laplace;
+  Th=adaptmesh(Th,u,err=error);
+  error=error/2.0;
+}
+
+
+// Call once more so that mesh and u is synchronised!
+Laplace;
+
+Vh Ex, Ey;
+Ex = -dx(u);
+Ey = -dy(u);
+
+// Calculates the capacitance per unit length via the energy stored in the electrical field
+real epsilon0 = 8.854187e-12; // [As/Vm]
+real energy = 0.5*epsilon0*int2d(Th)( (Ex)^2 + (Ey)^2 );
+real charge = epsilon0*int1d(Th,CK,qfe=qf2pE)(Ex*N.x+Ey*N.y);
+
+cout.precision(3);
+
+cout << endl;
+cout << "A Parallel Plate Capacitor Problem:" << endl;
+cout << "Energy:\t\t" << "W = " << energy << "[J/m]" << endl;
+cout << "Capacitance:\t" << "C = " << 2*energy/(u0)^2 << "[F/m]" << endl;
+cout << "Charge:\t\t" << "Q = " << charge << "[C/m]" << endl;
+cout << "Capacitance:\t" << "C = " << charge/u0 << "[F/m]" << endl;
+cout << endl;
+cout << "NbBoundaryElements:\t" <<  Th.nbe << endl;
+cout << "NbTriangles:\t\t" <<  Th.nt << endl;
+cout << "NbVertices:\t\t" <<  Th.nv << endl;
+cout << "nDoF:\t\t\t" << Vh.ndof << endl;
+cout << "nDoF/Element:\t\t" << Vh.ndofK << endl;
+cout << endl;
+
+savemesh(Th,"capacitor_2d.msh");
+ffSaveVh(Th,Vh,"capacitor_vh_2d.txt");
+ffSaveData3(u,Ex,Ey,"capacitor_data_2d.txt");
+
+plot(u,bw=true);
+plot(Th,wait=true);
+ZVh Zu=u;
+plot(Zu,value=true,wait=true);

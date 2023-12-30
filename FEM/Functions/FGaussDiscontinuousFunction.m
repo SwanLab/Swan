@@ -59,7 +59,8 @@
 
         function plot(obj)
             s.mesh = obj.mesh;
-            proj = Projector_toP1(s);
+            s.projectorType = 'P1D';
+            proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
         end
@@ -103,10 +104,14 @@
             dofConnec = dofsElem;
         end
 
+        function v = computeL2norm(obj)
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
+        end        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;

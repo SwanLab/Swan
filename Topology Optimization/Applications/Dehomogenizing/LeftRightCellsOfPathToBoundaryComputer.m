@@ -1,17 +1,19 @@
 classdef LeftRightCellsOfPathToBoundaryComputer < handle
     
     properties (Access = private)
-        mesh
-        pathVertexes        
-    end
-    
-    properties (Access = private)
         allBaricentersCoord
         cellsOfVertex
         isRight
         isCellLeft
         isCellRight
     end
+
+    properties (Access = private)
+        mesh
+        pathVertexes  
+        singularElement
+        isCoherent
+    end    
     
     methods (Access = public)
         
@@ -20,12 +22,16 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         end
         
         function [cR,cL] = compute(obj)
+            if length(obj.pathVertexes) == 1
+            else
             obj.computeAllBaricenterCoords();
+            obj.computeSingularityCell();           
             obj.computeInitCells();
             obj.computeIntermidiateCells();
             obj.computeFinalCells()
+            end
             cR = obj.isCellRight;
-            cL = obj.isCellLeft;
+            cL = obj.isCellLeft;            
         end        
         
         function plot(obj)
@@ -40,6 +46,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.pathVertexes = cParams.pathVertexes;
+            obj.singularElement = cParams.singularElement;
+            obj.isCoherent      = cParams.isCoherent;
             obj.isCellRight = false(obj.mesh.nelem,1);            
             obj.isCellLeft  = false(obj.mesh.nelem,1);            
         end     
@@ -61,11 +69,89 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             vertex = obj.pathVertexes;           
             v1 = vertex(1);
             v2 = vertex(2);
-            obj.computeCellsOfVertex(v1);                        
-            obj.computeFinalCellsOnRight(v2,v1);
+            obj.computeCellsOfVertex(v1); 
+            isNotSinVer = obj.cellsOfVertex~=obj.singularElement;
+            obj.cellsOfVertex = obj.cellsOfVertex(isNotSinVer);
+
+            aPast = obj.computeSingularityToFirstVertexAngle(v1);            
+            aNext = obj.computeEdgeAngle(v1,v2);
+            aBar = obj.computeVertexToBaricenterAngle(v1);
+            itIs = mod(aBar-aPast,2*pi) < mod(aNext-aPast,2*pi); % & mod(aBar-aPast,2*pi)~=0;            
+          %  isNotSingElem =  obj.cellsOfVertex ~= obj.singularElement;            
+            obj.isRight = itIs;% & isNotSingElem;
+            obj.appendCellsOnRight();
+            obj.appendCellsOnLeft();  
+       end   
+
+       function computeSingularityCell(obj)
+            v1 = obj.pathVertexes(1);    
+            v2 = obj.pathVertexes(2);    
+            v0 = obj.computeVertex0();
+
+            a10 = obj.computeEdgeAngle(v1,v0);
+            a12 = obj.computeEdgeAngle(v1,v2);
+            obj.cellsOfVertex = obj.singularElement;
+            aBar = obj.computeVertexToBaricenterAngle(v1);            
+            itIs =  mod(aBar-a10,2*pi) < mod(a12-a10,2*pi); 
+
+
+            % vO = obj.computeOtherCoherentVertex();
+            % vEnd = obj.pathVertexes(end);
+            % obj.cellsOfVertex = obj.singularElement;
+            % aO1 = obj.computeEdgeAngle(v1,vO);
+            % a1End = obj.computeEdgeAngle(v1,vEnd);
+            % aBar = obj.computeVertexToBaricenterAngle(v1);            
+            % itIs =  mod(aBar-a1End,2*pi) < mod(aO1-a1End,2*pi); 
+            % 
+            
+            obj.isRight = itIs;
             obj.appendCellsOnRight();
             obj.appendCellsOnLeft();             
-       end        
+       end
+
+       function oV = computeOtherCoherentVertex(obj)
+            v1 = obj.pathVertexes(1);
+            vS = obj.mesh.connec(obj.singularElement,:);
+            vOthers = vS ~= v1;
+            isCS = obj.isCoherent.fValues(1,:,obj.singularElement);
+            isCS = squeeze(isCS);
+            isCO = isCS & vOthers;
+            oV = vS(isCO);
+            oV = oV(end);
+       end
+
+       function v0 = computeVertex0(obj)
+           isS  = obj.singularElement;
+           isCS = obj.isCoherent.fValues(1,:,isS);
+           isCS = squeeze(isCS);
+           vertexS = obj.mesh.connec(isS,:);
+           if all(isCS)
+               for idof = 1:obj.mesh.nnodeElem
+                   iVertex = vertexS(idof);
+                   cells = obj.mesh.computeAllCellsOfVertex(iVertex);
+                   isCo = squeeze(obj.isCoherent.fValues(1,:,cells));
+                   isCellC = all(isCo);
+                   notCoh(idof) = sum(~isCellC);
+               end
+               [~,isV0] = max(notCoh);
+           else
+               v1 = obj.pathVertexes(1);
+               isV1 = vertexS == v1;
+               isV0 = ~isV1 & ~isCS;
+           end
+           v0 = vertexS(isV0);
+       end
+
+     
+
+       function a = computeSingularityToFirstVertexAngle(obj,v1)
+            coordS  = obj.allBaricentersCoord(obj.singularElement,:);
+            coord1 = obj.mesh.coord(v1,:);            
+            u      = obj.computeUnitVector(coord1,coordS); 
+            a  = obj.computeAngle(u);             
+       end
+
+    
         
        function computeIntermidiateCells(obj)
            vertex = obj.pathVertexes;
@@ -113,7 +199,6 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             u      = obj.computeUnitVector(coordI,coordB);           
             alpha = obj.computeAngle(u);                        
         end        
-
         
         function computeCellsOfVertex(obj,vertex)
             c = obj.mesh.computeAllCellsOfVertex(vertex);  

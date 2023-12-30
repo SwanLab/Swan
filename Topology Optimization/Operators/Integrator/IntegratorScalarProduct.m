@@ -29,10 +29,9 @@ classdef IntegratorScalarProduct < handle
                     dVg(:,1) = dV(igaus, :);
                     fG       = squeeze(fGaus(iField,igaus,:));
                     gG       = squeeze(gGaus(iField,igaus,:));
-
-                    fg  = fG.*gG;
-                    int = fg.*dVg;
-                    h   = h + sum(int);
+                    fg       = fG.*gG;
+                    int      = fg.*dVg;
+                    h        = h + sum(int);
                 end
             end
             int = h;

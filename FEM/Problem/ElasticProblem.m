@@ -1,29 +1,28 @@
 classdef ElasticProblem < handle
     
     properties (Access = public)
-%         variables
-        boundaryConditions
         uFun
         strainFun
         stressFun
     end
 
     properties (Access = private)
+        quadrature
+        boundaryConditions
+
         LHS
         RHS
         solver
         scale
-        inputBC
+        
         strain
         stress
     end
 
     properties (Access = protected)
-        quadrature
-        material
-        vstrain
-        mesh % For Homogenization
-        interpolationType
+        mesh 
+        material  
+        inputBC        
         displacementFun
     end
 
@@ -31,6 +30,7 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
+            obj.createQuadrature();            
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.createSolver();
@@ -42,7 +42,6 @@ classdef ElasticProblem < handle
             obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
-            obj.computePrincipalDirection();
         end
 
         function plot(obj)
@@ -96,12 +95,6 @@ classdef ElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
-            if isfield(cParams, 'interpolationType')
-                obj.interpolationType = cParams.interpolationType;
-            else
-                obj.interpolationType = 'LINEAR';
-            end
-            obj.createQuadrature();
         end
 
         function createQuadrature(obj)
@@ -129,7 +122,7 @@ classdef ElasticProblem < handle
             bc.ndimf = dim.ndimf;
             bc.ndofs = dim.ndofs;
             s.mesh  = obj.mesh;
-            s.scale = obj.scale;
+            s.scale = 'MACRO';
             s.bc    = {bc};
             s.ndofs = dim.ndofs;
             bc = BoundaryConditions(s);
@@ -152,8 +145,8 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
-            s.type = 'Elastic';
-            s.scale    = obj.scale;
+            s.type     = 'Elastic';
+            s.scale    = 'MACRO';
             s.dim      = obj.getFunDims();
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
@@ -164,7 +157,7 @@ classdef ElasticProblem < handle
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.LHS);
 %             obj.variables.fext = rhs + R;
-            obj.RHS = rhs;
+            obj.RHS = rhs+R;
         end
 
         function u = computeDisplacements(obj)
@@ -207,16 +200,6 @@ classdef ElasticProblem < handle
             obj.stress = strFun;
 %             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun = strFun;
-        end
-
-        function computePrincipalDirection(obj)
-            strss  = permute(obj.stressFun.fValues, [2 1 3]);
-            s.type = obj.mesh.ndim;
-            s.eigenValueComputer.type = 'PRECOMPUTED';
-            pcomp = PrincipalDirectionComputer.create(s);
-            pcomp.compute(strss);
-%             obj.variables.principalDirections = pcomp.direction;
-%             obj.variables.principalStress     = pcomp.principalStress;
         end
 
     end

@@ -27,9 +27,8 @@ classdef IntegratorFunction < handle
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG       = squeeze(fGaus(iField,igaus,:));
-
-                    int = fG.*dVg;
-                    h   = h + sum(int);
+                    int      = fG.*dVg;
+                    h        = h + sum(int);
                 end
             end
             int = h;
