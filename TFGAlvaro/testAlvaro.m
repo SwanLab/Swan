@@ -1,6 +1,6 @@
 % ONLY CHANGE PARAMETERS WITH COMMENTS
 
-filename = 'ChairAlvaro'; % Diff meshes
+filename = 'CubeChairAlvaro'; % Diff meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -26,7 +26,7 @@ Perimeter_target = 5;
 
 TOL.rho_plus = 1;
 TOL.rho_minus = 0;
-TOL.E_plus = 1;
+TOL.E_plus = 1e6;
 TOL.E_minus = 1e-3;
 TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
@@ -36,4 +36,4 @@ printing = true; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 120; % Maximum number of iterations
+maxiter = 60; % Maximum number of iterations
