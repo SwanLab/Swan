@@ -32,7 +32,7 @@ TOL.nu_plus = 1/3;
 TOL.nu_minus = 1/3;
 
 plotting = false;
-printing = true; % Maybe true to obtain evolution(?)
+printing = false; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
