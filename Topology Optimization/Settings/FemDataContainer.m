@@ -53,7 +53,7 @@ classdef FemDataContainer < AbstractSettings
         end
 
         function createMaterial(obj)
-            I = ones(obj.nelem,obj.ngaus);
+            I = ones(obj.nelem,obj.ngaus)*1e6;
             s.ptype = obj.type;
             s.pdim  = obj.dim;
             s.nelem = obj.nelem;

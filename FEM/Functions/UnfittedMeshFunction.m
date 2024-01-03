@@ -80,7 +80,12 @@ classdef UnfittedMeshFunction < handle
             fType = f.fType;
             switch fType
                 case 'L2' % Provisional
-                    f = f.project('P1');
+                    %f = f.project('P1');
+                    m         = obj.unfittedMesh.backgroundMesh;
+                    nnodes    = m.nnodes;
+                    s.fValues = ones(nnodes,1);
+                    s.mesh    = m;
+                    f         = P1Function(s);
             end
             obj.backgroundFunction = f;
         end
