@@ -7,7 +7,7 @@ t.compute();
 Result = t.computation.designVariable.fun;
 u      = t.computation.physicalProblem.uFun;
 
-ResultsName = 'Cubechair_newcode';
+ResultsName = 'Bicycle_02';
 type   = 'Paraview'; % GiD/Paraview
 Result.print(['TFGAlvaro/Results/',ResultsName],type);
 u.print(['TFGAlvaro/Results/',ResultsName,'Displacements'],type);

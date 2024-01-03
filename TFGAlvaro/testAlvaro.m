@@ -1,6 +1,6 @@
 % ONLY CHANGE PARAMETERS WITH COMMENTS
 
-filename = 'CubeChairAlvaro'; % Diff meshes
+filename = 'Bicycle'; % Diff meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -36,4 +36,4 @@ printing = false; % Maybe true to obtain evolution(?)
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 60; % Maximum number of iterations
+maxiter = 150; % Maximum number of iterations
