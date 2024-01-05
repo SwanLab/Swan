@@ -141,7 +141,7 @@ classdef TopOpt_Problem < handle
             lsCreator  = LevelSetCreator.create(sLs);
             phi        = lsCreator.getValue();
             switch s.type
-                case 'Density'
+                case {'Density','Density&Bound'}
                     value = 1 - heaviside(phi);
                 case 'LevelSet'
                     value = phi;

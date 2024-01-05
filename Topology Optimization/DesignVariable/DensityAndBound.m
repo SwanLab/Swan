@@ -46,7 +46,7 @@ classdef DensityAndBound < DesignVariable
     methods (Access = private)
 
         function createValue(obj)
-            obj.value = [obj.density.value;obj.bound];
+            obj.value = [obj.density.fun.fValues;obj.bound]; % Habrá que crear una composite function FeAndBoundFun con fValues concatenados. Tmb la BoundFun por separado
         end
         
     end
