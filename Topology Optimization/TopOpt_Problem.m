@@ -49,11 +49,13 @@ classdef TopOpt_Problem < handle
         end
 
         function createOptimizer(obj,settings)
+            epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
             obj.optimizerSettings.outputFunction.type        = 'Topology';
             obj.optimizerSettings.outputFunction.iterDisplay = 'none';
             obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
+            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon = epsilon;
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
 
@@ -74,7 +76,6 @@ classdef TopOpt_Problem < handle
 
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
-            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             
             s.uncOptimizerSettings.targetParameters = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
@@ -130,6 +131,25 @@ classdef TopOpt_Problem < handle
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             s.scalarProductSettings.mesh    = obj.mesh;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = obj.mesh.ndim;
+            sLs.coord  = obj.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
+            ss.mesh    = obj.mesh;
+            s.fun      = P1Function(ss);
+
             obj.designVariable = DesignVariable.create(s);
         end
         

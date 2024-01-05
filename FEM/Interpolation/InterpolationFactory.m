@@ -1,7 +1,7 @@
 classdef InterpolationFactory < handle
-        
+
     methods (Access = public, Static)
-        
+
         function obj = create(cParams)
             mesh  = cParams.mesh;
             order = cParams.order;
@@ -39,14 +39,24 @@ classdef InterpolationFactory < handle
                             error('Invalid order for element QUADRILATERAL.');
                     end
                 case 'TETRAHEDRA'
-                    obj = Tetrahedra_Linear(cParams);
+                    switch order
+                        case 'CONSTANT'
+                            obj = Tetrahedra_Constant(cParams);
+                        case 'LINEAR'
+                            obj = Tetrahedra_Linear(cParams);
+                    end
                 case 'HEXAHEDRA'
-                    obj = Hexahedra_Linear(cParams);
+                    switch order
+                        case 'CONSTANT'
+                            obj = Hexahedra_Constant(cParams);
+                        case 'LINEAR'
+                            obj = Hexahedra_Linear(cParams);
+                    end
                 otherwise
                     error('Invalid mesh type.')
             end
         end
-        
+
     end
-    
+
 end

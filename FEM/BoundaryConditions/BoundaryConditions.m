@@ -13,11 +13,13 @@ classdef BoundaryConditions < handle
     end
 
     properties (Access = private)
+        mesh
         ndimf
         ndofs
         scale
         dirichletInput
         pointloadInput
+        nodesEdges
     end
     
     methods (Access = public)
@@ -71,9 +73,18 @@ classdef BoundaryConditions < handle
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.scale          = cParams.scale;
+            if isfield(cParams,'boundaryType')
+                switch cParams.boundaryType
+                    case 'Periodic'
+                        obj.scale = 'MICRO';
+                    otherwise
+                        obj.scale = 'MACRO';
+                end
+            else
+                obj.scale = cParams.scale;
+            end
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.ndimf          = cParams.bc{1}.ndimf; % Elastic
             obj.initPeriodicMasterSlave(cParams);
@@ -90,10 +101,23 @@ classdef BoundaryConditions < handle
             globalNdof = 0;
             for i = 1:nfields
                 bc = s.bc{i};
-                obj.dirichletInput = bc.dirichlet;
+%                 cornerDirichlet = bc.dirichlet;
+%                 edgesDirichlet = zeros(length(obj.nodesEdges),obj.ndimf);
+%                 rows = repmat(obj.nodesEdges, [size(edgesDirichlet,2), 1]);
+%                 cols = repmat(1:size(edgesDirichlet,2), [length(obj.nodesEdges), 1]);
+%                 cols = cols(:);
+%                 newValues = zeros(size(rows,1), 1);
+%                 edgesDirichlet = [rows, cols, newValues];
+%                 totalDirichlet = [cornerDirichlet; edgesDirichlet];
+%                 totalDirichlet = sortrows(totalDirichlet, 1);
+                
+                totalDirichlet = bc.dirichlet;
+
+                obj.dirichletInput = totalDirichlet;
                 obj.pointloadInput = bc.pointload;
 
-                inD = bc.dirichlet;
+%                 inD = bc.dirichlet;
+                inD = totalDirichlet;
                 inN = bc.pointload;
                 [idxD, valD] = obj.formatInputData(bc.ndimf,inD);
                 [idxN, valN] = obj.formatInputData(bc.ndimf,inN);
@@ -125,8 +149,8 @@ classdef BoundaryConditions < handle
                     end
                     MS = obj.masterSlave;
                     if isempty(MS)
-                        mesh = cParams.mesh;
-                        MS = obj.computeMasterSlave(mesh.coord);
+                        obj.mesh = cParams.mesh;
+                        MS = obj.computeMasterSlave(obj.mesh.coord);
                         obj.masterSlave = MS;
                     end
                     obj.periodic_free = obj.computePeriodicNodes(MS(:,1));
@@ -234,6 +258,17 @@ classdef BoundaryConditions < handle
         function MS = computeMasterSlave(obj, coord)
            mR = MasterSlaveRelator(coord);
            MS = mR.getRelation();
+           obj.nodesEdges = mR.getRepeatedEdges();
+
+           masters = MS(:,1);
+           slaves = MS(:,2);
+           fV = zeros(size(obj.mesh.coord,1),1);
+           fV(masters,:)  = 1;
+           fV(slaves, :) = -1;
+           s.fValues = fV;
+           s.mesh = obj.mesh;
+           p1f = P1Function(s);
+%            p1f.print('masterslaveprova');
         end
 
     end

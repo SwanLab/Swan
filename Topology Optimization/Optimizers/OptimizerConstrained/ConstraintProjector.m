@@ -58,7 +58,7 @@ classdef ConstraintProjector < handle
             isLB   = false;
             isUB   = false;
             i      = -15;
-            pow    = 1.1;
+            pow    = 3;
             while ~isLB && ~isUB && i < 1000
                 lLB  = lambda - pow^(i);
                 fLB  = obj.computeFeasibleDesignVariable(lLB);
@@ -89,7 +89,7 @@ classdef ConstraintProjector < handle
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
             l  = obj.dualVariable.value;
-            x  = obj.designVariable.value;
+            x  = obj.designVariable.fun.fValues;
             g  = DJ + l*Dg;
             x  = obj.primalUpdater.update(g,x);
             obj.designVariable.update(x);

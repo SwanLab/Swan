@@ -86,8 +86,9 @@ classdef DiffReactProblem < handle
         end
 
         function createProblemLHS(obj)
-            s.type = obj.LHStype;
-            s.mesh = obj.mesh;
+            s.type  = obj.LHStype;
+            s.mesh  = obj.mesh;
+            s.trial = P1Function.create(obj.mesh,1);
             obj.problemLHS = LHSintegrator.create(s);
         end
     

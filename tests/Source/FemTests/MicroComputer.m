@@ -19,7 +19,7 @@ classdef MicroComputer < handle
             s = FemDataContainer(a);
 %             femSolver = ElasticProblemMicro(s);
 %             femSolver = NewElasticProblemMicro(s);
-            femSolver = ElasticProblemMicro_Fast(s);
+            femSolver = ElasticProblemMicro(s);
             femSolver.solve();
             obj.computation = femSolver;
             obj.variables.Chomog = femSolver.Chomog;

@@ -66,7 +66,7 @@ classdef Optimizer_MMA < Optimizer
        end
         
         function update(obj)
-            x = obj.designVariable.value;
+            x = obj.designVariable.fun.fValues;
             obj.cost.computeFunctionAndGradient(); 
             obj.constraint.computeFunctionAndGradient();
             obj.checkInitial(x);
