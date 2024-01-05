@@ -10,15 +10,14 @@ classdef DualUpdater_IPM < handle
     end
 
     methods (Access = public)
-        
         function obj = DualUpdater_IPM(cParams)
             obj.init(cParams);
         end
 
         function compute(obj,lz,uz)
-            c   = obj.constraint.gradient';
-            g   = obj.cost.gradient;
-            l   = (c*c')\(c*(lz' - uz' - g'));
+            Dg = obj.constraint.gradient';
+            DJ = obj.cost.gradient;
+            l  = (Dg*Dg')\(Dg*(lz' - uz' - DJ'));
             obj.dualVariable.value = l';
         end
 
@@ -28,7 +27,7 @@ classdef DualUpdater_IPM < handle
 
         function obj = update(obj,g)
             tau                    = obj.alpha;
-            obj.dualVariable.value = obj.dualVariable.value + tau * g';
+            obj.dualVariable.value = obj.dualVariable.value + tau*g';
         end
 
         function zLB = updateLowerBound(obj,bounds)
@@ -48,7 +47,6 @@ classdef DualUpdater_IPM < handle
 
 
     methods (Access = private)
-
         function init(obj,cParams)
             obj.dualVariable   = cParams.dualVariable;
             obj.constraint     = cParams.constraint;
@@ -56,7 +54,6 @@ classdef DualUpdater_IPM < handle
             obj.nConstr        = cParams.constraint.nSF;
             obj.cost           = cParams.cost;
         end
-
     end
 
     methods (Static, Access = public)
@@ -80,5 +77,4 @@ classdef DualUpdater_IPM < handle
             zUB = [zUB,mu./(sUB-s)];
         end
     end
-
 end

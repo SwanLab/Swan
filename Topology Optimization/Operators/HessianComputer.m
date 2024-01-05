@@ -43,12 +43,12 @@ classdef HessianComputer < handle
         end
 
         function newHessian = computeNewHessian(obj)
-            nnode = length(obj.designVariable.value);
-            H     = obj.initHessian;
-            dX    = obj.deltaX;
-            dDJ   = obj.deltaCostGrad;
+            dimX = length(obj.designVariable.value);
+            H    = obj.initHessian;
+            dX   = obj.deltaX;
+            dDJ  = obj.deltaCostGrad;
             if dDJ == zeros(size(dDJ))
-                newHessian = zeros(nnode,nnode);
+                newHessian = zeros(dimX,dimX);
             else
                 costFrac   = (dDJ*dDJ')/(dDJ'*dX);
                 xFrac      = (H*dX*(H*dX)')/(dX'*H*dX);

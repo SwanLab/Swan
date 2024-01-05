@@ -41,7 +41,7 @@ classdef IPMDirectionComputer < handle
             obj.computeLHS();
             obj.computeRHS();
             obj.solveLinearSystem();
-            obj.searchNewDirections();
+            obj.saveNewDirections();
         end
     end
 
@@ -78,23 +78,23 @@ classdef IPMDirectionComputer < handle
         end
 
         function computeLHS(obj)
-            sizeg   = obj.nConstr;
+            nSF     = obj.nConstr;
             H       = obj.updatedHessian;
             Dg      = obj.constraint.gradient;
             lhsX    = [H,Dg];
-            lhsLam  = [Dg',zeros(sizeg)];
+            lhsLam  = [Dg',zeros(nSF)];
             obj.LHS = [lhsX;lhsLam];
         end
 
         function computeRHS(obj)
-            sizeg   = obj.nConstr;
+            nSF     = obj.nConstr;
             l       = obj.dualVariable.value;
             mu      = obj.baseVariables.mu;
             g       = obj.constraint.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             rhsX    = (DJ + l*Dg'- mu./obj.dLX + mu./obj.dUX)';
-            rhsLam  = g(1:sizeg)';
+            rhsLam  = g(1:nSF)';
             obj.RHS = [rhsX;rhsLam];
         end
 
@@ -104,17 +104,16 @@ classdef IPMDirectionComputer < handle
             obj.sol = sLS.solve(-obj.LHS,obj.RHS);
         end
 
-        function searchNewDirections(obj)
-            obj.gradients.dx   = obj.sol(1:obj.nnode,1);
-            obj.gradients.ds   = obj.sol(obj.nnode+1:obj.nnode+obj.nSlack,1);
-            obj.gradients.dlam = obj.sol(obj.nnode+obj.nSlack+1:end,1);
-            
+        function saveNewDirections(obj)
             mu                 = obj.baseVariables.mu;
             lZ                 = obj.bounds.zLB';
             uZ                 = obj.bounds.zUB';
             lSig               = obj.lowerSigma;
             uSig               = obj.upperSigma;
             desVarGrad         = [obj.gradients.dx; obj.gradients.ds];
+            obj.gradients.dx   = obj.sol(1:obj.nnode,1);
+            obj.gradients.ds   = obj.sol(obj.nnode+1:obj.nnode+obj.nSlack,1);
+            obj.gradients.dlam = obj.sol(obj.nnode+obj.nSlack+1:end,1);
             obj.gradients.dzL  = mu*obj.dLX'-lZ-lSig*desVarGrad;
             obj.gradients.dzU  = mu*obj.dUX'-uZ+uSig*desVarGrad;
         end
