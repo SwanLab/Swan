@@ -110,10 +110,10 @@ classdef IPMDirectionComputer < handle
             uZ                 = obj.bounds.zUB';
             lSig               = obj.lowerSigma;
             uSig               = obj.upperSigma;
-            desVarGrad         = [obj.gradients.dx; obj.gradients.ds];
             obj.gradients.dx   = obj.sol(1:obj.nnode,1);
             obj.gradients.ds   = obj.sol(obj.nnode+1:obj.nnode+obj.nSlack,1);
             obj.gradients.dlam = obj.sol(obj.nnode+obj.nSlack+1:end,1);
+            desVarGrad         = [obj.gradients.dx; obj.gradients.ds];
             obj.gradients.dzL  = mu*obj.dLX'-lZ-lSig*desVarGrad;
             obj.gradients.dzU  = mu*obj.dUX'-uZ+uSig*desVarGrad;
         end
