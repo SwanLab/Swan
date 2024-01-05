@@ -61,7 +61,7 @@ classdef IPMDirectionComputer < handle
         end
 
         function computeBoundsMargins(obj)
-            x       = obj.designVariable.value';
+            x       = obj.designVariable.fun.fValues';
             s       = obj.slack;
             obj.dLX = [x-obj.bounds.xLB s-obj.bounds.sLB];
             obj.dUX = [obj.bounds.xUB-x obj.bounds.sUB-s];

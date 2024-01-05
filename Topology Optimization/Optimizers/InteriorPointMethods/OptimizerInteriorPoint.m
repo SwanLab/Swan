@@ -101,7 +101,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function penalizeDueToDesignVariable(obj)
             c              = obj.cost.value;
             mu             = obj.baseVariables.mu;
-            s.field        = obj.designVariable.value;
+            s.field        = obj.designVariable.fun.fValues;
             s.lowerBound   = obj.bounds.xLB';
             s.upperBound   = obj.bounds.xUB';
             obj.cost.value = c - mu*obj.computeLogPenaltyTerm(s);
@@ -143,7 +143,7 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function computeHessian(obj)
             s.initHessian             = obj.hessian;
-            s.designVariable.value    = obj.designVariable.value;
+            s.designVariable.value    = obj.designVariable.fun.fValues;
             s.designVariable.valueOld = obj.oldDesignVariable;
             s.cost.gradient           = obj.cost.gradient;
             s.cost.gradientOld        = obj.oldCostGradient;
@@ -170,7 +170,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function update(obj)
-            x0 = obj.designVariable.value;
+            x0 = obj.designVariable.fun.fValues;
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeOptimizerDirections();
@@ -187,7 +187,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            x  = obj.designVariable.value;
+            x  = obj.designVariable.fun.fValues;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
                 factor = 1;
@@ -199,7 +199,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x = obj.designVariable.value;
+            x = obj.designVariable.fun.fValues;
             g = -obj.dx;
             x = obj.primalUpdater.update(g,x);
         end
@@ -241,7 +241,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.oldCost             = obj.cost.value;
             obj.oldCostGradient     = obj.cost.gradient;
             obj.designVariable.updateOld;
-            obj.oldDesignVariable   = obj.designVariable.value;
+            obj.oldDesignVariable   = obj.designVariable.fun.fValues;
         end
 
         function checkStep(obj,x,x0)

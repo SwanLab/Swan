@@ -88,7 +88,7 @@ classdef IPMErrorComputer < handle
         end
 
         function computeErrorDueToLowerBoundMargins(obj)
-            x                 = obj.designVariable.value';
+            x                 = obj.designVariable.fun.fValues';
             lX                = obj.bounds.xLB;
             s                 = obj.slack;
             lS                = obj.bounds.sLB;
@@ -100,7 +100,7 @@ classdef IPMErrorComputer < handle
         end
 
         function computeErrorDueToUpperBoundMargins(obj)
-            x                 = obj.designVariable.value';
+            x                 = obj.designVariable.fun.fValues';
             uX                = obj.bounds.xUB;
             s                 = obj.slack;
             uS                = obj.bounds.sUB;
