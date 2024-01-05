@@ -5,16 +5,7 @@ classdef DesignVariableAcademic < handle
         valueOld
     end
     
-    properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
     methods (Access = public)
-
         function obj = DesignVariableAcademic(cParams)
             obj.init(cParams);
         end
@@ -26,7 +17,6 @@ classdef DesignVariableAcademic < handle
         function updateOld(obj)
             obj.valueOld = obj.value;
         end
-
     end
 
     methods (Access = private)

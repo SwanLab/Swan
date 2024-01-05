@@ -5,7 +5,6 @@ classdef AcademicProblem < handle
     end
     
     properties (Access = private)
-        filename
         designVariable
         cost
         constraint
@@ -13,36 +12,50 @@ classdef AcademicProblem < handle
     end
 
     methods (Access = public)
-
         function obj = AcademicProblem(cParams)
             obj.init(cParams);
         end
 
         function compute(obj)
-            obj.createOptimizer();
             obj.solve();
         end
-
     end
 
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.filename = cParams.filename;
+            obj.createDesignVariable(cParams);
+            obj.createCost(cParams);
+            obj.createConstraint(cParams);
+            obj.createOptimizer(cParams);
         end
 
-        function createOptimizer(obj)
-            pParams = obj.uploadProblemParameters();
-            s       = pParams.settings;
+        function createDesignVariable(obj,cParams)
+            p.x0               = cParams.initialGuess;
+            obj.designVariable = DesignVariableAcademic(p);
+        end
 
-            obj.prepareDesignVariable(pParams.initialGuess);
-            obj.prepareCostConstraint(pParams);
+        function createCost(obj,cParams)
+            s.cF     = cParams.cost.cF;
+            s.gF     = cParams.cost.gF;
+            s.dV     = obj.designVariable;
+            obj.cost = AcademicCost(s);
+        end
 
+        function createConstraint(obj,cParams)
+            s.cF           = cParams.constraint.cF;
+            s.gF           = cParams.constraint.gF;
+            s.nSF          = cParams.constraint.nSF;
+            s.dV           = obj.designVariable;
+            obj.constraint = AcademicConstraint(s);
+        end
+
+        function createOptimizer(obj,cParams)
+            s                            = cParams.settings;
             s.designVar                  = obj.designVariable;
             s.cost                       = obj.cost;
             s.constraint                 = obj.constraint;
-            s.constraint.nSF             = pParams.nConstr;
-            s.nConstraints               = pParams.nConstr;
+            s.nConstraints               = obj.constraint.nSF;
             s.dualVariable               = DualVariable(s);
             s.outputFunction.type        = "Academic";
             s.outputFunction.iterDisplay = "iter";
@@ -54,29 +67,6 @@ classdef AcademicProblem < handle
         function solve(obj)
             obj.optimizer.solveProblem();
             obj.result = obj.designVariable.value;
-        end
-
-        function pParams = uploadProblemParameters(obj)
-            run(obj.filename);
-            pParams.initialGuess     = x0;
-            pParams.costHandle       = cost;
-            pParams.constraintHandle = constraint;
-            pParams.nConstr          = nConstr;
-            pParams.settings         = s;
-        end
-
-        function prepareDesignVariable(obj,x0)
-            p.x0               = x0;
-            obj.designVariable = DesignVariableAcademic(p);
-        end
-
-        function prepareCostConstraint(obj,pParams)
-            j              = pParams.costHandle;
-            c              = pParams.constraintHandle;
-            j.dV           = obj.designVariable;
-            c.dV           = obj.designVariable;
-            obj.cost       = AcademicCost(j);
-            obj.constraint = AcademicConstraint(c);
         end
 
     end

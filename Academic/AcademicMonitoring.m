@@ -1,12 +1,9 @@
 classdef AcademicMonitoring < handle
 
     properties (Access = private)
-        dimDesignVar
-        dimConstr
-        colorsSample
-        xVec
+        designVarVec
         iterVec
-        cVec
+        costVec
         dualVariableVec
         cnstVec
     end
@@ -17,19 +14,16 @@ classdef AcademicMonitoring < handle
         designVariable
         dualVariable
         shallPrint
+        colorsSample
     end
     
     methods (Access = public)
-        
         function obj = AcademicMonitoring(cParams)
             obj.init(cParams);
         end
 
         function create(obj,cParams)
-            x                = cParams.designVar.value;
-            obj.dimDesignVar = size(x,1);
-            obj.dimConstr    = cParams.nConstraints;
-            obj.colorsSample = ["r","b","g","m","k","c","y"];
+            
         end
 
         function compute(obj,cParams)
@@ -37,30 +31,20 @@ classdef AcademicMonitoring < handle
                 obj.plot(cParams);
             end
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.shallPrint        = cParams.shallPrint;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVar;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.shallPrint     = cParams.shallPrint;
+            obj.colorsSample   = ["r","b","g","m","k","c","y"];
         end
         
         function plot(obj,cParams)
-            iter        = cParams.nIter;
-            x           = obj.designVariable.value;
-            c           = obj.cost.value;
-            l           = obj.dualVariable.value;
-            cnst        = obj.constraint.value;
-            obj.xVec    = [obj.xVec,x];
-            obj.iterVec = [obj.iterVec,iter];
-            obj.cVec    = [obj.cVec,c];
-            obj.dualVariableVec = [obj.dualVariableVec,l'];
-            obj.cnstVec = [obj.cnstVec,cnst];
+            obj.updateNewIterationValues(cParams)
             obj.plotDesignVariables();
             obj.plotCostFunction();
             obj.plotDualVariable();
@@ -68,13 +52,27 @@ classdef AcademicMonitoring < handle
             drawnow
         end
 
+        function updateNewIterationValues(obj,cParams)
+            iter                = cParams.nIter;
+            x                   = obj.designVariable.value;
+            c                   = obj.cost.value;
+            l                   = obj.dualVariable.value;
+            cnst                = obj.constraint.value;
+            obj.designVarVec    = [obj.designVarVec,x];
+            obj.iterVec         = [obj.iterVec,iter];
+            obj.costVec         = [obj.costVec,c];
+            obj.dualVariableVec = [obj.dualVariableVec,l'];
+            obj.cnstVec         = [obj.cnstVec,cnst];
+        end
+
         function plotDesignVariables(obj)
             subplot(1,4,1)
             hold on
-            legendContent = [];
-            for i = 1:obj.dimDesignVar
-                plot(obj.iterVec,obj.xVec(i,:),obj.colorsSample(i))
-                legendContent = [legendContent,string(['x',num2str(i)])];
+            dim           = size(obj.designVariable.value,1);
+            legendContent = strings(1,dim);
+            for i = 1:dim
+                plot(obj.iterVec,obj.designVarVec(i,:),obj.colorsSample(i))
+                legendContent(i) = string(['x',num2str(i)]);
             end
             hold off
             xlabel('Iteration')
@@ -86,7 +84,7 @@ classdef AcademicMonitoring < handle
         function plotCostFunction(obj)
             subplot(1,4,2)
             hold on
-            plot(obj.iterVec,obj.cVec,'b')
+            plot(obj.iterVec,obj.costVec,'b')
             hold off
             xlabel('Iteration')
             ylabel('Objective function J(x)')
@@ -96,10 +94,11 @@ classdef AcademicMonitoring < handle
         function plotDualVariable(obj)
             subplot(1,4,3)
             hold on
-            legendContent = [];
-            for i = 1:obj.dimConstr
+            dim           = obj.constraint.nSF;
+            legendContent = strings(1,dim);
+            for i = 1:dim
                 plot(obj.iterVec,obj.dualVariableVec(i,:),obj.colorsSample(i))
-                legendContent = [legendContent,string(['$\lambda$ ',num2str(i)])];
+                legendContent(i) = string(['$\lambda$ ',num2str(i)]);
             end
             hold off
             xlabel('Iteration')
@@ -111,18 +110,17 @@ classdef AcademicMonitoring < handle
         function plotConstraints(obj)
             subplot(1,4,4)
             hold on
-            legendContent = [];
-            for i = 1:obj.dimConstr
+            dim           = obj.constraint.nSF;
+            legendContent = strings(1,dim);
+            for i = 1:dim
                 plot(obj.iterVec,obj.cnstVec(i,:),obj.colorsSample(i))
-                legendContent = [legendContent,string(['Constraint ',num2str(i)])];
+                legendContent(i) = string(['Constraint ',num2str(i)]);
             end
             hold off
             xlabel('Iteration')
             ylabel('Constraint violation')
             title('Constraints violation evolution')
             legend(legendContent)
-        end
-                
+        end    
     end
-    
 end
