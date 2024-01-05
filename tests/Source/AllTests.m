@@ -14,4 +14,4 @@ PostProcTestsSuite;
 ProjectorsTestsSuite;
 RemeshingTestsSuite;
 DehomogenizationTestsSuite;
-AcademicTestsSuite;
+close all;

@@ -4,16 +4,12 @@ classdef DesignVariable < handle
         mesh
         type
         nVariables
-        value
+        fun
     end
     
     properties (Access = public)
         alpha
         rho
-    end
-    
-    properties (GetAccess = public, SetAccess = private)
-        scalarProduct
     end
     
     properties (Access = private)
@@ -46,14 +42,16 @@ classdef DesignVariable < handle
         end
         
         function update(obj,value)
-            obj.value = value;
             if ~isempty(obj.isFixed)
-               obj.value(obj.isFixed.nodes) = obj.isFixed.values;
+                value(obj.isFixed.nodes) = obj.isFixed.values;
             end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            obj.fun   = P1Function(s);
         end
         
         function updateOld(obj)
-            obj.valueOld = obj.value;
+            obj.valueOld = obj.fun.fValues;
             obj.alphaOld = obj.alpha;
         end
         
@@ -62,12 +60,18 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           x  = obj.value;
-           x0 = obj.valueOld;
-           incX  = x - x0;
-           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
-           nX0   = obj.scalarProduct.computeSP_M(x0,x0);
-           norm  = nIncX/nX0;
+           m           = obj.mesh;
+           x           = obj.fun.fValues;
+           x0          = obj.valueOld;
+           siF.fValues = x-x0;
+           siF.mesh    = obj.mesh;
+           incFun      = P1Function(siF);
+           s0.fValues  = x0;
+           s0.mesh     = obj.mesh;
+           oldFun      = P1Function(s0);
+           nIncX       = Norm.computeL2(m,incFun);
+           nX0         = Norm.computeL2(m,oldFun);
+           norm        = nIncX/nX0;
         end
         
     end
@@ -75,42 +79,14 @@ classdef DesignVariable < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type    = cParams.type;
-            obj.mesh    = cParams.mesh;
+            obj.type = cParams.type;
+            obj.mesh = cParams.mesh;
+            obj.fun  = cParams.fun;
             if isfield(cParams,'isFixed')            
               obj.isFixed = cParams.isFixed;
             end
-            obj.initValue(cParams);
-            if isprop(cParams,'scalarProductSettings')  
-                obj.createScalarProduct(cParams);
-            end
-        end
-        
-    end
-    
-    methods (Access = private)
-
-        function initValue(obj,cParams)
-            if isfield(cParams,'value')
-                if isempty(cParams.value)
-                 obj.value = ones(size(obj.mesh.coord,1),1);
-                else
-                    obj.value = cParams.value;
-                end
-             else
-                obj.value = ones(size(obj.mesh.coord,1),1);
-            end
-        end
-        
-        function createScalarProduct(obj,cParams)
-            s = cParams.scalarProductSettings;
-            s.nVariables = obj.nVariables;
-            s.femSettings.mesh = obj.mesh;
-            obj.scalarProduct = ScalarProduct(s);
         end
         
     end
 
-    
 end
-
