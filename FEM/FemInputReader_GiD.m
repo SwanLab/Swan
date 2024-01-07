@@ -4,6 +4,10 @@ classdef FemInputReader_GiD < handle
         pdim
         dirichlet
         pointload
+        mesh
+
+        dirichletFun
+        pointloadFun
         ptype
         scale
         problemID
@@ -41,7 +45,7 @@ classdef FemInputReader_GiD < handle
         end
         
         function s = getData(obj)
-            s.mesh = obj.createMesh();
+            s.mesh = obj.mesh;
             s.pdim = obj.pdim;
             s.geometryType = obj.geometryType;
             s.ptype = obj.ptype;
@@ -49,6 +53,8 @@ classdef FemInputReader_GiD < handle
             s.problemID = obj.problemID;
             s.dirichlet = obj.dirichlet;
             s.pointload = obj.pointload;
+            s.dirichletFun = obj.dirichletFun;
+            s.pointloadFun = obj.pointloadFun;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
             end
@@ -87,9 +93,11 @@ classdef FemInputReader_GiD < handle
                 obj.forcesFormula = forces;
                 obj.dtime = dtime;
                 obj.finalTime = fTime;
+                sDir = [];
+                sPL = [];
             end
             if ~isequal(data.problem_type,'Stokes')
-                [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
+                [~,~,bNodes,bElem,mSlave, sDir, sPL] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
                 obj.boundaryElements = bElem;
                 obj.masterSlave = mSlave;
@@ -104,8 +112,21 @@ classdef FemInputReader_GiD < handle
             ndim = obj.getDimension();
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
-
+            obj.mesh = obj.createMesh();
             
+
+            if ~isequal(sDir,[])
+                obj.dirichletFun = DirichletCondition(obj.mesh, sDir);
+            else
+                obj.dirichletFun = [];
+            end
+
+            if ~isequal(sPL,[])
+                obj.pointloadFun = PointLoad(obj.mesh, sPL);
+            else
+                obj.pointloadFun = [];
+            end
+
             if strcmpi(data.problem_type,'elastic') ...
             || strcmpi(data.problem_type,'hyperelastic') ...
             || strcmpi(data.problem_type,'thermal')

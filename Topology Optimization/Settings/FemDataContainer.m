@@ -15,6 +15,9 @@ classdef FemDataContainer < AbstractSettings
         material
         ngaus
         interpolationType
+        solverType = [];
+        solverMode = [];
+        newBC
     end
     
     methods (Access = public)
@@ -50,6 +53,8 @@ classdef FemDataContainer < AbstractSettings
             obj.bc.dirichlet = s.dirichlet;
             obj.bc.pointload = s.pointload;
             obj.interpolationType = 'LINEAR';
+            obj.newBC.dirichletFun = s.dirichletFun;
+            obj.newBC.pointloadFun = s.pointloadFun;
         end
 
         function createMaterial(obj)

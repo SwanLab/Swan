@@ -16,19 +16,19 @@ classdef PointLoad < BoundaryCondition
     
     methods (Access = public)
         
-        function obj = PointLoad(mesh, domain, direction, value)
+        function obj = PointLoad(mesh, s)
             % P1
             fun = P1Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_dofs = domain(mesh.coord);
-            fun.fValues(pl_dofs,direction) = value;
+            pl_dofs = s.domain(mesh.coord);
+            fun.fValues(pl_dofs,s.direction) = s.value;
             
             % P2
             fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_nods = fun2.getNodesFromCondition(domain);
-            fun2.fValues(pl_nods,direction) = value;
+            pl_nods = fun2.getNodesFromCondition(s.domain);
+            fun2.fValues(pl_nods,s.direction) = s.value;
             
-            obj.fun    = fun2;
-            obj.domain = domain;
+            obj.fun    = fun;
+            obj.domain = s.domain;
             obj.mesh   = mesh;
         end
         

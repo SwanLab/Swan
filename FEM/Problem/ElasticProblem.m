@@ -10,13 +10,14 @@ classdef ElasticProblem < handle
         quadrature
         boundaryConditions
 
-        LHS
-        RHS
-        solver
+        stiffness
+        forces
+        solver, solverType, solverMode
         scale
         
-        strain
-        stress
+        strain, stress
+
+        newBC
     end
 
     properties (Access = protected)
@@ -39,6 +40,7 @@ classdef ElasticProblem < handle
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
+            obj.compDisp();
             obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
@@ -95,6 +97,9 @@ classdef ElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
+            obj.solverType  = cParams.solverType;
+            obj.solverMode  = cParams.solverMode;
+            obj.newBC = cParams.newBC;
         end
 
         function createQuadrature(obj)
@@ -141,7 +146,7 @@ classdef ElasticProblem < handle
             s.fun      = obj.displacementFun;
             s.material = obj.material;
             lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
+            obj.stiffness = lhs.compute();
         end
 
         function computeForces(obj)
@@ -155,15 +160,26 @@ classdef ElasticProblem < handle
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
+            R = RHSint.computeReactions(obj.stiffness);
 %             obj.variables.fext = rhs + R;
-            obj.RHS = rhs+R;
+            obj.forces = rhs+R;
+        end
+
+        function u = compDisp(obj)
+            s.type = 'MONOLITHIC';
+            s.stiffness = obj.stiffness;
+            s.forces = obj.forces;
+            s.boundaryConditions = obj.newBC;
+            pb = ProblemSolver(s);
+            u = pb.solve();
+            % u = 1;
+            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
         end
 
         function u = computeDisplacements(obj)
             bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
+            Kred = bc.fullToReducedMatrix(obj.stiffness);
+            Fred = bc.fullToReducedVector(obj.forces);
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
 %             obj.variables.d_u = u;
