@@ -4,39 +4,35 @@ classdef LevelSetFactory < handle
 
         function obj = create(d)
             switch d.type
-                case 'circle'
+                case 'circle' %
                     obj = LevelSetCircle(d);
-                case 'circleInclusion'
+                case 'circleInclusion' %
                     obj = LevelSetWithCircleInclusion(d);
-                case 'sphere'
+                case 'sphere' %
                     obj = LevelSetSphere(d);
-                case 'sphereInclusion'
+                case 'sphereInclusion' %
                     obj = LevelSetWithSphereInclusion(d);
-                case 'cylinder'
+                case 'cylinder' %
                     obj = LevelSetCylinder(d);
-                case 'horizontal'
+                case 'horizontal' % actually an inclusion
                     obj = LevelSetHorizontalInclusion(d);
-                case {'squareInclusion'}
+                case {'squareInclusion'} %
                     obj = LevelSetSquareInclusion(d);
-                case 'smoothSquare'
+                case 'smoothSquare' %
                     obj = LevelSetSmoothSquareInclusion(d);
-                case 'rectangle'
+                case 'rectangle' %
                     obj = LevelSetRectangle(d);
-                case 'rectangleInclusion'
+                case 'rectangleInclusion' %
                     obj = LevelSetRectangleInclusion(d);
-                case 'smoothRectangle'
+                case 'smoothRectangle' %
                     obj = LevelSetSmoothRectangleInclusion(d);
-                case 'feasible'
-                    obj = LevelSetFeasible(d);
-                case 'rand'
-                    obj = LevelSetRandom(d);
-                case 'holes'
+                case 'holes' %
                     obj = LevelSetWithSeveralHoles(d);
-                case 'full'
+                case 'full' %
                     obj = LevelSetFull(d);
-                case 'horizontalFibers'
+                case 'horizontalFibers' %
                     obj = LevelSetHorizontalFibers(d);
-                case 'given'
+                case 'given' %
                     obj = LevelSetGiven(d);
                 case 'Vigdergauz'
                     obj = LevelSetVigdergauz(d);
