@@ -120,7 +120,7 @@ classdef TopOpt_Problem < handle
         %    s.targetParamsSettings.epsilonPerInitial = 10*s.targetParamsSettings.epsilonPerFinal;
             obj.incrementalScheme = IncrementalScheme(s);
         end
-        
+
         function createDesignVariable(obj,cParams)
             s = cParams.designVarSettings;
             s.mesh = obj.mesh;
@@ -129,35 +129,40 @@ classdef TopOpt_Problem < handle
 
             % (19/12/2023): The future idea will be to destroy
             % LevelSerCreator and use GeometricalFunction
-            sLs        = s.creatorSettings;
-            sLs.ndim   = obj.mesh.ndim;
-            sLs.coord  = obj.mesh.coord;
-            sLs.type   = s.initialCase;
-            lsCreator  = LevelSetCreator.create(sLs);
-            phi        = lsCreator.getValue();
+            %             sLs        = s.creatorSettings;
+            %             sLs.ndim   = obj.mesh.ndim;
+            %             sLs.coord  = obj.mesh.coord;
+            %             sLs.type   = s.initialCase;
+            %             lsCreator  = LevelSetCreator.create(sLs);
+            %             phi        = lsCreator.getValue();
+            gPar.type = s.initialCase;
+            g         = GeometricalFunction(gPar);
+            phiFun    = g.computeLevelSetFunction(obj.mesh);
             switch s.type
                 case 'Density'
+                    phi   = phiFun.fValues;
                     value = 1 - heaviside(phi);
+                    ss.fValues = value;
+                    ss.mesh    = obj.mesh;
+                    fun        = P1Function(ss);
                 case 'LevelSet'
-                    value = phi;
+                    fun = phiFun;
             end
-            ss.fValues = value;
-            ss.mesh    = obj.mesh;
-            s.fun      = P1Function(ss);
+            s.fun      = fun;
 
             obj.designVariable = DesignVariable.create(s);
         end
-        
+
         function createDualVariable(obj)
             s.nConstraints = obj.constraint.nSF;
             obj.dualVariable = DualVariable(s);
         end
-        
+
         function createHomogenizedVarComputer(obj,cParams)
             s = cParams.homogenizedVarComputerSettings;
             obj.homogenizedVarComputer = HomogenizedVarComputer.create(s);
         end
-        
+
         function createCostAndConstraint(obj,cParams)
             cParams.costSettings.physicalProblem       = obj.physicalProblem;
             cParams.constraintSettings.physicalProblem = obj.physicalProblem;
