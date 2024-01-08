@@ -4,6 +4,7 @@ classdef TopOptTestTutorial < handle
         mesh
         filter
         designVariable
+        materialInterpolator
     end
 
     methods (Access = public)
@@ -13,6 +14,7 @@ classdef TopOptTestTutorial < handle
             obj.createMesh();
             obj.createDesignVariable();            
             obj.createFilter();
+            obj.createMaterialInterpolator();
             obj.createElasticProblem();
         end
 
@@ -53,64 +55,54 @@ classdef TopOptTestTutorial < handle
             s.trial = P1Function.create(obj.mesh,1);
             f = Filter.create(s);
             obj.filter = f;
-        end        
+        end       
+
+        function createMaterialInterpolator(obj)
+            E = 1e-3;
+            nu = 1/3;
+            matA = obj.createMaterial(E,nu);            
+            
+            E = 1;
+            nu = 1/3;
+            matB = obj.createMaterial(E,nu);
+
+            s.typeOfMaterial = 'ISOTROPIC';
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
+            s.matA = matA;
+            s.matB = matB;
+
+            m = MaterialInterpolator.create(s);
+            obj.materialInterpolator = m;            
+        end    
+
+        function m = createMaterial(obj,young,poisson)
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = young;
+            s.poisson = poisson;
+            m = Material.create(s);               
+        end
+
 
         function createElasticProblem(obj)
-            %Delete FEM
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             fem = ElasticProblem(s);
             fem.solve();
-        end
+        end    
 
-       function mat = createMaterial(obj)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = 1;
-            s.poisson = 1/3;
-            mat1 = Material.create(s);
-
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = 1e-3;
-            s.poisson = 1/3;
-            mat2 = Material.create(s);            
-
-            matI = obj.computeMaterialInterpolation();           
-            d = obj.designVariable.fun.project('P0');            
-            dens    = d.fValues;
-            mat     = matI.computeMatProp(dens);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.mesh  = obj.mesh;
-            s.kappa = mat.kappa;
-            s.mu    = mat.mu;
-            mat = Material.create(s);
-            mat.compute(s);
-       end        
-
-        function matInt = computeMaterialInterpolation(obj)
-            c.typeOfMaterial = 'ISOTROPIC';
-            c.interpolation  = 'SIMPALL';
-            c.dim            = '2D';
-            
-
-
-
-            cp.E1   = 1;
-            cp.E0   = 1e-3;
-            cp.nu1  = 1/3;
-            cp.nu0  = 1/3;
-            c.matProp = cp;
-
-            matInt = MaterialInterpolation.create(c);
-        end       
+        function mat = createInterpolatedMaterial(obj,dens)
+            mI   = obj.materialInterpolator;
+            d0   = dens.project('P0');            
+            mat  = mI.compute(d0);            
+        end        
+         
         
         function bc = createBoundaryConditions(obj)
             bM = obj.mesh.createBoundaryMesh();

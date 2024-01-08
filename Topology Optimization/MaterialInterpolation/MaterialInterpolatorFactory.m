@@ -1,4 +1,4 @@
-classdef MaterialInterpolationFactory < handle
+classdef MaterialInterpolatorFactory < handle
     
     methods (Access = public, Static)
         

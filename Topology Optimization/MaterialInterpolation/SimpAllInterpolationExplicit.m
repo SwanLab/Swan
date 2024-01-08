@@ -1,11 +1,10 @@
-classdef SimpAllInterpolationExplicit < MaterialInterpolation
+classdef SimpAllInterpolationExplicit < MaterialInterpolator
 
 
     methods  (Access = public)
         
         function obj = SimpAllInterpolationExplicit(cParams)
             obj.init(cParams);
-            obj.computeNstre();
             obj.computeSymbolicInterpolationFunctions();
         end
 
@@ -24,10 +23,10 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolation
         end
         
         function mu = computeSymMu(obj)
-            m0   = obj.matProp.mu0;
-            m1   = obj.matProp.mu1;
-            k0   = obj.matProp.kappa0;
-            k1   = obj.matProp.kappa1;
+            m0   = obj.matA.shear;
+            m1   = obj.matB.shear;
+            k0   = obj.matA.bulk;
+            k1   = obj.matB.bulk;
             eta0 = obj.computeEtaMu(m0,k0);
             eta1 = obj.computeEtaMu(m1,k1);
             c    = obj.computeCoeff(m0,m1,eta0,eta1);
@@ -35,10 +34,10 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolation
         end
         
         function kappa = computeSymKappa(obj)
-            m0    = obj.matProp.mu0;
-            m1    = obj.matProp.mu1;
-            k0    = obj.matProp.kappa0;
-            k1    = obj.matProp.kappa1;
+            m0   = obj.matA.shear;
+            m1   = obj.matB.shear;
+            k0   = obj.matA.bulk;
+            k1   = obj.matB.bulk;
             eta0  = obj.computeEtaKappa(m0);
             eta1  = obj.computeEtaKappa(m1);
             c     = obj.computeCoeff(k0,k1,eta0,eta1);

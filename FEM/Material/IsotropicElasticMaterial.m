@@ -17,12 +17,20 @@ classdef IsotropicElasticMaterial < Material
 
         function init(obj,cParams)
             obj.ndim    = cParams.ndim;
-            obj.young   = cParams.young;
-            obj.poisson = cParams.poisson; 
+            if isfield(cParams,'young')
+                obj.young = cParams.young;
+            end
+            if isfield(cParams,'poisson')
+                obj.poisson = cParams.poisson;
+            end            
+            if isfield(cParams,'bulk')
+                obj.bulk  = cParams.bulk;
+            end
+            if isfield(cParams,'shear')
+                obj.shear = cParams.shear;
+            end            
             obj.computeNstre();
-            obj.computeShear();
-            obj.computeBulk();     
-            obj.computeLambda();
+            obj.computeOtherLameCoefficients();
         end
 
     end
@@ -32,7 +40,23 @@ classdef IsotropicElasticMaterial < Material
         function computeNstre(obj)
             nDim      = obj.ndim;
             obj.nstre = 3*(nDim-1);
-        end        
+        end      
+
+        function computeOtherLameCoefficients(obj)
+            if isempty(obj.shear)
+                obj.computeShear();
+            end
+            if isempty(obj.bulk)
+                obj.computeBulk();
+            end
+            if isempty(obj.poisson)
+                obj.computePoisson();
+            end
+            if isempty(obj.young)
+                obj.computeYoung();
+            end
+            obj.computeLambda();
+        end
 
         function computeShear(obj)
             E = obj.young;
@@ -47,6 +71,20 @@ classdef IsotropicElasticMaterial < Material
             k  = obj.computeMuFromYoungAndPoisson(E,nu);
             obj.bulk = k;           
         end
+
+        function computeYoung(obj)
+            m = obj.shear;
+            k = obj.bulk;
+            E  = obj.computeYoungFromShearAndBulk(m,k);
+            obj.young = E;           
+        end
+
+        function computePoisson(obj)
+            m = obj.shear;
+            k = obj.bulk;
+            nu  = obj.computePoissonFromFromShearAndBulk(m,k);
+            obj.poisson = nu;           
+        end        
 
         function computeLambda(obj)
             m = obj.shear;
@@ -71,10 +109,10 @@ classdef IsotropicElasticMaterial < Material
 
         function E = computeYoungFromShearAndBulk(obj,m,k)
             N = obj.ndim;            
-            E = ((N*N*k)*(2*m))./(2*m + N*(N-1)*k);
+            E = ((N*N*k).*(2*m))./(2*m + N*(N-1)*k);
         end
         
-        function nu = computeNuFromFromShearAndBulk(obj,m,k)
+        function nu = computePoissonFromFromShearAndBulk(obj,m,k)
             N = obj.ndim;            
             nu = ((N*k)-(2*m))./(2*m + N*(N-1)*k);
         end     

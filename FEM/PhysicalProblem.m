@@ -1,4 +1,4 @@
-classdef FEM < handle
+classdef PhysicalProblem < handle
     
     properties (Access = protected)
         inputReader
@@ -6,7 +6,7 @@ classdef FEM < handle
     
     methods (Access = public)
         
-        function obj = FEM()
+        function obj = PhysicalProblem()
             obj.inputReader = FemInputReader_GiD();
         end
         
