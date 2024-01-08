@@ -38,7 +38,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x));
+            s.fHandle = @(x) ones(size(squeeze(x(1,:,:))));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);            
@@ -58,13 +58,24 @@ classdef TopOptTestTutorial < handle
         end       
 
         function createMaterialInterpolator(obj)
-            E = 1e-3;
-            nu = 1/3;
-            matA = obj.createMaterial(E,nu);            
-            
-            E = 1;
-            nu = 1/3;
-            matB = obj.createMaterial(E,nu);
+            E0 = 1e-3;
+            nu0 = 1/3;
+            E = AnalyticalFunction.create(@(x) E0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            nu = AnalyticalFunction.create(@(x)nu0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            tensorA = obj.createMaterial(E,nu);            
+             
+            E1  = 1;
+            nu1 = 1/3;            
+            E  = AnalyticalFunction.create(@(x)E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            nu = AnalyticalFunction.create(@(x)nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            tensorB = obj.createMaterial(E,nu);
+
+            ndim = 2;
+            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+
+            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
@@ -99,8 +110,7 @@ classdef TopOptTestTutorial < handle
 
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
-            d0   = dens.project('P0');            
-            mat  = mI.compute(d0);            
+            mat  = mI.compute(dens);            
         end        
          
         

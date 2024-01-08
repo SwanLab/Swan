@@ -5,23 +5,28 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);
         end
-        
-    end
-    
-    methods (Access = public)
-        
-        function C = compute(obj)
-            m = obj.shear;
-            l = obj.lambda;     
-            nGaus = size(m,1);                        
-            nElem = size(m,2);
-            C = zeros(obj.nstre,obj.nstre,nGaus,nElem);
-            C(1,1,:,:)= 2*m+l;
+
+        function C = evaluate(obj,xV)
+            [mu,k] = obj.computeShearAndBulk(xV);      
+            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
+            nGaus = size(mu,1);                        
+            nElem = size(mu,2);
+            nStre = 3;
+            C = zeros(nStre,nStre,nGaus,nElem);
+            C(1,1,:,:)= 2*mu+l;
             C(1,2,:,:)= l;
             C(2,1,:,:)= l;
-            C(2,2,:,:)= 2*m+l;
-            C(3,3,:,:)= m;
+            C(2,2,:,:)= 2*mu+l;
+            C(3,3,:,:)= mu;
         end
+
+        function plot(obj,mesh)
+            s.mesh = mesh;
+            s.projectorType = 'P1D';
+            proj = Projector.create(s);
+            p1fun = proj.project(obj);
+            p1fun.plot();
+        end               
         
     end
     

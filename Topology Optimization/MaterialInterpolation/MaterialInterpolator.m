@@ -26,14 +26,14 @@ classdef MaterialInterpolator < handle
     methods (Access = public)
         
         function m = compute(obj,rho)
-            mu      = obj.muFunc(rho.fValues);
-            kappa   = obj.kappaFunc(rho.fValues);
+            mu      = CompositionFunction.create(obj.muFunc,rho);
+            kappa   = CompositionFunction.create(obj.kappaFunc,rho);
             m = obj.createMaterial(mu,kappa);
         end
 
         function m = computeDerivative(obj,rho)
-            dmu       = obj.dmuFunc(rho.fValues);
-            dkappa    = obj.dkappaFunc(rho.fValues);         
+            dmu      = CompositionFunction.create(obj.dmuFunc,rho);
+            dkappa   = CompositionFunction.create(obj.dkappaFunc,rho);       
             m = obj.createMaterial(dmu,dkappa);            
         end
         

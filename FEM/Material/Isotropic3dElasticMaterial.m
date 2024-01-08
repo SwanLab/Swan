@@ -10,12 +10,13 @@ classdef Isotropic3dElasticMaterial < IsotropicElasticMaterial
     
     methods (Access = public)
 
-        function C = compute(obj)
-            m = obj.shear;
-            l = obj.lambda;     
+        function C = evaluate(obj,xV)
+            [mu,k] = obj.computeShearAndBulk(xV);      
+            l = obj.computeLambdaFromShearAndBulk(mu,k);
             nGaus = size(m,1);                        
             nElem = size(m,2);
-            C = zeros(obj.nstre,obj.nstre,nGaus,nElem);
+            nStre = 6;            
+            C = zeros(nStre,nStre,nGaus,nElem);
             C(1,1,:,:) = 2*m + l;
             C(2,2,:,:) = 2*m + l;
             C(3,3,:,:) = 2*m + l;
