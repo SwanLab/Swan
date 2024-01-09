@@ -57,32 +57,30 @@ classdef ShFunc_Compliance < handle
         end
 
         function computeGradient(obj)
-            q     = obj.physicalProblem.getQuadrature();
-            u     = obj.physicalProblem.uFun;
-            p     = obj.adjointProblem.uFun;
-            eu    = u.computeSymmetricGradient(q);
+            q            = obj.physicalProblem.getQuadrature();
+            u            = obj.physicalProblem.uFun;
+            p            = obj.adjointProblem.uFun;
+            eu           = u.computeSymmetricGradient(q);
             eu.applyVoigtNotation();
-            ep    = p.computeSymmetricGradient(q);
+            ep           = p.computeSymmetricGradient(q);
             ep.applyVoigtNotation();
-            dC    = obj.materialDerivative.evaluate(q.posgp);
-            nstre = size(eu.fValues,1);
-            ngaus = size(eu.fValues,2);
-            nelem = size(eu.fValues,3);
-            g     = zeros(nelem,ngaus);
-            for igaus = 1:ngaus
-                for istre = 1:nstre
-                    for jstre = 1:nstre
-                        eui = squeeze(eu.fValues(istre,igaus,:));
-                        epj = squeeze(ep.fValues(jstre,igaus,:));
-                        dCij = squeeze(dC(istre,jstre,igaus,:));
-                        g(:,igaus) = g(:,igaus) + (-eui.*dCij.*epj);
-                    end
-                end
-            end
-            s.fValues    = reshape(g',[1,ngaus,nelem]);
+            dC           = squeeze(obj.materialDerivative.evaluate(q.posgp));
+            epi          = permute(ep.fValues,[2 1 3]);
+            euj          = eu.fValues;
+            dCeuj        = pagemtimes(dC,euj);
+            contGrad     = -pagemtimes(epi,dCeuj);
+            s.fValues    = contGrad;
             s.mesh       = obj.mesh;
             s.quadrature = q;
-            obj.gradient = FGaussDiscontinuousFunction(s);
+            g            = FGaussDiscontinuousFunction(s);
+            ss.mesh      = obj.mesh;
+            ss.type      = 'ShapeFunction';
+            ss.quadType  = 'LINEAR';
+            int          = RHSintegrator.create(ss);
+            test         = P1Function.create(obj.mesh,1);
+            Dxc          = int.compute(g,test);
+            s.fValues    = Dxc;
+            obj.gradient = P1Function(s);
         end
 
         function filterGradient(obj)
