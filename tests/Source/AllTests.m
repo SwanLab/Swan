@@ -15,4 +15,3 @@ ProjectorsTestsSuite;
 RemeshingTestsSuite;
 DehomogenizationTestsSuite;
 close all;
-AcademicTestsSuite;

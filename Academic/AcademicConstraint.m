@@ -32,7 +32,6 @@ classdef AcademicConstraint < handle
             obj.constraintFunction = cParams.cF;
             obj.gradientFunction   = cParams.gF;
             obj.designVariable     = cParams.dV;
-            obj.nSF                = cParams.nSF;
         end
         
     end

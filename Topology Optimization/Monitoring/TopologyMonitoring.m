@@ -41,8 +41,6 @@ classdef TopologyMonitoring < handle
                     obj.plotIPOPT(cParams);
                 case 'MMA'
                     obj.plotMMA(cParams);
-                case 'IPM'
-                    obj.plotIPM(cParams);
                 otherwise
                     error('Optimizer not implemented')
             end
@@ -171,26 +169,6 @@ classdef TopologyMonitoring < handle
             obj.convergenceVars.reset();
             obj.convergenceVars.append(cParams.KKTnorm);
             obj.convergenceVars.append(cParams.outitFrac);
-            obj.refreshMonitoring();
-            obj.printHistory();
-        end
-
-        function plotIPM(obj,cParams)
-            deltaCost              = obj.cost.value - cParams.oldCost;
-            obj.nIter              = cParams.nIter;
-            normXsquare            = obj.designVariable.computeL2normIncrement();
-            obj.lineSearch         = cParams.tau;
-            obj.lineSearchTrials   = cParams.lineSearchTrials;
-            obj.hasFinished        = cParams.hasFinished;
-            incX                   = sqrt(normXsquare);
-            obj.designVariable.updateOld();
-            obj.printOptimizerVariable();
-            obj.convergenceVars.reset();
-            obj.convergenceVars.append(deltaCost);
-            obj.convergenceVars.append(incX);
-            obj.convergenceVars.append(obj.lineSearch);
-            obj.convergenceVars.append(obj.lineSearchTrials);
-            obj.convergenceVars.append(cParams.meritNew);
             obj.refreshMonitoring();
             obj.printHistory();
         end

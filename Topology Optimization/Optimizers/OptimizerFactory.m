@@ -18,8 +18,6 @@ classdef OptimizerFactory < handle
 %                     cParams.optimizerNames.aJmax = 2;
 %                     cParams.optimizerNames.aGmax = 0.05;
                     op = OptimizerNullSpace(cParams);
-                case 'IPM'
-                    op = OptimizerInteriorPoint(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end

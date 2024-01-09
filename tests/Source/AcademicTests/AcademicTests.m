@@ -1,27 +1,19 @@
 classdef AcademicTests < matlab.unittest.TestCase
 
     properties (TestParameter)
-        problem = {'AcademicTest0','AcademicTest1', 'AcademicTest2', 'AcademicTest3'...
-            'AcademicTest4'}
+        tests = {'AcademicTest1', 'AcademicTest2', 'AcademicTest3'}
     end
 
     methods (Test, TestTags = {'Academic'})
 
-        function testFast(testCase, problem)
-            run(problem);
-            cParams.cost           = cost;
-            cParams.constraint     = constraint;
-            cParams.constraint.nSF = nConstr;
-            cParams.initialGuess   = x0;
-            cParams.settings       = s;
-            test                   = AcademicProblem(cParams);
-            test.compute();
+        function testTriangle(testCase, tests)
+            s.filename = tests;
+            test = AcademicProblem(s);
             obt = test.result;
-            org = load(problem).result;
+            org = load(tests).result;
             err = abs(obt-org);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
-            close all
         end
 
     end
