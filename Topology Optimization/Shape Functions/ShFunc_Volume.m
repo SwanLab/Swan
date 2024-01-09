@@ -63,7 +63,7 @@ classdef ShFunc_Volume < handle
             f            = AnalyticalFunction.create(@(x) ones(size(x(1,:,:))),1,obj.mesh);
             s.mesh       = obj.mesh;
             s.type       = 'ShapeFunction';
-            s.quadType   = 'LINEAR';
+            s.quadType   = obj.quadrature.order;
             int          = RHSintegrator.create(s);
             test         = P1Function.create(obj.mesh,1);
             Dxv          = int.compute(f,test);

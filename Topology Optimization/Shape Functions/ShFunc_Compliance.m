@@ -41,19 +41,20 @@ classdef ShFunc_Compliance < handle
         function computeFunction(obj)
             u      = obj.physicalProblem.uFun;
             q      = obj.physicalProblem.getQuadrature();
-            Cij    = squeeze(obj.material.evaluate(q.posgp));
+            Cij    = obj.material.evaluate(q.posgp);
             strain = u.computeSymmetricGradient(q);
             strain.applyVoigtNotation();
-            strainj       = strain.fValues;
-            stressj       = pagemtimes(Cij,strainj);
-            s.quadrature  = q;
-            s.fValues     = stressj;
-            s.mesh        = obj.mesh;
-            stress        = FGaussDiscontinuousFunction(s);
-            iPar.mesh     = obj.mesh;
-            iPar.quadType = q.order;
-            int           = IntegratorScalarProduct(iPar);
-            obj.value     = int.compute(strain,stress);
+            strainj(:,1,:,:) = strain.fValues;
+            stressj          = pagemtimes(Cij,strainj);
+            stressj          = permute(stressj, [1 3 4 2]);
+            s.quadrature     = q;
+            s.fValues        = stressj;
+            s.mesh           = obj.mesh;
+            stress           = FGaussDiscontinuousFunction(s);
+            iPar.mesh        = obj.mesh;
+            iPar.quadType    = q.order;
+            int              = IntegratorScalarProduct(iPar);
+            obj.value        = int.compute(strain,stress);
         end
 
         function computeGradient(obj)
@@ -64,18 +65,19 @@ classdef ShFunc_Compliance < handle
             eu.applyVoigtNotation();
             ep           = p.computeSymmetricGradient(q);
             ep.applyVoigtNotation();
-            dC           = squeeze(obj.materialDerivative.evaluate(q.posgp));
-            epi          = permute(ep.fValues,[2 1 3]);
-            euj          = eu.fValues;
+            dC           = obj.materialDerivative.evaluate(q.posgp);
+            epi(1,:,:,:) = ep.fValues;
+            euj(:,1,:,:) = eu.fValues;
             dCeuj        = pagemtimes(dC,euj);
             contGrad     = -pagemtimes(epi,dCeuj);
+            contGrad     = squeezeParticular(contGrad,1);
             s.fValues    = contGrad;
             s.mesh       = obj.mesh;
             s.quadrature = q;
             g            = FGaussDiscontinuousFunction(s);
             ss.mesh      = obj.mesh;
             ss.type      = 'ShapeFunction';
-            ss.quadType  = 'LINEAR';
+            ss.quadType  = q.order;
             int          = RHSintegrator.create(ss);
             test         = P1Function.create(obj.mesh,1);
             Dxc          = int.compute(g,test);

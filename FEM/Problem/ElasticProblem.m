@@ -180,27 +180,23 @@ classdef ElasticProblem < handle
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
             strFun.applyVoigtNotation();
-            perm = permute(strFun.fValues, [2 1 3]);
-%             obj.variables.strain = perm;
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
 
         function computeStress(obj)
-            strn  = permute(obj.strain.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strn;
-            Cv = obj.material.evaluate(obj.quadrature.posgp);
+            strn(:,1,:,:) = obj.strain.fValues;
+            Cv            = obj.material.evaluate(obj.quadrature.posgp);
 
-            strs =squeeze(pagemtimes(Cv,strn2));
-            strs = permute(strs, [1 3 2]);
+            strs = pagemtimes(Cv,strn);
+            strs = permute(strs, [1 3 4 2]);
 
             z.mesh       = obj.mesh;
             z.fValues    = strs;
             z.quadrature = obj.quadrature;
-            strFun = FGaussDiscontinuousFunction(z);
+            strFun       = FGaussDiscontinuousFunction(z);
 
-            obj.stress = strFun;
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+            obj.stress    = strFun;
             obj.stressFun = strFun;
         end
 
