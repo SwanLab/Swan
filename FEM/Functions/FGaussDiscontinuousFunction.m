@@ -7,10 +7,10 @@
     properties (Access = public)
         ndimf
         fValues
-        quadrature
     end
 
     properties (Access = private)
+        quadrature
         mesh
     end
     

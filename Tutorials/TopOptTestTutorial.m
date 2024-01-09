@@ -121,6 +121,7 @@ classdef TopOptTestTutorial < handle
             s.mesh               = obj.mesh;
             s.filter             = obj.filter;
             s.physicalProblem    = obj.physicalProblem;
+            s.material           = obj.createInterpolatedMaterial(fun);
             s.materialDerivative = obj.createInterpolatedMaterialDerivative(fun);
             c                    = ShFunc_Compliance(s);
             c.compute();
