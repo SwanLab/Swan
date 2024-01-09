@@ -114,14 +114,21 @@ classdef ModalTesting < handle
             kcoarse = x(nphi+nrb+1:end,:);
             basis   = cell2mat(obj.basisVec);
             Udef    = basis*inv(H)*T;
-%             Urb     = obj.RBdomain*inv(G)*(That-Hhat*inv(H)*T);
+            for i = 1:3
+                p1test=obj.RBdomain.basisFunctions{i}.project('P1');
+                RB(:,i)=reshape(p1test.fValues',[],1);
+            end
+%              Urb     = obj.RBdomain*inv(G)*(That-Hhat*inv(H)*T);
+            Urb     = RB*inv(G)*(That-Hhat'*inv(H)*T);
             kcoarse = (Udef')*K*Udef;
 
-            rom.kcoarse=kcoarse;
-            rom.udef=Udef;
-            rom.basis=basis;
+            rom.kcoarse = kcoarse;
+            rom.Udef    = Udef;
+            rom.Urb     = Urb;
+            rom.ndimf   = dispFun.ndimf;
+%             rom.basis   = basis;
 
-
+            save("testEIFEM1.mat","rom")
 
             %             ModalTesting.plotRes(residualCG,residualPCG,errCG,errPCG,errACG,errAPCG)
 

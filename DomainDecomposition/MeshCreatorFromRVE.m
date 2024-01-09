@@ -1,4 +1,4 @@
-classdef MeshFromRVE < handle
+classdef MeshCreatorFromRVE < handle
 
     properties (Access = public)
 
@@ -21,17 +21,16 @@ classdef MeshFromRVE < handle
 
     methods (Access = public)
 
-        function obj = MeshFromRVE(cParams)
+        function obj = MeshCreatorFromRVE(cParams)  
             obj.init(cParams)
-
         end
 
-        function [meshDomain,meshSubDomain,interfaceConnec] = create(obj)
+        function [mD,mSD,interfaceConnec] = create(obj)
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
-            meshDomain      = obj.meshDomain;
-            meshSubDomain   = obj.meshSubDomain;
+            mD  = obj.meshDomain;
+            mSD = obj.meshSubDomain;
             interfaceConnec = obj.interfaceConnec;
         end
 

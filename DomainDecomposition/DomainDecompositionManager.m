@@ -34,24 +34,30 @@ classdef DomainDecompositionManager < handle
            
             s.nsubdomains = obj.nSubdomains; %nx ny
             s.meshReference = obj.meshReference;         
-            mRVE = MeshFromRVE(s);
-            [meshDomain,meshSubDomain,interfaceConnec] = mRVE.create();
+            m = MeshCreatorFromRVE(s);
+            [meshDomain,meshSubDomain,interfaceConnec] = m.create();
     
             cMesh = createCoarseMesh(obj);
             s.nsubdomains = obj.nSubdomains; %nx ny
             s.meshReference = cMesh;         
-            mRVECoarse = MeshFromRVE(s);
+            mRVECoarse = MeshCreatorFromRVE(s);
             [meshDomainCoarse,meshSubDomainCoarse,interfaceConnecCoarse] = mRVECoarse.create();
+
+            filename = 'testEIFEM1.mat';
+            RVE = TrainedRVE(filename);
+            s1.RVE = RVE;
+            s1.mesh = meshDomainCoarse;
+            eifem = EIFEM(s1);
             
-%             obj.obtainCornerNodes();
-%             fineMesh = MeshFromRVE
-            obj.createSubDomainMeshes();
-            obj.createInterfaceSubDomainMeshes();
-            obj.createDomainMesh();
-            obj.createBoundaryConditions();
-            obj.quad = Quadrature.set(obj.meshDomain.type);
-            obj.quad.computeQuadrature('QUADRATIC');
-            obj.createDomainMaterial();
+% %             obj.obtainCornerNodes();
+% %             fineMesh = MeshFromRVE
+%             obj.createSubDomainMeshes();
+%             obj.createInterfaceSubDomainMeshes();
+%             obj.createDomainMesh();
+%             obj.createBoundaryConditions();
+%             obj.quad = Quadrature.set(obj.meshDomain.type);
+%             obj.quad.computeQuadrature('QUADRATIC');
+%             obj.createDomainMaterial();
             
 %             s.referenceMesh = obj.referenceMesh;
 %             mC = MeshCreatorFromSubmeshes();
@@ -126,7 +132,7 @@ classdef DomainDecompositionManager < handle
             coord(3,2) = ymax;
             coord(4,1) = xmin;
             coord(4,2) = ymin;
-            connec = [4 1 2 3];
+            connec = [1 2 3 4];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh(s);
