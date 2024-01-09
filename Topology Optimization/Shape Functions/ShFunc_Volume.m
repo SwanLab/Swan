@@ -1,80 +1,82 @@
-classdef ShFunc_Volume < ShapeFunctional
+classdef ShFunc_Volume < handle
     
     properties (Access = public)
-        geometricVolume
+        value
+        gradient
+    end
+
+    properties (Access = private)
+        quadrature
+        totalVolume
+    end
+
+    properties (Access = private)
+        mesh
+        filter
+        designVariableFunction
     end
     
     methods (Access = public)
-        
         function obj = ShFunc_Volume(cParams)
-            cParams.filterParams.quadratureOrder = 'LINEAR';
             obj.init(cParams);
-            obj.geometricVolume = sum(obj.dvolu(:));
+            obj.createQuadrature();
+            obj.createTotalVolume();
         end
-        
-        function computeFunctionAndGradient(obj)
-            obj.nVariables = obj.designVariable.nVariables;
-            obj.updateHomogenizedMaterialProperties();
+
+        function compute(obj)
             obj.computeFunction();
             obj.computeGradient();
-        end
-        
-        function computeFunction(obj)
-            density = obj.homogenizedVariablesComputer.rho;
-            obj.computeFunctionFromDensity(density);
-        end
-        
-        function computeFunctionFromDensity(obj,dens)
-            densV = dens;
-            volume = (sum(obj.dvolu,2)'*mean(densV,2));
-            volume = volume/(obj.geometricVolume);
-            obj.value = volume;
-        end
-
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value*obj.value0;
-        end
-
-        function t = getTitlesToPlot(obj)
-            t{1} = 'Volume non scaled';
-        end
-        
+            obj.filterGradient();
+        end      
     end
     
     methods (Access = private)
 
+        function init(obj,cParams)
+            obj.mesh                   = cParams.mesh;
+            obj.filter                 = cParams.filter;
+            obj.designVariableFunction = cParams.x;
+        end
+
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
+            obj.quadrature = quad;
+        end
+
+        function createTotalVolume(obj)
+            q  = obj.quadrature;
+            dV = obj.mesh.computeDvolume(q);
+            obj.totalVolume = sum(dV(:));
+        end
+
+        function computeFunction(obj)
+            iPar.mesh     = obj.mesh;
+            iPar.quadType = obj.quadrature.order;
+            int           = IntegratorFunction(iPar);
+            x             = obj.designVariableFunction;
+            volume        = int.compute(x);
+            obj.value     = volume/(obj.totalVolume);
+        end
+
         function computeGradient(obj)
-            drho = obj.homogenizedVariablesComputer.drho;
-            g     = drho;
-            gf    = zeros(size(obj.Msmooth,1),obj.nVariables);
-            q     = Quadrature.set(obj.designVariable.mesh.type);
-            q.computeQuadrature('LINEAR');
-            for ivar = 1:obj.nVariables
-                gs           = g{ivar}/obj.geometricVolume;
-                nelem        = size(gs,1);
-                ngaus        = size(gs,2);
-                s.fValues    = reshape(gs',[1,ngaus,nelem]);
-                s.mesh       = obj.designVariable.mesh;
-                s.quadrature = q;
-                f            = FGaussDiscontinuousFunction(s);
-                gradP1       = obj.gradientFilter.compute(f,'LINEAR');
-                gf(:,ivar)   = gradP1.fValues;
-            end
-            g = obj.Msmooth*gf;
-            obj.gradient = g(:);
+            f            = AnalyticalFunction.create(@(x) ones(size(x(1,:,:))),1,obj.mesh);
+            s.mesh       = obj.mesh;
+            s.type       = 'ShapeFunction';
+            s.quadType   = 'LINEAR';
+            int          = RHSintegrator.create(s);
+            test         = P1Function.create(obj.mesh,1);
+            Dxv          = int.compute(f,test);
+            s.fValues    = Dxv/obj.totalVolume;
+            s.mesh       = obj.mesh;
+            obj.gradient = P1Function(s);
         end
-        
-        function updateHomogenizedMaterialProperties(obj)
-            mesh      = obj.designVariable.mesh;
-            q         = Quadrature.set(mesh.type);
-            q.computeQuadrature('LINEAR');
-            f         = obj.obtainDomainFunction();
-            fP1       = obj.filter.compute(f,'QUADRATICMASS');
-            xP0       = squeeze(fP1.evaluate(q.posgp));
-            xf{1}     = reshape(xP0',[mesh.nelem,q.ngaus]);
-            obj.homogenizedVariablesComputer.computeDensity(xf);
+
+        function filterGradient(obj)
+            g       = obj.gradient;
+            regGrad = obj.filter.compute(g,'LINEAR');
+            obj.gradient = regGrad;
         end
-        
     end
 end
 

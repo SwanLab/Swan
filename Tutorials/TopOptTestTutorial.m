@@ -7,6 +7,7 @@ classdef TopOptTestTutorial < handle
         materialInterpolator
         physicalProblem
         compliance
+        volume
     end
 
     methods (Access = public)
@@ -19,7 +20,7 @@ classdef TopOptTestTutorial < handle
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createCompliance();
-            % Volume
+            obj.createVolume();
             % Cost
             % Constraint
             % Optimizer
@@ -126,6 +127,20 @@ classdef TopOptTestTutorial < handle
             c                    = ShFunc_Compliance(s);
             c.compute();
             obj.compliance = c;
+        end
+
+        function createVolume(obj)
+            s.mesh   = obj.mesh;
+            s.filter = obj.filter;
+            switch obj.designVariable.type
+                case 'Density'
+                    s.x    = obj.designVariable.fun;
+                case 'LevelSet'
+                    s.x = obj.designVariable.getCharacteristicFunction();
+            end
+            v = ShFunc_Volume(s);
+            v.compute();
+            obj.volume = v;
         end
 
         function mat = createInterpolatedMaterial(obj,dens)
