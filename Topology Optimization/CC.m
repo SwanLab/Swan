@@ -11,7 +11,7 @@ classdef CC < handle & matlab.mixin.Copyable
     end
     
     properties (Access = private)
-        sizeDesigVar
+        ndof
         valueOld
         gradientOld
     end
@@ -59,46 +59,18 @@ classdef CC < handle & matlab.mixin.Copyable
     methods (Access = protected)
         
         function obj = init(obj,cParams)
-            obj.nSF   = 0;
-            obj.sizeDesigVar = size(cParams.designVar.fun.fValues);
-            obj.createShapeFunctions(cParams);
+            obj.ndof           = cParams.ndof;
+            obj.shapeFunctions = cParams.shapeFunctions;
+            obj.nSF            = length(cParams.shapeFunctions);
         end
         
     end
     
-    methods (Access = private)
-        
+    methods (Access = private)   
         function initValueAndGradient(obj)
             obj.value = 0;
-            obj.gradient = zeros(obj.sizeDesigVar);
+            obj.gradient = zeros(obj.ndof);
         end
-        
-        function createShapeFunctions(obj,cParams)
-            nS = cParams.nShapeFuncs;
-            for iS = 1:nS
-                s = cParams.shapeFuncSettings{iS};
-                s.designVariable = cParams.designVar;
-                s.femSettings.physicalProblem = cParams.physicalProblem;
-                s.shNumber = iS;
-
-                if isprop(cParams,'homogenizedVarComputer')
-                    s.homogVarComputer = cParams.homogenizedVarComputer;
-                end
-                if isprop(cParams,'targetParameters')
-                    s.targetParameters = cParams.targetParameters;
-                end
-                s.femSettings.designVariableFilter = obj.createFilter(s);
-                s.femSettings.gradientFilter       = obj.createFilter(s);
-                shapeFunction = ShapeFunctional.create(s);
-                obj.append(shapeFunction);
-            end
-        end
-
-        function append(obj,shapeFunction)
-            obj.shapeFunctions{obj.nSF+1} = shapeFunction;
-            obj.nSF = obj.nSF+1;
-        end
-       
     end
 
     methods (Static, Access = private)

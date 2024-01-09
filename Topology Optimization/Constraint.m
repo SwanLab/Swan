@@ -7,7 +7,7 @@ classdef Constraint < CC
     methods (Access = public)
         
         function obj = Constraint(cParams)
-            obj.dualVariable = cParams.dualVariable;
+            %obj.dualVariable = cParams.dualVariable;
             obj.init(cParams);
         end
         

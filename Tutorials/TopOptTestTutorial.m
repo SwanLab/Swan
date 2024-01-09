@@ -8,6 +8,8 @@ classdef TopOptTestTutorial < handle
         physicalProblem
         compliance
         volume
+        cost
+        constraint
     end
 
     methods (Access = public)
@@ -21,9 +23,9 @@ classdef TopOptTestTutorial < handle
             obj.createElasticProblem();
             obj.createCompliance();
             obj.createVolume();
-            % Cost
-            % Constraint
-            % Optimizer
+            obj.createCost();
+            obj.createConstraint();
+            % create Optimizer
         end
 
     end
@@ -141,6 +143,19 @@ classdef TopOptTestTutorial < handle
             v = ShFunc_Volume(s);
             v.compute();
             obj.volume = v;
+        end
+
+        function createCost(obj)
+            s.ndof              = obj.mesh.nnodes;
+            s.shapeFunctions{1} = obj.compliance;
+            s.weights           = 1;
+            obj.cost            = Cost(s);
+        end
+
+        function createConstraint(obj)
+            s.ndof              = obj.mesh.nnodes;
+            s.shapeFunctions{1} = obj.volume;
+            obj.constraint      = Constraint(s);
         end
 
         function mat = createInterpolatedMaterial(obj,dens)
