@@ -5,6 +5,8 @@ classdef TopOptTestTutorial < handle
         filter
         designVariable
         materialInterpolator
+        physicalProblem
+        compliance
     end
 
     methods (Access = public)
@@ -16,6 +18,11 @@ classdef TopOptTestTutorial < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
+            obj.createCompliance();
+            % Volume
+            % Cost
+            % Constraint
+            % Optimizer
         end
 
     end
@@ -38,7 +45,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeeze(x(1,:,:))));
+            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);            
@@ -106,13 +113,29 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             fem = ElasticProblem(s);
             fem.solve();
-        end    
+            obj.physicalProblem = fem;
+        end
+
+        function createCompliance(obj)
+            fun                  = obj.designVariable.fun;
+            s.mesh               = obj.mesh;
+            s.filter             = obj.filter;
+            s.physicalProblem    = obj.physicalProblem;
+            s.materialDerivative = obj.createInterpolatedMaterialDerivative(fun);
+            c                    = ShFunc_Compliance(s);
+            c.compute();
+            obj.compliance = c;
+        end
 
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
-            mat  = mI.compute(dens);            
-        end        
-         
+            mat  = mI.compute(dens);
+        end
+
+        function dmat = createInterpolatedMaterialDerivative(obj,dens)
+            mI   = obj.materialInterpolator;
+            dmat = mI.computeDerivative(dens);
+        end
         
         function bc = createBoundaryConditions(obj)
             bM = obj.mesh.createBoundaryMesh();

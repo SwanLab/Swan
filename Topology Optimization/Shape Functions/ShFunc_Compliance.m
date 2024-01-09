@@ -1,88 +1,63 @@
-classdef ShFunc_Compliance < ShFunWithElasticPdes
-    
-    properties (Access = private)
-        compliance
-        fieldToPrint
-        adjointProblem
-        gradientGauss
+classdef ShFunc_Compliance < handle
+
+    properties (Access = public)
+        value
+        gradient
     end
-    
+
+    properties (Access = private)
+        Msmooth
+        value0
+    end
+
+    properties (Access = private)
+        mesh
+        filter
+        physicalProblem
+        adjointProblem
+        materialDerivative
+    end
+
     methods (Access = public)
-        
+
         function obj = ShFunc_Compliance(cParams)
             obj.init(cParams);
-            obj.physicalProblem = cParams.femSettings.physicalProblem;
-            obj.createOrientationUpdater();
-        end
-        
-        function fP = addPrintableVariables(obj)
-            phy = obj.getPdesVariablesToPrint();
-            fP{1}.value = phy{1};
-            fP{2}.value = obj.compliance/obj.value0;
-            fP{3}.value = obj.designVariable.alpha;
-            fP{4}.value = abs(obj.designVariable.alpha);
-            fP{5}.value = permute(obj.gradientGauss,[3 1 2]);
-            fP = obj.addHomogVariables(fP);
+            obj.computeSmoothMassMatrix();
         end
 
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value*obj.value0;
-        end
-        
-        function t = getTitlesToPlot(obj)
-            t{1} = 'Compliance non scaled';
-        end
-        
-        function fP = createPrintVariables(obj)
-            types = {'Elasticity','ScalarGauss','VectorGauss'...
-                        'VectorGauss','VectorGauss'};
-            names = {'Primal','ComplianceGauss','AlphaGauss',...
-                        'AlphaAbsGauss','GradientGauss'};
-            fP = obj.obtainPrintVariables(types,names);
-            fP = obj.addHomogPrintVariablesNames(fP);
-        end
-        
-        function [fun, funNames] = getFunsToPlot(obj)
-            mesh = obj.designVariable.mesh;
-            phy = obj.physicalProblem;
-            strain = phy.strainFun; % !!!
-            stress = phy.stressFun; % !!!
-            displ  = phy.uFun; % !!!
-            compl  = obj.compliance/obj.value0;
-
-            quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature('LINEAR');
-
-            aa.mesh       = mesh;
-            aa.quadrature = quad;
-            aa.fValues    = permute(compl, [3 2 1]);
-            complFun = FGaussDiscontinuousFunction(aa);
-            
-            bb.mesh    = mesh;
-            bb.fValues = obj.designVariable.alpha';
-            alphaFun = P0Function(bb);
-
-            fun      = {complFun, strain, stress, displ};
-            funNames = {'compliance', 'strain', 'stress', 'u'};
+        function compute(obj)
+            obj.computeFunction();
+            obj.computeGradient();
+            obj.filterGradient();
         end
     end
     
-    methods (Access = protected)
-        
-        function solveState(obj)
-            obj.physicalProblem.setC(obj.homogenizedVariablesComputer.C) % (:,:,7200,4); cmat
-            obj.physicalProblem.solve();
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh               = cParams.mesh;
+            obj.filter             = cParams.filter;
+            obj.physicalProblem    = cParams.physicalProblem;
+            obj.adjointProblem     = cParams.physicalProblem;
+            obj.materialDerivative = cParams.materialDerivative;
         end
-        
-        function solveAdjoint(obj)
-            obj.adjointProblem = obj.physicalProblem;
+
+        function computeSmoothMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = P1Function.create(obj.mesh, 1);
+            s.trial = P1Function.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATICMASS';
+            LHS = LHSintegrator.create(s);
+            M   = LHS.compute();
+            obj.Msmooth = M;
         end
-        
-        function computeFunctionValue(obj)
+
+        function computeFunction(obj)
             phy = obj.physicalProblem;
             stress = phy.stressFun.fValues;
             strain = phy.strainFun.fValues;
-            dvolum = obj.designVariable.mesh.computeDvolume(phy.strainFun.quadrature)';
+            dvolum = obj.mesh.computeDvolume(phy.strainFun.quadrature)';
             ngaus  = size(strain,2);
             nelem  = size(strain,3);
 
@@ -93,43 +68,49 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
                 e = stressG.*strainG;
                 c(:,igaus) = c(:,igaus) + sum(e)';
             end
-            obj.compliance = c;
             int = c.*dvolum;
             obj.value = sum(int(:));
         end
         
-        function computeGradientValue(obj)
-            obj.computeGradientInGauss();
-            obj.gradient = obj.gradientGauss;
-        end
-
-        function computeGradientInGauss(obj)
-            phy = obj.physicalProblem;
-            ep    = phy.strainFun.fValues;
-            nstre  = size(ep,1);
-            ngaus  = size(ep,2);
-            nelem  = size(ep,3);
-            g = zeros(nelem,ngaus,obj.nVariables);
+        function computeGradient(obj)
+            phy   = obj.physicalProblem;
+            adj   = obj.adjointProblem;
+            eu    = phy.strainFun.fValues;
+            ep    = adj.strainFun.fValues;
+            q     = phy.strainFun.quadrature;
+            dC    = obj.materialDerivative.evaluate(q.posgp);
+            nstre = size(eu,1);
+            ngaus = size(eu,2);
+            nelem = size(eu,3);
+            g     = zeros(nelem,ngaus);
             for igaus = 1:ngaus
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        eu_i = squeeze(ep(istre,igaus,:));
-                        ep_j = squeeze(ep(jstre,igaus,:));
-                        for ivar = 1:obj.nVariables
-                            dCij = squeeze(obj.homogenizedVariablesComputer.dC(istre,jstre,ivar,:,igaus));
-                            g(:,igaus,ivar) = g(:,igaus,ivar) + (-eu_i.*dCij.*ep_j);
-                        end
+                        eui = squeeze(eu(istre,igaus,:));
+                        epj = squeeze(ep(jstre,igaus,:));
+                        dCij = squeeze(dC(istre,jstre,igaus,:));
+                        g(:,igaus) = g(:,igaus) + (-eui.*dCij.*epj);
                     end
                 end
-            end            
-            obj.gradientGauss = g;
+            end
+            obj.gradient = g;
         end
-        
-        function f = getPdesVariablesToPrint(obj)
-            f{1} = obj.getPdeVariableToPrint(obj.physicalProblem);
-        end
-        
-    end
-    
-end
 
+        function filterGradient(obj)
+            g     = obj.gradient;
+            nelem = size(g,1);
+            ngaus = size(g,2);
+            q     = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            s.fValues    = reshape(g',[1,ngaus,nelem]);
+            s.mesh       = obj.mesh;
+            s.quadrature = q;
+            f            = FGaussDiscontinuousFunction(s);
+            gradP1       = obj.filter.compute(f,'LINEAR');
+            gf           = gradP1.fValues;
+            gf           = obj.Msmooth*gf;
+            s.fValues    = gf;
+            obj.gradient = P1Function(s);
+        end
+    end
+end
