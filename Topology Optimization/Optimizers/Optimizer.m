@@ -15,10 +15,6 @@ classdef Optimizer < handle
         postProcess
     end
 
-    properties (GetAccess = public, SetAccess = protected, Abstract)
-        type
-    end
-
     properties (Access = public)
         simulationPrinter
     end
