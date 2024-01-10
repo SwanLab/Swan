@@ -13,7 +13,6 @@ classdef ComplianceFunctional < handle
         mesh
         filter
         stateProblem
-        adjointProblem
         materialInterpolator
     end
 
@@ -25,8 +24,13 @@ classdef ComplianceFunctional < handle
         end
 
         function computeFunctionAndGradient(obj,x)
-            obj.computeFunction(x);
-            obj.computeGradient(x);
+            C = obj.computeMaterial(x);
+            u = obj.computeStateVariable(C);            
+            J = obj.computeFunction(C,u);
+            dC = obj.computeMaterialDerivative(x);   
+            dJ = obj.computeGradient(dC,u);
+            obj.value    = J; 
+            obj.gradient = dJ;
         end
     end
     
@@ -36,7 +40,6 @@ classdef ComplianceFunctional < handle
             obj.mesh                 = cParams.mesh;
             obj.filter               = cParams.filter;
             obj.stateProblem         = cParams.stateProblem;
-            obj.adjointProblem       = obj.stateProblem; 
             obj.materialInterpolator = cParams.materialInterpolator;
         end
 
@@ -46,60 +49,48 @@ classdef ComplianceFunctional < handle
             obj.quadrature = quad;
         end
 
-        function computeFunction(obj,x)
+        function J = computeFunction(obj,C,u)
+            strain     = obj.computeStateStrain(u);
+            stress     = obj.computeStress(C,strain);
             s.mesh     = obj.mesh;
             s.quadType = obj.quadrature.order;
-            int        = IntegratorScalarProduct(s);
-            C          = obj.computeMaterial(x);
+            int        = IntegratorScalarProduct(s);   %create         
+            J          = int.compute(strain,stress);
+        end
+
+        function u = computeStateVariable(obj,C)
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
-            strain     = obj.computeStateStrain();
-            stress     = obj.computeStress(C,strain);
-            J          = int.compute(strain,stress);
-            obj.value  = J;
+            u  = obj.stateProblem.uFun;            
         end
 
-        function strain = computeStateStrain(obj)
-            u      = obj.stateProblem.uFun;
-            strain = u.computeSymmetricGradient(obj.quadrature);
-            strain = strain.obtainVoigtFormat();
-        end
-
-        function strain = computeAdjointStrain(obj)
-            p      = obj.adjointProblem.uFun;
-            strain = p.computeSymmetricGradient(obj.quadrature);
-            strain = strain.obtainVoigtFormat();
+        function eu = computeStateStrain(obj,u)
+            eu = u.computeSymmetricGradient(obj.quadrature);
+            eu = eu.obtainVoigtFormat();
         end
 
         function stress = computeStress(obj,C,strain)
-            Cij              = C.evaluate(obj.quadrature.posgp);
+            Cij = C.evaluate(obj.quadrature.posgp);
             strainV(:,1,:,:) = strain.fValues;
-            stressV          = pagemtimes(Cij,strainV);
-            stressV          = permute(stressV, [1 3 4 2]);
-            m                = obj.mesh;
-            q                = obj.quadrature;
-            stress           = FGaussDiscontinuousFunction.create(stressV,m,q);
+            stress = pagemtimes(Cij,strainV);
+            stress = permute(stress, [1 3 4 2]);
+            stress = obj.createGaussFunction(stress);
         end
 
-        function computeGradient(obj,x)
+        function g = computeGradient(obj,x)
             dj = obj.computeDJ(x);
             g  = obj.filter.compute(dj,'LINEAR'); 
-            obj.gradient = g;
-        end
+        end        
 
-        function dj = computeDJ(obj,x)
-            dC           = obj.computeMaterialDerivative(x);   
+        function dj = computeDJ(obj,dC,u)
             dCij         = dC.evaluate(obj.quadrature.posgp);
-            eu           = obj.computeStateStrain();
-            ep           = obj.computeAdjointStrain();
-            epi(1,:,:,:) = ep.fValues;
+            eu           = obj.computeStateStrain(u);
             euj(:,1,:,:) = eu.fValues;
+            eui(1,:,:,:) = eu.fValues;            
             dStress      = pagemtimes(dCij,euj);
-            dj           = pagemtimes(epi,dStress);
+            dj           = pagemtimes(eui,dStress);
             dj           = squeezeParticular(-dj,1);                        
-            m            = obj.mesh;
-            q            = obj.quadrature;
-            dj           = FGaussDiscontinuousFunction.create(dj,m,q);
+            dj           = obj.createGaussFunction(dj);
         end
 
         function C = computeMaterial(obj,x)
@@ -111,5 +102,12 @@ classdef ComplianceFunctional < handle
             mI = obj.materialInterpolator;
             dC = mI.computeDerivative(x);
         end
+
+        function fd = createDiscontinousGaussFunction(obj,f)
+            m  = obj.mesh;
+            q  = obj.quadrature;
+            fd = FGaussDiscontinuousFunction.create(f,m,q);
+        end
+
     end
 end

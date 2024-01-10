@@ -53,13 +53,10 @@ classdef VolumeFunctional < handle
         end
 
         function computeGradient(obj,x)
-            %                 case 'L2'  (?)
-            %                     fHandle = @(x) ones(size(x(1,:,:)))/obj.totalVolume;
-            %                     g       = AnalyticalFunction.create(fHandle,1,obj.mesh);
             s.mesh      = obj.mesh;
             s.feFunType = class(x);
             s.ndimf     = 1;
-            g           = FeFunction.createEmpty(s);
+            g           = FeFunction.createEmpty(s); % create
             g.fValues   = ones(x.nDofs,1)/obj.totalVolume;
             obj.gradient = g;
         end
