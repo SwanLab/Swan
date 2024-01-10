@@ -66,6 +66,7 @@ classdef OptimizerMMA < Optimizer
                obj.computeQuickPostProcess(Jvec,gvec);
            end
             obj.hasConverged = 0;
+            obj.designVariable.fun.print('Result','Paraview');
        end
         
         function update(obj)
@@ -118,8 +119,6 @@ classdef OptimizerMMA < Optimizer
             title('Constraint')
 
             drawnow
-
-            obj.designVariable.fun.print('Result','Paraview');
         end
 
         function updateMonitoring(obj)
