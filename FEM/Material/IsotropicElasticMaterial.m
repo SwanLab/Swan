@@ -33,7 +33,7 @@ classdef IsotropicElasticMaterial < Material
             if isempty(obj.shear) && isempty(obj.bulk)
                 E  = obj.young.evaluate(xV);
                 nu = obj.poisson.evaluate(xV);  
-                mu = obj.computeMuFromYoungAndPoisson(E,nu,obj.ndim);               
+                mu = obj.computeMuFromYoungAndPoisson(E,nu);               
                 k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
             else
                 mu = obj.shear.evaluate(xV);

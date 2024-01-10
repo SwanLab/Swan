@@ -1,7 +1,6 @@
 classdef TopOptTestTutorial < handle
 
 % Pending:
-% - Tutorial FEM
 % - Tutorial level set
 
     properties (Access = private)
@@ -75,18 +74,6 @@ classdef TopOptTestTutorial < handle
         end       
 
         function createMaterialInterpolator(obj)
-            E0 = 1e-3;
-            nu0 = 1/3;
-            E = AnalyticalFunction.create(@(x) E0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu = AnalyticalFunction.create(@(x)nu0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            tensorA = obj.createMaterial(E,nu);            
-             
-            E1  = 1;
-            nu1 = 1/3;            
-            E  = AnalyticalFunction.create(@(x)E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu = AnalyticalFunction.create(@(x)nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            tensorB = obj.createMaterial(E,nu);
-
             ndim = 2;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
@@ -103,16 +90,6 @@ classdef TopOptTestTutorial < handle
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;            
         end    
-
-        function m = createMaterial(obj,young,poisson)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
-            m = Material.create(s);               
-        end
-
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
