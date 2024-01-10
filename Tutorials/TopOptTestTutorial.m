@@ -1,5 +1,9 @@
 classdef TopOptTestTutorial < handle
 
+% Pending:
+% - Tutorial FEM
+% - Tutorial level set
+
     properties (Access = private)
         mesh
         filter
