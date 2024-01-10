@@ -1,4 +1,4 @@
-classdef Optimizer_MMA < Optimizer
+classdef OptimizerMMA < Optimizer
     
     properties (GetAccess = public, SetAccess = protected)
         type = 'MMA'
@@ -32,43 +32,44 @@ classdef Optimizer_MMA < Optimizer
         incrementalScheme
         hasConverged
         historicalVariables
-       % targetParameters
         KKTnorm
     end
     
     methods (Access = public)
         
-        function obj = Optimizer_MMA(cParams)
+        function obj = OptimizerMMA(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.outputFunction.monitoring.create(cParams);
-%             obj.upperBound = cParams.uncOptimizerSettings.ub;
-%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
+            obj.monitoring.create(cParams);
             obj.maxoutit = 1e4;
         end
 
        function solveProblem(obj)
-            % obj.cost.computeFunctionAndGradient();
-            % obj.constraint.computeFunctionAndGradient();
-%             obj.printOptimizerVariable();
-            obj.hasFinished = false;
-            obj.printOptimizerVariable();
-            while ~obj.hasFinished
-                obj.update();
-                obj.updateIterInfo();
-                obj.updateMonitoring();
-                obj.printOptimizerVariable();
-            end
-%             obj.printOptimizerVariable();
-%             obj.printHistory();
+           obj.hasFinished = false;
+           obj.printOptimizerVariable();
+           f = obj.designVariable.fun;
+           obj.cost.computeFunctionAndGradient(f);
+           obj.constraint.computeFunctionAndGradient(f);
+           J = obj.cost.value;
+           g = obj.constraint.value;
+           Jvec = J;
+           gvec = g;
+           while ~obj.hasFinished
+               obj.update();
+               obj.updateIterInfo();
+               %obj.updateMonitoring();
+               obj.printOptimizerVariable();
+               J = obj.cost.value;
+               g = obj.constraint.value;
+               Jvec = [Jvec;J];
+               gvec = [gvec;g];
+           end
             obj.hasConverged = 0;
-%             obj.printHistoryFinalValues();
+            obj.computeQuickPostProcess(Jvec,gvec);
        end
         
         function update(obj)
             x = obj.designVariable.fun.fValues;
-            obj.cost.computeFunctionAndGradient(); 
-            obj.constraint.computeFunctionAndGradient();
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -84,8 +85,9 @@ classdef Optimizer_MMA < Optimizer
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            f = obj.designVariable.fun;
+            obj.cost.computeFunctionAndGradient(f);
+            obj.constraint.computeFunctionAndGradient(f);
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
@@ -102,22 +104,35 @@ classdef Optimizer_MMA < Optimizer
     
     methods (Access = private)
 
+        function computeQuickPostProcess(obj,Jvec,gvec)
+            subplot(1,2,1)
+            plot(0:obj.nIter,Jvec)
+            grid on
+            xlabel('Iteration')
+            title('Cost')
+
+            subplot(1,2,2)
+            plot(0:obj.nIter,gvec)
+            grid on
+            xlabel('Iteration')
+            title('Constraint')
+
+            obj.designVariable.fun.print('Result','Paraview');
+        end
+
         function updateMonitoring(obj)
             s.hasFinished          = obj.hasFinished;
             s.nIter                = obj.nIter;
             s.KKTnorm              = obj.KKTnorm;
             s.outitFrac            = obj.outit/obj.maxoutit;
-            obj.outputFunction.monitoring.compute(s);
+            obj.monitoring.compute(s);
         end
 
         function init(obj,cParams)
-            obj.outputFunction         = cParams.outputFunction.monitoring;
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
-            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.upperBound             = cParams.ub;
+            obj.lowerBound             = cParams.lb;
             obj.hasConverged           = false;
-            obj.constraintCase         = cParams.constraintCase;
-            obj.targetParameters       = cParams.targetParameters;
+            obj.kkttol                 = obj.tolerance;
         end
         
         function [f,df,c,dc] = funmma(obj)
@@ -290,9 +305,7 @@ classdef Optimizer_MMA < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            itHas = obj.nIter >= obj.maxIter;
         end
 
     end
@@ -522,14 +535,6 @@ classdef Optimizer_MMA < Optimizer
             residu = [residu1' residu2']';
             residunorm = sqrt(residu'*residu);
             residumax = max(abs(residu));
-        end
-        
-    end
-    
-    methods
-        
-        function kkttol = get.kkttol(obj)
-            kkttol = obj.targetParameters.optimality_tol;
         end
         
     end

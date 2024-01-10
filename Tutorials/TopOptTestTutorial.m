@@ -10,6 +10,8 @@ classdef TopOptTestTutorial < handle
         volume
         cost
         constraint
+        dualVariable
+        optimizer
     end
 
     methods (Access = public)
@@ -25,7 +27,8 @@ classdef TopOptTestTutorial < handle
             obj.createVolume();
             obj.createCost();
             obj.createConstraint();
-            % create Optimizer
+            obj.createDualVariable();
+            obj.createOptimizer();
         end
 
     end
@@ -52,7 +55,7 @@ classdef TopOptTestTutorial < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);            
-            s.fun     = aFun;
+            s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;                        
             s.type = 'Density';
             dens    = DesignVariable.create(s);   
@@ -115,33 +118,23 @@ classdef TopOptTestTutorial < handle
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             fem = ElasticProblem(s);
-            fem.solve();
             obj.physicalProblem = fem;
         end
 
         function createCompliance(obj)
-            fun                  = obj.designVariable.fun;
-            s.mesh               = obj.mesh;
-            s.filter             = obj.filter;
-            s.physicalProblem    = obj.physicalProblem;
-            s.material           = obj.createInterpolatedMaterial(fun);
-            s.materialDerivative = obj.createInterpolatedMaterialDerivative(fun);
-            c                    = ShFunc_Compliance(s);
-            c.compute();
+            s.mesh                 = obj.mesh;
+            s.filter               = obj.filter;
+            s.stateProblem         = obj.physicalProblem;
+            s.materialInterpolator = obj.materialInterpolator;
+            c                      = ComplianceFunctional(s);
             obj.compliance = c;
         end
 
         function createVolume(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            switch obj.designVariable.type
-                case 'Density'
-                    s.x    = obj.designVariable.fun;
-                case 'LevelSet'
-                    s.x = obj.designVariable.getCharacteristicFunction();
-            end
-            v = ShFunc_Volume(s);
-            v.compute();
+            s.volumeTarget = 0.4;
+            v = VolumeConstraint(s);
             obj.volume = v;
         end
 
@@ -158,14 +151,39 @@ classdef TopOptTestTutorial < handle
             obj.constraint      = Constraint(s);
         end
 
+        function createDualVariable(obj)
+            s.nConstraints   = obj.constraint.nSF;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
+        end
+
+        function createOptimizer(obj)
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 100;
+            s.tolerance      = 1e-8;
+            s.constraintCase = 'EQUALITY';
+            s.ub             = 1;
+            s.lb             = 0;
+
+            s.outputFunction.type        = 'Topology';
+            s.outputFunction.iterDisplay = 'none';
+            s.type                       = 'MMA';
+            m                            = MonitoringManager(s);
+            s.monitoring                 = m.monitoring;
+
+            s.postProcessSettings.shallPrint = false;
+
+            opt = OptimizerMMA(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
+        end
+
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
             mat  = mI.compute(dens);
-        end
-
-        function dmat = createInterpolatedMaterialDerivative(obj,dens)
-            mI   = obj.materialInterpolator;
-            dmat = mI.computeDerivative(dens);
         end
         
         function bc = createBoundaryConditions(obj)

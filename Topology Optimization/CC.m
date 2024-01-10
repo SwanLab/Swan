@@ -22,11 +22,10 @@ classdef CC < handle & matlab.mixin.Copyable
     
     methods (Access = public)
 
-        function computeFunctionAndGradient(obj)
+        function computeFunctionAndGradient(obj,x)
             obj.initValueAndGradient();
             for iSF = 1:length(obj.shapeFunctions)
-                obj.shapeFunctions{iSF}.updateTargetParameters();
-                obj.shapeFunctions{iSF}.computeFunctionAndGradient();
+                obj.shapeFunctions{iSF}.computeFunctionAndGradient(x);
                 obj.updateFields(iSF);
             end
         end
@@ -69,7 +68,7 @@ classdef CC < handle & matlab.mixin.Copyable
     methods (Access = private)   
         function initValueAndGradient(obj)
             obj.value = 0;
-            obj.gradient = zeros(obj.ndof);
+            obj.gradient = zeros(obj.ndof,1);
         end
     end
 

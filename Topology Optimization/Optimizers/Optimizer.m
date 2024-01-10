@@ -5,10 +5,10 @@ classdef Optimizer < handle
         dualVariable
         cost
         constraint
-        outputFunction
+        monitoring
         maxIter
         nIter = 0
-        targetParameters
+        tolerance
         dualUpdater
         primalUpdater
         constraintCase
@@ -40,12 +40,12 @@ classdef Optimizer < handle
             obj.nIter             = 0;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
+            obj.designVariable    = cParams.designVariable;
             obj.dualVariable      = cParams.dualVariable;
             obj.maxIter           = cParams.maxIter;
-            obj.targetParameters  = cParams.targetParameters;
+            obj.tolerance         = cParams.tolerance;
             obj.constraintCase    = cParams.constraintCase;
-            obj.outputFunction    = cParams.outputFunction.monitoring;
+            obj.monitoring        = cParams.monitoring;
             obj.createPostProcess(cParams.postProcessSettings);
         end
 
@@ -197,7 +197,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj,i)
             g = obj.constraint.value(i);
-            c = abs(g) < obj.targetParameters.constr_tol;
+            c = abs(g) < obj.tolerance.constr_tol;
         end
 
     end

@@ -30,8 +30,13 @@ classdef Cost < CC
     methods (Access = protected)
         
         function updateFields(obj,iSF)
-            obj.value = obj.value + obj.weights(iSF)*obj.shapeFunctions{iSF}.value;
-            obj.gradient = obj.gradient + obj.weights(iSF)*obj.shapeFunctions{iSF}.gradient;
+            newValue = obj.weights(iSF)*obj.shapeFunctions{iSF}.value;
+            newGrad  = obj.weights(iSF)*obj.shapeFunctions{iSF}.gradient.fValues;
+            if isempty (obj.value0)
+                obj.value0 = newValue;
+            end
+            obj.value = obj.value + newValue/obj.value0;
+            obj.gradient = obj.gradient + newGrad/obj.value0;
         end
    
     end

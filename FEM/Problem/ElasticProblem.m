@@ -56,8 +56,8 @@ classdef ElasticProblem < handle
             dim = obj.getFunDims();
         end
 
-        function setC(obj, C)
-            obj.material.C = C;
+        function updateMaterial(obj, mat)
+            obj.material = mat;
         end
 
         function dvolu = getDvolume(obj)
@@ -179,7 +179,7 @@ classdef ElasticProblem < handle
 
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
+            strFun = strFun.obtainVoigtFormat();
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
