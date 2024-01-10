@@ -126,6 +126,7 @@ end
 % Function calls
 
 function dat = CreateGridHierarchy(A,grids,smooth)
+
 for i = 1:grids
     if i == 1
         if smooth == 1

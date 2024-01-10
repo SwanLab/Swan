@@ -55,6 +55,10 @@ classdef MultigridTesting < handle
             RHS  = obj.createRHS(obj.mesh,dispFun,obj.boundaryConditions);
             Fext = RHS.compute();
             Fred = obj.boundaryConditions.fullToReducedVector(Fext);
+
+            K = obj.Kred;
+            save("A.mat","K")
+            save("B.mat","Fred")
             
             x=obj.Kred\Fred;
             
