@@ -1,9 +1,4 @@
 classdef VolumeFunctional < handle
-    
-    properties (Access = public)
-        value
-        gradient
-    end
 
     properties (Access = private)
         quadrature
@@ -21,14 +16,13 @@ classdef VolumeFunctional < handle
             obj.createTotalVolume();
         end
 
-        function computeFunctionAndGradient(obj,x)
-            obj.computeFunction(x);
-            obj.computeGradient(x);
+        function [J,dJ] = computeFunctionAndGradient(obj,x)
+            J  = obj.computeFunction(x);
+            dJ = obj.computeGradient(x);
         end      
     end
     
     methods (Access = private)
-
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
         end
@@ -44,21 +38,15 @@ classdef VolumeFunctional < handle
             obj.totalVolume = sum(dV(:));
         end
 
-        function computeFunction(obj,x)
-            s.mesh     = obj.mesh;
-            s.quadType = obj.quadrature.order;
-            int        = IntegratorFunction(s);
-            volume     = int.compute(x);
-            obj.value  = volume/obj.totalVolume;
+        function J = computeFunction(obj,x)
+            int    = Integrator.create('Function',obj.mesh,obj.quadrature.order);
+            volume = int.compute(x);
+            J      = volume/obj.totalVolume;
         end
 
-        function computeGradient(obj,x)
-            s.mesh      = obj.mesh;
-            s.feFunType = class(x);
-            s.ndimf     = 1;
-            g           = FeFunction.createEmpty(s); % create
-            g.fValues   = ones(x.nDofs,1)/obj.totalVolume;
-            obj.gradient = g;
+        function dJ = computeGradient(obj,x)
+            fValues = ones(x.nDofs,1)/obj.totalVolume;
+            dJ      = FeFunction.create(x.type,fValues,obj.mesh);
         end
     end
 end

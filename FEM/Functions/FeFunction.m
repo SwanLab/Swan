@@ -37,9 +37,12 @@ classdef FeFunction < handle
     end
 
     methods (Static, Access = public)
-        function obj = create(cParams)
-            fun = FunctionFactory();
-            obj = fun.create(cParams);
+        function obj = create(type,fValues,mesh)
+            s.functionType = type;
+            s.fValues      = fValues;
+            s.mesh         = mesh;
+            fun            = FunctionFactory();
+            obj            = fun.create(s);
         end
 
         function obj = createEmpty(cParams)

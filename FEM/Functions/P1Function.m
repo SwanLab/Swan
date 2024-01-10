@@ -1,5 +1,9 @@
 classdef P1Function < FeFunction
 
+    properties (Constant, Access = public)
+        type = 'P1'
+    end
+
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem

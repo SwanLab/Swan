@@ -152,7 +152,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = obj.constraint.nSF;
+            s.nConstraints   = 1;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -162,7 +162,7 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;

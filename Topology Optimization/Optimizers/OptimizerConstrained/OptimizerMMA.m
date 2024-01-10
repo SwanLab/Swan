@@ -40,7 +40,7 @@ classdef OptimizerMMA < Optimizer
         function obj = OptimizerMMA(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.monitoring.create(cParams);
+            %obj.monitoring.create(cParams);
             obj.maxoutit = 1e4;
         end
 
@@ -63,9 +63,9 @@ classdef OptimizerMMA < Optimizer
                g = obj.constraint.value;
                Jvec = [Jvec;J];
                gvec = [gvec;g];
+               obj.computeQuickPostProcess(Jvec,gvec);
            end
             obj.hasConverged = 0;
-            obj.computeQuickPostProcess(Jvec,gvec);
        end
         
         function update(obj)
@@ -116,6 +116,8 @@ classdef OptimizerMMA < Optimizer
             grid on
             xlabel('Iteration')
             title('Constraint')
+
+            drawnow
 
             obj.designVariable.fun.print('Result','Paraview');
         end
