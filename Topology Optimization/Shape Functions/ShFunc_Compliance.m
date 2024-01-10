@@ -8,22 +8,21 @@ classdef ShFunc_Compliance < handle
     properties (Access = private)
         mesh
         filter
-        physicalProblem
+        stateProblem
         adjointProblem
-        material
-        materialDerivative
+  %      material
+   %     materialDerivative
     end
 
     methods (Access = public)
 
-        function obj = ShFunc_Compliance(cParams)
+        function obj = ShFunc_Compliance(cParams) %change name
             obj.init(cParams);
         end
 
-        function compute(obj)
-            obj.computeFunction();
-            obj.computeGradient();
-            obj.filterGradient();
+        function compute(obj,x)
+            obj.computeFunction(x);
+            obj.computeGradient(x);
         end
     end
     
@@ -32,63 +31,71 @@ classdef ShFunc_Compliance < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.filter             = cParams.filter;
-            obj.physicalProblem    = cParams.physicalProblem;
-            obj.adjointProblem     = cParams.physicalProblem;
-            obj.material           = cParams.material;
-            obj.materialDerivative = cParams.materialDerivative;
+            obj.stateProblem       = cParams.stateProblem; %state
+            obj.adjointProblem     = cParams.stateProblem; 
+            %obj.material           = cParams.material;
+            %obj.materialDerivative = cParams.materialDerivative;
+            %material Interpolator
         end
 
-        function computeFunction(obj)
-            u      = obj.physicalProblem.uFun;
-            q      = obj.physicalProblem.getQuadrature();
+        function computeMaterial(obj,x)
+            C = obj.createMaterial(x);
+            obj.stateProblem.updateMaterial(C);
+            obj.stateProblem.solve();
             Cij    = obj.material.evaluate(q.posgp);
+        end
+
+        function computeFunction(obj,x)
+            C    = obj.computeMaterial(x);
+            u      = obj.stateProblem.uFun;
+            q      = obj.stateProblem.getQuadrature();% Constriur quad, elimate getQuadr
+
+            % ComputeStrain
             strain = u.computeSymmetricGradient(q);
-            strain.applyVoigtNotation();
+            strain.applyVoigtNotation(); %strain = strain.obtainVoigtFormat();
             strainj(:,1,:,:) = strain.fValues;
-            stressj          = pagemtimes(Cij,strainj);
-            stressj          = permute(stressj, [1 3 4 2]);
+            % ComputeStress
+            stressV          = pagemtimes(Cij,strainj);
+            stressV          = permute(stressV, [1 3 4 2]);
             s.quadrature     = q;
-            s.fValues        = stressj;
+            s.fValues        = stressV;
             s.mesh           = obj.mesh;
-            stress           = FGaussDiscontinuousFunction(s);
-            iPar.mesh        = obj.mesh;
+            stress           = FGaussDiscontinuousFunction(s); %Use create
+
+            iPar.mesh        = obj.mesh; % Use s
             iPar.quadType    = q.order;
             int              = IntegratorScalarProduct(iPar);
-            obj.value        = int.compute(strain,stress);
+            J                = int.compute(strain,stress);
+            obj.value        = J;
         end
 
         function computeGradient(obj)
-            q            = obj.physicalProblem.getQuadrature();
-            u            = obj.physicalProblem.uFun;
-            p            = obj.adjointProblem.uFun;
-            eu           = u.computeSymmetricGradient(q);
-            eu.applyVoigtNotation();
-            ep           = p.computeSymmetricGradient(q);
-            ep.applyVoigtNotation();
-            dC           = obj.materialDerivative.evaluate(q.posgp);
-            epi(1,:,:,:) = ep.fValues;
-            euj(:,1,:,:) = eu.fValues;
-            dCeuj        = pagemtimes(dC,euj);
-            contGrad     = -pagemtimes(epi,dCeuj);
-            contGrad     = squeezeParticular(contGrad,1);
-            s.fValues    = contGrad;
-            s.mesh       = obj.mesh;
-            s.quadrature = q;
-            g            = FGaussDiscontinuousFunction(s);
-            ss.mesh      = obj.mesh;
-            ss.type      = 'ShapeFunction';
-            ss.quadType  = q.order;
-            int          = RHSintegrator.create(ss);
-            test         = P1Function.create(obj.mesh,1);
-            Dxc          = int.compute(g,test);
-            s.fValues    = Dxc;
-            obj.gradient = P1Function(s);
+            dj = obj.computeDJ();
+            g  = obj.filter.compute(dj,'LINEAR'); 
+            obj.gradient = g;
         end
 
-        function filterGradient(obj)
-            g       = obj.gradient;
-            regGrad = obj.filter.compute(g,'LINEAR');
-            obj.gradient = regGrad;
+        function dj = computeDJ(obj)
+            q            = obj.stateProblem.getQuadrature(); %Not any more
+            u            = obj.stateProblem.uFun;
+            p            = obj.adjointProblem.uFun;
+            dCij           = obj.materialDerivative.evaluate(q.posgp);            
+            %ComputeStateStrain
+            eu           = u.computeSymmetricGradient(q);
+            eu.applyVoigtNotation();
+            %ComputeAdjointStrain
+            ep           = p.computeSymmetricGradient(q);
+            ep.applyVoigtNotation();
+            epi(1,:,:,:) = ep.fValues;
+            euj(:,1,:,:) = eu.fValues;
+            dStress = pagemtimes(dCij,euj);
+            dj      = pagemtimes(epi,dStress);
+            dj      = squeezeParticular(-dj,1);                        
+            s.fValues    = dj;
+            s.mesh       = obj.mesh;
+            s.quadrature = q;
+            dj           = FGaussDiscontinuousFunction(s); % create 
         end
+  
     end
 end
