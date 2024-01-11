@@ -9,9 +9,12 @@ classdef FeFunction < handle
     end
 
     properties (Access = public)
+       fValues       
+    end
+
+    properties (GetAccess = public, SetAccess = protected)
        ndimf
        order
-       fValues
     end
     
     properties (Access = protected)

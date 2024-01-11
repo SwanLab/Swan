@@ -43,7 +43,7 @@ classdef ComplianceFunctional < handle
 
         function C = computeMaterial(obj,x)
             mI = obj.materialInterpolator;
-            C  = mI.compute(x);
+            C  = mI.computeConsitutiveTensor(x);
         end
 
         function u = computeStateVariable(obj,C)
@@ -83,7 +83,7 @@ classdef ComplianceFunctional < handle
 
         function dC = computeMaterialDerivative(obj,x)
             mI = obj.materialInterpolator;
-            dC = mI.computeDerivative(x);
+            dC = mI.computeConsitutiveTensorDerivative(x);
         end
 
         function g = computeGradient(obj,dC,u)

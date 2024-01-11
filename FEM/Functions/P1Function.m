@@ -266,6 +266,10 @@ classdef P1Function < FeFunction
             v   = sqrt(ff);
         end
 
+        function f = copy(obj)
+            f = P1Function.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fVales;
+        end
 
     end
 
@@ -290,8 +294,14 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
-        
-        
+
+        function fS = substract(f1,f2)
+            fS = f1.fValues-f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end        
+
     end
 
     methods (Access = private)

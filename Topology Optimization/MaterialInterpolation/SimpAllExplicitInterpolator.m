@@ -1,16 +1,72 @@
-classdef SimpAllInterpolationExplicit < MaterialInterpolator
+classdef SimpAllExplicitInterpolator < handle
 
+   properties (Access = private)
+        muFunc
+        dmuFunc
+        kappaFunc
+        dkappaFunc
+   end
+
+   properties (Access = private)
+        ndim
+        pdim
+        matA
+        matB
+   end
 
     methods  (Access = public)
         
-        function obj = SimpAllInterpolationExplicit(cParams)
+        function obj = SimpAllExplicitInterpolator(cParams)
             obj.init(cParams);
             obj.computeSymbolicInterpolationFunctions();
         end
+        
+        function m = computeConsitutiveTensor(obj,rho)
+            mu      = CompositionFunction.create(obj.muFunc,rho);
+            kappa   = CompositionFunction.create(obj.kappaFunc,rho);
+            m = obj.createMaterial(mu,kappa);
+        end
 
+        function m = computeConsitutiveTensorDerivative(obj,rho)
+            mu      = CompositionFunction.create(obj.muFunc,rho);
+            kappa   = CompositionFunction.create(obj.kappaFunc,rho);
+            m = obj.createMaterial(mu,kappa);
+        end          
+        
     end
      
-    methods (Access = protected)
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.pdim = cParams.dim;
+            obj.matA = cParams.matA;
+            obj.matB = cParams.matB;
+            obj.computeNDim(cParams);
+        end        
+
+        function computeNDim(obj,cParams)
+            switch cParams.dim
+                case '2D'
+                  obj.ndim = 2;
+                case '3D'
+                  obj.ndim = 3;
+            end
+        end  
+        
+        function computeSymbolicInterpolationFunctions(obj)
+            [muS,dmuS,kS,dkS] = obj.computeSymbolicMuKappa();
+            obj.muFunc        = matlabFunction(muS);
+            obj.dmuFunc       = matlabFunction(dmuS);
+            obj.kappaFunc     = matlabFunction(kS);
+            obj.dkappaFunc    = matlabFunction(dkS);
+        end
+
+
+        function [muS,dmuS,kS,dkS] = computeSymbolicMuKappa(obj)
+            [muS,dmuS] = obj.computeMuSymbolicFunctionAndDerivative();
+            [kS,dkS]   = obj.computeKappaSymbolicFunctionAndDerivative();
+        end       
+                       
         
         function [mS,dmS] = computeMuSymbolicFunctionAndDerivative(obj)
             mS  = obj.computeSymMu();
@@ -57,10 +113,19 @@ classdef SimpAllInterpolationExplicit < MaterialInterpolator
             den = N;
             etaKappa = num/den;
         end
+
+        function m = createMaterial(obj,mu,kappa)
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.ndim;
+            s.shear   = mu;            
+            s.bulk    = kappa;
+            m = Material.create(s);   
+        end        
         
     end
     
-    methods (Access = protected, Static)
+    methods (Access = private, Static)
         
         function c = computeCoeff(f0,f1,eta0,eta1)
             c.n01 =  -(f1 - f0)*(eta1 - eta0);

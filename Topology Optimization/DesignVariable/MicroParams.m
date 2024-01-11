@@ -2,12 +2,16 @@ classdef MicroParams < DesignVariable
     
     properties (Access = private)
         homogenizedVariablesComputer
+        m1
+        m2
     end
     
     methods (Access = public)
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
+            obj.m1 = cParams.m1;
+          
             obj.init(cParams);
             obj.createValue(cParams.creatorSettings);
             obj.createAlpha(cParams.creatorSettings)

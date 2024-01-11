@@ -174,7 +174,9 @@ classdef ElasticProblem < handle
             obj.uFun = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            disp = P1Function.create(obj.mesh, obj.mesh.ndim);
+            disp.fValues = uSplit;
+            obj.displacementFun = disp;
         end
 
         function computeStrain(obj)

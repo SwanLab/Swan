@@ -1,7 +1,4 @@
-classdef TopOptTestTutorial < handle
-
-% Pending:
-% - Tutorial level set
+classdef TopOptViaHomogenizationTutorial < handle
 
     properties (Access = private)
         mesh
@@ -19,7 +16,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptViaHomogenizationTutorial()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();            
@@ -54,13 +51,14 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) 0.5*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);            
-            s.fun     = aFun.project('P1');
+            s.fun{1}  = aFun.project('P1');
+            s.fun{2}  = aFun.project('P1');
             s.mesh    = obj.mesh;                        
-            s.type = 'Density';
+            s.type = 'MicroParams';
             dens    = DesignVariable.create(s);   
             obj.designVariable = dens;
         end
@@ -74,21 +72,19 @@ classdef TopOptTestTutorial < handle
         end       
 
         function createMaterialInterpolator(obj)
-            ndim = 2;
-            E0 = 1e-3;
+            ndim = 2;            
+            E0 = 1e-3; 
             nu0 = 1/3;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-
             E1 = 1;
-            nu1 = 1/3;            
+            nu1 = 1/3;              
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
+            s.interpolation  = 'HomogenizedMicrostructure';
+            s.filname = ;
             s.matB = matB;
 
             m = MaterialInterpolator.create(s);
@@ -147,7 +143,7 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -159,7 +155,7 @@ classdef TopOptTestTutorial < handle
 
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(dens);
+            mat  = mI.compute(dens);
         end
         
         function bc = createBoundaryConditions(obj)

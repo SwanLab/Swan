@@ -1,28 +1,18 @@
 classdef DesignVariable < handle
     
     properties (GetAccess = public, SetAccess = protected)
-        mesh
-        type
-        nVariables
         fun
+        type        
     end
-    
-    properties (Access = public)
-        alpha
-        rho
+
+    properties (Access = protected)
+        mesh
+        nVariables
+        isFixed
     end
     
     properties (Access = private)
-        valueOld
-        alphaOld
-    end
-    
-    properties (Access = protected)
-       isFixed
-    end
-    
-    methods (Access = public, Abstract)
-        getVariablesToPlot(obj)
+        funOld
     end
     
     methods (Access = public, Static)
@@ -36,11 +26,6 @@ classdef DesignVariable < handle
     
     methods (Access = public)
         
-        function restart(obj)
-            obj.update(obj.valueOld);
-            obj.alpha = obj.alphaOld;
-        end
-        
         function update(obj,value)
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
@@ -51,27 +36,14 @@ classdef DesignVariable < handle
         end
         
         function updateOld(obj)
-            obj.valueOld = obj.fun.fValues;
-            obj.alphaOld = obj.alpha;
-        end
-        
-        function objClone = clone(obj)
-            objClone = copy(obj);
+            obj.funOld = obj.fun.copy();
         end
         
         function norm = computeL2normIncrement(obj)
-           m           = obj.mesh;
-           x           = obj.fun.fValues;
-           x0          = obj.valueOld;
-           siF.fValues = x-x0;
-           siF.mesh    = obj.mesh;
-           incFun      = P1Function(siF);
-           s0.fValues  = x0;
-           s0.mesh     = obj.mesh;
-           oldFun      = P1Function(s0);
-           nIncX       = Norm.computeL2(m,incFun);
-           nX0         = Norm.computeL2(m,oldFun);
-           norm        = nIncX/nX0;
+           incFun = P1Function.substract(obj.fun,obj.funOld);
+           nIncX  = Norm.computeL2(m,incFun);
+           nX0    = Norm.computeL2(m,obj.funOld);
+           norm   = nIncX/nX0;
         end
         
     end
