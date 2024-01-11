@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial < handle
+classdef TopOptTestTutorialLevelSetNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptTestTutorialLevelSetNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();            
@@ -51,15 +51,14 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);            
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;                        
-            s.type = 'Density';
-            dens    = DesignVariable.create(s);   
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);           
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;                        
+            s.type = 'LevelSet';
+            ls     = DesignVariable.create(s);   
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)

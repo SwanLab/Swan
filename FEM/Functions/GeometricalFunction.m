@@ -78,6 +78,10 @@ classdef GeometricalFunction < handle
                     k    = 2*pi*n/(xmax-xmin);
                     fH   = @(x) sin(k*(x1(x)-xmin)+pi/2);
                     obj.fHandle = fH;
+
+                case 'Full'
+                    fH = @(x) -1*ones(size(x1(x)));
+                    obj.fHandle = fH;
             end
         end
     end
