@@ -42,8 +42,8 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi     = cParams.designVar;
-            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
+            obj.phi     = cParams.designVariable;
+            obj.epsilon = cParams.epsilonPrimal;
         end
 
         function computeTheta(obj,g)

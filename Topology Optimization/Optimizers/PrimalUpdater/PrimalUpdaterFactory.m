@@ -4,7 +4,7 @@ classdef PrimalUpdaterFactory < handle
     methods (Access = public, Static)
     
         function p = create(cParams)
-            switch cParams.optimizerNames.primal
+            switch cParams.primal
                 case 'SLERP'
                     p = SLERP(cParams);
                 case 'PROJECTED GRADIENT'

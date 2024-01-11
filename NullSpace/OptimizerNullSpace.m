@@ -17,11 +17,9 @@ classdef OptimizerNullSpace < Optimizer
         acceptableStep
         oldDesignVariable
         oldCost
-        incrementalScheme
         hasFinished
         mOld
         meritNew
-        nConstr
         meritGradient
         aJmax
         aGmax
@@ -43,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.outputFunction.monitoring.create(cParams);
+            %obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
@@ -72,14 +70,12 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound        = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound        = cParams.uncOptimizerSettings.lb;
+            obj.upperBound        = cParams.ub;
+            obj.lowerBound        = cParams.lb;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
+            obj.designVariable    = cParams.designVariable;
             obj.dualVariable      = cParams.dualVariable;
-            obj.incrementalScheme = cParams.incrementalScheme;
-            obj.nConstr           = cParams.constraint.nSF;
             obj.nX                = obj.designVariable.fun.nDofs;
             obj.maxIter           = cParams.maxIter;
             obj.hasConverged      = false;
@@ -124,7 +120,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(obj.nConstr,1);
+            obj.dualVariable.value = zeros(size(obj.dualVariable.value));
         end
 
         function updateNullSpaceCoefficient(obj)
@@ -301,9 +297,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            itHas = obj.nIter >= obj.maxIter;
         end
 
     end

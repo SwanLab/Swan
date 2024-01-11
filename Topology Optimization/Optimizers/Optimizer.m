@@ -55,6 +55,7 @@ classdef Optimizer < handle
         end
 
         function createDualUpdater(obj,cParams)
+            cParams.type    = obj.type;
             f               = DualUpdaterFactory();
             obj.dualUpdater = f.create(cParams);
         end
