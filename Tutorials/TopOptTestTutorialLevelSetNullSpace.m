@@ -142,13 +142,14 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.primal         = 'SLERP';
             s.epsilonPrimal  = obj.mesh.computeMinCellSize();
+            s.volumeTarget   = 0.4;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

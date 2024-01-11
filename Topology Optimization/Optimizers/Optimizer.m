@@ -198,7 +198,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj,i)
             g = obj.constraint.value(i);
-            c = abs(g) < obj.tolerance.constr_tol;
+            c = abs(g) < obj.tolerance;
         end
 
     end

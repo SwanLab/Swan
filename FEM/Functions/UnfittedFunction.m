@@ -2,6 +2,8 @@ classdef UnfittedFunction < L2Function
 
     properties (Access = public)
         ndimf
+        nDofs
+        type
         unfittedMesh
     end
 
@@ -44,6 +46,8 @@ classdef UnfittedFunction < L2Function
         function computeUnfittedMeshFunction(obj)
             uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(obj.fun);
             obj.unfittedMeshFunction = uMeshFun;
+            obj.nDofs                = uMeshFun.backgroundFunction.nDofs;
+            obj.type                 = uMeshFun.backgroundFunction.type;
         end
 
         function fxV = evaluateInnerElements(obj,xV)
