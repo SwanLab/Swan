@@ -84,8 +84,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'HomogenizedMicrostructure';
-            s.filname = ;
-            s.matB = matB;
+            s.filname = 'Rectangle';
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;            
