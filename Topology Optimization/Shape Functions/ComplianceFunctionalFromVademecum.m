@@ -1,4 +1,4 @@
-classdef ComplianceFunctional < handle
+classdef ComplianceFunctionalFromVademecum < handle
 
     properties (Access = private)
         value0
@@ -12,12 +12,11 @@ classdef ComplianceFunctional < handle
     end
 
     methods (Access = public)
-        function obj = ComplianceFunctional(cParams)
+        function obj = ComplianceFunctionalFromVademecum(cParams)
             obj.init(cParams);
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
             C  = obj.computeMaterial(xR);
             dC = obj.computeMaterialDerivative(xR);               

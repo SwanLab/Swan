@@ -18,54 +18,10 @@ classdef MicroParams < DesignVariable
         end
         
         function update(obj,x)
-            %            e
-            %
-            %              m = obj.mesh;
-            % %              %xG = transpose(m.computeBaricenter);
-            %              x = m.coord(:,1);
-            %              y = m.coord(:,2);
-            %
-            %             isDirichletPartX = x > -1e-12 & x < 0.1;
-            %             isDirichletPartY = y > 0.20 & y < 0.80;
-            %             isDirichletPart = isDirichletPartX & isDirichletPartY;
-            %             isNeumannPartX = x > (1-0.05) & x < (1+1e-12);
-            %             isNeumannPartY = y > 0.40 & y < 0.60;
-            %             isNeumannPart = isNeumannPartX & isNeumannPartY;
-            %             isForOptimizing = ~isDirichletPart & ~isNeumannPart;
-            % %             obj.isElementToOptimize = isForOptimizing;
-            xV          = obj.splitDesignVariable(x);
-            xVn = cell(size(xV));
-            if ~isempty(obj.isFixed)
-                fixedValues = obj.splitDesignVariable(obj.isFixed.values);
-                fixNodes = obj.isFixed.nodes;
-            else
-               fixedValues = cell(numel(xVn));
-               fixNodes = [];
-            end
-            for iVar = 1:obj.nVariables
-               xI = xV{iVar};
-               fI = fixedValues{iVar};
-               xI(fixNodes) = fI(fixNodes);
-               xVn{iVar} = xI;
-            end            
-            xA = obj.assambleDesignVariable(xVn);
-            obj.value = xA;
-%             %             xf = obj.getVariablesToPlot();
-%             %
-%             m1 = xV{1};
-%             m2 = xV{2};
-%             fixN = [obj.isFixed.nodes obj.isFixed.nodes];
-%             m1() = obj.isFixed.values;
-%             
-%             m1(~isForOptimizing) = 0.011;
-%             m2(~isForOptimizing) = 0.011;
-            %  obj.value = [m1;m2];
-            
-            %             s.connec = m.connec(isForOptimizing,:);
-            %             s.coord  = m.coord;
-            %             m2 = Mesh(s);
-            %             m2.plot();
-            
+            x  = obj.splitDesignVariable(x);
+            x  = obj.addFixedValues(x);
+            x = obj.assambleDesignVariable(x);
+            obj.value = x;
         end
         
         function xf = getVariablesToPlot(obj)
@@ -101,8 +57,7 @@ classdef MicroParams < DesignVariable
             xf = obj.splitDesignVariable(obj.value);
             obj.homogenizedVariablesComputer.computeDensity(xf);
             rho = obj.homogenizedVariablesComputer.rho;
-        end
-        
+        end        
         
         function createHomogenziedVariableComputer(obj,cParams)
             s.fileName = cParams.homogSettings.fileName;
@@ -135,7 +90,23 @@ classdef MicroParams < DesignVariable
                 x(i0:iF) = xs;
             end
         end
-        
+    
+        function xVn = addFixedValues(obj,xV)
+          xVn = cell(size(xV));
+            if ~isempty(obj.isFixed)
+                fixedValues = obj.splitDesignVariable(obj.isFixed.values);
+                fixNodes = obj.isFixed.nodes;
+            else
+               fixedValues = cell(numel(xVn));
+               fixNodes = [];
+            end
+            for iVar = 1:obj.nVariables
+               xI = xV{iVar};
+               fI = fixedValues{iVar};
+               xI(fixNodes) = fI(fixNodes);
+               xVn{iVar} = xI;
+            end             
+        end
     end
     
 end

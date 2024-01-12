@@ -114,7 +114,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.filter               = obj.filter;
             s.stateProblem         = obj.physicalProblem;
             s.materialInterpolator = obj.materialInterpolator;
-            c                      = ComplianceFunctional(s);
+            c                      = ComplianceFunctionalFromVademecum(s);
             obj.compliance = c;
         end
 
