@@ -157,7 +157,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
-            mat  = mI.compute(dens);
+            mat  = mI.computeConsitutiveTensor(dens);
         end
         
         function bc = createBoundaryConditions(obj)

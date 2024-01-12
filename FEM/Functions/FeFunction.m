@@ -9,16 +9,16 @@ classdef FeFunction < handle
     end
 
     properties (Access = public)
-       fValues       
+       fValues        
     end
 
     properties (GetAccess = public, SetAccess = protected)
        ndimf
        order
+       mesh       
     end
     
     properties (Access = protected)
-        mesh
     end
 
     properties (Access = private)

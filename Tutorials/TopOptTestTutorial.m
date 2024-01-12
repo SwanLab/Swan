@@ -73,6 +73,7 @@ classdef TopOptTestTutorial < handle
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
             nu0 = 1/3;
+            ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 

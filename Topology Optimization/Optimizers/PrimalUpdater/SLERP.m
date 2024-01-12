@@ -5,8 +5,7 @@ classdef SLERP < handle
     end
 
     properties (Access = private)
-        phi
-        theta
+        mesh
         epsilon
     end
 
@@ -16,9 +15,14 @@ classdef SLERP < handle
             obj.init(cParams);
         end
 
-        function x = update(obj,g,~)
-            obj.computeTheta(g);
-            x = obj.computeNewLevelSet(g);
+        function phi = update(obj,g,phi)     
+            phiF   = obj.createP1Function(phi);
+            gF     = obj.createP1Function(g);
+            gN     = gF.normalize('H1',obj.epsilon);
+            phiN   = phiF.normalize('H1',obj.epsilon);
+            theta  = obj.computeTheta(phiN,gN);
+            phiNew = obj.computeNewLevelSet(phiN,gN,theta);
+            phi    = phiNew.fValues;
         end
 
         function computeFirstStepLength(obj,~,~,~)
@@ -42,43 +46,33 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi     = cParams.designVariable;
-            obj.epsilon = cParams.epsilonPrimal;
+            obj.mesh    = cParams.mesh;
+            obj.epsilon = cParams.epsilon;
         end
 
-        function computeTheta(obj,g)
-            m         = obj.phi.mesh;            
-            pN        = obj.normalizeFunction(obj.phi.fun.fValues);
-            gN        = obj.normalizeFunction(g);
-            s.fValues = pN;
-            s.mesh    = obj.phi.mesh;
-            pNfun     = P1Function(s);
-            s.fValues = gN;
-            gNfun     = P1Function(s);
-            phiG      = ScalarProduct.computeH1(m,pNfun,gNfun,obj.epsilon);
-            obj.theta = max(acos(phiG),1e-14);
+        function f = createP1Function(obj,fV)
+            s.mesh    = obj.mesh;
+            s.fValues = fV;
+            f         = P1Function(s);
         end
 
-        function p = computeNewLevelSet(obj,g)
+        function t = computeTheta(obj,phi,g)
+            m = obj.mesh;
+            phiG = ScalarProduct.computeH1(m,phi,g,obj.epsilon);
+            t = max(acos(phiG),1e-14);
+        end
+
+        function pF = computeNewLevelSet(obj,phi,g,theta)
             k  = obj.tau;
-            t  = obj.theta;
-            pN = obj.normalizeFunction(obj.phi.fun.fValues);
-            gN = obj.normalizeFunction(g);
-            a  = sin((1-k)*t)*pN;
-            b  = sin(k*t)*gN;
-            p  = (a + b)/sin(t);
-            p  = obj.normalizeFunction(p);
+            t  = theta;
+            pN = phi.fValues;
+            gN = g.fValues;
+            a  = sin((1-k)*t)/sin(t);
+            b  = sin(k*t)/sin(t);
+            p  = a*pN + b*gN;
+            pF  = obj.createP1Function(p);
         end
 
-        function x = normalizeFunction(obj,x)
-            m         = obj.phi.mesh;
-            s.fValues = x;
-            s.mesh    = m;
-            xFun      = P1Function(s);
-            norm      = Norm.computeH1(m,xFun,obj.epsilon);
-            xNorm     = sqrt(norm);
-            x         = x/xNorm;
-        end
     end
 
 end

@@ -266,9 +266,20 @@ classdef P1Function < FeFunction
             v   = sqrt(ff);
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                   fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                   fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end            
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
         function f = copy(obj)
-            f = P1Function.create(obj.mesh,obj.ndimf);
-            f.fValues = obj.fVales;
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues;
         end
 
     end

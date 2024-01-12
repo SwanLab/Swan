@@ -58,9 +58,9 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.fun{1}  = aFun.project('P1');
             s.fun{2}  = aFun.project('P1');
             s.mesh    = obj.mesh;                        
-            s.type = 'MicroParams';
-            dens    = DesignVariable.create(s);   
-            obj.designVariable = dens;
+            s.type    = 'MicroParams';
+            desVar    = DesignVariable.create(s);   
+            obj.designVariable = desVar;
         end
 
         function createFilter(obj)
