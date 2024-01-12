@@ -22,7 +22,7 @@ classdef SLERP < handle
         end
 
         function computeFirstStepLength(obj,~,~,~)
-            obj.tau = 1;
+            obj.tau = 0.36;
         end
 
         function is = isTooSmall(obj)
