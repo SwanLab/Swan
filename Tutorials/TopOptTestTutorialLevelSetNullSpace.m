@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial < handle
+classdef TopOptTestTutorialLevelSetNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptTestTutorialLevelSetNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();            
@@ -51,15 +51,14 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);            
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;                        
-            s.type = 'Density';
-            dens    = DesignVariable.create(s);   
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);           
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;                        
+            s.type = 'LevelSet';
+            ls     = DesignVariable.create(s);   
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -71,17 +70,19 @@ classdef TopOptTestTutorial < handle
         end       
 
         function createMaterialInterpolator(obj)
-            E0 = 1e-3;
-            nu0 = 1/3;
+            E0   = 1e-3;
+            nu0  = 1/3;
+            E1   = 1;
+            nu1  = 1/3;
+            ndim = 2;
+
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-
-            E1 = 1;
-            nu1 = 1/3;            
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
+            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = matA;
@@ -141,19 +142,22 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            opt = OptimizerMMA(s);
+            s.primal         = 'SLERP';
+            s.epsilonPrimal  = obj.mesh.computeMinCellSize();
+            s.volumeTarget   = 0.4;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
         function mat = createInterpolatedMaterial(obj,dens)
             mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(dens);
+            mat  = mI.compute(dens);
         end
         
         function bc = createBoundaryConditions(obj)

@@ -19,10 +19,11 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            C  = obj.computeMaterial(x);
+            xR = obj.filterDesignVariable(x);
+            C  = obj.computeMaterial(xR);
             u  = obj.computeStateVariable(C);            
             J  = obj.computeFunction(C,u);
-            dC = obj.computeMaterialDerivative(x);   
+            dC = obj.computeMaterialDerivative(xR);   
             dJ = obj.computeGradient(dC,u);
         end
     end
@@ -39,6 +40,10 @@ classdef ComplianceFunctional < handle
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
+        end
+
+        function xR = filterDesignVariable(obj,x)
+            xR = obj.filter.compute(x,'LINEAR');
         end
 
         function C = computeMaterial(obj,x)

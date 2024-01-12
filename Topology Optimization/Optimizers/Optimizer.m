@@ -55,6 +55,7 @@ classdef Optimizer < handle
         end
 
         function createDualUpdater(obj,cParams)
+            cParams.type    = obj.type;
             f               = DualUpdaterFactory();
             obj.dualUpdater = f.create(cParams);
         end
@@ -197,7 +198,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj,i)
             g = obj.constraint.value(i);
-            c = abs(g) < obj.tolerance.constr_tol;
+            c = abs(g) < obj.tolerance;
         end
 
     end

@@ -34,7 +34,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.5;
+            obj.tau = obj.tau/1.1;
         end
 
     end
@@ -42,8 +42,8 @@ classdef SLERP < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.phi     = cParams.designVar;
-            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
+            obj.phi     = cParams.designVariable;
+            obj.epsilon = cParams.epsilonPrimal;
         end
 
         function computeTheta(obj,g)
