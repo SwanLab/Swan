@@ -129,9 +129,9 @@ classdef OptimizerNullSpace < Optimizer
 
         function prepareFirstIter(obj)
             d = obj.designVariable;
-            x = DesignVariable.obtainDomainFunction(d);
-            obj.cost.computeFunctionAndGradient(x);
-            obj.constraint.computeFunctionAndGradient(x);
+           % x = DesignVariable.obtainDomainFunction(d);
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(size(obj.dualVariable.value));
@@ -269,9 +269,8 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function mF = computeMeritFunction(obj,xVal)
-            d = obj.designVariable;
-            d.update(xVal);
-            x = DesignVariable.obtainDomainFunction(d);
+            x = obj.designVariable;
+            x.update(xVal);
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
             l  = obj.dualVariable.value;
@@ -280,10 +279,9 @@ classdef OptimizerNullSpace < Optimizer
             mF = J+l'*h;
         end
 
-        function obj = updateOldValues(obj,x)
-            d = obj.designVariable;
-            d.update(x);
-            x = DesignVariable.obtainDomainFunction(d);
+        function obj = updateOldValues(obj,xV)
+            x = obj.designVariable;
+            x.update(xV);
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
         end

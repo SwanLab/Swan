@@ -47,7 +47,7 @@ classdef OptimizerMMA < Optimizer
        function solveProblem(obj)
            obj.hasFinished = false;
            obj.printOptimizerVariable();
-           f = obj.designVariable.fun;
+           f = obj.designVariable;
            obj.cost.computeFunctionAndGradient(f);
            obj.constraint.computeFunctionAndGradient(f);
            J = obj.cost.value;
@@ -86,7 +86,7 @@ classdef OptimizerMMA < Optimizer
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
-            f = obj.designVariable.fun;
+            f = obj.designVariable;
             obj.cost.computeFunctionAndGradient(f);
             obj.constraint.computeFunctionAndGradient(f);
             

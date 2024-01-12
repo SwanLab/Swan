@@ -20,9 +20,9 @@ classdef LevelSet < DesignVariable
             s.fValues = value;
             obj.fun   = P1Function(s);
             obj.updateUnfittedMesh();
-        end
+        end  
 
-        function charFun = getCharacteristicFunction(obj)
+        function charFun = obtainDomainFunction(obj)
             s.uMesh = obj.getUnfittedMesh();
             charFun = CharacteristicFunction.create(s);
         end

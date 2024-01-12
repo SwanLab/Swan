@@ -7,6 +7,10 @@ classdef Density < DesignVariable
             obj.init(cParams);
         end
 
+        function fun = obtainDomainFunction(obj)
+            fun = obj.fun;
+        end        
+
         function update(obj,value)
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;

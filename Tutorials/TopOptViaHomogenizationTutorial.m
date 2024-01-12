@@ -23,6 +23,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
+            obj.createComplianceFromConstiutive();            
             obj.createCompliance();
             obj.createVolume();
             obj.createCost();
@@ -100,6 +101,13 @@ classdef TopOptViaHomogenizationTutorial < handle
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
+
+        function createComplianceFromConstiutive(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.physicalProblem;
+            c = ComplianceFromConstiutiveTensor(s);
+            obj.compliance = c;
+        end        
 
         function createCompliance(obj)
             s.mesh                 = obj.mesh;

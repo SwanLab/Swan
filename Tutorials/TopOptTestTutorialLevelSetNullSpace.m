@@ -23,6 +23,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
+            obj.createComplianceFromConstiutive();            
             obj.createCompliance();
             obj.createVolume();
             obj.createCost();
@@ -103,12 +104,18 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.physicalProblem = fem;
         end
 
+        function c = createComplianceFromConstiutive(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.physicalProblem;
+            c = ComplianceFromConstiutiveTensor(s);
+        end        
+
         function createCompliance(obj)
-            s.mesh                 = obj.mesh;
-            s.filter               = obj.filter;
-            s.stateProblem         = obj.physicalProblem;
-            s.materialInterpolator = obj.materialInterpolator;
-            c                      = ComplianceFunctional(s);
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.materialInterpolator       = obj.materialInterpolator;
+            c = ComplianceFunctional(s);
             obj.compliance = c;
         end
 

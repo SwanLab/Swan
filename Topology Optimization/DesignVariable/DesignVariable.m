@@ -22,15 +22,6 @@ classdef DesignVariable < handle
             designVariable = f.create(cParams);
         end
 
-%         function x = obtainDomainFunction(designVariable)
-%             switch designVariable.type
-%                 case 'Density'
-%                     x = designVariable.fun;
-%                 case 'LevelSet'
-%                     x = designVariable.getCharacteristicFunction();
-%             end
-%         end
-
     end
 
     methods (Access = public)
