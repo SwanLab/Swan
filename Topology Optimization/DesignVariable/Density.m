@@ -7,10 +7,15 @@ classdef Density < DesignVariable
             obj.init(cParams);
         end
 
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.fun.fValues;
-        end
-                       
+        function update(obj,value)
+            if ~isempty(obj.isFixed)
+                value(obj.isFixed.nodes) = obj.isFixed.values;
+            end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            obj.fun   = P1Function(s);
+        end        
+    
     end
     
 end

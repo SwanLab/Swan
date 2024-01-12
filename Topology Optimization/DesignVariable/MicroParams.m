@@ -1,7 +1,6 @@
 classdef MicroParams < DesignVariable
     
     properties (Access = private)
-        homogenizedVariablesComputer
         m1
         m2
     end
@@ -10,12 +9,12 @@ classdef MicroParams < DesignVariable
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
-            obj.m1 = cParams.m1;
+            obj.m1 = cParams.fun{1};
+            obj.m2 = cParams.fun{2};
           
             obj.init(cParams);
             obj.createValue(cParams.creatorSettings);
             obj.createAlpha(cParams.creatorSettings)
-            obj.createHomogenziedVariableComputer(cParams.creatorSettings);
         end
         
         function update(obj,x)
@@ -87,11 +86,6 @@ classdef MicroParams < DesignVariable
             obj.value = [m1;m2];
         end
         
-        function [m1,m2] = createM1M2(obj,cParams)
-            ndof = length(obj.mesh.coord(:,1));
-            m1 = cParams.m1.*ones(ndof,1);
-            m2 = cParams.m2.*ones(ndof,1);
-        end
         
         function createAlpha(obj,cParams)
             if isfield(cParams,'alpha0')

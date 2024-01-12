@@ -31,10 +31,6 @@ classdef LevelSet < DesignVariable
             m = obj.unfittedMesh;
         end
         
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.fun.fValues;
-        end
-        
         function Vf = computeVolumeFraction(obj)
             q = Quadrature.set(obj.unfittedMesh.backgroundMesh.type);
             q.computeQuadrature('CONSTANT');
@@ -45,10 +41,6 @@ classdef LevelSet < DesignVariable
             Vf(1,1,:) = vf;
         end
         
-        function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.fun};
-            funNames = {'value'};
-        end
     end
     
     methods (Access = private)

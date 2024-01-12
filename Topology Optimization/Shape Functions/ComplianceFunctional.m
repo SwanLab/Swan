@@ -19,7 +19,7 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xR = obj.filterDesignVariable(x);
+            xR = obj.filterDomainVariable(x);
             C  = obj.computeMaterial(xR);
             u  = obj.computeStateVariable(C);            
             J  = obj.computeFunction(C,u);
@@ -42,7 +42,7 @@ classdef ComplianceFunctional < handle
             obj.quadrature = quad;
         end
 
-        function xR = filterDesignVariable(obj,x)
+        function xR = filterDomainVariable(obj,x)
             xR = obj.filter.compute(x,'LINEAR');
         end
 

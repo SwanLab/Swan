@@ -22,27 +22,18 @@ classdef DesignVariable < handle
             designVariable = f.create(cParams);
         end
 
-        function x = obtainDomainFunction(designVariable)
-            switch designVariable.type
-                case 'Density'
-                    x = designVariable.fun;
-                case 'LevelSet'
-                    x = designVariable.getCharacteristicFunction();
-            end
-        end
+%         function x = obtainDomainFunction(designVariable)
+%             switch designVariable.type
+%                 case 'Density'
+%                     x = designVariable.fun;
+%                 case 'LevelSet'
+%                     x = designVariable.getCharacteristicFunction();
+%             end
+%         end
 
     end
 
     methods (Access = public)
-        
-        function update(obj,value)
-            if ~isempty(obj.isFixed)
-                value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
-            s.mesh    = obj.mesh;
-            s.fValues = value;
-            obj.fun   = P1Function(s);
-        end
         
         function updateOld(obj)
             obj.funOld = obj.fun.copy();
