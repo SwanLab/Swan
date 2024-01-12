@@ -18,8 +18,8 @@ classdef SLERP < handle
         function phi = update(obj,g,phi)     
             phiF   = obj.createP1Function(phi);
             gF     = obj.createP1Function(g);
-            gN     = gF.normalize('H1',obj.epsilon);
-            phiN   = phiF.normalize('H1',obj.epsilon);
+            gN     = gF.normalize('L2');
+            phiN   = phiF.normalize('L2');
             theta  = obj.computeTheta(phiN,gN);
             phiNew = obj.computeNewLevelSet(phiN,gN,theta);
             phi    = phiNew.fValues;
@@ -47,7 +47,6 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.epsilon;
         end
 
         function f = createP1Function(obj,fV)
@@ -58,7 +57,7 @@ classdef SLERP < handle
 
         function t = computeTheta(obj,phi,g)
             m = obj.mesh;
-            phiG = ScalarProduct.computeH1(m,phi,g,obj.epsilon);
+            phiG = ScalarProduct.computeL2(m,phi,g);
             t = max(acos(phiG),1e-14);
         end
 

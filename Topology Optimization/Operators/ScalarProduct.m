@@ -3,10 +3,7 @@ classdef ScalarProduct < handle
  methods (Access = public, Static)
 
      function sp = computeL2(m,f,g)
-         s.mesh         = m;
-         s.quadType     = 'QUADRATIC';
-         s.type         = 'ScalarProduct';
-         int            = Integrator.create(s);
+         int = Integrator.create('ScalarProduct',m,'QUADRATIC');
          sp = int.compute(f,g);
      end
 
