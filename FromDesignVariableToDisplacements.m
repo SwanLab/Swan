@@ -3,8 +3,8 @@ clear;
 
 %% INPUT
 folder   = 'TFGAlvaro/Results/';
-fileName = 'CantileverExample';
-gidName  = 'CantileverAlvaro';
+fileName = 'Bicycle_01';
+gidName  = 'Bicycle';
 testName = 'testAlvaro'; % important to use the same mesh as here !!
 
 %% CODE
@@ -72,4 +72,4 @@ physicalProblem.setC(homogenizedVarComputer.C);
 physicalProblem.solve();
 
 %% OUTPUT
-physicalProblem.uFun.print([folder,fileName,'Displacements'],'Paraview');
+physicalProblem.uFun.print([folder,fileName,'Displacements_test'],'Paraview');

@@ -7,7 +7,7 @@ t.compute();
 Result = t.computation.designVariable.fun;
 u      = t.computation.physicalProblem.uFun;
 
-ResultsName = 'Bicycle_02';
+ResultsName = 'Cantilever_02_newtest';
 type   = 'Paraview'; % GiD/Paraview
 Result.print(['TFGAlvaro/Results/',ResultsName],type);
 u.print(['TFGAlvaro/Results/',ResultsName,'Displacements'],type);
