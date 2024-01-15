@@ -114,11 +114,14 @@ classdef FemInputReader_GiD < handle
             obj.connec = data.connectivities(:,2:end);
             obj.mesh = obj.createMesh();
             
-
+            obj.dirichletFun = [];
             if ~isequal(sDir,[])
-                obj.dirichletFun = DirichletCondition(obj.mesh, sDir);
-            else
-                obj.dirichletFun = [];
+                
+                for i = 1:numel(sDir)
+                    dir = DirichletCondition(obj.mesh, sDir{i});
+                    obj.dirichletFun = [obj.dirichletFun, dir];
+                end
+
             end
 
             if ~isequal(sPL,[])

@@ -9,6 +9,7 @@ classdef ProblemSolver < handle
         stiffness
         forces
         boundaryConditions
+        BCApplier
     end
     
     properties (Access = private)
@@ -36,6 +37,7 @@ classdef ProblemSolver < handle
             obj.stiffness          = cParams.stiffness;
             obj.forces             = cParams.forces;
             obj.boundaryConditions = cParams.boundaryConditions;
+            obj.BCApplier          = cParams.BCApplier;
         end
 
         function [LHS, RHS] = computeMatrices(obj)
@@ -48,7 +50,7 @@ classdef ProblemSolver < handle
         end
 
         function [u, L] = cleanupSolution(obj,sol)
-            dirich = obj.boundaryConditions.dirichletFun;
+            bcapp = obj.BCApplier;
             switch obj.type
                 case 'MONOLITHIC'
                     nDisp = size(obj.stiffness,1);
@@ -57,10 +59,10 @@ classdef ProblemSolver < handle
                     
                 case 'REDUCED'
                     dofs = 1:size(obj.stiffness);
-                    free_dofs = setdiff(dofs, dirich.dofs);
+                    free_dofs = setdiff(dofs, bcapp.dirichlet_dofs);
                     u = zeros(size(obj.stiffness,1), 1);
                     u(free_dofs) = sol;
-                    u(dirich.dofs) = dirich.values;
+                    u(bcapp.dirichlet_dofs) = bcapp.dirichlet_vals;
                     L = [];
             end
 
@@ -68,10 +70,10 @@ classdef ProblemSolver < handle
         end
 
         function LHS = assembleLHS(obj)
-            dirich = obj.boundaryConditions.dirichletFun;
+            bcapp = obj.BCApplier;
             switch obj.type
                 case 'MONOLITHIC'
-                    Ct = dirich.computeLinearConditionsMatrix();
+                    Ct = bcapp.computeLinearConditionsMatrix();
                     C   = Ct';
                     nC  = size(Ct,1);
                     Z   = zeros(nC);
@@ -80,24 +82,24 @@ classdef ProblemSolver < handle
                     
                 case 'REDUCED'
                     dofs = 1:size(obj.stiffness);
-                    free_dofs = setdiff(dofs, dirich.dofs);
+                    free_dofs = setdiff(dofs, bcapp.dirichlet_dofs);
                     LHS = obj.stiffness(free_dofs, free_dofs);
 
             end
         end
 
         function RHS = assembleRHS(obj)
-            dirich = obj.boundaryConditions.dirichletFun;
+            bcapp = obj.BCApplier;
             switch obj.type
                 case 'MONOLITHIC'
-                    dir_vals = dirich.values;
+                    dir_vals = bcapp.dirichlet_vals;
                     nCases = size(obj.forces,2);
                     Ct = repmat(dir_vals, [1 nCases]);
                     RHS = [obj.forces; Ct];
                     
                 case 'REDUCED'
                     dofs = 1:size(obj.stiffness);
-                    free_dofs = setdiff(dofs, dirich.dofs);
+                    free_dofs = setdiff(dofs, bcapp.dirichlet_dofs);
                     RHS = obj.forces(free_dofs);
 
             end

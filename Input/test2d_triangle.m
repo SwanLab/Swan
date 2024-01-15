@@ -85,9 +85,9 @@ isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
 
 % Dirichlet
-sDir.domain    = @(coor) isLeft(coor);
-sDir.direction = [1,2];
-sDir.value     = 0;
+sDir{1}.domain    = @(coor) isLeft(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = 0;
 
 % Point load
 sPL.domain    = @(coor) isMiddle(coor) & isRight(coor);

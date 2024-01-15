@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
 
-        newBC
+        newBC, BCApplier
     end
 
     properties (Access = protected)
@@ -34,6 +34,7 @@ classdef ElasticProblem < handle
             obj.createQuadrature();            
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
+            obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -41,7 +42,7 @@ classdef ElasticProblem < handle
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.compDisp();
-            obj.computeDisplacements();
+            % obj.computeDisplacements();
             obj.computeStrain();
             obj.computeStress();
         end
@@ -135,6 +136,13 @@ classdef ElasticProblem < handle
             obj.boundaryConditions = bc;
         end
 
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.newBC;
+            bc = BCApplier(s);
+            obj.BCApplier = bc;
+        end
+
         function createSolver(obj)
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
@@ -163,6 +171,7 @@ classdef ElasticProblem < handle
             R = RHSint.computeReactions(obj.stiffness);
 %             obj.variables.fext = rhs + R;
             obj.forces = rhs+R;
+            obj.forces = rhs;
         end
 
         function u = compDisp(obj)
@@ -170,10 +179,19 @@ classdef ElasticProblem < handle
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
             s.boundaryConditions = obj.newBC;
+            s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
             u = pb.solve();
             % u = 1;
             % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
+
+            z.mesh    = obj.mesh;
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = P1Function(z);
+            obj.uFun = uFeFun;
+
+            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            obj.displacementFun.fValues = uSplit;
         end
 
         function u = computeDisplacements(obj)

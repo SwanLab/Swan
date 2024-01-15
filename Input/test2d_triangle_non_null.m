@@ -65,12 +65,12 @@ connec = [
 % Node            Dimension                Value
 
 dirichlet_data = [
-  1 1 1
-                            1 2 2
-                            3 1 1
-                            3 2 0
-                            8 1 1
-                            8 2 1
+    1 1 1
+    1 2 2
+    3 1 1
+    3 2 0
+    8 1 1
+    8 2 1
 ];
 
 %% Force Prescribed
@@ -87,11 +87,21 @@ pointload_complete = [
 isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) == 0);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) == 0);
 
 % Dirichlet
-sDir.domain    = @(coor) isLeft(coor);
-sDir.direction = [1,2];
-sDir.value     = 1;
+sDir{1}.domain    = @(coor) isBottom(coor) & isLeft(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = [1,2];
+
+sDir{2}.domain    = @(coor) isMiddle(coor) & isLeft(coor);
+sDir{2}.direction = [1,2];
+sDir{2}.value     = [1,0];
+
+sDir{3}.domain    = @(coor) isTop(coor) & isLeft(coor);
+sDir{3}.direction = [1,2];
+sDir{3}.value     = 1;
 
 % Point load
 sPL.domain    = @(coor) isMiddle(coor) & isRight(coor);
