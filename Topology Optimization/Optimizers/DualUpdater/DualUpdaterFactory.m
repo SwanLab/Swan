@@ -11,6 +11,8 @@ classdef DualUpdaterFactory < handle
                     
                 case 'NullSpace'
                     d = DualUpdater_NullSpace(cParams);
+                case 'IPM'
+                    d = DualUpdater_IPM(cParams);
             end
         end
     

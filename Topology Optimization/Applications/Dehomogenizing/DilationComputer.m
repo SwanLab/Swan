@@ -63,9 +63,9 @@ classdef DilationComputer < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = q.order;
+            test = P1Function.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);
-            rhsF = rhs.compute(gradT);
-            rhsV = rhsF.fValues;
+            rhsV = rhs.compute(gradT,test);
             obj.RHS = [rhsV;0];
         end
         

@@ -611,6 +611,25 @@ pointload_complete = [
 *endif
 ];
 
+pointload_adjoint = [
+*if(strcmp(GenData(3),"2D")==0)
+*Set Cond Point_AdjointLoad *nodes
+*Add Cond Line_AdjointLoad *nodes
+*loop nodes *OnlyInCond
+*NodesNum 1 *Cond(Fx) 
+*NodesNum 2 *Cond(Fy) 
+*end nodes
+*elseif(strcmp(GenData(3),"3D")==0)
+*Set Cond Point_AdjointLoad *nodes
+*Add Cond Line_AdjointLoad *nodes
+*loop nodes *OnlyInCond
+*NodesNum 1 *Cond(Fx) 
+*NodesNum 2 *Cond(Fy)
+*NodesNum 3 *Cond(Fz)
+*end nodes
+*endif
+];
+
 %% Volumetric Force
 % Element	Dim		Force_Dim
 

@@ -36,4 +36,4 @@ plotting = false;
 printing = false;
 printing_physics = false;
 monitoring = false;
-maxiter = 5;
+maxiter = 3;

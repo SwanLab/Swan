@@ -1,0 +1,61 @@
+/* Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-05-19
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+include "ffmatlib.idp"
+
+verbosity=0;
+border a(t=0,1){x=t;y=0;label=1;};
+border b(t=0,0.5){x=1;y=t;label=1;};
+border c(t=0,0.5){x=1-t;y=0.5;label=1;};
+border d(t=0.5,1){x=0.5;y=t;label=1;};
+border e(t=0.5,1){x=1-t;y=1;label=1;};
+border f(t=0,1){x=0;y=1-t;label=1;};
+
+int nn=40;
+mesh Th = buildmesh ( a(nn) + b(.5*nn) + c(.5*nn) +d(.5*nn) + e(.5*nn) + f(nn));
+
+fespace Vh(Th,P2);
+//fespace Vh(Th,P1);
+
+Vh u,v;
+
+func rho=1.0;
+
+solve Poisson(u,v,solver=LU)=int2d(Th)(dx(u)*dx(v) + dy(u)*dy(v))
+                           - int2d(Th)(rho*v)+on(a,b,c,d,e,f,u=0);
+
+plot(Th,u);
+
+cout << endl;
+cout << "NbBoundaryElements:\t" <<  Th.nbe << endl;
+cout << "NbTriangles:\t\t" <<  Th.nt << endl;
+cout << "NbVertices:\t\t" <<  Th.nv << endl;
+cout << "nDoF:\t\t\t" << Vh.ndof << endl;
+cout << endl;
+
+real lambda = 1.0;
+Vh qx, qy;
+qx = -lambda*dx(u);
+qy = -lambda*dy(u);
+
+savemesh(Th,"demo_Lshape_mesh.msh");
+ffSaveVh(Th,Vh,"demo_Lshape_vh.txt");
+ffSaveData3(u,qx,qy,"demo_Lshape_data.txt");

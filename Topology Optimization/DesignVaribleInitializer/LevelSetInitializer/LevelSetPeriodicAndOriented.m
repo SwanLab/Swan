@@ -3,8 +3,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     properties (Access = private)
         epsilon
         epsilons
-        dilation
-        dilatedOrientation
         cellCoord
         phi
         y1
@@ -12,14 +10,13 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         deformedCoord
         m1
         m2
-        meshD
     end
 
     properties (Access = private)
         mesh
         remesher
         cellLevelSetParams
-        orientationVector
+        orientationVectors
         nCells
     end
 
@@ -27,12 +24,10 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
-            obj.computeDilation();
-            obj.computeDilatedOrientationVector();
             obj.createDeformedCoord();
             obj.createRemesher();
             obj.interpolateDeformedCoord();
-            obj.interpolateDilatation();
+%            obj.interpolateDilatation();
             obj.interpolateM1M2();
         end
 
@@ -68,41 +63,19 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.orientationVector  = cParams.orientationVector;
+            obj.orientationVectors = cParams.orientationVectors;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
         end
 
-        function computeDilation(obj)
-            s.orientationVector = obj.orientationVector;
-            s.mesh  = obj.mesh;
-            dC = DilationComputer(s);
-            d  = dC.compute();
-            obj.dilation = d;
-        end
-
-        function computeDilatedOrientationVector(obj)
-            s.fValues = exp(obj.dilation.fValues);
-            s.mesh    = obj.mesh;
-            er = P1Function(s);
-            for iDim = 1:obj.mesh.ndim
-                b  = obj.orientationVector{iDim};
-                dO = P1Function.times(er,b);
-                obj.dilatedOrientation{iDim} = dO;
-            end
-        end        
-
         function createDeformedCoord(obj)
-            s.mesh               = obj.mesh;
-            s.orientationVector  = obj.orientationVector;
-            s.dilatedOrientation = obj.dilatedOrientation;
-            c = ConformalMappingComputer(s);
-            defCoord = c.compute();
-            obj.deformedCoord = defCoord.getFvaluesAsVector();
+            c  = obj.orientationVectors;
+            dC = c.computeDeformedCoordinates();
+            obj.deformedCoord = dC;
         end
 
         function createRemesher(obj)
             s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels = 2;
+            s.nLevels =  3;
             r  = Remesher(s);
             r.remesh();
             obj.remesher = r;
@@ -111,7 +84,7 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function createCellCoord(obj)
             nDim = obj.mesh.ndim;
             for iDim = 1:nDim
-                x = obj.deformedCoord(:,iDim);
+                x = obj.deformedCoord.fValues(:,iDim);
                 y = obj.computeMicroCoordinate(x);
                 y = obj.periodicFunction(y);
                 yT(:,iDim) = y;
@@ -127,23 +100,20 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function interpolateDeformedCoord(obj)
-            nDim  = obj.mesh.ndim;
-            nnode = obj.mesh.nnodeElem;
-            for iDim = 1:nDim
-                yD = obj.deformedCoord(:,iDim);
-                y(1,:,:) = reshape(yD,nnode,[]);
-                yI = obj.interpolateDiscontinousFunction(y);
-                yI = abs(yI);
-                yT(:,iDim) = yI;
-            end
-            obj.deformedCoord = yT;
+            y = obj.deformedCoord;
+            y = obj.interpolateDiscontinousFunction(y);
+            y = abs(y);
+            obj.deformedCoord.fValues = y;
         end
 
         function interpolateM1M2(obj)
             m1 = obj.cellLevelSetParams.widthH;
-            m2 = obj.cellLevelSetParams.widthV;
+            m2 = obj.cellLevelSetParams.widthV;               
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
+          %  p  = obj.cellLevelSetParams.pnorm;                 
+          %  p = obj.interpolateContinousFunctionToDisc(p); 
+          %  obj.cellLevelSetParams.pnorm = p;
         end
 
         function thresholdParameters(obj)
@@ -156,38 +126,44 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             obj.cellLevelSetParams.widthV = m2;
         end
 
-        function fDI = interpolateContinousFunctionToDisc(obj,fC)
-            fD   = obj.createDiscontinousValues(fC);
-            fDI  = obj.interpolateDiscontinousFunction(fD);
-        end
-
-        function interpolateDilatation(obj)
-            r  = obj.dilation.fValues;
-            r  = obj.interpolateContinousFunctionToDisc(r);
-            obj.dilation = r;
-        end
+ 
+% 
+%         function interpolateDilatation(obj)
+%             r  = obj.orientationVectors.getDilatation();
+%             r  = obj.interpolateContinousFunctionToDisc(r);
+%             obj.dilation = r;
+%         end
 
         function t = computeMinLengthInUnitCell(obj)
-            r = obj.dilation;
-            hC = obj.epsilon*exp(-r);
-            hmin = min(hC);
-            hmax = max(hC);
-            % hcut = (hmax+hmin)/0.6;%/4;%/2;
-            hcut = 0;%0.00001*obj.epsilon;
-            t = hcut./hC;
+%            r = obj.dilation;
+%            hC = obj.epsilon*exp(-r);
+%            hmin = min(hC);
+%            hmax = max(hC);
+%             hcut = (hmax+hmin)/4;%/4;%/2;
+%            %hcut = 0;%0.00001*obj.epsilon;
+%            t = hcut./hC;
+            t = 0;
         end
 
-        function fV = createDiscontinousValues(obj,r)
+       function fDI = interpolateContinousFunctionToDisc(obj,fC)
+            fD   = obj.createDiscontinousValues(fC);
+            fDI  = obj.interpolateDiscontinousFunction(fD);
+        end        
+
+        function fV = createDiscontinousValues(obj,f)
             s.mesh    = obj.mesh;
-            s.fValues = r;
+            s.fValues = f;
             fC = P1Function(s);
             fD = fC.project('P1D');
-            fV = fD.fValues;
+            fV = fD;
         end
 
-        function vq = interpolateFunction(obj,v,mesh)
-            vq = obj.refine(mesh,v);
-        end
+        function vq = interpolateDiscontinousFunction(obj,v)
+            f = v;
+            r = obj.remesher;
+            f = r.interpolate(f);
+            vq = f.getFvaluesAsVector();
+        end        
 
         function [y1,y2] = transformToFastCoord(obj,x1,x2)
             y1 = obj.computeMicroCoordinate(x1);
@@ -202,24 +178,6 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function  [y1,y2] = makeCoordPeriodic(obj,y1,y2)
             y1 = obj.periodicFunction(y1);
             y2 = obj.periodicFunction(y2);
-        end
-
-        function vq = interpolateDiscontinousFunction(obj,v)
-            s.mesh    = obj.mesh;
-            s.fValues = v;
-            f         = P1DiscontinuousFunction(s);
-            r = obj.remesher;
-            f = r.interpolate(f);
-            vq = f.getFvaluesAsVector();
-        end
-
-        function [v] = refine(obj,m,v)
-            s.mesh    = m;
-            s.fValues = v;
-            f         = P1DiscontinuousFunction(s);
-            r = obj.remesher;
-            f = r.interpolate(f);
-            v = f.getFvaluesAsVector();
         end
 
     end
