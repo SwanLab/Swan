@@ -4,11 +4,11 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        boundaryConditions
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditions
 
         LHS
         RHS

@@ -34,7 +34,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.1;
+            obj.tau = obj.tau/1.05;
         end
 
     end
