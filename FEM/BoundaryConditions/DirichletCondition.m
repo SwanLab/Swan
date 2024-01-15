@@ -23,9 +23,9 @@ classdef DirichletCondition < BoundaryCondition
             fun.fValues(pl_dofs,s.direction) = s.value;
             
             % P2
-            fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_nods = fun2.getNodesFromCondition(s.domain);
-            fun2.fValues(pl_nods,s.direction) = s.value;
+            % fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
+            % pl_nods = fun2.getNodesFromCondition(s.domain);
+            % fun2.fValues(pl_nods,s.direction) = s.value;
 
             obj.fun    = fun;
             obj.domain = s.domain;
