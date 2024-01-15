@@ -1,9 +1,9 @@
-filename = 'Cantileverbeam_Quadrilateral_Bilinear';
+filename = 'grippingTrial';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
-cost = {'compliance'};
+cost = {'nonadjoint_compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
 constraint_case = {'EQUALITY'};
@@ -13,7 +13,7 @@ incrementFactor = 1.2;
 designVariable = 'LevelSet';
 filterType = 'P1';
 nsteps = 1;
-Vfrac_final = 0.1;
+Vfrac_final = 0.2;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -35,4 +35,4 @@ printing = false;
 printing_physics = false;
 monitoring = false;
 monitoring_interval = 1;
-maxiter = 3;
+maxiter = 201;
