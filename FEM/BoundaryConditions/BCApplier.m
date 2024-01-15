@@ -5,11 +5,12 @@ classdef BCApplier < handle
     % Use: BCApplier.computeLinearConditionsMatrix()
     properties (Access = public)
         dirichlet_dofs, dirichlet_vals
+        dirichletFun
     end
     
     properties (Access = private)
         mesh
-        dirichletInput, dirichletFun
+        dirichletInput
     end
     
     properties (Access = private)
@@ -50,15 +51,15 @@ classdef BCApplier < handle
                 values = obj.dirichletInput(i).getValues();
                 dofs   = obj.dirichletInput(i).getDofs();
     
-                fV = dirich.fValues(:); 
-                fV(dofs) = values;
-                fV = reshape(fV, [ndimf ndofs/ndimf])';
+                % fV = dirich.fValues(:); % wrong, it needs to be overwritten
+                % fV(dofs) = values;
+                % fV = reshape(fV, [ndimf ndofs/ndimf])';
+                % dirich.fValues = fV;
                 dir_dofs = [dir_dofs; dofs];
                 dir_vals = [dir_vals; values];
             end
             obj.dirichlet_dofs = dir_dofs;
             obj.dirichlet_vals = dir_vals;
-            dirich.fValues = fV;
             obj.dirichletFun = dirich;
         end
         

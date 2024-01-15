@@ -8,6 +8,7 @@ classdef FemInputReader_GiD < handle
 
         dirichletFun
         pointloadFun
+        periodicFun
         ptype
         scale
         problemID
@@ -55,6 +56,7 @@ classdef FemInputReader_GiD < handle
             s.pointload = obj.pointload;
             s.dirichletFun = obj.dirichletFun;
             s.pointloadFun = obj.pointloadFun;
+            s.periodicFun  = obj.periodicFun;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
             end
@@ -95,9 +97,10 @@ classdef FemInputReader_GiD < handle
                 obj.finalTime = fTime;
                 sDir = [];
                 sPL = [];
+                sPer = [];
             end
             if ~isequal(data.problem_type,'Stokes')
-                [~,~,bNodes,bElem,mSlave, sDir, sPL] = Preprocess.getBC_mechanics(fileName);
+                [~,~,bNodes,bElem,mSlave, sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
                 obj.boundaryElements = bElem;
                 obj.masterSlave = mSlave;
@@ -116,6 +119,7 @@ classdef FemInputReader_GiD < handle
             
             obj.dirichletFun = [];
             obj.pointloadFun = [];
+            obj.periodicFun  = [];
             if ~isequal(sDir,[])
                 for i = 1:numel(sDir)
                     dir = DirichletCondition(obj.mesh, sDir{i});
@@ -127,6 +131,13 @@ classdef FemInputReader_GiD < handle
                 for i = 1:numel(sPL)
                     pl = PointLoad(obj.mesh, sPL{i});
                     obj.pointloadFun = [obj.pointloadFun, pl];
+                end
+            end
+
+            if ~isequal(sPer,[])
+                for i = 1:numel(sPer)
+                    per = PeriodicCondition(obj.mesh, sPer{i});
+                    obj.periodicFun = [obj.periodicFun, per];
                 end
             end
 

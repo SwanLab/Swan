@@ -18,7 +18,10 @@ classdef ElasticProblemMicro < handle
         solver
         boundaryConditions
         strain, stress
-        LHS, RHS
+        stiffness, forces
+
+        solverType, solverMode
+        newBC, BCApplier
     end
 
     methods (Access = public)
@@ -28,6 +31,7 @@ classdef ElasticProblemMicro < handle
             obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
+            obj.createBCApplier();
             obj.createSolver();
         end
 
@@ -37,6 +41,7 @@ classdef ElasticProblemMicro < handle
             nCases = obj.material.nstre;
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
+                obj.compDisp(i);
                 obj.computeDisplacements(i);
                 obj.computeStrain(i);
                 obj.computeStress(i);
@@ -51,7 +56,7 @@ classdef ElasticProblemMicro < handle
             s.fun      = obj.displacementFun;
             s.material = obj.material;
             lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
+            obj.stiffness = lhs.compute();
         end
 
         function v = computeGeometricalVolume(obj)
@@ -120,6 +125,9 @@ classdef ElasticProblemMicro < handle
             obj.scale    = cParams.scale;
             obj.pdim     = cParams.dim;
             obj.inputBC  = cParams.bc;
+            obj.solverType  = cParams.solverType;
+            obj.solverMode  = cParams.solverMode;
+            obj.newBC = cParams.newBC;
         end
 
         function createQuadrature(obj)
@@ -157,6 +165,13 @@ classdef ElasticProblemMicro < handle
             obj.boundaryConditions = bc;
         end
 
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.newBC;
+            bc = BCApplier(s);
+            obj.BCApplier = bc;
+        end
+
         function createSolver(obj)
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
@@ -172,9 +187,27 @@ classdef ElasticProblemMicro < handle
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
+            R = RHSint.computeReactions(obj.stiffness);
             obj.variables.fext = rhs + R;
-            obj.RHS = rhs;
+            obj.forces = rhs;
+        end
+
+        function u = compDisp(obj, iVoigt)
+            s.type = obj.solverType;
+            s.stiffness = obj.stiffness;
+            s.forces = obj.forces(:, iVoigt);
+            s.boundaryConditions = obj.newBC;
+            s.BCApplier = obj.BCApplier;
+            pb = ProblemSolver(s); % magic goes here
+            u = pb.solve();
+
+            z.mesh    = obj.mesh;
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = P1Function(z);
+            obj.uFun{iVoigt} = uFeFun;
+
+            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            obj.displacementFun.fValues = uSplit;
         end
 
         function u = computeDisplacements(obj, iVoigt)
@@ -191,8 +224,8 @@ classdef ElasticProblemMicro < handle
 
         function [Kred, Fred] = applyBoundaryConditions(obj,iVoigt)
             bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS(:,iVoigt));
+            Kred = bc.fullToReducedMatrix(obj.stiffness);
+            Fred = bc.fullToReducedVector(obj.forces(:,iVoigt));
         end
 
         function computeStrain(obj, iVoigt)

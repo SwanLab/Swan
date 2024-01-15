@@ -55,6 +55,7 @@ classdef FemDataContainer < AbstractSettings
             obj.interpolationType = 'LINEAR';
             obj.newBC.dirichletFun = s.dirichletFun;
             obj.newBC.pointloadFun = s.pointloadFun;
+            obj.newBC.periodicFun  = s.periodicFun;
         end
 
         function createMaterial(obj)
