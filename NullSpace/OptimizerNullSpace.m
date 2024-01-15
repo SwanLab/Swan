@@ -1,4 +1,4 @@
-    classdef OptimizerNullSpace < Optimizer
+classdef OptimizerNullSpace < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'NullSpace';
@@ -150,7 +150,7 @@
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = 0.05;
+                obj.eta = inf;
             else
                 if obj.aG <= 0.5*obj.aGmax
                     obj.eta = 0.05;
@@ -194,7 +194,7 @@
                 factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
-                factor = 1.2;
+                factor = 1.01;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
