@@ -24,7 +24,6 @@ classdef RHSintegrator_ElasticMacro < handle
         end
 
         function R = computeReactions(obj, K)
-            % issue here
             bc      = obj.boundaryConditions;
             dirich  = bc.dirichlet;
             dirichV = bc.dirichlet_values;

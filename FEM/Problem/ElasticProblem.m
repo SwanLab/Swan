@@ -164,18 +164,20 @@ classdef ElasticProblem < handle
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
-%             s.globalConnec = obj.displacementField.connec;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.stiffness);
-%             obj.variables.fext = rhs + R;
-            obj.forces = rhs+R;
-            obj.forces = rhs;
+            % Perhaps move it inside RHSint?
+            if strcmp(obj.solverType,'REDUCED')
+                R = RHSint.computeReactions(obj.stiffness);
+                obj.forces = rhs+R;
+            else
+                obj.forces = rhs;
+            end
         end
 
         function u = compDisp(obj)
-            s.type = 'MONOLITHIC';
+            s.type = obj.solverType;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
             s.boundaryConditions = obj.newBC;

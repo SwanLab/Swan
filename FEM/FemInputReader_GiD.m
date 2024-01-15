@@ -115,19 +115,19 @@ classdef FemInputReader_GiD < handle
             obj.mesh = obj.createMesh();
             
             obj.dirichletFun = [];
+            obj.pointloadFun = [];
             if ~isequal(sDir,[])
-                
                 for i = 1:numel(sDir)
                     dir = DirichletCondition(obj.mesh, sDir{i});
                     obj.dirichletFun = [obj.dirichletFun, dir];
                 end
-
             end
 
             if ~isequal(sPL,[])
-                obj.pointloadFun = PointLoad(obj.mesh, sPL);
-            else
-                obj.pointloadFun = [];
+                for i = 1:numel(sPL)
+                    pl = PointLoad(obj.mesh, sPL{i});
+                    obj.pointloadFun = [obj.pointloadFun, pl];
+                end
             end
 
             if strcmpi(data.problem_type,'elastic') ...

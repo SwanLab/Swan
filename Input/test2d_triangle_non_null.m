@@ -104,9 +104,9 @@ sDir{3}.direction = [1,2];
 sDir{3}.value     = 1;
 
 % Point load
-sPL.domain    = @(coor) isMiddle(coor) & isRight(coor);
-sPL.direction = 2;
-sPL.value     = -1;
+sPL{1}.domain    = @(coor) isMiddle(coor) & isRight(coor);
+sPL{1}.direction = 2;
+sPL{1}.value     = -1;
 
 %% Volumetric Force
 % Element        Dim                Force_Dim

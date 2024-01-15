@@ -1,7 +1,5 @@
 %% To-do
 
-% (1) ElasticProblem. Do reactions really work in RHS?
-
 % WEBSITE
     % STEP 1
     % - Readme: tot fora, portar cap a la web + documentation
