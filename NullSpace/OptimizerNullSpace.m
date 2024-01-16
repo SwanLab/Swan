@@ -164,6 +164,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMaximumVolumeRemoved();
             x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
+            obj.saveOldValues(x0);
             obj.calculateInitialStep();
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
@@ -182,7 +183,6 @@ classdef OptimizerNullSpace < Optimizer
                 s.g0 = g0;
                 obj.checkStep(s);
             end
-            obj.updateOldValues(x);
         end
 
         function calculateInitialStep(obj)
@@ -250,9 +250,6 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = saveOldValues(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
         end
