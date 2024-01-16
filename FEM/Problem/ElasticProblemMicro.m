@@ -192,7 +192,8 @@ classdef ElasticProblemMicro < handle
         end
 
         function u = compDisp(obj, iVoigt)
-            s.type = obj.solverType;
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces(:, iVoigt);
             s.boundaryConditions = obj.newBC;

@@ -177,7 +177,8 @@ classdef ElasticProblem < handle
         end
 
         function u = compDisp(obj)
-            s.type = obj.solverType;
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
             s.boundaryConditions = obj.newBC;

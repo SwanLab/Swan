@@ -33,6 +33,7 @@ classdef FemComputer < handle
             s = FemDataContainer(a);
             s.interpolationType = obj.interpolationType;
             s.solverType = obj.solverType;
+            s.solverMode = 'DISP';
             obj.computation = FEM.create(s);
             obj.computation.solve();
             d_u = obj.computation.uFun.fValues;

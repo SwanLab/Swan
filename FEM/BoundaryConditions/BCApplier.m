@@ -35,6 +35,11 @@ classdef BCApplier < handle
         end
 
         function Ct = computeLinearPeriodicConditionsMatrix(obj)
+            per_lead = obj.periodic_leader;
+            per_fllw = obj.periodic_follower;
+            nDofs = obj.dirichletFun.nDofs;
+            nPer = length(per_lead);
+            Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs));
         end
 
     end
