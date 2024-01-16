@@ -111,10 +111,10 @@ classdef OptimizerNullSpace < Optimizer
                 DJ = obj.cost.gradient;
                 if obj.aG <= 0.5*obj.aGmax
                     exponent = -sign(g)*sign(sum(DJ));
-                    obj.aJmax = obj.aJmax*2^exponent;
+                    obj.aJmax = obj.aJmax*1^exponent;
                 else
                     exponent  = 1-sign(obj.checkConstraint());
-                    obj.aGmax = obj.aGmax*2^exponent;
+                    obj.aGmax = obj.aGmax*1^exponent;
                 end
             end
         end
@@ -191,7 +191,7 @@ classdef OptimizerNullSpace < Optimizer
             x  = obj.designVariable.fun.fValues;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
-                factor = 10000;
+                factor = 100000;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
                 factor = 1.2;
@@ -231,6 +231,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.meritNew = obj.mOld;
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
+                obj.primalUpdater.tau = 0.01;
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
@@ -303,7 +304,11 @@ classdef OptimizerNullSpace < Optimizer
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            if iStep < 167
+                itHas = obj.nIter >= 3*iStep;
+            else
+                itHas = obj.nIter >= obj.maxIter;
+            end
         end
 
     end
