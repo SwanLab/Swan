@@ -42,11 +42,10 @@ classdef ElasticProblemMicro < handle
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
                 obj.compDisp(i);
-                obj.computeDisplacements(i);
+                % obj.computeDisplacements(i);
                 obj.computeStrain(i);
                 obj.computeStress(i);
                 obj.computeFluctuations(i);
-%                 obj.computeStressStrainFluctuations()
             end
         end
 

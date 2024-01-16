@@ -6,11 +6,13 @@ classdef BCApplier < handle
     properties (Access = public)
         dirichlet_dofs, dirichlet_vals
         dirichletFun
+        periodic_leader, periodic_follower
     end
     
     properties (Access = private)
         mesh
         dirichletInput
+        periodicInput
     end
     
     properties (Access = private)
@@ -22,6 +24,7 @@ classdef BCApplier < handle
         function obj = BCApplier(cParams)
             obj.init(cParams)
             obj.createDirichletFun();
+            obj.createPeriodicConditions();
         end
         
         function Ct = computeLinearConditionsMatrix(obj)
@@ -31,6 +34,9 @@ classdef BCApplier < handle
             Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
         end
 
+        function Ct = computeLinearPeriodicConditionsMatrix(obj)
+        end
+
     end
 
     methods (Access = private)
@@ -38,6 +44,7 @@ classdef BCApplier < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.dirichletInput = cParams.boundaryConditions.dirichletFun;
+            obj.periodicInput  = cParams.boundaryConditions.periodicFun;
         end
 
         function createDirichletFun(obj)
@@ -62,7 +69,32 @@ classdef BCApplier < handle
             obj.dirichlet_vals = dir_vals;
             obj.dirichletFun = dirich;
         end
+
+        function createPeriodicConditions(obj)
+            obj.periodic_leader   = [];
+            obj.periodic_follower = [];
+            if ~isequal(obj.periodicInput, [])
+                mR = MasterSlaveRelator(obj.mesh.coord);
+                MS = mR.getRelation();
+                obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
+                obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
+            end
+        end
         
+        function perDof = computePeriodicNodes(obj,perNodes)
+            nunkn = obj.dirichletFun.ndimf;
+            nlib = size(perNodes,1);
+            perDof = zeros(nlib*nunkn,1);
+            for iunkn = 1:nunkn
+                indDof = nlib*(iunkn - 1) + [1:nlib];
+                perDof(indDof,1) = obj.nod2dof(obj.dirichletFun.ndimf, perNodes,iunkn);
+            end
+        end
+
+        function idof = nod2dof(obj, ndimf, inode, iunkn)
+            idof(:,1)= ndimf*(inode - 1) + iunkn;
+        end
+
     end
     
 end
