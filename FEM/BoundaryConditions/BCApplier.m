@@ -42,6 +42,8 @@ classdef BCApplier < handle
             Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs));
         end
 
+        function Ct = computeSingleDirichletPeriodicCondition(obj)
+        end
     end
 
     methods (Access = private)

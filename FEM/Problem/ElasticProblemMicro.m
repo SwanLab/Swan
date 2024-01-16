@@ -197,6 +197,8 @@ classdef ElasticProblemMicro < handle
             s.stiffness = obj.stiffness;
             s.forces = obj.forces(:, iVoigt);
             s.boundaryConditions = obj.newBC;
+            s.boundaryConditions.iVoigt = iVoigt;
+            s.boundaryConditions.nVoigt = size(obj.forces,2);
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s); % magic goes here
             u = pb.solve();

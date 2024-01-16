@@ -90,12 +90,18 @@ classdef ProblemSolver < handle
 
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
-                    Ct = bcapp.computeLinearConditionsMatrix();
-                    C   = Ct';
-                    nC  = size(Ct,1);
-                    Z   = zeros(nC);
-                    Km  = obj.stiffness;
-                    LHS = [Km C; C' Z];
+                    if ~hasPeriodic
+                        Ct = bcapp.computeLinearConditionsMatrix();
+                        C   = Ct';
+                        nC  = size(Ct,1);
+                        Z   = zeros(nC);
+                        Km  = obj.stiffness;
+                        LHS = [Km C; C' Z];
+                    else
+                        CtDir = bcapp.computeLinearConditionsMatrix();
+                        CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
+                        CtPerDir = bcapp.computeSingleDirichletPeriodicCondition();
+                    end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:size(obj.stiffness);
                     free_dofs = setdiff(dofs, bcapp.dirichlet_dofs);
@@ -131,10 +137,14 @@ classdef ProblemSolver < handle
 
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
-                    dir_vals = bcapp.dirichlet_vals;
-                    nCases = size(obj.forces,2);
-                    Ct = repmat(dir_vals, [1 nCases]);
-                    RHS = [obj.forces; Ct];
+                    if ~hasPeriodic
+                        dir_vals = bcapp.dirichlet_vals;
+                        nCases = size(obj.forces,2);
+                        Ct = repmat(dir_vals, [1 nCases]);
+                        RHS = [obj.forces; Ct];
+                    else
+
+                    end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:size(obj.stiffness);
                     free_dofs = setdiff(dofs, bcapp.dirichlet_dofs);
