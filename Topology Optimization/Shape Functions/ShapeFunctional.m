@@ -56,7 +56,15 @@ classdef ShapeFunctional < handle
             if isempty(obj.value0)
                 obj.value0 = obj.value;
             end
-            obj.value = obj.value/abs(obj.value0);
+            delta = 0;
+            switch class(obj)
+                case 'ShFunc_Perimeter'
+                    switch obj.type
+                        case 'Neumann'
+                            delta = 4;
+                    end
+            end
+            obj.value = obj.value/(abs(obj.value0)+delta);
         end
         
         function normalizeGradient(obj)

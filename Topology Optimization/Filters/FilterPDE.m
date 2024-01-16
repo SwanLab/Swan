@@ -1,5 +1,9 @@
 classdef FilterPDE < handle
-    
+
+    properties (Access = public)
+        boundType
+    end
+
     properties (Access = private)
         mesh
         trial
@@ -17,6 +21,7 @@ classdef FilterPDE < handle
     methods (Access = public)
         function obj = FilterPDE(cParams)
             obj.init(cParams);
+            obj.boundType = cParams.boundaryType;
             obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();

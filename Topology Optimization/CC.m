@@ -125,7 +125,7 @@ classdef CC < handle & matlab.mixin.Copyable
                     s.metric            = 'Anisotropy';
                 case {'anisotropicPerimeterInterior2D'}
                     s.filterType        = 'PDE';
-                    u                   = 60;
+                    u                   = 45;
                     s.CAnisotropic      = [tand(u),0;0,1/tand(u)];
                     s.aniAlphaDeg       = 90;
                     s.metric            = 'Anisotropy';

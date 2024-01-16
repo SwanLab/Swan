@@ -2,7 +2,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (GetAccess = public, SetAccess = private)
        filteredDensity  
-
+       type
     end
     
     properties (Access = protected)
@@ -19,6 +19,7 @@ classdef ShFunc_Perimeter < ShapeFunctional
         
         function obj = ShFunc_Perimeter(cParams)
           obj.init(cParams);
+          obj.type = obj.filter.boundType;
           obj.computeFunctionAndGradient();
         end
         
