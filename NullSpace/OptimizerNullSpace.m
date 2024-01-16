@@ -231,7 +231,12 @@ classdef OptimizerNullSpace < Optimizer
                 obj.meritNew = obj.mOld;
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
-                obj.primalUpdater.tau = 0.01;
+                switch obj.designVariable.type
+                    case 'Density'
+                        obj.primalUpdater.tau = 6000;
+                    case 'LevelSet'
+                        obj.primalUpdater.tau = 0.01;
+                end
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
