@@ -9,6 +9,7 @@ classdef ShapeFunctional < handle
         dvolu
         value0
         shNumber
+        delta
     end
     
     properties (Access = protected)
@@ -56,19 +57,19 @@ classdef ShapeFunctional < handle
             if isempty(obj.value0)
                 obj.value0 = obj.value;
             end
-            delta = 0;
+            obj.delta = 0;
             switch class(obj)
                 case 'ShFunc_Perimeter'
                     switch obj.type
                         case 'Neumann'
-                            delta = 4;
+                            obj.delta = 1/4;
                     end
             end
-            obj.value = obj.value/(abs(obj.value0)+delta);
+            obj.value = obj.value/(abs(obj.value0)+obj.delta);
         end
         
         function normalizeGradient(obj)
-            obj.gradient = obj.gradient/abs(obj.value0);
+            obj.gradient = obj.gradient/(abs(obj.value0)+obj.delta);
         end
         
         function fP = addHomogPrintVariablesNames(obj,fP)
