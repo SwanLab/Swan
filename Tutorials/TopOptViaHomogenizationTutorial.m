@@ -73,19 +73,19 @@ classdef TopOptViaHomogenizationTutorial < handle
         end       
 
         function createMaterialInterpolator(obj)
-            ndim = 2;            
-            E0 = 1e-3; 
-            nu0 = 1/3;
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-            E1 = 1;
-            nu1 = 1/3;              
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+%             ndim = 2;            
+%             E0 = 1e-3; 
+%             nu0 = 1/3;
+%             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+%             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+% 
+%             E1 = 1;
+%             nu1 = 1/3;              
+%             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+%             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'HomogenizedMicrostructure';
-            s.filname = 'Rectangle';
+            s.fileName = 'Rectangle';
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;            
@@ -160,9 +160,9 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.optimizer = opt;
         end
 
-        function mat = createInterpolatedMaterial(obj,dens)
+        function mat = createInterpolatedMaterial(obj,desVar)
             mI   = obj.materialInterpolator;
-            mat  = mI.compute(dens);
+            mat  = mI.computeConsitutiveTensor(desVar);
         end
         
         function bc = createBoundaryConditions(obj)

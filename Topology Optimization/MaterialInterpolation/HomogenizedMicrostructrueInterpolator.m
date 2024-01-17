@@ -15,8 +15,8 @@ classdef HomogenizedMicrostructrueInterpolator < handle
             obj.loadConsitutiveTensor();
         end
 
-        function computeMaterial(obj,x)
-            xR = reshapeDesignVariable(x);
+        function computeConsitutiveTensor(obj,x)
+            xR = obj.reshapeDesignVariable(x);
             obj.obtainReferenceConsistutiveTensor(xR);
         end
         
@@ -42,6 +42,15 @@ classdef HomogenizedMicrostructrueInterpolator < handle
             obj.Cref  = c;
             obj.dCref = permute(dc,[1 2 4 3 5]);
         end        
+
+        function m = createMaterial(obj,C)
+            s.type    = 'ANISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.ndim;
+            s.constiutiveTensor = C;            
+            s.bulk    = kappa;
+            m = Material.create(s);   
+        end
         
     end
     

@@ -12,6 +12,11 @@ classdef MaterialFactory < handle
                         case 3
                             material = Isotropic3dElasticMaterial(cParams);
                     end
+                case 'ANISOTROPIC'
+                            material = AnisotropicGiven(cParams);
+                    
+
+
             end
 
         end
@@ -19,3 +24,4 @@ classdef MaterialFactory < handle
     end
     
 end
+
