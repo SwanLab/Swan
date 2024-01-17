@@ -55,14 +55,14 @@ classdef BCApplier < handle
             s.ndofs          = nDofs;
             s.vstrain        = vstrain;
             comp = MicroDispMonolithicBCApplier(s);
-            [CtDirMeu, CtDirPerMeu] = comp.getLHSMatrix();
+            [CtDir, CtDirPer] = comp.getLHSMatrix();
             % Periodic stuff
             nDofsPerBorder = length(obj.periodic_leader)/4; % 4 because 2D
             xx_bottom = 1:nDofsPerBorder;
             xx_left   = nDofsPerBorder+1 : 2*nDofsPerBorder;
             yy_bottom = 2*nDofsPerBorder + 1 : 3*nDofsPerBorder;
             yy_left   = 3*nDofsPerBorder + 1 : 4*nDofsPerBorder;
-            CtPerMeu = full(sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
+            CtPer = full(sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
@@ -75,7 +75,7 @@ classdef BCApplier < handle
                          [ones(length(per_lead),1), -ones(length(per_lead),1); ...
                          ], ...
                          nDofsPerBorder*nVoigt, nDofs));
-            Ct =  [CtPerMeu; CtDirPerMeu; CtDirMeu];
+            Ct =  [CtPer; CtDirPer; CtDir];
         end
 
         function RHSC = computeMicroDisplMonolithicRHS(obj, iVoigt, nVoigt)
