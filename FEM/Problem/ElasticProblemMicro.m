@@ -38,7 +38,7 @@ classdef ElasticProblemMicro < handle
 
         function obj = solve(obj)
             obj.computeStiffnessMatrix();
-            obj.computeRHS();
+            obj.computeForces();
             nCases = obj.material.nstre;
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
@@ -177,7 +177,7 @@ classdef ElasticProblemMicro < handle
             obj.solver = Solver.create(s);
         end
 
-        function computeRHS(obj)
+        function computeForces(obj)
             s.fun  = obj.displacementFun;
             s.type = 'ElasticMicro';
             s.dim      = obj.getFunDims();

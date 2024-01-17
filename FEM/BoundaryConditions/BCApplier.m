@@ -29,6 +29,7 @@ classdef BCApplier < handle
         end
         
         function Ct = computeLinearConditionsMatrix(obj)
+            % generalize lagrange multiplier -> dirac and stuff
             dir_dofs = obj.dirichlet_dofs;
             nDofs = obj.dirichletFun.nDofs;
             nDirich = length(dir_dofs);
@@ -40,7 +41,7 @@ classdef BCApplier < handle
             per_fllw = obj.periodic_follower;
             nDofs = obj.dirichletFun.nDofs;
             nPer = length(per_lead);
-            Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs));
+            Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs)); % !!
         end
 
         function Ct = computeSingleDirichletPeriodicCondition(obj, iVoigt, nVoigt)

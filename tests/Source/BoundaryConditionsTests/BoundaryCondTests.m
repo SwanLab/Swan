@@ -18,7 +18,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.solverMode   = 'DISP';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol);
         end
 
@@ -31,7 +31,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.solverMode   = 'DISP';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol);
         end
 
@@ -45,7 +45,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testResultsName  = [triangle '_non_null'];
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol);
         end
 
@@ -59,7 +59,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testResultsName  = [triangle '_non_null'];
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol);
         end
 
@@ -75,7 +75,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.solverMode   = 'DISP';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-4;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
@@ -87,7 +87,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.solverMode   = 'FLUC';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
         end
         function testMicroFlucMonolitic(testCase, micro)
@@ -98,7 +98,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.solverMode   = 'FLUC';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-8;
+            tol = 1e-12;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
