@@ -194,7 +194,7 @@ classdef OptimizerNullSpace < Optimizer
             elseif obj.nIter == 1
                 obj.primalUpdater.tau = 0.01;
             else
-                factor = 1.01;
+                factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
