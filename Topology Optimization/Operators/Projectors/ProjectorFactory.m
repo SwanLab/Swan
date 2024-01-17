@@ -4,13 +4,9 @@ classdef ProjectorFactory < handle
 
         function obj = create(cParams)
             switch cParams.projectorType
-                case 'LINEAR'
-                    obj = Projector_toLagrangian(cParams);
-                case 'QUADRATIC'
-                    obj = Projector_toLagrangian(cParams);
-                case 'CUBIC'
-                    obj = Projector_toLagrangian(cParams);
-                case 'ORDER4'
+                case 'P0'
+                    obj = Projector_toP0(cParams);
+                case {'P1','P2','P3'}
                     obj = Projector_toLagrangian(cParams);
                 case 'P1D'
                     obj = Projector_toP1Discontinuous(cParams);

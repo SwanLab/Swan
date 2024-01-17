@@ -196,7 +196,8 @@ classdef LagrangianFunction < FeFunction
             s.order   = ord;
             s.ndimf   = ndimf;
             c = DOFsComputer(s);
-            s.fValues = zeros(c.computeNumberDofs(),ndimf);
+            c.computeDofs();
+            s.fValues = zeros(c.getNumberDofs(),ndimf);
             pL = LagrangianFunction(s);
         end
 
