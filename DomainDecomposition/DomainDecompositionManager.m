@@ -54,10 +54,10 @@ classdef DomainDecompositionManager < handle
 %             obj.createSubDomainMeshes();
 %             obj.createInterfaceSubDomainMeshes();
 %             obj.createDomainMesh();
-%             obj.createBoundaryConditions();
-%             obj.quad = Quadrature.set(obj.meshDomain.type);
-%             obj.quad.computeQuadrature('QUADRATIC');
-%             obj.createDomainMaterial();
+            obj.createBoundaryConditions();
+            obj.quad = Quadrature.set(obj.meshDomain.type);
+            obj.quad.computeQuadrature('QUADRATIC');
+            obj.createDomainMaterial();
             
 %             s.referenceMesh = obj.referenceMesh;
 %             mC = MeshCreatorFromSubmeshes();
@@ -80,7 +80,7 @@ classdef DomainDecompositionManager < handle
             s.dim      = '2D';
             s.solverTyp = 'ITERATIVE';
             s.iterativeSolverTyp = 'PCG';
-            s.preconditionerType = 'JACOBI';
+            s.preconditionerType = 'EIFEM';
             s.tol = 1e-6;
             
             fem        = FEM.create(s);
@@ -102,8 +102,8 @@ classdef DomainDecompositionManager < handle
 %             mS         = femD.mesh;
 %             bS         = mS.createBoundaryMesh();
              % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,1,2);
+            x1 = linspace(0,1,5);
+            x2 = linspace(0,1,5);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -260,7 +260,7 @@ classdef DomainDecompositionManager < handle
 
             [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
             bc.dirichlet=dirichlet;
-            bc.pointload=pointload;   
+            bc.pointload=pointload;
             obj.boundaryConditions = bc;
         end        
 

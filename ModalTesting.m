@@ -126,6 +126,7 @@ classdef ModalTesting < handle
             rom.Udef    = Udef;
             rom.Urb     = Urb;
             rom.ndimf   = dispFun.ndimf;
+            rom.mesh    = obj.mesh;
 %             rom.basis   = basis;
 
             save("testEIFEM1.mat","rom")
@@ -474,24 +475,24 @@ classdef ModalTesting < handle
             % s = FemDataContainer(a);
             % mesh = s.mesh;
 
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mesh       = femD.mesh;
+%             filename   = 'lattice_ex1';
+%             a.fileName = filename;
+%             femD       = FemDataContainer(a);
+%             mesh       = femD.mesh;
 %             bS         = mS.createBoundaryMesh();
 
 
-%             % Generate coordinates
-%             x1 = linspace(0,2,20);
-%             x2 = linspace(0,1,20);
-%             % Create the grid
-%             [xv,yv] = meshgrid(x1,x2);
-%             % Triangulate the mesh to obtain coordinates and connectivities
-%             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-% 
-%             s.coord = coord(:,1:2);
-%             s.connec = F;
-%             mesh = Mesh(s);
+            % Generate coordinates
+            x1 = linspace(0,1,5);
+            x2 = linspace(0,1,5);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectivities
+            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+            s.coord = coord(:,1:2);
+            s.connec = F;
+            mesh = Mesh(s);
         end
 
         function k = computeStiffnessMatrix(mesh,material,displacementFun)
