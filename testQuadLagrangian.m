@@ -2,7 +2,7 @@ close all;
 clear;
 clc
 
-mesh = UnitQuadMesh(2,1);
+mesh = UnitQuadMesh(4,4);
 
 sAF.fHandle = @(x) x(1,:,:).*x(1,:,:).*x(2,:,:);
 sAF.ndimf   = 1;
@@ -11,4 +11,4 @@ xFun = AnalyticalFunction(sAF);
 
 p1fun = xFun.project('P1');
 p2fun = xFun.project('P2');
-p3fun = xFun.project('P3');
+p3fun = xFun.project('P3'); 

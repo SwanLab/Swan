@@ -111,12 +111,12 @@ classdef DOFsComputer < handle
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
 
                 for iElem = 1:obj.mesh.nelem
-                    for iNode = 1:obj.mesh.nnodeElem
-                        ind = (iNode-1)*ndofEdge+1:iNode*ndofEdge;
-                        if locPointEdge(iElem,iNode)~=iNode
+                    for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                        ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
+                        if locPointEdge(iElem,iEdge)~=iEdge
                             ind = flip(ind);
                         end
-                        dofsEdges(iElem,ind) = edges(iElem,iNode)*ndofEdge-(ndofEdge-1):edges(iElem,iNode)*ndofEdge;
+                        dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
                     end
                 end
                 dofsEdges = dofsEdges + m.nnodes;
