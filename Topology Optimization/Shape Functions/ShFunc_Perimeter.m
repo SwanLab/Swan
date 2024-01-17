@@ -1,4 +1,4 @@
-classdef ShFunc_Perimeter < ShapeFunctional
+classdef ShFunc_Perimeter < handle
     
     properties (GetAccess = public, SetAccess = private)
        filteredDensity  
@@ -7,19 +7,20 @@ classdef ShFunc_Perimeter < ShapeFunctional
     
     properties (Access = protected)
         epsilon
-        regularizedDensityProjection
         axes
     end
     
     properties (Access = private)
        quad
+       filter
+       designVariable
+       mesh
     end
     
     methods (Access = public)
         
         function obj = ShFunc_Perimeter(cParams)
           obj.init(cParams);
-          obj.computeFunctionAndGradient();
         end
         
         function computeFunctionAndGradient(obj)
@@ -27,11 +28,9 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.computeGradient();
         end
         
-        function computeFunction(obj)
-            obj.updateProtectedVariables();
-            obj.computeRegularizedDensity();
-            obj.computePerimeterValue();
-            obj.normalizeFunction();
+        function J = computeFunction(obj,x)
+            obj.computeRegularizedDensity(x);
+            J = obj.computePerimeterValue(x);
         end
         
         function fP = addPrintableVariables(obj)
@@ -86,10 +85,11 @@ classdef ShFunc_Perimeter < ShapeFunctional
     end
     
     methods (Access = private)
-        
-        function updateProtectedVariables(obj)
-            obj.updateEpsilonValue()
-            obj.updateEpsilonInFilter()
+
+        function init(obj,cParams)
+            obj.filter  = cParams.filter;
+            obj.mesh    = cParams.mesh;
+            obj.epsilon = cParams.epsilon;
         end
         
         function updateEpsilonValue(obj)
@@ -100,9 +100,9 @@ classdef ShFunc_Perimeter < ShapeFunctional
             obj.filter.updateEpsilon(obj.epsilon);
         end
         
-        function computeRegularizedDensity(obj)
-            f   = obj.obtainDomainFunction();
-            rho = obj.filter.compute(f,'QUADRATICMASS');
+        function computeRegularizedDensity(obj,x)
+            obj.filter.updateEpsilon(obj.epsilon);
+            rho = obj.filter.compute(x,'QUADRATICMASS');
             obj.filteredDensity = rho;
         end
         
@@ -124,20 +124,20 @@ classdef ShFunc_Perimeter < ShapeFunctional
             %value2 =  sum(obj.Msmooth*per);
         end
 
-        function computePerimeterValue(obj)
-            rho        = obj.obtainDomainFunction();
+        function J = computePerimeterValue(obj,x)
             rhoe       = obj.filteredDensity;
             rhoei      = rhoe.fValues;
             s.fValues  = 1-rhoei;
-            s.mesh     = obj.designVariable.mesh;
+            s.mesh     = obj.mesh;
             f          = P1Function(s);
-            i.type     = 'ScalarProduct';
-            i.quadType = 'QUADRATICMASS';
-            i.mesh     = obj.designVariable.mesh;
-            int        = Integrator.create(i);
-            result     = int.compute(f,rho);
+            int        = Integrator.create('ScalarProduct',obj.mesh,'QUADRATICMASS');
+            result     = int.compute(f,x);
             per        = 2/(obj.epsilon)*result;
-            obj.value  = per;
+            J  = per;
+
+            regularizedDensityProjection = obj.filter.computeRHS(x,'QUADRATICMASS');
+            int2 = 2/(obj.epsilon)*((1 - rhoei).*regularizedDensityProjection);
+            J   =  sum(int2);
         end
         
         function computeGradient(obj)
