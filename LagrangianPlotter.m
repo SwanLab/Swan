@@ -21,6 +21,7 @@ classdef LagrangianPlotter < handle
                 view(0,90)
                 colorbar
                 shading interp
+                grid on
                 title(['dim = ', num2str(idim)]);
             end
         end
