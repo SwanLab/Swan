@@ -79,10 +79,18 @@ classdef DOFsComputer < handle
             coor = zeros(obj.ndofs,2);
             
             if obj.order~=1
+                
+                sAF.fHandle = @(x) [x(1,:,:),x(2,:,:)];
+                sAF.ndimf   = 2;
+                sAF.mesh    = obj.mesh;
+                func = AnalyticalFunction(sAF);
+                c = func.evaluate(obj.interp.pos_nodes');
+                c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
+                
                 for ielem = 1:nelem
-                    nodesMesh = obj.mesh.coord(obj.mesh.connec(ielem,1:obj.mesh.nnodeElem),:);
-                    coor(obj.dofs(ielem,:),:) = obj.computeNodesElement(nodesMesh);
+                    coor(obj.dofs(ielem,:),:) = c(:,:,ielem);
                 end
+                
                 obj.coord = coor;
             else
                 obj.coord = obj.mesh.coord;
@@ -168,17 +176,6 @@ classdef DOFsComputer < handle
                 end
             end
             obj.dofs = dofsElem';
-        end
-        
-        
-        function coor = computeNodesElement(obj,coords)
-            nodesBase = obj.interp.pos_nodes';          
-            base = nodesBase(:,1:obj.mesh.nnodeElem);
-            
-            transfMatrix = (coords-coords(1,:))'/(base-base(:,1));
-            transfVect = coords(1,:)';
-            coor = transfMatrix*(nodesBase-nodesBase(:,1))+transfVect;
-            coor = coor';
         end
         
         
