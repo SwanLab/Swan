@@ -35,11 +35,31 @@ classdef GeometricalFunction < handle
                     fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
                     obj.fHandle = fH;
 
-                case 'Circle'
+                case 'Rectangle'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    xm = x0-sx/2;
+                    xM = x0+sx/2;
+                    ym = y0-sy/2;
+                    yM = y0+sy/2;
+                    fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
+                    obj.fHandle = fH;
+
+                case {'Circle','Cylinder'}
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
+                    obj.fHandle = fH;
+
+                case 'Sphere'
+                    r  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2+(x3(x)-z0).^2-r^2;
                     obj.fHandle = fH;
 
                 case 'VerticalFiber'

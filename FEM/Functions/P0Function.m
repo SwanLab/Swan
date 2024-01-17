@@ -24,7 +24,7 @@ classdef P0Function < FeFunction
             nFlds = size(obj.fValues,2);
             nElem = size(obj.fValues,1);
             fxV = zeros(nFlds,nGaus,nElem);
-            fVals = reshape(obj.fValues,[nFlds, 1, nElem]);
+            fVals = reshape(obj.fValues',[nFlds, 1, nElem]);
             for iGaus = 1:nGaus
                 fxV(:,iGaus,:) = squeeze(fVals);
             end
@@ -54,6 +54,18 @@ classdef P0Function < FeFunction
             p1DiscFun = obj.project('P1D');
             p1DiscFun.plot();
         end
+
+        function plotArrowVector(obj)
+            %figure()
+            a = obj.fValues;
+            xy = obj.mesh.computeBaricenter();
+            x = xy(1,:)';
+            y = xy(2,:)';
+            ax = squeeze(a(1,:,:));
+            ay = squeeze(a(2,:,:));
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
+        end        
 
         function print(obj, filename, software)
             if nargin == 2; software = 'GiD'; end

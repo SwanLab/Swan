@@ -28,7 +28,7 @@ classdef Remesher < handle
           %  s.nodesByElem = obj.connec;
           %  edge = EdgesConnectivitiesComputer(s);
           %  edge.compute();
-           m0 = obj.mesh;
+            m0 = obj.mesh;
             for iLevel = 1:obj.nLevels
                 s.coord  = obj.computeCoords();
                 s.connec = obj.computeConnectivities();

@@ -39,6 +39,14 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorFunctionStiffness(cParams);
                case 'MassMatrixWithFunction'
                    obj = LHSintegratorFunctionMass(cParams);
+               case 'MassMatrixWithFunctionDerivative'
+                   obj = LHSintegratorFunctionDerivativeMass(cParams);                   
+               case 'AdvectionMatrixWithFunctionDerivative'
+                   obj = LHSintegratorFunctionDerivativeAdvection(cParams);  
+               case 'AdvectionMatrixWithFunction'
+                   obj = LHSintegratorFunctionAdvection(cParams); 
+               case 'DivergenceMatrix'
+                   obj = LHSintegratorDivergenceMatrix(cParams); 
            end
        end
    end

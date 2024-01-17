@@ -1,0 +1,112 @@
+/* Create a movie of the heat transfer in a von Karman Vortex Street
+ * Runtime: ~25min
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2019-03-25
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+include "ffmatlib.idp"
+
+real scale = 0.5;
+real width = 4.0*scale;
+real height = 0.8*scale;
+real R = 0.04*scale;
+
+int C1=1,C2=2,C3=3,C4=4,C5=5,C6=6;
+border floor(t=0,width){ x=t; y=0; label=C6;};
+border ceiling(t=width,0){ x=t; y=height; label=C1;};
+border right(t=0,height){ x=width; y=t; label=C3;};
+border left(t=height,0){ x=0; y=t; label=C2;};
+border cir(t=2*pi,0){ x=0.1*width+R*cos(t); y=0.5*height+R*sin(t); label=C4;};
+
+int n=7;
+mesh Th=buildmesh(floor(5*(width/height)*n)+right(5*n)+ceiling(5*(width/height)*n)+left(5*n)+cir(5*n));
+
+fespace Xh(Th, P2);
+fespace Mh(Th, P1);
+Xh u2, v2, u1, v1, up1, up2;
+Mh p, q;
+Xh v, u, w;
+Xh uold = 0;
+Xh vcty;
+
+plot(Th);
+
+int nRuns=700;
+bool reuseMatrix=false;
+real dt=7.0*scale*scale;
+
+//some fantasy heat conducting water to create a nice looking temperature plot
+real vinf = 0.0018/scale;  // m/s
+real rho = 1000.0;         // density kg/m^3
+real nu = 0.9e-6;          // kinematic viscosity m^2/s
+real cp = 4.2*1000.0;      // heat capacity J/kg*K
+real lambda = 7*0.6;       // heat conductivity W/mK
+real mu = nu*rho;
+real a = lambda/(rho*cp);
+
+cout << "Reynolds Number: " << 2*R*vinf/nu << endl;
+cout << "Prandtl Number: " << nu/a << endl;
+
+problem  NS([u1,u2,p],[v1,v2,q],solver=UMFPACK,init=reuseMatrix) =
+    int2d(Th)( u1*v1 + u2*v2                        //Bleibt vom advektiven Teil in Lagrangekoordinaten uebrig
+             + dt*nu*(dx(u1)*dx(v1) + dy(u1)*dy(v1) //Viskoser Therm
+             +     dx(u2)*dx(v2) + dy(u2)*dy(v2))
+             + p*q*1.e-6                            //Stabilisierung
+             - dt*(p*(dx(v1) + dy(v2))/rho          //Drucktherm
+             + q*(dx(u1) + dy(u2))) )               //Mass conservation (Kontinuitaetsgleichung in Variation)
+  - int2d(Th)(convect([up1,up2],-dt,up1)*v1
+             + convect([up1,up2],-dt,up2)*v2)
+  + on(C2,u1=vinf,u2=0)
+  + on(C1,C6,u2=0)
+  + on(C4,u1=0,u2=0)
+;
+
+real Tsurf = 1;
+problem convectdiffusion(u,v) =
+    int2d(Th)(u*v + a*dt*(dx(u)*dx(v) + dy(u)*dy(v)))
+  - int2d(Th)(convect([up1,up2],-dt,uold)*v)
+  + on(C2,u=0)
+  + on(C4,u=Tsurf);
+
+savemesh(Th,"karman_vortex.msh");
+ffSaveVh(Th,Mh,"karman_vortex_mh.txt");
+ffSaveVh(Th,Xh,"karman_vortex_xh.txt");
+
+int k;
+real t=0.0;
+for (int i=0 ; i < nRuns ; i++) {
+   up1 = u1;
+   up2 = u2;
+   NS;
+   reuseMatrix = true;
+   convectdiffusion;
+   uold = u;
+   k=i+10000;
+   /* temperature plot - clip to make the plot looking better */
+   w = u*(abs(u) < 0.3);
+   plot(w, wait = false, value=true, fill=true, ShowAxes=false, cmm="RunNumber: "+i+"/"+nRuns+"  Time: "+t+"sec"+"  vInf: "+vinf+"m/s");
+   t+=dt;
+   /* vorticity */
+   vcty = dx(u2)-dy(u1);
+   ffSaveData(u,"karman_vortex_temperature_"+k+".txt");
+   ffSaveData(vcty,"karman_vortex_vorticity_"+k+".txt");
+   ffSaveData(p,"karman_vortex_pressure_"+k+".txt");
+}
