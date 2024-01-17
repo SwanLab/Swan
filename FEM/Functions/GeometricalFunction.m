@@ -40,11 +40,18 @@ classdef GeometricalFunction < handle
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    xm = x0-sx/2;
-                    xM = x0+sx/2;
-                    ym = y0-sy/2;
-                    yM = y0+sy/2;
-                    fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
+                    fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
+                    obj.fHandle = fH;
+
+                case 'RectangleRotated'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    w  = cParams.omegaDeg;
+                    R  = [cosd(w),sind(w);-sind(w),cosd(w)];
+                    xLoc = @(x) abs(pagemtimes(R,[x1(x)-x0;x2(x)-y0]));
+                    fH = @(x) max(pagemtimes([1,0],xLoc(x))/sx,pagemtimes([0,1],xLoc(x))/sy) - 0.5;
                     obj.fHandle = fH;
 
                 case {'Circle','Cylinder'}
