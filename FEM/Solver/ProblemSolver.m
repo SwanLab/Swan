@@ -22,7 +22,7 @@ classdef ProblemSolver < handle
             obj.init(cParams)
         end
 
-        function u = solve(obj)
+        function [u,L] = solve(obj)
             [LHS, RHS] = obj.computeMatrices();
             sol        = obj.solveSystem(LHS, RHS);
             [u, L]     = obj.cleanupSolution(sol);
@@ -75,6 +75,7 @@ classdef ProblemSolver < handle
                     u(free) = sol(1:1:size(free,2));
                     u(lead) = sol(size(free,2)+1:1:size(sol,1));
                     u(fllw) = u(lead);
+                    u(drch) = bcapp.dirichlet_vals;
                     L = [];
                 otherwise
                     u = [];
@@ -98,9 +99,16 @@ classdef ProblemSolver < handle
                         Km  = obj.stiffness;
                         LHS = [Km C; C' Z];
                     else
-                        CtDir = bcapp.computeLinearConditionsMatrix();
-                        CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
-                        CtPerDir = bcapp.computeSingleDirichletPeriodicCondition();
+                        iV = obj.boundaryConditions.iVoigt;
+                        nV = obj.boundaryConditions.nVoigt;
+                        % CtDir = bcapp.computeLinearConditionsMatrix();
+                        % CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
+                        Ct = bcapp.computeSingleDirichletPeriodicCondition(iV, nV);
+                        C   = Ct';
+                        nC  = size(Ct,1);
+                        Z   = zeros(nC);
+                        Km  = obj.stiffness;
+                        LHS = [Km C; C' Z];
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:size(obj.stiffness);
@@ -143,7 +151,9 @@ classdef ProblemSolver < handle
                         Ct = repmat(dir_vals, [1 nCases]);
                         RHS = [obj.forces; Ct];
                     else
-
+                        iV = obj.boundaryConditions.iVoigt;
+                        nV = obj.boundaryConditions.nVoigt;
+                        RHS = bcapp.computeMicroDisplMonolithicRHS(iV, nV);
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:size(obj.stiffness);

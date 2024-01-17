@@ -768,24 +768,24 @@ isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
 
 sDir{1}.domain    = @(coor) isTop(coor) & isLeft(coor);
 sDir{1}.direction = [1,2];
-sDir{1}.value     = 1;
+sDir{1}.value     = 0;
 
 sDir{2}.domain    = @(coor) isTop(coor) & isRight(coor);
 sDir{2}.direction = [1,2];
-sDir{2}.value     = 1;
+sDir{2}.value     = 0;
 
 sDir{3}.domain    = @(coor) isBottom(coor) & isLeft(coor);
 sDir{3}.direction = [1,2];
-sDir{3}.value     = 1;
+sDir{3}.value     = 0;
 
 sDir{4}.domain    = @(coor) isBottom(coor) & isRight(coor);
 sDir{4}.direction = [1,2];
-sDir{4}.value     = 1;
+sDir{4}.value     = 0;
 
 % Periodic
 
 sPer{1}.leader = @(coor) isLeft(coor);
-sPer{1}.follower = @(coor) isLeft(coor);
+sPer{1}.follower = @(coor) isRight(coor);
 
 %% Force Prescribed
 % Node                Dimension                Value

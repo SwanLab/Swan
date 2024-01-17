@@ -22,6 +22,7 @@ classdef ElasticProblemMicro < handle
 
         solverType, solverMode
         newBC, BCApplier
+        lagrangeMultipliers
     end
 
     methods (Access = public)
@@ -201,8 +202,9 @@ classdef ElasticProblemMicro < handle
             s.boundaryConditions.nVoigt = size(obj.forces,2);
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s); % magic goes here
-            u = pb.solve();
+            [u, L] = pb.solve();
 
+            obj.lagrangeMultipliers = L;
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
@@ -261,55 +263,77 @@ classdef ElasticProblemMicro < handle
         end
 
         function vars = computeFluctuations(obj, iVoigt)
-            vstrain = obj.computeVstrain(iVoigt);
-            vars  = obj.variables;
-            Cmat  = obj.material.C;
-            nstre = obj.material.nstre;
-            nelem = size(Cmat,3);
-            ngaus = obj.quadrature.ngaus;
-            dV = obj.mesh.computeDvolume(obj.quadrature)';
-            strainFluct = permute(obj.strainFluctFun{iVoigt}.fValues, [2 1 3]);
-            stressFluct = permute(obj.stressFluctFun{iVoigt}.fValues, [2 1 3]);
-            
-            stress = zeros(ngaus,nstre,nelem);
-            strain = zeros(ngaus,nstre,nelem);
-            stressHomog = zeros(nstre,1);
-            
-            for igaus = 1:ngaus
-                strain(igaus,1:nstre,:) = vstrain.*ones(1,nstre,nelem) + strainFluct(igaus,1:nstre,:);
-                for istre = 1:nstre
-                    for jstre = 1:nstre
-                        Cij  = squeeze(Cmat(istre,jstre,:,igaus));
-                        C    = squeeze(Cij);
-                        strs = squeeze(stress(igaus,istre,:));
-                        strn = squeeze(strain(igaus,jstre,:));
-                        stress(igaus,istre,:) = strs + C.* strn;
-                    end
-                    strs = squeeze(stress(igaus,istre,:));
-                    stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
+            if strcmp(obj.solverMode, 'DISP')
+                L = obj.lagrangeMultipliers;
+                nPeriodic = length(obj.BCApplier.periodic_leader);
+                nBorderNod = nPeriodic/4; % cause 2D
+                Lx  = sum( L(1:nBorderNod) );
+                Lxy = sum( L(nBorderNod+1:2*nBorderNod));
+                Ly  = sum( L(2*nBorderNod+1 : 3*nBorderNod));
+                Ld = L(3*nBorderNod+1 : end); % dirich (2 per + 6 dir)
+                switch iVoigt
+                    case 1
+                        Lx = Lx + Ld(1) + Ld(2) + Ld(3) + Ld(5);
+                        Ly = Ly + Ld(4) + Ld(7);
+                    case 2
+                        Ly = Ly + Ld(1) + Ld(2) + Ld(4) + Ld(6);
+                        Lx = Lx + Ld(3) + Ld(7);
+                    case 3
+                        Lxy = Lxy + Ld(1) + Ld(2);
                 end
+                obj.Chomog(iVoigt,:) = [-Lx; -Ly; -Lxy];
+
+            else
+                vstrain = obj.computeVstrain(iVoigt);
+                vars  = obj.variables;
+                Cmat  = obj.material.C;
+                nstre = obj.material.nstre;
+                nelem = size(Cmat,3);
+                ngaus = obj.quadrature.ngaus;
+                dV = obj.mesh.computeDvolume(obj.quadrature)';
+                strainFluct = permute(obj.strainFluctFun{iVoigt}.fValues, [2 1 3]);
+                stressFluct = permute(obj.stressFluctFun{iVoigt}.fValues, [2 1 3]);
+                
+                stress = zeros(ngaus,nstre,nelem);
+                strain = zeros(ngaus,nstre,nelem);
+                stressHomog = zeros(nstre,1);
+                
+                for igaus = 1:ngaus
+                    strain(igaus,1:nstre,:) = vstrain.*ones(1,nstre,nelem) + strainFluct(igaus,1:nstre,:);
+                    for istre = 1:nstre
+                        for jstre = 1:nstre
+                            Cij  = squeeze(Cmat(istre,jstre,:,igaus));
+                            C    = squeeze(Cij);
+                            strs = squeeze(stress(igaus,istre,:));
+                            strn = squeeze(strain(igaus,jstre,:));
+                            stress(igaus,istre,:) = strs + C.* strn;
+                        end
+                        strs = squeeze(stress(igaus,istre,:));
+                        stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
+                    end
+                end
+    
+                obj.Chomog(:,iVoigt) = stressHomog;
+    
+                a.mesh       = obj.mesh;
+                a.fValues    = permute(stress, [2 1 3]);
+                a.quadrature = obj.quadrature;
+                obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
+    
+                a.mesh       = obj.mesh;
+                a.fValues    = permute(strain, [2 1 3]);
+                a.quadrature = obj.quadrature;
+                obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
+    
+    
+                vars.stress_fluct = stressFluct;
+                vars.strain_fluct = strainFluct;
+    
+                vars.stress = stress;
+                vars.strain = strain;
+                vars.stress_homog = stressHomog;
+                obj.variables = vars;
             end
-
-            obj.Chomog(:,iVoigt) = stressHomog;
-
-            a.mesh       = obj.mesh;
-            a.fValues    = permute(stress, [2 1 3]);
-            a.quadrature = obj.quadrature;
-            obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
-
-            a.mesh       = obj.mesh;
-            a.fValues    = permute(strain, [2 1 3]);
-            a.quadrature = obj.quadrature;
-            obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
-
-
-            vars.stress_fluct = stressFluct;
-            vars.strain_fluct = strainFluct;
-
-            vars.stress = stress;
-            vars.strain = strain;
-            vars.stress_homog = stressHomog;
-            obj.variables = vars;
         end
 
         function n = createFunctionNames(obj, name)
