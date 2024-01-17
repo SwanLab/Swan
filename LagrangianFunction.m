@@ -36,6 +36,14 @@ classdef LagrangianFunction < FeFunction
             end
 
         end
+        
+        function c = getCoord(obj)
+            c = obj.coord;
+        end
+        
+        function c = getConnec(obj)
+            c = obj.connec;
+        end
 
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
