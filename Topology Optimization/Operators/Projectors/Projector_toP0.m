@@ -28,7 +28,9 @@ classdef Projector_toP0 < Projector
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('CONSTANT');
             dv = obj.mesh.computeDvolume(quad);
-            obj.M = diag(sum(dv(1,:),1));
+            a = sum(dv(1,:),1);
+            obj.M = spdiags(a',0,length(a),length(a));
+         %   obj.M = spdiags(sum(dv(1,:),1),0);
         end
 
         function rhs = createRHS(obj, fun)

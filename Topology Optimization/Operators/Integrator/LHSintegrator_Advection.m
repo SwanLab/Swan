@@ -1,42 +1,36 @@
-classdef LHSintegrator_Advection < LHSintegrator
+classdef LHSintegrator_Advection < handle
     
     properties (Access = private)
-        geometry
+        mesh
+        test, trial        
         b
         rho
-        quadType
-        field
+        quadrature
+        quadratureOrder
     end
 
     methods (Access = public)
         
         function obj = LHSintegrator_Advection(cParams)
-            obj.mesh         = cParams.mesh;
-            obj.globalConnec = cParams.globalConnec;
-            obj.b            = cParams.b;
-            obj.rho          = cParams.rho;
-            obj.quadType     = cParams.quadType;    
-            obj.field        = cParams.field;
-            obj.createQuadrature();
-            obj.createInterpolation();
-            obj.createGeometry();
+            obj.init(cParams);
+            obj.createQuadrature();            
         end
 
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = compute(obj)
             [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = obj.computeElementalLHS();
-            CX = obj.assembleMatrixField(CX);
-            CY = obj.assembleMatrixField(CY);
-            DX = obj.assembleMatrixField(DX);
-            DY = obj.assembleMatrixField(DY);
-            EX = obj.assembleMatrixField(EX);
-            EY = obj.assembleMatrixField(EY);
-            Kxx = obj.assembleMatrixField(Kxx);
-            Kxy = obj.assembleMatrixField(Kxy);
-            Kyy = obj.assembleMatrixField(Kyy);
-            Mxx = obj.assembleMatrixField(Mxx);
-            Mxy = obj.assembleMatrixField(Mxy);
-            Myy = obj.assembleMatrixField(Myy);
-            Mrho = obj.assembleMatrixField(Mrho);
+            CX = obj.assembleMatrix(CX);
+            CY = obj.assembleMatrix(CY);
+            DX = obj.assembleMatrix(DX);
+            DY = obj.assembleMatrix(DY);
+            EX = obj.assembleMatrix(EX);
+            EY = obj.assembleMatrix(EY);
+            Kxx = obj.assembleMatrix(Kxx);
+            Kxy = obj.assembleMatrix(Kxy);
+            Kyy = obj.assembleMatrix(Kyy);
+            Mxx = obj.assembleMatrix(Mxx);
+            Mxy = obj.assembleMatrix(Mxy);
+            Myy = obj.assembleMatrix(Myy);
+            Mrho = obj.assembleMatrix(Mrho);
         end
         
     end
@@ -44,58 +38,61 @@ classdef LHSintegrator_Advection < LHSintegrator
    methods (Access = protected)
         
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeElementalLHS(obj)
-            dvolu = obj.mesh.computeDvolume(obj.quadrature);
-            ngaus = obj.quadrature.ngaus;
-            nelem = obj.mesh.nelem;
-    %        nstre = obj.dim.nstre;
-            ndpe  = obj.field.dim.ndofsElem;
-    %        lhs = zeros(ndpe,ndpe,nelem);
-            dN = obj.geometry.dNdx;
-            N  = obj.interpolation.shape;
+            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
+            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            dVolu = obj.mesh.computeDvolume(obj.quadrature);
+            nGaus = obj.quadrature.ngaus;
+            nElem = size(dVolu,2);
 
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = obj.b;
-            bF = FeFunction(s);
-            bElem = bF.fElem;
+            nNodETs = size(dNdxTs,2);
+            nDofETs = nNodETs*obj.test.ndimf;
+            nNodETr = size(dNdxTr,2);
+            nDofETr = nNodETr*obj.trial.ndimf;
 
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = obj.rho;
-            rhoF = FeFunction(s);
-            rhoElem = rhoF.fElem;
+            shapesTest  = obj.test.computeShapeFunctions(obj.quadrature);
+            shapesTrial = obj.trial.computeShapeFunctions(obj.quadrature);          
+
+           % N  = obj.interpolation.shape;
 
 
+            bD   = obj.b.project('P1D');
+            rhoD = obj.rho.project('P1D');
 
-            cX = zeros(ndpe,ndpe,nelem);
-            cY = zeros(ndpe,ndpe,nelem);
-            dX = zeros(ndpe,ndpe,nelem);
-            dY = zeros(ndpe,ndpe,nelem);    
-            eX = zeros(ndpe,ndpe,nelem);
-            eY = zeros(ndpe,ndpe,nelem);  
-            Kxx = zeros(ndpe,ndpe,nelem);  
-            Kyy = zeros(ndpe,ndpe,nelem);  
-            Kxy = zeros(ndpe,ndpe,nelem);  
-            Mxx = zeros(ndpe,ndpe,nelem);  
-            Myy = zeros(ndpe,ndpe,nelem);  
-            Mxy = zeros(ndpe,ndpe,nelem);  
-            Mrho = zeros(ndpe,ndpe,nelem);  
+            bElem   = bD.fValues;
+            rhoElem = rhoD.fValues;
 
-            for igaus = 1:ngaus
-                dNg = dN(:,:,:,igaus);
-                dV(:,1) = dvolu(igaus, :);                
-                for iNode = 1:3
+
+
+            cX = zeros(nDofETs,nDofETr,nElem);
+            cY = zeros(nDofETs,nDofETr,nElem);
+            dX = zeros(nDofETs,nDofETr,nElem);
+            dY = zeros(nDofETs,nDofETr,nElem);    
+            eX = zeros(nDofETs,nDofETr,nElem);
+            eY = zeros(nDofETs,nDofETr,nElem);  
+            Kxx = zeros(nDofETs,nDofETr,nElem);  
+            Kyy = zeros(nDofETs,nDofETr,nElem);  
+            Kxy = zeros(nDofETs,nDofETr,nElem);  
+            Mxx = zeros(nDofETs,nDofETr,nElem);  
+            Myy = zeros(nDofETs,nDofETr,nElem);  
+            Mxy = zeros(nDofETs,nDofETr,nElem);  
+            Mrho = zeros(nDofETs,nDofETr,nElem);  
+
+            for igaus = 1:nGaus
+                dNg     = dNdxTs(:,:,:,igaus);
+                Ng      = shapesTest(:,igaus);
+                dV(:,1) = dVolu(igaus, :);                
+                for iNode = 1:nNodETs
                     dNi = squeezeParticular(dNg(:,iNode,:),2);
-                    Ni = N(iNode,igaus);
-                    for jNode = 1:3
+                    Ni  = Ng(iNode);
+                    for jNode = 1:nNodETs
                         dNj = squeezeParticular(dNg(:,jNode,:),2);   
-                        Nj = N(jNode,igaus);
-                        for kNode = 1:3
+                        Nj  = Ng(jNode);
+                        for kNode = 1:nNodETs
                             bXk = squeeze(bElem(1,kNode,:));
                             bYk = squeeze(bElem(2,kNode,:));
                             rhok = squeeze(rhoElem(1,kNode,:));
                             
-                            Nk = N(kNode,igaus);
+                            Nk  = Ng(kNode);
                             dNk = squeezeParticular(dNg(:,kNode,:),2);   
                             
 
@@ -126,10 +123,10 @@ classdef LHSintegrator_Advection < LHSintegrator
 
                             %%% RegularizationTerms
                     
-                            for lNode = 1:3
+                            for lNode = 1:nNodETs
                               
 
-                                Nl = N(lNode,igaus);
+                                Nl = Ng(lNode);
                                 dNl = squeezeParticular(dNg(:,lNode,:),2);
                                 dNldx(:,1) = squeeze(dNl(1,:));
                                 dNldy(:,1) = squeeze(dNl(2,:));
@@ -204,42 +201,37 @@ classdef LHSintegrator_Advection < LHSintegrator
             EX = eX;
             EY = eY;
         end
-
-
-       function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature(obj.quadType);
-           obj.quadrature = quad;
-       end        
-        
    end
     
    methods (Access = private)
-       
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
+
+       function init(obj, cParams)
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
+            obj.mesh  = cParams.mesh;
+            obj.b            = cParams.b;
+            obj.rho          = cParams.rho;            
+            obj.setQuadratureOrder(cParams);
         end
 
-        function Bcomp = createBComputer(obj)
-            s.dim          = obj.dim;
-            s.geometry     = obj.geometry;
-            s.globalConnec = obj.globalConnec;
-            s.dofsInElem   = obj.dofsInElem;
-            Bcomp = BMatrixComputer(s);
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = obj.trial.order;
+            end
         end
 
-        function LHS = assembleMatrixField(obj, lhs)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            LHS = assembler.assembleFields(lhs, obj.field, obj.field);
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
+            obj.quadrature = quad;
+        end        
+
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
         end        
        
    end

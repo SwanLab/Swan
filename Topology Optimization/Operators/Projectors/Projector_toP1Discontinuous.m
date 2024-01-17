@@ -7,10 +7,21 @@ classdef Projector_toP1Discontinuous < Projector
         end
 
         function xProj = project(obj, x)
-            LHS = obj.computeLHS();
-            RHS = obj.computeRHS(x);
-            f = LHS\RHS;
-            fVals = obj.reshapeFValues(f, x.ndimf);
+            if isequal(class(x),'P1Function')
+                fVals = zeros(x.nDofsElem,obj.mesh.nelem);
+                fVals = obj.reshapeFValues(fVals,x.ndimf);
+                nodes = obj.mesh.connec;
+                for iDim = 1:x.ndimf
+                    for iNode = 1:obj.mesh.nnodeElem
+                       fVals(iDim,iNode,:) = x.fValues(nodes(:,iNode),iDim);
+                    end
+                end                
+            else
+                LHS = obj.computeLHS();
+                RHS = obj.computeRHS(x);
+                f = LHS\RHS;
+                fVals = obj.reshapeFValues(f, x.ndimf);
+            end
             s.mesh    = obj.mesh;
             s.fValues = fVals;
             xProj = P1DiscontinuousFunction(s);
