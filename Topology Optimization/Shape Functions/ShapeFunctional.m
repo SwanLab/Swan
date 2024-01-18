@@ -62,7 +62,7 @@ classdef ShapeFunctional < handle
                 case 'ShFunc_Perimeter'
                     switch obj.type
                         case 'Neumann'
-                            obj.delta = 1/4;
+                            obj.delta = 1/6;
                     end
             end
             obj.value = obj.value/(abs(obj.value0)+obj.delta);
