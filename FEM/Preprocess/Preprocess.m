@@ -133,11 +133,12 @@ classdef Preprocess<handle
             fixnodes{2} = fixnodes_p;
         end
         
-        function forces_adjoint=getBC_adjoint(filename)
+        function [forces_adjoint,pl]=getBC_adjoint(filename, mesh)
             run(filename)
-            % for i = 1:numel(sPL)
-            %     pl = PointLoad(obj.mesh, sPL{i});
-            % end
+            pl = [];
+            for i = 1:numel(sPLAdj)
+                pl = [pl, PointLoad(mesh, sPLAdj{i})];
+            end
             forces_adjoint = pointload_adjoint;
         end
     end

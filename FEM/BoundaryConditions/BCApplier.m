@@ -148,6 +148,7 @@ classdef BCApplier < handle
         end
 
         function createDirichletFun(obj)
+            if ~isequal(obj.dirichletInput, [])
             opndofs  = obj.dirichletInput(1).fun.nDofs;
             ndimf  = obj.dirichletInput(1).fun.ndimf;
             dirich = P1Function.create(obj.mesh, ndimf);
@@ -170,6 +171,7 @@ classdef BCApplier < handle
             obj.dirichlet_dofs = dir_dofs;
             obj.dirichlet_vals = dir_vals;
             obj.dirichletFun = dirich;
+            end
         end
 
         function createPeriodicConditions(obj)

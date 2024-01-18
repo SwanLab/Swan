@@ -1831,7 +1831,7 @@ pointload_complete = [
 
 isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+isMiddle = @(coor) (abs(coor(:,2)) <=  max(coor(:,2)/2));
 
 % Dirichlet
 sDir{1}.domain    = @(coor) isLeft(coor);
