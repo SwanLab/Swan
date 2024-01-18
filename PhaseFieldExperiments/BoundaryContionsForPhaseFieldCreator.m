@@ -33,9 +33,11 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         end
         
        function createBoundaryConditions(obj,iter,nIter)
-          %  obj.createBendingConditions(iter,nIter)
-          %  obj.createForceTractionConditions(iter,nIter)
-            obj.createDisplacementUniaxialConditions(iter)
+          % obj.createBendingConditions(iter,nIter)
+          % obj.createForceTractionConditions(iter,nIter)
+          % obj.createDisplacementTractionConditions(iter,nIter)
+          % obj.createLshapeDisplacementConditions(iter)
+           obj.createFiberMatrixDisplacementConditions(iter,nIter);
         end
         
         
@@ -63,7 +65,8 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         end
         
          function createForceTractionConditions(obj,iter,nIter)
-            Force = 1.4;
+            Fval = [0 0.01 0.02];
+
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide) < 1e-12;
             UpSide  = max(obj.mesh.coord(:,2));
@@ -72,27 +75,26 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
             nodes = 1:obj.mesh.nnodes;
             
             ndim = 2;
-            bc.dirichlet = zeros(ndim*length(nodes(isInDown)),3);
+            DirichletDown = zeros(ndim*length(nodes(isInDown)),3);
+            DirichletUp   = zeros(length(nodes(isInUp)),3);
             for i=1:ndim
-                bc.dirichlet(i:2:end,1) = nodes(isInDown);
-                bc.dirichlet(i:2:end,2) = 1;
+                DirichletDown(i:2:end,1) = nodes(isInDown);
+                DirichletDown(i:2:end,2) = i;
+                DirichletDown(:,3) = 0;
             end
-            
-            bc.dirichlet(2:2:end,3) = 0;
-            bc.dirichlet = [1 1 0; 
-                            1 2 0;
-                            2 1 0;
-                            2 2 0;
-                            3 1 0;
-                            4 1 0];                     
+            DirichletUp(:,1) = nodes(isInUp);
+            DirichletUp(:,2) = 1;
+            DirichletUp(:,3) = 0;
+
+            bc.dirichlet = [DirichletDown; DirichletUp];                  
             
             bc.pointload(:,1) = nodes(forceNodes);
             bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = Force*(iter/nIter);
+            bc.pointload(:,3) = Fval(iter);
             obj.boundaryConditions = bc;            
          end
         
-         function createDisplacementUniaxialConditions(obj,iter)
+         function createDisplacementTractionConditions(obj,iter,nIter)
             DisplacementStep = 1e-4;
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide) < 1e-12;
@@ -110,14 +112,80 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
 
                DirichletUp(i:2:end,1) = nodes(isInUp);
                DirichletUp(i:2:end,2) = i;                
-            end            
+            end   
+            % %%%%%%%%%% RETURN TO ORIGIN %%%%%
+            % if iter > nIter/2
+            %     iter = nIter - iter; 
+            % end
+            % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             DirichletUp(2:2:end,3) = DisplacementStep*(iter);
 
             bc.dirichlet = [DirichletDown; DirichletUp];
             bc.pointload = [];
 
             obj.boundaryConditions = bc;             
-         end        
+         end
+         
+         function createLshapeDisplacementConditions(obj,iter)
+            DisplacementStep = 1e-4;
+            isInDown = abs(obj.mesh.coord(:,2)-0) < 1e-12;
+            isInRight = abs(obj.mesh.coord(:,1)-1) < 1e-12;
+            isInMiddle = abs(obj.mesh.coord(:,2)-0.5) < 1e-12;
+            isInTip = isInRight & isInMiddle;
+            nodes = 1:obj.mesh.nnodes;
+
+            ndim = 2;
+            DirichletDown = zeros(ndim*length(nodes(isInDown)),3);
+            DirichletTip   = zeros(length(nodes(isInTip)),3);
+            for i=1:ndim
+                DirichletDown(i:2:end,1) = nodes(isInDown);
+                DirichletDown(i:2:end,2) = i;
+                DirichletDown(:,3) = 0;               
+            end  
+            DirichletTip(:,1) = nodes(isInTip);
+            DirichletTip(:,2) = 2;
+            DirichletTip(:,3) = DisplacementStep*(iter);
+
+            bc.dirichlet = [DirichletDown; DirichletTip];
+            bc.pointload = [];
+
+            obj.boundaryConditions = bc; 
+         end
+
+         function createFiberMatrixDisplacementConditions(obj,iter,nIter)
+            DisplacementStep = 1e-4;
+            DownSide = min(obj.mesh.coord(:,2));
+            isInDown = abs(obj.mesh.coord(:,2)-DownSide) < 1e-12;
+            UpSide  = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            
+            isInCircle = ((obj.mesh.coord(:,1)-0.5).^2 + (obj.mesh.coord(:,2)-1.5).^2) < (0.2^2 + 1e-5);
+
+            nodes = 1:obj.mesh.nnodes;
+
+            ndim = 2;
+            DirichletDown = zeros(ndim*length(nodes(isInDown)),3);
+            DirichletUp   = zeros(ndim*length(nodes(isInUp)),3);
+            DirichletCircle = zeros(ndim*length(nodes(isInCircle)),3);
+            for i=1:ndim
+                DirichletDown(i:2:end,1) = nodes(isInDown);
+                DirichletDown(i:2:end,2) = i;
+                DirichletDown(:,3) = 0;
+
+                DirichletCircle(i:2:end,1) = nodes(isInCircle);
+                DirichletCircle(i:2:end,2) = i;
+                DirichletCircle(:,3) = 0;
+
+               DirichletUp(i:2:end,1) = nodes(isInUp);
+               DirichletUp(i:2:end,2) = i;                
+            end   
+            DirichletUp(2:2:end,3) = DisplacementStep*(iter);
+
+            bc.dirichlet = [DirichletDown; DirichletUp; DirichletCircle];
+            bc.pointload = [];
+
+            obj.boundaryConditions = bc;       
+         end
         
     end
     

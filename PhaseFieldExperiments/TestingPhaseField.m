@@ -4,11 +4,12 @@ classdef TestingPhaseField < handle
         E = 210;
         nu = 0.3;
         Gc = 5e-3;
+        l0 = 0.1;
+        pExp = 2;
         %fc = 1;
     end
 
     properties (Access = private)
-
     end
 
     properties (Access = private)
@@ -16,6 +17,7 @@ classdef TestingPhaseField < handle
         initialPhaseField
         materialPhaseField
         dissipationPhaseField
+        Constant
     end
 
     methods (Access = public)
@@ -42,6 +44,8 @@ classdef TestingPhaseField < handle
             s.initialPhaseField = obj.initialPhaseField;
             s.materialPhaseField = obj.materialPhaseField;
             s.dissipationPhaseField = obj.dissipationPhaseField;
+            s.l0 = obj.l0;
+            s.Constant = obj.Constant;
             PhaseFieldComputer(s);
         end
 
@@ -49,7 +53,9 @@ classdef TestingPhaseField < handle
             obj.createOneElementMesh();
             %obj.createTwoElementMesh();
             %obj.createArbitraryElementMesh(10);
-            %obj.createOpenHoleMesh();
+            obj.createFiberMatrixMesh();
+            %obj.createSingleEdgeNotchedMesh();
+            %obj.createLshapeMesh();
         end
 
         function createInitialPhaseField(obj)
@@ -60,11 +66,6 @@ classdef TestingPhaseField < handle
 
             phi = xFun.project('P1');
             obj.initialPhaseField = phi;
-            obj.initialPhaseField.plot()
-            title('Initial phase field')
-            colorbar
-            clim([0 1])
-            drawnow
         end
 
         function createMaterialPhaseField(obj)
@@ -80,8 +81,14 @@ classdef TestingPhaseField < handle
         function createDissipationInterpolation(obj)
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation = 'PhaseFieldD';
-            s.pExp = 1;
+            s.pExp = obj.pExp;
             obj.dissipationPhaseField = MaterialInterpolation.create(s);
+
+            if s.pExp == 1
+                obj.Constant = obj.Gc/(4*(2/3));
+            elseif s.pExp == 2
+                obj.Constant = obj.Gc/(4*(1/2));
+            end
         end
 
     end
@@ -101,14 +108,14 @@ classdef TestingPhaseField < handle
         end
 
         function createTwoElementMesh(obj)
-            sM.coord = [-1,-1;
-                1,-1;
-                1,1;
-                -1,1;
-                -1 3;
-                1 3];
-            sM.connec = [1 2 3 4
-                4 3 6 5];
+            sM.coord = [0,0;
+                        1,0;
+                        2,0;
+                        0,1;
+                        1,1;
+                        2,1];
+            sM.connec = [1 2 5 4
+                2 3 6 5];
 
             m = Mesh(sM);
             m.plot();
@@ -120,7 +127,7 @@ classdef TestingPhaseField < handle
             obj.mesh = m;
         end
 
-        function createOpenHoleMesh(obj)
+        function createFiberMatrixMesh(obj)
             % Generate coordinates
             x1 = linspace(0,1,20);
             x2 = linspace(1,2,20);
@@ -149,6 +156,20 @@ classdef TestingPhaseField < handle
             
             obj.mesh = uMesh.createInnerMeshGoodConditioning();
             obj.mesh.plot;
+        end
+
+        function createSingleEdgeNotchedMesh(obj)
+            file = 'PF_SENmesh';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
+        end
+
+        function createLshapeMesh(obj)
+            file = 'PF_Lmesh';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
         end
 
         function matInt = createMaterialInterpolation(obj)

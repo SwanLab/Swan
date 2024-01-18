@@ -6,6 +6,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        reactions
     end
 
     properties (Access = private)
@@ -189,6 +190,7 @@ classdef ElasticProblem < handle
             u = obj.solver.solve(Kred,Fred);
             u = bc.reducedToFullVector(u);
 %             obj.variables.d_u = u;
+            obj.computeReactions(u);
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -197,6 +199,10 @@ classdef ElasticProblem < handle
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
+        end
+
+        function computeReactions(obj,u)
+            obj.reactions = obj.LHS*u;
         end
 
         function computeStrain(obj)
