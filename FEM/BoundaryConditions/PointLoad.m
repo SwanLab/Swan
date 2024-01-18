@@ -3,7 +3,11 @@ classdef PointLoad < BoundaryCondition
     properties (Access = public)
         fun
         domain
+        direction
         type = 'Neumann';
+
+        dofs
+        values
     end
     
     properties (Access = private)
@@ -30,6 +34,22 @@ classdef PointLoad < BoundaryCondition
             obj.fun    = fun;
             obj.domain = s.domain;
             obj.mesh   = mesh;
+            obj.direction = s.direction;
+            obj.dofs = obj.getDofs();
+            obj.values = obj.getValues();
+        end
+
+        function dofs = getDofs(obj)
+            ndimf = obj.fun.ndimf;
+            nodes = find(obj.domain(obj.mesh.coord));
+            dofs = ndimf*(nodes - 1) + obj.direction;
+            dofs = dofs(:);
+        end
+
+        function v = getValues(obj)
+            dofs = obj.domain(obj.mesh.coord);
+            vals = obj.fun.fValues(dofs, obj.direction);
+            v = vals(:);
         end
         
     end

@@ -7,12 +7,15 @@ classdef BCApplier < handle
     properties (Access = public)
         dirichlet_dofs, dirichlet_vals
         dirichletFun
+        pointload_dofs, pointload_vals
+        pointloadFun
         periodic_leader, periodic_follower
     end
     
     properties (Access = private)
         mesh
         dirichletInput
+        pointloadInput
         periodicInput
     end
     
@@ -25,6 +28,7 @@ classdef BCApplier < handle
         function obj = BCApplier(cParams)
             obj.init(cParams)
             obj.createDirichletFun();
+            obj.createPointloadFun();
             obj.createPeriodicConditions();
         end
         
@@ -113,11 +117,38 @@ classdef BCApplier < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.dirichletInput = cParams.boundaryConditions.dirichletFun;
+            obj.pointloadInput  = cParams.boundaryConditions.pointloadFun;
             obj.periodicInput  = cParams.boundaryConditions.periodicFun;
         end
 
+        function createPointloadFun(obj)
+            if ~isequal(obj.pointloadInput, [])
+                opndofs  = obj.pointloadInput(1).fun.nDofs;
+                ndimf  = obj.pointloadInput(1).fun.ndimf;
+                pl = P1Function.create(obj.mesh, ndimf);
+                pl_dofs = [];
+                pl_vals = [];
+                pl_domain = @(coor) obj.pointloadInput(1).domain(coor);
+                for i = 1:numel(obj.pointloadInput)
+                    values = obj.pointloadInput(i).getValues();
+                    dofs   = obj.pointloadInput(i).getDofs();
+        
+                    % fV = dirich.fValues(:); % wrong, it needs to be overwritten
+                    % fV(dofs) = values;
+                    % fV = reshape(fV, [ndimf ndofs/ndimf])';
+                    % dirich.fValues = fV;
+                    pl_dofs = [pl_dofs; dofs];
+                    pl_vals = [pl_vals; values];
+                    pl_domain = @(coor) pl_domain(coor) | obj.pointloadInput(i).domain(coor);
+                end
+                obj.pointload_dofs = pl_dofs;
+                obj.pointload_vals = pl_vals;
+                obj.pointloadFun = pl;
+            end
+        end
+
         function createDirichletFun(obj)
-            ndofs  = obj.dirichletInput(1).fun.nDofs;
+            opndofs  = obj.dirichletInput(1).fun.nDofs;
             ndimf  = obj.dirichletInput(1).fun.ndimf;
             dirich = P1Function.create(obj.mesh, ndimf);
             dir_fV = [];

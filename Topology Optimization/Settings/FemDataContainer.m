@@ -15,8 +15,8 @@ classdef FemDataContainer < AbstractSettings
         material
         ngaus
         interpolationType
-        solverType = [];
-        solverMode = [];
+        solverType = 'REDUCED';
+        solverMode = 'DISP';
         newBC
     end
     
@@ -38,6 +38,9 @@ classdef FemDataContainer < AbstractSettings
                 obj.readFemInputFile();
                 obj.getNgaus();
                 obj.createMaterial();
+                if strcmp(obj.scale, 'MICRO')
+                    obj.solverMode = 'FLUC';
+                end
             end
         end
         

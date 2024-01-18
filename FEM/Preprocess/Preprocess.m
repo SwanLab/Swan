@@ -135,6 +135,9 @@ classdef Preprocess<handle
         
         function forces_adjoint=getBC_adjoint(filename)
             run(filename)
+            % for i = 1:numel(sPL)
+            %     pl = PointLoad(obj.mesh, sPL{i});
+            % end
             forces_adjoint = pointload_adjoint;
         end
     end
