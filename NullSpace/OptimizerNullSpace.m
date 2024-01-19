@@ -53,8 +53,6 @@ classdef OptimizerNullSpace < Optimizer
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
             while ~obj.hasFinished
@@ -150,12 +148,12 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = 0.001;
+                obj.eta = inf;
             else
                 if obj.aG <= 0.5*obj.aGmax
-                    obj.eta = 0.001;
+                    obj.eta = 0.05;
                 else
-                    obj.eta = 0.001;
+                    obj.eta = 0.01;
                 end
             end
         end
@@ -173,18 +171,18 @@ classdef OptimizerNullSpace < Optimizer
             d.nullSpaceCoefficient  = obj.aJ;
             d.rangeSpaceCoefficient = obj.aG;
             obj.dualUpdater.update(d);
-            obj.mOld = obj.computeMeritFunction(x0);
+            obj.mOld = obj.computeMeritFunction();
             obj.computeMeritGradient();
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
                 obj.designVariable.update(x);
-                s.x  = x;
+                obj.cost.computeFunctionAndGradient();
+                obj.constraint.computeFunctionAndGradient();
                 s.x0 = x0;
                 s.g0 = g0;
                 obj.checkStep(s);
             end
-            obj.updateOldValues(x);
         end
 
         function calculateInitialStep(obj)
@@ -214,10 +212,9 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function checkStep(obj,s)
-            x    = s.x;
             x0   = s.x0;
             g0   = s.g0;
-            mNew = obj.computeMeritFunction(x);
+            mNew = obj.computeMeritFunction();
             g    = obj.constraint.value;
             v0   = obj.computeVolume(g0);
             v    = obj.computeVolume(g);
@@ -249,10 +246,7 @@ classdef OptimizerNullSpace < Optimizer
             v            = targetVolume*(1+g);
         end
 
-        function mF = computeMeritFunction(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+        function mF = computeMeritFunction(obj)
             l  = obj.dualVariable.value;
             J  = obj.cost.value;
             h  = obj.constraint.value;
@@ -260,9 +254,6 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = saveOldValues(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
         end

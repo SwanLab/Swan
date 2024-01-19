@@ -57,7 +57,7 @@ classdef ShapeFunctional < handle
             if isempty(obj.value0)
                 switch class(obj)
                     case 'ShFunc_Perimeter'
-                        obj.value0 = 4.2; % P analitic micro gripper
+                        obj.value0 = 3.8; % P analitic micro gripper
                     otherwise
                         obj.value0 = obj.value;
                 end
