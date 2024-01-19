@@ -11,13 +11,13 @@ classdef FilterPDE < handle
         problemLHS
         LHS
         RHS
-        bc
+        % bc
     end
 
     methods (Access = public)
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            obj.computeBoundaryConditions(cParams);
+            % obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
@@ -70,7 +70,7 @@ classdef FilterPDE < handle
 
         function computeLHS(obj)
             lhs     = obj.problemLHS.compute(obj.epsilon);
-            lhs     = obj.bc.fullToReducedMatrix(lhs);
+            % lhs     = obj.bc.fullToReducedMatrix(lhs); % its the same
             obj.LHS = decomposition(lhs);
         end
 
@@ -86,7 +86,8 @@ classdef FilterPDE < handle
             int        = RHSintegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
-            rhsR       = obj.bc.fullToReducedVector(rhs);
+            % rhsR       = obj.bc.fullToReducedVector(rhs);
+            rhsR       = rhs; % its the same
             obj.RHS    = rhsR;
         end
 
@@ -94,7 +95,8 @@ classdef FilterPDE < handle
             s.type = 'DIRECT';
             solver = Solver.create(s);
             x      = solver.solve(obj.LHS,obj.RHS);
-            xR     = obj.bc.reducedToFullVector(x);
+            % xR     = obj.bc.reducedToFullVector(x);
+            xR = x; % its the same
             obj.trial.fValues = xR;
         end
 
