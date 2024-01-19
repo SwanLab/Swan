@@ -7370,15 +7370,15 @@ gidlnods = [
 % ];
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-vertices = get_vertices(gidcoord);
+% vertices = get_vertices(gidcoord);
 
 dirichlet_data = [ ];
-for i = 1:length(vertices)
-    verticeNumber = vertices(i,1);
-    for j = 1:3
-        dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
-    end
-end
+% for i = 1:length(vertices)
+%     verticeNumber = vertices(i,1);
+%     for j = 1:3
+%         dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
+%     end
+% end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 % dirichlet_data = [ ]; ??  

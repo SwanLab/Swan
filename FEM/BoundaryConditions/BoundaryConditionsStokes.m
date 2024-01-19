@@ -1,4 +1,4 @@
-classdef BoundaryConditions < handle
+classdef BoundaryConditionsStokes < handle
 
     properties (GetAccess = public)
         dirichlet
@@ -24,7 +24,7 @@ classdef BoundaryConditions < handle
     
     methods (Access = public)
         
-        function obj = BoundaryConditions(cParams)
+        function obj = BoundaryConditionsStokes(cParams)
             obj.init(cParams);
         end
 
