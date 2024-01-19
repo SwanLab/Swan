@@ -31,7 +31,6 @@ classdef ElasticProblemMicro < handle
             obj.init(cParams);
             obj.createQuadrature();
             obj.createDisplacementFun();
-            obj.createBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
         end
@@ -42,11 +41,10 @@ classdef ElasticProblemMicro < handle
             nCases = obj.material.nstre;
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
-                obj.compDisp(i);
-                % obj.computeDisplacements(i);
+                obj.computeDisplacement(i);
                 obj.computeStrain(i);
                 obj.computeStress(i);
-                obj.computeFluctuations(i);
+                obj.computeChomogContribution(i);
             end
         end
 
@@ -151,20 +149,6 @@ classdef ElasticProblemMicro < handle
             dim = d;
         end
 
-        function createBoundaryConditions(obj)
-            dim = obj.getFunDims();
-            bc = obj.inputBC;
-            bc.ndimf = dim.ndimf;
-            bc.ndofs = dim.ndofs;
-            s.mesh  = obj.mesh;
-            s.scale = obj.scale;
-            s.bc    = {bc};
-            s.ndofs = dim.ndofs;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.newBC;
@@ -192,7 +176,7 @@ classdef ElasticProblemMicro < handle
             obj.forces = rhs;
         end
 
-        function u = compDisp(obj, iVoigt)
+        function u = computeDisplacement(obj, iVoigt)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
             s.stiffness = obj.stiffness;
@@ -212,24 +196,6 @@ classdef ElasticProblemMicro < handle
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
-        end
-
-        function u = computeDisplacements(obj, iVoigt)
-            [Kred, Fred] = obj.applyBoundaryConditions(iVoigt);
-            uRed = obj.solver.solve(Kred,Fred);
-            u = obj.boundaryConditions.reducedToFullVector(uRed);
-
-            obj.variables.d_u(:,iVoigt) = u;
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
-            obj.uFun{iVoigt} = uFeFun;
-        end
-
-        function [Kred, Fred] = applyBoundaryConditions(obj,iVoigt)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.stiffness);
-            Fred = bc.fullToReducedVector(obj.forces(:,iVoigt));
         end
 
         function computeStrain(obj, iVoigt)
@@ -262,7 +228,7 @@ classdef ElasticProblemMicro < handle
             vstrain = basis(iVoigt,:);
         end
 
-        function vars = computeFluctuations(obj, iVoigt)
+        function vars = computeChomogContribution(obj, iVoigt)
             if strcmp(obj.solverMode, 'DISP')
                 L = obj.lagrangeMultipliers;
                 nPeriodic = length(obj.BCApplier.periodic_leader);

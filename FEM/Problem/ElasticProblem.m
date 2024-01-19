@@ -8,7 +8,7 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions
+        boundaryConditions, BCApplier
 
         stiffness
         forces
@@ -16,14 +16,12 @@ classdef ElasticProblem < handle
         scale
         
         strain, stress
-
-        newBC, BCApplier
     end
 
     properties (Access = protected)
         mesh 
         material  
-        inputBC        
+        inputBC
         displacementFun
     end
 
@@ -31,9 +29,8 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
             obj.createDisplacementFun();
-            obj.createBoundaryConditions();
             obj.createBCApplier();
             obj.createSolver();
         end
@@ -41,8 +38,7 @@ classdef ElasticProblem < handle
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            obj.compDisp();
-            % obj.computeDisplacements();
+            obj.computeDisplacement();
             obj.computeStrain();
             obj.computeStress();
         end
@@ -100,7 +96,7 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.newBC = cParams.newBC;
+            obj.boundaryConditions = cParams.newBC;
         end
 
         function createQuadrature(obj)
@@ -122,23 +118,9 @@ classdef ElasticProblem < handle
             dim = d;
         end
 
-        function createBoundaryConditions(obj)
-            dim = obj.getFunDims();
-            bc = obj.inputBC;
-            bc.ndimf = dim.ndimf;
-            bc.ndofs = dim.ndofs;
-            s.mesh  = obj.mesh;
-            s.scale = 'MACRO';
-            s.bc    = {bc};
-            s.ndofs = dim.ndofs;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
-            s.boundaryConditions = obj.newBC;
+            s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
             obj.BCApplier = bc;
         end
@@ -176,34 +158,17 @@ classdef ElasticProblem < handle
             end
         end
 
-        function u = compDisp(obj)
+        function u = computeDisplacement(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces;
-            s.boundaryConditions = obj.newBC;
+            s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
             u = pb.solve();
             % u = 1;
             % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
-
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
-            obj.uFun = uFeFun;
-
-            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
-        end
-
-        function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.stiffness);
-            Fred = bc.fullToReducedVector(obj.forces);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
