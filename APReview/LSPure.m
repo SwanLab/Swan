@@ -3,7 +3,7 @@ weights = [1];
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
 nsteps = 1;
-
+maxiter = 100;
 
 
 
@@ -34,7 +34,7 @@ initial_case = 'full';
 
 
 constraint = {'volumeConstraint'};
-constraint_case = {'EQUALITY'};
+constraint_case = {'INEQUALITY'};
 optimizer = 'NullSpace';
 incrementFactor = 1.2;
 filterType = 'P1';
@@ -58,4 +58,3 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 250;
