@@ -32,7 +32,7 @@ classdef FilterPDE < handle
             s.mesh      = obj.mesh;
             s.ndimf     = 1;
             xF          = FeFunction.createEmpty(s);
-            obj.computeRHS(fun,quadType);
+            obj.RHS = obj.computeRHS(fun,quadType);
             obj.solveFilter();
             xF.fValues  = obj.trial.fValues;
         end
@@ -42,6 +42,21 @@ classdef FilterPDE < handle
                 obj.epsilon = epsilon;
                 obj.computeLHS();
             end
+        end
+
+        function rhsR = computeRHS(obj,fun,quadType)
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                otherwise
+                    s.mesh = obj.mesh;
+            end
+            s.type     = 'ShapeFunction';
+            s.quadType = quadType;
+            int        = RHSintegrator.create(s);
+            test       = obj.trial;
+            rhs        = int.compute(fun,test);
+            rhsR       = obj.bc.fullToReducedVector(rhs);
         end
     end
 
@@ -77,22 +92,6 @@ classdef FilterPDE < handle
             lhs     = obj.problemLHS.compute(obj.epsilon);
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
-        end
-
-        function computeRHS(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                otherwise
-                    s.mesh = obj.mesh;
-            end
-            s.type     = 'ShapeFunction';
-            s.quadType = quadType;
-            int        = RHSintegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(fun,test);
-            rhsR       = obj.bc.fullToReducedVector(rhs);
-            obj.RHS    = rhsR;
         end
 
         function solveFilter(obj)

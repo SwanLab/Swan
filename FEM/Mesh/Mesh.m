@@ -106,6 +106,13 @@ classdef Mesh < handle
             xmin = min(obj.coord);
             xmax = max(obj.coord);
             L = norm(xmax-xmin);
+
+            xmin = min(obj.coord(:,1));
+            xmax = max(obj.coord(:,1));
+            ymin = min(obj.coord(:,2));
+            ymax = max(obj.coord(:,2));
+
+            L = min(xmax-xmin,ymax-ymin);
         end
 
         function setCoord(obj,newCoord)

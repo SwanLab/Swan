@@ -52,26 +52,23 @@ classdef ShapeFunctional < handle
             obj.target_parameters = cParams.targetParameters;
             obj.nVariables = obj.designVariable.nVariables;
         end
-        
+
         function normalizeFunction(obj)
             if isempty(obj.value0)
-                obj.value0 = obj.value;
+                switch class(obj)
+                    case 'ShFunc_Perimeter'
+                        obj.value0 = 4.2; % P analitic micro gripper
+                    otherwise
+                        obj.value0 = obj.value;
+                end
             end
-            obj.delta = 0;
-            switch class(obj)
-                case 'ShFunc_Perimeter'
-                    switch obj.type
-                        case 'Neumann'
-                            obj.delta = 1/6;
-                    end
-            end
-            obj.value = obj.value/(abs(obj.value0)+obj.delta);
+            obj.value = obj.value/(abs(obj.value0));
         end
-        
+
         function normalizeGradient(obj)
-            obj.gradient = obj.gradient/(abs(obj.value0)+obj.delta);
+            obj.gradient = obj.gradient/(abs(obj.value0));
         end
-        
+
         function fP = addHomogPrintVariablesNames(obj,fP)
             fH = obj.homogenizedVariablesComputer.createPrintVariables();
             nP = numel(fP);

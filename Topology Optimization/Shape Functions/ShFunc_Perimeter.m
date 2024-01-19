@@ -139,6 +139,11 @@ classdef ShFunc_Perimeter < ShapeFunctional
             result     = int.compute(f,rho);
             per        = 2/(obj.epsilon)*result;
             obj.value  = per;
+
+            rhs        = obj.filter.computeRHS(rho,'QUADRATICMASS');
+            obj.regularizedDensityProjection = rhs;
+            int        = 2/(obj.epsilon)*(1-rhoei).*rhs;
+            obj.value  = sum(int);
         end
         
         function computeGradient(obj)
@@ -155,7 +160,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
             pB = u.unfittedBoundaryMesh.computeVolume();
             pT = pR + pB;
             pT2 = u.computePerimeter();
-            pT2 - pT%
             else
                pT = 0;
             end

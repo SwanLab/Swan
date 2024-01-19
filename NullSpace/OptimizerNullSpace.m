@@ -150,10 +150,10 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = 0.01;
+                obj.eta = 0.001;
             else
                 if obj.aG <= 0.5*obj.aGmax
-                    obj.eta = 0.01;
+                    obj.eta = 0.001;
                 else
                     obj.eta = 0.001;
                 end
@@ -191,7 +191,7 @@ classdef OptimizerNullSpace < Optimizer
             x  = obj.designVariable.fun.fValues;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
-                factor = 100000;
+                factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
                 factor = 1.2;
@@ -309,8 +309,8 @@ classdef OptimizerNullSpace < Optimizer
         function itHas = hasExceededStepIterations(obj)
             iStep = obj.incrementalScheme.iStep;
             nStep = obj.incrementalScheme.nSteps;
-            if iStep < 167
-                itHas = obj.nIter >= 3*iStep;
+            if iStep < nStep
+                itHas = obj.nIter >= iStep;
             else
                 itHas = obj.nIter >= obj.maxIter;
             end

@@ -67,7 +67,7 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
             end
         end
         
-        function nodes = obtainBoxNodes(obj,iDime,iSide)
+        function nodes = obtainBoxNodes(obj,iDime,iSide) % EPP! This only works for rectangular domains
             dim = obj.dimension(iDime);
             coordDim = obj.backgroundMesh.coord(:,dim);
             switch iSide
