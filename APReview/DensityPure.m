@@ -30,7 +30,8 @@ filename = 'grippingTrialFine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+initial_case = 'circleInclusion';
+fracRadius = 0.05;
 
 
 constraint = {'volumeConstraint'};

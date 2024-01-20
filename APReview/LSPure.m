@@ -3,7 +3,7 @@ weights = [1];
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
 nsteps = 1;
-maxiter = 1000;
+maxiter = 200;
 
 
 
@@ -30,7 +30,8 @@ filename = 'grippingTrialFine';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+initial_case = 'circleInclusion';
+fracRadius = 0.05;
 
 
 constraint = {'volumeConstraint'};

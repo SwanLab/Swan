@@ -16,7 +16,7 @@ classdef OptimizerFactory < handle
                     op = Optimizer_fmincon(cParams);
                 case 'NullSpace'
                     cParams.optimizerNames.aJmax = cParams.optimizerNames.aJ;
-                    cParams.optimizerNames.aGmax = 0.015;
+                    cParams.optimizerNames.aGmax = 0;
                     op = OptimizerNullSpace(cParams);
                 case 'IPM'
                     op = OptimizerInteriorPoint(cParams);

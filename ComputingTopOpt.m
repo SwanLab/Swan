@@ -1,7 +1,7 @@
 clear;
 
 testNames = ["LSPure";"DensityPure"];
-testaJ    = [0;0.6];
+testaJ    = [0.3;0.6];
 
 for i = 1:length(testNames)
     test = char(testNames(i));
