@@ -131,7 +131,23 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateRangeSpaceCoefficient(obj)
-            obj.aG = obj.aGmax;
+            g = obj.constraint.value;
+            switch obj.designVariable.type
+                case 'LevelSet'
+                    if g >= 1
+                        obj.aG = 0;
+                    else
+                        obj.aG = obj.aGmax;
+                    end
+                case 'Density'
+                    if g >= 1.8
+                        obj.aG = 0;
+                    elseif g <1.8 && g>= 1
+                        obj.aG = 0.56*obj.aGmax;
+                    else
+                        obj.aG = obj.aGmax;
+                    end
+            end
         end
 
         function updateMaximumVolumeRemoved(obj)
@@ -169,7 +185,7 @@ classdef OptimizerNullSpace < Optimizer
             x  = obj.designVariable.fun.fValues;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
-                factor = 2e6;
+                factor = 2e7;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
                 factor = 1.2;

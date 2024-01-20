@@ -3,7 +3,7 @@ weights = [1];
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 designVariable = 'Density';
 nsteps = 1;
-maxiter = 1000;
+maxiter = 350;
 
 
 

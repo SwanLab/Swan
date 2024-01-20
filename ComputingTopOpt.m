@@ -1,7 +1,10 @@
 clear;
 
-testNames = ["LSPure";"DensityPure"];
-testaG    = [0.01;0.01];
+% LS:      1e-3
+% Density: 1.25e-3
+
+testNames = ["DensityPure"];
+testaG    = [1.25e-3];
 
 for i = 1:length(testNames)
     test = char(testNames(i));
