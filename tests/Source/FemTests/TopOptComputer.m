@@ -8,18 +8,18 @@ classdef TopOptComputer < handle
 
     properties (Access = private)
         testName
-        aJ
+        aG
     end
 
     methods (Access = public)
         function obj = TopOptComputer(cParams)
             obj.testName = cParams.testName;
-            obj.aJ       = cParams.aJ;
+            obj.aG       = cParams.aG;
         end
 
         function compute(obj)
             obj.createSettings();
-            obj.settings.optimizerSettings.optimizerNames.aJ = obj.aJ;
+            obj.settings.optimizerSettings.optimizerNames.aG = obj.aG;
             topOptSolver = TopOpt_Problem(obj.settings);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;

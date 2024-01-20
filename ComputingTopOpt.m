@@ -1,19 +1,19 @@
 clear;
 
 testNames = ["LSPure";"DensityPure"];
-testaJ    = [0.3;0.6];
+testaG    = [0.01;0.01];
 
 for i = 1:length(testNames)
     test = char(testNames(i));
-    aJ   = testaJ(i);
-    runTopOpt(test,aJ);
+    aG   = testaG(i);
+    runTopOpt(test,aG);
 end
 
-function runTopOpt(setName,aJ)
+function runTopOpt(setName,aG)
 
 close all;
 s.testName = setName;
-s.aJ       = aJ;
+s.aG       = aG;
 t = TopOptComputer(s);
 t.compute();
 p1Params.fValues = t.computation.designVariable.fun.fValues;

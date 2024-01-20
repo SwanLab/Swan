@@ -131,23 +131,11 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateRangeSpaceCoefficient(obj)
-            if obj.cost.value == 0
-                obj.aG = obj.aGmax;
-            else
-                targetVolume = obj.targetParameters.Vfrac;
-                g            = obj.constraint.value;
-                v            = obj.computeVolume(g); % class(obj.constraint.shapeFunctions{1,1})=='Volume_constraint'
-                if v>targetVolume
-                    r = 1-targetVolume;
-                else
-                    r = targetVolume;
-                end
-                obj.aG       = obj.aGmax*(1-abs(v-targetVolume)/r)^10;
-            end
+            obj.aG = obj.aGmax;
         end
 
         function updateMaximumVolumeRemoved(obj)
-            obj.eta = 0.01;
+            obj.eta = 0.05;
         end
 
         function update(obj)

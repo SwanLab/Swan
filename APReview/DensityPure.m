@@ -35,7 +35,7 @@ fracRadius = 0.05;
 
 
 constraint = {'volumeConstraint'};
-constraint_case = {'INEQUALITY'};
+constraint_case = {'EQUALITY'};
 optimizer = 'NullSpace';
 incrementFactor = 1.2;
 filterType = 'P1';
