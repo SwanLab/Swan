@@ -3,7 +3,7 @@ weights = [1];
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
 nsteps = 1;
-maxiter = 100;
+maxiter = 1000;
 
 
 
@@ -38,11 +38,11 @@ constraint_case = {'INEQUALITY'};
 optimizer = 'NullSpace';
 incrementFactor = 1.2;
 filterType = 'P1';
-Vfrac_final = 0.35;
+Vfrac_final = 0.25;
 optimality_final =1e-3;
 constr_final =1e-3;
 
-Vfrac_initial = 0.35;
+Vfrac_initial = 0.25;
 optimality_initial = 1e-3;
 constr_initial = 1e-3;
 Perimeter_target = 5;
