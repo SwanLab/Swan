@@ -1,9 +1,9 @@
-cost = {'nonadjoint_compliance'};
-weights = [1];
-optimizerUnconstrained = 'PROJECTED GRADIENT';
-designVariable = 'Density';
-nsteps = 1;
-maxiter = 500;
+cost = {'nonadjoint_compliance','anisotropicPerimeter2D'};
+weights = [1,0.1];
+optimizerUnconstrained = 'SLERP';
+designVariable = 'LevelSet';
+nsteps = 100;
+maxiter = 200;
 
 
 

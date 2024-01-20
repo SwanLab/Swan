@@ -47,7 +47,7 @@ classdef TargetParamsManager < handle
             obj.constraintTol = LinearSequence(0,1,obj.nSteps,cParams.constrInitial,cParams.constrFinal);
             obj.optimalityTol = LinearSequence(0,1,obj.nSteps,cParams.optimalityInitial,cParams.optimalityFinal);
             obj.epsilon       = LinearSequence(0,1,obj.nSteps,cParams.epsilonInitial,cParams.epsilonFinal);
-            obj.epsilonPer    = LogarithmicSequence(0.95,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);            
+            obj.epsilonPer    = LogarithmicSequence(0.92,obj.nSteps,cParams.epsilonPerInitial,cParams.epsilonPerFinal);            
             %obj.epsilonPer    = LogarithmicSequence(0.8,obj.nSteps,cParams.epsilonPerInitial/10,cParams.epsilonPerFinal);
             obj.epsilonIso    = LinearSequence(0,1,obj.nSteps,cParams.epsilonIsoInitial,cParams.epsilonIsoFinal);            
             obj.stressNormExponent = LogarithmicSequenceInPairBase(0.5,obj.nSteps,cParams.stressNormExponentInitial,cParams.stressNormExponentFinal);

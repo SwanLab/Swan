@@ -3,8 +3,8 @@ clear;
 % LS:      1e-3
 % Density: 1.25e-3
 
-testNames = ["DensityPure"];
-testaG    = [1.25e-3];
+testNames = ["DensityPure";"DensityTotIso";"DensityRelIso";"LSTotIso";"LSRelIso"];
+testaG    = [1.25e-3;1.25e-3;1.25e-3;1e-3;1e-3];
 
 for i = 1:length(testNames)
     test = char(testNames(i));

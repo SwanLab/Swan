@@ -129,17 +129,6 @@ classdef ShFunc_Perimeter < ShapeFunctional
             rho        = obj.obtainDomainFunction();
             rhoe       = obj.filteredDensity;
             rhoei      = rhoe.fValues;
-            s.fValues  = 1-rhoei;
-            s.mesh     = obj.designVariable.mesh;
-            f          = P1Function(s);
-            i.type     = 'ScalarProduct';
-            i.quadType = 'QUADRATICMASS';
-            i.mesh     = obj.designVariable.mesh;
-            int        = Integrator.create(i);
-            result     = int.compute(f,rho);
-            per        = 2/(obj.epsilon)*result;
-            obj.value  = per;
-
             rhs        = obj.filter.computeRHS(rho,'QUADRATICMASS');
             obj.regularizedDensityProjection = rhs;
             int        = 2/(obj.epsilon)*(1-rhoei).*rhs;
