@@ -1,9 +1,9 @@
 cost = {'nonadjoint_compliance','anisotropicPerimeterInterior2D'};
-weights = [1,0.1];
+weights = [1,0.03];
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
 nsteps = 100;
-maxiter = 200;
+maxiter = 400;
 
 
 
