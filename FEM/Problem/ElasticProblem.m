@@ -8,7 +8,7 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions, BCApplier
+        boundaryConditions, inBCpre, BCApplier
 
         stiffness
         forces
@@ -96,7 +96,8 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.boundaryConditions = cParams.newBC;
+            obj.inBCpre = cParams.newBC;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function createQuadrature(obj)
@@ -143,7 +144,7 @@ classdef ElasticProblem < handle
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
             s.dim      = obj.getFunDims();
-            s.BC       = obj.BCApplier;
+            s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
