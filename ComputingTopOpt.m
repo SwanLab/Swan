@@ -3,20 +3,23 @@ clear;
 % LS:      1e-3
 % Density: 1.25e-3
 
-testNames = ["DensityPure";"DensityTotIso";"DensityRelIso";"LSTotIso";"LSRelIso"];
-testaG    = [1.25e-3;1.25e-3;1.25e-3;1e-3;1e-3];
+testNames = ["LSTotIso";"LSRelIso";"DensityTotAni";"DensityRelAni";"LSTotAni";"LSRelAni"];
+testaG    = [1e-3;1e-3;1.25e-3;1.25e-3;1e-3;1e-3];
+scAngle   = [45;45;85;85;85;85];
 
 for i = 1:length(testNames)
     test = char(testNames(i));
     aG   = testaG(i);
-    runTopOpt(test,aG);
+    beta = scAngle(i);
+    runTopOpt(test,aG,beta);
 end
 
-function runTopOpt(setName,aG)
+function runTopOpt(setName,aG,beta)
 
 close all;
 s.testName = setName;
 s.aG       = aG;
+s.beta     = beta;
 t = TopOptComputer(s);
 t.compute();
 p1Params.fValues = t.computation.designVariable.fun.fValues;

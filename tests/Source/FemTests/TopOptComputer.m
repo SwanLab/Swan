@@ -9,17 +9,20 @@ classdef TopOptComputer < handle
     properties (Access = private)
         testName
         aG
+        beta
     end
 
     methods (Access = public)
         function obj = TopOptComputer(cParams)
             obj.testName = cParams.testName;
             obj.aG       = cParams.aG;
+            obj.beta     = cParams.beta;
         end
 
         function compute(obj)
             obj.createSettings();
             obj.settings.optimizerSettings.optimizerNames.aG = obj.aG;
+            obj.settings.costSettings.shapeFuncSettings{2}.femSettings.beta = obj.beta;
             topOptSolver = TopOpt_Problem(obj.settings);
             topOptSolver.computeVariables();
             obj.computation = topOptSolver;
