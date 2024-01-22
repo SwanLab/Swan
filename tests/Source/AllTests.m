@@ -16,3 +16,4 @@ RemeshingTestsSuite;
 DehomogenizationTestsSuite;
 close all;
 AcademicTestsSuite;
+BoundaryCondTestsSuite;
