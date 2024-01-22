@@ -75,21 +75,24 @@ classdef LagrangianFunction < FeFunction
             dNdx = obj.computeCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
-            nNode = size(dNdx, 2);
+            nDofE = size(dNdx, 2);
             nElem = size(dNdx, 3);
             nGaus = size(dNdx, 4);
             
             grad = zeros(nDims,nDimf, nElem, nGaus);
+            fV = reshape(obj.fValues', [numel(obj.fValues) 1]);
             for iGaus = 1:nGaus
                 dNdx_g = dNdx(:,:,:,iGaus);
-                for iDims = 1:nDims
-                    for iNode = 1:nNode
-                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
-                        nodes = obj.connec(:,iNode);
-                        f = obj.fValues(nodes,:);
-                        p = (dNdx_i.*f)';
+                for iDim = 1:nDims
+                    for iDof = 1:nDofE
+                        dNdx_i = squeeze(dNdx_g(iDim, iDof,:));
+                        iDofRange = ((iDof-1)*nDimf+1):(iDof*nDimf);
+                        dofs = obj.connec(:,iDofRange);
+                        f = fV(dofs,:);
+                        fRshp = reshape(f, [nElem nDimf]); % oju thermal
+                        p = (dNdx_i.*fRshp)';
                         pp(1,:,:) = p;
-                        grad(iDims,:,:,iGaus) = grad(iDims,:,:,iGaus) + pp;
+                        grad(iDim,:,:,iGaus) = grad(iDim,:,:,iGaus) + pp;
                     end
                 end
             end
@@ -97,6 +100,7 @@ classdef LagrangianFunction < FeFunction
             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
             s.quadrature = quad;
+            s.mesh       = obj.mesh;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
@@ -113,7 +117,21 @@ classdef LagrangianFunction < FeFunction
             
             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
             s.quadrature = quad;
+            s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);
+        end
+        
+        function ord = orderTextual(obj)
+            switch obj.order
+                case 'P0'
+                    ord = 'CONSTANT';
+                case 'P1'
+                    ord = 'LINEAR';
+                case 'P2'
+                    ord = 'QUADRATIC';
+                case 'P3'
+                    ord = 'CUBIC';
+            end
         end
 
         function plot(obj) % 2D domains only
@@ -235,17 +253,6 @@ classdef LagrangianFunction < FeFunction
             c.computeCoord();
             obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
-        end
-        
-        function ord = orderTextual(obj)
-            switch obj.order
-                case 'P1'
-                    ord = 'LINEAR';
-                case 'P2'
-                    ord = 'QUADRATIC';
-                case 'P3'
-                    ord = 'CUBIC';
-            end
         end
 
     end

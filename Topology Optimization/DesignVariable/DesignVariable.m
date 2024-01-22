@@ -47,7 +47,8 @@ classdef DesignVariable < handle
             end
             s.mesh    = obj.mesh;
             s.fValues = value;
-            obj.fun   = P1Function(s);
+            s.order   = 'P1';
+            obj.fun   = LagrangianFunction(s);
         end
         
         function updateOld(obj)
@@ -65,10 +66,12 @@ classdef DesignVariable < handle
            x0          = obj.valueOld;
            siF.fValues = x-x0;
            siF.mesh    = obj.mesh;
-           incFun      = P1Function(siF);
+           siF.order   = 'P1';
+           incFun      = LagrangianFunction(siF);
            s0.fValues  = x0;
            s0.mesh     = obj.mesh;
-           oldFun      = P1Function(s0);
+           s0.order    = 'P1';
+           oldFun      = LagrangianFunction(s0);
            nIncX       = Norm.computeL2(m,incFun);
            nX0         = Norm.computeL2(m,oldFun);
            norm        = nIncX/nX0;

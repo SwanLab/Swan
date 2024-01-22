@@ -1,13 +1,13 @@
 classdef UpperLowerCellComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
-        isUpperCell   
+        isUpperCell
         isLowerCell
     end
     
     properties (Access = private)
         isNotCoherent
-        isCoherent    
+        isCoherent
         referenceCells
         isVertexInCell
     end
@@ -25,11 +25,11 @@ classdef UpperLowerCellComputer < handle
         end
         
         function compute(obj)
-            obj.computeReferenceCells();  
+            obj.computeReferenceCells();
             for ivertex = 1:length(obj.pathVertexes)
                 obj.computeIsVertexInCell(ivertex);
-                obj.isCellAnUpperCell(ivertex);                
-            end    
+                obj.isCellAnUpperCell(ivertex);
+            end
         end
         
     end
@@ -41,7 +41,7 @@ classdef UpperLowerCellComputer < handle
             obj.pathVertexes = cParams.pathVertexes;
             obj.areCoherent  = cParams.areCoherent;
             obj.isUpperCell  = obj.createEmptyP0Function();
-            obj.isLowerCell  = obj.createEmptyP0Function();            
+            obj.isLowerCell  = obj.createEmptyP0Function();
         end
         
         function computeReferenceCells(obj)
@@ -50,14 +50,14 @@ classdef UpperLowerCellComputer < handle
             r = ReferenceCellOfPathComputer(s);
             rC = r.compute();
             obj.referenceCells = rC;
-        end        
+        end
         
         function computeIsVertexInCell(obj,ivertex)
             vI = obj.pathVertexes(ivertex);
             vertexInCell  = obj.mesh.connec;
             itIs = (vertexInCell == vI);
             obj.isVertexInCell = itIs;
-        end      
+        end
         
         function isCellAnUpperCell(obj,ivertex)
             rCell  = obj.referenceCells(ivertex);
@@ -72,10 +72,10 @@ classdef UpperLowerCellComputer < handle
             isU(itHasNot) = ~isU(rCell);
 
             isL(itHas)    = ~isU(rCell);
-            isL(itHasNot) = isU(rCell);           
-            obj.isUpperCell.fValues(:,1) = isU;                
-            obj.isLowerCell.fValues(:,1) = isL;                
-        end          
+            isL(itHasNot) = isU(rCell);
+            obj.isUpperCell.fValues(:,1) = isU;
+            obj.isLowerCell.fValues(:,1) = isL;
+        end
         
         function computeCoherentAndNotCoherentVertex(obj)
             areC  = squeeze(obj.areCoherent.fValues(1,:,:))';
@@ -83,7 +83,7 @@ classdef UpperLowerCellComputer < handle
             isNot = obj.restrictToCell(~areC);
             obj.isCoherent    = isCoh;
             obj.isNotCoherent = isNot;
-        end  
+        end
 
         function [itHas,itHasNot] = hasCellSameCoherentOrientationAsReferenceCell(obj,rCell)
             if obj.isCoherent(rCell)
@@ -93,26 +93,25 @@ classdef UpperLowerCellComputer < handle
                 itHas    = obj.isNotCoherent;
                 itHasNot = obj.isCoherent;
             end
-        end 
+        end
         
         function f = restrictToCell(obj,f)
             fV = obj.restrictToVertex(f);
             f  =  any(fV,2);
-        end          
+        end
         
         function fV = restrictToVertex(obj,f)
             itIs = obj.isVertexInCell;
             fV = f & itIs;
-        end     
+        end
         
         function f0 = createEmptyP0Function(obj)
-            s.mesh = obj.mesh; 
+            s.mesh    = obj.mesh;
+            s.order   = 'P0';
             s.fValues = false(obj.mesh.nelem,1);
-            f0 = P0Function(s);
-        end        
-                
-        
-        
+            f0 = LagrangianFunction(s);
+        end
+
     end
     
 end
