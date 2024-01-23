@@ -3,9 +3,9 @@ clear;
 % LS:      1e-3
 % Density: 1.25e-3
 
-testNames = ["LSTotIso";"LSRelIso";"DensityTotAni";"DensityRelAni";"LSTotAni";"LSRelAni"];
-testaG    = [1e-3;1e-3;1.25e-3;1.25e-3;1e-3;1e-3];
-scAngle   = [45;45;85;85;85;85];
+testNames = ["DensityTotIso";"DensityRelIso"];
+testaG    = [1.25e-3;1.25e-3];
+scAngle   = [45;45];
 
 for i = 1:length(testNames)
     test = char(testNames(i));
