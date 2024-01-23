@@ -53,8 +53,8 @@ classdef MultigridTesting2 < handle
         end
 
         function createCoarseMesh(obj)
-            numero1 = 10;
-            numero2 = 10;
+            numero1 = 2;
+            numero2 = 2;
             % Generate coordinates
             x1 = linspace(0,2,numero1);
             x2 = linspace(0,1,numero2);
@@ -114,6 +114,10 @@ classdef MultigridTesting2 < handle
         end
 
         function createFineMesh(obj)
+            % x = obj.coarseMesh.coord(:,1);
+            % y = obj.coarseMesh.coord(:,2);
+            % obj.fineMeshCoord(:,1) = obj.I*x;
+            % obj.fineMeshCoord(:,2) = obj.I*y;
             obj.fineMeshCoord = obj.I * obj.coarseMesh.coord;
             obj.fineMeshConnec = delaunayn(obj.fineMeshCoord);
             s.coord = obj.fineMeshCoord;
