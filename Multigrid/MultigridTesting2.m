@@ -102,15 +102,16 @@ classdef MultigridTesting2 < handle
                         (p(tcurr(3),:) + p(tcurr(1),:)) / 2];
                     
                 if midpt_curr(1,:) == pmid(1,:)
-                    obj.I(n + 1, [tcurr(1),tcurr(2)]) = 1/2;
+                    T(n + 1, [tcurr(1),tcurr(2)]) = 1/2;
                 elseif midpt_curr(1,:) == pmid(2,:)
-                    obj.I(n + 1, [tcurr(2),tcurr(3)]) = 1/2;
+                    T(n + 1, [tcurr(2),tcurr(3)]) = 1/2;
                 elseif midpt_curr(1,:) == pmid(3,:)
-                    obj.I(n + 1, [tcurr(1),tcurr(3)]) = 1/2;
+                    T(n + 1, [tcurr(1),tcurr(3)]) = 1/2;
                 end
                 n = n + 1;
                 d = d + 1;
             end
+            obj.I = T;
         end
 
         function createFineMesh(obj)
