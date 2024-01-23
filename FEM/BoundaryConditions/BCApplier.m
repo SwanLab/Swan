@@ -32,7 +32,7 @@ classdef BCApplier < handle
             dir_dofs = obj.dirichlet_dofs;
             nDofs = obj.dirichletFun.nDofs;
             nDirich = length(dir_dofs);
-            Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
+            Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
         end
 
         function Ct = computeLinearPeriodicConditionsMatrix(obj)
@@ -40,7 +40,7 @@ classdef BCApplier < handle
             per_fllw = obj.periodic_follower;
             nDofs = obj.dirichletFun.nDofs;
             nPer = length(per_lead);
-            Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs)); % !!
+            Ct = sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs); % !!
         end
 
         function Ct = computeSingleDirichletPeriodicCondition(obj, iVoigt, nVoigt)
@@ -62,7 +62,7 @@ classdef BCApplier < handle
             xx_left   = nDofsPerBorder+1 : 2*nDofsPerBorder;
             yy_bottom = 2*nDofsPerBorder + 1 : 3*nDofsPerBorder;
             yy_left   = 3*nDofsPerBorder + 1 : 4*nDofsPerBorder;
-            CtPer = full(sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
+            CtPer = sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
@@ -74,7 +74,7 @@ classdef BCApplier < handle
                          ], ...
                          [ones(length(per_lead),1), -ones(length(per_lead),1); ...
                          ], ...
-                         nDofsPerBorder*nVoigt, nDofs));
+                         nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
         end
 

@@ -232,7 +232,7 @@ classdef ElasticProblemMicro < handle
         function vars = computeChomogContribution(obj, iVoigt)
             if strcmp(obj.solverMode, 'DISP')
                 L = obj.lagrangeMultipliers;
-                nPeriodic = length(obj.BCApplier.periodic_leader);
+                nPeriodic = length(obj.boundaryConditions.periodic_leader);
                 nBorderNod = nPeriodic/4; % cause 2D
                 Lx  = sum( L(1:nBorderNod) );
                 Lxy = sum( L(nBorderNod+1:2*nBorderNod));
