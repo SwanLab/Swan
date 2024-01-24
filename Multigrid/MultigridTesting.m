@@ -259,6 +259,7 @@ classdef MultigridTesting < handle
             iter = 0;
 
             hasNotConverged = true;
+            multigrid = true;
 
             while hasNotConverged
                 
@@ -276,9 +277,10 @@ classdef MultigridTesting < handle
                 hasNotConverged = norm(r) > tol;
                 hasPartiallyConverged = norm(r)/norm(ri) < 0.5;
 
-                if hasPartiallyConverged
+                if hasPartiallyConverged && multigrid
                     z = obj.applyPrecoditionerMultigrid(r,Acoarse,Bcoarse,A,B);
                     r = z;
+                    multigrid = false;
                 end
 
                 p = r + (rznew / rzold) * p;

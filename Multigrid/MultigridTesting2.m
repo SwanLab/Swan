@@ -28,6 +28,10 @@ classdef MultigridTesting2 < handle
         fineMeshCoord
         fineMeshConnec
         fineMesh
+        FineDispFun
+        CoarseDispFun
+        FineFred
+        CoarseFred
     end
     
     methods (Access = public)
@@ -45,6 +49,9 @@ classdef MultigridTesting2 < handle
             obj.createCoarseMaterial()
             obj.computeFineKred();
             obj.computeCoarseKred();
+            obj.computeFineFred();
+            obj.computeCoarseFred();
+
         end
     end
 
@@ -255,18 +262,18 @@ classdef MultigridTesting2 < handle
         end
 
         function computeFineKred(obj)
-            dispFun = P1Function.create(obj.fineMesh, obj.nDimf);
-            obj.FineK    = obj.computeStiffnessMatrix(obj.fineMesh,obj.fineMaterial,dispFun);
+            obj.FineDispFun = P1Function.create(obj.fineMesh, obj.nDimf);
+            obj.FineK    = obj.computeStiffnessMatrix(obj.fineMesh,obj.fineMaterial,obj.FineDispFun);
             obj.FineKred = obj.boundaryConditionsFine.fullToReducedMatrix(obj.FineK);
         end
 
         function computeCoarseKred(obj)
-            dispFun = P1Function.create(obj.coarseMesh, obj.nDimf);
-            obj.CoarseK    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,dispFun);
+            obj.CoarseDispFun = P1Function.create(obj.coarseMesh, obj.nDimf);
+            obj.CoarseK    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,obj.CoarseDispFun);
             obj.CoarseKred = obj.boundaryConditionsCoarse.fullToReducedMatrix(obj.CoarseK);
         end
 
-        function k = computeStiffnessMatrix(mesh,material,displacementFun)
+        function k = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
             s.fun      = displacementFun;
@@ -276,6 +283,30 @@ classdef MultigridTesting2 < handle
             lhs = LHSintegrator.create(s);
             k   = lhs.compute();
         end 
+
+        function computeFineFred(obj)
+            RHS  = obj.createRHS(obj.fineMesh,obj.FineDispFun,obj.boundaryConditionsFine);
+            Fext = RHS.compute();
+            obj.FineFred = obj.boundaryConditionsFine.fullToReducedVector(Fext);
+        end
+
+        function computeCoarseFred(obj)
+            RHS  = obj.createRHS(obj.coarseMesh,obj.CoarseDispFun,obj.boundaryConditionsCoarse);
+            Fext = RHS.compute();
+            obj.CoarseFred = obj.boundaryConditionsCoarse.fullToReducedVector(Fext);
+        end
+        
+        function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
+            dim.ndimf  = dispFun.ndimf;
+            dim.nnodes = size(dispFun.fValues, 1);
+            dim.ndofs  = dim.nnodes*dim.ndimf;
+            dim.nnodeElem = mesh.nnodeElem; % should come from interp..
+            dim.ndofsElem = dim.nnodeElem*dim.ndimf;
+            c.dim=dim;
+            c.mesh=mesh;
+            c.BC = boundaryConditions;
+            RHS    = RHSintegrator_ElasticMacro(c);
+        end
 
     end
 
