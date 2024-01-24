@@ -40,6 +40,16 @@ classdef Quadrature_Tetrahedra < Quadrature
                         b,a,b,b;
                         a,a,b,b];
                     obj.weigp = [0.041666667,0.041666667,0.041666667,0.041666667];
+                
+                case 'ORDER10' % NOOOOOOOOOOOOOOOO
+                    obj.ngaus = 5;
+                    a = 0.25;
+                    b = 0.5;
+                    c = 1/6;
+                    obj.posgp = [a,b,c,c,c;
+                        a,c,c,c,b;
+                        a,c,c,b,c];
+                    obj.weigp = 1/6*[-0.8,0.45,0.45,0.45,0.45];
                     
                 otherwise
                     error('Invalid interpolation order for element Tetrahedra.');
