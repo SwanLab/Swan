@@ -3,9 +3,8 @@ classdef MultigridTesting2 < handle
     
     properties (Access = public)
         nDimf
-        mesh
-        boundaryConditions
-        material
+        boundaryConditionsFine
+        fineMaterial
         quad
         basisFvalues
         basisVec
@@ -17,12 +16,12 @@ classdef MultigridTesting2 < handle
         D
         L
         Lt
-        K
+        FineK
         Lchol
-        Kred
+        FineKred
         coarseMesh
-        KCoarse
-        KredCoarse
+        CoarseK
+        CoarseKred
         coarseMaterial
         boundaryConditionsCoarse
         I
@@ -40,7 +39,12 @@ classdef MultigridTesting2 < handle
             obj.createCoarseMesh()
             obj.createMatrixInterpolation()
             obj.createFineMesh()
-            
+            obj.createBoundaryConditionsFine()
+            obj.createBoundaryConditionsCoarse()
+            obj.createFineMaterial()
+            obj.createCoarseMaterial()
+            obj.computeFineKred();
+            obj.computeCoarseKred();
         end
     end
 
@@ -53,8 +57,8 @@ classdef MultigridTesting2 < handle
         end
 
         function createCoarseMesh(obj)
-            numero1 = 2;
-            numero2 = 2;
+            numero1 = 10;
+            numero2 = 10;
             % Generate coordinates
             x1 = linspace(0,2,numero1);
             x2 = linspace(0,1,numero2);
@@ -125,7 +129,154 @@ classdef MultigridTesting2 < handle
             s.connec = obj.fineMeshConnec;
             obj.fineMesh = Mesh(s);
         end
-            
+
+        function createBoundaryConditionsFine(obj)
+            rawBc    = obj.createRawBoundaryConditionsFine();
+            dim = getFunDimsFine(obj);
+            rawBc.ndimf = dim.ndimf;
+            rawBc.ndofs = dim.ndofs;
+            s.mesh  = obj.fineMesh;
+            s.scale = 'MACRO';
+            s.bc    = {rawBc};
+            s.ndofs = dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditionsFine = bc;
+        end
+
+        function dim = getFunDimsFine(obj)
+            s.fValues = obj.fineMesh.coord;
+            s.mesh = obj.fineMesh;
+            disp = P1Function(s);
+            d.ndimf  = disp.ndimf;
+            d.nnodes = size(disp.fValues, 1);
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.fineMesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
+        end
+
+        function bc = createRawBoundaryConditionsFine(obj)
+            dirichletNodes = abs(obj.fineMesh.coord(:,1)-0) < 1e-12;
+            rightSide  = max(obj.fineMesh.coord(:,1));
+            isInRight = abs(obj.fineMesh.coord(:,1)-rightSide)< 1e-12;
+            isInMiddleEdge = abs(obj.fineMesh.coord(:,2)-1.5) < 0.1;
+            %forceNodes = isInRight & isInMiddleEdge;
+            forceNodes = isInRight;
+            nodes = 1:obj.fineMesh.nnodes;
+            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+            nodesdir=size(nodes(dirichletNodes),2);
+            bcDir(1:nodesdir,end+1) = 1;
+            bcDir(nodesdir+1:end,end) = 2;
+            bcDir(:,end+1)=0;
+            bc.dirichlet = bcDir;
+            bc.pointload(:,1) = nodes(forceNodes);
+            bc.pointload(:,2) = 2;
+            bc.pointload(:,3) = -1;
+        end
+
+        function createBoundaryConditionsCoarse(obj)
+            rawBc    = obj.createRawBoundaryConditionsCoarse();
+            dim = getFunDimsCoarse(obj);
+            rawBc.ndimf = dim.ndimf;
+            rawBc.ndofs = dim.ndofs;
+            s.mesh  = obj.coarseMesh;
+            s.scale = 'MACRO';
+            s.bc    = {rawBc};
+            s.ndofs = dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            obj.boundaryConditionsCoarse = bc;
+        end
+
+        function dim = getFunDimsCoarse(obj)
+            s.fValues = obj.coarseMesh.coord;
+            s.mesh = obj.coarseMesh;
+            disp = P1Function(s);
+            d.ndimf  = disp.ndimf;
+            d.nnodes = size(disp.fValues, 1);
+            d.ndofs  = d.nnodes*d.ndimf;
+            d.nnodeElem = obj.coarseMesh.nnodeElem; % should come from interp..
+            d.ndofsElem = d.nnodeElem*d.ndimf;
+            dim = d;
+        end
+
+        function bc = createRawBoundaryConditionsCoarse(obj)
+            dirichletNodes = abs(obj.coarseMesh.coord(:,1)-0) < 1e-12;
+            rightSide  = max(obj.coarseMesh.coord(:,1));
+            isInRight = abs(obj.coarseMesh.coord(:,1)-rightSide)< 1e-12;
+            isInMiddleEdge = abs(obj.coarseMesh.coord(:,2)-1.5) < 0.1;
+            %forceNodes = isInRight & isInMiddleEdge;
+            forceNodes = isInRight;
+            nodes = 1:obj.coarseMesh.nnodes;
+            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+            nodesdir=size(nodes(dirichletNodes),2);
+            bcDir(1:nodesdir,end+1) = 1;
+            bcDir(nodesdir+1:end,end) = 2;
+            bcDir(:,end+1)=0;
+            bc.dirichlet = bcDir;
+            bc.pointload(:,1) = nodes(forceNodes);
+            bc.pointload(:,2) = 2;
+            bc.pointload(:,3) = -1;
+        end
+
+        function createFineMaterial(obj)
+            s.mesh = obj.fineMesh;
+            s.type = 'ELASTIC';
+            s.scale = 'MACRO';
+            ngaus = 1;
+            Id = ones(obj.fineMesh.nelem,ngaus);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = obj.fineMesh.nelem;
+            s.mesh  = obj.fineMesh;
+            s.kappa = .9107*Id;
+            s.mu    = .3446*Id;
+            mat = Material.create(s);
+            mat.compute(s);
+            obj.fineMaterial = mat;
+        end
+
+        function createCoarseMaterial(obj)
+            s.mesh = obj.coarseMesh;
+            s.type = 'ELASTIC';
+            s.scale = 'MACRO';
+            ngaus = 1;
+            Id = ones(obj.coarseMesh.nelem,ngaus);
+            s.ptype = 'ELASTIC';
+            s.pdim  = '2D';
+            s.nelem = obj.coarseMesh.nelem;
+            s.mesh  = obj.coarseMesh;
+            s.kappa = .9107*Id;
+            s.mu    = .3446*Id;
+            mat = Material.create(s);
+            mat.compute(s);
+            obj.coarseMaterial = mat;
+        end
+
+        function computeFineKred(obj)
+            dispFun = P1Function.create(obj.fineMesh, obj.nDimf);
+            obj.FineK    = obj.computeStiffnessMatrix(obj.fineMesh,obj.fineMaterial,dispFun);
+            obj.FineKred = obj.boundaryConditionsFine.fullToReducedMatrix(obj.FineK);
+        end
+
+        function computeCoarseKred(obj)
+            dispFun = P1Function.create(obj.coarseMesh, obj.nDimf);
+            obj.CoarseK    = obj.computeStiffnessMatrix(obj.coarseMesh,obj.coarseMaterial,dispFun);
+            obj.CoarseKred = obj.boundaryConditionsCoarse.fullToReducedMatrix(obj.CoarseK);
+        end
+
+        function k = computeStiffnessMatrix(mesh,material,displacementFun)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = mesh;
+            s.fun      = displacementFun;
+            % s.test      = displacementFun;
+            % s.trial      = displacementFun;
+            s.material = material;
+            lhs = LHSintegrator.create(s);
+            k   = lhs.compute();
+        end 
+
     end
 
 end
