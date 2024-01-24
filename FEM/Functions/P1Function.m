@@ -41,6 +41,14 @@ classdef P1Function < FeFunction
             end
         end
 
+        function p1sub = evaluateSubdomain(obj, domain)
+            mesh_sub = obj.mesh.getSubmesh(domain);
+            dofs = domain(obj.mesh.coord);
+            s.fValues = obj.fValues(dofs, :);
+            s.mesh    = mesh_sub;
+            p1sub = P1Function(s);
+        end
+
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;

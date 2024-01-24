@@ -293,6 +293,13 @@ classdef Mesh < handle
             m = Mesh(s);
         end
 
+        function m = getSubmesh(obj, domain)
+            dofs = domain(obj.coord);
+            s.fValues = obj.coord(dofs, :);
+            s.mesh    = mesh_sub;
+            p1sub = P1Function(s);
+        end
+
     end
 
     methods (Access = private)

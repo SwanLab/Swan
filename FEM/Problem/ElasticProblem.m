@@ -167,7 +167,7 @@ classdef ElasticProblem < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
-            u = pb.solve();
+            [u,L] = pb.solve();
             % u = 1;
             % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
 

@@ -19,8 +19,9 @@ classdef DirichletCondition < BoundaryCondition
         function obj = DirichletCondition(mesh, s)
             % P1
             fun = P1Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_dofs = s.domain(mesh.coord);
-            fun.fValues(pl_dofs,s.direction) = s.value;
+            pl_dofs = find(s.domain(mesh.coord));
+            eval_values = s.value(mesh.coord);
+            fun.fValues(pl_dofs,s.direction) = eval_values(pl_dofs);
             
             % P2
             % fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim

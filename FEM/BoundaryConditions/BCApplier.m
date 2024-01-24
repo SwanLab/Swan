@@ -33,6 +33,42 @@ classdef BCApplier < handle
             nDofs = obj.dirichletFun.nDofs;
             nDirich = length(dir_dofs);
             Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+
+            mesh_left = obj.mesh.createBoundaryMesh{1};
+            % Check LHSintegrator_MassBoundary
+            a.mesh = mesh_left.mesh;
+            a.test = P1Function.create(mesh_left.mesh, 2); % dLambda
+            a.trial = P1Function.create(mesh_left.mesh, 2); % dLambda
+            a.type = 'MassMatrix';
+            lhs = LHSintegrator.create(a);
+            LHS = lhs.compute();
+
+            local_dofConnec = obj.computeDofConnectivity(mesh_left.mesh.connec);
+            global_dofConnec = obj.computeDofConnectivity(mesh_left.globalConnec);
+
+            local2global(local_dofConnec(:)) = global_dofConnec(:);
+            [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
+            iGlob = local2global(iLoc);
+            jGlob = local2global(jLoc);
+
+            Ct = sparse(iGlob,jGlob,vals, nDofs, nDofs);
+            Ct = Ct(unique(iGlob), :);
+        end
+
+        function dofConnec = computeDofConnectivity(obj, conne)
+            nDimf  = 2;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
         end
 
         function Ct = computeLinearPeriodicConditionsMatrix(obj)
