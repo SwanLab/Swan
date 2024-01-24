@@ -11,11 +11,11 @@ classdef AssemblerFun < handle
         end
 
         function A = assemble(obj, Aelem, f1, f2)
-            dofsF1 = f1.computeDofConnectivity()';
+            dofsF1 = f1.getConnec();
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
             else
-                dofsF2 = f2.computeDofConnectivity()';
+                dofsF2 = f2.getConnec();
             end
             
             nElem = size(Aelem,3);
@@ -44,9 +44,9 @@ classdef AssemblerFun < handle
 
         function V = assembleV(obj, F, fun)
             % Via indices
-            dofConnec = obj.fun.computeDofConnectivity();
-            nDofsEl   = obj.fun.nDofsElem;
-            nDofs     = obj.fun.nDofs;
+            dofConnec = obj.fun.getConnec();
+            nDofsEl   = size(dofConnec,2);
+            nDofs     = max(max(dofConnec)); %obj.fun.nDofs;
             nGaus     = size(F,2);
             nElem     = size(F,3);
             strt = 1;
@@ -54,9 +54,9 @@ classdef AssemblerFun < handle
             res = zeros(nDofsEl * nElem, 2);
             for iDof = 1:nDofsEl
                 for igaus = 1:nGaus
-                    dofs = dofConnec(iDof,:);
+                    dofs = dofConnec(:,iDof);
                     c = squeeze(F(iDof,igaus,:));
-                    matRes = [dofs', c];
+                    matRes = [dofs, c];
                     res(strt:fnsh,:) = matRes;
                     strt = strt + nElem;
                     fnsh = fnsh + nElem;
@@ -73,7 +73,7 @@ classdef AssemblerFun < handle
             for iField = 1:nFields
                 f = funs{iField};
                 Felem = FelemCell{iField,1};
-                dofsElem = f.computeDofConnectivity();
+                dofsElem = f.getConnec();
                 nDofs  = numel(f.fValues);
                 nDofsE = size(Felem,1);
                 nGaus  = size(Felem,2);

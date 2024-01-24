@@ -107,6 +107,10 @@ classdef P1DiscontinuousFunction < FeFunction
             fFine = p1fun.project('P1D');
         end
 
+        function dofConnec = getConnec(obj)
+            dofConnec = obj.computeDofConnectivity()';
+        end
+
         function dofConnec = computeDofConnectivity(obj)
             nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
             nodes  = 1:nNodes;

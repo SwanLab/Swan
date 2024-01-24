@@ -351,8 +351,9 @@ classdef Mesh < handle
 
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
+            s.order   = 'P1';
             s.fValues = obj.coord;
-            coordP1 = P1Function(s);
+            coordP1 = LagrangianFunction(s);
             obj.xFE = obj.projectToP1Discontinuous(coordP1);
         end
 

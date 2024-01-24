@@ -106,7 +106,7 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)

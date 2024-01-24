@@ -186,11 +186,7 @@ classdef FunctionPrinter_Paraview < handle
         end
 
         function n = createFValuesNode(obj, docNode, iFun)
-            % projector
-            ppar.mesh   = obj.mesh;
-            projP1 = Projector_toP1(ppar);
-            % fvalues
-            func = projP1.project(obj.fun{iFun});
+            func = obj.fun{iFun}.project('P1');
             if func.ndimf < 3
                 nExtr = 3-func.ndimf;
                 nDimf = 3;

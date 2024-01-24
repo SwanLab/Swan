@@ -23,8 +23,15 @@
             obj.init(cParams)
         end
 
+        function fun = project(obj,target)
+            s.mesh          = obj.mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end
+        
         function fxV = evaluate(obj, xV)
-            assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
+            % assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
         end
         

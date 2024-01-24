@@ -99,8 +99,12 @@ classdef DOFsComputer < handle
        
         
         function dofsVertices = computeDofsVertices(obj)
-            m = obj.mesh;
-            dofsVertices = m.connec;
+            if obj.order == 0
+                dofsVertices = (1:obj.mesh.nelem)';
+            else
+                m = obj.mesh;
+                dofsVertices = m.connec;
+            end
         end
         
         
@@ -181,6 +185,8 @@ classdef DOFsComputer < handle
         
         function ord = convertOrder(~,order)
             switch order
+                case 'P0'
+                    ord = 0;
                 case 'P1'
                     ord = 1;
                 case 'P2'

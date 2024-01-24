@@ -137,7 +137,7 @@ classdef ElasticProblemMicro < handle
         function createDisplacementFun(obj)
             strdim = regexp(obj.pdim,'\d*','Match');
             nDimf  = str2double(strdim);
-            obj.displacementFun = P1Function.create(obj.mesh, nDimf);
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
         end
 
         function dim = getFunDims(obj)
