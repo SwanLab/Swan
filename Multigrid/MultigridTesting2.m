@@ -51,6 +51,7 @@ classdef MultigridTesting2 < handle
             obj.computeCoarseKred();
             obj.computeFineFred();
             obj.computeCoarseFred();
+            obj.solverMG();
 
         end
     end
@@ -306,6 +307,61 @@ classdef MultigridTesting2 < handle
             c.mesh=mesh;
             c.BC = boundaryConditions;
             RHS    = RHSintegrator_ElasticMacro(c);
+        end
+
+        function solverMG(obj)
+            hasNotConverged = true;
+            while hasNotConverged
+
+                hasNotConverged = norm(r) > tol;
+            end
+
+        end
+
+        function vCycle(obj,A,B,xsol,Acoarse,Bcoarse)
+            n = length(B);
+            x = zeros(n,1);
+            r = B - A * x;
+            %             z = ModalTesting.applyPreconditioner(M,r);
+            % z = obj.applyPrecoditionerMultigrid(r);
+            %             z=r-z;
+            p = r;
+            rzold = r' * r;
+            iter = 0;
+
+            hasNotConverged = true;
+            multigrid = true;
+
+            while hasNotConverged
+                
+                Ap = A * p;
+                alpha = rzold / (p' * Ap);
+                x = x + alpha * p;
+                r = r - alpha * Ap;
+                if iter == 0 || hasPartiallyConverged == true 
+                    ri = r;
+                end
+                %                 z = ModalTesting.applyPreconditioner(M,r)
+                rznew = r' * r;
+
+                %hasNotConverged = sqrt(rsnew) > tol;
+                hasNotConverged = norm(r) > tol;
+                hasPartiallyConverged = norm(r)/norm(ri) < 0.5;
+
+                if hasPartiallyConverged && multigrid
+                    z = obj.applyPrecoditionerMultigrid(r,Acoarse,Bcoarse,A,B);
+                    r = z;
+                    multigrid = false;
+                end
+
+                p = r + (rznew / rzold) * p;
+                rzold = rznew;
+                iter = iter + 1;
+                residual(iter) = norm(r); %Ax - b
+%                 err(iter)=norm(x-xsol);
+%                 errAnorm(iter)=((x-xsol)')*A*(x-xsol);
+            end
+
         end
 
     end
