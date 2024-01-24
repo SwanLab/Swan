@@ -1,6 +1,6 @@
 % ONLY CHANGE PARAMETERS WITH COMMENTS
 
-filename = 'CantileverAlvaro'; % Diff meshes
+filename = 'ChairAlvaro'; % Diff meshes
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -15,7 +15,7 @@ incrementFactor = 1.2;
 designVariable = 'LevelSet';
 filterType = 'P1';
 nsteps = 1;
-Vfrac_final = 0.3; % Final volume fraction
+Vfrac_final = 0.2; % Final volume fraction
 optimality_final =1e-3;
 constr_final =1e-3;
 

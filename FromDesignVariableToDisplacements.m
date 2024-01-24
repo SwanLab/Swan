@@ -68,7 +68,7 @@ xf            = cell(2,1);
 xf{1}         = reshape(xP0',[mesh.nelem,q.ngaus]);
 xf{2}         = [ones(1,mesh.nelem);zeros(2,mesh.nelem)];
 homogenizedVarComputer.computeCtensor(xf);
-physicalProblem.setC(homogenizedVarComputer.C);
+%physicalProblem.setC(homogenizedVarComputer.C);
 physicalProblem.solve();
 
 %% OUTPUT
