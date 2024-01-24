@@ -165,7 +165,6 @@ classdef OptimizerNullSpace < Optimizer
             x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
             obj.saveOldValues(x0);
-            obj.calculateInitialStep();
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
             d.nullSpaceCoefficient  = obj.aJ;
@@ -173,6 +172,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualUpdater.update(d);
             obj.mOld = obj.computeMeritFunction();
             obj.computeMeritGradient();
+            obj.calculateInitialStepSize();
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
@@ -185,16 +185,22 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
-            DJ = obj.cost.gradient;
+        function calculateInitialStepSize(obj)
             if obj.nIter == 0
-                factor = 1000;
-                obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
+                tauTrials = [1, 0.7]; % Very provisional
+                for i = 1:length(tauTrials)
+                    obj.primalUpdater.computeFirstStepLength(tauTrials(i));
+                    x(:,i) = obj.updatePrimal();
+                end
+                nPos = round(0.35*size(x,1));
+                xPos = sum(x>0,1);
+                tau0 = tauTrials(2)+(nPos-xPos(2))*(tauTrials(1)-tauTrials(2))/(xPos(1)-xPos(2));
+                tau0 = tau0*1.15;
+                obj.primalUpdater.computeFirstStepLength(tau0);
             elseif obj.nIter == 1
                 obj.primalUpdater.tau = 0.01;
             else
-                factor = 1.01;
+                factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
