@@ -154,6 +154,7 @@ classdef TopOptTestTutorial < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.monitoring     = true;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

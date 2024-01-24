@@ -37,15 +37,15 @@ classdef Optimizer < handle
     methods (Access = protected)
 
         function initOptimizer(obj,cParams)
-            obj.nIter             = 0;
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVariable;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.maxIter           = cParams.maxIter;
-            obj.tolerance         = cParams.tolerance;
-            obj.constraintCase    = cParams.constraintCase;
-            %obj.monitoring        = cParams.monitoring;
+            obj.nIter          = 0;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.maxIter        = cParams.maxIter;
+            obj.tolerance      = cParams.tolerance;
+            obj.constraintCase = cParams.constraintCase;
+            obj.monitoring     = cParams.monitoring;
             %obj.createPostProcess(cParams.postProcessSettings);
         end
 
@@ -162,6 +162,17 @@ classdef Optimizer < handle
     end
 
     methods (Access = private)
+
+        function createMonitoring(obj,cParams)
+            switch cParams.monitoring
+                case true
+                    s.type = 'OptimizationProblem';
+                case false
+                    s.type = 'Null';
+            end
+
+            m = ;
+        end
 
         function createPostProcess(obj,cParams)
             if cParams.shallPrint
