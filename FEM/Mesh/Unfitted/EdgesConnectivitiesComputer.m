@@ -55,17 +55,13 @@ classdef EdgesConnectivitiesComputer < handle
                     
                 case 'QUAD'
                     obj.localEdgesInElem = [1 2; 2 3; 3 4; 4 1];
+
+                case {'LINE','TETRAHEDRA'}
+                    obj.localEdgesInElem =  nchoosek(1:nNodes,2);
                     
                 case 'HEXAHEDRA'
-                    edges = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; 3 7; 4 8; 5 6;...
-                        8 5; 6 7; 7 8;];
-
-                    % Coarse subcell:
-                    newConnections = [2 4; 2 5; 2 8; 4 5; 6 8; 3 7; 3 8; 3 6;];
-
-                    obj.localEdgesInElem =  [edges;newConnections];
-                otherwise
-                    obj.localEdgesInElem =  nchoosek(1:nNodes,2);
+                    obj.localEdgesInElem  = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; ...
+                        3 7; 4 8; 5 6; 8 5; 6 7; 7 8];
             end
             obj.nElem = size(obj.nodesByElem,1);
             obj.nEdgeByElem = size(obj.localEdgesInElem,1);
