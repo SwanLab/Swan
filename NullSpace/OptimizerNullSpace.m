@@ -148,7 +148,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = inf;
+                obj.eta = 0.05;
             else
                 if obj.aG <= 0.5*obj.aGmax
                     obj.eta = 0.05;
@@ -187,18 +187,10 @@ classdef OptimizerNullSpace < Optimizer
 
         function calculateInitialStepSize(obj)
             if obj.nIter == 0
-                tauTrials = [1, 0.7]; % Very provisional
-                for i = 1:length(tauTrials)
-                    obj.primalUpdater.computeFirstStepLength(tauTrials(i));
-                    x(:,i) = obj.updatePrimal();
-                end
-                nPos = round(0.35*size(x,1));
-                xPos = sum(x>0,1);
-                tau0 = tauTrials(2)+(nPos-xPos(2))*(tauTrials(1)-tauTrials(2))/(xPos(1)-xPos(2));
-                tau0 = tau0*1.15;
-                obj.primalUpdater.computeFirstStepLength(tau0);
-            elseif obj.nIter == 1
-                obj.primalUpdater.tau = 0.01;
+                g = obj.constraint;
+                Vtar = obj.targetParameters.Vfrac;
+                DM = obj.meritGradient;
+                obj.primalUpdater.computeFirstStepLength(g,Vtar,DM);
             else
                 factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);
