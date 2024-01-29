@@ -1,7 +1,7 @@
 classdef MultigridTesting2 < handle
     
     
-    properties (Access = public)
+    properties (Access = private)
         nDimf
         boundaryConditionsFine
         fineMaterial
@@ -32,6 +32,7 @@ classdef MultigridTesting2 < handle
         CoarseDispFun
         FineFred
         CoarseFred
+        data
     end
     
     methods (Access = public)
@@ -51,8 +52,13 @@ classdef MultigridTesting2 < handle
             obj.computeCoarseKred();
             obj.computeFineFred();
             obj.computeCoarseFred();
-            obj.solverMG();
+            %obj.solverMG();
+            obj.createData();
 
+        end
+
+        function r = getdata(obj)
+            r = obj.data;
         end
     end
 
@@ -362,6 +368,21 @@ classdef MultigridTesting2 < handle
 %                 errAnorm(iter)=((x-xsol)')*A*(x-xsol);
             end
 
+        end
+
+        function createData(obj)
+            obj.data(1).p = obj.coarseMesh.coord;
+            obj.data(2).p = obj.fineMesh.coord;
+            obj.data(1).t = obj.coarseMesh.connec;
+            obj.data(2).t = obj.fineMesh.connec;
+            %data(1).e = 
+            %data(2).e = 
+            obj.data(1).T = obj.I;
+            obj.data(1).R = obj.I';
+            obj.data(1).A = obj.CoarseKred;
+            obj.data(2).A = obj.FineKred;
+            obj.data(1).b = obj.CoarseFred;
+            obj.data(2).b = obj.FineFred;
         end
 
     end
