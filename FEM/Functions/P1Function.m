@@ -7,6 +7,7 @@ classdef P1Function < FeFunction
 
     properties (Access = private)
         interpolation
+        parentFun
     end
 
     properties (Access = private)

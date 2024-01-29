@@ -155,7 +155,6 @@ classdef ProblemSolver < handle
                         lambda(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                         nCases = size(obj.forces,2);
                         Ct = repmat(lambda, [1 nCases]);
-                        Ct = zeros(6,1);
                         RHS = [obj.forces; Ct];
                     else
                         iV = obj.boundaryConditions.iVoigt;

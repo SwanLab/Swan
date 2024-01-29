@@ -1,16 +1,11 @@
-%% Testing other functions
-% Create a Mesh FEM results
+%% Testing subfunctions
+% Goal: generate subfunctions of functions (eg. left boundary)
 clear; close all;
 
-file = 'test2d_triangle';
-a.fileName = file;
-s = FemDataContainer(a);
-mesh = s.mesh;
-
-%% Create functions
-% AnalyticalFunction
-
-sAF.fHandle = @(x) x(:,2,:);
+% Create P1 Function
+sAF.fHandle = @(x) [x(1,:,:).^2];
 sAF.ndimf   = 1;
-sAF.mesh    = mesh;
+sAF.mesh    = UnitQuadMesh(7,7);
 xFun = AnalyticalFunction(sAF);
+
+p1 = xFun.project('P1');
