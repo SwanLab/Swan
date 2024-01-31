@@ -9,6 +9,8 @@ classdef LagrangeElement < handle
                         element = LagrangeSimplicial1D(k);
                     elseif d==2
                         element = LagrangeSimplicial2D(k);
+                    elseif d==3
+                        element = LagrangeSimplicial3D(k);
                     end
                 case "TENSOR PRODUCT"
                     if d==1
