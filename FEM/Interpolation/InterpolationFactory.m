@@ -52,6 +52,8 @@ classdef InterpolationFactory < handle
                             obj = Tetrahedra_Quadratic(cParams);
                         case 'CUBIC'
                             obj = Tetrahedra_Cubic(cParams);
+                        otherwise
+                            error('Invalid order for element TETRAHEDRA.');
                     end
                 case 'HEXAHEDRA'
                     switch order
@@ -59,6 +61,12 @@ classdef InterpolationFactory < handle
                             obj = Hexahedra_Constant(cParams);
                         case 'LINEAR'
                             obj = Hexahedra_Linear(cParams);
+                        case 'QUADRATIC'
+                            obj = Hexahedra_Quadratic(cParams);
+                        case 'CUBIC'
+                            obj = Hexahedra_Cubic(cParams);
+                        otherwise
+                            error('Invalid order for element HEXAHEDRA.');
                     end
                 otherwise
                     error('Invalid mesh type.')
