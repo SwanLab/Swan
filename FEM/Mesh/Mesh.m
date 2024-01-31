@@ -17,6 +17,7 @@ classdef Mesh < handle
         interpolation
 
         edges
+        faces
         boundaryNodes
         boundaryElements
 
@@ -168,6 +169,14 @@ classdef Mesh < handle
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             obj.edges = edge;
+        end
+        
+        function computeFaces(obj)
+            s.nodesByElem = obj.connec;
+            s.type = obj.type;
+            face = FacesConnectivitiesComputer(s);
+            face.compute();
+            obj.faces = face;
         end
 
         function eM = computeEdgeMesh(obj)
