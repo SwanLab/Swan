@@ -40,6 +40,7 @@ classdef OptimizerMMA < Optimizer
         function obj = OptimizerMMA(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
+            obj.designVariable.updateOld();
             %obj.monitoring.create(cParams);
             obj.maxoutit = 1e4;
         end
@@ -50,20 +51,12 @@ classdef OptimizerMMA < Optimizer
            f = obj.designVariable;
            obj.cost.computeFunctionAndGradient(f);
            obj.constraint.computeFunctionAndGradient(f);
-           J = obj.cost.value;
-           g = obj.constraint.value;
-           Jvec = J;
-           gvec = g;
+           obj.monitoring.update(obj.nIter);
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
-               %obj.updateMonitoring();
+               obj.monitoring.update(obj.nIter);
                obj.printOptimizerVariable();
-               J = obj.cost.value;
-               g = obj.constraint.value;
-               Jvec = [Jvec;J];
-               gvec = [gvec;g];
-               obj.computeQuickPostProcess(Jvec,gvec);
            end
             obj.hasConverged = 0;
             obj.designVariable.fun.print('Result','Paraview');
@@ -104,23 +97,6 @@ classdef OptimizerMMA < Optimizer
     end
     
     methods (Access = private)
-
-        function computeQuickPostProcess(obj,Jvec,gvec)
-            subplot(1,2,1)
-            plot(0:obj.nIter,Jvec)
-            grid on
-            xlabel('Iteration')
-            title('Cost')
-
-            subplot(1,2,2)
-            plot(0:obj.nIter,gvec)
-            grid on
-            xlabel('Iteration')
-            title('Constraint')
-
-            drawnow
-        end
-
         function updateMonitoring(obj)
             s.hasFinished          = obj.hasFinished;
             s.nIter                = obj.nIter;

@@ -42,7 +42,6 @@ classdef OptimizerNullSpace < Optimizer
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            %obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
@@ -56,6 +55,7 @@ classdef OptimizerNullSpace < Optimizer
             %obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
+            obj.monitoring.update();
            J = obj.cost.value;
            g = obj.constraint.value;
            Jvec = J;
@@ -63,7 +63,7 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                %obj.updateMonitoring();
+                obj.monitoring.update();
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
                 obj.checkParameters();
@@ -303,7 +303,6 @@ classdef OptimizerNullSpace < Optimizer
             s.oldCost          = obj.oldCost;
             s.hasFinished      = obj.hasFinished;
             s.meritNew         = obj.meritNew;
-            obj.outputFunction.monitoring.compute(s);
         end
 
         function updateIterInfo(obj)

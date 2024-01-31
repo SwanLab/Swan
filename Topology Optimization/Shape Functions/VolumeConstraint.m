@@ -36,5 +36,11 @@ classdef VolumeConstraint < handle
             dJ      = FeFunction.create(dV.type,fValues,obj.mesh);
         end
     end
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Volume constraint';
+        end
+    end
 end
 

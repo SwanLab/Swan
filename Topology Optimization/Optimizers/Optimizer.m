@@ -45,7 +45,7 @@ classdef Optimizer < handle
             obj.maxIter        = cParams.maxIter;
             obj.tolerance      = cParams.tolerance;
             obj.constraintCase = cParams.constraintCase;
-            obj.monitoring     = cParams.monitoring;
+            obj.createMonitoring(cParams);
             %obj.createPostProcess(cParams.postProcessSettings);
         end
 
@@ -170,8 +170,12 @@ classdef Optimizer < handle
                 case false
                     s.type = 'Null';
             end
-
-            m = ;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            m                = Monitoring.create(s);
+            obj.monitoring   = m;
         end
 
         function createPostProcess(obj,cParams)

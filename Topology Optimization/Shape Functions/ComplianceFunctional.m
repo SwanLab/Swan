@@ -23,6 +23,7 @@ classdef ComplianceFunctional < handle
             dC = obj.computeMaterialDerivative(xR);               
             [J,dJ] = obj.computeComplianceFunctionAndGradient(C,dC);
         end
+
     end
     
     methods (Access = private)
@@ -62,7 +63,11 @@ classdef ComplianceFunctional < handle
             refX = obj.value0;
             x    = x/refX;
         end
+    end
 
-
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Compliance';
+        end
     end
 end

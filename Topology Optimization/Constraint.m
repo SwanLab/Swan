@@ -33,6 +33,18 @@ classdef Constraint < handle
             obj.value    = jV;
             obj.gradient = djV;
         end
+
+        function nF = obtainNumberFields(obj)
+            nF = length(obj.shapeFunctions);
+        end
+
+        function titles = getTitleFields(obj)
+            nF = length(obj.shapeFunctions);
+            titles = cell(nF,1);
+            for iF = 1:nF
+                titles{iF} = obj.shapeFunctions{iF}.getTitleToPlot();
+            end
+        end
     end
 
     methods (Access = private)
