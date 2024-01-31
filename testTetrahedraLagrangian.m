@@ -3,9 +3,9 @@ clear;
 clc
 
 s.coord  = [0 0 0;
-            0 0 1;
+            1 0 0;
             0 1 0;
-            1 0 0;];
+            0 0 1;];
 s.connec = [1 2 3 4];
 mesh = Mesh(s);
 

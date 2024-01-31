@@ -51,8 +51,8 @@ classdef EdgesConnectivitiesComputer < handle
                 case 3
                     obj.localEdgesInElem = [1 2; 2 3; 3 1];
                     
-                case 4
-                    obj.localEdgesInElem = [1 2; 2 3; 3 4; 4 1];
+%                 case 4 NOOOOOOOOOOOOOOOOOO
+%                     obj.localEdgesInElem = [1 2; 2 3; 3 4; 4 1];
 
                 case 8
                     edges = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; 3 7; 4 8; 5 6;...

@@ -76,11 +76,11 @@ classdef DOFsComputer < handle
         
         function computeCoordPriv(obj)
             nelem = size(obj.dofs,1);
-            coor = zeros(obj.ndofs,2);
+            coor = zeros(obj.ndofs,obj.mesh.ndim);
             
             if obj.order~=1
                 
-                sAF.fHandle = @(x) [x(1,:,:),x(2,:,:)];
+                sAF.fHandle = obj.computefHandlePosition();
                 sAF.ndimf   = 2;
                 sAF.mesh    = obj.mesh;
                 func = AnalyticalFunction(sAF);
@@ -121,11 +121,12 @@ classdef DOFsComputer < handle
                 
                 dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+                locPointEdgeRef = obj.computeLocPointEdgeRef();
 
                 for iElem = 1:obj.mesh.nelem
                     for iEdge = 1:obj.mesh.edges.nEdgeByElem
                         ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
-                        if locPointEdge(iElem,iEdge)~=iEdge
+                        if locPointEdge(iElem,iEdge)~=locPointEdgeRef(iEdge)
                             ind = flip(ind);
                         end
                         dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
@@ -153,7 +154,15 @@ classdef DOFsComputer < handle
 
         
         function ndofsElements = computeNdofsElements(obj,polOrder)
-            d = 6-obj.mesh.nnodeElem; % PROVISIONAL
+            switch obj.mesh.type
+                case 'TRIANGLE'
+                    d = 3;
+                case 'QUAD'
+                    d = 2;
+                case 'TETRAHEDRA'
+                    d = 3;
+            end
+            
             ord = polOrder - d;
             ndofsElements = 0;
             if ord == 0
@@ -193,6 +202,31 @@ classdef DOFsComputer < handle
                     ord = 2;
                 case 'P3'
                     ord = 3;
+            end
+        end
+        
+        
+        function loc = computeLocPointEdgeRef(obj)
+            type = obj.mesh.type;
+            switch type
+                case 'TRIANGLE'
+                    loc = [1 2 3];
+                case 'QUAD'
+                    loc = [1 2 3 4];
+                case 'TETRAHEDRA'
+                    loc = [1 1 1 2 2 3];
+            end
+        end
+        
+        function fh = computefHandlePosition(obj)
+            ndim = obj.mesh.ndim;
+            switch ndim
+                case 1
+                    fh = @(x) x(1,:,:);
+                case 2
+                    fh = @(x) [x(1,:,:),x(2,:,:)];
+                case 3
+                    fh = @(x) [x(1,:,:),x(2,:,:),x(3,:,:)];
             end
         end
 
