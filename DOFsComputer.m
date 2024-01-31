@@ -67,9 +67,9 @@ classdef DOFsComputer < handle
             dofsVertices = obj.computeDofsVertices();
             dofsEdges = obj.computeDofsEdges();
             ndofsEdges = max(max(dofsEdges));
-            dofsElements = obj.computeDofsElements(ndofsEdges);
+            dofsFaces = obj.computeDofsFaces(ndofsEdges);
             
-            obj.dofs = [dofsVertices,dofsEdges,dofsElements];
+            obj.dofs = [dofsVertices,dofsEdges,dofsFaces];
             obj.ndofs = max(max(obj.dofs));
         end
         
@@ -137,13 +137,13 @@ classdef DOFsComputer < handle
         end
         
         
-        function dofsElements = computeDofsElements(obj,ndofsEdges)
+        function dofsElements = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
             if polOrder == 1
                 dofsElements = [];
             else 
-                ndofsElements = obj.computeNdofsElements(polOrder);
+                ndofsElements = obj.computeNdofsFaces(polOrder);
                 dofsElements = zeros(m.nelem,ndofsElements);
                 for i = 1:m.nelem
                     dofsElements(i,:) = (i-1)*ndofsElements+1:i*ndofsElements;
@@ -153,14 +153,17 @@ classdef DOFsComputer < handle
         end
 
         
-        function ndofsElements = computeNdofsElements(obj,polOrder)
+        function ndofsElements = computeNdofsFaces(obj,polOrder)
             switch obj.mesh.type
                 case 'TRIANGLE'
                     d = 3;
+                    nfaces = 1;
                 case 'QUAD'
                     d = 2;
+                    nfaces = 1;
                 case 'TETRAHEDRA'
                     d = 3;
+                    nfaces = 4;
             end
             
             ord = polOrder - d;
@@ -171,6 +174,8 @@ classdef DOFsComputer < handle
                 ndofsElements = ndofsElements + obj.mesh.nnodeElem + obj.mesh.edges.nEdgeByElem*(ord-1);
                 ndofsElements = ndofsElements + obj.computeNdofsElements(ord-d);
             end
+            
+            ndofsElements = ndofsElements*nfaces;
         end
         
         
