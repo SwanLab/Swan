@@ -223,13 +223,13 @@ classdef LagrangeSimplicial3D < handle
                 end
                 
                 mapping = containers.Map('KeyType', 'char', 'ValueType', 'double');
-                for i = 1:size(matrix, 1)
-                    key = mat2str(matrix(i, :));
+                for ind = 1:size(matrix, 1)
+                    key = mat2str(matrix(ind, :));
                     if ~isKey(mapping, key)
-                        mapping(key) = i;
+                        mapping(key) = ind;
                     end
                 end
-                s = mapping(mat2str([i j k]));
+                s = mapping(mat2str([i j ik]));
             end
         end
         
@@ -244,14 +244,16 @@ classdef LagrangeSimplicial3D < handle
         
         function computeShapeFunctionsDiffSym(obj)
             f = obj.shapeFunctionsSym;
-            shD = cell(length(f),2);
+            shD = cell(length(f),3);
             ndof = obj.ndofs;
             x = obj.xSym;
             y = obj.ySym;
+            z = obj.zSym;
             
             for s = 1:ndof
                 shD{s,1} = diff(f{s},x);
                 shD{s,2} = diff(f{s},y);
+                shD{s,3} = diff(f{s},z);
             end
             
             obj.shapeFunctionsDiffSym = shD;
@@ -259,14 +261,16 @@ classdef LagrangeSimplicial3D < handle
         
         function computeShapeFunctionsDiff(obj)
             ndof = obj.ndofs;
-            shD = cell(ndof,2);
+            shD = cell(ndof,3);
             shDSym = obj.shapeFunctionsDiffSym;
             x = obj.xSym;
             y = obj.ySym;
+            z = obj.zSym;
             
             for s = 1:ndof
-                shD{s,1} = matlabFunction(shDSym{s,1},'Vars',[x y]);
-                shD{s,2} = matlabFunction(shDSym{s,2},'Vars',[x y]);
+                shD{s,1} = matlabFunction(shDSym{s,1},'Vars',[x y z]);
+                shD{s,2} = matlabFunction(shDSym{s,2},'Vars',[x y z]);
+                shD{s,3} = matlabFunction(shDSym{s,3},'Vars',[x y z]);
             end
             
             obj.shapeFunctionsDiff = shD;
