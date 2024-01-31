@@ -50,6 +50,8 @@ classdef InterpolationFactory < handle
                             obj = Tetrahedra_Linear(cParams);
                         case 'QUADRATIC'
                             obj = Tetrahedra_Quadratic(cParams);
+                        case 'CUBIC'
+                            obj = Tetrahedra_Cubic(cParams);
                     end
                 case 'HEXAHEDRA'
                     switch order
