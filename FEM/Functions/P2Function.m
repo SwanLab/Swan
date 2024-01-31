@@ -155,6 +155,14 @@ classdef P2Function < FeFunction
             dof = sort(dofMat(:));
         end
 
+        function nod = getNodesFromCondition(obj, condition)
+            nodes = condition(obj.coord);
+            iNode = find(nodes==1);
+%             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+%             dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            nod = sort(iNode(:));
+        end
+
     end
 
     methods (Access = public, Static)
@@ -173,6 +181,7 @@ classdef P2Function < FeFunction
             obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
+            obj.order   = 'QUADRATIC';
         end
 
         function createInterpolation(obj)

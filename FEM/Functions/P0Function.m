@@ -1,25 +1,53 @@
 classdef P0Function < FeFunction
     
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
     
+    properties (Access = private)
+        interpolation
+    end
+
     methods (Access = public)
         
         function obj = P0Function(cParams)
             obj.init(cParams);
-            obj.createFvaluesByElem();
+            obj.createInterpolation();
+            obj.computeNDofs();
         end
 
         function fxV = evaluate(obj, xV)
             % Its a p0 function, so no true need to interpolate -- the
             % value is constant
             nGaus = size(xV,2);
-            nFlds = size(obj.fValues,1);
-            nElem = size(obj.fValues,3);
+            nFlds = size(obj.fValues,2);
+            nElem = size(obj.fValues,1);
             fxV = zeros(nFlds,nGaus,nElem);
+            fVals = reshape(obj.fValues',[nFlds, 1, nElem]);
             for iGaus = 1:nGaus
-                fxV(:,iGaus,:) = squeeze(obj.fValues);
+                fxV(:,iGaus,:) = squeeze(fVals);
             end
+        end
+
+        function dofConnec = computeDofConnectivity(obj)
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nDofsE = nDimf;
+            nElem  = size(conne,1);
+            dofsElem  = zeros(nDofsE,nElem);
+            for iUnkn = 1:nDimf
+                dofsElem(iUnkn,:) = iUnkn:nDimf:(nElem*nDimf);
+            end
+            %a = dofsElem(:);
+            %dofsElem = reshape(a',[],2)';
+            dofConnec = dofsElem;
+        end
+        
+        function N = computeShapeFunctions(obj, quad)
+            xV = quad.posgp;
+            obj.interpolation.computeShapeDeriv(xV);
+            N = obj.interpolation.shape;
         end
 
         function plot(obj)
@@ -27,10 +55,25 @@ classdef P0Function < FeFunction
             p1DiscFun.plot();
         end
 
-        function print(obj, s)
+        function plotArrowVector(obj)
+            %figure()
+            a = obj.fValues;
+            xy = obj.mesh.computeBaricenter();
+            x = xy(1,:)';
+            y = xy(2,:)';
+            ax = squeeze(a(1,:,:));
+            ay = squeeze(a(2,:,:));
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
+        end        
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -49,19 +92,33 @@ classdef P0Function < FeFunction
         end
     end
 
+    methods (Access = public, Static)
+
+        function p0 = create(mesh, ndimf)
+            s.fValues = zeros(mesh.nelem,ndimf);
+            s.mesh    = mesh;
+            p0 = P0Function(s);
+        end
+
+    end
+
     methods (Access = private)
 
         function init(obj,cParams)
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
             obj.ndimf   = size(cParams.fValues,2);
+            obj.order   = 'CONSTANT';
         end
 
-        function createFvaluesByElem(obj)
-            f = obj.fValues;
-            nElem = size(f,1);
-            nDime = size(f,2);
-            obj.fValues = reshape(f',[nDime, 1, nElem]);
+        function createInterpolation(obj)
+            m.type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(m,'CONSTANT');
+        end
+
+        function computeNDofs(obj)
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
+            obj.nDofs = obj.ndimf * size(obj.fValues, 1);
         end
 
         % Printing

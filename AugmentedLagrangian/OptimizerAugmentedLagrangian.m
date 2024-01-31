@@ -76,7 +76,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.nX                     = length(obj.designVariable.value);
+            obj.nX                     = obj.designVariable.fun.nDofs;
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
             obj.nIter                  = 0;
@@ -91,7 +91,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = update(obj)
-            x0 = obj.designVariable.value;
+            x0 = obj.designVariable.fun.fValues;
             obj.designVariable.update(x0);
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
@@ -120,7 +120,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function obj = calculateInitialStep(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            x       = obj.designVariable.value;
+            x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
@@ -137,7 +137,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x   = obj.designVariable.value;
+            x   = obj.designVariable.fun.fValues;
             g   = obj.meritGradient;
             x   = obj.primalUpdater.update(g,x);
         end
@@ -185,8 +185,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.dualUpdater.update();
                 obj.meritNew = mNew;
             elseif obj.primalUpdater.isTooSmall()
-%                 error('Convergence could not be achieved (step length too small)')
-                warning('Convergence could not be achieved (step length too small)')
+                %warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew = mNew; % Provisional value
             else

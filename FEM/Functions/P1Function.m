@@ -1,6 +1,8 @@
 classdef P1Function < FeFunction
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
 
     properties (Access = private)
@@ -17,6 +19,7 @@ classdef P1Function < FeFunction
         function obj = P1Function(cParams)
             obj.init(cParams);
             obj.createInterpolation();
+            obj.computeNDofs();
         end
 
         function fxV = evaluate(obj, xV)
@@ -119,14 +122,15 @@ classdef P1Function < FeFunction
             grad = obj.computeGradient(quad);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
-            nGaus = size(grad.fValues, 2);
             nElem = size(grad.fValues, 3);
+            nGauss = size(grad.fValues, 2);
 
-            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
+            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGauss,nElem]);
             gradT = permute(gradReshp, [2 1 3 4]);
             symGrad = 0.5*(gradReshp + gradT);
             
-            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+            rshp = reshape(symGrad, [nDims*nDimf,nGauss,nElem]);
+            s.fValues = rshp;
             s.quadrature = quad;
             s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);
@@ -208,6 +212,7 @@ classdef P1Function < FeFunction
                         shading interp
                         a.EdgeColor = [0 0 0];
                         title(['dim = ', num2str(idim)]);
+                        colorbar
                     end
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
@@ -218,7 +223,7 @@ classdef P1Function < FeFunction
         end
 
         function plotArrowVector(obj)
-            figure()
+     %       figure()
             a = obj.fValues;
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
@@ -228,11 +233,13 @@ classdef P1Function < FeFunction
             q.ShowArrowHead = 'off';
         end
 
-        function print(obj, s)
-%             s.mesh
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
-            p = FunctionPrinter(s);
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -245,6 +252,16 @@ classdef P1Function < FeFunction
             fps = FunctionPrintingSettings(s);
             [res, pformat] = fps.getDataToPrint();
         end
+
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
+        end
+
 
     end
 
@@ -262,6 +279,14 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
+
+        function fS = sum(f1,f2)
+            fS = f1.fValues+f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end
+        
         
     end
 
@@ -278,6 +303,11 @@ classdef P1Function < FeFunction
         function createInterpolation(obj)
             m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,'LINEAR');
+        end
+
+        function computeNDofs(obj)
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
+            obj.nDofs = obj.ndimf * size(obj.fValues, 1);
         end
 
         % Printing

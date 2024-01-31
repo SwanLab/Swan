@@ -5,6 +5,7 @@ classdef TopOpt_Problem < handle
         dualVariable
         cost
         constraint
+        physicalProblem
         optimizer
         incrementalScheme
         optimizerSettings
@@ -22,35 +23,54 @@ classdef TopOpt_Problem < handle
             obj.createMesh(cParams);
             obj.createIncrementalScheme(cParams);
             obj.createDesignVariable(cParams);
-            obj.createHomogenizedVarComputer(cParams)
+            obj.createHomogenizedVarComputer(cParams);
+            obj.createEquilibriumProblem(cParams);
             obj.createCostAndConstraint(cParams);
             obj.createDualVariable();
             obj.createOptimizer(cParams);
             obj.createVideoMaker(cParams);
         end
-        
+
+        function createEquilibriumProblem(obj,cParams)
+            s = cParams.problemData.femData;
+            obj.physicalProblem = FEM.create(s);
+            obj.initPrincipalDirections();
+        end
+
+        function initPrincipalDirections(obj)
+            if isempty(obj.designVariable.alpha)
+                dim = obj.physicalProblem.getDimensions();
+                nelem = obj.designVariable.mesh.nelem;
+                ndim = dim.ndimf;
+                alpha0 = zeros(ndim,nelem);
+                alpha0(1,:) = 1;
+                obj.designVariable.alpha = alpha0;
+            end
+        end
+
         function createOptimizer(obj,settings)
+            epsilon = obj.incrementalScheme.targetParams.epsilon;
             obj.completeOptimizerSettings(settings);
             obj.computeBounds();
             obj.optimizerSettings.outputFunction.type        = 'Topology';
             obj.optimizerSettings.outputFunction.iterDisplay = 'none';
             obj.optimizerSettings.outputFunction.monitoring  = MonitoringManager(obj.optimizerSettings);
+            obj.optimizerSettings.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon = epsilon;
             obj.optimizer = Optimizer.create(obj.optimizerSettings);
         end
 
         function computeBounds(obj)
-            switch obj.designVariable.type 
+            switch obj.designVariable.type
                 case 'Density'
-                obj.optimizerSettings.ub = 1;
-                obj.optimizerSettings.lb = 0;
+                    obj.optimizerSettings.ub = 1;
+                    obj.optimizerSettings.lb = 0;
                 otherwise
 
             end
         end
-        
+
         function completeOptimizerSettings(obj,cParams)
             s = cParams.optimizerSettings;
-            s.uncOptimizerSettings.scalarProductSettings = obj.designVariable.scalarProduct;
             
             s.uncOptimizerSettings.targetParameters = obj.incrementalScheme.targetParams;
             s.uncOptimizerSettings.designVariable   = obj.designVariable;
@@ -106,6 +126,25 @@ classdef TopOpt_Problem < handle
             s.mesh = obj.mesh;
             s.scalarProductSettings.epsilon = obj.incrementalScheme.targetParams.epsilon;
             s.scalarProductSettings.mesh    = obj.mesh;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = obj.mesh.ndim;
+            sLs.coord  = obj.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
+            ss.mesh    = obj.mesh;
+            s.fun      = P1Function(ss);
+
             obj.designVariable = DesignVariable.create(s);
         end
         
@@ -120,6 +159,8 @@ classdef TopOpt_Problem < handle
         end
         
         function createCostAndConstraint(obj,cParams)
+            cParams.costSettings.physicalProblem       = obj.physicalProblem;
+            cParams.constraintSettings.physicalProblem = obj.physicalProblem;
             obj.createCost(cParams);
             obj.createConstraint(cParams);
         end

@@ -8,7 +8,7 @@ classdef MaterialInterpolation < handle
         muFunc
         dmuFunc
         kappaFunc
-        dkappaFunc   
+        dkappaFunc
         matProp
         isoMaterial
     end

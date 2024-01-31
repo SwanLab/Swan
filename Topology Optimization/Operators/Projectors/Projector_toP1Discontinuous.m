@@ -7,10 +7,21 @@ classdef Projector_toP1Discontinuous < Projector
         end
 
         function xProj = project(obj, x)
-            LHS = obj.computeLHS();
-            RHS = obj.computeRHS(x);
-            f = LHS\RHS;
-            fVals = obj.reshapeFValues(f, x.ndimf);
+            if isequal(class(x),'P1Function')
+                fVals = zeros(x.nDofsElem,obj.mesh.nelem);
+                fVals = obj.reshapeFValues(fVals,x.ndimf);
+                nodes = obj.mesh.connec;
+                for iDim = 1:x.ndimf
+                    for iNode = 1:obj.mesh.nnodeElem
+                       fVals(iDim,iNode,:) = x.fValues(nodes(:,iNode),iDim);
+                    end
+                end                
+            else
+                LHS = obj.computeLHS();
+                RHS = obj.computeRHS(x);
+                f = LHS\RHS;
+                fVals = obj.reshapeFValues(f, x.ndimf);
+            end
             s.mesh    = obj.mesh;
             s.fValues = fVals;
             xProj = P1DiscontinuousFunction(s);
@@ -23,7 +34,8 @@ classdef Projector_toP1Discontinuous < Projector
         function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.fun   = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -34,7 +46,11 @@ classdef Projector_toP1Discontinuous < Projector
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
             obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+
+            trial = P1DiscontinuousFunction.create(obj.mesh, 1);            
+            shapes = trial.computeShapeFunctions(quad);
+
+           % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;

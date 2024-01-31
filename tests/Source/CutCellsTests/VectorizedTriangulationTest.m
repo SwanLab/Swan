@@ -109,9 +109,9 @@ classdef VectorizedTriangulationTest < handle
             c = ComputingInnerAndBoundaryCutMesh(s);
             c.compute();
             xCoord = c.cutCoordComputer;
-            x = xCoord.xCutPoints(:,1);
-            y = xCoord.xCutPoints(:,2);
-            z = xCoord.xCutPoints(:,3);
+            x = xCoord.cutValues(:,1);
+            y = xCoord.cutValues(:,2);
+            z = xCoord.cutValues(:,3);
             hold on
             plot3(x,y,z,'k*','LineWidth',10,'MarkerSize',10,'MarkerFaceColor','k','MarkerEdgeColor','k')
         end

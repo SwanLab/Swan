@@ -49,9 +49,10 @@ classdef ShiftingFunctionComputer < handle
         end
         
         function K = computeStiffnessMatrix(obj)
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
-            s.fun  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -60,20 +61,14 @@ classdef ShiftingFunctionComputer < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             cG = obj.corrector.computeGradient(q);
-            fGauss = permute(cG.fValues,[1 3 2]);
-            s.fType     = 'Gauss';
-            s.fGauss    = fGauss;
-            s.xGauss    = q.posgp;
-            s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.meshDisc.nnodes*1;
-            s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
+            test = P1DiscontinuousFunction.create(obj.mesh,1);
+            s.mesh = obj.meshDisc;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = 'QUADRATIC';
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsF = rhs.compute(cG,test);
             In = obj.interpolator;
-            rhsV = In'*rhsV;
+            rhsV = In'*rhsF;
             obj.RHS = rhsV;
         end
         

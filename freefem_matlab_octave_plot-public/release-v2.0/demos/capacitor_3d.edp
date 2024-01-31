@@ -1,0 +1,187 @@
+/* 3D parallel plate capacitor problem
+ *
+ *  Solves the Laplace Equation on a parallel plate capacitor (dirichlet) boundary.
+ *  FE-Mesh and space functions are written to text files in order to be plot with
+ *  Matlab / Octave.
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-05-19
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+include "ffmatlib.idp"
+
+load "msh3"
+load "medit"
+
+int C20=98,C21=99; //2D mesh
+int CK=30,CA=31;   //anode+cathode
+int C3CT01=23, C3CT12=24, C3CT23=25, C3CT34=26; //3D contact labels
+int C3BOT=40, C3TOP=41, C3SIDEO=42, C3SIDEI=43; //3D labels - cube top and bottom and side labels
+
+//enclosure
+real w0=0.75, h0=0.75;
+
+border C01(t=0,w0){ x=t; y=0; label=C20;};
+border C02(t=w0,0){ x=t; y=h0; label=C20;};
+border C03(t=0,h0){ x=w0; y=t; label=C20;};
+border C04(t=h0,0){ x=0; y=t; label=C20;};
+
+real w1=0.3, h1=0.3;
+real posX1=0.5*w0-0.5*w1;
+real posY1=0.5*h0-0.5*h1;
+
+border C11(t=0,w1){ x=posX1+t; y=posY1; label=C21;};
+border C12(t=w1,0){ x=posX1+t; y=posY1+h1; label=C21;};
+border C13(t=0,h1){ x=posX1+w1; y=posY1+t; label=C21;};
+border C14(t=h1,0){ x=posX1; y=posY1+t; label=C21;};
+
+//layer stack
+real[int] z(6);
+z=[0.0,0.17,0.2,0.3,0.33,0.5];
+
+int n=30;
+int m=12;
+real l=22.0/(z(5)-z(0));
+
+mesh Tha2=buildmesh(C01(n)+C03(n)+C02(n)+C04(n)
+                   +C11(m)+C12(m)+C13(m)+C14(m));
+
+//bottom block
+int[int] a0up=[0,CK,          //Deckel Innen
+               1,C3CT01],     //Deckel Aussenring
+         a0down=[0,C3BOT,     //Boden Innen
+                 1,C3BOT],    //Boden Aussenring
+         a0mid=[C20,C3SIDEO,  //Mantel Aussen
+                C21,C3SIDEI], //Mantel Innen
+         a0tet=[0,0];
+
+int[int] a1up=[0,CK,
+               1,C3CT12],
+         a1down=[0,CK,
+                 1,C3CT01],
+         a1mid=[C20,C3SIDEO,
+                C21,CK],
+         a1tet=[0,0];
+
+int[int] a2up=[0,CA,
+               1,C3CT23],
+         a2down=[0,CK,
+                 1,C3CT12],
+         a2mid=[C20,C3SIDEO,
+                C21,C3SIDEI],
+         a2tet=[0,0];
+
+int[int] a3up=[0,CA,
+               1,C3CT34],
+         a3down=[0,CA,
+                 1,C3CT23],
+         a3mid=[C20,C3SIDEO,
+                C21,CA],
+         a3tet=[0,0];
+
+int[int] a4up=[0,55,
+               1,C3TOP],
+         a4down=[0,CA,
+                 1,C3CT34],
+         a4mid=[C20,C3SIDEO,
+                C21,C3SIDEI],
+         a4tet=[0,0];
+
+mesh3 Tha03d=buildlayers(Tha2,l*(z[1]-z[0]),
+                         zbound=[z[0],z[1]],
+                         reftet=a0tet,
+                         labelmid=a0mid,
+                         labelup=a0up,
+                         labeldown=a0down);
+
+mesh3 Tha13d=buildlayers(Tha2,l*(z[2]-z[1]),
+                         zbound=[z[1],z[2]],
+                         reftet=a1tet,
+                         labelmid=a1mid,
+                         labelup=a1up,
+                         labeldown=a1down);
+
+mesh3 Tha23d=buildlayers(Tha2,l*(z[3]-z[2]),
+                         zbound=[z[2],z[3]],
+                         reftet=a2tet,
+                         labelmid=a2mid,
+                         labelup=a2up,
+                         labeldown=a2down);
+
+mesh3 Tha33d=buildlayers(Tha2,l*(z[4]-z[3]),
+                         zbound=[z[3],z[4]],
+                         reftet=a3tet,
+                         labelmid=a3mid,
+                         labelup=a3up,
+                         labeldown=a3down);
+
+mesh3 Tha43d=buildlayers(Tha2,l*(z[5]-z[4]),
+                         zbound=[z[4],z[5]],
+                         reftet=a4tet,
+                         labelmid=a4mid,
+                         labelup=a4up,
+                         labeldown=a4down);
+
+mesh3 Thn3d=Tha03d+Tha13d+Tha23d+Tha33d+Tha43d;
+
+fespace Vh(Thn3d,P1);
+Vh u,v,h;
+
+//Terminal K on Ground
+//Arbitrary Anode Voltage
+real u0=2.0;
+
+macro Grad(u) [dx(u),dy(u),dz(u)] // EOM
+
+problem Laplace(u,v,solver=CG) =
+               int3d(Thn3d)( Grad(u)'*Grad(v) )
+               +on(CK,u=0)
+               +on(CA,u=u0);
+
+Laplace;
+
+Vh Ex, Ey, Ez;
+Ex = -dx(u);
+Ey = -dy(u);
+Ez = -dz(u);
+
+real epsilon0 = 8.854187e-12; // [As/Vm]
+real energy = 0.5*epsilon0*int3d(Thn3d,qforder=3)( (Ex)^2 + (Ey)^2 + (Ez)^2 );
+
+cout.precision(3);
+
+cout << endl;
+cout << "A Parallel Plate Capacitor Problem:" << endl;
+cout << "Capacitance:\t" << "C = " << 2*energy/(u0)^2 << "[F]" << endl;
+cout << "epsilon*A/d:\t" << "C = " << epsilon0*w1*h1/(z[3]-z[2]) << "[F]" << endl;
+cout << endl;
+cout << "NbBoundaryElements:\t" <<  Thn3d.nbe << endl;
+cout << "NbTriangles:\t\t" <<  Thn3d.nt << endl;
+cout << "NbVertices:\t\t" <<  Thn3d.nv << endl;
+cout << "nDoF:\t\t\t" << Vh.ndof << endl;
+cout << endl;
+
+savemesh(Thn3d,"cap3d.mesh");
+ffSaveVh(Thn3d,Vh,"cap3vh.txt");
+ffSaveData(u,"cap3dpot.txt");
+ffSaveData3(Ex,Ey,Ez,"cap3dvec.txt");
+
+medit("U",Thn3d,u);
+

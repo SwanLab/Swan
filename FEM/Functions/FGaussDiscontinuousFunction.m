@@ -28,8 +28,8 @@
             fxV = obj.fValues;
         end
         
-        function dNdx  = computeCartesianDerivatives(obj)
-            quad = obj.quadrature;
+        function dNdx  = computeCartesianDerivatives(obj, quad)
+            assert(isequal(quad,obj.quadrature), 'Quadrature does not match');
             nElem = size(obj.mesh.connec,1);
             nNode = obj.mesh.interpolation.nnode;
             nDime = obj.mesh.interpolation.ndime;
@@ -59,15 +59,19 @@
 
         function plot(obj)
             s.mesh = obj.mesh;
-            proj = Projector_toP1(s);
+            s.projectorType = 'P1D';
+            proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
         end
 
-        function print(obj, s)
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
             s.mesh = obj.mesh;
-            s.fun  = {obj};
-            p = FunctionPrinter(s);
+            s.fun = {obj};
+            s.type = software;
+            s.filename = filename;
+            p = FunctionPrinter.create(s);
             p.print();
         end
 
@@ -82,10 +86,32 @@
             [res, pformat] = fps.getDataToPrint();
         end
 
+        function dofConnec = computeDofConnectivity(obj)
+            % This assumes that FGaussDiscFun comes from a P1Fun...
+            conne  = obj.mesh.connec;
+            nDimf  = obj.ndimf;
+            nNode  = size(conne, 2);
+            nDofsE = nNode*nDimf;
+            dofsElem  = zeros(nDofsE,size(conne,1));
+            for iNode = 1:nNode
+                for iUnkn = 1:nDimf
+                    idofElem   = nDimf*(iNode - 1) + iUnkn;
+                    globalNode = conne(:,iNode);
+                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+                    dofsElem(idofElem,:) = idofGlobal;
+                end
+            end
+            dofConnec = dofsElem;
+        end
+
+        function v = computeL2norm(obj)
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
+        end        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.fValues    = cParams.fValues;
             obj.quadrature = cParams.quadrature;

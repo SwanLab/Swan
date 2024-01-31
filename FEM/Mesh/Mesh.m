@@ -1,9 +1,6 @@
 classdef Mesh < handle
 
     properties (GetAccess = public, SetAccess = private)
-        nnodeElem
-%         npnod
-        nnodes
         type
         kFace
         geometryType
@@ -11,9 +8,10 @@ classdef Mesh < handle
         coord
         connec
 
-        nelem
         ndim
-
+        nelem
+        nnodes
+        nnodeElem
 
         coordElem
         interpolation
@@ -110,10 +108,6 @@ classdef Mesh < handle
             L = norm(xmax-xmin);
         end
 
-        function changeCoordinates(obj,newCoords)
-            obj.coord = newCoords;
-        end
-
         function setCoord(obj,newCoord)
             obj.coord = newCoord;
         end
@@ -182,6 +176,7 @@ classdef Mesh < handle
 
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
+            s.type = obj.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             obj.edges = edge;
@@ -275,23 +270,41 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-
-%         function fP1 = mapP0ToP1Discontinous(obj,f)
-%             nnodeElem = obj.meshDisc.nnodeElem;
-%             fRepeted = zeros(size(f,1),nnodeElem);
-%             for iNode = 1:nnodeElem
-%                 fRepeted(:,iNode) = f;
-%             end
-%             fRepeted = transpose(fRepeted);
-%             fP1 = fRepeted(:);
-%         end
-
-
-        function exportSTL(obj, file)
-            obj.triangulateMesh();
-            stlwrite(obj.triMesh, [file '.stl'])
+        function m = convertToTriangleMesh(obj, lastNode)
+            if nargin == 1; lastNode = obj.nnodes; end
+            q2t = QuadToTriMeshConverter();
+            m = q2t.convert(obj, lastNode);
         end
 
+        function exportSTL(obj)
+            s.mesh = obj;
+            me = STLExporter(s);
+            me.export();
+        end
+
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+
+        function print(obj, filename, software)
+            if nargin == 2; software = 'GiD'; end
+            p1 = P1Function.create(obj,1);
+            s.filename = filename;
+            s.mesh     = obj;
+            s.fun      = {p1};
+            s.type     = software;
+            p = FunctionPrinter.create(s);
+            p.print();
+        end
+
+        function m = triangulateMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = delaunayn(obj.coord);
+            m = Mesh(s);
+        end
 
     end
 
@@ -377,12 +390,6 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end
-
-        function triangulateMesh(obj)
-            P = obj.coord;
-            T = obj.connec;
-            obj.triMesh = triangulation(T,P);
         end
 
     end

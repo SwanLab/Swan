@@ -2,6 +2,7 @@ classdef DiffReactProblem < handle
     
     properties (GetAccess = public, SetAccess = protected)
         variables
+        x
     end
     
     properties (Access = private)
@@ -11,30 +12,36 @@ classdef DiffReactProblem < handle
         LHStype
         problemLHS
         problemData
-        boundaryConditions
+        % boundaryConditions
     end
 
     methods (Access = public)
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            obj.createBoundaryConditions();
+            % obj.createBoundaryConditions();
             obj.createSolver();
             obj.createProblemLHS();
         end
 
         function computeVariables(obj,rhs)
-            bc  = obj.boundaryConditions;
-            RHS = bc.fullToReducedVector(rhs);
+            % bc  = obj.boundaryConditions;
+            % RHS = bc.fullToReducedVector(rhs);
+            RHS = rhs;
             LHS = obj.computeLHS(obj.epsilon);
             x = obj.solver.solve(LHS,RHS);
-            obj.variables.x = bc.reducedToFullVector(x);
+            % obj.variables.x = bc.reducedToFullVector(x);
+            obj.variables.x = x;
+            a.mesh = obj.mesh;
+            a.fValues = obj.variables.x;
+            obj.x = P1Function(a);
         end
         
         function LHS = computeLHS(obj, epsilon)
             obj.epsilon = epsilon;
             lhs = obj.problemLHS.compute(epsilon);
-            LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
+            % LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
+            LHS = lhs;
         end
        
         function print(obj,filename)
@@ -82,8 +89,9 @@ classdef DiffReactProblem < handle
         end
 
         function createProblemLHS(obj)
-            s.type = obj.LHStype;
-            s.mesh = obj.mesh;
+            s.type  = obj.LHStype;
+            s.mesh  = obj.mesh;
+            s.trial = P1Function.create(obj.mesh,1);
             obj.problemLHS = LHSintegrator.create(s);
         end
     

@@ -81,7 +81,7 @@ classdef UnfittedMesh < handle
             dvC = obj.computeInnerCutDvolume(quad);
             dv = dvC + dvI;
         end
-        
+
         function print(obj, filename)
             d = obj.createPostProcessDataBase(filename);
             d.fields           = {obj.levelSet};
@@ -89,6 +89,13 @@ classdef UnfittedMesh < handle
             d.nDesignVariables = 1;
             postProcess = Postprocess('TopOptProblem',d);
             postProcess.print(1,d)
+        end
+
+        function printNew(obj,filename)
+            sF.fValues = obj.levelSet;
+            sF.mesh    = obj.backgroundMesh;
+            ls = P1Function(sF);
+            ls.print(filename, 'GiD');
         end
 
         function m = createFullInnerMesh(obj, s)
@@ -104,10 +111,32 @@ classdef UnfittedMesh < handle
             sp.plot();
         end
 
+        function m = createInnerMesh(obj)
+            s.type         = 'Matlab';
+            s.unfittedMesh = obj;
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
+        end
+
+        function m = createInnerMeshGoodConditioning(obj)
+            s.type         = 'GiD';
+            s.unfittedMesh = obj;
+            imc = FullInnerMeshCreator.create(s);
+            m = imc.export();
+        end
+
+        function uMeshFun = obtainFunctionAtUnfittedMesh(obj,f)
+            sUmf.uMesh    = obj;
+            sUmf.levelSet = obj.levelSet;
+            sUmf.cutCells = obj.cutCells;
+            uMeshFun      = UnfittedMeshFunction(sUmf);
+            uMeshFun.compute(f);
+        end
+
     end
-    
+
     methods (Access = private)
-        
+
         function dvolume = computeInnerDvolume(obj,quad)
             nelem = obj.backgroundMesh.nelem;
             ngaus = quad.ngaus;
@@ -174,12 +203,14 @@ classdef UnfittedMesh < handle
         end
         
         function computeInnerCutMesh(obj)
-            obj.innerCutMesh = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh      = obj.cutMesh.innerCutMesh;
+            obj.innerCutMesh.mesh = obj.innerCutMesh.mesh.computeCanonicalMesh();
         end
         
         function computeBoundaryCutMesh(obj)
             if ~isequal(obj.backgroundMesh.geometryType,'Line')
-                obj.boundaryCutMesh = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh      = obj.cutMesh.boundaryCutMesh;
+                obj.boundaryCutMesh.mesh = obj.boundaryCutMesh.mesh.computeCanonicalMesh();
             end
             
         end
@@ -209,28 +240,26 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.create(fPar);
             s.mesh = obj;
-            s.type = 'Unfitted';
+            s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInDomain(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Interior')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
-            npnod = obj.backgroundMesh.nnodes;
-            f = ones(npnod,1);
+            fPar.uMesh = obj;
+            f = CharacteristicFunction.createAtBoundary(fPar);
             s.mesh = obj;
-            s.type = 'Unfitted';
+            s.type = 'ShapeFunction';
+            s.quadType = 'LINEAR';
+            test     = P1Function.create(obj.backgroundMesh,1);
             integrator = RHSintegrator.create(s);
-            fInt = integrator.integrateInBoundary(f);
-            %%Now to check IntegrateNodal, later by obj.mesh.computeMass
-            %disp('Boundary')
-            %sum(fInt<0)/size(fInt,1)
+            fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         

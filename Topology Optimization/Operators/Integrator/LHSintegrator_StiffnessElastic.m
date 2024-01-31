@@ -29,9 +29,9 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             nDofE = nNodE*obj.fun.ndimf;
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
-            Cmat = obj.material.C(:,:,:,1);
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);
+                Cmat = obj.material.C(:,:,:,igaus);
                 dV(1,1,:) = dVolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);
                 BtC  = pagemtimes(Bt,Cmat);
@@ -51,10 +51,9 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
         end
 
         function LHS = assembleMatrix(obj, lhs)
-            s.connec = obj.mesh.connec; % !!!
-            s.fun    = obj.fun; % !!!
+            s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs);
+            LHS = assembler.assemble(lhs, obj.fun, obj.fun);
         end
     end
 
