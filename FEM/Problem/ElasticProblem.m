@@ -8,21 +8,20 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions
+        boundaryConditions, BCApplier
 
-        LHS
-        RHS
-        solver
+        stiffness
+        forces
+        solver, solverType, solverMode
         scale
         
-        strain
-        stress
+        strain, stress
     end
 
     properties (Access = protected)
         mesh 
         material  
-        inputBC        
+        inputBC
         displacementFun
     end
 
@@ -30,16 +29,16 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
             obj.createDisplacementFun();
-            obj.createBoundaryConditions();
+            obj.createBCApplier();
             obj.createSolver();
         end
 
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            obj.computeDisplacements();
+            obj.computeDisplacement();
             obj.computeStrain();
             obj.computeStress();
         end
@@ -95,6 +94,9 @@ classdef ElasticProblem < handle
             obj.scale       = cParams.scale;
             obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
+            obj.solverType  = cParams.solverType;
+            obj.solverMode  = cParams.solverMode;
+            obj.boundaryConditions = cParams.newBC;
         end
 
         function createQuadrature(obj)
@@ -116,18 +118,11 @@ classdef ElasticProblem < handle
             dim = d;
         end
 
-        function createBoundaryConditions(obj)
-            dim = obj.getFunDims();
-            bc = obj.inputBC;
-            bc.ndimf = dim.ndimf;
-            bc.ndofs = dim.ndofs;
-            s.mesh  = obj.mesh;
-            s.scale = 'MACRO';
-            s.bc    = {bc};
-            s.ndofs = dim.ndofs;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);
+            obj.BCApplier = bc;
         end
 
         function createSolver(obj)
@@ -141,32 +136,39 @@ classdef ElasticProblem < handle
             s.fun      = obj.displacementFun;
             s.material = obj.material;
             lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
+            obj.stiffness = lhs.compute();
         end
 
         function computeForces(obj)
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
             s.dim      = obj.getFunDims();
-            s.BC       = obj.boundaryConditions;
+            s.BC       = obj.BCApplier;
             s.mesh     = obj.mesh;
             s.material = obj.material;
-%             s.globalConnec = obj.displacementField.connec;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs + R;
-            obj.RHS = rhs+R;
+            % Perhaps move it inside RHSint?
+            if strcmp(obj.solverType,'REDUCED')
+                R = RHSint.computeReactions(obj.stiffness);
+                obj.forces = rhs+R;
+            else
+                obj.forces = rhs;
+            end
         end
 
-        function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
+        function u = computeDisplacement(obj)
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.stiffness = obj.stiffness;
+            s.forces = obj.forces;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier = obj.BCApplier;
+            pb = ProblemSolver(s);
+            u = pb.solve();
+            % u = 1;
+            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';

@@ -5,6 +5,9 @@ classdef DirichletCondition < BoundaryCondition
         domain
         direction
         type = 'Dirichlet';
+
+        dofs
+        values
     end
     
     properties (Access = private)
@@ -13,21 +16,23 @@ classdef DirichletCondition < BoundaryCondition
     
     methods (Access = public)
         
-        function obj = DirichletCondition(mesh, domain, direction, value)
+        function obj = DirichletCondition(mesh, s)
             % P1
             fun = P1Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_dofs = domain(mesh.coord);
-            fun.fValues(pl_dofs,direction) = value;
+            pl_dofs = s.domain(mesh.coord);
+            fun.fValues(pl_dofs,s.direction) = s.value;
             
             % P2
-            fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
-            pl_nods = fun2.getNodesFromCondition(domain);
-            fun2.fValues(pl_nods,direction) = value;
+            % fun2 = P2Function.create(mesh, mesh.ndim); % not necessarily mesh.ndim
+            % pl_nods = fun2.getNodesFromCondition(s.domain);
+            % fun2.fValues(pl_nods,s.direction) = s.value;
 
-            obj.fun    = fun2;
-            obj.domain = domain;
+            obj.fun    = fun;
+            obj.domain = s.domain;
             obj.mesh   = mesh;
-            obj.direction = direction;
+            obj.direction = s.direction;
+            obj.dofs = obj.getDofs();
+            obj.values = obj.getValues();
         end
 
         function dofs = getDofs(obj)
@@ -35,6 +40,20 @@ classdef DirichletCondition < BoundaryCondition
             nodes = find(obj.domain(obj.mesh.coord));
             dofs = ndimf*(nodes - 1) + obj.direction;
             dofs = dofs(:);
+        end
+
+        function v = getValues(obj)
+            dofs = obj.domain(obj.mesh.coord);
+            vals = obj.fun.fValues(dofs, obj.direction);
+            v = vals(:);
+        end
+
+        function Ct = computeLinearConditionsMatrix(obj)
+            % dir_dofs = sort(dirich.getDofs());
+            dir_dofs = obj.getDofs();
+            nDofs = obj.fun.nDofs;
+            nDirich = length(dir_dofs);
+            Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
         end
         
     end
