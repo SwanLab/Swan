@@ -1,4 +1,4 @@
-classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClasses (std; functionals; optParams)
+classdef MonitoringOptimizationProblem < handle
 
     properties (Access = private)
         cost
@@ -10,6 +10,7 @@ classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClass
     end
 
     properties (Access = private)
+        standardMonitoring
         nRow
         nColumn
         figures
@@ -19,6 +20,7 @@ classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClass
     methods (Access = public)
         function obj = MonitoringOptimizationProblem(cParams)
             obj.init(cParams);
+            obj.standardMonitoring = MonitoringOptimizationProblemStandard(cParams);
             obj.setNumberOfRowsAndColumns();
             obj.createMonitoring();
         end
@@ -58,37 +60,27 @@ classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClass
         end
 
         function setNumberOfRowsAndColumns(obj)
-            nF             = obj.cost.obtainNumberFields();
-            nConstr        = obj.constraint.obtainNumberFields();
-            nPlotsStandard = 2 + nF + 2*nConstr;
+            nPlotsStd      = obj.standardMonitoring.nPlots;
             nPlotsProblem  = length(obj.problemFunctionals);
             nPlotsOpt      = obj.optimizationParameters.nPlots;
-            nPlots         = nPlotsStandard+nPlotsProblem+nPlotsOpt;
+            nPlots         = nPlotsStd+nPlotsProblem+nPlotsOpt;
             obj.nRow       = ceil(nPlots/7);
             obj.nColumn    = min(nPlots,7);
         end
 
         function createMonitoring(obj)
-            obj.createStandardMonitoring();
-            obj.createProblemFunctionalsMonitoring();
-            obj.createOptimizationParametersMonitoring();
-        end
-
-        function createStandardMonitoring(obj)
-            titlesF     = obj.cost.getTitleFields();
-            titlesConst = obj.constraint.getTitleFields();
+            m.figures = obj.figures;
+            m.data    = obj.data;
+            m.nRow    = obj.nRow;
+            m.nColumn = obj.nColumn;
             figure
-            obj.createMonitoringOfVariable(1,'Cost',obj.cost);
-            for i = 1:length(titlesF)
-                obj.createMonitoringOfVariable(1+i,titlesF{i},obj.cost);
-            end
-            for j = 1:length(titlesConst)
-                obj.createMonitoringOfVariable(1+i+j,titlesConst{j},obj.constraint);
-            end
-            obj.createMonitoringOfVariable(2+i+j,'Norm L2 x',obj.designVariable);
-            for k = 1:length(titlesConst)
-                obj.createMonitoringOfVariable(2+i+j+k,['\lambda_{',titlesConst{j},'}'],obj.dualVariable);
-            end
+            m = obj.standardMonitoring.create(m);
+
+            obj.figures = m.figures;
+            obj.data    = m.data;
+
+            obj.createProblemFunctionalsMonitoring(); % another class
+            obj.createOptimizationParametersMonitoring(); % another class
         end
 
         function createProblemFunctionalsMonitoring(obj)
@@ -125,30 +117,15 @@ classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClass
         end
 
         function plot(obj,it)
-            obj.plotStandard(it);
-            obj.plotProblemFunctionals(it);
-            obj.plotOptimizationParameters(it);
-        end
+            m.figures = obj.figures;
+            m.data    = obj.data;
+            obj.standardMonitoring.plot(m,it);
 
-        function plotStandard(obj,it)
-            nF      = obj.cost.obtainNumberFields();
-            nConstr = obj.constraint.obtainNumberFields();
-            obj.figures{1}.updateParams(it,obj.data{1}.value);
-            obj.figures{1}.refresh();
-            for i = 1:nF
-                obj.figures{i+1}.updateParams(it,obj.data{i+1}.getFields(i));
-                obj.figures{i+1}.refresh();
-            end
-            for j = 1:nConstr
-                obj.figures{j+i+1}.updateParams(it,obj.data{j+i+1}.value(j,1));
-                obj.figures{j+i+1}.refresh();
-            end
-            obj.figures{j+i+2}.updateParams(it,obj.data{j+i+2}.computeL2normIncrement());
-            obj.figures{j+i+2}.refresh();
-            for k = 1:nConstr
-                obj.figures{k+j+i+2}.updateParams(it,obj.data{k+j+i+2}.value(k,1));
-                obj.figures{k+j+i+2}.refresh();
-            end
+            obj.figures = m.figures;
+            obj.data    = m.data;
+
+            obj.plotProblemFunctionals(it); %
+            obj.plotOptimizationParameters(it); %
         end
 
         function plotProblemFunctionals(obj,it)

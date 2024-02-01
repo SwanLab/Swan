@@ -92,11 +92,10 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.boundaryConditions = cParams.newBC;
+            obj.boundaryConditions = cParams.bc;
         end
 
         function createQuadrature(obj)
