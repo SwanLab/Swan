@@ -1,4 +1,4 @@
-classdef MonitoringOptimizationProblem < handle
+classdef MonitoringOptimizationProblem < handle  % Pending to divide in subClasses (std; functionals; optParams)
 
     properties (Access = private)
         cost
@@ -47,7 +47,13 @@ classdef MonitoringOptimizationProblem < handle
 
         function initOptimizationParameters(obj,cParams)
             switch cParams.optimizationType
-                
+                case 'NullSpace'
+                    obj.optimizationParameters.type   = 'NullSpace';
+                    obj.optimizationParameters.primal = cParams.primalUpdater;
+                    obj.optimizationParameters.nPlots = 2;
+                otherwise
+                    obj.optimizationParameters.type   = 'Null';
+                    obj.optimizationParameters.nPlots = 0;
             end
         end
 
@@ -56,7 +62,7 @@ classdef MonitoringOptimizationProblem < handle
             nConstr        = obj.constraint.obtainNumberFields();
             nPlotsStandard = 2 + nF + 2*nConstr;
             nPlotsProblem  = length(obj.problemFunctionals);
-            nPlotsOpt      = length(obj.optimizationParameters);
+            nPlotsOpt      = obj.optimizationParameters.nPlots;
             nPlots         = nPlotsStandard+nPlotsProblem+nPlotsOpt;
             obj.nRow       = ceil(nPlots/7);
             obj.nColumn    = min(nPlots,7);
@@ -65,7 +71,7 @@ classdef MonitoringOptimizationProblem < handle
         function createMonitoring(obj)
             obj.createStandardMonitoring();
             obj.createProblemFunctionalsMonitoring();
-            % optimiz monitoring
+            obj.createOptimizationParametersMonitoring();
         end
 
         function createStandardMonitoring(obj)
@@ -94,6 +100,17 @@ classdef MonitoringOptimizationProblem < handle
             end
         end
 
+        function createOptimizationParametersMonitoring(obj)
+            n = length(obj.data);
+            switch obj.optimizationParameters.type
+                case 'Null'
+                case 'NullSpace'
+                    primal = obj.optimizationParameters.primal;
+                    obj.createMonitoringOfVariable(n+1,'Line Search',primal);
+                    obj.createMonitoringOfVariable(n+2,'Line Search trials',primal);
+            end
+        end
+
         function createMonitoringOfVariable(obj,i,title,f)
             chartType = obj.getChartType(title);
             newFig = DisplayFactory.create(chartType,title);
@@ -110,7 +127,7 @@ classdef MonitoringOptimizationProblem < handle
         function plot(obj,it)
             obj.plotStandard(it);
             obj.plotProblemFunctionals(it);
-            % plot optimiz params
+            obj.plotOptimizationParameters(it);
         end
 
         function plotStandard(obj,it)
@@ -143,6 +160,21 @@ classdef MonitoringOptimizationProblem < handle
                 [J,~] = obj.data{n+i}.computeFunctionAndGradient(x);
                 obj.figures{n+i}.updateParams(it,J);
                 obj.figures{n+i}.refresh();
+            end
+        end
+
+        function plotOptimizationParameters(obj,it)
+            nF      = obj.cost.obtainNumberFields();
+            nConstr = obj.constraint.obtainNumberFields();
+            nFunct  = length(obj.problemFunctionals);
+            n       = 2+nF+2*nConstr+nFunct;
+            switch obj.optimizationParameters.type
+                case 'Null'
+                case 'NullSpace'
+                    obj.figures{n+1}.updateParams(it,obj.data{n+1}.tau);
+                    obj.figures{n+2}.updateParams(it,obj.data{n+2}.getCurrentTrials());
+                    obj.figures{n+1}.refresh();
+                    obj.figures{n+2}.refresh();
             end
         end
     end

@@ -42,7 +42,6 @@ classdef OptimizerNullSpace < Optimizer
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
             obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
@@ -69,17 +68,18 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound        = cParams.ub;
-            obj.lowerBound        = cParams.lb;
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVariable;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.nX                = obj.designVariable.fun.nDofs;
-            obj.maxIter           = cParams.maxIter;
-            obj.hasConverged      = false;
-            obj.nIter             = 0;
-            obj.Vtar              = cParams.volumeTarget;
+            obj.upperBound     = cParams.ub;
+            obj.lowerBound     = cParams.lb;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.nX             = obj.designVariable.fun.nDofs;
+            obj.maxIter        = cParams.maxIter;
+            obj.hasConverged   = false;
+            obj.nIter          = 0;
+            obj.Vtar           = cParams.volumeTarget;
+            obj.primalUpdater  = cParams.primalUpdater;
         end
 
         function aJmax = nullSpaceParameterEstimation(obj,cParams)
@@ -166,7 +166,7 @@ classdef OptimizerNullSpace < Optimizer
             g0 = obj.constraint.value;
             obj.calculateInitialStep();
             obj.acceptableStep      = false;
-            obj.lineSearchTrials    = 0;
+            obj.primalUpdater.resetTrials();
             d.nullSpaceCoefficient  = obj.aJ;
             d.rangeSpaceCoefficient = obj.aG;
             obj.dualUpdater.update(d);
@@ -231,7 +231,7 @@ classdef OptimizerNullSpace < Optimizer
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
-                obj.lineSearchTrials = obj.lineSearchTrials + 1;
+                obj.primalUpdater.increaseNumberTrials();
             end
         end
 
