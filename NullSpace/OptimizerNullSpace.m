@@ -51,28 +51,16 @@ classdef OptimizerNullSpace < Optimizer
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            %obj.cost.computeFunctionAndGradient();
-            %obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.monitoring.update();
-           J = obj.cost.value;
-           g = obj.constraint.value;
-           Jvec = J;
-           gvec = g;
+            obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.monitoring.update();
+                obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
                 obj.checkParameters();
-
-                J = obj.cost.value;
-                g = obj.constraint.value;
-                Jvec = [Jvec;J];
-                gvec = [gvec;g];
-                obj.computeQuickPostProcess(Jvec,gvec);
             end
         end
 
@@ -194,22 +182,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkStep(s);
             end
             obj.updateOldValues(x);
-        end
-
-        function computeQuickPostProcess(obj,Jvec,gvec)
-            subplot(1,2,1)
-            plot(0:obj.nIter,Jvec)
-            grid on
-            xlabel('Iteration')
-            title('Cost')
-
-            subplot(1,2,2)
-            plot(0:obj.nIter,gvec)
-            grid on
-            xlabel('Iteration')
-            title('Constraint')
-
-            drawnow
         end
 
         function calculateInitialStep(obj)

@@ -25,7 +25,7 @@ classdef TopOptTestTutorial < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
-            obj.createVolume();
+            obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -119,12 +119,18 @@ classdef TopOptTestTutorial < handle
             obj.compliance = c;
         end
 
-        function createVolume(obj)
+        function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
+        end
+
+        function V = createVolumeFunctional(obj)
+            s.mesh   = obj.mesh;
+            s.filter = obj.filter;
+            V        = VolumeFunctional(s);
         end
 
         function createCost(obj)
@@ -144,7 +150,25 @@ classdef TopOptTestTutorial < handle
             obj.dualVariable = l;
         end
 
+        function m = createMonitoring(obj,isCreated)
+            switch isCreated
+                case true
+                    s.type = 'OptimizationProblem';
+                case false
+                    s.type = 'Null';
+            end
+            s.cost             = obj.cost;
+            s.constraint       = obj.constraint;
+            s.designVariable   = obj.designVariable;
+            s.dualVariable     = obj.dualVariable;
+            s.problemType      = 'Topology';
+            s.volume           = obj.createVolumeFunctional();
+            s.optimizationType = 'MMA';
+            m                  = Monitoring.create(s);
+        end
+
         function createOptimizer(obj)
+            s.monitoring     = obj.createMonitoring(true);
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
@@ -154,7 +178,6 @@ classdef TopOptTestTutorial < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.monitoring     = true;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -201,5 +224,4 @@ classdef TopOptTestTutorial < handle
         end        
 
     end
-
 end

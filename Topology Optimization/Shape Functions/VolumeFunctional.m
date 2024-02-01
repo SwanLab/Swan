@@ -50,5 +50,11 @@ classdef VolumeFunctional < handle
             dJ      = FeFunction.create(x.type,fValues,obj.mesh);
         end
     end
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Volume';
+        end
+    end
 end
 
