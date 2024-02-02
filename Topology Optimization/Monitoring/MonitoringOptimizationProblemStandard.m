@@ -18,28 +18,17 @@ classdef MonitoringOptimizationProblemStandard < handle
         end
 
         function m = create(obj,m)
-            m = obj.createMonitoring(m);
+            m = obj.createCostMonitoring(m);
+            m = obj.createConstraintsMonitoring(m);
+            m = obj.createDesignVariableNormMonitoring(m);
+            m = obj.createLagrangeMultipliersMonitoring(m);
         end
 
         function m = plot(obj,m,it)
-            nF      = obj.cost.obtainNumberFields();
-            nConstr = obj.constraint.obtainNumberFields();
-            m.figures{1}.updateParams(it,m.data{1}.value);
-            m.figures{1}.refresh();
-            for i = 1:nF
-                m.figures{i+1}.updateParams(it,m.data{i+1}.getFields(i));
-                m.figures{i+1}.refresh();
-            end
-            for j = 1:nConstr
-                m.figures{j+i+1}.updateParams(it,m.data{j+i+1}.value(j,1));
-                m.figures{j+i+1}.refresh();
-            end
-            m.figures{j+i+2}.updateParams(it,m.data{j+i+2}.computeL2normIncrement());
-            m.figures{j+i+2}.refresh();
-            for k = 1:nConstr
-                m.figures{k+j+i+2}.updateParams(it,m.data{k+j+i+2}.value(k,1));
-                m.figures{k+j+i+2}.refresh();
-            end
+            m = obj.plotCost(m,it);
+            m = obj.plotConstraints(m,it);
+            m = obj.plotDesignVariableNorm(m,it);
+            m = obj.plotLagrangeMultipliers(m,it);
         end
     end
 
@@ -61,69 +50,75 @@ classdef MonitoringOptimizationProblemStandard < handle
             obj.nPlots = 2+nF+2*nConstr;
         end
 
-        function m = createMonitoring(obj,m)
-            m = obj.monitorCost(m);
-            m = obj.monitorConstraints(m);
-            m = obj.monitorDesignVariable(m);
-            m = obj.monitorLagrangeMultipliers(m);
-        end
-
-        function m = monitorCost(obj,m)
+        function m = createCostMonitoring(obj,m)
             titlesF = obj.cost.getTitleFields();
-            m       = obj.createMonitoringOfVariable(m,1,'Cost',obj.cost);
+            m       = MonitoringVariable.create(m,1,'Cost',obj.cost);
             for i = 1:length(titlesF)
-                m = obj.createMonitoringOfVariable(m,1+i,titlesF{i},obj.cost);
+                m = MonitoringVariable.create(m,1+i,titlesF{i},obj.cost);
             end
         end
 
-        function m = monitorConstraints(obj,m)
+        function m = createConstraintsMonitoring(obj,m)
             if obj.isConstrained
                 titlesConst = obj.constraint.getTitleFields();
                 n           = length(m.figures);
                 for i = 1:length(titlesConst)
-                    m = obj.createMonitoringOfVariable(m,n+i,titlesConst{i},obj.constraint);
+                    m = MonitoringVariable.create(m,n+i,titlesConst{i},obj.constraint);
                 end
             end
         end
 
-        function m = monitorDesignVariable(obj,m)
+        function m = createDesignVariableNormMonitoring(obj,m)
             n = length(m.figures);
-            m = obj.createMonitoringOfVariable(m,n+1,'Norm L2 x',obj.designVariable);
+            m = MonitoringVariable.create(m,n+1,'Norm L2 x',obj.designVariable);
         end
 
-        function m = monitorLagrangeMultipliers(obj,m)
+        function m = createLagrangeMultipliersMonitoring(obj,m)
             if obj.isConstrained
                 titlesConst = obj.constraint.getTitleFields();
                 n           = length(m.figures);
                 for i = 1:length(titlesConst)
-                    m = obj.createMonitoringOfVariable(m,n+1,['\lambda_{',titlesConst{i},'}'],obj.dualVariable);
+                    titleLambda = ['\lambda_{',titlesConst{i},'}'];
+                    m = MonitoringVariable.create(m,n+1,titleLambda,obj.dualVariable);
                 end
             end
         end
 
-        function m = createMonitoringOfVariable(obj,m,i,title,f)
-            chartType = obj.getChartType(title);
-            newFig = DisplayFactory.create(chartType,title);
-            m = obj.appendFigure(m,newFig);
-            m.figures{i}.show(m.nRow,m.nColumn,i,[0.06 0.04]);
-            drawnow
-            m.data{i} = f;
-        end
-    end
-
-    methods (Static, Access = private)
-        function m = appendFigure(m,fig)
-            m.figures{end+1} = fig;
+        function m = plotCost(obj,m,it)
+            nF = obj.cost.obtainNumberFields();
+            m.figures{1}.updateParams(it,m.data{1}.value);
+            m.figures{1}.refresh();
+            for i = 1:nF
+                m.figures{i+1}.updateParams(it,m.data{i+1}.getFields(i));
+                m.figures{i+1}.refresh();
+            end
         end
 
-        function type = getChartType(title)
-            switch title
-                case {'Line Search','Line Search trials'}
-                    type = 'bar';
-                case {'Norm L2 x'}
-                    type = 'log';
-                otherwise 
-                    type = 'plot';
+        function m = plotConstraints(obj,m,it)
+            nF      = obj.cost.obtainNumberFields();
+            n       = nF+1;
+            nConstr = obj.constraint.obtainNumberFields();
+            for i = 1:nConstr
+                m.figures{i+n}.updateParams(it,m.data{i+n}.value(i,1));
+                m.figures{i+n}.refresh();
+            end
+        end
+
+        function m = plotDesignVariableNorm(obj,m,it)
+            nF      = obj.cost.obtainNumberFields();
+            nConstr = obj.constraint.obtainNumberFields();
+            n       = nF+nConstr+1;
+            m.figures{1+n}.updateParams(it,m.data{1+n}.computeL2normIncrement());
+            m.figures{1+n}.refresh();
+        end
+
+        function m = plotLagrangeMultipliers(obj,m,it)
+            nF      = obj.cost.obtainNumberFields();
+            nConstr = obj.constraint.obtainNumberFields();
+            n       = nF+nConstr+2;
+            for i = 1:nConstr
+                m.figures{i+n}.updateParams(it,m.data{i+n}.value(i,1));
+                m.figures{i+n}.refresh();
             end
         end
     end

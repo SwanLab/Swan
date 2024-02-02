@@ -165,11 +165,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
             s.dualVariable     = obj.dualVariable;
-            s.problemType      = 'Topology';
-            s.volume           = obj.createVolumeFunctional();
+            s.functionals{1}   = obj.createVolumeFunctional();
             s.optimizationType = 'NullSpace';
             s.primalUpdater    = obj.primalUpdater;
             s.isConstrained    = true;
+            s.maxNColumns      = 5;
             m                  = Monitoring.create(s);
         end
 
