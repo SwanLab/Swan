@@ -293,8 +293,28 @@ classdef Mesh < handle
             m = Mesh(s);
         end
 
-        function m = getSubmesh(obj, domain)
-            dofs = domain(obj.coord);
+        function [m, l2g] = createSingleBoundaryMesh(obj)
+            x = obj.coord(:,1);
+            y = obj.coord(:,2);
+            
+            k = boundary(x,y);
+            k = k(1:end-1);
+            originalNodes = k;
+            newNodes = (1:length(k))';
+            boundaryCoords = [x(k), y(k)];
+            boundaryConnec = [newNodes, circshift(newNodes,-1)];
+
+            aa.connec = boundaryConnec;
+            aa.coord = boundaryCoords;
+            aa.kFace = -1;
+            
+            m = Mesh(aa);
+            l2g(newNodes(:)) = originalNodes(:);
+        end
+        
+        function [m, l2g] = getBoundarySubmesh(obj, domain)
+            [mBound, l2gBound] = obj.createSingleBoundaryMesh();
+            dofs = domain(mBound.coord);
             s.fValues = obj.coord(dofs, :);
             s.mesh    = mesh_sub;
             p1sub = P1Function(s);

@@ -95,7 +95,7 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        Ct = bcapp.computeLinearConditionsMatrix();
+                        Ct = bcapp.computeP1LinearConditionsMatrix();
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);
@@ -137,7 +137,7 @@ classdef ProblemSolver < handle
                     A_II = A(free,free);
                     A_IP = A(free,lead) + A(free,fllw); %Grouping P and Q nodal values
                     A_PI = A(lead,free) + A(fllw,free); % Adding P  and Q equation
-                    A_PP = A(lead,lead) + A(lead,fllw) + A(fllw,lead) + A(fllw,fllw); % Adding and grouping      
+                    A_PP = A(lead,lead) + A(lead,fllw) + A(fllw,lead) + A(fllw,fllw); % Adding and grouping
                     LHS = [A_II, A_IP; A_PI, A_PP];
             end
 
