@@ -12,7 +12,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
         function testHexagon(testCase, file, LHStype)
             s   = testCase.createFEMparameters(file, LHStype);
             RHS = testCase.createRHS(s.mesh);
-            fem = FEM.create(s);
+            fem = PhysicalProblem.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
 %             fem.print(filename)
@@ -29,7 +29,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             lhstype = 'StiffnessMass';
             s   = testCase.createFEMparameters(file3d, lhstype);
             RHS = testCase.createRHS(s.mesh);
-            fem = FEM.create(s);
+            fem = PhysicalProblem.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
 %             fem.print(filename)
