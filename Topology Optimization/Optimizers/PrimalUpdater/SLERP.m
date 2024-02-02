@@ -6,7 +6,7 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
-        epsilon
+        lineSearchTrials
     end
 
     methods (Access = public)
@@ -41,12 +41,26 @@ classdef SLERP < handle
             obj.tau = obj.tau/1.1;
         end
 
+        function trials = getCurrentTrials(obj)
+            trials = obj.lineSearchTrials;
+        end
+
+        function resetTrials(obj)
+            obj.lineSearchTrials = 0;
+        end
+
+        function increaseNumberTrials(obj)
+            obj.lineSearchTrials = obj.lineSearchTrials + 1;
+        end
+
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh    = cParams.mesh;
+            obj.mesh             = cParams.mesh;
+            obj.tau              = 0;
+            obj.lineSearchTrials = 0;
         end
 
         function f = createP1Function(obj,fV)

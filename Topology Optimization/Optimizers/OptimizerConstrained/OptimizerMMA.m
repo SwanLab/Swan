@@ -41,7 +41,6 @@ classdef OptimizerMMA < Optimizer
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.designVariable.updateOld();
-            %obj.monitoring.create(cParams);
             obj.maxoutit = 1e4;
         end
 

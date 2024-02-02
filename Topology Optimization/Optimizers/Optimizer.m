@@ -45,13 +45,8 @@ classdef Optimizer < handle
             obj.maxIter        = cParams.maxIter;
             obj.tolerance      = cParams.tolerance;
             obj.constraintCase = cParams.constraintCase;
-            obj.createMonitoring(cParams);
+            obj.monitoring     = cParams.monitoring;
             %obj.createPostProcess(cParams.postProcessSettings);
-        end
-
-        function createPrimalUpdater(obj,cParams)
-            f                 = PrimalUpdaterFactory();
-            obj.primalUpdater = f.create(cParams);
         end
 
         function createDualUpdater(obj,cParams)
@@ -162,22 +157,6 @@ classdef Optimizer < handle
     end
 
     methods (Access = private)
-
-        function createMonitoring(obj,cParams)
-            switch cParams.monitoring
-                case true
-                    s.type = 'OptimizationProblem';
-                case false
-                    s.type = 'Null';
-            end
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            m                = Monitoring.create(s);
-            obj.monitoring   = m;
-        end
-
         function createPostProcess(obj,cParams)
             if cParams.shallPrint
                 d = obj.createPostProcessDataBase(cParams);

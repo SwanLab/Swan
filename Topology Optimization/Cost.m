@@ -7,8 +7,11 @@ classdef Cost < handle
 
     properties (Access = private)
         shapeFunctions
-        shapeValues
         weights
+    end
+
+    properties (Access = private)
+        shapeValues
     end
 
     methods (Access = public)
@@ -22,17 +25,17 @@ classdef Cost < handle
             dJc = cell(nF,1);
             for iF = 1:nF
                 shI     = obj.shapeFunctions{iF};
-                wI      = obj.weights(iF);
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
-                obj.shapeValues{iF} = j;
-                Jc{iF}  = wI*j;
-                dJc{iF} = wI*dJ.fValues;   
+                Jc{iF}  = j;
+                dJc{iF} = dJ.fValues;   
             end
+            obj.shapeValues = Jc;
             jV  = 0;
             djV = zeros(size(dJc{1}));
             for iF = 1:nF
-                jV  = jV  + Jc{iF};
-                djV = djV + dJc{iF};
+                wI  = obj.weights(iF);
+                jV  = jV  + wI*Jc{iF};
+                djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
             obj.gradient = djV;

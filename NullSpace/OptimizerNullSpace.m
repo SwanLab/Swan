@@ -42,7 +42,6 @@ classdef OptimizerNullSpace < Optimizer
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
             obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
@@ -51,28 +50,16 @@ classdef OptimizerNullSpace < Optimizer
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            %obj.cost.computeFunctionAndGradient();
-            %obj.constraint.computeFunctionAndGradient();
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.monitoring.update();
-           J = obj.cost.value;
-           g = obj.constraint.value;
-           Jvec = J;
-           gvec = g;
+            obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.monitoring.update();
+                obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
                 obj.checkParameters();
-
-                J = obj.cost.value;
-                g = obj.constraint.value;
-                Jvec = [Jvec;J];
-                gvec = [gvec;g];
-                obj.computeQuickPostProcess(Jvec,gvec);
             end
         end
 
@@ -81,17 +68,18 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound        = cParams.ub;
-            obj.lowerBound        = cParams.lb;
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVariable;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.nX                = obj.designVariable.fun.nDofs;
-            obj.maxIter           = cParams.maxIter;
-            obj.hasConverged      = false;
-            obj.nIter             = 0;
-            obj.Vtar              = cParams.volumeTarget;
+            obj.upperBound     = cParams.ub;
+            obj.lowerBound     = cParams.lb;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.nX             = obj.designVariable.fun.nDofs;
+            obj.maxIter        = cParams.maxIter;
+            obj.hasConverged   = false;
+            obj.nIter          = 0;
+            obj.Vtar           = cParams.volumeTarget;
+            obj.primalUpdater  = cParams.primalUpdater;
         end
 
         function aJmax = nullSpaceParameterEstimation(obj,cParams)
@@ -178,7 +166,7 @@ classdef OptimizerNullSpace < Optimizer
             g0 = obj.constraint.value;
             obj.calculateInitialStep();
             obj.acceptableStep      = false;
-            obj.lineSearchTrials    = 0;
+            obj.primalUpdater.resetTrials();
             d.nullSpaceCoefficient  = obj.aJ;
             d.rangeSpaceCoefficient = obj.aG;
             obj.dualUpdater.update(d);
@@ -194,22 +182,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkStep(s);
             end
             obj.updateOldValues(x);
-        end
-
-        function computeQuickPostProcess(obj,Jvec,gvec)
-            subplot(1,2,1)
-            plot(0:obj.nIter,Jvec)
-            grid on
-            xlabel('Iteration')
-            title('Cost')
-
-            subplot(1,2,2)
-            plot(0:obj.nIter,gvec)
-            grid on
-            xlabel('Iteration')
-            title('Constraint')
-
-            drawnow
         end
 
         function calculateInitialStep(obj)
@@ -259,7 +231,7 @@ classdef OptimizerNullSpace < Optimizer
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
-                obj.lineSearchTrials = obj.lineSearchTrials + 1;
+                obj.primalUpdater.increaseNumberTrials();
             end
         end
 

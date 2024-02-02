@@ -25,7 +25,7 @@ classdef TopOptTestTutorial < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
-            obj.createVolume();
+            obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -100,6 +100,8 @@ classdef TopOptTestTutorial < handle
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -119,12 +121,18 @@ classdef TopOptTestTutorial < handle
             obj.compliance = c;
         end
 
-        function createVolume(obj)
+        function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
+        end
+
+        function V = createVolumeFunctional(obj)
+            s.mesh   = obj.mesh;
+            s.filter = obj.filter;
+            V        = VolumeFunctional(s);
         end
 
         function createCost(obj)
@@ -144,7 +152,26 @@ classdef TopOptTestTutorial < handle
             obj.dualVariable = l;
         end
 
+        function m = createMonitoring(obj,isCreated)
+            switch isCreated
+                case true
+                    s.type = 'OptimizationProblem';
+                case false
+                    s.type = 'Null';
+            end
+            s.cost             = obj.cost;
+            s.constraint       = obj.constraint;
+            s.designVariable   = obj.designVariable;
+            s.dualVariable     = obj.dualVariable;
+            s.problemType      = 'Topology';
+            s.volume           = obj.createVolumeFunctional();
+            s.optimizationType = 'MMA';
+            s.isConstrained    = true;
+            m                  = Monitoring.create(s);
+        end
+
         function createOptimizer(obj)
+            s.monitoring     = obj.createMonitoring(true);
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
@@ -154,7 +181,6 @@ classdef TopOptTestTutorial < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.monitoring     = true;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -166,40 +192,34 @@ classdef TopOptTestTutorial < handle
         end
         
         function bc = createBoundaryConditions(obj)
-            bM = obj.mesh.createBoundaryMesh();
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
 
-            dBC.boundaryId   = 1;
-            dBC.dof          = [1,2];
-            dBC.value        = [0,0];
-            nBC.boundaryId   = 2;
-            nBC.dof          = 2;
-            nBC.value        = -1;
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
 
-            [dirichlet,pointload] = obj.createBc(bM,dBC,nBC);
-            bc.dirichlet=dirichlet;
-            bc.pointload=pointload;
-        end
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
 
-       function [dirichlet,pointload] = createBc(obj,bMesh,dBC,nBC)
-            dirichlet = obj.createBondaryCondition(bMesh,dBC);
-            pointload = obj.createBondaryCondition(bMesh,nBC);
-        end
-
-        function cond = createBondaryCondition(obj,bM,condition)
-            nbound = length(condition.boundaryId);
-            cond = zeros(1,3);
-            for ibound=1:nbound
-                ncond  = length(condition.dof(nbound,:));
-                nodeId = unique(bM{condition.boundaryId(ibound)}.globalConnec);
-                nbd   = length(nodeId);
-                for icond=1:ncond
-                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-                    cond=[cond;bdcond];
-                end
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
             end
-            cond = cond(2:end,:);
-        end        
+            bc.dirichletFun = dirichletFun;
 
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = [pointloadFun, pl];
+            end
+            bc.pointloadFun = pointloadFun;
+
+            bc.periodicFun  = [];
+        end
     end
-
 end

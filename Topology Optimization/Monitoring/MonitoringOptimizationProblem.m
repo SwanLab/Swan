@@ -5,11 +5,12 @@ classdef MonitoringOptimizationProblem < handle
         constraint
         designVariable
         dualVariable
-        problemParameters
+        problemFunctionals
         optimizationParameters
     end
 
     properties (Access = private)
+        standardMonitoring
         nRow
         nColumn
         figures
@@ -19,6 +20,7 @@ classdef MonitoringOptimizationProblem < handle
     methods (Access = public)
         function obj = MonitoringOptimizationProblem(cParams)
             obj.init(cParams);
+            obj.standardMonitoring = MonitoringOptimizationProblemStandard(cParams);
             obj.setNumberOfRowsAndColumns();
             obj.createMonitoring();
         end
@@ -34,46 +36,78 @@ classdef MonitoringOptimizationProblem < handle
             obj.constraint     = cParams.constraint;
             obj.designVariable = cParams.designVariable;
             obj.dualVariable   = cParams.dualVariable;
-            obj.initProblemParameters(cParams);
+            obj.initProblemFunctionals(cParams);
             obj.initOptimizationParameters(cParams);
         end
 
-        function initProblemParameters(obj,cParams)
-
+        function initProblemFunctionals(obj,cParams)
+            switch cParams.problemType
+                case 'Topology'
+                    obj.problemFunctionals{1} = cParams.volume;
+            end
         end
 
         function initOptimizationParameters(obj,cParams)
-
+            switch cParams.optimizationType
+                case 'NullSpace'
+                    obj.optimizationParameters.type   = 'NullSpace';
+                    obj.optimizationParameters.primal = cParams.primalUpdater;
+                    obj.optimizationParameters.nPlots = 2;
+                otherwise
+                    obj.optimizationParameters.type   = 'Null';
+                    obj.optimizationParameters.nPlots = 0;
+            end
         end
 
         function setNumberOfRowsAndColumns(obj)
-            nF             = obj.cost.obtainNumberFields();
-            nConstr        = obj.constraint.obtainNumberFields();
-            nPlotsStandard = 2 + nF + 2*nConstr;
-            nPlots         = nPlotsStandard; % +...
-            obj.nRow       = floor(nPlots/7)+1;
+            nPlotsStd      = obj.standardMonitoring.nPlots;
+            nPlotsProblem  = length(obj.problemFunctionals);
+            nPlotsOpt      = obj.optimizationParameters.nPlots;
+            nPlots         = nPlotsStd+nPlotsProblem+nPlotsOpt;
+            obj.nRow       = ceil(nPlots/7);
             obj.nColumn    = min(nPlots,7);
         end
 
         function createMonitoring(obj)
-            titlesF     = obj.cost.getTitleFields();
-            titlesConst = obj.constraint.getTitleFields();
+            m.figures = obj.figures;
+            m.data    = obj.data;
+            m.nRow    = obj.nRow;
+            m.nColumn = obj.nColumn;
             figure
-            obj.createMonitoringOfVariable(1,'Cost',obj.cost);
-            for i = 1:length(titlesF)
-                obj.createMonitoringOfVariable(1+i,titlesF{i},obj.cost);
+            m = obj.standardMonitoring.create(m);
+
+            obj.figures = m.figures;
+            obj.data    = m.data;
+
+            obj.createProblemFunctionalsMonitoring(); % another class
+            obj.createOptimizationParametersMonitoring(); % another class
+        end
+
+        function createProblemFunctionalsMonitoring(obj)
+            n = length(obj.data);
+            for i = 1:length(obj.problemFunctionals)
+                J     = obj.problemFunctionals{i};
+                title = J.getTitleToPlot();
+                obj.createMonitoringOfVariable(n+i,title,J);
             end
-            for j = 1:length(titlesConst)
-                obj.createMonitoringOfVariable(1+i+j,titlesConst{j},obj.constraint);
+        end
+
+        function createOptimizationParametersMonitoring(obj)
+            n = length(obj.data);
+            switch obj.optimizationParameters.type
+                case 'Null'
+                case 'NullSpace'
+                    primal = obj.optimizationParameters.primal;
+                    obj.createMonitoringOfVariable(n+1,'Line Search',primal);
+                    obj.createMonitoringOfVariable(n+2,'Line Search trials',primal);
             end
-            obj.createMonitoringOfVariable(2+i+j,'Norm L2 x',obj.designVariable)
         end
 
         function createMonitoringOfVariable(obj,i,title,f)
             chartType = obj.getChartType(title);
             newFig = DisplayFactory.create(chartType,title);
             obj.appendFigure(newFig);
-            obj.figures{i}.show(obj.nRow,obj.nColumn,i,[0.06 0.06]);
+            obj.figures{i}.show(obj.nRow,obj.nColumn,i,[0.06 0.04]);
             drawnow
             obj.data{i} = f;
         end
@@ -83,28 +117,42 @@ classdef MonitoringOptimizationProblem < handle
         end
 
         function plot(obj,it)
-            % cost
-            % functionals along weights
-            % diff constraints
-            % l2 norm x
-            % diff Lagrange multipliers
-            % problemType plot
-            % optType plot
+            m.figures = obj.figures;
+            m.data    = obj.data;
+            obj.standardMonitoring.plot(m,it);
 
+            obj.figures = m.figures;
+            obj.data    = m.data;
+
+            obj.plotProblemFunctionals(it); %
+            obj.plotOptimizationParameters(it); %
+        end
+
+        function plotProblemFunctionals(obj,it)
+            x       = obj.designVariable;
             nF      = obj.cost.obtainNumberFields();
             nConstr = obj.constraint.obtainNumberFields();
-            obj.figures{1}.updateParams(it,obj.data{1}.value);
-            obj.figures{1}.refresh();
-            for i = 1:nF
-                obj.figures{i+1}.updateParams(it,obj.data{i+1}.getFields(i));
-                obj.figures{i+1}.refresh();
+            n       = 2+nF+2*nConstr;
+            for i = 1:length(obj.problemFunctionals)
+                [J,~] = obj.data{n+i}.computeFunctionAndGradient(x);
+                obj.figures{n+i}.updateParams(it,J);
+                obj.figures{n+i}.refresh();
             end
-            for j = 1:nConstr
-                obj.figures{j+i+1}.updateParams(it,obj.data{j+i+1}.value(j,1));
-                obj.figures{j+i+1}.refresh();
+        end
+
+        function plotOptimizationParameters(obj,it)
+            nF      = obj.cost.obtainNumberFields();
+            nConstr = obj.constraint.obtainNumberFields();
+            nFunct  = length(obj.problemFunctionals);
+            n       = 2+nF+2*nConstr+nFunct;
+            switch obj.optimizationParameters.type
+                case 'Null'
+                case 'NullSpace'
+                    obj.figures{n+1}.updateParams(it,obj.data{n+1}.tau);
+                    obj.figures{n+2}.updateParams(it,obj.data{n+2}.getCurrentTrials());
+                    obj.figures{n+1}.refresh();
+                    obj.figures{n+2}.refresh();
             end
-            obj.figures{j+i+2}.updateParams(it,obj.data{j+i+2}.computeL2normIncrement());
-            obj.figures{j+i+2}.refresh();
         end
     end
 
