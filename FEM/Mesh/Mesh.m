@@ -304,11 +304,11 @@ classdef Mesh < handle
             boundaryCoords = [x(k), y(k)];
             boundaryConnec = [newNodes, circshift(newNodes,-1)];
 
-            aa.connec = boundaryConnec;
-            aa.coord = boundaryCoords;
-            aa.kFace = -1;
+            s.connec = boundaryConnec;
+            s.coord = boundaryCoords;
+            s.kFace = -1;
             
-            m = Mesh(aa);
+            m = Mesh(s);
             l2g(newNodes(:)) = originalNodes(:);
         end
         
