@@ -26,18 +26,18 @@ classdef FemDataContainer < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
-            obj.init();
+            obj.init(varargin{1});
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
+        function init(obj,cParams)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
                 obj.getNgaus();
-                obj.createMaterial();
+                obj.createMaterial(cParams);
                 if strcmp(obj.scale, 'MICRO')
                     obj.solverMode = 'FLUC';
                 end
@@ -61,7 +61,7 @@ classdef FemDataContainer < AbstractSettings
             obj.newBC.periodicFun  = s.periodicFun;
         end
 
-        function createMaterial(obj)
+        function createMaterial(obj,cParams)
             I = ones(obj.nelem,obj.ngaus);
             s.ptype = obj.type;
             s.pdim  = obj.dim;
@@ -69,8 +69,12 @@ classdef FemDataContainer < AbstractSettings
             s.mesh  = obj.mesh;
             s.kappa = .9107*I;
             s.mu    = .3446*I;
+            if ~isfield(cParams,'type')
+                cParams.type = 'ISOTROPIC';
+            end
+            s.type = cParams.type;
+            s.ndim = obj.mesh.ndim;
             mat = Material.create(s);
-            mat.compute(s);
             obj.material = mat;
         end
 
