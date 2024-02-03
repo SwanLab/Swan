@@ -33,7 +33,10 @@ classdef BCApplier < handle
             nDofs = obj.dirichletFun.nDofs;
             nDirich = length(dir_dofs);
             Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+        end
 
+        function Ct = computeP1LinearConditionsMatrix(obj)
+            nDofs = obj.dirichletFun.nDofs;
             mesh_left = obj.mesh.createBoundaryMesh{1};
             % Check LHSintegrator_MassBoundary
             a.mesh = mesh_left.mesh;
