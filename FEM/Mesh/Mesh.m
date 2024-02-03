@@ -314,10 +314,22 @@ classdef Mesh < handle
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
             [mBound, l2gBound] = obj.createSingleBoundaryMesh();
-            dofs = domain(mBound.coord);
-            s.fValues = obj.coord(dofs, :);
-            s.mesh    = mesh_sub;
-            p1sub = P1Function(s);
+            validNodes = find(domain(mBound.coord));
+            validElems = find(sum(ismember(mBound.connec, validNodes),2) == 2); % == 2 because line
+            coord_valid  = mBound.coord(validNodes, :);
+            connec_valid = mBound.connec(validElems,:);
+            % connecGlobal = l2gBound(connec_valid);
+            
+            newNodes = (1:size(coord_valid,1))';
+            boudnary2local(validNodes) = newNodes;
+            newConnec = boudnary2local(connec_valid);
+            
+            s.connec = newConnec;
+            s.coord = coord_valid;
+            s.kFace = -1;
+            
+            m = Mesh(s);
+            l2g(newNodes(:)) = l2gBound(validNodes);
         end
 
     end

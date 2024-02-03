@@ -43,7 +43,7 @@ classdef P1Function < FeFunction
         end
 
         function p1sub = evaluateBoundarySubdomain(obj, domain)
-            mesh_sub = obj.mesh.getBoundarySubmesh(domain);
+            [mesh_sub, ~] = obj.mesh.getBoundarySubmesh(domain);
             dofs = domain(obj.mesh.coord);
             s.fValues = obj.fValues(dofs, :);
             s.mesh    = mesh_sub;

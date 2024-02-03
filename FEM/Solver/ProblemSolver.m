@@ -151,10 +151,10 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        lambda = zeros(bcs.dirichletFun.nDofs, 1);
-                        lambda(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
+                        % lambda = zeros(bcs.dirichletFun.nDofs, 1);
+                        % lambda(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                         nCases = size(obj.forces,2);
-                        Ct = repmat(lambda, [1 nCases]);
+                        Ct = repmat(bcs.dirichlet_vals, [1 nCases]);
                         RHS = [obj.forces; Ct];
                     else
                         iV = obj.boundaryConditions.iVoigt;
