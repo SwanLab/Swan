@@ -16,10 +16,12 @@ hmax = 0.5;
 pv = [0,0; 2,0; 1.5,1; .5,1; 0,0];
 for iref = 1:3
     tic
-    %data = mginit(pv, hmax, iref); toc
+    % data = mginit(pv, hmax, iref); toc
     o = MultigridTesting2;
     data = o.getdata;
-    [u, res] = mgsolve(data, vDown, vUp, tolerance);
+    bc = o.getBC;
+    mesh = o.getMesh;
+    [u, res] = mgsolve(data, vDown, vUp, tolerance, bc, mesh);
     semilogy(res), hold on
 end
 hold off

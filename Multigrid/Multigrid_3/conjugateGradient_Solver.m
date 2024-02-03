@@ -1,15 +1,16 @@
-function x = conjugateGradient_Solver(LHS,RHS,x)
-    tol = 1e-6;
+function [x,res] = conjugateGradient_Solver(LHS,RHS,x)
+    tol = 1e-10;
+    maxIter = 20;
     n = length(RHS);
     %x = RHS; 
     r = RHS - LHS * x; 
     p = r; 
     rsold = r' * r;
-    iter = 0;
+    iter = 1;
 
     hasNotConverged = true;
 
-    while hasNotConverged
+    while iter < maxIter
         Ap = LHS * p;
         alpha = rsold / (p' * Ap);
         x = x + alpha * p;
@@ -25,9 +26,9 @@ function x = conjugateGradient_Solver(LHS,RHS,x)
         residu(iter) = norm(LHS*x - RHS); %Ax - b
         res = LHS*x - RHS;
         
-        %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
+        %plotSolution(x,mesh,bc,iter)
         
-        %conjugateGradient_Solver.plotRes(res,mesh,bc,iter)
+        %plotRes(res,mesh,bc,iter)
     end
     %save('residuConjugateZeros.mat', 'residu')
 end

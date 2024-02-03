@@ -60,6 +60,16 @@ classdef MultigridTesting2 < handle
         function r = getdata(obj)
             r = obj.data;
         end
+
+        function r = getBC(obj)
+            r{1} = obj.boundaryConditionsCoarse;
+            r{2} = obj.boundaryConditionsFine;
+        end
+
+        function r = getMesh(obj)
+            r{1} = obj.coarseMesh;
+            r{2} = obj.fineMesh;
+        end
     end
 
     methods (Access = private)
