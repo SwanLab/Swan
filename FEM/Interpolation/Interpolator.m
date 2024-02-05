@@ -26,7 +26,20 @@ classdef Interpolator < handle
             obj.evaluateShapeFunctions();
         end
 
-        function [z,dz] = interpolate(obj,z)
+        function [x,dz] = evaluate(obj,x)
+            zI     = obj.computeZvalues(x);
+            shapes = obj.interpolation.shape;
+            v = bsxfun(@times,shapes',zI);
+            v = permute(v,[3 1 2]);
+            v = sum(v,3);
+            
+            obj.obtainInterpolationValues();
+            obj.obtainInterpolationDerivativesValues();
+            x = obj.zInterp;
+            dz = obj.zInterpDeriv;
+        end
+
+        function [z,dz] = evaluateDerivative(obj,z)
             obj.nComponents = size(z,3);
             obj.zValues  = obj.computeZvalues(z);
             obj.obtainInterpolationValues();
@@ -56,25 +69,21 @@ classdef Interpolator < handle
         end
 
         function obtainInterpolationValues(obj)
-            shapes = obj.interpolation.shape;
-            v = obj.interpolateValues(shapes,obj.zValues);
-            obj.zInterp = v;
+
         end
 
         function v = interpolateValues(obj,shapes,f)
-            shapesT = shapes';
-            v = bsxfun(@times,shapesT,f);
-            v = permute(v,[3 1 2]);
-            v = sum(v,3);
+
         end
 
-        function zT = computeZvalues(obj,z)
-            z = permute(z,[2 1 3]);
-            z = reshape(z,[],obj.nComponents);
+        function xN = computeZvalues(obj,x)
+            nC = size(x,3);            
+            x = permute(x,[2 1 3]);
+            x = reshape(x,[],nC);
             nodes = obj.cellFinder.cells;
             [nelem,nnode] = size(nodes);
-            znode = z(nodes(:),:);
-            zT = reshape(znode,nelem,nnode,obj.nComponents);
+            xNode = x(nodes(:),:);
+            xN = reshape(xNode,nelem,nnode,nC);
         end
 
         function obtainInterpolationDerivativesValues(obj)

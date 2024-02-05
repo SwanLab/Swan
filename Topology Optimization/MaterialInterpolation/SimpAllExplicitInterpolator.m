@@ -28,8 +28,8 @@ classdef SimpAllExplicitInterpolator < handle
         end
 
         function m = computeConsitutiveTensorDerivative(obj,rho)
-            mu      = CompositionFunction.create(obj.muFunc,rho);
-            kappa   = CompositionFunction.create(obj.kappaFunc,rho);
+            mu      = CompositionFunction.create(obj.dmuFunc,rho);
+            kappa   = CompositionFunction.create(obj.dkappaFunc,rho);
             m = obj.createMaterial(mu,kappa);
         end          
         
