@@ -1,8 +1,8 @@
-classdef Hexahedra_Quadratic < Interpolation
+classdef Hexahedra_Cubic < Interpolation
 
     methods (Access = public)
 
-        function obj = Hexahedra_Quadratic(cParams)
+        function obj = Hexahedra_Cubic(cParams)
             obj.init(cParams);
             obj.computeParams();
             obj.computeCases();
