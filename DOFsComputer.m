@@ -65,11 +65,16 @@ classdef DOFsComputer < handle
         
         function computeDofsPriv(obj)
             dofsVertices = obj.computeDofsVertices();
+            
             dofsEdges = obj.computeDofsEdges();
             ndofsEdges = max(max(dofsEdges));
-            dofsFaces = obj.computeDofsFaces(ndofsEdges);
             
-            obj.dofs = [dofsVertices,dofsEdges,dofsFaces];
+            dofsFaces = obj.computeDofsFaces(ndofsEdges);
+            ndofsFaces = max(max(dofsFaces));
+            
+            dofsElements = obj.computeDofsElements(ndofsFaces);
+            
+            obj.dofs = [dofsVertices,dofsEdges,dofsFaces,dofsElements];
             obj.ndofs = max(max(obj.dofs));
         end
         
@@ -143,7 +148,79 @@ classdef DOFsComputer < handle
                 dofsFaces = [];
             else 
                 m.computeFaces();
-                dofsFaces = m.faces.facesInElem + ndofsEdges; % NOMES FINS P3
+                faces = m.faces.facesInElem;
+                ndofFace = obj.computeNdofsFaces(polOrder);
+                ndofsFaceElem = ndofFace*obj.mesh.faces.nFaceByElem;
+                
+                dofsFaces = zeros(obj.mesh.nelem,ndofsFaceElem);
+                for iElem = 1:obj.mesh.nelem
+                    for iFace = 1:obj.mesh.faces.nFaceByElem
+                        ind = (iFace-1)*ndofFace+1:iFace*ndofFace;
+                        dofsFaces(iElem,ind) = faces(iElem,iFace)*ndofFace-(ndofFace-1):faces(iElem,iFace)*ndofFace;
+                    end
+                end
+                
+                dofsFaces = dofsFaces + ndofsEdges;
+            end
+        end
+        
+        function ndofsFaces = computeNdofsFaces(obj,polOrder)
+            switch obj.mesh.type
+                case {'TRIANGLE','TETRAHEDRA'}
+                    d = 3;
+                case {'QUAD','HEXAHEDRA'}
+                    d = 2;
+            end
+            
+            ord = polOrder - d;
+            ndofsFaces = 0;
+            if ord == 0
+                ndofsFaces = ndofsFaces + 1;
+            elseif ord > 0
+                ndofsFaces = ndofsFaces + obj.mesh.faces.nNodeByFace + obj.mesh.faces.nEdgeByFace*(ord-1);
+                ndofsFaces = ndofsFaces + obj.computeNdofsFaces(ord-d);
+            end
+        end
+        
+        
+        function dofsElements = computeDofsElements(obj,ndofsFaces)
+            m = obj.mesh;
+            polOrder = obj.order; 
+            isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD'); 
+            if polOrder == 2 || isNot3D
+                dofsElements = [];
+            else 
+                ndofElement = obj.computeNdofsElements(polOrder);
+                dofsElements = zeros(obj.mesh.nelem,ndofElement);
+                for iElem = 1:obj.mesh.nelem
+                    dofsElements(iElem,:) = (iElem-1)*ndofElement+1:iElem*ndofElement;
+                end
+                
+                dofsElements = dofsElements + ndofsFaces;
+            end
+        end
+        
+        function ndofsElements = computeNdofsElements(obj,polOrder)
+            switch obj.mesh.type
+                case 'TETRAHEDRA'
+                    d = 3;
+                case 'HEXAHEDRA'
+                    d = 2;
+            end
+            
+            ord = polOrder - d;
+            ndofsElements = 0;
+            if ord == 0
+                ndofsElements = ndofsElements + 1;
+            elseif ord > 0
+                r.coord = obj.mesh.coord(obj.mesh.connec(1,:),:);
+                r.connec = 1:size(r.coord,1);
+                s.mesh = Mesh(r);
+                s.order   = ord;
+                s.ndimf   = obj.ndimf;
+                c = DOFsComputer(s);
+                c.computeDofs();
+                ndofsElements = ndofsElements + c.getNumberDofs();
             end
         end
         
@@ -167,15 +244,19 @@ classdef DOFsComputer < handle
         
         
         function ord = convertOrder(~,order)
-            switch order
-                case 'P0'
-                    ord = 0;
-                case 'P1'
-                    ord = 1;
-                case 'P2'
-                    ord = 2;
-                case 'P3'
-                    ord = 3;
+            if ischar(order)
+                switch order
+                    case 'P0'
+                        ord = 0;
+                    case 'P1'
+                        ord = 1;
+                    case 'P2'
+                        ord = 2;
+                    case 'P3'
+                        ord = 3;
+                end
+            else
+                ord = order;
             end
         end
         
@@ -189,6 +270,8 @@ classdef DOFsComputer < handle
                     loc = [1 2 3 4];
                 case 'TETRAHEDRA'
                     loc = [1 1 1 2 2 3];
+                case 'HEXAHEDRA'
+                    loc = [1 4 1 2 2 3 3 4 5 8 6 7];
             end
         end
         

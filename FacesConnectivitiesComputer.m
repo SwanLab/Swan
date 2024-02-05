@@ -5,6 +5,7 @@ classdef FacesConnectivitiesComputer < handle
         facesInElem
         nFaceByElem
         nNodeByFace
+        nEdgeByFace
 %         localNodeByFaceByElem
     end
     
@@ -46,19 +47,24 @@ classdef FacesConnectivitiesComputer < handle
             switch obj.type
                 case 'TRIANGLE'
                     obj.localFacesInElem = [];
+                    obj.nEdgeByFace = 3;
                     
                 case 'QUAD'
                     obj.localFacesInElem = [];
+                    obj.nEdgeByFace = 4;
 
                 case 'TETRAHEDRA'
                     obj.localFacesInElem = [1 2 4; 1 3 4; 1 2 3; 2 3 4];
+                    obj.nEdgeByFace = 3;
                     
                 case 'LINE'
                     obj.localFacesInElem =  [];
+                    obj.nEdgeByFace = 1;
                     
                 case 'HEXAHEDRA'
-                    obj.localFaceInElem  = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; ...
-                        3 7; 4 8; 5 6; 8 5; 6 7; 7 8];
+                    obj.localFacesInElem  = [1 2 3 4; 1 2 6 5; 1 4 8 5; ...
+                        2 3 7 6; 3 4 8 7; 5 6 7 8];
+                    obj.nEdgeByFace = 4;
             end
             obj.nElem = size(obj.nodesByElem,1);
             obj.nFaceByElem = size(obj.localFacesInElem,1);
