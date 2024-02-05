@@ -187,7 +187,7 @@ classdef DOFsComputer < handle
             m = obj.mesh;
             polOrder = obj.order; 
             isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD'); 
-            if polOrder == 2 || isNot3D
+            if polOrder == 1 || isNot3D
                 dofsElements = [];
             else 
                 ndofElement = obj.computeNdofsElements(polOrder);
