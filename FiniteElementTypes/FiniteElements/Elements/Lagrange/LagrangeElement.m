@@ -17,6 +17,8 @@ classdef LagrangeElement < handle
                         element = LagrangeTensorProduct1D(k);   
                     elseif d==2
                         element = LagrangeTensorProduct2D(k);
+                    elseif d==3
+                        element = LagrangeTensorProduct3D(k);
                     end
                 case "PRISMATIC"
                     if d==1
