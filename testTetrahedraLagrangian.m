@@ -19,8 +19,8 @@ sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
 % p1fun = xFun.project('P1');
-p2fun = xFun.project('P2');
-% p3fun = xFun.project('P3');
+% p2fun = xFun.project('P2');
+p3fun = xFun.project('P3');
 
 %%
 tfgP2 = [0         0         0
