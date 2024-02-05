@@ -80,8 +80,7 @@ classdef DOFsComputer < handle
             
             if obj.order~=1
                 
-                sAF.fHandle = obj.computefHandlePosition();
-                sAF.ndimf   = 2;
+                sAF = obj.computefHandlePosition();
                 sAF.mesh    = obj.mesh;
                 func = AnalyticalFunction(sAF);
                 c = func.evaluate(obj.interp.pos_nodes');
@@ -137,45 +136,15 @@ classdef DOFsComputer < handle
         end
         
         
-        function dofsElements = computeDofsFaces(obj,ndofsEdges)
+        function dofsFaces = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
             if polOrder == 1
-                dofsElements = [];
+                dofsFaces = [];
             else 
-                ndofsElements = obj.computeNdofsFaces(polOrder);
-                dofsElements = zeros(m.nelem,ndofsElements);
-                for i = 1:m.nelem
-                    dofsElements(i,:) = (i-1)*ndofsElements+1:i*ndofsElements;
-                end
-                dofsElements = dofsElements + ndofsEdges;
+                m.computeFaces();
+                dofsFaces = m.faces.facesInElem + ndofsEdges; % NOMES FINS P3
             end
-        end
-
-        
-        function ndofsElements = computeNdofsFaces(obj,polOrder)
-            switch obj.mesh.type
-                case 'TRIANGLE'
-                    d = 3;
-                    nfaces = 1;
-                case 'QUAD'
-                    d = 2;
-                    nfaces = 1;
-                case 'TETRAHEDRA'
-                    d = 3;
-                    nfaces = 4;
-            end
-            
-            ord = polOrder - d;
-            ndofsElements = 0;
-            if ord == 0
-                ndofsElements = ndofsElements + 1;
-            elseif ord > 0
-                ndofsElements = ndofsElements + obj.mesh.nnodeElem + obj.mesh.edges.nEdgeByElem*(ord-1);
-                ndofsElements = ndofsElements + obj.computeNdofsElements(ord-d);
-            end
-            
-            ndofsElements = ndofsElements*nfaces;
         end
         
         
@@ -227,11 +196,14 @@ classdef DOFsComputer < handle
             ndim = obj.mesh.ndim;
             switch ndim
                 case 1
-                    fh = @(x) x(1,:,:);
+                    fh.fHandle = @(x) x(1,:,:);
+                    fh.ndimf = 1;
                 case 2
-                    fh = @(x) [x(1,:,:),x(2,:,:)];
+                    fh.fHandle = @(x) [x(1,:,:),x(2,:,:)];
+                    fh.ndimf = 2;
                 case 3
-                    fh = @(x) [x(1,:,:),x(2,:,:),x(3,:,:)];
+                    fh.fHandle = @(x) [x(1,:,:),x(2,:,:),x(3,:,:)];
+                    fh.ndimf = 3;
             end
         end
 
