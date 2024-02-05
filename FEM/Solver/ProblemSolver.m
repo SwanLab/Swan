@@ -14,7 +14,7 @@ classdef ProblemSolver < handle
     end
     
     properties (Access = private)
-        
+        lhs
     end
     
     methods (Access = public)
@@ -95,7 +95,8 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        Ct = bcapp.computeP1LinearConditionsMatrix();
+                        % Ct = bcapp.computeP1LinearConditionsMatrix();
+                        Ct = bcapp.computeP0LinearConditionsMatrix();
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);
@@ -140,6 +141,7 @@ classdef ProblemSolver < handle
                     A_PP = A(lead,lead) + A(lead,fllw) + A(fllw,lead) + A(fllw,fllw); % Adding and grouping
                     LHS = [A_II, A_IP; A_PI, A_PP];
             end
+            obj.lhs = LHS;
 
         end
 
@@ -154,7 +156,8 @@ classdef ProblemSolver < handle
                         % lambda = zeros(bcs.dirichletFun.nDofs, 1);
                         % lambda(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                         nCases = size(obj.forces,2);
-                        Ct = repmat(bcs.dirichlet_vals, [1 nCases]);
+                        lambda = zeros(size(obj.lhs,1) - size(obj.forces,1), 1);
+                        Ct = repmat(lambda, [1 nCases]);
                         RHS = [obj.forces; Ct];
                     else
                         iV = obj.boundaryConditions.iVoigt;

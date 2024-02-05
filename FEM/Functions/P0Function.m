@@ -30,6 +30,14 @@ classdef P0Function < FeFunction
             end
         end
 
+        function [p0sub, mesh_sub, l2g] = evaluateBoundarySubdomain(obj, domain)
+            [mesh_sub, l2g] = obj.mesh.getBoundarySubmesh(domain);
+            dofs = sum(ismember(obj.mesh.connec, l2g(mesh_sub.connec)), 2) == 2;
+            s.fValues = obj.fValues(dofs, :);
+            s.mesh    = mesh_sub;
+            p0sub = P0Function(s);
+        end
+
         function dofConnec = computeDofConnectivity(obj)
             conne  = obj.mesh.connec;
             nDimf  = obj.ndimf;

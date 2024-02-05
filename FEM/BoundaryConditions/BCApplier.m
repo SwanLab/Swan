@@ -71,6 +71,42 @@ classdef BCApplier < handle
             Ct2 = LHS3(unique(aa),:);
         end
 
+        function Ct = computeP0LinearConditionsMatrix(obj)
+            nDofs = obj.dirichletFun.nDofs;
+            mesh_left = obj.mesh.createBoundaryMesh{1};
+            % Check LHSintegrator_MassBoundary
+            a.mesh = mesh_left.mesh;
+            a.test  = P0Function.create(mesh_left.mesh, 2); % from elastic
+            a.trial = P1Function.create(mesh_left.mesh, 2); % dLambda
+            a.type = 'MassMatrix';
+            lhs = LHSintegrator.create(a);
+            LHS = lhs.compute();
+
+            local_dofConnec = obj.computeDofConnectivity(mesh_left.mesh.connec);
+            global_dofConnec = obj.computeDofConnectivity(mesh_left.globalConnec);
+
+            local2global(local_dofConnec(:)) = global_dofConnec(:);
+            [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
+            iGlob = local2global(iLoc);
+            jGlob = local2global(jLoc);
+
+            Ct = sparse(iGlob,jGlob,vals, nDofs, nDofs);
+            Ct = Ct(unique(iGlob), :);
+
+            % Check LHSintegrator_MassBoundary
+            isLeft =  @(coor) (abs(coor(:,1)) == 0);
+            b.mesh = obj.mesh;
+            b.test  = P0Function.create(obj.mesh, 2); % from elastic
+            b.trial = P1Function.create(obj.mesh, 2); % dLambda
+            b.domain = isLeft;
+            b.type = 'MassDomain';
+            lhs3 = LHSintegrator.create(b);
+            LHS3 = lhs3.compute();
+
+            [aa,~] = find(LHS3);
+            Ct = LHS3(unique(aa),:);
+        end
+
         function dofConnec = computeDofConnectivity(obj, conne)
             nDimf  = 2;
             nNode  = size(conne, 2);

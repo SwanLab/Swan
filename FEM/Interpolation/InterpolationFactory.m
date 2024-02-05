@@ -12,6 +12,8 @@ classdef InterpolationFactory < handle
                     switch order
                         case 'LINEAR'
                             obj = Line_Linear(cParams);
+                        case 'CONSTANT'
+                            obj = Line_Constant(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end

@@ -321,8 +321,8 @@ classdef Mesh < handle
             % connecGlobal = l2gBound(connec_valid);
             
             newNodes = (1:size(coord_valid,1))';
-            boudnary2local(validNodes) = newNodes;
-            newConnec = boudnary2local(connec_valid);
+            boundary2local(validNodes) = newNodes;
+            newConnec = boundary2local(connec_valid);
             
             s.connec = newConnec;
             s.coord = coord_valid;
