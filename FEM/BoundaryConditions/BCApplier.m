@@ -40,7 +40,7 @@ classdef BCApplier < handle
             mesh_left = obj.mesh.createBoundaryMesh{1};
             % Check LHSintegrator_MassBoundary
             a.mesh = mesh_left.mesh;
-            a.test = P1Function.create(mesh_left.mesh, 2); % dLambda
+            a.test = P1Function.create(mesh_left.mesh, 2); % from elastic
             a.trial = P1Function.create(mesh_left.mesh, 2); % dLambda
             a.type = 'MassMatrix';
             lhs = LHSintegrator.create(a);
@@ -56,6 +56,19 @@ classdef BCApplier < handle
 
             Ct = sparse(iGlob,jGlob,vals, nDofs, nDofs);
             Ct = Ct(unique(iGlob), :);
+
+            % Check LHSintegrator_MassBoundary
+            isLeft =  @(coor) (abs(coor(:,1)) == 0);
+            b.mesh = obj.mesh;
+            b.test = P1Function.create(obj.mesh, 2); % from elastic
+            b.trial = P1Function.create(obj.mesh, 2); % dLambda
+            b.domain = isLeft;
+            b.type = 'MassDomain';
+            lhs3 = LHSintegrator.create(b);
+            LHS3 = lhs3.compute();
+
+            [aa,~] = find(LHS3);
+            Ct2 = LHS3(unique(aa),:);
         end
 
         function dofConnec = computeDofConnectivity(obj, conne)
