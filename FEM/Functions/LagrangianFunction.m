@@ -36,6 +36,14 @@ classdef LagrangianFunction < FeFunction
             end
 
         end
+        
+        function c = getCoord(obj)
+            c = obj.coord;
+        end
+        
+        function c = getConnec(obj)
+            c = obj.connec;
+        end
 
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
@@ -67,21 +75,24 @@ classdef LagrangianFunction < FeFunction
             dNdx = obj.computeCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
-            nNode = size(dNdx, 2);
+            nDofE = size(dNdx, 2);
             nElem = size(dNdx, 3);
             nGaus = size(dNdx, 4);
             
             grad = zeros(nDims,nDimf, nElem, nGaus);
+            fV = reshape(obj.fValues', [numel(obj.fValues) 1]);
             for iGaus = 1:nGaus
                 dNdx_g = dNdx(:,:,:,iGaus);
-                for iDims = 1:nDims
-                    for iNode = 1:nNode
-                        dNdx_i = squeeze(dNdx_g(iDims, iNode,:));
-                        nodes = obj.connec(:,iNode);
-                        f = obj.fValues(nodes,:);
-                        p = (dNdx_i.*f)';
+                for iDim = 1:nDims
+                    for iDof = 1:nDofE
+                        dNdx_i = squeeze(dNdx_g(iDim, iDof,:));
+                        iDofRange = ((iDof-1)*nDimf+1):(iDof*nDimf);
+                        dofs = obj.connec(:,iDofRange);
+                        f = fV(dofs,:);
+                        fRshp = reshape(f, [nElem nDimf]); % oju thermal
+                        p = (dNdx_i.*fRshp)';
                         pp(1,:,:) = p;
-                        grad(iDims,:,:,iGaus) = grad(iDims,:,:,iGaus) + pp;
+                        grad(iDim,:,:,iGaus) = grad(iDim,:,:,iGaus) + pp;
                     end
                 end
             end
@@ -89,6 +100,7 @@ classdef LagrangianFunction < FeFunction
             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
             s.quadrature = quad;
+            s.mesh       = obj.mesh;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
@@ -105,7 +117,21 @@ classdef LagrangianFunction < FeFunction
             
             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
             s.quadrature = quad;
+            s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);
+        end
+        
+        function ord = orderTextual(obj)
+            switch obj.order
+                case 'P0'
+                    ord = 'CONSTANT';
+                case 'P1'
+                    ord = 'LINEAR';
+                case 'P2'
+                    ord = 'QUADRATIC';
+                case 'P3'
+                    ord = 'CUBIC';
+            end
         end
 
         function plot(obj) % 2D domains only
@@ -206,7 +232,7 @@ classdef LagrangianFunction < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
             obj.order   = cParams.order;
@@ -214,18 +240,19 @@ classdef LagrangianFunction < FeFunction
 
         function createInterpolation(obj)
             m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,obj.order);
+            obj.interpolation = Interpolation.create(m,obj.orderTextual());
         end
 
         function createDOFCoordConnec(obj)
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
-            s.order = OrderTextInterpreter.compute(obj.order);
-            c = ConnecCoordFromInterpAndMesh(s);
-            c.compute();
-            obj.coord  = c.coord;
-            obj.connec = c.connec;
-            nDimf = size(obj.fValues,2);
+            s.order         = obj.order;
+            s.ndimf         = obj.ndimf;
+            c = DOFsComputer(s);
+            c.computeDofs();
+            c.computeCoord();
+            obj.coord  = c.getCoord();
+            obj.connec = c.getDofs();
         end
 
     end
