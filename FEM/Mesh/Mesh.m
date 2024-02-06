@@ -164,6 +164,7 @@ classdef Mesh < handle
 
         function computeEdges(obj)
             s.nodesByElem = obj.connec;
+            s.type = obj.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             obj.edges = edge;
@@ -257,6 +258,12 @@ classdef Mesh < handle
             m = r.compute();
         end
 
+        function m = convertToTriangleMesh(obj, lastNode)
+            if nargin == 1; lastNode = obj.nnodes; end
+            q2t = QuadToTriMeshConverter();
+            m = q2t.convert(obj, lastNode);
+        end
+
         function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
@@ -281,10 +288,10 @@ classdef Mesh < handle
             p.print();
         end
 
-        function triMesh = triangulateMesh2(obj)
-            P = obj.coord;
-            T = obj.connec;
-            triMesh = triangulation(T,P);
+        function m = triangulateMesh(obj)
+            s.coord  = obj.coord;
+            s.connec = delaunayn(obj.coord);
+            m = Mesh(s);
         end
 
     end
@@ -371,12 +378,6 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end
-
-        function triangulateMesh(obj)
-            P = obj.coord;
-            T = obj.connec;
-            obj.triMesh = triangulation(T,P);
         end
 
     end

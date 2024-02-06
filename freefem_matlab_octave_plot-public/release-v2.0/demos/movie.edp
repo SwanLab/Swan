@@ -1,0 +1,126 @@
+/* convective_rolls.edp Vortex caused by free convection
+ *
+ *  Solves the Laplace Equation on a parallel plate capacitor boundary.
+ *  P1 Elements are used in written in order to be plot with Matlab / Octave.
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-05-19
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+
+include "ffmatlib.idp"
+
+load "UMFPACK64";
+
+//Geometry
+real width=0.30;
+real height=0.05;
+
+int m=300;
+real tend=10.0, dt=0.04; //ending time and time step
+
+real g=9.81;
+real Thot=50;  //°C
+real Tcold=0;  //°C
+real beta=(1.0/(273.0+0.5*(Thot+Tcold)));  // Expansion coefficient
+//properties air @25°C / 1 bar
+real rho=1.168;         // density kg/m^3
+real nu=15.82e-6;       // kinematic viscosity m^2/s
+real cp=1.007e+3;       // specific isobar heat capacity J/kg*K
+real lambda=0.0261;     // heat conductivity W/mK
+real mu=nu*rho;
+real a=lambda/(rho*cp);
+
+int C1=1,C2=2,C3=3,C4=4,C10=5;
+border floor(t=0,width){ x=t; y=0; label=C1;};
+border ceiling(t=width,0){ x=t; y=height; label=C2;};
+border right(t=0,height){ x=width; y=t; label=C3;};
+border left(t=height,0){ x=0; y=t; label=C4;};
+
+mesh Th=buildmesh(floor(width*m)+right(height*m)+ceiling(width*m)+left(height*m));
+
+fespace Vh(Th,P2), Qh(Th,P1);
+
+//Fluid stuff
+Vh u1,u2,v2,v1,up=0,vp=0;
+Qh p=0, pp;
+Qh psi,phi;
+//r is a temperature rise/difference
+Qh rr, rp=0,r=0;
+Qh Tfluid;
+//Heatflux density
+Qh qx, qy;
+
+bool reuseMatrix=false;
+int n=0;
+
+problem NS([u1,u2,p],[v1,v2,pp],solver=UMFPACK, init=reuseMatrix) =
+      int2d(Th)( u1*v1 + u2*v2                //Remains from advective part in lagrange coordinates
+                 + nu*dt*(dx(u1)*dx(v1) + dy(u1)*dy(v1)   //Viscous part
+                 +        dx(u2)*dx(v2) + dy(u2)*dy(v2))
+                 + p*pp*1.e-6                             //Stabilization
+                 - dt*(p*(dx(v1) + dy(v2))/rho            //Pressure part
+                 - dt*pp*(dx(u1) + dy(u2))))              //Mass conservation (continuity)
+     - int2d(Th) (convect([up,vp],-dt,up)*v1              //Advection Lagrangian coordinates
+                 + convect([up,vp],-dt,vp)*v2
+                 + dt*beta*g*r*v2)                        //Buyoancy
+
+      + on(C1,C2,C3,C4,u2=0) + on(C1,C2,C3,C4,u1=0);       //no-slip on box surface
+
+problem convectdiffusion(r,rr,solver=UMFPACK, init=reuseMatrix) =
+          int2d(Th)( r*rr                       //Remains from advective part in lagrangian coordinates
+                     + a*dt*(dx(r)*dx(rr)+dy(r)*dy(rr)))   //Diffusion part
+        - int2d(Th)(convect([up,vp],-dt,rp)*rr)            //Advection Lagrangian coordinates
+        + on(C2,C3,C4,r=0) + on(C1,r=Thot-Tcold);
+
+/* in order to calculate the heat transfer coefficient */
+Vh o=1;
+real lenfloor = int1d(Th,C1,qfe=qf2pE)(o);
+
+// Stream function
+problem streamlines(psi,phi) =
+      int2d(Th)( dx(psi)*dx(phi) + dy(psi)*dy(phi))
+   +  int2d(Th)( -phi*(dy(u1) - dx(u2)))
+   +  on(C1,psi=0.);
+
+cout.precision(3);
+
+savemesh(Th,"movie.msh");
+ffSaveVh(Th,Qh,"movie_qh.txt");
+
+int frame;
+for(real t=0;t<tend;t+=dt){
+    NS;
+    up=u1;
+    vp=u2;
+    convectdiffusion;
+    rp=r;
+    plot(r, wait=false, value=true, nbiso=20, fill=true, cmm="Temperature Rise [K] t="+t);
+    reuseMatrix=true;
+ 
+    frame = n+10000;
+    ffSaveData(r,"movie_temp_"+frame+".txt");
+    streamlines;
+
+    frame = n+10000;
+    ffSaveData(psi,"movie_psi_"+frame+".txt");
+    plot(psi, wait=false, nbiso=20,fill=false,value=true,cmm="Streamlines [(m^3/s)/m] t="+t);
+    n=n+1;
+}

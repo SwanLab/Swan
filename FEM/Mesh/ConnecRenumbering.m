@@ -12,10 +12,11 @@ classdef ConnecRenumbering < handle
         end
 
         function newConnec = renumber(obj,connec)
-            nodes = obj.oldNodes;
-            M = zeros(max(nodes(:)),1);
-            M(nodes)= obj.newNodes;
-            newConnec = M(connec);
+            nodes        = obj.oldNodes;
+            M            = zeros(max(nodes(:)),1);
+            M(nodes)     = obj.newNodes;
+            newConnec    = zeros(size(connec));
+            newConnec(:) = M(connec);
         end
         
     end

@@ -1,14 +1,11 @@
 classdef CutMeshProvisionalOthers < CutMesh
     
-    properties (Access = public)
-       type
-    end
-    
     properties (Access = private)
-        subcellsMesher
-        cutPointsCalculator
-        memoryManager
-        nCutCells
+        localMesh
+        subMesh
+        cutSubMesh
+        fullSubCells
+        cutSubCells
         coord
         connec
     end
@@ -17,164 +14,158 @@ classdef CutMeshProvisionalOthers < CutMesh
         
         function obj = CutMeshProvisionalOthers(cParams)
             obj.init(cParams);
-            obj.nCutCells = length(obj.cutCells);
         end
         
         function compute(obj)
-            obj.computeThisInnerCutMesh();
-            if ~isequal(obj.backgroundMesh.geometryType,'Line')
-                obj.computeThisBoundaryCutMesh();
-            end
-        end
-        
-        function computeThisBoundaryCutMesh(obj)
-            obj.type  = 'BOUNDARY';
-            obj.createSubCellsMesher();
-            obj.createMemoryManager();
-            obj.createCutPointsCalculator();
+            obj.computeLocalSubMeshHexahedra();
             obj.computeSubcells();
-            obj.computeCoord();
+            obj.classifyCells();
+            obj.computeCutSubMesh();
+            obj.computeCoords();
             obj.computeConnec();
+            obj.computeCellContainingSubCell();
             obj.computeMesh();
-            obj.xCoordsIso            = obj.computeXcoordIso();
-            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;
             obj.computeBoundaryMesh();
             obj.computeBoundaryXCoordsIso();
             obj.computeBoundaryCellContainingSubCell();
-            obj.computeBoundaryCutMesh();
-        end
-        
-        function computeThisInnerCutMesh(obj)
-            obj.type  = 'INTERIOR';
-            obj.createSubCellsMesher();
-            obj.createMemoryManager();
-            obj.createCutPointsCalculator();
-            obj.computeSubcells();
-            obj.computeCoord();
-            obj.computeConnec();
-            obj.computeMesh();
-            obj.xCoordsIso            = obj.computeXcoordIso();
-            obj.cellContainingSubcell = obj.memoryManager.cellContainingSubcell;
             obj.computeInnerCutMesh();
+            obj.computeBoundaryCutMesh();
         end
         
     end
   
     methods (Access = private)
-        
-        function createSubCellsMesher(obj)
-            inter = Interpolation.create(obj.backgroundMesh,'LINEAR');
-            sS.ndimIso            = obj.backgroundMesh.geometryType;
-            sS.type               = obj.type;
-            sS.posNodes           = inter.pos_nodes;
-            sS.levelSetBackground = obj.levelSet;
-            sS.coordsBackground   = obj.backgroundMesh.coord;
-            obj.subcellsMesher    = SubcellsMesher.create(sS);
+
+        function computeLocalSubMeshHexahedra(obj)
+            Xiso     =  [-1 ,-1, -1;...
+                        1, -1, -1;...
+                        1, 1, -1;...
+                        -1, 1, -1;...
+                        -1, -1, 1;...
+                        1, -1, 1;...
+                        1, 1, 1;...
+                        -1, 1, 1;];
+            connecIso     = delaunay(Xiso);
+            s.coord       = Xiso;
+            s.connec      = connecIso;
+            obj.localMesh = Mesh(s);
         end
-        
-         function createMemoryManager(obj)
-            s.ndimIso       = obj.backgroundMesh.geometryType;
-            s.unfittedType  = obj.type;
-            s.nCutCells     = obj.nCutCells;
-            s.ndim          = obj.backgroundMesh.ndim;
-            obj.memoryManager  = MemoryManager_MeshUnfitted(s);
-         end
-        
-        function createCutPointsCalculator(obj)
-            obj.cutPointsCalculator  = CutPointsCalculator();
-        end
-        
-        function x = computeXcoordIso(obj)
-            subCell = obj.memoryManager.subcellIsoCoords;
-            x = permute(subCell,[3 2 1]);
-        end
-        
-        function computeMesh(obj)
-            s.coord  = obj.coord;
-            s.connec = obj.connec;
-            if isequal(obj.type,'INTERIOR')
-                s.kFace = obj.backgroundMesh.kFace;
-            else
-                s.kFace = obj.backgroundMesh.kFace -1;
-            end
-            obj.mesh = Mesh(s);
-        end
-        
+
         function obj = computeSubcells(obj)
-            obj.memoryManager.allocateMemory();
-            obj.computeCutPoints();
-            for icut = 1:obj.nCutCells %Vectorize
-                icell = obj.cutCells(icut);
-                newSubcells = obj.computeThisCellSubcells(icut,icell);
-                newCellContainingNodes   = repmat(icell,[newSubcells.nNodes 1]);
-                newCellContainingSubcell = repmat(icell,[newSubcells.nSubcells 1]);
-                obj.memoryManager.saveNewSubcells(newSubcells,newCellContainingNodes,newCellContainingSubcell);
+            bCutMesh     = obj.backgroundMesh;
+            nelem        = bCutMesh.nelem;
+            bCutConnec   = bCutMesh.connec;
+            connecIso    = obj.localMesh.connec;
+            nElemIso     = size(connecIso,1);
+            nnodeSubMesh = size(connecIso,2);
+            subConnec    = bCutConnec(:,connecIso');
+            subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
+            s.coord      = bCutMesh.coord;
+            s.connec     = subConnec;
+            obj.subMesh  = Mesh(s);
+        end
+
+        function classifyCells(obj)
+            lsInElem = obj.computeLevelSetInElem();
+            isFull  = all(lsInElem<0,2);
+            isEmpty = all(lsInElem>0,2);
+            isCut = ~isFull & ~isEmpty;
+            obj.fullSubCells  = find(isFull);
+            obj.cutSubCells   = find(isCut);
+        end
+
+        function lsElem = computeLevelSetInElem(obj)
+            ls = obj.levelSet;
+            nodes = obj.subMesh.connec;
+            nnode = size(nodes,2);
+            nElem = size(nodes,1);
+            lsElem = zeros(nElem,nnode);
+            for inode = 1:nnode
+                node = nodes(:,inode);
+                lsElem(:,inode) = ls(node);
             end
-            obj.memoryManager.freeSpareMemory();
-            
         end
-        
-        function computeCutPoints(obj)
-            s.backgroundMesh              = obj.backgroundMesh;
-            s.levelSet_background         = obj.levelSet;
-            s.backgroundCutCells          = obj.cutCells;
-            obj.cutPointsCalculator.init(s);
-            obj.cutPointsCalculator.computeCutPoints();
+
+        function computeCutSubMesh(obj)
+            s.backgroundMesh = obj.subMesh;
+            s.cutCells       = obj.cutSubCells;
+            s.levelSet       = obj.levelSet;
+            cMesh = CutMesh.create(s);
+            cMesh.compute();
+            obj.cutSubMesh = cMesh;
         end
-        
-        function subcells = computeThisCellSubcells(obj,icut,icell)
-            cutPoints = obj.cutPointsCalculator.getThisCellCutPoints(icut);
-            conn      = obj.backgroundMesh.connec(icell,:);
-            sS.cellConnec = conn;
-            sS.cutPoints  = cutPoints;
-            obj.subcellsMesher.computeSubcells(sS);
-            subcells = obj.subcellsMesher.subcells;
+
+        function globalToLocal = computeGlobalToLocal(obj)
+            bConnec   = obj.backgroundMesh.connec;
+            locConnec = obj.localMesh.connec;
+            nSubCells = size(locConnec,1);
+            nElem     = size(bConnec,1);
+            cell      = repmat((1:nSubCells)',1,nElem);
+            globalToLocal = cell(:);
+        end
+
+        function computeCoords(obj)
+            s.fullCells     = obj.fullSubCells;
+            s.cutCells      = obj.cutSubMesh.innerCutMesh.cellContainingSubcell;
+            s.globalToLocal = obj.computeGlobalToLocal();
+            s.localMesh     = obj.localMesh;
+            s.xIsoCutCoord  = obj.cutSubMesh.innerCutMesh.xCoordsIso;
+            xC = XcoordIsoComputer(s);
+            obj.xCoordsIso = xC.compute();
+            obj.coord      = obj.cutSubMesh.innerCutMesh.mesh.coord;
         end
         
         function computeConnec(obj)
-            nSubcells = size(obj.memoryManager.connec_local,1);
-            cellOfSubCell = obj.memoryManager.cellContainingSubcell;
-            coordGlobal   = obj.memoryManager.coord_global_raw;
-            connecLocal   = obj.memoryManager.connec_local;
-            cellContNodes = obj.memoryManager.cellContainingNodes;
-            nnode = size(connecLocal,2);
-            conn = zeros(nSubcells,nnode);
-            for isub = 1:nSubcells %Vectorize !!!
-                cell = cellContNodes == cellOfSubCell(isub);
-                coordsSubCell = coordGlobal(cell,:);
-                indexes = obj.findIndexesComparingCoords(coordsSubCell);
-                conn(isub,:) = indexes(connecLocal(isub,:));
-            end
-            obj.connec = conn;
+            connecCutInterior = obj.cutSubMesh.innerCutMesh.mesh.connec;
+            connecFull        = obj.subMesh.connec(obj.fullSubCells,:);
+            obj.connec = [connecFull;connecCutInterior];
         end
-        
-        function computeCoord(obj)
-            allCoord = obj.memoryManager.coord_global_raw;
-            obj.coord = unique(allCoord,'rows','stable');
+
+        function  computeCellContainingSubCell(obj)
+            cellSubMesh = obj.cutSubMesh.innerCutMesh.cellContainingSubcell;
+            fCells      = obj.fullSubCells;
+            cellSubMesh = [fCells;cellSubMesh];
+            cell        = obj.computeSubTetrasOfSubCell();
+            obj.cellContainingSubcell = cell(cellSubMesh);
         end
-        
-        function I = findIndexesComparingCoords(obj,A)
-            B = obj.coord;
-            I = zeros(1,size(A,1));
-            for inode = 1:size(A,1)
-                match = true(size(B,1),1);
-                for idime = 1:size(A,2)
-                    match = match & B(:,idime) == A(inode,idime);
-                end
-                I(inode) = find(match,1);
-            end
+
+        function cell = computeSubTetrasOfSubCell(obj)
+            locConnec = obj.localMesh.connec;
+            nSubCells = size(locConnec,1);
+            cElems    = transpose(obj.cutCells);
+            cell      = repmat(cElems,nSubCells,1);
+            cell      = cell(:);
         end
-        
+
+        function computeMesh(obj)
+            sM.connec = obj.connec;
+            sM.coord  = obj.coord;
+            sM.kFace  = obj.backgroundMesh.kFace;
+            obj.mesh = Mesh(sM);
+        end
+
         function computeBoundaryMesh(obj)
-           obj.boundaryMesh = obj.mesh;
+            m = obj.cutSubMesh.boundaryCutMesh.mesh;
+            obj.boundaryMesh = m;
         end
-        
+
         function computeBoundaryXCoordsIso(obj)
-            obj.xCoordsIsoBoundary = obj.xCoordsIso;
+            xCutIso = obj.cutSubMesh.xCoordsIsoBoundary;
+            s.fullCells     = obj.fullSubCells;
+            s.cutCells      = obj.cutSubMesh.boundaryCutMesh.cellContainingSubcell;
+            s.globalToLocal = obj.computeGlobalToLocal();
+            s.localMesh     = obj.localMesh;
+            s.xIsoCutCoord  = xCutIso;
+            xC = XcoordIsoComputer(s);
+            xCutG = xC.computeXSubCut();
+            obj.xCoordsIsoBoundary = xCutG;
         end
-        
-        function computeBoundaryCellContainingSubCell(obj)
-            obj.cellContainingSubCellBoundary = obj.cellContainingSubcell;
+
+        function cellCont = computeBoundaryCellContainingSubCell(obj)
+            cutC = obj.cutSubMesh.boundaryCutMesh.cellContainingSubcell;
+            cell = obj.computeSubTetrasOfSubCell();
+            cellCont = cell(cutC);
+            obj.cellContainingSubCellBoundary = cellCont;
         end
         
     end

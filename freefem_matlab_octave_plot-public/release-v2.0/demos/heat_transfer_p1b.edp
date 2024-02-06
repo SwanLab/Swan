@@ -1,0 +1,84 @@
+/* Heat transfer on sheet metal disc
+ *
+ *  Calculate temperature distribution in a heated sheet metal disc
+ *  employing heat transfer and one fixed border temperature.
+ *  Write the mesh information in order to be plot in Matlab/Octave.
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2019-03-01
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+include "ffmatlib.idp"
+
+real r1=0.15,r2=0.02;
+border outer(t=0,2*pi){x=r1*cos(t);y=r1*sin(t);label=1;}
+border inner(t=0,2*pi){x=r2*cos(t)-0.06;y=r2*sin(t)+0.04;label=2;}
+
+int ka=375,ki=35;
+mesh Th=buildmesh(outer(ka)+inner(-ki));
+
+fespace Vh(Th,P1b);
+Vh u,v;
+
+real[int] ri=[0.008,0.01,0.004,0.007,0.02,0.012,0.008,0.006,0.008,0.009];
+real[int] xp=[0.0,0.09,-0.06,0.06,0.06,-0.04,-0.12,-0.07,0.07,0.01];
+real[int] yp=[0.0,-0.08,0.09,-0.04,0.02,-0.1,-0.0,-0.05,0.08,0.11];
+
+real[int] p(ri.n),q(ri.n);
+
+p=8.1;       //[W] / source
+real a=55.7; //[W/m^2K]
+real l=0.2;  //[W/m]
+
+// q=p/(pi*ri^2)
+q=ri.*ri;
+q=p./q;
+q/=pi;
+
+Vh g=0;
+for (int i=0;i<ri.n;++i){
+  g=g+q[i]*((x-xp[i])^2+(y-yp[i])^2<=ri[i]^2);
+}
+
+/* solve
+ * u_xx+u_yy=-(q(x,y)-a*u)/l
+ * where
+ * a ~ heat transfer coefficient [W/m^2K]
+ * q ~ heat flux density [W/m^2]
+ * l ~ lateral heat conductivity * sheet metal thickness [W/K]
+ */
+problem heat(u,v)=int2d(Th)(dx(u)*dx(v)+dy(u)*dy(v)+(a/l)*u*v)
+                 -int2d(Th)(g(x,y)*v/l)
+                 +on(2,u=13);
+
+real error=0.005;
+for (int i=0;i<1;i++){
+  heat;
+  Th=adaptmesh(Th,u,err=error);
+  error=error/2.0;
+} ;
+//call once more so that mesh and u is synchronised!
+heat;
+
+savemesh(Th,"heat_transfer.msh");
+ffSaveVh(Th,Vh,"heat_transfer_vh.txt");
+ffSaveData(u,"heat_transfer_data.txt");
+
+plot(u,wait=true,fill=true,value=true);

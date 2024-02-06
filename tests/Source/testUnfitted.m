@@ -22,7 +22,7 @@ classdef testUnfitted < test
         function createTopOpt(obj)
             obj.createSettings();
             obj.computation = TopOpt_Problem(obj.settings);
-            obj.levelSet = obj.computation.designVariable.value;
+            obj.levelSet = obj.computation.designVariable.fun.fValues;
         end
         
         function createMesh(obj)
@@ -63,4 +63,3 @@ classdef testUnfitted < test
     end
     
 end
-

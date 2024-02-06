@@ -73,7 +73,7 @@ classdef OptimizerBisection < Optimizer
             obj.designVariable         = cParams.designVar;
             obj.dualVariable           = cParams.dualVariable;
             obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.nX                     = length(obj.designVariable.value);
+            obj.nX                     = obj.designVariable.fun.nDofs;
             obj.maxIter                = cParams.maxIter;
             obj.nIter                  = 0;
         end
@@ -86,7 +86,7 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = update(obj)
-            x0 = obj.designVariable.value;
+            x0 = obj.designVariable.fun.fValues;
             obj.saveOldValues(x0);
             obj.calculateInitialStep();
             obj.acceptableStep   = false;
@@ -100,7 +100,7 @@ classdef OptimizerBisection < Optimizer
         function obj = calculateInitialStep(obj)
             obj.cost.computeFunctionAndGradient();
             obj.constraint.computeFunctionAndGradient();
-            x       = obj.designVariable.value;
+            x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;

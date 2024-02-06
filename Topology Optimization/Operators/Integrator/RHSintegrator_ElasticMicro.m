@@ -9,6 +9,8 @@ classdef RHSintegrator_ElasticMicro < handle
         dvolume
         globalConnec
         quadrature
+
+        fun
     end
     
     methods (Access = public)
@@ -20,17 +22,22 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function Fext = compute(obj)
-            Fvol       = obj.computeStrainRHS(obj.vstrain);
-            forces     = squeeze(Fvol);
-            FextSupVol = obj.assembleVector(forces);
-            Fpoint     = obj.computePunctualFext();
-            Fext = FextSupVol +  Fpoint;
+            nVoigt = obj.material.nstre;
+            basis   = diag(ones(nVoigt,1));
+            Fvol = zeros(obj.dim.ndofs, nVoigt);
+            for iVoigt = 1:nVoigt
+                vstrain = basis(iVoigt,:);
+                FvolE = obj.computeStrainRHS(vstrain);
+                Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
+            end
+            Fpoint = obj.computePunctualFext();
+            Fext = Fvol + Fpoint;
         end
 
         function R = computeReactions(obj, K)
             bc      = obj.boundaryConditions;
-            dirich  = bc.dirichlet;
-            dirichV = bc.dirichlet_values;
+            dirich  = bc.dirichlet_dofs;
+            dirichV = bc.dirichlet_vals;
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
@@ -49,7 +56,7 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.boundaryConditions = cParams.BC;
             obj.material           = cParams.material;
             obj.globalConnec       = cParams.globalConnec;
-            obj.vstrain            = cParams.vstrain;
+            obj.fun                = cParams.fun;
         end
        
         function createQuadrature(obj)
@@ -68,52 +75,64 @@ classdef RHSintegrator_ElasticMicro < handle
             s.globalConnec = obj.globalConnec;
             s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
 %             F(:,1,:) = forces;
-            assembler = Assembler(s);
-            b = assembler.assembleV(forces);
+            s.fun = obj.fun;
+            assembler = AssemblerFun(s);
+            b = assembler.assembleV(forces, obj.fun);
         end
 
         function Fp = computePunctualFext(obj)
             %Compute Global Puntual Forces (Not well-posed in FEM)
-            neumann       = obj.boundaryConditions.neumann;
-            neumannValues = obj.boundaryConditions.neumann_values;
+            neumann       = obj.boundaryConditions.pointload_dofs;
+            neumannValues = obj.boundaryConditions.pointload_vals;
             Fp = zeros(obj.dim.ndofs,1);
             if ~isempty(neumann)
                 Fp(neumann) = neumannValues;
             end
         end
         
+        
         function F = computeStrainRHS(obj,vstrain)
-            ngaus = obj.quadrature.ngaus;
-            for igaus = 1:ngaus
-                sigma  = obj.computeStress(vstrain);
-                eforce = obj.computeEForce(sigma,igaus);
-            end
-            F = -eforce;
-        end
-
-        function sigmaFun = computeStress(obj, vstrain)
             Cmat  = obj.material.C;
-            nElem = size(Cmat,3);
-            vStr  = repmat(vstrain', [1  1 nElem]);
-            sigma = pagemtimes(Cmat, vStr);
+            nunkn = obj.dim.ndimf;
+            nstre = size(Cmat,1);
+            nelem = size(Cmat,3);
+            nnode = obj.dim.nnodeElem;
+            ngaus = obj.quadrature.ngaus;
+
+            eforce = zeros(nunkn*nnode,ngaus,nelem);
+            sigma = zeros(nstre,ngaus,nelem);
 
             a.mesh       = obj.mesh;
             a.fValues    = sigma;
             a.quadrature = obj.quadrature;
-            sigmaFun = FGaussDiscontinuousFunction(a);
-        end
+            sigmaF = FGaussDiscontinuousFunction(a);
 
-        function eforce = computeEForce(obj, sigma, igaus)
-            sigma.ndimf = size(obj.mesh.coord,2); 
-            s.fun  = sigma;
-            s.dNdx = sigma.computeCartesianDerivatives(obj.quadrature);
+            sigmaF.ndimf = size(obj.mesh.coord,2); 
+            s.fun  = sigmaF;
+            s.dNdx = sigmaF.computeCartesianDerivatives(obj.quadrature);
+
             Bcomp = BMatrixComputer(s);
-            Bmat    = Bcomp.compute(igaus);
-            
-            dV(1,1,:) = obj.dvolume(:,igaus);
-            Bok = permute(Bmat, [2 1 3]);
-            Bsig = pagemtimes(Bok, sigma.fValues);
-            eforce = pagemtimes(Bsig,dV);
+            for igaus = 1:ngaus
+                Bmat    = Bcomp.compute(igaus);
+                dV(:,1) = obj.dvolume(:,igaus);
+                for istre = 1:nstre
+                    for jstre = 1:nstre
+                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
+                        vj  = vstrain(jstre);
+                        si  = squeeze(sigma(istre,igaus,:));
+                        sigma(istre,igaus,:) = si + Cij*vj;
+                    end
+                end
+                for iv = 1:nnode*nunkn
+                    for istre = 1:nstre
+                        Biv_i = squeeze(Bmat(istre,iv,:));
+                        si    = squeeze(sigma(istre,igaus,:));
+                        Fiv   = squeeze(eforce(iv,igaus,:));
+                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
+                    end
+                end
+            end
+            F = -eforce;
         end
 
     end

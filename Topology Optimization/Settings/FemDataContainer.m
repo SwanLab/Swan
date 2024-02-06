@@ -15,6 +15,9 @@ classdef FemDataContainer < AbstractSettings
         material
         ngaus
         interpolationType
+        solverType = 'REDUCED';
+        solverMode = 'DISP';
+        newBC
     end
     
     methods (Access = public)
@@ -35,6 +38,9 @@ classdef FemDataContainer < AbstractSettings
                 obj.readFemInputFile();
                 obj.getNgaus();
                 obj.createMaterial();
+                if strcmp(obj.scale, 'MICRO')
+                    obj.solverMode = 'FLUC';
+                end
             end
         end
         
@@ -50,6 +56,9 @@ classdef FemDataContainer < AbstractSettings
             obj.bc.dirichlet = s.dirichlet;
             obj.bc.pointload = s.pointload;
             obj.interpolationType = 'LINEAR';
+            obj.newBC.dirichletFun = s.dirichletFun;
+            obj.newBC.pointloadFun = s.pointloadFun;
+            obj.newBC.periodicFun  = s.periodicFun;
         end
 
         function createMaterial(obj)
