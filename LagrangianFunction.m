@@ -232,7 +232,7 @@ classdef LagrangianFunction < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
             obj.order   = cParams.order;
@@ -246,8 +246,8 @@ classdef LagrangianFunction < FeFunction
         function createDOFCoordConnec(obj)
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
-            s.order = obj.order;
-            s.ndimf = obj.ndimf;
+            s.order         = obj.order;
+            s.ndimf         = obj.ndimf;
             c = DOFsComputer(s);
             c.computeDofs();
             c.computeCoord();
