@@ -202,6 +202,7 @@ classdef P1Function < FeFunction
                 case {'TRIANGLE','QUAD'}
                     x = obj.mesh.coord(:,1);
                     y = obj.mesh.coord(:,2);
+                    figure()
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         z = obj.fValues(:,idim);
@@ -210,7 +211,8 @@ classdef P1Function < FeFunction
                         %             colorbar
                         shading interp
                         a.EdgeColor = [0 0 0];
-                        %title(['dim = ', num2str(idim)]);
+                        title(['dim = ', num2str(idim)]);
+                        colorbar
                     end
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
@@ -221,7 +223,7 @@ classdef P1Function < FeFunction
         end
 
         function plotArrowVector(obj)
-            figure()
+     %       figure()
             a = obj.fValues;
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
@@ -251,6 +253,16 @@ classdef P1Function < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATICMASS';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
+        end
+
+
     end
 
     methods (Access = public, Static)
@@ -274,6 +286,7 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
+        
         
     end
 

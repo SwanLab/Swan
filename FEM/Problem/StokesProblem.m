@@ -116,7 +116,7 @@ classdef StokesProblem < handle
             s.scale = 'MACRO';
             s.bc    = {bcV, bcP};
             s.ndofs = ndofs; % Stokes
-            bc = BoundaryConditions(s);
+            bc = BoundaryConditionsStokes(s);
             obj.boundaryConditions = bc;
         end
 

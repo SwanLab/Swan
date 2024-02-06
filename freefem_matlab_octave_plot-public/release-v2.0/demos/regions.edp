@@ -1,0 +1,56 @@
+/* Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-05-19
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hopeC that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+include "ffmatlib.idp"
+
+real[int] XX=[-1,1,-1,1];
+real[int] YY=[-1,-1,1,1];
+
+real[int] PHI=[0.0,0.5,0.6,0.7];
+
+int[int] CC=[1,2,3,4];
+
+real r0=0.2;
+real ra=3;
+border outer(t=0,2*pi){ x=ra*cos(t); y=ra*sin(t);label=123;}
+
+border cycloides(t=0,2*pi;i){x=r0*(3.0*cos(t+PHI[i])+0.3*cos(3.0*t))+XX[i];
+                             y=r0*(3.0*sin(t+PHI[i])-0.3*sin(3.0*t))+YY[i];
+                             label=CC[i];}
+
+int[int] NN=40*[-1,1,1,1];
+
+mesh Th = buildmesh(cycloides(NN)+outer(100));
+
+plot(Th,wait=1);
+
+fespace Vh (Th, P0);
+
+int reg1 = Th(XX[2],YY[2]).region, reg2 = Th(XX[1],YY[1]).region;
+
+Vh u=2.0*(region == reg1)-1.0*(region == reg2);
+
+plot(u,fill=1,wait=1);
+
+savemesh(Th,"region.msh");
+ffSaveVh(Th,Vh,"region_vh.txt");
+ffSaveData(u,"region_data.txt");
+

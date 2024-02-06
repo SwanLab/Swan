@@ -7370,15 +7370,15 @@ gidlnods = [
 % ];
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-vertices = get_vertices(gidcoord);
+% vertices = get_vertices(gidcoord);
 
 dirichlet_data = [ ];
-for i = 1:length(vertices)
-    verticeNumber = vertices(i,1);
-    for j = 1:3
-        dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
-    end
-end
+% for i = 1:length(vertices)
+%     verticeNumber = vertices(i,1);
+%     for j = 1:3
+%         dirichlet_data = [dirichlet_data;[verticeNumber j 0]];
+%     end
+% end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 % dirichlet_data = [ ]; ??  
@@ -7414,6 +7414,54 @@ end
 
 pointload_complete = [
 ];
+
+
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+isFront  = @(coor) (abs(coor(:,3) - max(coor(:,3))) < 1e-12);
+isBack   = @(coor) (abs(coor(:,3) - min(coor(:,3))) < 1e-12);
+
+% Dirichlet
+
+sDir{1}.domain    = @(coor) isBack(coor) & isBottom(coor) & isLeft(coor);
+sDir{1}.direction = [1,2,3];
+sDir{1}.value     = 0;
+
+sDir{2}.domain    =@(coor) isBack(coor) & isBottom(coor) & isRight(coor);
+sDir{2}.direction = [1,2,3];
+sDir{2}.value     = 0;
+
+sDir{3}.domain    = @(coor) isBack(coor) & isTop(coor) & isLeft(coor);
+sDir{3}.direction = [1,2,3];
+sDir{3}.value     = 0;
+
+sDir{4}.domain    =@(coor) isBack(coor) & isTop(coor) & isRight(coor);
+sDir{4}.direction = [1,2,3];
+sDir{4}.value     = 0;
+
+sDir{5}.domain    = @(coor) isFront(coor) & isBottom(coor) & isLeft(coor);
+sDir{5}.direction = [1,2,3];
+sDir{5}.value     = 0;
+
+sDir{6}.domain    =@(coor) isFront(coor) & isBottom(coor) & isRight(coor);
+sDir{6}.direction = [1,2,3];
+sDir{6}.value     = 0;
+
+sDir{7}.domain    = @(coor) isFront(coor) & isTop(coor) & isLeft(coor);
+sDir{7}.direction = [1,2,3];
+sDir{7}.value     = 0;
+
+sDir{8}.domain    =@(coor) isFront(coor) & isTop(coor) & isRight(coor);
+sDir{8}.direction = [1,2,3];
+sDir{8}.value     = 0;
+
+% Periodic
+
+sPer{1}.leader = @(coor) isLeft(coor);
+sPer{1}.follower = @(coor) isRight(coor);
+
 
 %% Volumetric Force
 % Element        Dim                Force_Dim

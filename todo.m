@@ -1,12 +1,7 @@
 %% To-do
 
-% (1) Dirichlet P2  working
-% (2) Instead of returning dofs, return a c = [1 0 0  0] matrix
-%       and bcapplier -> (linear)conditionsapplier which chooses between
-%       gauss elim/monolitic/etc
-% (3) conditions from \int lambda · u(x) -> lambda eg dirac, u(x) is your
-%      function
-
+    % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
+    
 % WEBSITE
     % STEP 1
     % - Readme: tot fora, portar cap a la web + documentation

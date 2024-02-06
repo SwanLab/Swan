@@ -60,7 +60,8 @@ classdef FGaussDiscontinuousFunction < handle
 
         function plot(obj)
             s.mesh = obj.mesh;
-            proj = Projector_toP1(s);
+            s.projectorType = 'P1D';
+            proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
         end
@@ -104,13 +105,10 @@ classdef FGaussDiscontinuousFunction < handle
             dofConnec = dofsElem;
         end
 
-        function totVal = computeScalarProduct(obj,f,order)
-            q.mesh     = obj.mesh;
-            q.quadType = order;
-            q.type     = 'ScalarProduct';
-            int        = Integrator.create(q);
-            totVal     = int.compute(obj,f);
-        end
+        function v = computeL2norm(obj)
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
+        end        
+
     end
 
     methods (Access = private)
