@@ -59,28 +59,25 @@ classdef DirichletNeumann < handle
 
             tol=1e-8;
             e=1;
-
+            alpha = 3/4;
             while e>tol
 %                 for i=1:obj.nSubdomains(1)
-                     R = obj.computeForces(2);
+                     obj.computeForces(2);
                      Kred = obj.boundaryConditions{2}.fullToReducedMatrix(obj.LHS{2});
                      Fred = obj.boundaryConditions{2}.fullToReducedVector(obj.RHS{2});
                      u{2} = Kred\Fred;
                      u{2} = obj.boundaryConditions{2}.reducedToFullVector(u{2});
-                     R2 = R(obj.interfaceDof(:,2));
 
                      obj.computeForces(1);
                      R_int = obj.LHS{2}(obj.interfaceDof(:,2),:)*u{2};
-
                      obj.RHS{1}(obj.interfaceDof(:,1)) = obj.RHS{1}(obj.interfaceDof(:,1)) - R_int;
+
                      Kred = obj.boundaryConditions{1}.fullToReducedMatrix(obj.LHS{1});
                      Fred = obj.boundaryConditions{1}.fullToReducedVector(obj.RHS{1});
                      u{1} = Kred\Fred;
                      u{1} = obj.boundaryConditions{1}.reducedToFullVector(u{1});
 
-                     u1int = 0.9*u{2}(obj.interfaceDof(:,2)) + 0.1*u{1}(obj.interfaceDof(:,1));
-
-                     
+                     u1int = alpha*u{2}(obj.interfaceDof(:,2)) + (1-alpha)*u{1}(obj.interfaceDof(:,1));
 
                      for idof = 1: length(obj.interfaceDof(:,2))
                          ind = find(obj.boundaryConditions{2}.dirichlet == obj.interfaceDof(idof,2));
@@ -145,8 +142,8 @@ classdef DirichletNeumann < handle
             %             mS         = femD.mesh;
             %             bS         = mS.createBoundaryMesh();
             % Generate coordinates
-            x1 = linspace(0,1,20);
-            x2 = linspace(0,1,20);
+            x1 = linspace(0,1,10);
+            x2 = linspace(0,1,10);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -306,7 +303,7 @@ classdef DirichletNeumann < handle
             obj.LHS{i} = lhs.compute();
         end
 
-        function R= computeForces(obj,i)
+        function computeForces(obj,i)
             s.type = 'Elastic';
             s.scale    = obj.scale;
             s.dim      = obj.getFunDims(i);
