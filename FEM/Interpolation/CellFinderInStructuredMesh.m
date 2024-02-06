@@ -16,8 +16,7 @@ classdef CellFinderInStructuredMesh < handle
     methods (Access = public)
 
         function obj = CellFinderInStructuredMesh(cParams)
-            obj.sMesh   = cParams.mesh;
-            obj.points = cParams.points;
+            obj.init(cParams);
             obj.obtainLeftIndeces();
             obj.obtainNodesOfCellsWithInterpolationPoints();
             obj.obtainNaturalCoordinates();
@@ -26,6 +25,11 @@ classdef CellFinderInStructuredMesh < handle
     end
 
     methods (Access = private)
+
+        function init(obj,cParams)
+            obj.sMesh  = cParams.mesh;
+            obj.points = cParams.points;
+        end
 
         function obtainLeftIndeces(obj)
             xi(:,1) = obj.sMesh.x(1,:);

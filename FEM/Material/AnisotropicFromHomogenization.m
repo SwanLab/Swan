@@ -8,6 +8,7 @@ classdef AnisotropicFromHomogenization < Material
         vadVariables
         interpolator        
         Ctensor 
+        sMesh
     end
     
     properties (Access = private)
@@ -19,13 +20,14 @@ classdef AnisotropicFromHomogenization < Material
         
         function obj = AnisotropicFromHomogenization(cParams)
             obj.init(cParams)
-            obj.loadVademecum();           
-            obj.obtainValues();                                              
+            obj.loadVademecum();    
+            obj.createStructuredMesh();
+            obj.obtainValues();      
             obj.createInterpolator();
         end
         
         function C = evaluate(obj,xV)
-            [C,dC] = obj.computeValues(xV);
+            C = obj.computeValues(xV);
             
         end
         
@@ -52,46 +54,75 @@ classdef AnisotropicFromHomogenization < Material
             myV = obj.vadVariables.domVariables.mxV;
             for imx = 1:length(mxV)
                 for imy = 1:length(myV)
-                    v(:,:,imx,imy) = var{imx,imy}.('Ctensor');
+                    C(:,:,imx,imy) = var{imx,imy}.('Ctensor');
+                end
+            end   
+            
+            for i = 1:size(C,1)
+                for j = 1:size(C,2)
+                    Cij = squeeze(C(i,j,:,:));
+                    s.fValues = Cij(:);
+                    s.mesh    = obj.sMesh.mesh;
+                    s.ndim    = 1;
+                    CijF      = P1Function(s);
+                    obj.Ctensor{i,j} = CijF;
                 end
             end
-            obj.Ctensor = v;
-        end            
-        
-        function createInterpolator(obj)
-            sM.x = obj.vadVariables.domVariables.mxV;
-            sM.y = obj.vadVariables.domVariables.myV;
-            s.mesh = StructuredMesh(sM);  
-            obj.interpolator = Interpolator(s);            
+            
+        end         
+
+        function createStructuredMesh(obj)
+            s.x = obj.vadVariables.domVariables.mxV;
+            s.y = obj.vadVariables.domVariables.myV;
+            m = StructuredMesh(s); 
+            obj.sMesh = m;
         end
         
-        
-     function [C,dCt] = computeValues(obj,xV)
-            nVar = length(obj.microParams);
+        function createInterpolator(obj)
+            s.mesh = obj.sMesh.mesh;
+            obj.interpolator = Interpolator(s);            
+        end
 
+        function xG = computeGlobalEvaluationPoints(obj,xV)
             mx = obj.microParams{1};
-            my = obj.microParams{2} ;
+            my = obj.microParams{2};
+            xG(:,:,:,1) = mx.evaluate(xV);
+            xG(:,:,:,2) = my.evaluate(xV);
+        end
 
-            mxV = mx.evaluate(xV);
-            myV = my.evaluate(xV);
-            obj.interpolator.setValues(mxV(:),myV(:));            
-            
-            Ctens = obj.Ctensor;
-            nStre = size(Ctens,1);            
+        function xL = computeLocalEvaluationPoints(obj,xG)
+            s.mesh     = obj.sMesh;
+            s.points.x = xG(:,:,:,1);
+            s.points.y = xG(:,:,:,2);
+            cellFinder = CellFinderInStructuredMesh(s);
+            xL = cellFinder.naturalCoord;
+        end        
+        
+        
+     function C = computeValues(obj,xV)
+            mG = obj.computeGlobalEvaluationPoints(xV);
+            mL = obj.computeLocalEvaluationPoints(mG);                       
+            nStre = size(obj.Ctens,1);            
             C  = zeros(nStre,nStre,mx.nDofs);
-            dC = zeros(nStre,nStre,mx.nDofs,nVar);
             for i = 1:nStre
                 for j = 1:nStre
-                    cv = squeeze(Ctens(i,j,:,:));                    
-                    [c,dc] = obj.interpolator.evaluate(cv);
-                    C(i,j,:) = c;
-                    for iVar = 1:nVar
-                        dC(i,j,:,iVar) = dc(:,iVar);
-                    end
+                    Cij = obj.Ctens{i,j}.evaluate(mL);  
+                    C(i,j,:) = Cij;
                 end
-            end  
-            dCt{1} = dC(:,:,:,1);
-            dCt{2} = dC(:,:,:,2);
+            end
+
+            %nVar = length(obj.microParams);            
+            %dC = zeros(nStre,nStre,mx.nDofs,nVar);
+
+            % for i = 1:nStre
+            %     for j = 1:nStre
+            %         for iVar = 1:nVar
+            %             dC(i,j,:,iVar) = dc(:,iVar);
+            %         end
+            %     end
+            % end  
+            %dCt{1} = dC(:,:,:,1);
+            %dCt{2} = dC(:,:,:,2);
         end                  
         
     end
