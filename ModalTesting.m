@@ -175,7 +175,7 @@ classdef ModalTesting < handle
             bc.dirichlet = bcDir;
             bc.pointload(:,1) = nodes(forceNodes);
             bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -1;
+            bc.pointload(:,3) = -1/length(nodes(forceNodes));
         end
 
         function bc = createBoundaryConditions(mesh,bcV)
@@ -483,8 +483,8 @@ classdef ModalTesting < handle
 
 
             % Generate coordinates
-            x1 = linspace(0,1,5);
-            x2 = linspace(0,1,5);
+            x1 = linspace(0,2,50);
+            x2 = linspace(0,1,50);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities

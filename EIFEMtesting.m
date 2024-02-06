@@ -203,6 +203,7 @@ classdef EIFEMtesting < handle
                 ncond  = length(condition.dof(nbound,:));
                 nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
                 nbd   = length(nodeId);
+                condition.value{ibound} = condition.value{ibound}/nbd;
                 for icond=1:ncond
                     bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
                     cond=[cond;bdcond];
