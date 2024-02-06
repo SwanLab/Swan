@@ -3,11 +3,13 @@ classdef PhaseFieldComputer < handle
     properties (Constant, Access = public)
         tolErrU = 1e-12;
         tolErrPhi = 1e-12;
-        steps = 1000;
         tau = 1e2;
     end
 
     properties (Access = private)
+        steps
+        bcVal 
+
         mesh
         boundaryConditions
         
@@ -52,9 +54,10 @@ classdef PhaseFieldComputer < handle
             phaseFieldOld = obj.phaseField.fValues;
             Uold = P1Function.create(obj.mesh,2);
             obj.costFun = null(2,1);
+
             for i = 1:obj.steps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
-                obj.createBoundaryConditions(i,obj.steps);
+                obj.createBoundaryConditions(obj.bcVal(i));
                 numIterU = 1;
                 errorU = 1;
                 while (errorU(end) > obj.tolErrU) && (numIterU < 100)
@@ -100,11 +103,12 @@ classdef PhaseFieldComputer < handle
     end
 
 
-
-
     methods (Access = private)
         %% %%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function init(obj,cParams)
+            obj.bcVal = cParams.bcVal;
+            obj.steps = length(cParams.bcVal);
+
             obj.mesh                     = cParams.mesh;
             obj.phaseField               = cParams.initialPhaseField;
             obj.materialPhaseField       = cParams.materialPhaseField;
@@ -120,10 +124,10 @@ classdef PhaseFieldComputer < handle
             obj.iterMat = zeros(2,obj.steps);
         end
 
-        function createBoundaryConditions(obj,i,nIter)
+        function createBoundaryConditions(obj,prescribedVal)
             s.mesh = obj.mesh;
             bc = BoundaryContionsForPhaseFieldCreator(s);
-            bC = bc.create(i,nIter);
+            bC = bc.create(prescribedVal);
             obj.boundaryConditions = bC;
         end
 
@@ -405,20 +409,27 @@ classdef PhaseFieldComputer < handle
         end
 
         function totReact = computeReaction(obj)
-            UpSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % UpSide  = max(obj.mesh.coord(:,2));
+            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % nodes = 1:obj.mesh.nnodes;
+            % 
+            % % bMesh = obj.mesh.createBoundaryMesh{4};
+            % % s.mesh = bMesh.mesh;
+            % % s.fValues = obj.fem.reactions(2*nodes(isInUp));
+            % % R = P1Function(s);
+            % % 
+            % % q.mesh = bMesh.mesh;
+            % % q.quadType = 'LINEAR';
+            % % q.type = 'Function';
+            % % int = Integrator.create(q);
+            % % totReact = int.compute(R);
+            % 
+            % totReact = sum(obj.fem.reactions(2*nodes(isInUp)));
+
+            LeftSide  = min(obj.mesh.coord(:,1));
+            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-
-            bMesh = obj.mesh.createBoundaryMesh{4};
-            s.mesh = bMesh.mesh;
-            s.fValues = obj.fem.reactions(2*nodes(isInUp));
-            R = P1Function(s);
-
-            q.mesh = bMesh.mesh;
-            q.quadType = 'LINEAR';
-            q.type = 'Function';
-            int = Integrator.create(q);
-            totReact = int.compute(R);
+            totReact = sum(obj.fem.reactions(2*nodes(isInLeft)));
         end
 
         function e = computeCostFunction(obj)
@@ -444,7 +455,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function computeEnergyIntegrals(obj,step)
-            fMat = [0 obj.forceMat];
+            fMat = [0 obj.reactionMat];
             dMat = [0 obj.displacementMat];
 
             obj.IntegralCost(step) = trapz(dMat(1:step+1),fMat(1:step+1));
@@ -459,7 +470,8 @@ classdef PhaseFieldComputer < handle
 
             obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
             obj.reactionMat(step) = obj.computeReaction();
-            obj.displacementMat(step) = max(abs(obj.fem.uFun.fValues(:,2)));
+            
+            obj.displacementMat(step) = obj.bcVal(step);
             obj.damageMat(step) = max(obj.phaseField.fValues);
          
             % quad = Quadrature.set(obj.mesh.type);

@@ -6,7 +6,13 @@ classdef TestingPhaseField < handle
         Gc = 5e-3;
         l0 = 0.1;
         pExp = 2;
-        %fc = 1;
+        % bcVal = [linspace(0,-2e-1,100), ...
+        %         linspace(-2e-1,2e-1,400), ...
+        %         linspace(2e-1,4e-1,100), ...
+        %         linspace(4e-1,-4e-1,100), ...
+        %         linspace(-4e-1,1,400)];
+        bcVal = linspace(0,1,500);
+        % bcVal = [0.001];
     end
 
     properties (Access = private)
@@ -46,14 +52,15 @@ classdef TestingPhaseField < handle
             s.dissipationPhaseField = obj.dissipationPhaseField;
             s.l0 = obj.l0;
             s.Constant = obj.Constant;
+            s.bcVal = obj.bcVal;
             PhaseFieldComputer(s);
         end
 
         function createMesh(obj)
-            obj.createOneElementMesh();
+            %obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            %obj.createArbitraryElementMesh(10);
-            obj.createFiberMatrixMesh();
+            obj.createArbitraryElementMesh(20);
+            %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
             %obj.createLshapeMesh();
         end
@@ -123,7 +130,7 @@ classdef TestingPhaseField < handle
         end
 
         function createArbitraryElementMesh(obj,n)
-            m = UnitQuadMesh(n,n);
+            m = UnitQuadMesh(n,n/4);
             obj.mesh = m;
         end
 
