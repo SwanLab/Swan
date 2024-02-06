@@ -42,7 +42,7 @@ classdef P1Function < FeFunction
             end
         end
 
-        function [p1sub, mesh_sub, l2g] = evaluateBoundarySubdomain(obj, domain)
+        function [p1sub, mesh_sub, l2g] = restrictTo(obj, domain)
             [mesh_sub, l2g] = obj.mesh.getBoundarySubmesh(domain);
             dofs = domain(obj.mesh.coord);
             s.fValues = obj.fValues(dofs, :);
@@ -224,11 +224,22 @@ classdef P1Function < FeFunction
                         colorbar
                     end
                 case 'LINE'
-                    x = obj.mesh.coord(:,1);
-                    y = obj.fValues;
-                    figure()
-                    plot(x,y)
+                    if obj.mesh.ndim == 1
+                        x = obj.mesh.coord(:,1);
+                        y = obj.fValues;
+                        figure()
+                        plot(x,y)
+                    elseif obj.mesh.ndim == 2
+                        figure()
+                        for idim = 1:obj.ndimf
+                            x = obj.fValues(:,idim);
+                            y = obj.mesh.coord(:,2);
+                            plot(x,y)
+                            hold on
+                        end
+                    end
             end
+            hold off
         end
 
         function plotArrowVector(obj)
