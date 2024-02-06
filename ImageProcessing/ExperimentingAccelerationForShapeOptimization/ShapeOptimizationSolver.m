@@ -4,7 +4,7 @@ classdef ShapeOptimizationSolver < handle
         tV
         JV
         betaV
-        incXvalues
+        incJV
         designVariable
     end
 
@@ -33,8 +33,9 @@ classdef ShapeOptimizationSolver < handle
             iter = 1;
             [J,dJ] = obj.cost.computeValueAndGradient(xNew);
             Jold = J;
+            incJ = abs(J - Jold);
             t = obj.computeLineSearch(xNew,dJ);
-            while ~obj.hasConverged(iter,incX)
+            while ~obj.hasConverged(iter,incJ)
                 obj.isAccepted = false;
                 % [J,dJ] = obj.cost.computeValueAndGradient(xNew);
                 beta = obj.computeBeta(iter);
@@ -58,8 +59,9 @@ classdef ShapeOptimizationSolver < handle
                     end
                 end
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
-                incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,beta,incX);
+                % incX = obj.computeIncX(xOld,xNew);
+                incJ = abs(J - Jold);
+                obj.plotCostAndLineSearch(iter,J,t,beta,incJ);
                 Jold = J;
                 iter = iter + 1;
             end
@@ -68,18 +70,21 @@ classdef ShapeOptimizationSolver < handle
         function solve(obj)
             xNew = obj.computeInitialValue();
             xOld = xNew;
-            incX = obj.computeIncX(xOld,xNew);
+            [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            J_old = J;
+            incJ = 0;
             iter = 1;
-            while ~obj.hasConverged(iter,incX)
-                [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            while ~obj.hasConverged(iter,incJ)             
                 beta = obj.computeBeta(iter);
                 x = obj.addMomentumTerm(xOld,xNew,beta);
                 t = obj.computeLineSearch(x,dJ);
                 x = obj.computeGradientStep(x,dJ,t);
                 x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
-                incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,t,beta,incX);
+                obj.plotCostAndLineSearch(iter,J,t,beta,incJ);
+                [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+                incJ = abs(J - J_old);
+                J_old = J;
                 iter = iter + 1;
             end
         end
@@ -132,7 +137,7 @@ classdef ShapeOptimizationSolver < handle
         end
 
         function createSettings(obj)
-            settings = Settings('Example1');
+            settings = Settings('Example2');
             translator = SettingsTranslator();
             translator.translate(settings);
             fileName = translator.fileName;
@@ -165,11 +170,11 @@ classdef ShapeOptimizationSolver < handle
             incX = incX/xNorm;
         end
 
-        function itHas = hasConverged(obj,iter,incX)
+        function itHas = hasConverged(obj,iter,norm_dJ)
             if iter == 1
                 itHas = false;
             else
-                itHas = iter >= obj.maxIter || incX < obj.TOL;
+                itHas = iter >= obj.maxIter || norm_dJ < obj.TOL;
             end
         end
 
@@ -186,11 +191,11 @@ classdef ShapeOptimizationSolver < handle
             t0 = ndJ/nX;
         end
 
-        function plotCostAndLineSearch(obj,iter,J,t,beta,incX)
+        function plotCostAndLineSearch(obj,iter,J,t,beta,norm_dJ)
             obj.JV(iter) = J;
             obj.tV(iter) = t;
             obj.betaV(iter) = beta;
-            obj.incXvalues(iter) = incX;
+            obj.incJV(iter) = norm_dJ;
             % obj.plotter.plot(obj.JV,obj.tV,obj.betaV,obj.incXvalues);
         end
 

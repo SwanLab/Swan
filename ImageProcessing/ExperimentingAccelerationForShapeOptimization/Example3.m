@@ -1,4 +1,4 @@
-filename='BridgeArchSmall';
+filename='Bridge_fine_mesh_Nesterov';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

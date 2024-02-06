@@ -4,7 +4,7 @@ classdef MMAShapeOptimizationSolver < handle
         tV
         JV
         betaV
-        incXvalues
+        incJV
         designVariable
     end
 
@@ -28,10 +28,13 @@ classdef MMAShapeOptimizationSolver < handle
         function solve(obj)
             xNew = obj.computeInitialValue();
             xOld = xNew;
-            incX = obj.computeIncX(xOld,xNew);
+            [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            J_old = J;
+            incJ = 0;
+            % incX = obj.computeIncX(xOld,xNew);
             iter = 1;
-            while ~obj.hasConverged(iter,incX)
-                [J,dJ] = obj.cost.computeValueAndGradient(xNew);
+            while ~obj.hasConverged(iter,incJ)
+                
                 beta = obj.computeBeta(iter);
                 x = obj.addMomentumTerm(xOld,xNew,beta);
                 x = obj.MMA.computeIteration(x);
@@ -39,8 +42,11 @@ classdef MMAShapeOptimizationSolver < handle
                 % x = obj.computeGradientStep(x,dJ,t);
                 % x = obj.computeProjection(x);
                 [xOld,xNew] = obj.updateXnewXold(xNew,x);
-                incX = obj.computeIncX(xOld,xNew);
-                obj.plotCostAndLineSearch(iter,J,beta,incX);
+                % incX = obj.computeIncX(xOld,xNew);
+                obj.plotCostAndLineSearch(iter,J,beta,incJ);
+                [J,~] = obj.cost.computeValueAndGradient(xNew);
+                incJ = abs(J - J_old);
+                J_old = J;
                 iter = iter + 1;
             end
         end
@@ -156,11 +162,11 @@ classdef MMAShapeOptimizationSolver < handle
         %     t0 = ndJ/nX;
         % end
 
-        function plotCostAndLineSearch(obj,iter,J,beta,incX)
+        function plotCostAndLineSearch(obj,iter,J,beta,incJ)
             obj.JV(iter) = J;
             % obj.tV(iter) = t;
             obj.betaV(iter) = beta;
-            obj.incXvalues(iter) = incX;
+            obj.incJV(iter) = incJ;
             % obj.plotter.plot(obj.JV,obj.tV,obj.betaV,obj.incXvalues);
         end
 

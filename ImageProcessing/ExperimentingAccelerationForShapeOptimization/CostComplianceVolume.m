@@ -45,7 +45,7 @@ classdef CostComplianceVolume < handle
         function init(obj,cParams)
             obj.topOpt         = cParams.topOpt;
             obj.designVariable = cParams.designVariable;
-            obj.lambda = 5;
+            obj.lambda = 10;
         end
 
         function J = computeCost(obj)

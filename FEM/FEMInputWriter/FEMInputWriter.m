@@ -66,7 +66,7 @@ classdef FEMInputWriter < handle
         end
         
         function createMesh(obj)
-            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
+            [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh(s);
@@ -132,7 +132,7 @@ classdef FEMInputWriter < handle
             root           = sides & bottom;
             top            = m.coord(:,2) == obj.ymax;
             pos            = m.coord(:,1) > forcePos(1) & m.coord(:,1) < forcePos(2);
-            tip            = top & pos;
+            tip            = top;% & pos;
             obj.nDirichlet = find(root);
             obj.nNeumann   = find(tip);            
         end
