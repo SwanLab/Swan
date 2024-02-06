@@ -81,6 +81,7 @@ classdef DOFsComputer < handle
         
         function computeCoordPriv(obj)
             nelem = size(obj.dofs,1);
+            ndofsE = size(obj.dofs,2);
             coor = zeros(obj.ndofs,obj.mesh.ndim);
             
             if obj.order~=1
@@ -92,7 +93,7 @@ classdef DOFsComputer < handle
                 c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
                 
                 for ielem = 1:nelem
-                    coor(obj.dofs(ielem,:),:) = c(:,:,ielem);
+                    coor((obj.dofs(ielem,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1,:) = c(:,:,ielem);
                 end
                 
                 obj.coord = coor;

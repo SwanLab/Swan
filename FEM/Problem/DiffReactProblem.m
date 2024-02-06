@@ -34,7 +34,8 @@ classdef DiffReactProblem < handle
             obj.variables.x = x;
             a.mesh = obj.mesh;
             a.fValues = obj.variables.x;
-            obj.x = P1Function(a);
+            a.order = 'P1';
+            obj.x = LagrangianFunction(a);
         end
         
         function LHS = computeLHS(obj, epsilon)
@@ -91,7 +92,7 @@ classdef DiffReactProblem < handle
         function createProblemLHS(obj)
             s.type  = obj.LHStype;
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.problemLHS = LHSintegrator.create(s);
         end
     
