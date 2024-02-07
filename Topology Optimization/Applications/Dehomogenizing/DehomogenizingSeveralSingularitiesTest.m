@@ -88,12 +88,13 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
             a = [cos(al), sin(al)];
             s.fValues = a;
             s.mesh    = obj.mesh;
-            aF = P1Function(s);            
+            s.order   = 'P1';
+            aF = LagrangianFunction(s);            
             obj.orientation{1} = aF;%.project('P0');
             a = [-sin(al), cos(al)];
             s.fValues = a;
             s.mesh    = obj.mesh;
-            aF = P1Function(s);            
+            aF = LagrangianFunction(s);            
             obj.orientation{2} = aF;%.project('P0');
            % obj.orientation = a;
         end

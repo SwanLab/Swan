@@ -6,6 +6,26 @@ classdef LagrangianPlotter < handle
         end
         
         function plot(obj,s)
+            switch s.func.order
+                case 'P0'
+                    obj.plotP0Func(s)
+
+                case {'P1','P2','P3'}
+                    obj.plotLagrangianFunc(s)
+            end
+        end
+        
+    end
+    
+    methods (Access = private)
+    
+        function plotP0Func(~,s)
+            p1DiscFun = s.func.project('P1D');
+            p1DiscFun.plot();
+        end
+
+        
+        function plotLagrangianFunc(~,s)
             figure()
             for idim = 1:s.func.ndimf
                 subplot(1,s.func.ndimf,idim);
@@ -25,31 +45,6 @@ classdef LagrangianPlotter < handle
                 title(['dim = ', num2str(idim)]);
             end
         end
-        
-    end
-    
-    methods (Access = private)
-    
-%         function [connec,x,y,z] = createPlotMesh(~,cParams,ielem)
-%             s.coord = cParams.mesh.coord(cParams.mesh.connec(ielem,:),:);
-%             s.connec = delaunay(s.coord(:,1),s.coord(:,2));
-%             mesh = Mesh(s);
-%             
-%             r.coord = cParams.interpolation.pos_nodes(1:cParams.mesh.nnodeElem,:);
-%             r.connec = delaunay(r.coord(:,1),r.coord(:,2));
-%             base_mesh = Mesh(r);
-%             
-%             for i = 1:1
-%                 base_mesh = base_mesh.remesh(2);
-%                 mesh = mesh.remesh(2);
-%             end
-%             
-%             connec = mesh.connec;
-%             x = mesh.coord(:,1);
-%             y = mesh.coord(:,2);
-%             z = cParams.func.evaluate(base_mesh.coord');
-%             z = z(:,:,ielem)';
-%         end
         
     end
     

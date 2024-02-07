@@ -52,9 +52,10 @@ classdef SLERP < handle
             gN        = obj.normalizeFunction(g);
             s.fValues = pN;
             s.mesh    = obj.phi.mesh;
-            pNfun     = P1Function(s);
+            s.order   = 'P1';
+            pNfun     = LagrangianFunction(s);
             s.fValues = gN;
-            gNfun     = P1Function(s);
+            gNfun     = LagrangianFunction(s);
             phiG      = ScalarProduct.computeH1(m,pNfun,gNfun,obj.epsilon);
             obj.theta = max(acos(phiG),1e-14);
         end
@@ -74,7 +75,8 @@ classdef SLERP < handle
             m         = obj.phi.mesh;
             s.fValues = x;
             s.mesh    = m;
-            xFun      = P1Function(s);
+            s.order   = 'P1';
+            xFun      = LagrangianFunction(s);
             norm      = Norm.computeH1(m,xFun,obj.epsilon);
             xNorm     = sqrt(norm);
             x         = x/xNorm;

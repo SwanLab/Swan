@@ -81,7 +81,7 @@ classdef AssemblerFun < handle
                 for iDof = 1:nDofsE
                     for iGaus = 1:nGaus
                         c = squeeze(Felem(iDof,iGaus,:));
-                        idof_elem = dofsElem(iDof,:);
+                        idof_elem = dofsElem(:,iDof);
                         b = b + sparse(idof_elem,1,c',nDofs,1);
                     end
                 end

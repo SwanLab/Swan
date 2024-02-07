@@ -60,8 +60,9 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         function fC = createP1ContinousFunction(obj,m)               
             f         = obj.createFunctionToRemesh();
             s.mesh    = m;
-            s.fValues = f(m.coord);    
-            fC        = P1Function(s);
+            s.fValues = f(m.coord);  
+            s.order   = 'P1';
+            fC        = LagrangianFunction(s);
         end    
 
         function fC = createP1DiscontinousFunction(obj,m)

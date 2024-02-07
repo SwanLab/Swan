@@ -30,7 +30,10 @@ classdef DOFsComputer < handle
             if isempty(obj.dofs)
                 obj.computeDofs;
             end
-            obj.computeCoordPriv();
+
+            if exist('obj.mesh.coord','var')
+                obj.computeCoordPriv();
+            end
         end
         
         
@@ -81,7 +84,8 @@ classdef DOFsComputer < handle
         function computeCoordPriv(obj)
             nelem = size(obj.dofs,1);
             ndofsE = size(obj.dofs,2);
-            coor = zeros(obj.ndofs,obj.mesh.ndim);
+
+            coor = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
             
             if obj.order~=1
                 
@@ -113,12 +117,11 @@ classdef DOFsComputer < handle
         
         
         function dofsEdges = computeDofsEdges(obj)
-            m = obj.mesh;
-            m.computeEdges();
-            
             if obj.order == 1
                 dofsEdges = [];
             else
+                m = obj.mesh;
+                m.computeEdges();
                 edges = m.edges.edgesInElem;
                 ndofEdge = obj.order-1;
                 ndofsEdgeElem = ndofEdge*obj.mesh.nnodeElem;

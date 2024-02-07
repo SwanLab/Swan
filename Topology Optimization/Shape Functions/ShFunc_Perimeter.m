@@ -130,7 +130,8 @@ classdef ShFunc_Perimeter < ShapeFunctional
             rhoei      = rhoe.fValues;
             s.fValues  = 1-rhoei;
             s.mesh     = obj.designVariable.mesh;
-            f          = P1Function(s);
+            s.order    = 'P1';
+            f          = LagrangianFunction(s);
             i.type     = 'ScalarProduct';
             i.quadType = 'QUADRATICMASS';
             i.mesh     = obj.designVariable.mesh;

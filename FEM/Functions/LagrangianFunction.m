@@ -29,7 +29,7 @@ classdef LagrangianFunction < FeFunction
             fxV = zeros(nF,nGaus,nElem);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
-                    node = obj.connec(:,iNode);
+                    node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
                     Ni = shapes(iNode,iGaus);
                     fi = obj.fValues(node,:);
                     f(:,1,:) = Ni*fi';
@@ -215,6 +215,50 @@ classdef LagrangianFunction < FeFunction
             v   = sqrt(ff);
         end
 
+        function fdivF = computeFieldTimesDivergence(obj,q)
+            fG  = obj.evaluate(q.posgp);
+            dfG = obj.computeDivergence(q);
+            fdivFG = bsxfun(@times,dfG.fValues,fG);
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues    = fdivFG;
+            fdivF = FGaussDiscontinuousFunction(s);
+        end
+
+        function divF = computeDivergence(obj,q)
+            dNdx = obj.computeCartesianDerivatives(q);
+            fV = obj.fValues;
+            nodes = obj.mesh.connec;
+            nNode = obj.mesh.nnodeElem;
+            nDim  = obj.mesh.ndim;
+            divV = zeros(q.ngaus,obj.mesh.nelem);
+            for igaus = 1:q.ngaus
+                for kNode = 1:nNode
+                    nodeK = nodes(:,kNode);
+                    for rDim = 1:nDim
+                        dNkr = squeeze(dNdx(rDim,kNode,:,igaus));
+                        fkr = fV(nodeK,rDim);
+                        int(1,:) = dNkr.*fkr;
+                        divV(igaus,:) = divV(igaus,:) + int;
+                    end
+                end
+            end
+            s.quadrature = q;
+            s.mesh       = obj.mesh;
+            s.fValues(1,:,:) = divV;
+            divF = FGaussDiscontinuousFunction(s);
+        end
+
+        function fFine = refine(obj,m,mFine)
+            fNodes  = obj.fValues;
+            fEdges  = obj.computeFunctionInEdges(m, fNodes);
+            fAll    = [fNodes;fEdges];
+            s.mesh    = mFine;
+            s.fValues = fAll;
+            s.order   = 'P1';
+            fFine = LagrangianFunction(s);
+        end
+
     end
 
     methods (Access = public, Static)
@@ -225,8 +269,16 @@ classdef LagrangianFunction < FeFunction
             s.ndimf   = ndimf;
             c = DOFsComputer(s);
             c.computeDofs();
-            s.fValues = zeros(c.getNumberDofs(),ndimf);
+            s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
             pL = LagrangianFunction(s);
+        end
+
+        function fS = times(f1,f2)
+            fS = f1.fValues.*f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            s.order   = 'P1';
+            fS = LagrangianFunction(s);
         end
 
     end
@@ -257,6 +309,13 @@ classdef LagrangianFunction < FeFunction
             obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
             obj.nDofs = c.getNumberDofs();
+        end
+
+        function f = computeFunctionInEdges(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
+            f = eF.compute();
         end
 
     end
