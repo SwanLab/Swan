@@ -172,7 +172,8 @@ classdef ElasticProblem < handle
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
+            z.order   = 'P1';
+            uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';

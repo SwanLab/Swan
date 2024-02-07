@@ -1,6 +1,8 @@
 classdef LagrangianFunction < FeFunction
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
+        nDofs
+        nDofsElem
     end
 
     properties (Access = private)
@@ -241,6 +243,7 @@ classdef LagrangianFunction < FeFunction
         function createInterpolation(obj)
             m.type = obj.mesh.type;
             obj.interpolation = Interpolation.create(m,obj.orderTextual());
+            obj.nDofsElem = obj.interpolation.nnode;
         end
 
         function createDOFCoordConnec(obj)
@@ -253,6 +256,7 @@ classdef LagrangianFunction < FeFunction
             c.computeCoord();
             obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
+            obj.nDofs = c.getNumberDofs();
         end
 
     end

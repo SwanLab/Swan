@@ -75,7 +75,6 @@ classdef DOFsComputer < handle
             dofsElements = obj.computeDofsElements(ndofsFaces);
             
             obj.dofs = [dofsVertices,dofsEdges,dofsFaces,dofsElements];
-            obj.ndofs = max(max(obj.dofs));
         end
         
         
@@ -241,6 +240,7 @@ classdef DOFsComputer < handle
                 end
             end
             obj.dofs = dofsElem';
+            obj.ndofs = max(max(obj.dofs));
         end
         
         

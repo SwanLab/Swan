@@ -61,7 +61,8 @@ classdef RHSintegrator_CutMesh < handle
             msh.type    = obj.mesh.type;
             s.fValues = obj.computeSubCellsLocalCoord();
             s.mesh    = msh;
-            x = P1Function(s);
+            s.order   = 'P1';
+            x = LagrangianFunction(s);
             obj.xGauss = x.evaluate(q.posgp);
         end
         
