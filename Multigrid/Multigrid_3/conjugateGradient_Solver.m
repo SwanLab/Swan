@@ -1,6 +1,6 @@
-function [x,res,residuFine,iterRes] = conjugateGradient_Solver(LHS,RHS,x,malla,residuFine,iterRes)
+function [x,res,residuFine,iterRes] = conjugateGradient_Solver(LHS,RHS,x,malla,residuFine,iterRes,maxIter)
     tol = 1e-10;
-    maxIter = 20;
+    %maxIter = 20;
     n = length(RHS);
     %x = RHS; 
     r = RHS - LHS * x; 

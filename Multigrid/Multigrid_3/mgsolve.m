@@ -17,6 +17,6 @@ iterRes = 1;
 
     res = residuFine;
     iter = linspace(1, length(residuFine), length(residuFine));
-    plot(iter,residuFine)
+    plot(iter,log(residuFine))
     
 end
