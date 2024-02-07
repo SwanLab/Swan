@@ -15,7 +15,7 @@ classdef FemDataContainer < AbstractSettings
         material
         ngaus
         interpolationType
-        solverType = 'REDUCED';
+        solverType = 'MONOLITHIC';
         solverMode = 'DISP';
         newBC
         boundaryConditions

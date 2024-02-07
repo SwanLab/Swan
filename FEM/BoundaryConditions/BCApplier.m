@@ -61,48 +61,28 @@ classdef BCApplier < handle
         end
 
         function Ct = computeP0LinearConditionsMatrix(obj)
-            nDofs = obj.dirichletFun.nDofs;
-            mesh_left = obj.mesh.createBoundaryMesh{1};
-            % Check LHSintegrator_MassBoundary
-            a.mesh = mesh_left.mesh;
-            a.test  = P0Function.create(mesh_left.mesh, 2); % from elastic
-            a.trial = P1Function.create(mesh_left.mesh, 2); % dLambda
-            a.type = 'MassMatrix';
-            lhs = LHSintegrator.create(a);
-            LHS = lhs.compute();
-
-            local_dofConnec = obj.computeDofConnectivity(mesh_left.mesh.connec);
-            global_dofConnec = obj.computeDofConnectivity(mesh_left.globalConnec);
-
-            local2global(local_dofConnec(:)) = global_dofConnec(:);
-            [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
-            iGlob = local2global(iLoc);
-            jGlob = local2global(jLoc);
-
-            Ct = sparse(iLoc,jGlob,vals, 4, 26);
-            % Ct = Ct(unique(iGlob), :);
-
-            % Check LHSintegrator_MassBoundary
             isLeft =  @(coor) (abs(coor(:,1)) == 0);
-            [mesh_left, l2g_mesh] = obj.mesh.getBoundarySubmesh(isLeft);
+            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(isLeft);
 
-            dLambda = P0Function.create(mesh_left, 2);
+            dLambda = P0Function.create(mesh_left2, 2);
             uFun    = P1Function.create(obj.mesh, 2);
 
-            b.mesh  = mesh_left;
+            b.mesh  = mesh_left2;
             b.test  = dLambda;
             b.trial = uFun.restrictTo(isLeft);
             b.type  = 'MassMatrix';
-            lhs3 = LHSintegrator.create(b);
-            LHS3 = lhs3.compute();
-            [iLoc,jLoc,vals] = find(LHS3);
+            lhs = LHSintegrator.create(b);
+            LHS = lhs.compute();
+            [iLoc,jLoc,vals] = find(LHS);
 
-            globalDofConnec = ((l2g_mesh*b.test.ndimf)' - (1:-1:0))';
-            l2g_dof = globalDofConnec(:);
-            iGlob = l2g_dof(iLoc);
-            iGlob = iLoc;
+            % localDofConnec  = obj.computeDofConnectivity(mesh_left2.connec);
+            % globalDofConnec = obj.computeDofConnectivity(l2g_mesh(mesh_left2.connec));
+            % l2g_dof(localDofConnec(:)) = globalDofConnec(:);
+            
+            l2g_dof = ((l2g_mesh*dLambda.ndimf)' - ((dLambda.ndimf-1):-1:0))';
+            l2g_dof = l2g_dof(:);
             jGlob = l2g_dof(jLoc);
-            % Ct = sparse(iGlob,jGlob,vals, dLambda.nDofs, uFun.nDofs);
+            Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
             
         end
 

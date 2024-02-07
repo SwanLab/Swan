@@ -96,7 +96,7 @@ classdef ProblemSolver < handle
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
                         % Ct = bcapp.computeP1LinearConditionsMatrix();
-                        Ct = bcapp.computeP1LinearConditionsMatrix();
+                        Ct = bcapp.computeLinearConditionsMatrix();
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);

@@ -8,7 +8,7 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions, inBCpre, BCApplier
+        boundaryConditions, BCApplier
 
         stiffness
         forces
@@ -68,7 +68,7 @@ classdef ElasticProblem < handle
         end
        
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
@@ -96,7 +96,6 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.inBCpre = cParams.newBC;
             obj.boundaryConditions = cParams.boundaryConditions;
         end
 
