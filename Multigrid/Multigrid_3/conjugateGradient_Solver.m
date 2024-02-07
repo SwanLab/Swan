@@ -1,4 +1,4 @@
-function [x,res] = conjugateGradient_Solver(LHS,RHS,x)
+function [x,res,residuFine,iterRes] = conjugateGradient_Solver(LHS,RHS,x,malla,residuFine,iterRes)
     tol = 1e-10;
     maxIter = 20;
     n = length(RHS);
@@ -25,6 +25,11 @@ function [x,res] = conjugateGradient_Solver(LHS,RHS,x)
         iter = iter + 1;
         residu(iter) = norm(LHS*x - RHS); %Ax - b
         res = LHS*x - RHS;
+        
+        if strcmp(malla,'fine')
+            residuFine(iterRes) = norm(LHS*x - RHS);
+            iterRes = iterRes + 1;
+        end
         
         %plotSolution(x,mesh,bc,iter)
         
