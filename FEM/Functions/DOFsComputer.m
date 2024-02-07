@@ -31,7 +31,7 @@ classdef DOFsComputer < handle
                 obj.computeDofs;
             end
 
-            if exist('obj.mesh.coord','var')
+            if  isprop(obj.mesh,'coord') 
                 obj.computeCoordPriv();
             end
         end
