@@ -18,7 +18,7 @@ classdef CellFinderInStructuredMesh < handle
         function obj = CellFinderInStructuredMesh(cParams)
             obj.init(cParams);
             obj.obtainLeftIndeces();
-            obj.obtainNodesOfCellsWithInterpolationPoints();
+            obj.obtainCellNumber();
             obj.obtainNaturalCoordinates();
         end
 
@@ -38,13 +38,11 @@ classdef CellFinderInStructuredMesh < handle
             obj.yLeftIndex = obj.obtainLeftIndex(obj.points.y,yi);
         end
 
-        function obtainNodesOfCellsWithInterpolationPoints(obj)
-            connec = obj.sMesh.mesh.connec;
+        function obtainCellNumber(obj)
             xL = obj.xLeftIndex;
             yL = obj.yLeftIndex;
             nx = obj.sMesh.nx;
-            cellNumber = (xL) + (nx-1)*(yL-1);
-            obj.cells = connec(cellNumber,:);
+            obj.cells(:,1) = (xL) + (nx-1)*(yL-1);            
         end
 
         function obtainNaturalCoordinates(obj)

@@ -83,30 +83,42 @@ classdef AnisotropicFromHomogenization < Material
             obj.interpolator = Interpolator(s);            
         end
 
-        function xG = computeGlobalEvaluationPoints(obj,xV)
+        function [mxG,myG] = computeGlobalEvaluationPoints(obj,xV)
             mx = obj.microParams{1};
             my = obj.microParams{2};
-            xG(:,:,:,1) = mx.evaluate(xV);
-            xG(:,:,:,2) = my.evaluate(xV);
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
         end
 
-        function xL = computeLocalEvaluationPoints(obj,xG)
+        function [xL,cells] = computeLocalEvaluationPoints(obj,xG1,xG2)
+            
+
+
             s.mesh     = obj.sMesh;
-            s.points.x = xG(:,:,:,1);
-            s.points.y = xG(:,:,:,2);
+            s.points.x = (xG1(:));
+            s.points.y = (xG2(:));
             cellFinder = CellFinderInStructuredMesh(s);
-            xL = cellFinder.naturalCoord;
+            xL    = cellFinder.naturalCoord;
+            cells = cellFinder.cells;
+%             nC = size(xG1,3);            
+%             xG1 = permute(xG1,[2 1 3]);
+%             xG1 = reshape(x,[],nC);
+%             nodes = obj.cellFinder.cells;
+%             [nelem,nnode] = size(nodes);
+%             xNode = x(nodes(:),:);
+%             xN = reshape(xNode,nelem,nnode,nC);            
         end        
         
         
      function C = computeValues(obj,xV)
-            mG = obj.computeGlobalEvaluationPoints(xV);
-            mL = obj.computeLocalEvaluationPoints(mG);                       
-            nStre = size(obj.Ctens,1);            
-            C  = zeros(nStre,nStre,mx.nDofs);
+            [mxG,myG] = obj.computeGlobalEvaluationPoints(xV);
+            [mL,cells] = obj.computeLocalEvaluationPoints(mxG,myG);                       
+         %   mL = reshape(mL,[2,3,9604]);
+            nStre = size(obj.Ctensor,1);            
+           % C  = zeros(nStre,nStre,mx.nDofs);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cij = obj.Ctens{i,j}.evaluate(mL);  
+                    Cij = obj.Ctensor{i,j}.evaluate(mL);  
                     C(i,j,:) = Cij;
                 end
             end
