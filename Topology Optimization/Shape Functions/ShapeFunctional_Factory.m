@@ -10,27 +10,22 @@ classdef ShapeFunctional_Factory < handle
     methods (Access = public)
         
         function sF = create(obj,cParams)
-            obj.designVar        = cParams.designVariable;
-
             if isprop(cParams,'homogVarComputer')
                 obj.homogVarComputer = cParams.homogVarComputer;
             end
             if isprop(cParams,'targetParameters')
                 obj.targetParameters = cParams.targetParameters;
             end
-            
-            if ~isempty(cParams.designVariable.mesh)
-%                 if isprop(cParams.designVariable.mesh,'innerMeshOLD')
-                mOld = cParams.designVariable.mesh;
-                cParams.mesh = mOld;
-                cParams.filterParams.mesh          = mOld;
-                cParams.filterParams.designVarType = cParams.designVariable.type;
-%                 end
-            end
-            
+
             switch cParams.type
                 case 'compliance'
-                    sF = ShFunc_Compliance(cParams);
+                    s.mesh                       = cParams.mesh;
+                    s.stateProblem               = cParams.physicalProblem;
+                    c                            = ComplianceFromConstiutiveTensor(s);
+                    s.filter                     = cParams.filter;
+                    s.complainceFromConstitutive = c;
+                    s.materialInterpolator       = cParams.materialInterpolator;
+                    sF                           = ComplianceFunctional(s);
                 case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
                         'complianceConstraintC4'}
                     sF = ShFunc_Compliance_constraint(cParams);
@@ -69,7 +64,10 @@ classdef ShapeFunctional_Factory < handle
                 case 'volume'
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
-                    sF = Volume_constraint(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.volumeTarget = cParams.target;
+                    sF             = VolumeConstraint(s);
                 case 'firstEignValue_functional'
                     sF = ShFunc_FirstEigenValue(cParams);
                 case 'doubleEig'

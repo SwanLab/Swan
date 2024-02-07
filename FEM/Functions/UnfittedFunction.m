@@ -39,6 +39,7 @@ classdef UnfittedFunction < L2Function
 
         function init(obj,cParams)
             obj.unfittedMesh   = cParams.uMesh;
+            obj.mesh           = cParams.uMesh.backgroundMesh;
             obj.fun            = cParams.fun;
             obj.ndimf          = cParams.fun.ndimf;
         end

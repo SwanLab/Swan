@@ -96,9 +96,12 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end    
 
         function createElasticProblem(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f.project('P1');
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createInterpolatedMaterial(f);
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -189,11 +192,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.epsilonPrimal  = obj.mesh.computeMinCellSize();
             s.volumeTarget   = 0.4;
-            s.primalUpdater  = obj.primalUpdater;
+            s.primal         = 'SLERP';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
