@@ -10,10 +10,11 @@ classdef NewTopOptTests < handle & matlab.unittest.TestCase
 
         function testFastDisplacement(testCase, testsTO)
             t = testCase.runTopOptTest(testCase,testsTO);
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
+            xNew = t.designVariable.fun.fValues;
+            load([testsTO,'.mat'],'x');
+            err = norm(x - xNew)/norm(x);
             tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
+            testCase.verifyLessThanOrEqual(err, tol);
         end
 
     end
@@ -33,7 +34,8 @@ classdef NewTopOptTests < handle & matlab.unittest.TestCase
             sFConstraint = obj.createConstraint(constraint,target,m,fem,filter,mI);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
-            t      = obj.createOptimizer(optimizer,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
+            primal = optimizerUnconstrained;
+            t      = obj.createOptimizer(optimizer,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
         end
 
         function s = readGidFile(file)
@@ -120,7 +122,7 @@ classdef NewTopOptTests < handle & matlab.unittest.TestCase
             sFConstraint      = Constraint(ss);
         end
 
-        function s = createOptimizer(type,monitoring,cost,constraint,x,lam,maxIter,constraintCase,target)
+        function s = createOptimizer(type,primal,monitoring,cost,constraint,x,lam,maxIter,constraintCase,target)
             s.type           = type;
             s.monitoring     = monitoring;
             s.cost           = cost;
@@ -131,7 +133,8 @@ classdef NewTopOptTests < handle & matlab.unittest.TestCase
             s.tolerance      = 1e-8;
             s.constraintCase = constraintCase;
             s.volumeTarget   = target; % will dissappear
-            opt = OptimizerNullSpace(s);
+            s.primal         = primal;
+            opt = Optimizer.create(s);
             opt.solveProblem();
         end
     end
