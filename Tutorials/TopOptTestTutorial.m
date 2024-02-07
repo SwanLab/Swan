@@ -90,13 +90,16 @@ classdef TopOptTestTutorial < handle
             s.matB = matB;
 
             m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;            
-        end    
+            obj.materialInterpolator = m;
+        end
 
         function createElasticProblem(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f.project('P1');
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createInterpolatedMaterial(f);
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';

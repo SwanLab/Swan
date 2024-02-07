@@ -9,8 +9,6 @@ classdef OptimizerNullSpace < Optimizer
         lineSearchTrials
         lineSearch
         costOld
-        upperBound
-        lowerBound
         tol = 1e-5
         nX
         hasConverged
@@ -68,8 +66,6 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound     = cParams.ub;
-            obj.lowerBound     = cParams.lb;
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
             obj.designVariable = cParams.designVariable;
