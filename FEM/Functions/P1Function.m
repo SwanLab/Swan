@@ -254,7 +254,7 @@ classdef P1Function < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
