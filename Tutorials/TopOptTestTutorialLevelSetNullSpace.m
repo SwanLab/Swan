@@ -193,7 +193,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.4;
-            s.primalUpdater  = obj.primalUpdater;
+            s.primal         = 'SLERP';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

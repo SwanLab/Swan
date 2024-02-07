@@ -49,6 +49,11 @@ classdef Optimizer < handle
             %obj.createPostProcess(cParams.postProcessSettings);
         end
 
+        function createPrimalUpdater(obj,cParams)
+            f                 = PrimalUpdaterFactory();
+            obj.primalUpdater = f.create(cParams);
+        end
+
         function createDualUpdater(obj,cParams)
             cParams.type    = obj.type;
             f               = DualUpdaterFactory();
