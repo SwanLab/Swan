@@ -32,7 +32,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             m      = gid.mesh;
             dim    = gid.dim;
             bc     = gid.bc;
-            x      = obj.createDesignVariable(initialCase,designVariable,m);
+            x      = obj.createDesignVariable(designVariable,m,geomFunSettings);
             filtersCost = obj.createFilters(filterCostType,m);
             filtersConstraint = obj.createFilters(filterConstraintType,m);
             mI     = obj.createMaterialInterpolator(materialType,method,m,E1,E0,nu1,nu0,dim);
@@ -50,9 +50,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s          = FemDataContainer(a);
         end
 
-        function x = createDesignVariable(initCase,type,mesh)
-            s.type = initCase;
-            g      = GeometricalFunction(s);
+        function x = createDesignVariable(type,mesh,gSet)
+            g      = GeometricalFunction(gSet);
             lsFun  = g.computeLevelSetFunction(mesh);
             s.fun  = lsFun;
             s.mesh = mesh;

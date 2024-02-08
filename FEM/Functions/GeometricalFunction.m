@@ -91,6 +91,22 @@ classdef GeometricalFunction < handle
                     fH   = @(x) sin(k*(x1(x)-xmin)+pi/2);
                     obj.fHandle = fH;
 
+                case 'Holes'
+                    dim = cParams.dim;
+                    n   = cParams.nHoles;
+                    l   = cParams.totalLengths;
+                    f   = cParams.phases;
+                    r   = cParams.phiZero;
+                    fH  = @(x) ones(size(x1(x)));
+                    for i = 1:dim
+                        ni     = n(i);
+                        li     = l(i);
+                        phasei = f(i);
+                        fH     = @(x) fH(x).*cos((ni+1)*x(i,:,:)*pi/li+phasei);
+                    end
+                    fH = @(x) fH(x)+r-1;
+                    obj.fHandle = fH;
+
                 case 'Full'
                     fH = @(x) -1*ones(size(x1(x)));
                     obj.fHandle = fH;
