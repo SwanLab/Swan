@@ -10,7 +10,7 @@ classdef BCApplier < handle
     properties (Access = private)
         mesh
 
-        dirichlet_dofs, dirichlet_vals
+        dirichlet_dofs, dirichlet_vals, dirichlet_domain
         dirichletFun
         pointload_dofs, pointload_vals
         pointloadFun
@@ -36,15 +36,15 @@ classdef BCApplier < handle
         end
 
         function Ct = computeP1LinearConditionsMatrix(obj)
-            isLeft =  @(coor) (abs(coor(:,1)) == 0);
-            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(isLeft);
+            dir_dom = obj.dirichlet_domain;
+            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
 
             dLambda = P1Function.create(mesh_left2, 2);
             uFun    = P1Function.create(obj.mesh, 2);
 
             b.mesh  = mesh_left2;
             b.test  = dLambda;
-            b.trial = uFun.restrictTo(isLeft);
+            b.trial = uFun.restrictTo(dir_dom);
             b.type  = 'MassMatrix';
             lhs = LHSintegrator.create(b);
             LHS = lhs.compute();
@@ -61,15 +61,15 @@ classdef BCApplier < handle
         end
 
         function Ct = computeP0LinearConditionsMatrix(obj)
-            isLeft =  @(coor) (abs(coor(:,1)) == 0);
-            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(isLeft);
+            dir_dom = obj.dirichlet_domain;
+            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
 
             dLambda = P0Function.create(mesh_left2, 2);
             uFun    = P1Function.create(obj.mesh, 2);
 
             b.mesh  = mesh_left2;
             b.test  = dLambda;
-            b.trial = uFun.restrictTo(isLeft);
+            b.trial = uFun.restrictTo(dir_dom);
             b.type  = 'MassMatrix';
             lhs = LHSintegrator.create(b);
             LHS = lhs.compute();
@@ -182,6 +182,7 @@ classdef BCApplier < handle
             obj.dirichletFun    = inBC.dirichletFun;
             obj.dirichlet_dofs  = inBC.dirichlet_dofs;
             obj.dirichlet_vals  = inBC.dirichlet_vals;
+            obj.dirichlet_domain = inBC.dirichlet_domain;
             obj.pointloadFun    = inBC.pointloadFun;
             obj.pointload_dofs  = inBC.pointload_dofs;
             obj.pointload_vals  = inBC.pointload_vals;

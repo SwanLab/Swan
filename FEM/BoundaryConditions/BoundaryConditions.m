@@ -1,7 +1,7 @@
 classdef BoundaryConditions < handle
     
     properties (Access = public)
-        dirichletFun, dirichlet_dofs, dirichlet_vals
+        dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
         pointloadFun, pointload_dofs, pointload_vals
         periodic_leader, periodic_follower
 
@@ -88,6 +88,7 @@ classdef BoundaryConditions < handle
             end
             obj.dirichlet_dofs = dir_dofs;
             obj.dirichlet_vals = dir_vals;
+            obj.dirichlet_domain = dir_domain;
             obj.dirichletFun = dirich;
             end
         end
