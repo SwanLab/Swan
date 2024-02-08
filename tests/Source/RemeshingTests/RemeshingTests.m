@@ -69,7 +69,8 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             f         = obj.createFunctionToRemesh();
             s.fValues = f(m.computeBaricenter()');
             s.mesh    = m;
-            f0 = P0Function(s);
+            s.order   = 'P0';
+            f0 = LagrangianFunction(s);
             fC = f0.project('P1D');
         end        
 
