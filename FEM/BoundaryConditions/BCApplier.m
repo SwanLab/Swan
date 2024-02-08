@@ -39,8 +39,8 @@ classdef BCApplier < handle
             dir_dom = obj.dirichlet_domain;
             [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
 
-            dLambda = P1Function.create(mesh_left2, 2);
-            uFun    = P1Function.create(obj.mesh, 2);
+            dLambda = P1Function.create(mesh_left2, obj.mesh.ndim); % !!
+            uFun    = P1Function.create(obj.mesh, obj.mesh.ndim); % !!
 
             b.mesh  = mesh_left2;
             b.test  = dLambda;

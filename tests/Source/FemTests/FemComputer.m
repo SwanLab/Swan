@@ -23,7 +23,7 @@ classdef FemComputer < handle
             if isfield(cParams, 'solverType')
                 obj.solverType = cParams.solverType;
             else
-                obj.solverType = 'MONOLITHIC';
+                obj.solverType = 'REDUCED';
             end
             
         end
