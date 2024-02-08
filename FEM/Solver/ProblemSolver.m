@@ -10,11 +10,10 @@ classdef ProblemSolver < handle
         forces
         boundaryConditions
         BCApplier
-        CC
     end
     
     properties (Access = private)
-        lhs
+        
     end
     
     methods (Access = public)
@@ -43,8 +42,8 @@ classdef ProblemSolver < handle
         end
 
         function [LHS, RHS] = computeMatrices(obj)
-            LHS  = obj.assembleLHS();
-            RHS  = obj.assembleRHS();
+            LHS = obj.assembleLHS();
+            RHS = obj.assembleRHS();
         end
 
         function sol = solveSystem(obj, LHS, RHS)
@@ -102,7 +101,6 @@ classdef ProblemSolver < handle
                         Z   = zeros(nC);
                         Km  = obj.stiffness;
                         LHS = [Km C; C' Z];
-                        obj.CC = C;
                     else
                         iV = bcs.iVoigt;
                         nV = bcs.nVoigt;
@@ -141,7 +139,6 @@ classdef ProblemSolver < handle
                     A_PP = A(lead,lead) + A(lead,fllw) + A(fllw,lead) + A(fllw,fllw); % Adding and grouping
                     LHS = [A_II, A_IP; A_PI, A_PP];
             end
-            obj.lhs = LHS;
 
         end
 
@@ -153,10 +150,9 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        % lambda = zeros(bcs.dirichletFun.nDofs, 1);
-                        % lambda(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                         nCases = size(obj.forces,2);
-                        lambda = zeros(size(obj.lhs,1) - size(obj.forces,1), 1);
+                        % lambda = zeros(size(obj.lhs,1) - size(obj.forces,1), 1);
+                        lambda = bcs.dirichlet_vals;
                         Ct = repmat(lambda, [1 nCases]);
                         RHS = [obj.forces; Ct];
                     else
