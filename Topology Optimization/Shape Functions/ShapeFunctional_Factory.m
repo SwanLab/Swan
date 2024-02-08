@@ -34,7 +34,11 @@ classdef ShapeFunctional_Factory < handle
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
                 case {'perimeter','perimeterInterior','anisotropicPerimeter2D','anisotropicPerimeterInterior2D'}
-                    sF = ShFunc_Perimeter(cParams);
+                    s.mesh        = cParams.mesh;
+                    s.filter      = cParams.filter;
+                    s.epsilon     = 5*cParams.mesh.computeMeanCellSize();
+                    s.value0      = 1;
+                    sF = PerimeterFunctional(s);
                 case 'perimeterConstraint'
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'

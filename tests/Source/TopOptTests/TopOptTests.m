@@ -33,11 +33,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             dim    = gid.dim;
             bc     = gid.bc;
             x      = obj.createDesignVariable(initialCase,designVariable,m);
-            filter = obj.createFilter(filterType,m);
+            filtersCost = obj.createFilters(filterCostType,m);
+            filtersConstraint = obj.createFilters(filterConstraintType,m);
             mI     = obj.createMaterialInterpolator(materialType,method,m,E1,E0,nu1,nu0,dim);
             fem    = obj.createElasticProblem(x,m,mI,ptype,dim,bc);
-            sFCost = obj.createCost(cost,weights,m,fem,filter,mI);
-            sFConstraint = obj.createConstraint(constraint,target,m,fem,filter,mI);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mI);
+            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mI);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
@@ -59,12 +60,18 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             x      = DesignVariable.create(s);
         end
 
-        function filter = createFilter(type,mesh)
-            s.filterType = type;
-            s.mesh       = mesh;
-            s.test       = P0Function.create(mesh,1);
-            s.trial      = P1Function.create(mesh,1);
-            filter       = Filter.create(s);
+        function filtersCost = createFilters(type,mesh)
+            for i = 1:length(type)
+                s.filterType = type{i};
+                s.mesh       = mesh;
+                s.test       = P0Function.create(mesh,1);
+                s.trial      = P1Function.create(mesh,1);
+                if isempty(type{i})
+                    filtersCost{i} = [];
+                else
+                    filtersCost{i} = Filter.create(s);
+                end
+            end
         end
 
         function mI = createMaterialInterpolator(materialType,method,mesh,E1,E0,nu1,nu0,dim)
@@ -105,7 +112,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.type                 = cost{i};
                 s.mesh                 = mesh;
                 s.physicalProblem      = fem;
-                s.filter               = filter;
+                s.filter               = filter{i};
                 s.materialInterpolator = mI;
                 sF{i}                  = ShapeFunctional.create(s);
             end
@@ -120,7 +127,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.target               = target;
                 s.mesh                 = mesh;
                 s.physicalProblem      = fem;
-                s.filter               = filter;
+                s.filter               = filter{i};
                 s.materialInterpolator = mI;
                 sF{i}                  = ShapeFunctional.create(s);
             end
@@ -140,6 +147,11 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.constraintCase = constraintCase;
             s.volumeTarget   = target; % will dissappear
             s.primal         = primal;
+            switch x.type
+                case 'Density'
+                    s.ub = 1;
+                    s.lb = 0;
+            end
             opt = Optimizer.create(s);
             opt.solveProblem();
         end

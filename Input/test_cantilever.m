@@ -11,7 +11,8 @@ target = 0.3;
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
 optimizer = 'AlternatingPrimalDual';
 designVariable = 'Density';
-filterType = 'P1';
+filterCostType = {'P1','PDE'};
+filterConstraintType = {[]};
 
 E1  = 1;
 E0  = 1e-3;

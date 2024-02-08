@@ -154,7 +154,6 @@ classdef OptimizerNullSpace < Optimizer
 
         function prepareFirstIter(obj)
             d = obj.designVariable;
-           % x = DesignVariable.obtainDomainFunction(d);
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.costOld = obj.cost.value;
