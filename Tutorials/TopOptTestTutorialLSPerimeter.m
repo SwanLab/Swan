@@ -60,7 +60,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         end
 
         function createFilter(obj)
-            u              = 45;
+            u              = 65;
             alpha          = 90;
             s.filterType   = 'PDE';
             s.boundaryType = 'Neumann';
@@ -74,7 +74,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         end   
 
         function createPerimeter(obj)
-            eOverhmin     = 1;
+            eOverhmin     = 10;
             epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh        = obj.mesh;
             s.filter      = obj.filter;
@@ -87,7 +87,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.volumeTarget = 0.75;
+            s.volumeTarget = 0.85;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -115,11 +115,13 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 100;
+            s.maxIter        = 40;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.85;
             s.primal         = 'SLERP';
+            s.aJmax          = 1;
+            s.aGmax          = 3e5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
