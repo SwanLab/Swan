@@ -46,16 +46,20 @@ classdef ShFunc_Perimeter < ShapeFunctional
 
             aa.mesh    = mesh;
             aa.fValues = obj.gradient;
-            gradFun = P1Function(aa);
+            aa.order   = 'P1';
+            gradFun = LagrangianFunction(aa);
 
             aa.fValues = obj.filteredDensity.fValues;
-            regDensFun = P1Function(aa);
+            aa.order   = 'P1';
+            regDensFun = LagrangianFunction(aa);
 
             aa.fValues = squeeze(obj.computePerimeterIntegrandP0());
-            perIntegP0 = P0Function(aa);
+            aa.order   = 'P0';
+            perIntegP0 = LagrangianFunction(aa);
 
             aa.fValues = obj.computePerimeterIntegrandP1();
-            perIntegP1 = P1Function(aa);
+            aa.order   = 'P1';
+            perIntegP1 = LagrangianFunction(aa);
 
             fun = {gradFun, regDensFun, perIntegP0, perIntegP1};
             funNames = {'PerimeterGradient', 'RegularizedDensity', ...
@@ -110,7 +114,8 @@ classdef ShFunc_Perimeter < ShapeFunctional
             vfrac = obj.designVariable.computeVolumeFraction();
             s.mesh    = obj.designVariable.mesh;
             s.fValues = 2/(obj.epsilon)*(1 - obj.filteredDensity.fValues);
-            f = P1Function(s);
+            s.order = 'P1';
+            f = LagrangianFunction(s);
             q = Quadrature.set(obj.designVariable.mesh.type);
             q.computeQuadrature('CONSTANT');
             xV = q.posgp;

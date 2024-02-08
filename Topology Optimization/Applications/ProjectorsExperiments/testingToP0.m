@@ -22,7 +22,8 @@ sigP0 = P0Function(z);
 % P1 Function
 z.mesh    = s.mesh;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order   = 'P1';
+uP1 = LagrangianFunction(z);
 
 % P1 Discontinuous Function
 cc.mesh   = s.mesh;

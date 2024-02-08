@@ -67,7 +67,8 @@ classdef LinearizedHarmonicProjector3 < handle
             bV = x(1:2*nB);
             s.fValues = reshape(bV,[],2);
             s.mesh    = obj.mesh;
-            b = P1Function(s);
+            s.order   = 'P1';
+            b = LagrangianFunction(s);
         end
 
         function [resL,resH,resB,resG] = evaluateAllResiduals(obj,bBar,b)
@@ -128,9 +129,9 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function initializeFunctions(obj)
-           obj.fB = P1Function.create(obj.mesh,1);
-           obj.fS = P1Function.create(obj.mesh,1);
-           obj.fG = P1Function.create(obj.mesh,1);
+           obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
+           obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
+           obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end        
         
         function computeAllMassMatrix(obj)
@@ -183,13 +184,15 @@ classdef LinearizedHarmonicProjector3 < handle
         function f = createP1Function(obj,fV)
            s.fValues = fV;
            s.mesh    = obj.mesh;
-           f = P1Function(s);
+           s.order   = 'P1';
+           f = LagrangianFunction(s);
         end
 
         function f = createScalarFunctions(obj,b,dir)
             s.fValues = b.fValues(:,dir);
             s.mesh    = obj.mesh;
-            f = P1Function(s);
+           s.order   = 'P1';
+            f = LagrangianFunction(s);
         end
 
         function Nf = createAdvectionMatrixWithFunction(obj,f)

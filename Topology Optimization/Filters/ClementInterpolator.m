@@ -36,8 +36,8 @@ classdef ClementInterpolator < handle
 
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
-            obj.trial = P1Function.create(obj.mesh,1);
-            obj.test  = P1Function.create(obj.mesh,1);
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
         end
 
         function createSupportMatrix(obj)
