@@ -35,6 +35,11 @@ classdef GeometricalFunction < handle
                     fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
                     obj.fHandle = fH;
 
+                case 'SquareInclusion'
+                    s      = cParams;
+                    s.type = 'Square';
+                    obj.computeInclusion(s);
+
                 case 'Rectangle'
                     sx = cParams.xSide;
                     sy = cParams.ySide;
@@ -90,6 +95,12 @@ classdef GeometricalFunction < handle
                     fH = @(x) -1*ones(size(x1(x)));
                     obj.fHandle = fH;
             end
+        end
+
+        function computeInclusion(obj,s)
+            obj.selectHandle(s);
+            fH          = obj.fHandle;
+            obj.fHandle = @(x) -fH(x);
         end
     end
 end
