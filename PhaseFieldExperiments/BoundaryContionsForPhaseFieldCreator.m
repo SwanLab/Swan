@@ -6,6 +6,7 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
     
     properties (Access = private)
         boundaryConditions
+        newBoundaryConditions
     end
     
     properties (Access = private)
@@ -21,7 +22,7 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         
         function bC = create(obj,prescribedVal)
             obj.createBoundaryConditions(prescribedVal)
-            bC = obj.boundaryConditions;            
+            bC = obj.newBoundaryConditions;            
         end
         
     end
@@ -33,9 +34,9 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         end
         
        function createBoundaryConditions(obj,prescribedVal)
-           obj.createBendingConditions(prescribedVal)
+          % obj.createBendingConditions(prescribedVal)
           % obj.createForceTractionConditions(prescribedVal)
-          % obj.createDisplacementTractionConditions(prescribedVal)
+           obj.createDisplacementTractionConditions(prescribedVal)
           % obj.createLshapeDisplacementConditions(prescribedVal)
           % obj.createFiberMatrixDisplacementConditions(prescribedVal);
         end
@@ -111,6 +112,8 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
                  dirichletDown(i:2:end,2) = i;
              end
 
+
+
              % Enforce roller Dirichlet conditions to the top nodes
              upSide  = max(obj.mesh.coord(:,2));
              isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
@@ -127,6 +130,29 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              bc.dirichlet = [dirichletDown; dirichletUp];
              bc.pointload = [];
              obj.boundaryConditions = bc;
+
+
+             %%%%% VARIANT %%%%%%%
+             isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInDown(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir1 = DirichletCondition(obj.mesh,sDir);
+
+             isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
+
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [2];
+             sDir.value     = uVal;       
+             Dir3 = DirichletCondition(obj.mesh,sDir);
+
+             obj.newBoundaryConditions.dirichletFun = [Dir1 Dir2 Dir3];
+             obj.newBoundaryConditions.pointloadFun = [];
+             obj.newBoundaryConditions.periodicFun = [];
          end
          
          function createLshapeDisplacementConditions(obj,uVal)

@@ -53,6 +53,12 @@ classdef PhaseFieldComputer < handle
 
             phaseFieldOld = obj.phaseField.fValues;
             Uold = P1Function.create(obj.mesh,2);
+
+            % s.mesh = obj.mesh;
+            % intEnergy = ShFunc_InteralEnergy(s);
+            % 
+            % int = intEnergy.computeFunction(Uold,obj.phaseField);
+
             obj.costFun = null(2,1);
 
             for i = 1:obj.steps
@@ -141,7 +147,7 @@ classdef PhaseFieldComputer < handle
             sMat.quadrature = quad;
             sMat.phi = obj.phaseField;
             sMat.derivative = 0;
-            obj.materialPhaseField.computeMatInt(sMat);
+            obj.materialPhaseField.computeMatInterpolation(sMat);
 
             s.mesh = obj.mesh;
             s.type = 'ELASTIC';
@@ -149,8 +155,11 @@ classdef PhaseFieldComputer < handle
             s.dim = '2D';
             s.material = obj.materialPhaseField.material;
             s.bc = obj.boundaryConditions;
+            s.newBC = obj.boundaryConditions;
             s.interpolationType = 'LINEAR';
             s.quadratureOrder = quadOrder;
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
             obj.fem = FEM.create(s);
             obj.fem.solve();
         end
@@ -158,16 +167,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy mass matrix
         function createInternalEnergyMassMatrix(obj)
-            DDenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',2); 
-
-            s.function = DDenergyFun;
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
-            s.mesh = obj.mesh;
-            s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = 'LINEAR';
-            LHS = LHSintegrator.create(s);
-            obj.Mi = LHS.compute(); 
+  
         end
 
         % Dissipation mass matrix
@@ -204,14 +204,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (RHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy force vector
         function createInternalEnergyForceVector(obj)
-            DenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',1); 
-            test = P1Function.create(obj.mesh,1);
-            
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
-            s.quadType = 'LINEAR';
-            RHS = RHSintegrator.create(s);
-            obj.Fi = RHS.compute(DenergyFun,test); 
+       
         end
         
         % Dissipation force vector
@@ -271,21 +264,9 @@ classdef PhaseFieldComputer < handle
 
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalInternalEnergy(obj)
-            e = obj.createAbstractDerivativeEnergyFunction('QUADRATIC',0);
+               
 
-            q.mesh = obj.mesh;
-            q.quadType = 'QUADRATIC';
-            q.type = 'Function';
-            int = Integrator.create(q);
-            totVal1 = int.compute(e);
-
-            q.mesh = obj.mesh;
-            q.quadType = 'QUADRATIC';
-            q.type = 'InternalEnergy';
-            int = Integrator.create(q);
-            C = obj.materialPhaseField.material.C;
-            e = obj.fem.strainFun;
-            totVal = 0.25*int.compute(e,C);
+            
         end
 
         function totVal = computeTotalDissipationLocal(obj)
@@ -369,44 +350,8 @@ classdef PhaseFieldComputer < handle
         end
 
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%
-        function energyVal = computeEnergyField(obj,e,C)
-            nstre = size(e.fValues,1);
-            nGauss = size(e.fValues,2);
-            nelem = size(e.fValues,3);
-            energyVal = zeros(1,nGauss,nelem);
-            for iStre = 1:nstre
-                for jStre=1:nstre
-                    for iGauss=1:nGauss
-                        eI = squeeze(e.fValues(iStre,iGauss,:));
-                        eJ = squeeze(e.fValues(jStre,iGauss,:));
-                        Cij = squeeze(C(iStre,jStre,:,iGauss));
-                        eStre(1,1,:) = (eI.*Cij.*eJ)';
-                        energyVal(1,iGauss,:) = energyVal(1,iGauss,:) + eStre;
-                    end
-                end
-            end
-            energyVal = 0.5*energyVal;
-        end
 
-        function energyFun = createAbstractDerivativeEnergyFunction(obj,quadOrder,deriv)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(quadOrder);
 
-            e = obj.fem.uFun.computeSymmetricGradient(quad);
-            e.applyVoigtNotation();
-
-            s.quadrature = quad;
-            s.phi = obj.phaseField;
-            s.derivative = deriv;
-            obj.materialPhaseField.computeMatInt(s);
-            C = obj.materialPhaseField.material.C;
-            DDenergyVal = obj.computeEnergyField(e,C);
-
-            s.fValues = DDenergyVal;
-            s.quadrature = quad;
-            s.mesh = obj.mesh;
-            energyFun = FGaussDiscontinuousFunction(s);
-        end
 
         function totReact = computeReaction(obj)
             % UpSide  = max(obj.mesh.coord(:,2));

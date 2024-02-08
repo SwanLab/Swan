@@ -6,12 +6,13 @@ classdef TestingPhaseField < handle
         Gc = 5e-3;
         l0 = 0.1;
         pExp = 2;
-        % bcVal = [linspace(0,-2e-1,100), ...
-        %         linspace(-2e-1,2e-1,400), ...
-        %         linspace(2e-1,4e-1,100), ...
-        %         linspace(4e-1,-4e-1,100), ...
-        %         linspace(-4e-1,1,400)];
-        bcVal = linspace(0,1,500);
+        bcVal = [linspace(0.000005,-6e-1,100), ...
+                linspace(-6e-1,7e-1,100), ...
+                linspace(7e-1,-8e-1,100), ...
+                linspace(-8e-1,1e-1,100), ...
+                linspace(1e-1,-5e-1,100), ...
+                linspace(-5e-1, 1, 100)];
+        % bcVal = linspace(0,1,500);
         % bcVal = [0.001];
     end
 
@@ -57,9 +58,9 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            %obj.createOneElementMesh();
+            obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            obj.createArbitraryElementMesh(20);
+            %obj.createArbitraryElementMesh(20);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
             %obj.createLshapeMesh();

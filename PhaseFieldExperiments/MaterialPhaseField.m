@@ -4,7 +4,7 @@ classdef MaterialPhaseField < handle
         material
         materialInterpolation 
         Gc
-        fc
+        %fc
     end
     
     properties (Access = private)
@@ -30,8 +30,8 @@ classdef MaterialPhaseField < handle
             obj.computeMaterial();
         end
         
-        function computeMatInt(obj,cParams)
-            obj.computeMatIntParams(cParams);
+        function computeMatInterpolation(obj,cParams)
+            obj.computeMatInterpolationParams(cParams);
             obj.computeMaterial();
         end
         
@@ -56,7 +56,7 @@ classdef MaterialPhaseField < handle
             obj.kappa = kappaVal*ones(obj.mesh.nelem,quad.ngaus);
         end
         
-        function computeMatIntParams(obj,cParams)
+        function computeMatInterpolationParams(obj,cParams)
             phi = cParams.phi;
             quad = cParams.quadrature;
             deriv = cParams.derivative;
