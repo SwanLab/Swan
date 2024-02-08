@@ -30,7 +30,7 @@ classdef P0Function < FeFunction
             end
         end
 
-        function [p0sub, mesh_sub, l2g] = evaluateBoundarySubdomain(obj, domain)
+        function [p0sub, mesh_sub, l2g] = restrictTo(obj, domain)
             [mesh_sub, l2g] = obj.mesh.getBoundarySubmesh(domain);
             dofs = sum(ismember(obj.mesh.connec, l2g(mesh_sub.connec)), 2) == 2;
             s.fValues = obj.fValues(dofs, :);
