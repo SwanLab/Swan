@@ -103,7 +103,7 @@ classdef HarmonicProjector < handle
 
        function computeStiffnessMatrix(obj)
             s.mesh = obj.mesh;
-            s.fun  = P1Function.create(obj.mesh, 1);
+            s.fun  = LagrangianFunction.create(obj.mesh, 1, 'P1');
             s.type = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();

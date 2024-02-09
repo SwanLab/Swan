@@ -34,7 +34,7 @@ classdef LHSintegrator_Mass < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = obj.trial.order;
+                obj.quadratureOrder = obj.trial.orderTextual();
             end
         end
         

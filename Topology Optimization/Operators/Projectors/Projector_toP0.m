@@ -17,7 +17,8 @@ classdef Projector_toP0 < Projector
             RHS = obj.createRHS(x);
             s.fValues = obj.M\RHS;
             s.mesh    = obj.mesh;
-            xFun = P0Function(s);
+            s.order   = 'P0';
+            xFun = LagrangianFunction(s);
         end
 
     end

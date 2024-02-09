@@ -19,7 +19,8 @@ femU      = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 z.connec  = s.mesh.connec;
 z.type    = s.mesh.type;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order   = 'P1';
+uP1 = LagrangianFunction(z);
 
 % P1 Discontinuous Function
 cc.mesh   = s.mesh;
