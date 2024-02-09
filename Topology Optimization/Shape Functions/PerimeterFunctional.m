@@ -40,7 +40,8 @@ classdef PerimeterFunctional < handle
             rhoei     = xR.fValues;
             s.fValues = 1-rhoei;
             s.mesh    = obj.mesh;
-            f         = P1Function(s);
+            s.order   = 'P1';
+            f         = LagrangianFunction(s);
             int       = Integrator.create('ScalarProduct',obj.mesh,'QUADRATICMASS');
             result    = int.compute(f,xD);
             J         = 2/(obj.epsilon)*result;
@@ -50,7 +51,8 @@ classdef PerimeterFunctional < handle
             dj        = 2/(obj.epsilon)*(1-2*xR.fValues);
             s.fValues = dj;
             s.mesh    = xR.mesh;
-            dJ        = P1Function(s);
+            s.order   = 'P1';
+            dJ        = LagrangianFunction(s);
         end
 
         function x = computeNonDimensionalValue(obj,x)
