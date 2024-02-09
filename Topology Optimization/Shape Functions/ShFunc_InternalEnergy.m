@@ -20,22 +20,17 @@ classdef ShFunc_InternalEnergy < handle
         end
         
         function E = computeFunction(obj,u,phi)
-
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
             
             e = u.computeSymmetricGradient(quad);
             e.applyVoigtNotation();
-            
-            s.quadrature = quad;
-            s.phi = phi;
-            s.derivative = deriv;
-            obj.materialPhaseField.computeMatInt(s);
+            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad);
 
-            q.mesh = obj.mesh;
-            q.type = 'InternalEnergy';
-            q.quadType = 'QUADRATIC';
-            int = Integrator.create(q);
+            s.mesh = obj.mesh;
+            s.type = 'InternalEnergy';
+            s.quadType = 'QUADRATIC';
+            int = Integrator.create(s);
 
             C = obj.materialPhaseField.material.C;
             e = u.computeSymmetricGradient(quad);
@@ -50,7 +45,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
             RHS = RHSintegrator.create(s);
-            J = RHS.compute(DenergyFun,test);
+            Jphi = RHS.compute(DenergyFun,test);
             
         end
         

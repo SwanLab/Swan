@@ -143,11 +143,6 @@ classdef PhaseFieldComputer < handle
             quadOrder = 'QUADRATIC';
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
-
-            sMat.quadrature = quad;
-            sMat.phi = obj.phaseField;
-            sMat.derivative = 0;
-            obj.materialPhaseField.computeIsotropicMaterial(quad);
             obj.materialPhaseField.computeInterpolatedMaterial(obj.phaseField,quad);
 
             s.mesh = obj.mesh;
@@ -168,7 +163,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy mass matrix
         function createInternalEnergyMassMatrix(obj)
-  
+            
         end
 
         % Dissipation mass matrix
