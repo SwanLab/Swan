@@ -287,8 +287,8 @@ classdef Mesh < handle
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
-            p1 = P1Function.create(obj,1);
+            if nargin == 2; software = 'Paraview'; end
+            p1 = LagrangianFunction.create(obj,1, 'P1');
             s.filename = filename;
             s.mesh     = obj;
             s.fun      = {p1};

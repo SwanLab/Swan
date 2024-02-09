@@ -73,7 +73,7 @@
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
@@ -112,7 +112,7 @@
         end
 
         function v = computeL2norm(obj)
-            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature);
         end        
 
     end

@@ -194,16 +194,42 @@ classdef LagrangianFunction < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
-            sF.fValues = obj.fValues;
-            sF.mesh = obj.mesh;
-            p1 = P1Function(sF);
+            if nargin == 2; software = 'Paraview'; end
+%             sF.fValues = obj.fValues;
+%             sF.mesh = obj.mesh;
+%             p1 = P1Function(sF);
             s.mesh = obj.mesh;
-            s.fun = {p1};
+            s.fun = {obj};
             s.type = software;
             s.filename = filename;
             p = FunctionPrinter.create(s);
             p.print();
+        end
+
+        function [res, pformat] = getDataToPrint(obj)
+            switch obj.order
+                case 'P0'
+                    q = Quadrature.set(obj.mesh.type);
+                    q.computeQuadrature('LINEAR');
+                    nElem = size(obj.mesh.connec, 1);
+                    nGaus = q.ngaus;
+        
+                    s.nDimf   = obj.ndimf;
+                    s.nData   = nElem*nGaus;
+                    s.nGroup  = nElem;
+                    s.fValues = obj.getFormattedP0FValues();
+                    fps = FunctionPrintingSettings(s);
+                    [res, pformat] = fps.getDataToPrint();
+
+                otherwise
+                    nNods = size(obj.fValues, 1);
+                    s.nDimf   = obj.ndimf;
+                    s.nData   = nNods;
+                    s.nGroup  = nNods;
+                    s.fValues = obj.fValues;
+                    fps = FunctionPrintingSettings(s);
+                    [res, pformat] = fps.getDataToPrint();
+            end
         end
         
         function v = computeL2norm(obj)
@@ -316,6 +342,21 @@ classdef LagrangianFunction < FeFunction
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
+        end
+        function fM = getFormattedP0FValues(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            fV = obj.evaluate(q.posgp);
+            nGaus   = q.ngaus;
+            nComp   = obj.ndimf;
+            nElem   = size(obj.mesh.connec, 1);
+            fM  = zeros(nGaus*nElem,nComp);
+            for iStre = 1:nComp
+                for iGaus = 1:nGaus
+                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
+                    fM(rows,iStre) = fV(iStre,iGaus,:);
+                end
+            end
         end
 
     end
