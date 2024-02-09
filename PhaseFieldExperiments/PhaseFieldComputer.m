@@ -147,7 +147,8 @@ classdef PhaseFieldComputer < handle
             sMat.quadrature = quad;
             sMat.phi = obj.phaseField;
             sMat.derivative = 0;
-            obj.materialPhaseField.computeMatInterpolation(sMat);
+            obj.materialPhaseField.computeIsotropicMaterial(quad);
+            obj.materialPhaseField.computeInterpolatedMaterial(obj.phaseField,quad);
 
             s.mesh = obj.mesh;
             s.type = 'ELASTIC';

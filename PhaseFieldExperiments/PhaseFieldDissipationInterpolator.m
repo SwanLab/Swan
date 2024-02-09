@@ -11,10 +11,12 @@ classdef PhaseFieldDissipationInterpolator < handle
     end
 
     methods (Access = public)
+
         function obj = PhaseFieldDissipationInterpolator(cParams)
             obj.init(cParams)
             obj.computeDissipationFunctionAndDerivatives();
         end
+        
     end
 
     methods (Access = private)

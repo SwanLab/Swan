@@ -50,7 +50,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type = 'ShapeFunction';
             s.quadType = 'LINEAR';
             RHS = RHSintegrator.create(s);
-            obj.Fi = RHS.compute(DenergyFun,test);
+            J = RHS.compute(DenergyFun,test);
             
         end
         
@@ -64,7 +64,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = 'LINEAR';
             LHS = LHSintegrator.create(s);
-            obj.Mi = LHS.compute();
+            H = LHS.compute();
         end
         
     end
@@ -113,8 +113,10 @@ classdef ShFunc_InternalEnergy < handle
             end
             energyVal = 0.5*energyVal;
         end
+
+
         
-        
+
     end
     
 end

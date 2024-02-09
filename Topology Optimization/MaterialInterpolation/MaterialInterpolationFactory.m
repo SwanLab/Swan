@@ -30,7 +30,7 @@ classdef MaterialInterpolationFactory < handle
                         case 'SIMP_P3'
                             obj = SimpInterpolationP3(cParams);
                         case 'PhaseFieldI'
-                            obj = PhaseFieldInternalEnergyInterpolator(cParams);
+                            obj = PhaseFieldEnergyDegradationInterpolator();
                         case 'PhaseFieldD'
                             obj = PhaseFieldDissipationInterpolator(cParams);
                         case 'SIMPThermal'
