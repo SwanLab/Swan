@@ -91,7 +91,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 10;
+            obj.penalty            = 3;
         end
 
         function obj = update(obj)
