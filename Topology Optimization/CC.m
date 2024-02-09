@@ -138,8 +138,8 @@ classdef CC < handle & matlab.mixin.Copyable
                     s.filterType = cParams.filterParams.filterType;
             end
             s.mesh  = cParams.designVariable.mesh;
-            s.test  = P0Function.create(s.mesh,1);
-            s.trial = P1Function.create(s.mesh,1);
+            s.test  = LagrangianFunction.create(s.mesh,1,'P0');
+            s.trial = LagrangianFunction.create(s.mesh,1,'P1');
             filter  = Filter.create(s);
         end
     end

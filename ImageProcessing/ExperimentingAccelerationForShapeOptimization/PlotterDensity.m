@@ -79,7 +79,8 @@ classdef PlotterDensity < handle
             rho = obj.designVariable.value;
             s.fValues = rho;
             s.mesh = obj.designVariable.mesh.meshes{1};
-            fun = P1Function(s);
+            s.order = 'P1';
+            fun = LagrangianFunction(s);
             funp0 = fun.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 

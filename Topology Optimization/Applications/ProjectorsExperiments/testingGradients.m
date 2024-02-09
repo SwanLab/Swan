@@ -15,7 +15,8 @@ femU  = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 % P1 Function
 z.mesh    = s.mesh.type;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order = 'P1';
+uP1 = LagrangianFunction(z);
 
 % Quadrature
 quad = Quadrature.set(s.mesh.type);

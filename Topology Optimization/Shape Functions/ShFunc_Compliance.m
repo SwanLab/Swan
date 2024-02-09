@@ -60,7 +60,8 @@ classdef ShFunc_Compliance < ShFunWithElasticPdes
             
             bb.mesh    = mesh;
             bb.fValues = obj.designVariable.alpha';
-            alphaFun = P0Function(bb);
+            bb.order   = 'P0';
+            alphaFun = LagrangianFunction(bb);
 
             fun      = {complFun, strain, stress, displ};
             funNames = {'compliance', 'strain', 'stress', 'u'};
