@@ -47,7 +47,7 @@ classdef VolumeFunctional < handle
 
         function dJ = computeGradient(obj,x)
             fValues = ones(x.nDofs,1)/obj.totalVolume;
-            dJ      = FeFunction.create(x.type,fValues,obj.mesh);
+            dJ      = FeFunction.create(x.order,fValues,obj.mesh);
         end
     end
 

@@ -63,8 +63,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             for i = 1:length(type)
                 s.filterType = type{i};
                 s.mesh       = mesh;
-                s.test       = P0Function.create(mesh,1);
-                s.trial      = P1Function.create(mesh,1);
+                s.test  = LagrangianFunction.create(mesh,1,'P0');
+                s.trial = LagrangianFunction.create(mesh,1,'P1');
                 if isempty(type{i})
                     filtersCost{i} = [];
                 else

@@ -176,7 +176,7 @@ classdef ElasticProblem < handle
             obj.uFun = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            disp = P1Function.create(obj.mesh, obj.mesh.ndim);
+            disp = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
             disp.fValues = uSplit;
             obj.displacementFun = disp;
         end
