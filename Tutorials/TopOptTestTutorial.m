@@ -66,7 +66,7 @@ classdef TopOptTestTutorial < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end       

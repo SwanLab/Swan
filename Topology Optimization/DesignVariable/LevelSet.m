@@ -18,7 +18,8 @@ classdef LevelSet < DesignVariable
             end
             s.mesh    = obj.mesh;
             s.fValues = value;
-            obj.fun   = P1Function(s);
+            s.order   = 'P1';
+            obj.fun   = LagrangianFunction(s);
             obj.updateUnfittedMesh();
         end  
 

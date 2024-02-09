@@ -36,7 +36,7 @@ classdef RHSintegrator_Composite < handle
                 s.mesh      = bcMesh;
                 s.feFunType = obj.testClass;
                 s.ndimf     = obj.test.ndimf;
-                obj.test    = FeFunction.createEmpty(s);
+                obj.test    = LagrangianFunction.create(s.mesh, s.ndimf, obj.test.order);
             end
             for iInt = 1:obj.nInt
                 integrator = obj.integrators{iInt};
@@ -51,7 +51,7 @@ classdef RHSintegrator_Composite < handle
                     s.mesh      = obj.unfittedMesh.backgroundMesh;
                     s.feFunType = obj.testClass;
                     s.ndimf     = obj.test.ndimf;
-                    testFun     = FeFunction.createEmpty(s);
+                    testFun     = LagrangianFunction.create(s.mesh, s.ndimf, obj.test.order);
                     int         = integrator.compute(unfFun,testFun);
                 end
                 f = f + int;
@@ -65,11 +65,11 @@ classdef RHSintegrator_Composite < handle
         function init(obj, cParams)
             obj.nInt         = numel(cParams.compositeParams);
             obj.unfittedMesh = cParams.unfittedMesh;
-            obj.testClass    = class(cParams.test);
+            obj.testClass    = cParams.test.order;
             s.mesh           = cParams.unfittedMesh.backgroundMesh;
             s.feFunType      = obj.testClass;
             s.ndimf          = cParams.test.ndimf;
-            obj.test         = FeFunction.createEmpty(s);
+            obj.test         = LagrangianFunction.create(s.mesh, s.ndimf, cParams.test.order);
             obj.dofs         = size(obj.test.fValues,1);
         end
 

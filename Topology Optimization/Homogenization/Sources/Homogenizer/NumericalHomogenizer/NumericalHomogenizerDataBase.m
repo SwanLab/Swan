@@ -78,7 +78,8 @@ classdef NumericalHomogenizerDataBase < handle
             end
             ss.fValues = value;
             ss.mesh    = s.mesh;
-            s.fun      = P1Function(ss);
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
 
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;

@@ -124,7 +124,8 @@ classdef Optimizer < handle
                 case 'Density'
                     p1.mesh    = m;
                     p1.fValues = f;
-                    RhoNodal   = P1Function(p1);
+                    p1.order   = 'P1';
+                    RhoNodal   = LagrangianFunction(p1);
                     q = Quadrature.set(m.type);
                     q.computeQuadrature('CONSTANT');
                     xV = q.posgp;
