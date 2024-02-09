@@ -48,6 +48,11 @@ classdef GeometricalFunction < handle
                     fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
                     obj.fHandle = fH;
 
+                case 'RectangleInclusion'
+                    s      = cParams;
+                    s.type = 'Rectangle';
+                    obj.computeInclusion(s);
+
                 case 'RectangleRotated'
                     sx = cParams.xSide;
                     sy = cParams.ySide;
