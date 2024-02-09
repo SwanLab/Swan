@@ -70,8 +70,8 @@ gradAF.plot(mesh);
 %% Testing gradients via AnalyticalFunction
 clear; % close all;
 
-% file = 'test2d_triangle';
-file = 'test2d_micro';
+file = 'test2d_triangle';
+% file = 'test2d_micro';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
