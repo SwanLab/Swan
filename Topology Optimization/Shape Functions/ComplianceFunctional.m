@@ -27,7 +27,6 @@ classdef ComplianceFunctional < handle
     end
     
     methods (Access = private)
-
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
             obj.filter               = cParams.filter;

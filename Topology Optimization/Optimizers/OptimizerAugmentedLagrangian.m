@@ -9,8 +9,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         lineSearchTrials
         lineSearch
         costOld
-        upperBound
-        lowerBound
         tol = 1e-8
         nX
         nConstr
@@ -18,7 +16,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         acceptableStep
         oldDesignVariable
         oldCost
-        incrementalScheme
         hasFinished
         mOld
         meritNew
@@ -39,24 +36,24 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function obj = OptimizerAugmentedLagrangian(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
         end
 
         function obj = solveProblem(obj)
+            x = obj.designVariable;
             obj.hasConverged = false;
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-%             obj.saveVariablesForAnalysis();
+            obj.cost.computeFunctionAndGradient(x);
+            obj.constraint.computeFunctionAndGradient(x);
             obj.hasFinished = 0;
             obj.printOptimizerVariable();
+            obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
 %             while ~obj.hasConverged
                 obj.update();
                 obj.updateIterInfo();
-                obj.updateMonitoring();
+                obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
 %                 obj.saveVariablesForAnalysis();
@@ -68,26 +65,33 @@ classdef OptimizerAugmentedLagrangian < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
             obj.cost                   = cParams.cost;
             obj.constraint             = cParams.constraint;
-            obj.nConstr                = cParams.constraint.nSF;
-            obj.designVariable         = cParams.designVar;
+            obj.nConstr                = length(cParams.constraintCase);
+            obj.designVariable         = cParams.designVariable;
             obj.dualVariable           = cParams.dualVariable;
-            obj.incrementalScheme      = cParams.incrementalScheme;
             obj.nX                     = obj.designVariable.fun.nDofs;
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
             obj.nIter                  = 0;
+            obj.createMonitoring(cParams);
+        end
+
+        function createMonitoring(obj,cParams)
+            s.shallDisplay = cParams.monitoring;
+            s.maxNColumns  = 5;
+            s.titles       = [];
+            s.chartTypes   = [];
+            obj.monitoring = Monitoring(s);
         end
 
         function prepareFirstIter(obj)
-            obj.cost.computeFunctionAndGradient();
+            x = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(x);
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 10;
+            obj.penalty            = 3;
         end
 
         function obj = update(obj)
@@ -118,8 +122,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            d = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
             x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
@@ -154,8 +159,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         function mF = computeMeritFunction(obj,x)
             obj.designVariable.update(x)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            d = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
             J      = obj.cost.value;
             gPlus  = obj.defineConstraintValue();
             l      = obj.dualVariable.value;
@@ -197,16 +203,18 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            d = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
         end
 
         function obj = updateOldValues(obj,x)
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
+            d = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
         end
 
         function obj = checkConvergence(obj)
@@ -243,9 +251,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            itHas = obj.nIter >= obj.maxIter;
         end
 
         function saveVariablesForAnalysis(obj)

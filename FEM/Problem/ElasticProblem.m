@@ -105,7 +105,7 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)
@@ -171,11 +171,12 @@ classdef ElasticProblem < handle
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
+            z.order   = 'P1';
+            uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            disp = P1Function.create(obj.mesh, obj.mesh.ndim);
+            disp = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
             disp.fValues = uSplit;
             obj.displacementFun = disp;
         end

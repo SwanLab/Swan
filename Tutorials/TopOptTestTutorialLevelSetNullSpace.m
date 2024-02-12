@@ -11,7 +11,6 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         cost
         constraint
         dualVariable
-        primalUpdater
         optimizer
     end
 
@@ -30,7 +29,6 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -67,7 +65,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end       
@@ -96,9 +94,12 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end    
 
         function createElasticProblem(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f.project('P1');
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createInterpolatedMaterial(f);
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -131,12 +132,6 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.volume = v;
         end
 
-        function V = createVolumeFunctional(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
-            V        = VolumeFunctional(s);
-        end
-
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
@@ -154,34 +149,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.dualVariable = l;
         end
 
-        function m = createMonitoring(obj,isCreated)
-            switch isCreated
-                case true
-                    s.type = 'OptimizationProblem';
-                case false
-                    s.type = 'Null';
-            end
-            s.cost             = obj.cost;
-            s.constraint       = obj.constraint;
-            s.designVariable   = obj.designVariable;
-            s.dualVariable     = obj.dualVariable;
-            s.functionals{1}   = obj.createVolumeFunctional();
-            s.optimizationType = 'NullSpace';
-            s.primalUpdater    = obj.primalUpdater;
-            s.isConstrained    = true;
-            s.maxNColumns      = 5;
-            m                  = Monitoring.create(s);
-        end
-
-        function createPrimalUpdater(obj)
-            s.primal          = 'SLERP';
-            s.designVariable  = obj.designVariable;
-            f                 = PrimalUpdaterFactory();
-            obj.primalUpdater = f.create(s);
-        end
-
         function createOptimizer(obj)
-            s.monitoring     = obj.createMonitoring(true);
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
@@ -189,11 +158,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.epsilonPrimal  = obj.mesh.computeMinCellSize();
             s.volumeTarget   = 0.4;
-            s.primalUpdater  = obj.primalUpdater;
+            s.primal         = 'SLERP';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

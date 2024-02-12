@@ -66,7 +66,7 @@ classdef TopOptTestTutorial < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end       
@@ -90,13 +90,16 @@ classdef TopOptTestTutorial < handle
             s.matB = matB;
 
             m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;            
-        end    
+            obj.materialInterpolator = m;
+        end
 
         function createElasticProblem(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f.project('P1');
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createInterpolatedMaterial(f);
             s.dim = '2D';
             s.bc = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -129,12 +132,6 @@ classdef TopOptTestTutorial < handle
             obj.volume = v;
         end
 
-        function V = createVolumeFunctional(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
-            V        = VolumeFunctional(s);
-        end
-
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
@@ -152,26 +149,8 @@ classdef TopOptTestTutorial < handle
             obj.dualVariable = l;
         end
 
-        function m = createMonitoring(obj,isCreated)
-            switch isCreated
-                case true
-                    s.type = 'OptimizationProblem';
-                case false
-                    s.type = 'Null';
-            end
-            s.cost             = obj.cost;
-            s.constraint       = obj.constraint;
-            s.designVariable   = obj.designVariable;
-            s.dualVariable     = obj.dualVariable;
-            s.functionals{1}   = obj.createVolumeFunctional();
-            s.optimizationType = 'MMA';
-            s.isConstrained    = true;
-            s.maxNColumns      = 5;
-            m                  = Monitoring.create(s);
-        end
-
         function createOptimizer(obj)
-            s.monitoring     = obj.createMonitoring(true);
+            s.monitoring     = false;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;

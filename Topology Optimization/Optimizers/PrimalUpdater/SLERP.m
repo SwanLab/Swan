@@ -6,11 +6,9 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
-        lineSearchTrials
     end
 
     methods (Access = public)
-
         function obj = SLERP(cParams)
             obj.init(cParams);
         end
@@ -40,27 +38,12 @@ classdef SLERP < handle
         function decreaseStepLength(obj)
             obj.tau = obj.tau/1.1;
         end
-
-        function trials = getCurrentTrials(obj)
-            trials = obj.lineSearchTrials;
-        end
-
-        function resetTrials(obj)
-            obj.lineSearchTrials = 0;
-        end
-
-        function increaseNumberTrials(obj)
-            obj.lineSearchTrials = obj.lineSearchTrials + 1;
-        end
-
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh             = cParams.mesh;
-            obj.tau              = 0;
-            obj.lineSearchTrials = 0;
+            obj.mesh = cParams.mesh;
         end
 
         function f = createP1Function(obj,fV)

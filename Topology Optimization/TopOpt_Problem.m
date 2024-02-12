@@ -143,7 +143,8 @@ classdef TopOpt_Problem < handle
             end
             ss.fValues = value;
             ss.mesh    = obj.mesh;
-            s.fun      = P1Function(ss);
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
 
             obj.designVariable = DesignVariable.create(s);
         end

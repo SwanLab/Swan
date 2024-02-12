@@ -35,6 +35,11 @@ classdef GeometricalFunction < handle
                     fH = @(x) 1-2.*(x1(x)<=xM & x1(x)>=xm & x2(x)<=yM & x2(x)>=ym);
                     obj.fHandle = fH;
 
+                case 'SquareInclusion'
+                    s      = cParams;
+                    s.type = 'Square';
+                    obj.computeInclusion(s);
+
                 case 'Rectangle'
                     sx = cParams.xSide;
                     sy = cParams.ySide;
@@ -42,6 +47,11 @@ classdef GeometricalFunction < handle
                     y0 = cParams.yCoorCenter;
                     fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
                     obj.fHandle = fH;
+
+                case 'RectangleInclusion'
+                    s      = cParams;
+                    s.type = 'Rectangle';
+                    obj.computeInclusion(s);
 
                 case 'RectangleRotated'
                     sx = cParams.xSide;
@@ -86,10 +96,32 @@ classdef GeometricalFunction < handle
                     fH   = @(x) sin(k*(x1(x)-xmin)+pi/2);
                     obj.fHandle = fH;
 
+                case 'Holes'
+                    dim = cParams.dim;
+                    n   = cParams.nHoles;
+                    l   = cParams.totalLengths;
+                    f   = cParams.phases;
+                    r   = cParams.phiZero;
+                    fH  = @(x) ones(size(x1(x)));
+                    for i = 1:dim
+                        ni     = n(i);
+                        li     = l(i);
+                        phasei = f(i);
+                        fH     = @(x) fH(x).*cos((ni+1)*x(i,:,:)*pi/li+phasei);
+                    end
+                    fH = @(x) fH(x)+r-1;
+                    obj.fHandle = fH;
+
                 case 'Full'
                     fH = @(x) -1*ones(size(x1(x)));
                     obj.fHandle = fH;
             end
+        end
+
+        function computeInclusion(obj,s)
+            obj.selectHandle(s);
+            fH          = obj.fHandle;
+            obj.fHandle = @(x) -fH(x);
         end
     end
 end

@@ -45,8 +45,12 @@ classdef Optimizer < handle
             obj.maxIter        = cParams.maxIter;
             obj.tolerance      = cParams.tolerance;
             obj.constraintCase = cParams.constraintCase;
-            obj.monitoring     = cParams.monitoring;
             %obj.createPostProcess(cParams.postProcessSettings);
+        end
+
+        function createPrimalUpdater(obj,cParams)
+            f                 = PrimalUpdaterFactory();
+            obj.primalUpdater = f.create(cParams);
         end
 
         function createDualUpdater(obj,cParams)
@@ -120,7 +124,8 @@ classdef Optimizer < handle
                 case 'Density'
                     p1.mesh    = m;
                     p1.fValues = f;
-                    RhoNodal   = P1Function(p1);
+                    p1.order   = 'P1';
+                    RhoNodal   = LagrangianFunction(p1);
                     q = Quadrature.set(m.type);
                     q.computeQuadrature('CONSTANT');
                     xV = q.posgp;

@@ -105,12 +105,21 @@ classdef OptimizerMMA < Optimizer
         end
 
         function init(obj,cParams)
-            obj.upperBound             = cParams.ub;
-            obj.lowerBound             = cParams.lb;
-            obj.hasConverged           = false;
-            obj.kkttol                 = obj.tolerance;
+            obj.upperBound   = cParams.ub;
+            obj.lowerBound   = cParams.lb;
+            obj.hasConverged = false;
+            obj.kkttol       = obj.tolerance;
+            obj.createMonitoring(cParams);
         end
-        
+
+        function createMonitoring(obj,cParams)
+            s.shallDisplay = cParams.monitoring;
+            s.maxNColumns  = 5;
+            s.titles       = [];
+            s.chartTypes   = [];
+            obj.monitoring = Monitoring(s);
+        end
+
         function [f,df,c,dc] = funmma(obj)
             f  = obj.cost.value;
             df = obj.cost.gradient;

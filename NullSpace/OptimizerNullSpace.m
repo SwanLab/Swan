@@ -9,8 +9,6 @@ classdef OptimizerNullSpace < Optimizer
         lineSearchTrials
         lineSearch
         costOld
-        upperBound
-        lowerBound
         tol = 1e-5
         nX
         hasConverged
@@ -42,6 +40,7 @@ classdef OptimizerNullSpace < Optimizer
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
+            obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
             obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
@@ -52,11 +51,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged = false;
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.monitoring.update(obj.nIter);
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
                 obj.checkParameters();
@@ -68,8 +67,6 @@ classdef OptimizerNullSpace < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.upperBound     = cParams.ub;
-            obj.lowerBound     = cParams.lb;
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
             obj.designVariable = cParams.designVariable;
@@ -79,7 +76,47 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged   = false;
             obj.nIter          = 0;
             obj.Vtar           = cParams.volumeTarget;
-            obj.primalUpdater  = cParams.primalUpdater;
+            obj.createMonitoring(cParams);
+        end
+
+        function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'},titlesF,titlesConst,{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
+                chConstr{i}   = 'plot';
+            end
+            titles  = [titles,{'Volume','Line Search','Line Search trials'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'plot','bar','bar'}];
+            s.shallDisplay = cParams.monitoring;
+            s.maxNColumns  = 5;
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
+            obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.dualVariable.value];
+            data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
+            if obj.nIter == 0
+                data = [data;0;0];
+            else
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            % merit?
+            obj.monitoring.update(obj.nIter,data);
         end
 
         function aJmax = nullSpaceParameterEstimation(obj,cParams)
@@ -107,17 +144,16 @@ classdef OptimizerNullSpace < Optimizer
                 DJ = obj.cost.gradient;
                 if obj.aG <= 0.5*obj.aGmax
                     exponent = -sign(g)*sign(sum(DJ));
-                    obj.aJmax = obj.aJmax*2^exponent;
+                    obj.aJmax = obj.aJmax*1^exponent;
                 else
                     exponent  = 1-sign(obj.checkConstraint());
-                    obj.aGmax = obj.aGmax*2^exponent;
+                    obj.aGmax = obj.aGmax*1^exponent;
                 end
             end
         end
 
         function prepareFirstIter(obj)
             d = obj.designVariable;
-           % x = DesignVariable.obtainDomainFunction(d);
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.costOld = obj.cost.value;
@@ -166,7 +202,7 @@ classdef OptimizerNullSpace < Optimizer
             g0 = obj.constraint.value;
             obj.calculateInitialStep();
             obj.acceptableStep      = false;
-            obj.primalUpdater.resetTrials();
+            obj.lineSearchTrials    = 0;
             d.nullSpaceCoefficient  = obj.aJ;
             d.rangeSpaceCoefficient = obj.aG;
             obj.dualUpdater.update(d);
@@ -231,7 +267,7 @@ classdef OptimizerNullSpace < Optimizer
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
-                obj.primalUpdater.increaseNumberTrials();
+                obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
         end
 
@@ -265,16 +301,6 @@ classdef OptimizerNullSpace < Optimizer
                     obj.primalUpdater.tau = 1;
                 end
             end
-        end
-
-        function obj = updateMonitoring(obj)
-            s.nIter            = obj.nIter;
-            s.tau              = obj.primalUpdater.tau;
-            s.lineSearch       = obj.lineSearch;
-            s.lineSearchTrials = obj.lineSearchTrials;
-            s.oldCost          = obj.oldCost;
-            s.hasFinished      = obj.hasFinished;
-            s.meritNew         = obj.meritNew;
         end
 
         function updateIterInfo(obj)
