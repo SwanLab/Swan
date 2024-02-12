@@ -6,14 +6,14 @@ classdef QuadratureOrderSelector < handle
 
     properties (Access = private)
         func
-        ndimf
+        ndim
     end
 
     methods (Access = public)
 
         function obj = QuadratureOrderSelector(cParams)
             obj.func = cParams.func;
-            obj.ndimf = cParams.ndimf;
+            obj.ndim = cParams.ndim;
         end
         
     end
@@ -27,15 +27,13 @@ classdef QuadratureOrderSelector < handle
                 funcOrder = str2double(func.order(6));
             end
 
-            if funcOrder == 0
-                quadratureOrder = 1;
-            else
-                quadratureOrder = funcOrder*obj.ndimf;
-            end
+            quadratureOrder = ceil(funcOrder/obj.ndim);
         end
 
         function quadratureOrder = orderLiteral(~,ord)
             switch ord
+                case 0
+                    quadratureOrder = 'CONSTANT';
                 case 1
                     quadratureOrder = 'LINEAR';
                 case 2
