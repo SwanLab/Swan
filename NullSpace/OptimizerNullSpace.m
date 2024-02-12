@@ -84,13 +84,13 @@ classdef OptimizerNullSpace < Optimizer
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'},titlesF,titlesConst,{'Norm L2 x'}];
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles,{'Volume','Line Search','Line Search trials'}];
+            titles  = [titles;{'Volume';'Line Search';'Line Search trials'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';

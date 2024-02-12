@@ -71,6 +71,11 @@ classdef GeometricalFunction < handle
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
 
+                case 'CircleInclusion'
+                    s      = cParams;
+                    s.type = 'Circle';
+                    obj.computeInclusion(s);
+
                 case 'Sphere'
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;
