@@ -1,42 +1,37 @@
 classdef QuadratureOrderSelector < handle
-    
+
     properties (Access = public)
-        quadratureOrder
-        ndim
-        type
-    end
-    
-    properties (Access = private)
-    end
-    
-    methods (Access = public)
         
+    end
+
+    properties (Access = private)
+        func
+        ndimf
+    end
+
+    methods (Access = public)
+
         function obj = QuadratureOrderSelector(cParams)
-            obj.init(cParams);
-        end
-
-        function quadratureOrder = computeOrder(obj,func)
-            switch func.fType
-                case 'FE'
-                    quadratureOrder = obj.computeOrderLagrangian(func);
-            end
-
-            quadratureOrder = obj.orderLiteral(quadratureOrder);
-
+            obj.func = cParams.func;
+            obj.ndimf = cParams.ndimf;
         end
         
     end
     
     methods (Access = private)
 
-        function init(obj,cParams)
-            obj.type = cParams.type;
-            obj.ndim = cParams.ndim;
-        end
-
         function quadratureOrder = computeOrderLagrangian(obj,func)
-            funcOrder = str2double(func.order(2));
-            quadratureOrder = funcOrder*obj.ndim;
+            if func.order(1) == 'P'
+                funcOrder = str2double(func.order(2));
+            else
+                funcOrder = str2double(func.order(6));
+            end
+
+            if funcOrder == 0
+                quadratureOrder = 1;
+            else
+                quadratureOrder = funcOrder*obj.ndimf;
+            end
         end
 
         function quadratureOrder = orderLiteral(~,ord)
@@ -51,6 +46,23 @@ classdef QuadratureOrderSelector < handle
                     quadratureOrder = 'ORDER';
                     quadratureOrder(end+1) = num2str(ord);
             end
+        end
+
+    end
+
+    methods (Access = public, Static)
+
+        function quadratureOrder = compute(cParams)
+
+            obj = QuadratureOrderSelector(cParams);
+
+            switch class(obj.func)
+                case 'LagrangianFunction'
+                    quadratureOrder = obj.computeOrderLagrangian(obj.func);
+            end
+
+            quadratureOrder = obj.orderLiteral(quadratureOrder);
+
         end
 
     end
