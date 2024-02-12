@@ -68,7 +68,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.CAnisotropic = [tand(u),0;0,1/tand(u)];
             s.aniAlphaDeg  = alpha;
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end   
@@ -120,8 +120,8 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.85;
             s.primal         = 'SLERP';
-            s.aJmax          = 1;
-            s.aGmax          = 3e5;
+            s.aJmax          = 12;
+            s.aGmax          = 3.5e5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
