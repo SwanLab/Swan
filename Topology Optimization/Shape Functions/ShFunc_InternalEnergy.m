@@ -19,7 +19,7 @@ classdef ShFunc_InternalEnergy < handle
             obj.init(cParams)            
         end
         
-        function E = computeFunction(obj,u,phi,quad)
+        function F = computeFunction(obj,u,phi,quad)
             e = u.computeSymmetricGradient(quad);
             e.applyVoigtNotation();
             obj.materialPhaseField.computeInterpolatedMaterial(phi,quad);
@@ -29,7 +29,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type = 'InternalEnergy';
             s.quadType = quad.order;
             int = Integrator.create(s);
-            E = 0.5*int.compute(e,C);
+            F = 0.5*int.compute(e,C);
 
             obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); %% Redundant
             energyFun =  obj.createEnergyFunction(quad,u);
@@ -37,7 +37,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type = 'Function';
             s.quadType = quad.order;
             int2 = Integrator.create(s);
-            E2 = 0.5*int2.compute(energyFun);
+            F2 = 0.5*int2.compute(energyFun);
         end
         
         function J = computeGradient(obj,u,phi,quad)

@@ -22,15 +22,12 @@ classdef PhaseFieldComputer < handle
     end
 
     properties (Access = private)
-        EFun
-        
-        Mi
-        Md
-        K
-        Fi
-        Fd
-        DF
-        Constant
+        energyFunc
+        localDamageFunc
+        nonLocalDamageFunc
+        externalWorkFunc
+
+        constant
         l0
 
         forceMat
@@ -52,13 +49,10 @@ classdef PhaseFieldComputer < handle
 
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
+            obj.createFunctionals()
 
             phaseFieldOld = obj.phaseField.fValues;
             Uold = P1Function.create(obj.mesh,2);
-
-            s.mesh = obj.mesh;
-            s.materialPhaseField = obj.materialPhaseField;
-            obj.EFun = ShFunc_InternalEnergy(s);
 
             obj.costFun = null(2,1);
 
@@ -79,7 +73,7 @@ classdef PhaseFieldComputer < handle
                     numIterP = 1;
                     errorPhi = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
-                        obj.solvePhaseFieldEquation();
+                        obj.computePhaseField();
                         obj.phaseField.fValues = obj.phaseField.fValues + obj.deltaPhi;
                         obj.phaseField.fValues = min(max(phaseFieldOld, obj.phaseField.fValues),1);
 
@@ -121,7 +115,7 @@ classdef PhaseFieldComputer < handle
             obj.materialPhaseField       = cParams.materialPhaseField;
             obj.dissipationInterpolation = cParams.dissipationPhaseField;
             obj.l0 = cParams.l0;
-            obj.Constant = cParams.Constant;
+            obj.constant = cParams.constant;
 
             obj.forceMat = zeros(1,obj.steps);
             obj.displacementMat = zeros(1,obj.steps);
@@ -136,6 +130,18 @@ classdef PhaseFieldComputer < handle
             bc = BoundaryContionsForPhaseFieldCreator(s);
             bC = bc.create(prescribedVal);
             obj.boundaryConditions = bC;
+        end
+
+        function createFunctionals(obj)
+            s.mesh = obj.mesh;
+            s.materialPhaseField = obj.materialPhaseField;
+            s.dissipationInterpolation = obj.dissipationInterpolation;
+            s.constant = obj.constant;
+            s.l0 = obj.l0;
+
+            obj.energyFunc = ShFunc_InternalEnergy(s);
+            obj.localDamageFunc = ShFunc_LocalDamage(s);
+            obj.nonLocalDamageFunc = ShFunc_NonLocalDamage(s);
         end
 
 
@@ -161,155 +167,90 @@ classdef PhaseFieldComputer < handle
             obj.fem.solve();
         end
 
-        %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
-        % Internal energy mass matrix
-        function createInternalEnergyMassMatrix(obj)
-            quadOrder = 'QUADRATIC';
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(quadOrder);
-
-            H = obj.EFun.computeHessian(obj.fem.uFun,obj.phaseField,quad);
-            obj.Mi = H.phiphi;
-        end
-
-        % Dissipation mass matrix
-        function createDissipationMassMatrix(obj)
-            ddAlphaFun =  obj.createSecondDerivativeDissipationFunction();
-
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
-            s.function = ddAlphaFun;
-            s.mesh = obj.mesh;
-            s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = 'LINEAR';
-            LHS = LHSintegrator.create(s);
-            obj.Md = LHS.compute(); 
-        end
-
-        function ddAlpha = createSecondDerivativeDissipationFunction(obj)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.ddfun;
-            s.l2function = obj.phaseField;
-            ddAlpha = CompositionFunction(s);
-        end
-
-        % Stiffness matrix
-        function createStiffnessMatrix(obj)
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
-            LHS = LHSintegrator.create(s);
-            obj.K = LHS.compute();  
-        end
-
-        %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (RHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
-        % Internal energy force vector
-        function createInternalEnergyForceVector(obj)
-            quadOrder = 'LINEAR';
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(quadOrder);
-            J = obj.EFun.computeGradient(obj.fem.uFun,obj.phaseField,quad);
-            obj.Fi = J.phi;
-        end
-        
-        % Dissipation force vector
-        function createDissipationForceVector(obj)
-            dAlphaFun =  obj.createFirstDerivativeDissipationFunction(); 
-            test = P1Function.create(obj.mesh,1);
-
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
-            s.quadType = 'LINEAR';
-            RHS = RHSintegrator.create(s);
-            obj.Fd = RHS.compute(dAlphaFun, test);     
-        end
-
-        function dAlpha = createFirstDerivativeDissipationFunction(obj)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.dfun;
-            s.l2function = obj.phaseField;
-            dAlpha = CompositionFunction(s);
-        end  
-       
-        % Force derivative vector
-        function createForceDerivativeVector(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-
-            PhiGradient = obj.phaseField.computeGradient(quad);
-            test = P1Function.create(obj.mesh,1);
-
-            s.quadratureOrder = 'LINEAR';
-            s.mesh = obj.mesh;
-            s.type = 'ShapeDerivative';
-            RHS = RHSintegrator.create(s);
-            forceVector = RHS.compute(PhiGradient, test); 
-            obj.DF = forceVector;
-        end
-
+        %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Matrix equation
-        function solvePhaseFieldEquation(obj)
-            obj.createInternalEnergyMassMatrix();
-            obj.createDissipationMassMatrix();
-            obj.createStiffnessMatrix();
-           
-
-            LHS = obj.Mi + (obj.Constant/obj.l0)*obj.Md + (obj.Constant*obj.l0)*obj.K;
+        function computePhaseField(obj)
+            LHS = obj.computePhaseFieldLHS();
             RHS = obj.computeResidual();
             obj.deltaPhi = -LHS\RHS;
             %obj.deltaPhi = -obj.tau*RHS;
         end
 
-        function res = computeResidual(obj)
-            obj.createInternalEnergyForceVector();
-            obj.createDissipationForceVector();
-            obj.createForceDerivativeVector();            
-            res = (obj.Fi + (obj.Constant/obj.l0)*obj.Fd + (obj.Constant*obj.l0)*obj.DF);
+        function LHS = computePhaseFieldLHS(obj)
+            Mi = obj.createInternalEnergyMassMatrix();
+            Md = obj.createDissipationMassMatrix();
+            K  = obj.createStiffnessMatrix();
+            LHS = Mi + Md + K;
         end
 
-        %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
-        function E = computeTotalInternalEnergy(obj)
+        function res = computeResidual(obj)
+            Fi = obj.createInternalEnergyForceVector();
+            Fd = obj.createDissipationForceVector();
+            DF = obj.createForceDerivativeVector();            
+            res = Fi + Fd + DF;
+        end
+        
+        
+        %%% LHS %%%
+        % Internal energy mass matrix
+        function Mi = createInternalEnergyMassMatrix(obj)
             quadOrder = 'QUADRATIC';
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
-            E = obj.EFun.computeFunction(obj.fem.uFun,obj.phaseField,quad);
+
+            H = obj.energyFunc.computeHessian(obj.fem.uFun,obj.phaseField,quad);
+            Mi = H.phiphi;
+        end
+
+        % Dissipation mass matrix
+        function Md = createDissipationMassMatrix(obj)
+            Md = obj.localDamageFunc.computeHessian(obj.phaseField,'LINEAR');
+        end
+
+        % Stiffness matrix
+        function K = createStiffnessMatrix(obj)
+            K = obj.nonLocalDamageFunc.computeHessian('CONSTANT');
+        end
+
+        %%% RHS %%%
+        % Internal energy force vector
+        function Fi = createInternalEnergyForceVector(obj)
+            quadOrder = 'LINEAR';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            J = obj.energyFunc.computeGradient(obj.fem.uFun,obj.phaseField,quad);
+            Fi = J.phi;
+        end
+        
+        % Dissipation force vector
+        function Fd = createDissipationForceVector(obj)
+            Fd = obj.localDamageFunc.computeGradient(obj.phaseField,'LINEAR');     
+        end
+       
+        % Force derivative vector
+        function DF = createForceDerivativeVector(obj)
+            quadOrder = 'LINEAR';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            DF = obj.nonLocalDamageFunc.computeGradient(obj.phaseField,quad);
+        end
+
+        %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
+        function totVal = computeTotalInternalEnergy(obj)
+            quadOrder = 'QUADRATIC';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            totVal = obj.energyFunc.computeFunction(obj.fem.uFun,obj.phaseField,quad);
         end
 
         function totVal = computeTotalDissipationLocal(obj)
-            alphaFun = obj.createDissipationFunction();
-
-            q.mesh = obj.mesh;
-            q.quadType = 'QUADRATICMASS';
-            q.type = 'Function';
-            int = Integrator.create(q);
-            totVal = (obj.Constant/obj.l0)*int.compute(alphaFun);
+            totVal = obj.localDamageFunc.computeFunction(obj.phaseField,'QUADRATICMASS');
         end
-
-        function dAlpha = createDissipationFunction(obj)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.fun;
-            s.l2function = obj.phaseField;
-            dAlpha = CompositionFunction(s);
-        end  
 
         function totVal = computeTotalRegularizationTerm(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('CONSTANT');
-
-            PhiGradient = obj.phaseField.computeGradient(quad);
-            GradGrad = sum(PhiGradient.fValues.^2);
-            
-            s.fValues = GradGrad;
-            s.quadrature = quad;
-            s.mesh = obj.mesh;
-            GradGradFun = FGaussDiscontinuousFunction(s);
-            
-            q.mesh = obj.mesh;
-            q.quadType = 'CONSTANT';
-            q.type = 'Function';
-            int = Integrator.create(q);
-            totVal = 0.5*(obj.Constant*obj.l0)*int.compute(GradGradFun);
+            totVal = obj.nonLocalDamageFunc.computeFunction(obj.phaseField,quad);
         end
 
         function totVal = computeTotalExternalWork(obj)

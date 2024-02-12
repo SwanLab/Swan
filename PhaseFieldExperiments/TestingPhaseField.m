@@ -25,7 +25,7 @@ classdef TestingPhaseField < handle
         initialPhaseField
         materialPhaseField
         dissipationPhaseField
-        Constant
+        constant
     end
 
     methods (Access = public)
@@ -53,7 +53,7 @@ classdef TestingPhaseField < handle
             s.materialPhaseField = obj.materialPhaseField;
             s.dissipationPhaseField = obj.dissipationPhaseField;
             s.l0 = obj.l0;
-            s.Constant = obj.Constant;
+            s.constant = obj.constant;
             s.bcVal = obj.bcVal;
             PhaseFieldComputer(s);
         end
@@ -94,9 +94,9 @@ classdef TestingPhaseField < handle
             obj.dissipationPhaseField = MaterialInterpolation.create(s);
 
             if s.pExp == 1
-                obj.Constant = obj.Gc/(4*(2/3));
+                obj.constant = obj.Gc/(4*(2/3));
             elseif s.pExp == 2
-                obj.Constant = obj.Gc/(4*(1/2));
+                obj.constant = obj.Gc/(4*(1/2));
             end
         end
 
