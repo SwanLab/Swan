@@ -303,6 +303,50 @@ classdef Mesh < handle
             m = Mesh(s);
         end
 
+        function [m, l2g] = createSingleBoundaryMesh(obj)
+            x = obj.coord(:,1);
+            y = obj.coord(:,2);
+            
+            k = boundary(x,y);
+            k = k(1:end-1);
+            originalNodes = k;
+            newNodes = (1:length(k))';
+            boundaryCoords = [x(k), y(k)];
+            boundaryConnec = [newNodes, circshift(newNodes,-1)];
+
+            s.connec = boundaryConnec;
+            s.coord = boundaryCoords;
+            s.kFace = -1;
+            
+            m = Mesh(s);
+            l2g(newNodes(:)) = originalNodes(:);
+        end
+        
+        function [m, l2g] = getBoundarySubmesh(obj, domain)
+            switch obj.ndim
+                case 2
+                    [mBound, l2gBound] = obj.createSingleBoundaryMesh();
+                    validNodes = find(domain(mBound.coord));
+                    validElems = find(sum(ismember(mBound.connec, validNodes),2) == 2); % == 2 because line
+                    coord_valid  = mBound.coord(validNodes, :);
+                    connec_valid = mBound.connec(validElems,:);
+                    % connecGlobal = l2gBound(connec_valid);
+                    
+                    newNodes = (1:size(coord_valid,1))';
+                    boundary2local(validNodes) = newNodes;
+                    newConnec = boundary2local(connec_valid);
+                    
+                    s.connec = newConnec;
+                    s.coord = coord_valid;
+                    s.kFace = -1;
+                    
+                    m = Mesh(s);
+                    l2g(newNodes(:)) = l2gBound(validNodes);
+                otherwise
+                    error('Cannot yet get boundary submesh for 3D')
+            end
+        end
+
     end
 
     methods (Access = private)
