@@ -18,12 +18,8 @@ optimizer = 'AlternatingPrimalDual';
 designVariable = 'LevelSet';
 filterCostType = {'P1'};
 filterConstraintType = {[]};
-
-E1  = 1;
-E0  = 1e-3;
-nu1 = 1/3;
-nu0 = 1/3;
-
+filterCostSettings = {[]};
+filterConstraintSettings = {[]};
 plotting = false;
 printing = false;
 monitoring = false;

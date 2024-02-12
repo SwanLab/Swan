@@ -1,5 +1,8 @@
 classdef TopOptTests < handle & matlab.unittest.TestCase
 
+% En el futur: agrupar testsTO malla en comú i sense definir functionals, opt..;
+% crear difs funcions a topopttests depenent tipus functionals...
+
     properties (TestParameter)
         testsTO = {
             'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
@@ -33,9 +36,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             dim    = gid.dim;
             bc     = gid.bc;
             x      = obj.createDesignVariable(designVariable,m,geomFunSettings);
-            filtersCost = obj.createFilters(filterCostType,m);
-            filtersConstraint = obj.createFilters(filterConstraintType,m);
-            mI     = obj.createMaterialInterpolator(materialType,method,m,E1,E0,nu1,nu0,dim);
+            filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
+            filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);
+            mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
             fem    = obj.createElasticProblem(x,m,mI,ptype,dim,bc);
             sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mI);
             sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mI);
@@ -59,8 +62,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             x      = DesignVariable.create(s);
         end
 
-        function filtersCost = createFilters(type,mesh)
+        function filtersCost = createFilters(type,mesh,settings)
             for i = 1:length(type)
+                s            = settings{i};
                 s.filterType = type{i};
                 s.mesh       = mesh;
                 s.test  = LagrangianFunction.create(mesh,1,'P0');
@@ -73,7 +77,11 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             end
         end
 
-        function mI = createMaterialInterpolator(materialType,method,mesh,E1,E0,nu1,nu0,dim)
+        function mI = createMaterialInterpolator(materialType,method,mesh,dim)
+            E1   = 1;
+            E0   = 1e-3;
+            nu1  = 1/3;
+            nu0  = 1/3;
             ndim = mesh.ndim;
 
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);

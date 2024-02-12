@@ -13,12 +13,12 @@ optimizer = 'AlternatingPrimalDual';
 designVariable = 'Density';
 filterCostType = {'P1','PDE'};
 filterConstraintType = {[]};
-
-E1  = 1;
-E0  = 1e-3;
-nu1 = 1/3;
-nu0 = 1/3;
-
+f1 = [];
+f2.boundaryType = 'Robin';
+f2.metric       = 'Isotropy';
+f3 = [];
+filterCostSettings = {f1,f2};
+filterConstraintSettings = {f3};
 plotting = false;
 printing = false;
 monitoring = false;
