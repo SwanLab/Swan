@@ -269,20 +269,8 @@ classdef Mesh < handle
 
         %% Remove
 
-        function obj = createFromFile(obj,cParams)
-            testName = cParams.testName;
-            [coordV, connecV] = obj.readCoordConnec(testName);
-            s.coord  = coordV(:,2:end-1);
-            s.connec = connecV(:,2:end);
-            obj = Mesh(s);
-        end
-
         function setCoord(obj,newCoord)
             obj.coord = newCoord;
-        end
-
-        function setConnec(obj,newConnec)
-            obj.connec = newConnec;
         end
 
         function setMasterSlaveNodes(obj,nodes)
