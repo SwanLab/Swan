@@ -103,8 +103,13 @@ classdef P1DiscontinuousFunction < FeFunction
             end
             s.mesh    = mFine;
             s.fValues = fAll;
-            p1fun = P1Function(s);
+            s.order   = 'P1';
+            p1fun = LagrangianFunction(s);
             fFine = p1fun.project('P1D');
+        end
+
+        function dofConnec = getConnec(obj)
+            dofConnec = obj.computeDofConnectivity()';
         end
 
         function dofConnec = computeDofConnectivity(obj)
@@ -164,6 +169,22 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
+        function plotLine(obj)
+            y = obj.mesh.coord(:,2);
+            nelem = size(obj.fValues,3);
+            ndim  = size(obj.fValues,1);
+            for idim=1:ndim
+                yPlot = []; xPlot = [];
+                for e=1:nelem
+                    yPlot = [yPlot y(e,1) y(e+1,1)];
+                    xPlot = [xPlot obj.fValues(idim,:,e)];
+
+                end
+                plot(xPlot,yPlot)
+                hold on
+            end
+        end
+
         function plotContour(obj)
             fD = obj.getFvaluesAsVector();
             mD = obj.mesh.createDiscontinuousMesh();
@@ -207,7 +228,11 @@ classdef P1DiscontinuousFunction < FeFunction
             nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
             nodes  = 1:nNodes;
             connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-        end              
+        end
+
+        function ord = orderTextual(obj)
+            ord = 'LINEAR';
+        end
 
     end
 

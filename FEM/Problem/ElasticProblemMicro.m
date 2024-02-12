@@ -126,6 +126,7 @@ classdef ElasticProblemMicro < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.newBC = cParams.newBC;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function createQuadrature(obj)
@@ -137,7 +138,7 @@ classdef ElasticProblemMicro < handle
         function createDisplacementFun(obj)
             strdim = regexp(obj.pdim,'\d*','Match');
             nDimf  = str2double(strdim);
-            obj.displacementFun = P1Function.create(obj.mesh, nDimf);
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
         end
 
         function dim = getFunDims(obj)
@@ -151,7 +152,7 @@ classdef ElasticProblemMicro < handle
 
         function createBCApplier(obj)
             s.mesh = obj.mesh;
-            s.boundaryConditions = obj.newBC;
+            s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
             obj.BCApplier = bc;
         end
@@ -165,7 +166,7 @@ classdef ElasticProblemMicro < handle
             s.fun  = obj.displacementFun;
             s.type = 'ElasticMicro';
             s.dim      = obj.getFunDims();
-            s.BC       = obj.BCApplier;
+            s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
@@ -181,7 +182,7 @@ classdef ElasticProblemMicro < handle
             s.solverMode = obj.solverMode;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces(:, iVoigt);
-            s.boundaryConditions = obj.newBC;
+            s.boundaryConditions = obj.boundaryConditions;
             s.boundaryConditions.iVoigt = iVoigt;
             s.boundaryConditions.nVoigt = size(obj.forces,2);
             s.BCApplier = obj.BCApplier;
@@ -191,7 +192,8 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
+            z.order   = 'P1';
+            uFeFun = LagrangianFunction(z);
             obj.uFun{iVoigt} = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -231,7 +233,7 @@ classdef ElasticProblemMicro < handle
         function vars = computeChomogContribution(obj, iVoigt)
             if strcmp(obj.solverMode, 'DISP')
                 L = obj.lagrangeMultipliers;
-                nPeriodic = length(obj.BCApplier.periodic_leader);
+                nPeriodic = length(obj.boundaryConditions.periodic_leader);
                 nBorderNod = nPeriodic/4; % cause 2D
                 Lx  = sum( L(1:nBorderNod) );
                 Lxy = sum( L(nBorderNod+1:2*nBorderNod));

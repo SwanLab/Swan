@@ -18,6 +18,7 @@ classdef FemDataContainer < AbstractSettings
         solverType = 'REDUCED';
         solverMode = 'DISP';
         newBC
+        boundaryConditions
     end
     
     methods (Access = public)
@@ -59,6 +60,7 @@ classdef FemDataContainer < AbstractSettings
             obj.newBC.dirichletFun = s.dirichletFun;
             obj.newBC.pointloadFun = s.pointloadFun;
             obj.newBC.periodicFun  = s.periodicFun;
+            obj.boundaryConditions = BoundaryConditions(s);
         end
 
         function createMaterial(obj)

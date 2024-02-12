@@ -15,7 +15,8 @@ femU  = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 % P1 Function
 z.mesh    = s.mesh.type;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order = 'P1';
+uP1 = LagrangianFunction(z);
 
 % Quadrature
 quad = Quadrature.set(s.mesh.type);
@@ -69,8 +70,8 @@ gradAF.plot(mesh);
 %% Testing gradients via AnalyticalFunction
 clear; % close all;
 
-% file = 'test2d_triangle';
-file = 'test2d_micro';
+file = 'test2d_triangle';
+% file = 'test2d_micro';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;
