@@ -6,7 +6,6 @@ classdef AnisotropicFromHomogenization < Material
     
     properties (Access = private)
         vadVariables
-        interpolator        
         Ctensor 
         sMesh
     end
@@ -23,12 +22,10 @@ classdef AnisotropicFromHomogenization < Material
             obj.loadVademecum();    
             obj.createStructuredMesh();
             obj.obtainValues();      
-            obj.createInterpolator();
         end
         
         function C = evaluate(obj,xV)
-            C = obj.computeValues(xV);
-            
+            C = obj.computeValues(xV);            
         end
         
     end
@@ -37,7 +34,7 @@ classdef AnisotropicFromHomogenization < Material
         
         function init(obj,cParams)
            obj.microParams = cParams.microParams;
-           obj.fileName = cParams.fileName;           
+           obj.fileName    = cParams.fileName;           
         end
         
         function loadVademecum(obj)
@@ -76,53 +73,29 @@ classdef AnisotropicFromHomogenization < Material
             s.y = obj.vadVariables.domVariables.myV;
             m = StructuredMesh(s); 
             obj.sMesh = m;
-        end
-        
-        function createInterpolator(obj)
-            s.mesh = obj.sMesh.mesh;
-            obj.interpolator = Interpolator(s);            
-        end
+        end     
 
-        function xG = computeGlobalEvaluationPoints(obj,xV)
+        function [mL,cells] = obtainLocalCoord(obj,xV)
             mx = obj.microParams{1};
             my = obj.microParams{2};
-            xG(:,:,:,1) = mx.evaluate(xV);
-            xG(:,:,:,2) = my.evaluate(xV);
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
+            mG(:,1) = mxG(:);
+            mG(:,2) = myG(:);
+            [mL,cells] = obj.sMesh.obtainLocalFromGlobalCoord(mG);
         end
-
-        function xL = computeLocalEvaluationPoints(obj,xG)
-            s.mesh     = obj.sMesh;
-            s.points.x = xG(:,:,:,1);
-            s.points.y = xG(:,:,:,2);
-            cellFinder = CellFinderInStructuredMesh(s);
-            xL = cellFinder.naturalCoord;
-        end        
         
-        
-     function C = computeValues(obj,xV)
-            mG = obj.computeGlobalEvaluationPoints(xV);
-            mL = obj.computeLocalEvaluationPoints(mG);                       
-            nStre = size(obj.Ctens,1);            
-            C  = zeros(nStre,nStre,mx.nDofs);
+        function C = computeValues(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV);
+            nStre = size(obj.Ctensor,1); 
+            nDofs = size(mL,2);
+            C  = zeros(nStre,nStre,nDofs);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cij = obj.Ctens{i,j}.evaluate(mL);  
-                    C(i,j,:) = Cij;
+                    Cij(1,1,:) = obj.Ctensor{i,j}.sample(mL,cells);  
+                    C(i,j,:)   = Cij;
                 end
             end
-
-            %nVar = length(obj.microParams);            
-            %dC = zeros(nStre,nStre,mx.nDofs,nVar);
-
-            % for i = 1:nStre
-            %     for j = 1:nStre
-            %         for iVar = 1:nVar
-            %             dC(i,j,:,iVar) = dc(:,iVar);
-            %         end
-            %     end
-            % end  
-            %dCt{1} = dC(:,:,:,1);
-            %dCt{2} = dC(:,:,:,2);
         end                  
         
     end

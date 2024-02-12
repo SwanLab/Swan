@@ -45,6 +45,27 @@ classdef P1Function < FeFunction
             end
         end
 
+        function fxV = sample(obj,xP,cells)
+            obj.interpolation.computeShapeDeriv(xP);
+            shapes  = obj.interpolation.shape;
+            nNode   = size(shapes,1);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            fxV = zeros(nF,nPoints);
+            for iF = 1:nF
+                for iNode = 1:nNode
+                    node = obj.mesh.connec(cells,iNode);
+                    Ni = shapes(iNode,:)';
+                    fi = obj.fValues(node,:);
+                    f(1,:) = fi.*Ni;
+                    fxV(iF,:) = fxV(iF,:) + f;
+                end
+            end
+        end   
+
+        
+
+
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
