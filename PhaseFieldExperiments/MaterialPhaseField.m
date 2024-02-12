@@ -14,7 +14,9 @@ classdef MaterialPhaseField < handle
     end
 
     properties (Access = private)
+        muVal
         mu
+        kappaVal
         kappa
     end
 
@@ -56,32 +58,32 @@ classdef MaterialPhaseField < handle
             obj.nu = cParams.nu;
             obj.Gc = cParams.Gc;
             %obj.fc = cParams.fc;
+
+            obj.muVal = obj.computeMuFromYoungAndNu();
+            obj.kappaVal = obj.computeKappaFromYoungAndNu();
         end
 
         function computeMatIsoParams(obj,quad)
-            muVal = obj.computeMuFromYoungAndNu();
-            kappaVal = obj.computeKappaFromYoungAndNu();
-
-            obj.mu = muVal*ones(obj.mesh.nelem,quad.ngaus);
-            obj.kappa = kappaVal*ones(obj.mesh.nelem,quad.ngaus);
+            obj.mu = obj.muVal*ones(obj.mesh.nelem,quad.ngaus);
+            obj.kappa = obj.kappaVal*ones(obj.mesh.nelem,quad.ngaus);
         end
 
         function computeMatIntParams(obj,phi,quad)
             g = obj.createDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappa;
-            obj.mu = g.*obj.mu;
+            obj.kappa = g.*obj.kappaVal;
+            obj.mu = g.*obj.muVal;
         end
 
         function computeDMatIntParams(obj,phi,quad)
             g = obj.createFirstDerivativeDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappa;
-            obj.mu = g.*obj.mu;
+            obj.kappa = g.*obj.kappaVal;
+            obj.mu = g.*obj.muVal;
         end
 
         function computeDDMatIntParams(obj,phi,quad)
             g = obj.createSecondDerivativeDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappa;
-            obj.mu = g.*obj.mu;
+            obj.kappa = g.*obj.kappaVal;
+            obj.mu = g.*obj.muVal;
         end
 
         function computeMaterial(obj)

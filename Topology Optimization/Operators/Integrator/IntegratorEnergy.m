@@ -31,7 +31,7 @@ classdef IntegratorEnergy < handle
                         eJ  = squeeze(eGaus(jField,igaus,:));
                         Cij = squeeze(C(iField,jField,:,igaus));
                         energy = eI.*Cij.*eJ;
-                        energyG       = squeeze(energy);
+                        energyG = squeeze(energy);
 
                         int = energyG.*dVg;
                         h   = h + sum(int);

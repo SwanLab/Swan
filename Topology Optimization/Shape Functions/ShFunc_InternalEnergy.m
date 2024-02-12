@@ -19,47 +19,70 @@ classdef ShFunc_InternalEnergy < handle
             obj.init(cParams)            
         end
         
-        function E = computeFunction(obj,u,phi)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(quadOrder);
-            
+        function E = computeFunction(obj,u,phi,quad)
             e = u.computeSymmetricGradient(quad);
             e.applyVoigtNotation();
             obj.materialPhaseField.computeInterpolatedMaterial(phi,quad);
+            C = obj.materialPhaseField.material.C;
 
             s.mesh = obj.mesh;
             s.type = 'InternalEnergy';
-            s.quadType = 'QUADRATIC';
+            s.quadType = quad.order;
             int = Integrator.create(s);
+            E = 0.5*int.compute(e,C);
 
-            C = obj.materialPhaseField.material.C;
-            e = u.computeSymmetricGradient(quad);
-            E = 0.25*int.compute(e,C);
+            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); %% Redundant
+            energyFun =  obj.createEnergyFunction(quad,u);
+            s.mesh = obj.mesh;
+            s.type = 'Function';
+            s.quadType = quad.order;
+            int2 = Integrator.create(s);
+            E2 = 0.5*int2.compute(energyFun);
         end
         
-        function J = computeGradient(obj,u,phi)
-            DenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',1);
+        function J = computeGradient(obj,u,phi,quad)
+            obj.materialPhaseField.computeFirstDerivativeInterpolatedMaterial(phi,quad); 
+            dEnergyFun =  obj.createEnergyFunction(quad,u);
             test = P1Function.create(obj.mesh,1);
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
-            s.quadType = 'LINEAR';
+            s.quadType = quad.order;
             RHS = RHSintegrator.create(s);
-            Jphi = RHS.compute(DenergyFun,test);
-            
+            J.phi = 0.5*RHS.compute(dEnergyFun,test);
+
+            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); 
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = u;
+            s.material = obj.materialPhaseField.material;
+            s.quadratureOrder = quad.order;
+            LHS = LHSintegrator.create(s);
+            J.u = LHS.compute();
+
         end
         
-        function H = computeHessian(obj,u,phi)
-            DDenergyFun =  obj.createAbstractDerivativeEnergyFunction('LINEAR',2);
+        function H = computeHessian(obj,u,phi,quad)
+            obj.materialPhaseField.computeSecondDerivativeInterpolatedMaterial(phi,quad); 
+            ddEnergyFun =  obj.createEnergyFunction(quad,u);
             
-            s.function = DDenergyFun;
+            s.function = ddEnergyFun;
             s.trial = P1Function.create(obj.mesh,1);
             s.test = P1Function.create(obj.mesh,1);
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = 'LINEAR';
+            s.quadratureOrder = quad.order;
             LHS = LHSintegrator.create(s);
-            H = LHS.compute();
+            H.phiphi = 0.5*LHS.compute();
+
+            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); 
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.fun      = u;
+            s.material = obj.materialPhaseField.material;
+            s.quadratureOrder = quad.order;
+            LHS = LHSintegrator.create(s);
+            H.uu = LHS.compute();
         end
         
     end
@@ -68,23 +91,17 @@ classdef ShFunc_InternalEnergy < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.materialPhaseField = cParams.materialPhaseField;
         end
         
-        function energyFun = createAbstractDerivativeEnergyFunction(obj,quadOrder,deriv,u,phi)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(quadOrder);
-            
+        function energyFun = createEnergyFunction(obj,quad,u)         
             e = u.computeSymmetricGradient(quad);
             e.applyVoigtNotation();
             
-            s.quadrature = quad;
-            s.phi = phi;
-            s.derivative = deriv;
-            obj.materialPhaseField.computeMatInt(s);
             C = obj.materialPhaseField.material.C;
-            DDenergyVal = obj.computeEnergyField(e,C);
+            energyVal = obj.computeEnergyField(e,C);
             
-            s.fValues = DDenergyVal;
+            s.fValues = energyVal;
             s.quadrature = quad;
             s.mesh = obj.mesh;
             energyFun = FGaussDiscontinuousFunction(s);
@@ -106,12 +123,7 @@ classdef ShFunc_InternalEnergy < handle
                     end
                 end
             end
-            energyVal = 0.5*energyVal;
         end
-
-
-        
-
     end
     
 end

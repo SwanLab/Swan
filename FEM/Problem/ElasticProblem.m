@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        reactions
     end
 
     properties (Access = private)
@@ -170,6 +171,8 @@ classdef ElasticProblem < handle
             % u = 1;
             % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
 
+            obj.computeReactions(u);
+
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);
@@ -202,6 +205,10 @@ classdef ElasticProblem < handle
             obj.stress = strFun;
 %             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun = strFun;
+        end
+
+        function computeReactions(obj,u)
+            obj.reactions = obj.stiffness*u;
         end
 
     end

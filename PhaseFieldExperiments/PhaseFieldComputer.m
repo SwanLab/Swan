@@ -22,6 +22,8 @@ classdef PhaseFieldComputer < handle
     end
 
     properties (Access = private)
+        EFun
+        
         Mi
         Md
         K
@@ -54,10 +56,9 @@ classdef PhaseFieldComputer < handle
             phaseFieldOld = obj.phaseField.fValues;
             Uold = P1Function.create(obj.mesh,2);
 
-            % s.mesh = obj.mesh;
-            % intEnergy = ShFunc_InteralEnergy(s);
-            % 
-            % int = intEnergy.computeFunction(Uold,obj.phaseField);
+            s.mesh = obj.mesh;
+            s.materialPhaseField = obj.materialPhaseField;
+            obj.EFun = ShFunc_InternalEnergy(s);
 
             obj.costFun = null(2,1);
 
@@ -163,7 +164,12 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (LHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy mass matrix
         function createInternalEnergyMassMatrix(obj)
-            
+            quadOrder = 'QUADRATIC';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+
+            H = obj.EFun.computeHessian(obj.fem.uFun,obj.phaseField,quad);
+            obj.Mi = H.phiphi;
         end
 
         % Dissipation mass matrix
@@ -200,7 +206,11 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION (RHS) %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Internal energy force vector
         function createInternalEnergyForceVector(obj)
-       
+            quadOrder = 'LINEAR';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            J = obj.EFun.computeGradient(obj.fem.uFun,obj.phaseField,quad);
+            obj.Fi = J.phi;
         end
         
         % Dissipation force vector
@@ -235,7 +245,7 @@ classdef PhaseFieldComputer < handle
             s.type = 'ShapeDerivative';
             RHS = RHSintegrator.create(s);
             forceVector = RHS.compute(PhiGradient, test); 
-            obj.DF = forceVector.fValues;
+            obj.DF = forceVector;
         end
 
         % Matrix equation
@@ -259,10 +269,11 @@ classdef PhaseFieldComputer < handle
         end
 
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
-        function totVal = computeTotalInternalEnergy(obj)
-               
-
-            
+        function E = computeTotalInternalEnergy(obj)
+            quadOrder = 'QUADRATIC';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            E = obj.EFun.computeFunction(obj.fem.uFun,obj.phaseField,quad);
         end
 
         function totVal = computeTotalDissipationLocal(obj)
@@ -321,7 +332,7 @@ classdef PhaseFieldComputer < handle
             %     int = Integrator.create(q);
             %     totVal = int.compute(u,f);
 
-            pLoad = obj.boundaryConditions.pointload;
+            pLoad = obj.boundaryConditions.pointloadFun;
             if isempty(pLoad)
                 totVal = 0;
             else
@@ -330,9 +341,7 @@ classdef PhaseFieldComputer < handle
                 nodes = 1:obj.mesh.nnodes;
 
                 bMesh = obj.mesh.createBoundaryMesh{4};
-                s.mesh = bMesh.mesh;
-                s.fValues = pLoad(:,3);
-                f = P1Function(s);
+                f = obj.boundaryConditions.pointloadFun;
 
                 s.fValues = obj.fem.uFun.fValues(nodes(isInUp),2);
                 u = P1Function(s);
@@ -350,27 +359,28 @@ classdef PhaseFieldComputer < handle
 
 
         function totReact = computeReaction(obj)
-            % UpSide  = max(obj.mesh.coord(:,2));
-            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
-            % nodes = 1:obj.mesh.nnodes;
-            % 
-            % % bMesh = obj.mesh.createBoundaryMesh{4};
-            % % s.mesh = bMesh.mesh;
-            % % s.fValues = obj.fem.reactions(2*nodes(isInUp));
-            % % R = P1Function(s);
-            % % 
-            % % q.mesh = bMesh.mesh;
-            % % q.quadType = 'LINEAR';
-            % % q.type = 'Function';
-            % % int = Integrator.create(q);
-            % % totReact = int.compute(R);
-            % 
-            % totReact = sum(obj.fem.reactions(2*nodes(isInUp)));
-
-            LeftSide  = min(obj.mesh.coord(:,1));
-            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
+            UpSide  = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(obj.fem.reactions(2*nodes(isInLeft)));
+
+            % bMesh = obj.mesh.createBoundaryMesh{4};
+            % s.mesh = bMesh.mesh;
+            % s.fValues = obj.fem.reactions(2*nodes(isInUp));
+            % R = P1Function(s);
+            % 
+            % q.mesh = bMesh.mesh;
+            % q.quadType = 'LINEAR';
+            % q.type = 'Function';
+            % int = Integrator.create(q);
+            % totReact = int.compute(R);
+
+            totReact = sum(obj.fem.reactions(2*nodes(isInUp)));
+
+            % LeftSide  = min(obj.mesh.coord(:,1));
+            % isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
+            % nodes = 1:obj.mesh.nnodes;
+            % totReact = sum(obj.fem.reactions(2*nodes(isInLeft)));
+
         end
 
         function e = computeCostFunction(obj)
