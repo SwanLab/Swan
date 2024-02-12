@@ -34,7 +34,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             gid    = obj.readGidFile(filename);
             m      = gid.mesh;
             dim    = gid.dim;
-            bc     = gid.bc;
+            bc     = gid.boundaryConditions;
             x      = obj.createDesignVariable(designVariable,m,geomFunSettings);
             filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
             filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);

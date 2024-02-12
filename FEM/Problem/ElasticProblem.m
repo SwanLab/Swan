@@ -142,7 +142,7 @@ classdef ElasticProblem < handle
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
             s.dim      = obj.getFunDims();
-            s.BC       = obj.BCApplier;
+            s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;

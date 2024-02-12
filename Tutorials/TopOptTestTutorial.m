@@ -189,16 +189,18 @@ classdef TopOptTestTutorial < handle
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-            bc.dirichletFun = dirichletFun;
+            s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
-            bc.pointloadFun = pointloadFun;
+            s.pointloadFun = pointloadFun;
 
-            bc.periodicFun  = [];
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
         end
     end
 end

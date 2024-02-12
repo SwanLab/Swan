@@ -10,13 +10,15 @@ classdef FemDataContainer < AbstractSettings
         dim
         type
         nelem
+        bc
         mesh
         material
         ngaus
         interpolationType
         solverType = 'REDUCED';
         solverMode = 'DISP';
-        bc
+        newBC
+        boundaryConditions
     end
     
     methods (Access = public)
@@ -46,16 +48,19 @@ classdef FemDataContainer < AbstractSettings
         function readFemInputFile(obj)
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
-            
+
             obj.mesh   = s.mesh;
             obj.scale  = s.scale;
             obj.dim   = s.pdim;
             obj.type  = s.ptype;
             obj.nelem  = s.mesh.nelem;
+            obj.bc.dirichlet = s.dirichlet;
+            obj.bc.pointload = s.pointload;
             obj.interpolationType = 'LINEAR';
-            obj.bc.dirichletFun = s.dirichletFun;
-            obj.bc.pointloadFun = s.pointloadFun;
-            obj.bc.periodicFun  = s.periodicFun;
+            obj.newBC.dirichletFun = s.dirichletFun;
+            obj.newBC.pointloadFun = s.pointloadFun;
+            obj.newBC.periodicFun  = s.periodicFun;
+            obj.boundaryConditions = BoundaryConditions(s);
         end
 
         function createMaterial(obj,cParams)
