@@ -25,7 +25,6 @@ classdef Mesh < handle
     properties (Access = private)
         xFE
         geometry
-        triMesh
     end
 
 
@@ -374,7 +373,7 @@ classdef Mesh < handle
         end
 
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj,'LINEAR');
+            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
         end
 
         function computeElementCoordinates(obj)

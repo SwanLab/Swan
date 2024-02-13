@@ -3,9 +3,9 @@ classdef InterpolationFactory < handle
     methods (Access = public, Static)
 
         function obj = create(cParams)
-            mesh  = cParams.mesh;
+            type  = cParams.type;
             order = cParams.order;
-            switch mesh.type
+            switch type
                 case 'EMPTY MESH'
                     obj = [];
                 case 'LINE'

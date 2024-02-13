@@ -46,7 +46,7 @@ classdef Interpolator < handle
 
         function createInterpolation(obj)
             m = obj.sMesh.mesh;
-            int = Interpolation.create(m,'LINEAR');
+            int = Interpolation.create(m.type,'LINEAR');
             obj.interpolation = int;
         end
 

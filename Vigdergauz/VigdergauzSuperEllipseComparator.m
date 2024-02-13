@@ -212,7 +212,7 @@ classdef VigdergauzSuperEllipseComparator < handle
             x = zeros(nelem,q.ngaus);
             y = zeros(nelem,q.ngaus);            
             xpg = q.posgp;            
-            inter = Interpolation.create(obj.mesh,'LINEAR');
+            inter = Interpolation.create(obj.mesh.type,'LINEAR');
             for igaus = 1:q.ngaus
                 for i = 1:nnode
                     inter.computeShapeDeriv(xpg(:,igaus));

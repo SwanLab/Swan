@@ -49,7 +49,7 @@ classdef SubMesher < handle
         end
         
         function x = computeXisoQuad(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
+            int = Interpolation.create(obj.mesh.type,'LINEAR');
             x = int.pos_nodes;
         end
         
