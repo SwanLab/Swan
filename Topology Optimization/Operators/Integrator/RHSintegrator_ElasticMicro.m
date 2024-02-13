@@ -22,7 +22,8 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function Fext = compute(obj)
-            nVoigt = size(obj.material.evaluate([0;0]),1);
+            oX     = zeros(obj.dim.ndimf,1);
+            nVoigt = size(obj.material.evaluate(oX),1);
             basis   = diag(ones(nVoigt,1));
             Fvol = zeros(obj.dim.ndofs, nVoigt);
             for iVoigt = 1:nVoigt

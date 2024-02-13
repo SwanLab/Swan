@@ -38,7 +38,8 @@ classdef ElasticProblemMicro < handle
         function obj = solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            nCases = size(obj.material.evaluate([0;0]),1);
+            oX     = zeros(obj.getDimensions().ndimf,1);
+            nCases = size(obj.material.evaluate(oX),1);
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
                 obj.computeDisplacement(i);
@@ -226,7 +227,8 @@ classdef ElasticProblemMicro < handle
         %% 
 
         function vstrain = computeVstrain(obj, iVoigt)
-            nVoigt  = size(obj.material.evaluate([0;0]),1);
+            oX      = zeros(obj.getDimensions().ndimf,1);
+            nVoigt  = size(obj.material.evaluate(oX),1);
             basis   = diag(ones(nVoigt,1));
             vstrain = basis(iVoigt,:);
         end
@@ -257,7 +259,8 @@ classdef ElasticProblemMicro < handle
                 vars  = obj.variables;
                 xV    = obj.quadrature.posgp;
                 Cmat  = obj.material.evaluate(xV);
-                nstre = size(obj.material.evaluate([0;0]),1);
+                oX    = zeros(obj.getDimensions().ndimf,1);
+                nstre = size(obj.material.evaluate(oX),1);
                 nelem = size(Cmat,3);
                 ngaus = obj.quadrature.ngaus;
                 dV = obj.mesh.computeDvolume(obj.quadrature)';
