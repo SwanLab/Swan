@@ -58,7 +58,6 @@ classdef OptimizerMMA < Optimizer
                obj.printOptimizerVariable();
            end
             obj.hasConverged = 0;
-            obj.designVariable.fun.print('Result','Paraview');
        end
         
         function update(obj)
