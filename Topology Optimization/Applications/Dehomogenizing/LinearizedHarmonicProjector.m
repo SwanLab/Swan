@@ -113,7 +113,8 @@ classdef LinearizedHarmonicProjector < handle
             s.fValues(:,1) = (b.fValues(:,1) - bBar.fValues(:,1)).^2/bNorm1;
             s.fValues(:,2) = (b.fValues(:,2) - bBar.fValues(:,2)).^2/bNorm2;
             s.mesh = obj.mesh;
-            lRes = P1Function(s);
+            s.order = 'P1';
+            lRes = LagrangianFunction(s);
 
             %[iX,iY,~,~] = obj.computeIndex();
             %resX = res(iX,1);
@@ -225,7 +226,8 @@ classdef LinearizedHarmonicProjector < handle
            
                     s.fValues = abs(gBV([1:4],:)');
                     s.mesh    = obj.mesh;
-                    gb1 = P0Function(s);
+                    s.order   = 'P0';
+                    gb1 = LagrangianFunction(s);
                     gb1.plot
                     drawnow
 
@@ -244,7 +246,8 @@ classdef LinearizedHarmonicProjector < handle
                 b = theta*bNew + (1-theta)*b.fValues ;    
                 s.fValues = b;
                 s.mesh = obj.mesh;
-                b = P1Function(s);
+                s.order = 'P1';
+                b = LagrangianFunction(s);
 
                 
                 i = i + 1;
@@ -263,7 +266,8 @@ classdef LinearizedHarmonicProjector < handle
             aV(:,2) = sin(alpha);
             s.fValues = aV;
             s.mesh    = obj.mesh;
-            a1 = P1Function(s);
+            s.order   = 'P1';
+            a1 = LagrangianFunction(s);
         end
 
         function plotSingulairties(obj,b)
@@ -310,7 +314,8 @@ classdef LinearizedHarmonicProjector < handle
             tp = uP.project(t);
             s.fValues = tp;
             s.mesh    = obj.mesh;
-            tp = P1Function(s);
+            s.order   = 'P1';
+            tp = LagrangianFunction(s);
         end
 
         function plotResiudalUnitBall(obj,resE,errN)
@@ -401,8 +406,8 @@ classdef LinearizedHarmonicProjector < handle
         function computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
             s.quadratureOrder = 'QUADRATICMASS';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();           
@@ -410,8 +415,8 @@ classdef LinearizedHarmonicProjector < handle
         end
 
         function computeStiffnessMatrix(obj)        
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
             s.mesh         = obj.mesh;
             s.type         = 'StiffnessMatrix';
             lhs = LHSintegrator.create(s);
@@ -422,7 +427,8 @@ classdef LinearizedHarmonicProjector < handle
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeAdvectionMatrix(obj,rho,vH)
             s.fValues = zeros(obj.mesh.nnodes,1);
             s.mesh    = obj.mesh;
-            test = P1Function(s);
+            s.order   = 'P1';
+            test = LagrangianFunction(s);
             
             s.mesh            = obj.mesh;
             s.type            = 'AdvectionMatrix';

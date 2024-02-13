@@ -74,6 +74,24 @@ classdef Quadrature_Hexahedra < Quadrature
                         end
                     end
                     
+                case 'ORDER10'
+                    posgl = [0.973906528517172;0.865063366688985;0.679409568299024;0.433395394129247;0.148874338981631;-0.148874338981631;-0.433395394129247;-0.679409568299024;-0.865063366688985;-0.973906528517172];
+                    weigl = [0.0666713443086878;0.149451349150581;0.219086362515982;0.269266719309996;0.295524224714753;0.295524224714753;0.269266719309996;0.219086362515982;0.149451349150581;0.0666713443086878];
+                    obj.ngaus = 1000;
+                    igaus = 0;
+                    nlocs = 10;
+                    for ilocs = 1:nlocs
+                        for jlocs = 1:nlocs
+                            for klocs = 1:nlocs
+                                igaus = igaus+1;
+                                obj.weigp(igaus) = weigl(ilocs)*weigl(jlocs)*weigl(klocs);
+                                obj.posgp(1,igaus) = posgl(ilocs);
+                                obj.posgp(2,igaus) = posgl(jlocs);
+                                obj.posgp(3,igaus) = posgl(klocs);
+                            end
+                        end
+                    end
+                    
                 otherwise
                     error('Invalid interpolation order for element Hexahedra.');
             end

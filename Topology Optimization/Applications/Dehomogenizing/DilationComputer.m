@@ -24,7 +24,8 @@ classdef DilationComputer < handle
             r = obj.solveSystem();
             s.mesh = obj.mesh;
             s.fValues = r;
-            rF = P1Function(s);
+            s.order = 'P1';
+            rF = LagrangianFunction(s);
         end
         
     end
@@ -52,7 +53,7 @@ classdef DilationComputer < handle
         end
 
         function createDilationFun(obj)
-            obj.dilation = P1Function.create(obj.mesh, 1);
+            obj.dilation = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
         
         function computeRHS(obj)
@@ -63,7 +64,7 @@ classdef DilationComputer < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = q.order;
-            test = P1Function.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh,1,'P1');
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute(gradT,test);
             obj.RHS = [rhsV;0];

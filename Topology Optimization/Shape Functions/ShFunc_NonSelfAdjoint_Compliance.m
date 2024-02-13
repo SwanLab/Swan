@@ -2,6 +2,7 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
 
     properties (Access = private)
         adjointProblem
+        fAdj_dofs, fAdj_vals
     end
 
     methods (Access = public)
@@ -115,21 +116,36 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
     methods (Access = private)
 
         function createAdjointProblem(obj,fileName)
-            fAdj               = Preprocess.getBC_adjoint(fileName);
+            mesh = obj.designVariable.mesh;
+            [fAdj, fAdj2]      = Preprocess.getBC_adjoint(fileName, mesh);
             a.fileName         = fileName;
             s                  = FemDataContainer(a);
             s.bc.pointload     = fAdj;
+            s.newBC.pointloadFun = fAdj2;
+            bcAdj = obj.getAdjointBoundaryConditions(fAdj2);
+            s.boundaryConditions.pointloadFun = bcAdj.pointloadFun;
+            s.boundaryConditions.pointload_dofs = bcAdj.pointload_dofs;
+            s.boundaryConditions.pointload_vals = bcAdj.pointload_vals;
             obj.adjointProblem = FEM.create(s);
+            obj.fAdj_dofs = bcAdj.pointload_dofs;
+            obj.fAdj_vals = bcAdj.pointload_vals;
         end
         
+        function bc = getAdjointBoundaryConditions(obj, fAdj2)
+            a.mesh = obj.designVariable.mesh;
+            a.pointloadFun = fAdj2;
+            a.dirichletFun = [];
+            a.periodicFun = [];
+            bc = BoundaryConditions(a);
+        end
+
         function f = computeDisplacementWeight(obj)
             nnode = obj.designVariable.mesh.nnodes;
             ndim  = obj.designVariable.mesh.ndim;
             ndof  = nnode*ndim;
             f = zeros(ndof,1);
-            BC = obj.adjointProblem.boundaryConditions;
-            if ~isempty(BC.neumann)
-                f(obj.adjointProblem.boundaryConditions.neumann) = BC.neumann_values;
+            if ~isempty(obj.fAdj_dofs)
+                f(obj.fAdj_dofs) = obj.fAdj_vals;
             end
         end
     end

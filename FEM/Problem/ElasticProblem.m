@@ -8,21 +8,19 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions
+        boundaryConditions, BCApplier
 
-        LHS
-        RHS
-        solver
+        stiffness
+        forces
+        solver, solverType, solverMode
         scale
         
-        strain
-        stress
+        strain, stress
     end
 
     properties (Access = protected)
         mesh 
         material  
-        inputBC        
         displacementFun
     end
 
@@ -30,16 +28,16 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
             obj.createDisplacementFun();
-            obj.createBoundaryConditions();
+            obj.createBCApplier();
             obj.createSolver();
         end
 
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            obj.computeDisplacements();
+            obj.computeDisplacement();
             obj.computeStrain();
             obj.computeStress();
         end
@@ -47,7 +45,6 @@ classdef ElasticProblem < handle
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
-%             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
         end
@@ -56,8 +53,8 @@ classdef ElasticProblem < handle
             dim = obj.getFunDims();
         end
 
-        function setC(obj, C)
-            obj.material.C = C;
+        function updateMaterial(obj, mat)
+            obj.material = mat;
         end
 
         function dvolu = getDvolume(obj)
@@ -69,7 +66,7 @@ classdef ElasticProblem < handle
         end
        
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
@@ -93,8 +90,10 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
+            obj.solverType  = cParams.solverType;
+            obj.solverMode  = cParams.solverMode;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function createQuadrature(obj)
@@ -104,7 +103,7 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)
@@ -116,18 +115,11 @@ classdef ElasticProblem < handle
             dim = d;
         end
 
-        function createBoundaryConditions(obj)
-            dim = obj.getFunDims();
-            bc = obj.inputBC;
-            bc.ndimf = dim.ndimf;
-            bc.ndofs = dim.ndofs;
-            s.mesh  = obj.mesh;
-            s.scale = 'MACRO';
-            s.bc    = {bc};
-            s.ndofs = dim.ndofs;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);
+            obj.BCApplier = bc;
         end
 
         function createSolver(obj)
@@ -141,7 +133,7 @@ classdef ElasticProblem < handle
             s.fun      = obj.displacementFun;
             s.material = obj.material;
             lhs = LHSintegrator.create(s);
-            obj.LHS = lhs.compute();
+            obj.stiffness = lhs.compute();
         end
 
         function computeForces(obj)
@@ -151,54 +143,56 @@ classdef ElasticProblem < handle
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
-%             s.globalConnec = obj.displacementField.connec;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
-%             obj.variables.fext = rhs + R;
-            obj.RHS = rhs+R;
+            % Perhaps move it inside RHSint?
+            if strcmp(obj.solverType,'REDUCED')
+                R = RHSint.computeReactions(obj.stiffness);
+                obj.forces = rhs+R;
+            else
+                obj.forces = rhs;
+            end
         end
 
-        function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
-%             obj.variables.d_u = u;
-
+        function u = computeDisplacement(obj)
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.stiffness = obj.stiffness;
+            s.forces = obj.forces;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier = obj.BCApplier;
+            pb = ProblemSolver(s);
+            [u,L] = pb.solve();
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P1Function(z);
+            z.order   = 'P1';
+            uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
-
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
         end
 
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
-            perm = permute(strFun.fValues, [2 1 3]);
-%             obj.variables.strain = perm;
+            strFun = strFun.obtainVoigtFormat();
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
 
         function computeStress(obj)
-            strn  = permute(obj.strain.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(obj.material.C,strn2));
-            strs = permute(strs, [1 3 2]);
+            strn(:,1,:,:) = obj.strain.fValues;
+            Cv            = obj.material.evaluate(obj.quadrature.posgp);
+
+            strs = pagemtimes(Cv,strn);
+            strs = permute(strs, [1 3 4 2]);
 
             z.mesh       = obj.mesh;
             z.fValues    = strs;
             z.quadrature = obj.quadrature;
-            strFun = FGaussDiscontinuousFunction(z);
+            strFun       = FGaussDiscontinuousFunction(z);
 
-            obj.stress = strFun;
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+            obj.stress    = strFun;
             obj.stressFun = strFun;
         end
 

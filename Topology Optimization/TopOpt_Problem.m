@@ -144,12 +144,12 @@ classdef TopOpt_Problem < handle
                     value = 1 - heaviside(phi);
                     ss.fValues = value;
                     ss.mesh    = obj.mesh;
-                    fun        = P1Function(ss);
+                    ss.order   = 'P1';
+                    fun        = LagrangianFunction(ss);
                 case 'LevelSet'
                     fun = phiFun;
             end
-            s.fun      = fun;
-
+            s.fun              = fun;
             obj.designVariable = DesignVariable.create(s);
         end
 

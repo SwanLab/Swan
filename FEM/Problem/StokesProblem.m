@@ -88,11 +88,11 @@ classdef StokesProblem < handle
         end
 
         function createVelocity(obj)
-            obj.velocityFun = P2Function.create(obj.mesh, 2);
+            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
         end
 
         function createPressure(obj)
-            obj.pressureFun = P1Function.create(obj.mesh, 1);
+            obj.pressureFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
         function createBoundaryConditions(obj)
@@ -116,7 +116,7 @@ classdef StokesProblem < handle
             s.scale = 'MACRO';
             s.bc    = {bcV, bcP};
             s.ndofs = ndofs; % Stokes
-            bc = BoundaryConditions(s);
+            bc = BoundaryConditionsStokes(s);
             obj.boundaryConditions = bc;
         end
 

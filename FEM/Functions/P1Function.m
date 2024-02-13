@@ -7,6 +7,7 @@ classdef P1Function < FeFunction
 
     properties (Access = private)
         interpolation
+        parentFun
     end
 
     properties (Access = private)
@@ -40,6 +41,35 @@ classdef P1Function < FeFunction
                 end
             end
         end
+
+        function [p1sub, mesh_sub, l2g] = restrictTo(obj, domain)
+            [mesh_sub, l2g] = obj.mesh.getBoundarySubmesh(domain);
+            dofs = domain(obj.mesh.coord);
+            s.fValues = obj.fValues(dofs, :);
+            s.mesh    = mesh_sub;
+            p1sub = P1Function(s);
+        end
+
+        function fxV = sample(obj,xP,cells)
+            obj.interpolation.computeShapeDeriv(xP);
+            shapes  = obj.interpolation.shape;
+            nNode   = size(shapes,1);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            fxV = zeros(nF,nPoints);
+            for iF = 1:nF
+                for iNode = 1:nNode
+                    node = obj.mesh.connec(cells,iNode);
+                    Ni = shapes(iNode,:)';
+                    fi = obj.fValues(node,:);
+                    f(1,:) = fi.*Ni;
+                    fxV(iF,:) = fxV(iF,:) + f;
+                end
+            end
+        end   
+
+        
+
 
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
@@ -215,11 +245,22 @@ classdef P1Function < FeFunction
                         colorbar
                     end
                 case 'LINE'
-                    x = obj.mesh.coord(:,1);
-                    y = obj.fValues;
-                    figure()
-                    plot(x,y)
+                    if obj.mesh.ndim == 1
+                        x = obj.mesh.coord(:,1);
+                        y = obj.fValues;
+                        figure()
+                        plot(x,y)
+                    elseif obj.mesh.ndim == 2
+                        figure()
+                        for idim = 1:obj.ndimf
+                            x = obj.fValues(:,idim);
+                            y = obj.mesh.coord(:,2);
+                            plot(x,y)
+                            hold on
+                        end
+                    end
             end
+            hold off
         end
 
         function plotArrowVector(obj)
@@ -234,7 +275,7 @@ classdef P1Function < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
@@ -262,6 +303,21 @@ classdef P1Function < FeFunction
             v   = sqrt(ff);
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                   fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                   fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end            
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
+        function f = copy(obj)
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues;
+        end
 
     end
 
@@ -286,8 +342,14 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
-        
-        
+
+        function fS = substract(f1,f2)
+            fS = f1.fValues-f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end        
+
     end
 
     methods (Access = private)

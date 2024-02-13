@@ -34,7 +34,8 @@ classdef EdgeFunctionInterpolator < handle
             s.mesh    = obj.edgeMesh;
             s.fValues = obj.fNodes;
             s.functionType = 'P1';
-            f = P1Function(s);
+            s.order   = 'P1';
+            f = LagrangianFunction(s);
             obj.fInEdge = f;
         end
         

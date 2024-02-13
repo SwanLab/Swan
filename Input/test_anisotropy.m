@@ -2,38 +2,29 @@ filename = 'anisoCantilever';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance','anisotropicPerimeter2D'};
-weights = [1,0.05];
+geomFunSettings.type = 'Full';
+cost = {'compliance','perimeter'};
+weights = [1,1];
 constraint = {'volumeConstraint'};
+constraint_case = {'EQUALITY'};
+target = 0.6;
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
-incrementFactor = 1.5;
 designVariable = 'Density';
-filterType = 'P1';
-anisoScaleAngle = 60;
-anisoOverhangAngle = 90;
-
-nsteps = 1;
-Vfrac_final = 0.6;
-optimality_final =1e-3;
-constr_final =1e-3;
-
-Vfrac_initial = 1;
-optimality_initial = 1e-3;
-constr_initial = 1e-3;
-Perimeter_target = 5;
-
-TOL.rho_plus = 1;
-TOL.rho_minus = 0;
-TOL.E_plus = 1;
-TOL.E_minus = 1e-3;
-TOL.nu_plus = 1/3;
-TOL.nu_minus = 1/3;
-
-% For all tests
+filterCostType = {'P1','PDE'};
+filterConstraintType = {[]};
+f1 = [];
+scaleAngle = 60;
+overhangAngle = 90;
+tu = tand(scaleAngle);
+f2.boundaryType = 'Robin';
+f2.metric       = 'Anisotropy';
+f2.CAnisotropic = [tu,0;0,1/tu];
+f2.aniAlphaDeg  = overhangAngle;
+f3 = [];
+filterCostSettings = {f1,f2};
+filterConstraintSettings = {f3};
 plotting = false;
 printing = false;
-printing_physics = false;
 monitoring = false;
-maxiter = 3;
+maxiter = 100;

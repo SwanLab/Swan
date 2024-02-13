@@ -66,6 +66,17 @@ classdef GeometricalFunction < handle
                     fH = @(x) ((abs(x1(x)-x0)/sx).^p+(abs(x2(x)-y0)/sy).^p).^(1/p) - 0.5;
                     obj.fHandle = fH;
 
+                case 'RectangleRotated'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    w  = cParams.omegaDeg;
+                    R  = [cosd(w),sind(w);-sind(w),cosd(w)];
+                    xLoc = @(x) abs(pagemtimes(R,[x1(x)-x0;x2(x)-y0]));
+                    fH = @(x) max(pagemtimes([1,0],xLoc(x))/sx,pagemtimes([0,1],xLoc(x))/sy) - 0.5;
+                    obj.fHandle = fH;
+
                 case {'Circle','Cylinder'}
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;

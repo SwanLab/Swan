@@ -18,21 +18,18 @@ classdef LevelSet < DesignVariable
             end
             s.mesh    = obj.mesh;
             s.fValues = value;
-            obj.fun   = P1Function(s);
+            s.order   = 'P1';
+            obj.fun   = LagrangianFunction(s);
             obj.updateUnfittedMesh();
-        end
+        end  
 
-        function charFun = getCharacteristicFunction(obj)
+        function charFun = obtainDomainFunction(obj)
             s.uMesh = obj.getUnfittedMesh();
             charFun = CharacteristicFunction.create(s);
         end
 
         function m = getUnfittedMesh(obj)
             m = obj.unfittedMesh;
-        end
-        
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.fun.fValues;
         end
         
         function Vf = computeVolumeFraction(obj)
@@ -45,10 +42,6 @@ classdef LevelSet < DesignVariable
             Vf(1,1,:) = vf;
         end
         
-        function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.fun};
-            funNames = {'value'};
-        end
     end
     
     methods (Access = private)
