@@ -38,11 +38,11 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function computeElasticProperties(obj)
-            E0  = 1e-3;
-            nu0 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x)nu0*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            obj.young = E;
+            E1  = 1;
+            nu1 = 1/3;
+            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            obj.young   = E;
             obj.poisson = nu;
         end
 
@@ -61,7 +61,7 @@ classdef Tutorial02FEMElasticity < handle
             s.scale = 'MACRO';
             s.material = obj.material;
             s.dim = '2D';
-            s.bc = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';

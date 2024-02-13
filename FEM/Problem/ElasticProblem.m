@@ -21,7 +21,6 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         mesh 
         material  
-        inputBC
         displacementFun
     end
 
@@ -46,7 +45,6 @@ classdef ElasticProblem < handle
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
-%             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
         end
@@ -68,7 +66,7 @@ classdef ElasticProblem < handle
         end
        
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
@@ -95,7 +93,7 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.boundaryConditions = cParams.bc;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function createQuadrature(obj)
@@ -165,20 +163,14 @@ classdef ElasticProblem < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
-            u = pb.solve();
-            % u = 1;
-            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
-
+            [u,L] = pb.solve();
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
-
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            disp = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
-            disp.fValues = uSplit;
-            obj.displacementFun = disp;
+            obj.displacementFun.fValues = uSplit;
         end
 
         function computeStrain(obj)

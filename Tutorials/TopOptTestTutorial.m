@@ -101,7 +101,7 @@ classdef TopOptTestTutorial < handle
             s.scale = 'MACRO';
             s.material = obj.createInterpolatedMaterial(f);
             s.dim = '2D';
-            s.bc = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';

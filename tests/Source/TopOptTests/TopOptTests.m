@@ -112,15 +112,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             f   = x.obtainDomainFunction();
             f   = f.project('P1');
             mat = mI.computeConsitutiveTensor(f);
-            s.mesh              = mesh;
-            s.scale             = scale;
-            s.material          = mat;
-            s.dim               = dim;
-            s.bc                = bc;
-            s.interpolationType = 'LINEAR';
-            s.solverType        = 'REDUCED';
-            s.solverMode        = 'DISP';
-            fem                 = ElasticProblem(s);
+            s.mesh               = mesh;
+            s.scale              = scale;
+            s.material           = mat;
+            s.dim                = dim;
+            s.boundaryConditions = bc;
+            s.interpolationType  = 'LINEAR';
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'DISP';
+            fem                  = ElasticProblem(s);
         end
 
         function sFCost = createCost(cost,weights,mesh,fem,filter,mI)

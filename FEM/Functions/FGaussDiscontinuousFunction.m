@@ -43,6 +43,10 @@
             % assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
         end
+
+        function q = getQuadratureOrder(obj)
+            q = obj.quadrature.order;
+        end
         
         function dNdx  = computeCartesianDerivatives(obj, quad)
             assert(isequal(quad,obj.quadrature), 'Quadrature does not match');

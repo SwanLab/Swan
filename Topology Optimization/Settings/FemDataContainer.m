@@ -64,13 +64,16 @@ classdef FemDataContainer < AbstractSettings
         end
 
         function createMaterial(obj,cParams)
-            I = ones(obj.nelem,obj.ngaus);
-            s.ptype = obj.type;
-            s.pdim  = obj.dim;
-            s.nelem = obj.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
+            E1        = 1;
+            nu1       = 1/3;
+            E         = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            s.ptype   = obj.type;
+            s.pdim    = obj.dim;
+            s.nelem   = obj.nelem;
+            s.mesh    = obj.mesh;
+            s.young   = E;
+            s.poisson = nu;
             if ~isfield(cParams,'type')
                 cParams.type = 'ISOTROPIC';
             end
