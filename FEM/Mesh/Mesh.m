@@ -386,15 +386,7 @@ classdef Mesh < handle
             s.order   = 'P1';
             s.fValues = obj.coord;
             coordP1 = LagrangianFunction(s);
-            obj.xFE = obj.projectToP1Discontinuous(coordP1);
-        end
-
-        function p1d = projectToP1Discontinuous(obj, f)
-            s.mesh   = obj;
-            sP.origin = 'P1';
-            sP.x = f;
-            p = ProjectorToP1discont(s);
-            p1d = p.project(sP);
+            obj.xFE = coordP1.project('P1D');
         end
 
         function L = computeSquarePerimeter(obj)
