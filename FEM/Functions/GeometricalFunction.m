@@ -164,6 +164,14 @@ classdef GeometricalFunction < handle
                 case 'Given'
                     fH = cParams.fHandle;
                     obj.fHandle = fH;
+
+                case 'Vigdergauz'
+                    vig         = LevelSetVigdergauz(cParams);
+                    obj.fHandle = vig.getFunctionHandle();
+
+                case 'PeriodicAndOriented'
+                    vig         = LevelSetPeriodicAndOriented(cParams);
+                    obj.fHandle = vig.getFunctionHandle();
             end
         end
 
