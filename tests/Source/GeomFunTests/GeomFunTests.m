@@ -20,10 +20,11 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             g        = GeometricalFunction(s);
             lsFun    = g.computeLevelSetFunction(m);
             xNew     = lsFun.fValues;
-            xRef     = load(filename,'x');
+            load(filename,'xRef');
             err      = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
+            % sLS.backgroundMesh = m;sLS.boundaryMesh = m.createBoundaryMesh;uMesh=UnfittedMesh(sLS);uMesh.compute(lsFun.fValues);figure;uMesh.plot
         end
 
         function testLevelSet3D(testCase, initialCases3D)
@@ -34,7 +35,7 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             g        = GeometricalFunction(s);
             lsFun    = g.computeLevelSetFunction(m);
             xNew     = lsFun.fValues;
-            xRef     = load(filename,'x');
+            load(filename,'xRef');
             err      = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -79,13 +80,22 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             s.totalLengths = [2,1];
             s.phases       = [0,0];
             s.phiZero      = 0.4;
-            s.fHandle      = @(x) atan(3*x1(x)*x2(x));
+            s.fHandle      = @(x) 0.25+atan(3*x(1,:,:).*x(2,:,:));
             % vigdergauz
             % periodicandoriented
         end
 
         function s = obtain3DTestsParameters()
-            s = [];
+            s.xCoorCenter  = 1;
+            s.yCoorCenter  = 1;
+            s.zCoorCenter  = 1;
+            s.radius       = 0.5;
+            s.dim          = 3;
+            s.nHoles       = [4,3,3];
+            s.totalLengths = [2,1,1];
+            s.phases       = [0,0,0];
+            s.phiZero      = 0.4;
+            s.fHandle      = @(x) -1+atan(3*x(1,:,:).*x(2,:,:).*x(3,:,:));
         end
     end
 
