@@ -38,7 +38,7 @@ classdef ElasticProblemMicro < handle
         function obj = solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            nCases = obj.material.nstre;
+            nCases = size(obj.material.evaluate([0;0]),1);
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
                 obj.computeDisplacement(i);
@@ -202,14 +202,15 @@ classdef ElasticProblemMicro < handle
 
         function computeStrain(obj, iVoigt)
             strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
-            obj.strainFluctFun{iVoigt} = strFun;
+            obj.strainFluctFun{iVoigt} = strFun.obtainVoigtFormat();
         end
 
         function computeStress(obj, iVoigt)
+            xV = obj.quadrature.posgp;
+            Cmat = obj.material.evaluate(xV);
             strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
             strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs =squeeze(pagemtimes(Cmat,strn2));
             strs = permute(strs, [1 3 2]);
 
             z.mesh       = obj.mesh;
@@ -225,7 +226,7 @@ classdef ElasticProblemMicro < handle
         %% 
 
         function vstrain = computeVstrain(obj, iVoigt)
-            nVoigt  = obj.material.nstre;
+            nVoigt  = size(obj.material.evaluate([0;0]),1);
             basis   = diag(ones(nVoigt,1));
             vstrain = basis(iVoigt,:);
         end
@@ -254,8 +255,9 @@ classdef ElasticProblemMicro < handle
             else
                 vstrain = obj.computeVstrain(iVoigt);
                 vars  = obj.variables;
-                Cmat  = obj.material.C;
-                nstre = obj.material.nstre;
+                xV    = obj.quadrature.posgp;
+                Cmat  = obj.material.evaluate(xV);
+                nstre = size(obj.material.evaluate([0;0]),1);
                 nelem = size(Cmat,3);
                 ngaus = obj.quadrature.ngaus;
                 dV = obj.mesh.computeDvolume(obj.quadrature)';
