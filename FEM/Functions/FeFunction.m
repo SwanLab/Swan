@@ -41,11 +41,10 @@ classdef FeFunction < handle
 
     methods (Static, Access = public)
         function obj = create(type,fValues,mesh)
-            s.functionType = type;
-            s.fValues      = fValues;
-            s.mesh         = mesh;
-            fun            = FunctionFactory();
-            obj            = fun.create(s);
+            s.order   = type;
+            s.fValues = fValues;
+            s.mesh    = mesh;
+            obj       = LagrangianFunction(s);
         end
 
         function obj = createEmpty(cParams)

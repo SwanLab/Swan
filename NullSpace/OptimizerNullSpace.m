@@ -211,7 +211,6 @@ classdef OptimizerNullSpace < Optimizer
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
-                obj.designVariable.update(x);
                 s.x  = x;
                 s.x0 = x0;
                 s.g0 = g0;
