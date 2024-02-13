@@ -17,3 +17,4 @@ DehomogenizationTestsSuite;
 close all;
 AcademicTestsSuite;
 BoundaryCondTestsSuite;
+GeomFunTestsSuite;

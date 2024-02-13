@@ -170,8 +170,8 @@ classdef GeometricalFunction < handle
                     obj.fHandle = vig.getFunctionHandle();
 
                 case 'PeriodicAndOriented'
-                    vig         = LevelSetPeriodicAndOriented(cParams);
-                    obj.fHandle = vig.getFunctionHandle();
+                    perOr       = LevelSetPeriodicAndOriented(cParams);
+                    obj.fHandle = perOr.getFunctionHandle();
             end
         end
 
