@@ -229,10 +229,6 @@ classdef NumericalHomogenizer < handle
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
         end
         
-        function mesh = setMasterSlaveNodes(obj,mesh)
-           
-        end
-        
         function obtainIntegrationUsedVariables(obj)
             mProb = obj.microProblem;
             intVar.geoVol = mProb.computeGeometricalVolume();

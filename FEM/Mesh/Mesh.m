@@ -20,8 +20,6 @@ classdef Mesh < handle
         faces
         boundaryNodes
         boundaryElements
-
-        masterSlaveNodes % remove
     end
 
     properties (Access = private)
@@ -273,16 +271,6 @@ classdef Mesh < handle
             obj.coord = newCoord;
         end
 
-        function setMasterSlaveNodes(obj,nodes)
-            obj.masterSlaveNodes = nodes;
-        end
-
-        function computeMasterSlaveNodes(obj)
-           mR = MasterSlaveRelator(obj.coord);
-           nodes = mR.getRelation();
-           obj.masterSlaveNodes = nodes;
-        end
-
         function mD = createDiscontinuousMesh(obj) % P1D
             ndims = size(obj.coord, 2);
             nNodesDisc = obj.nnodeElem*obj.nelem;
@@ -292,12 +280,6 @@ classdef Mesh < handle
             s.connec = connecDisc;
             s.coord  = coordD;
             mD = Mesh(s);
-        end
-
-        function m = triangulateMesh(obj)
-            s.coord  = obj.coord;
-            s.connec = delaunayn(obj.coord);
-            m = Mesh(s);
         end
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
@@ -358,9 +340,6 @@ classdef Mesh < handle
             end
             if isfield(cParams,'boundaryElements')
                obj.boundaryElements = cParams.boundaryElements;
-            end
-            if isfield(cParams,'masterSlaveNodes')
-               obj.masterSlaveNodes = cParams.masterSlaveNodes;
             end
             obj.coord  = s.coord;
             obj.connec = s.connec;
