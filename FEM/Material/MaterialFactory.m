@@ -13,7 +13,9 @@ classdef MaterialFactory < handle
                             material = Isotropic3dElasticMaterial(cParams);
                     end
                 case 'ANISOTROPIC'
-                        material = AnisotropicFromHomogenization(cParams);
+                    material = AnisotropicFromHomogenization(cParams);
+                case 'STOKES'
+                    material = Material_Stokes(cParams);
             end
 
         end
