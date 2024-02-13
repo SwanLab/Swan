@@ -21,6 +21,15 @@ classdef StructuredMesh < handle
             s.connec = obj.createConnectivities();
             obj.createMesh(s);
         end
+
+        function [xL,cells] = obtainLocalFromGlobalCoord(obj,xG)
+            s.mesh     = obj;
+            s.points.x = xG(:,1);
+            s.points.y = xG(:,2);
+            cellFinder = CellFinderInStructuredMesh(s);
+            xL    = cellFinder.naturalCoord;
+            cells = cellFinder.cells;            
+        end
         
     end
     

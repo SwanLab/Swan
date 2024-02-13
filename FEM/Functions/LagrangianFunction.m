@@ -285,6 +285,11 @@ classdef LagrangianFunction < FeFunction
             fFine = LagrangianFunction(s);
         end
 
+        function f = copy(obj)
+            f = obj.create(obj.mesh,obj.ndimf,obj.order);
+            f.fValues = obj.fValues;
+        end
+
     end
 
     methods (Access = public, Static)

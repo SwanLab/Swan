@@ -4,9 +4,10 @@ classdef PrimalUpdaterFactory < handle
     methods (Access = public, Static)
     
         function p = create(cParams)
-            switch cParams.optimizerNames.primal
+            switch cParams.primal
                 case 'SLERP'
-                    p = SLERP(cParams);
+                    s.mesh    = cParams.designVariable.fun.mesh;
+                    p = SLERP(s);
                 case 'PROJECTED GRADIENT'
                     p = ProjectedGradient(cParams);
                 case 'HAMILTON-JACOBI'

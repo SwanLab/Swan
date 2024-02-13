@@ -38,7 +38,8 @@ classdef ElasticProblemMicro < handle
         function obj = solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            nCases = obj.material.nstre;
+            oX     = zeros(obj.getDimensions().ndimf,1);
+            nCases = size(obj.material.evaluate(oX),1);
             obj.Chomog = zeros(nCases, nCases);
             for i = 1:nCases
                 obj.computeDisplacement(i);
@@ -202,14 +203,15 @@ classdef ElasticProblemMicro < handle
 
         function computeStrain(obj, iVoigt)
             strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
-            obj.strainFluctFun{iVoigt} = strFun;
+            obj.strainFluctFun{iVoigt} = strFun.obtainVoigtFormat();
         end
 
         function computeStress(obj, iVoigt)
+            xV = obj.quadrature.posgp;
+            Cmat = obj.material.evaluate(xV);
             strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
             strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs =squeeze(pagemtimes(Cmat,strn2));
             strs = permute(strs, [1 3 2]);
 
             z.mesh       = obj.mesh;
@@ -225,7 +227,8 @@ classdef ElasticProblemMicro < handle
         %% 
 
         function vstrain = computeVstrain(obj, iVoigt)
-            nVoigt  = obj.material.nstre;
+            oX      = zeros(obj.getDimensions().ndimf,1);
+            nVoigt  = size(obj.material.evaluate(oX),1);
             basis   = diag(ones(nVoigt,1));
             vstrain = basis(iVoigt,:);
         end
@@ -254,8 +257,10 @@ classdef ElasticProblemMicro < handle
             else
                 vstrain = obj.computeVstrain(iVoigt);
                 vars  = obj.variables;
-                Cmat  = obj.material.C;
-                nstre = obj.material.nstre;
+                xV    = obj.quadrature.posgp;
+                Cmat  = obj.material.evaluate(xV);
+                oX    = zeros(obj.getDimensions().ndimf,1);
+                nstre = size(obj.material.evaluate(oX),1);
                 nelem = size(Cmat,3);
                 ngaus = obj.quadrature.ngaus;
                 dV = obj.mesh.computeDvolume(obj.quadrature)';

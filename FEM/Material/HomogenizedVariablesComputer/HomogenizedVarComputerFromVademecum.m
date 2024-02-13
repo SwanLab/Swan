@@ -34,12 +34,7 @@ classdef HomogenizedVarComputerFromVademecum ...
             obj.createRotator();
         end
         
-        function computeCtensor(obj,x)
-            obj.obtainReferenceConsistutiveTensor(x);
-            alpha = x{3};
-            obj.rotateConstitutiveTensor(alpha);
-        end
-        
+
         function computePtensor(obj,x,pNorm)
             obj.pNorm = pNorm;
             obj.obtainReferenceAmplificatorTensor(x,pNorm);
@@ -92,17 +87,7 @@ classdef HomogenizedVarComputerFromVademecum ...
     
     methods (Access = private)
         
-        function init(obj,cParams)
-           obj.fileName = cParams.fileName;
-        end
-        
-        function loadVademecum(obj)
-            s.fileName = [obj.fileName,'WithAmplificators'];
-            v = VademecumVariablesLoader(s);
-            v.load();
-            obj.vademecum = v;
-        end
-        
+
         function loadHomogenizedVariables(obj)
             obj.Ctensor = obj.vademecum.Ctensor;
             obj.Ptensor = obj.vademecum.Ptensor;
@@ -212,21 +197,6 @@ classdef HomogenizedVarComputerFromVademecum ...
         end
         
     end
-    
-    methods (Access = private, Static)
-        
-        function xR = reshapeDesignVariable(x)
-            xV = x.value;
-            nV = x.nVariables;
-            nx = length(xV)/nV;
-            xR = cell(nV,1);
-            for ivar = 1:nV
-                i0 = nx*(ivar-1) + 1;
-                iF = nx*ivar;
-                xR{ivar} = xV(i0:iF);
-            end
-        end
-        
-    end
+
     
 end

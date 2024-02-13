@@ -3,7 +3,6 @@ classdef DualUpdater_IPM < handle
     properties (Access = private)
         dualVariable
         constraint
-        nConstr
         constraintCase
         cost
         alpha
@@ -51,7 +50,6 @@ classdef DualUpdater_IPM < handle
             obj.dualVariable   = cParams.dualVariable;
             obj.constraint     = cParams.constraint;
             obj.constraintCase = cParams.constraintCase;
-            obj.nConstr        = cParams.constraint.nSF;
             obj.cost           = cParams.cost;
         end
     end
