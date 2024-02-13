@@ -59,7 +59,7 @@ classdef StokesDataContainer < AbstractSettings
         end
 
         function createMaterial(obj)
-            s.ptype = obj.type;
+            s.type = 'STOKES';
             s.nelem = obj.nelem;
             mat = Material.create(s);
             mat.compute();

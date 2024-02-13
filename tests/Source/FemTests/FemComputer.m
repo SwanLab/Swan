@@ -34,7 +34,7 @@ classdef FemComputer < handle
             s.interpolationType = obj.interpolationType;
             s.solverType = obj.solverType;
             s.solverMode = 'DISP';
-            obj.computation = FEM.create(s);
+            obj.computation = PhysicalProblem.create(s);
             obj.computation.solve();
             d_u = obj.computation.uFun.fValues;
             obj.variables.d_u = reshape(d_u', [numel(d_u) 1]);

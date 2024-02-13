@@ -44,8 +44,8 @@ classdef ProjectedGradient < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.upperBound     = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound     = cParams.uncOptimizerSettings.lb;
+            obj.upperBound     = cParams.ub;
+            obj.lowerBound     = cParams.lb;
         end
 
     end
