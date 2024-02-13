@@ -125,7 +125,7 @@ classdef OptimizerNullSpace < Optimizer
             else
                 DJ = obj.cost.gradient;
                 Dg = obj.constraint.gradient;
-                aJmax = -1/((Dg'*Dg)\Dg'*DJ);
+                aJmax = abs(-1/((Dg'*Dg)\Dg'*DJ));
             end
         end
 

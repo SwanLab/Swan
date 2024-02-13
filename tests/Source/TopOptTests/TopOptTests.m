@@ -56,7 +56,16 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         function x = createDesignVariable(type,mesh,gSet)
             g      = GeometricalFunction(gSet);
             lsFun  = g.computeLevelSetFunction(mesh);
-            s.fun  = lsFun;
+            switch type
+                case 'Density'
+                    ss.fValues = 1 - heaviside(lsFun.fValues);
+                    ss.mesh    = mesh;
+                    ss.order   = 'P1';
+                    fun        = LagrangianFunction(ss);
+                case 'LevelSet'
+                    fun = lsFun;
+            end
+            s.fun  = fun;
             s.mesh = mesh;
             s.type = type;
             x      = DesignVariable.create(s);
