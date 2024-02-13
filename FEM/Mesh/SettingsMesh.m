@@ -9,6 +9,7 @@ classdef SettingsMesh < AbstractSettings
         connec
         type
         kFace
+        geometryType
     end
     
     methods (Access = public)
@@ -40,6 +41,7 @@ classdef SettingsMesh < AbstractSettings
             sG.kFace          = obj.kFace;
             gC = GeometryTypeComputer(sG);
             g = gC.compute();
+            obj.geometryType = g;
         end
         
     end
