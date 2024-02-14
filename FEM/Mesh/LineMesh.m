@@ -20,8 +20,31 @@ classdef LineMesh < Mesh
         function obj = LineMesh(cParams)
             obj = obj@Mesh(cParams);
             % obj.init(cParams)
-%             obj.computeType();
-%             obj.createInterpolation();
+        end
+        
+        function plot(obj)
+            p = patch('vertices',obj.coord,'faces',obj.connec);
+            p.EdgeColor = 'b';
+            p.EdgeAlpha = 1;
+            p.EdgeLighting = 'flat';
+            p.LineWidth = 0.5;
+            p.LineStyle = '-';
+            axis('equal');
+            nodes = unique(obj.connec(:));
+            if size(obj.coord,2) == 3
+                x = obj.coord(:,1);
+                y = obj.coord(:,2);
+                z = obj.coord(:,3);
+                hold on
+                p = plot3(x(nodes),y(nodes),z(nodes),'.r');
+                p.MarkerSize = 6;
+            else
+                x = obj.coord(:,1);
+                y = obj.coord(:,2);
+                hold on
+                p = plot(x(nodes),y(nodes),'.r');
+                p.MarkerSize = 14;
+            end
         end
         
     end
@@ -29,18 +52,6 @@ classdef LineMesh < Mesh
     methods (Access = private)
         
         function init(obj,cParams)
-        end
-
-        function computeType(obj)
-%             s.geometryType = obj.geometryType;
-%             s.nnodeElem    = obj.nnodeElem;
-%             t = MeshTypeComputer(s);
-%             obj.type = t.compute();
-            obj.type = 'LINE';
-        end
-
-        function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
         end
         
     end

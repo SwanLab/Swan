@@ -19,16 +19,17 @@ classdef VolumeMesh < Mesh
             obj.initVol(cParams)
         end
 
-        function plotVolume(obj)
-            gPar.type = 'Full';
-            g         = GeometricalFunction(gPar);
-            phiFun    = g.computeLevelSetFunction(obj);
-            lsCircle  = phiFun.fValues;
+        function plot(obj)
+            gPar.type         = 'Full';
+            g                 = GeometricalFunction(gPar);
+            phiFun            = g.computeLevelSetFunction(obj);
+            lsCircle          = phiFun.fValues;
             
             sUm.backgroundMesh = obj;
             sUm.boundaryMesh   = obj.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(lsCircle);
+            uMesh.plot
         end
         
     end

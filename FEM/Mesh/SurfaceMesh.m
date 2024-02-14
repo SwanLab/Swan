@@ -20,7 +20,7 @@ classdef SurfaceMesh < Mesh
             
         end
         
-        function plotSurfaceMesh(obj) %Black
+        function plot(obj) %Black
             faceColor = "red";
             faceAlpha = 0.3;
             edgeAlpha = 0.5;

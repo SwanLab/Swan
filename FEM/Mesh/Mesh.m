@@ -246,13 +246,6 @@ classdef Mesh < handle
 
         %% Heavy refactoring
 
-        function plot(obj) % also extend for 3d meshes
-            s.mesh = obj;
-            s = SettingsMeshPlotter(s); % ???
-            mP = MeshPlotter(s); % ???
-            mP.plot();
-        end
-
         % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
         % DELETE Geometry
 
