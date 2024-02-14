@@ -19,6 +19,7 @@ classdef PhaseFieldComputer < handle
         fem
         phaseField
         deltaPhi
+        deltaU
     end
 
     properties (Access = private)
@@ -157,8 +158,7 @@ classdef PhaseFieldComputer < handle
             s.scale = 'MACRO';
             s.dim = '2D';
             s.material = obj.materialPhaseField.material;
-            s.bc = obj.boundaryConditions;
-            s.newBC = obj.boundaryConditions;
+            s.boundaryConditions = obj.boundaryConditions;
             s.interpolationType = 'LINEAR';
             s.quadratureOrder = quadOrder;
             s.solverType = 'REDUCED';
@@ -167,11 +167,44 @@ classdef PhaseFieldComputer < handle
             obj.fem.solve();
         end
 
+        function computeFEM(obj)
+            LHS = obj.computeElasticLHS(obj);
+            RHS = obj.computeElasticResidual(obj);
+            obj.deltaU = LHS\RHS;
+        end
+
+        function LHS = computeElasticLHS(obj)
+            K = createInternalEnergyStiffnessMatrix(obj);
+            LHS = K;
+        end
+
+        function res = computeElasticResidual(obj)
+            F = createInternalEnergyElasticForceVector(obj);
+            res = F;
+        end
+
+        function K = createInternalEnergyStiffnessMatrix(obj)
+            quadOrder = 'LINEAR';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+
+            [Huu,~] = obj.energyFunc.computeHessian(obj.fem.uFun,obj.phaseField,quad);
+            K = Huu;
+        end
+
+        function F = createInternalEnergyElasticForceVector(obj)
+            quadOrder = 'LINEAR';
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(quadOrder);
+            [Ju,~] = obj.energyFunc.computeGradient(obj.fem.uFun,obj.phaseField,quad);
+            F = Ju;
+        end
+
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Matrix equation
         function computePhaseField(obj)
             LHS = obj.computePhaseFieldLHS();
-            RHS = obj.computeResidual();
+            RHS = obj.computePhaseFieldResidual();
             obj.deltaPhi = -LHS\RHS;
             %obj.deltaPhi = -obj.tau*RHS;
         end
@@ -183,7 +216,7 @@ classdef PhaseFieldComputer < handle
             LHS = Mi + Md + K;
         end
 
-        function res = computeResidual(obj)
+        function res = computePhaseFieldResidual(obj)
             Fi = obj.createInternalEnergyForceVector();
             Fd = obj.createDissipationForceVector();
             DF = obj.createForceDerivativeVector();            
@@ -198,8 +231,8 @@ classdef PhaseFieldComputer < handle
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
 
-            H = obj.energyFunc.computeHessian(obj.fem.uFun,obj.phaseField,quad);
-            Mi = H.phiphi;
+            [~,Hphiphi] = obj.energyFunc.computeHessian(obj.fem.uFun,obj.phaseField,quad);
+            Mi = Hphiphi;
         end
 
         % Dissipation mass matrix
@@ -209,7 +242,7 @@ classdef PhaseFieldComputer < handle
 
         % Stiffness matrix
         function K = createStiffnessMatrix(obj)
-            K = obj.nonLocalDamageFunc.computeHessian('CONSTANT');
+            K = obj.nonLocalDamageFunc.computeHessian(obj.phaseField,'CONSTANT');
         end
 
         %%% RHS %%%
@@ -218,8 +251,8 @@ classdef PhaseFieldComputer < handle
             quadOrder = 'LINEAR';
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
-            J = obj.energyFunc.computeGradient(obj.fem.uFun,obj.phaseField,quad);
-            Fi = J.phi;
+            [Ju,Jphi] = obj.energyFunc.computeGradient(obj.fem.uFun,obj.phaseField,quad);
+            Fi = Jphi;
         end
         
         % Dissipation force vector

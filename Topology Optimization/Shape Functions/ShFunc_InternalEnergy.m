@@ -11,6 +11,7 @@ classdef ShFunc_InternalEnergy < handle
     properties (Access = private)
         mesh
         materialPhaseField
+        stressFun
     end
     
     methods (Access = public)
@@ -20,60 +21,49 @@ classdef ShFunc_InternalEnergy < handle
         end
         
         function F = computeFunction(obj,u,phi,quad)
-            e = u.computeSymmetricGradient(quad);
-            e.applyVoigtNotation();
             obj.materialPhaseField.computeInterpolatedMaterial(phi,quad);
-            C = obj.materialPhaseField.material.C;
-
-            s.mesh = obj.mesh;
-            s.type = 'InternalEnergy';
-            s.quadType = quad.order;
-            int = Integrator.create(s);
-            F = 0.5*int.compute(e,C);
-
-            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); %% Redundant
             energyFun =  obj.createEnergyFunction(quad,u);
             s.mesh = obj.mesh;
             s.type = 'Function';
             s.quadType = quad.order;
-            int2 = Integrator.create(s);
-            F2 = 0.5*int2.compute(energyFun);
+            int = Integrator.create(s);
+            F = 0.5*int.compute(energyFun);
         end
         
-        function J = computeGradient(obj,u,phi,quad)
+        function [Ju, Jphi] = computeGradient(obj,u,phi,quad)
             obj.materialPhaseField.computeFirstDerivativeInterpolatedMaterial(phi,quad); 
             dEnergyFun =  obj.createEnergyFunction(quad,u);
-            test = P1Function.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quad.order;
             RHS = RHSintegrator.create(s);
-            J.phi = 0.5*RHS.compute(dEnergyFun,test);
+            Jphi = 0.5*RHS.compute(dEnergyFun,test);
 
-            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); 
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = u;
-            s.material = obj.materialPhaseField.material;
-            s.quadratureOrder = quad.order;
-            LHS = LHSintegrator.create(s);
-            J.u = LHS.compute();
+            
+            sigma = obj.createStressFunction(u,phi,quad);
+            test = LagrangianFunction.create(obj.mesh, 2, 'P1');
 
+            s.mesh = obj.mesh;
+            s.quadratureOrder = 'LINEAR';
+            s.type = 'ShapeSymmetricDerivative';
+            RHS = RHSintegrator.create(s);
+            Ju = RHS.compute(sigma,test);
         end
         
-        function H = computeHessian(obj,u,phi,quad)
+        function [Huu, Hphiphi] = computeHessian(obj,u,phi,quad)
             obj.materialPhaseField.computeSecondDerivativeInterpolatedMaterial(phi,quad); 
             ddEnergyFun =  obj.createEnergyFunction(quad,u);
             
             s.function = ddEnergyFun;
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quad.order;
             LHS = LHSintegrator.create(s);
-            H.phiphi = 0.5*LHS.compute();
+            Hphiphi = 0.5*LHS.compute();
 
             obj.materialPhaseField.computeInterpolatedMaterial(phi,quad); 
             s.type     = 'ElasticStiffnessMatrix';
@@ -82,7 +72,7 @@ classdef ShFunc_InternalEnergy < handle
             s.material = obj.materialPhaseField.material;
             s.quadratureOrder = quad.order;
             LHS = LHSintegrator.create(s);
-            H.uu = LHS.compute();
+            Huu = LHS.compute();
         end
         
     end
@@ -123,6 +113,15 @@ classdef ShFunc_InternalEnergy < handle
                     end
                 end
             end
+        end
+
+        function stressFun = createStressFunction(obj,u,phi,quad)
+            s.mesh = obj.mesh;
+            s.materialPhaseField = obj.materialPhaseField;
+            s.u = u;
+            s.phi = phi;
+            s.quadrature = quad;
+            stressFun = StressFunctions(s);
         end
     end
     

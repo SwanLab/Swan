@@ -33,7 +33,7 @@ classdef ShFunc_LocalDamage < handle
         
         function J = computeGradient(obj,phi,quadOrder)
             dAlphaFun =  obj.createFirstDerivativeDissipationFunction(phi);
-            test = P1Function.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
@@ -45,8 +45,8 @@ classdef ShFunc_LocalDamage < handle
         function H = computeHessian(obj,phi,quadOrder)
             ddAlphaFun =  obj.createSecondDerivativeDissipationFunction(phi);
             
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.function = ddAlphaFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';

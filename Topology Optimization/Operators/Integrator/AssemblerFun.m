@@ -44,7 +44,7 @@ classdef AssemblerFun < handle
 
         function V = assembleV(obj, F, fun)
             % Via indices
-            dofConnec = obj.fun.getConnec();
+            dofConnec = fun.getConnec();
             nDofsEl   = size(dofConnec,2);
             nDofs     = max(max(dofConnec)); %obj.fun.nDofs;
             nGaus     = size(F,2);

@@ -6,7 +6,6 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
     
     properties (Access = private)
         boundaryConditions
-        newBoundaryConditions
     end
     
     properties (Access = private)
@@ -22,7 +21,7 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         
         function bC = create(obj,prescribedVal)
             obj.createBoundaryConditions(prescribedVal)
-            bC = obj.newBoundaryConditions;            
+            bC = obj.boundaryConditions;            
         end
         
     end
@@ -100,39 +99,6 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
          end
         
          function createDisplacementTractionConditions(obj,uVal)
-             nodes = 1:obj.mesh.nnodes;
-             ndim = 2;
-
-             % Enforce fixed Dirichlet conditions to the down nodes
-             downSide = min(obj.mesh.coord(:,2));
-             isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
-             dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-             for i=1:ndim
-                 dirichletDown(i:2:end,1) = nodes(isInDown);
-                 dirichletDown(i:2:end,2) = i;
-             end
-
-
-
-             % Enforce roller Dirichlet conditions to the top nodes
-             upSide  = max(obj.mesh.coord(:,2));
-             isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
-             dirichletUp   = zeros(ndim*length(nodes(isInUp)),3);
-             for i=1:ndim
-                 dirichletUp(i:2:end,1) = nodes(isInUp);
-                 dirichletUp(i:2:end,2) = i;
-             end
-
-             % Enforce displacement at the top
-             dirichletUp(2:2:end,3) = uVal;
-
-             % Merge
-             bc.dirichlet = [dirichletDown; dirichletUp];
-             bc.pointload = [];
-             obj.boundaryConditions = bc;
-
-
-             %%%%% VARIANT %%%%%%%
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);
              sDir.direction = [1,2];
@@ -150,9 +116,11 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              sDir.value     = uVal;       
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
-             obj.newBoundaryConditions.dirichletFun = [Dir1 Dir2 Dir3];
-             obj.newBoundaryConditions.pointloadFun = [];
-             obj.newBoundaryConditions.periodicFun = [];
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1 Dir2 Dir3];
+             s.pointloadFun = [];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);
          end
          
          function createLshapeDisplacementConditions(obj,uVal)

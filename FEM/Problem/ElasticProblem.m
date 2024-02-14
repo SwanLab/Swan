@@ -22,7 +22,6 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         mesh 
         material  
-        inputBC
         displacementFun
     end
 
@@ -93,7 +92,6 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;

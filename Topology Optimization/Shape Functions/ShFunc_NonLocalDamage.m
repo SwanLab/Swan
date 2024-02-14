@@ -38,7 +38,7 @@ classdef ShFunc_NonLocalDamage < handle
         
         function J = computeGradient(obj,phi,quad)
             PhiGrad = phi.computeGradient(quad);
-            test = P1Function.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             
             s.quadratureOrder = quad.order;
             s.mesh = obj.mesh;
@@ -47,9 +47,9 @@ classdef ShFunc_NonLocalDamage < handle
             J = (obj.constant*(obj.l0/2))*RHS.compute(PhiGrad, test);
         end
         
-        function H = computeHessian(obj,quadOrder)
-            s.trial = P1Function.create(obj.mesh,1);
-            s.test = P1Function.create(obj.mesh,1);
+        function H = computeHessian(obj,phi,quadOrder)
+            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.quadratureOrder = quadOrder;
             s.mesh = obj.mesh;
             s.type = 'StiffnessMatrix';
