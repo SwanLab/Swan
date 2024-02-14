@@ -19,11 +19,11 @@ classdef TopOptViaHomogenizationTutorial < handle
         function obj = TopOptViaHomogenizationTutorial()
             obj.init()
             obj.createMesh();
-            obj.createDesignVariable();            
+            obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();            
+            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolume();
             obj.createCost();
@@ -48,19 +48,19 @@ classdef TopOptViaHomogenizationTutorial < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);            
+            obj.mesh = Mesh.create(s);
         end
 
         function createDesignVariable(obj)
             s.fHandle = @(x) 0.5*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);            
+            aFun      = AnalyticalFunction(s);
             s.fun{1}  = aFun.project('P1');
             s.fun{2}  = aFun.project('P1');
-            s.mesh    = obj.mesh;                        
+            s.mesh    = obj.mesh;
             s.type    = 'MicroParams';
-            desVar    = DesignVariable.create(s);   
+            desVar    = DesignVariable.create(s);
             obj.designVariable = desVar;
         end
 
@@ -70,26 +70,26 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.trial = P1Function.create(obj.mesh,1);
             f = Filter.create(s);
             obj.filter = f;
-        end       
+        end
 
         function createMaterialInterpolator(obj)
-%             ndim = 2;            
-%             E0 = 1e-3; 
-%             nu0 = 1/3;
-%             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-%             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-% 
-%             E1 = 1;
-%             nu1 = 1/3;              
-%             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-%             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+            %             ndim = 2;
+            %             E0 = 1e-3;
+            %             nu0 = 1/3;
+            %             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            %             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            %
+            %             E1 = 1;
+            %             nu1 = 1/3;
+            %             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            %             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
 
             m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;            
-        end    
+            obj.materialInterpolator = m;
+        end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
@@ -109,7 +109,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
             obj.compliance = c;
-        end        
+        end
 
         function createCompliance(obj)
             s.mesh                 = obj.mesh;
@@ -166,7 +166,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             mI   = obj.materialInterpolator;
             mat  = mI.computeConsitutiveTensor(desVar);
         end
-        
+
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
@@ -196,7 +196,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             bc.pointloadFun = pointloadFun;
 
             bc.periodicFun  = [];
-        end    
+        end
 
     end
 

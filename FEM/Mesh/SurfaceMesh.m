@@ -15,6 +15,7 @@ classdef SurfaceMesh < Mesh
     methods (Access = public)
         
         function obj = SurfaceMesh(cParams)
+            obj = obj@Mesh(cParams);
             obj.init(cParams)
             
         end

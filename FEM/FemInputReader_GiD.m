@@ -81,7 +81,7 @@ classdef FemInputReader_GiD < handle
             s.masterSlaveNodes = obj.masterSlave;
             s.boundaryNodes    = obj.boundaryNodes;
             s.boundaryElements = obj.boundaryElements;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
         
         function readFile(obj,fileName)

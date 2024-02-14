@@ -57,7 +57,7 @@ classdef PlottingToyUnfittedExample < handle
         function computeBackgroundMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            obj.backgroundMesh = Mesh(s);
+            obj.backgroundMesh = Mesh.create(s);
         end
         
         function computeBoundaryMeshes(obj)

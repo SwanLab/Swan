@@ -3,7 +3,7 @@ classdef Mesh < handle
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
-        geometryType
+        % geometryType
 
         coord
         connec
@@ -27,13 +27,33 @@ classdef Mesh < handle
         geometry
     end
 
+    methods (Static, Access = public)
+        
+        function obj = create(cParams)
+            s = SettingsMesh(cParams);
+            ndim  = size(s.coord,2);
+            b.ndim  = ndim;
+            b.kFace = s.kFace;
+            g = GeometryTypeComputer(b);
+            type = g.compute();
+            switch type
+                case 'Line'
+                    obj = LineMesh(s);
+                case 'Surface'
+                    obj = SurfaceMesh(s);
+                case 'Volume'
+                    obj = VolumeMesh(s);
+            end
+        end
+
+    end
 
     methods (Access = public)
 
         function obj = Mesh(cParams)
             obj.init(cParams);
             obj.computeDimensionParams();
-            obj.computeGeometryType();
+            % obj.computeGeometryType();
             obj.computeType();
             obj.createInterpolation();
             obj.computeElementCoordinates();
@@ -94,7 +114,7 @@ classdef Mesh < handle
             s.coord  = obj.coord;
             s.connec = obj.edges.nodesInEdges;
             s.kFace  = obj.kFace -1;
-            eM = Mesh(s);
+            eM = Mesh.create(s);
         end
 
         function m = computeCanonicalMesh(obj)
@@ -278,7 +298,7 @@ classdef Mesh < handle
             coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
             s.connec = connecDisc;
             s.coord  = coordD;
-            mD = Mesh(s);
+            mD = Mesh.create(s);
         end
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
@@ -297,7 +317,7 @@ classdef Mesh < handle
             s.coord = boundaryCoords;
             s.kFace = -1;
             
-            m = Mesh(s);
+            m = Mesh.create(s);
             l2g(newNodes(:)) = originalNodes(:);
         end
         
@@ -321,7 +341,7 @@ classdef Mesh < handle
                     s.coord = coord_valid;
                     s.kFace = -1;
                     
-                    m = Mesh(s);
+                    m = Mesh.create(s);
                     l2g(newNodes(:)) = l2gBound(validNodes);
                 otherwise
                     error('Cannot yet get boundary submesh for 3D')
@@ -402,14 +422,6 @@ classdef Mesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end
-
-    end
-
-    methods (Access = private, Static)
-
-        function [coord, connec] = readCoordConnec(testName)
-            run(testName)
         end
 
     end

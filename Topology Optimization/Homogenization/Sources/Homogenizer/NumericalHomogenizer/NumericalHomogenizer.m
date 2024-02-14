@@ -173,7 +173,7 @@ classdef NumericalHomogenizer < handle
             cParams.coord  = mpMesh.coord;
             cParams.connec = mpMesh.connec;
 %             mesh = Mesh_Total(cParams);
-            mesh = Mesh(cParams);
+            mesh = Mesh.create(cParams);
 
             d = obj.volDataBase;
             s = SettingsDesignVariable();

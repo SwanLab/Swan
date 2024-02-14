@@ -1,14 +1,14 @@
-classdef LineMesh < NewMesh
+classdef LineMesh < Mesh
     
     properties (Access = public)
         geometryType = 'Line';
         
-        coord, connec
-        kFace
+%         coord, connec
+%         kFace
     end
     
     properties (Access = private)
-        type
+%         type
     end
     
     properties (Access = private)
@@ -18,9 +18,10 @@ classdef LineMesh < NewMesh
     methods (Access = public)
         
         function obj = LineMesh(cParams)
-            obj.init(cParams)
-            obj.computeType();
-            obj.createInterpolation();
+            obj = obj@Mesh(cParams);
+            % obj.init(cParams)
+%             obj.computeType();
+%             obj.createInterpolation();
         end
         
     end
@@ -28,9 +29,6 @@ classdef LineMesh < NewMesh
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.coord  = cParams.coord;
-            obj.connec = cParams.connec;
-            obj.kFace  = 0;
         end
 
         function computeType(obj)

@@ -52,7 +52,7 @@ classdef VectorizedTriangulationTest < handle
         function createBackgroundMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.backgroundMesh = m;
         end
 
@@ -124,7 +124,7 @@ classdef VectorizedTriangulationTest < handle
         function computeDeterminant2(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            mesh = Mesh(s);
+            mesh = Mesh.create(s);
             nDime   = mesh.ndim;
             nNode   = mesh.nnodeElem;
             nElem   = mesh.nelem;

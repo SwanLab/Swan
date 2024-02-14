@@ -30,7 +30,7 @@ classdef ConnecWithQualityComputer < handle
         function m = createMesh(obj)
             s.coord = [obj.x,obj.y];
             s.connec = obj.badConnec;
-            m = Mesh().create(s);            
+            m = Mesh.create(s);            
         end
         
         function itIsNot = isNotBadQuality(obj)

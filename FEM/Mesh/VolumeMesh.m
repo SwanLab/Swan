@@ -5,7 +5,7 @@ classdef VolumeMesh < Mesh
     end
     
     properties (Access = private)
-        
+        cParams;
     end
     
     properties (Access = private)
@@ -15,7 +15,8 @@ classdef VolumeMesh < Mesh
     methods (Access = public)
         
         function obj = VolumeMesh(cParams)
-            obj.init(cParams)
+            obj = obj@Mesh(cParams);
+            obj.initVol(cParams)
             
         end
         
@@ -23,8 +24,7 @@ classdef VolumeMesh < Mesh
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            
+        function initVol(obj,cParams)
         end
         
     end

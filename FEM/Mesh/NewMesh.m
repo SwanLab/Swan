@@ -7,7 +7,6 @@ classdef NewMesh < handle
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
-        % geometryType
 
         coord
         connec
@@ -58,7 +57,7 @@ classdef NewMesh < handle
         function obj = NewMesh(cParams)
             obj.init(cParams);
             obj.computeDimensionParams();
-            obj.computeGeometryType();
+            % obj.computeGeometryType();
             obj.computeType();
             obj.createInterpolation();
             obj.computeElementCoordinates();
@@ -427,14 +426,6 @@ classdef NewMesh < handle
                     L = L + (xA - xB).^2;
                 end
             end
-        end
-
-    end
-
-    methods (Access = private, Static)
-
-        function [coord, connec] = readCoordConnec(testName)
-            run(testName)
         end
 
     end

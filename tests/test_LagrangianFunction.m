@@ -30,5 +30,5 @@ function m = createMesh(N)
     
     sBg.coord  = [0,0;1,0;0,1];
     sBg.connec = [1 2 3];
-    m = Mesh(sBg);
+    m = Mesh.create(sBg);
 end

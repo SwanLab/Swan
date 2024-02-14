@@ -17,7 +17,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         function obj = TopOptTestTutorialLSPerimeter()
             obj.init()
             obj.createMesh();
-            obj.createDesignVariable();            
+            obj.createDesignVariable();
             obj.createFilter();
             obj.createPerimeter();
             obj.createVolumeConstraint();
@@ -42,7 +42,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
 
         function createDesignVariable(obj)
@@ -55,7 +55,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.fun         = lsFun;
             s.mesh        = obj.mesh;
             s.type        = 'LevelSet';
-            ls            = DesignVariable.create(s);   
+            ls            = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 

@@ -1,4 +1,4 @@
-classdef OptimalSuperEllipsePrinter < handle
+wclassdef OptimalSuperEllipsePrinter < handle
     
     properties (Access = private)
         mesh
@@ -50,7 +50,7 @@ classdef OptimalSuperEllipsePrinter < handle
             run('RVE_Square_Triangle_FineFine')
             a.connec = connec(:, 2:end);
             a.coord  = coord(:, 2:3);
-            m = Mesh(a);
+            m = Mesh.create(a);
             %obj.testName = 'RVE_Square_Triangle_Fine';
             obj.meshBackground = m; 
         end

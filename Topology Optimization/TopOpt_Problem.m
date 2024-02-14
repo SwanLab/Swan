@@ -193,7 +193,7 @@ classdef TopOpt_Problem < handle
 
             a.coord  = s.femData.mesh.coord;
             a.connec = s.femData.mesh.connec;
-            innerMesh = Mesh(a);
+            innerMesh = Mesh.create(a);
             boundMesh = innerMesh.createBoundaryMesh();
             sM.backgroundMesh = innerMesh;
             sM.boundaryMesh   = boundMesh;

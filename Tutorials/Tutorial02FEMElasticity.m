@@ -34,7 +34,7 @@ classdef Tutorial02FEMElasticity < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);            
+            obj.mesh = Mesh.create(s);
         end
 
         function computeElasticProperties(obj)
@@ -69,7 +69,7 @@ classdef Tutorial02FEMElasticity < handle
             fem.solve();
             obj.stateProblem = fem;
         end
-        
+
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
@@ -101,7 +101,7 @@ classdef Tutorial02FEMElasticity < handle
             s.periodicFun  = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
-        end    
+        end
 
     end
 
