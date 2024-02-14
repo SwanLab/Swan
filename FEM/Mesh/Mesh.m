@@ -70,7 +70,6 @@ classdef Mesh < handle
             xGauss = obj.xFE.evaluate(xV);
         end
 
-
         function q = computeElementQuality(obj) % check for 3d
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');

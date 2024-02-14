@@ -20,6 +20,32 @@ classdef SurfaceMesh < Mesh
             
         end
         
+        function plotSurfaceMesh(obj) %Black
+            faceColor = "red";
+            faceAlpha = 0.3;
+            edgeAlpha = 0.5;
+            if size(obj.connec,2) == 3 && size(obj.coord,2) == 3
+                x = obj.coord(:,1);
+                y = obj.coord(:,2);
+                z = obj.coord(:,3);
+                p = trisurf(obj.connec,x,y,z);
+                p.FaceColor = [1 0 0];
+                p.FaceAlpha = 1;
+                p.EdgeColor = 'none';
+                hold on
+            else
+                p = patch('vertices',obj.coord,'faces',obj.connec);
+                p.EdgeAlpha = edgeAlpha;
+                p.EdgeLighting = 'flat';
+                p.FaceColor = faceColor;%[167,238,237]/265; 'green';'red';%
+                p.FaceLighting = 'flat';
+                p.FaceAlpha = faceAlpha;
+                p.LineWidth = 1.5;
+                axis('equal');
+                hold on
+            end
+        end            
+        
     end
     
     methods (Access = private)
