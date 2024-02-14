@@ -4,9 +4,9 @@ function [u,numero,residuFine,iterRes] = vcycle(u, b, data, vdown, vup, level, b
         %u = data(level).A\b;
         malla = 'coarse';
         maxIter = 1000;
-        plotSolution(u, mesh{1,1}, bc{1,1}, malla, numero)
+        %plotSolution(u, mesh{1,1}, bc{1,1}, malla, numero)
         [u, res,residuFine,iterRes] = conjugateGradient_Solver(data(level).A,b,u,malla,residuFine,iterRes,maxIter);
-        plotSolution(u, mesh{1,1}, bc{1,1}, malla, numero)
+        %plotSolution(u, mesh{1,1}, bc{1,1}, malla, numero)
         %plotRes(res,mesh{1,1},bc{1,1},malla,numero)
         numero = numero + 1;
     else 
@@ -43,6 +43,6 @@ function [fCoarse] = interpolate(fFine,bc,data,level)
         fFine = bc{level}.reducedToFullVector(fFine);
         fFine = reshape(fFine,2,[])';
         fCoarse = data(level - 1).R * fFine;
-        fCoarse = reshape(fCoarse,[],1);
+        fCoarse = reshape(fCoarse',[],1);
         fCoarse = bc{level - 1}.fullToReducedVector(fCoarse);
 end
