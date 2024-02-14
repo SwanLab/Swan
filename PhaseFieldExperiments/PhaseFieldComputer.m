@@ -168,18 +168,14 @@ classdef PhaseFieldComputer < handle
         end
 
         function computeFEM(obj)
-            LHS = obj.computeElasticLHS(obj);
+            LHS = obj.createInternalEnergyStiffnessMatrix();
             RHS = obj.computeElasticResidual(obj);
             obj.deltaU = LHS\RHS;
         end
 
-        function LHS = computeElasticLHS(obj)
-            K = createInternalEnergyStiffnessMatrix(obj);
-            LHS = K;
-        end
 
         function res = computeElasticResidual(obj)
-            F = createInternalEnergyElasticForceVector(obj);
+            F = obj.createInternalEnergyElasticForceVector();
             res = F;
         end
 

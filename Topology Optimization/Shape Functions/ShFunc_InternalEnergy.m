@@ -42,7 +42,7 @@ classdef ShFunc_InternalEnergy < handle
             Jphi = 0.5*RHS.compute(dEnergyFun,test);
 
             
-            sigma = obj.createStressFunction(u,phi,quad);
+            sigma = obj.createStressFunction(u,phi);
             test = LagrangianFunction.create(obj.mesh, 2, 'P1');
 
             s.mesh = obj.mesh;
@@ -58,7 +58,7 @@ classdef ShFunc_InternalEnergy < handle
             
             s.function = ddEnergyFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quad.order;
@@ -94,7 +94,7 @@ classdef ShFunc_InternalEnergy < handle
             s.fValues = energyVal;
             s.quadrature = quad;
             s.mesh = obj.mesh;
-            energyFun = FGaussDiscontinuousFunction(s);
+            energyFun = FGaussDiscontinuousFunction(s); %no!!
         end
         
         function energyVal = computeEnergyField(obj,e,C)
@@ -115,12 +115,10 @@ classdef ShFunc_InternalEnergy < handle
             end
         end
 
-        function stressFun = createStressFunction(obj,u,phi,quad)
-            s.mesh = obj.mesh;
+        function stressFun = createStressFunction(obj,u,phi)
             s.materialPhaseField = obj.materialPhaseField;
             s.u = u;
             s.phi = phi;
-            s.quadrature = quad;
             stressFun = StressFunctions(s);
         end
     end

@@ -23,44 +23,34 @@ classdef StressFunctions < handle
             obj.init(cParams)         
         end
         
-        function fxV = evaluate(obj)
-            fxV = obj.strs.fValues;
+        function sV = evaluate(obj,xV)
+            C = obj.computeC(xV);
+            e = obj.computeStrain(xV);
+            s = pagemtimes(C,e);
+            s = squeezeParticular(s,2);
+            sV = permute(s, [1 3 2]);
         end     
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.materialPhaseField = cParams.materialPhaseField;
-            obj.u = cParams.u;
+            obj.u   = cParams.u;
             obj.phi = cParams.phi;
-            obj.quadrature = cParams.quadrature;
-            
-            obj.computeStrain(obj.u,obj.quadrature);
-            obj.computeStress(obj.phi,obj.quadrature);
+            obj.materialPhaseField = cParams.materialPhaseField;            
+        end
+
+        function C = computeC(obj,xV) 
+           mat =  obj.materialPhaseField;
+           C   = mat.computeInterpolatedMaterial(obj.phi,xV);
         end
         
-        function computeStrain(obj,u,quad)
-            strFun = u.computeSymmetricGradient(quad);
-            strFun.applyVoigtNotation();
-            obj.strn = strFun;
+        function e = computeStrain(obj,u,xV)
+            strFun = u.computeSymmetricGradient(xV);
+            strFun.applyVoigtNotation();           
+            e = strFun.fValues;
         end
-        
-        function computeStress(obj,phi,quad)
-            strainVal  = permute(obj.strn.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strainVal;
-            
-            obj.materialPhaseField.computeInterpolatedMaterial(phi,quad)
-            stressVal =squeezeParticular(pagemtimes(obj.materialPhaseField.material.C,strn2),2);
-            stressVal = permute(stressVal, [1 3 2]);
-            
-            z.mesh       = obj.mesh;
-            z.fValues    = stressVal;
-            z.quadrature = quad;
-            obj.strs = FGaussDiscontinuousFunction(z);
-        end
-        
+ 
     end
     
 end
