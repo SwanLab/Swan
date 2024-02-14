@@ -66,7 +66,7 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
                     s.vigdergauzSettings.volumeMicro       = 0.75;
                     s.vigdergauzSettings.superEllipseRatio = 2.5;
                 case 'PeriodicAndOriented'
-                    s.periodicOrientedSettings = obj.obtainPeriodicOrientedSettings(mesh);
+                    s = obj.obtainPeriodicOrientedSettings(mesh);
                 otherwise
                     s.xCoorCenter  = 0;
                     s.yCoorCenter  = 0.5;
