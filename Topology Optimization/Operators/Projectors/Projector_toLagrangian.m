@@ -29,18 +29,22 @@ classdef Projector_toLagrangian < Projector
             s.mesh  = obj.mesh;
             s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
             s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            s.quadratureOrder = 'ORDER10'; % no
+            a.funcs = {s.test, s.trial};
+            a.ndim  = obj.mesh.ndim;
+            a.mType = obj.mesh.type;
+            s.quadratureOrder = QuadratureOrderSelector.compute(a);
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
         function RHS = computeRHS(obj,fun)
-            quad = obj.createRHSQuadrature(fun);
+            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
+
+            quad = obj.createRHSQuadrature(fun,f);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            
-            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
+
             shapes = f.computeShapeFunctions(quad);
             conne = f.computeDofConnectivity()';
 
@@ -66,12 +70,14 @@ classdef Projector_toLagrangian < Projector
             RHS = f;
         end
 
-        function q = createRHSQuadrature(obj, fun)
+        function q = createRHSQuadrature(obj, fun, f)
             if isa(fun, 'FGaussDiscontinuousFunction')
                 q = fun.quadrature;
             else
-                ord = obj.determineQuadratureOrder(fun);
-                quadratureOrder = 'ORDER10'; % no
+                a.funcs = {fun,f};
+                a.ndim = obj.mesh.ndim;
+                a.mType = obj.mesh.type;
+                quadratureOrder = QuadratureOrderSelector.compute(a);
                 
                 q = Quadrature.set(obj.mesh.type);
                 q.computeQuadrature(quadratureOrder);
