@@ -9,33 +9,59 @@ function [x,res,residuFine,iterRes] = conjugateGradient_Solver(LHS,RHS,x,malla,r
     iter = 1;
 
     hasNotConverged = true;
-
-    while iter < maxIter
-        Ap = LHS * p;
-        alpha = rsold / (p' * Ap);
-        x = x + alpha * p;
-        r = r - alpha * Ap;
-        rsnew = r' * r;
-
-        %hasNotConverged = sqrt(rsnew) > tol;
-        hasNotConverged = max(LHS*x - RHS) > tol;
-
-        p = r + (rsnew / rsold) * p;
-        rsold = rsnew;
-        iter = iter + 1;
-        residu(iter) = norm(LHS*x - RHS); %Ax - b
-        res = LHS*x - RHS;
+    
+    if strcmp(malla,'fine')
         
-        if strcmp(malla,'fine')
-            residuFine(iterRes) = norm(LHS*x - RHS);
-            iterRes = iterRes + 1;
+        while iter < maxIter
+            Ap = LHS * p;
+            alpha = rsold / (p' * Ap);
+            x = x + alpha * p;
+            r = r - alpha * Ap;
+            rsnew = r' * r;
+
+            %hasNotConverged = sqrt(rsnew) > tol;
+            hasNotConverged = norm(LHS*x - RHS) > tol;
+
+            p = r + (rsnew / rsold) * p;
+            rsold = rsnew;
+            iter = iter + 1;
+            residu(iter) = norm(LHS*x - RHS); %Ax - b
+            res = LHS*x - RHS;
+
+            if strcmp(malla,'fine')
+                residuFine(iterRes) = norm(LHS*x - RHS);
+                iterRes = iterRes + 1;
+            end
+
         end
         
-        %plotSolution(x,mesh,bc,iter)
+    else
         
-        %plotRes(res,mesh,bc,iter)
+        while hasNotConverged
+            Ap = LHS * p;
+            alpha = rsold / (p' * Ap);
+            x = x + alpha * p;
+            r = r - alpha * Ap;
+            rsnew = r' * r;
+
+            %hasNotConverged = sqrt(rsnew) > tol;
+            hasNotConverged = norm(LHS*x - RHS) > tol;
+
+            p = r + (rsnew / rsold) * p;
+            rsold = rsnew;
+            iter = iter + 1;
+            residu(iter) = norm(LHS*x - RHS); %Ax - b
+            res = LHS*x - RHS;
+
+            if strcmp(malla,'fine')
+                residuFine(iterRes) = norm(LHS*x - RHS);
+                iterRes = iterRes + 1;
+            end
+
+        end
+        
     end
-    %save('residuConjugateZeros.mat', 'residu')
+    
 end
 
 

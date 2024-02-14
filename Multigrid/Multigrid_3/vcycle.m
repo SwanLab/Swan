@@ -20,8 +20,8 @@ function [u,numero,residuFine,iterRes] = vcycle(u, b, data, vdown, vup, level, b
         r = b - data(level).A*u;
         [Rr] = interpolate(r,bc,data,level);
         [ur] = interpolate(u,bc,data,level);
-        [e,numero,residuFine,iterRes] = vcycle(ur, Rr, data, vdown, vup, level - 1, bc, numero, mesh,residuFine,iterRes);
-        %[e,numero] = vcycle(Rr, data(level - 1).b, data, vdown, vup, level - 1, bc, numero, mesh);
+        %[e,numero,residuFine,iterRes] = vcycle(ur, Rr, data, vdown, vup, level - 1, bc, numero, mesh,residuFine,iterRes);
+        [e,numero,residuFine,iterRes] = vcycle(ur, data(level-1).b, data, vdown, vup, level - 1, bc, numero, mesh,residuFine,iterRes);
         e = bc{level - 1}.reducedToFullVector(e);
         e = reshape(e,2,[])';
         e = data(level - 1).T * e; 
@@ -38,11 +38,11 @@ function [u,numero,residuFine,iterRes] = vcycle(u, b, data, vdown, vup, level, b
 
 end
 
-function [fCoarse] = interpolate(r,bc,data,level)
+function [fCoarse] = interpolate(fFine,bc,data,level)
         
-        r = bc{level}.reducedToFullVector(r);
-        r = reshape(r,2,[])';
-        fCoarse = data(level - 1).R * r;
+        fFine = bc{level}.reducedToFullVector(fFine);
+        fFine = reshape(fFine,2,[])';
+        fCoarse = data(level - 1).R * fFine;
         fCoarse = reshape(fCoarse,1,[])';
         fCoarse = bc{level - 1}.fullToReducedVector(fCoarse);
 end
