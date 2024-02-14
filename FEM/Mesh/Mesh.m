@@ -31,12 +31,7 @@ classdef Mesh < handle
         
         function obj = create(cParams)
             s = SettingsMesh(cParams);
-            ndim  = size(s.coord,2);
-            b.ndim  = ndim;
-            b.kFace = s.kFace;
-            g = GeometryTypeComputer(b);
-            type = g.compute();
-            switch type
+            switch s.geometryType
                 case 'Line'
                     obj = LineMesh(s);
                 case 'Surface'
@@ -53,8 +48,6 @@ classdef Mesh < handle
         function obj = Mesh(cParams)
             obj.init(cParams);
             obj.computeDimensionParams();
-            % obj.computeGeometryType();
-            obj.computeType();
             obj.createInterpolation();
             obj.computeElementCoordinates();
             obj.createGeometry();
@@ -352,14 +345,7 @@ classdef Mesh < handle
 
     methods (Access = private)
 
-        function init(obj,cParams)
-            s = SettingsMesh(cParams);
-            if isfield(cParams,'boundaryNodes')
-               obj.boundaryNodes = cParams.boundaryNodes;
-            end
-            if isfield(cParams,'boundaryElements')
-               obj.boundaryElements = cParams.boundaryElements;
-            end
+        function init(obj,s)
             obj.coord  = s.coord;
             obj.connec = s.connec;
             obj.type   = s.type;
@@ -371,20 +357,6 @@ classdef Mesh < handle
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnodeElem = size(obj.connec,2);
-        end
-
-        function computeType(obj)
-            s.geometryType = obj.geometryType;
-            s.nnodeElem    = obj.nnodeElem;
-            t = MeshTypeComputer(s);
-            obj.type = t.compute();
-        end
-
-        function computeGeometryType(obj)
-            s.ndim  = obj.ndim;
-            s.kFace = obj.kFace;
-            g = GeometryTypeComputer(s);
-            obj.geometryType = g.compute();
         end
 
         function createGeometry(obj)

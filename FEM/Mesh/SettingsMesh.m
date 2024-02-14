@@ -1,7 +1,7 @@
 classdef SettingsMesh < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsMesh.json'
+        defaultParamsName% = 'paramsMesh.json'
     end
     
     properties (GetAccess = public, SetAccess = public)
