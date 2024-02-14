@@ -108,7 +108,7 @@ classdef P2Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function plot(obj, m) % 2D domains only
+        function plot(obj) % 2D domains only
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
             c = ConnecCoordFromInterpAndMesh(s);
@@ -167,10 +167,10 @@ classdef P2Function < FeFunction
 
     methods (Access = public, Static)
 
-        function p1 = create(mesh, ndimf)
+        function p2 = create(mesh, ndimf)
             s.fValues = zeros(mesh.nnodes, ndimf); % wrong
             s.mesh    = mesh;
-            p1 = P2Function(s);
+            p2 = P2Function(s);
         end
 
     end
@@ -181,7 +181,7 @@ classdef P2Function < FeFunction
             obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'QUADRATIC';
+            obj.order   = 'ORDER4';
         end
 
         function createInterpolation(obj)
@@ -197,6 +197,11 @@ classdef P2Function < FeFunction
             obj.coord  = c.coord;
             obj.connec = c.connec;
             nDimf = size(obj.fValues,2);
+            
+            if all(obj.fValues == 0)
+                obj.fValues = zeros(size(c.coord,1),nDimf);
+            end
+            
             if isequal(size(obj.mesh.coord,1), size(obj.fValues,1))
                 obj.fValues = zeros(size(obj.coord,1),nDimf);
             end

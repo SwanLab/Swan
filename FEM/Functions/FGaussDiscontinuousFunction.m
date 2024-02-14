@@ -7,14 +7,23 @@
     properties (Access = public)
         ndimf
         fValues
-        quadrature
     end
 
     properties (Access = private)
+        quadrature
         mesh
     end
     
     properties (Access = private)
+    end
+
+    methods (Static, Access = public)
+        function obj = create(fValues,mesh,quadrature)
+            s.fValues    = fValues;
+            s.mesh       = mesh;
+            s.quadrature = quadrature;
+            obj          = FGaussDiscontinuousFunction(s);
+        end
     end
     
     methods (Access = public)
@@ -23,9 +32,20 @@
             obj.init(cParams)
         end
 
+        function fun = project(obj,target)
+            s.mesh          = obj.mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end
+        
         function fxV = evaluate(obj, xV)
-            assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
+            % assert(isequal(xV, obj.quadrature.posgp), 'Gauss points do not match')
             fxV = obj.fValues;
+        end
+
+        function q = getQuadratureOrder(obj)
+            q = obj.quadrature.order;
         end
         
         function dNdx  = computeCartesianDerivatives(obj, quad)
@@ -48,12 +68,12 @@
             dNdx = dShapeDx;
         end
 
-        function applyVoigtNotation(obj)
+        function newObj = obtainVoigtFormat(obj)
             switch obj.ndimf
                 case 4
-                    obj.applyVoigt2D()
+                    newObj = obj.applyVoigt2D();
                 case 9
-                    obj.applyVoigt3D()
+                    newObj = obj.applyVoigt3D();
             end
         end
 
@@ -66,7 +86,7 @@
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
@@ -105,7 +125,7 @@
         end
 
         function v = computeL2norm(obj)
-            v = Norm.computeL2(obj.mesh,obj,obj.quadrature)
+            v = Norm.computeL2(obj.mesh,obj,obj.quadrature);
         end        
 
     end
@@ -119,18 +139,17 @@
             obj.mesh       = cParams.mesh;
         end
 
-        function applyVoigt2D(obj)
+        function newObj = applyVoigt2D(obj)
             nGaus = obj.quadrature.ngaus;
             nElem = size(obj.fValues,3);
             fV(1,:,:) = obj.fValues(1,:,:); % xx
             fV(2,:,:) = obj.fValues(4,:,:); % yy
             fV(3,:,:) = obj.fValues(2,:,:) + obj.fValues(3,:,:); % xy
             fV = reshape(fV, [3 nGaus nElem]);
-            obj.fValues = fV;
-            obj.ndimf = 3;
+            newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
         end
 
-        function applyVoigt3D(obj)
+        function newObj = applyVoigt3D(obj)
             nGaus = obj.quadrature.ngaus;
             nElem = size(obj.fValues,3);
             fV(1,:,:) = obj.fValues(1,:,:); % xx
@@ -140,8 +159,7 @@
             fV(5,:,:) = obj.fValues(3,:,:) + obj.fValues(7,:,:); % xz
             fV(6,:,:) = obj.fValues(6,:,:) + obj.fValues(8,:,:); % yz
             fV = reshape(fV, [6 nGaus nElem]);
-            obj.fValues = fV;
-            obj.ndimf = 6;
+            newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
         end
 
         % Printing

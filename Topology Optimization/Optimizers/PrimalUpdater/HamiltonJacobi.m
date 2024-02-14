@@ -41,14 +41,15 @@ classdef HamiltonJacobi < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.phi     = cParams.designVar;
-            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
+            obj.phi     = cParams.designVariable;
+            obj.epsilon = cParams.designVariable.fun.mesh.computeMeanCellSize();
         end
 
         function computeVelocity(obj,g)
-            s.mesh       = obj.phi.mesh;
+            s.mesh       = obj.phi.fun.mesh;
             s.fValues    = g;
-            ss.fun       = P1Function(s);
+            s.order      = 'P1';
+            ss.fun       = LagrangianFunction(s);
             ss.uMesh     = obj.phi.getUnfittedMesh();
             unfFun       = UnfittedBoundaryFunction(ss);
             gFilter      = obj.filter.compute(unfFun,'QUADRATICMASS');
@@ -65,10 +66,11 @@ classdef HamiltonJacobi < handle
         end
 
         function x = normalizeFunction(obj,x)
-            m         = obj.phi.mesh;
+            m         = obj.phi.fun.mesh;
             s.fValues = x;
             s.mesh    = m;
-            xFun      = P1Function(s);
+            s.order   = 'P1';
+            xFun      = LagrangianFunction(s);
             norm      = Norm.computeH1(m,xFun,obj.epsilon);
             xNorm     = sqrt(norm);
             x         = x/xNorm;
@@ -76,13 +78,13 @@ classdef HamiltonJacobi < handle
 
         function setupFilter(obj)
             designVar           = obj.phi;
-            s.mesh              = designVar.mesh;
+            s.mesh              = designVar.fun.mesh;
             s.designVarType     = designVar.type;
             s.scale             = 'MACRO';
             s.filterType        = 'PDE';
             s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
-            s.trial             = P1Function.create(s.mesh,1);
+            s.trial             = LagrangianFunction.create(s.mesh,1, 'P1');
             obj.filter          = Filter.create(s);
             obj.filter.updateEpsilon(obj.epsilon);
         end

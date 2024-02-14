@@ -139,10 +139,17 @@ classdef FunctionPrinter_GiD < handle
         end
 
         function s = getFValuesLocationString(obj, iFun)
-            switch class(obj.fun{iFun})
-                case {'P1Function', 'P1DiscontinuousFunction'}
-                    s = 'OnNodes ';
-                case {'P0Function', 'FGaussDiscontinuousFunction'}
+            f  = obj.fun{iFun};
+            type = class(f);
+            switch type
+                case 'LagrangianFunction'
+                    switch f.order
+                        case 'P0'
+                            s = 'OnGaussPoints "Gauss Points" ';
+                        otherwise
+                            s = 'OnNodes ';
+                    end
+                case 'FGaussDiscontinuousFunction'
                     s = 'OnGaussPoints "Gauss Points" ';
             end
         end

@@ -18,6 +18,7 @@ classdef FemDataContainer < AbstractSettings
         solverType = 'REDUCED';
         solverMode = 'DISP';
         newBC
+        boundaryConditions
     end
     
     methods (Access = public)
@@ -26,18 +27,18 @@ classdef FemDataContainer < AbstractSettings
             if nargin == 1
                 obj.loadParams(varargin{1});
             end
-            obj.init();
+            obj.init(varargin{1});
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
+        function init(obj,cParams)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
                 obj.getNgaus();
-                obj.createMaterial();
+                obj.createMaterial(cParams);
                 if strcmp(obj.scale, 'MICRO')
                     obj.solverMode = 'FLUC';
                 end
@@ -47,7 +48,7 @@ classdef FemDataContainer < AbstractSettings
         function readFemInputFile(obj)
             femReader = FemInputReader_GiD();
             s = femReader.read(obj.fileName);
-            
+
             obj.mesh   = s.mesh;
             obj.scale  = s.scale;
             obj.dim   = s.pdim;
@@ -59,18 +60,26 @@ classdef FemDataContainer < AbstractSettings
             obj.newBC.dirichletFun = s.dirichletFun;
             obj.newBC.pointloadFun = s.pointloadFun;
             obj.newBC.periodicFun  = s.periodicFun;
+            obj.boundaryConditions = BoundaryConditions(s);
         end
 
-        function createMaterial(obj)
-            I = ones(obj.nelem,obj.ngaus);
-            s.ptype = obj.type;
-            s.pdim  = obj.dim;
-            s.nelem = obj.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
+        function createMaterial(obj,cParams)
+            E1        = 1;
+            nu1       = 1/3;
+            E         = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            s.ptype   = obj.type;
+            s.pdim    = obj.dim;
+            s.nelem   = obj.nelem;
+            s.mesh    = obj.mesh;
+            s.young   = E;
+            s.poisson = nu;
+            if ~isfield(cParams,'type')
+                cParams.type = 'ISOTROPIC';
+            end
+            s.type = cParams.type;
+            s.ndim = obj.mesh.ndim;
             mat = Material.create(s);
-            mat.compute(s);
             obj.material = mat;
         end
 

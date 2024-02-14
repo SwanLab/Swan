@@ -1,7 +1,7 @@
 %% New FEM workflow
 clc; clear; close all
 % (1) Create the mesh
-    mesh = UnitTriangleMesh(5,5);
+    mesh = UnitTriangleMesh(50,50);
 
 % (2) Set boundary conditions
 % bc = createBoundaryConditions();
@@ -16,7 +16,7 @@ clc; clear; close all
     nodesdir=size(nodes(dirichletNodes),2);
     bcDir(1:nodesdir,end+1) = 1;
     bcDir(nodesdir+1:end,end) = 2;
-    bcDir(:,end+1)=0;
+    bcDir(:,end+1)=30;
     bc.dirichlet = bcDir;
     bc.pointload(:,3) = -1;
     bc.pointload(:,2) = 2;

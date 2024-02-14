@@ -153,7 +153,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function fV = createDiscontinousValues(obj,f)
             s.mesh    = obj.mesh;
             s.fValues = f;
-            fC = P1Function(s);
+            s.order   = 'P1';
+            fC = LagrangianFunction(s);
             fD = fC.project('P1D');
             fV = fD;
         end

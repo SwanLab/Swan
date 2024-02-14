@@ -48,7 +48,7 @@ classdef NewElasticProblem < handle
             ndofs = size(obj.displacementFun.fValues,1);
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,ndofs])';
-            uFeFun = P2Function(z);
+            uFeFun = P1Function(z);
             obj.uFun = uFeFun;
             uSplit = reshape(u,[obj.mesh.ndim,ndofs])';
             obj.displacementFun.fValues = uSplit;
@@ -127,7 +127,7 @@ classdef NewElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = P2Function.create(obj.mesh, obj.mesh.ndim);
+            obj.displacementFun = P1Function.create(obj.mesh, obj.mesh.ndim);
         end
 
         function dim = getFunDims(obj)
@@ -194,7 +194,7 @@ classdef NewElasticProblem < handle
 
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFeFun = P2Function(z);
+            uFeFun = P1Function(z);
             obj.uFun = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';

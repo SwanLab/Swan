@@ -27,8 +27,8 @@ classdef LHSintegrator_MassBoundary < handle
                 sL = s.compositeParams{iInt};
                 a.type = 'MassMatrix';
                 a.mesh = sL.mesh;
-                a.test  = P1Function.create(sL.mesh, 1);
-                a.trial = P1Function.create(sL.mesh, 1);
+                a.test  = LagrangianFunction.create(sL.mesh, 1, 'P1');
+                a.trial = LagrangianFunction.create(sL.mesh, 1, 'P1');
                 lhs = LHSintegrator.create(a);
                 LHS = lhs.compute();
 

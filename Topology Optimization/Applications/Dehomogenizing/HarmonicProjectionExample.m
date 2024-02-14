@@ -83,7 +83,8 @@ classdef HarmonicProjectionExample < handle
         function vI = interpolateOrientationAngle(obj,v0)
             s.mesh    = obj.mesh;
             s.fValues = v0;
-            p = P0Function(s);
+            s.order   = 'P0';
+            p = LagrangianFunction(s);
             vI = p.projectToLinearNodalFunction();
         end
 
