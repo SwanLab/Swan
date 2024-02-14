@@ -6,6 +6,6 @@ function plotSolution(x,mesh,bc, malla, numero)
     s.ndimf = 3;
     xF = P1Function(s);
     xF.plot();
-    %xF.print([malla,num2str(numero)],'Paraview')
+    xF.print([malla,num2str(numero)],'Paraview')
     fclose('all');
 end

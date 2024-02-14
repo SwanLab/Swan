@@ -53,10 +53,10 @@ function [x,res,residuFine,iterRes] = conjugateGradient_Solver(LHS,RHS,x,malla,r
             residu(iter) = norm(LHS*x - RHS); %Ax - b
             res = LHS*x - RHS;
 
-            if strcmp(malla,'fine')
-                residuFine(iterRes) = norm(LHS*x - RHS);
-                iterRes = iterRes + 1;
-            end
+            % if strcmp(malla,'fine')
+            %     residuFine(iterRes) = norm(LHS*x - RHS);
+            %     iterRes = iterRes + 1;
+            % end
 
         end
         

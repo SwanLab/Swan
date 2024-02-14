@@ -81,8 +81,8 @@ classdef MultigridTesting2 < handle
         end
 
         function createCoarseMesh(obj)
-            numero1 = 10;
-            numero2 = 10;
+            numero1 = 3;
+            numero2 = 3;
             % Generate coordinates
             x1 = linspace(0,2,numero1);
             x2 = linspace(0,1,numero2);
@@ -195,8 +195,8 @@ classdef MultigridTesting2 < handle
             bcDir(:,end+1)=0;
             bc.dirichlet = bcDir;
             bc.pointload(:,1) = nodes(forceNodes);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -1;
+            bc.pointload(:,2) = 1;
+            bc.pointload(:,3) = 1;
         end
 
         function createBoundaryConditionsCoarse(obj)
@@ -240,8 +240,8 @@ classdef MultigridTesting2 < handle
             bcDir(:,end+1)=0;
             bc.dirichlet = bcDir;
             bc.pointload(:,1) = nodes(forceNodes);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -1;
+            bc.pointload(:,2) = 1;
+            bc.pointload(:,3) = 1;
         end
 
         function createFineMaterial(obj)
