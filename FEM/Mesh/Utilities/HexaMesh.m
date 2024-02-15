@@ -24,7 +24,7 @@ for iZ = 1: nz
         first_node_x = next_x*(iX-1) +1;
         for iY = 1: ny
             vert_line = x_toadd + [iY, iY + 1];
-            plane_elem = [vert_line, next_x + vert_line ];
+            plane_elem = [vert_line, flip(next_x + vert_line) ];
             connec = [plane_elem, next_z + plane_elem];
             glob = [glob; connec];
         end
