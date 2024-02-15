@@ -49,7 +49,7 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            m        = Mesh(s);
+            m        = Mesh.create(s);
         end
 
         function m = obtain3DTestMesh()
