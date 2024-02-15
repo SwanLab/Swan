@@ -1,4 +1,4 @@
-wclassdef OptimalSuperEllipsePrinter < handle
+classdef OptimalSuperEllipsePrinter < handle
     
     properties (Access = private)
         mesh
