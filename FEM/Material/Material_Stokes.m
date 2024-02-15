@@ -2,7 +2,6 @@ classdef Material_Stokes < Material
     
     properties (Access = public)
         mu
-        nElem
     end
     
     methods (Access = public) 

@@ -76,7 +76,7 @@ classdef QuadToTriMeshConverter < handle
         function m = createTriMesh(obj)
             s.coord  = obj.fullCoord;
             s.connec = obj.fullConnec;
-            m = Mesh.create(s);
+            m = Mesh(s);
         end
     end
     

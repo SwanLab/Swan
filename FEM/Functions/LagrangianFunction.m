@@ -285,11 +285,6 @@ classdef LagrangianFunction < FeFunction
             fFine = LagrangianFunction(s);
         end
 
-        function f = copy(obj)
-            f = obj.create(obj.mesh,obj.ndimf,obj.order);
-            f.fValues = obj.fValues;
-        end
-
     end
 
     methods (Access = public, Static)
@@ -324,8 +319,8 @@ classdef LagrangianFunction < FeFunction
         end
 
         function createInterpolation(obj)
-            type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,obj.orderTextual());
+            m.type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(m,obj.orderTextual());
             obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
         end
 

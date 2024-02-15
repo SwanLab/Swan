@@ -149,7 +149,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh.create(sM);
+            obj.mesh = Mesh(sM);
         end
         
        function computeBoundaryMesh(obj)

@@ -47,12 +47,8 @@ classdef OptimalSuperEllipsePrinter < handle
         end
         
         function createMeshBackground(obj)
-            run('RVE_Square_Triangle_FineFine')
-            a.connec = connec(:, 2:end);
-            a.coord  = coord(:, 2:3);
-            m = Mesh.create(a);
-            %obj.testName = 'RVE_Square_Triangle_Fine';
-            obj.meshBackground = m; 
+            s.testName = 'RVE_Square_Triangle_FineFine';
+            obj.meshBackground = Mesh().createFromFile(s);
         end
         
         function createLevelSet(obj)

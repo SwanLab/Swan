@@ -48,7 +48,7 @@ classdef test1DLHS < handle
             s.connec(:,1) = 1:n-1;
             s.connec(:,2) = 2:n;
             s.kFace = -1;
-            m = Mesh.create(s);
+            m = Mesh(s);
 %             m.plot();
             obj.mesh = m;
         end

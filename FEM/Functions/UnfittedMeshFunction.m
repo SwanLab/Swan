@@ -162,7 +162,7 @@ classdef UnfittedMeshFunction < handle
             s.coord  = mesh.coord;
             s.connec = mesh.connec(obj.cutCells,:);
             s.kFace  = mesh.kFace;
-            cMesh    = Mesh.create(s);
+            cMesh    = Mesh(s);
         end
 
         function [fCutMesh,lsCutMesh] = computeNodalValuesFromNonCutMesh(obj)
@@ -192,7 +192,7 @@ classdef UnfittedMeshFunction < handle
                         connecIso    = delaunay(Xiso);
                         ss.coord     = Xiso;
                         ss.connec    = connecIso;
-                        localMesh    = Mesh.create(ss);
+                        localMesh    = Mesh(ss);
                         nelem        = cMeshGlobal.nelem;
                         bCutConnec   = cMeshGlobal.connec;
                         connecIso    = localMesh.connec;
@@ -202,7 +202,7 @@ classdef UnfittedMeshFunction < handle
                         subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
                         sss.coord    = cMeshGlobal.coord;
                         sss.connec   = subConnec;
-                        subMesh      = Mesh.create(sss);
+                        subMesh      = Mesh(sss);
                         subMesh      = subMesh.computeCanonicalMesh();
 
                     otherwise

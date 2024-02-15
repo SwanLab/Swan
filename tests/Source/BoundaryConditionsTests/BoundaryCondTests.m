@@ -7,7 +7,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
         micro ={'test_micro_holeinclusion'}
     end
 
-    methods (Test, TestTags = {'Monolithic', 'Macro'})
+    methods (Test, TestTags = {'Monolitic', 'Macro'})
 
         function testTriangleNullDispMon(testCase, triangle)
             s.computerType     = 'FEM';
@@ -65,7 +65,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'Monolithic', 'Micro'})
+    methods (Test, TestTags = {'Monolitic', 'Micro'})
 
         function testMicroDispMonolitic(testCase, micro)
             s.testName = micro;

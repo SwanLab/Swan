@@ -8,7 +8,7 @@ x2 = linspace(0,1,20);
 [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
 sBg.coord  = V(:,1:2);
 sBg.connec = F;
-bgMesh = Mesh.create(sBg);
+bgMesh = Mesh(sBg);
 
 % Create boundary mesh
 sBd.backgroundMesh = bgMesh;

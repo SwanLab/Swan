@@ -173,7 +173,7 @@ classdef NumericalHomogenizer < handle
             cParams.coord  = mpMesh.coord;
             cParams.connec = mpMesh.connec;
 %             mesh = Mesh_Total(cParams);
-            mesh = Mesh.create(cParams);
+            mesh = Mesh(cParams);
 
             d = obj.volDataBase;
             s = SettingsDesignVariable();
@@ -227,6 +227,10 @@ classdef NumericalHomogenizer < handle
             vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
+        end
+        
+        function mesh = setMasterSlaveNodes(obj,mesh)
+           
         end
         
         function obtainIntegrationUsedVariables(obj)

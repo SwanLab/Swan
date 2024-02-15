@@ -69,7 +69,7 @@ classdef XcoordIsoComputer < handle
         function computeXisoFull(obj)
             s.coord  = obj.localMesh.coord;
             s.connec = obj.localMesh.connec(obj.localSubCells(obj.iFull),:);
-            m = Mesh.create(s);
+            m = Mesh(s);
             xNodalAllIso = m.coordElem;
             obj.xIsoFull = xNodalAllIso(:,:,:);
         end
@@ -78,7 +78,7 @@ classdef XcoordIsoComputer < handle
             xIsoTri  = obj.xIsoSubCut;
             s.coord  = obj.localMesh.coord;
             s.connec = obj.localMesh.connec(obj.localSubCells(obj.iCut),:);
-            m = Mesh.create(s);
+            m = Mesh(s);
             obj.xIsoCut = m.computeXgauss(xIsoTri);
         end
         

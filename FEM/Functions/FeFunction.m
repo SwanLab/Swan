@@ -9,16 +9,13 @@ classdef FeFunction < handle
     end
 
     properties (Access = public)
-       fValues        
-    end
-
-    properties (GetAccess = public, SetAccess = protected)
        ndimf
        order
-       mesh       
+       fValues
     end
     
     properties (Access = protected)
+        mesh
     end
 
     properties (Access = private)
@@ -40,11 +37,9 @@ classdef FeFunction < handle
     end
 
     methods (Static, Access = public)
-        function obj = create(type,fValues,mesh)
-            s.order   = type;
-            s.fValues = fValues;
-            s.mesh    = mesh;
-            obj       = LagrangianFunction(s);
+        function obj = create(cParams)
+            fun = FunctionFactory();
+            obj = fun.create(cParams);
         end
 
         function obj = createEmpty(cParams)

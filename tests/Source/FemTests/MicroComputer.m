@@ -30,7 +30,7 @@ classdef MicroComputer < handle
             s = FemDataContainer(a);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            femSolver = PhysicalProblem.create(s);
+            femSolver = FEM.create(s);
             femSolver.solve();
             obj.computation = femSolver;
             obj.variables.Chomog = femSolver.Chomog;

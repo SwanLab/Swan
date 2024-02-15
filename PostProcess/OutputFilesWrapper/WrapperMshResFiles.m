@@ -46,7 +46,7 @@ classdef WrapperMshResFiles < handle
         function createMesh(obj)
             s.connec = obj.dataMesh.connec;
             s.coord  = obj.dataMesh.coord;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = Mesh(s);
         end
         
         function wrapGiDResData(obj)

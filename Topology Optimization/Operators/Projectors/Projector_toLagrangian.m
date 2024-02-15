@@ -68,15 +68,16 @@ classdef Projector_toLagrangian < Projector
 
         function q = createRHSQuadrature(obj, fun)
             if isa(fun, 'FGaussDiscontinuousFunction')
-                ord = fun.getQuadratureOrder();
+                q = fun.quadrature;
             else
                 ord = obj.determineQuadratureOrder(fun);
-                ord = 'ORDER10'; % no
+                quadratureOrder = 'ORDER10'; % no
+                
+                q = Quadrature.set(obj.mesh.type);
+                q.computeQuadrature(quadratureOrder);
             end
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(ord);
         end
-
+        
     end
 
 end

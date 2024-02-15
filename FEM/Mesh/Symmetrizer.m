@@ -71,7 +71,7 @@ classdef Symmetrizer < handle
             sCoord = obj.symmetricPoint.computeSymmetricVector();
             s.connec = sConnec;
             s.coord  = sCoord;
-            m = Mesh.create(s);
+            m = Mesh(s);
             obj.symmetrizedMesh = m;
         end
 

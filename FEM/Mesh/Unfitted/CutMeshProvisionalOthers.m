@@ -48,7 +48,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             connecIso     = delaunay(Xiso);
             s.coord       = Xiso;
             s.connec      = connecIso;
-            obj.localMesh = Mesh.create(s);
+            obj.localMesh = Mesh(s);
         end
 
         function obj = computeSubcells(obj)
@@ -62,7 +62,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
             s.coord      = bCutMesh.coord;
             s.connec     = subConnec;
-            obj.subMesh  = Mesh.create(s);
+            obj.subMesh  = Mesh(s);
         end
 
         function classifyCells(obj)
@@ -141,7 +141,7 @@ classdef CutMeshProvisionalOthers < CutMesh
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh.create(sM);
+            obj.mesh = Mesh(sM);
         end
 
         function computeBoundaryMesh(obj)

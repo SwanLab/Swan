@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        reactions
     end
 
     properties (Access = private)
@@ -45,6 +46,7 @@ classdef ElasticProblem < handle
         function plot(obj)
             s.dim          = obj.getFunDims();
             s.mesh         = obj.mesh;
+%             s.displacement = obj.variables.d_u;
             plotter = FEMPlotter(s);
             plotter.plot();
         end
@@ -53,8 +55,8 @@ classdef ElasticProblem < handle
             dim = obj.getFunDims();
         end
 
-        function updateMaterial(obj, mat)
-            obj.material = mat;
+        function setC(obj, C)
+            obj.material.C = C;
         end
 
         function dvolu = getDvolume(obj)
@@ -98,7 +100,7 @@ classdef ElasticProblem < handle
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('QUADRATIC');
             obj.quadrature = quad;
         end
 
@@ -164,36 +166,48 @@ classdef ElasticProblem < handle
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
+            % u = 1;
+            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
+
+            obj.computeReactions(u);
+
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
+
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
         end
 
         function computeStrain(obj)
             strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun = strFun.obtainVoigtFormat();
+            strFun.applyVoigtNotation();
+            perm = permute(strFun.fValues, [2 1 3]);
+%             obj.variables.strain = perm;
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
 
         function computeStress(obj)
-            strn(:,1,:,:) = obj.strain.fValues;
-            Cv            = obj.material.evaluate(obj.quadrature.posgp);
-
-            strs = pagemtimes(Cv,strn);
-            strs = permute(strs, [1 3 4 2]);
+            strn  = permute(obj.strain.fValues,[1 3 2]);
+            strn2(:,1,:,:) = strn;
+            strs =squeeze(pagemtimes(obj.material.C,strn2));
+            strs = permute(strs, [1 3 2]);
 
             z.mesh       = obj.mesh;
             z.fValues    = strs;
             z.quadrature = obj.quadrature;
-            strFun       = FGaussDiscontinuousFunction(z);
+            strFun = FGaussDiscontinuousFunction(z);
 
-            obj.stress    = strFun;
+            obj.stress = strFun;
+%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFun = strFun;
+        end
+
+        function computeReactions(obj,u)
+            obj.reactions = obj.stiffness*u;
         end
 
     end

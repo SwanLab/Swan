@@ -26,20 +26,11 @@ classdef CompositionFunction < L2Function
         end
         
     end
-
-    methods (Access = public, Static)
-        
-        function obj = create(handle,l2F)
-            s.handleFunction = handle;
-            s.l2function     = l2F;
-            obj = CompositionFunction(s);
-        end
-
-    end
     
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.mesh           = cParams.mesh;
             obj.handleFunction = cParams.handleFunction;
             obj.l2function     = cParams.l2function;
             obj.ndimf = size(obj.handleFunction,2);

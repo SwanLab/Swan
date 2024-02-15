@@ -131,8 +131,8 @@ classdef RHSintegrator_CutMesh < handle
         end
 
         function shapeAtGauss = evalShapes(obj,test)
-            type = obj.backgroundMeshType;
-            int    = Interpolation.create(type,test.orderTextual);
+            m.type = obj.backgroundMeshType;
+            int    = Interpolation.create(m,test.orderTextual);
             int.computeShapeDeriv(obj.xGauss);
             shapeAtGauss = permute(int.shape,[1 3 2]);
         end

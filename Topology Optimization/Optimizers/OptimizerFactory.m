@@ -7,7 +7,7 @@ classdef OptimizerFactory < handle
                 case 'AlternatingPrimalDual'
                     op = OptimizerAugmentedLagrangian(cParams);
                 case 'MMA'
-                    op = OptimizerMMA(cParams);
+                    op = Optimizer_MMA(cParams);
                 case 'IPOPT'
                     op = Optimizer_IPOPT(cParams);
                 case 'DualNestedInPrimal'

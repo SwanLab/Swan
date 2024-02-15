@@ -7,20 +7,22 @@ classdef Density < DesignVariable
             obj.init(cParams);
         end
 
-        function fun = obtainDomainFunction(obj)
-            fun = obj.fun;
-        end        
-
-        function update(obj,value)
-            if ~isempty(obj.isFixed)
-                value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
-            s.mesh    = obj.mesh;
-            s.fValues = value;
-            s.order   = 'P1';
-            obj.fun   = LagrangianFunction(s);
-        end        
-    
+        function v = getVariablesToPlot(obj)
+            v{1} = obj.fun.fValues;
+        end
+        
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.fun};
+            funNames = {'Density'};
+        end
+        
+        function rho = computeVolumeFraction(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            rho = obj.fun.evaluate(xV);
+        end
+        
     end
     
 end

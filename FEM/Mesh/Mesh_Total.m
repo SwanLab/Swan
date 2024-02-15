@@ -66,7 +66,7 @@ classdef Mesh_Total < Mesh_Composite
         function createInteriorMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            obj.innerMeshOLD = Mesh.create(s);
+            obj.innerMeshOLD = Mesh(s);
             obj.append(obj.innerMeshOLD);
         end
         

@@ -5,22 +5,20 @@ classdef SLERP < handle
     end
 
     properties (Access = private)
-        mesh
+        phi
+        theta
+        epsilon
     end
 
     methods (Access = public)
+
         function obj = SLERP(cParams)
             obj.init(cParams);
         end
 
-        function phi = update(obj,g,phi)     
-            phiF   = obj.createP1Function(phi);
-            gF     = obj.createP1Function(g);
-            gN     = gF.normalize('L2');
-            phiN   = phiF.normalize('L2');
-            theta  = obj.computeTheta(phiN,gN);
-            phiNew = obj.computeNewLevelSet(phiN,gN,theta);
-            phi    = phiNew.fValues;
+        function x = update(obj,g,~)
+            obj.computeTheta(g);
+            x = obj.computeNewLevelSet(g);
         end
 
         function computeFirstStepLength(obj,~,~,~)
@@ -36,39 +34,53 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.1;
+            obj.tau = obj.tau/1.5;
         end
+
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.phi     = cParams.designVar;
+            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
         end
 
-        function f = createP1Function(obj,fV)
-            s.mesh    = obj.mesh;
-            s.fValues = fV;
-            f         = P1Function(s);
+        function computeTheta(obj,g)
+            m         = obj.phi.mesh;            
+            pN        = obj.normalizeFunction(obj.phi.fun.fValues);
+            gN        = obj.normalizeFunction(g);
+            s.fValues = pN;
+            s.mesh    = obj.phi.mesh;
+            s.order   = 'P1';
+            pNfun     = LagrangianFunction(s);
+            s.fValues = gN;
+            gNfun     = LagrangianFunction(s);
+            phiG      = ScalarProduct.computeH1(m,pNfun,gNfun,obj.epsilon);
+            obj.theta = max(acos(phiG),1e-14);
         end
 
-        function t = computeTheta(obj,phi,g)
-            m = obj.mesh;
-            phiG = ScalarProduct.computeL2(m,phi,g);
-            t = max(acos(phiG),1e-14);
-        end
-
-        function pF = computeNewLevelSet(obj,phi,g,theta)
+        function p = computeNewLevelSet(obj,g)
             k  = obj.tau;
-            t  = theta;
-            pN = phi.fValues;
-            gN = g.fValues;
-            a  = sin((1-k)*t)/sin(t);
-            b  = sin(k*t)/sin(t);
-            p  = a*pN + b*gN;
-            pF  = obj.createP1Function(p);
+            t  = obj.theta;
+            pN = obj.normalizeFunction(obj.phi.fun.fValues);
+            gN = obj.normalizeFunction(g);
+            a  = sin((1-k)*t)*pN;
+            b  = sin(k*t)*gN;
+            p  = (a + b)/sin(t);
+            p  = obj.normalizeFunction(p);
         end
 
+        function x = normalizeFunction(obj,x)
+            m         = obj.phi.mesh;
+            s.fValues = x;
+            s.mesh    = m;
+            s.order   = 'P1';
+            xFun      = LagrangianFunction(s);
+            norm      = Norm.computeH1(m,xFun,obj.epsilon);
+            xNorm     = sqrt(norm);
+            x         = x/xNorm;
+        end
     end
 
 end

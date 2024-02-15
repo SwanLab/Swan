@@ -29,17 +29,6 @@ classdef AnalyticalFunction < L2Function
         end
         
     end
-
-    methods (Access = public, Static)
-        
-        function obj = create(fHandle,ndimf,mesh)
-            s.fHandle = fHandle;
-            s.ndimf   = ndimf;
-            s.mesh    = mesh;
-            obj = AnalyticalFunction(s);
-        end
-
-    end
     
     methods (Access = private)
         

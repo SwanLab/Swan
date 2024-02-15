@@ -67,15 +67,13 @@ classdef Dehomogenizer < handle
         end
 
         function computeLevelSet(obj)
-            s.type               = 'PeriodicAndOriented';
+            s.type               = 'periodicAndOriented';
             s.mesh               = obj.mesh;
             s.orientationVectors = obj.computeOrientedMappingComputer();
             s.cellLevelSetParams = obj.cellLevelSetParams;
-            g                    = GeometricalFunction(s);
-            %lSet = LevelSetCreator.create(s);
-            %ls = lSet.computeLS(obj.epsilons);
-            lsFun = g.computeLevelSetFunction(obj.mesh);
-            obj.levelSet = lsFun.fValues;  
+            lSet = LevelSetCreator.create(s);
+            ls = lSet.computeLS(obj.epsilons);
+            obj.levelSet = ls;  
             obj.fineMesh = lSet.getFineMesh();
         end
 

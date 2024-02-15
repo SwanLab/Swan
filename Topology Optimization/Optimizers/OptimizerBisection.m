@@ -10,6 +10,8 @@ classdef OptimizerBisection < Optimizer
         lineSearch
         maxLineSearchTrials = 100
         costOld
+        upperBound
+        lowerBound
         tol = 1e-5
         nX
         hasConverged
@@ -18,6 +20,7 @@ classdef OptimizerBisection < Optimizer
         oldCost
         problem
         options
+        incrementalScheme
         hasFinished
         mOld
         meritNew
@@ -40,6 +43,7 @@ classdef OptimizerBisection < Optimizer
             obj.createPrimalUpdater(cParams);
             s.primalUpdater = obj.primalUpdater;
             obj.constrProjector = ConstraintProjector(cParams,s);
+            obj.outputFunction.monitoring.create(cParams);
             obj.prepareFirstIter();
         end
 
@@ -48,11 +52,10 @@ classdef OptimizerBisection < Optimizer
             obj.isInitialStep = true;
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.printOptimizerVariable();
             end
@@ -63,27 +66,20 @@ classdef OptimizerBisection < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.cost           = cParams.cost;
-            obj.constraint     = cParams.constraint;
-            obj.designVariable = cParams.designVariable;
-            obj.dualVariable   = cParams.dualVariable;
-            obj.nX             = obj.designVariable.fun.nDofs;
-            obj.maxIter        = cParams.maxIter;
-            obj.nIter          = 0;
-            obj.createMonitoring(cParams);
-        end
-
-        function createMonitoring(obj,cParams)
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
-            obj.monitoring = Monitoring(s);
+            obj.upperBound             = cParams.uncOptimizerSettings.ub;
+            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.cost                   = cParams.cost;
+            obj.constraint             = cParams.constraint;
+            obj.designVariable         = cParams.designVar;
+            obj.dualVariable           = cParams.dualVariable;
+            obj.incrementalScheme      = cParams.incrementalScheme;
+            obj.nX                     = obj.designVariable.fun.nDofs;
+            obj.maxIter                = cParams.maxIter;
+            obj.nIter                  = 0;
         end
 
         function prepareFirstIter(obj)
-            x = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(x);
+            obj.cost.computeFunctionAndGradient();
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = 0;
@@ -102,9 +98,8 @@ classdef OptimizerBisection < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            x = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(x);
-            obj.constraint.computeFunctionAndGradient(x);
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
@@ -119,8 +114,7 @@ classdef OptimizerBisection < Optimizer
         end
 
         function checkStep(obj)
-            x = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(x);
+            obj.cost.computeFunctionAndGradient();
             J = obj.cost.value;
             if obj.isInitialStep
                 obj.acceptableStep = true;
@@ -151,9 +145,8 @@ classdef OptimizerBisection < Optimizer
 
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
-            d = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(d);
-            obj.constraint.computeFunctionAndGradient(d);
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.oldCost            = obj.cost.value;
             obj.oldDesignVariable  = x;
         end
@@ -180,6 +173,7 @@ classdef OptimizerBisection < Optimizer
             s.lineSearchTrials = obj.lineSearchTrials;
             s.oldCost          = obj.oldCost;
             s.hasFinished      = obj.hasFinished;
+            obj.outputFunction.monitoring.compute(s);
         end
 
         function updateIterInfo(obj)
@@ -196,7 +190,9 @@ classdef OptimizerBisection < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            itHas = obj.nIter >= obj.maxIter;
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
 
         function saveVariablesForAnalysis(obj)
@@ -205,7 +201,19 @@ classdef OptimizerBisection < Optimizer
             obj.globalConstraint(i)   = obj.constraint.value;
             obj.globalCostGradient(i) = norm(obj.cost.gradient);
             obj.globalMerit(i)        = obj.cost.value;
+%             obj.globalLineSearch(i)   = obj.tau;
             obj.globalDual(i)         = obj.dualVariable.value;
+            iStep                     = obj.incrementalScheme.iStep;
+            nStep                     = obj.incrementalScheme.nSteps;
+            if obj.hasConverged && iStep == nStep
+                c = obj.globalCost;
+                h = obj.globalConstraint;
+                g = obj.globalCostGradient;
+                m = obj.globalMerit;
+%                 t = obj.globalLineSearch;
+                d = obj.globalDual;
+                save('BisectionVariablesCant04.mat',"m","c","g","h","d");
+            end
         end
 
     end

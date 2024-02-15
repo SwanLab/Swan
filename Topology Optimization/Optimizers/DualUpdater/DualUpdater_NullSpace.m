@@ -65,11 +65,11 @@ classdef DualUpdater_NullSpace < handle
         function init(obj,cParams)
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
-            obj.designVariable = cParams.designVariable;
+            obj.designVariable = cParams.designVar;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
             obj.dualOld        = obj.dualVariable.value;
-            obj.nConstr        = length(cParams.dualVariable.value);
+            obj.nConstr        = cParams.constraint.nSF;
         end
 
         function computeQuadraticProblem(obj,s)

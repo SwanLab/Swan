@@ -54,8 +54,8 @@ classdef IPMDirectionComputer < handle
             obj.dualVariable   = cParams.dualVariable;
             obj.baseVariables  = cParams.baseVariables;
             obj.hessian        = cParams.hessian;
-            obj.nConstr        = length(cParams.constraint.value);
-            obj.nnode          = cParams.designVariable.fun.mesh.nnodes;
+            obj.nConstr        = cParams.constraint.nSF;
+            obj.nnode          = cParams.designVariable.mesh.nnodes;
             obj.nSlack         = cParams.nSlack;
             obj.bounds         = cParams.bounds;
         end

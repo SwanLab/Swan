@@ -54,7 +54,7 @@ classdef NumericalHomogenizerDataBase < handle
             dF = FemInputReader_GiD().read(fileName);
             cParams.coord  = dF.mesh.coord;
             cParams.connec = dF.mesh.connec;
-            meshT = Mesh.create(cParams);
+            meshT = Mesh(cParams);
             
             s.mesh = meshT;
 

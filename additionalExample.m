@@ -17,7 +17,7 @@ x2 = linspace(1,2,20);
 
 s.coord = V(:,1:2);
 s.connec = F;
-mesh = Mesh.create(s);
+mesh = Mesh(s);
 
 s.mesh = mesh;
 s.type = 'ELASTIC';

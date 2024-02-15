@@ -41,12 +41,12 @@ classdef HamiltonJacobi < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.phi     = cParams.designVariable;
-            obj.epsilon = cParams.designVariable.fun.mesh.computeMeanCellSize();
+            obj.phi     = cParams.designVar;
+            obj.epsilon = cParams.uncOptimizerSettings.scalarProductSettings.femSettings.epsilon;
         end
 
         function computeVelocity(obj,g)
-            s.mesh       = obj.phi.fun.mesh;
+            s.mesh       = obj.phi.mesh;
             s.fValues    = g;
             s.order      = 'P1';
             ss.fun       = LagrangianFunction(s);
@@ -66,7 +66,7 @@ classdef HamiltonJacobi < handle
         end
 
         function x = normalizeFunction(obj,x)
-            m         = obj.phi.fun.mesh;
+            m         = obj.phi.mesh;
             s.fValues = x;
             s.mesh    = m;
             s.order   = 'P1';
@@ -78,7 +78,7 @@ classdef HamiltonJacobi < handle
 
         function setupFilter(obj)
             designVar           = obj.phi;
-            s.mesh              = designVar.fun.mesh;
+            s.mesh              = designVar.mesh;
             s.designVarType     = designVar.type;
             s.scale             = 'MACRO';
             s.filterType        = 'PDE';

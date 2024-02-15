@@ -185,8 +185,8 @@ classdef P2Function < FeFunction
         end
 
         function createInterpolation(obj)
-            type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,'QUADRATIC');
+            m.type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(m,'QUADRATIC');
         end
 
         function createDOFCoordConnec(obj)

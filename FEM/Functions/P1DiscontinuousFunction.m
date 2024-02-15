@@ -264,8 +264,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function createInterpolation(obj)
-            type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,'LINEAR');
+            m.type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(m,'LINEAR');
         end
 
         % Printing

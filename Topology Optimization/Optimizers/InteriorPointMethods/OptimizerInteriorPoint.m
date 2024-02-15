@@ -1,9 +1,5 @@
 classdef OptimizerInteriorPoint < Optimizer
 
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'IPM'
-    end
-
     properties (Access = private)
         slack
         bounds
@@ -22,6 +18,7 @@ classdef OptimizerInteriorPoint < Optimizer
         sNew
         hasConverged
         hasFinished
+        incrementalScheme
         nSlack
         baseVariables
         oldDesignVariable
@@ -36,6 +33,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function obj = OptimizerInteriorPoint(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
+            obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
         end
@@ -44,11 +42,10 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hasConverged = false;
             obj.hasFinished = false;
             obj.previousComputations();
-            obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.checkNewBarrierProblem();
             end
@@ -57,21 +54,20 @@ classdef OptimizerInteriorPoint < Optimizer
 
     methods(Access = private)
         function init(obj,cParams)
-            x                     = cParams.designVariable;
-            obj.bounds.xUB        = cParams.ub;
-            obj.bounds.xLB        = cParams.lb;
+            obj.bounds.xUB        = cParams.uncOptimizerSettings.ub;
+            obj.bounds.xLB        = cParams.uncOptimizerSettings.lb;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVariable;
+            obj.designVariable    = cParams.designVar;
             obj.dualVariable      = cParams.dualVariable;
+            obj.incrementalScheme = cParams.incrementalScheme;
             obj.maxIter           = cParams.maxIter;
             obj.nIter             = 0;
             obj.constraintCase    = cParams.constraintCase;
-            obj.cost.computeFunctionAndGradient(x);
-            obj.hessian = eye(obj.designVariable.fun.mesh.nnodes);
-            obj.constraint.computeFunctionAndGradient(x);
+            obj.cost.computeFunctionAndGradient();
+            obj.hessian = eye(obj.designVariable.mesh.nnodes);
+            obj.constraint.computeFunctionAndGradient();
             obj.loadIPMVariables();
-            obj.createMonitoring(cParams);
         end
 
         function loadIPMVariables(obj)
@@ -83,14 +79,6 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.computeLinearBounds();
             obj.computeSlackVariables();
             obj.correctUpperAndLowerBounds();
-        end
-
-        function createMonitoring(obj,cParams)
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
-            obj.monitoring = Monitoring(s);
         end
 
         function computeLinearBounds(obj)
@@ -106,7 +94,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function correctUpperAndLowerBounds(obj)
-            nnode          = obj.designVariable.fun.mesh.nnodes;
+            nnode          = obj.designVariable.mesh.nnodes;
             obj.bounds.xLB = (obj.bounds.xLB-1e-6)*ones(1,nnode);
             obj.bounds.xUB = (obj.bounds.xUB+1e-6)*ones(1,nnode);
         end
@@ -305,9 +293,8 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function obj = saveOldValues(obj,x)
             obj.designVariable.update(x);
-            d = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(d);
-            obj.constraint.computeFunctionAndGradient(d);
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             obj.oldCost             = obj.cost.value;
             obj.oldCostGradient     = obj.cost.gradient;
             obj.designVariable.updateOld;
@@ -316,9 +303,8 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function meritF = computeMeritFunction(obj,x)
             obj.designVariable.update(x);
-            d = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(d);
-            obj.constraint.computeFunctionAndGradient(d);
+            obj.cost.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient();
             J      = obj.cost.value;
             g      = obj.constraint.value;
             nu     = obj.baseVariables.nu;
@@ -357,10 +343,9 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function checkConvergence(obj)
-            x = obj.designVariable;
-            obj.cost.computeFunctionAndGradient(x);
+            obj.cost.computeFunctionAndGradient();
             obj.computeNewHessian();
-            obj.constraint.computeFunctionAndGradient(x);
+            obj.constraint.computeFunctionAndGradient();
             obj.updateCostAndConstraintWithPenalty();
             obj.computeError();
             if obj.error <= obj.tol
@@ -412,6 +397,7 @@ classdef OptimizerInteriorPoint < Optimizer
             s.hasFinished      = obj.hasFinished;
             s.meritNew         = obj.meritNew;
             s.lambda           = obj.dualVariable.value;
+            obj.outputFunction.monitoring.compute(s);
         end
 
         function updateIterInfo(obj)
@@ -428,7 +414,9 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            itHas = obj.nIter >= obj.maxIter;
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
         end
     end
 

@@ -121,8 +121,8 @@ classdef P0Function < FeFunction
         end
 
         function createInterpolation(obj)
-            type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,'CONSTANT');
+            m.type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(m,'CONSTANT');
         end
 
         function computeNDofs(obj)

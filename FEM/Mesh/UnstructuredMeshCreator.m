@@ -23,7 +23,7 @@ classdef UnstructuredMeshCreator < handle
             s.coord(:,1) = xT;
             s.coord(:,2) = yT;
             s.connec = delaunay(s.coord);
-            m = Mesh.create(s);
+            m = Mesh(s);
         end         
         
     end

@@ -23,7 +23,7 @@ classdef CutPointsCalculator < handle
             obj.backgroundMesh      = cParams.backgroundMesh;
             obj.levelSet            = cParams.levelSet_background;
             obj.backgroundCutCells  = cParams.backgroundCutCells;
-            obj.backgroundGeomInterpolation =  Interpolation.create(obj.backgroundMesh.type,'LINEAR');
+            obj.backgroundGeomInterpolation =  Interpolation.create(obj.backgroundMesh,'LINEAR');
         end
         
         function computeCutPoints(obj)

@@ -102,7 +102,7 @@ classdef DehomogenizingSingularitiesTest < handle
               s.connec = F;
 
 %            s.connec = delaunay(s.coord);
-            m = Mesh.create(s);
+            m = Mesh(s);
             obj.mesh = m;
             
         %    s.filename = 'SingMeshLeft';

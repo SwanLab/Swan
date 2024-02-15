@@ -176,7 +176,7 @@ classdef ComputingCutMeshVectorized < handle
             sM.connec = connec;
             sM.coord  = obj.coord;
             
-            m = Mesh.create(sM);
+            m = Mesh(sM);
             s.mesh                  = m;
             s.xCoordsIso            = xCoordsIso;
             s.cellContainingSubcell = cellContainingSubcell;

@@ -68,7 +68,7 @@ classdef PostProcessColumn < handle
             connec = model.Mesh.Elements';
             s.coord = coord;
             s.connec = connec;
-            obj.m = Mesh.create(s);
+            obj.m = Mesh(s);
         end
 
         function vertex = flip(obj,vertex,vertElem,dimFig)

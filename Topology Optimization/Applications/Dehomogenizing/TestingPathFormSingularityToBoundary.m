@@ -66,7 +66,7 @@ classdef TestingPathFormSingularityToBoundary < handle
             [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            m = Mesh.create(s);
+            m = Mesh(s);
             obj.mesh = m;
         end
         

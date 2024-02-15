@@ -57,7 +57,7 @@ classdef CannonicalMeshComputer < handle
             s.connec = obj.newConnec;
             s.coord  = obj.newCoord;
             s.kFace  = obj.mesh.kFace;
-            m = Mesh.create(s);
+            m = Mesh(s);
         end
         
     end

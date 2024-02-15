@@ -8,5 +8,5 @@ function m = TriangleMesh(length, height, nx, ny)
     [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
     s.coord  = V(:,1:2);
     s.connec = F;
-    m = Mesh.create(s);
+    m = Mesh(s);
 end

@@ -1,4 +1,4 @@
-classdef LevelSetPeriodicAndOriented < handle
+classdef LevelSetPeriodicAndOriented < LevelSetCreator
 
     properties (Access = private)
         epsilon
@@ -21,11 +21,13 @@ classdef LevelSetPeriodicAndOriented < handle
     end
 
     methods (Access = public)
+
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
             obj.createRemesher();
             obj.interpolateDeformedCoord();
+%            obj.interpolateDilatation();
             obj.interpolateM1M2();
         end
 
@@ -105,8 +107,8 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function interpolateM1M2(obj)
-            m1 = obj.cellLevelSetParams.xSide;
-            m2 = obj.cellLevelSetParams.ySide;               
+            m1 = obj.cellLevelSetParams.widthH;
+            m2 = obj.cellLevelSetParams.widthV;               
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
           %  p  = obj.cellLevelSetParams.pnorm;                 
@@ -120,8 +122,8 @@ classdef LevelSetPeriodicAndOriented < handle
             t = MparameterThresholder(s);
             m1 = t.thresh(obj.m1);
             m2 = t.thresh(obj.m2);
-            obj.cellLevelSetParams.xSide = m1;
-            obj.cellLevelSetParams.ySide = m2;
+            obj.cellLevelSetParams.widthH = m1;
+            obj.cellLevelSetParams.widthV = m2;
         end
 
  

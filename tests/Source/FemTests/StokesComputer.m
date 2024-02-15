@@ -17,7 +17,7 @@ classdef StokesComputer < handle
         function compute(obj)
             a.fileName = obj.testName;
             s = StokesDataContainer(a);
-            femSolver = PhysicalProblem.create(s);
+            femSolver = FEM.create(s);
             femSolver.computeVariables;
             obj.computation = femSolver;
             u = obj.computation.velocityFun.fValues;

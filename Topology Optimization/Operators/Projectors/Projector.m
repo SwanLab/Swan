@@ -17,16 +17,15 @@ classdef Projector < handle
     methods (Static, Access = protected)
 
         function ord = determineQuadratureOrder(fun)
-            switch class(fun)
-                case 'L2Function'
-                    ord = 'QUADRATIC';
-                case 'FEFunction'
+            switch fun.fType
+                case 'L2'
+                    ord = 'ORDER4'; % wrong
+%                     ord = 'QUADRATIC';
+                case 'FE'
 %                     ord = 'LINEAR';
                     ord = 'QUADRATIC'; % needed to project P1 to P1D
-                case 'FGaussDiscontinuousFunction'
-                    ord = fun.getQuadratureOrder;
-                otherwise
-                    ord = 'QUADRATIC';
+                case 'GAUSSPOINTS'
+                    ord = fun.quadrature.order;
             end
         end
 

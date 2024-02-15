@@ -330,14 +330,14 @@ classdef CutMeshComputerProvisional < CutMesh
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh.create(sM);
+            obj.mesh = Mesh(sM);
         end
         
         function computeBoundaryMesh(obj)
             s.coord  = obj.cutCoordComputer.allValues;
             s.connec = obj.connecB;%obj.cutPointsInElemComputer.edgeCutPointInElem;
             s.kFace  = obj.backgroundMesh.kFace -1;
-            obj.boundaryMesh = Mesh.create(s);
+            obj.boundaryMesh = Mesh(s);
         end
         
 %         function computeBoundaryXCoordsIso(obj)

@@ -10,6 +10,7 @@ classdef TopologyMonitoring < handle
         convergenceVars
         monitorDocker
         postProcess
+        incrementalScheme
         monitor
     end
 
@@ -48,10 +49,10 @@ classdef TopologyMonitoring < handle
         end
 
         function create(obj,cParams)
-            %obj.createHistoryPrinter(cParams.historyPrinterSettings);
-            %obj.createConvergenceVariables(cParams);
-            %obj.createMonitorDocker(cParams.monitoringDockerSettings);
-            %obj.createPostProcess(cParams.postProcessSettings);
+            obj.createHistoryPrinter(cParams.historyPrinterSettings);
+            obj.createConvergenceVariables(cParams);
+            obj.createMonitorDocker(cParams.monitoringDockerSettings);
+            obj.createPostProcess(cParams.postProcessSettings);
         end
         
     end
@@ -62,8 +63,9 @@ classdef TopologyMonitoring < handle
             obj.type     = cParams.type;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVariable;
+            obj.designVariable    = cParams.designVar;
             obj.dualVariable      = cParams.dualVariable;
+            obj.incrementalScheme = cParams.incrementalScheme;
         end
         
         function plotFmincon(obj,cParams)
@@ -250,7 +252,8 @@ classdef TopologyMonitoring < handle
         end
         
         function printHistory(obj)
-            obj.historyPrinter.print(obj.nIter,1);
+            iStep = obj.incrementalScheme.iStep;
+            obj.historyPrinter.print(obj.nIter,iStep);
         end
         
         function printHistoryFinalValues(obj)
@@ -258,7 +261,9 @@ classdef TopologyMonitoring < handle
         end
 
         function refreshMonitoring(obj)
-            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,1,1);
+            iStep = obj.incrementalScheme.iStep;
+            nStep = obj.incrementalScheme.nSteps;
+            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,iStep,nStep);
         end
              
     end
