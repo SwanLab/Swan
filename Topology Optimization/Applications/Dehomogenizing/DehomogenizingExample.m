@@ -101,7 +101,7 @@ classdef DehomogenizingExample < handle
             
             sR.coord = coordT;
             sR.connec  = w.mesh.connec;
-            w.mesh = Mesh(sR);
+            w.mesh = Mesh.create(sR);
             
             m = w.mesh;
             sM = obj.createMeshSymetrizer(m);
@@ -152,7 +152,7 @@ classdef DehomogenizingExample < handle
 %             
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.backgroundMesh = m;
             
             %x1T = repmat(x1,obj.nx2,1);

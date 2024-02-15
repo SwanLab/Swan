@@ -50,6 +50,27 @@ classdef P1Function < FeFunction
             p1sub = P1Function(s);
         end
 
+        function fxV = sample(obj,xP,cells)
+            obj.interpolation.computeShapeDeriv(xP);
+            shapes  = obj.interpolation.shape;
+            nNode   = size(shapes,1);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            fxV = zeros(nF,nPoints);
+            for iF = 1:nF
+                for iNode = 1:nNode
+                    node = obj.mesh.connec(cells,iNode);
+                    Ni = shapes(iNode,:)';
+                    fi = obj.fValues(node,:);
+                    f(1,:) = fi.*Ni;
+                    fxV(iF,:) = fxV(iF,:) + f;
+                end
+            end
+        end   
+
+        
+
+
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
@@ -282,6 +303,21 @@ classdef P1Function < FeFunction
             v   = sqrt(ff);
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                   fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                   fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end            
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
+        function f = copy(obj)
+            f = obj.create(obj.mesh,obj.ndimf);
+            f.fValues = obj.fValues;
+        end
 
     end
 
@@ -306,8 +342,14 @@ classdef P1Function < FeFunction
             s.mesh    = f1.mesh;
             fS = P1Function(s);
         end
-        
-        
+
+        function fS = substract(f1,f2)
+            fS = f1.fValues-f2.fValues;
+            s.fValues = fS;
+            s.mesh    = f1.mesh;
+            fS = P1Function(s);
+        end        
+
     end
 
     methods (Access = private)
@@ -321,8 +363,8 @@ classdef P1Function < FeFunction
         end
 
         function createInterpolation(obj)
-            m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,'LINEAR');
+            type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(type,'LINEAR');
         end
 
         function computeNDofs(obj)

@@ -80,7 +80,7 @@ classdef MshReader < FileReader
         function m = createMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
     end
     

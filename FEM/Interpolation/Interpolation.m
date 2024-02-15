@@ -25,8 +25,8 @@ classdef Interpolation < handle
     
     methods (Static, Access = public)
         
-        function obj = create(mesh,order)
-            cParams.mesh = mesh;
+        function obj = create(type,order)
+            cParams.type = type;
             cParams.order = order;
             f = InterpolationFactory;
             obj = f.create(cParams);
@@ -37,7 +37,7 @@ classdef Interpolation < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type  = cParams.mesh.type;
+            obj.type  = cParams.type;
             obj.order = cParams.order;
         end
         

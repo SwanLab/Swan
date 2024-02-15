@@ -130,7 +130,7 @@ classdef ConnecCoordFromInterpAndMesh < handle
         end
 
         function shapes = computeShapesInVariableNodes(obj,mesh)
-            interpMesh = Interpolation.create(mesh,'LINEAR');
+            interpMesh = Interpolation.create(mesh.type,'LINEAR');
             nNodeMesh = interpMesh.nnode;
             nNodeVar  = obj.interp.nnode;
             shapes    = zeros(nNodeVar,nNodeMesh);

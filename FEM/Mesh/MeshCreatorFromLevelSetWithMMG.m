@@ -77,7 +77,7 @@ classdef MeshCreatorFromLevelSetWithMMG < handle
         
         function m = createMesh(obj)
             [s.coord,s.connec] = obj.obtainCoordsAndConnec();
-            obj.newMesh = Mesh().create(s);
+            obj.newMesh = Mesh.create(s);
         end
         
         function [coord,connec] = obtainCoordsAndConnec(obj)

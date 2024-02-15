@@ -65,7 +65,7 @@ classdef AbstractMesh < handle
     methods (Access = protected)
         
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj,'LINEAR');
+            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
         end
         
         function computeElementCoordinates(obj)

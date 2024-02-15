@@ -37,7 +37,7 @@ classdef LHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = obj.fun.order;
+                obj.quadratureOrder = 'QUADRATIC';%obj.fun.order;
             end
         end
         

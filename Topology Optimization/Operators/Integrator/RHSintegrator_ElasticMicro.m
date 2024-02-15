@@ -22,7 +22,8 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function Fext = compute(obj)
-            nVoigt = obj.material.nstre;
+            oX     = zeros(obj.dim.ndimf,1);
+            nVoigt = size(obj.material.evaluate(oX),1);
             basis   = diag(ones(nVoigt,1));
             Fvol = zeros(obj.dim.ndofs, nVoigt);
             for iVoigt = 1:nVoigt
@@ -92,7 +93,8 @@ classdef RHSintegrator_ElasticMicro < handle
         
         
         function F = computeStrainRHS(obj,vstrain)
-            Cmat  = obj.material.C;
+            xV    = obj.quadrature.posgp;
+            Cmat  = obj.material.evaluate(xV);
             nunkn = obj.dim.ndimf;
             nstre = size(Cmat,1);
             nelem = size(Cmat,3);
@@ -107,7 +109,7 @@ classdef RHSintegrator_ElasticMicro < handle
             a.quadrature = obj.quadrature;
             sigmaF = FGaussDiscontinuousFunction(a);
 
-            sigmaF.ndimf = size(obj.mesh.coord,2); 
+            sigmaF.ndimf = size(obj.mesh.coord,2);
             s.fun  = sigmaF;
             s.dNdx = sigmaF.computeCartesianDerivatives(obj.quadrature);
 

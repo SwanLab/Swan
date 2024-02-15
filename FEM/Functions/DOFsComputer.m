@@ -218,7 +218,7 @@ classdef DOFsComputer < handle
             elseif ord > 0
                 r.coord = obj.mesh.coord(obj.mesh.connec(1,:),:);
                 r.connec = 1:size(r.coord,1);
-                s.mesh = Mesh(r);
+                s.mesh = Mesh.create(r);
                 s.order   = ord;
                 s.ndimf   = obj.ndimf;
                 c = DOFsComputer(s);

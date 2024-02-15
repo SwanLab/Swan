@@ -1,7 +1,7 @@
 classdef SettingsMesh < AbstractSettings
     
     properties (Access = protected)
-        defaultParamsName = 'paramsMesh.json'
+        defaultParamsName% = 'paramsMesh.json'
     end
     
     properties (GetAccess = public, SetAccess = public)
@@ -9,12 +9,13 @@ classdef SettingsMesh < AbstractSettings
         connec
         type
         kFace
+        geometryType
     end
     
     methods (Access = public)
         
         function obj = SettingsMesh(varargin)
-            if ~isfield(varargin{1},'kFace')
+            if ~max(isfield(varargin{1},'kFace'), isprop(varargin{1},'kFace'))
                 varargin{1}.kFace = 0;
             end
             obj.coord  = varargin{1}.coord;
@@ -40,6 +41,7 @@ classdef SettingsMesh < AbstractSettings
             sG.kFace          = obj.kFace;
             gC = GeometryTypeComputer(sG);
             g = gC.compute();
+            obj.geometryType = g;
         end
         
     end

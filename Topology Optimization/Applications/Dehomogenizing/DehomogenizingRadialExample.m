@@ -69,7 +69,7 @@ classdef DehomogenizingRadialExample < handle
              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
              s.coord  = V(:,1:2);
              s.connec = F;
-             obj.backgroundMesh = Mesh(s);
+             obj.backgroundMesh = Mesh.create(s);
         %     obj.backgroundMesh.plot()
 %             obj.coord = s.coord;
             
