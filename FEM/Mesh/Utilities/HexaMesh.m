@@ -1,4 +1,4 @@
-function mesh = HexaMesh(length, height, width, nx, ny, nz)    
+function mesh = HexaMesh(length, height, width, nx, ny, nz)
     % Coord
     x = linspace(0, length, nx+1);
     y = linspace(0, height, ny+1);
