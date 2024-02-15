@@ -19,7 +19,7 @@ classdef TopOptTestTutorial < handle
         function obj = TopOptTestTutorial()
             obj.init()
             obj.createMesh();
-            obj.createDesignVariable();            
+            obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
@@ -48,18 +48,18 @@ classdef TopOptTestTutorial < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);            
+            obj.mesh = Mesh.create(s);
         end
 
         function createDesignVariable(obj)
             s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);            
+            aFun      = AnalyticalFunction(s);
             s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;                        
+            s.mesh    = obj.mesh;
             s.type = 'Density';
-            dens    = DesignVariable.create(s);   
+            dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
 
@@ -69,7 +69,7 @@ classdef TopOptTestTutorial < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
-        end       
+        end
 
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
@@ -80,7 +80,7 @@ classdef TopOptTestTutorial < handle
 
 
             E1 = 1;
-            nu1 = 1/3;            
+            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -169,7 +169,7 @@ classdef TopOptTestTutorial < handle
             mI   = obj.materialInterpolator;
             mat  = mI.computeConsitutiveTensor(dens);
         end
-        
+
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));

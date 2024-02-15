@@ -19,11 +19,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function obj = TopOptTestTutorialLevelSetNullSpace()
             obj.init()
             obj.createMesh();
-            obj.createDesignVariable();            
+            obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();            
+            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -48,17 +48,17 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);            
+            obj.mesh = Mesh.create(s);
         end
 
         function createDesignVariable(obj)
             s.type = 'Full';
             g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);           
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
-            s.mesh = obj.mesh;                        
+            s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            ls     = DesignVariable.create(s);   
+            ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 
@@ -68,7 +68,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
-        end       
+        end
 
         function createMaterialInterpolator(obj)
             E0   = 1e-3;
@@ -90,8 +90,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.matB = matB;
 
             m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;            
-        end    
+            obj.materialInterpolator = m;
+        end
 
         function createElasticProblem(obj)
             x = obj.designVariable;
@@ -113,7 +113,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
-        end        
+        end
 
         function createCompliance(obj)
             s.mesh                       = obj.mesh;
@@ -169,7 +169,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             mI   = obj.materialInterpolator;
             mat  = mI.computeConsitutiveTensor(dens);
         end
-        
+
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));

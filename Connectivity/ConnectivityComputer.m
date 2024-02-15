@@ -1,34 +1,34 @@
 classdef ConnectivityComputer < handle
-    
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-       mesh
-       levelSet
-       characteristicFunction
-       designVariable
 
-       materialInterpolation
-       filter
+    properties (Access = public)
+
     end
-    
+
     properties (Access = private)
-        
+        mesh
+        levelSet
+        characteristicFunction
+        designVariable
+
+        materialInterpolation
+        filter
     end
-    
+
+    properties (Access = private)
+
+    end
+
     methods (Access = public)
-        
+
         function obj = ConnectivityComputer()
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
             obj.createFilter();
-            obj.createCharacteristicFunction();            
+            obj.createCharacteristicFunction();
             obj.createDesignVariable();
 
-           % obj.levelSet.getUnfittedMesh().plot()
+            % obj.levelSet.getUnfittedMesh().plot()
             % obj.density.plot()
             % shading flat
             % colormap('gray');
@@ -37,15 +37,15 @@ classdef ConnectivityComputer < handle
             % figure
 
             obj.computeComplianceFunctional();
-            obj.computeEigenValueFunctional()                               
+            obj.computeEigenValueFunctional()
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj)
-            
+
         end
 
         function createMesh(obj)
@@ -55,11 +55,11 @@ classdef ConnectivityComputer < handle
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            m = Mesh(s);            
+            m = Mesh.create(s);
             obj.mesh = m;
-        end        
+        end
 
-       function createLevelSet(obj)
+        function createLevelSet(obj)
             s.type        = 'Circle';
             s.radius      = 0.3;
             s.xCoorCenter = 0.5;
@@ -86,15 +86,15 @@ classdef ConnectivityComputer < handle
             f = Filter.create(s);
             obj.filter = f;
         end
- 
+
         function createDesignVariable(obj)
             sD.fun  = obj.filter.compute(obj.characteristicFunction,'QUADRATIC');
-            sD.mesh = obj.mesh;                        
+            sD.mesh = obj.mesh;
             sD.type = 'Density';
-            dens    = DesignVariable.create(sD);   
+            dens    = DesignVariable.create(sD);
             obj.designVariable = dens;
-        end        
- 
+        end
+
         function computeComplianceFunctional(obj)
             obj.materialInterpolation = obj.computeMaterialInterpolation();
             s.mesh = obj.mesh;
@@ -108,12 +108,12 @@ classdef ConnectivityComputer < handle
             fem.solve();
 
 
-    
+
 
             sH.type = 'ByInterpolation';
             sH.material = obj.createMaterial();
             sH.interpolationSettings.interpolation = obj.materialInterpolation;
-            
+
 
             homogVarComp = HomogenizedVarComputer.create(sH);
 
@@ -129,9 +129,9 @@ classdef ConnectivityComputer < handle
 
 
             sh.computeFunctionAndGradient();
-        end  
+        end
 
-    
+
         function matInt = computeMaterialInterpolation(obj)
             c.typeOfMaterial = 'ISOTROPIC';
             c.interpolation = 'SIMPALL';
@@ -147,10 +147,10 @@ classdef ConnectivityComputer < handle
             matInt = MaterialInterpolation.create(c);
         end
 
-       function mat = createMaterial(obj)
+        function mat = createMaterial(obj)
             d = obj.designVariable.fun.project('P0');
-          %  d.fValues = round(d.fValues);              
-            
+            %  d.fValues = round(d.fValues);
+
             dens  = d.fValues;
             mat  = obj.materialInterpolation.computeMatProp(dens);
             s.ptype = 'ELASTIC';
@@ -161,11 +161,11 @@ classdef ConnectivityComputer < handle
             s.mu    = mat.mu;
             mat = Material.create(s);
             mat.compute(s);
-       end           
-  
+        end
+
         function bc = createBoundaryConditionsForElasticity(obj)
             bM = obj.mesh.createBoundaryMesh();
-            
+
             dirichletBc.boundaryId=1;
             dirichletBc.dof=[1,2];
             dirichletBc.value=[0,0];
@@ -175,8 +175,8 @@ classdef ConnectivityComputer < handle
 
             [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
             bc.dirichlet=dirichlet;
-            bc.pointload=pointload;   
-        end        
+            bc.pointload=pointload;
+        end
 
         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
             dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
@@ -196,10 +196,10 @@ classdef ConnectivityComputer < handle
                 end
             end
             cond = cond(2:end,:);
-        end        
+        end
 
-       function computeEigenValueFunctional(obj)                   
-            eigen = obj.computeEigenValueProblem();          
+        function computeEigenValueFunctional(obj)
+            eigen = obj.computeEigenValueProblem();
             s.eigenModes = eigen;
             s.designVariable = obj.designVariable;
             mE = MinimumEigenValueFunctional(s);
@@ -209,10 +209,10 @@ classdef ConnectivityComputer < handle
         function eigen = computeEigenValueProblem(obj)
             s.mesh = obj.mesh;
             eigen  = StiffnessEigenModesComputer(s);
-        end              
+        end
 
 
-        
+
     end
-    
+
 end

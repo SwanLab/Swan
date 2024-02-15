@@ -30,7 +30,7 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
             % connecCutInner = connecCutInner + ncoord;
             s.coord  = [coordCutInner];
             s.connec = [connecInner; connecCutInner];
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
         
     end

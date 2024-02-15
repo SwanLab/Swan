@@ -231,7 +231,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
         function plotLineOfCells(obj,cells)
             s.coord  = obj.mesh.coord;
             s.connec = obj.mesh.connec(cells,:);
-            m = Mesh(s);
+            m = Mesh.create(s);
             m.plot()                           
         end
                

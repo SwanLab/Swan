@@ -52,23 +52,19 @@
         end
         
         function createInterpolation(obj)
-            m.type = 'LINE';
-            m.coord  = [];
-            m.connec = [];
-            int = Interpolation.create(m,'LINEAR');
+            type = 'LINE';
+            int = Interpolation.create(type,'LINEAR');
             obj.interpolation = int;
         end
         
         function computeXisoNodes(obj)
             switch obj.nEdgeByElem
                 case 3
-                    m.type = 'TRIANGLE';
+                    type = 'TRIANGLE';
                 case 6
-                    m.type = 'TETRAHEDRA';
+                    type = 'TETRAHEDRA';
             end
-            m.coord  = [];
-            m.connec = [];
-            int = Interpolation.create(m,'LINEAR');
+            int = Interpolation.create(type,'LINEAR');
             obj.xIsoNodes = int.pos_nodes;
         end
         
