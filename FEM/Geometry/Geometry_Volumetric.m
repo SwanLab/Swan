@@ -1,9 +1,5 @@
 classdef Geometry_Volumetric < Geometry
     
-    properties (GetAccess = public, SetAccess = private)
-        dNdx
-    end
-    
     properties (Access = private)
         matrixInverter
     end
@@ -46,7 +42,7 @@ classdef Geometry_Volumetric < Geometry
                 end
             end
         end
-        
+
     end
     
 end
