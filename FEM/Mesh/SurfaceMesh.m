@@ -44,7 +44,14 @@ classdef SurfaceMesh < Mesh
                 axis('equal');
                 hold on
             end
-        end            
+        end
+
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
         
     end
     
