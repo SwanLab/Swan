@@ -67,7 +67,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             f = Filter.create(s);
             obj.filter = f;
         end       
@@ -76,7 +76,7 @@ classdef TopOptViaHomogenizationTutorial < handle
 %             ndim = 2;            
 %             E0 = 1e-3; 
 %             nu0 = 1/3;
-%             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+%             matA.shear = Iso  tropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
 %             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 % 
 %             E1 = 1;
@@ -96,7 +96,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.scale = 'MACRO';
             s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
             s.dim = '2D';
-            s.bc = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.interpolationType = 'LINEAR';
@@ -186,16 +186,18 @@ classdef TopOptViaHomogenizationTutorial < handle
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-            bc.dirichletFun = dirichletFun;
+            s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
-            bc.pointloadFun = pointloadFun;
+            s.pointloadFun = pointloadFun;
 
-            bc.periodicFun  = [];
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
         end    
 
     end
