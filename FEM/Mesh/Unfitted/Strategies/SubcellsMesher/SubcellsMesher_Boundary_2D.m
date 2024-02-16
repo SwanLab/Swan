@@ -35,12 +35,9 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
             levelSet = obj.cell_levelSet;
             coordIso = obj.interior_coord_iso;
             coordIso(end,:) = [0 0];
+            type = 'QUAD';
             
-            m.coord = [];
-            m.connec = [];
-            m.geometryType = 'QUAD';
-            
-            int = Interpolation.create(m,'LINEAR');
+            int = Interpolation.create(type,'LINEAR');
             xG = coordIso(5:end,:)';[0 0]';
             int.computeShapeDeriv(xG)
             shapes = int.shape;

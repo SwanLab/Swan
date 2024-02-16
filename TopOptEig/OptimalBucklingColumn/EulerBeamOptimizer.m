@@ -67,7 +67,7 @@ classdef EulerBeamOptimizer < handle
             s.coord  = obj.createCoordinates();
             s.connec = obj.createConnectivity();
             s.type = 'LINE';
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.mesh = m;
         end
 

@@ -79,7 +79,7 @@ classdef ClementInterpolator < handle
                 lC       = reshape(lC,[nnodeElem,locnElem])';
                 s.connec = lC;
                 s.coord  = obj.mesh.coord;
-                msh      = Mesh(s);
+                msh      = Mesh.create(s);
                 msh      = msh.computeCanonicalMesh();
                 locCoord = msh.coord;
                 globNode = obj.mesh.coord(i,:);

@@ -64,7 +64,7 @@ classdef StructuredMesh < handle
 
         function createMesh(obj,s)
             s.kFace = 0;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
         
     end

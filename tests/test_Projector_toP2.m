@@ -88,7 +88,7 @@ function m = createMesh(N)
     sBg.coord  = V(:,1:2);
     sBg.connec = F;
     figure
-    m = Mesh(sBg);
+    m = Mesh.create(sBg);
 end
 
 % function xG = defineGaussPoints(mesh)
