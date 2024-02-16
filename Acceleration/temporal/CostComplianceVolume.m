@@ -64,7 +64,7 @@ classdef CostComplianceVolume < handle
 
         function createCost(obj)
             obj.compliance = obj.topOpt.cost.shapeFunctions{1};
-            obj.volume = obj.topOpt.constraint.shapeFunctions{1};5;
+            obj.volume = obj.topOpt.constraint.shapeFunctions{1};
         end
 
     end

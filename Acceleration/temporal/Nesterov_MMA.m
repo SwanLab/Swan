@@ -47,11 +47,7 @@ classdef Nesterov_MMA < handle
     methods (Access = public)
         
         function obj = Nesterov_MMA(cParams)
-            % obj.initOptimizer(cParams);
             obj.init(cParams);
-            % obj.outputFunction.monitoring.create(cParams);
-%             obj.upperBound = cParams.uncOptimizerSettings.ub;
-%             obj.lowerBound = cParams.uncOptimizerSettings.lb;
             obj.maxoutit = 1e4;
         end
 
@@ -59,30 +55,28 @@ classdef Nesterov_MMA < handle
             obj.designVariable.update(x);
             obj.update();
             obj.updateIterInfo();
-            x = obj.designVariable.value;
+            x = obj.designVariable.fun.fValues;
         end
 
-       function solveProblem(obj)
-            % obj.cost.computeFunctionAndGradient();
-            % obj.constraint.computeFunctionAndGradient();
+%        function solveProblem(obj)
+% 
+%             obj.hasFinished = false;
 %             obj.printOptimizerVariable();
-            obj.hasFinished = false;
-            obj.printOptimizerVariable();
-            while ~obj.hasFinished
-                obj.update();
-                obj.updateIterInfo();
-                obj.updateMonitoring();
-                obj.printOptimizerVariable();
-            end
-%             obj.printOptimizerVariable();
-%             obj.printHistory();
-            obj.hasConverged = 0;
-%             obj.printHistoryFinalValues();
-       end
+%             while ~obj.hasFinished
+%                 obj.update();
+%                 obj.updateIterInfo();
+%                 obj.updateMonitoring();
+%                 obj.printOptimizerVariable();
+%             end
+% %             obj.printOptimizerVariable();
+% %             obj.printHistory();
+%             obj.hasConverged = 0;
+% %             obj.printHistoryFinalValues();
+%        end
         
         function update(obj)
-            x = obj.designVariable.value;
-            obj.cost.computeFunctionAndGradient(); 
+            x = obj.designVariable.fun.fValues;
+            obj.cost.computeFunctionAndGradient(obj.designVariable); 
             % obj.constraint.computeFunctionAndGradient();
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
@@ -99,7 +93,7 @@ classdef Nesterov_MMA < handle
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
+            obj.cost.computeFunctionAndGradient(obj.designVariable);
             % obj.constraint.computeFunctionAndGradient();
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
@@ -117,24 +111,12 @@ classdef Nesterov_MMA < handle
     
     methods (Access = private)
 
-        % function updateMonitoring(obj)
-        %     s.hasFinished          = obj.hasFinished;
-        %     s.nIter                = obj.nIter;
-        %     s.KKTnorm              = obj.KKTnorm;
-        %     s.outitFrac            = obj.outit/obj.maxoutit;
-        %     obj.outputFunction.monitoring.compute(s);
-        % end
-
         function init(obj,cParams)
-            obj.nIter = 1;
-            % obj.outputFunction         = cParams.outputFunction.monitoring;
-            obj.upperBound             = cParams.upperBound;
-            obj.lowerBound             = cParams.lowerBound;
-            % obj.incrementalScheme      = cParams.incrementalScheme;
-            % obj.hasConverged           = false;
-            obj.constraintCase         = cParams.constraintCase;
-            % obj.targetParameters       = cParams.targetParameters;
-            obj.cost = cParams.cost;
+            obj.nIter          = 1;
+            obj.upperBound     = 1;
+            obj.lowerBound     = 0;
+            obj.constraintCase = cParams.constraintCase;
+            obj.cost           = cParams.cost;
             obj.designVariable = cParams.designVariable;
         end
         
@@ -143,18 +125,15 @@ classdef Nesterov_MMA < handle
             df = obj.cost.gradient;
             % c  = obj.constraint.value;
             % dc = obj.constraint.gradient;
-            c = 0;
+            c  = 0;
             dc = zeros(length(df),1);
-            dc = dc';
-            
+            dc = dc';            
             [c,dc] = obj.checkConstraintCase(c,dc);
             
-            %% Re-scale constraints
+            % Re-scale constraints
             % In many applications, the constraints are on the form yi(x) < =  ymaxi
             % The user should then preferably scale the constraints in such a way that 1 < =  ymaxi < =  100 for each i
             % (and not ymaxi = 10^10 for example).
-
-            
 
             % kconstr = 100;
             kconstr = 1;

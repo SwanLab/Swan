@@ -12,7 +12,7 @@ classdef MomentumParameterConvexCase < MomentumParameter
 
         function v = computeValue(obj,cParams)
             iter = cParams.iter;
-            v = iter/(iter+2);
+            v    = iter/(iter+2);
         end
 
     end

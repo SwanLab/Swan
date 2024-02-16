@@ -3,6 +3,7 @@ ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 initial_case = 'full';
+geomFunSettings.type = 'Full';
 cost = {'compliance'};
 weights = 1;
 %cost = {'compliance'};
