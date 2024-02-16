@@ -22,6 +22,22 @@ classdef LineMesh < Mesh
             % obj.init(cParams)
         end
         
+        function hMin = computeMinCellSize(obj)
+            x1 = obj.coord(obj.connec(:,1),:);
+            x2 = obj.coord(obj.connec(:,2),:);
+            x1x2 = (x2-x1);
+            n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+            hMin = min(n12);
+        end
+
+        function hMean = computeMeanCellSize(obj)
+            x1 = obj.coord(obj.connec(:,1),:);
+            x2 = obj.coord(obj.connec(:,2),:);
+            x1x2 = (x2-x1);
+            hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
+            hMean = max(hs);
+        end
+        
         function plot(obj)
             p = patch('vertices',obj.coord,'faces',obj.connec);
             p.EdgeColor = 'b';
