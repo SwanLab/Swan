@@ -176,17 +176,10 @@ classdef Mesh < handle
             m = q2t.convert(obj, lastNode);
         end
 
-        function exportSTL(obj) % check if it works
+        function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
             me.export();
-        end
-
-        function m = provideExtrudedMesh(obj, height) % check if it works
-            s.unfittedMesh = obj;
-            s.height       = height;
-            me = MeshExtruder(s);
-            m = me.extrude();
         end
 
         function print(obj, filename, software)
