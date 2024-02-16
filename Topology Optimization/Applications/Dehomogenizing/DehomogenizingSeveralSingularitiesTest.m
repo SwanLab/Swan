@@ -70,7 +70,7 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
            s.coord(:,1) = X(:);
            s.coord(:,2) = Y(:);
            s.connec = delaunay(s.coord);
-           m = Mesh(s);
+           m = Mesh.create(s);
            obj.mesh = m;
         end
 
