@@ -21,12 +21,9 @@ classdef VolumeMesh < Mesh
         
         function hMin = computeMinCellSize(obj)
             % wrong
-            x1(:,1) = obj.coord(obj.connec(:,1),1);
-            x1(:,2) = obj.coord(obj.connec(:,1),2);
-            x2(:,1) = obj.coord(obj.connec(:,2),1);
-            x2(:,2) = obj.coord(obj.connec(:,2),2);
-            x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
+            x1 = obj.coord(obj.connec(:,1),:);
+            x2 = obj.coord(obj.connec(:,2),:);
+            x3 = obj.coord(obj.connec(:,3),:);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
@@ -39,12 +36,9 @@ classdef VolumeMesh < Mesh
 
         function hMean = computeMeanCellSize(obj)
             % wrong
-            x1(:,1) = obj.coord(obj.connec(:,1),1);
-            x1(:,2) = obj.coord(obj.connec(:,1),2);
-            x2(:,1) = obj.coord(obj.connec(:,2),1);
-            x2(:,2) = obj.coord(obj.connec(:,2),2);
-            x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
+            x1 = obj.coord(obj.connec(:,1),:);
+            x2 = obj.coord(obj.connec(:,2),:);
+            x3 = obj.coord(obj.connec(:,3),:);
             x1x2 = (x2-x1);
             x2x3 = (x3-x2);
             x1x3 = (x1-x3);
