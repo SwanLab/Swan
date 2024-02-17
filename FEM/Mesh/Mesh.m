@@ -122,7 +122,7 @@ classdef Mesh < handle
         end
 
         function eM = computeEdgeMesh(obj) % nonsense for lines
-            obj.computeEdges;
+            obj.computeEdges();
             s.coord  = obj.coord;
             s.connec = obj.edges.nodesInEdges;
             s.kFace  = obj.kFace -1;
