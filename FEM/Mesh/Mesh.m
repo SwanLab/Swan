@@ -69,6 +69,26 @@ classdef Mesh < handle
         function xGauss = computeXgauss(obj,xV)
             xGauss = obj.xFE.evaluate(xV);
         end
+        
+        function hMin = computeMinCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMin = min(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMean = computeMeanCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMean = max(sqrt(sum(x1x2.^2,2)));
+        end
 
         function q = computeElementQuality(obj) % check for 3d
             quad = Quadrature.set(obj.type);
