@@ -37,7 +37,7 @@ classdef Projector_toP1 < Projector
             %shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             
             trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            shapes = trial.computeShapeFunctions(quad);
+            shapes = trial.computeShapeFunctions(xV);
 
             conne = obj.mesh.connec;
 
