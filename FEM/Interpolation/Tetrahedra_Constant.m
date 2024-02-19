@@ -9,13 +9,15 @@ classdef Tetrahedra_Constant < Interpolation
 
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
-            N = ones(obj.nnode,ngaus);
+            nelem = size(posgp,3);
+            N = ones(obj.nnode,ngaus,nelem);
             shape = N;
         end
 
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            dN = zeros(obj.ndime,obj.nnode,ngaus);
+            nelem = size(posgp,3);
+            dN = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             deriv = dN;
         end
 

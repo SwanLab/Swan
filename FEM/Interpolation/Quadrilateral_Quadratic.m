@@ -9,11 +9,12 @@ classdef Quadrilateral_Quadratic < Interpolation
 
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
-            shape = zeros(obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            shape = zeros(obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                shape(:,igaus) = [(s^2*t^2)/4 - (s^2*t)/4 - (s*t^2)/4 + (s*t)/4;
+                shape(:,igaus,:) = [(s^2*t^2)/4 - (s^2*t)/4 - (s*t^2)/4 + (s*t)/4;
                     (s^2*t^2)/4 - (s^2*t)/4 + (s*t^2)/4 - (s*t)/4;
                     (s^2*t^2)/4 + (s^2*t)/4 + (s*t^2)/4 + (s*t)/4;
                     (s^2*t^2)/4 + (s^2*t)/4 - (s*t^2)/4 - (s*t)/4;
@@ -27,11 +28,12 @@ classdef Quadrilateral_Quadratic < Interpolation
 
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            deriv = zeros(obj.ndime, obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                obj.deriv(:,:,igaus) = [
+                obj.deriv(:,:,igaus,:) = [
                     t/4 - (s*t)/2 + (s*t^2)/2 - t^2/4,
                     (s*t^2)/2 - (s*t)/2 - t/4 + t^2/4,
                     t/4 + (s*t)/2 + (s*t^2)/2 + t^2/4,
