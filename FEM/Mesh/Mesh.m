@@ -263,10 +263,6 @@ classdef Mesh < handle
 
         %% Remove
 
-        function setCoord(obj,newCoord)
-            obj.coord = newCoord;
-        end
-
         function mD = createDiscontinuousMesh(obj) % P1D
             ndims = size(obj.coord, 2);
             nNodesDisc = obj.nnodeElem*obj.nelem;
