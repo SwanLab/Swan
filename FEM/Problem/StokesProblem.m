@@ -68,6 +68,23 @@ classdef StokesProblem < handle
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
         end
+       
+        function print(obj, filename, software)
+            if nargin == 2; software = 'Paraview'; end
+            [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = obj.mesh;
+            a.filename = filename;
+            a.fun      = fun;
+            a.funNames = funNames;
+            a.type     = software;
+            pst = FunctionPrinter.create(a);
+            pst.print();
+        end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.velocityFun, obj.pressureFun};
+            funNames = {'velocity', 'pressure'};
+        end
 
     end
     
