@@ -112,8 +112,8 @@ classdef P1Function < FeFunction
             end
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.evaluateCartesianDerivatives(quad);
+        function gradFun = computeGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -136,7 +136,7 @@ classdef P1Function < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues    = permute(fVR, [1 3 2]);
             s.mesh       = obj.mesh;
-            s.quadrature = quad;
+            s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
@@ -158,14 +158,15 @@ classdef P1Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function divF = computeDivergence(obj,q)
-            dNdx = obj.evaluateCartesianDerivatives(q);
+        function divF = computeDivergence(obj,xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
             nDim  = obj.mesh.ndim;
-            divV = zeros(q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
+            nGaus = size(xV,2);
+            divV = zeros(nGaus,obj.mesh.nelem);
+            for igaus = 1:nGaus
                 for kNode = 1:nNode
                     nodeK = nodes(:,kNode);
                     for rDim = 1:nDim
@@ -176,7 +177,7 @@ classdef P1Function < FeFunction
                     end
                 end
             end
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues(1,:,:) = divV;
             divF = FGaussDiscontinuousFunction(s);

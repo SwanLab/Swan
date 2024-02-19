@@ -60,8 +60,8 @@ classdef P2Function < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.evaluateCartesianDerivatives(quad);
+        function gradFun = computeGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -85,7 +85,7 @@ classdef P2Function < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
-            s.quadrature = quad;
+            s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
