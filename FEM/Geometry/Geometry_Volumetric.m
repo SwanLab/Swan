@@ -36,7 +36,7 @@ classdef Geometry_Volumetric < Geometry
             for iPoints = 1:nPoints
                 for iNode = 1:nNode
                     dShapeIK = repmat(dShapes(:,iNode,iPoints),[1 1 nElem]);
-                    xKJ      = pagetranspose(obj.xFE.fValues(:,iNode,:));
+                    xKJ      = pagetranspose(coord(:,iNode,:));
                     jacIJ    = pagemtimes(dShapeIK, xKJ);
                     J(:,:,iPoints,:) = squeeze(J(:,:,iPoints,:)) + jacIJ;
                 end

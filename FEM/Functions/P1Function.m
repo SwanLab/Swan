@@ -50,7 +50,7 @@ classdef P1Function < FeFunction
             p1sub = P1Function(s);
         end
 
-        function fxV = sample(obj,xP,cells)
+        function fxV = sampleFunction(obj,xP,cells)
             obj.interpolation.computeShapeDeriv(xP);
             shapes  = obj.interpolation.shape;
             nNode   = size(shapes,1);
@@ -68,14 +68,11 @@ classdef P1Function < FeFunction
             end
         end   
 
-        
-
-
         function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+            N = obj.interpolation.computeShapeDeriv(xV);
+            %N = obj.interpolation.shape;
         end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)
@@ -86,7 +83,7 @@ classdef P1Function < FeFunction
                     nNode = obj.interpolation.nnode;
                     nDime = obj.mesh.ndim;
                     nGaus = quad.ngaus;
-                    deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
+                    deriv  = obj.interpolation.deriv(1,:,:,:);
                     dShapes = deriv;
                     dN = zeros(nDime,nNode,nElem,nGaus);
                     for iGaus = 1:nGaus
