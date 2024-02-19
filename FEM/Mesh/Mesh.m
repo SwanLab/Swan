@@ -87,7 +87,17 @@ classdef Mesh < handle
             x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
             x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
             x1x2 = (x2-x1);
-            hMean = max(sqrt(sum(x1x2.^2,2)));
+            hMean = mean(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMax = computeMaxCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMax = max(sqrt(sum(x1x2.^2,2)));
         end
 
         function q = computeElementQuality(obj) % check for 3d
