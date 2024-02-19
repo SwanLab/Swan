@@ -18,7 +18,7 @@ classdef MatrixVectorizedInverterFactory < handle
     methods (Access = private, Static)
         
         function ndime = computeDimension(A)
-            ndime = min(size(A));
+            ndime = size(A,1);
         end
         
     end

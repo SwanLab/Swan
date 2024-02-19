@@ -3,11 +3,11 @@ classdef GeometryFactory < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            switch cParams.mesh.geometryType
+            switch cParams.geometryType
                 case 'Line'
                     obj = Geometry_Line(cParams);
                 case 'Surface'
-                    switch cParams.mesh.ndim
+                    switch cParams.xFE.ndimf
                         case 2
                             obj = Geometry_Volumetric(cParams);
                         case 3

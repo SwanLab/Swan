@@ -47,11 +47,14 @@ classdef LagrangianFunction < FeFunction
             c = obj.connec;
         end
 
-        function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            xV = quad.posgp;
+        function N = computeShapeFunctions(obj, xV)
             obj.interpolation.computeShapeDeriv(xV);
             N = obj.interpolation.shape;
+        end
+
+        function dN = computeShapeDerivatives(obj, xV)
+            obj.interpolation.computeShapeDeriv(xV);
+            dN = obj.interpolation.deriv;
         end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)

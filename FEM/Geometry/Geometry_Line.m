@@ -13,18 +13,16 @@ classdef Geometry_Line < Geometry
     methods (Access = public)
         
         function obj = Geometry_Line(cParams)
-            obj.permutation = [2 3 1];
             obj.init(cParams);
         end
         
         function computeGeometry(obj,quad,interpV)
-            obj.initGeometry(interpV,quad);
             obj.computeDvolu();
             obj.computeCartesianDerivatives();
         end
         
-        function invJ = computeInverseJacobian(obj,quad,interpV)
-            obj.initGeometry(interpV,quad);
+        function invJ = computeInverseJacobian(obj,interpV)
+            obj.initGeometry(interpV);
             obj.computeDvolu();
             detJ = obj.computeDeterminant();
             invDet = 1./detJ;

@@ -41,6 +41,11 @@ classdef P1DiscontinuousFunction < FeFunction
             N = obj.interpolation.shape;
         end
 
+        function dN = computeShapeDerivatives(obj,xV)
+            obj.interpolation.computeShapeDeriv(xV);
+            dN = obj.interpolation.deriv;
+        end
+        
         function dNdx  = computeCartesianDerivatives(obj,quad)
            nElem = size(obj.mesh.connec,1);
            nNode = obj.interpolation.nnode;
