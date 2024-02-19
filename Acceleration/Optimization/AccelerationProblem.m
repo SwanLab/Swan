@@ -88,7 +88,30 @@ classdef AccelerationProblem < handle
         end
 
         function createTauBetaProblemAndCompute(obj)
-            
+            s.TOL     = obj.settings.TOL;
+            s.maxIter = obj.settings.maxIter;
+            s.cost    = obj.cost;
+            s.designVariable = obj.designVariable;
+            s.momentumParameter.type = 'CONSTANT';
+            s.gDescentType = obj.settings.gDescentType;
+            t = obj.settings.tau;
+            b = obj.settings.beta;
+            obj.problem = zeros(numel(t),numel(b));
+            Jmin        = obj.problem;
+            for i = 1:numel(t)
+                for j = 1:numel(b)
+                    fprintf('Solving for tau = %.3f and beta = %.2f \n',t(i),b(j))
+                    s.tau = t(i);
+                    s.momentumParameter.value = b(j);
+                    probl = AcceleratedGradientDescent(s);
+                    probl.solve();
+                    obj.problem(i,j) = numel(probl.J);
+                    Jmin(i,j)        = probl.J(end);
+                end
+            end
+            minVal          = min(min(Jmin));
+            hasNotConverged = Jmin - minVal > 0.2;
+            obj.problem(hasNotConverged) = obj.settings.maxIter;
         end
 
     end

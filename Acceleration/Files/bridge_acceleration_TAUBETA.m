@@ -1,11 +1,11 @@
-% CANTILEVER ACCELERATION CASE
+% BRIDGE ACCELERATION CASE
 % General config
 s.problemType  = 'GENERAL';
-s.geometryCase = 'CANTILEVER';
+s.geometryCase = 'BRIDGE';
 % Optimization config
-s.tau     = 1e-1;
-s.TOL     = 5e-4;
-s.maxIter = 80;
+s.tau     = 5e-2;
+s.TOL     = 1e-4;
+s.maxIter = 60;
 s.lambda  = 10;
 % Display final topology
 s.result  = true;

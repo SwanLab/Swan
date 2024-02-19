@@ -70,7 +70,7 @@ classdef AccelerationExperiments < handle
             switch obj.settings.geometryCase
                 case {'CANTILEVER','ARCH','BRIDGE'}
                     x1 = linspace(0,2,50);
-                    x2 = linspace(0,1.5,36);
+                    x2 = linspace(0,1.5,34);
                 otherwise
                     error('Case not implemented yet')
             end
@@ -202,6 +202,7 @@ classdef AccelerationExperiments < handle
                 case 'GENERAL'
                     obj.computeGeneralPlots();
                 case 'TAU_BETA'
+                    obj.computeTauBetaPlots();
                 otherwise 
             end
         end
@@ -262,9 +263,50 @@ classdef AccelerationExperiments < handle
                     grid off
                     title(legendNames{i},'Interpreter','Latex')
                     box on
+                    axis equal
                     hold off
                 end
             end
+
+            if obj.settings.saveResults
+                d = obj.designVariable;
+                for i = 1:numel(prob)
+                    d.update(prob{i}.xFinal);
+                    d.getFunsToPlot{1}.
+                end
+            end
+        end
+
+        function computeTauBetaPlots(obj)
+            st = obj.settings;
+            p = obj.experiment;
+            [betaGrid,tauGrid] = meshgrid(st.beta,st.tau);
+            bestOnes = zeros(size(p.problem,1),3);
+            for i = 1:size(p.problem,1)
+                [val,pos]     = min(p.problem(i,:));
+                bestOnes(i,:) = [betaGrid(1,pos),tauGrid(i,1),val+1e3];
+            end
+
+            figure()
+            hold on
+            s = surf(betaGrid,tauGrid,p.problem);
+            xlabel('Momentum term ($\beta$)','Interpreter','latex')
+            ylabel('Line search ($\tau$)','Interpreter','latex')
+            s.EdgeColor = "none";
+            s.FaceColor = "interp";
+            c = colorbar;
+            colormap(flipud(jet));
+            c.TickLabelInterpreter = 'latex';
+            clim([min(min(p.problem)),st.maxIter]);
+            view(0,90)
+            h = plot3(bestOnes(:,1),bestOnes(:,2),bestOnes(:,3),'o','Color','black');
+            set(h, 'MarkerFaceColor', 'k');
+            set(gca,"TickLabelInterpreter",'latex','FontSize',14)
+            xlim([st.beta(1) st.beta(end)])
+            ylim([st.tau(1) st.tau(end)])
+            box on
+            hold off
+            
         end
 
     end
