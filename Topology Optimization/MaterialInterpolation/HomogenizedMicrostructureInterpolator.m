@@ -15,7 +15,7 @@ classdef HomogenizedMicrostructureInterpolator < handle
         end
 
         function dCm = computeConstitutiveTensorDerivative(obj,x)
-               dCm{iVar} = obj.createMaterial(x);
+           dCm{iVar} = obj.createMaterial(x);
         end
         
     end

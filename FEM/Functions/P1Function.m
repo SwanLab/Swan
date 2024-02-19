@@ -73,7 +73,7 @@ classdef P1Function < FeFunction
 
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
-            %N = obj.interpolation.computeShapeDeriv(xV);
+            obj.interpolation.computeShapeDeriv(xV);
             N = obj.interpolation.shape;
         end
         

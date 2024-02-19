@@ -92,7 +92,7 @@ classdef AnisotropicFromHomogenization < Material
             C  = zeros(nStre,nStre,nDofs);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cij(1,1,:) = obj.Ctensor{i,j}.sample(mL,cells);  
+                    Cij(1,1,:) = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
                     C(i,j,:)   = Cij;
                 end
             end
