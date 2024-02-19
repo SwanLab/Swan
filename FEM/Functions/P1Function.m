@@ -68,10 +68,7 @@ classdef P1Function < FeFunction
             end
         end   
 
-        
-
-
-        function N = computeShapeFunctions(obj, quad)
+       function N = computeShapeFunctions(obj, quad)
 %             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
             xV = quad.posgp;
             obj.interpolation.computeShapeDeriv(xV);

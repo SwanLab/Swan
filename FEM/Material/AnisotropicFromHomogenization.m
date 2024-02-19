@@ -61,7 +61,7 @@ classdef AnisotropicFromHomogenization < Material
                     s.fValues = Cij(:);
                     s.mesh    = obj.sMesh.mesh;
                     s.ndim    = 1;
-                    CijF      = P1Function(s);
+                    CijF = LagrangianFunction.create(obj.sMesh.mesh, 1, 'P1');
                     obj.Ctensor{i,j} = CijF;
                 end
             end

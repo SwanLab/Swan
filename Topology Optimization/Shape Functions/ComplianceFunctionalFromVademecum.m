@@ -17,7 +17,8 @@ classdef ComplianceFunctionalFromVademecum < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xR = obj.filterDesignVariable(xD);
+            xR{1} = obj.filterDesignVariable(x.fun{1});
+            xR{2} = obj.filterDesignVariable(x.fun{2});
             C  = obj.computeMaterial(xR);
             dC = obj.computeMaterialDerivative(xR);               
             [J,dJ] = obj.computeComplianceFunctionAndGradient(C,dC);
@@ -44,7 +45,7 @@ classdef ComplianceFunctionalFromVademecum < handle
 
         function dC = computeMaterialDerivative(obj,x)
             mI = obj.materialInterpolator;
-            dC = mI.computeConsitutiveTensorDerivative(x);
+            dC = mI.computeConstitutiveTensorDerivative(x);
         end        
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj,C,dC)

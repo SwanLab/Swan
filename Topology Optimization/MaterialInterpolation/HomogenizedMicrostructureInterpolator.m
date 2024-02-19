@@ -1,4 +1,4 @@
-classdef HomogenizedMicrostructrueInterpolator < handle
+classdef HomogenizedMicrostructureInterpolator < handle
     
     properties (Access = private)
         fileName
@@ -6,7 +6,7 @@ classdef HomogenizedMicrostructrueInterpolator < handle
     
     methods (Access = public)
         
-        function obj = HomogenizedMicrostructrueInterpolator(cParams)
+        function obj = HomogenizedMicrostructureInterpolator(cParams)
             obj.init(cParams)
         end
 
@@ -14,12 +14,8 @@ classdef HomogenizedMicrostructrueInterpolator < handle
             C = obj.createMaterial(x);
         end
 
-        function computeConstitutiveTensorDerivative(obj,x)
-            
-            for iVar = 1:length(x)
-               dCi = dC(:,:,:,iVar);
-               dCm{iVar} = obj.createMaterial(dCi);
-            end            
+        function dCm = computeConstitutiveTensorDerivative(obj,x)
+               dCm{iVar} = obj.createMaterial(x);
         end
         
     end

@@ -23,7 +23,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolume();
             obj.createCost();
@@ -76,7 +75,7 @@ classdef TopOptViaHomogenizationTutorial < handle
              ndim = 2;            
              E0 = 1e-3; 
              nu0 = 1/3;
-             matA.shear = Iso  tropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
              matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
  
              E1 = 1;
@@ -105,19 +104,19 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.physicalProblem = fem;
         end
 
-        function createComplianceFromConstiutive(obj)
+        function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
-            obj.compliance = c;
         end
 
         function createCompliance(obj)
-            s.mesh                 = obj.mesh;
-            s.filter               = obj.filter;
-            s.stateProblem         = obj.physicalProblem;
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filter;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.materialInterpolator = obj.materialInterpolator;
             c                      = ComplianceFunctionalFromVademecum(s);
+            c.computeFunctionAndGradient(obj.designVariable);
             obj.compliance = c;
         end
 
@@ -199,7 +198,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
-
+        end
 
     end
 

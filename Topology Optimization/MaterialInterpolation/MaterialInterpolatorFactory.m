@@ -30,7 +30,7 @@ classdef MaterialInterpolatorFactory < handle
                 case 'SIMPThermal'
                     obj = SIMPThermalInterpolation(cParams);
                 case 'HomogenizedMicrostructure'
-                    obj = HomogenizedMicrostructrueInterpolator(cParams);
+                    obj = HomogenizedMicrostructureInterpolator(cParams);
                     
                 otherwise
                     error('Invalid Material Interpolation method.');
