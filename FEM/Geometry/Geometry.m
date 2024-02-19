@@ -1,7 +1,6 @@
 classdef Geometry < handle
 
     properties (SetAccess = private, GetAccess = protected)
-        xFE
         coord
         interpolation
     end
@@ -19,7 +18,7 @@ classdef Geometry < handle
 
         function init(obj,cParams)
             obj.coord = cParams.coord;
-            obj.xFE = cParams.xFE;
+            obj.interpolation = cParams.interp;
         end
 
     end
