@@ -242,10 +242,15 @@ classdef Mesh < handle
         % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
         % DELETE Geometry
 
+        function computeThings(obj,quad)
+            g = obj.geometry;
+            g.computeGeometry(quad)
+        end
+
         function dVolume = computeDvolume(obj,quad)
             g = obj.geometry;
             w = quad.weigp;
-            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
+            dVolume = w'.*g.computeJacobianDeterminant(quad.posgp);
         end
 
         function invJac = computeInverseJacobian(obj,xV)
@@ -340,6 +345,8 @@ classdef Mesh < handle
         end
 
         function createGeometry(obj)
+            s.coord = obj.xFE.fValues;
+            s.interp = obj.xFE.interpolation;
             s.xFE = obj.xFE;
             s.geometryType = obj.geometryType;
             obj.geometry = Geometry.create(s);

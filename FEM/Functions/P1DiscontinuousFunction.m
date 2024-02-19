@@ -1,11 +1,11 @@
 classdef P1DiscontinuousFunction < FeFunction
     
     properties (Access = public)
-        
+        interpolation      
     end
     
     properties (Access = private)
-        interpolation
+
     end
     
     properties (Access = private)

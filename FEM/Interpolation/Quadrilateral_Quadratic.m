@@ -27,7 +27,7 @@ classdef Quadrilateral_Quadratic < Interpolation
 
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            deriv = zeros(obj.ndime, obj.nnode, ngaus);
+            nelem = size(posgp,3);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
