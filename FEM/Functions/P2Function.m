@@ -18,8 +18,7 @@ classdef P2Function < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
@@ -37,22 +36,20 @@ classdef P2Function < FeFunction
 
         end
 
-        function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad)
+        function dNdx  = computeCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            nGaus = size(xV,2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.interpolation.computeShapeDerivatives(xV);
             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
             for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
+                dShapes = deriv(:,:,igaus);
                 for jDime = 1:nDime
                     invJ_JI   = invJ(:,jDime,:,igaus);
                     dShape_KJ = dShapes(jDime,:);

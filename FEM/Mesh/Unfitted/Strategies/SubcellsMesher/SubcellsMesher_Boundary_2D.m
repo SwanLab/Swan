@@ -39,8 +39,7 @@ classdef SubcellsMesher_Boundary_2D < SubcellsMesher_Boundary
             
             int = Interpolation.create(type,'LINEAR');
             xG = coordIso(5:end,:)';[0 0]';
-            int.computeShapeDeriv(xG)
-            shapes = int.shape;
+            shapes = int.computeShapeFunctions(xG);
             nnode = size(shapes,1);%obj.mesh.meshBackground.nnode;
             lsNodes = levelSet(1:nnode);
             levelSetNew = shapes'*lsNodes;

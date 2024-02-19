@@ -19,12 +19,6 @@ classdef Tetrahedra_Constant < Interpolation
             deriv = dN;
         end
 
-        function computeShapeDeriv(obj,posgp)
-            obj.ngaus = size(posgp,2);
-            obj.computeShapes()
-            obj.computeShapeDerivatives();
-        end
-
     end
 
     methods (Access = private)

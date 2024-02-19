@@ -6,12 +6,6 @@ classdef Quadrilateral_Constant < Interpolation
             obj.init(cParams);
             obj.computeParams();
         end
-
-        function computeShapeDeriv(obj,posgp)
-            obj.ngaus = size(posgp,2);
-            obj.computeShapes()
-            obj.computeShapeDerivatives();
-        end
         
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);

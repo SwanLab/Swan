@@ -17,7 +17,7 @@ classdef Projector_toP1Discontinuous < Projector
                 nDime  = size(f,2);
                 nodes = reshape(connec',1,[]);
                 fe = f(nodes,:)';
-                fVals = reshape(fe,nDime,nNode,[]);              
+                fVals = reshape(fe,nDime,nNode,[]);
             else
                 LHS = obj.computeLHS();
                 RHS = obj.computeRHS(x);
@@ -47,9 +47,8 @@ classdef Projector_toP1Discontinuous < Projector
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
 
-            trial = P1DiscontinuousFunction.create(obj.mesh, 1);            
+            trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             shapes = trial.computeShapeFunctions(quad);
 
            % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);

@@ -20,8 +20,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function fxV = evaluate(obj, xV)
             func = obj.fValues;
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(func,1);
@@ -35,15 +34,12 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
-        function N = computeShapeFunctions(obj, quad)
-            obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-%             obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
 
         function dN = computeShapeDerivatives(obj,xV)
-            obj.interpolation.computeShapeDeriv(xV);
-            dN = obj.interpolation.deriv;
+            dN = obj.interpolation.computeShapeDerivatives(xV);
         end
         
         function dNdx  = computeCartesianDerivatives(obj,quad)

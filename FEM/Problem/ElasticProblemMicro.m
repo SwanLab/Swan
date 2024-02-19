@@ -76,7 +76,7 @@ classdef ElasticProblemMicro < handle
         
         function interp = getInterpolation(obj)
             interp  = obj.mesh.interpolation;
-            interp.computeShapeDeriv(obj.quadrature.posgp);
+%             interp.computeShapeDeriv(obj.quadrature.posgp);
         end
 
         function quad = getQuadrature(obj)
