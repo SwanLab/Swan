@@ -74,8 +74,8 @@ classdef LagrangianFunction < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+        function gradFun = computeGradient(obj, xV)
+            dNdx = obj.computeCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nDofE = size(dNdx, 2);
@@ -102,13 +102,13 @@ classdef LagrangianFunction < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
-            s.quadrature = quad;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function symGradFun = computeSymmetricGradient(obj,quad)
-            grad = obj.computeGradient(quad);
+        function symGradFun = computeSymmetricGradient(obj,xV)
+            grad = obj.computeGradient(xV);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
             nGaus = size(grad.fValues, 2);
@@ -119,7 +119,7 @@ classdef LagrangianFunction < FeFunction
             symGrad = 0.5*(gradReshp + gradT);
             
             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-            s.quadrature = quad;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             symGradFun = FGaussDiscontinuousFunction(s);
         end
@@ -242,24 +242,25 @@ classdef LagrangianFunction < FeFunction
             v   = sqrt(ff);
         end
 
-        function fdivF = computeFieldTimesDivergence(obj,q)
-            fG  = obj.evaluate(q.posgp);
-            dfG = obj.computeDivergence(q);
+        function fdivF = computeFieldTimesDivergence(obj,xV)
+            fG  = obj.evaluate(xV);
+            dfG = obj.computeDivergence(xV);
             fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues    = fdivFG;
             fdivF = FGaussDiscontinuousFunction(s);
         end
 
-        function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);
+        function divF = computeDivergence(obj,xV)
+            dNdx = obj.computeCartesianDerivatives(xV);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
             nDim  = obj.mesh.ndim;
-            divV = zeros(q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
+            nGaus = size(xV,2);
+            divV = zeros(nGaus,obj.mesh.nelem);
+            for igaus = 1:nGaus
                 for kNode = 1:nNode
                     nodeK = nodes(:,kNode);
                     for rDim = 1:nDim
@@ -270,7 +271,7 @@ classdef LagrangianFunction < FeFunction
                     end
                 end
             end
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues(1,:,:) = divV;
             divF = FGaussDiscontinuousFunction(s);
