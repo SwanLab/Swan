@@ -9,11 +9,12 @@ classdef Triangle_Quadratic < Interpolation
 
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
-            shape = zeros(obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            shape = zeros(obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                shape(:,igaus) = [(1.0-s-t)*(1.0-2*s-2*t);...
+                shape(:,igaus,:) = [(1.0-s-t)*(1.0-2*s-2*t);...
                     s*(2*s-1.0);...
                     t*(2*t-1.0);...
                     4*s*(1.0-s-t);...
@@ -24,11 +25,12 @@ classdef Triangle_Quadratic < Interpolation
 
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            deriv = zeros(obj.ndime, obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                deriv(:,:,igaus) = [4*(s+t)-3,    4*s-1 , 0.0     4*(1.0-t)-8*s ,  4*t ,    -4*t; ...
+                deriv(:,:,igaus,:) = [4*(s+t)-3,    4*s-1 , 0.0     4*(1.0-t)-8*s ,  4*t ,    -4*t; ...
                     4*(s+t)-3.0,  0.0  ,  4*t-1.0 ,    -4*s    ,   4*s  ,   4*(1.0-s)-8*t];
             end
         end

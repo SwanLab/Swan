@@ -9,11 +9,12 @@ classdef Quadrilateral_Cubic < Interpolation
 
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
-            shape = zeros(obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            shape = zeros(obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                shape(:,igaus) = [
+                shape(:,igaus,:) = [
                     (81*s^3*t^3)/256 - (81*s^3*t^2)/256 - (9*s^3*t)/256 + (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 - (9*s*t^3)/256 + (9*s*t^2)/256 + (s*t)/256 - s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
                     - (81*s^3*t^3)/256 + (81*s^3*t^2)/256 + (9*s^3*t)/256 - (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 + (9*s*t^3)/256 - (9*s*t^2)/256 - (s*t)/256 + s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
                     (81*s^3*t^3)/256 + (81*s^3*t^2)/256 - (9*s^3*t)/256 - (9*s^3)/256 + (81*s^2*t^3)/256 + (81*s^2*t^2)/256 - (9*s^2*t)/256 - (9*s^2)/256 - (9*s*t^3)/256 - (9*s*t^2)/256 + (s*t)/256 + s/256 - (9*t^3)/256 - (9*t^2)/256 + t/256 + 1/256;
@@ -35,11 +36,12 @@ classdef Quadrilateral_Cubic < Interpolation
 
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
-            deriv = zeros(obj.ndime, obj.nnode, ngaus);
+            nelem = size(posgp,3);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                deriv(:,:,igaus) = [
+                deriv(:,:,igaus,:) = [
                     (243*s^2*t^3)/256 - (243*s^2*t^2)/256 - (27*s^2*t)/256 + (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 - (9*t^3)/256 + (9*t^2)/256 + t/256 - 1/256,
                     - (243*s^2*t^3)/256 + (243*s^2*t^2)/256 + (27*s^2*t)/256 - (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256,
                     (243*s^2*t^3)/256 + (243*s^2*t^2)/256 - (27*s^2*t)/256 - (27*s^2)/256 + (81*s*t^3)/128 + (81*s*t^2)/128 - (9*s*t)/128 - (9*s)/128 - (9*t^3)/256 - (9*t^2)/256 + t/256 + 1/256,
