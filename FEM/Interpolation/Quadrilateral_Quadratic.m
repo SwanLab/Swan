@@ -1,34 +1,19 @@
 classdef Quadrilateral_Quadratic < Interpolation
-    
+
     methods (Access = public)
-        
+
         function obj = Quadrilateral_Quadratic(cParams)
             obj.init(cParams);
             obj.computeParams();
         end
-        
-        function computeShapeDeriv(obj,posgp)
-            obj.computeShapes(posgp);
-            obj.computeShapeDerivatives(posgp);
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeParams(obj)
-            obj.type = 'QUADRILATERAL_QUADRATIC';
-            obj.ndime = 2;
-            obj.nnode = 9;
-            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; 0,-1 ; 1,0 ; 0,1 ; -1,0 ; 0,0];
-        end
-        
-        function computeShapes(obj,posgp)
-         ngaus = size(posgp,2);
+
+        function shape = computeShapeFunctions(obj,posgp)
+            ngaus = size(posgp,2);
+            shape = zeros(obj.nnode, ngaus);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                obj.shape(:,igaus) = [(s^2*t^2)/4 - (s^2*t)/4 - (s*t^2)/4 + (s*t)/4;
+                shape(:,igaus) = [(s^2*t^2)/4 - (s^2*t)/4 - (s*t^2)/4 + (s*t)/4;
                     (s^2*t^2)/4 - (s^2*t)/4 + (s*t^2)/4 - (s*t)/4;
                     (s^2*t^2)/4 + (s^2*t)/4 + (s*t^2)/4 + (s*t)/4;
                     (s^2*t^2)/4 + (s^2*t)/4 - (s*t^2)/4 - (s*t)/4;
@@ -39,9 +24,10 @@ classdef Quadrilateral_Quadratic < Interpolation
                     s^2*t^2 - s^2 - t^2 + 1];
             end
         end
-        
-        function computeShapeDerivatives(obj,posgp)
+
+        function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
@@ -69,5 +55,16 @@ classdef Quadrilateral_Quadratic < Interpolation
         end
 
     end
-    
+
+    methods (Access = private)
+
+        function computeParams(obj)
+            obj.type = 'QUADRILATERAL_QUADRATIC';
+            obj.ndime = 2;
+            obj.nnode = 9;
+            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; 0,-1 ; 1,0 ; 0,1 ; -1,0 ; 0,0];
+        end
+
+    end
+
 end

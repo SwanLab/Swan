@@ -1,14 +1,22 @@
 classdef Tetrahedra_Constant < Interpolation
 
-    properties (Access = private)
-        ngaus
-    end
-       
     methods (Access = public)
 
         function obj = Tetrahedra_Constant(cParams)
             obj.init(cParams);
             obj.computeParams();
+        end
+
+        function shape = computeShapeFunctions(obj,posgp)
+            ngaus = size(posgp,2);
+            N = ones(obj.nnode,ngaus);
+            shape = N;
+        end
+
+        function deriv = computeShapeDerivatives(obj,posgp)
+            ngaus = size(posgp,2);
+            dN = zeros(obj.ndime,obj.nnode,ngaus);
+            deriv = dN;
         end
 
         function computeShapeDeriv(obj,posgp)
@@ -26,17 +34,6 @@ classdef Tetrahedra_Constant < Interpolation
             obj.ndime = 3;
             obj.nnode = 1;
             obj.pos_nodes = [1/4 1/4 1/4];
-        end
-
-        function computeShapes(obj)
-            N = ones(obj.nnode,obj.ngaus);
-            obj.shape = N;
-
-        end
-
-        function computeShapeDerivatives(obj)
-            dN = zeros(obj.ndime,obj.nnode,obj.ngaus);
-            obj.deriv = dN;
         end
 
     end

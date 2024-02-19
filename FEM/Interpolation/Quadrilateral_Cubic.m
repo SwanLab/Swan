@@ -6,29 +6,14 @@ classdef Quadrilateral_Cubic < Interpolation
             obj.init(cParams);
             obj.computeParams();
         end
-        
-        function computeShapeDeriv(obj,posgp)
-            obj.computeShapes(posgp);
-            obj.computeShapeDerivatives(posgp);
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeParams(obj)
-            obj.type = 'QUADRILATERAL_CUBIC';
-            obj.ndime = 2;
-            obj.nnode = 16;
-            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
-        end
-        
-        function computeShapes(obj,posgp)
-         ngaus = size(posgp,2);
+
+        function shape = computeShapeFunctions(obj,posgp)
+            ngaus = size(posgp,2);
+            shape = zeros(obj.nnode, ngaus);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                obj.shape(:,igaus) = [
+                shape(:,igaus) = [
                     (81*s^3*t^3)/256 - (81*s^3*t^2)/256 - (9*s^3*t)/256 + (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 - (9*s*t^3)/256 + (9*s*t^2)/256 + (s*t)/256 - s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
                     - (81*s^3*t^3)/256 + (81*s^3*t^2)/256 + (9*s^3*t)/256 - (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 + (9*s*t^3)/256 - (9*s*t^2)/256 - (s*t)/256 + s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
                     (81*s^3*t^3)/256 + (81*s^3*t^2)/256 - (9*s^3*t)/256 - (9*s^3)/256 + (81*s^2*t^3)/256 + (81*s^2*t^2)/256 - (9*s^2*t)/256 - (9*s^2)/256 - (9*s*t^3)/256 - (9*s*t^2)/256 + (s*t)/256 + s/256 - (9*t^3)/256 - (9*t^2)/256 + t/256 + 1/256;
@@ -47,13 +32,14 @@ classdef Quadrilateral_Cubic < Interpolation
                     (729*s^3*t^3)/256 + (243*s^3*t^2)/256 - (729*s^3*t)/256 - (243*s^3)/256 + (243*s^2*t^3)/256 + (81*s^2*t^2)/256 - (243*s^2*t)/256 - (81*s^2)/256 - (729*s*t^3)/256 - (243*s*t^2)/256 + (729*s*t)/256 + (243*s)/256 - (243*t^3)/256 - (81*t^2)/256 + (243*t)/256 + 81/256];
             end
         end
-        
-        function computeShapeDerivatives(obj,posgp)
+
+        function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus);
             for igaus=1:ngaus
                 s = posgp(1,igaus);
                 t = posgp(2,igaus);
-                obj.deriv(:,:,igaus) = [
+                deriv(:,:,igaus) = [
                     (243*s^2*t^3)/256 - (243*s^2*t^2)/256 - (27*s^2*t)/256 + (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 - (9*t^3)/256 + (9*t^2)/256 + t/256 - 1/256,
                     - (243*s^2*t^3)/256 + (243*s^2*t^2)/256 + (27*s^2*t)/256 - (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256,
                     (243*s^2*t^3)/256 + (243*s^2*t^2)/256 - (27*s^2*t)/256 - (27*s^2)/256 + (81*s*t^3)/128 + (81*s*t^2)/128 - (9*s*t)/128 - (9*s)/128 - (9*t^3)/256 - (9*t^2)/256 + t/256 + 1/256,
@@ -88,6 +74,17 @@ classdef Quadrilateral_Cubic < Interpolation
                     - (2187*s^3*t^2)/256 - (243*s^3*t)/128 + (729*s^3)/256 + (729*s^2*t^2)/256 + (81*s^2*t)/128 - (243*s^2)/256 + (2187*s*t^2)/256 + (243*s*t)/128 - (729*s)/256 - (729*t^2)/256 - (81*t)/128 + 243/256,
                     (2187*s^3*t^2)/256 + (243*s^3*t)/128 - (729*s^3)/256 + (729*s^2*t^2)/256 + (81*s^2*t)/128 - (243*s^2)/256 - (2187*s*t^2)/256 - (243*s*t)/128 + (729*s)/256 - (729*t^2)/256 - (81*t)/128 + 243/256];
             end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function computeParams(obj)
+            obj.type = 'QUADRILATERAL_CUBIC';
+            obj.ndime = 2;
+            obj.nnode = 16;
+            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
         end
 
     end
