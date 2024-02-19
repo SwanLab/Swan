@@ -2,13 +2,9 @@ classdef LineMesh < Mesh
     
     properties (Access = public)
         geometryType = 'Line';
-        
-%         coord, connec
-%         kFace
     end
     
     properties (Access = private)
-%         type
     end
     
     properties (Access = private)

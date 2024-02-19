@@ -1,7 +1,7 @@
 %% Testing mesh exporting
 clc; clear; close all;
 
-mesh = UnitTriangleMesh(7,7);
+mesh = UnitQuadMesh(7,7);
 gPar.type          = 'Circle';
 gPar.radius        = 0.25;
 gPar.xCoorCenter   = 0.5;

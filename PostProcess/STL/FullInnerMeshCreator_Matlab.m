@@ -21,7 +21,8 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
 
                 case 'QUAD'
                     innerMeshQuad = innerMesh;
-                    innerMeshTri = innerMeshQuad.convertToTriangleMesh();
+                    q2t = QuadToTriMeshConverter();
+                    innerMeshTri = q2t.convert(innerMeshQuad, innerMeshQuad.nnodes);
                     innerMeshTri = innerMeshTri.computeCanonicalMesh();
                     coordInner  = innerMeshTri.coord;
                     connecInner = innerMeshTri.connec;
