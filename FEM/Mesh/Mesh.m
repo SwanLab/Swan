@@ -341,7 +341,7 @@ classdef Mesh < handle
 
         function createGeometry(obj)
             s.coord = obj.xFE.fValues;
-            s.interp = obj.xFE.interpolation;
+            s.interp = obj.interpolation;
             s.xFE = obj.xFE;
             s.geometryType = obj.geometryType;
             obj.geometry = Geometry.create(s);

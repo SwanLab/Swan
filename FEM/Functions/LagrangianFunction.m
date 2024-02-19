@@ -74,7 +74,7 @@ classdef LagrangianFunction < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = evaluateGradient(obj, xV)
+        function fVR = evaluateGradient(obj, xV)
             dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
@@ -100,28 +100,68 @@ classdef LagrangianFunction < FeFunction
                 end
             end
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = permute(fVR, [1 3 2]);
+            fVR = permute(fVR, [1 3 2]);
+%             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            gradFun = FGaussDiscontinuousFunction(s);
+%             s.quadrature = xV;
+%             s.mesh       = obj.mesh;
+%             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function symGradFun = evaluateSymmetricGradient(obj,xV)
+        function symGrad = evaluateSymmetricGradient(obj,xV)
             grad = obj.evaluateGradient(xV);
             nDimf = obj.ndimf;
-            nDims = size(grad.fValues, 1)/nDimf;
-            nGaus = size(grad.fValues, 2);
-            nElem = size(grad.fValues, 3);
+            nDims = size(grad, 1)/nDimf;
+            nGaus = size(grad, 2);
+            nElem = size(grad, 3);
 
-            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
+            gradReshp = reshape(grad, [nDims,nDimf,nGaus,nElem]);
             gradT = permute(gradReshp, [2 1 3 4]);
             symGrad = 0.5*(gradReshp + gradT);
             
-            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            symGradFun = FGaussDiscontinuousFunction(s);
+            symGrad =  reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+%             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+%             s.quadrature = xV;
+%             s.mesh       = obj.mesh;
+%             symGradFun = FGaussDiscontinuousFunction(s);
+        end
+
+        function symGrad = evaluateSymmetricGradientVoigt(obj,xV)
+            sgr = obj.evaluateSymmetricGradient(xV);
+            symGrad = obj.obtainVoigtFormat(sgr);
+        end
+
+        function newObj = obtainVoigtFormat(obj, sgr)
+            ndim = size(sgr,1);
+            switch ndim
+                case 4
+                    newObj = obj.applyVoigt2D(sgr);
+                case 9
+                    newObj = obj.applyVoigt3D(sgr);
+            end
+        end
+
+        function fV = applyVoigt2D(obj, fV)
+            nGaus = size(fV,2);
+            nElem = size(fV,3);
+            fVal(1,:,:) = fV(1,:,:); % xx
+            fVal(2,:,:) = fV(4,:,:); % yy
+            fVal(3,:,:) = fV(2,:,:) + fV(3,:,:); % xy
+            fV = reshape(fVal, [3 nGaus nElem]);
+%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
+        end
+
+        function fV = applyVoigt3D(obj, fV)
+            nGaus = size(fV,2);
+            nElem = size(fV,3);
+            fVal(1,:,:) = fV(1,:,:); % xx
+            fVal(2,:,:) = fV(5,:,:); % yy
+            fVal(3,:,:) = fV(9,:,:); % zz
+            fVal(4,:,:) = fV(2,:,:) + fV(4,:,:); % xy
+            fVal(5,:,:) = fV(3,:,:) + fV(7,:,:); % xz
+            fVal(6,:,:) = fV(6,:,:) + fV(8,:,:); % yz
+            fV = reshape(fVal, [6 nGaus nElem]);
+%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
         end
         
         function ord = orderTextual(obj)
