@@ -42,7 +42,7 @@ classdef P1DiscontinuousFunction < FeFunction
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad)
+        function dNdx  = evaluateCartesianDerivatives(obj,quad)
            nElem = size(obj.mesh.connec,1);
            nNode = obj.interpolation.nnode;
            nDime = obj.interpolation.ndime;
@@ -62,7 +62,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end   
 
         function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+            dNdx = obj.evaluateCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);

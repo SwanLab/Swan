@@ -40,7 +40,7 @@ classdef P2Function < FeFunction
             N = obj.interpolation.computeShapeFunctions(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,xV)
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
@@ -61,7 +61,7 @@ classdef P2Function < FeFunction
         end
 
         function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+            dNdx = obj.evaluateCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);

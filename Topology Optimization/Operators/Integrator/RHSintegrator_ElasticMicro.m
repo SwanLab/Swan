@@ -111,7 +111,7 @@ classdef RHSintegrator_ElasticMicro < handle
 
             sigmaF.ndimf = size(obj.mesh.coord,2);
             s.fun  = sigmaF;
-            s.dNdx = sigmaF.computeCartesianDerivatives(obj.quadrature);
+            s.dNdx = sigmaF.evaluateCartesianDerivatives(xV);
 
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus

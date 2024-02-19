@@ -24,9 +24,10 @@ classdef LHSintegrator_WeakDivergence < handle
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxV = obj.test.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxV = obj.test.evaluateCartesianDerivatives(xV);
             dvolV = obj.mesh.computeDvolume(obj.quadrature)';
-            shpeP = obj.trial.computeShapeFunctions(obj.quadrature);
+            shpeP = obj.trial.computeShapeFunctions(xV);
 
             nElem = obj.mesh.nelem;
             nDimfV = size(dNdxV,1);

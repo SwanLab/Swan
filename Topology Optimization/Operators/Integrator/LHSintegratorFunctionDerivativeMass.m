@@ -37,7 +37,7 @@ classdef LHSintegratorFunctionDerivativeMass < handle
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            dfdx       = obj.fun.computeGradient(obj.quadrature);
+            dfdx       = obj.fun.evaluateGradient(obj.quadrature.posgp);
 
             M = zeros(nDofTest, nDofTrial, nElem);
             % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);

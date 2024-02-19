@@ -48,7 +48,7 @@
             q = obj.quadrature.order;
         end
         
-        function dNdx  = computeCartesianDerivatives(obj, xV)
+        function dNdx  = evaluateCartesianDerivatives(obj, xV)
             assert(isequal(xV,obj.quadrature), 'Quadrature does not match');
             nElem = size(obj.mesh.connec,1);
             nNode = obj.mesh.interpolation.nnode;

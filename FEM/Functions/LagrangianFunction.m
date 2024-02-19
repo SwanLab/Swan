@@ -54,7 +54,7 @@ classdef LagrangianFunction < FeFunction
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,xV)
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
@@ -74,8 +74,8 @@ classdef LagrangianFunction < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, xV)
-            dNdx = obj.computeCartesianDerivatives(xV);
+        function gradFun = evaluateGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nDofE = size(dNdx, 2);
@@ -107,8 +107,8 @@ classdef LagrangianFunction < FeFunction
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function symGradFun = computeSymmetricGradient(obj,xV)
-            grad = obj.computeGradient(xV);
+        function symGradFun = evaluateSymmetricGradient(obj,xV)
+            grad = obj.evaluateGradient(xV);
             nDimf = obj.ndimf;
             nDims = size(grad.fValues, 1)/nDimf;
             nGaus = size(grad.fValues, 2);
@@ -253,7 +253,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function divF = computeDivergence(obj,xV)
-            dNdx = obj.computeCartesianDerivatives(xV);
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;

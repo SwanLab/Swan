@@ -1,35 +1,35 @@
 classdef ComplianceFromConstiutiveTensor < handle
-    
+
     properties (Access = public)
-        
+
     end
-    
+
     properties (Access = private)
         quadrature
     end
-    
+
     properties (Access = private)
         mesh
         stateProblem
     end
-    
+
     methods (Access = public)
-        
+
         function obj = ComplianceFromConstiutiveTensor(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,C,dC)
-            u  = obj.computeStateVariable(C);            
+            u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(dC,u);            
+            dJ = obj.computeGradient(dC,u);
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.stateProblem = cParams.stateProblem;
@@ -39,23 +39,23 @@ classdef ComplianceFromConstiutiveTensor < handle
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
-        end        
+        end
 
         function u = computeStateVariable(obj,C)
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             u = obj.stateProblem.uFun;
-        end   
+        end
 
         function J = computeFunction(obj,C,u)
             strain = obj.computeStateStrain(u);
             stress = obj.computeStress(C,strain);
             int    = Integrator.create('ScalarProduct',obj.mesh,obj.quadrature.order);
             J      = int.compute(strain,stress);
-        end  
+        end
 
-       function eu = computeStateStrain(obj,u)
-            eu = u.computeSymmetricGradient(obj.quadrature);
+        function eu = computeStateStrain(obj,u)
+            eu = u.evaluateSymmetricGradient(obj.quadrature.posgp);
             eu = eu.obtainVoigtFormat();
         end
 
@@ -65,29 +65,29 @@ classdef ComplianceFromConstiutiveTensor < handle
             stress = pagemtimes(Cij,strainV);
             stress = permute(stress, [1 3 4 2]);
             stress = obj.createGaussFunction(stress);
-        end            
+        end
 
         function g = computeGradient(obj,dC,u)
             g = obj.computeDJ(dC,u);
-        end  
+        end
 
         function dj = computeDJ(obj,dC,u)
             dCij         = dC.evaluate(obj.quadrature.posgp);
             eu           = obj.computeStateStrain(u);
             euj(:,1,:,:) = eu.fValues;
-            eui(1,:,:,:) = eu.fValues;            
+            eui(1,:,:,:) = eu.fValues;
             dStress      = pagemtimes(dCij,euj);
             dj           = pagemtimes(eui,dStress);
-            dj           = squeezeParticular(-dj,1); 
+            dj           = squeezeParticular(-dj,1);
             dj           = obj.createGaussFunction(dj);
-        end 
+        end
 
         function fd = createGaussFunction(obj,f)
             m  = obj.mesh;
             q  = obj.quadrature;
             fd = FGaussDiscontinuousFunction.create(f,m,q);
-        end        
-        
+        end
+
     end
-    
+
 end

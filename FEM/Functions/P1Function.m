@@ -70,7 +70,7 @@ classdef P1Function < FeFunction
             N = obj.interpolation.computeShapeFunctions(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,xV)
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
             deriv = obj.interpolation.computeShapeDerivatives(xV);
             nGaus = size(xV,2);
             switch obj.mesh.type
@@ -113,7 +113,7 @@ classdef P1Function < FeFunction
         end
 
         function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+            dNdx = obj.evaluateCartesianDerivatives(quad);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -159,7 +159,7 @@ classdef P1Function < FeFunction
         end
 
         function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);
+            dNdx = obj.evaluateCartesianDerivatives(q);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
