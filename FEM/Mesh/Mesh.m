@@ -242,11 +242,6 @@ classdef Mesh < handle
         % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
         % DELETE Geometry
 
-        function computeThings(obj,quad)
-            g = obj.geometry;
-            g.computeGeometry(quad)
-        end
-
         function dVolume = computeDvolume(obj,quad)
             g = obj.geometry;
             w = quad.weigp;

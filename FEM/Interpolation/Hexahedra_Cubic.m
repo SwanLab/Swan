@@ -85,7 +85,7 @@ classdef Hexahedra_Cubic < Interpolation
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
-            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             
             s=posgp(1,:,:);
             t=posgp(2,:,:);
