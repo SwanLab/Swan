@@ -167,11 +167,11 @@ classdef PhaseFieldComputer < handle
             obj.fem.solve();
         end
 
-        function computeFEM(obj)
-            LHS = obj.createInternalEnergyStiffnessMatrix();
-            RHS = obj.computeElasticResidual(obj);
-            obj.deltaU = LHS\RHS;
-        end
+        % function computeFEM(obj)
+        %     LHS = obj.createInternalEnergyStiffnessMatrix();
+        %     RHS = obj.computeElasticResidual(obj);
+        %     obj.deltaU = LHS\RHS;
+        % end
 
 
         function res = computeElasticResidual(obj)

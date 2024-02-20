@@ -91,7 +91,7 @@ classdef TestingPhaseField < handle
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation = 'PhaseFieldD';
             s.pExp = obj.pExp;
-            obj.dissipationPhaseField = MaterialInterpolation.create(s);
+            obj.dissipationPhaseField = MaterialInterpolator.create(s);
 
             if s.pExp == 1
                 obj.constant = obj.Gc/(4*(2/3));
@@ -111,7 +111,7 @@ classdef TestingPhaseField < handle
                 0,1];
             sM.connec = [1 2 3 4];
 
-            m = Mesh(sM);
+            m = Mesh.create(sM);
             m.plot();
             obj.mesh = m;
         end
@@ -126,7 +126,7 @@ classdef TestingPhaseField < handle
             sM.connec = [1 2 5 4
                 2 3 6 5];
 
-            m = Mesh(sM);
+            m = Mesh.create(sM);
             m.plot();
             obj.mesh = m;
         end
@@ -146,7 +146,7 @@ classdef TestingPhaseField < handle
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             sBg.coord  = V(:,1:2);
             sBg.connec = F;
-            bgMesh = Mesh(sBg);
+            bgMesh = Mesh.create(sBg);
             bdMesh  = bgMesh.createBoundaryMesh();
             
             % Level set creation
@@ -189,7 +189,7 @@ classdef TestingPhaseField < handle
             s.constitutiveProperties.E = obj.E;
             s.constitutiveProperties.nu = obj.nu;
 
-            matInt = MaterialInterpolation.create(s);
+            matInt = MaterialInterpolator.create(s);
         end
     end
 
