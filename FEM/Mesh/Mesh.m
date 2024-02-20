@@ -69,6 +69,36 @@ classdef Mesh < handle
         function xGauss = computeXgauss(obj,xV)
             xGauss = obj.xFE.evaluate(xV);
         end
+        
+        function hMin = computeMinCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMin = min(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMean = computeMeanCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMean = mean(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMax = computeMaxCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMax = max(sqrt(sum(x1x2.^2,2)));
+        end
 
         function q = computeElementQuality(obj) % check for 3d
             quad = Quadrature.set(obj.type);
@@ -102,7 +132,7 @@ classdef Mesh < handle
         end
 
         function eM = computeEdgeMesh(obj) % nonsense for lines
-            obj.computeEdges;
+            obj.computeEdges();
             s.coord  = obj.coord;
             s.connec = obj.edges.nodesInEdges;
             s.kFace  = obj.kFace -1;
@@ -169,79 +199,16 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-        function m = convertToTriangleMesh(obj, lastNode)
-            % only quad
-            if nargin == 1; lastNode = obj.nnodes; end
-            q2t = QuadToTriMeshConverter();
-            m = q2t.convert(obj, lastNode);
-        end
-
-        function exportSTL(obj) % check if it works
+        function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
             me.export();
-        end
-
-        function m = provideExtrudedMesh(obj, height) % check if it works
-            s.unfittedMesh = obj;
-            s.height       = height;
-            me = MeshExtruder(s);
-            m = me.extrude();
         end
 
         function print(obj, filename, software)
             if nargin == 2; software = 'Paraview'; end
             p1 = LagrangianFunction.create(obj,1, 'P1');
             p1.print(filename, software);
-        end
-
-        %% Generalize
-
-        % Generalize
-        function hMin = computeMinCellSize(obj)
-            x1(:,1) = obj.coord(obj.connec(:,1),1);
-            x1(:,2) = obj.coord(obj.connec(:,1),2);
-            x2(:,1) = obj.coord(obj.connec(:,2),1);
-            x2(:,2) = obj.coord(obj.connec(:,2),2);
-            x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
-            x1x2 = (x2-x1);
-            x2x3 = (x3-x2);
-            x1x3 = (x1-x3);
-            n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-            n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
-            n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-            hs = min([n12,n23,n13],[],2);
-            hMin = min(hs);
-        end
-
-        % Generalize
-        function hMean = computeMeanCellSize(obj)
-            switch obj.type
-                case {'LINE'}
-                    x1(:,1) = obj.coord(obj.connec(:,1),1);
-                    x1(:,2) = obj.coord(obj.connec(:,1),2);
-                    x2(:,1) = obj.coord(obj.connec(:,2),1);
-                    x2(:,2) = obj.coord(obj.connec(:,2),2);
-                    x1x2 = (x2-x1);                    
-                    hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-                    hMean = max(hs);  
-                otherwise
-                    x1(:,1) = obj.coord(obj.connec(:,1),1);
-                    x1(:,2) = obj.coord(obj.connec(:,1),2);
-                    x2(:,1) = obj.coord(obj.connec(:,2),1);
-                    x2(:,2) = obj.coord(obj.connec(:,2),2);
-                    x3(:,1) = obj.coord(obj.connec(:,3),1);
-                    x3(:,2) = obj.coord(obj.connec(:,3),2);
-                    x1x2 = (x2-x1);
-                    x2x3 = (x3-x2);
-                    x1x3 = (x1-x3);
-                    n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-                    n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
-                    n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-                    hs = max([n12,n23,n13],[],2);
-                    hMean = max(hs);                  
-            end
         end
 
         %% Heavy refactoring
