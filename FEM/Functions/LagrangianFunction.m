@@ -290,6 +290,44 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues;
         end
 
+        % Operator overload
+
+        function s = plus(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues + obj2.fValues;
+            s = res;
+        end
+
+        function s = minus(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues - obj2.fValues;
+            s = res;
+        end
+
+        function s = times(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues .* obj2.fValues;
+            s = res;
+        end
+
+        function s = power(f,b)
+            res = copy(f);
+            res.fValues = f.fValues .^ b;
+            s = res;
+        end
+
+        function s = rdivide(f,b)
+            res = copy(f);
+            res.fValues = f.fValues ./ b;
+            s = res;
+        end
+
+        function s = mrdivide(f,b)
+            res = copy(f);
+            res.fValues = f.fValues ./ b;
+            s = res;
+        end
+        
     end
 
     methods (Access = public, Static)
@@ -302,14 +340,6 @@ classdef LagrangianFunction < FeFunction
             c.computeDofs();
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
             pL = LagrangianFunction(s);
-        end
-
-        function fS = times(f1,f2)
-            fS = f1.fValues.*f2.fValues;
-            s.fValues = fS;
-            s.mesh    = f1.mesh;
-            s.order   = 'P1';
-            fS = LagrangianFunction(s);
         end
 
     end
