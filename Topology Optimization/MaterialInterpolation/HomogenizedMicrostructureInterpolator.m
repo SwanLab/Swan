@@ -1,20 +1,27 @@
-classdef HomogenizedMicrostructureInterpolator < handle
+classdef HomogenizedMicrostructureInterpolator < Material
     
     properties (Access = private)
         fileName
+        sMesh
+        Ctensor
+        microParams
     end
     
     methods (Access = public)
         
         function obj = HomogenizedMicrostructureInterpolator(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            [mx,my,C] = obj.loadVademecum();    
+            obj.createStructuredMesh(mx,my);
+            obj.createCtensorFunction(C);               
         end
 
-        function C = computeConsitutiveTensor(obj,x)
-            C = obj.createMaterial(x);
+        function C = evaluate(obj,xV)
+            C = obj.computeValues(xV);
         end
 
-        function dCm = computeConstitutiveTensorDerivative(obj,x)
+        function dCm = evaluateDerivative(obj,x)
+           obj.microParams = x;            
            dCm{iVar} = obj.createMaterial(x);
         end
         
@@ -23,16 +30,67 @@ classdef HomogenizedMicrostructureInterpolator < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-           obj.fileName = cParams.fileName;            
+        function init(obj,cParams)            
+           obj.fileName = cParams.fileName; 
+            obj.microParams = x;           
         end
-      
-        function m = createMaterial(obj,x)
-            s.type        = 'ANISOTROPIC';
-            s.fileName    = obj.fileName;            
-            s.microParams = x;
-            m = Material.create(s);   
-        end
+
+         function [mxV,myV,C] = loadVademecum(obj)
+            fName = [obj.fileName,'WithAmplificators'];
+            matFile   = [fName,'.mat'];
+            file2load = fullfile('Vademecums',matFile);
+            v = load(file2load);
+            var = v.d;   
+            mxV = var.domVariables.mxV;
+            myV = var.domVariables.myV; 
+             for imx = 1:length(mxV)
+                 for imy = 1:length(myV)
+                     C(:,:,imx,imy) = var{imx,imy}.('Ctensor');
+                 end
+             end            
+         end 
+
+        function createStructuredMesh(obj,mxV,myV)
+            s.x = mxV;
+            s.y = myV;
+            m = StructuredMesh(s); 
+            obj.sMesh = m;
+        end    
+
+        function  createCtensorFunction(obj,C)
+            m = obj.sMesh.mesh;
+             for i = 1:size(C,1)
+                 for j = 1:size(C,2)
+                     Cij = squeeze(C(i,j,:,:));
+                     CijF = LagrangianFunction.create(m, 1, 'P1');
+                     CijF.fValues  = Cij(:);
+                     obj.Ctensor{i,j} = CijF;
+                 end
+             end
+        end        
+        
+        function C = computeValues(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV);
+            nStre = size(obj.Ctensor,1); 
+            nDofs = size(mL,2);
+            C  = zeros(nStre,nStre,nDofs);
+            for i = 1:nStre
+                for j = 1:nStre
+                    Cij(1,1,:) = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
+                    C(i,j,:)   = Cij;
+                end
+            end
+        end 
+
+        function [mL,cells] = obtainLocalCoord(obj,xV)
+            mx = obj.microParams{1};
+            my = obj.microParams{2};
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
+            mG(:,1) = mxG(:);
+            mG(:,2) = myG(:);
+            [mL,cells] = obj.sMesh.obtainLocalFromGlobalCoord(mG);
+        end        
         
     end
     

@@ -87,7 +87,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.interpolation  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
 
-            m = MaterialInterpolator.create(s);
+            m = Material.create(s);
             obj.materialInterpolator = m;
         end
 

@@ -66,7 +66,24 @@ classdef P1Function < FeFunction
                     fxV(iF,:) = fxV(iF,:) + f;
                 end
             end
-        end   
+        end  
+
+        function dNdx = sampleCartesianDerivative(obj,xP,cells)
+            dShape = obj.interpolation.computeShapeDeriv(xP);
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.interpolation.nnode;
+            nDime = obj.interpolation.ndime;
+            nGaus = quad.ngaus;
+            invJ  = obj.mesh.computeInverseJacobian(xP,cells);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            for jDime = 1:nDime
+                invJ_JI   = invJ(:,jDime,:);
+                dShape_KJ = dShape(jDime,:);
+                dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:) + dSDx_KI;
+            end
+            dNdx = dShapeDx;
+        end
 
 
        function N = computeShapeFunctions(obj, quad)
