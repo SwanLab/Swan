@@ -21,7 +21,8 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdx  = obj.fun.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = obj.mesh.nelem;
@@ -29,7 +30,6 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             nDofE = nNodE*obj.fun.ndimf;
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
-            xV    = obj.quadrature.posgp;
             Cmat  = obj.material.evaluate(xV);
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);

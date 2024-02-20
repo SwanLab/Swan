@@ -34,11 +34,10 @@ classdef Projector_toP1 < Projector
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
             %shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             
             trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            shapes = trial.computeShapeFunctions(quad);
+            shapes = trial.computeShapeFunctions(xV);
 
             conne = obj.mesh.connec;
 

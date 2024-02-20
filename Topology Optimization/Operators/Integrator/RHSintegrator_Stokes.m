@@ -47,7 +47,8 @@ classdef RHSintegrator_Stokes < RHSintegrator
         end
 
         function Fext = computeVolumetricFext(obj)
-            shapesV = obj.velocityFun.computeShapeFunctions(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            shapesV = obj.velocityFun.computeShapeFunctions(xV);
             dvol = obj.mesh.computeDvolume(obj.quadrature)';
             ngaus = size(dvol,2);
             nNode = size(shapesV, 1);
@@ -92,7 +93,8 @@ classdef RHSintegrator_Stokes < RHSintegrator
         end
 
         function g = computeVelocityDivergence(obj)
-            shp = obj.pressureFun.computeShapeFunctions(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            shp = obj.pressureFun.computeShapeFunctions(xV);
             nDofE = size(shp,1);
             g = zeros(nDofE,1,obj.mesh.nelem);
         end

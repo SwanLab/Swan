@@ -56,8 +56,7 @@ classdef CutFunctionValuesComputer < handle
             type = 'LINE';
             int = Interpolation.create(type,'LINEAR');
             xCutIso = obj.xCutEdgePoint';
-            int.computeShapeDeriv(xCutIso);
-            shapes = int.shape';
+            shapes = int.computeShapeFunctions(xCutIso)';
         end
         
         function computeCutMeshCoordinates(obj)

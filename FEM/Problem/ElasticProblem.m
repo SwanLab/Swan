@@ -174,14 +174,14 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun = strFun.obtainVoigtFormat();
+            strFun = obj.displacementFun.evaluateSymmetricGradientVoigt(obj.quadrature.posgp);
+%             strFun = strFun.obtainVoigtFormat();
             obj.strainFun = strFun;
             obj.strain = strFun;
         end
 
         function computeStress(obj)
-            strn(:,1,:,:) = obj.strain.fValues;
+            strn(:,1,:,:) = obj.strain;
             Cv            = obj.material.evaluate(obj.quadrature.posgp);
 
             strs = pagemtimes(Cv,strn);
@@ -190,10 +190,10 @@ classdef ElasticProblem < handle
             z.mesh       = obj.mesh;
             z.fValues    = strs;
             z.quadrature = obj.quadrature;
-            strFun       = FGaussDiscontinuousFunction(z);
+%             strFun       = FGaussDiscontinuousFunction(z);
 
-            obj.stress    = strFun;
-            obj.stressFun = strFun;
+%             obj.stress    = strFun;
+%             obj.stressFun = strFun;
         end
 
     end

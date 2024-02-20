@@ -42,18 +42,19 @@ classdef LinearizedHarmonicProjector < handle
         function hRes = evaluateHarmonicResidual(obj,res,b)
             quad = Quadrature.set(obj.mesh.type);            
             quad.computeQuadrature('QUADRATICMASS');
+            xV = quad.posgp;
 
-            bG  = b.evaluate(quad.posgp);
+            bG  = b.evaluate(xV);
             b1  = bG(1,:,:);
             b2  = bG(2,:,:);
-            gbG = b.computeGradient(quad);
+            gbG = b.evaluateGradient(xV);
             gb1 = gbG.fValues(1:2,:,:);
             gb2 = gbG.fValues(3:4,:,:);
 
             s.fValues(1,:,:) = -b2.*gb1(1,:,:) + b1.*gb2(1,:,:);
             s.fValues(2,:,:) = -b2.*gb1(2,:,:) + b1.*gb2(2,:,:);
             s.mesh = obj.mesh;
-            s.quadrature = quad;
+            s.quadrature = xV;
             hRes = FGaussDiscontinuousFunction(s);
             
 %             b2(1,:) = squeeze(b0.fValues(2,1,:));
@@ -218,9 +219,9 @@ classdef LinearizedHarmonicProjector < handle
 
                     quad = Quadrature.set(obj.mesh.type);            
                     quad.computeQuadrature('LINEAR');
-                    
+                    xV = quad.posgp;
 
-                    gB = b.computeGradient(quad);
+                    gB = b.evaluateGradient(xV);
                     gBV = gB.fValues;
 
            

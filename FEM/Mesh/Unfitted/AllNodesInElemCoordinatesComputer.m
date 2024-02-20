@@ -130,8 +130,7 @@
         function [shapeA,shapeB] = computeShapes(obj,iedge)
             edge = obj.edgeCutPointInElem(:,iedge);
             xCutPoint(1,:)  = obj.xCutEdgePoint(edge,1);
-            obj.interpolation.computeShapeDeriv(xCutPoint);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xCutPoint);
             shapeA = shapes(1,:);
             shapeB = shapes(2,:);
         end

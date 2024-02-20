@@ -24,8 +24,7 @@ classdef P1Function < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
@@ -50,9 +49,8 @@ classdef P1Function < FeFunction
             p1sub = P1Function(s);
         end
 
-        function fxV = sample(obj,xP,cells)
-            obj.interpolation.computeShapeDeriv(xP);
-            shapes  = obj.interpolation.shape;
+        function fxV = sampleFunction(obj,xP,cells)
+            shapes  = obj.interpolation.computeShapeFunctions(xP);
             nNode   = size(shapes,1);
             nF      = size(obj.fValues,2);
             nPoints = size(xP,2);
@@ -68,25 +66,20 @@ classdef P1Function < FeFunction
             end
         end   
 
-        
-
-
-        function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad)
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            deriv = obj.interpolation.computeShapeDerivatives(xV);
+            nGaus = size(xV,2);
             switch obj.mesh.type
                 case 'LINE'
-                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    invJ  = obj.mesh.computeInverseJacobian(xV);
                     nElem = obj.mesh.nelem;
                     nNode = obj.interpolation.nnode;
                     nDime = obj.mesh.ndim;
-                    nGaus = quad.ngaus;
-                    deriv  = obj.mesh.interpolation.deriv(1,:,:,:);
+                    deriv  = deriv(1,:,:,:);
                     dShapes = deriv;
                     dN = zeros(nDime,nNode,nElem,nGaus);
                     for iGaus = 1:nGaus
@@ -104,11 +97,10 @@ classdef P1Function < FeFunction
                     nElem = size(obj.mesh.connec,1);
                     nNode = obj.interpolation.nnode;
                     nDime = obj.interpolation.ndime;
-                    nGaus = quad.ngaus;
-                    invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+                    invJ  = obj.mesh.computeInverseJacobian(xV);
                     dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
                     for igaus = 1:nGaus
-                        dShapes = obj.interpolation.deriv(:,:,igaus);
+                        dShapes = deriv(:,:,igaus);
                         for jDime = 1:nDime
                             invJ_JI   = invJ(:,jDime,:,igaus);
                             dShape_KJ = dShapes(jDime,:);
@@ -120,8 +112,8 @@ classdef P1Function < FeFunction
             end
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+        function gradFun = computeGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -144,7 +136,7 @@ classdef P1Function < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues    = permute(fVR, [1 3 2]);
             s.mesh       = obj.mesh;
-            s.quadrature = quad;
+            s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
@@ -166,14 +158,15 @@ classdef P1Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);
+        function divF = computeDivergence(obj,xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
             nDim  = obj.mesh.ndim;
-            divV = zeros(q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
+            nGaus = size(xV,2);
+            divV = zeros(nGaus,obj.mesh.nelem);
+            for igaus = 1:nGaus
                 for kNode = 1:nNode
                     nodeK = nodes(:,kNode);
                     for rDim = 1:nDim
@@ -184,7 +177,7 @@ classdef P1Function < FeFunction
                     end
                 end
             end
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues(1,:,:) = divV;
             divF = FGaussDiscontinuousFunction(s);

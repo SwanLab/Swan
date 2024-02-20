@@ -25,8 +25,9 @@ classdef LHSintegrator_Laplacian < handle
     methods (Access = protected)
 
         function LHSe = computeElementalLHS(obj)
-            shapesTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            shapesTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            shapesTs = obj.test.evaluateCartesianDerivatives(xV);
+            shapesTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
 
             nGaus = obj.quadrature.ngaus;

@@ -8,27 +8,45 @@ classdef Hexahedra_Linear < Interpolation
             obj.computeCases();
         end
 
-        function computeShapeDeriv(obj,posgp)
+        function shape = computeShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
-            obj.shape = zeros(obj.nnode,ngaus,nelem);
-            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
-            s=posgp(1,:,:);
-            t=posgp(2,:,:);
-            u=posgp(3,:,:);
-            lcord(1,1)= -1; lcord(1,2)= -1; lcord(1,3)= -1;
-            lcord(2,1)=  1; lcord(2,2)= -1; lcord(2,3)= -1;
-            lcord(3,1)=  1; lcord(3,2)=  1; lcord(3,3)= -1;
-            lcord(4,1)= -1; lcord(4,2)=  1; lcord(4,3)= -1;
-            lcord(5,1)= -1; lcord(5,2)= -1; lcord(5,3)=  1;
-            lcord(6,1)=  1; lcord(6,2)= -1; lcord(6,3)=  1;
-            lcord(7,1)=  1; lcord(7,2)=  1; lcord(7,3)=  1;
-            lcord(8,1)= -1; lcord(8,2)=  1; lcord(8,3)=  1;
-            for inode=1:obj.nnode
-                obj.shape(inode,:,:)=(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,2)*t).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
-                obj.deriv(1,inode,:,:)=lcord(inode,1).*(ones(1,size(posgp,2))+lcord(inode,2)*t).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
-                obj.deriv(2,inode,:,:)=lcord(inode,2).*(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
-                obj.deriv(3,inode,:,:)=lcord(inode,3).*(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,2)*t)/8;
+            shape = zeros(obj.nnode,ngaus,nelem);
+            s = posgp(1,:,:);
+            t = posgp(2,:,:);
+            u = posgp(3,:,:);
+            lcord = [-1 -1 -1;
+                      1 -1 -1;
+                      1  1 -1;
+                     -1  1 -1;
+                     -1 -1  1;
+                      1 -1  1;
+                      1  1  1;
+                     -1  1  1];
+            for inode = 1:obj.nnode
+                shape(inode,:,:)=(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,2)*t).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
+            end
+        end
+
+        function deriv = computeShapeDerivatives(obj,posgp)
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);
+            deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            s = posgp(1,:,:);
+            t = posgp(2,:,:);
+            u = posgp(3,:,:);
+            lcord = [-1 -1 -1;
+                      1 -1 -1;
+                      1  1 -1;
+                     -1  1 -1;
+                     -1 -1  1;
+                      1 -1  1;
+                      1  1  1;
+                     -1  1  1];
+            for inode = 1:obj.nnode
+                deriv(1,inode,:,:) = lcord(inode,1).*(ones(1,size(posgp,2))+lcord(inode,2)*t).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
+                deriv(2,inode,:,:) = lcord(inode,2).*(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,3)*u)/8;
+                deriv(3,inode,:,:) = lcord(inode,3).*(ones(1,size(posgp,2))+lcord(inode,1)*s).*(ones(1,size(posgp,2))+lcord(inode,2)*t)/8;
             end
         end
 
