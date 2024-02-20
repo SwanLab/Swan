@@ -1,11 +1,11 @@
 classdef P1DiscontinuousFunction < FeFunction
     
     properties (Access = public)
-        
+        interpolation      
     end
     
     properties (Access = private)
-        interpolation
+
     end
     
     properties (Access = private)
@@ -20,8 +20,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function fxV = evaluate(obj, xV)
             func = obj.fValues;
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(func,1);
@@ -35,13 +34,15 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
-        function N = computeShapeFunctions(obj, quad)
-            obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-%             obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
 
-        function dNdx  = computeCartesianDerivatives(obj,quad)
+        function dN = computeShapeDerivatives(obj,xV)
+            dN = obj.interpolation.computeShapeDerivatives(xV);
+        end
+        
+        function dNdx  = evaluateCartesianDerivatives(obj,quad)
            nElem = size(obj.mesh.connec,1);
            nNode = obj.interpolation.nnode;
            nDime = obj.interpolation.ndime;
@@ -60,8 +61,8 @@ classdef P1DiscontinuousFunction < FeFunction
            dNdx = dShapeDx;
         end   
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+        function gradFun = evaluateGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -88,7 +89,7 @@ classdef P1DiscontinuousFunction < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues = permute(fVR, [1 3 2]);
             s.mesh    = obj.mesh;
-            s.quadrature = quad;
+            s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
         

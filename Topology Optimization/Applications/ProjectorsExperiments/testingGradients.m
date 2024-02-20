@@ -24,8 +24,8 @@ quad.computeQuadrature('LINEAR');
 
 % Calculate gradient
 grad = uP1.computeGradient(quad,s.mesh);
-symGrad1 = uP1.computeSymmetricGradient(quad);
-symGrad2 = uP1.computeSymmetricGradient2(quad);
+symGrad1 = uP1.evaluateSymmetricGradient(quad.posgp);
+symGrad2 = uP1.evaluateSymmetricGradient(quad.posgp);
 
 % Plot
 grad.plot(s.mesh);

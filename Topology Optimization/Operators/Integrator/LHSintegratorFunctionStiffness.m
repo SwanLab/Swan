@@ -25,8 +25,9 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -37,7 +38,7 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
             nDofETr = nNodETr*obj.trial.ndimf;
             lhs = zeros(nDofETs,nDofETr,nElem);
 
-            fV  = obj.fun.evaluate(obj.quadrature.posgp);
+            fV  = obj.fun.evaluate(xV);
             for igauss = 1 :nGaus
                 for inode= 1:nNodETs
                     for jnode= 1:nNodETr

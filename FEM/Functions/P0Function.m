@@ -52,10 +52,8 @@ classdef P0Function < FeFunction
             dofConnec = dofsElem;
         end
         
-        function N = computeShapeFunctions(obj, quad)
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
 
         function plot(obj)

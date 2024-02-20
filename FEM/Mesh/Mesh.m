@@ -216,16 +216,15 @@ classdef Mesh < handle
         % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
         % DELETE Geometry
 
-        function dvolume = computeDvolume(obj,quad)
+        function dVolume = computeDvolume(obj,quad)
             g = obj.geometry;
-            g.computeGeometry(quad,obj.interpolation);
-            dvolume = g.dvolu;
-            dvolume = dvolume';
+            w = reshape(quad.weigp,[quad.ngaus 1]);
+            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
         end
 
-        function invJac = computeInverseJacobian(obj,quad,int)
+        function invJac = computeInverseJacobian(obj,xV)
             g = obj.geometry;
-            invJac = g.computeInverseJacobian(quad,int);
+            invJac = g.computeInverseJacobian(xV);
         end
 
         function n = getNormals(obj) % only 
@@ -237,10 +236,6 @@ classdef Mesh < handle
         end
 
         %% Remove
-
-        function setCoord(obj,newCoord)
-            obj.coord = newCoord;
-        end
 
         function mD = createDiscontinuousMesh(obj) % P1D
             ndims = size(obj.coord, 2);
@@ -319,7 +314,10 @@ classdef Mesh < handle
         end
 
         function createGeometry(obj)
-            s.mesh = obj;
+            s.coord = obj.xFE.fValues;
+            s.interp = obj.interpolation;
+            s.xFE = obj.xFE;
+            s.geometryType = obj.geometryType;
             obj.geometry = Geometry.create(s);
         end
 

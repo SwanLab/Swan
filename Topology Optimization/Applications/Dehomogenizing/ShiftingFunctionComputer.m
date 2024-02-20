@@ -60,7 +60,7 @@ classdef ShiftingFunctionComputer < handle
         function computeRHS(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            cG = obj.corrector.computeGradient(q);
+            cG = obj.corrector.evaluateGradient(q.posgp);
             test = P1DiscontinuousFunction.create(obj.mesh,1);
             s.mesh = obj.meshDisc;
             s.type = 'ShapeDerivative';

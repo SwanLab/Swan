@@ -1,85 +1,54 @@
 classdef Geometry_Surface < Geometry
     
-    properties (Access = public)
-        normalVector
-    end
-    
-    properties (Access = private)
-       drDtxi 
-       jacobian
-    end
-    
     methods (Access = public)
         
         function obj = Geometry_Surface(cParams)
-            obj.permutation = [3 2 1];
             obj.init(cParams);
         end
-        
-        function computeGeometry(obj,quad,interpV)
-            obj.initGeometry(interpV,quad);
-            obj.computeDrDtxi();
-            obj.computeNormals();
-            obj.computeJacobian();
-            obj.computeDvolu();
+
+        function detJ = computeJacobianDeterminant(obj,xV)
+            J = obj.computeJacobian(xV);
+            n = obj.computeNormalVectors(J);
+            detJ = squeeze(pagenorm(n));
         end
-        
+
     end
     
     methods (Access = private)
 
-        function computeDrDtxi(obj)
-            nEmb    = 2;
-            nDime   = obj.mesh.ndim;
-            nGaus   = obj.quadrature.ngaus;
-            nElem   = obj.mesh.nelem;
-            nNode   = obj.mesh.nnodeElem;
-            xp      = obj.coordElem;
-            deriv   = obj.mesh.interpolation.deriv(:,:,:);
-            dShapes = permute(deriv,[1 3 2]);
-            obj.drDtxi = zeros(nGaus,nElem,nEmb,nDime);
-            for idime = 1:nDime
-                dxDtxi = zeros(nElem,nEmb,nGaus);
-                for inode = 1:nNode
-                    dShape(1,:,:) = dShapes(:,:,inode);
-                    xV(:,1)= xp(:,inode,idime);
-                    dxDtxi = dxDtxi + bsxfun(@times,xV,dShape);
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coord,1);
+            nElem    = size(obj.coord,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                        xKJ = squeezeParticular(obj.coord(iDimGlo,:,:),1);
+                        jacIJ    = dShapeIK*xKJ;
+                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
                 end
-                obj.drDtxi(:,:,:,idime) = permute(dxDtxi,[3 1 2]);
             end
         end
         
-        function computeNormals(obj)
-            nDime   = obj.mesh.ndim;
-            nGaus   = obj.quadrature.ngaus;
-            nElem   = obj.mesh.nelem;
-            obj.normalVector = zeros(nGaus,nElem,nDime);
-            DxDtxi = obj.drDtxi(:,:,1,1);
-            DxDeta = obj.drDtxi(:,:,2,1);
-            DyDtxi = obj.drDtxi(:,:,1,2);
-            DyDeta = obj.drDtxi(:,:,2,2);
-            DzDtxi = obj.drDtxi(:,:,1,3);
-            DzDeta = obj.drDtxi(:,:,2,3);
-            obj.normalVector(:,:,1) = DyDtxi.*DzDeta - DzDtxi.*DyDeta;
-            obj.normalVector(:,:,2) = DzDtxi.*DxDeta - DxDtxi.*DzDeta;
-            obj.normalVector(:,:,3) = DxDtxi.*DyDeta - DyDtxi.*DxDeta;
+        function normalVector = computeNormalVectors(obj,J)
+            nDimGlo = size(J,2);
+            nPoints = size(J,3);
+            nElem = size(J,4);
+
+            normalVector = zeros(1,nDimGlo,nPoints,nElem);
+            DxDxi  = J(1,1,:,:);
+            DxDeta = J(2,1,:,:);
+            DyDxi  = J(1,2,:,:);
+            DyDeta = J(2,2,:,:);
+            DzDxi  = J(1,3,:,:);
+            DzDeta = J(2,3,:,:);
+            normalVector(:,1,:,:) = DyDxi.*DzDeta - DzDxi.*DyDeta;
+            normalVector(:,2,:,:) = DxDxi.*DzDeta - DzDxi.*DxDeta;
+            normalVector(:,3,:,:) = DxDxi.*DyDeta - DyDxi.*DxDeta;
         end
-        
-        function computeJacobian(obj)
-            nx = obj.normalVector(:,:,1);
-            ny = obj.normalVector(:,:,2);
-            nz = obj.normalVector(:,:,3);
-            jac = sqrt(nx.^2 + ny.^2 + nz.^2);
-            obj.jacobian = jac;
-        end
-        
-        function computeDvolu(obj)
-            jac = obj.jacobian;
-            w(:,1) = obj.quadrature.weigp;
-            dv =  bsxfun(@times,w,jac);
-            obj.dvolu = dv';
-        end
-        
+
     end
-    
 end

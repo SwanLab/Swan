@@ -36,7 +36,7 @@ classdef Projector_toP2 < Projector
             dV = obj.mesh.computeDvolume(quad);
             
             f = P2Function.create(obj.mesh, 1);
-            shapes = f.computeShapeFunctions(quad);
+            shapes = f.computeShapeFunctions(xV);
             conne = f.computeDofConnectivity()';
 
             nGaus = quad.ngaus;

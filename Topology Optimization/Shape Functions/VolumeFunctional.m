@@ -8,7 +8,7 @@ classdef VolumeFunctional < handle
     properties (Access = private)
         mesh
     end
-    
+
     methods (Access = public)
         function obj = VolumeFunctional(cParams)
             obj.init(cParams);
@@ -17,12 +17,12 @@ classdef VolumeFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();            
+            xD  = x.obtainDomainFunction();
             J  = obj.computeFunction(xD);
             dJ = obj.computeGradient(xD);
-        end      
+        end
     end
-    
+
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh = cParams.mesh;

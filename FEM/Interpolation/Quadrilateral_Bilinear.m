@@ -7,10 +7,34 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.computeParameters();
             obj.computeCases();
         end
+        function shape = computeShapeFunctions(obj,posgp)
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);
+            s = posgp(1,:,:);
+            t = posgp(2,:,:);
+            I = ones(size(t));
+            shape = zeros(obj.nnode,ngaus,nelem);
+            shape(1,:,:) = 0.25*(I-t-s+s.*t);
+            shape(2,:,:) = 0.25*(I-t+s-s.*t);
+            shape(3,:,:) = 0.25*(I+t+s+s.*t);
+            shape(4,:,:) = 0.25*(I+t-s-s.*t);
+        end
         
-        function computeShapeDeriv(obj,posgp)
-            obj.computeShapes(posgp);
-            obj.computeShapeDerivatives(posgp)
+        function deriv = computeShapeDerivatives(obj,posgp)
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);
+            s = posgp(1,:,:);
+            t = posgp(2,:,:);
+            I = ones(size(t));
+            deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv(1,1,:,:) = 0.25*(-I+t);
+            deriv(1,2,:,:) = 0.25*(+I-t);
+            deriv(1,3,:,:) = 0.25*(+I+t);
+            deriv(1,4,:,:) = 0.25*(-I-t);
+            deriv(2,1,:,:) = 0.25*(-I+s);
+            deriv(2,2,:,:) = 0.25*(-I-s);
+            deriv(2,3,:,:) = 0.25*(+I+s);
+            deriv(2,4,:,:) = 0.25*(+I-s);
         end
         
     end
@@ -23,36 +47,6 @@ classdef Quadrilateral_Bilinear < Interpolation
             obj.nnode = 4;
             obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
             obj.isoDv = 4;
-        end
-        
-        function computeShapes(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            I = ones(size(t));
-            obj.shape = zeros(obj.nnode,ngaus,nelem);
-            obj.shape(1,:,:) = 0.25*(I-t-s+s.*t);
-            obj.shape(2,:,:) = 0.25*(I-t+s-s.*t);
-            obj.shape(3,:,:) = 0.25*(I+t+s+s.*t);
-            obj.shape(4,:,:) = 0.25*(I+t-s-s.*t);
-        end
-        
-        function computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            I = ones(size(t));
-            obj.deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
-            obj.deriv(1,1,:,:) = 0.25*(-I+t);
-            obj.deriv(1,2,:,:) = 0.25*(+I-t);
-            obj.deriv(1,3,:,:) = 0.25*(+I+t);
-            obj.deriv(1,4,:,:) = 0.25*(-I-t);
-            obj.deriv(2,1,:,:) = 0.25*(-I+s);
-            obj.deriv(2,2,:,:) = 0.25*(-I-s);
-            obj.deriv(2,3,:,:) = 0.25*(+I+s);
-            obj.deriv(2,4,:,:) = 0.25*(+I-s);
         end
         
         function computeCases(obj)
