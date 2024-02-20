@@ -5,7 +5,7 @@ function plotSolution(x,mesh,bc, malla, numero)
     s.fValues(:,end+1) = 0;
     s.ndimf = 3;
     xF = P1Function(s);
-    %xF.plot();
-    xF.print([malla,num2str(numero)],'Paraview')
+    xF.plot();
+    %xF.print([malla,num2str(numero)],'Paraview')
     fclose('all');
 end

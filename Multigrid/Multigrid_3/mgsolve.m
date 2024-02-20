@@ -1,7 +1,7 @@
 function [u, res_record]  = mgsolve(data, vdown, vup, tol, bc, mesh)
 %nlevels = size(data,2)-1;
 nlevels = size(data,2);
-res = data(nlevels).b;
+%res = data(nlevels).b;
 i = 1;
 u = 0*data(nlevels).b;
 res_record = norm(data(nlevels).b,inf);
