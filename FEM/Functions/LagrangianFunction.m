@@ -56,19 +56,18 @@ classdef LagrangianFunction < FeFunction
         
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
-            nNode = obj.interpolation.nnode;
+            nNodeE = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
-            nGaus = size(xV, 2);
+            nPoints = size(xV, 2);
             invJ  = obj.mesh.computeInverseJacobian(xV);
             deriv = obj.computeShapeDerivatives(xV);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = deriv(:,:,igaus);
+            dShapeDx  = zeros(nDime,nNodeE,nPoints,nElem);
+            for iNodeE = 1:nNodeE
                 for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                    invJ_JI   = invJ(jDime,iNodeE,:,:);
+                    dShapes_KJ = deriv(jDime,iNodeE,:);
+                    dShapesDx_KI   = pagemtimes(dShapes_KJ,invJ_JI);
+                    dShapeDx(jDime,iNodeE,iPoints,:) = dShapeDx(jDime,iNodeE,:,:) + dShapesDx_KI;
                 end
             end
             dNdx = dShapeDx;
@@ -77,29 +76,27 @@ classdef LagrangianFunction < FeFunction
         function fVR = evaluateGradient(obj, xV)
             dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
-            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
-            nDofE = size(dNdx, 2);
-            nElem = size(dNdx, 3);
-            nGaus = size(dNdx, 4);
-            
-            grad = zeros(nDims,nDimf, nElem, nGaus);
-            fV = reshape(obj.fValues', [numel(obj.fValues) 1]);
-            for iGaus = 1:nGaus
-                dNdx_g = dNdx(:,:,:,iGaus);
-                for iDim = 1:nDims
-                    for iDof = 1:nDofE
-                        dNdx_i = squeeze(dNdx_g(iDim, iDof,:));
-                        iDofRange = ((iDof-1)*nDimf+1):(iDof*nDimf);
-                        dofs = obj.connec(:,iDofRange);
-                        f = fV(dofs,:);
-                        fRshp = reshape(f, [nElem nDimf]); % oju thermal
-                        p = (dNdx_i.*fRshp)';
-                        pp(1,:,:) = p;
-                        grad(iDim,:,:,iGaus) = grad(iDim,:,:,iGaus) + pp;
+            nDimG = size(dNdx, 1); % derivX, derivY (mesh-related?)
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+            nElem = size(dNdx, 4);
+
+            fV(1:2:obj.nDofs-1) = obj.fValues(:,1);
+            fV(2:2:obj.nDofs) = obj.fValues(:,2);
+            grad = zeros(nDimG,nNodeE, nPoints, nElem);
+                for iDimG = 1:nDimG
+                    for iDimf = 1:nDimf
+                    for iNodeE = 1:nNodeE
+                        dNdx_i = squeeze(dNdx(iDimG, iNodeE,:,:));
+                        iDof = iNodeE*iDimf;
+                        dofs = obj.connec(:,iDof);
+                        f = fV(dofs);
+                        pp = dNdx_i*f;
+                        grad(iDimG,iDimf,:,:) = squeeze(grad(iDimG,iDimf,:,:)) + pp;
+                    end
                     end
                 end
-            end
-            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
+            fVR = reshape(grad, [nDimG*nDimf,nElem, nPoints]);
             fVR = permute(fVR, [1 3 2]);
 %             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
