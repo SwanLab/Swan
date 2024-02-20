@@ -19,7 +19,7 @@ classdef Quadrature_Quadrilateral < Quadrature
                     obj.posgp(:,3) = [-a,+a];
                     obj.posgp(:,4) = [+a,+a];
                     
-                    obj.weigp =  [1,1,1,1];%1*ones(1,obj.ngaus);
+                    obj.weigp =  [1,1,1,1]';%1*ones(1,obj.ngaus);
 
                 case 'QUADRATIC' %SERENDIPITY, QUADRILATERAL QUADRATIC NOT IMPLEMENTED
                     % Copied from down below

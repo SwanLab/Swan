@@ -244,8 +244,8 @@ classdef Mesh < handle
 
         function dVolume = computeDvolume(obj,quad)
             g = obj.geometry;
-            w = quad.weigp;
-            dVolume = w'.*g.computeJacobianDeterminant(quad.posgp);
+            w = reshape(quad.weigp,[quad.ngaus 1]);
+            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
         end
 
         function invJac = computeInverseJacobian(obj,xV)
