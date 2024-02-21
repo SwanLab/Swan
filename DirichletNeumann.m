@@ -43,51 +43,21 @@ classdef DirichletNeumann < handle
             s.meshReference = obj.meshReference;
             m = MeshCreatorFromRVE(s);
             [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec] = m.create();
-            
+
 
             obj.createDisplacementFun();
             obj.interfaceDof = obj.computeLocalInterfaceDof;
 
-            for idof=1:obj.nSubdomains(1)
-                obj.quad{idof} = Quadrature.set(obj.meshSubDomain{idof}.type);
-                obj.quad{idof}.computeQuadrature('QUADRATIC');
-                obj.createDomainMaterial(idof);
-                obj.computeStiffnessMatrix(idof);
-                rawBC = obj.createRawBoundaryConditions(idof);
-                obj.boundaryConditions{idof} = obj.createBoundaryConditions(obj.meshSubDomain{idof},rawBC{idof},idof);
+            for idom=1:obj.nSubdomains(1)
+                obj.quad{idom} = Quadrature.set(obj.meshSubDomain{idom}.type);
+                obj.quad{idom}.computeQuadrature('QUADRATIC');
+                obj.createDomainMaterial(idom);
+                obj.computeStiffnessMatrix(idom);
+                rawBC = obj.createRawBoundaryConditions(idom);
+                obj.boundaryConditions{idom} = obj.createBoundaryConditions(obj.meshSubDomain{idom},rawBC{idom},idom);
             end
 
-            tol=1e-8;
-            e=1;
-            alpha = 3/4;
-            while e>tol
-%                 for i=1:obj.nSubdomains(1)
-                     obj.computeForces(2);
-                     Kred = obj.boundaryConditions{2}.fullToReducedMatrix(obj.LHS{2});
-                     Fred = obj.boundaryConditions{2}.fullToReducedVector(obj.RHS{2});
-                     u{2} = Kred\Fred;
-                     u{2} = obj.boundaryConditions{2}.reducedToFullVector(u{2});
-
-                     obj.computeForces(1);
-                     R_int = obj.LHS{2}(obj.interfaceDof(:,2),:)*u{2};
-                     obj.RHS{1}(obj.interfaceDof(:,1)) = obj.RHS{1}(obj.interfaceDof(:,1)) - R_int;
-
-                     Kred = obj.boundaryConditions{1}.fullToReducedMatrix(obj.LHS{1});
-                     Fred = obj.boundaryConditions{1}.fullToReducedVector(obj.RHS{1});
-                     u{1} = Kred\Fred;
-                     u{1} = obj.boundaryConditions{1}.reducedToFullVector(u{1});
-
-                     u1int = alpha*u{2}(obj.interfaceDof(:,2)) + (1-alpha)*u{1}(obj.interfaceDof(:,1));
-
-                     for idof = 1: length(obj.interfaceDof(:,2))
-                         ind = find(obj.boundaryConditions{2}.dirichlet == obj.interfaceDof(idof,2));
-                         obj.boundaryConditions{2}.dirichlet_values(ind) = u1int(idof);
-                     end
-
-                     e = norm(u1int-u{2}(obj.interfaceDof(:,2)));
-
-%                 end
-            end
+            obj.DirichletNeumannSolver();
 
             %
 
@@ -196,31 +166,31 @@ classdef DirichletNeumann < handle
             dirichletBc{1}.boundaryId=[1];
             dirichletBc{1}.dof{1}=[1,2];
             dirichletBc{1}.value{1}=[0,0];
-%             newmanBc{1}.boundaryId=[4,1];
-%             newmanBc{1}.dof{1}=2;
-%             newmanBc{1}.dof{2}=[1,2];
-%             newmanBc{1}.value{1}=10;
-%             newmanBc{1}.value{2}=[0,0];
+            %             newmanBc{1}.boundaryId=[4,1];
+            %             newmanBc{1}.dof{1}=2;
+            %             newmanBc{1}.dof{2}=[1,2];
+            %             newmanBc{1}.value{1}=10;
+            %             newmanBc{1}.value{2}=[0,0];
             newmanBc{1}=[];
 
             dirichletBc{2}.boundaryId=[1];
             dirichletBc{2}.dof{1}=[1,2];
-%             dirichletBc{2}.dof{2}=[1,2];
+            %             dirichletBc{2}.dof{2}=[1,2];
             dirichletBc{2}.value{1}=[0,0];
-%             dirichletBc{2}.value{2}=[0,0];
+            %             dirichletBc{2}.value{2}=[0,0];
             newmanBc{2}.boundaryId=2;
             newmanBc{2}.dof{1}=[2];
             newmanBc{2}.value{1}=[-1];
 
-            
+
 
             nx= obj.nSubdomains(1);
-%             for i=1:nx
-                bM = obj.meshSubDomain{i}.createBoundaryMesh();
-                [dirichlet,pointload] = obj.createBc(bM,dirichletBc{i},newmanBc{i});
-                BC{i}.dirichlet=dirichlet;
-                BC{i}.pointload=pointload;
-%             end
+            %             for i=1:nx
+            bM = obj.meshSubDomain{i}.createBoundaryMesh();
+            [dirichlet,pointload] = obj.createBc(bM,dirichletBc{i},newmanBc{i});
+            BC{i}.dirichlet=dirichlet;
+            BC{i}.pointload=pointload;
+            %             end
 
 
             %             obj.boundaryConditions = BC;
@@ -315,7 +285,7 @@ classdef DirichletNeumann < handle
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.LHS{i});
-%             obj.variables.fext = rhs + R;
+            %             obj.variables.fext = rhs + R;
             obj.RHS{i} = rhs+R;
         end
 
@@ -335,6 +305,60 @@ classdef DirichletNeumann < handle
                 interfaceDof(:,i) = dofaux(2:end);
                 globaldof = globaldof + dim.ndofs;
             end
+        end
+
+        function DirichletNeumannSolver(obj)
+            tol=1e-8;
+            e=1;
+            alpha = 3/4;
+            iter=1;
+            while e>tol
+                %                 for i=1:obj.nSubdomains(1)
+                obj.computeForces(2);
+                Kred = obj.boundaryConditions{2}.fullToReducedMatrix(obj.LHS{2});
+                Fred = obj.boundaryConditions{2}.fullToReducedVector(obj.RHS{2});
+                u{2} = Kred\Fred;
+                u{2} = obj.boundaryConditions{2}.reducedToFullVector(u{2});
+                R = obj.RHS{2}-0*obj.LHS{2}*u{2};
+                obj.plotSolution(R,obj.meshSubDomain{2}, 2,iter)
+                %                 obj.plotSolution(u{2},obj.meshSubDomain{2}, 2,iter)
+
+                obj.computeForces(1);
+                R_int = obj.LHS{2}(obj.interfaceDof(:,2),:)*u{2};
+                obj.RHS{1}(obj.interfaceDof(:,1)) = obj.RHS{1}(obj.interfaceDof(:,1)) - R_int;
+
+                Kred = obj.boundaryConditions{1}.fullToReducedMatrix(obj.LHS{1});
+                Fred = obj.boundaryConditions{1}.fullToReducedVector(obj.RHS{1});
+                u{1} = Kred\Fred;
+                u{1} = obj.boundaryConditions{1}.reducedToFullVector(u{1});
+                R = obj.RHS{1}-0*obj.LHS{1}*u{1};
+                obj.plotSolution(R,obj.meshSubDomain{1}, 1,iter)
+                %                 obj.plotSolution(u{1},obj.meshSubDomain{1}, 1,iter)
+
+                u1int = alpha*u{2}(obj.interfaceDof(:,2)) + (1-alpha)*u{1}(obj.interfaceDof(:,1));
+
+                for idof = 1: length(obj.interfaceDof(:,2))
+                    ind = find(obj.boundaryConditions{2}.dirichlet == obj.interfaceDof(idof,2));
+                    obj.boundaryConditions{2}.dirichlet_values(ind) = u1int(idof);
+                end
+
+                e = norm(u1int-u{2}(obj.interfaceDof(:,2)));
+
+                iter=iter+1;
+                %                 end
+            end
+        end
+
+        function plotSolution(obj,x,mesh,domain,iter)
+            %             xFull = bc.reducedToFullVector(x);
+            s.fValues = reshape(x,2,[])';
+            s.mesh = mesh;
+            s.fValues(:,end+1) = 0;
+            s.ndimf = 3;
+            xF = P1Function(s);
+            %     xF.plot();
+            xF.print(['domain',num2str(domain),'_',num2str(iter)],'Paraview')
+            fclose('all');
         end
 
     end
