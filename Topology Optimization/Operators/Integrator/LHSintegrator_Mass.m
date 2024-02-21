@@ -46,8 +46,8 @@ classdef LHSintegrator_Mass < handle
 
         function lhs = computeElementalLHS(obj)
             quad = obj.quadrature;
-            shapesTest  = obj.test.computeShapeFunctions(quad);
-            shapesTrial = obj.trial.computeShapeFunctions(quad);
+            shapesTest  = obj.test.computeShapeFunctions(quad.posgp);
+            shapesTrial = obj.trial.computeShapeFunctions(quad.posgp);
             dVolu  = obj.mesh.computeDvolume(quad);
 
             nGaus  = obj.quadrature.ngaus;

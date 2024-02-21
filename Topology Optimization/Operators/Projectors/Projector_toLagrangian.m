@@ -41,7 +41,7 @@ classdef Projector_toLagrangian < Projector
             dV = obj.mesh.computeDvolume(quad);
             
             f = LagrangianFunction.create(obj.mesh, 1,obj.order);
-            shapes = f.computeShapeFunctions(quad);
+            shapes = f.computeShapeFunctions(quad.posgp);
             conne = f.computeDofConnectivity()';
 
             nGaus = quad.ngaus;
