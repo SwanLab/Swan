@@ -1,147 +1,93 @@
-classdef MaterialPhaseField < handle
+classdef MaterialPhaseField < IsotropicElasticMaterial
 
-    properties (Access = public)
-        material
-        Gc
-        %fc
+    properties (Access = private)
+        fun
+        phi
     end
 
     properties (Access = private)
         mesh
         matInterpolation
-        E
-        nu
+        Gc
     end
-
-    properties (Access = private)
-        muVal
-        mu
-        kappaVal
-        kappa
-    end
-
 
     methods (Access = public)
 
         function obj = MaterialPhaseField(cParams)
-            obj.init(cParams)
+            obj = obj@IsotropicElasticMaterial(cParams);
+            obj.initPhaseField(cParams)
         end
 
-        function computeIsotropicMaterial(obj,quad)
-            obj.computeMatIsoParams(quad);
-            obj.computeMaterial();
+        function C = evaluateIsotropicMaterial(obj,xV)
+            [mu,kappa] = obj.computeShearAndBulk(xV);
+            lambda = obj.computeLambdaFromShearAndBulk(mu,kappa,obj.ndim);
+            C = obj.evaluateMaterial(mu,lambda);
         end
 
-        function computeInterpolatedMaterial(obj,phi,quad)
-            obj.computeMatIntParams(phi,quad);
-            obj.computeMaterial();
+        function C = evaluate(obj,phi,xV,type)
+            switch type
+                case 
+        function C = evaluateInterpolatedMaterial(obj,phi,xV)
+            fun = obj.matInterpolation.fun;
         end
 
-        function computeFirstDerivativeInterpolatedMaterial(obj,phi,quad)
-            obj.computeDMatIntParams(phi,quad);
-            obj.computeMaterial();
+        function C = evaluateFirstDerivativeInterpolatedMaterial(obj,phi,xV)
+            dfun = obj.matInterpolation.dfun;
         end
 
-        function computeSecondDerivativeInterpolatedMaterial(obj,phi,quad)
-            obj.computeDDMatIntParams(phi,quad);
-            obj.computeMaterial();
+        function C = evaluateSecondDerivativeInterpolatedMaterial(obj,phi,xV)
+            ddfun = obj.matInterpolation.ddfun;
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj,cParams)
+        function initPhaseField(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.matInterpolation = cParams.materialInterpolation;
-            obj.E = cParams.E;
-            obj.nu = cParams.nu;
             obj.Gc = cParams.Gc;
-            %obj.fc = cParams.fc;
-
-            obj.muVal = obj.computeMuFromYoungAndNu();
-            obj.kappaVal = obj.computeKappaFromYoungAndNu();
         end
 
-        function computeMatIsoParams(obj,quad)
-            obj.mu = obj.muVal*ones(obj.mesh.nelem,quad.ngaus);
-            obj.kappa = obj.kappaVal*ones(obj.mesh.nelem,quad.ngaus);
-        end
-
-        function computeMatIntParams(obj,phi,quad)
-            g = obj.createDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappaVal;
-            obj.mu = g.*obj.muVal;
-        end
-
-        function computeDMatIntParams(obj,phi,quad)
-            g = obj.createFirstDerivativeDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappaVal;
-            obj.mu = g.*obj.muVal;
-        end
-
-        function computeDDMatIntParams(obj,phi,quad)
-            g = obj.createSecondDerivativeDegradationFunction(phi,quad);
-            obj.kappa = g.*obj.kappaVal;
-            obj.mu = g.*obj.muVal;
-        end
-
-        function computeMaterial(obj)
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.nelem = obj.mesh.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = obj.kappa;
-            s.mu    = obj.mu;
-            mat = Material.create(s);
-            mat.compute(s);
-
-            obj.material = mat;
+        function C = evaluate(obj,xV)
+            [mu,l] = obj.computeMatParams(xV);
+            nPoints = size(mu,1);                        
+            nElem = size(mu,2);
+            nStre = 3;
+            C = zeros(nStre,nStre,nPoints,nElem);
+            C(1,1,:,:)= 2*mu+l;
+            C(1,2,:,:)= l;
+            C(2,1,:,:)= l;
+            C(2,2,:,:)= 2*mu+l;
+            C(3,3,:,:)= mu;
         end
 
     end
 
     methods (Access = private)
 
-        function kappa = computeKappaFromYoungAndNu(obj)
-            kappa = obj.E/(2*(1-obj.nu));
+        function [mu,l] = computeMatParams(obj,xV)
+            gV = obj.evaluateDegradationFun(obj.fun,obj.phi,xV);
+            [mu, l] = obj.computeMuAndLambda(gV,xV);
         end
 
-        function mu = computeMuFromYoungAndNu(obj)
-            mu = obj.E./(2*(1+obj.nu));
-        end
-
-        function gVal = createDegradationFunction(obj,phi,quad)
+        function gV = evaluateDegradationFun(obj,xV)
             s.mesh = obj.mesh;
-            s.handleFunction = obj.matInterpolation.fun;
-            s.l2function = phi;
+            s.handleFunction = obj.fun;
+            s.l2function = obj.phi;
             g = CompositionFunction(s);
-            gVal = obj.computeGaussPointValue(g,quad);
+            gV = g.evaluate(xV);
+
+            %val = permute(val,[1 3 2]);
+            %val = squeezeParticular(val,1);
         end
 
-        function dgVal = createFirstDerivativeDegradationFunction(obj,phi,quad)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.matInterpolation.dfun;
-            s.l2function = phi;
-            dg = CompositionFunction(s);
-            dgVal = obj.computeGaussPointValue(dg,quad);
+        function [mu, l] = computeMuAndLambda(obj,gV,xV)
+            [muV,kV] = obj.computeShearAndBulk(xV);
+            mu = gV.*muV;
+            k = gV.*kV;
+            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
         end
-
-        function ddgVal = createSecondDerivativeDegradationFunction(obj,phi,quad)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.matInterpolation.ddfun;
-            s.l2function = phi;
-            ddg = CompositionFunction(s);
-            ddgVal = obj.computeGaussPointValue(ddg,quad);
-        end
-
-        function val = computeGaussPointValue(obj,fun,quad)
-            val = fun.evaluate(quad.posgp);
-            val = permute(val,[1 3 2]);
-            val = squeezeParticular(val,1);
-        end
-
     end
-
 
 end

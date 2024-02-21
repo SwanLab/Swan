@@ -78,10 +78,16 @@ classdef TestingPhaseField < handle
         end
 
         function createMaterialPhaseField(obj)
+            sParam.mesh = obj.mesh;
+            sParam.order = 'P1';
+            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
+            s.young = LagrangianFunction(sParam);
+            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
+            s.poisson = LagrangianFunction(sParam);
+            
+            s.ndim = obj.mesh.ndim;
             s.mesh = obj.mesh;
             s.materialInterpolation = obj.createMaterialInterpolation();
-            s.E = obj.E;
-            s.nu = obj.nu;
             s.Gc = obj.Gc;
             %s.fc = obj.fc;
             obj.materialPhaseField = MaterialPhaseField(s);
