@@ -1,9 +1,10 @@
 classdef MatrixVectorizedInverterFactory < handle
     
-    methods (Access = public)
+    methods (Static, Access = public)
         
-        function inverter = create(obj,A)
-            switch obj.computeDimension(A)
+        function inverter = create(A)
+            ndime = size(A,1);
+            switch ndime
                 case 1
                     inverter = MatrixVectorizedInverter_1x1();
                 case 2
