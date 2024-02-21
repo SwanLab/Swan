@@ -89,12 +89,12 @@ classdef MultigridTesting3 < handle
             obj.nDimf = 2;
             obj.nbasis = 20;
             obj.functionType = 'P1';
-            obj.nMesh = 3;
+            obj.nMesh = 2;
         end
 
         function createCoarseMesh(obj,i)
-            numero1 = 5;
-            numero2 = 5;
+            numero1 = 10;
+            numero2 = 10;
             % Generate coordinates
             x1 = linspace(0,2,numero1);
             x2 = linspace(0,1,numero2);

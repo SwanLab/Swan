@@ -5,7 +5,7 @@ function plotRes(res,mesh,bc,malla,numero)
     s.fValues(:,end+1) = 0;
     s.ndimf = 3;
     xF = P1Function(s);
-    xF.plot();
-    %xF.print(['Res',malla, num2str(numero)],'Paraview')
+    %xF.plot();
+    xF.print(['Res',malla, num2str(numero)],'Paraview')
     fclose('all');
 end
