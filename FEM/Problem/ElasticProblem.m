@@ -42,13 +42,6 @@ classdef ElasticProblem < handle
             obj.computeStress();
         end
 
-        function plot(obj)
-            s.dim          = obj.getFunDims();
-            s.mesh         = obj.mesh;
-            plotter = FEMPlotter(s);
-            plotter.plot();
-        end
-
         function updateMaterial(obj, mat)
             obj.material = mat;
         end
