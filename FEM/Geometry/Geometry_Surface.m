@@ -12,6 +12,12 @@ classdef Geometry_Surface < Geometry
             detJ = squeeze(pagenorm(n));
         end
 
+        function n = computeNormals(obj, xV)
+            J = obj.computeJacobian(xV);
+            n = obj.computeNormalVectors(J);
+        end
+        
+
     end
     
     methods (Access = private)
@@ -39,14 +45,14 @@ classdef Geometry_Surface < Geometry
             nElem = size(J,4);
 
             normalVector = zeros(1,nDimGlo,nPoints,nElem);
-            DxDxi  = J(1,1,:,:);
-            DxDeta = J(2,1,:,:);
-            DyDxi  = J(1,2,:,:);
-            DyDeta = J(2,2,:,:);
-            DzDxi  = J(1,3,:,:);
-            DzDeta = J(2,3,:,:);
+            DxDxi  = squeeze(J(1,1,:,:))';
+            DxDeta = squeeze(J(2,1,:,:))';
+            DyDxi  = squeeze(J(1,2,:,:))';
+            DyDeta = squeeze(J(2,2,:,:))';
+            DzDxi  = squeeze(J(1,3,:,:))';
+            DzDeta = squeeze(J(2,3,:,:))';
             normalVector(:,1,:,:) = DyDxi.*DzDeta - DzDxi.*DyDeta;
-            normalVector(:,2,:,:) = DxDxi.*DzDeta - DzDxi.*DxDeta;
+            normalVector(:,2,:,:) = DzDxi.*DxDeta - DxDxi.*DzDeta;
             normalVector(:,3,:,:) = DxDxi.*DyDeta - DyDxi.*DxDeta;
         end
 

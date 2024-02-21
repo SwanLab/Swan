@@ -150,7 +150,7 @@ classdef Mesh < handle
             switch obj.ndim
                 case 3
                     normal = obj.getNormals();
-                    n(:,1:obj.nelem) = squeeze(normal)';
+                    n(:,1:obj.nelem) = squeeze(normal);
                     xy = obj.computeBaricenter();
                     q = quiver3(xy(1,:),xy(2,:),xy(3,:),n(1,:),n(2,:),n(3,:),'k');
                     h = obj.computeMeanCellSize();
@@ -232,8 +232,7 @@ classdef Mesh < handle
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             g = obj.geometry;
-            g.computeGeometry(quad,obj.interpolation);
-            n = g.normalVector;
+            n = g.computeNormals(quad.posgp);
         end
 
         %% Remove
