@@ -86,7 +86,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.type  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
             s.microParams = m;
-
             m = Material.create(s);
         end
 

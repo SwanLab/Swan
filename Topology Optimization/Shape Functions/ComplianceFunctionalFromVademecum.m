@@ -8,7 +8,7 @@ classdef ComplianceFunctionalFromVademecum < handle
         mesh
         filter
         compliance
-        materialInterpolator
+        material
     end
 
     methods (Access = public)
@@ -28,10 +28,9 @@ classdef ComplianceFunctionalFromVademecum < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh                 = cParams.mesh;
-            obj.filter               = cParams.filter;
-            obj.materialInterpolator = cParams.materialInterpolator;
-            obj.compliance           = cParams.complainceFromConstitutive;
+            obj.mesh       = cParams.mesh;
+            obj.filter     = cParams.filter;
+            obj.compliance = cParams.complainceFromConstitutive;
         end
 
         function xR = filterDesignVariable(obj,x)
@@ -39,12 +38,16 @@ classdef ComplianceFunctionalFromVademecum < handle
         end
 
         function C = computeMaterial(obj,x)
-            mI = obj.materialInterpolator;
+            s.type         = 'HomogenizedMicrostructure';
+            s.fileName     = 'Rectangle';
+            s.microParams = x;
+            m  = Material.create(s);            
+            mI = obj.material;
             C  = mI.computeConsitutiveTensor(x);
         end
 
         function dC = computeMaterialDerivative(obj,x)
-            mI = obj.materialInterpolator;
+            mI = obj.material;
             dC = mI.computeConstitutiveTensorDerivative(x);
         end        
 
