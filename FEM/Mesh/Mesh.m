@@ -22,7 +22,7 @@ classdef Mesh < handle
         boundaryElements
     end
 
-    properties (Access = private)
+    properties (Access = protected)
         xFE
         geometry
     end
@@ -50,7 +50,7 @@ classdef Mesh < handle
             obj.computeDimensionParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            obj.createGeometry();
+            % obj.createGeometry();
         end
 
         function L = computeCharacteristicLength(obj)
@@ -217,22 +217,22 @@ classdef Mesh < handle
         % DELETE Geometry
 
         function dV = computeDvolume(obj,quad)
-            g = obj.geometry;
+            % g = obj.geometry;
             w = reshape(quad.weigp,[quad.ngaus 1]);
-            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
+            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
             dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
         end
 
         function invJac = computeInverseJacobian(obj,xV)
-            g = obj.geometry;
-            invJac = g.computeInverseJacobian(xV);
+            % g = obj.geometry;
+            invJac = obj.computeInverseJacobian(xV);
         end
 
         function n = getNormals(obj) % only 
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            g = obj.geometry;
-            n = g.computeNormals(quad.posgp);
+            % g = obj.geometry;
+            n = obj.computeNormals(quad.posgp);
         end
 
         %% Remove
@@ -292,6 +292,27 @@ classdef Mesh < handle
                     l2g(newNodes(:)) = l2gBound(validNodes);
                 otherwise
                     error('Cannot yet get boundary submesh for 3D')
+            end
+        end
+
+    end
+
+    methods (Access = protected)
+
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coordElem,1);
+            nElem    = size(obj.coordElem,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                        jacIJ    = dShapeIK*xKJ;
+                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                end
             end
         end
 

@@ -17,6 +17,16 @@ classdef LineMesh < Mesh
             obj = obj@Mesh(cParams);
             % obj.init(cParams)
         end
+
+        function detJ = computeJacobianDeterminant(obj,xV)
+            J = obj.computeJacobian(xV);
+            detJ = squeeze(pagenorm(J));
+        end
+        
+        function invJ = computeInverseJacobian(obj,xV)
+            detJ = obj.computeJacobianDeterminant(xV);
+            invJ = 1./detJ;
+        end
         
         function plot(obj)
             p = patch('vertices',obj.coord,'faces',obj.connec);

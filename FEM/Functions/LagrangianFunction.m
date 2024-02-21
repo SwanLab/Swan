@@ -306,7 +306,7 @@ classdef LagrangianFunction < FeFunction
                 for kNode = 1:nNode
                     nodeK = nodes(:,kNode);
                     for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,:,igaus));
+                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
                         fkr = fV(nodeK,rDim);
                         int(1,:) = dNkr.*fkr;
                         divV(igaus,:) = divV(igaus,:) + int;
