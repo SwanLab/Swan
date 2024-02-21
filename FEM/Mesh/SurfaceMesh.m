@@ -42,6 +42,13 @@ classdef SurfaceMesh < Mesh
             J = obj.computeJacobian(xV);
             n = obj.computeNormalVectors(J);
         end
+
+        function n = getNormals(obj) % only 
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('CONSTANT');
+            % g = obj.geometry;
+            n = obj.computeNormals(quad.posgp);
+        end
         
         function plot(obj) %Black
             faceColor = "red";

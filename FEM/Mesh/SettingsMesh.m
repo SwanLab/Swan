@@ -37,10 +37,16 @@ classdef SettingsMesh < AbstractSettings
         end
         
         function g = computeGeometryType(obj)
-            sG.ndim           = size(obj.coord,2);
-            sG.kFace          = obj.kFace;
-            gC = GeometryTypeComputer(sG);
-            g = gC.compute();
+            ndim  = size(obj.coord,2);
+            nGeom = ndim + obj.kFace;
+            switch nGeom
+                case 1
+                    g = 'Line';
+                case 2
+                    g = 'Surface';
+                case 3
+                    g = 'Volume';
+            end
             obj.geometryType = g;
         end
         

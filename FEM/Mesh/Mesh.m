@@ -3,7 +3,6 @@ classdef Mesh < handle
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
-        % geometryType
 
         coord
         connec
@@ -24,7 +23,6 @@ classdef Mesh < handle
 
     properties (Access = protected)
         xFE
-        geometry
     end
 
     methods (Static, Access = public)
@@ -50,7 +48,6 @@ classdef Mesh < handle
             obj.computeDimensionParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            % obj.createGeometry();
         end
 
         function L = computeCharacteristicLength(obj)
@@ -211,28 +208,10 @@ classdef Mesh < handle
             p1.print(filename, software);
         end
 
-        %% Heavy refactoring
-
-        % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
-        % DELETE Geometry
-
         function dV = computeDvolume(obj,quad)
-            % g = obj.geometry;
             w = reshape(quad.weigp,[quad.ngaus 1]);
             dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
             dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
-        end
-
-        function invJac = computeInverseJacobian(obj,xV)
-            % g = obj.geometry;
-            invJac = obj.computeInverseJacobian(xV);
-        end
-
-        function n = getNormals(obj) % only 
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('CONSTANT');
-            % g = obj.geometry;
-            n = obj.computeNormals(quad.posgp);
         end
 
         %% Remove
@@ -332,14 +311,6 @@ classdef Mesh < handle
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnodeElem = size(obj.connec,2);
-        end
-
-        function createGeometry(obj)
-            s.coord = obj.xFE.fValues;
-            s.interp = obj.interpolation;
-            s.xFE = obj.xFE;
-            s.geometryType = obj.geometryType;
-            obj.geometry = Geometry.create(s);
         end
 
         function createInterpolation(obj)
