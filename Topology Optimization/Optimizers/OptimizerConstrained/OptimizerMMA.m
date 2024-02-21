@@ -95,6 +95,7 @@ classdef OptimizerMMA < Optimizer
     end
     
     methods (Access = private)
+        
         function updateMonitoring(obj)
             s.hasFinished          = obj.hasFinished;
             s.nIter                = obj.nIter;

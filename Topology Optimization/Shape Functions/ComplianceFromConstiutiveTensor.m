@@ -37,7 +37,7 @@ classdef ComplianceFromConstiutiveTensor < handle
 
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad.computeQuadrature('QUADRATIC');
             obj.quadrature = quad;
         end
 
@@ -48,23 +48,22 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function J = computeFunction(obj,C,u)
-            strain = obj.computeStateStrain(u);
+            xV = obj.quadrature.posgp;
+            strain = u.evaluateSymmetricGradientVoigt(xV);
             stress = obj.computeStress(C,strain);
-            int    = Integrator.create('ScalarProduct',obj.mesh,obj.quadrature.order);
-            J      = int.compute(strain,stress);
+            energy = sum(stress.*strain,1);
+            energy = squeezeParticular(energy,1);
+            dv     = obj.mesh.computeDvolume(obj.quadrature);
+            J      = energy.*dv;
+            J      = sum(J(:));
         end
-
-        function eu = computeStateStrain(obj,u)
-            eu = u.evaluateSymmetricGradient(obj.quadrature.posgp);
-            eu = eu.obtainVoigtFormat();
-        end
+  
 
         function stress = computeStress(obj,C,strain)
             Cij = C.evaluate(obj.quadrature.posgp);
-            strainV(:,1,:,:) = strain.fValues;
+            strainV(:,1,:,:) = strain;
             stress = pagemtimes(Cij,strainV);
             stress = permute(stress, [1 3 4 2]);
-            stress = obj.createGaussFunction(stress);
         end
 
         function g = computeGradient(obj,dC,u)
@@ -72,10 +71,11 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function dj = computeDJ(obj,dC,u)
-            dCij         = dC.evaluate(obj.quadrature.posgp);
-            eu           = obj.computeStateStrain(u);
-            euj(:,1,:,:) = eu.fValues;
-            eui(1,:,:,:) = eu.fValues;
+            xV           = obj.quadrature.posgp;
+            dCij         = dC.evaluate(xV);
+            eu           = u.evaluateSymmetricGradientVoigt(xV);
+            euj(:,1,:,:) = eu;
+            eui(1,:,:,:) = eu;
             dStress      = pagemtimes(dCij,euj);
             dj           = pagemtimes(eui,dStress);
             dj           = squeezeParticular(-dj,1);
