@@ -1,15 +1,12 @@
 classdef Interpolation < handle
     
     properties (GetAccess = public, SetAccess = protected)
-      
         order
         
         ndime
         nnode
         
         pos_nodes
-        shape
-        deriv
         isoDv
         
         iteration
@@ -44,6 +41,8 @@ classdef Interpolation < handle
     end
     
     methods (Abstract)
-        computeShapeDeriv(obj)
+        computeShapeFunctions(obj)
+        computeShapeDerivatives(obj)
     end
+    
 end

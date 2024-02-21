@@ -137,8 +137,7 @@ classdef ConnecCoordFromInterpAndMesh < handle
             nodesVar  = obj.interp.pos_nodes;
             for inodeVar = 1:obj.interp.nnode
                 nodesPoints = nodesVar(inodeVar,:);
-                interpMesh.computeShapeDeriv(nodesPoints')
-                shapes(inodeVar,:) = interpMesh.shape;
+                shapes(inodeVar,:) = interpMesh.computeShapeFunctions(nodesPoints');
             end
         end
 

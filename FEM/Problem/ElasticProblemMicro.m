@@ -76,7 +76,7 @@ classdef ElasticProblemMicro < handle
         
         function interp = getInterpolation(obj)
             interp  = obj.mesh.interpolation;
-            interp.computeShapeDeriv(obj.quadrature.posgp);
+%             interp.computeShapeDeriv(obj.quadrature.posgp);
         end
 
         function quad = getQuadrature(obj)
@@ -202,7 +202,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStrain(obj, iVoigt)
-            strFun = obj.uFun{iVoigt}.computeSymmetricGradient(obj.quadrature);
+            strFun = obj.uFun{iVoigt}.evaluateSymmetricGradient(obj.quadrature.posgp);
             obj.strainFluctFun{iVoigt} = strFun.obtainVoigtFormat();
         end
 

@@ -1,11 +1,8 @@
 classdef Geometry < handle
-    
-    properties (GetAccess = public, SetAccess = protected)
-        dvolu
-    end
 
     properties (SetAccess = private, GetAccess = protected)
-        xFE
+        coord
+        interpolation
     end
 
     methods (Access = public, Static)
@@ -20,7 +17,8 @@ classdef Geometry < handle
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.xFE = cParams.xFE;
+            obj.coord = cParams.coord;
+            obj.interpolation = cParams.interp;
         end
 
     end

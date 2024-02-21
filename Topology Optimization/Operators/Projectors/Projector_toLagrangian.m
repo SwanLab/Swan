@@ -41,10 +41,10 @@ classdef Projector_toLagrangian < Projector
             dV = obj.mesh.computeDvolume(quad);
             
             f = LagrangianFunction.create(obj.mesh, 1,obj.order);
-            shapes = f.computeShapeFunctions(quad.posgp);
+            shapes = f.computeShapeFunctions(xV);
             conne = f.computeDofConnectivity()';
 
-            nGaus = quad.ngaus;
+            nGaus = size(xV,2);
             nFlds = fun.ndimf;
             nNode = size(conne,2);
             nDofs = max(max(conne));

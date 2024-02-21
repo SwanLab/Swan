@@ -1,5 +1,5 @@
 classdef LHSintegratorFunctionDerivativeAdvection < handle
-    
+
     properties (Access = private)
         mesh
         test, trial
@@ -7,28 +7,29 @@ classdef LHSintegratorFunctionDerivativeAdvection < handle
         quadrature
         fun
     end
-    
+
     methods (Access = public)
-        
+
         function obj = LHSintegratorFunctionDerivativeAdvection(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
         end
-        
+
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
-        end        
-        
+        end
+
     end
-    
+
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            shapesTest  = obj.test.computeShapeFunctions(obj.quadrature);            
-            dNdxTr      = obj.trial.computeCartesianDerivatives(obj.quadrature);
-            dfdx        = obj.fun.computeGradient(obj.quadrature);
-            
+            xV = obj.quadrature.posgp;
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            dNdxTr      = obj.trial.evaluateCartesianDerivatives(xV);
+            dfdx        = obj.fun.evaluateGradient(xV);
+
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -44,21 +45,21 @@ classdef LHSintegratorFunctionDerivativeAdvection < handle
                 dV(1,1,:) = dVolu(iGaus,:)';
                 for iDof = 1:nDofETs
                     for jDof = 1:nDofETr
-                       Ni  = shapesTest(iDof,iGaus,:);                       
-                       dNj = squeeze(dNdxTr(:,jDof,:,iGaus));
-                       df  = squeeze(dfdx.fValues(:,iGaus,:));
-                       int(1,1,:) = sum(Ni*df.*dNj,1);
-                       lhs(iDof,jDof,:) = lhs(iDof,jDof,:) + int.*dV;                             
+                        Ni  = shapesTest(iDof,iGaus,:);
+                        dNj = squeeze(dNdxTr(:,jDof,:,iGaus));
+                        df  = squeeze(dfdx.fValues(:,iGaus,:));
+                        int(1,1,:) = sum(Ni*df.*dNj,1);
+                        lhs(iDof,jDof,:) = lhs(iDof,jDof,:) + int.*dV;
                     end
-                  
+
                 end
             end
         end
 
-    end    
-    
+    end
+
     methods (Access = private)
-        
+
         function init(obj, cParams)
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
@@ -74,19 +75,19 @@ classdef LHSintegratorFunctionDerivativeAdvection < handle
                 obj.quadratureOrder = obj.trial.order;
             end
         end
-        
+
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
-        end     
-        
+        end
+
         function LHS = assembleMatrix(obj, lhs)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
             LHS = assembler.assemble(lhs, obj.test, obj.trial);
-        end        
-        
+        end
+
     end
-    
+
 end

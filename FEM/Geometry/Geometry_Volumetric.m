@@ -1,11 +1,11 @@
 classdef Geometry_Volumetric < Geometry
-    
+
     properties (Access = private)
         matrixInverter
     end
-    
+
     methods (Access = public)
-        
+
         function obj = Geometry_Volumetric(cParams)
             obj.init(cParams);
             obj.matrixInverter = MatrixVectorizedInverter();
@@ -20,29 +20,28 @@ classdef Geometry_Volumetric < Geometry
             J = obj.computeJacobian(xV);
             invJ = obj.matrixInverter.computeInverse(J);
         end
-        
+
     end
 
     methods (Access = private)
 
         function J = computeJacobian(obj,xV)
-            coord = obj.xFE.fValues;
-            nDime   = size(coord,1);
-            nNode   = size(coord,2);
-            nElem   = size(coord,3);
-            nPoints = size(xV,2);
-            dShapes = obj.xFE.computeShapeDerivatives(xV);
-            J = zeros(nDime,nDime,nPoints,nElem);
-            for iPoints = 1:nPoints
-                for iNode = 1:nNode
-                    dShapeIK = repmat(dShapes(:,iNode,iPoints),[1 1 nElem]);
-                    xKJ      = pagetranspose(coord(:,iNode,:));
-                    jacIJ    = pagemtimes(dShapeIK, xKJ);
-                    J(:,:,iPoints,:) = squeeze(J(:,:,iPoints,:)) + jacIJ;
+            nDimGlo  = size(obj.coord,1);
+            nElem    = size(obj.coord,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                        xKJ = squeezeParticular(obj.coord(iDimGlo,:,:),1);
+                        jacIJ    = dShapeIK*xKJ;
+                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
                 end
             end
         end
 
     end
-    
+
 end

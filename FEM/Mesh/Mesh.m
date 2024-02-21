@@ -218,9 +218,8 @@ classdef Mesh < handle
 
         function dVolume = computeDvolume(obj,quad)
             g = obj.geometry;
-            w(:,1) = quad.weigp;
-            dJ = g.computeJacobianDeterminant(quad.posgp);
-            dVolume = bsxfun(@times,w,dJ);
+            w = reshape(quad.weigp,[quad.ngaus 1]);
+            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
         end
 
         function invJac = computeInverseJacobian(obj,xV)
@@ -237,10 +236,6 @@ classdef Mesh < handle
         end
 
         %% Remove
-
-        function setCoord(obj,newCoord)
-            obj.coord = newCoord;
-        end
 
         function mD = createDiscontinuousMesh(obj) % P1D
             ndims = size(obj.coord, 2);
@@ -319,6 +314,8 @@ classdef Mesh < handle
         end
 
         function createGeometry(obj)
+            s.coord = obj.xFE.fValues;
+            s.interp = obj.interpolation;
             s.xFE = obj.xFE;
             s.geometryType = obj.geometryType;
             obj.geometry = Geometry.create(s);
