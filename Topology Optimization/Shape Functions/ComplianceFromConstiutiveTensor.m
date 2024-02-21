@@ -56,11 +56,13 @@ classdef ComplianceFromConstiutiveTensor < handle
 
         function eu = computeStateStrain(obj,u)
             eu = u.evaluateSymmetricGradientVoigt(obj.quadrature.posgp);
+            % eu = eu.obtainVoigtFormat();
         end
 
         function stress = computeStress(obj,C,strain)
             Cij = C.evaluate(obj.quadrature.posgp);
-            strainV(:,1,:,:) = strain.fValues;
+            % strainV(:,1,:,:) = strain.fValues;
+            strainV(:,1,:,:) = strain;
             stress = pagemtimes(Cij,strainV);
             stress = permute(stress, [1 3 4 2]);
             stress = obj.createGaussFunction(stress);
