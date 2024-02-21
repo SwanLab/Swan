@@ -34,7 +34,7 @@ classdef LHSintegrator_WeakDivergence < handle
             nNodeV = size(dNdxV,2);
             nNodeP = size(shpeP,1);
             
-            nGaus = size(dNdxV,4);
+            nGaus = size(dNdxV,3);
 
             D = zeros(nDimfV*nNodeV,nNodeP,nElem);
             for igaus = 1:nGaus
@@ -42,7 +42,7 @@ classdef LHSintegrator_WeakDivergence < handle
                     for inode_test = 1:nNodeV
                         for idime = 1:nDimfV
                             dof_test = inode_test*nDimfV - nDimfV + idime;
-                            v = squeeze(dNdxV(idime,inode_test,:,igaus));
+                            v = squeeze(dNdxV(idime,inode_test,igaus,:));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igaus)...
                                 .*dvolV(:,igaus);
                         end
