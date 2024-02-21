@@ -21,7 +21,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createCompliance();
             obj.createVolume();
@@ -71,7 +70,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
+        function m = createMaterial(obj,m)
              ndim = 2;            
              E0 = 1e-3; 
              nu0 = 1/3;
@@ -84,17 +83,17 @@ classdef TopOptViaHomogenizationTutorial < handle
              matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
 
-            s.interpolation  = 'HomogenizedMicrostructure';
+            s.type  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
+            s.microParams = m;
 
             m = Material.create(s);
-            obj.materialInterpolator = m;
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createMaterial(obj.designVariable.fun);
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
@@ -160,11 +159,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function mat = createInterpolatedMaterial(obj,desVar)
-            mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(desVar);
         end
 
         function bc = createBoundaryConditions(obj)

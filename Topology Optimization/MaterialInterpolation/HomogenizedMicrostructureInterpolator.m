@@ -31,8 +31,8 @@ classdef HomogenizedMicrostructureInterpolator < Material
     methods (Access = private)
         
         function init(obj,cParams)            
-           obj.fileName = cParams.fileName; 
-            obj.microParams = x;           
+           obj.fileName    = cParams.fileName; 
+           obj.microParams = cParams.microParams; 
         end
 
          function [mxV,myV,C] = loadVademecum(obj)
@@ -45,7 +45,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
             myV = var.domVariables.myV; 
              for imx = 1:length(mxV)
                  for imy = 1:length(myV)
-                     C(:,:,imx,imy) = var{imx,imy}.('Ctensor');
+                     C(:,:,imx,imy) = var.variables{imx,imy}.('Ctensor');
                  end
              end            
          end 
