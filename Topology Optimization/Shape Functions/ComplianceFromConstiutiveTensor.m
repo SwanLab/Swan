@@ -55,8 +55,7 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function eu = computeStateStrain(obj,u)
-            eu = u.evaluateSymmetricGradient(obj.quadrature.posgp);
-            eu = eu.obtainVoigtFormat();
+            eu = u.evaluateSymmetricGradientVoigt(obj.quadrature.posgp);
         end
 
         function stress = computeStress(obj,C,strain)
