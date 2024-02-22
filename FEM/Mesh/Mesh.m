@@ -3,7 +3,6 @@ classdef Mesh < handle
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
-        % geometryType
 
         coord
         connec
@@ -22,9 +21,8 @@ classdef Mesh < handle
         boundaryElements
     end
 
-    properties (Access = private)
+    properties (Access = protected)
         xFE
-        geometry
     end
 
     methods (Static, Access = public)
@@ -50,7 +48,6 @@ classdef Mesh < handle
             obj.computeDimensionParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            obj.createGeometry();
         end
 
         function L = computeCharacteristicLength(obj)
@@ -150,7 +147,7 @@ classdef Mesh < handle
             switch obj.ndim
                 case 3
                     normal = obj.getNormals();
-                    n(:,1:obj.nelem) = squeeze(normal)';
+                    n(:,1:obj.nelem) = squeeze(normal);
                     xy = obj.computeBaricenter();
                     q = quiver3(xy(1,:),xy(2,:),xy(3,:),n(1,:),n(2,:),n(3,:),'k');
                     h = obj.computeMeanCellSize();
@@ -211,28 +208,10 @@ classdef Mesh < handle
             p1.print(filename, software);
         end
 
-        %% Heavy refactoring
-
-        % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
-        % DELETE Geometry
-
-        function dVolume = computeDvolume(obj,quad)
-            g = obj.geometry;
+        function dV = computeDvolume(obj,quad)
             w = reshape(quad.weigp,[quad.ngaus 1]);
-            dVolume = w.*g.computeJacobianDeterminant(quad.posgp);
-        end
-
-        function invJac = computeInverseJacobian(obj,xV)
-            g = obj.geometry;
-            invJac = g.computeInverseJacobian(xV);
-        end
-
-        function n = getNormals(obj) % only 
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('CONSTANT');
-            g = obj.geometry;
-            g.computeGeometry(quad,obj.interpolation);
-            n = g.normalVector;
+            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+            dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
         end
 
         %% Remove
@@ -297,6 +276,27 @@ classdef Mesh < handle
 
     end
 
+    methods (Access = protected)
+
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coordElem,1);
+            nElem    = size(obj.coordElem,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                        jacIJ    = dShapeIK*xKJ;
+                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                end
+            end
+        end
+
+    end
+
     methods (Access = private)
 
         function init(obj,s)
@@ -311,14 +311,6 @@ classdef Mesh < handle
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnodeElem = size(obj.connec,2);
-        end
-
-        function createGeometry(obj)
-            s.coord = obj.xFE.fValues;
-            s.interp = obj.interpolation;
-            s.xFE = obj.xFE;
-            s.geometryType = obj.geometryType;
-            obj.geometry = Geometry.create(s);
         end
 
         function createInterpolation(obj)

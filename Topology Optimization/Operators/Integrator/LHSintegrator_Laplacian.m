@@ -42,8 +42,8 @@ classdef LHSintegrator_Laplacian < handle
             
             lhs = zeros(nDofETs, nDofETr, nElem);
             for iGaus = 1:nGaus
-                dNdxTs = shapesTs(:,:,:,iGaus);
-                dNdxTr = shapesTr(:,:,:,iGaus);
+                dNdxTs = squeeze(shapesTs(:,:,iGaus,:));
+                dNdxTr = squeeze(shapesTr(:,:,iGaus,:));
                 BmatTs = obj.computeB(dNdxTs);
                 BmatTr = obj.computeB(dNdxTr);
                 dV(1,1,:) = dVolu(iGaus,:)';
