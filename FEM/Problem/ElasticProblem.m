@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        reactions
     end
 
     properties (Access = private)
@@ -164,6 +165,9 @@ classdef ElasticProblem < handle
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
+
+            obj.computeReactions(u);
+
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
@@ -190,10 +194,15 @@ classdef ElasticProblem < handle
             z.mesh       = obj.mesh;
             z.fValues    = strs;
             z.quadrature = obj.quadrature;
-%             strFun       = FGaussDiscontinuousFunction(z);
+            strFun       = FGaussDiscontinuousFunction(z);
 
-%             obj.stress    = strFun;
-%             obj.stressFun = strFun;
+            obj.stress    = strFun;
+            obj.stressFun = strFun;
+        end
+
+        function computeReactions(obj,u)
+            freeDofs = obj.boundaryConditions.dirichlet_dofs;
+            obj.reactions = obj.stiffness(freeDofs,:)*u;
         end
 
     end

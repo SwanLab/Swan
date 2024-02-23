@@ -3,12 +3,12 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        connec
     end
 
     properties (Access = private)
         interpolation
         coord
-        connec
     end
 
     methods (Access = public)
@@ -83,12 +83,8 @@ classdef LagrangianFunction < FeFunction
             nNodeE = size(dNdx, 2);
             nPoints = size(dNdx, 3);
             nElem = size(dNdx, 4);
-            
-            for n=1:nDimf
-                fV(n:nDimf:obj.nDofs-nDimf+n) = obj.fValues(:,n);
-            end
-            fB = reshape(obj.fValues',[numel(obj.fValues) 1]);
-
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
             grad = zeros(nDimG,nDimf, nPoints, nElem);
             for iDimG = 1:nDimG
                 for jDimf = 1:nDimf
@@ -103,11 +99,6 @@ classdef LagrangianFunction < FeFunction
                 end
             end
             fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
-%             s.fValues = permute(fVR, [1 3 2]);
-%             s.ndimf      = nDimf;
-%             s.quadrature = xV;
-%             s.mesh       = obj.mesh;
-%             gradFun = FGaussDiscontinuousFunction(s);
         end
 
         function symGrad = evaluateSymmetricGradient(obj,xV)
@@ -122,10 +113,6 @@ classdef LagrangianFunction < FeFunction
             symGrad = 0.5*(gradReshp + gradT);
             
             symGrad =  reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-%             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-%             s.quadrature = xV;
-%             s.mesh       = obj.mesh;
-%             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
         function symGrad = evaluateSymmetricGradientVoigt(obj,xV)

@@ -23,26 +23,24 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
         end
         
         function rhsC = computeElementalRHS(obj, fun, test)
-            fG = fun.evaluate(); %% SIGMA
+            fG = fun.evaluate(obj.quadrature.posgp);
             dV = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx = test.computeCartesianDerivatives(obj.quadrature);
+            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             nDim  = size(dNdx,1);
             nNode = size(dNdx,2);
-            nElem = size(dNdx,3);
-            nGaus = size(dNdx,4);
+            nGaus = size(dNdx,3);
+            nElem = size(dNdx,4);
 
             BComp = obj.createBComputer(test,dNdx);
             rhsC = zeros(nNode*nDim,nElem);
             for igaus = 1:nGaus
                     fGI = squeezeParticular(fG(:,igaus,:),2);
                     fdv = fGI.*dV(igaus,:);
-                    fdv = permute(fdv,[1 3 2]);      % (c x a x Z)
-                    B = BComp.compute(igaus);        % (c x b x Z)
-
-                    fp = permute(fdv,[1,2,4,3]);     % (c x a x 1 x Z)
-                    Bp = permute(B,[1,4,2,3]);       % (c x 1 x b x Z)
-                    intI = fp .* Bp;                 % (c x a x b x Z)
-                    intI = sum(intI,1);              % (1 x a x b x Z)
+                    B = BComp.compute(igaus);
+                    fp = permute(fdv,[1,2,4,3]);
+                    Bp = permute(B,[1,4,2,3]);
+                    intI = fp .* Bp;
+                    intI = sum(intI,1);
                     intI = permute(intI,[2,3,4,1]);
                     rhsC = rhsC + squeezeParticular(intI,1);
             end
@@ -58,7 +56,7 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
                 int = integrand(:,idof);
                 con = connec(:,idof);
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
-            end         
+            end
         end
 
         function BComp = createBComputer(obj, fun, dNdx)

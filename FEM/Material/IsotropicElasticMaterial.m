@@ -39,6 +39,8 @@ classdef IsotropicElasticMaterial < Material
                 nu = obj.poisson.evaluate(xV);  
                 mu = obj.computeMuFromYoungAndPoisson(E,nu);               
                 k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+                mu = squeezeParticular(mu,1);
+                k  = squeezeParticular(k,1);
             else
                 mu = obj.shear.evaluate(xV);
                 k  = obj.bulk.evaluate(xV); 

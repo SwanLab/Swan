@@ -13,40 +13,23 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = public)
 
+        function obj = setMaterial(obj,phi,type)
+            obj.phi = phi;
+            switch type
+                case 'Isotropic'
+                    obj.fun = @(phi) 1;
+                case 'Interpolated'
+                    obj.fun = obj.matInterpolation.fun;
+                case 'Jacobian'
+                    obj.fun = obj.matInterpolation.dfun;
+                case 'Hessian'
+                    obj.fun = obj.matInterpolation.ddfun;
+            end
+        end
+
         function obj = MaterialPhaseField(cParams)
             obj = obj@IsotropicElasticMaterial(cParams);
             obj.initPhaseField(cParams)
-        end
-
-        function C = evaluateIsotropicMaterial(obj,xV)
-            [mu,kappa] = obj.computeShearAndBulk(xV);
-            lambda = obj.computeLambdaFromShearAndBulk(mu,kappa,obj.ndim);
-            C = obj.evaluateMaterial(mu,lambda);
-        end
-
-        function C = evaluate(obj,phi,xV,type)
-            switch type
-                case 
-        function C = evaluateInterpolatedMaterial(obj,phi,xV)
-            fun = obj.matInterpolation.fun;
-        end
-
-        function C = evaluateFirstDerivativeInterpolatedMaterial(obj,phi,xV)
-            dfun = obj.matInterpolation.dfun;
-        end
-
-        function C = evaluateSecondDerivativeInterpolatedMaterial(obj,phi,xV)
-            ddfun = obj.matInterpolation.ddfun;
-        end
-
-    end
-
-    methods (Access = private)
-
-        function initPhaseField(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.matInterpolation = cParams.materialInterpolation;
-            obj.Gc = cParams.Gc;
         end
 
         function C = evaluate(obj,xV)
@@ -66,8 +49,18 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = private)
 
+        function initPhaseField(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.matInterpolation = cParams.materialInterpolation;
+            obj.Gc = cParams.Gc;
+        end
+
+    end
+
+    methods (Access = private)
+
         function [mu,l] = computeMatParams(obj,xV)
-            gV = obj.evaluateDegradationFun(obj.fun,obj.phi,xV);
+            gV = obj.evaluateDegradationFun(xV);
             [mu, l] = obj.computeMuAndLambda(gV,xV);
         end
 
@@ -77,9 +70,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             s.l2function = obj.phi;
             g = CompositionFunction(s);
             gV = g.evaluate(xV);
-
-            %val = permute(val,[1 3 2]);
-            %val = squeezeParticular(val,1);
+            gV = squeezeParticular(gV,1);
         end
 
         function [mu, l] = computeMuAndLambda(obj,gV,xV)

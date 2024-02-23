@@ -22,17 +22,13 @@ classdef ShFunc_LocalDamage < handle
         end
         
         function F = computeFunction(obj,phi,quadOrder)
-            alphaFun = obj.createDissipationFunction(phi);
-            
-            s.mesh = obj.mesh;
-            s.quadType = quadOrder;
-            s.type = 'Function';
-            int = Integrator.create(s);
+            alphaFun = obj.createDissipationFunction(phi,'Function');
+            int = Integrator.create('Function',obj.mesh,quadOrder);
             F = (obj.constant/obj.l0)*int.compute(alphaFun);
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            dAlphaFun =  obj.createFirstDerivativeDissipationFunction(phi);
+            dAlphaFun =  obj.createDissipationFunction(phi,'Jacobian');
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             
             s.mesh = obj.mesh;
@@ -43,7 +39,7 @@ classdef ShFunc_LocalDamage < handle
         end
         
         function H = computeHessian(obj,phi,quadOrder)
-            ddAlphaFun =  obj.createSecondDerivativeDissipationFunction(phi);
+            ddAlphaFun =  obj.createDissipationFunction(phi,'Hessian');
             
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
@@ -64,26 +60,20 @@ classdef ShFunc_LocalDamage < handle
             obj.constant = cParams.constant;
             obj.l0 = cParams.l0;
         end
-        
-        function alpha = createDissipationFunction(obj,phi)
+
+        function alpha = createDissipationFunction(obj,phi,type)
+            switch type
+                case 'Function'
+                    s.handleFunction = obj.dissipationInterpolation.fun;
+                case'Jacobian'
+                    s.handleFunction = obj.dissipationInterpolation.dfun;
+                case 'Hessian'
+                    s.handleFunction = obj.dissipationInterpolation.ddfun;
+            end
             s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.fun;
             s.l2function = phi;
             alpha = CompositionFunction(s);
         end
-        
-        function dAlpha = createFirstDerivativeDissipationFunction(obj,phi)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.dfun;
-            s.l2function = phi;
-            dAlpha = CompositionFunction(s);
-        end
-        
-        function ddAlpha = createSecondDerivativeDissipationFunction(obj,phi)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.dissipationInterpolation.ddfun;
-            s.l2function = phi;
-            ddAlpha = CompositionFunction(s);
-        end
+
     end
 end

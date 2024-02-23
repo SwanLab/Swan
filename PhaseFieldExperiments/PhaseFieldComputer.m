@@ -151,13 +151,12 @@ classdef PhaseFieldComputer < handle
             quadOrder = 'QUADRATIC';
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(quadOrder);
-            C = obj.materialPhaseField.evaluateInterpolatedMaterial(obj.phaseField,quad.posgp);
 
             s.mesh = obj.mesh;
             s.type = 'ELASTIC';
             s.scale = 'MACRO';
             s.dim = '2D';
-            s.material = C;
+            s.material = obj.materialPhaseField.setMaterial(obj.phaseField,'Interpolated');
             s.boundaryConditions = obj.boundaryConditions;
             s.interpolationType = 'LINEAR';
             s.quadratureOrder = quadOrder;
@@ -365,11 +364,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             s.fValues = obj.fem.uFun.fValues - f.fValues;
             f = P1Function(s);
-
-            q.mesh = obj.mesh;
-            q.quadType = 'CONSTANT';
-            q.type = 'ScalarProduct';
-            int = Integrator.create(q);
+            int = Integrator.create('ScalarProduct',obj.mesh,'CONSTANT');
             error = sqrt(int.compute(f,f));
 
             error2 = norm(s.fValues);
