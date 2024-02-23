@@ -71,13 +71,16 @@ classdef HomogenizedMicrostructureInterpolator < Material
         
         function C = computeValues(obj,xV)
             [mL,cells] = obj.obtainLocalCoord(xV);
+            nGaus = size(xV,2);
+            nElem = obj.microParams{1}.mesh.nelem;
             nStre = size(obj.Ctensor,1); 
-            nDofs = size(mL,2);
-            C  = zeros(nStre,nStre,nDofs);
+          %  nDofs = size(mL,2);
+            C  = zeros(nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cij(1,1,:) = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
-                    C(i,j,:)   = Cij;
+                    Cv = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
+                    Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
+                    C(i,j,:,:)   = Cij(1,1,:,:);
                 end
             end
         end 

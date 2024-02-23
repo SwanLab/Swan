@@ -112,7 +112,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.materialInterpolator = obj.materialInterpolator;
+          %  s.material = obj.createMaterial(obj.designVariable.fun);
             c                      = ComplianceFunctionalFromVademecum(s);
             c.computeFunctionAndGradient(obj.designVariable);
             obj.compliance = c;
