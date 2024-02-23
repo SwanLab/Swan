@@ -76,17 +76,17 @@ classdef BMatrixComputer < handle
             end
         end
 
-        function [B] = computeBin1D(obj, igaus)
-            deriv  = obj.dNdx(:,:,:,igaus);
+        function [B] = computeBin1D(obj, iGaus)
+            deriv  = obj.dNdx;
             nDimf = obj.fun.ndimf;
             nNode = size(deriv,2);
-            nElem = size(obj.dNdx,3);
+            nElem = size(obj.dNdx,4);
             nDofs = nDimf*nNode;
             B = zeros(obj.nVoigt,nDofs,nElem);
             for inode = 1:nNode
                 j = nDimf*(inode-1) + 1;
-                B(1,j,:) = deriv(1,inode,:);
-                B(2,j,:) = deriv(2,inode,:);
+                B(1,j,:) = deriv(1,inode,iGaus,:);
+                B(2,j,:) = deriv(2,inode,iGaus,:);
             end
         end
 

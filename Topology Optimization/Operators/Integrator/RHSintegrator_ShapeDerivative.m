@@ -37,7 +37,7 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
                     for inode = 1:nNode
                         fI     = squeezeParticular(fG(idime,igaus,:),1);
                         fdV    = fI.*dV(igaus,:);
-                        dShape = squeeze(dNdx(idime,inode,:,igaus))';
+                        dShape = squeeze(dNdx(idime,inode,igaus,:))';
                         intI = dShape.*fdV;
                         int(inode,:) = int(inode,:) + intI;
                     end

@@ -19,6 +19,17 @@ classdef VolumeMesh < Mesh
             obj.initVol(cParams)
         end
 
+        function detJ = computeJacobianDeterminant(obj,xV)
+            J = obj.computeJacobian(xV);
+            detJ = MatrixVectorizedInverter.computeDeterminant(J);
+        end
+
+        function invJ = computeInverseJacobian(obj,xV)
+            J = obj.computeJacobian(xV);
+            invJ = MatrixVectorizedInverter.computeInverse(J);
+        end
+
+
         function plot(obj)
             gPar.type         = 'Full';
             g                 = GeometricalFunction(gPar);
