@@ -16,7 +16,6 @@ classdef DomainFunction < handle
         
         function obj = DomainFunction(cParams)
             obj.init(cParams)
-            
         end
         
         function r = evaluate(obj,xV)
@@ -25,6 +24,16 @@ classdef DomainFunction < handle
         
         function r = ctranspose(a)
             s.operation = @(xV) pagetranspose(a.operation(xV));
+            r = DomainFunction(s);
+        end
+        
+        function r = plus(a,b)
+            s.operation = @(xV) a.operation(xV) + b.operation(xV);
+            r = DomainFunction(s);
+        end
+        
+        function r = minus(a,b)
+            s.operation = @(xV) a.operation(xV) - b.operation(xV);
             r = DomainFunction(s);
         end
         

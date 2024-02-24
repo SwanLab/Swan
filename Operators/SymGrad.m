@@ -34,7 +34,7 @@ function fV = applyVoigt2D(fV)
     fVal(1,:,:) = fV(1,:,:); % xx
     fVal(2,:,:) = fV(4,:,:); % yy
     fVal(3,:,:) = fV(2,:,:) + fV(3,:,:); % xy
-    fV = reshape(fVal, [3 1 nGaus nElem]);
+    fV = reshape(fVal, [3 nGaus nElem]);
 %             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
 end
 
@@ -47,6 +47,6 @@ function fV = applyVoigt3D(fV)
     fVal(4,:,:) = fV(2,:,:) + fV(4,:,:); % xy
     fVal(5,:,:) = fV(3,:,:) + fV(7,:,:); % xz
     fVal(6,:,:) = fV(6,:,:) + fV(8,:,:); % yz
-    fV = reshape(fVal, [6 1 nGaus nElem]);
+    fV = reshape(fVal, [6 nGaus nElem]);
 %             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
 end

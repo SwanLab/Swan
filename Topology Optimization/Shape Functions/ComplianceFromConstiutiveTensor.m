@@ -79,8 +79,8 @@ classdef ComplianceFromConstiutiveTensor < handle
 
             ngaus = size(xV,2);
             nelem = obj.mesh.nelem;
-            dStr = DDP(dC, eu2);
-            dj = -DDP(eu2', dStr);
+            % dStr = DDP(dC, eu2);
+            dj = -DDP(eu2, dC, eu2); % !!
             dj = squeezeParticular(dj, 1, [1 1 ngaus nelem]);
         end
 

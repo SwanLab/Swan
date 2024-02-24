@@ -11,8 +11,8 @@ classdef ScalarProduct < handle
             quadOrder = 'QUADRATIC';
             q = Quadrature.set(m.type);
             q.computeQuadrature(quadOrder);
-            Df  = f.evaluateGradient(q.posgp);
-            Dg  = g.evaluateGradient(q.posgp);
+            Df  = Grad(f);
+            Dg  = Grad(g);
             int = Integrator.create('ScalarProduct',m,quadOrder);
             spM = int.compute(f,g);
             spK = int.compute(Df,Dg);
