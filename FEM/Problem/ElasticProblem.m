@@ -174,7 +174,9 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            strFun = obj.displacementFun.evaluateSymmetricGradientVoigt(obj.quadrature.posgp);
+            xV = obj.quadrature.posgp;
+
+            strFun = SymGrad(obj.displacementFun).evaluate(xV);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strainFun = strFun;
             obj.strain = strFun;
