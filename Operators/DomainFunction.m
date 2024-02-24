@@ -1,11 +1,11 @@
 classdef DomainFunction < handle
     
     properties (Access = public)
-        
+        operation
     end
     
     properties (Access = private)
-        operation
+        
     end
     
     properties (Access = private)
@@ -23,6 +23,15 @@ classdef DomainFunction < handle
             r = obj.operation(xV);
         end
         
+        function r = ctranspose(a)
+            s.operation = @(xV) pagetranspose(a.operation(xV));
+            r = DomainFunction(s);
+        end
+        
+        function r = uminus(a)
+            s.operation = @(xV) -a.operation(xV);
+            r = DomainFunction(s);
+        end
     end
     
     methods (Access = private)
