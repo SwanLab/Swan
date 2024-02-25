@@ -41,6 +41,16 @@ classdef DomainFunction < handle
             s.operation = @(xV) -a.operation(xV);
             r = DomainFunction(s);
         end
+
+        function r = power(a,b)
+            s.operation = @(xV) a.operation(xV).^b;
+            r = DomainFunction(s);
+        end
+
+        function r = norm(a,b)
+            s.operation = @(xV) pagenorm(a.operation(xV),b);
+            r = DomainFunction(s);
+        end
     end
     
     methods (Access = private)
