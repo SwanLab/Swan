@@ -49,25 +49,26 @@ classdef FGaussDiscontinuousFunction < handle
             q = obj.quadrature.order;
         end
         
-%         function dNdx  = evaluateCartesianDerivatives(obj, xV)
-% %             assert(isequal(xV,obj.quadrature), 'Quadrature does not match');
-%             nElem = size(obj.mesh.connec,1);
-%             nNode = obj.mesh.interpolation.nnode;
-%             nDime = obj.mesh.interpolation.ndime;
-%             nGaus = size(xV,2);
-%             invJ  = obj.mesh.computeInverseJacobian(xV);
-%             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-%             for igaus = 1:nGaus
-%                 dShapes = obj.interpolation.deriv(:,:,igaus);
-%                 for jDime = 1:nDime
-%                     invJ_JI   = invJ(:,jDime,:,igaus);
-%                     dShape_KJ = dShapes(jDime,:);
-%                     dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-%                     dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-%                 end
-%             end
-%             dNdx = dShapeDx;
-%         end
+        function dNdx  = evaluateCartesianDerivatives(obj, xV)
+%             assert(isequal(xV,obj.quadrature), 'Quadrature does not match');
+            nElem = size(obj.mesh.connec,1);
+            nNode = obj.mesh.interpolation.nnode;
+            nDime = obj.mesh.interpolation.ndime;
+            nGaus = size(xV,2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            deriv = obj.mesh.interpolation.computeShapeDerivatives(xV);
+            for igaus = 1:nGaus
+                dShapes = deriv(:,:,igaus);
+                for jDime = 1:nDime
+                    invJ_JI   = invJ(:,jDime,:,igaus);
+                    dShape_KJ = dShapes(jDime,:);
+                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
+                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
+                end
+            end
+            dNdx = dShapeDx;
+        end
 
         function newObj = obtainVoigtFormat(obj)
             switch obj.ndimf

@@ -4,7 +4,6 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
-        reactions
     end
 
     properties (Access = private)
@@ -165,9 +164,6 @@ classdef ElasticProblem < handle
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
-
-            obj.computeReactions(u);
-
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
@@ -178,31 +174,16 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            strFun = obj.displacementFun.evaluateSymmetricGradientVoigt(obj.quadrature.posgp);
+            xV = obj.quadrature.posgp;
+            obj.strainFun = SymGrad(obj.displacementFun);
 %             strFun = strFun.obtainVoigtFormat();
-            obj.strainFun = strFun;
-            obj.strain = strFun;
+            obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            strn(:,1,:,:) = obj.strain;
-            Cv            = obj.material.evaluate(obj.quadrature.posgp);
-
-            strs = pagemtimes(Cv,strn);
-            strs = permute(strs, [1 3 4 2]);
-
-            z.mesh       = obj.mesh;
-            z.fValues    = strs;
-            z.quadrature = obj.quadrature;
-            strFun       = FGaussDiscontinuousFunction(z);
-
-            obj.stress    = strFun;
-            obj.stressFun = strFun;
-        end
-
-        function computeReactions(obj,u)
-            freeDofs = obj.boundaryConditions.dirichlet_dofs;
-            obj.reactions = obj.stiffness(freeDofs,:)*u;
+            xV = obj.quadrature.posgp;
+            obj.stressFun = DDP(obj.material, obj.strainFun);
+            obj.stress = obj.stressFun.evaluate(xV);
         end
 
     end
