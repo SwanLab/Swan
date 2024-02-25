@@ -11,7 +11,7 @@ classdef UnfittedFunction < L2Function
         fun
     end
 
-    properties (Access = private)
+    properties (Access = public)
         unfittedMeshFunction
     end
 
