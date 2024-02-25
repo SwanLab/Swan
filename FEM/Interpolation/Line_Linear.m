@@ -5,7 +5,7 @@ classdef Line_Linear < Interpolation
         function obj = Line_Linear(cParams)
             obj.init(cParams);
             obj.computeParams();
-            obj.computeCases();
+            %obj.computeCases();
         end
         
         function shape = computeShapeFunctions(obj,posgp)
