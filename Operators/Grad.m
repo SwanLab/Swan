@@ -12,10 +12,7 @@ function fVR = evaluate(u, xV)
     nPoints = size(dNdx, 3);
     nElem   = size(dNdx, 4);
     connec = u.getConnec();
-    for n=1:nDimf
-        fV(n:nDimf:nDofs-nDimf+n) = u.fValues(:,n);
-    end
-
+    fV = reshape(u.fValues', [1 nDofs]);
     grad = zeros(nDimG,nDimf, nPoints, nElem);
     for iDimG = 1:nDimG
         for jDimf = 1:nDimf

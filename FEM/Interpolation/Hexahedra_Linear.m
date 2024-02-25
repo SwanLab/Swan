@@ -56,7 +56,7 @@ classdef Hexahedra_Linear < Interpolation
         function computeParams(obj)
             obj.ndime = 3;
             obj.nnode = 8;
-            obj.isoDv = 8;
+            % obj.isoDv = 8;
             obj.pos_nodes=[-1 -1 -1;
                 +1 -1 -1;
                 +1 +1 -1;
