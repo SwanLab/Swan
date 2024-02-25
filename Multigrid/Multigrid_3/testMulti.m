@@ -7,20 +7,29 @@
 %mginit initializes the multigrid solver and returns a structure array named data, containing all problem data
 %mgsolve performs actual multigrid iterations via recursion calls on vcycle.m function and returns residual history and 
 %estimated solution u.
+clc;clear;close all;
 
 tolerance = 1e-10;
 vDown = 2;
 vUp = 2;
 hmax = 0.5;
 
-pv = [0,0; 2,0; 1.5,1; .5,1; 0,0];
-for iref = 1:3
+o = MultigridTesting3;
+dataTotal = o.getdata;
+bcTotal = o.getBC;
+meshTotal = o.getMesh;
+% [u, res] = mgsolve(dataTotal, vDown, vUp, tolerance, bcTotal, meshTotal);
+% semilogy(res), hold on
+
+%pv = [0,0; 2,0; 1.5,1; .5,1; 0,0];
+for iref = 5:-1:1
     tic
     % data = mginit(pv, hmax, iref); toc
-    o = MultigridTesting3;
-    data = o.getdata;
-    bc = o.getBC;
-    mesh = o.getMesh;
+    for i = 1:5-iref+1
+        data(i) = dataTotal(iref+i-1);
+        bc(i) = bcTotal(iref+i-1);
+        mesh(i) = meshTotal(iref+i-1);
+    end
     [u, res] = mgsolve(data, vDown, vUp, tolerance, bc, mesh);
     semilogy(res), hold on
 end
