@@ -144,7 +144,7 @@ classdef Hexahedra_Quadratic < Interpolation
         function computeParams(obj)
             obj.ndime = 3;
             obj.nnode = 27;
-            obj.isoDv = 8;
+            % obj.isoDv = 8;
             obj.pos_nodes=[-1 -1 -1;
                 +1 -1 -1;
                 +1 +1 -1;

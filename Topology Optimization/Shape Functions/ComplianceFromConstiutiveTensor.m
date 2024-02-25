@@ -65,18 +65,18 @@ classdef ComplianceFromConstiutiveTensor < handle
 
         function dj = computeDJ(obj,dC,u)
             xV = obj.quadrature.posgp;
-            dCij         = dC.evaluate(xV);
-            eu2 = SymGrad(u);
+            % dCij         = dC.evaluate(xV);
             % dStr = DDP(eu2', dC, eu2);
 
-            eu           = obj.computeStateStrain(u);
-            euj(:,1,:,:) = eu;
-            eui(1,:,:,:) = eu;
-            dStress      = pagemtimes(dCij,euj);
-            dj           = pagemtimes(eui,dStress);
-            dj           = squeezeParticular(-dj,1);
-            dj           = obj.createGaussFunction(dj);
+            % eu           = obj.computeStateStrain(u);
+            % euj(:,1,:,:) = eu;
+            % eui(1,:,:,:) = eu;
+            % dStress      = pagemtimes(dCij,euj);
+            % dj           = pagemtimes(eui,dStress);
+            % dj           = squeezeParticular(-dj,1);
+            % dj           = obj.createGaussFunction(dj);
 
+            eu2 = SymGrad(u);
             ngaus = size(xV,2);
             nelem = obj.mesh.nelem;
             % dStr = DDP(dC, eu2);
