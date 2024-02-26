@@ -6,34 +6,23 @@ classdef IntegratorUnfitted < handle
     end
 
     properties (Access = private)
-        quadratureInnerMesh
-        quadratureInnerCutMesh
+        innerIntegrator
+        innerCutIntegrator
     end
 
     methods (Access = public)
         function obj = IntegratorUnfitted(cParams)
             obj.init(cParams);
-            obj.createQuadratureInner();
-            obj.createQuadratureInnerCut();
+            obj.createIntegratorInner();
+            obj.createIntegratorInnerCut();
         end
 
-        function int = compute(obj,f)
-            quad      = obj.quadratureInnerMesh;
-            xV        = quad.posgp;
-            dV        = obj.unfittedMesh.computeDvolume(quad);
-            nGaus     = quad.ngaus;
-            fGaus     = f.evaluate(xV);
-            nFields   = size(fGaus,1);
-            h         = 0;
-            for iField = 1:nFields
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    fG       = squeeze(fGaus(iField,igaus,:));
-                    int      = fG.*dVg;
-                    h        = h + sum(int);
-                end
-            end
-            int = h;
+        function int = compute(obj,uMeshFun)
+            fInner      = uMeshFun.innerMeshFunction;
+            fInnerCut   = uMeshFun.innerCutMeshFunction;
+            intInner    = obj.innerIntegrator.compute(fInner);
+            intInnerCut = obj.innerCutIntegrator.compute(fInnerCut);
+            int         = intInner+intInnerCut;
         end
     end
 
@@ -43,19 +32,16 @@ classdef IntegratorUnfitted < handle
             obj.unfittedMesh = cParams.mesh;
         end
 
-        function createQuadratureInner(obj)
-            m = obj.unfittedMesh.innerMesh.mesh;
-            q = Quadrature.set(m.type);
-            q.computeQuadrature(obj.quadType);
-            obj.quadratureInnerMesh = q;
+        function createIntegratorInner(obj)
+            m   = obj.unfittedMesh.innerMesh.mesh;
+            int = Integrator.create('Function',m,obj.quadType);
+            obj.innerIntegrator = int;
         end
 
-        function createQuadratureInnerCut(obj)
-            m = obj.unfittedMesh.innerCutMesh.mesh;
-            q = Quadrature.set(m.type);
-            q.computeQuadrature(obj.quadType);
-            obj.quadratureInnerCutMesh = q;
+        function createIntegratorInnerCut(obj)
+            m   = obj.unfittedMesh.innerCutMesh.mesh;
+            int = Integrator.create('Function',m,obj.quadType);
+            obj.innerCutIntegrator = int;
         end
     end
-
 end

@@ -21,4 +21,23 @@ sUm.boundaryMesh   = mesh.createBoundaryMesh();
 uMesh              = UnfittedMesh(sUm);
 uMesh.compute(phiFun.fValues);
 
-chi = CharacteristicFunction.create(uMesh);
+chi           = CharacteristicFunction.create(uMesh);
+ss.filterType   = 'PDE';
+ss.mesh         = mesh;
+ss.boundaryType = 'Neumann';
+ss.metric       = 'Isotropy';
+ss.trial = LagrangianFunction.create(mesh,1,'P1');
+filter          = Filter.create(ss);
+
+epsilon = 2*mesh.computeMeanCellSize(); %%
+filter.updateEpsilon(epsilon); %%
+
+rhoe          = filter.compute(chi,'QUADRATICMASS');
+
+sUf.fun   = (1-rhoe);
+sUf.uMesh = uMesh;
+f         = UnfittedFunction(sUf);
+uF        = f.unfittedMeshFunction;
+
+int = Integrator.create('Unfitted',uMesh,'QUADRATICMASS');
+P   = (2/epsilon)*int.compute(uF);
