@@ -47,7 +47,7 @@ classdef NeumannNeumann < handle
 
             
             obj.createDisplacementFun();
-            obj.interfaceDof = obj.computeLocalInterfaceDof;
+            obj.interfaceDof = obj.computeLocalInterfaceDof();
             obj.computeSubdomainLHS();
             
             obj.createSubdomainBoundaryConditions();
@@ -323,8 +323,8 @@ classdef NeumannNeumann < handle
             uInt = zeros(size(obj.interfaceDof,1),1); 
             while e>tol
 
-                uD = obj.dirichletStep();
-                obj.updateNeumanStepBC(uD);
+                obj.dirichletStep();
+                obj.updateNeumanStepBC();
                 uN = obj.neumannStep();
                 uInt_new = obj.updateDirichletStepBC(uN);
 
@@ -336,25 +336,27 @@ classdef NeumannNeumann < handle
             end
         end
 
-        function u = dirichletStep(obj)
+        function dirichletStep(obj)
             for idom = 1:obj.nSubdomains(1)
                 obj.computeForces(idom,obj.boundaryConditions.dirichletStep)
                 Kred    = obj.boundaryConditions.dirichletStep{idom}.fullToReducedMatrix(obj.LHS{idom});
                 Fred    = obj.boundaryConditions.dirichletStep{idom}.fullToReducedVector(obj.RHS{idom});
                 u{idom} = Kred\Fred;
+                u{idom} = obj.boundaryConditions.dirichletStep{idom}.reducedToFullVector(u{idom});
+                obj.displacementFun{idom}.fValues = reshape(u{idom},2,[])';                
             end
         end
 
-        function R = updateNeumanStepBC(obj,u)
+        function R = updateNeumanStepBC(obj)
+            u = obj.displacementFun;
             R = obj.computeInterfaceReactions(u);
             obj.updateNeumanValues(R);
         end
 
         function R = computeInterfaceReactions(obj,u)   
-             w = [obj.theta,1- obj.theta];
+             w = [obj.theta,1-obj.theta];
              R=zeros(size(obj.interfaceDof,1),1);
              for idom=1:obj.nSubdomains(1)
-                u{idom} = obj.boundaryConditions.dirichletStep{idom}.reducedToFullVector(u{idom});
                 intDOF = obj.interfaceDof(:,idom);
                 R = R + w(idom)*obj.LHS{idom}(intDOF,:)*u{idom};
             end
