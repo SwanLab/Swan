@@ -12,6 +12,8 @@ classdef IntegratorFactory < handle
                     int = IntegratorEnergy(cParams);
                 case 'Error'
                     int = IntegratorError(cParams);
+                case 'Unfitted'
+                    int = IntegratorUnfitted(cParams);
             end
         end
 
