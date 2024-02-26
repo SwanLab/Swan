@@ -93,13 +93,21 @@ classdef TopOptTestTutorial < handle
             obj.materialInterpolator = m;
         end
 
-        function createElasticProblem(obj)
+        function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');
+            f = f.project('P1');            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '2D';
+            m = Material.create(s);
+        end
+
+        function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(f);
+            s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -119,7 +127,7 @@ classdef TopOptTestTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.materialInterpolator        = obj.materialInterpolator;
+            s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end

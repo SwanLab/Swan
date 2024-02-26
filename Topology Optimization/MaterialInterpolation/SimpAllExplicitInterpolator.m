@@ -21,16 +21,14 @@ classdef SimpAllExplicitInterpolator < handle
             obj.computeSymbolicInterpolationFunctions();
         end
         
-        function m = computeConsitutiveTensor(obj,rho)
+        function [mu,kappa] = computeConsitutiveTensor(obj,rho)
             mu      = CompositionFunction.create(obj.muFunc,rho);
             kappa   = CompositionFunction.create(obj.kappaFunc,rho);
-            m = obj.createMaterial(mu,kappa);
         end
 
-        function m = computeConsitutiveTensorDerivative(obj,rho)
-            mu      = CompositionFunction.create(obj.dmuFunc,rho);
-            kappa   = CompositionFunction.create(obj.dkappaFunc,rho);
-            m = obj.createMaterial(mu,kappa);
+        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,rho)
+            dmu      = CompositionFunction.create(obj.dmuFunc,rho);
+            dkappa   = CompositionFunction.create(obj.dkappaFunc,rho);
         end          
         
     end
@@ -38,7 +36,6 @@ classdef SimpAllExplicitInterpolator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.pdim = cParams.dim;
             obj.matA = cParams.matA;
             obj.matB = cParams.matB;
             obj.computeNDim(cParams);
@@ -113,15 +110,6 @@ classdef SimpAllExplicitInterpolator < handle
             den = N;
             etaKappa = num/den;
         end
-
-        function m = createMaterial(obj,mu,kappa)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.ndim;
-            s.shear   = mu;            
-            s.bulk    = kappa;
-            m = Material.create(s);   
-        end        
         
     end
     
