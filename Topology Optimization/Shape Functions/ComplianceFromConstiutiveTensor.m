@@ -20,10 +20,10 @@ classdef ComplianceFromConstiutiveTensor < handle
             obj.createQuadrature();
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,C,dC)
+        function [J,dJ] = computeFunctionAndGradient(obj,C)
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(dC,u);
+            dJ = obj.computeGradient(C,u);
         end
 
     end
@@ -66,13 +66,9 @@ classdef ComplianceFromConstiutiveTensor < handle
             stress = permute(stress, [1 3 4 2]);
         end
 
-        function g = computeGradient(obj,dC,u)
-            g = obj.computeDJ(dC,u);
-        end
-
-        function dj = computeDJ(obj,dC,u)
+        function dj = computeGradient(obj,C,u)
             xV           = obj.quadrature.posgp;
-            dCij         = dC.evaluate(xV);
+            dCij         = C.evaluateDerivative(xV);
             eu           = u.evaluateSymmetricGradientVoigt(xV);
             euj(:,1,:,:) = eu;
             eui(1,:,:,:) = eu;

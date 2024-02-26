@@ -53,8 +53,8 @@ classdef LagrangianFunction < FeFunction
                     fxV(iF,:) = fxV(iF,:) + f;
                 end
             end
-        end         
-        
+        end
+       
         function c = getCoord(obj)
             c = obj.coord;
         end

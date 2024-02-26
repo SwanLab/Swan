@@ -20,7 +20,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
             C = obj.computeValues(xV);
         end
 
-        function dCm = evaluateDerivative(obj,x)
+        function dCm = evaluateDerivative(obj,xV)
            obj.microParams = x;            
            dCm{iVar} = obj.createMaterial(x);
         end
