@@ -52,7 +52,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
