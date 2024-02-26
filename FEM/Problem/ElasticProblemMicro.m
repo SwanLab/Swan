@@ -202,26 +202,25 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStrain(obj, iVoigt)
-            strFun = obj.uFun{iVoigt}.evaluateSymmetricGradient(obj.quadrature.posgp);
-            obj.strainFluctFun{iVoigt} = strFun.obtainVoigtFormat();
+            obj.strainFluctFun{iVoigt} = SymGrad(obj.uFun{iVoigt});
         end
 
         function computeStress(obj, iVoigt)
-            xV = obj.quadrature.posgp;
-            Cmat = obj.material.evaluate(xV);
-            strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(Cmat,strn2));
-            strs = permute(strs, [1 3 2]);
+%             xV = obj.quadrature.posgp;
+%             Cmat = obj.material.evaluate(xV);
+%             strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
+%             strn2(:,1,:,:) = strn;
+%             strs =squeeze(pagemtimes(Cmat,strn2));
+%             strs = permute(strs, [1 3 2]);
+% 
+%             z.mesh       = obj.mesh;
+%             z.fValues    = strs;
+%             z.quadrature = obj.quadrature;
+%             strFun = FGaussDiscontinuousFunction(z);
 
-            z.mesh       = obj.mesh;
-            z.fValues    = strs;
-            z.quadrature = obj.quadrature;
-            strFun = FGaussDiscontinuousFunction(z);
-
-            obj.stress = strFun;
-            obj.variables.stress = permute(strFun.fValues, [2 1 3]);
-            obj.stressFluctFun{iVoigt} = strFun;
+            obj.stress = DDP(obj.material, obj.strainFluctFun{iVoigt});
+%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
+            obj.stressFluctFun{iVoigt} = DDP(obj.material, obj.strainFluctFun{iVoigt});
         end
 
         %% 
@@ -261,42 +260,42 @@ classdef ElasticProblemMicro < handle
                 Cmat  = obj.material.evaluate(xV);
                 oX    = zeros(obj.getDimensions().ndimf,1);
                 nstre = size(obj.material.evaluate(oX),1);
-                nelem = size(Cmat,3);
+                nelem = size(Cmat,4);
                 ngaus = obj.quadrature.ngaus;
                 dV = obj.mesh.computeDvolume(obj.quadrature)';
-                strainFluct = permute(obj.strainFluctFun{iVoigt}.fValues, [2 1 3]);
-                stressFluct = permute(obj.stressFluctFun{iVoigt}.fValues, [2 1 3]);
+                strainFluct = obj.strainFluctFun{iVoigt}.evaluate(xV);
+                stressFluct = obj.stressFluctFun{iVoigt}.evaluate(xV);
                 
-                stress = zeros(ngaus,nstre,nelem);
-                strain = zeros(ngaus,nstre,nelem);
+                stress = zeros(nstre,ngaus,nelem);
+                strain = zeros(nstre,ngaus,nelem);
                 stressHomog = zeros(nstre,1);
                 
                 for igaus = 1:ngaus
-                    strain(igaus,1:nstre,:) = vstrain.*ones(1,nstre,nelem) + strainFluct(igaus,1:nstre,:);
+                    strain(1:nstre,igaus,:) = vstrain'.*ones(nstre,1,nelem) + strainFluct(1:nstre,ngaus,:);
                     for istre = 1:nstre
                         for jstre = 1:nstre
-                            Cij  = squeeze(Cmat(istre,jstre,:,igaus));
+                            Cij  = squeeze(Cmat(istre,jstre,igaus,:));
                             C    = squeeze(Cij);
-                            strs = squeeze(stress(igaus,istre,:));
-                            strn = squeeze(strain(igaus,jstre,:));
+                            strs = squeeze(stress(istre,igaus,:));
+                            strn = squeeze(strain(jstre,igaus,:));
                             stress(igaus,istre,:) = strs + C.* strn;
                         end
-                        strs = squeeze(stress(igaus,istre,:));
+                        strs = squeeze(stress(istre,igaus,:));
                         stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
                     end
                 end
     
                 obj.Chomog(:,iVoigt) = stressHomog;
     
-                a.mesh       = obj.mesh;
-                a.fValues    = permute(stress, [2 1 3]);
-                a.quadrature = obj.quadrature;
-                obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
-    
-                a.mesh       = obj.mesh;
-                a.fValues    = permute(strain, [2 1 3]);
-                a.quadrature = obj.quadrature;
-                obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
+%                 a.mesh       = obj.mesh;
+%                 a.fValues    = permute(stress, [2 1 3]);
+%                 a.quadrature = obj.quadrature;
+%                 obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
+%     
+%                 a.mesh       = obj.mesh;
+%                 a.fValues    = permute(strain, [2 1 3]);
+%                 a.quadrature = obj.quadrature;
+%                 obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
     
     
                 vars.stress_fluct = stressFluct;
