@@ -150,16 +150,17 @@ classdef TopOptTestTutorial < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = false;
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
