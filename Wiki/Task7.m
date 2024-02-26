@@ -8,5 +8,5 @@
 file = 'test2d_triangle';
 a.fileName = file;
 s = FemDataContainer(a);
-fem = FEM.create(s);
+fem = PhysicalProblem.create(s);
 fem.solve();
