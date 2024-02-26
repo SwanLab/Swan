@@ -278,7 +278,7 @@ classdef ElasticProblemMicro < handle
                             C    = squeeze(Cij);
                             strs = squeeze(stress(istre,igaus,:));
                             strn = squeeze(strain(jstre,igaus,:));
-                            stress(igaus,istre,:) = strs + C.* strn;
+                            stress(istre,igaus,:) = strs + C.* strn;
                         end
                         strs = squeeze(stress(istre,igaus,:));
                         stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
