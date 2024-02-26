@@ -43,7 +43,7 @@ classdef BoundaryConditions < handle
             if ~isequal(obj.pointloadInput, [])
                 opndofs  = obj.pointloadInput(1).fun.nDofs;
                 ndimf  = obj.pointloadInput(1).fun.ndimf;
-                pl = P1Function.create(obj.mesh, ndimf);
+                pl = LagrangianFunction.create(obj.mesh, ndimf, 'P1');
                 pl_dofs = [];
                 pl_vals = [];
                 pl_domain = @(coor) obj.pointloadInput(1).domain(coor);
@@ -69,7 +69,7 @@ classdef BoundaryConditions < handle
             if ~isequal(obj.dirichletInput, [])
             opndofs  = obj.dirichletInput(1).fun.nDofs;
             ndimf  = obj.dirichletInput(1).fun.ndimf;
-            dirich = P1Function.create(obj.mesh, ndimf);
+            dirich = LagrangianFunction.create(obj.mesh, ndimf, 'P1');
             dir_fV = [];
             dir_dofs = [];
             dir_vals = [];

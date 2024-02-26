@@ -1,4 +1,4 @@
-classdef StrainFunction < handle
+classdef ComplianceGradientFunction < handle
     
     properties (Access = public)
         
@@ -14,12 +14,12 @@ classdef StrainFunction < handle
     
     methods (Access = public)
         
-        function obj = StrainFunction(cParams)
+        function obj = ComplianceGradientFunction(cParams)
             obj.init(cParams)
             
         end
         
-        function evaluate(obj,u)
+        function evaluate()
             
         end
         
