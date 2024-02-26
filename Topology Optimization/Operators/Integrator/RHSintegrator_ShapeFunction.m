@@ -63,7 +63,7 @@ classdef RHSintegrator_ShapeFunction < handle
             nDofElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
-            nFlds     = fun.ndimf;
+            nFlds     = size(fG,1);
             int = zeros(nDofElem,nElem);
             for iField = 1:nFlds
                 for iDof = 1:nDofElem

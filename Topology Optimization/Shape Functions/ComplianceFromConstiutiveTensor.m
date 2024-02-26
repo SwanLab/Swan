@@ -48,34 +48,24 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function J = computeFunction(obj,C,u)
-            xV = obj.quadrature.posgp;
-            strain = u.evaluateSymmetricGradientVoigt(xV);
-            stress = obj.computeStress(C,strain);
-            energy = sum(stress.*strain,1);
-            energy = squeezeParticular(energy,1);
-            dv     = obj.mesh.computeDvolume(obj.quadrature);
-            J      = energy.*dv;
-            J      = sum(J(:));
+            strain = SymGrad(u);
+            stress = DDP(C,strain);
+            int    = Integrator.create('ScalarProduct',obj.mesh,obj.quadrature.order);
+            J      = int.compute(strain,stress);
         end
   
-
-        function stress = computeStress(obj,C,strain)
-            Cij = C.evaluate(obj.quadrature.posgp);
-            strainV(:,1,:,:) = strain;
-            stress = pagemtimes(Cij,strainV);
-            stress = permute(stress, [1 3 4 2]);
+        function g = computeGradient(obj,dC,u)
+            g = obj.computeDJ(dC,u);
         end
 
-        function dj = computeGradient(obj,C,u)
-            xV           = obj.quadrature.posgp;
-            dCij         = C.evaluateDerivative(xV);
-            eu           = u.evaluateSymmetricGradientVoigt(xV);
-            euj(:,1,:,:) = eu;
-            eui(1,:,:,:) = eu;
-            dStress      = pagemtimes(dCij,euj);
-            dj           = pagemtimes(eui,dStress);
-            dj           = squeezeParticular(-dj,1);
-            dj           = obj.createGaussFunction(dj);
+        function dj = computeDJ(obj,dC,u)
+            xV = obj.quadrature.posgp;
+            eu2 = SymGrad(u);
+            ngaus = size(xV,2);
+            nelem = obj.mesh.nelem;
+            % dStr = DDP(dC, eu2);
+            dj = -DDP(eu2, dC, eu2); % !!
+            dj = squeezeParticular(dj, 1, [1 1 ngaus nelem]);
         end
 
         function fd = createGaussFunction(obj,f)

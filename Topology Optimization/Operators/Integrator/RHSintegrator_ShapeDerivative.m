@@ -29,8 +29,8 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             nDim  = size(dNdx,1);
             nNode = size(dNdx,2);
-            nElem = size(dNdx,3);
-            nGaus = size(dNdx,4);
+            nGaus = size(dNdx,3);
+            nElem = size(dNdx,4);
             int = zeros(nNode,nElem);
             for igaus = 1:nGaus
                 for idime = 1:nDim
