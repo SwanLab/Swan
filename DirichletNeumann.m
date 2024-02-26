@@ -310,7 +310,7 @@ classdef DirichletNeumann < handle
         function DirichletNeumannSolver(obj)
             tol=1e-8;
             e=1;
-            alpha = 3/4;
+            theta = 3/4;
             iter=1;
             while e>tol
                 %                 for i=1:obj.nSubdomains(1)
@@ -335,7 +335,7 @@ classdef DirichletNeumann < handle
                 obj.plotSolution(R,obj.meshSubDomain{1}, 1,iter)
                 %                 obj.plotSolution(u{1},obj.meshSubDomain{1}, 1,iter)
 
-                u1int = alpha*u{2}(obj.interfaceDof(:,2)) + (1-alpha)*u{1}(obj.interfaceDof(:,1));
+                u1int = theta*u{2}(obj.interfaceDof(:,2)) + (1-theta)*u{1}(obj.interfaceDof(:,1));
 
                 for idof = 1: length(obj.interfaceDof(:,2))
                     ind = find(obj.boundaryConditions{2}.dirichlet == obj.interfaceDof(idof,2));
