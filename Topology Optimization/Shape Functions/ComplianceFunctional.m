@@ -19,9 +19,9 @@ classdef ComplianceFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
+            obj.material.setDesignVariable(x);
             C  = obj.material.evaluate(xR);
-            dC = obj.material.evaluateGradient(xR);               
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(C,dC);
+            [J,dJ] = obj.computeComplianceFunctionAndGradient(xV);
         end
 
     end
@@ -40,7 +40,7 @@ classdef ComplianceFunctional < handle
 
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj,C,dC)
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
+            [J,dJ] = obj.compliance.computeFunctionAndGradient();
             dJ     = obj.filter.compute(dJ,'LINEAR');
             if isempty(obj.value0)
                 obj.value0 = J;

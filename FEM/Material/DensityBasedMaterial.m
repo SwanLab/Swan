@@ -32,6 +32,10 @@ classdef DensityBasedMaterial < handle
             dC = m.evaluate(xV);
         end
         
+        function setDesignVariable(obj,x)
+            obj.density = x;
+        end
+        
     end
     
     methods (Access = private)
