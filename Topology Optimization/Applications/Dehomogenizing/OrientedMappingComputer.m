@@ -120,7 +120,7 @@ classdef OrientedMappingComputer < handle
             er = LagrangianFunction(s);
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientationP1{iDim};
-                dO = LagrangianFunction.times(er,b);
+                dO = er.*b;
                 obj.dilatedOrientation{iDim} = dO;
             end
         end            
