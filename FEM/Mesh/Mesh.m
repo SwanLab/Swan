@@ -101,7 +101,7 @@ classdef Mesh < handle
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
             volume = obj.computeDvolume(quad);
-            L(1,:) = obj.computeSquarePerimeter();
+            L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 

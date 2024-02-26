@@ -8,7 +8,7 @@ classdef ComplianceFunctionalFromVademecum < handle
         mesh
         filter
         compliance
-        materialInterpolator
+        material
     end
 
     methods (Access = public)
@@ -17,20 +17,19 @@ classdef ComplianceFunctionalFromVademecum < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xR = obj.filterDesignVariable(xD);
-            C  = obj.computeMaterial(xR);
-            dC = obj.computeMaterialDerivative(xR);               
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(C,dC);
+            xR{1} = obj.filterDesignVariable(x.fun{1});
+            xR{2} = obj.filterDesignVariable(x.fun{2});
+            mat  = obj.computeMaterial(xR);
+            [J,dJ] = obj.computeComplianceFunctionAndGradient(mat);
         end
     end
     
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh                 = cParams.mesh;
-            obj.filter               = cParams.filter;
-            obj.materialInterpolator = cParams.materialInterpolator;
-            obj.compliance           = cParams.complainceFromConstitutive;
+            obj.mesh       = cParams.mesh;
+            obj.filter     = cParams.filter;
+            obj.compliance = cParams.complainceFromConstitutive;
         end
 
         function xR = filterDesignVariable(obj,x)
@@ -38,17 +37,19 @@ classdef ComplianceFunctionalFromVademecum < handle
         end
 
         function C = computeMaterial(obj,x)
-            mI = obj.materialInterpolator;
-            C  = mI.computeConsitutiveTensor(x);
+            s.type         = 'HomogenizedMicrostructure';
+            s.fileName     = 'Rectangle';
+            s.microParams = x;
+            C  = Material.create(s);            
         end
 
         function dC = computeMaterialDerivative(obj,x)
-            mI = obj.materialInterpolator;
-            dC = mI.computeConsitutiveTensorDerivative(x);
+            mI = obj.material;
+            dC = mI.computeConstitutiveTensorDerivative(x);
         end        
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,C,dC)
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj,mat)
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(mat);
             dJ     = obj.filter.compute(dJ,'LINEAR');
             if isempty(obj.value0)
                 obj.value0 = J;
