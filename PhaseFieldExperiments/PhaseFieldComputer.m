@@ -384,7 +384,7 @@ classdef PhaseFieldComputer < handle
         function saveData(obj,cParams)
             step = cParams.step;
 
-            obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
+            %obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
             obj.reactionMat(step) = obj.computeReaction();
             
             obj.displacementMat(step) = obj.bcVal(step);

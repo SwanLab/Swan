@@ -68,12 +68,7 @@ classdef TestingPhaseField < handle
         end
 
         function createInitialPhaseField(obj)
-            sAF.fHandle = @(x) 0*x;
-            sAF.ndimf   = 1;
-            sAF.mesh    = obj.mesh;
-            xFun = AnalyticalFunction(sAF);
-
-            phi = xFun.project('P1');
+            phi = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.initialPhaseField = phi;
         end
 
@@ -89,7 +84,6 @@ classdef TestingPhaseField < handle
             s.mesh = obj.mesh;
             s.materialInterpolation = obj.createMaterialInterpolation();
             s.Gc = obj.Gc;
-            %s.fc = obj.fc;
             obj.materialPhaseField = MaterialPhaseField(s);
         end
 

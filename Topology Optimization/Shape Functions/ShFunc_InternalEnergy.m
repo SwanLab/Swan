@@ -12,8 +12,8 @@ classdef ShFunc_InternalEnergy < handle
         end
         
         function F = computeFunction(obj,u,phi,quad)
-            C = obj.materialPhaseField.setMaterial(phi,'Intepolated');
-            energyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
+            C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
+            energyFun = DDP(SymGrad(u),C,SymGrad(u));
             int = Integrator.create('Function',obj.mesh,quad.order);
             F = 0.5*int.compute(energyFun);
         end
@@ -39,7 +39,7 @@ classdef ShFunc_InternalEnergy < handle
         
         function Ju = computeGradientDisplacement(obj,u,phi,quad)
             C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
-            sigma = DDP(C,Voigt(SymGrad(u)));
+            sigma = DDP(C,SymGrad(u));
             test = LagrangianFunction.create(obj.mesh, 2, 'P1');
 
             s.mesh = obj.mesh;
@@ -51,7 +51,7 @@ classdef ShFunc_InternalEnergy < handle
 
         function Jphi = computeGradientDamage(obj,u,phi,quad)
             C = obj.materialPhaseField.setMaterial(phi,'Jacobian');
-            dEnergyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
+            dEnergyFun = DDP(SymGrad(u),C,SymGrad(u));
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             
             s.mesh = obj.mesh;
@@ -74,7 +74,7 @@ classdef ShFunc_InternalEnergy < handle
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quad)
             C = obj.materialPhaseField.setMaterial(phi,'Hessian');
-            ddEnergyFun =  DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
+            ddEnergyFun = DDP(SymGrad(u),C,SymGrad(u));
             
             s.function = ddEnergyFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');

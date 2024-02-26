@@ -21,14 +21,7 @@ classdef ShFunc_NonLocalDamage < handle
             
         end
         function F = computeFunction(obj,phi,quad)        
-            phiGrad = phi.evaluateGradient(quad.posgp);
-            phiGradSquared = sum(phiGrad).^2;
-            
-            s.fValues = phiGradSquared;
-            s.quadrature = quad;
-            s.mesh = obj.mesh;
-            phiGradSquaredFun = FGaussDiscontinuousFunction(s);
-            
+            phiGradSquaredFun = norm(Grad(phi),2)^2;
             int = Integrator.create('Function',obj.mesh,quad.order);
             F = (obj.constant*(obj.l0/2))*int.compute(phiGradSquaredFun);
         end
@@ -39,7 +32,7 @@ classdef ShFunc_NonLocalDamage < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             RHS = RHSintegrator.create(s);
-            J = (obj.constant*(obj.l0/2))*RHS.compute(Grad(phi), test);
+            J = (obj.constant*obj.l0)*RHS.compute(Grad(phi), test);
         end
         
         function H = computeHessian(obj,phi,quadOrder)
@@ -49,7 +42,7 @@ classdef ShFunc_NonLocalDamage < handle
             s.mesh = obj.mesh;
             s.type = 'StiffnessMatrix';
             LHS = LHSintegrator.create(s);
-            H = (obj.constant*(obj.l0/2))*LHS.compute();
+            H = (obj.constant*obj.l0)*LHS.compute();
         end
     end
     
