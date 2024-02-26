@@ -28,8 +28,11 @@ function fVR = evaluate3(epsT, C, eps, xV)
     Cv   = C.evaluate(xV);
     strn(:,1,:,:) = eps.evaluate(xV);
 
-    strC = pagemtimes(strnT,Cv);
-    strs = pagemtimes(strC,strn);
+    strs = pagemtimes(Cv,strn);
+    E = pagemtimes(strnT,strs);
+
+    strs2 = pagemtimes(strnT,Cv);
+    E2 = pagemtimes(strs2,strn);
     % fVR = permute(strs, [1 3 4 2]);
-    fVR = squeeze(strs);
+    fVR = squeezeParticular(E,2);
 end
