@@ -20,15 +20,15 @@ classdef ShFunc_NonLocalDamage < handle
             obj.init(cParams)
             
         end
-        function F = computeFunction(obj,phi,quad)        
+        function F = computeFunction(obj,phi,quadOrder)        
             phiGradSquaredFun = norm(Grad(phi),2)^2;
-            int = Integrator.create('Function',obj.mesh,quad.order);
+            int = Integrator.create('Function',obj.mesh,quadOrder);
             F = (obj.constant*(obj.l0/2))*int.compute(phiGradSquaredFun);
         end
         
-        function J = computeGradient(obj,phi,quad)
+        function J = computeGradient(obj,phi,quadOrder)
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.quadratureOrder = quad.order;
+            s.quadratureOrder = quadOrder;
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             RHS = RHSintegrator.create(s);

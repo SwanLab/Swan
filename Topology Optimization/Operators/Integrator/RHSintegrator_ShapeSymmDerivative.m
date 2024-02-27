@@ -47,7 +47,7 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
-            integrand = rhsElem';
+            integrand = pagetranspose(rhsElem);
             connec = test.getConnec();
             nDofs = max(max(connec));
             nDofElem  = size(connec,2);

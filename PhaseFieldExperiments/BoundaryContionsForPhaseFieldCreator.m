@@ -69,33 +69,23 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         end
         
          function createForceTractionConditions(obj,fVal)
-            nodes = 1:obj.mesh.nnodes;
-            ndim = 2; 
+             isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInDown(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            % Enforce fixed Dirichlet conditions to the down nodes
-            downSide = min(obj.mesh.coord(:,2));
-            isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
-            dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-            for i=1:ndim
-                dirichletDown(i:2:end,1) = nodes(isInDown);
-                dirichletDown(i:2:end,2) = i;
-            end
+             isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+             sNeum.domain    = @(coor) isInUp(coor);
+             sNeum.direction = [2];
+             sNeum.value     = fVal;
+             Neum1 = PointLoad(obj.mesh,sNeum);
 
-            % Enforce roller Dirichlet conditions to the top nodes
-            upSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
-            dirichletUp   = zeros(length(nodes(isInUp)),3);
-            dirichletUp(:,1) = nodes(isInUp);
-            dirichletUp(:,2) = 1;
-
-            % Enforce force at the top
-            bc.pointload(:,1) = nodes(isInUp);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = fVal/length(nodes(isInUp));
-
-            % Merge
-            bc.dirichlet = [dirichletDown; dirichletUp];                  
-            obj.boundaryConditions = bc;            
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1];
+             s.pointloadFun = [Neum1];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);           
          end
         
          function createDisplacementTractionConditions(obj,uVal)

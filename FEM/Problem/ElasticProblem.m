@@ -191,8 +191,7 @@ classdef ElasticProblem < handle
         end
 
         function computeReactions(obj,u)
-            freeDofs = obj.boundaryConditions.dirichlet_dofs;
-            obj.reactions = obj.stiffness(freeDofs,:)*u;
+            obj.reactions = obj.stiffness*u;
         end
     end
 
