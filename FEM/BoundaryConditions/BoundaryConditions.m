@@ -2,7 +2,7 @@ classdef BoundaryConditions < handle
     
     properties (Access = public)
         dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
-        pointloadFun, pointload_dofs, pointload_vals
+        pointloadFun, pointload_dofs, pointload_vals, pointload_domain
         periodic_leader, periodic_follower
 
         iVoigt, nVoigt
@@ -40,56 +40,37 @@ classdef BoundaryConditions < handle
         end
 
         function createPointloadFun(obj)
-            if ~isequal(obj.pointloadInput, [])
-                opndofs  = obj.pointloadInput(1).fun.nDofs;
-                ndimf  = obj.pointloadInput(1).fun.ndimf;
-                pl = P1Function.create(obj.mesh, ndimf);
-                pl_dofs = [];
-                pl_vals = [];
-                pl_domain = @(coor) obj.pointloadInput(1).domain(coor);
-                for i = 1:numel(obj.pointloadInput)
-                    values = obj.pointloadInput(i).getValues();
-                    dofs   = obj.pointloadInput(i).getDofs();
-        
-                    % fV = dirich.fValues(:); % wrong, it needs to be overwritten
-                    % fV(dofs) = values;
-                    % fV = reshape(fV, [ndimf ndofs/ndimf])';
-                    % dirich.fValues = fV;
-                    pl_dofs = [pl_dofs; dofs];
-                    pl_vals = [pl_vals; values];
-                    pl_domain = @(coor) pl_domain(coor) | obj.pointloadInput(i).domain(coor);
-                end
-                obj.pointload_dofs = pl_dofs;
-                obj.pointload_vals = pl_vals;
-                obj.pointloadFun = pl;
-            end
+            [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
+            obj.pointload_dofs = dofs;
+            obj.pointload_vals = vals;
+            obj.pointload_domain = domain;
+            obj.pointloadFun = fun;
         end
 
         function createDirichletFun(obj)
-            if ~isequal(obj.dirichletInput, [])
-            opndofs  = obj.dirichletInput(1).fun.nDofs;
-            ndimf  = obj.dirichletInput(1).fun.ndimf;
-            dirich = P1Function.create(obj.mesh, ndimf);
-            dir_fV = [];
-            dir_dofs = [];
-            dir_vals = [];
-            dir_domain = @(coor) obj.dirichletInput(1).domain(coor);
-            for i = 1:numel(obj.dirichletInput)
-                values = obj.dirichletInput(i).getValues();
-                dofs   = obj.dirichletInput(i).getDofs();
-    
-                % fV = dirich.fValues(:); % wrong, it needs to be overwritten
-                % fV(dofs) = values;
-                % fV = reshape(fV, [ndimf ndofs/ndimf])';
-                % dirich.fValues = fV;
-                dir_dofs = [dir_dofs; dofs];
-                dir_vals = [dir_vals; values];
-                dir_domain = @(coor) dir_domain(coor) | obj.dirichletInput(i).domain(coor);
-            end
-            obj.dirichlet_dofs = dir_dofs;
-            obj.dirichlet_vals = dir_vals;
-            obj.dirichlet_domain = dir_domain;
-            obj.dirichletFun = dirich;
+            [dofs,vals,domain,fun] = obj.createBCFun(obj.dirichletInput);
+            obj.dirichlet_dofs = dofs;
+            obj.dirichlet_vals = vals;
+            obj.dirichlet_domain = domain;
+            obj.dirichletFun = fun;
+        end
+
+        function [dofs,vals,domain,bcFun] = createBCFun(obj,input)
+            if ~isequal(input, [])
+                ndimf  = input(1).fun.ndimf;
+                bcFun = LagrangianFunction.create(obj.mesh, ndimf,'P1');
+                dofs = [];
+                vals = [];
+                domain = @(coor) input(1).domain(coor);
+                for i = 1:numel(input)
+                    values_i = input(i).getValues();
+                    dofs_i   = input(i).getDofs();
+
+                    dofs = [dofs; dofs_i];
+                    vals = [vals; values_i];
+                    domain = @(coor) pl_domain(coor) | input(i).domain(coor);
+                    bcFun.fValues = obj.addValues(bcFun,dofs_i,values_i);
+                end
             end
         end
 
@@ -118,6 +99,15 @@ classdef BoundaryConditions < handle
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
         
+        function fV = addValues(obj,dirich,dofs,values)
+            ndofs = dirich.nDofs;
+            ndimf = dirich.ndimf;
+
+            fVdofs = zeros(ndofs,1);
+            fVdofs(dofs) = values;
+            fVdofs = reshape(fVdofs,[ndimf ndofs/ndimf])';
+            fV = dirich.fValues + fVdofs;
+        end
     end
     
 end
