@@ -72,7 +72,7 @@ classdef RHSintegrator_Composite < handle
                     int2        = RHSintegrator.create(ss);
                     test2       = LagrangianFunction.create(ss.mesh, obj.test.ndimf, obj.test.order);
                     int2        = int2.compute(uMeshFun.innerCutMeshFunction,test2);
-                    int2        = obj.computeGlobalIntegralFromLocalInnerCut(int2,uMeshFun.innerNodes,uMeshFun.cutEdges,uMeshFun.nonCutMesh);
+                    %int2        = obj.computeGlobalIntegralFromLocalInnerCut(int2,uMeshFun.innerNodes,uMeshFun.cutEdges,uMeshFun.nonCutMesh);
                     % % %
                 end
                 f = f + int;

@@ -7,18 +7,23 @@ classdef RHSIntegratorUnfitted < handle
 
     properties (Access = private)
         innerIntegrator
+        innerCutQuad
    end
 
     methods (Access = public)
         function obj = RHSIntegratorUnfitted(cParams)
             obj.init(cParams);
             obj.createIntegratorInner();
+            obj.createQuadratureInnerCut();
         end
 
         function int = compute(obj,uMeshFun,test)
-            fInner   = uMeshFun.innerMeshFunction;
-            intInner = obj.integrateInnerMesh(fInner,test);
-            int  = intInner+0;
+            fInner      = uMeshFun.innerMeshFunction;
+            fInnerCut   = uMeshFun.innerCutMeshFunction;
+            intInner    = obj.integrateInnerMesh(fInner,test);
+            intInnerCut = obj.integrateInnerCutMesh(fInnerCut,test);
+            int         = intInner+intInnerCut;
+            %s.mesh=obj.unfittedMesh.backgroundMesh;s.order='P1';s.fValues=intInner;fP1=LagrangianFunction(s);fP1.plot;s.fValues=intInnerCut;fP1=LagrangianFunction(s);fP1.plot;s.fValues=int;fP1=LagrangianFunction(s);fP1.plot
         end
     end
 
@@ -34,6 +39,13 @@ classdef RHSIntegratorUnfitted < handle
             s.quadType = obj.quadType;
             int        = RHSintegrator.create(s);
             obj.innerIntegrator = int;
+        end
+
+        function createQuadratureInnerCut(obj)
+            m = obj.unfittedMesh.innerCutMesh.mesh;
+            q = Quadrature.set(m.type);
+            q.computeQuadrature(obj.quadType);
+            obj.innerCutQuad = q;
         end
 
         function int = integrateInnerMesh(obj,f,test)
@@ -53,5 +65,56 @@ classdef RHSIntegratorUnfitted < handle
             intLoc  = obj.innerIntegrator.compute(f,testLoc);
         end
 
+        function int = integrateInnerCutMesh(obj,f,test)
+            iCMesh   = obj.unfittedMesh.innerCutMesh;
+            q        = obj.innerCutQuad;
+            xVLoc    = q.posgp;
+            fG       = f.evaluate(xVLoc);
+            dV       = iCMesh.mesh.computeDvolume(q);
+            isoMesh  = obj.obtainIsoparametricMesh();
+            xV       = isoMesh.computeXgauss(xVLoc);
+            globCell = iCMesh.cellContainingSubcell;
+            N        = test.computeShapeFunctions(xV);
+            nDofElem = size(N,1);
+            nElem    = test.mesh.nelem;
+            nGaus    = obj.innerCutQuad.ngaus;
+            intElem  = zeros(nElem,nDofElem);
+            for iDof = 1:nDofElem
+                for iGaus = 1:nGaus
+                    dVg(:,1) = dV(iGaus, :);
+                    fV   = squeeze(fG(1,iGaus,:));
+                    Ni   = squeeze(N(iDof,iGaus,:));
+                    fNdV = Ni.*fV.*dVg;
+                    intElem(:,iDof) = intElem(:,iDof) + accumarray(globCell,fNdV,[nElem,1],@sum,0);
+                end
+            end
+            int = obj.assembleIntegrand(test,intElem);
+        end
+
+        function m = obtainIsoparametricMesh(obj)
+            iCMesh   = obj.unfittedMesh.innerCutMesh;
+            coord    = iCMesh.xCoordsIso;
+            nDim     = size(coord,1);
+            nNode    = size(coord,2);
+            nElem    = size(coord,3);
+            s.coord  = reshape(coord,nDim,[])';
+            s.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            m        = Mesh.create(s); 
+        end
+    end
+
+    methods (Static, Access = private)
+        function f = assembleIntegrand(test,rhsElem)
+            integrand = rhsElem;
+            connec    = test.computeDofConnectivity()';
+            ndofs     = max(max(connec));
+            nDofElem  = size(connec,2);
+            f         = zeros(ndofs,1);
+            for iDof = 1:nDofElem
+                int = integrand(:,iDof);
+                con = connec(:,iDof);
+                f   = f + accumarray(con,int,[ndofs,1],@sum,0);
+            end
+        end
     end
 end

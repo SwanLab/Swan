@@ -8,6 +8,7 @@ x2       = linspace(0,1,100);
 m.coord  = V(:,1:2);
 m.connec = F;
 mesh     = Mesh.create(m);
+mesh     = UnitQuadMesh(100,100);
 
 gPar.type         = 'CircleInclusion';
 gPar.radius       = 0.25;
