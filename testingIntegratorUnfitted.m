@@ -52,3 +52,12 @@ s.quadType = 'QUADRATICMASS';
 rhsInt     = RHSintegrator.create(s);
 test       = LagrangianFunction.create(mesh, 1, 'P1');
 intChiNi   = rhsInt.compute(chi.unfittedMeshFunction,test);
+
+s.mesh     = uMesh;
+s.type     = 'ShapeFunction';
+s.quadType = 'QUADRATICMASS';
+rhsInt     = RHSintegrator.create(s);
+test       = LagrangianFunction.create(mesh, 1, 'P1');
+intChiNi2  = rhsInt.compute(chi,test);
+
+error = norm(intChiNi-intChiNi2);
