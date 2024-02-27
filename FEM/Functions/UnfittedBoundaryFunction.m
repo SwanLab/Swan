@@ -19,11 +19,10 @@ classdef UnfittedBoundaryFunction < handle
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.unfittedMesh   = cParams.uMesh;
-            obj.fun            = cParams.fun;
-            obj.ndimf          = cParams.fun.ndimf;
+            obj.unfittedMesh = cParams.uMesh;
+            obj.fun          = cParams.fun;
+            obj.ndimf        = cParams.fun.ndimf;
         end
 
         function computeUnfittedMeshFunction(obj)
@@ -31,6 +30,5 @@ classdef UnfittedBoundaryFunction < handle
             obj.boundaryCutMeshFunction = uMeshFun.boundaryCutMeshFunction;
             obj.unfittedBoundaryMeshFunction = uMeshFun.unfittedBoundaryMeshFunction;
         end
-
     end
 end

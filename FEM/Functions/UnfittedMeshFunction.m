@@ -17,12 +17,6 @@ classdef UnfittedMeshFunction < handle
         boundaryCutMeshFunction
         unfittedBoundaryMeshFunction
         backgroundFunction
-
-        % % %
-        innerNodes
-        cutEdges
-        nonCutMesh
-        % % %
     end
 
     methods (Access = public)
@@ -124,12 +118,6 @@ classdef UnfittedMeshFunction < handle
                 fP1InnerCut              = LagrangianFunction(s);
                 obj.innerCutMeshFunction = fP1InnerCut;
                 obj.fCutValues           = cutValues;
-
-                % % %
-                mesh      = obj.unfittedMesh.backgroundMesh;
-                nodes     = unique(mesh.connec(obj.cutCells,:));
-                obj.innerNodes = nodes(obj.isInterior(lsCutMesh));
-                % % %
             end
         end
 
@@ -175,7 +163,6 @@ classdef UnfittedMeshFunction < handle
             s.connec = mesh.connec(obj.cutCells,:);
             s.kFace  = mesh.kFace;
             cMesh    = Mesh.create(s);
-            obj.nonCutMesh = cMesh;
         end
 
         function [fCutMesh,lsCutMesh] = computeNodalValuesFromNonCutMesh(obj)
@@ -269,11 +256,7 @@ classdef UnfittedMeshFunction < handle
             isNodeInterior = logical(1-heaviside(ls));
         end
 
-    end
-
-    methods (Access = private)
-
-        function cutValues = computeCutValues(obj,mesh,levelSet,fValues)
+        function cutValues = computeCutValues(mesh,levelSet,fValues)
             m = mesh;
             m.computeEdges();
             e              = m.edges;
@@ -287,11 +270,6 @@ classdef UnfittedMeshFunction < handle
             cf              = CutFunctionValuesComputer(s);
             cf.compute();
             cutValues = cf.cutValues;
-
-            % % %
-            obj.cutEdges.edges =e.nodesInEdges(ce.isEdgeCut,:);
-            obj.cutEdges.xIso = ce.xCutEdgePoint;
-            % % %
         end
     end
 end
