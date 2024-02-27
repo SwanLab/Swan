@@ -49,9 +49,12 @@ chiB = CharacteristicFunction.createAtBoundary(uMesh);
 totP = int.compute(chiB);
 
 % % % Ex3 RHS domain
-s.unfittedMesh = uMesh;
-s.type         = 'Unfitted';
-s.quadType     = 'QUADRATIC';
-rhsInt         = RHSintegrator.create(s);
-test           = LagrangianFunction.create(mesh, 1, 'P1');
-intChiNi       = rhsInt.compute(chi.unfittedMeshFunction,test);
+s.mesh     = uMesh;
+s.type     = 'Unfitted';
+s.quadType = 'QUADRATIC';
+rhsInt     = RHSintegrator.create(s);
+test       = LagrangianFunction.create(mesh, 1, 'P1');
+intChiNi   = rhsInt.compute(chi,test);
+
+% % % Ex4 RHS boundary
+intChiBNi = rhsInt.compute(chiB,test);
