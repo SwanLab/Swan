@@ -32,6 +32,7 @@ classdef NeumannNeumann < handle
         scale
         theta
         Fext
+        weight
     end
 
     methods (Access = public)
@@ -85,7 +86,8 @@ classdef NeumannNeumann < handle
         function init(obj)
             obj.nSubdomains = [2 1]; %nx ny
             obj.scale    = 'MACRO';
-            obj.theta=0.5;
+            obj.weight   = 0.5;
+            obj.theta    = 0.1;
         end
 
         function createReferenceMesh(obj)
@@ -273,7 +275,7 @@ classdef NeumannNeumann < handle
             obj.LHS{i} = lhs.compute();
         end
 
-        function Fext = computeForces(obj,i,boundaryConditions)
+        function computeForces(obj,i,boundaryConditions)
             s.type = 'Elastic';
             s.scale    = obj.scale;
             s.dim      = obj.getFunDims(i);
@@ -320,21 +322,26 @@ classdef NeumannNeumann < handle
         function NeumannNeumannSolver(obj)
             tol=1e-8;
             e=1;
-            theta = 3/4;
             iter=1;
             uInt = zeros(size(obj.interfaceDof,1),1); 
             while e>tol
 
                 obj.dirichletStep();
-%                 for idom = 1:obj.nSubdomains(1)
-%                     uplot = reshape(obj.displacementFun{idom}.fValues',1,[])';
-% %                     uplot = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(uN{idom});
-%                     obj.plotSolution(uplot,obj.meshSubDomain{idom}, idom,iter)
-%                 end
+                for idom = 1:obj.nSubdomains(1)
+                    uplot = reshape(obj.displacementFun{idom}.fValues',1,[])';
+%                     uplot = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(uN{idom});
+                    obj.plotSolution(uplot,obj.meshSubDomain{idom}, idom,iter)
+                end
+                iter=iter+1;
                 obj.updateNeumanStepBC();
                 uN = obj.neumannStep();
                 uInt_new = obj.updateDirichletStepBC(uN);
                 
+                for idom = 1:obj.nSubdomains(1)
+%                     uplot = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(uN{idom});
+                    uplot = uN{idom};
+                    obj.plotSolution(uplot,obj.meshSubDomain{idom}, idom,iter)
+                end
                
 
                 e = norm(uInt_new-uInt);
@@ -358,19 +365,22 @@ classdef NeumannNeumann < handle
 
         function R = updateNeumanStepBC(obj)
             u = obj.displacementFun;
-            R = obj.computeInterfaceReactions(u);
+            R = obj.computeInterfaceResidual(u);
             obj.updateNeumanValues(R);
         end
 
-        function R = computeInterfaceReactions(obj,u)   
-             w = [obj.theta,1-obj.theta];
-             w  = [1,1];
+        function R = computeInterfaceResidual(obj,u)   
+             w = [obj.weight,1-obj.weight];
+%              w  = [1,1];
              R=zeros(size(obj.interfaceDof,1),1);
+             R2=zeros(size(obj.interfaceDof,1),1);
              for idom=1:obj.nSubdomains(1)
                 unodal = reshape(u{idom}.fValues',1,[])'; 
-                intDOF = obj.interfaceDof(:,idom);
-%                 R = R + w(idom)*(obj.RHS{idom}(intDOF)-obj.LHS{idom}(intDOF,:)*unodal);
-                R = R + w(idom)*(obj.Fext{idom}(intDOF)-obj.LHS{idom}(intDOF,:)*unodal);
+                interfaceDOF = obj.interfaceDof(:,idom);
+%                 R2 = R2 + w(idom)*(obj.RHS{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal ...
+%                                  + obj.LHS{idom}(interfaceDOF,interfaceDOF)*unodal(interfaceDOF));
+                R = R + w(idom)*(obj.Fext{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal);
+%                 aaa = norm(R2-R);
             end
         end
         
@@ -389,6 +399,7 @@ classdef NeumannNeumann < handle
                 Kred    = obj.boundaryConditions.neumannStep{idom}.fullToReducedMatrix(obj.LHS{idom});
                 Fred    = obj.boundaryConditions.neumannStep{idom}.fullToReducedVector(obj.RHS{idom});
                 u{idom} = Kred\Fred;
+                u{idom} = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(u{idom});
             end
         end
 
@@ -398,27 +409,24 @@ classdef NeumannNeumann < handle
         end
 
         function uInt = computeInterfaceDisp(obj,u)
-            w = [obj.theta,1- obj.theta];
-            w  = [1,1];
+            w = [obj.weight,1- obj.weight];
+%             w  = [1,1];
              uInt=zeros(size(obj.interfaceDof,1),1);
              for idom=1:obj.nSubdomains(1)
-                u{idom} = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(u{idom});
-                intDOF = obj.interfaceDof(:,idom);
-                uInt = uInt + w(idom)*u{idom}(intDOF);
+                interfaceDOF = obj.interfaceDof(:,idom);
+                uInt = uInt + w(idom)*u{idom}(interfaceDOF);
             end
         end 
 
         function uIntNew = updateDirichletValues(obj,u)
-            w=0.01;
             for idom=1:obj.nSubdomains(1)
                 for idof = 1: length(obj.interfaceDof(:,idom))
                     ind = find(obj.boundaryConditions.dirichletStep{idom}.dirichlet == obj.interfaceDof(idof,idom));
                     obj.boundaryConditions.dirichletStep{idom}.dirichlet_values(ind) =...
-                        obj.boundaryConditions.dirichletStep{idom}.dirichlet_values(ind) + w*u(idof);
+                        obj.boundaryConditions.dirichletStep{idom}.dirichlet_values(ind) + obj.theta*u(idof);
                     uIntNew(idof) = obj.boundaryConditions.dirichletStep{idom}.dirichlet_values(ind);
                 end
             end
-%             uIntNew = obj.boundaryConditions.dirichletStep{2}.dirichlet_values;
         end
 
         function plotSolution(obj,x,mesh,domain,iter)
