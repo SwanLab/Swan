@@ -8,7 +8,7 @@ x2       = linspace(0,1,100);
 m.coord  = V(:,1:2);
 m.connec = F;
 mesh     = Mesh.create(m);
-mesh     = UnitQuadMesh(100,100);
+%mesh     = UnitQuadMesh(100,100);
 
 gPar.type         = 'CircleInclusion';
 gPar.radius       = 0.25;
@@ -24,7 +24,7 @@ uMesh.compute(phiFun.fValues);
 
 chi = CharacteristicFunction.create(uMesh);
 
-% % % Ex1 Scalar
+% % % Ex1 Scalar domain
 ss.filterType   = 'PDE';
 ss.mesh         = mesh;
 ss.boundaryType = 'Neumann';
@@ -35,29 +35,23 @@ filter          = Filter.create(ss);
 epsilon = 2*mesh.computeMeanCellSize(); %%
 filter.updateEpsilon(epsilon); %%
 
-rhoe          = filter.compute(chi,'QUADRATICMASS');
+rhoe          = filter.compute(chi,'QUADRATIC');
 
 sUf.fun   = (1-rhoe);
 sUf.uMesh = uMesh;
 f         = UnfittedFunction(sUf);
-uF        = f.unfittedMeshFunction;
 
-int = Integrator.create('Unfitted',uMesh,'QUADRATICMASS');
-P   = (2/epsilon)*int.compute(uF);
+int = Integrator.create('Unfitted',uMesh,'QUADRATIC');
+P   = (2/epsilon)*int.compute(f);
 
-% % % Ex2 RHS
-s.mesh     = uMesh;
-s.type     = 'Unfitted';
-s.quadType = 'QUADRATICMASS';
-rhsInt     = RHSintegrator.create(s);
-test       = LagrangianFunction.create(mesh, 1, 'P1');
-intChiNi   = rhsInt.compute(chi.unfittedMeshFunction,test);
+% % % Ex2 Scalar boundary
+chiB = CharacteristicFunction.createAtBoundary(uMesh);
+totP = int.compute(chiB);
 
-s.mesh     = uMesh;
-s.type     = 'ShapeFunction';
-s.quadType = 'QUADRATICMASS';
-rhsInt     = RHSintegrator.create(s);
-test       = LagrangianFunction.create(mesh, 1, 'P1');
-intChiNi2  = rhsInt.compute(chi,test);
-
-error = norm(intChiNi-intChiNi2);
+% % % Ex3 RHS domain
+s.unfittedMesh = uMesh;
+s.type         = 'Unfitted';
+s.quadType     = 'QUADRATIC';
+rhsInt         = RHSintegrator.create(s);
+test           = LagrangianFunction.create(mesh, 1, 'P1');
+intChiNi       = rhsInt.compute(chi.unfittedMeshFunction,test);

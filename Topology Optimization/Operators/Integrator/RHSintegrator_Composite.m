@@ -29,7 +29,6 @@ classdef RHSintegrator_Composite < handle
         end
 
         function f = integrateAndSum(obj,unfFun)
-            uMeshFun  = unfFun.unfittedMeshFunction;
             f         = zeros(obj.dofs,1);
             iBoundary = 0;
             if (isequal(class(unfFun),'UnfittedBoundaryFunction'))
@@ -48,32 +47,12 @@ classdef RHSintegrator_Composite < handle
                     int       = obj.computeGlobalIntegralFromLocal(intLoc,iBoundary);
                 elseif isequal(class(integrator), 'RHSintegrator_ShapeFunction')
                     int = integrator.compute(unfFun,obj.test);
-
-                    % % %
-                    ss.mesh     = obj.unfittedMesh.innerMesh.mesh;
-                    ss.type     = 'ShapeFunction';
-                    ss.quadType = 'LINEAR';
-                    int2        = RHSintegrator.create(ss);
-                    test2       = LagrangianFunction.create(ss.mesh, obj.test.ndimf, obj.test.order);
-                    int2        = int2.compute(uMeshFun.innerMeshFunction,test2);
-                    int2        = obj.computeGlobalIntegralFromLocalInner(int2);
-                    % % %
                 else
                     s.mesh      = obj.unfittedMesh.backgroundMesh;
                     s.feFunType = obj.testClass;
                     s.ndimf     = obj.test.ndimf;
                     testFun     = LagrangianFunction.create(s.mesh, s.ndimf, obj.test.order);
                     int         = integrator.compute(unfFun,testFun);
-
-                    % % %
-                    ss.mesh     = obj.unfittedMesh.innerCutMesh.mesh;
-                    ss.type     = 'ShapeFunction';
-                    ss.quadType = 'LINEAR';
-                    int2        = RHSintegrator.create(ss);
-                    test2       = LagrangianFunction.create(ss.mesh, obj.test.ndimf, obj.test.order);
-                    int2        = int2.compute(uMeshFun.innerCutMeshFunction,test2);
-                    %int2        = obj.computeGlobalIntegralFromLocalInnerCut(int2,uMeshFun.innerNodes,uMeshFun.cutEdges,uMeshFun.nonCutMesh);
-                    % % %
                 end
                 f = f + int;
             end
@@ -113,30 +92,5 @@ classdef RHSintegrator_Composite < handle
             int                   = zeros(obj.dofs,1);
             int(loc2glob)         = intLoc;
         end
-
-        function int = computeGlobalIntegralFromLocalInner(obj, intLoc)
-            connecBG              = obj.unfittedMesh.innerMesh.globalConnec;
-            connecBL              = obj.unfittedMesh.innerMesh.mesh.connec;
-            loc2glob(connecBL(:)) = connecBG(:);
-            int                   = zeros(obj.dofs,1);
-            int(loc2glob)         = intLoc;
-        end
-
-        function int = computeGlobalIntegralFromLocalInnerCut(obj, intLoc, innerNodes, cutEdges, cMeshGlobal)
-            intLocInner           = intLoc(1:length(innerNodes));
-            intLocInnerCut        = intLoc(length(innerNodes)+1:end);
-            int                   = zeros(obj.dofs,1);
-            int(innerNodes)       = intLocInner;
-            interp = Interpolation.create('LINE','LINEAR');
-            xIso = cutEdges.xIso';
-            NxV  = interp.computeShapeFunctions(xIso)';
-            nonCutNodes = unique(cMeshGlobal.connec(:));
-            cutNodes1 = nonCutNodes(cutEdges.edges(:,1));
-            cutNodes2 = nonCutNodes(cutEdges.edges(:,2));
-            int(cutNodes1) = int(cutNodes1) + intLocInnerCut.*NxV(:,1);
-            int(cutNodes2) = int(cutNodes2) + intLocInnerCut.*NxV(:,2);
-        end
-
     end
-
 end

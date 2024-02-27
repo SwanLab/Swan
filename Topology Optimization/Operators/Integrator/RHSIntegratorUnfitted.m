@@ -20,8 +20,8 @@ classdef RHSIntegratorUnfitted < handle
         function int = compute(obj,uMeshFun,test)
             fInner      = uMeshFun.innerMeshFunction;
             fInnerCut   = uMeshFun.innerCutMeshFunction;
-            intInner    = obj.integrateInnerMesh(fInner,test);
-            intInnerCut = obj.integrateInnerCutMesh(fInnerCut,test);
+            intInner    = obj.integrateInnerMeshFunction(fInner,test);
+            intInnerCut = obj.integrateInnerCutMeshFunction(fInnerCut,test);
             int         = intInner+intInnerCut;
             %s.mesh=obj.unfittedMesh.backgroundMesh;s.order='P1';s.fValues=intInner;fP1=LagrangianFunction(s);fP1.plot;s.fValues=intInnerCut;fP1=LagrangianFunction(s);fP1.plot;s.fValues=int;fP1=LagrangianFunction(s);fP1.plot
         end
@@ -48,7 +48,7 @@ classdef RHSIntegratorUnfitted < handle
             obj.innerCutQuad = q;
         end
 
-        function int = integrateInnerMesh(obj,f,test)
+        function int = integrateInnerMeshFunction(obj,f,test)
             intLoc        = obj.integrateInnerMeshLocal(f,test);
             iMesh         = obj.unfittedMesh.innerMesh;
             dofs          = size(test.fValues,1);
@@ -65,7 +65,7 @@ classdef RHSIntegratorUnfitted < handle
             intLoc  = obj.innerIntegrator.compute(f,testLoc);
         end
 
-        function int = integrateInnerCutMesh(obj,f,test)
+        function int = integrateInnerCutMeshFunction(obj,f,test)
             iCMesh   = obj.unfittedMesh.innerCutMesh;
             q        = obj.innerCutQuad;
             xVLoc    = q.posgp;
