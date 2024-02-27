@@ -21,7 +21,9 @@ sUm.boundaryMesh   = mesh.createBoundaryMesh();
 uMesh              = UnfittedMesh(sUm);
 uMesh.compute(phiFun.fValues);
 
-chi           = CharacteristicFunction.create(uMesh);
+chi = CharacteristicFunction.create(uMesh);
+
+% % % Ex1 Scalar
 ss.filterType   = 'PDE';
 ss.mesh         = mesh;
 ss.boundaryType = 'Neumann';
@@ -41,3 +43,11 @@ uF        = f.unfittedMeshFunction;
 
 int = Integrator.create('Unfitted',uMesh,'QUADRATICMASS');
 P   = (2/epsilon)*int.compute(uF);
+
+% % % Ex2 RHS
+s.mesh     = uMesh;
+s.type     = 'Unfitted';
+s.quadType = 'QUADRATICMASS';
+rhsInt     = RHSintegrator.create(s);
+test       = LagrangianFunction.create(mesh, 1, 'P1');
+intChiNi   = rhsInt.compute(chi.unfittedMeshFunction,test);
