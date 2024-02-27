@@ -82,19 +82,16 @@ classdef RHSIntegratorUnfitted < handle
         end
 
         function int = integrateInnerMeshFunction(obj,uFun,test)
-            if ~isempty(obj.unfittedMesh.innerMesh)
-                fInner        = uFun.innerMeshFunction;
-                intLoc        = obj.integrateInnerMeshLocal(fInner,test);
-                iMesh         = obj.unfittedMesh.innerMesh;
-                dofs          = size(test.fValues,1);
-                int           = zeros(dofs,1);
-                conG          = iMesh.globalConnec;
+            dofs  = size(test.fValues,1);
+            int   = zeros(dofs,1);
+            iMesh = obj.unfittedMesh.innerMesh;
+            if ~isempty(iMesh)
+                fInner       = uFun.innerMeshFunction;
+                intLoc       = obj.integrateInnerMeshLocal(fInner,test);
+                conG         = iMesh.globalConnec;
                 conL         = iMesh.mesh.connec;
                 l2g(conL(:)) = conG(:);
-                int(l2g)      = intLoc;
-            else
-                dofs = size(test.fValues,1);
-                int  = zeros(dofs,1);
+                int(l2g)     = intLoc;
             end
         end
 
@@ -139,10 +136,9 @@ classdef RHSIntegratorUnfitted < handle
             if ~isempty(obj.unfittedMesh.unfittedBoundaryMesh)
                 uMeshBound = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
                 nFun       = length(uMeshBound);
-                int        = zeros(dofs,1);
                 for i = 1:nFun
-                    uF           = obj.computeUnfittedFunctionAtExternalBoundary(uFun,i);
-                    intLoci      = obj.integrateExternalBoundaryLocal(uF,test,i);
+                    uFi          = obj.computeUnfittedFunctionAtExternalBoundary(uFun,i);
+                    intLoci      = obj.integrateExternalBoundaryLocal(uFi,test,uMeshBound{i});
                     conG         = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{i};
                     conL         = uMeshBound{i}.backgroundMesh.connec;
                     l2g(conL(:)) = conG(:);
@@ -160,13 +156,11 @@ classdef RHSIntegratorUnfitted < handle
             uF         = UnfittedFunction(s);
         end
 
-        function intLoc = integrateExternalBoundaryLocal(obj,uF,test,i)
-            uMeshBound = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
-            uMeshi     = uMeshBound{i};
+        function intLoc = integrateExternalBoundaryLocal(obj,uFi,test,uMeshi)
             mi         = uMeshi.backgroundMesh;
             integrator = obj.createIntegratorUnfittedBoundary(uMeshi);
             testLoc    = LagrangianFunction.create(mi,test.ndimf,test.order);
-            intLoc     = integrator.compute(uF,testLoc);
+            intLoc     = integrator.compute(uFi,testLoc);
         end
     end
 
