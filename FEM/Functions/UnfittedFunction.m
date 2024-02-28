@@ -16,6 +16,18 @@ classdef UnfittedFunction < handle
             obj.init(cParams);
             obj.computeUnfittedMeshFunction();
         end
+
+        function f = copy(obj)
+            s.uMesh = obj.unfittedMesh;
+            s.fun   = obj.fun;
+            s.ndimf = obj.ndimf;
+            f       = UnfittedFunction(s);
+        end
+
+        function res = times(obj1,obj2)
+            res     = copy(obj1);
+            res.fun = res.fun.*obj2;
+        end
     end
 
     methods (Access = private)

@@ -176,7 +176,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = obj.filter.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;

@@ -64,6 +64,10 @@ classdef DomainFunction < handle
         function init(obj,cParams)
             obj.operation = cParams.operation;
         end
+
+        function op = computeOperation(obj,a)
+            op = a.operation;
+        end
         
     end
     
