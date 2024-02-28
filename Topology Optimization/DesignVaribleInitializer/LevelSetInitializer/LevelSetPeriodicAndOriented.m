@@ -1,4 +1,4 @@
-classdef LevelSetPeriodicAndOriented < LevelSetCreator
+classdef LevelSetPeriodicAndOriented < handle
 
     properties (Access = private)
         epsilon
@@ -21,13 +21,11 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
     end
 
     methods (Access = public)
-
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
             obj.createRemesher();
             obj.interpolateDeformedCoord();
-%            obj.interpolateDilatation();
             obj.interpolateM1M2();
         end
 
@@ -107,8 +105,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         end
 
         function interpolateM1M2(obj)
-            m1 = obj.cellLevelSetParams.widthH;
-            m2 = obj.cellLevelSetParams.widthV;               
+            m1 = obj.cellLevelSetParams.xSide;
+            m2 = obj.cellLevelSetParams.ySide;               
             obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
             obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
           %  p  = obj.cellLevelSetParams.pnorm;                 
@@ -122,8 +120,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
             t = MparameterThresholder(s);
             m1 = t.thresh(obj.m1);
             m2 = t.thresh(obj.m2);
-            obj.cellLevelSetParams.widthH = m1;
-            obj.cellLevelSetParams.widthV = m2;
+            obj.cellLevelSetParams.xSide = m1;
+            obj.cellLevelSetParams.ySide = m2;
         end
 
  
@@ -153,7 +151,8 @@ classdef LevelSetPeriodicAndOriented < LevelSetCreator
         function fV = createDiscontinousValues(obj,f)
             s.mesh    = obj.mesh;
             s.fValues = f;
-            fC = P1Function(s);
+            s.order   = 'P1';
+            fC = LagrangianFunction(s);
             fD = fC.project('P1D');
             fV = fD;
         end

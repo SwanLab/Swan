@@ -80,7 +80,7 @@ classdef CutMeshProvisionalLine < CutMesh
             s.connec = obj.connec;
             s.coord  = obj.coord;
             s.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
         
     end

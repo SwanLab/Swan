@@ -94,7 +94,8 @@ classdef UnfittedMesh < handle
         function printNew(obj,filename)
             sF.fValues = obj.levelSet;
             sF.mesh    = obj.backgroundMesh;
-            ls = P1Function(sF);
+            sF.order   = 'P1';
+            ls = LagrangianFunction(sF);
             ls.print(filename, 'GiD');
         end
 

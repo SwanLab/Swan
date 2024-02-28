@@ -7,7 +7,7 @@ classdef UnfittedMeshRotatedComputerFromLoadDesignVariable < handle
     methods (Access = public)
         
         function obj = UnfittedMeshRotatedComputerFromLoadDesignVariable(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function u = computeUnfittedMesh(obj)
@@ -43,7 +43,7 @@ classdef UnfittedMeshRotatedComputerFromLoadDesignVariable < handle
         function m = turnMesh(mesh)
             s.coord = mesh.coord(:,[1 3 2]);
             s.connec = mesh.connec;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
         
     end

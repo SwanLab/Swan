@@ -25,29 +25,38 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
 
             nNodETs = size(dNdxTs,2);
-            nDofETs = nNodETs*obj.test.ndimf;
+            nDofETs = nNodETs*obj.trial.ndimf;
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
-
-            fV  = obj.fun.evaluate(obj.quadrature.posgp);
-            BcompTs = obj.createBComputer(obj.test, dNdxTs);
-            BcompTr = obj.createBComputer(obj.trial, dNdxTr);
             lhs = zeros(nDofETs,nDofETr,nElem);
-            for iGaus = 1:nGaus
-                BmatTs = BcompTs.compute(iGaus);
-                BmatTr = BcompTr.compute(iGaus);
-                dV(1,1,:) = dVolu(iGaus,:)';
-                Bt   = permute(BmatTs,[2 1 3]);
-                BtF  = pagemtimes(Bt,fV);
-                BtCB = pagemtimes(BtF, BmatTr);
-                lhs = lhs + bsxfun(@times, BtCB, dV);
+
+            fV  = obj.fun.evaluate(xV);
+            for igauss = 1 :nGaus
+                for inode= 1:nNodETs
+                    for jnode= 1:nNodETr
+                        for iunkn= 1:obj.test.ndimf
+                            for idim = 1:obj.mesh.ndim
+                                idof = obj.fun.ndimf*(inode-1)+iunkn;
+                                jdof = obj.fun.ndimf*(jnode-1)+iunkn;
+                                dvol = dVolu(igauss,:);
+                                dNi = dNdxTs(idim,inode,:,igauss);
+                                dNj = dNdxTr(idim,jnode,:,igauss);
+                                fVG = fV(1,igauss,:);
+                                v = squeeze(fVG.*dNi.*dNj);
+                                lhs(idof, jdof, :)= squeeze(lhs(idof,jdof,:)) ...
+                                    + v(:).*dvol';
+                            end
+                        end
+                    end
+                end
             end
         end
 

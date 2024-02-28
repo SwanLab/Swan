@@ -21,7 +21,6 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         mesh 
         material  
-        inputBC
         displacementFun
     end
 
@@ -43,32 +42,12 @@ classdef ElasticProblem < handle
             obj.computeStress();
         end
 
-        function plot(obj)
-            s.dim          = obj.getFunDims();
-            s.mesh         = obj.mesh;
-%             s.displacement = obj.variables.d_u;
-            plotter = FEMPlotter(s);
-            plotter.plot();
-        end
-
-        function dim = getDimensions(obj)
-            dim = obj.getFunDims();
-        end
-
-        function setC(obj, C)
-            obj.material.C = C;
-        end
-
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-        end
-
-        function quad = getQuadrature(obj)
-            quad  = obj.quadrature;
+        function updateMaterial(obj, mat)
+            obj.material = mat;
         end
        
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
+            if nargin == 2; software = 'Paraview'; end
             [fun, funNames] = obj.getFunsToPlot();
             a.mesh     = obj.mesh;
             a.filename = filename;
@@ -92,11 +71,10 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.inputBC     = cParams.bc;
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.boundaryConditions = cParams.newBC;
+            obj.boundaryConditions = cParams.boundaryConditions;
         end
 
         function createQuadrature(obj)
@@ -143,7 +121,7 @@ classdef ElasticProblem < handle
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
             s.dim      = obj.getFunDims();
-            s.BC       = obj.BCApplier;
+            s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
@@ -166,43 +144,27 @@ classdef ElasticProblem < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
-            u = pb.solve();
-            % u = 1;
-            % u = ProblemSolver.solve(LHS,RHS, 'MONOLITHIC');
-
+            [u,L] = pb.solve();
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
-
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
         end
 
         function computeStrain(obj)
-            strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun.applyVoigtNotation();
-            perm = permute(strFun.fValues, [2 1 3]);
-%             obj.variables.strain = perm;
-            obj.strainFun = strFun;
-            obj.strain = strFun;
+            xV = obj.quadrature.posgp;
+            obj.strainFun = SymGrad(obj.displacementFun);
+%             strFun = strFun.obtainVoigtFormat();
+            obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            strn  = permute(obj.strain.fValues,[1 3 2]);
-            strn2(:,1,:,:) = strn;
-            strs =squeeze(pagemtimes(obj.material.C,strn2));
-            strs = permute(strs, [1 3 2]);
-
-            z.mesh       = obj.mesh;
-            z.fValues    = strs;
-            z.quadrature = obj.quadrature;
-            strFun = FGaussDiscontinuousFunction(z);
-
-            obj.stress = strFun;
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
-            obj.stressFun = strFun;
+            xV = obj.quadrature.posgp;
+            obj.stressFun = DDP(obj.material, obj.strainFun);
+            obj.stress = obj.stressFun.evaluate(xV);
         end
 
     end

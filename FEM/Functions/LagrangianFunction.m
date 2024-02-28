@@ -20,8 +20,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
@@ -38,7 +37,24 @@ classdef LagrangianFunction < FeFunction
             end
 
         end
-        
+
+        function fxV = sampleFunction(obj,xP,cells)
+            shapes  = obj.interpolation.computeShapeFunctions(xP);
+            nNode   = size(shapes,1);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            fxV = zeros(nF,nPoints);
+            for iF = 1:nF
+                for iNode = 1:nNode
+                    node = obj.mesh.connec(cells,iNode);
+                    Ni = shapes(iNode,:)';
+                    fi = obj.fValues(node,:);
+                    f(1,:) = fi.*Ni;
+                    fxV(iF,:) = fxV(iF,:) + f;
+                end
+            end
+        end
+       
         function c = getCoord(obj)
             c = obj.coord;
         end
@@ -47,80 +63,34 @@ classdef LagrangianFunction < FeFunction
             c = obj.connec;
         end
 
-        function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
-        end
-        
-        function dNdx  = computeCartesianDerivatives(obj,quad)
-            nElem = size(obj.connec,1);
-            nNode = obj.interpolation.nnode;
-            nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-            for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
-                for jDime = 1:nDime
-                    invJ_JI   = invJ(:,jDime,:,igaus);
-                    dShape_KJ = dShapes(jDime,:);
-                    dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                    dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-                end
-            end
-            dNdx = dShapeDx;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
-            nDimf = obj.ndimf;
-            nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
-            nDofE = size(dNdx, 2);
-            nElem = size(dNdx, 3);
-            nGaus = size(dNdx, 4);
-            
-            grad = zeros(nDims,nDimf, nElem, nGaus);
-            fV = reshape(obj.fValues', [numel(obj.fValues) 1]);
-            for iGaus = 1:nGaus
-                dNdx_g = dNdx(:,:,:,iGaus);
-                for iDim = 1:nDims
-                    for iDof = 1:nDofE
-                        dNdx_i = squeeze(dNdx_g(iDim, iDof,:));
-                        iDofRange = ((iDof-1)*nDimf+1):(iDof*nDimf);
-                        dofs = obj.connec(:,iDofRange);
-                        f = fV(dofs,:);
-                        fRshp = reshape(f, [nElem nDimf]); % oju thermal
-                        p = (dNdx_i.*fRshp)';
-                        pp(1,:,:) = p;
-                        grad(iDim,:,:,iGaus) = grad(iDim,:,:,iGaus) + pp;
+        function dN = computeShapeDerivatives(obj, xV)
+            dN = obj.interpolation.computeShapeDerivatives(xV);
+        end
+        
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            nElem = size(obj.connec,1);
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.computeShapeDerivatives(xV);
+            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(dShapes_JK,invJ_IJ);
+                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
                     end
                 end
             end
-            fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
-            s.fValues = permute(fVR, [1 3 2]);
-%             s.ndimf      = nDimf;
-            s.quadrature = quad;
-            s.mesh       = obj.mesh;
-            gradFun = FGaussDiscontinuousFunction(s);
-        end
-
-        function symGradFun = computeSymmetricGradient(obj,quad)
-            grad = obj.computeGradient(quad);
-            nDimf = obj.ndimf;
-            nDims = size(grad.fValues, 1)/nDimf;
-            nGaus = size(grad.fValues, 2);
-            nElem = size(grad.fValues, 3);
-
-            gradReshp = reshape(grad.fValues, [nDims,nDimf,nGaus,nElem]);
-            gradT = permute(gradReshp, [2 1 3 4]);
-            symGrad = 0.5*(gradReshp + gradT);
-            
-            s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-            s.quadrature = quad;
-            s.mesh       = obj.mesh;
-            symGradFun = FGaussDiscontinuousFunction(s);
+            dNdx = dShapes;
         end
         
         function ord = orderTextual(obj)
@@ -194,16 +164,42 @@ classdef LagrangianFunction < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
-            sF.fValues = obj.fValues;
-            sF.mesh = obj.mesh;
-            p1 = P1Function(sF);
+            if nargin == 2; software = 'Paraview'; end
+%             sF.fValues = obj.fValues;
+%             sF.mesh = obj.mesh;
+%             p1 = P1Function(sF);
             s.mesh = obj.mesh;
-            s.fun = {p1};
+            s.fun = {obj};
             s.type = software;
             s.filename = filename;
             p = FunctionPrinter.create(s);
             p.print();
+        end
+
+        function [res, pformat] = getDataToPrint(obj)
+            switch obj.order
+                case 'P0'
+                    q = Quadrature.set(obj.mesh.type);
+                    q.computeQuadrature('LINEAR');
+                    nElem = size(obj.mesh.connec, 1);
+                    nGaus = q.ngaus;
+        
+                    s.nDimf   = obj.ndimf;
+                    s.nData   = nElem*nGaus;
+                    s.nGroup  = nElem;
+                    s.fValues = obj.getFormattedP0FValues();
+                    fps = FunctionPrintingSettings(s);
+                    [res, pformat] = fps.getDataToPrint();
+
+                otherwise
+                    nNods = size(obj.fValues, 1);
+                    s.nDimf   = obj.ndimf;
+                    s.nData   = nNods;
+                    s.nGroup  = nNods;
+                    s.fValues = obj.fValues;
+                    fps = FunctionPrintingSettings(s);
+                    [res, pformat] = fps.getDataToPrint();
+            end
         end
         
         function v = computeL2norm(obj)
@@ -215,35 +211,36 @@ classdef LagrangianFunction < FeFunction
             v   = sqrt(ff);
         end
 
-        function fdivF = computeFieldTimesDivergence(obj,q)
-            fG  = obj.evaluate(q.posgp);
-            dfG = obj.computeDivergence(q);
+        function fdivF = computeFieldTimesDivergence(obj,xV)
+            fG  = obj.evaluate(xV);
+            dfG = obj.computeDivergence(xV);
             fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues    = fdivFG;
             fdivF = FGaussDiscontinuousFunction(s);
         end
 
-        function divF = computeDivergence(obj,q)
-            dNdx = obj.computeCartesianDerivatives(q);
+        function divF = computeDivergence(obj,xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             fV = obj.fValues;
             nodes = obj.mesh.connec;
             nNode = obj.mesh.nnodeElem;
             nDim  = obj.mesh.ndim;
-            divV = zeros(q.ngaus,obj.mesh.nelem);
-            for igaus = 1:q.ngaus
+            nGaus = size(xV,2);
+            divV = zeros(nGaus,obj.mesh.nelem);
+            for igaus = 1:nGaus
                 for kNode = 1:nNode
                     nodeK = nodes(:,kNode);
                     for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,:,igaus));
+                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
                         fkr = fV(nodeK,rDim);
                         int(1,:) = dNkr.*fkr;
                         divV(igaus,:) = divV(igaus,:) + int;
                     end
                 end
             end
-            s.quadrature = q;
+            s.quadrature = xV;
             s.mesh       = obj.mesh;
             s.fValues(1,:,:) = divV;
             divF = FGaussDiscontinuousFunction(s);
@@ -259,6 +256,49 @@ classdef LagrangianFunction < FeFunction
             fFine = LagrangianFunction(s);
         end
 
+        function f = copy(obj)
+            f = obj.create(obj.mesh,obj.ndimf,obj.order);
+            f.fValues = obj.fValues;
+        end
+
+        % Operator overload
+
+        function s = plus(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues + obj2.fValues;
+            s = res;
+        end
+
+        function s = minus(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues - obj2.fValues;
+            s = res;
+        end
+
+        function s = times(obj1,obj2)
+            res = copy(obj1);
+            res.fValues = obj1.fValues .* obj2.fValues;
+            s = res;
+        end
+
+        function s = power(f,b)
+            res = copy(f);
+            res.fValues = f.fValues .^ b;
+            s = res;
+        end
+
+        function s = rdivide(f,b)
+            res = copy(f);
+            res.fValues = f.fValues ./ b;
+            s = res;
+        end
+
+        function s = mrdivide(f,b)
+            res = copy(f);
+            res.fValues = f.fValues ./ b;
+            s = res;
+        end
+        
     end
 
     methods (Access = public, Static)
@@ -273,14 +313,6 @@ classdef LagrangianFunction < FeFunction
             pL = LagrangianFunction(s);
         end
 
-        function fS = times(f1,f2)
-            fS = f1.fValues.*f2.fValues;
-            s.fValues = fS;
-            s.mesh    = f1.mesh;
-            s.order   = 'P1';
-            fS = LagrangianFunction(s);
-        end
-
     end
 
     methods (Access = private)
@@ -293,9 +325,9 @@ classdef LagrangianFunction < FeFunction
         end
 
         function createInterpolation(obj)
-            m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,obj.orderTextual());
-            obj.nDofsElem = obj.interpolation.nnode;
+            type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(type,obj.orderTextual());
+            obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
         end
 
         function createDOFCoordConnec(obj)
@@ -316,6 +348,21 @@ classdef LagrangianFunction < FeFunction
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
+        end
+        function fM = getFormattedP0FValues(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            fV = obj.evaluate(q.posgp);
+            nGaus   = q.ngaus;
+            nComp   = obj.ndimf;
+            nElem   = size(obj.mesh.connec, 1);
+            fM  = zeros(nGaus*nElem,nComp);
+            for iStre = 1:nComp
+                for iGaus = 1:nGaus
+                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
+                    fM(rows,iStre) = fV(iStre,iGaus,:);
+                end
+            end
         end
 
     end

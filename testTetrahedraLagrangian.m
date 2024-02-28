@@ -29,7 +29,7 @@ s.connec = [1 2 3 4 5 6  7  8;
 % 
 % s.connec = [1 2 3 4 5 6  7  8];
 
-mesh = Mesh(s);
+mesh = Mesh.create(s);
 
 sAF.fHandle = @(x) x(3,:,:);
 sAF.ndimf   = 1;

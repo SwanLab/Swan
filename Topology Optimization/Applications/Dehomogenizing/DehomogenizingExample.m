@@ -101,7 +101,7 @@ classdef DehomogenizingExample < handle
             
             sR.coord = coordT;
             sR.connec  = w.mesh.connec;
-            w.mesh = Mesh(sR);
+            w.mesh = Mesh.create(sR);
             
             m = w.mesh;
             sM = obj.createMeshSymetrizer(m);
@@ -152,7 +152,7 @@ classdef DehomogenizingExample < handle
 %             
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.backgroundMesh = m;
             
             %x1T = repmat(x1,obj.nx2,1);
@@ -192,7 +192,8 @@ classdef DehomogenizingExample < handle
             tV = atan2(x2,x1);
             s.mesh = obj.mesh;
             s.fValues = tV;
-            tF = P0Function(s);
+            s.order = 'P0';
+            tF = LagrangianFunction(s);
             obj.theta = tF;
         end
         
@@ -226,14 +227,16 @@ classdef DehomogenizingExample < handle
         function dehomogenize(obj)
             s.fValues = obj.alphaM;
             s.mesh    = obj.mesh;
-            a0{1} = P0Function(s);
+            s.order   = 'P0';
+            a0{1} = LagrangianFunction(s);
             a1{1} = a0{1}.project('P1');
 
 
             s.fValues(:,1) = -obj.alphaM(:,2);
             s.fValues(:,2) = obj.alphaM(:,1);
             s.mesh    = obj.mesh;
-            a0{2} = P0Function(s);
+            s.order   = 'P0';
+            a0{2} = LagrangianFunction(s);
             a1{2} = a0{2}.project('P1');
 
           %  a0.plotArrowVector()

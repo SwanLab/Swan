@@ -29,31 +29,27 @@ classdef Projector_toLagrangian < Projector
             s.mesh  = obj.mesh;
             s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
             s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            a.funcs = {s.test, s.trial};
-            a.ndim  = obj.mesh.ndim;
-            a.mType = obj.mesh.type;
-            s.quadratureOrder = QuadratureOrderSelector.compute(a);
+            s.quadratureOrder = 'ORDER10'; % no
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
         function RHS = computeRHS(obj,fun)
-            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
-
-            quad = obj.createRHSQuadrature(fun,f);
+            quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
+            fGaus = fun.evaluate(xV);
             dV = obj.mesh.computeDvolume(quad);
-
-            shapes = f.computeShapeFunctions(quad);
+            
+            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
+            shapes = f.computeShapeFunctions(xV);
             conne = f.computeDofConnectivity()';
 
-            nGaus = quad.ngaus;
-            nFlds = fun.ndimf;
+            nGaus = size(xV,2);
+            nFlds = size(fGaus,1);
             nNode = size(conne,2);
             nDofs = max(max(conne));
 
-            fGaus = fun.evaluate(xV);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for igaus = 1:nGaus
@@ -70,20 +66,17 @@ classdef Projector_toLagrangian < Projector
             RHS = f;
         end
 
-        function q = createRHSQuadrature(obj, fun, f)
+        function q = createRHSQuadrature(obj, fun)
             if isa(fun, 'FGaussDiscontinuousFunction')
-                q = fun.quadrature;
+                ord = fun.getQuadratureOrder();
             else
-                a.funcs = {fun,f};
-                a.ndim = obj.mesh.ndim;
-                a.mType = obj.mesh.type;
-                quadratureOrder = QuadratureOrderSelector.compute(a);
-                
-                q = Quadrature.set(obj.mesh.type);
-                q.computeQuadrature(quadratureOrder);
+                ord = obj.determineQuadratureOrder(fun);
+                ord = 'ORDER10'; % no
             end
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(ord);
         end
-        
+
     end
 
 end

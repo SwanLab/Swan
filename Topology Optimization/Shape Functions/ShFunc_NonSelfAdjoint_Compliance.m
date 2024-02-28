@@ -122,17 +122,23 @@ classdef ShFunc_NonSelfAdjoint_Compliance < ShFunWithElasticPdes
             s                  = FemDataContainer(a);
             s.bc.pointload     = fAdj;
             s.newBC.pointloadFun = fAdj2;
+            bcAdj = obj.getAdjointBoundaryConditions(fAdj2);
+            s.boundaryConditions.pointloadFun = bcAdj.pointloadFun;
+            s.boundaryConditions.pointload_dofs = bcAdj.pointload_dofs;
+            s.boundaryConditions.pointload_vals = bcAdj.pointload_vals;
             obj.adjointProblem = FEM.create(s);
-            a.mesh = mesh;
-            a.pointloadFun = fAdj;
-            a.boundaryConditions.pointloadFun = fAdj2;
-            a.boundaryConditions.dirichletFun = [];
-            a.boundaryConditions.periodicFun = [];
-            bc = BCApplier(a);
-            obj.fAdj_dofs = bc.pointload_dofs;
-            obj.fAdj_vals = bc.pointload_vals;
+            obj.fAdj_dofs = bcAdj.pointload_dofs;
+            obj.fAdj_vals = bcAdj.pointload_vals;
         end
         
+        function bc = getAdjointBoundaryConditions(obj, fAdj2)
+            a.mesh = obj.designVariable.mesh;
+            a.pointloadFun = fAdj2;
+            a.dirichletFun = [];
+            a.periodicFun = [];
+            bc = BoundaryConditions(a);
+        end
+
         function f = computeDisplacementWeight(obj)
             nnode = obj.designVariable.mesh.nnodes;
             ndim  = obj.designVariable.mesh.ndim;

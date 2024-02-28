@@ -57,8 +57,8 @@ classdef IPMErrorComputer < handle
             l           = obj.dualVariable.value;
             lZ          = obj.bounds.zLB;
             uZ          = obj.bounds.zUB;
-            nConstr     = obj.constraint.nSF;
-            nnode       = obj.designVariable.mesh.nnodes;
+            nConstr     = length(obj.constraint.value);
+            nnode       = obj.designVariable.fun.mesh.nnodes;
             den         = nConstr+2*(nnode+obj.nSlack);
             obj.gradRef = max(lb,(sum(abs(l))+sum(abs(lZ))+sum(abs(uZ)))/den);
         end
@@ -67,7 +67,7 @@ classdef IPMErrorComputer < handle
             lb           = obj.sMax;
             lZ           = obj.bounds.zLB;
             uZ           = obj.bounds.zUB;
-            nnode        = obj.designVariable.mesh.nnodes;
+            nnode        = obj.designVariable.fun.mesh.nnodes;
             den          = 2*(nnode+obj.nSlack);
             obj.fieldRef = max(lb,(sum(abs(uZ))+sum(abs(lZ)))/den);
         end
@@ -93,7 +93,7 @@ classdef IPMErrorComputer < handle
             s                 = obj.slack;
             lS                = obj.bounds.sLB;
             lZ                = obj.bounds.zLB;
-            nnode             = obj.designVariable.mesh.nnodes;
+            nnode             = obj.designVariable.fun.mesh.nnodes;
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;
             obj.errorDesVarLB = max(abs(diag([x-lX s-lS])*diag(lZ)*e))/sC;
@@ -105,7 +105,7 @@ classdef IPMErrorComputer < handle
             s                 = obj.slack;
             uS                = obj.bounds.sUB;
             uZ                = obj.bounds.zUB;
-            nnode             = obj.designVariable.mesh.nnodes;
+            nnode             = obj.designVariable.fun.mesh.nnodes;
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;
             obj.errorDesVarUB = max(abs(diag([uX-x uS-s])*diag(uZ)*e))/sC;

@@ -3,15 +3,17 @@ classdef InterpolationFactory < handle
     methods (Access = public, Static)
 
         function obj = create(cParams)
-            mesh  = cParams.mesh;
+            type  = cParams.type;
             order = cParams.order;
-            switch mesh.type
+            switch type
                 case 'EMPTY MESH'
                     obj = [];
                 case 'LINE'
                     switch order
                         case 'LINEAR'
                             obj = Line_Linear(cParams);
+                        case 'CONSTANT'
+                            obj = Line_Constant(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end

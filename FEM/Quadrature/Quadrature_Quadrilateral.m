@@ -17,6 +17,7 @@ classdef Quadrature_Quadrilateral < Quadrature
                     obj.posgp(:,2) = [+a,-a];
                     obj.posgp(:,3) = [-a,+a];
                     obj.posgp(:,4) = [+a,+a];
+
                     obj.weigp =  [1,1,1,1];
 
                 case {'ORDER4','ORDER5'}

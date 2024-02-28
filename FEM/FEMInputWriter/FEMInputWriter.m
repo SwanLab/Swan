@@ -69,7 +69,7 @@ classdef FEMInputWriter < handle
             [F,V]    = mesh2tri(obj.xmesh,obj.ymesh,obj.zmesh,'f');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
             obj.mesh.plot;
         end
 

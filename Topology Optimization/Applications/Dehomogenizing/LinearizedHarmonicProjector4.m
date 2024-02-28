@@ -107,17 +107,18 @@ classdef LinearizedHarmonicProjector4 < handle
         function resG = evaluteGradientNorm(obj,b)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('QUADRATICMASS');
+            xV = quad.posgp;
             b1  = obj.createScalarFunctions(b,1);
             b2  = obj.createScalarFunctions(b,2);
-            db1 = b1.computeGradient(quad);
-            db2 = b2.computeGradient(quad);
+            db1 = b1.evaluateGradient(xV);
+            db2 = b2.evaluateGradient(xV);
             db1V = db1.fValues;
             db2V = db2.fValues;
             grad = db1V.*db1V + db2V.*db2V;
             db   = sum(grad,1);
             s.fValues = db;
             s.mesh    = obj.mesh;
-            s.quadrature = quad;
+            s.quadrature = xV;
             resG = FGaussDiscontinuousFunction(s);
         end
     end

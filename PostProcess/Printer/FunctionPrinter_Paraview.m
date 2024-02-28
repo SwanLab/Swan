@@ -104,15 +104,22 @@ classdef FunctionPrinter_Paraview < handle
             % functions
             % Create Displacement DataArray
             for iFun = 1:numel(obj.fun)
-                switch class(obj.fun{iFun})
-                    case 'P0Function'
-                        n = obj.createFValuesCell(docNode, iFun);
-                        obj.cellDataN.appendChild(n);
+                f  = obj.fun{iFun};
+                type = class(f);
+                switch type
+                    case 'LagrangianFunction'
+                        switch f.order
+                            case 'P0'
+                                n = obj.createFValuesCell(docNode, iFun);
+                                obj.cellDataN.appendChild(n);
+                            otherwise
+                                n = obj.createFValuesNode(docNode, iFun);
+                                obj.pointDataN.appendChild(n);
+                        end
                     otherwise
                         n = obj.createFValuesNode(docNode, iFun);
                         obj.pointDataN.appendChild(n);
                 end
-
             end
 
             text = xmlwrite(docNode);
@@ -187,7 +194,7 @@ classdef FunctionPrinter_Paraview < handle
 
         function n = createFValuesNode(obj, docNode, iFun)
             func = obj.fun{iFun}.project('P1');
-            if func.ndimf < 3
+            if func.ndimf == 2
                 nExtr = 3-func.ndimf;
                 nDimf = 3;
                 fVals = [func.fValues, repmat(zeros(size(func.fValues, 1),1), [1 nExtr])];

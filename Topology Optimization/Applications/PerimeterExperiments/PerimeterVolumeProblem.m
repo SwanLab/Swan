@@ -84,7 +84,7 @@ classdef PerimeterVolumeProblem < handle
             y = repmat(yN,obj.nx,1);
             s.coord = [x(:) y(:)];
             s.connec = delaunay(s.coord(:,1),s.coord(:,2));
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
         
         function createQuadMesh(obj)
@@ -96,7 +96,7 @@ classdef PerimeterVolumeProblem < handle
             sM.coord(:,1) = g.X;
             sM.coord(:,2) = g.Y;
             sM.connec = g.VI;
-            obj.mesh = Mesh(sM);
+            obj.mesh = Mesh.create(sM);
         end
 
         function solve(obj)
