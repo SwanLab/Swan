@@ -36,12 +36,9 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
             for igaus = 1:nGaus
                     fGI = squeezeParticular(fG(:,igaus,:),2);
                     fdv = fGI.*dV(igaus,:);
+                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
                     B = BComp.compute(igaus);
-                    fp = permute(fdv,[1,2,4,3]);
-                    Bp = permute(B,[1,4,2,3]);
-                    intI = fp .* Bp;
-                    intI = sum(intI,1);
-                    intI = permute(intI,[2,3,4,1]);
+                    intI = pagemtimes(fdv,B);
                     rhsC = rhsC + squeezeParticular(intI,1);
             end
         end
