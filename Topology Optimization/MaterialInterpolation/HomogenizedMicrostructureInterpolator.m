@@ -16,14 +16,15 @@ classdef HomogenizedMicrostructureInterpolator < Material
             obj.createCtensorFunction(C);               
         end
 
-        function C = evaluate(obj,xV)
-            C = obj.computeValues(xV);
+        function C = obtainTensor(obj)
+          s.operation = @(xV) obj.evaluate(xV);
+          C = DomainFunction(s);            
         end
-
-        function dCm = evaluateDerivative(obj,xV)
-           obj.microParams = x;            
-           dCm{iVar} = obj.createMaterial(x);
-        end
+        
+        function dC = obtainTensorDerivative(obj)
+          s.operation = @(xV) obj.evaluateGradient(xV);
+          dC = DomainFunction(s);            
+        end             
 
         function setDesignVariable(obj,x)
             obj.microParams = x;
@@ -73,7 +74,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
              end
         end        
         
-        function C = computeValues(obj,xV)
+        function C = evaluate(obj,xV)
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
@@ -88,6 +89,23 @@ classdef HomogenizedMicrostructureInterpolator < Material
                 end
             end
         end 
+
+        function C = evaluateDerivative(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV');
+            nGaus = size(xV,2);
+            nElem = obj.microParams{1}.mesh.nelem;
+            nStre = size(obj.Ctensor,1); 
+          %  nDofs = size(mL,2);
+            C  = zeros(nStre,nStre,nGaus,nElem);
+            for i = 1:nStre
+                for j = 1:nStre
+                    Cv = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
+                    Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
+                    C(i,j,:,:)   = Cij(1,1,:,:);
+                end
+            end
+        end         
+
 
         function [mL,cells] = obtainLocalCoord(obj,xV)
             mx = obj.microParams{1};

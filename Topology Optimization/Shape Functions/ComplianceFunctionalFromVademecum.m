@@ -19,8 +19,8 @@ classdef ComplianceFunctionalFromVademecum < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xR{1} = obj.filterDesignVariable(x.fun{1});
             xR{2} = obj.filterDesignVariable(x.fun{2});
-            mat  = obj.computeMaterial(xR);
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(mat);
+            obj.material.setDesignVariable(xR);
+            [J,dJ] = obj.computeComplianceFunctionAndGradient();
         end
     end
     
@@ -29,6 +29,7 @@ classdef ComplianceFunctionalFromVademecum < handle
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
+            obj.material             = cParams.material;            
             obj.compliance = cParams.complainceFromConstitutive;
         end
 
@@ -36,20 +37,10 @@ classdef ComplianceFunctionalFromVademecum < handle
             xR = obj.filter.compute(x,'LINEAR');
         end
 
-        function C = computeMaterial(obj,x)
-            s.type         = 'HomogenizedMicrostructure';
-            s.fileName     = 'Rectangle';
-            s.microParams = x;
-            C  = Material.create(s);            
-        end
-
-        function dC = computeMaterialDerivative(obj,x)
-            mI = obj.material;
-            dC = mI.computeConstitutiveTensorDerivative(x);
-        end        
-
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,mat)
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(mat);
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj)
+            C   = obj.material.obtainTensor();
+            dC  = obj.material.obtainTensorDerivative();            
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
             dJ     = obj.filter.compute(dJ,'LINEAR');
             if isempty(obj.value0)
                 obj.value0 = J;
