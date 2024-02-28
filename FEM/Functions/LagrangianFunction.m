@@ -261,18 +261,58 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues;
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                    fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                    fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end
+            f = obj.create(obj.mesh,obj.ndimf,obj.order);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
         % Operator overload
 
         function s = plus(obj1,obj2)
-            res = copy(obj1);
-            res.fValues = obj1.fValues + obj2.fValues;
+            if isa(obj1, 'LagrangianFunction')
+                res = copy(obj1);
+                val1 = obj1.fValues;
+            else
+                val1 = obj1;
+            end
+            if isa(obj2, 'LagrangianFunction')
+                res = copy(obj2);
+                val2 = obj2.fValues;
+            else
+                val2 = obj2;
+            end
+
+            res.fValues = val1 + val2;
             s = res;
         end
 
         function s = minus(obj1,obj2)
-            res = copy(obj1);
-            res.fValues = obj1.fValues - obj2.fValues;
+            if isa(obj1, 'LagrangianFunction')
+                res = copy(obj1);
+                val1 = obj1.fValues;
+            else
+                val1 = obj1;
+            end
+            if isa(obj2, 'LagrangianFunction')
+                res = copy(obj2);
+                val2 = obj2.fValues;
+            else
+                val2 = obj2;
+            end
+
+            res.fValues = val1 - val2;
             s = res;
+        end
+
+        function r = uminus(a)
+            r = copy(a);
+            r.fValues = -a.fValues;
         end
 
         function s = times(obj1,obj2)
