@@ -85,7 +85,7 @@ classdef LagrangianFunction < FeFunction
                     for jDimE = 1:nDimE
                         invJ_IJ   = invJ(iDimG,jDimE,:,:);
                         dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(dShapes_JK,invJ_IJ);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
                         dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
                     end
                 end

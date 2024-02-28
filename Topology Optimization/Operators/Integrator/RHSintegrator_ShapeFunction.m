@@ -54,42 +54,43 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.mesh     = cParams.mesh;
         end
 
-        function int = computeElementalRHS(obj,fun,test)
+        function rhsC = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
             fG   = fun.evaluate(xV);
             dV   = obj.mesh.computeDvolume(quad);
             N = test.computeShapeFunctions(xV);
-            nDofElem  = size(N,1);
+            nNodeElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
             nFlds     = size(fG,1);
-            int = zeros(nElem,nDofElem,nFlds);
+            nDofElem = nNodeElem*nFlds;
+            int = zeros(nDofElem,nElem);
             for iField = 1:nFlds
-                for iDof = 1:nDofElem
+                for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
                         dVg(:,1) = dV(iGaus, :);
                         fV   = squeeze(fG(iField,iGaus,:));
-                        Ni   = squeeze(N(iDof,iGaus,:));
+                        Ni   = squeeze(N(iNode,iGaus,:));
                         fNdV(1,:) = Ni.*fV.*dVg;
-                        int(:,iDof,iField) = int(:,iDof,iField) + fNdV';
+                        iDof = nFlds*(iNode-1) + iField;
+                        int(iDof,:) = int(iDof,:) + fNdV;
                     end
                 end
             end
+            rhsC = transpose(int);
         end
 
         function f = assembleIntegrand(obj,test,rhsElem)
-            connec   = test.computeDofConnectivity()';
+            integrand = rhsElem;
+            connec   = test.getConnec();
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
-            nFields  = size(rhsElem,3);
-            f        = zeros(ndofs,nFields);
-            for iField = 1:nFields
-                for iDof = 1:nDofElem
-                    int = rhsElem(:,iDof,iField);
-                    con = connec(:,iDof);
-                    f(:,iField) = f(:,iField) + accumarray(con,int,[ndofs,1],@sum,0);
-                end
+            f = zeros(ndofs,1);
+            for iDof = 1:nDofElem
+                int = integrand(:,iDof);
+                con = connec(:,iDof);
+                f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
 
