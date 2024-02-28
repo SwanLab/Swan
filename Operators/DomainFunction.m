@@ -23,38 +23,61 @@ classdef DomainFunction < handle
         end
         
         function r = ctranspose(a)
-            s.operation = @(xV) pagetranspose(a.operation(xV));
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) pagetranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
         function r = plus(a,b)
-            s.operation = @(xV) a.operation(xV) + b.operation(xV);
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) + bOp(xV);
             r = DomainFunction(s);
         end
-        
+
         function r = minus(a,b)
-            s.operation = @(xV) a.operation(xV) - b.operation(xV);
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) - bOp(xV);
+            r = DomainFunction(s);
+        end
+
+        function r = times(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV).*bOp(xV);
             r = DomainFunction(s);
         end
         
         function r = uminus(a)
-            s.operation = @(xV) -a.operation(xV);
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) -aOp(xV);
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
-            s.operation = @(xV) a.operation(xV).^b;
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) aOp(xV).^b;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
-            s.operation = @(xV) pagenorm(a.operation(xV),b);
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) pagenorm(aOp(xV),b);
             r = DomainFunction(s);
         end
 
         function r = log(a)
-            s.operation = @(xV) log(a.operation(xV));
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) log(aOp(xV));
             r = DomainFunction(s);
+        end
+
+        function fun = project(obj,target,mesh)
+            s.mesh          = mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
         end
 
     end
@@ -66,5 +89,17 @@ classdef DomainFunction < handle
         end
         
     end
-    
+
+    methods (Static, Access = public)
+
+        function op = computeOperation(a)
+            if isprop(a,'operation')
+                op = a.operation;
+            else
+                op = @(xV) a.evaluate(xV);
+            end
+        end
+
+    end
+
 end

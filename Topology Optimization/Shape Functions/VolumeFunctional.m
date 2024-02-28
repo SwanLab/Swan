@@ -7,6 +7,7 @@ classdef VolumeFunctional < handle
 
     properties (Access = private)
         mesh
+        gradientTest
     end
 
     methods (Access = public)
@@ -25,7 +26,8 @@ classdef VolumeFunctional < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh         = cParams.mesh;
+            obj.gradientTest = cParams.gradientTest;
         end
 
         function createQuadrature(obj)
@@ -40,14 +42,14 @@ classdef VolumeFunctional < handle
         end
 
         function J = computeFunction(obj,x)
-            int    = Integrator.create('Function',obj.mesh,obj.quadrature.order);
-            volume = int.compute(x);
+            volume = Integrator.compute(x,obj.mesh,obj.quadrature.order);
             J      = volume/obj.totalVolume;
         end
 
         function dJ = computeGradient(obj,x)
-            fValues = ones(x.nDofs,1)/obj.totalVolume;
-            dJ      = FeFunction.create(x.order,fValues,obj.mesh);
+            test    = obj.gradientTest;
+            fValues = ones(test.nDofs,1)/obj.totalVolume;
+            dJ      = FeFunction.create(test.order,fValues,obj.mesh);
         end
     end
 

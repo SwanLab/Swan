@@ -49,7 +49,8 @@ classdef SLERP < handle
         function f = createP1Function(obj,fV)
             s.mesh    = obj.mesh;
             s.fValues = fV;
-            f         = P1Function(s);
+            s.order   = 'P1';
+            f         = LagrangianFunction(s);
         end
 
         function t = computeTheta(obj,phi,g)

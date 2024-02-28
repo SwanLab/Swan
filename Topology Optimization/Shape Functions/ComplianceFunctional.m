@@ -27,10 +27,10 @@ classdef ComplianceFunctional < handle
     
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh                 = cParams.mesh;
-            obj.filter               = cParams.filter;
-            obj.material             = cParams.material;
-            obj.compliance           = cParams.complainceFromConstitutive;
+            obj.mesh       = cParams.mesh;
+            obj.filter     = cParams.filter;
+            obj.material   = cParams.material;
+            obj.compliance = cParams.complainceFromConstitutive;
         end
 
         function xR = filterDesignVariable(obj,x)
