@@ -7,6 +7,7 @@ classdef Constraint < handle
 
     properties (Access = private)
         shapeFunctions
+        Msmooth
     end
 
     methods (Access = public)
@@ -31,7 +32,7 @@ classdef Constraint < handle
                 djV(:,iF) = dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = djV;
+            obj.gradient = obj.Msmooth*djV;
         end
 
         function nF = obtainNumberFields(obj)
@@ -50,6 +51,7 @@ classdef Constraint < handle
     methods (Access = private)
         function obj = init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
+            obj.Msmooth        = cParams.Msmooth;
         end
     end
 end

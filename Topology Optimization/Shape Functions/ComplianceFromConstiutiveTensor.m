@@ -20,10 +20,10 @@ classdef ComplianceFromConstiutiveTensor < handle
             obj.createQuadrature();
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,C)
+        function [J,dJ] = computeFunctionAndGradient(obj,C,dC)
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(C,u);
+            dJ = obj.computeGradient(dC,u);
         end
 
     end
@@ -54,18 +54,10 @@ classdef ComplianceFromConstiutiveTensor < handle
             J      = int.compute(strain,stress);
         end
   
-        function g = computeGradient(obj,dC,u)
-            g = obj.computeDJ(dC,u);
-        end
-
-        function dj = computeDJ(obj,dC,u)
-            xV = obj.quadrature.posgp;
+        function dj = computeGradient(obj,C,u)
             eu2 = SymGrad(u);
-            ngaus = size(xV,2);
-            nelem = obj.mesh.nelem;
             % dStr = DDP(dC, eu2);
-            dj = -DDP(eu2, dC, eu2); % !!
-            dj = squeezeParticular(dj, 1, [1 1 ngaus nelem]);
+            dj = -DDP(eu2, C, eu2); % !!
         end
 
         function fd = createGaussFunction(obj,f)

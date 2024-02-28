@@ -33,6 +33,7 @@ classdef OptimizerMMA < Optimizer
         hasConverged
         historicalVariables
         KKTnorm
+        Vtar
     end
     
     methods (Access = public)
@@ -50,11 +51,11 @@ classdef OptimizerMMA < Optimizer
            f = obj.designVariable;
            obj.cost.computeFunctionAndGradient(f);
            obj.constraint.computeFunctionAndGradient(f);
-           obj.monitoring.update(obj.nIter);
+           obj.updateMonitoring();
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
-               obj.monitoring.update(obj.nIter);
+               obj.updateMonitoring();
                obj.printOptimizerVariable();
            end
             obj.hasConverged = 0;
@@ -97,11 +98,18 @@ classdef OptimizerMMA < Optimizer
     methods (Access = private)
         
         function updateMonitoring(obj)
-            s.hasFinished          = obj.hasFinished;
-            s.nIter                = obj.nIter;
-            s.KKTnorm              = obj.KKTnorm;
-            s.outitFrac            = obj.outit/obj.maxoutit;
-            obj.monitoring.compute(s);
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.dualVariable.value];
+            data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
+            obj.monitoring.update(obj.nIter,data);
+        end
+
+        function v = computeVolume(obj,g)
+            targetVolume = obj.Vtar;
+            v            = targetVolume*(1+g);
         end
 
         function init(obj,cParams)
@@ -109,14 +117,32 @@ classdef OptimizerMMA < Optimizer
             obj.lowerBound   = cParams.lb;
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
+            obj.Vtar           = cParams.volumeTarget;
             obj.createMonitoring(cParams);
         end
 
         function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
+                chConstr{i}   = 'plot';
+            end
+            titles  = [titles;{'Volume'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'plot'}];
+
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
         end
 
@@ -166,8 +192,8 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1000*ones(obj.m,1);
-                obj.d = 0*ones(obj.m,1);
+                obj.c = 10*ones(obj.m,1);
+                obj.d = 100*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
