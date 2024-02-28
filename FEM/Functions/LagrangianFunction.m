@@ -261,6 +261,17 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues;
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                    fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                    fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end
+            f = obj.create(obj.mesh,obj.ndimf,obj.order);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
         % Operator overload
 
         function s = plus(obj1,obj2)
