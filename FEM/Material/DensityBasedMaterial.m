@@ -16,21 +16,15 @@ classdef DensityBasedMaterial < handle
             obj.init(cParams)            
         end
         
-        function C = evaluate(obj,xV)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            C = m.evaluate(xV);
+        function C = obtainTensor(obj)
+          s.operation = @(xV) obj.evaluate(xV);
+          C = DomainFunction(s);            
         end
         
-        function dC = evaluateGradient(obj,xV)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
-            m = obj.createMaterial(dmu,dkappa);
-            dC = m.evaluate(xV);
-        end
+        function dC = obtainTensorDerivative(obj)
+          s.operation = @(xV) obj.evaluateGradient(xV);
+          dC = DomainFunction(s);            
+        end        
         
         function setDesignVariable(obj,x)
             obj.density = x;
@@ -55,6 +49,22 @@ classdef DensityBasedMaterial < handle
             m = Material.create(s);   
         end    
         
+        function C = evaluate(obj,xV)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [mu,kappa] = mI.computeConsitutiveTensor(rho);
+            m = obj.createMaterial(mu,kappa);
+            C = m.evaluate(xV);
+        end
+        
+        function dC = evaluateGradient(obj,xV)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
+            m = obj.createMaterial(dmu,dkappa);
+            dC = m.evaluate(xV);
+        end
+
         function ndim = computeNdim(obj)
             switch obj.dim
                 case '2D'
