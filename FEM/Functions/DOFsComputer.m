@@ -72,11 +72,16 @@ classdef DOFsComputer < handle
             dofsEdges = obj.computeDofsEdges();
             ndofsEdges = max(max(dofsEdges));
             
-            dofsFaces = obj.computeDofsFaces(ndofsEdges);
-            ndofsFaces = max(max(dofsFaces));
+            if ~strcmp(obj.mesh.type,'LINE')
+                dofsFaces = obj.computeDofsFaces(ndofsEdges);
+                ndofsFaces = max(max(dofsFaces));
             
-            dofsElements = obj.computeDofsElements(ndofsFaces);
-            
+                dofsElements = obj.computeDofsElements(ndofsFaces);
+            else
+                dofsFaces = [];
+                dofsElements = [];
+            end
+
             obj.dofs = [dofsVertices,dofsEdges,dofsFaces,dofsElements];
         end
         
@@ -124,7 +129,7 @@ classdef DOFsComputer < handle
                 m.computeEdges();
                 edges = m.edges.edgesInElem;
                 ndofEdge = obj.order-1;
-                ndofsEdgeElem = ndofEdge*obj.mesh.nnodeElem;
+                ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
                 
                 dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
@@ -268,6 +273,8 @@ classdef DOFsComputer < handle
         function loc = computeLocPointEdgeRef(obj)
             type = obj.mesh.type;
             switch type
+                case 'LINE'
+                    loc = [1 2];
                 case 'TRIANGLE'
                     loc = [1 2 3];
                 case 'QUAD'
