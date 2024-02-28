@@ -15,6 +15,9 @@ classdef MaterialFactory < handle
                     
                 case 'HomogenizedMicrostructure'
                     material = HomogenizedMicrostructureInterpolator(cParams);
+                    
+                case 'DensityBased'
+                    material = DensityBasedMaterial(cParams);
                 
                 case 'STOKES'
                     material = Material_Stokes(cParams);
