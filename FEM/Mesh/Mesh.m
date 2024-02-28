@@ -3,7 +3,6 @@ classdef Mesh < handle
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
-        % geometryType
 
         coord
         connec
@@ -22,9 +21,8 @@ classdef Mesh < handle
         boundaryElements
     end
 
-    properties (Access = private)
+    properties (Access = protected)
         xFE
-        geometry
     end
 
     methods (Static, Access = public)
@@ -50,7 +48,6 @@ classdef Mesh < handle
             obj.computeDimensionParams();
             obj.createInterpolation();
             obj.computeElementCoordinates();
-            obj.createGeometry();
         end
 
         function L = computeCharacteristicLength(obj)
@@ -69,12 +66,42 @@ classdef Mesh < handle
         function xGauss = computeXgauss(obj,xV)
             xGauss = obj.xFE.evaluate(xV);
         end
+        
+        function hMin = computeMinCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMin = min(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMean = computeMeanCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMean = mean(sqrt(sum(x1x2.^2,2)));
+        end
+
+        function hMax = computeMaxCellSize(obj)
+            if isempty(obj.edges)
+                obj.computeEdges();
+            end
+            x1 = obj.coord(obj.edges.nodesInEdges(:,1),:);
+            x2 = obj.coord(obj.edges.nodesInEdges(:,2),:);
+            x1x2 = (x2-x1);
+            hMax = max(sqrt(sum(x1x2.^2,2)));
+        end
 
         function q = computeElementQuality(obj) % check for 3d
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            volume = obj.computeDvolume(quad);
-            L(1,:) = obj.computeSquarePerimeter();
+            volume = obj.computeDvolume(quad)';
+            L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 
@@ -102,7 +129,7 @@ classdef Mesh < handle
         end
 
         function eM = computeEdgeMesh(obj) % nonsense for lines
-            obj.computeEdges;
+            obj.computeEdges();
             s.coord  = obj.coord;
             s.connec = obj.edges.nodesInEdges;
             s.kFace  = obj.kFace -1;
@@ -120,7 +147,7 @@ classdef Mesh < handle
             switch obj.ndim
                 case 3
                     normal = obj.getNormals();
-                    n(:,1:obj.nelem) = squeeze(normal)';
+                    n(:,1:obj.nelem) = squeeze(normal);
                     xy = obj.computeBaricenter();
                     q = quiver3(xy(1,:),xy(2,:),xy(3,:),n(1,:),n(2,:),n(3,:),'k');
                     h = obj.computeMeanCellSize();
@@ -169,13 +196,6 @@ classdef Mesh < handle
             m = r.compute();
         end
 
-        function m = convertToTriangleMesh(obj, lastNode)
-            % only quad
-            if nargin == 1; lastNode = obj.nnodes; end
-            q2t = QuadToTriMeshConverter();
-            m = q2t.convert(obj, lastNode);
-        end
-
         function exportSTL(obj)
             s.mesh = obj;
             me = STLExporter(s);
@@ -188,85 +208,13 @@ classdef Mesh < handle
             p1.print(filename, software);
         end
 
-        %% Generalize
-
-        % Generalize
-        function hMin = computeMinCellSize(obj)
-            x1(:,1) = obj.coord(obj.connec(:,1),1);
-            x1(:,2) = obj.coord(obj.connec(:,1),2);
-            x2(:,1) = obj.coord(obj.connec(:,2),1);
-            x2(:,2) = obj.coord(obj.connec(:,2),2);
-            x3(:,1) = obj.coord(obj.connec(:,3),1);
-            x3(:,2) = obj.coord(obj.connec(:,3),2);
-            x1x2 = (x2-x1);
-            x2x3 = (x3-x2);
-            x1x3 = (x1-x3);
-            n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-            n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
-            n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-            hs = min([n12,n23,n13],[],2);
-            hMin = min(hs);
-        end
-
-        % Generalize
-        function hMean = computeMeanCellSize(obj)
-            switch obj.type
-                case {'LINE'}
-                    x1(:,1) = obj.coord(obj.connec(:,1),1);
-                    x1(:,2) = obj.coord(obj.connec(:,1),2);
-                    x2(:,1) = obj.coord(obj.connec(:,2),1);
-                    x2(:,2) = obj.coord(obj.connec(:,2),2);
-                    x1x2 = (x2-x1);                    
-                    hs = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-                    hMean = max(hs);  
-                otherwise
-                    x1(:,1) = obj.coord(obj.connec(:,1),1);
-                    x1(:,2) = obj.coord(obj.connec(:,1),2);
-                    x2(:,1) = obj.coord(obj.connec(:,2),1);
-                    x2(:,2) = obj.coord(obj.connec(:,2),2);
-                    x3(:,1) = obj.coord(obj.connec(:,3),1);
-                    x3(:,2) = obj.coord(obj.connec(:,3),2);
-                    x1x2 = (x2-x1);
-                    x2x3 = (x3-x2);
-                    x1x3 = (x1-x3);
-                    n12 = sqrt(x1x2(:,1).^2 + x1x2(:,2).^2);
-                    n23 = sqrt(x2x3(:,1).^2 + x2x3(:,2).^2);
-                    n13 = sqrt(x1x3(:,1).^2 + x1x3(:,2).^2);
-                    hs = max([n12,n23,n13],[],2);
-                    hMean = max(hs);                  
-            end
-        end
-
-        %% Heavy refactoring
-
-        % Separate Mesh into LineMesh, SurfaceMesh, VolumeMesh
-        % DELETE Geometry
-
-        function dvolume = computeDvolume(obj,quad)
-            g = obj.geometry;
-            g.computeGeometry(quad,obj.interpolation);
-            dvolume = g.dvolu;
-            dvolume = dvolume';
-        end
-
-        function invJac = computeInverseJacobian(obj,quad,int)
-            g = obj.geometry;
-            invJac = g.computeInverseJacobian(quad,int);
-        end
-
-        function n = getNormals(obj) % only 
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('CONSTANT');
-            g = obj.geometry;
-            g.computeGeometry(quad,obj.interpolation);
-            n = g.normalVector;
+        function dV = computeDvolume(obj,quad)
+            w = reshape(quad.weigp,[quad.ngaus 1]);
+            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+            dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
         end
 
         %% Remove
-
-        function setCoord(obj,newCoord)
-            obj.coord = newCoord;
-        end
 
         function mD = createDiscontinuousMesh(obj) % P1D
             ndims = size(obj.coord, 2);
@@ -328,6 +276,27 @@ classdef Mesh < handle
 
     end
 
+    methods (Access = protected)
+
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coordElem,1);
+            nElem    = size(obj.coordElem,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                        jacIJ    = dShapeIK*xKJ;
+                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                end
+            end
+        end
+
+    end
+
     methods (Access = private)
 
         function init(obj,s)
@@ -342,11 +311,6 @@ classdef Mesh < handle
             obj.ndim  = size(obj.coord,2);
             obj.nelem = size(obj.connec,1);
             obj.nnodeElem = size(obj.connec,2);
-        end
-
-        function createGeometry(obj)
-            s.mesh = obj;
-            obj.geometry = Geometry.create(s);
         end
 
         function createInterpolation(obj)

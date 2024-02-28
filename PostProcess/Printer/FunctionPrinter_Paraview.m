@@ -194,7 +194,7 @@ classdef FunctionPrinter_Paraview < handle
 
         function n = createFValuesNode(obj, docNode, iFun)
             func = obj.fun{iFun}.project('P1');
-            if func.ndimf < 3
+            if func.ndimf == 2
                 nExtr = 3-func.ndimf;
                 nDimf = 3;
                 fVals = [func.fValues, repmat(zeros(size(func.fValues, 1),1), [1 nExtr])];

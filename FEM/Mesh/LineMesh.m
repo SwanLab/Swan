@@ -2,13 +2,9 @@ classdef LineMesh < Mesh
     
     properties (Access = public)
         geometryType = 'Line';
-        
-%         coord, connec
-%         kFace
     end
     
     properties (Access = private)
-%         type
     end
     
     properties (Access = private)
@@ -20,6 +16,16 @@ classdef LineMesh < Mesh
         function obj = LineMesh(cParams)
             obj = obj@Mesh(cParams);
             % obj.init(cParams)
+        end
+
+        function detJ = computeJacobianDeterminant(obj,xV)
+            J = obj.computeJacobian(xV);
+            detJ = squeeze(pagenorm(J));
+        end
+        
+        function invJ = computeInverseJacobian(obj,xV)
+            detJ = obj.computeJacobianDeterminant(xV);
+            invJ = 1./detJ;
         end
         
         function plot(obj)

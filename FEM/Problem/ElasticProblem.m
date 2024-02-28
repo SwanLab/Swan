@@ -42,27 +42,8 @@ classdef ElasticProblem < handle
             obj.computeStress();
         end
 
-        function plot(obj)
-            s.dim          = obj.getFunDims();
-            s.mesh         = obj.mesh;
-            plotter = FEMPlotter(s);
-            plotter.plot();
-        end
-
-        function dim = getDimensions(obj)
-            dim = obj.getFunDims();
-        end
-
         function updateMaterial(obj, mat)
             obj.material = mat;
-        end
-
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-        end
-
-        function quad = getQuadrature(obj)
-            quad  = obj.quadrature;
         end
        
         function print(obj, filename, software)
@@ -174,26 +155,16 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            strFun = obj.displacementFun.computeSymmetricGradient(obj.quadrature);
-            strFun = strFun.obtainVoigtFormat();
-            obj.strainFun = strFun;
-            obj.strain = strFun;
+            xV = obj.quadrature.posgp;
+            obj.strainFun = SymGrad(obj.displacementFun);
+%             strFun = strFun.obtainVoigtFormat();
+            obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            strn(:,1,:,:) = obj.strain.fValues;
-            Cv            = obj.material.evaluate(obj.quadrature.posgp);
-
-            strs = pagemtimes(Cv,strn);
-            strs = permute(strs, [1 3 4 2]);
-
-            z.mesh       = obj.mesh;
-            z.fValues    = strs;
-            z.quadrature = obj.quadrature;
-            strFun       = FGaussDiscontinuousFunction(z);
-
-            obj.stress    = strFun;
-            obj.stressFun = strFun;
+            xV = obj.quadrature.posgp;
+            obj.stressFun = DDP(obj.material, obj.strainFun);
+            obj.stress = obj.stressFun.evaluate(xV);
         end
 
     end

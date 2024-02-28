@@ -1,5 +1,5 @@
 classdef PerimeterFunctional < handle
-    
+
     properties (Access = private)
         mesh
         filter
@@ -9,10 +9,10 @@ classdef PerimeterFunctional < handle
 
     methods (Access = public)
         function obj = PerimeterFunctional(cParams)
-          obj.init(cParams);
-          obj.filter.updateEpsilon(obj.epsilon);
+            obj.init(cParams);
+            obj.filter.updateEpsilon(obj.epsilon);
         end
-        
+
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
@@ -21,9 +21,9 @@ classdef PerimeterFunctional < handle
             J  = obj.computeNonDimensionalValue(J);
             dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
         end
-              
+
     end
-    
+
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
@@ -46,7 +46,7 @@ classdef PerimeterFunctional < handle
             result    = int.compute(f,xD);
             J         = 2/(obj.epsilon)*result;
         end
-        
+
         function dJ = computeGradient(obj,xR)
             dj        = 2/(obj.epsilon)*(1-2*xR.fValues);
             s.fValues = dj;

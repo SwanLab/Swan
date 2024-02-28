@@ -38,18 +38,18 @@ classdef Projector_toLagrangian < Projector
         function RHS = computeRHS(obj,fun)
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
+            fGaus = fun.evaluate(xV);
             dV = obj.mesh.computeDvolume(quad);
             
             f = LagrangianFunction.create(obj.mesh, 1,obj.order);
-            shapes = f.computeShapeFunctions(quad);
+            shapes = f.computeShapeFunctions(xV);
             conne = f.computeDofConnectivity()';
 
-            nGaus = quad.ngaus;
-            nFlds = fun.ndimf;
+            nGaus = size(xV,2);
+            nFlds = size(fGaus,1);
             nNode = size(conne,2);
             nDofs = max(max(conne));
 
-            fGaus = fun.evaluate(xV);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for igaus = 1:nGaus

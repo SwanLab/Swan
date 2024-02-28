@@ -26,8 +26,9 @@ classdef LHSintegratorFunctionMass < handle
 
         function lhs = computeElementalLHS(obj)
             quad = obj.quadrature;
-            shapesTest  = obj.test.computeShapeFunctions(quad);
-            shapesTrial = obj.trial.computeShapeFunctions(quad);
+            xV   = quad.posgp;
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            shapesTrial = obj.trial.computeShapeFunctions(xV);
             dVolu  = obj.mesh.computeDvolume(quad);
             nGaus  = obj.quadrature.ngaus;
             nElem  = size(dVolu,2);
@@ -37,7 +38,7 @@ classdef LHSintegratorFunctionMass < handle
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            fG = squeeze(obj.fun.evaluate(quad.posgp));
+            fG = squeeze(obj.fun.evaluate(xV));
 
             M = zeros(nDofTest, nDofTrial, nElem);
             % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);

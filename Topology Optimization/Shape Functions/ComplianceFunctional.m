@@ -8,7 +8,7 @@ classdef ComplianceFunctional < handle
         mesh
         filter
         compliance
-        materialInterpolator
+        material
     end
 
     methods (Access = public)
@@ -19,9 +19,8 @@ classdef ComplianceFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
-            C  = obj.computeMaterial(xR);
-            dC = obj.computeMaterialDerivative(xR);               
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(C,dC);
+            obj.material.setDesignVariable(xR);
+            [J,dJ] = obj.computeComplianceFunctionAndGradient();
         end
 
     end
@@ -30,7 +29,7 @@ classdef ComplianceFunctional < handle
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
             obj.filter               = cParams.filter;
-            obj.materialInterpolator = cParams.materialInterpolator;
+            obj.material             = cParams.material;
             obj.compliance           = cParams.complainceFromConstitutive;
         end
 
@@ -38,17 +37,9 @@ classdef ComplianceFunctional < handle
             xR = obj.filter.compute(x,'LINEAR');
         end
 
-        function C = computeMaterial(obj,x)
-            mI = obj.materialInterpolator;
-            C  = mI.computeConsitutiveTensor(x);
-        end
-
-        function dC = computeMaterialDerivative(obj,x)
-            mI = obj.materialInterpolator;
-            dC = mI.computeConsitutiveTensorDerivative(x);
-        end        
-
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,C,dC)
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj)
+            C   = obj.material.obtainTensor();
+            dC  = obj.material.obtainTensorDerivative();
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
             dJ     = obj.filter.compute(dJ,'LINEAR');
             if isempty(obj.value0)

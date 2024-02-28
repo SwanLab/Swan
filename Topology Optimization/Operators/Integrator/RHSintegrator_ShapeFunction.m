@@ -57,13 +57,13 @@ classdef RHSintegrator_ShapeFunction < handle
         function rhsC = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
-            fG     = fun.evaluate(xV);
-            dV     = obj.computeDvolume();
-            N = test.computeShapeFunctions(quad);
+            fG   = fun.evaluate(xV);
+            dV   = obj.mesh.computeDvolume(quad);
+            N = test.computeShapeFunctions(xV);
             nDofElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
-            nFlds     = fun.ndimf;
+            nFlds     = size(fG,1);
             int = zeros(nDofElem,nElem);
             for iField = 1:nFlds
                 for iDof = 1:nDofElem
@@ -90,11 +90,6 @@ classdef RHSintegrator_ShapeFunction < handle
                 con = connec(:,iDof);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
-        end
-
-        function dV = computeDvolume(obj)
-            q = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);
         end
 
         function createQuadrature(obj)
