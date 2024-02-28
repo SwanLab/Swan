@@ -3,7 +3,7 @@ classdef Integrator < handle
     methods (Access = public, Static)
         function int = compute(fun,mesh,order)
             switch class(fun)
-                case 'UnfittedFunction'
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     type = 'Unfitted';
                     m    = fun.unfittedMesh;
                 otherwise
