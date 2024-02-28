@@ -73,6 +73,13 @@ classdef DomainFunction < handle
             r = DomainFunction(s);
         end
 
+        function fun = project(obj,target,mesh)
+            s.mesh          = mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end
+
     end
     
     methods (Access = private)
@@ -89,7 +96,7 @@ classdef DomainFunction < handle
             if isprop(a,'operation')
                 op = a.operation;
             else
-                op = @(xV) evaluate(xV);
+                op = @(xV) a.evaluate(xV);
             end
         end
 

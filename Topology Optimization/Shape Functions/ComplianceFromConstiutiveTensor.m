@@ -1,9 +1,5 @@
 classdef ComplianceFromConstiutiveTensor < handle
 
-    properties (Access = public)
-
-    end
-
     properties (Access = private)
         quadrature
     end
@@ -48,22 +44,27 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function J = computeFunction(obj,C,u)
-            strain = SymGrad(u);
-            stress = DDP(C,strain);
-            int    = Integrator.create('ScalarProduct',obj.mesh,obj.quadrature.order);
-            J      = int.compute(strain,stress);
+            strain      = SymGrad(u);
+            stress      = DDP(C,strain);
+            dCompliance = DDP(strain,stress);
+            J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
         end
-  
-        function dj = computeGradient(obj,C,u)
-            eu2 = SymGrad(u);
-            % dStr = DDP(dC, eu2);
-            dj = -DDP(eu2, C, eu2); % !!
-        end
+ 
 
         function fd = createGaussFunction(obj,f)
             m  = obj.mesh;
             q  = obj.quadrature;
             fd = FGaussDiscontinuousFunction.create(f,m,q);
+        end
+
+    end
+
+    methods (Static, Access = private)
+
+        function dj = computeGradient(dC,u)
+            strain  = SymGrad(u);
+            dStress = DDP(dC,strain);
+            dj      = -DDP(strain, dStress);
         end
 
     end

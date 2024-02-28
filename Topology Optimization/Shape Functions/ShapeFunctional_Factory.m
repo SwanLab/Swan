@@ -24,7 +24,7 @@ classdef ShapeFunctional_Factory < handle
                     c                            = ComplianceFromConstiutiveTensor(s);
                     s.filter                     = cParams.filter;
                     s.complainceFromConstitutive = c;
-                    s.materialInterpolator       = cParams.materialInterpolator;
+                    s.material                   = cParams.material;
                     sF                           = ComplianceFunctional(s);
                 case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
                         'complianceConstraintC4'}
@@ -71,6 +71,7 @@ classdef ShapeFunctional_Factory < handle
                     s.mesh         = cParams.mesh;
                     s.filter       = cParams.filter;
                     s.volumeTarget = cParams.target;
+                    s.gradientTest = cParams.gradientTest;
                     sF             = VolumeConstraint(s);
                 case 'firstEignValue_functional'
                     sF = ShFunc_FirstEigenValue(cParams);

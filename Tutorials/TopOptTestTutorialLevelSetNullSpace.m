@@ -37,7 +37,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all;
         end
 
         function createMesh(obj)
@@ -124,6 +124,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;

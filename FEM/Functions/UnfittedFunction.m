@@ -27,6 +27,14 @@ classdef UnfittedFunction < handle
         function res = times(obj1,obj2)
             res     = copy(obj1);
             res.fun = res.fun.*obj2;
+            res.computeUnfittedMeshFunction();
+        end
+
+        function fun = project(obj,target)
+            s.mesh          = obj.unfittedMesh.backgroundMesh;
+            s.projectorType = target;
+            proj            = Projector.create(s);
+            fun             = proj.project(obj);
         end
     end
 

@@ -98,10 +98,11 @@ classdef FilterKernel < handle
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
                 otherwise
                     s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
             end
-            s.type     = 'ShapeFunction';
             s.quadType = quadType;
             rhsI       = RHSintegrator.create(s);
             obj.RHS    = rhsI.compute(fun,obj.test);
