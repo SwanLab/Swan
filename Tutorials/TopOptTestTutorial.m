@@ -42,8 +42,8 @@ classdef TopOptTestTutorial < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,2,50);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -158,16 +158,17 @@ classdef TopOptTestTutorial < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = false;
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 100;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
