@@ -31,6 +31,7 @@ for iref = 5:-1:1
         mesh(i) = meshTotal(iref+i-1);
     end
     [u, res] = mgsolve(data, vDown, vUp, tolerance, bc, mesh);
+    uTotal(:,5-iref+1) = u;
     a(5-iref+1) = toc;
     semilogy(res,'+-'), hold on
 end
