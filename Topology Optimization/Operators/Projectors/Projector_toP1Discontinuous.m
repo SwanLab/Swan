@@ -65,7 +65,7 @@ classdef Projector_toP1Discontinuous < Projector
             for iField = 1:nFlds
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
-                    fG = squeeze(fGaus(iField,:,igaus));
+                    fG = squeeze(fGaus(iField,igaus,:));
                     for inode = 1:nNode
                         dofs = conne(:,inode);
                         Ni = shapes(inode,igaus);
