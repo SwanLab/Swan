@@ -29,7 +29,7 @@ classdef Projector_toLagrangian < Projector
             s.mesh  = obj.mesh;
             s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
             s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            s.quadratureOrder = 'QUADRATIC'; % no
+            s.quadratureOrder = 'CUBIC'; % no
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
@@ -71,7 +71,7 @@ classdef Projector_toLagrangian < Projector
                 ord = fun.getQuadratureOrder();
             else
                 ord = obj.determineQuadratureOrder(fun);
-                ord = 'QUADRATIC'; % no
+                ord = 'CUBIC'; % no
             end
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature(ord);

@@ -16,6 +16,8 @@ classdef InterpolationFactory < handle
                             obj = Line_Constant(cParams);
                         case 'QUADRATIC'
                             obj = Line_Quadratic(cParams);
+                        case 'CUBIC'
+                            obj = Line_Cubic(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end
