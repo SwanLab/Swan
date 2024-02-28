@@ -55,7 +55,7 @@
             nDime = obj.mesh.interpolation.ndime;
             nGaus = size(xV,2);
             invJ  = obj.mesh.computeInverseJacobian(xV);
-            dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
+            dShapeDx  = zeros(nDime,nNode,nGaus,nElem);
             deriv = obj.mesh.interpolation.computeShapeDerivatives(xV);
             for igaus = 1:nGaus
                 dShapes = deriv(:,:,igaus);
