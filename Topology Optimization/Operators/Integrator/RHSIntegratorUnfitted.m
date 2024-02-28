@@ -103,7 +103,7 @@ classdef RHSIntegratorUnfitted < handle
                 fG       = f.evaluate(xVLoc);
                 dV       = cutMesh.mesh.computeDvolume(quad);
                 isoMesh  = obj.obtainIsoparametricMesh(cutMesh);
-                xV       = isoMesh.computeXgauss(xVLoc);
+                xV       = isoMesh.evaluate(xVLoc);
                 globCell = cutMesh.cellContainingSubcell;
                 N        = test.computeShapeFunctions(xV);
                 nDofElem = size(N,1);
@@ -160,31 +160,21 @@ classdef RHSIntegratorUnfitted < handle
             intLoc     = integrator.compute(uFi,testLoc);
         end
 
-        function m = obtainIsoparametricMesh(obj,cutMesh)
-            coord    = cutMesh.xCoordsIso;
-            nDim     = size(coord,1);
-            nNode    = size(coord,2);
-            nElem    = size(coord,3);
-            s.coord  = reshape(coord,nDim,[])';
-            s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            s.kFace  = obj.computeKFace(cutMesh,coord);
-            m        = Mesh.create(s);
-        end
-
     end
 
     methods (Static, Access = private)
 
-        function kFace = computeKFace(cutMesh,coordIso)
-            coord    = cutMesh.mesh.coord;
-            dim      = size(coord,2);
-            dimIso   = size(coordIso,1);
-            nodesIso = size(coordIso,2);
-            if dim==dimIso
-                kFace = cutMesh.mesh.kFace;
-            else
-                kFace = 0;
-            end
+        function m = obtainIsoparametricMesh(cutMesh)
+            coord      = cutMesh.xCoordsIso;
+            nDim       = size(coord,1);
+            nNode      = size(coord,2);
+            nElem      = size(coord,3);
+            msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            msh.type   = cutMesh.mesh.type;
+            s.fValues  = reshape(coord,nDim,[])';
+            s.mesh     = msh;
+            s.order    = 'P1';
+            m          = LagrangianFunction(s);
         end
 
         function f = assembleIntegrand(test,rhsElem)
