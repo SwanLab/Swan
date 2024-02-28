@@ -122,7 +122,7 @@ classdef DOFsComputer < handle
         
         
         function dofsEdges = computeDofsEdges(obj)
-            if obj.order == 1
+            if obj.order <= 1
                 dofsEdges = [];
             else
                 m = obj.mesh;
@@ -152,7 +152,7 @@ classdef DOFsComputer < handle
         function dofsFaces = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
-            if polOrder == 1
+            if polOrder <= 1
                 dofsFaces = [];
             else 
                 m.computeFaces();
@@ -195,7 +195,7 @@ classdef DOFsComputer < handle
             m = obj.mesh;
             polOrder = obj.order; 
             isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD'); 
-            if polOrder == 1 || isNot3D
+            if polOrder <= 1 || isNot3D
                 dofsElements = [];
             else 
                 ndofElement = obj.computeNdofsElements(polOrder);
