@@ -54,7 +54,7 @@ classdef RHSintegrator_ShapeFunction < handle
             obj.mesh     = cParams.mesh;
         end
 
-        function rhsC = computeElementalRHS(obj,fun,test)
+        function int = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
             fG   = fun.evaluate(xV);
@@ -64,7 +64,7 @@ classdef RHSintegrator_ShapeFunction < handle
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
             nFlds     = size(fG,1);
-            int = zeros(nDofElem,nElem);
+            int = zeros(nElem,nDofElem,nFlds);
             for iField = 1:nFlds
                 for iDof = 1:nDofElem
                     for iGaus = 1:nGaus
@@ -72,23 +72,24 @@ classdef RHSintegrator_ShapeFunction < handle
                         fV   = squeeze(fG(iField,iGaus,:));
                         Ni   = squeeze(N(iDof,iGaus,:));
                         fNdV(1,:) = Ni.*fV.*dVg;
-                        int(iDof,:) = int(iDof,:) + fNdV;
+                        int(:,iDof,iField) = int(:,iDof,iField) + fNdV';
                     end
                 end
             end
-            rhsC = transpose(int);
         end
 
         function f = assembleIntegrand(obj,test,rhsElem)
-            integrand = rhsElem;
             connec   = test.computeDofConnectivity()';
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
-            f = zeros(ndofs,1);
-            for iDof = 1:nDofElem
-                int = integrand(:,iDof);
-                con = connec(:,iDof);
-                f = f + accumarray(con,int,[ndofs,1],@sum,0);
+            nFields  = size(rhsElem,3);
+            f        = zeros(ndofs,nFields);
+            for iField = 1:nFields
+                for iDof = 1:nDofElem
+                    int = rhsElem(:,iDof,iField);
+                    con = connec(:,iDof);
+                    f(:,iField) = f(:,iField) + accumarray(con,int,[ndofs,1],@sum,0);
+                end
             end
         end
 
