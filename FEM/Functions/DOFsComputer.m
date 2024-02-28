@@ -211,7 +211,7 @@ classdef DOFsComputer < handle
         function ndofsElements = computeNdofsElements(obj,polOrder)
             switch obj.mesh.type
                 case 'TETRAHEDRA'
-                    d = 3;
+                    d = 4;
                 case 'HEXAHEDRA'
                     d = 2;
             end
