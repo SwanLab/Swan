@@ -86,19 +86,15 @@ classdef RHSIntegratorUnfitted < handle
             int   = zeros(dofs,1);
             iMesh = obj.unfittedMesh.innerMesh;
             if ~isempty(iMesh)
-                fInner       = uFun.innerMeshFunction;
-                intLoc       = obj.integrateInnerMeshLocal(fInner,test);
-                conG         = iMesh.globalConnec;
-                conL         = iMesh.mesh.connec;
-                l2g(conL(:)) = conG(:);
-                int(l2g)     = intLoc;
+                fullCells = iMesh.fullCells;
+                fInner    = uFun.innerMeshFunction;
+                testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
+                intLoc    = obj.innerIntegrator.compute(fInner,testLoc);
+                dofG      = test.computeDofConnectivity()';
+                dofL      = testLoc.computeDofConnectivity()';
+                l2g(dofL) = dofG(fullCells,:);
+                int(l2g)  = intLoc;
             end
-        end
-
-        function intLoc = integrateInnerMeshLocal(obj,f,test)
-            m       = obj.unfittedMesh.innerMesh.mesh;
-            testLoc = LagrangianFunction.create(m,test.ndimf,test.order);
-            intLoc  = obj.innerIntegrator.compute(f,testLoc);
         end
 
         function int = integrateCutMeshFunction(obj,f,test,cutMesh,quad)
@@ -142,7 +138,8 @@ classdef RHSIntegratorUnfitted < handle
                     conG         = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{i};
                     conL         = uMeshBound{i}.backgroundMesh.connec;
                     l2g(conL(:)) = conG(:);
-                    int(l2g)    = int(l2g)+ intLoci;
+                    int(l2g)     = int(l2g)+ intLoci;
+                    l2g          = [];
                 end 
             end
         end
@@ -162,18 +159,32 @@ classdef RHSIntegratorUnfitted < handle
             testLoc    = LagrangianFunction.create(mi,test.ndimf,test.order);
             intLoc     = integrator.compute(uFi,testLoc);
         end
-    end
 
-    methods (Static, Access = private)
-        function m = obtainIsoparametricMesh(cutMesh)
+        function m = obtainIsoparametricMesh(obj,cutMesh)
             coord    = cutMesh.xCoordsIso;
             nDim     = size(coord,1);
             nNode    = size(coord,2);
             nElem    = size(coord,3);
             s.coord  = reshape(coord,nDim,[])';
             s.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            s.kFace  = cutMesh.mesh.kFace;
-            m        = Mesh.create(s); 
+            s.kFace  = obj.computeKFace(cutMesh,coord);
+            m        = Mesh.create(s);
+        end
+
+    end
+
+    methods (Static, Access = private)
+
+        function kFace = computeKFace(cutMesh,coordIso)
+            coord    = cutMesh.mesh.coord;
+            dim      = size(coord,2);
+            dimIso   = size(coordIso,1);
+            nodesIso = size(coordIso,2);
+            if dim==dimIso
+                kFace = cutMesh.mesh.kFace;
+            else
+                kFace = 0;
+            end
         end
 
         function f = assembleIntegrand(test,rhsElem)

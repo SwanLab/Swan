@@ -57,6 +57,7 @@ classdef Projector_toLagrangian < Projector
             else
                 ord = obj.determineQuadratureOrder(fun);
                 ord = 'ORDER10'; % no
+                ord = 'QUADRATIC';
             end
         end
 
