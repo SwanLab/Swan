@@ -24,6 +24,10 @@ classdef HomogenizedMicrostructureInterpolator < Material
            obj.microParams = x;            
            dCm{iVar} = obj.createMaterial(x);
         end
+
+        function setDesignVariable(obj,x)
+            obj.microParams = x;
+        end
         
     end
  
