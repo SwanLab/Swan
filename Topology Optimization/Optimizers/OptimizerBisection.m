@@ -52,9 +52,9 @@ classdef OptimizerBisection < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
             end
         end
 

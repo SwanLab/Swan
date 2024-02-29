@@ -54,8 +54,8 @@ classdef OptimizerMMA < Optimizer
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
-               obj.updateMonitoring();
                obj.printOptimizerVariable();
+               obj.updateMonitoring();
            end
             obj.hasConverged = 0;
        end
