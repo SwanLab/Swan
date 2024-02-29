@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial < handle
+classdef TopOptTestTutorial3DDensity < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptTestTutorial3DDensity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -41,14 +41,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = HexaMesh(2,1,1,20,20,20);
         end
 
         function createDesignVariable(obj)
@@ -59,7 +52,7 @@ classdef TopOptTestTutorial < handle
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
-            s.plotting = true;
+            s.plotting = false;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -86,7 +79,7 @@ classdef TopOptTestTutorial < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
 
@@ -101,7 +94,7 @@ classdef TopOptTestTutorial < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
+            s.dim                  = '3D';
             m = Material.create(s);
         end
 
@@ -109,7 +102,7 @@ classdef TopOptTestTutorial < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -188,17 +181,18 @@ classdef TopOptTestTutorial < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
+            xMax = max(obj.mesh.coord(:,1));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
+            sPL{1}.direction = 3;
             sPL{1}.value     = -1;
 
             dirichletFun = [];

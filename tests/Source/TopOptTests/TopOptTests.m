@@ -35,7 +35,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             m      = gid.mesh;
             dim    = gid.dim;
             bc     = gid.boundaryConditions;
-            x      = obj.createDesignVariable(designVariable,m,geomFunSettings);
+            x      = obj.createDesignVariable(designVariable,m,geomFunSettings,plotting);
             filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
             filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);
             mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
@@ -48,6 +48,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
             t      = obj.createOptimizer(optimizer,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
+            close all;
         end
 
         function s = readGidFile(file)
@@ -55,7 +56,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s          = FemDataContainer(a);
         end
 
-        function x = createDesignVariable(type,mesh,gSet)
+        function x = createDesignVariable(type,mesh,gSet,plotting)
             g      = GeometricalFunction(gSet);
             lsFun  = g.computeLevelSetFunction(mesh);
             switch type
@@ -70,6 +71,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.fun  = fun;
             s.mesh = mesh;
             s.type = type;
+            s.plotting = plotting;
             x      = DesignVariable.create(s);
         end
 
