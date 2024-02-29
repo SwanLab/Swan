@@ -32,7 +32,8 @@ classdef Constraint < handle
                 djV(:,iF) = dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = obj.Msmooth*djV;
+            %obj.gradient = obj.Msmooth*djV;
+            obj.gradient = djV;
         end
 
         function nF = obtainNumberFields(obj)

@@ -27,6 +27,12 @@ classdef AnalyticalFunction < L2Function
             p1D = obj.project('P1D');
             p1D.plot();
         end
+
+        function r = times(obj,b)
+            s.operation = @(xV) obj.evaluate(xV);
+            f           = DomainFunction(s);
+            r           = f.*b;
+        end
         
     end
 

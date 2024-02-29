@@ -7,7 +7,12 @@ classdef Projector_toP1Discontinuous < Projector
         end
 
         function xProj = project(obj, x)
-            if strcmp(x.order, 'P1')
+            if isprop(x,'order')
+                order = x.order;
+            else
+                order = [];
+            end
+            if strcmp(order, 'P1')
                 % fVals = zeros(x.nDofsElem,obj.mesh.nelem);
                 % fVals = obj.reshapeFValues(fVals,x.ndimf);
                 connec = obj.mesh.connec;
@@ -22,7 +27,7 @@ classdef Projector_toP1Discontinuous < Projector
                 LHS = obj.computeLHS();
                 RHS = obj.computeRHS(x);
                 f = LHS\RHS;
-                fVals = obj.reshapeFValues(f, x.ndimf);
+                fVals = obj.reshapeFValues(f, size(f,2));
             end
             s.mesh    = obj.mesh;
             s.fValues = fVals;
@@ -55,12 +60,12 @@ classdef Projector_toP1Discontinuous < Projector
             conne = obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;
-            nFlds = fun.ndimf;
             nElem = obj.mesh.nelem;
             nNode = size(conne,2);
             nDofs = nElem*nNode;
 
             fGaus = fun.evaluate(xV);
+            nFlds = size(fGaus,1);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for igaus = 1:nGaus

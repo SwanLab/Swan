@@ -87,6 +87,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.85;
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -95,11 +96,22 @@ classdef TopOptTestTutorialLSPerimeter < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.perimeter;
             s.weights           = 1;
+            s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
+        end
+
+        function M = createMassMatrix(obj)
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
+            s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
