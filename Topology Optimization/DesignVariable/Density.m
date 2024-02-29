@@ -1,15 +1,21 @@
 classdef Density < DesignVariable
-    
+
+    properties (Access = private)
+        plotting
+        plotter
+    end
+
     methods (Access = public)
-        
+
         function obj = Density(cParams)
             obj.nVariables = 1;
             obj.init(cParams);
+            obj.createPlotter(cParams);
         end
 
         function fun = obtainDomainFunction(obj)
             fun = obj.fun;
-        end        
+        end
 
         function update(obj,value)
             if ~isempty(obj.isFixed)
@@ -19,8 +25,21 @@ classdef Density < DesignVariable
             s.fValues = value;
             s.order   = 'P1';
             obj.fun   = LagrangianFunction(s);
-        end        
+        end
+
+        function plot(obj)
+            obj.plotter.plot();
+        end
     
+    end
+
+    methods (Access = private)
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            obj.plotter  = Plotter.create(obj);
+        end
+
     end
     
 end

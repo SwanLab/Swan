@@ -55,9 +55,9 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
                 obj.checkParameters();
             end
         end

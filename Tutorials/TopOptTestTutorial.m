@@ -59,6 +59,7 @@ classdef TopOptTestTutorial < handle
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
+            s.plotting = true;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end

@@ -2,6 +2,8 @@ classdef LevelSet < DesignVariable
     
     properties (Access = private)
         unfittedMesh
+        plotting
+        plotter
     end
     
     methods (Access = public)
@@ -10,6 +12,7 @@ classdef LevelSet < DesignVariable
             obj.nVariables = 1;
             obj.init(cParams);
             obj.createUnfittedMesh();
+            obj.createPlotter(cParams);
         end
 
         function update(obj,value)
@@ -41,9 +44,13 @@ classdef LevelSet < DesignVariable
             vf = dv./dVT;
             Vf(1,1,:) = vf;
         end
-        
+
+        function plot(obj)
+            obj.plotter.plot();
+        end
+
     end
-    
+
     methods (Access = private)
 
         function createUnfittedMesh(obj)
@@ -57,7 +64,12 @@ classdef LevelSet < DesignVariable
         function updateUnfittedMesh(obj)
             obj.unfittedMesh.compute(obj.fun.fValues);
         end
-        
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            obj.plotter  = Plotter.create(obj);
+        end
+
     end
-    
+
 end
