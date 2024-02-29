@@ -37,7 +37,7 @@ classdef AcademicMonitoring < handle
         function init(obj,cParams)
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
-            obj.designVariable = cParams.designVar;
+            obj.designVariable = cParams.designVariable;
             obj.dualVariable   = cParams.dualVariable;
             obj.shallPrint     = cParams.shallPrint;
             obj.colorsSample   = ["r","b","g","m","k","c","y"];

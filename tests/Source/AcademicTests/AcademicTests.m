@@ -21,7 +21,6 @@ classdef AcademicTests < matlab.unittest.TestCase
             err = abs(obt-org);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
-            close all
         end
 
     end
