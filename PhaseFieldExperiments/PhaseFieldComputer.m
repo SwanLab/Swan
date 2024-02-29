@@ -11,16 +11,15 @@ classdef PhaseFieldComputer < handle
         bcVal 
 
         mesh
-        boundaryConditions
+        BC
         
         materialPhaseField
         dissipationInterpolation
 
         fem
         phi
-        deltaPhi
         u
-        deltaU
+        forceVector
     end
 
     properties (Access = private)
@@ -50,8 +49,7 @@ classdef PhaseFieldComputer < handle
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
             obj.createFunctionals()
-
-            obj.u = LagrangianFunction.create(obj.mesh,2,'P1');
+            
             uOld = LagrangianFunction.create(obj.mesh,2,'P1');
             phiOld = obj.phi.fValues;
             obj.costFun = null(2,1);
@@ -59,10 +57,12 @@ classdef PhaseFieldComputer < handle
             for i = 1:obj.steps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 obj.createBoundaryConditions(obj.bcVal(i));
+                obj.u = obj.BC.dirichletFun;
                 numIterU = 1;
                 errorU = 1;
-                while (errorU(end) > obj.tolErrU) && (numIterU < 100)
+                while (errorU > obj.tolErrU) && (numIterU < 100)
                     obj.computeFEM();
+
                     obj.costFun(1,end+1) = obj.computeCostFunction();
                     if numIterU == 1
                         obj.costFun(2,end) = 2;
@@ -73,9 +73,7 @@ classdef PhaseFieldComputer < handle
                     numIterP = 1;
                     errorPhi = 1;
                     while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
-                        obj.computePhaseField();
-                        obj.phi.fValues = obj.phi.fValues + obj.deltaPhi;
-                        obj.phi.fValues = min(max(phiOld, obj.phi.fValues),1);
+                        obj.computePhaseField(phiOld);
 
                         obj.costFun(1,end+1) = obj.computeCostFunction();
                         obj.costFun(2,end) = 1;
@@ -85,11 +83,12 @@ classdef PhaseFieldComputer < handle
 
                         numIterP = numIterP + 1;
                     end
-                    errorU(end+1) = obj.computeDisplacementError(uOld);
+
+                    errorU = obj.computeDisplacementError(uOld);
                     disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(end))])
 
                     numIterU = numIterU + 1;
-                    uOld.fValues = obj.fem.uFun.fValues;
+                    uOld.fValues = obj.u.fValues;
                 end
                 phiOld = obj.phi.fValues;
 
@@ -130,7 +129,7 @@ classdef PhaseFieldComputer < handle
             s.mesh = obj.mesh;
             bc = BoundaryContionsForPhaseFieldCreator(s);
             bcSet = bc.create(prescribedVal);
-            obj.boundaryConditions = bcSet;
+            obj.BC = bcSet;
         end
 
         function createFunctionals(obj)
@@ -165,12 +164,15 @@ classdef PhaseFieldComputer < handle
         %     s.solverMode = 'DISP';
         %     obj.fem = PhysicalProblem.create(s);
         %     obj.fem.solve();
+        %     obj.u = obj.fem.uFun;
+        %     obj.forceVector = obj.fem.reactions;
         % end
 
         function computeFEM(obj)
-            LHS = obj.createInternalEnergyStiffnessMatrix();
-            RHS = obj.computeElasticResidual();
-            obj.deltaU = LHS\RHS;
+            LHSfull = obj.createInternalEnergyStiffnessMatrix();
+            RHSfull = obj.computeElasticResidual();
+            obj.u.fValues = obj.computeDisplacement(LHSfull, RHSfull);
+            obj.forceVector = obj.computeReactions(LHSfull);
         end
 
         function res = computeElasticResidual(obj)
@@ -180,7 +182,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function K = createInternalEnergyStiffnessMatrix(obj)
-            [Huu,~] = obj.functional.energy.computeHessian(obj.u,obj.phi,'QUADRATIC');
+            [Huu,~] = obj.functional.energy.computeHessian(obj.u,obj.phi,'LINEAR');
             K = Huu;
         end
 
@@ -190,18 +192,42 @@ classdef PhaseFieldComputer < handle
         end
 
         function Fext = createExternalWorkForceVector(obj)
-            fExt = obj.boundaryConditions.pointloadFun;
+            fExt = obj.BC.pointloadFun;
             [J] = obj.functional.extWork.computeGradient(obj.u,fExt,'LINEAR');
             Fext = J;
         end
 
+        function UfV = computeDisplacement(obj,LHSfull, RHSfull)
+            [LHS,RHS,freeDofs] = obj.fullToReduced(LHSfull, RHSfull);
+            deltaU = -LHS\RHS;
+
+            U = reshape(obj.u.fValues',[obj.u.nDofs 1]);
+            U(freeDofs) = U(freeDofs) + deltaU;
+            UfV = reshape(U,[flip(size(obj.u.fValues))])';
+        end
+
+        function [LHS,RHS,free_dofs] = fullToReduced(obj,LHS,RHS)
+            dofs = 1:size(LHS);
+            free_dofs = setdiff(dofs, obj.BC.dirichlet_dofs);
+            LHS = LHS(free_dofs, free_dofs);
+            RHS = RHS(free_dofs);
+        end
+
+        function F = computeReactions(obj,LHS)
+            U = reshape(obj.u.fValues',[obj.u.nDofs 1]);
+            F = LHS*U;
+        end
+
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         % Matrix equation
-        function computePhaseField(obj)
+        function computePhaseField(obj,phiOld)
             LHS = obj.computePhaseFieldLHS();
             RHS = obj.computePhaseFieldResidual();
-            obj.deltaPhi = -LHS\RHS;
+            deltaPhi = -LHS\RHS;
             %obj.deltaPhi = -obj.tau*RHS;
+
+            obj.phi.fValues = obj.phi.fValues + deltaPhi;
+            obj.phi.fValues = min(max(phiOld, obj.phi.fValues),1); %%%% IRREVERSIBILITY CONDITION %%%%
         end
 
         function LHS = computePhaseFieldLHS(obj)
@@ -233,13 +259,13 @@ classdef PhaseFieldComputer < handle
 
         % Stiffness matrix
         function K = createStiffnessMatrix(obj)
-            K = obj.functional.nonLocalDamage.computeHessian(obj.phi,'CONSTANT');
+            K = obj.functional.nonLocalDamage.computeHessian(obj.phi,'LINEAR');
         end
 
         %%% RHS %%%
         % Internal energy force vector
         function Fi = createInternalEnergyForceVector(obj)
-            [~,Jphi] = obj.functional.energy.computeGradient(obj.fem.uFun,obj.phi,'LINEAR');
+            [~,Jphi] = obj.functional.energy.computeGradient(obj.u,obj.phi,'QUADRATIC');
             Fi = Jphi;
         end
         
@@ -267,7 +293,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function totVal = computeTotalExternalWork(obj)
-            fExt = obj.boundaryConditions.pointloadFun;
+            fExt = obj.BC.pointloadFun;
             totVal = obj.functional.extWork.computeFunction(obj.u,fExt,'LINEAR');
         end
 
@@ -275,29 +301,16 @@ classdef PhaseFieldComputer < handle
 
 
 
-        function totReact = computeReaction(obj)
+        function totReact = computeTotalReaction(obj)
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-
-            % bMesh = obj.mesh.createBoundaryMesh{4};
-            % s.mesh = bMesh.mesh;
-            % s.fValues = obj.fem.reactions(2*nodes(isInUp));
-            % R = P1Function(s);
-            % 
-            % q.mesh = bMesh.mesh;
-            % q.quadType = 'LINEAR';
-            % q.type = 'Function';
-            % int = Integrator.create(q);
-            % totReact = int.compute(R);
-
-            totReact = sum(obj.fem.reactions(2*nodes(isInUp)));
+            totReact = -sum(obj.forceVector(2*nodes(isInUp)));
 
             % LeftSide  = min(obj.mesh.coord(:,1));
             % isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
             % nodes = 1:obj.mesh.nnodes;
-            % totReact = sum(obj.fem.reactions(2*nodes(isInLeft)));
-
+            % totReact = sum(obj.forceVector(2*nodes(isInLeft)));
         end
 
         function e = computeCostFunction(obj)
@@ -310,12 +323,10 @@ classdef PhaseFieldComputer < handle
 
         function error = computeDisplacementError(obj,f)
             s.mesh = obj.mesh;
-            s.fValues = obj.fem.uFun.fValues - f.fValues;
+            s.fValues = obj.u.fValues - f.fValues;
             f = P1Function(s);
             int = Integrator.create('ScalarProduct',obj.mesh,'CONSTANT');
             error = sqrt(int.compute(f,f));
-
-            error2 = norm(s.fValues);
         end
 
         function computeEnergyIntegrals(obj,step)
@@ -332,8 +343,8 @@ classdef PhaseFieldComputer < handle
         function saveData(obj,cParams)
             step = cParams.step;
 
-            % obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
-            obj.reactionMat(step) = obj.computeReaction();
+            %obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
+            obj.reactionMat(step) = -obj.computeTotalReaction();
             
             obj.displacementMat(step) = obj.bcVal(step);
             obj.damageMat(step) = max(obj.phi.fValues);
@@ -366,12 +377,12 @@ classdef PhaseFieldComputer < handle
             colorbar
             clim([0 1])
 
-            figure(100)
-            plot(obj.displacementMat(1:step),obj.forceMat(1:step))
-            title('Force-displacement diagram (Internal force)')
-            grid on
-            xlabel('Displacement [mm]')
-            ylabel('Force [kN]')
+            % figure(100)
+            % plot(obj.displacementMat(1:step),obj.forceMat(1:step))
+            % title('Force-displacement diagram (Internal force)')
+            % grid on
+            % xlabel('Displacement [mm]')
+            % ylabel('Force [kN]')
 
             figure(101)
             plot(obj.displacementMat(1:step),obj.reactionMat(1:step))

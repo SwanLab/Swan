@@ -40,7 +40,7 @@ classdef ShFunc_InternalEnergy < handle
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
             C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
             sigma = DDP(C,SymGrad(u));
-            test = LagrangianFunction.create(obj.mesh, 2, 'P1');
+            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
 
             s.mesh = obj.mesh;
             s.quadratureOrder = quadOrder;
@@ -52,7 +52,7 @@ classdef ShFunc_InternalEnergy < handle
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             C = obj.materialPhaseField.setMaterial(phi,'Jacobian');
             dEnergyFun = DDP(SymGrad(u),C,SymGrad(u));
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
@@ -62,7 +62,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
-            mat = obj.materialPhaseField.setMaterial(phi,'Hessian'); 
+            mat = obj.materialPhaseField.setMaterial(phi,'Interpolated'); 
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
@@ -77,8 +77,8 @@ classdef ShFunc_InternalEnergy < handle
             ddEnergyFun = DDP(SymGrad(u),C,SymGrad(u));
             
             s.function = ddEnergyFun;
-            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
+            s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;

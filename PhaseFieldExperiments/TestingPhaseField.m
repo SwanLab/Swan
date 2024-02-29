@@ -60,7 +60,7 @@ classdef TestingPhaseField < handle
         function createMesh(obj)
             %obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            obj.createArbitraryElementMesh(10);
+            obj.createArbitraryElementMesh(5);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
             %obj.createLshapeMesh();
