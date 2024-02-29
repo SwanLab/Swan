@@ -13,13 +13,6 @@ classdef Optimizer_fmincon < Optimizer
         algorithm
         hasConverged
         hasFinished
-        
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
 
@@ -50,8 +43,8 @@ classdef Optimizer_fmincon < Optimizer
         function init(obj,cParams)
             obj.algorithm              = 'interior-point';
             cParams.optimizerNames.alg = obj.algorithm;
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
+            obj.upperBound             = cParams.ub;
+            obj.lowerBound             = cParams.lb;
             obj.nX                     = length(obj.designVariable.value);
             obj.hasConverged           = false;
             obj.createMonitoring(cParams);

@@ -69,7 +69,7 @@ classdef AcademicProblem < handle
             s.designVariable = obj.designVariable;
             s.cost           = obj.createCost();
             s.constraint     = obj.createConstraint();
-            s.nConstraints   = cParams.constraint.nSF;
+            s.nConstraints   = length(cParams.constraint.cF);
             s.dualVariable   = DualVariable(s);
             s.monitoring     = true;
             s.primal         = 'PROJECTED GRADIENT';

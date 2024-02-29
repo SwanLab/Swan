@@ -11,7 +11,6 @@ classdef AcademicTests < matlab.unittest.TestCase
             run(problem);
             cParams.cost           = cost;
             cParams.constraint     = constraint;
-            cParams.constraint.nSF = nConstr;
             cParams.initialGuess   = x0;
             cParams.settings       = s;
             test                   = AcademicProblem(cParams);

@@ -29,7 +29,6 @@ classdef OptimizerMMA < Optimizer
         upperBound
         lowerBound
         hasFinished
-        incrementalScheme
         hasConverged
         historicalVariables
         KKTnorm

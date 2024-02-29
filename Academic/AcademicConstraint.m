@@ -1,8 +1,8 @@
 classdef AcademicConstraint < handle
     
     properties (Access = private)
-        gradientFunction
         constraintFunction
+        gradientFunction
     end
     
     methods (Access = public)
