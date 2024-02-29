@@ -55,6 +55,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.fun         = lsFun;
             s.mesh        = obj.mesh;
             s.type        = 'LevelSet';
+            s.plotting    = true;
             ls            = DesignVariable.create(s);
             obj.designVariable = ls;
         end
