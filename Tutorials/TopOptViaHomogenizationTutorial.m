@@ -21,9 +21,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolume();
             obj.createCost();
@@ -67,36 +65,36 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             f = Filter.create(s);
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
-            %             ndim = 2;
-            %             E0 = 1e-3;
-            %             nu0 = 1/3;
-            %             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            %             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-            %
-            %             E1 = 1;
-            %             nu1 = 1/3;
-            %             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            %             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+        function m = createMaterial(obj,m)
+             ndim = 2;            
+             E0 = 1e-3; 
+             nu0 = 1/3;
+             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+ 
+             E1 = 1;
+             nu1 = 1/3;              
+             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'HomogenizedMicrostructure';
+
+            s.type  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
-
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+            s.microParams = m;
+            m = Material.create(s);
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(obj.designVariable.fun);
+            s.material = obj.createMaterial(obj.designVariable.fun);
             s.dim = '2D';
-            s.bc = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.interpolationType = 'LINEAR';
@@ -104,19 +102,19 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.physicalProblem = fem;
         end
 
-        function createComplianceFromConstiutive(obj)
+        function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
-            obj.compliance = c;
         end
 
         function createCompliance(obj)
-            s.mesh                 = obj.mesh;
-            s.filter               = obj.filter;
-            s.stateProblem         = obj.physicalProblem;
-            s.materialInterpolator = obj.materialInterpolator;
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filter;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+          %  s.material = obj.createMaterial(obj.designVariable.fun);
             c                      = ComplianceFunctionalFromVademecum(s);
+            c.computeFunctionAndGradient(obj.designVariable);
             obj.compliance = c;
         end
 
@@ -162,11 +160,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.optimizer = opt;
         end
 
-        function mat = createInterpolatedMaterial(obj,desVar)
-            mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(desVar);
-        end
-
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
@@ -186,16 +179,18 @@ classdef TopOptViaHomogenizationTutorial < handle
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-            bc.dirichletFun = dirichletFun;
+            s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
-            bc.pointloadFun = pointloadFun;
+            s.pointloadFun = pointloadFun;
 
-            bc.periodicFun  = [];
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
         end
 
     end

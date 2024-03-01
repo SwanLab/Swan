@@ -7,13 +7,7 @@ classdef Interpolation < handle
         nnode
         
         pos_nodes
-        isoDv
-        
-        iteration
-        cases
-        selectcases
-        main_loop
-        extra_cases
+        % isoDv
     end
     
     properties (Access = protected)

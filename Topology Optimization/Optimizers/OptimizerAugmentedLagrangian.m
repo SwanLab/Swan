@@ -50,13 +50,11 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.printOptimizerVariable();
             obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
-%             while ~obj.hasConverged
                 obj.update();
+                obj.printOptimizerVariable();
                 obj.updateIterInfo();
                 obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
-%                 obj.saveVariablesForAnalysis();
             end
         end
 

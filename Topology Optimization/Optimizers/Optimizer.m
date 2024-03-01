@@ -100,6 +100,9 @@ classdef Optimizer < handle
                 obj.simulationPrinter.appendStep(file);
             end
             %obj.obtainGIF();
+            if ismethod(obj.designVariable,'plot')
+                obj.designVariable.plot();
+            end
         end
 
         function obtainGIF(obj)

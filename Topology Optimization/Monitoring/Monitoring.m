@@ -41,6 +41,7 @@ classdef Monitoring < handle
 
         function createMonitoring(obj)
             if (obj.shallDisplay)
+                figure
                 nPlots         = length(obj.titles);
                 [nRow,nColumn] = obj.computeNumberRowsColumns();
                 for i = 1:nPlots
@@ -49,7 +50,7 @@ classdef Monitoring < handle
                     newFig    = DisplayFactory.create(chartType,title);
                     obj.appendFigure(newFig);
                     obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]);
-                    drawnow
+                    hold on
                 end
             end
         end

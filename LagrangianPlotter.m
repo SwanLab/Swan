@@ -35,7 +35,8 @@ classdef LagrangianPlotter < handle
                 x = c(:,1);
                 y = c(:,2);
                 z = s.func.fValues(:,idim);
-                T = delaunay(x,y);
+                %T = delaunay(x,y);
+                T = s.mesh.connec;
                 a = trisurf(T,x,y,z);
                 
                 view(0,90)
@@ -43,6 +44,8 @@ classdef LagrangianPlotter < handle
                 shading interp
                 grid on
                 title(['dim = ', num2str(idim)]);
+                a.EdgeColor = [0 0 0];
+                a.EdgeColor = [0 0 0];
             end
         end
         

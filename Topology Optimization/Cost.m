@@ -8,6 +8,7 @@ classdef Cost < handle
     properties (Access = private)
         shapeFunctions
         weights
+        Msmooth
     end
 
     properties (Access = private)
@@ -38,6 +39,7 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
+            %obj.gradient = obj.Msmooth*djV;
             obj.gradient = djV;
         end
 
@@ -63,7 +65,8 @@ classdef Cost < handle
     methods (Access = private)
         function obj = init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
-            obj.weights        = cParams.weights;            
+            obj.weights        = cParams.weights;   
+            obj.Msmooth        = cParams.Msmooth;
         end
     end
 end

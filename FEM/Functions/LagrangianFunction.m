@@ -37,7 +37,24 @@ classdef LagrangianFunction < FeFunction
             end
 
         end
-        
+
+        function fxV = sampleFunction(obj,xP,cells)
+            shapes  = obj.interpolation.computeShapeFunctions(xP);
+            nNode   = size(shapes,1);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            fxV = zeros(nF,nPoints);
+            for iF = 1:nF
+                for iNode = 1:nNode
+                    node = obj.mesh.connec(cells,iNode);
+                    Ni = shapes(iNode,:)';
+                    fi = obj.fValues(node,:);
+                    f(1,:) = fi.*Ni;
+                    fxV(iF,:) = fxV(iF,:) + f;
+                end
+            end
+        end
+       
         function c = getCoord(obj)
             c = obj.coord;
         end
@@ -68,102 +85,12 @@ classdef LagrangianFunction < FeFunction
                     for jDimE = 1:nDimE
                         invJ_IJ   = invJ(iDimG,jDimE,:,:);
                         dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(dShapes_JK,invJ_IJ);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
                         dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
                     end
                 end
             end
             dNdx = dShapes;
-        end
-
-        function fVR = evaluateGradient(obj, xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
-            nDimf = obj.ndimf;
-            nDimG = size(dNdx, 1);
-            nNodeE = size(dNdx, 2);
-            nPoints = size(dNdx, 3);
-            nElem = size(dNdx, 4);
-            
-            for n=1:nDimf
-                fV(n:nDimf:obj.nDofs-nDimf+n) = obj.fValues(:,n);
-            end
-            fB = reshape(obj.fValues',[numel(obj.fValues) 1]);
-
-            grad = zeros(nDimG,nDimf, nPoints, nElem);
-            for iDimG = 1:nDimG
-                for jDimf = 1:nDimf
-                    for kNodeE = 1:nNodeE
-                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
-                        iDofE = nDimf*(kNodeE-1)+jDimf;
-                        dofs = obj.connec(:,iDofE);
-                        fKJ = repmat(fV(dofs),[nPoints 1]);
-                        gradIJ= dNdxIK.*fKJ;
-                        grad(iDimG,jDimf,:,:) = squeezeParticular(grad(iDimG,jDimf,:,:),[1 2]) + gradIJ;
-                    end
-                end
-            end
-            fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
-%             s.fValues = permute(fVR, [1 3 2]);
-%             s.ndimf      = nDimf;
-%             s.quadrature = xV;
-%             s.mesh       = obj.mesh;
-%             gradFun = FGaussDiscontinuousFunction(s);
-        end
-
-        function symGrad = evaluateSymmetricGradient(obj,xV)
-            grad = obj.evaluateGradient(xV);
-            nDimf = obj.ndimf;
-            nDims = size(grad, 1)/nDimf;
-            nGaus = size(grad, 2);
-            nElem = size(grad, 3);
-
-            gradReshp = reshape(grad, [nDims,nDimf,nGaus,nElem]);
-            gradT = permute(gradReshp, [2 1 3 4]);
-            symGrad = 0.5*(gradReshp + gradT);
-            
-            symGrad =  reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-%             s.fValues    = reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-%             s.quadrature = xV;
-%             s.mesh       = obj.mesh;
-%             symGradFun = FGaussDiscontinuousFunction(s);
-        end
-
-        function symGrad = evaluateSymmetricGradientVoigt(obj,xV)
-            sgr = obj.evaluateSymmetricGradient(xV);
-            symGrad = obj.obtainVoigtFormat(sgr);
-        end
-
-        function newObj = obtainVoigtFormat(obj, sgr)
-            ndim = size(sgr,1);
-            switch ndim
-                case 4
-                    newObj = obj.applyVoigt2D(sgr);
-                case 9
-                    newObj = obj.applyVoigt3D(sgr);
-            end
-        end
-
-        function fV = applyVoigt2D(obj, fV)
-            nGaus = size(fV,2);
-            nElem = size(fV,3);
-            fVal(1,:,:) = fV(1,:,:); % xx
-            fVal(2,:,:) = fV(4,:,:); % yy
-            fVal(3,:,:) = fV(2,:,:) + fV(3,:,:); % xy
-            fV = reshape(fVal, [3 nGaus nElem]);
-%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
-        end
-
-        function fV = applyVoigt3D(obj, fV)
-            nGaus = size(fV,2);
-            nElem = size(fV,3);
-            fVal(1,:,:) = fV(1,:,:); % xx
-            fVal(2,:,:) = fV(5,:,:); % yy
-            fVal(3,:,:) = fV(9,:,:); % zz
-            fVal(4,:,:) = fV(2,:,:) + fV(4,:,:); % xy
-            fVal(5,:,:) = fV(3,:,:) + fV(7,:,:); % xz
-            fVal(6,:,:) = fV(6,:,:) + fV(8,:,:); % yz
-            fV = reshape(fVal, [6 nGaus nElem]);
-%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
         end
         
         function ord = orderTextual(obj)
@@ -277,7 +204,7 @@ classdef LagrangianFunction < FeFunction
         
         function v = computeL2norm(obj)
             s.type     = 'ScalarProduct';
-            s.quadType = 'QUADRATICMASS';
+            s.quadType = 'QUADRATIC';
             s.mesh     = obj.mesh;
             int = Integrator.create(s);
             ff  = int.compute(obj,obj);
@@ -334,18 +261,58 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues;
         end
 
+        function f = normalize(obj,type,epsilon)
+            switch type
+                case 'L2'
+                    fNorm = Norm.computeL2(obj.mesh,obj);
+                case 'H1'
+                    fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
+            end
+            f = obj.create(obj.mesh,obj.ndimf,obj.order);
+            f.fValues = obj.fValues/sqrt(fNorm);
+        end
+
         % Operator overload
 
         function s = plus(obj1,obj2)
-            res = copy(obj1);
-            res.fValues = obj1.fValues + obj2.fValues;
+            if isa(obj1, 'LagrangianFunction')
+                res = copy(obj1);
+                val1 = obj1.fValues;
+            else
+                val1 = obj1;
+            end
+            if isa(obj2, 'LagrangianFunction')
+                res = copy(obj2);
+                val2 = obj2.fValues;
+            else
+                val2 = obj2;
+            end
+
+            res.fValues = val1 + val2;
             s = res;
         end
 
         function s = minus(obj1,obj2)
-            res = copy(obj1);
-            res.fValues = obj1.fValues - obj2.fValues;
+            if isa(obj1, 'LagrangianFunction')
+                res = copy(obj1);
+                val1 = obj1.fValues;
+            else
+                val1 = obj1;
+            end
+            if isa(obj2, 'LagrangianFunction')
+                res = copy(obj2);
+                val2 = obj2.fValues;
+            else
+                val2 = obj2;
+            end
+
+            res.fValues = val1 - val2;
             s = res;
+        end
+
+        function r = uminus(a)
+            r = copy(a);
+            r.fValues = -a.fValues;
         end
 
         function s = times(obj1,obj2)
