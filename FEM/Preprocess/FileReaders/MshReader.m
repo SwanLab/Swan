@@ -5,14 +5,14 @@ classdef MshReader < FileReader
     end
     
     properties (Access = private)
-        strcontent
         contentCell
         coord
         connec
         nElem
         nNodes
         nNodeElem
-        numbers
+        fLCoor, lLCoor
+        fLConnec, lLConnec
     end
     
     methods (Access = public)
@@ -24,10 +24,10 @@ classdef MshReader < FileReader
         function m = read(obj)
             obj.openFile();
             obj.splitIntoLines();
-            obj.getDimensions();
-            obj.extractNumbers();
-            obj.getCoordAndConnec();
             obj.closeFile();
+            obj.getDimensions();
+            obj.getCoordinates();
+            obj.getConnectivity();
             m = obj.createMesh();
         end
 
@@ -43,46 +43,44 @@ classdef MshReader < FileReader
         end
 
         function splitIntoLines(obj)
-            obj.strcontent = fileread(obj.filePath);
-            obj.contentCell = splitlines(obj.strcontent);
+            strcontent = fileread(obj.filePath);
+            obj.contentCell = splitlines(strcontent);
         end
 
         function getDimensions(obj)
             fLCell = split(obj.contentCell{1});
-            fLCoor = 3;
-            lLCoor = find(strcmp(obj.contentCell, 'End Coordinates'))-1;
-            fLConnec = find(strcmp(obj.contentCell, 'Elements')) +1;
-            lLConnec  = length(obj.contentCell) - 2;
-            obj.nNodes    = lLCoor - fLCoor + 1;
-            obj.nElem     = lLConnec - fLConnec + 1;
+            obj.fLCoor   = 3;
+            obj.lLCoor   = find(strcmp(obj.contentCell, 'End Coordinates'))-1;
+            obj.fLConnec = find(strcmp(obj.contentCell, 'Elements')) +1;
+            obj.lLConnec = length(obj.contentCell) - 2;
+            obj.nNodes    = obj.lLCoor - obj.fLCoor + 1;
+            obj.nElem     = obj.lLConnec - obj.fLConnec + 1;
             obj.nNodeElem = str2double(fLCell{end});
         end
-
-        function extractNumbers(obj)
-            expr = '(-?0?\.?\d*)';
-            match = regexp(obj.strcontent,expr, 'tokens', 'dotexceptnewline');
-            cellfunres2 = cellfun(@cell2mat,match,'UniformOutput',false);
-            numbersAll = str2double(cellfunres2);
-            obj.numbers = numbersAll(3:end);
-        end
-
-        function getCoordAndConnec(obj)
-            nN  = obj.nNodes;
-            nE  = obj.nElem;
-            nNE = obj.nNodeElem;
-            coordRaw  = reshape(obj.numbers(1:nN*4), [4, nN])';
-            connecRaw = reshape(obj.numbers(nN*4+1:end), [nNE+1, nE])';
-            if isequal(coordRaw(:,4),zeros(length(coordRaw),1))
-                coordRaw = coordRaw(:,1:3);
-            end
-            obj.coord  = coordRaw(:,2:end);
-            obj.connec = connecRaw(:,2:end);
-        end
         
+        function getCoordinates(obj)
+            strCoord = sprintf('%s ', obj.contentCell{obj.fLCoor:obj.lLCoor});
+            fmtCoord = '%d %f %f %f';
+            scanCoord = sscanf(strCoord, fmtCoord);
+            coords = reshape(scanCoord, [4, obj.nNodes])';
+            if isequal(coords(:,4),zeros(length(coords),1))
+                coords = coords(:,1:3);
+            end
+            obj.coord = coords(:,2:end);
+        end
+
+        function getConnectivity(obj)
+            fmtConnec = repmat('%d ', [1,obj.nNodeElem]);
+            strConnec = sprintf('%s ', obj.contentCell{obj.fLConnec:obj.lLConnec});
+            scanConnec = sscanf(strConnec, fmtConnec);
+            conn = reshape(scanConnec, [obj.nNodeElem+1, obj.nElem])';
+            obj.connec = conn(:,2:end);
+        end
+
         function m = createMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
     end
     

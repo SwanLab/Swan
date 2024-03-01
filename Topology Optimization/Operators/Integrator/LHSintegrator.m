@@ -2,10 +2,9 @@ classdef LHSintegrator < handle
 
     properties (Access = protected)
         mesh
+        fun
         quadrature
-        interpolation
-        dim
-        globalConnec
+        quadratureOrder
     end
 
     methods (Access = public, Static)
@@ -19,38 +18,34 @@ classdef LHSintegrator < handle
 
     methods (Access = public)
         
-        function q = getQuadrature(obj)
-            q = obj.quadrature;
+        function obj = LHSintegrator(cParams)
+            obj.init(cParams);
+            obj.createQuadrature();
         end
  
     end
 
     methods (Access = protected)
-     
-        function init(obj,cParams)
-            obj.dim          = cParams.dim;
-            obj.mesh         = cParams.mesh;
-            obj.globalConnec = cParams.globalConnec;
+
+        function init(obj, cParams)
+            obj.fun      = cParams.fun;
+            obj.mesh     = cParams.mesh;
+            obj.setQuadratureOrder(cParams);
+        end
+
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = 'QUADRATIC';%obj.fun.order;
+            end
         end
         
-       function createQuadrature(obj)
-           quad = Quadrature.set(obj.mesh.type);
-           quad.computeQuadrature('LINEAR'); % QUADRATIC LINEAR
-           obj.quadrature = quad;
-       end
-
-        function createInterpolation(obj)
-            int = obj.mesh.interpolation;
-            int.computeShapeDeriv(obj.quadrature.posgp);
-            obj.interpolation = int;
-        end
-
-        function LHS = assembleMatrix(obj,LHSelem)
-            s.dim          = obj.dim;
-            s.globalConnec = obj.globalConnec;
-            s.nnodeEl      = obj.interpolation.nnode;
-            assembler = Assembler(s);
-            LHS = assembler.assemble(LHSelem);
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quadOrder = obj.fun.orderTextual();
+            quad.computeQuadrature(quadOrder);
+            obj.quadrature = quad;
         end
 
     end

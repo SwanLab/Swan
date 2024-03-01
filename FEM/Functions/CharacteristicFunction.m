@@ -1,54 +1,29 @@
-classdef CharacteristicFunction < L2Function
+classdef CharacteristicFunction < handle
 
-    properties (Access = private)
-        coorP1
-    end
-
-    properties (Access = public)
-        ndimf
-    end
-
-    properties (Access = private)
-        mesh
-        fxy
-    end
-
-    methods (Access = public)
-
-        function obj = CharacteristicFunction(cParams)
-            obj.init(cParams);
-            obj.createP1CoorFunction();
+    methods (Static, Access = public)
+        function obj = create(uMesh)
+            m             = uMesh.backgroundMesh;
+            fHandle       = @(x) ones(size(x(1,:,:)));
+            s.ndimf       = 1;
+            s.fHandle     = fHandle;
+            s.mesh        = m;
+            aFun          = AnalyticalFunction(s);
+            cParams.fun   = aFun;
+            cParams.uMesh = uMesh;
+            obj           = UnfittedFunction(cParams);
         end
 
-        function fxV = evaluate(obj,xV)
-            xy    = obj.coorP1.evaluate(xV);
-            nGaus = size(xy,2);
-            nElem = size(xy,3);
-            fxV   = zeros(1,nGaus,nElem);
-            for iGaus = 1:nGaus
-                x = xy(1,iGaus,:);
-                y = xy(2,iGaus,:);
-                f = obj.fxy(x,y);
-                fxV(1,iGaus,f>0) = 0;
-                fxV(1,iGaus,f<=0) = 1;
-            end
+        function obj = createAtBoundary(uMesh)
+            m             = uMesh.backgroundMesh;
+            fHandle       = @(x) ones(size(x(1,:,:)));
+            s.ndimf       = 1;
+            s.fHandle     = fHandle;
+            s.mesh        = m;
+            aFun          = AnalyticalFunction(s);
+            cParams.fun   = aFun;
+            cParams.uMesh = uMesh;
+            obj           = UnfittedBoundaryFunction(cParams);
         end
-
     end
 
-    methods (Access = private)
-
-        function init(obj,cParams)
-            obj.ndimf = 1;
-            obj.mesh  = cParams.mesh;
-            obj.fxy   = cParams.fxy;
-        end
-
-        function createP1CoorFunction(obj)
-            s.mesh     = obj.mesh;
-            s.fValues  = obj.mesh.coord;
-            obj.coorP1 = P1Function(s);
-        end
-
-    end
 end

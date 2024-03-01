@@ -1,33 +1,27 @@
 classdef MappingComputer < handle
 
-    properties (Access = private)
-        LHS
-        RHS
-    end
 
     properties (Access = private)
-        meshDisc
         mesh
-        orientation
-        interp
-        field
         interpolator
+        dilatedOrientation
+        field
     end
 
     methods (Access = public)
 
         function obj = MappingComputer(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function uF = compute(obj)
-            obj.computeLHS();
-            obj.computeRHS();
-            uC = obj.solveSystem();
-            In = obj.interpolator;
-            u  = In*uC;
-            uV(1,:,:) = reshape(u,obj.mesh.nnodeElem,[]);
+            LHS = obj.computeStiffnessMatrix();
+            for iDim = 1:obj.mesh.ndim
+                RHS = obj.computeRHS(iDim);
+                uC  = obj.solveSystem(LHS,RHS);
+                uC  = reshape(uC,obj.mesh.nnodeElem,[]);
+                uV(iDim,:,:) = uC;
+            end
             s.mesh    = obj.mesh;
             s.fValues = uV;
             uF = P1DiscontinuousFunction(s);
@@ -38,60 +32,43 @@ classdef MappingComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation  = cParams.orientation;
-            obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
-        end
-
-        function createField(obj)
-            s.mesh               = obj.meshDisc;
-            s.ndimf              = 1;
-            s.interpolationOrder = obj.mesh.interpolation.order;
-            obj.field = Field(s);
-        end
-        
-        function computeLHS(obj)
-            K = obj.computeStiffnessMatrix();
-            In = obj.interpolator;
-            K = In'*K*In;
-            obj.LHS = K;
+            obj.mesh               = cParams.mesh;
+            obj.dilatedOrientation = cParams.dilatedOrientation;
+            obj.interpolator       = cParams.interpolator;
         end
 
         function K = computeStiffnessMatrix(obj)
-            s.mesh         = obj.mesh;
-            s.globalConnec = obj.mesh.connec;
-            s.type         = 'StiffnessMatrix';
-            s.field        = obj.field;
+            s.mesh  = obj.mesh;
+            s.type  = 'StiffnessMatrix';
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
 
-        function computeRHS(obj)
+        function RHS = computeRHS(obj,iDim)
+            aI = obj.dilatedOrientation{iDim};
+            aI = aI.project('P1D');
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
-            fG = obj.orientation.evaluate(q.posgp);            
-            s.fType     = 'Gauss';
-            s.fGauss    = fG;
-            s.xGauss    = q.posgp;
             s.mesh      = obj.mesh;
-            s.type      = obj.mesh.type;
-            s.quadOrder = q.order;
-            s.npnod     = obj.field.dim.ndofs;
+            s.quadratureOrder = q.order;
             s.type      = 'ShapeDerivative';
-            s.globalConnec = obj.meshDisc.connec;
+            test = P1DiscontinuousFunction.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute();
+            rhsV = rhs.compute(aI,test);
             In = obj.interpolator;
-            rhsV = In'*rhsV;
-            obj.RHS = rhsV;
+            RHS = In'*rhsV;          
         end
 
-        function u = solveSystem(obj)
+        function u = solveSystem(obj,LHS,RHS)
+            In = obj.interpolator;            
+            LHS = In'*LHS*In;
             a.type = 'DIRECT';
             s = Solver.create(a);
-            u = s.solve(obj.LHS,obj.RHS);
-            u = u(1:end);
+            u = s.solve(LHS,RHS);
+            u = In*u;            
+            u = u(1:end);            
         end
 
     end

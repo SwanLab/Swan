@@ -2,6 +2,8 @@ classdef FemComputer < handle
 
     properties (Access = public)
         computation
+        variables
+        solverType
     end
 
     properties (Access = private)
@@ -17,14 +19,25 @@ classdef FemComputer < handle
             else
                 obj.interpolationType = 'LINEAR';
             end
+
+            if isfield(cParams, 'solverType')
+                obj.solverType = cParams.solverType;
+            else
+                obj.solverType = 'REDUCED';
+            end
+            
         end
 
         function compute(obj)
             a.fileName = obj.testName;
             s = FemDataContainer(a);
             s.interpolationType = obj.interpolationType;
-            obj.computation = FEM.create(s);
+            s.solverType = obj.solverType;
+            s.solverMode = 'DISP';
+            obj.computation = PhysicalProblem.create(s);
             obj.computation.solve();
+            d_u = obj.computation.uFun.fValues;
+            obj.variables.d_u = reshape(d_u', [numel(d_u) 1]);
         end
     end
 

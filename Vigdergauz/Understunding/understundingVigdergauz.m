@@ -47,7 +47,7 @@ function m = createMesh()
 [coord,connec] = readFile();
 s.coord = coord(:,2:3);
 s.connec = connec(:,2:4);
-m = Mesh().create(s);
+m = Mesh.create(s);
 end
 
 function [coord,connec] = readFile()

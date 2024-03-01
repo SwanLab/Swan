@@ -1,16 +1,20 @@
-classdef RHSintegrator_Stokes < handle
+classdef RHSintegrator_Stokes < RHSintegrator
 
     properties (Access = private)
-        mesh
-        velocityField
-        pressureField
+%         mesh
+        velocityFun
+        pressureFun
         forcesFormula
+%         quadrature
     end
 
     methods (Access = public)
 
         function obj = RHSintegrator_Stokes(cParams)
+            cParams.quadratureOrder = 'QUADRATIC';
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
+            obj.createQuadrature();
         end
 
         function rhs = integrate(obj)
@@ -23,10 +27,16 @@ classdef RHSintegrator_Stokes < handle
 
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
-            obj.velocityField = cParams.velocityField;
-            obj.pressureField = cParams.pressureField;
+            obj.velocityFun   = cParams.velocityFun;
+            obj.pressureFun   = cParams.pressureFun;
             obj.forcesFormula = cParams.forcesFormula;
         end
+
+%         function createQuadrature(obj)
+%             q = Quadrature.set(obj.mesh.type);
+%             q.computeQuadrature('QUADRATIC'); % ehhh
+%             obj.quadrature = q;
+%         end
 
         function RHS = computeRHS(obj)
             Fext = obj.computeVolumetricFext();
@@ -37,20 +47,20 @@ classdef RHSintegrator_Stokes < handle
         end
 
         function Fext = computeVolumetricFext(obj)
-            geometry = obj.velocityField.geometry;
-            shapesV  = obj.velocityField.interpolation.shape;
-            dvol = geometry.dvolu;
+            xV = obj.quadrature.posgp;
+            shapesV = obj.velocityFun.computeShapeFunctions(xV);
+            dvol = obj.mesh.computeDvolume(obj.quadrature)';
             ngaus = size(dvol,2);
-            nnode = obj.velocityField.dim.nnodeElem;
-            nunkn = obj.velocityField.dim.ndimf;
-            Fext = zeros(nnode*nunkn,1,obj.mesh.nelem);
+            nNode = size(shapesV, 1);
+            nDimV = obj.velocityFun.ndimf;
+            Fext = zeros(nNode*nDimV,1,obj.mesh.nelem);
 
             f = obj.calculateForcesFromExpression();
 
             for igaus=1:ngaus
-                for inode=1:nnode
-                    for iunkn=1:nunkn
-                        elemental_dof = inode*nunkn-nunkn+iunkn; %% dof per guardar el valor de la integral
+                for inode=1:nNode
+                    for iunkn=1:nDimV
+                        elemental_dof = inode*nDimV-nDimV+iunkn; %% dof per guardar el valor de la integral
                         shape = shapesV(inode,igaus);
                         fvalue = f(iunkn,igaus,:);
                         v= squeeze(shape.*fvalue);
@@ -62,17 +72,20 @@ classdef RHSintegrator_Stokes < handle
         end
 
         function f = calculateForcesFromExpression(obj)
-            ngaus  = size(obj.velocityField.interpolation.shape,2);
-            xGauss = obj.velocityField.xGauss;
-            nelem = obj.mesh.nelem;
-            for ielem = 1:nelem
+            nGaus  = obj.quadrature.ngaus;
+            xV = obj.quadrature.posgp;
+            xGauss = obj.mesh.computeXgauss(xV);
+            nElem = obj.mesh.nelem;
+            nDimf = obj.velocityFun.ndimf;
+            F = zeros(nDimf,nGaus,nElem);
+            for iElem = 1:nElem
                 ind=1;
-                for igaus = 1:ngaus
-                    xG = xGauss(:,igaus,ielem);
+                for iGaus = 1:nGaus
+                    xG = xGauss(:,iGaus,iElem);
                     pos_node = num2cell(xG);
                     fCell = obj.forcesFormula(pos_node{:});
                     fMat = cell2mat(fCell);
-                    F(:,igaus,ielem) = fMat;
+                    F(:,iGaus,iElem) = fMat;
                     ind=ind+length(fMat);
                 end
             end
@@ -80,18 +93,16 @@ classdef RHSintegrator_Stokes < handle
         end
 
         function g = computeVelocityDivergence(obj)
-            nunkn = obj.velocityField.dim.ndimf;
-            nnode = obj.pressureField.dim.nnodeElem;
-            g = zeros(nnode*nunkn,1,obj.mesh.nelem);
+            xV = obj.quadrature.posgp;
+            shp = obj.pressureFun.computeShapeFunctions(xV);
+            nDofE = size(shp,1);
+            g = zeros(nDofE,1,obj.mesh.nelem);
         end
 
         function RHS = assemble(obj, rhs)
-            s.dim          = [];
-            s.globalConnec = [];
-            s.nnodeEl      = [];
-            assembler = Assembler(s);
-            RHS = assembler.assembleVectorFields(rhs, ...
-                                obj.velocityField, obj.pressureField);
+            s.fun = [];
+            assembler = AssemblerFun(s);
+            RHS = assembler.assembleVectorStokes(rhs, obj.velocityFun, obj.pressureFun);
         end
 
     end

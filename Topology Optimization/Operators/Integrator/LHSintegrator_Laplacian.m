@@ -1,23 +1,23 @@
-classdef LHSintegrator_Laplacian < LHSintegrator
+classdef LHSintegrator_Laplacian < handle
 
     properties (Access = private)
-        field
-        material
+        mesh
+        test, trial
+        quadrature
+        quadratureOrder
+%         material
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_Laplacian(cParams)
-            %             obj.init(cParams);
-            %             obj.createQuadrature();
-            %             obj.createInterpolation();
-            %             obj.createGeometry();
             obj.initLaplacian(cParams);
+            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleLaplacianMatrix(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -25,26 +25,32 @@ classdef LHSintegrator_Laplacian < LHSintegrator
     methods (Access = protected)
 
         function LHSe = computeElementalLHS(obj)
-            f = obj.field;
-            ndofs = f.dim.ndofsElem;
-            nelem = obj.mesh.nelem;
+            xV = obj.quadrature.posgp;
+            shapesTs = obj.test.evaluateCartesianDerivatives(xV);
+            shapesTr = obj.trial.evaluateCartesianDerivatives(xV);
+            dVolu = obj.mesh.computeDvolume(obj.quadrature);
+
+            nGaus = obj.quadrature.ngaus;
+            nNodETs = size(shapesTs,2);
+            nDofETs = nNodETs*obj.test.ndimf;
+            nNodETr = size(shapesTr,2);
+            nDofETr = nNodETr*obj.trial.ndimf;
+            nElem = size(dVolu,2);
 
 %             material = obj.material;
 %             Cmat = material.mu;
             
-            geom = f.geometry;
-            shape = geom.dNdx;
-            ngaus = size(shape,4);
-            dvolu = geom.dvolu;
-            lhs = zeros(ndofs, ndofs, nelem);
-            for igaus = 1:ngaus
-                dNdx = shape(:,:,:,igaus);
-                dV(1,1,:) = dvolu(:,igaus);
-                Bmat = obj.computeB(dNdx);
-                Bt   = permute(Bmat,[2 1 3]);
+            lhs = zeros(nDofETs, nDofETr, nElem);
+            for iGaus = 1:nGaus
+                dNdxTs = squeeze(shapesTs(:,:,iGaus,:));
+                dNdxTr = squeeze(shapesTr(:,:,iGaus,:));
+                BmatTs = obj.computeB(dNdxTs);
+                BmatTr = obj.computeB(dNdxTr);
+                dV(1,1,:) = dVolu(iGaus,:)';
+                Bt   = permute(BmatTs,[2 1 3]);
 %                 BtC  = pagemtimes(Bt,Cmat);
 %                 BtCB = pagemtimes(BtC, Bmat);
-                BtB = pagemtimes(Bt,Bmat);
+                BtB = pagemtimes(Bt,BmatTr);
                 lhs = lhs + bsxfun(@times, BtB, dV);
             end
             LHSe = lhs;
@@ -55,32 +61,36 @@ classdef LHSintegrator_Laplacian < LHSintegrator
     methods (Access = private)
 
         function initLaplacian(obj, cParams)
-            obj.mesh     = cParams.mesh;
-            obj.field    = cParams.field;
+            obj.mesh  = cParams.mesh;
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
 %             obj.material = cParams.material;
         end
 
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('QUADRATIC'); % ehhh
+            obj.quadrature = q;
+        end
+
         function B = computeB(obj,dNdx)
-            f = obj.field;
-            nunkn = f.dim.ndimf;
-            nnode = f.dim.nnodeElem;
-            nelem = obj.mesh.nelem;
+            nunkn = size(dNdx,1);
+            nnode = size(dNdx,2);
+            nelem = size(dNdx,3);
             B = zeros(4,nnode*nunkn,nelem);
             for i = 1:nnode
                 j = nunkn*(i-1)+1;
-                B(1,j,:)  = dNdx(1,i,:);
-                B(2,j+1,:)= dNdx(1,i,:);
-                B(3,j,:)  = dNdx(2,i,:);
-                B(4,j+1,:)= dNdx(2,i,:);
+                B(1,j,:)   = dNdx(1,i,:);
+                B(2,j+1,:) = dNdx(1,i,:);
+                B(3,j,:)   = dNdx(2,i,:);
+                B(4,j+1,:) = dNdx(2,i,:);
             end
         end
 
-        function lhs = assembleLaplacianMatrix(obj, Ae)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assemble(Ae);
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

@@ -5,19 +5,33 @@ classdef FilterFactory < handle
         function filter = create(cParams)
             switch cParams.filterType
                 case 'P1'
-                    switch cParams.designVarType
-                        case {'Density','MicroParams'}
-                            filter = Filter_P1_Density(cParams);
-                        case 'LevelSet'
-                            filter = Filter_P1_LevelSet(cParams);
-                    end
+                    filter = FilterKernel(cParams);
                 case 'PDE'
-                    switch cParams.designVarType
-                        case {'Density','MicroParams'}
-                            filter = Filter_PDE_Density(cParams);
-                        case 'LevelSet'
-                            filter = Filter_PDE_LevelSet(cParams);
+                    if not(isfield(cParams,'boundaryType'))
+                        cParams.boundaryType = 'Neumann';
                     end
+                    if not(isfield(cParams,'metric'))
+                        cParams.metric       = 'Isotropy';
+                    end
+                    switch cParams.boundaryType
+                        case {'Neumann','Periodic'}
+                            switch cParams.metric
+                                case 'Isotropy'
+                                    cParams.LHStype = 'StiffnessMass';
+                                case 'Anisotropy'
+                                    cParams.LHStype = 'AnisotropicStiffnessMass';
+                            end
+                        case 'Robin'
+                            switch cParams.metric
+                                case 'Isotropy'
+                                    cParams.LHStype = 'StiffnessMassBoundaryMass';
+                                case 'Anisotropy'
+                                    cParams.LHStype = 'AnisotropicStiffnessMassBoundaryMass';
+                            end
+                    end
+                    filter = FilterPDE(cParams);
+                case 'LUMP'
+                    filter = FilterLump(cParams);
             end
         end
 

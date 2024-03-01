@@ -20,7 +20,7 @@ classdef Quadrature_Line < Quadrature
                     obj.posgp = [-sqrt(3/5),0,sqrt(3/5)];
                     
                 otherwise
-                    disp('Quadrature not implemented for triangle elements')
+                    disp('Quadrature not implemented for line elements')
             end
         end
     end

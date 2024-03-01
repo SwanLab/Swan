@@ -1,14 +1,9 @@
 classdef Projector_toP1 < Projector
-
-    properties (Access = private)
-        field
-    end
     
     methods (Access = public)
 
         function obj = Projector_toP1(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function xFun = project(obj, x)
@@ -17,25 +12,20 @@ classdef Projector_toP1 < Projector
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
             s.fValues = xProj;
-            xFun = P1Function(s);
+            s.order   = 'P1';
+            xFun = LagrangianFunction(s);
         end
 
     end
 
     methods (Access = private)
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1; 
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            obj.field = Field(s);
-        end
         
         function LHS = computeLHS(obj)
-            s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            s.quadratureOrder = 'QUADRATIC';
+            s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
@@ -44,8 +34,11 @@ classdef Projector_toP1 < Projector
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+            %shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+            
+            trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            shapes = trial.computeShapeFunctions(xV);
+
             conne = obj.mesh.connec;
 
             nGaus = quad.ngaus;

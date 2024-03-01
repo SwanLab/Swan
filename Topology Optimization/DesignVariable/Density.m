@@ -1,62 +1,49 @@
 classdef Density < DesignVariable
-    
+
     properties (Access = private)
-        creatorSettings
-        initCase
+        plotting
+        plotter
     end
-    
+
     methods (Access = public)
-        
+
         function obj = Density(cParams)
             obj.nVariables = 1;
             obj.init(cParams);
-            obj.initCase = cParams.initialCase;
-            obj.creatorSettings  = cParams.creatorSettings;
-            obj.createValue();
+            obj.createPlotter(cParams);
         end
-        
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value;
-        end
-        
-        function [fun, funNames] = getFunsToPlot(obj)
-            aa.mesh = obj.mesh.meshes{1};
-            aa.fValues = obj.value;
-            valFun = P1Function(aa);
 
-            fun = {valFun};
-            funNames = {'Density'};
+        function fun = obtainDomainFunction(obj)
+            fun = obj.fun;
         end
-        
-        function rho = computeVolumeFraction(obj)
-            s.mesh   = obj.mesh;
-            s.fValues = obj.value;
-            f = P1Function(s);
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('CONSTANT');
-            xV = q.posgp;
-            rho = f.evaluate(xV);
+
+        function update(obj,value)
+            if ~isempty(obj.isFixed)
+                value(obj.isFixed.nodes) = obj.isFixed.values;
+            end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            s.order   = 'P1';
+            obj.fun   = LagrangianFunction(s);
         end
-        
-    end
-    
-    methods (Access = private)
-        
-        function createValue(obj)
-            s = obj.creatorSettings;
-            switch s.type 
-                case 'FromLevelSet'
-                    s.ndim  = obj.mesh.ndim;
-                    s.coord = obj.mesh.coord;
-                    s.type  = obj.initCase;
-                    lsCreator  = LevelSetCreator.create(s);
-                    phi        = lsCreator.getValue();
-                    obj.value  = 1 - heaviside(phi);
-                case 'Given'
-                    obj.value = s.rho0.*ones(size(obj.mesh.coord,1),1);
+
+        function plot(obj)
+            if obj.plotting
+                obj.plotter.plot();
             end
         end
-        
+    
+    end
+
+    methods (Access = private)
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            if obj.plotting
+                obj.plotter  = Plotter.create(obj);
+            end
+        end
+
     end
     
 end

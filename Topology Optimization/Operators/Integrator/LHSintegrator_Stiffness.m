@@ -1,20 +1,22 @@
-classdef LHSintegrator_Stiffness < LHSintegrator
+classdef LHSintegrator_Stiffness < handle %LHSintegrator
 
     properties (Access = private)
-        geometry
-        field
+        mesh
+        test, trial
+        quadrature
+        quadratureOrder
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_Stiffness(cParams)
-            obj.mesh  = cParams.mesh;
-            obj.field = cParams.field;
+            obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrixField(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
@@ -22,24 +24,28 @@ classdef LHSintegrator_Stiffness < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            f = obj.field;
-            dvolu = obj.mesh.computeDvolume(f.quadrature);
-            ngaus = size(dvolu,1);
-            nelem = obj.mesh.nelem;
-            ndpe  = f.dim.ndofsElem;
-            lhs = zeros(ndpe,ndpe,nelem);
-            Bcomp = obj.createBComputer();
-            for igaus = 1:ngaus
-                Bmat = Bcomp.compute(igaus);
-                nvoigt = size(Bmat,1);
-                for istre = 1:nvoigt
-                    BmatI = Bmat(istre,:,:);
-                    BmatJ = permute(BmatI,[2 1 3]);
-                    dNdN = bsxfun(@times,BmatJ,BmatI);
-                    dv(1,1,:) = dvolu(igaus, :);
-                    inc = bsxfun(@times,dv,dNdN);
-                    lhs = lhs + inc;
-                end
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
+            dVolu = obj.mesh.computeDvolume(obj.quadrature);
+            nGaus = obj.quadrature.ngaus;
+            nElem = size(dVolu,2);
+
+            nNodETs = size(dNdxTs,2);
+            nDofETs = nNodETs*obj.test.ndimf;
+            nNodETr = size(dNdxTr,2);
+            nDofETr = nNodETr*obj.trial.ndimf;
+
+            BcompTs = obj.createBComputer(obj.test, dNdxTs);
+            BcompTr = obj.createBComputer(obj.trial, dNdxTr);
+            lhs = zeros(nDofETs,nDofETr,nElem);
+            for igaus = 1:nGaus
+                BmatTs = BcompTs.compute(igaus);
+                BmatTr = BcompTr.compute(igaus);
+                dV(1,1,:) = dVolu(igaus,:)';
+                Bt   = permute(BmatTs,[2 1 3]);
+                BtCB = pagemtimes(Bt, BmatTr);
+                lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
 
@@ -47,28 +53,37 @@ classdef LHSintegrator_Stiffness < LHSintegrator
 
     methods (Access = private)
 
-        function createGeometry(obj)
-            q   = obj.quadrature;
-            int = obj.interpolation;
-            int.computeShapeDeriv(q.posgp);
-            s.mesh = obj.mesh;
-            g = Geometry.create(s);
-            g.computeGeometry(q,int);
-            obj.geometry = g;
+        function init(obj, cParams)
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
+            obj.mesh  = cParams.mesh;
+            obj.setQuadratureOrder(cParams);
         end
 
-        function Bcomp = createBComputer(obj)
-            s.dim          = obj.field.dim;
-            s.geometry     = obj.field.geometry;
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = obj.trial.orderTextual();
+            end
+        end
+
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
+            obj.quadrature = quad;
+        end
+
+        function Bcomp = createBComputer(obj, fun, dNdx)
+            s.fun  = fun;
+            s.dNdx = dNdx;
             Bcomp = BMatrixComputer(s);
         end
 
-        function lhs = assembleMatrixField(obj, Ae)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assembleFields(Ae, obj.field, obj.field);
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

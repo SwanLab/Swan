@@ -1,120 +1,103 @@
 classdef RHSintegrator_ShapeFunction < handle
 
     properties (Access = private)
-        npnod
+        quadType
         mesh
-        globalConnec
-        fType
-        fNodal
-        fGauss
-        xGauss
-        quadOrder
         quadrature
     end
 
     methods (Access = public)
-
-        % Via Integrator_Simple + Integrator
         function obj = RHSintegrator_ShapeFunction(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
-        function rhs = compute(obj, fNodal)
-            obj.computeFgaussFromFnodal(fNodal);
-            rhsElem = obj.computeElementalRHS();
-            rhs = obj.assembleIntegrand(rhsElem);
+
+        function rhs = compute(obj,fun,test)
+            rhsElem = obj.computeElementalRHS(fun,test);
+            rhs = obj.assembleIntegrand(test,rhsElem);
         end
 
-        function rhs = computeFromFgauss(obj, fGaus, xGaus)
-            obj.fGauss = fGaus;
-            obj.xGauss = xGaus;
-            rhsElem = obj.computeElementalRHS();
-            rhs = obj.assembleIntegrand(rhsElem);
-        end
-
+        %        function RHS = compute(obj,fun,test)
+        %            quad = obj.quadrature;
+        %            xV   = quad.posgp;
+        %            dV   = obj.mesh.computeDvolume(quad);
+        %            shapes = test.computeShapeFunctions(quad);
+        %            nGaus = quad.ngaus;
+        %            nFlds = fun.ndimf;
+        %            nDofElem = size(shapes,1);
+        %            conne = test.computeDofConnectivity';
+        %            nDofs = max(conne,[],"all");
+        %            fGaus = fun.evaluate(xV);
+        %            f     = zeros(nDofs,nFlds);
+        %            for iField = 1:nFlds
+        %                for igaus = 1:nGaus
+        %                    dVg(:,1) = dV(igaus, :);
+        %                    fG = squeeze(fGaus(iField,igaus,:));
+        %                    for idof = 1:nDofElem
+        %                        dofs = conne(:,idof);
+        %                        Ni = shapes(idof,igaus);
+        %                        int = Ni*fG.*dVg;
+        %                        f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
+        %                    end
+        %                end
+        %            end
+        %            RHS = f;
+        %
+        %        end
     end
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.mesh         = cParams.mesh;
-            obj.npnod        = cParams.npnod;
-            obj.quadOrder    = 'LINEAR';
-            obj.globalConnec = cParams.globalConnec;
-            obj.quadrature   = obj.computeQuadrature();
+        function init(obj,cParams)
+            obj.quadType = cParams.quadType;
+            obj.mesh     = cParams.mesh;
         end
 
-        function q = computeQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadOrder);
-        end
-
-        function computeFgaussFromFnodal(obj, fNodal)
-            obj.computeGaussPoints();
-            obj.computeFgauss(fNodal);
-        end
-
-        function computeGaussPoints(obj)
-            q = obj.quadrature;
-            xG = repmat(q.posgp,[1,1,obj.mesh.nelem]);
-            obj.xGauss = xG;
-        end
-
-        function computeFgauss(obj, fNodal)
-%             mmm.coord = obj.mesh.coord;
-%             mmm.connec = obj.globalConnec;
-%             locMesh = Mesh(mmm);
-            msh.connec = obj.globalConnec;
-            msh.type   = obj.mesh.type;
-            s.mesh    = msh;
-            s.fValues = fNodal;
-%             s.mesh    = locMesh;
-%             s.connec = obj.globalConnec;
-%             s.type   = obj.mesh.type;
-            f = P1Function(s);
-            fG = f.evaluate(obj.xGauss);
-            fG = permute(fG,[2 3 1]);
-            obj.fGauss = fG;
-        end
-
-        function rhsC = computeElementalRHS(obj) % integrate@RHSintegrator
-            fG     = obj.fGauss;
-            dV     = obj.computeDvolume();
-%             fdV    = (fG.*dV);
-            shapes = obj.computeShapeFunctions();
-            nnode  = size(shapes,1);
-            nelem  = size(shapes,2);
-            int = zeros(nnode,nelem);
-            for igaus = 1:obj.quadrature.ngaus
-                fdv = fG(igaus,:).*dV(igaus,:);
-                shape = shapes(:, :, igaus);
-                int = int + bsxfun(@times,shape,fdv);
+        function rhsC = computeElementalRHS(obj,fun,test)
+            quad = obj.quadrature;
+            xV   = quad.posgp;
+            fG   = fun.evaluate(xV);
+            dV   = obj.mesh.computeDvolume(quad);
+            N = test.computeShapeFunctions(xV);
+            nNodeElem  = size(N,1);
+            nElem     = obj.mesh.nelem;
+            nGaus     = quad.ngaus;
+            nFlds     = size(fG,1);
+            nDofElem = nNodeElem*nFlds;
+            int = zeros(nDofElem,nElem);
+            for iField = 1:nFlds
+                for iNode = 1:nNodeElem
+                    for iGaus = 1:nGaus
+                        dVg(:,1) = dV(iGaus, :);
+                        fV   = squeeze(fG(iField,iGaus,:));
+                        Ni   = squeeze(N(iNode,iGaus,:));
+                        fNdV(1,:) = Ni.*fV.*dVg;
+                        iDof = nFlds*(iNode-1) + iField;
+                        int(iDof,:) = int(iDof,:) + fNdV;
+                    end
+                end
             end
             rhsC = transpose(int);
         end
 
-        function f = assembleIntegrand(obj,rhsElem)
+        function f = assembleIntegrand(obj,test,rhsElem)
             integrand = rhsElem;
-            ndofs = obj.npnod;
-            connec = obj.globalConnec;
-            nnode  = size(connec,2);
+            connec   = test.getConnec();
+            ndofs    = max(max(connec));
+            nDofElem = size(connec,2);
             f = zeros(ndofs,1);
-            for inode = 1:nnode
-                int = integrand(:,inode);
-                con = connec(:,inode);
+            for iDof = 1:nDofElem
+                int = integrand(:,iDof);
+                con = connec(:,iDof);
                 f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
 
-        function dV = computeDvolume(obj)
-            q = obj.quadrature;
-            dV = obj.mesh.computeDvolume(q);
-        end
-
-        function shapes = computeShapeFunctions(obj)
-            int = Interpolation.create(obj.mesh,'LINEAR');
-            int.computeShapeDeriv(obj.xGauss);
-            shapes = permute(int.shape,[1 3 2]);
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadType);
+            obj.quadrature = q;
         end
 
     end

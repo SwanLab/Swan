@@ -2,41 +2,47 @@ classdef DiffReactProblem < handle
     
     properties (GetAccess = public, SetAccess = protected)
         variables
+        x
     end
     
     properties (Access = private)
         mesh
-        field
         solver
         epsilon
         LHStype
         problemLHS
         problemData
-        boundaryConditions
+        % boundaryConditions
     end
 
     methods (Access = public)
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            obj.createField();
-            obj.createBoundaryConditions();
+            % obj.createBoundaryConditions();
             obj.createSolver();
             obj.createProblemLHS();
         end
 
         function computeVariables(obj,rhs)
-            bc  = obj.boundaryConditions;
-            RHS = bc.fullToReducedVector(rhs);
+            % bc  = obj.boundaryConditions;
+            % RHS = bc.fullToReducedVector(rhs);
+            RHS = rhs;
             LHS = obj.computeLHS(obj.epsilon);
             x = obj.solver.solve(LHS,RHS);
-            obj.variables.x = bc.reducedToFullVector(x);
+            % obj.variables.x = bc.reducedToFullVector(x);
+            obj.variables.x = x;
+            a.mesh = obj.mesh;
+            a.fValues = obj.variables.x;
+            a.order = 'P1';
+            obj.x = LagrangianFunction(a);
         end
         
         function LHS = computeLHS(obj, epsilon)
             obj.epsilon = epsilon;
             lhs = obj.problemLHS.compute(epsilon);
-            LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
+            % LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
+            LHS = lhs;
         end
        
         function print(obj,filename)
@@ -65,19 +71,10 @@ classdef DiffReactProblem < handle
             obj.problemData.scale = cParams.scale;
         end
 
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'LINEAR';
-            obj.field = Field(s);
-        end
-
         function createBoundaryConditions(obj)
-            s.dim   = obj.field.dim;
             s.mesh  = obj.mesh;
             s.scale = obj.problemData.scale;
-            s.ndofs = obj.field.dim.ndofs;
+            s.ndofs = obj.mesh.nnodes;
             s.bc{1}.dirichlet = [];
             s.bc{1}.pointload = [];
             s.bc{1}.ndimf     = [];
@@ -93,8 +90,9 @@ classdef DiffReactProblem < handle
         end
 
         function createProblemLHS(obj)
-            s.type = obj.LHStype;
-            s.mesh = obj.mesh;
+            s.type  = obj.LHStype;
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.problemLHS = LHSintegrator.create(s);
         end
     

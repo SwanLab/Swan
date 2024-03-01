@@ -1,21 +1,34 @@
 classdef Projector_toP1Discontinuous < Projector
 
-    properties (Access = private)
-        field
-    end
-
     methods (Access = public)
 
         function obj = Projector_toP1Discontinuous(cParams)
             obj.init(cParams);
-            obj.createField();
         end
 
         function xProj = project(obj, x)
-            LHS = obj.computeLHS();
-            RHS = obj.computeRHS(x);
-            f = LHS\RHS;
-            fVals = obj.reshapeFValues(f, x.ndimf);
+            if isprop(x,'order')
+                order = x.order;
+            else
+                order = [];
+            end
+            if strcmp(order, 'P1')
+                % fVals = zeros(x.nDofsElem,obj.mesh.nelem);
+                % fVals = obj.reshapeFValues(fVals,x.ndimf);
+                connec = obj.mesh.connec;
+
+                f = x.fValues;
+                nNode  = size(connec,2);
+                nDime  = size(f,2);
+                nodes = reshape(connec',1,[]);
+                fe = f(nodes,:)';
+                fVals = reshape(fe,nDime,nNode,[]);
+            else
+                LHS = obj.computeLHS();
+                RHS = obj.computeRHS(x);
+                f = LHS\RHS;
+                fVals = obj.reshapeFValues(f, size(f,2));
+            end
             s.mesh    = obj.mesh;
             s.fValues = fVals;
             xProj = P1DiscontinuousFunction(s);
@@ -25,19 +38,12 @@ classdef Projector_toP1Discontinuous < Projector
 
     methods (Access = private)
 
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            s.quadratureOrder    = 'QUADRATIC';
-            s.galerkinType       = 'DISCONTINUOUS';
-            obj.field = Field(s);
-        end
-
         function LHS = computeLHS(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.field = obj.field;
+            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.quadratureOrder = 'QUADRATIC';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
@@ -46,17 +52,20 @@ classdef Projector_toP1Discontinuous < Projector
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
-            obj.mesh.interpolation.computeShapeDeriv(xV);
-            shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
+
+            trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            shapes = trial.computeShapeFunctions(xV);
+
+           % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;
-            nFlds = fun.ndimf;
             nElem = obj.mesh.nelem;
             nNode = size(conne,2);
             nDofs = nElem*nNode;
 
             fGaus = fun.evaluate(xV);
+            nFlds = size(fGaus,1);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds
                 for igaus = 1:nGaus

@@ -17,7 +17,8 @@ classdef Projector_toP0 < Projector
             RHS = obj.createRHS(x);
             s.fValues = obj.M\RHS;
             s.mesh    = obj.mesh;
-            xFun = P0Function(s);
+            s.order   = 'P0';
+            xFun = LagrangianFunction(s);
         end
 
     end
@@ -28,17 +29,19 @@ classdef Projector_toP0 < Projector
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('CONSTANT');
             dv = obj.mesh.computeDvolume(quad);
-            obj.M = diag(sum(dv(1,:),1));
+            a = sum(dv(1,:),1);
+            obj.M = spdiags(a',0,length(a),length(a));
+         %   obj.M = spdiags(sum(dv(1,:),1),0);
         end
 
         function rhs = createRHS(obj, fun)
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
+            fGaus = fun.evaluate(xV);
             nGaus  = obj.quadrature.ngaus;
-            nF     = fun.ndimf;
+            nF     = size(fGaus,1);
             nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
-            fGaus = fun.evaluate(xV);
 
             for iGaus = 1:nGaus
                 dVg(:,1) = dV(iGaus,:);

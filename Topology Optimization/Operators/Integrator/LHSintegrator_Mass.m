@@ -1,65 +1,86 @@
-classdef LHSintegrator_Mass < LHSintegrator
+classdef LHSintegrator_Mass < handle
 
     properties (Access = private)
-        field
+        mesh
+        test, trial
+        quadrature
+        quadratureOrder
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_Mass(cParams)
-            %             obj.init(cParams);
-            obj.mesh  = cParams.mesh;
-            obj.field = cParams.field;
+            obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrixField(lhs);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
 
-    methods (Access = protected)
+    methods (Access = private)
+
+        function init(obj, cParams)
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
+            obj.mesh  = cParams.mesh;
+            obj.setQuadratureOrder(cParams);
+        end
+
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = obj.trial.orderTextual();
+            end
+        end
+        
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
+            obj.quadrature = quad;
+        end
 
         function lhs = computeElementalLHS(obj)
-            f = obj.field;
-            shapes = f.interpolation.shape;
-            quad   = f.quadrature;
-            dvolu  = obj.mesh.computeDvolume(quad);
-            ngaus  = f.quadrature.ngaus;
-            nelem  = obj.mesh.nelem;
-            %             nnode  = obj.mesh.nnodeElem;
-            ndimf  = f.dim.ndimf;
-            nnode  = f.dim.nnodeElem;
+            quad = obj.quadrature;
+            xV   = quad.posgp;
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            shapesTrial = obj.trial.computeShapeFunctions(xV);
+            dVolu  = obj.mesh.computeDvolume(quad);
 
-            % One dimension
-            %             lhs = zeros(nnode,nnode,nelem);
-            %             for igaus = 1:ngaus
-            %                 dv(1,1,:) = dvolu(igaus,:);
-            %                 Ni = shapes(:,igaus);
-            %                 Nj = shapes(:,igaus);
-            %                 NiNj = Ni*Nj';
-            %                 Aij = bsxfun(@times,NiNj,dv);
-            %                 lhs = lhs + Aij;
-            %             end
+            nGaus  = obj.quadrature.ngaus;
+            nElem  = size(dVolu,2);
+            nNodeTest  = size(shapesTest,1);
+            nNodeTrial = size(shapesTrial,1);
+            nDofTest   = nNodeTest*obj.test.ndimf;
+            nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            % N dimensions, pending optimization
-            M = zeros(nnode*ndimf,nnode*ndimf,nelem);
-            dvolu = dvolu';
-            for igauss = 1 :ngaus
-                for inode= 1:nnode
-                    for jnode= 1:nnode
-                        for iunkn= 1:ndimf
-                            for junkn= 1:ndimf
-                                idof = ndimf*(inode-1)+iunkn;
-                                jdof = ndimf*(jnode-1)+junkn;
-                                dvol = dvolu(:,igauss);
-                                Ni = shapes(inode,igauss,:);
-                                Nj = shapes(jnode,igauss,:);
+            M = zeros(nDofTest, nDofTrial, nElem);
+%             for igaus = 1:nGaus
+%                 dv(1,1,:) = dVolu(igaus,:);
+%                 Nv = shapesTest(:,igaus);
+%                 Nu = shapesTrial(:,igaus);
+%                 NvNu = Nv*Nu';
+%                 Aij = bsxfun(@times,NvNu,dv);
+%                 lhs = lhs + Aij;
+%             end
+            for igauss = 1 :nGaus
+                for inode= 1:nNodeTest
+                    for jnode= 1:nNodeTrial
+                        for iunkn= 1:obj.test.ndimf
+                       %     for junkn= 1:obj.trial.ndimf
+                                idof = obj.test.ndimf*(inode-1)+iunkn;
+                                jdof = obj.trial.ndimf*(jnode-1)+iunkn;
+                                dvol = dVolu(igauss,:);
+                                Ni = shapesTest(inode,igauss,:);
+                                Nj = shapesTrial(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj);
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
-                                    + v(:).*dvol;
-                            end
+                                    + v(:).*dvol';
+                       %     end
                         end
                     end
                 end
@@ -68,12 +89,10 @@ classdef LHSintegrator_Mass < LHSintegrator
 
         end
 
-        function lhs = assembleMatrixField(obj, Ae)
-            s.dim          = obj.field.dim;
-            s.globalConnec = obj.field.connec;
-            s.nnodeEl      = obj.field.dim.nnodeElem;
-            assembler = Assembler(s);
-            lhs = assembler.assembleFields(Ae, obj.field, obj.field);
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

@@ -6,7 +6,6 @@ classdef test1DLHS < handle
 
     properties (Access = private)
         mesh
-        field
         K, M
         LHS, RHS
         funL2, funH1
@@ -24,7 +23,6 @@ classdef test1DLHS < handle
         function obj = test1DLHS()
             obj.init()
             obj.createMesh()
-            obj.createField()
             obj.createLHS();
             obj.createRHS();
             obj.solveSystem();
@@ -50,17 +48,9 @@ classdef test1DLHS < handle
             s.connec(:,1) = 1:n-1;
             s.connec(:,2) = 2:n;
             s.kFace = -1;
-            m = Mesh(s);
+            m = Mesh.create(s);
 %             m.plot();
             obj.mesh = m;
-        end
-
-        function createField(obj)
-            s.mesh               = obj.mesh;
-            s.ndimf              = 1;
-            s.interpolationOrder = 'LINEAR';
-            f = Field(s);
-            obj.field = f;
         end
 
         function createLHS(obj)
@@ -71,19 +61,21 @@ classdef test1DLHS < handle
         end
 
         function createStifnessMatrix(obj)
-            l.mesh = obj.mesh;
-            l.field = obj.field;
-            l.type = 'StiffnessMatrix';
+            l.type  = 'StiffnessMatrix';
+            l.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            l.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            l.mesh  = obj.mesh;
             lhs = LHSintegrator.create(l);
             obj.K = lhs.compute();
         end
         
         function createMassMatrix(obj)
             s.type  = 'MassMatrix';
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.field = obj.field;
-            lhs     = LHSintegrator.create(s);
-            obj.M   = lhs.compute();
+            lhs    = LHSintegrator.create(s);
+            obj.M  = lhs.compute();
         end
 
         function createRHS(obj)
@@ -93,7 +85,8 @@ classdef test1DLHS < handle
             
             s.mesh = obj.mesh;
             s.fValues = f;
-            fL2 = P1Function(s);
+            s.order = 'P1';
+            fL2 = LagrangianFunction(s);
 %             fL2.plot;
             obj.RHS = obj.M*(fL2.fValues)';
             obj.funL2 = fL2;
@@ -106,7 +99,8 @@ classdef test1DLHS < handle
     
             s.mesh = obj.mesh;
             s.fValues = fH1Values;
-            fH1 = P1Function(s);
+            s.order = 'P1';
+            fH1 = LagrangianFunction(s);
 %             fH1.plot()
             obj.funH1 = fH1;
 %             obj.mesh.plot();

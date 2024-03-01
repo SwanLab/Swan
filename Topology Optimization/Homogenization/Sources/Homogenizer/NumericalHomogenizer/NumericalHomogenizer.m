@@ -154,12 +154,12 @@ classdef NumericalHomogenizer < handle
         end
         
         function computeElasticVariables(obj)
-            obj.microProblem.computeChomog();
+            obj.microProblem.solve();
             cV = obj.cellVariables;
-            cV.Ch      = obj.microProblem.variables.Chomog;
-            cV.tstress = obj.microProblem.variables.tstress;
-            cV.tstrain = obj.microProblem.variables.tstrain;
-            cV.displ   = obj.microProblem.variables.tdisp;
+            cV.Ch      = obj.microProblem.Chomog;
+%             cV.tstress = obj.microProblem.variables.tstress;
+%             cV.tstrain = obj.microProblem.variables.tstrain;
+%             cV.displ   = obj.microProblem.variables.tdisp;
             obj.cellVariables = cV;
             
             
@@ -172,7 +172,8 @@ classdef NumericalHomogenizer < handle
             mpMesh = prob.getMesh();
             cParams.coord  = mpMesh.coord;
             cParams.connec = mpMesh.connec;
-            mesh = Mesh_Total(cParams);
+%             mesh = Mesh_Total(cParams);
+            mesh = Mesh.create(cParams);
 
             d = obj.volDataBase;
             s = SettingsDesignVariable();
@@ -183,24 +184,49 @@ classdef NumericalHomogenizer < handle
             s.creatorSettings.ndim  = obj.dim.ndimf;
             s.creatorSettings.coord = mpMesh.coord;
             scalarPr.epsilon = 1e-3;
-            scalarPr.mesh = mesh.innerMeshOLD;
+            scalarPr.mesh = mesh;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = s.mesh.ndim;
+            sLs.coord  = s.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
+            ss.mesh    = s.mesh;
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
+
             desVar = DesignVariable.create(s);
-            d.filterParams.mesh = desVar.mesh.innerMeshOLD;
+            d.filterParams.mesh = desVar.mesh;
             d.filterParams.designVarType = desVar.type;
             d.filterParams = SettingsFilter(d.filterParams);
-            d.mesh = mesh.innerMeshOLD;
+            d.mesh = mesh;
 %             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
+
+            sF            = d.filterParams.femSettings;
+            sF.filterType = d.filterParams.filterType;
+            sF.mesh       = d.designVariable.mesh;
+            sF.test       = LagrangianFunction.create(sF.mesh, 1, 'P0');
+            sF.trial      = LagrangianFunction.create(sF.mesh, 1, 'P1');
+            d.femSettings.designVariableFilter = Filter.create(sF);
+            d.femSettings.gradientFilter       = Filter.create(sF);
+
             vComputer = ShFunc_Volume(d);
             vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
-        end
-        
-        function mesh = setMasterSlaveNodes(obj,mesh)
-           
         end
         
         function obtainIntegrationUsedVariables(obj)

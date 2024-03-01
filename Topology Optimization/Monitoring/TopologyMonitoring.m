@@ -10,7 +10,6 @@ classdef TopologyMonitoring < handle
         convergenceVars
         monitorDocker
         postProcess
-        incrementalScheme
         monitor
     end
 
@@ -41,16 +40,18 @@ classdef TopologyMonitoring < handle
                     obj.plotIPOPT(cParams);
                 case 'MMA'
                     obj.plotMMA(cParams);
+                case 'IPM'
+                    obj.plotIPM(cParams);
                 otherwise
                     error('Optimizer not implemented')
             end
         end
 
         function create(obj,cParams)
-            obj.createHistoryPrinter(cParams.historyPrinterSettings);
-            obj.createConvergenceVariables(cParams);
-            obj.createMonitorDocker(cParams.monitoringDockerSettings);
-            obj.createPostProcess(cParams.postProcessSettings);
+            %obj.createHistoryPrinter(cParams.historyPrinterSettings);
+            %obj.createConvergenceVariables(cParams);
+            %obj.createMonitorDocker(cParams.monitoringDockerSettings);
+            %obj.createPostProcess(cParams.postProcessSettings);
         end
         
     end
@@ -61,9 +62,8 @@ classdef TopologyMonitoring < handle
             obj.type     = cParams.type;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
+            obj.designVariable    = cParams.designVariable;
             obj.dualVariable      = cParams.dualVariable;
-            obj.incrementalScheme = cParams.incrementalScheme;
         end
         
         function plotFmincon(obj,cParams)
@@ -173,6 +173,26 @@ classdef TopologyMonitoring < handle
             obj.printHistory();
         end
 
+        function plotIPM(obj,cParams)
+            deltaCost              = obj.cost.value - cParams.oldCost;
+            obj.nIter              = cParams.nIter;
+            normXsquare            = obj.designVariable.computeL2normIncrement();
+            obj.lineSearch         = cParams.tau;
+            obj.lineSearchTrials   = cParams.lineSearchTrials;
+            obj.hasFinished        = cParams.hasFinished;
+            incX                   = sqrt(normXsquare);
+            obj.designVariable.updateOld();
+            obj.printOptimizerVariable();
+            obj.convergenceVars.reset();
+            obj.convergenceVars.append(deltaCost);
+            obj.convergenceVars.append(incX);
+            obj.convergenceVars.append(obj.lineSearch);
+            obj.convergenceVars.append(obj.lineSearchTrials);
+            obj.convergenceVars.append(cParams.meritNew);
+            obj.refreshMonitoring();
+            obj.printHistory();
+        end
+
         function createHistoryPrinter(obj,cParams)
             cParams.optimizer  = obj;
             cParams.cost       = obj.cost;
@@ -230,8 +250,7 @@ classdef TopologyMonitoring < handle
         end
         
         function printHistory(obj)
-            iStep = obj.incrementalScheme.iStep;
-            obj.historyPrinter.print(obj.nIter,iStep);
+            obj.historyPrinter.print(obj.nIter,1);
         end
         
         function printHistoryFinalValues(obj)
@@ -239,9 +258,7 @@ classdef TopologyMonitoring < handle
         end
 
         function refreshMonitoring(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,iStep,nStep);
+            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,1,1);
         end
              
     end

@@ -10,27 +10,22 @@ classdef ShapeFunctional_Factory < handle
     methods (Access = public)
         
         function sF = create(obj,cParams)
-            obj.designVar        = cParams.designVariable;
-
             if isprop(cParams,'homogVarComputer')
                 obj.homogVarComputer = cParams.homogVarComputer;
             end
             if isprop(cParams,'targetParameters')
                 obj.targetParameters = cParams.targetParameters;
             end
-            
-            if ~isempty(cParams.designVariable.mesh)
-                if isprop(cParams.designVariable.mesh,'innerMeshOLD')
-                mOld = cParams.designVariable.mesh.innerMeshOLD;
-                cParams.mesh = mOld;
-                cParams.filterParams.mesh          = mOld;
-                cParams.filterParams.designVarType = cParams.designVariable.type;
-                end
-            end
-            
+
             switch cParams.type
                 case 'compliance'
-                    sF = ShFunc_Compliance(cParams);
+                    s.mesh                       = cParams.mesh;
+                    s.stateProblem               = cParams.physicalProblem;
+                    c                            = ComplianceFromConstiutiveTensor(s);
+                    s.filter                     = cParams.filter;
+                    s.complainceFromConstitutive = c;
+                    s.material                   = cParams.material;
+                    sF                           = ComplianceFunctional(s);
                 case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
                         'complianceConstraintC4'}
                     sF = ShFunc_Compliance_constraint(cParams);
@@ -38,19 +33,13 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_ComplianceComparison_constraint(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
-                    %sF = ShFunc_StressNorm2(cParams);
-                    %sF = ShFunc_StressNorm3(cParams);
-                case 'perimeter'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactRobin';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    sF = ShFunc_Perimeter(cParams);
-                case 'perimeterInterior'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactNeumann';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    sF = ShFunc_Perimeter(cParams);
+                case {'perimeter','perimeterInterior','anisotropicPerimeter2D','anisotropicPerimeterInterior2D'}
+                    s.mesh        = cParams.mesh;
+                    s.filter      = cParams.filter;
+                    s.epsilon     = 5*cParams.mesh.computeMeanCellSize();
+                    s.value0      = 1;
+                    sF = PerimeterFunctional(s);
                 case 'perimeterConstraint'
-                    cParams.filterParams.femSettings.LHStype = 'DiffReactRobin';
-                    %cParams.designVariable = cParams.designVariable.value;
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
                     sF = ShFunc_Chomog_alphabeta(cParams);
@@ -79,7 +68,11 @@ classdef ShapeFunctional_Factory < handle
                 case 'volume'
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
-                    sF = Volume_constraint(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.volumeTarget = cParams.target;
+                    s.gradientTest = cParams.gradientTest;
+                    sF             = VolumeConstraint(s);
                 case 'firstEignValue_functional'
                     sF = ShFunc_FirstEigenValue(cParams);
                 case 'doubleEig'
@@ -88,24 +81,6 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
-                case 'anisotropicPerimeter2D'
-                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactRobin';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 60;
-                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
-                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
-                    sF = ShFunc_Perimeter(cParams);
-                case 'anisotropicPerimeterInterior2D'
-                    cParams.filterParams.femSettings.LHStype = 'AnisotropicDiffReactNeumann';
-                    %cParams.designVariable = cParams.designVariable.value;
-                    cParams.filterParams.femSettings.isAnisotropyAdded = true;
-                    u = 60;
-                    cParams.filterParams.femSettings.CAnisotropic = [tand(u),0;0,1/tand(u)];
-                    cParams.filterParams.femSettings.aniAlphaDeg = 90;
-                    cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
-                    sF = ShFunc_Perimeter(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

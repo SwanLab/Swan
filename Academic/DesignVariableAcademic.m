@@ -5,34 +5,31 @@ classdef DesignVariableAcademic < handle
         valueOld
     end
     
-    properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
     methods (Access = public)
-        
-        function obj = DesignVariableAcademic()
-            
+        function obj = DesignVariableAcademic(cParams)
+            obj.init(cParams);
         end
-        
-        function init(obj,x0)
-            obj.value = x0;
-        end
-        
-    end
-    
-    methods (Access = public)
-        
+
         function update(obj,x)
             obj.value = x;
         end
-        
+
         function updateOld(obj)
             obj.valueOld = obj.value;
+        end
+
+        function res = computeL2normIncrement(obj)
+            incFun = obj.value-obj.valueOld;
+            nIncX  = norm(incFun);
+            nX0    = norm(obj.valueOld);
+            res    = nIncX/nX0;
+        end
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.value = cParams.x0;
         end
        
     end

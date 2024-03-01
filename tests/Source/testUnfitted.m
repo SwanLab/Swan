@@ -22,13 +22,13 @@ classdef testUnfitted < test
         function createTopOpt(obj)
             obj.createSettings();
             obj.computation = TopOpt_Problem(obj.settings);
-            obj.levelSet = obj.computation.designVariable.value;
+            obj.levelSet = obj.computation.designVariable.fun.fValues;
         end
         
         function createMesh(obj)
             bM  = obj.computation.designVariable.mesh;
-            s.backgroundMesh = bM.innerMeshOLD;
-            s.boundaryMesh   = bM.boxFaceMeshes;
+            s.backgroundMesh = bM;
+            s.boundaryMesh   = bM.createBoundaryMesh();
             cParams = SettingsMeshUnfitted(s);
             obj.unfittedMesh = UnfittedMesh(cParams);
             obj.unfittedMesh.compute(obj.levelSet);
@@ -63,4 +63,3 @@ classdef testUnfitted < test
     end
     
 end
-

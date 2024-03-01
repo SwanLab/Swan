@@ -21,7 +21,7 @@ classdef AbstractTensor < handle
         
         function s = getTensorSize(obj)
             s = obj.tensorSize;
-        end 
+        end
         
         function createRandomTensor(obj)
             obj.tensorValue = rand(obj.tensorSize);

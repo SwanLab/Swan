@@ -1,32 +1,18 @@
 classdef DesignVariable < handle
     
     properties (GetAccess = public, SetAccess = protected)
+        fun
+        type        
+    end
+
+    properties (Access = protected)
         mesh
-        type
         nVariables
-        value
-    end
-    
-    properties (Access = public)
-        alpha
-        rho
-    end
-    
-    properties (GetAccess = public, SetAccess = private)
-        scalarProduct
+        isFixed
     end
     
     properties (Access = private)
-        valueOld
-        alphaOld
-    end
-    
-    properties (Access = protected)
-       isFixed
-    end
-    
-    methods (Access = public, Abstract)
-        getVariablesToPlot(obj)
+        funOld
     end
     
     methods (Access = public, Static)
@@ -35,39 +21,20 @@ classdef DesignVariable < handle
             f = DesignVariableFactory();
             designVariable = f.create(cParams);
         end
-        
+
     end
-    
+
     methods (Access = public)
         
-        function restart(obj)
-            obj.update(obj.valueOld);
-            obj.alpha = obj.alphaOld;
-        end
-        
-        function update(obj,value)
-            obj.value = value;
-            if ~isempty(obj.isFixed)
-               obj.value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
-        end
-        
         function updateOld(obj)
-            obj.valueOld = obj.value;
-            obj.alphaOld = obj.alpha;
-        end
-        
-        function objClone = clone(obj)
-            objClone = copy(obj);
+            obj.funOld = obj.fun.copy();
         end
         
         function norm = computeL2normIncrement(obj)
-           x  = obj.value;
-           x0 = obj.valueOld;
-           incX  = x - x0;
-           nIncX = obj.scalarProduct.computeSP_M(incX,incX);
-           nX0   = obj.scalarProduct.computeSP_M(x0,x0);
-           norm  = nIncX/nX0;
+           incFun = obj.fun-obj.funOld;
+           nIncX  = Norm.computeL2(obj.mesh,incFun);
+           nX0    = Norm.computeL2(obj.mesh,obj.funOld);
+           norm   = nIncX/nX0;
         end
         
     end
@@ -75,42 +42,14 @@ classdef DesignVariable < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.type    = cParams.type;
-            obj.mesh    = cParams.mesh;
+            obj.type = cParams.type;
+            obj.mesh = cParams.mesh;
+            obj.fun  = cParams.fun;
             if isfield(cParams,'isFixed')            
               obj.isFixed = cParams.isFixed;
             end
-            obj.initValue(cParams);
-            if isprop(cParams,'scalarProductSettings')  
-                obj.createScalarProduct(cParams);
-            end
-        end
-        
-    end
-    
-    methods (Access = private)
-
-        function initValue(obj,cParams)
-            if isfield(cParams,'value')
-                if isempty(cParams.value)
-                 obj.value = ones(size(obj.mesh.coord,1),1);
-                else
-                    obj.value = cParams.value;
-                end
-             else
-                obj.value = ones(size(obj.mesh.coord,1),1);
-            end
-        end
-        
-        function createScalarProduct(obj,cParams)
-            s = cParams.scalarProductSettings;
-            s.nVariables = obj.nVariables;
-            s.femSettings.mesh = obj.mesh;
-            obj.scalarProduct = ScalarProduct(s);
         end
         
     end
 
-    
 end
-

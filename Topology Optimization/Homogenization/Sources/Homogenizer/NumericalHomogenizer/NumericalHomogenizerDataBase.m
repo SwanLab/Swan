@@ -54,14 +54,33 @@ classdef NumericalHomogenizerDataBase < handle
             dF = FemInputReader_GiD().read(fileName);
             cParams.coord  = dF.mesh.coord;
             cParams.connec = dF.mesh.connec;
-            meshT = Mesh_Total(cParams);
+            meshT = Mesh.create(cParams);
             
             s.mesh = meshT;
-            
+
             scalarPr.epsilon = 1e-3;
-            scalarPr.mesh = meshT.innerMeshOLD;
+            scalarPr.mesh = meshT;
             s.scalarProductSettings = scalarPr;
-            
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = s.mesh.ndim;
+            sLs.coord  = s.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
+            ss.mesh    = s.mesh;
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
+
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;
             d.femSettings.scale = 'MICRO';
