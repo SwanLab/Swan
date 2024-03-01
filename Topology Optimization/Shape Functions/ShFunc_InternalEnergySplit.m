@@ -1,4 +1,4 @@
-classdef ShFunc_InternalEnergy < handle
+classdef ShFunc_InternalEnergySplit < handle
     
     properties (Access = private)
         mesh
@@ -27,7 +27,6 @@ classdef ShFunc_InternalEnergy < handle
             Huu = obj.computeHessianDisplacement(u,phi,quadOrder);
             Hphiphi = obj.computeHessianDamage(u,phi,quadOrder);
         end
-        
     end
     
     methods (Access = private)
@@ -85,7 +84,7 @@ classdef ShFunc_InternalEnergy < handle
             LHS = LHSintegrator.create(s);
             Hphiphi = 0.5*LHS.compute();
         end
-
+        
     end
     
 end

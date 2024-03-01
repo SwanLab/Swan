@@ -50,42 +50,59 @@ classdef PhaseFieldComputer < handle
             obj.init(cParams)
             obj.createFunctionals()
             
-            uOld = LagrangianFunction.create(obj.mesh,2,'P1');
-            phiOld = obj.phi.fValues;
+            u = LagrangianFunction.create(obj.mesh,2,'P1');
+            phi = LagrangianFunction.create(obj.mesh,1,'P1');
+            uOld = u.fValues;
+            phiOld = phi.fValues;
+
             obj.costFun = null(2,1);
 
             for i = 1:obj.steps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 obj.createBoundaryConditions(obj.bcVal(i));
-                obj.u = obj.BC.dirichletFun;
-                numIterU = 1;
-                errorU = 1;
-                while (errorU > obj.tolErrU) && (numIterU < 100)
-                    obj.computeFEM();
+                u.fValues = obj.BC.dirichletFun.fValues;
 
-                    obj.costFun(1,end+1) = obj.computeCostFunction();
-                    if numIterU == 1
-                        obj.costFun(2,end) = 2;
-                    else
+                obj.costFun(1,end+1) = obj.computeCostFunction(u,phi);
+                obj.costFun(2,end) = 2;
+
+                eStag = 1; iterStag = 1;
+                while (eStag > obj.tolErrU) && (iterStag < 100)
+
+                    eU = 1;iterU = 1;
+                    while (eU > obj.tolErrU) && (iterU < 100)
+                        LHSfull = obj.computeElasticLHS(u,phi);
+                        RHSfull = obj.computeElasticResidual(u,phi);
+                        [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull);
+                        U = reshape(u.fValues',[u.nDofs 1]);
+                        uNew = obj.updateWithNewton(LHS,RHS,U(freeDofs));
+                        F = LHSfull*U;
+                        u = reshape(uNew,[flip(size(u.fValues))])';
+
+                        obj.costFun(1,end+1) = obj.computeCostFunction(u,phi);
                         obj.costFun(2,end) = 0;
+                        eU = abs(obj.costFun(1,end)-obj.costFun(1,end-1));
+                        disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
                     end
 
-                    numIterP = 1;
-                    errorPhi = 1;
-                    while (errorPhi > obj.tolErrPhi) && (numIterP < 100)
-                        obj.computePhaseField(phiOld);
+                    ePhi = 1;  iterPhi = 1;
+                    while (ePhi > obj.tolErrPhi) && (iterPhi < 100)
+                        LHS = obj.computePhaseFieldLHS(u,phi);
+                        RHS = obj.computePhaseFieldResidual(u,phi);
+                        phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
+                        phi = obj.projectInLowerAndUpperBound(phiNew,phiOld,1);
 
-                        obj.costFun(1,end+1) = obj.computeCostFunction();
+                        obj.costFun(1,end+1) = obj.computeCostFunction(u,phi);
                         obj.costFun(2,end) = 1;
-
-                        errorPhi = abs(obj.costFun(1,end)-obj.costFun(1,end-1));
+                        ePhi = abs(obj.costFun(1,end)-obj.costFun(1,end-1));
                         disp(['iterPhi: ',num2str(numIterP),' res: ',num2str(errorPhi)])
 
                         numIterP = numIterP + 1;
                     end
 
-                    errorU = obj.computeDisplacementError(uOld);
-                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(errorU(end))])
+
+
+                    eStag = obj.computeDisplacementError(uOld);
+                    disp(['iterU: ',num2str(numIterU),' res: ',num2str(eStag(end))])
 
                     numIterU = numIterU + 1;
                     uOld.fValues = obj.u.fValues;
@@ -145,89 +162,42 @@ classdef PhaseFieldComputer < handle
             obj.functional.extWork        = ShFunc_ExternalWork(s);
         end
 
-
+        
+        function xNew = updateWithNewton(LHS,RHS,x)
+            deltaX = -LHS\RHS;
+            xNew = x + deltaX; 
+        end
         %% %%%%%%%%%%%%%%%%%%%%%% ELASTIC EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
-        % function computeFEM(obj)
-        %     quadOrder = 'QUADRATIC';
-        %     quad = Quadrature.set(obj.mesh.type);
-        %     quad.computeQuadrature(quadOrder);
-        % 
-        %     s.mesh = obj.mesh;
-        %     s.type = 'ELASTIC';
-        %     s.scale = 'MACRO';
-        %     s.dim = '2D';
-        %     s.material = obj.materialPhaseField.setMaterial(obj.phi,'Interpolated');
-        %     s.boundaryConditions = obj.boundaryConditions;
-        %     s.interpolationType = 'LINEAR';
-        %     s.quadratureOrder = quadOrder;
-        %     s.solverType = 'REDUCED';
-        %     s.solverMode = 'DISP';
-        %     obj.fem = PhysicalProblem.create(s);
-        %     obj.fem.solve();
-        %     obj.u = obj.fem.uFun;
-        %     obj.forceVector = obj.fem.reactions;
-        % end
 
-        function computeFEM(obj)
-            LHSfull = obj.createInternalEnergyStiffnessMatrix();
-            RHSfull = obj.computeElasticResidual();
-            obj.u.fValues = obj.computeDisplacement(LHSfull, RHSfull);
-            obj.forceVector = obj.computeReactions(LHSfull);
-        end
-
-        function res = computeElasticResidual(obj)
-            Fint = obj.createInternalEnergyElasticForceVector();
-            Fext = obj.createExternalWorkForceVector();
-            res = Fint + Fext;
-        end
-
-        function K = createInternalEnergyStiffnessMatrix(obj)
-            [Huu,~] = obj.functional.energy.computeHessian(obj.u,obj.phi,'LINEAR');
-            K = Huu;
-        end
-
-        function Fint = createInternalEnergyElasticForceVector(obj)
-            [Ju,~] = obj.functional.energy.computeGradient(obj.u,obj.phi,'LINEAR');
-            Fint = Ju;
-        end
-
-        function Fext = createExternalWorkForceVector(obj)
+        function RHS = computeElasticResidual(obj,u,phi)
             fExt = obj.BC.pointloadFun;
-            [J] = obj.functional.extWork.computeGradient(obj.u,fExt,'LINEAR');
-            Fext = J;
+            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'LINEAR');
+            Fext = obj.functional.extWork.computeGradient(u,fExt,'LINEAR');
+            RHS = Fint + Fext;
+        end
+
+        function LHS = computeElasticLHS(obj,u,phi)
+            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'LINEAR');
         end
 
         function UfV = computeDisplacement(obj,LHSfull, RHSfull)
-            [LHS,RHS,freeDofs] = obj.fullToReduced(LHSfull, RHSfull);
-            deltaU = -LHS\RHS;
 
-            U = reshape(obj.u.fValues',[obj.u.nDofs 1]);
-            U(freeDofs) = U(freeDofs) + deltaU;
-            UfV = reshape(U,[flip(size(obj.u.fValues))])';
         end
 
-        function [LHS,RHS,free_dofs] = fullToReduced(obj,LHS,RHS)
-            dofs = 1:size(LHS);
-            free_dofs = setdiff(dofs, obj.BC.dirichlet_dofs);
+        function [LHS,RHS] = fullToReduced(obj,LHS,RHS)
+            free_dofs = obj.BC.free_dofs;
             LHS = LHS(free_dofs, free_dofs);
             RHS = RHS(free_dofs);
         end
 
         function F = computeReactions(obj,LHS)
-            U = reshape(obj.u.fValues',[obj.u.nDofs 1]);
-            F = LHS*U;
+
         end
 
         %% %%%%%%%%%%%%%%%% PHASE-FIELD EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
-        % Matrix equation
-        function computePhaseField(obj,phiOld)
-            LHS = obj.computePhaseFieldLHS();
-            RHS = obj.computePhaseFieldResidual();
-            deltaPhi = -LHS\RHS;
-            %obj.deltaPhi = -obj.tau*RHS;
 
-            obj.phi.fValues = obj.phi.fValues + deltaPhi;
-            obj.phi.fValues = min(max(phiOld, obj.phi.fValues),1); %%%% IRREVERSIBILITY CONDITION %%%%
+        function xP = projectInLowerAndUpperBound(obj,x,xLB,xUB)
+            xP = min(max(xLB, x),xUB); 
         end
 
         function LHS = computePhaseFieldLHS(obj)
@@ -299,18 +269,11 @@ classdef PhaseFieldComputer < handle
 
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%
 
-
-
-        function totReact = computeTotalReaction(obj)
+        function totReact = computeTotalReaction(obj,F)
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = -sum(obj.forceVector(2*nodes(isInUp)));
-
-            % LeftSide  = min(obj.mesh.coord(:,1));
-            % isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = sum(obj.forceVector(2*nodes(isInLeft)));
+            totReact = -sum(F(2*nodes(isInUp)));
         end
 
         function e = computeCostFunction(obj)
