@@ -37,7 +37,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all;
         end
 
         function createMesh(obj)
@@ -58,6 +58,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
+            s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -124,6 +125,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -176,7 +178,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = obj.filter.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;

@@ -12,7 +12,7 @@ classdef Cost < handle
     end
 
     properties (Access = private)
-        shapeValues        
+        shapeValues
     end
 
     methods (Access = public)
@@ -39,7 +39,8 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = obj.Msmooth*djV;
+            %obj.gradient = obj.Msmooth*djV;
+            obj.gradient = djV;
         end
 
         function nF = obtainNumberFields(obj)

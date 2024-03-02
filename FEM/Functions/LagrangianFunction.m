@@ -85,7 +85,7 @@ classdef LagrangianFunction < FeFunction
                     for jDimE = 1:nDimE
                         invJ_IJ   = invJ(iDimG,jDimE,:,:);
                         dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(dShapes_JK,invJ_IJ);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
                         dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
                     end
                 end
@@ -204,7 +204,7 @@ classdef LagrangianFunction < FeFunction
         
         function v = computeL2norm(obj)
             s.type     = 'ScalarProduct';
-            s.quadType = 'QUADRATICMASS';
+            s.quadType = 'QUADRATIC';
             s.mesh     = obj.mesh;
             int = Integrator.create(s);
             ff  = int.compute(obj,obj);

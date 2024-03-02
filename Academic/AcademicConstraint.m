@@ -1,15 +1,8 @@
 classdef AcademicConstraint < handle
     
     properties (Access = private)
-        gradientFunction
         constraintFunction
-        designVariable
-    end
-    
-    properties (Access = public)
-        value
-        gradient
-        nSF
+        gradientFunction
     end
     
     methods (Access = public)
@@ -18,10 +11,9 @@ classdef AcademicConstraint < handle
             obj.init(cParams)
         end
         
-        function computeFunctionAndGradient(obj)
-            x            = obj.designVariable.value;
-            obj.value    = obj.constraintFunction(x);
-            obj.gradient = obj.gradientFunction(x);
+        function [J,dJ] = computeFunctionAndGradient(obj,x)
+            J          = obj.constraintFunction(x.value);
+            dJ.fValues = obj.gradientFunction(x.value);
         end
         
     end
@@ -31,10 +23,14 @@ classdef AcademicConstraint < handle
         function init(obj,cParams)
             obj.constraintFunction = cParams.cF;
             obj.gradientFunction   = cParams.gF;
-            obj.designVariable     = cParams.dV;
-            obj.nSF                = cParams.nSF;
         end
-        
+
     end
-    
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'AcademicConstraint';
+        end
+    end
+
 end

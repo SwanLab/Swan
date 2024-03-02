@@ -37,7 +37,7 @@ classdef TopOptTestTutorial < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all;
         end
 
         function createMesh(obj)
@@ -59,6 +59,7 @@ classdef TopOptTestTutorial < handle
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
+            s.plotting = true;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -135,6 +136,7 @@ classdef TopOptTestTutorial < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -183,11 +185,6 @@ classdef TopOptTestTutorial < handle
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function mat = createInterpolatedMaterial(obj,dens)
-            mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(dens);
         end
 
         function bc = createBoundaryConditions(obj)

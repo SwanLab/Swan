@@ -29,11 +29,9 @@ classdef OptimizerMMA < Optimizer
         upperBound
         lowerBound
         hasFinished
-        incrementalScheme
         hasConverged
         historicalVariables
         KKTnorm
-        Vtar
     end
     
     methods (Access = public)
@@ -55,8 +53,8 @@ classdef OptimizerMMA < Optimizer
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
-               obj.updateMonitoring();
                obj.printOptimizerVariable();
+               obj.updateMonitoring();
            end
             obj.hasConverged = 0;
        end
@@ -102,13 +100,7 @@ classdef OptimizerMMA < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
             obj.monitoring.update(obj.nIter,data);
-        end
-
-        function v = computeVolume(obj,g)
-            targetVolume = obj.Vtar;
-            v            = targetVolume*(1+g);
         end
 
         function init(obj,cParams)
@@ -116,7 +108,6 @@ classdef OptimizerMMA < Optimizer
             obj.lowerBound   = cParams.lb;
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
-            obj.Vtar           = cParams.volumeTarget;
             obj.createMonitoring(cParams);
         end
 
@@ -130,12 +121,11 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFConstraint
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Volume'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},{'plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
@@ -190,8 +180,8 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 10*ones(obj.m,1);
-                obj.d = 100*ones(obj.m,1);
+                obj.c = 1000*ones(obj.m,1);
+                obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
