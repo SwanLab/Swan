@@ -6,6 +6,7 @@ classdef BoundaryConditions < handle
         periodic_leader, periodic_follower
 
         iVoigt, nVoigt
+        free_dofs
     end
     
     properties (Access = private)
@@ -53,6 +54,7 @@ classdef BoundaryConditions < handle
             obj.dirichlet_vals = vals;
             obj.dirichlet_domain = domain;
             obj.dirichletFun = fun;
+            obj.free_dofs = setdiff(fun.nDofs,dofs);
         end
 
         function [dofs,vals,domain,bcFun] = createBCFun(obj,input)

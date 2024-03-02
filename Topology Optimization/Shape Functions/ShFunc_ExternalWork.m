@@ -23,15 +23,16 @@ classdef ShFunc_ExternalWork < handle
         end
         
         function Ju = computeGradient(obj,u,fExt,quadOrder)
-            bMesh = obj.mesh.createBoundaryMesh{4}.mesh;
-            s.mesh = bMesh;
+            bMesh = obj.mesh.createBoundaryMesh{4};
+            s.mesh = bMesh.mesh;
             s.quadType = quadOrder;
             s.type = 'ShapeFunction';
             RHS = RHSintegrator.create(s);
 
             [u,fExt] = adaptFuns(obj,u,fExt);
-            test = LagrangianFunction.create(bMesh,u.ndimf,u.order);
+            test = LagrangianFunction.create(bMesh.mesh,u.ndimf,u.order);
             Ju = RHS.compute(fExt,test);
+            Ju = obj.reducedToFull(Ju,bMesh);
         end
         
     end
@@ -56,6 +57,21 @@ classdef ShFunc_ExternalWork < handle
                 uFun.fValues = u.fValues(nodes,:);
             end
         end
+
+        function JuFull = reducedToFull(obj,Ju,bMesh)
+            nNodes = obj.mesh.nnodes;
+            nDim = obj.mesh.ndim;
+            nDofs = nNodes*obj.mesh.ndim;
+            JuFull = zeros(nDofs,1);
+            nodes = unique(bMesh.globalConnec);
+            nNodesB = length(nodes);
+            ForceDofs = zeros(nNodesB*nDim,1);
+            for iDim = 1:nDim
+                ForceDofs(iDim:nDim:(end-nDim+iDim)) = nDim*(nodes-1)+iDim;
+            end
+            JuFull(ForceDofs) = Ju;
+        end
+
     end
     
 end

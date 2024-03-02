@@ -13,10 +13,6 @@ classdef IsotropicElasticMaterial < Material
     
     methods (Access = protected)
 
-        function obj = IsotropicElasticMaterial(cParams)
-           obj.init(cParams);
-        end
-
         function init(obj,cParams)
             obj.ndim    = cParams.ndim;
             if isfield(cParams,'young')
