@@ -180,8 +180,8 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1000*ones(obj.m,1);
-                obj.d = 0*ones(obj.m,1);
+                obj.c = 5*ones(obj.m,1); % before it was a 1000*ones...
+                obj.d = 0*ones(obj.m,1); % before it was a 0*ones...
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);

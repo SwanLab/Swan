@@ -190,8 +190,14 @@ classdef TopOptTestTutorial < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+
+            %isDir1, isDir2... if you want (optional)
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+
+            isForce1 = @(coor) abs(coor(:,1))==xMax;
+            isForce2 = @(coor) abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax;
+            isForce  = @(coor) isForce1(coor) & isForce2(coor);
+            % isForce = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Alternatively
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
