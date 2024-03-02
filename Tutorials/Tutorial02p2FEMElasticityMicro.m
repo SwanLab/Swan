@@ -22,14 +22,14 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitQuadMesh(20,20);
-            % ls = obj.computeCircleLevelSet(fullmesh);
-            % sUm.backgroundMesh = fullmesh;
-            % sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-            % uMesh              = UnfittedMesh(sUm);
-            % uMesh.compute(ls);
-            % holeMesh = uMesh.createInnerMesh();
-            % obj.mesh = holeMesh;
+            fullmesh = UnitTriangleMesh(20,20);
+            ls = obj.computeCircleLevelSet(fullmesh);
+            sUm.backgroundMesh = fullmesh;
+            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(ls);
+            holeMesh = uMesh.createInnerMesh();
+            obj.mesh = holeMesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
