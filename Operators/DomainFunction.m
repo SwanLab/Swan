@@ -2,6 +2,7 @@ classdef DomainFunction < handle
     
     properties (Access = public)
         operation
+        ndimf
     end
     
     properties (Access = private)
@@ -52,6 +53,7 @@ classdef DomainFunction < handle
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
+            s.ndimf     = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -86,6 +88,11 @@ classdef DomainFunction < handle
         
         function init(obj,cParams)
             obj.operation = cParams.operation;
+            if isfield(cParams,'ndimf')
+                obj.ndimf = cParams.ndimf;
+            else
+                obj.ndimf = 1;
+            end
         end
         
     end

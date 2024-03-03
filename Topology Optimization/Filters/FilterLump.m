@@ -19,7 +19,7 @@ classdef FilterLump < handle
         function xFun = compute(obj, x, quadType)
             s.feFunType  = class(obj.trial);
             s.mesh       = obj.mesh;
-            s.ndimf      = 1;
+            s.ndimf      = x.ndimf;
             xFun         = LagrangianFunction.create(s.mesh, s.ndimf, obj.trial.order);
             lhs          = obj.LHS;
             rhs          = obj.computeRHS(x, quadType);

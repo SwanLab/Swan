@@ -38,6 +38,14 @@ classdef SurfaceMesh < Mesh
             end
         end
 
+        function invJ = sampleInverseJacobian(obj,xV,cells)
+            switch obj.ndim
+                case 2 % 2D Surface in 3D space
+                    J = obj.sampleJacobian(xV,cells);
+                    invJ = MatrixVectorizedInverter.computeInverse(J);
+            end
+        end        
+
         function n = computeNormals(obj, xV)
             J = obj.computeJacobian(xV);
             n = obj.computeNormalVectors(J);

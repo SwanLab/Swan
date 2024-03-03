@@ -38,27 +38,50 @@ classdef LagrangianFunction < FeFunction
 
         end
 
-        function fxV = sampleFunction(obj,xP,cells)
+        function fxP = sampleFunction(obj,xP,cells)
             shapes  = obj.interpolation.computeShapeFunctions(xP);
             nNode   = size(shapes,1);
             nF      = size(obj.fValues,2);
             nPoints = size(xP,2);
-            fxV = zeros(nF,nPoints);
+            fxP     = zeros(nF,nPoints);
+            nodes   = obj.connec;
             for iF = 1:nF
                 for iNode = 1:nNode
-                    node = obj.mesh.connec(cells,iNode);
+                    node = nodes(cells,iNode);
                     Ni = shapes(iNode,:)';
                     fi = obj.fValues(node,:);
                     f(1,:) = fi.*Ni;
-                    fxV(iF,:) = fxV(iF,:) + f;
+                    fxP(iF,:) = fxP(iF,:) + f;
                 end
             end
         end
-       
+
+        function dfxP = sampleGradient(obj,xP,cells)
+            dNdx    = obj.sampleCartesianDerivatives(xP,cells);
+            nDim    = size(dNdx,1);
+            nNode   = size(dNdx,2);
+            nF      = size(obj.fValues,2);
+            nPoints = size(xP,2);
+            dfxP     = zeros(nF,nDim,nPoints);
+            nodes   = obj.connec;
+            for iF = 1:nF
+                for idim = 1:nDim
+                    for iNode = 1:nNode
+                        node = nodes(cells,iNode);
+                        dNi  = squeeze(dNdx(idim,iNode,:,:));
+                        fi   = obj.fValues(node,:);
+                        f(1,1,:) = fi.*dNi;
+                        dfxP(iF,idim,:) = dfxP(iF,idim,:) + f;
+                    end
+                end
+            end
+        end
+
+
         function c = getCoord(obj)
             c = obj.coord;
         end
-        
+
         function c = getConnec(obj)
             c = obj.connec;
         end
@@ -70,7 +93,28 @@ classdef LagrangianFunction < FeFunction
         function dN = computeShapeDerivatives(obj, xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
-        
+
+        function dNdx  = sampleCartesianDerivatives(obj,xV,cells)
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.sampleInverseJacobian(xV,cells);
+            deriv = obj.computeShapeDerivatives(xV);
+            dShapes  = zeros(nDimG,nNodeE,nPoints);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                    end
+                end
+            end
+            dNdx = dShapes;
+        end       
+
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNodeE = obj.interpolation.nnode;
@@ -92,7 +136,7 @@ classdef LagrangianFunction < FeFunction
             end
             dNdx = dShapes;
         end
-        
+
         function ord = orderTextual(obj)
             switch obj.order
                 case 'P0'
@@ -109,25 +153,25 @@ classdef LagrangianFunction < FeFunction
         function plot(obj) % 2D domains only
             if  strcmp(obj.order,'LINEAR')
                 switch obj.mesh.type
-                case {'TRIANGLE','QUAD'}
-                    x = obj.coord(:,1);
-                    y = obj.coord(:,2);
-                    figure()
-                    for idim = 1:obj.ndimf
-                        subplot(1,obj.ndimf,idim);
-                        z = obj.fValues(:,idim);
-                        a = trisurf(obj.connec,x,y,z);
-                        view(0,90)
-                        %             colorbar
-                        shading interp
-                        a.EdgeColor = [0 0 0];
-                        title(['dim = ', num2str(idim)]);
-                    end
-                case 'LINE'
-                    x = obj.mesh.coord(:,1);
-                    y = obj.fValues;
-                    figure()
-                    plot(x,y)
+                    case {'TRIANGLE','QUAD'}
+                        x = obj.coord(:,1);
+                        y = obj.coord(:,2);
+                        figure()
+                        for idim = 1:obj.ndimf
+                            subplot(1,obj.ndimf,idim);
+                            z = obj.fValues(:,idim);
+                            a = trisurf(obj.connec,x,y,z);
+                            view(0,90)
+                            %             colorbar
+                            shading interp
+                            a.EdgeColor = [0 0 0];
+                            title(['dim = ', num2str(idim)]);
+                        end
+                    case 'LINE'
+                        x = obj.mesh.coord(:,1);
+                        y = obj.fValues;
+                        figure()
+                        plot(x,y)
                 end
             else
                 pl = LagrangianPlotter();
@@ -165,9 +209,9 @@ classdef LagrangianFunction < FeFunction
 
         function print(obj, filename, software)
             if nargin == 2; software = 'Paraview'; end
-%             sF.fValues = obj.fValues;
-%             sF.mesh = obj.mesh;
-%             p1 = P1Function(sF);
+            %             sF.fValues = obj.fValues;
+            %             sF.mesh = obj.mesh;
+            %             p1 = P1Function(sF);
             s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
@@ -183,7 +227,7 @@ classdef LagrangianFunction < FeFunction
                     q.computeQuadrature('LINEAR');
                     nElem = size(obj.mesh.connec, 1);
                     nGaus = q.ngaus;
-        
+
                     s.nDimf   = obj.ndimf;
                     s.nData   = nElem*nGaus;
                     s.nGroup  = nElem;
@@ -201,7 +245,7 @@ classdef LagrangianFunction < FeFunction
                     [res, pformat] = fps.getDataToPrint();
             end
         end
-        
+
         function v = computeL2norm(obj)
             s.type     = 'ScalarProduct';
             s.quadType = 'QUADRATIC';
@@ -338,7 +382,7 @@ classdef LagrangianFunction < FeFunction
             res.fValues = f.fValues ./ b;
             s = res;
         end
-        
+
     end
 
     methods (Access = public, Static)

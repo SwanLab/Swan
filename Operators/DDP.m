@@ -1,13 +1,24 @@
 function dom = DDP(A,B)
     s.operation = @(xV) evaluate(A,B,xV);
+    s.ndimf     = A.ndimf;
     dom         = DomainFunction(s);
 end
 
 function fVR = evaluate(A,B,xV)
-    aEval = computeLeftSideEvaluation(A,xV);
+    aEval = computeLeftSideEvaluation(A,xV);    
     bEval = computeRightSideEvaluation(B,xV);
-    AddB  = pagemtimes(aEval,bEval);
-    fVR   = squeezeParticular(AddB, 2);
+    if ndims(aEval) == ndims(bEval)
+        AddB  = pagemtimes(aEval,bEval);
+        fVR   = squeezeParticular(AddB, 2);
+    else
+        fVR = zeros(size(aEval,1),size(bEval,1),size(bEval,3),size(bEval,4));
+        for idim = 1:size(aEval,1)
+            a = aEval(idim,:,:,:,:);
+            a = squeezeParticular(a,1);
+            AddB  = pagemtimes(a,bEval);
+            fVR(idim,:,:,:)   = squeezeParticular(AddB, 2);
+        end
+    end
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
