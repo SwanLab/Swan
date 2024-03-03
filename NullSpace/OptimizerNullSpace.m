@@ -25,14 +25,6 @@ classdef OptimizerNullSpace < Optimizer
         aG
         eta
         Vtar
-
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalMerit
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
     methods (Access = public) 

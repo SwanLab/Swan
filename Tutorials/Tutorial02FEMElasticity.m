@@ -27,14 +27,7 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = UnitTriangleMesh(50,50);
         end
 
         function computeElasticProperties(obj)
@@ -62,7 +55,6 @@ classdef Tutorial02FEMElasticity < handle
             s.material = obj.material;
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             fem = ElasticProblem(s);

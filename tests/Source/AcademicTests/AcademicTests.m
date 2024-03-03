@@ -11,7 +11,6 @@ classdef AcademicTests < matlab.unittest.TestCase
             run(problem);
             cParams.cost           = cost;
             cParams.constraint     = constraint;
-            cParams.constraint.nSF = nConstr;
             cParams.initialGuess   = x0;
             cParams.settings       = s;
             test                   = AcademicProblem(cParams);
@@ -21,7 +20,6 @@ classdef AcademicTests < matlab.unittest.TestCase
             err = abs(obt-org);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
-            close all
         end
 
     end

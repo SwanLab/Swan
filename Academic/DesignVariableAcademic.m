@@ -17,6 +17,13 @@ classdef DesignVariableAcademic < handle
         function updateOld(obj)
             obj.valueOld = obj.value;
         end
+
+        function res = computeL2normIncrement(obj)
+            incFun = obj.value-obj.valueOld;
+            nIncX  = norm(incFun);
+            nX0    = norm(obj.valueOld);
+            res    = nIncX/nX0;
+        end
     end
 
     methods (Access = private)
