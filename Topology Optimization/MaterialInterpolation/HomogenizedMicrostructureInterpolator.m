@@ -26,7 +26,6 @@ classdef HomogenizedMicrostructureInterpolator < Material
         end
         
     end
- 
     
     methods (Access = private)
         
