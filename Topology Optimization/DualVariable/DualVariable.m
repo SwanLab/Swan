@@ -13,7 +13,7 @@ classdef DualVariable < handle
        
        function obj = DualVariable(cParams)
            obj.nConstraints = cParams.nConstraints;
-           obj.value        = zeros(1,obj.nConstraints);
+           obj.value        = zeros(obj.nConstraints,1);
        end
        
    end

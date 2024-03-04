@@ -45,8 +45,9 @@ classdef DualUpdater_NullSpace < handle
             end
         end
 
-        function update(obj,s)
+        function update(obj,eta)
             s.prob = obj.computeDualBounds();
+            s.eta  = eta;
             obj.computeQuadraticProblem(s);
         end
 
@@ -73,43 +74,41 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function computeQuadraticProblem(obj,s)
-%             lJ = obj.computeDualNullSpace(s);
+%             lJ = obj.computeDualNullSpace();
 %             lG = obj.computeDualRangeSpace(s);
             l  = obj.computeDualGlobal(s);
             obj.dualVariable.value = l;
         end
 
-        function lJ = computeDualNullSpace(obj,s)
-            aJ              = s.nullSpaceCoefficient;
+        function lJ = computeDualNullSpace(obj)
             Dg              = obj.constraint.gradient;
             DJ              = obj.cost.gradient;
             problem.H       = Dg'*Dg;
-            problem.f       = aJ*Dg'*DJ;
+            problem.f       = Dg'*DJ;
             problem.solver  = 'quadprog';
             problem.options = obj.options;
             lJ              = quadprog(problem);
         end
 
         function lG = computeDualRangeSpace(obj,s)
-            aG              = s.rangeSpaceCoefficient;
+            eta             = s.eta;
             Dg              = obj.constraint.gradient;
             g               = obj.constraint.value;
             problem.H       = Dg'*Dg;
-            problem.f       = -aG*g;
+            problem.f       = -eta*g;
             problem.solver  = 'quadprog';
             problem.options = obj.options;
             lG              = quadprog(problem);
         end
 
         function l = computeDualGlobal(obj,s)
-            aJ              = s.nullSpaceCoefficient;
-            aG              = s.rangeSpaceCoefficient;
+            eta             = s.eta;
             problem         = s.prob;
             g               = obj.constraint.value;
             Dg              = obj.constraint.gradient;
             DJ              = obj.cost.gradient;
             problem.H       = Dg'*Dg;
-            problem.f       = aJ*Dg'*DJ-aG*g;
+            problem.f       = Dg'*DJ-eta*g;
             problem.solver  = 'quadprog';
             problem.options = obj.options;
             l               = quadprog(problem);
