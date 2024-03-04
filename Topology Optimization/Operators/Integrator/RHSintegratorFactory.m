@@ -7,12 +7,7 @@ classdef RHSintegratorFactory < handle
                 case 'ShapeFunction'
                     % Computes the RHS using the NODAL FORCES and SHAPE
                     % FUNCTIONS
-                    switch class(cParams.mesh)
-                        case 'UnfittedMesh'
-                            obj = RHSintegrator_ShapeFunctionUnfitted(cParams);
-                        otherwise
-                            obj = RHSintegrator_ShapeFunction(cParams);
-                    end
+                    obj = RHSintegrator_ShapeFunction(cParams);
                 case 'ShapeDerivative'
                     % Computes the RHS using the NODAL FORCES and SHAPE
                     % FUNCTIONS' DERIVATIVE
@@ -42,6 +37,8 @@ classdef RHSintegratorFactory < handle
                     obj = RHSintegrator_ElasticMicro(cParams);
                 case 'Stokes'
                     obj = RHSintegrator_Stokes(cParams);
+                case 'Unfitted'
+                    obj = RHSIntegratorUnfitted(cParams);
             end
         end
 

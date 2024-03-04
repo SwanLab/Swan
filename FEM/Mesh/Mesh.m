@@ -100,8 +100,8 @@ classdef Mesh < handle
         function q = computeElementQuality(obj) % check for 3d
             quad = Quadrature.set(obj.type);
             quad.computeQuadrature('CONSTANT');
-            volume = obj.computeDvolume(quad);
-            L(1,:) = obj.computeSquarePerimeter();
+            volume = obj.computeDvolume(quad)';
+            L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 

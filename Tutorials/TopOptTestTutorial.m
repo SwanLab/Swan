@@ -37,12 +37,12 @@ classdef TopOptTestTutorial < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all;
         end
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,50);
+            x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -52,13 +52,14 @@ classdef TopOptTestTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
+            s.plotting = true;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -93,13 +94,21 @@ classdef TopOptTestTutorial < handle
             obj.materialInterpolator = m;
         end
 
-        function createElasticProblem(obj)
+        function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');
+            f = f.project('P1');            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '2D';
+            m = Material.create(s);
+        end
+
+        function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(f);
+            s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -119,7 +128,7 @@ classdef TopOptTestTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.materialInterpolator        = obj.materialInterpolator;
+            s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -127,6 +136,7 @@ classdef TopOptTestTutorial < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -135,11 +145,22 @@ classdef TopOptTestTutorial < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
+            s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
+        end
+
+        function M = createMassMatrix(obj)
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;     
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
+            s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
@@ -150,24 +171,20 @@ classdef TopOptTestTutorial < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = false;
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function mat = createInterpolatedMaterial(obj,dens)
-            mI   = obj.materialInterpolator;
-            mat  = mI.computeConsitutiveTensor(dens);
         end
 
         function bc = createBoundaryConditions(obj)

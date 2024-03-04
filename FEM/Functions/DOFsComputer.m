@@ -72,11 +72,16 @@ classdef DOFsComputer < handle
             dofsEdges = obj.computeDofsEdges();
             ndofsEdges = max(max(dofsEdges));
             
-            dofsFaces = obj.computeDofsFaces(ndofsEdges);
-            ndofsFaces = max(max(dofsFaces));
+            if ~strcmp(obj.mesh.type,'LINE')
+                dofsFaces = obj.computeDofsFaces(ndofsEdges);
+                ndofsFaces = max(max(dofsFaces));
             
-            dofsElements = obj.computeDofsElements(ndofsFaces);
-            
+                dofsElements = obj.computeDofsElements(ndofsFaces);
+            else
+                dofsFaces = [];
+                dofsElements = [];
+            end
+
             obj.dofs = [dofsVertices,dofsEdges,dofsFaces,dofsElements];
         end
         
@@ -117,14 +122,14 @@ classdef DOFsComputer < handle
         
         
         function dofsEdges = computeDofsEdges(obj)
-            if obj.order == 1
+            if obj.order <= 1
                 dofsEdges = [];
             else
                 m = obj.mesh;
                 m.computeEdges();
                 edges = m.edges.edgesInElem;
                 ndofEdge = obj.order-1;
-                ndofsEdgeElem = ndofEdge*obj.mesh.nnodeElem;
+                ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
                 
                 dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
@@ -147,7 +152,7 @@ classdef DOFsComputer < handle
         function dofsFaces = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
-            if polOrder == 1
+            if polOrder <= 1
                 dofsFaces = [];
             else 
                 m.computeFaces();
@@ -190,7 +195,7 @@ classdef DOFsComputer < handle
             m = obj.mesh;
             polOrder = obj.order; 
             isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD'); 
-            if polOrder == 1 || isNot3D
+            if polOrder <= 1 || isNot3D
                 dofsElements = [];
             else 
                 ndofElement = obj.computeNdofsElements(polOrder);
@@ -206,7 +211,7 @@ classdef DOFsComputer < handle
         function ndofsElements = computeNdofsElements(obj,polOrder)
             switch obj.mesh.type
                 case 'TETRAHEDRA'
-                    d = 3;
+                    d = 4;
                 case 'HEXAHEDRA'
                     d = 2;
             end
@@ -268,6 +273,8 @@ classdef DOFsComputer < handle
         function loc = computeLocPointEdgeRef(obj)
             type = obj.mesh.type;
             switch type
+                case 'LINE'
+                    loc = [1 2];
                 case 'TRIANGLE'
                     loc = [1 2 3];
                 case 'QUAD'

@@ -52,7 +52,7 @@ classdef HamiltonJacobi < handle
             ss.fun       = LagrangianFunction(s);
             ss.uMesh     = obj.phi.getUnfittedMesh();
             unfFun       = UnfittedBoundaryFunction(ss);
-            gFilter      = obj.filter.compute(unfFun,'QUADRATICMASS');
+            gFilter      = obj.filter.compute(unfFun,'QUADRATIC');
             V            = -gFilter.fValues;
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;

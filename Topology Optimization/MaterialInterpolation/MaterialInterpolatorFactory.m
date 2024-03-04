@@ -29,13 +29,9 @@ classdef MaterialInterpolatorFactory < handle
                     obj = SimpInterpolationP3(cParams);
                 case 'SIMPThermal'
                     obj = SIMPThermalInterpolation(cParams);
-                case 'PhaseFieldI'
-                    obj = PhaseFieldEnergyDegradationInterpolator();
-                case 'PhaseFieldD'
-                    obj = PhaseFieldDissipationInterpolator(cParams);
                 case 'HomogenizedMicrostructure'
-                    obj = HomogenizedMicrostructrueInterpolator(cParams);
-
+                    obj = HomogenizedMicrostructureInterpolator(cParams);
+                    
                 otherwise
                     error('Invalid Material Interpolation method.');
 

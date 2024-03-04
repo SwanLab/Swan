@@ -28,10 +28,15 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
                     connecInner = innerMeshTri.connec;
             end
             ncoord = size(coordInner,1);
-            connecCutInner = connecCutInner + ncoord;
+            % Find duplicate coordinates
+            [~,oldNodes,newNodes] = intersect(coordCutInner,coordInner,'rows');
+            old2new = (1:1:max(max(connecCutInner))) + ncoord;
+            old2new(oldNodes) = newNodes;
+            newConnecCutInner = old2new(connecCutInner);
             s.coord  = [coordInner; coordCutInner];
-            s.connec = [connecInner; connecCutInner];
-            m = Mesh.create(s);
+            s.connec = [connecInner; newConnecCutInner];
+            msh = Mesh.create(s);
+            m = msh.computeCanonicalMesh();
         end
         
     end

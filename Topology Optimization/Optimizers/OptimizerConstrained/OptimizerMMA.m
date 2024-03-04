@@ -29,7 +29,6 @@ classdef OptimizerMMA < Optimizer
         upperBound
         lowerBound
         hasFinished
-        incrementalScheme
         hasConverged
         historicalVariables
         KKTnorm
@@ -50,12 +49,12 @@ classdef OptimizerMMA < Optimizer
            f = obj.designVariable;
            obj.cost.computeFunctionAndGradient(f);
            obj.constraint.computeFunctionAndGradient(f);
-           obj.monitoring.update(obj.nIter);
+           obj.updateMonitoring();
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
-               obj.monitoring.update(obj.nIter);
                obj.printOptimizerVariable();
+               obj.updateMonitoring();
            end
             obj.hasConverged = 0;
        end
@@ -95,12 +94,13 @@ classdef OptimizerMMA < Optimizer
     end
     
     methods (Access = private)
+        
         function updateMonitoring(obj)
-            s.hasFinished          = obj.hasFinished;
-            s.nIter                = obj.nIter;
-            s.KKTnorm              = obj.KKTnorm;
-            s.outitFrac            = obj.outit/obj.maxoutit;
-            obj.monitoring.compute(s);
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            obj.monitoring.update(obj.nIter,data);
         end
 
         function init(obj,cParams)
@@ -112,10 +112,25 @@ classdef OptimizerMMA < Optimizer
         end
 
         function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                chConstr{i}   = 'plot';
+            end
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
+
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
         end
 

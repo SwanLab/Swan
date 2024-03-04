@@ -25,14 +25,6 @@ classdef OptimizerNullSpace < Optimizer
         aG
         eta
         Vtar
-
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalMerit
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
     methods (Access = public) 
@@ -55,9 +47,9 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
                 obj.checkParameters();
             end
         end
