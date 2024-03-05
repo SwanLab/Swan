@@ -85,7 +85,7 @@ classdef DomainFunction < handle
     end
     
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.operation = cParams.operation;
             if isfield(cParams,'ndimf')
@@ -94,7 +94,7 @@ classdef DomainFunction < handle
                 obj.ndimf = 1;
             end
         end
-        
+
     end
 
     methods (Static, Access = public)
