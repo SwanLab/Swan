@@ -22,9 +22,12 @@ classdef HomogenizedMicrostructureInterpolator < Material
         end
         
         function dC = obtainTensorDerivative(obj)
-          s.operation = @(xV) obj.evaluateGradient(xV);
-          s.ndimf = 2;
-          dC = DomainFunction(s);            
+          s.operation = @(xV) obj.evaluateGradientM1(xV);
+          s.ndimf = 1;
+          dC{1} =  DomainFunction(s);
+          s.operation = @(xV) obj.evaluateGradientM2(xV);
+          s.ndimf = 1;
+          dC{2} =  DomainFunction(s);
         end             
 
         function setDesignVariable(obj,x)
@@ -91,7 +94,15 @@ classdef HomogenizedMicrostructureInterpolator < Material
             end
         end 
 
-        function dC = evaluateGradient(obj,xV)
+        function dC = evaluateGradientM1(obj,xV)
+            dC = obj.evaluateGradient(xV,1);
+        end
+
+        function dC = evaluateGradientM2(obj,xV)
+            dC = obj.evaluateGradient(xV,2);
+        end        
+
+        function dCt = evaluateGradient(obj,xV,dir)
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
@@ -106,7 +117,8 @@ classdef HomogenizedMicrostructureInterpolator < Material
                     dCij(:,1,1,:,:)  = reshape(dCv,nDim,nGaus,nElem);
                     dC(:,i,j,:,:) = dCij;
                 end
-            end      
+            end     
+            dCt = squeezeParticular(dC(dir,:,:,:,:),1);
         end
 
 

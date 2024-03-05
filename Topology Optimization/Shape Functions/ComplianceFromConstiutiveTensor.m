@@ -55,9 +55,13 @@ classdef ComplianceFromConstiutiveTensor < handle
     methods (Static, Access = private)
 
         function dj = computeGradient(dC,u)
-            strain  = SymGrad(u);
-            dStress = DDP(dC,strain);
-            dj      = -DDP(dStress,strain);
+            nVar = numel(dC);
+            dj = cell(nVar,1);
+            for ivar = 1:nVar
+                strain   = SymGrad(u);
+                dStress  = DDP(dC{ivar},strain);
+                dj{ivar} = -DDP(dStress,strain);
+            end
         end
 
     end

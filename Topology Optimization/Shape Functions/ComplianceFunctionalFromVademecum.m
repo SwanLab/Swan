@@ -17,8 +17,7 @@ classdef ComplianceFunctionalFromVademecum < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xR{1} = obj.filterDesignVariable(x.fun{1});
-            xR{2} = obj.filterDesignVariable(x.fun{2});
+            xR = obj.filterDesignVariable(x.fun);
             obj.material.setDesignVariable(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient();
         end
@@ -29,7 +28,7 @@ classdef ComplianceFunctionalFromVademecum < handle
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
-            obj.material             = cParams.material;            
+            obj.material   = cParams.material;            
             obj.compliance = cParams.complainceFromConstitutive;
         end
 

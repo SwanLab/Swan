@@ -65,7 +65,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
             f = Filter.create(s);
             obj.filter = f;
         end
@@ -112,8 +112,8 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material = obj.createMaterial(obj.designVariable.fun);
-            c                      = ComplianceFunctionalFromVademecum(s);
+            s.material                    = obj.createMaterial(obj.designVariable.fun);
+            c = ComplianceFunctionalFromVademecum(s);
             c.computeFunctionAndGradient(obj.designVariable);
             obj.compliance = c;
         end

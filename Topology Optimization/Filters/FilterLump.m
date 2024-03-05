@@ -17,23 +17,23 @@ classdef FilterLump < handle
         end
 
         function xFun = compute(obj, x, quadType)
-            s.feFunType  = class(obj.trial);
-            s.mesh       = obj.mesh;
-            s.ndimf      = x.ndimf;
-            xFun         = LagrangianFunction.create(s.mesh, s.ndimf, obj.trial.order);
-            lhs          = obj.LHS;
-            rhs          = obj.computeRHS(x, quadType);
-            xProj        = rhs./lhs;
-            xFun.fValues = xProj;
+            nVar = numel(x);
+            xFun = cell(nVar,1);
+            for ivar = 1:nVar
+                xVar         = x{ivar};
+                xFun{ivar}   = LagrangianFunction.create(obj.mesh, xVar.ndimf, obj.trial.order);
+                lhs          = obj.LHS;
+                rhs          = obj.computeRHS(xVar, quadType);
+                xProj        = rhs./lhs;
+                xFun{ivar}.fValues = xProj;
+            end
         end
 
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            cParams.feFunType = class(cParams.trial);
-            cParams.ndimf     = 1;
-            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
+            obj.trial         = cParams.trial.copy();
             obj.mesh          = cParams.mesh;
         end
 
@@ -59,7 +59,7 @@ classdef FilterLump < handle
             end
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
-            test       = obj.trial;
+            test       = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.trial.order);
             rhs        = int.compute(fun,test);
         end
 
