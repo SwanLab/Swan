@@ -5,7 +5,7 @@ classdef ProblemSolver < handle
     end
     
     properties (Access = private)
-        type, mode
+        type, mode, solver
         stiffness
         forces
         boundaryConditions
@@ -24,7 +24,8 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             [LHS, RHS] = obj.computeMatrices();
-            sol        = obj.solveSystem(LHS, RHS);
+            sol        = obj.solver.solve(LHS, RHS);
+            % sol        = obj.solveSystem(LHS,RHS);
             [u, L]     = obj.cleanupSolution(sol);
         end
         
@@ -39,6 +40,7 @@ classdef ProblemSolver < handle
             obj.forces             = cParams.forces;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
+            obj.solver             = cParams.solver;
         end
 
         function [LHS, RHS] = computeMatrices(obj)

@@ -12,8 +12,8 @@ classdef Solver < handle
                     % At least up to ndof ~5e4, Direct is still faster
                     stype = Cholesky_Direct_Solver();
 
-                case {'ITERATIVE'}
-                    error('Not implemented yet')
+                case {'CONJUGATE GRADIENT'}
+                    stype = Conjugate_Gradient(cParams);
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);

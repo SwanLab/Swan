@@ -218,7 +218,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 1;
                 obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
             else
-                factor = 1.2;
+                factor = 1.1;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
