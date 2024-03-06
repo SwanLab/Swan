@@ -22,9 +22,10 @@ x0               = [5;5;5];
 s.type           = "NullSpace";
 s.ub             = inf;
 s.lb             = -inf;
-s.maxIter        = 500;
+s.maxIter        = 400;
 s.constraintCase = {'EQUALITY','EQUALITY'};
-s.etaNorm        = 0.05;
+s.etaNorm        = 0.02;
+s.gJFlowRatio    = 1;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
