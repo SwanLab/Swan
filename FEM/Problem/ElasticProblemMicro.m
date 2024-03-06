@@ -9,19 +9,16 @@ classdef ElasticProblemMicro < handle
 
     properties (Access = private)
         mesh
-        scale
         pdim
-        inputBC
         material
         quadrature
         displacementFun
         solver
-        boundaryConditions
+        boundaryConditions, BCApplier
         strain, stress
         stiffness, forces
 
         solverType, solverMode
-        newBC, BCApplier
         lagrangeMultipliers
     end
 
@@ -121,12 +118,9 @@ classdef ElasticProblemMicro < handle
         function init(obj, cParams)
             obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
-            obj.scale    = cParams.scale;
             obj.pdim     = cParams.dim;
-            obj.inputBC  = cParams.bc;
-            obj.solverType  = cParams.solverType;
-            obj.solverMode  = cParams.solverMode;
-            obj.newBC = cParams.newBC;
+            obj.solverType = cParams.solverType;
+            obj.solverMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
         end
 
@@ -206,18 +200,6 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStress(obj, iVoigt)
-%             xV = obj.quadrature.posgp;
-%             Cmat = obj.material.evaluate(xV);
-%             strn  = permute(obj.strainFluctFun{iVoigt}.fValues,[1 3 2]);
-%             strn2(:,1,:,:) = strn;
-%             strs =squeeze(pagemtimes(Cmat,strn2));
-%             strs = permute(strs, [1 3 2]);
-% 
-%             z.mesh       = obj.mesh;
-%             z.fValues    = strs;
-%             z.quadrature = obj.quadrature;
-%             strFun = FGaussDiscontinuousFunction(z);
-
             obj.stress = DDP(obj.material, obj.strainFluctFun{iVoigt});
 %             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFluctFun{iVoigt} = DDP(obj.material, obj.strainFluctFun{iVoigt});

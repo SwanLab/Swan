@@ -27,79 +27,34 @@ classdef BCApplier < handle
             obj.init(cParams)
         end
         
-        function Ct = computeLinearConditionsMatrix(obj)
-            % generalize lagrange multiplier -> dirac and stuff
-            dir_dofs = obj.dirichlet_dofs;
-            nDofs = obj.dirichletFun.nDofs;
-            nDirich = length(dir_dofs);
-            Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
-        end
+        function Ct = computeLinearConditionsMatrix(obj, order)
+            switch order
+                case 'Dirac'
+                    % generalize lagrange multiplier -> dirac and stuff
+                    dir_dofs = obj.dirichlet_dofs;
+                    nDofs = obj.dirichletFun.nDofs;
+                    nDirich = length(dir_dofs);
+                    Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+                otherwise
+                    dir_dom = obj.dirichlet_domain;
+                    [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
+        
+                    dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
+                    uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, order); % !!
+        
+                    b.mesh  = mesh_left2;
+                    b.test  = dLambda;
+                    b.trial = uFun.restrictTo(dir_dom);
+                    b.type  = 'MassMatrix';
+                    lhs = LHSintegrator.create(b);
+                    LHS = lhs.compute();
+                    [iLoc,jLoc,vals] = find(LHS);
 
-        function Ct = computeP1LinearConditionsMatrix(obj)
-            dir_dom = obj.dirichlet_domain;
-            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
-
-            dLambda = P1Function.create(mesh_left2, obj.mesh.ndim); % !!
-            uFun    = P1Function.create(obj.mesh, obj.mesh.ndim); % !!
-
-            b.mesh  = mesh_left2;
-            b.test  = dLambda;
-            b.trial = uFun.restrictTo(dir_dom);
-            b.type  = 'MassMatrix';
-            lhs = LHSintegrator.create(b);
-            LHS = lhs.compute();
-            [iLoc,jLoc,vals] = find(LHS);
-
-            % localDofConnec  = obj.computeDofConnectivity(mesh_left2.connec);
-            % globalDofConnec = obj.computeDofConnectivity(l2g_mesh(mesh_left2.connec));
-            % l2g_dof(localDofConnec(:)) = globalDofConnec(:);
-            
-            l2g_dof = ((l2g_mesh*dLambda.ndimf)' - ((dLambda.ndimf-1):-1:0))';
-            l2g_dof = l2g_dof(:);
-            jGlob = l2g_dof(jLoc);
-            Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
-        end
-
-        function Ct = computeP0LinearConditionsMatrix(obj)
-            dir_dom = obj.dirichlet_domain;
-            [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
-
-            dLambda = P0Function.create(mesh_left2, 2);
-            uFun    = P1Function.create(obj.mesh, 2);
-
-            b.mesh  = mesh_left2;
-            b.test  = dLambda;
-            b.trial = uFun.restrictTo(dir_dom);
-            b.type  = 'MassMatrix';
-            lhs = LHSintegrator.create(b);
-            LHS = lhs.compute();
-            [iLoc,jLoc,vals] = find(LHS);
-
-            % localDofConnec  = obj.computeDofConnectivity(mesh_left2.connec);
-            % globalDofConnec = obj.computeDofConnectivity(l2g_mesh(mesh_left2.connec));
-            % l2g_dof(localDofConnec(:)) = globalDofConnec(:);
-            
-            l2g_dof = ((l2g_mesh*dLambda.ndimf)' - ((dLambda.ndimf-1):-1:0))';
-            l2g_dof = l2g_dof(:);
-            jGlob = l2g_dof(jLoc);
-            Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
-            
-        end
-
-        function dofConnec = computeDofConnectivity(obj, conne)
-            nDimf  = 2;
-            nNode  = size(conne, 2);
-            nDofsE = nNode*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNode
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
+                    l2g_dof = ((l2g_mesh*dLambda.ndimf)' - ((dLambda.ndimf-1):-1:0))';
+                    l2g_dof = l2g_dof(:);
+                    jGlob = l2g_dof(jLoc);
+                    Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
             end
-            dofConnec = dofsElem;
         end
 
         function Ct = computeLinearPeriodicConditionsMatrix(obj)
