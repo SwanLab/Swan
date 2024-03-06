@@ -12,7 +12,7 @@ function [x,res,iterRes] = conjugateGradient_Solver(LHS,RHS,x,meshType,maxIter, 
     
     if strcmp(meshType,'fine')
         
-        while iter < maxIter
+        while iter < maxIter && norm(LHS*x - RHS) > tol
             Ap = LHS * p;
             alpha = rsold / (p' * Ap);
             x = x + alpha * p;
