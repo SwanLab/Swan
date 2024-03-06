@@ -16,10 +16,10 @@ classdef ShFunc_ExternalWork < handle
         
         function F = computeFunction(obj,u,fExt,quadOrder)
             bMeshUp = obj.mesh.createBoundaryMesh{4};
-            int = Integrator.create('ScalarProduct',bMeshUp.mesh,quadOrder);
+            int = Integrator.create('Function',bMeshUp.mesh,quadOrder);
             
             [u,fExt] = obj.adaptFuns(u,fExt);
-            F = int.compute(u,fExt);
+            F = int.compute(u.*fExt);
         end
         
         function Ju = computeGradient(obj,u,fExt,quadOrder)

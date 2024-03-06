@@ -58,9 +58,9 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            %obj.createOneElementMesh();
+            obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            obj.createArbitraryElementMesh(5);
+            %obj.createArbitraryElementMesh(5);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
             %obj.createLshapeMesh();
@@ -75,9 +75,9 @@ classdef TestingPhaseField < handle
             sParam.mesh = obj.mesh;
             sParam.order = 'P1';
             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
-            sIso.young = LagrangianFunction(sParam);
+            s.young = LagrangianFunction(sParam);
             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
-            sIso.poisson = LagrangianFunction(sParam);
+            s.poisson = LagrangianFunction(sParam);
             sIso.ndim = obj.mesh.ndim;
 
             s.isoMat = Isotropic2dElasticMaterial(sIso);

@@ -1,5 +1,6 @@
 function dom = DDP(A,B)
     s.operation = @(xV) evaluate(A,B,xV);
+    s.ndimf     = A.ndimf/B.ndimf;
     dom         = DomainFunction(s);
 end
 
@@ -12,24 +13,18 @@ end
 
 function aEval = computeLeftSideEvaluation(A,xV)
     res      = A.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            aEval = res;
-        otherwise
-            aEval(1,:,:,:) = res;
+    if size(res,2) == 1
+        aEval = pagetranspose(res)
+    else
+        aEval = res;
     end
 end
 
 function bEval = computeRightSideEvaluation(B,xV)
     res      = B.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            bEval = res;
-        otherwise
-            bEval(:,1,:,:) = res;
+    if size(res,1) == 1
+        bEval = pagetranspose(res)
+    else
+        bEval = res;
     end
 end

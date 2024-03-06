@@ -1,14 +1,14 @@
 classdef IsotropicElasticMaterial < Material
-    
+   
     properties (SetAccess = private, GetAccess = private)
         young
         poisson
         bulk
-        shear        
+        shear 
     end
 
     properties (Access = protected)
-        ndim                
+        ndim
     end
     
     methods (Access = protected)

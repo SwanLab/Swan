@@ -2,6 +2,7 @@ classdef DomainFunction < handle
     
     properties (Access = public)
         operation
+        ndimf
     end
     
     properties (Access = private)
@@ -25,6 +26,7 @@ classdef DomainFunction < handle
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagetranspose(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
         
@@ -32,6 +34,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -39,6 +42,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -46,30 +50,35 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
         
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) aOp(xV).^b;
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -86,6 +95,7 @@ classdef DomainFunction < handle
         
         function init(obj,cParams)
             obj.operation = cParams.operation;
+            obj.ndimf = cParams.ndimf;
         end
         
     end

@@ -1,4 +1,8 @@
-classdef MaterialPhaseField < Material
+classdef MaterialPhaseField < IsotropicElasticMaterial
+    
+    properties (Access = public)
+        ndimf
+    end
 
     properties (Access = private)
         fun
@@ -6,7 +10,6 @@ classdef MaterialPhaseField < Material
     end
 
     properties (Access = private)
-        isoMat
         mesh
         matInterpolation
         Gc
@@ -30,6 +33,7 @@ classdef MaterialPhaseField < Material
 
         function obj = MaterialPhaseField(cParams)
             obj.init(cParams)
+            obj.initPhaseField(cParams)
         end
 
         function C = evaluate(obj,xV)
@@ -49,11 +53,11 @@ classdef MaterialPhaseField < Material
 
     methods (Access = private)
 
-        function init(obj,cParams)
-            obj.isoMat = cParams.isoMat;
+        function initPhaseField(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.matInterpolation = cParams.materialInterpolation;
             obj.Gc = cParams.Gc;
+            obj.ndimf = 9;
         end
 
     end
@@ -75,10 +79,10 @@ classdef MaterialPhaseField < Material
         end
 
         function [mu, l] = computeMuAndLambda(obj,gV,xV)
-            [muV,kV] = obj.isoMat.computeShearAndBulk(xV);
+            [muV,kV] = obj.computeShearAndBulk(xV);
             mu = gV.*muV;
             k = gV.*kV;
-            l = obj.isoMat.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
+            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
         end
     end
 

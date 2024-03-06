@@ -1,9 +1,10 @@
 function dom = Grad(u)
     s.operation = @(xV) evaluate(u, xV);
+    s.ndimf = u.ndimf*u.mesh.ndim;
     dom = DomainFunction(s);
 end
 
-function fVR = evaluate(u, xV)
+function grad = evaluate(u, xV)
     dNdx = u.evaluateCartesianDerivatives(xV);
     nDofs   = u.nDofs;
     nDimf   = u.ndimf;
@@ -26,6 +27,4 @@ function fVR = evaluate(u, xV)
             end
         end
     end
-
-    fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
 end
