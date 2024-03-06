@@ -25,14 +25,14 @@ classdef LagrangianFunction < FeFunction
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF,nGaus,nElem);
+            fxV = zeros(nF,1,nGaus,nElem);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
                     Ni = shapes(iNode,iGaus);
                     fi = obj.fValues(node,:);
                     f(:,1,:) = Ni*fi';
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+                    fxV(:,:,iGaus,:) = squeezeParticular(fxV(:,:,iGaus,:),3) + f;
                 end
             end
 
@@ -189,7 +189,7 @@ classdef LagrangianFunction < FeFunction
                 case {'TRIANGLE','QUAD'}
                     x = obj.coord(:,1);
                     y = obj.coord(:,2);
-                    figure()
+                    figure(1000)
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         z = obj.fValues(:,idim);
@@ -203,7 +203,7 @@ classdef LagrangianFunction < FeFunction
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
                     y = obj.fValues;
-                    figure()
+                    figure(1000)
                     plot(x,y)
                 end
             else

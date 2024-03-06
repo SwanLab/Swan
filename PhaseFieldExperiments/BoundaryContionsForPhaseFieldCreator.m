@@ -42,30 +42,23 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         
 
         function createBendingConditions(obj,uVal)
-            nodes = 1:obj.mesh.nnodes;
-            ndim = 2;
+            isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
+            sDir.domain    = @(coor) isInLeft(coor);
+            sDir.direction = [1,2];
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            % Enforce fixed Dirichlet conditions to the right nodes
-            leftSide  = min(obj.mesh.coord(:,1));
-            isInLeft = abs(obj.mesh.coord(:,1)-leftSide)< 1e-12;
-            dirichletLeft     = zeros(ndim*length(nodes(isInLeft)),3); 
-            for i=1:ndim
-                dirichletLeft(i:2:end,1) = nodes(isInLeft);
-                dirichletLeft(i:2:end,2) = i;
-            end
-
-            % Enforce displacement at the tip
-            rightSide = max(obj.mesh.coord(:,1));
-            isInRight = abs(obj.mesh.coord(:,1)-rightSide) < 1e-12;
-            dirichletRight = zeros(length(nodes(isInRight)),3);
-            dirichletRight(:,1) = nodes(isInRight);
-            dirichletRight(:,2) = 2;
-            dirichletRight(:,3) = uVal;
+            isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
+            sDir.domain    = @(coor) isInRight(coor);
+            sDir.direction = [2];
+            sDir.value     = uVal;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
             
-            % Merge all B.C.
-            bc.dirichlet = [dirichletLeft; dirichletRight];
-            bc.pointload = [];
-            obj.boundaryConditions = bc;
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1 Dir2];
+             s.pointloadFun = [];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);    
         end
         
          function createForceTractionConditions(obj,fVal)
@@ -96,10 +89,10 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              Dir1 = DirichletCondition(obj.mesh,sDir);
 
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
-             % sDir.domain    = @(coor) isInUp(coor);
-             % sDir.direction = [1];
-             % sDir.value     = 0;
-             % Dir2 = DirichletCondition(obj.mesh,sDir);
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [2];
@@ -107,7 +100,7 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
              s.mesh = obj.mesh;
-             s.dirichletFun = [Dir1 Dir3];
+             s.dirichletFun = [Dir1 Dir2 Dir3];
              s.pointloadFun = [];
              s.periodicFun = [];
              obj.boundaryConditions = BoundaryConditions(s);

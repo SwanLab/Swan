@@ -38,8 +38,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
         function C = evaluate(obj,xV)
             [mu,l] = obj.computeMatParams(xV);
-            nPoints = size(mu,1);                        
-            nElem = size(mu,2);
+            nPoints = size(mu,3);                        
+            nElem = size(mu,4);
             nStre = 3;
             C = zeros(nStre,nStre,nPoints,nElem);
             C(1,1,:,:)= 2*mu+l;
@@ -75,7 +75,6 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             s.l2function = obj.phi;
             g = CompositionFunction(s);
             gV = g.evaluate(xV);
-            gV = squeezeParticular(gV,1);
         end
 
         function [mu, l] = computeMuAndLambda(obj,gV,xV)

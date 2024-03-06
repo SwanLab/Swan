@@ -58,9 +58,9 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            obj.createOneElementMesh();
+            %obj.createOneElementMesh();
             %obj.createTwoElementMesh();
-            %obj.createArbitraryElementMesh(5);
+            obj.createArbitraryElementMesh(1,1,10,10);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
             %obj.createLshapeMesh();
@@ -139,8 +139,8 @@ classdef TestingPhaseField < handle
             obj.mesh = m;
         end
 
-        function createArbitraryElementMesh(obj,n)
-            m = UnitQuadMesh(n,n);
+        function createArbitraryElementMesh(obj,lx, ly, nx,ny)
+            m = QuadMesh(lx, ly, nx, ny);
             m.plot();
             obj.mesh = m;
         end

@@ -7,14 +7,13 @@ end
 function fVR = evaluate(A,B,xV)
     aEval = computeLeftSideEvaluation(A,xV);
     bEval = computeRightSideEvaluation(B,xV);
-    AddB  = pagemtimes(aEval,bEval);
-    fVR   = squeezeParticular(AddB, 2);
+    fVR = pagemtimes(aEval,bEval);
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
     res      = A.evaluate(xV);
     if size(res,2) == 1
-        aEval = pagetranspose(res)
+        aEval = pagetranspose(res);
     else
         aEval = res;
     end
@@ -23,7 +22,7 @@ end
 function bEval = computeRightSideEvaluation(B,xV)
     res      = B.evaluate(xV);
     if size(res,1) == 1
-        bEval = pagetranspose(res)
+        bEval = pagetranspose(res);
     else
         bEval = res;
     end

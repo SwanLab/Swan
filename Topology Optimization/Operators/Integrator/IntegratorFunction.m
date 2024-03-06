@@ -20,7 +20,7 @@ classdef IntegratorFunction < handle
             xV        = quad.posgp;
             dV        = obj.mesh.computeDvolume(quad);
             nGaus     = quad.ngaus;
-            fGaus     = f.evaluate(xV);
+            fGaus     = squeezeParticular(f.evaluate(xV),2);
             nFields   = size(fGaus,1);
             h         = 0;
             for iField = 1:nFields

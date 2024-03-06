@@ -57,7 +57,7 @@ classdef RHSintegrator_ShapeFunction < handle
         function rhsC = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
-            fG   = fun.evaluate(xV);
+            fG   = squeezeParticular(fun.evaluate(xV),2);
             dV   = obj.mesh.computeDvolume(quad);
             N = test.computeShapeFunctions(xV);
             nNodeElem  = size(N,1);

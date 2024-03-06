@@ -26,7 +26,7 @@ classdef LagrangianPlotter < handle
 
         
         function plotLagrangianFunc(~,s)
-            figure()
+            figure(1000)
             for idim = 1:s.func.ndimf
                 subplot(1,s.func.ndimf,idim);
                 hold on
