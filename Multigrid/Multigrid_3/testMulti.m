@@ -33,7 +33,11 @@ for iref = 5:-1:1
     [u, res] = mgsolve(data, vDown, vUp, tolerance, bc, mesh);
     uTotal(:,5-iref+1) = u;
     a(5-iref+1) = toc;
-    semilogy(res,'+-'), hold on
+    semilogy(res), hold on
+    title('iter vs res')
+    xlabel('iter')
+    ylabel('res')
+    legend('1 Mesh', '2 Meshes', '3 Meshes', '4 Meshes', '5 Meshes')
 end
 hold off
 figure

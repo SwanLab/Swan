@@ -93,8 +93,8 @@ classdef MultigridTesting3 < handle
         end
 
         function createCoarseMesh(obj,i)
-            numero1 = 2;
-            numero2 = 2;
+            numero1 = 10;
+            numero2 = 10;
             % Generate coordinates
             x1 = linspace(0,2,numero1);
             x2 = linspace(0,1,numero2);
