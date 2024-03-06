@@ -1,3 +1,6 @@
+mMesh = QuadMesh(2,2,32,32);
+
+
 filename='Circle_Quadrilateral_Linear_Structured_32';
 ptype = 'MACRO';
 method = 'SIMPALL';

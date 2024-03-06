@@ -1,3 +1,6 @@
+mMesh = TriangleMesh(2,2,11,11);
+
+
 filename='Circle_Triangle_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';

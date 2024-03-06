@@ -1,3 +1,5 @@
+mMesh = TetraMesh(2,2,2,7,7,7);
+
 filename='Sphere_Tetrahedra_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';

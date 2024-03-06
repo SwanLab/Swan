@@ -1,3 +1,5 @@
+mMesh = HexaMesh(2,2,2,8,8,8);
+
 filename='Cylinder_Hexahedra_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';

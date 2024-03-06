@@ -1,3 +1,6 @@
+mMesh = TetraMesh(2,2,2,10,10,10);
+
+
 filename='Cylinder_Tetrahedra_Linear_Unstructured';
 ptype = 'MACRO';
 method = 'SIMPALL';

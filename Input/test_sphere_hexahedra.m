@@ -1,3 +1,6 @@
+mMesh = HexaMesh(2,2,2,10,10,10);
+
+
 filename='Sphere_Hexahedra_Linear_Structured_8';
 ptype = 'MACRO';
 method = 'SIMPALL';
