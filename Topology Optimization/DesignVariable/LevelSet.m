@@ -24,7 +24,7 @@ classdef LevelSet < DesignVariable
             s.order   = 'P1';
             obj.fun   = LagrangianFunction(s);
             obj.updateUnfittedMesh();
-        end  
+        end
 
         function charFun = obtainDomainFunction(obj)
             uMesh = obj.getUnfittedMesh();
