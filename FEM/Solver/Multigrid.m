@@ -5,7 +5,7 @@ classdef Multigrid < handle
         ndimf
         data
 
-        nMesh
+        nLevel
         mesh
         I
         material
@@ -15,6 +15,10 @@ classdef Multigrid < handle
         Fred
         fem
         tol
+        solver
+        type
+        scale  
+        dim
     end
 
     methods (Access = public)
@@ -53,13 +57,30 @@ classdef Multigrid < handle
         function r = getMesh(obj)
             r = obj.mesh;
         end
+
+        function u = solve(obj)
+            while norm(data(nlevels).b - data(nlevels).A * u, inf) >= obj.tol
+                [u,numero] = vcycle(u, data(nlevels).b, data, vdown, vup, nlevels, bc, numero, mesh, meshType);
+                res_record(i) = norm(data(nlevels).b - data(nlevels).A * u,inf);
+                i = i + 1;
+            end
+
+        end
     end
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,cParams)
             obj.tol   = cParams.tol;
-            obj.nMesh = cParams.nMesh;
+            obj.nLevel = cParams.nLevel;
+            obj.mesh{1} = cParams.mesh;
+            obj.boundaryConditions{1} = cParams.bc;
+            obj.material{1} = cParams.material;
+            s.solverType = 'DIRECT';
+            obj.solver{1} = Solver.create(s);
+            obj.type     = cParams.type ;%'ELASTIC';
+            obj.scale    = cParams.scale; %'MACRO';
+            obj.dim      = cParams.dim; %'2D';
         end
 
         function createMatrixInterpolation(obj,nMesh)

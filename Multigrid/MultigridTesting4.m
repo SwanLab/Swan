@@ -58,7 +58,9 @@ classdef MultigridTesting4 < handle
             s.iterativeSolverType = 'MULTIGRID';
             s.tol                 = 1e-6;
             s.nLevel              = 5; 
-            obj.fem{1} = FEM.create(s);
+            solver = Solver.create(s);
+            u = solver.solve();
+%             obj.fem{1} = FEM.create(s);
             %             obj.computeKred(0)
             %             obj.computeFred(0)
 

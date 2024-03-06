@@ -13,7 +13,7 @@ function [u,numero] = vcycle(u, b, data, vdown, vup, level, bc, numero, mesh, me
         %[u,~] = gauss_seidel(data(level).A, b, u,vdown);
         meshType = 'fine';
         maxIter = 20;
-        [u, res] = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter);
+        [u, res] = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter); %obj.solver{level}.solve() 
         %plotSolution(u, mesh{1,2}, bc{1,2}, meshType, numero)
         %plotRes(res,mesh{1,2},bc{1,2},meshType,numero)
         numero = numero + 1;
