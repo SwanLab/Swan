@@ -3,8 +3,8 @@ classdef Solver < handle
     methods (Static)
 
         function stype = create(cParams)
-%             solver_type = 'DIRECT';
-            switch cParams.type
+            %             solver_type = 'DIRECT';
+            switch cParams.solverType
                 case {'DIRECT'}
                     stype = Direct_Solver();
 
@@ -13,12 +13,19 @@ classdef Solver < handle
                     stype = Cholesky_Direct_Solver();
 
                 case {'ITERATIVE'}
-                    %error('Not implemented yet')
-                    %stype = Jacobian_Solver();
-                    %stype = Gauss_Solver();
-                    stype = conjugateGradient_Solver();
-                    %stype = preconditionedConjugateGradient();
-                    %stype = QRFactorization();
+%                     error('Not implemented yet')
+                    switch cParams.iterativeSolverType
+                        case{'PCG'}
+                            stype = PCG(cParams);
+                        case{'CG'}    
+                            stype = conjugateGradient_Solver();    
+                        case{'MULTIGRID'}
+                            stype = Multigrid(cParams);
+                    end
+
+%                 case 'PCG'
+%                     % Preconditioned conjugate gradient
+%                     stype = PCG(cParams);
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);

@@ -25,6 +25,7 @@ classdef ElasticProblem < handle
         mesh % For Homogenization
         interpolationType
         displacementFun
+        solverData
     end
 
     methods (Access = public)
@@ -86,6 +87,10 @@ classdef ElasticProblem < handle
             funNames = {'displacement', 'strain', 'stress'};
         end
 
+        function mesh = getMesh(obj)
+            mesh = obj.mesh;
+        end
+
     end
 
     methods (Access = private)
@@ -100,6 +105,23 @@ classdef ElasticProblem < handle
                 obj.interpolationType = cParams.interpolationType;
             else
                 obj.interpolationType = 'LINEAR';
+            end
+            if isfield(cParams, 'solverType')
+                obj.solverData.solverType = cParams.solverType;
+                if strcmp(obj.solverData.solverType,'ITERATIVE')
+                    obj.solverData.iterativeSolverType = cParams.iterativeSolverType; 
+                    obj.solverData.tol                 = cParams.tol; 
+                    if isfield(cParams, 'maxIter')
+                        obj.solverData.maxIter = cParams.maxIter; 
+                    else
+                        obj.solverData.maxIter = 1e15; 
+                    end
+                    if strcmp(obj.solverData.iterativeSolverType,'MULTIGRID')
+                        obj.solverData.nLevel = cParams.nLevel; 
+                    end  
+                end
+            else
+                obj.solverData.solverType = 'DIRECT';
             end
             obj.createQuadrature();
         end
@@ -139,7 +161,8 @@ classdef ElasticProblem < handle
 
         function createSolver(obj)
             %s.type =  'DIRECT';
-            s.type = 'ITERATIVE';
+%             s.type = 'ITERATIVE';
+            s = obj.solverData;
             obj.solver = Solver.create(s);
         end
 
