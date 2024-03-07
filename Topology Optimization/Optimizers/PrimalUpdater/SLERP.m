@@ -6,6 +6,7 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
+        volume
     end
 
     methods (Access = public)
@@ -23,8 +24,43 @@ classdef SLERP < handle
             phi    = phiNew.fValues;
         end
 
-        function computeFirstStepLength(obj,~,~,~)
-            obj.tau = 1;
+        function computeFirstStepLength(obj,g,ls,~)
+            V0 = obj.volume.computeFunctionAndGradient(ls);
+            if V0 == 1
+                obj.computeLineSearchInBounds(g,ls);
+            else
+                obj.tau = 1;
+            end
+        end
+
+        function computeLineSearchInBounds(obj,g,ls)
+            tLower  = 0;
+            tUpper  = 1;
+            obj.tau = 0.5*(tUpper+tLower);
+            V       = obj.computeVolumeFromTau(g,ls);
+            delta   = abs(V-1);
+            cond1   = delta==0;
+            cond2   = delta>=0.05;
+            while (cond1 || cond2)
+                if cond1
+                    tLower  = obj.tau;
+                end
+                if cond2
+                    tUpper  = obj.tau;
+                end
+                obj.tau = 0.5*(tUpper+tLower);
+                V       = obj.computeVolumeFromTau(g,ls);
+                delta   = abs(V-1);
+                cond1   = delta==0;
+                cond2   = delta>=0.05;
+            end
+        end
+
+        function V = computeVolumeFromTau(obj,g,ls)
+            lsAux   = ls.copy();
+            phiNew  = obj.update(g,lsAux.fun.fValues);
+            lsAux.update(phiNew);
+            V       = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
         function is = isTooSmall(obj)
@@ -36,7 +72,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.1;
+            obj.tau = obj.tau/2;
         end
     end
 
@@ -44,6 +80,13 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.createVolumeFunctional();
+        end
+
+        function createVolumeFunctional(obj)
+            s.mesh         = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.volume     = VolumeFunctional(s);
         end
 
         function f = createP1Function(obj,fV)
