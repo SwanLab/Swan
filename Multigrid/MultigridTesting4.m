@@ -51,13 +51,17 @@ classdef MultigridTesting4 < handle
             %             obj.createBoundaryConditions(0)
             %             obj.createMaterial(0)
             s.material = obj.createMaterial(s.mesh);
+            s.dispFun  = P1Function.create(s.mesh, obj.nDimf);
+            s.RHS      = obj.createRHS(s.mesh,s.dispFun,s.bc);
+            s.LHS      = obj.computeStiffnessMatrix(s.mesh,s.material,s.dispFun);
             s.type     = 'ELASTIC';
             s.scale    = 'MACRO';
             s.dim      = '2D';
             s.solverType           = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
             s.tol                 = 1e-6;
-            s.nLevel              = 5; 
+            s.nLevel              = 5;
+            s.nDimf = 2;
             solver = Solver.create(s);
             u = solver.solve();
 %             obj.fem{1} = FEM.create(s);
@@ -180,18 +184,18 @@ classdef MultigridTesting4 < handle
             meshfine = Mesh(s);
         end
         
-        function rawBc = createBoundaryConditions(obj,mesh)
+        function bc = createBoundaryConditions(obj,mesh)
             rawBc    = obj.createRawBoundaryConditions(mesh);
-%             dim = getFunDims(obj,i);
-%             rawBc.ndimf = dim.ndimf;
-%             rawBc.ndofs = dim.ndofs;
-%             s.mesh  = obj.fineMesh;
-%             s.scale = 'MACRO';
-%             s.bc    = {rawBc};
-%             s.ndofs = dim.ndofs;
-%             bc = BoundaryConditions(s);
-%             bc.compute();
-%             obj.boundaryConditions{i+1} = bc;
+            dim = getFunDims(obj,0);
+            rawBc.ndimf = dim.ndimf;
+            rawBc.ndofs = dim.ndofs;
+            s.mesh  = obj.fineMesh;
+            s.scale = 'MACRO';
+            s.bc    = {rawBc};
+            s.ndofs = dim.ndofs;
+            bc = BoundaryConditions(s);
+            bc.compute();
+            %obj.boundaryConditions{i+1} = bc;
         end
         
         function dim = getFunDims(obj,i)
@@ -242,40 +246,41 @@ classdef MultigridTesting4 < handle
 %             obj.material{i+1} = mat;
         end
         
-%         function computeKred(obj,i)
+%         function LHS = computeKred(obj,i)
 %             obj.dispFun{i+1} = P1Function.create(obj.mesh{i+1}, obj.nDimf);
-%             K    = obj.computeStiffnessMatrix(obj.mesh{i+1},obj.material{i+1},obj.dispFun{i+1});
-%             obj.Kred{i+1} = obj.boundaryConditions{i+1}.fullToReducedMatrix(K);
+%             LHS    = obj.computeStiffnessMatrix(obj.mesh{i+1},obj.material{i+1},obj.dispFun{i+1});
+%             %obj.Kred{i+1} = obj.boundaryConditions{i+1}.fullToReducedMatrix(K);
 %         end
 
-%         function k = computeStiffnessMatrix(obj,mesh,material,displacementFun)
-%             s.type     = 'ElasticStiffnessMatrix';
-%             s.mesh     = mesh;
-%             s.fun      = displacementFun;
-%             % s.test      = displacementFun;
-%             % s.trial      = displacementFun;
-%             s.material = material;
-%             lhs = LHSintegrator.create(s);
-%             k   = lhs.compute();
-%         end 
+        function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = mesh;
+            s.fun      = displacementFun;
+            % s.test      = displacementFun;
+            % s.trial      = displacementFun;
+            s.material = material;
+            lhs = LHSintegrator.create(s);
+            LHS   = lhs.compute();
+        end 
         
-%         function computeFred(obj,i)
+%         function RHS = computeRHS(obj,i)
 %             RHS  = obj.createRHS(obj.mesh{i+1},obj.dispFun{i+1},obj.boundaryConditions{i+1});
-%             Fext = RHS.compute();
-%             obj.Fred{i+1} = obj.boundaryConditions{i+1}.fullToReducedVector(Fext);
+%             RHS = RHS.compute();
+%             %obj.Fred{i+1} = obj.boundaryConditions{i+1}.fullToReducedVector(Fext);
 %         end
         
-%         function RHS = createRHS(~,mesh,dispFun,boundaryConditions)
-%             dim.ndimf  = dispFun.ndimf;
-%             dim.nnodes = size(dispFun.fValues, 1);
-%             dim.ndofs  = dim.nnodes*dim.ndimf;
-%             dim.nnodeElem = mesh.nnodeElem; % should come from interp..
-%             dim.ndofsElem = dim.nnodeElem*dim.ndimf;
-%             c.dim=dim;
-%             c.mesh=mesh;
-%             c.BC = boundaryConditions;
-%             RHS    = RHSintegrator_ElasticMacro(c);
-%         end
+        function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
+            dim.ndimf  = dispFun.ndimf;
+            dim.nnodes = size(dispFun.fValues, 1);
+            dim.ndofs  = dim.nnodes*dim.ndimf;
+            dim.nnodeElem = mesh.nnodeElem; % should come from interp..
+            dim.ndofsElem = dim.nnodeElem*dim.ndimf;
+            c.dim=dim;
+            c.mesh=mesh;
+            c.BC = boundaryConditions;
+            RHS    = RHSintegrator_ElasticMacro(c);
+            RHS = RHS.compute();
+        end
 
         function fem = createFEM(obj)
             s.mesh     = obj.meshDomain;
