@@ -1,15 +1,15 @@
+mMesh = QuadMesh(2,2,32,32);
+geomFunSettings.type = 'Circle';
+geomFunSettings.radius = 1-1e-6;
+geomFunSettings.xCoorCenter = 1;
+geomFunSettings.yCoorCenter = 1;
+
 filename='Circle_Quadrilateral_Linear_Structured_32';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
 % initial_case = 'circle';
 fracRadius = 1-1e-6;
-
-mesh = QuadMesh(2,2,32,32);
-geomFunSettings.type = 'Circle';
-geomFunSettings.radius = 1-1e-6;
-geomFunSettings.xCoorCenter = 1;
-geomFunSettings.yCoorCenter = 1;
 
 cost = {'compliance'};
 weights = [1];

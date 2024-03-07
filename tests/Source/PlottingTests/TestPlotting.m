@@ -8,8 +8,7 @@ classdef TestPlotting < handle
 
     properties (Access = private)
         varAdim
-
-
+        mesh
         settings
         computation
         levelSet
@@ -66,11 +65,17 @@ classdef TestPlotting < handle
             run(obj.testName)
             
             fun = GeometricalFunction(geomFunSettings);
-            lsfun = fun.computeLevelSetFunction(mesh);
+            lsfun = fun.computeLevelSetFunction(mMesh);
+            obj.mesh = mMesh;
+            obj.levelSet = lsfun.fValues;
         end
 
         function createMesh(obj)
-            %
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uM = UnfittedMesh(s);
+            uM.compute(obj.levelSet);
+            obj.unfittedMesh = uM;
         end
 
         function angle = getViewAngle(obj)
