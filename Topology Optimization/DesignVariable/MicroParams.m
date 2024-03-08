@@ -10,7 +10,7 @@ classdef MicroParams < DesignVariable
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
             %obj.m1 = cParams.fun{1};
-            %obj.m2 = cParams.fun{2};          
+            %obj.m2 = cParams.fun{2};
             obj.init(cParams);
         end
         
@@ -102,7 +102,7 @@ classdef MicroParams < DesignVariable
                fI = fixedValues{iVar};
                xI(fixNodes) = fI(fixNodes);
                xVn{iVar} = xI;
-            end             
+            end
         end
     end
     

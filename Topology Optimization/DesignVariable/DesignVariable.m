@@ -45,7 +45,7 @@ classdef DesignVariable < handle
             obj.type = cParams.type;
             obj.mesh = cParams.mesh;
             obj.fun  = cParams.fun;
-            if isfield(cParams,'isFixed')            
+            if isfield(cParams,'isFixed')
               obj.isFixed = cParams.isFixed;
             end
         end
