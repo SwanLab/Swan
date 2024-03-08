@@ -110,14 +110,14 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateEtaParameter(obj)
             vgJ     = obj.gJFlowRatio;
-            tau     = obj.primalUpdater.tau;
+            %tau     = obj.primalUpdater.tau;
             DJ      = obj.cost.gradient;
             g       = obj.constraint.value;
             Dg      = obj.constraint.gradient;
             Prange  = Dg*((Dg'*Dg)\Dg');
             DxJ     = (eye(size(Prange))-Prange)*DJ;
             Dxg     = Dg*((Dg'*Dg)\g);
-            obj.eta = min(vgJ*norm(DxJ)/norm(Dxg),1.9/tau);
+            obj.eta = min(vgJ*norm(DxJ)/norm(Dxg),inf); % inf->1.9/tau ??
         end
 
         function prepareFirstIter(obj)
@@ -130,13 +130,13 @@ classdef OptimizerNullSpace < Optimizer
 
         function update(obj)
             x0 = obj.designVariable.fun.fValues;
-            obj.calculateInitialStep();
             obj.updateEtaParameter();
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
             obj.dualUpdater.update(obj.eta);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeMeritGradient();
+            obj.calculateInitialStep();
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
