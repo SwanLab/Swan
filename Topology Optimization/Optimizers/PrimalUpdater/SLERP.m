@@ -26,7 +26,7 @@ classdef SLERP < handle
 
         function computeFirstStepLength(obj,g,ls,~)
             V0 = obj.volume.computeFunctionAndGradient(ls);
-            if V0 == 1
+            if abs(V0-1) <= 1e-10
                 obj.computeLineSearchInBounds(g,ls);
             else
                 obj.tau = 1;
@@ -35,7 +35,7 @@ classdef SLERP < handle
 
         function computeLineSearchInBounds(obj,g,ls)
             tLower  = 0;
-            tUpper  = 1;
+            tUpper  = obj.computeInitialUpperLineSearch(g,ls);
             obj.tau = 0.5*(tUpper+tLower);
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
@@ -51,9 +51,21 @@ classdef SLERP < handle
                 obj.tau = 0.5*(tUpper+tLower);
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);
-                cond1   = delta==0;
+                cond1   = delta<=1e-10;
                 cond2   = delta>=0.05;
             end
+        end
+
+        function tU = computeInitialUpperLineSearch(obj,g,ls)
+            obj.tau = 1;
+            V       = obj.computeVolumeFromTau(g,ls);
+            delta   = abs(V-1);
+            while delta<0.05
+                obj.tau = obj.tau*2;
+                V       = obj.computeVolumeFromTau(g,ls);
+                delta   = abs(V-1);
+            end
+            tU = obj.tau;
         end
 
         function V = computeVolumeFromTau(obj,g,ls)

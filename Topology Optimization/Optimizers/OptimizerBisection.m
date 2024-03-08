@@ -105,7 +105,6 @@ classdef OptimizerBisection < Optimizer
             x = obj.designVariable;
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
-            x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
