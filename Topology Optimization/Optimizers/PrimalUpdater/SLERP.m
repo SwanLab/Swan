@@ -69,10 +69,11 @@ classdef SLERP < handle
         end
 
         function V = computeVolumeFromTau(obj,g,ls)
-            lsAux   = ls.copy();
-            phiNew  = obj.update(g,lsAux.fun.fValues);
+            lsAux  = ls.copy();
+            phiRef = lsAux.fun.fValues;
+            phiNew = obj.update(g,phiRef);
             lsAux.update(phiNew);
-            V       = obj.volume.computeFunctionAndGradient(lsAux);
+            V      = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
         function is = isTooSmall(obj)
