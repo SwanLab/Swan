@@ -238,7 +238,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
+            x  = obj.designVariable;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
                 factor = 1;

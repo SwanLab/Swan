@@ -148,11 +148,11 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
-            DJ = obj.cost.gradient;
+            x   = obj.designVariable;
+            DmF = obj.meritGradient;
             if obj.nIter == 0
                 factor = 1;
-                obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);

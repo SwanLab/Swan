@@ -18,4 +18,4 @@ filterConstraintSettings = {[]};
 plotting = false;
 printing = false;
 monitoring = false;
-maxiter = 4;
+maxiter = 15;
