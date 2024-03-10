@@ -72,24 +72,9 @@ classdef RHSintegrator_Stokes < RHSintegrator
         end
 
         function f = calculateForcesFromExpression(obj)
-            nGaus  = obj.quadrature.ngaus;
             xV = obj.quadrature.posgp;
             xGauss = obj.mesh.computeXgauss(xV);
-            nElem = obj.mesh.nelem;
-            nDimf = obj.velocityFun.ndimf;
-            F = zeros(nDimf,nGaus,nElem);
-            for iElem = 1:nElem
-                ind=1;
-                for iGaus = 1:nGaus
-                    xG = xGauss(:,iGaus,iElem);
-                    pos_node = num2cell(xG);
-                    fCell = obj.forcesFormula(pos_node{:});
-                    fMat = cell2mat(fCell);
-                    F(:,iGaus,iElem) = fMat;
-                    ind=ind+length(fMat);
-                end
-            end
-            f = F;
+            f = obj.forcesFormula(xGauss);
         end
 
         function g = computeVelocityDivergence(obj)
