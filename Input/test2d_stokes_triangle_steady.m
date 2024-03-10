@@ -113,12 +113,6 @@ sDir{2}.domain    = @(coor) isRight(coor) & isTop(coor);
 sDir{2}.direction = 1;
 sDir{2}.value     = 0;
 
-
-% Point load
-sPL{1}.domain    = @(coor) abs(coor(:,2)) < 2;
-sPL{1}.direction = 2;
-sPL{1}.value     = -1;
-
 velocityBC.domain = 'Border';
 velocityBC.value  = 0;
 
