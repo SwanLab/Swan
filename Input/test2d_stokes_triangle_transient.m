@@ -99,6 +99,22 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
+
+% Dirichlet
+
+% Velocity...
+sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBottom(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = 0;
+% Pressure...
+sDir{2}.domain    = @(coor) isRight(coor) & isTop(coor);
+sDir{2}.direction = 1;
+sDir{2}.value     = 0;
+
 velocityBC.domain = 'Border';
 velocityBC.value  = 0;
 
