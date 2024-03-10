@@ -147,11 +147,18 @@ pressure = [
 
 nu=1;
 
-Vol_force = @(coor)[nu*4*(coor(1,:,:).^3.*((6 - 12*coor(2,:,:))) + coor(1,:,:).^4.*((-3 + 6*coor(2,:,:))) + coor(2,:,:).*(1 - 3*coor(2,:,:) + ...
+sMesh.coord = coord(:,2:3);
+sMesh.connec = connec(:,2:4);
+mesh = Mesh.create(sMesh);
+
+sAF.fHandle = @(coor) [nu*4*(coor(1,:,:).^3.*((6 - 12*coor(2,:,:))) + coor(1,:,:).^4.*((-3 + 6*coor(2,:,:))) + coor(2,:,:).*(1 - 3*coor(2,:,:) + ...
     2*coor(2,:,:).^2)-6*coor(1,:,:).*coor(2,:,:).*(1 - 3*coor(2,:,:) + 2*coor(2,:,:).^2)...
 + 3*coor(1,:,:).^2.*((-1 + 4*coor(2,:,:) - 6*coor(2,:,:).^2 + 4*coor(2,:,:).^3)))+(2*coor(1,:,:)-1).*(coor(2,:,:)-1);
 -4*nu*(-3*((-1 + coor(2,:,:)).^2).*coor(2,:,:).^2 - 3*coor(1,:,:).^2.*((1 - 6*coor(2,:,:) + 6*coor(2,:,:).^2))+2*coor(1,:,:).^3.*((1 - 6*coor(2,:,:) + 6*coor(2,:,:).^2)) +...
 coor(1,:,:).*(1 - 6*coor(2,:,:) + 12*coor(2,:,:).^2 - 12*coor(2,:,:).^3 + 6*coor(2,:,:).^4))+coor(1,:,:).*(coor(1,:,:)-1)];
+sAF.ndimf   = 2;
+sAF.mesh    = mesh;
+Vol_force = AnalyticalFunction(sAF);
 
 % nu=1;
 % Vol_force = @(x,y){nu*4*(x^3*((6 - 12*y)) + x^4*((-3 + 6*y)) + y*(1 - 3*y + 2*y^2)-6*x*y*(1 - 3*y + 2*y^2)...
