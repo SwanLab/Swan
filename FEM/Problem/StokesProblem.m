@@ -64,7 +64,8 @@ classdef StokesProblem < handle
                     end
                     x = x_n;
             end
-            vars = obj.separateVariables(x);
+            fullx = obj.boundaryConditions.reducedToFullVector(x);
+            vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
         end
@@ -123,12 +124,12 @@ classdef StokesProblem < handle
             bcV.dirichlet = dirich;
             bcV.pointload = [];
             bcV.ndimf     = vel.ndimf;
-            bcV.ndofs     = numel(vel.fValues);
+            bcV.ndofs     = obj.velocityFun.nDofs;
             bcP.dirichlet = obj.inputBC.pressure;
             bcP.pointload = [];
             bcP.ndimf     = prs.ndimf;
-            bcP.ndofs     = numel(prs.fValues);
-            ndofs = numel(vel.fValues) + numel(prs.fValues);
+            bcP.ndofs     = obj.pressureFun.nDofs;
+            ndofs = obj.velocityFun.nDofs + obj.pressureFun.nDofs;
             s.dim   = [];
             s.scale = 'MACRO';
             s.bc    = {bcV, bcP};
@@ -180,9 +181,8 @@ classdef StokesProblem < handle
             obj.RHS = RHS;
         end
         
-        function variable = separateVariables(obj,x_free)
-            x = obj.boundaryConditions.reducedToFullVector(x_free);
-            ndofsV = numel(obj.velocityFun.fValues);
+        function variable = separateVariables(obj,x)
+            ndofsV = obj.velocityFun.nDofs;
             variable.u = x(1:ndofsV,:);
             variable.p = x(ndofsV+1:end,:);
         end
