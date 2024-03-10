@@ -16,7 +16,7 @@ classdef StokesProblem < handle
         inputBC
         boundaryConditions
 
-        LHS, LHSintegrator
+        LHS, massMatrix
         RHS
     end
 
@@ -163,7 +163,7 @@ classdef StokesProblem < handle
             LHS_int = LHSintegrator.create(s);
             LHS = LHS_int.compute();
             obj.LHS = LHS;
-            obj.LHSintegrator = LHS_int;
+            obj.massMatrix = LHS_int.M;
         end
         
         function RHS = computeRHS(obj)
@@ -191,7 +191,7 @@ classdef StokesProblem < handle
             RHS = zeros(size(RHS0));
             freeV = obj.boundaryConditions.freeFields{1};
             lenFreeV = length(freeV);
-            M = obj.LHSintegrator.M;
+            M = obj.massMatrix;
             Mred = M(freeV,freeV);
             Mred_x_n = Mred*x_n;
             RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
