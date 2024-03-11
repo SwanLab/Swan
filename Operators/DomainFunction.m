@@ -2,6 +2,7 @@ classdef DomainFunction < handle
     
     properties (Access = public)
         operation
+        ndimf
     end
     
     properties (Access = private)
@@ -83,11 +84,16 @@ classdef DomainFunction < handle
     end
     
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.operation = cParams.operation;
+            if isfield(cParams,'ndimf')
+                obj.ndimf = cParams.ndimf;
+            else
+                obj.ndimf = 1;
+            end
         end
-        
+
     end
 
     methods (Static, Access = public)

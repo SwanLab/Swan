@@ -12,11 +12,11 @@ classdef Projector_toLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-            LHS = obj.computeLHS();
+            LHS = obj.computeLHS(x);
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
-            s.fValues = xProj;
+            s.fValues = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             s.order = obj.order;
             xFun = LagrangianFunction(s);
         end
@@ -25,10 +25,10 @@ classdef Projector_toLagrangian < Projector
 
     methods (Access = private)
         
-        function LHS = computeLHS(obj)
+        function LHS = computeLHS(obj,fun)
             s.mesh  = obj.mesh;
-            s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
+            s.test  = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
+            s.trial = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
             s.quadratureOrder = 'QUADRATIC'; % no
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
@@ -47,7 +47,7 @@ classdef Projector_toLagrangian < Projector
             end
             s.quadType = ord;
             int        = RHSintegrator.create(s);
-            test       = LagrangianFunction.create(obj.mesh,1,obj.order);
+            test       = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.order);
             RHS        = int.compute(fun,test);
         end
 

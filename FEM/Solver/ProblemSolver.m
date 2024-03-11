@@ -94,14 +94,15 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        % Ct = bcapp.computeP1LinearConditionsMatrix();
-                        Ct = bcapp.computeLinearConditionsMatrix();
+                        % Ct = bcapp.computeLinearConditionsMatrix('P1');
+                        Ct = bcapp.computeLinearConditionsMatrix('Dirac');
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);
                         Km  = obj.stiffness;
                         LHS = [Km C; C' Z];
                     else
+                        % Micro
                         iV = bcs.iVoigt;
                         nV = bcs.nVoigt;
                         % CtDir = bcapp.computeLinearConditionsMatrix();
@@ -118,7 +119,7 @@ classdef ProblemSolver < handle
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     LHS = obj.stiffness(free_dofs, free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
-                    CtDir = bcapp.computeLinearConditionsMatrix();
+                    CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
                     Ct = [CtPer; CtDir];
                     C   = Ct';

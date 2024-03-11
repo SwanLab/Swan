@@ -6,6 +6,7 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
+        volume
     end
 
     methods (Access = public)
@@ -23,8 +24,56 @@ classdef SLERP < handle
             phi    = phiNew.fValues;
         end
 
-        function computeFirstStepLength(obj,~,~,~)
+        function computeFirstStepLength(obj,g,ls,~)
+            V0 = obj.volume.computeFunctionAndGradient(ls);
+            if abs(V0-1) <= 1e-10
+                obj.computeLineSearchInBounds(g,ls);
+            else
+                obj.tau = 1;
+            end
+        end
+
+        function computeLineSearchInBounds(obj,g,ls)
+            tLower  = 0;
+            tUpper  = obj.computeInitialUpperLineSearch(g,ls);
+            obj.tau = 0.5*(tUpper+tLower);
+            V       = obj.computeVolumeFromTau(g,ls);
+            delta   = abs(V-1);
+            cond1   = delta==0;
+            cond2   = delta>=0.05;
+            while (cond1 || cond2)
+                if cond1
+                    tLower  = obj.tau;
+                end
+                if cond2
+                    tUpper  = obj.tau;
+                end
+                obj.tau = 0.5*(tUpper+tLower);
+                V       = obj.computeVolumeFromTau(g,ls);
+                delta   = abs(V-1);
+                cond1   = delta<=1e-10;
+                cond2   = delta>=0.05;
+            end
+        end
+
+        function tU = computeInitialUpperLineSearch(obj,g,ls)
             obj.tau = 1;
+            V       = obj.computeVolumeFromTau(g,ls);
+            delta   = abs(V-1);
+            while delta<0.05
+                obj.tau = obj.tau*2;
+                V       = obj.computeVolumeFromTau(g,ls);
+                delta   = abs(V-1);
+            end
+            tU = obj.tau;
+        end
+
+        function V = computeVolumeFromTau(obj,g,ls)
+            lsAux  = ls.copy();
+            phiRef = lsAux.fun.fValues;
+            phiNew = obj.update(g,phiRef);
+            lsAux.update(phiNew);
+            V      = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
         function is = isTooSmall(obj)
@@ -36,7 +85,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.05;
+            obj.tau = obj.tau/2;
         end
     end
 
@@ -44,6 +93,13 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.createVolumeFunctional();
+        end
+
+        function createVolumeFunctional(obj)
+            s.mesh         = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.volume     = VolumeFunctional(s);
         end
 
         function f = createP1Function(obj,fV)

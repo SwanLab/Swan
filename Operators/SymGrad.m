@@ -1,5 +1,6 @@
 function dom = SymGrad(u)
     s.operation = @(xV) evaluate(u, xV);
+    s.ndimf     = obtainNDimFieldsVoigt(u);
     dom = DomainFunction(s);
 end
 
@@ -25,6 +26,18 @@ function newObj = obtainVoigtFormat(sgr)
             newObj = applyVoigt2D(sgr);
         case 9
             newObj = applyVoigt3D(sgr);
+    end
+end
+
+function ndimfVoigt = obtainNDimFieldsVoigt(u)
+    ndimg = u.mesh.ndim;
+    ndimf = u.ndimf;
+    n     = ndimg*ndimf;
+    switch n
+        case 4
+            ndimfVoigt = 3;
+        case 9
+            ndimfVoigt = 6;
     end
 end
 
