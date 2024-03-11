@@ -12,8 +12,14 @@ classdef RHSintegrator_Stokes < RHSintegrator
             obj.init(cParams);
         end
 
-        function rhs = integrate(obj)
+        function rhs = compute(obj)
             rhs = obj.computeRHS();
+        end
+
+        function rhs = getVectors(obj)
+            Fext = obj.computeVolumetricFext();
+            g = obj.computeVelocityDivergence();
+            rhs = {Fext; g};
         end
 
     end
@@ -29,7 +35,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
         function RHS = computeRHS(obj)
             Fext = obj.computeVolumetricFext();
             g = obj.computeVelocityDivergence();
-            RHS = [Fext; zeros(obj.pressureFun.nDofs,1)];
+            RHS = [Fext; g];
         end
 
         function Fext = computeVolumetricFext(obj)

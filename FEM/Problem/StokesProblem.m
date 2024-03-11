@@ -18,6 +18,10 @@ classdef StokesProblem < handle
 
         LHS, massMatrix
         RHS
+
+        LHSmatrices
+        RHSvectors
+        dirichlet
     end
 
     methods (Access = public)
@@ -37,9 +41,13 @@ classdef StokesProblem < handle
             bc  = obj.boundaryConditions;
             free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
             total_free_dof = sum(free_dof);
-            LHSr = bc.fullToReducedMatrix(obj.LHS);
-            RHSr = bc.fullToReducedVector(obj.RHS);
+%             LHSr = bc.fullToReducedMatrix(obj.LHS);
+%             RHSr = bc.fullToReducedVector(obj.RHS);
 
+            fields = {obj.velocityFun; obj.pressureFun};
+
+            LHSr = BCApplier.reduce(obj.LHSmatrices, fields, obj.dirichlet);
+            RHSr = BCApplier.reduce(obj.RHSvectors, fields, obj.dirichlet);
             switch obj.state
                 case 'Steady'
                     x = obj.solver.solve(LHSr, RHSr);
@@ -103,6 +111,7 @@ classdef StokesProblem < handle
             inBC.velocityBC    = cParams.bc.velocityBC;
             inBC.forcesFormula = cParams.bc.forcesFormula;
             obj.inputBC    = inBC;
+            obj.dirichlet = {cParams.bc.dirichletFun(1), cParams.bc.dirichletFun(2)};
         end
 
         function createVelocity(obj)
@@ -152,43 +161,7 @@ classdef StokesProblem < handle
             s.type =  'DIRECT';
             obj.solver = Solver.create(s);
         end
-        
-        function lhsv = computeVelocityLaplacian(obj)
-            s.type  = 'Laplacian';
-            s.mesh  = obj.mesh;
-            s.test  = LagrangianFunction.create(obj.mesh, 2, 'P2');
-            s.trial = obj.velocityFun;
-            s.material = obj.material;
-            LHSint = LHSintegrator.create(s);
-            lhs = LHSint.compute();
-            lhsv = 1/2 * (lhs+lhs'); % SymGrad
-        end
-        
-        function M = computeMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.velocityFun;
-            s.trial = obj.velocityFun;
-            s.quadratureOrder = 'QUADRATIC';
-            LHSint = LHSintegrator.create(s);
-            lhs = LHSint.compute();
-            M = lhs/obj.dtime;
-        end
 
-        function LHSd = computeWeakDivergence(obj)
-            s.type = 'WeakDivergence';
-            s.mesh = obj.mesh;
-            s.trial = obj.pressureFun;
-            s.test  = obj.velocityFun;
-            LHS = LHSintegrator.create(s);
-            D = LHS.compute();
-        end
-
-        function LHSp = computePressureLHS(obj)
-            ndofs = obj.pressureFun.nDofs;
-            LHSp = sparse(ndofs, ndofs);
-        end
-        
         function LHS = computeLHS(obj)
             s.type          = 'Stokes';
             s.dt            = obj.dtime;
@@ -200,6 +173,7 @@ classdef StokesProblem < handle
             LHS = LHS_int.compute();
             obj.LHS = LHS;
             obj.massMatrix = LHS_int.M;
+            obj.LHSmatrices = LHS_int.getMatrices();
         end
         
         function RHS = computeRHS(obj)
@@ -208,12 +182,14 @@ classdef StokesProblem < handle
             s.pressureFun   = obj.pressureFun;
             s.forcesFormula = obj.inputBC.forcesFormula;
             RHSint = RHSintegrator.create(s);
-            F = RHSint.integrate();
+            F = RHSint.compute();
             dirichlet = obj.boundaryConditions.dirichlet;
             uD = obj.boundaryConditions.dirichlet_values;
             R  = -obj.LHS(:,dirichlet)*uD;
             RHS = F + R;
             obj.RHS = RHS;
+
+            obj.RHSvectors = RHSint.getVectors();
         end
         
         function variable = separateVariables(obj,x)

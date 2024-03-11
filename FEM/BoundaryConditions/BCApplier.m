@@ -20,6 +20,39 @@ classdef BCApplier < handle
     properties (Access = private)
         
     end
+
+    methods (Static, Access = public)
+
+        function Ared = reduce(A, fields, bcs)
+            Ared = cell(size(A));
+            for iField = 1:size(A,1)
+                row_f  = fields{iField};
+                row_bc = bcs{iField};
+                row_dofs  = 1:row_f.nDofs;
+                row_dirich = row_f.getDofsFromCondition(row_bc.domain);
+                row_free   = setdiff(row_dofs, row_dirich);
+                for jField = 1:size(A,2)
+                    col_f  = fields{jField};
+                    col_bc = bcs{jField};
+                    col_dofs  = 1:col_f.nDofs;
+                    col_dirich = col_f.getDofsFromCondition(col_bc.domain);
+                    col_free   = setdiff(col_dofs, col_dirich);
+                    mat = A{iField, jField};
+                    isTensor = size(mat,2) ~= 1;
+        
+                    if isTensor
+                        matRed = mat(row_free, col_free);
+                    else
+                        matRed = mat(row_free);
+                    end
+                    Ared{iField,jField} = matRed;
+
+                end
+            end
+            Ared = cell2mat(Ared);
+        end
+
+    end
     
     methods (Access = public)
         
