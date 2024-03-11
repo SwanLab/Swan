@@ -19,9 +19,11 @@ function mesh = HexaMesh(length, height, width, nx, ny, nz)
         for iX = 1: nx
             x_toadd = z_toadd + next_x*(iX-1);
             for iY = 1: ny
-                vert_line = x_toadd + [iY, iY + 1];
-                plane_elem = [vert_line, flip(next_x + vert_line) ];
-                connec = [plane_elem, next_z + plane_elem];
+                y_line = x_toadd + [iY, iY + 1];
+                z0_plane = [y_line, flip(next_x + y_line) ];
+                nods = [z0_plane, next_z + z0_plane];
+                connec = [nods(2), nods(3), nods(7), nods(6), ...
+                    nods(1), nods(4), nods(8), nods(5)];
                 glob = [glob; connec];
             end
         end

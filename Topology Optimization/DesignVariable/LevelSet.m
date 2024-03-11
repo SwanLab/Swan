@@ -24,7 +24,7 @@ classdef LevelSet < DesignVariable
             s.order   = 'P1';
             obj.fun   = LagrangianFunction(s);
             obj.updateUnfittedMesh();
-        end  
+        end
 
         function charFun = obtainDomainFunction(obj)
             uMesh = obj.getUnfittedMesh();
@@ -49,6 +49,14 @@ classdef LevelSet < DesignVariable
             if obj.plotting
                 obj.plotter.plot();
             end
+        end
+
+        function ls = copy(obj)
+            s.fun      = obj.fun;
+            s.mesh     = obj.mesh;
+            s.type     = 'LevelSet';
+            s.plotting = false;
+            ls         = DesignVariable.create(s);
         end
 
     end
