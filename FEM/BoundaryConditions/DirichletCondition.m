@@ -8,6 +8,7 @@ classdef DirichletCondition < BoundaryCondition
 
         dofs
         values
+        val
     end
     
     properties (Access = private)
@@ -31,6 +32,7 @@ classdef DirichletCondition < BoundaryCondition
             obj.direction = s.direction;
             obj.dofs = obj.getDofs();
             obj.values = obj.getValues();
+            obj.val = s.value;
         end
 
         function dofs = getDofs(obj)

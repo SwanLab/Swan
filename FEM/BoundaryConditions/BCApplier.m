@@ -52,6 +52,26 @@ classdef BCApplier < handle
             Ared = cell2mat(Ared);
         end
 
+        function Afull = expand(Ared, fields, bcs)
+            first_dof = 1;
+            Afull = cell(size(fields,1),1);
+            for iField = 1:size(fields,1)
+                field  = fields{iField};
+                bc = bcs{iField};
+                dofs  = 1:field.nDofs;
+                dirich = field.getDofsFromCondition(bc.domain);
+                free   = setdiff(dofs, dirich);
+                
+                Af = zeros(field.nDofs,1);
+                last_dof = first_dof + length(free) - 1;
+                Af(free) = Ared(first_dof:last_dof);
+                Af(dirich) = bc.val;
+                Afull{iField,1} = Af;
+                first_dof = last_dof + 1;
+            end
+
+        end
+
     end
     
     methods (Access = public)

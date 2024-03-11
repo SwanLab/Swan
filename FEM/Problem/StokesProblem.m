@@ -73,6 +73,7 @@ classdef StokesProblem < handle
                     x = x_n;
             end
             fullx = obj.boundaryConditions.reducedToFullVector(x);
+            fullx2 = cell2mat(BCApplier.expand(x, fields, obj.dirichlet));
             vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
