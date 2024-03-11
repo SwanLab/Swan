@@ -65,32 +65,6 @@ classdef AssemblerFun < handle
             V = sparse(res(:,1), 1, res(:,2), nDofs, 1);
         end
 
-        function F = assembleVectorStokes(obj, FelemCell, f1, f2)
-            % Stokes
-            funs = {f1,f2};
-            nFields = numel(funs);
-            b_global = cell(nFields,1);
-            for iField = 1:nFields
-                f = funs{iField};
-                Felem = FelemCell{iField,1};
-                dofsElem = f.getConnec();
-                nDofs  = numel(f.fValues);
-                nDofsE = size(Felem,1);
-                nGaus  = size(Felem,2);
-                b = zeros(nDofs,1);
-                for iDof = 1:nDofsE
-                    for iGaus = 1:nGaus
-                        c = squeeze(Felem(iDof,iGaus,:));
-                        idof_elem = dofsElem(:,iDof);
-                        b = b + sparse(idof_elem,1,c',nDofs,1);
-                    end
-                end
-                b_global{iField,1} = b;
-            end
-            F = cell2mat(b_global);
-
-        end
-
     end
 
     methods (Access = private)
