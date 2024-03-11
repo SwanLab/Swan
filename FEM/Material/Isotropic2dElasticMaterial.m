@@ -7,9 +7,9 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         end
 
         function C = evaluate(obj,xV)
-            [mu,k] = obj.computeShearAndBulk(xV);      
+            [mu,k] = obj.computeShearAndBulk(xV);
             l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
-            nGaus = size(xV,2);                        
+            nGaus = size(xV,2);
             nElem = length(mu);
             nStre = 3;
             C = zeros(nStre,nStre,nGaus,nElem);
@@ -26,7 +26,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
-        end               
+        end
         
     end
     
