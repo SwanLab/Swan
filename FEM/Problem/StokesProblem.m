@@ -30,7 +30,7 @@ classdef StokesProblem < handle
             obj.init(cParams);
             obj.createVelocity();
             obj.createPressure();
-            obj.createBoundaryConditions();
+%             obj.createBoundaryConditions();
             obj.createSolver();
             obj.computeLHS();
             obj.computeRHS();
@@ -38,16 +38,12 @@ classdef StokesProblem < handle
         
         function computeVariables(obj)
             tol = 1e-6;
-            bc  = obj.boundaryConditions;
-            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
-            total_free_dof = sum(free_dof);
-%             LHSr = bc.fullToReducedMatrix(obj.LHS);
-%             RHSr = bc.fullToReducedVector(obj.RHS);
 
             fields = {obj.velocityFun; obj.pressureFun};
 
             LHSr = BCApplier.reduce(obj.LHSmatrices, fields, obj.dirichlet);
             RHSr = BCApplier.reduce(obj.RHSvectors, fields, obj.dirichlet);
+            total_free_dof = size(LHSr,1);
             switch obj.state
                 case 'Steady'
                     x = obj.solver.solve(LHSr, RHSr);
@@ -68,12 +64,11 @@ classdef StokesProblem < handle
                             x0 = x;
                         end
                         x_n(:,istep) = x;
-                        RHSr = obj.updateRHS(RHS0, x0(1:free_dof(1)));
+                        RHSr = obj.updateRHS(RHS0, x0);
                     end
                     x = x_n;
             end
-            fullx = obj.boundaryConditions.reducedToFullVector(x);
-            fullx2 = cell2mat(BCApplier.expand(x, fields, obj.dirichlet));
+            fullx = cell2mat(BCApplier.expand(x, fields, obj.dirichlet));
             vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
@@ -184,11 +179,12 @@ classdef StokesProblem < handle
             s.forcesFormula = obj.inputBC.forcesFormula;
             RHSint = RHSintegrator.create(s);
             F = RHSint.compute();
-            dirichlet = obj.boundaryConditions.dirichlet;
-            uD = obj.boundaryConditions.dirichlet_values;
-            R  = -obj.LHS(:,dirichlet)*uD;
-            RHS = F + R;
-            obj.RHS = RHS;
+%             dirichlet = obj.boundaryConditions.dirichlet;
+%             uD = obj.boundaryConditions.dirichlet_values;
+%             R  = -obj.LHS(:,dirichlet)*uD;
+%             RHS = F + R;
+%             obj.RHS = RHS;
+            obj.RHS = F;
 
             obj.RHSvectors = RHSint.getVectors();
         end
@@ -199,12 +195,12 @@ classdef StokesProblem < handle
             variable.p = x(ndofsV+1:end,:);
         end
 
-        function RHS = updateRHS(obj, RHS0, x_n)
+        function RHS = updateRHS(obj, RHS0, x0)
             RHS = zeros(size(RHS0));
-            freeV = obj.boundaryConditions.freeFields{1};
-            lenFreeV = length(freeV);
             M = obj.massMatrix;
-            Mred = M(freeV,freeV);
+            Mred = BCApplier.reduce({M}, {obj.velocityFun}, obj.dirichlet(1));
+            lenFreeV = size(Mred,1);
+            x_n = x0(1:lenFreeV);
             Mred_x_n = Mred*x_n;
             RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
         end
