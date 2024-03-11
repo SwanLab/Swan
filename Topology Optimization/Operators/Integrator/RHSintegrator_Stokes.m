@@ -1,11 +1,8 @@
 classdef RHSintegrator_Stokes < RHSintegrator
 
     properties (Access = private)
-%         mesh
-        velocityFun
         pressureFun
         forcesFormula
-%         quadrature
     end
 
     methods (Access = public)
@@ -13,8 +10,6 @@ classdef RHSintegrator_Stokes < RHSintegrator
         function obj = RHSintegrator_Stokes(cParams)
             cParams.quadratureOrder = 'QUADRATIC';
             obj.init(cParams);
-            obj.setQuadratureOrder(cParams);
-            obj.createQuadrature();
         end
 
         function rhs = integrate(obj)
@@ -27,7 +22,6 @@ classdef RHSintegrator_Stokes < RHSintegrator
 
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
-            obj.velocityFun   = cParams.velocityFun;
             obj.pressureFun   = cParams.pressureFun;
             obj.forcesFormula = cParams.forcesFormula;
         end

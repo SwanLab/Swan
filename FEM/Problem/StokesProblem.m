@@ -153,6 +153,42 @@ classdef StokesProblem < handle
             obj.solver = Solver.create(s);
         end
         
+        function lhsv = computeVelocityLaplacian(obj)
+            s.type  = 'Laplacian';
+            s.mesh  = obj.mesh;
+            s.test  = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            s.trial = obj.velocityFun;
+            s.material = obj.material;
+            LHSint = LHSintegrator.create(s);
+            lhs = LHSint.compute();
+            lhsv = 1/2 * (lhs+lhs'); % SymGrad
+        end
+        
+        function M = computeMassMatrix(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = obj.velocityFun;
+            s.trial = obj.velocityFun;
+            s.quadratureOrder = 'QUADRATIC';
+            LHSint = LHSintegrator.create(s);
+            lhs = LHSint.compute();
+            M = lhs/obj.dtime;
+        end
+
+        function LHSd = computeWeakDivergence(obj)
+            s.type = 'WeakDivergence';
+            s.mesh = obj.mesh;
+            s.trial = obj.pressureFun;
+            s.test  = obj.velocityFun;
+            LHS = LHSintegrator.create(s);
+            D = LHS.compute();
+        end
+
+        function LHSp = computePressureLHS(obj)
+            ndofs = obj.pressureFun.nDofs;
+            LHSp = sparse(ndofs, ndofs);
+        end
+        
         function LHS = computeLHS(obj)
             s.type          = 'Stokes';
             s.dt            = obj.dtime;
@@ -169,7 +205,6 @@ classdef StokesProblem < handle
         function RHS = computeRHS(obj)
             s.type          = 'Stokes';
             s.mesh          = obj.mesh;
-            s.velocityFun   = obj.velocityFun;
             s.pressureFun   = obj.pressureFun;
             s.forcesFormula = obj.inputBC.forcesFormula;
             RHSint = RHSintegrator.create(s);

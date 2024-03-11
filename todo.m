@@ -1,7 +1,9 @@
 %% To-do
 
     % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
-    
+    % bc domain / use product of domain*value, result will be 0 if out of
+    % domain
+
 % WEBSITE
     % STEP 1
     % - Readme: tot fora, portar cap a la web + documentation

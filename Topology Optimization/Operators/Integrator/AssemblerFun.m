@@ -10,27 +10,22 @@ classdef AssemblerFun < handle
             obj.init(cParams);
         end
 
-        function A = assemble(obj, Aelem, f1, f2)
-            dofsF1 = f1.getConnec();
-            if isequal(f1, f2)
-                dofsF2 = dofsF1;
-            else
-                dofsF2 = f2.getConnec();
-            end
-            
+        function A = assemble(obj, Aelem, test, trial)
+            dofsTe = test.getConnec();
+            dofsTr = trial.getConnec();            
             nElem = size(Aelem,3);
-            nDofs1 = numel(f1.fValues);
-            nDofs2 = numel(f2.fValues);
-            ndofsElem1 = size(Aelem,1);
-            ndofsElem2 = size(Aelem,2);
+            nDofsTe = test.nDofs;
+            nDofsTr = trial.nDofs;
+            ndofElTe = test.nDofsElem;
+            ndofElTr = trial.nDofsElem;
 
-            res = zeros(ndofsElem1*ndofsElem2 * nElem, 3);
+            res = zeros(ndofElTe*ndofElTr * nElem, 3);
             strt = 1;
             fnsh = nElem;
-            for i = 1:ndofsElem1
-                dofsI = dofsF1(:,i);
-                for j = 1:ndofsElem2
-                    dofsJ = dofsF2(:,j);
+            for i = 1:ndofElTr
+                dofsI = dofsTr(:,i);
+                for j = 1:ndofElTe
+                    dofsJ = dofsTe(:,j);
                     a = squeeze(Aelem(i,j,:));
                     matRes = [dofsI, dofsJ, a];
                     res(strt:fnsh,:) = matRes;
@@ -38,7 +33,7 @@ classdef AssemblerFun < handle
                     fnsh = fnsh + nElem;
                 end
             end
-            A = sparse(res(:,1), res(:,2), res(:,3), nDofs1, nDofs2);
+            A = sparse(res(:,1), res(:,2), res(:,3), nDofsTr, nDofsTe);
 
         end
 

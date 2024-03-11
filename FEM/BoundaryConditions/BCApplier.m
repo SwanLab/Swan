@@ -27,7 +27,7 @@ classdef BCApplier < handle
             obj.init(cParams)
         end
         
-        function Ct = computeLinearConditionsMatrix(obj, order)
+        function C = computeLinearConditionsMatrix(obj, order)
             switch order
                 case 'Dirac'
                     % generalize lagrange multiplier -> dirac and stuff
@@ -35,6 +35,7 @@ classdef BCApplier < handle
                     nDofs = obj.dirichletFun.nDofs;
                     nDirich = length(dir_dofs);
                     Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+                    C = Ct';
                 otherwise
                     dir_dom = obj.dirichlet_domain;
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
@@ -54,18 +55,20 @@ classdef BCApplier < handle
                     l2g_dof = l2g_dof(:);
                     jGlob = l2g_dof(jLoc);
                     Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
+                    C = Ct';
             end
         end
 
-        function Ct = computeLinearPeriodicConditionsMatrix(obj)
+        function C = computeLinearPeriodicConditionsMatrix(obj)
             per_lead = obj.periodic_leader;
             per_fllw = obj.periodic_follower;
             nDofs = obj.dirichletFun.nDofs;
             nPer = length(per_lead);
             Ct = sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs); % !!
+            C = Ct';
         end
 
-        function Ct = computeSingleDirichletPeriodicCondition(obj, iVoigt, nVoigt)
+        function C = computeSingleDirichletPeriodicCondition(obj, iVoigt, nVoigt)
             per_lead = obj.periodic_leader;
             per_fllw = obj.periodic_follower;
             nDofs = obj.dirichletFun.nDofs;
@@ -98,6 +101,7 @@ classdef BCApplier < handle
                          ], ...
                          nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
+            C = Ct';
         end
 
         function RHSC = computeMicroDisplMonolithicRHS(obj, iVoigt, nVoigt)

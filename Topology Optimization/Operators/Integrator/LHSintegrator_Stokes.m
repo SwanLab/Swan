@@ -22,7 +22,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function LHS = compute(obj)
             velLHS = obj.computeVelocityLHS();
             D      = obj.computeWeakDivergenceMatrix();
-            prsLHS = obj.computePressureLHS(D);
+            prsLHS = obj.computePressureLHS();
             LHS = [velLHS, D; D',prsLHS];
         end
 
@@ -48,15 +48,15 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         function D = computeWeakDivergenceMatrix(obj)
             s.type = 'WeakDivergence';
             s.mesh = obj.mesh;
-            s.trial = obj.pressureFun;
-            s.test  = obj.velocityFun;
+            s.trial = obj.velocityFun;
+            s.test  = obj.pressureFun;
             LHS = LHSintegrator.create(s);
             D = LHS.compute();
         end
 
-        function BB = computePressureLHS(obj,D)
-            sz = size(D, 2);
-            BB = sparse(sz,sz);
+        function BB = computePressureLHS(obj)
+            ndofs = obj.pressureFun.nDofs;
+            BB = sparse(ndofs,ndofs);
         end
 
         function A = symGradient(obj, B)
