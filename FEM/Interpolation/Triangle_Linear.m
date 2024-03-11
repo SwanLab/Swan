@@ -1,50 +1,22 @@
 classdef Triangle_Linear < Interpolation
 
-    properties (Access = private)
-        shapeFun
-        shapeDer
-    end
-
     methods (Access = public)
 
         function obj = Triangle_Linear(cParams)
-            obj.createParams();
-            obj.createShapeFunctions();
-            obj.createShapeDerivatives();
-        end
-
-        function shape = computeShapeFunctions(obj,xV)
-            shape = obj.shapeFun.evaluate(xV);
-        end
-
-        function deriv = computeShapeDerivatives(obj,xV)
-            deriv = obj.shapeDer.evaluate(xV);
+            obj.init(cParams);
         end
 
     end
 
-    methods (Access = private)
+    methods (Access = protected)
 
-        function createParams(obj)
+        function computeParams(obj)
             obj.ndime     = 2;
             obj.nnode     = 3;
             obj.pos_nodes = [0 0; 1 0; 0 1];
         end
 
-        function createShapeFunctions(obj)
-            s.operation = @(xV) obj.evaluateShapeFun(xV);
-            shape = DomainFunction(s);
-            obj.shapeFun = shape;
-        end
-
-        function createShapeDerivatives(obj)
-            s.operation = @(xV) obj.evaluateShapeDer(xV);
-            deriv = DomainFunction(s);
-            obj.shapeDer = deriv;
-
-        end
-
-        function shape = evaluateShapeFun(obj, xV)
+        function shape = evaluateShapeFunctions(obj, xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             s = xV(1,:,:);
@@ -56,7 +28,7 @@ classdef Triangle_Linear < Interpolation
             shape(3,:,:) = t;
         end
 
-        function deriv = evaluateShapeDer(obj, xV)
+        function deriv = evaluateShapeDerivatives(obj, xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);

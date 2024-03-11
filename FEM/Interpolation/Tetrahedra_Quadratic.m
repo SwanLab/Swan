@@ -4,15 +4,35 @@ classdef Tetrahedra_Quadratic < Interpolation
 
         function obj = Tetrahedra_Quadratic(cParams)
             obj.init(cParams);
-            obj.computeParams();
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+    end
+
+    methods (Access = protected)
+
+        function computeParams(obj)
+            obj.ndime = 3;
+            obj.nnode = 10;
+            obj.pos_nodes = [0 0 0;
+                1 0 0;
+                0 1 0;
+                0 0 1;
+                0.5 0 0;
+                0 0.5 0;
+                0 0 0.5;
+                0.5 0.5 0;
+                0.5 0 0.5;
+                0 0.5 0.5
+                ];
+            % obj.isoDv = 1/6;
+        end
+
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             shape = zeros(obj.nnode,ngaus,nelem);
             shape(1,:,:)  = 2*s.^2 + 4.*s.*t + 4.*s.*u - 3.*s + 2.*t.^2 + 4.*t.*u - 3.*t + 2.*u.^2 -3.*u +1;
             shape(2,:,:)  = 2.*s.^2 - s;
@@ -26,12 +46,12 @@ classdef Tetrahedra_Quadratic < Interpolation
             shape(10,:,:) = 4.*t.*u;
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             deriv(1,1,:,:)  = 4*s + 4*t + 4*u - 3;
             deriv(1,2,:,:)  = 4*s - 1;
@@ -65,27 +85,6 @@ classdef Tetrahedra_Quadratic < Interpolation
             deriv(3,8,:,:)  = 0;
             deriv(3,9,:,:)  = 4*s;
             deriv(3,10,:,:) = 4*t;
-        end
-
-    end
-
-    methods (Access = private)
-
-        function computeParams(obj)
-            obj.ndime = 3;
-            obj.nnode = 10;
-            obj.pos_nodes = [0 0 0;
-                1 0 0;
-                0 1 0;
-                0 0 1;
-                0.5 0 0;
-                0 0.5 0;
-                0 0 0.5;
-                0.5 0.5 0;
-                0.5 0 0.5;
-                0 0.5 0.5
-                ];
-            % obj.isoDv = 1/6;
         end
 
     end
