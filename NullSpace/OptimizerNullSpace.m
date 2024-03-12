@@ -98,26 +98,30 @@ classdef OptimizerNullSpace < Optimizer
             obj.monitoring.update(obj.nIter,data);
         end
 
-        function aJmax = nullSpaceParameterEstimation(obj,cParams)
-            if isfield (cParams,'aJmax')
-                aJmax = cParams.aJmax;
+        function updateEtaParameter(obj)
+            if obj.nIter>0
+                tau = obj.primalUpdater.tau;
             else
-                DJ = obj.cost.gradient;
-                Dg = obj.constraint.gradient;
-                aJmax = abs(-1/((Dg'*Dg)\Dg'*DJ));
+                tau = 1e-9;
             end
+            vgJ     = obj.gJFlowRatio;
+            DxJ     = obj.computeNullSpaceFlow();
+            Dxg     = obj.computeRangeSpaceFlow();
+            obj.eta = min(vgJ*DxJ/Dxg,2*DxJ/tau);
         end
 
-        function updateEtaParameter(obj)
-            vgJ     = obj.gJFlowRatio;
-            %tau     = obj.primalUpdater.tau;
-            DJ      = obj.cost.gradient;
-            g       = obj.constraint.value;
-            Dg      = obj.constraint.gradient;
-            Prange  = Dg*((Dg'*Dg)\Dg');
-            DxJ     = (eye(size(Prange))-Prange)*DJ;
-            Dxg     = Dg*((Dg'*Dg)\g);
-            obj.eta = min(vgJ*norm(DxJ)/norm(Dxg),inf); % inf->1.9/tau ??
+        function DxJ = computeNullSpaceFlow(obj)
+            DJ     = obj.cost.gradient;
+            g      = obj.constraint.value;
+            Dg     = obj.constraint.gradient;
+            Prange = Dg*((Dg'*Dg)\Dg');
+            DxJ    = norm((eye(size(Prange))-Prange)*DJ);
+        end
+
+        function Dxg = computeRangeSpaceFlow(obj)
+            g   = obj.constraint.value;
+            Dg  = obj.constraint.gradient;
+            Dxg = norm(Dg*((Dg'*Dg)\g));
         end
 
         function prepareFirstIter(obj)
@@ -140,9 +144,7 @@ classdef OptimizerNullSpace < Optimizer
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
-                s.x  = x;
-                s.x0 = x0;
-                obj.checkStep(s);
+                obj.checkStep(x,x0);
             end
             obj.updateOldValues(x);
         end
@@ -173,11 +175,10 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,s)
-            x    = s.x;
-            x0   = s.x0;
+        function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x);
-            if mNew < obj.mOld && norm(x-x0)/norm(x0) < obj.etaNorm
+            etaN = obj.obtainTrustRegion();
+            if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
@@ -191,6 +192,19 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
+            end
+        end
+
+        function etaN = obtainTrustRegion(obj)
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    if obj.nIter == 0
+                        etaN = inf;
+                    else
+                        etaN = obj.etaNorm;
+                    end
+                otherwise
+                    etaN = obj.etaNorm;
             end
         end
 

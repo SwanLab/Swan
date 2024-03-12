@@ -61,7 +61,7 @@ s.lb             = -inf;
 s.maxIter        = 400;
 s.constraintCase = {'EQUALITY'};
 s.etaNorm        = 0.02;
-s.gJFlowRatio    = 2;
+s.gJFlowRatio    = 4;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
