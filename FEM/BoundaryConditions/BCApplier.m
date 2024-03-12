@@ -24,32 +24,63 @@ classdef BCApplier < handle
     methods (Static, Access = public)
 
         function Ared = reduce(A, fields, bcs)
-            Ared = cell(size(A));
-            for iField = 1:size(A,1)
-                row_f  = fields{iField};
-                row_bc = bcs{iField};
-                row_dofs  = 1:row_f.nDofs;
-                row_dirich = row_f.getDofsFromCondition(row_bc.domain);
-                row_free   = setdiff(row_dofs, row_dirich);
-                for jField = 1:size(A,2)
-                    col_f  = fields{jField};
-                    col_bc = bcs{jField};
-                    col_dofs  = 1:col_f.nDofs;
-                    col_dirich = col_f.getDofsFromCondition(col_bc.domain);
-                    col_free   = setdiff(col_dofs, col_dirich);
-                    mat = A{iField, jField};
-                    isTensor = size(mat,2) ~= 1;
-        
+            Ared = sparse(size(A,1), size(A,2));
+            nFields = numel(fields);
+            
+            isTensor = size(A,2) ~= 1;
+                row_add = 0;
+                for iField = 1:nFields
+                    row_f  = fields{iField};
+                    row_bc = bcs{iField};
+                    row_dofs  = 1:row_f.nDofs;
+                    row_dirich = row_f.getDofsFromCondition(row_bc.domain);
+                    row_free   = setdiff(row_dofs, row_dirich);
+                    col_add = 0;
                     if isTensor
-                        matRed = mat(row_free, col_free);
+                        for jField = 1:nFields
+                            col_f  = fields{jField};
+                            col_bc = bcs{jField};
+                            col_dofs  = 1:col_f.nDofs;
+                            col_dirich = col_f.getDofsFromCondition(col_bc.domain);
+                            col_free   = setdiff(col_dofs, col_dirich);
+                            % Submatrix
+                            mat_rowdofs = (1+row_add):(row_f.nDofs+row_add);
+                            mat_coldofs = (1+col_add):(col_f.nDofs+col_add);
+                            mat = A(mat_rowdofs,mat_coldofs);
+                            col_add = col_add + col_f.nDofs;
+                            matRed = mat(row_free, col_free);
+                        end
                     else
                         matRed = mat(row_free);
                     end
-                    Ared{iField,jField} = matRed;
-
+                    row_add = row_add + row_f.nDofs;
                 end
-            end
-            Ared = cell2mat(Ared);
+            Ared = 1;
+            % for iField = 1:size(A,1)
+            %     row_f  = fields{iField};
+            %     row_bc = bcs{iField};
+            %     row_dofs  = 1:row_f.nDofs;
+            %     row_dirich = row_f.getDofsFromCondition(row_bc.domain);
+            %     row_free   = setdiff(row_dofs, row_dirich);
+            %     for jField = 1:size(A,2)
+            %         col_f  = fields{jField};
+            %         col_bc = bcs{jField};
+            %         col_dofs  = 1:col_f.nDofs;
+            %         col_dirich = col_f.getDofsFromCondition(col_bc.domain);
+            %         col_free   = setdiff(col_dofs, col_dirich);
+            %         mat = A{iField, jField};
+            %         isTensor = size(mat,2) ~= 1;
+            % 
+            %         if isTensor
+            %             matRed = mat(row_free, col_free);
+            %         else
+            %             matRed = mat(row_free);
+            %         end
+            %         Ared{iField,jField} = matRed;
+            % 
+            %     end
+            % end
+            % Ared = cell2mat(Ared);
         end
 
         function Afull = expand(Ared, fields, bcs)

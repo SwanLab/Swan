@@ -41,7 +41,7 @@ classdef StokesProblem < handle
 
             fields = {obj.velocityFun; obj.pressureFun};
 
-            LHSr = BCApplier.reduce(obj.LHSmatrices, fields, obj.dirichlet);
+            LHSr = BCApplier.reduce(obj.LHS, fields, obj.dirichlet);
             RHSr = BCApplier.reduce(obj.RHSvectors, fields, obj.dirichlet);
             total_free_dof = size(LHSr,1);
             switch obj.state
