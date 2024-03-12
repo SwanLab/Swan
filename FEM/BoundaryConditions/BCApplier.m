@@ -72,9 +72,11 @@ classdef BCApplier < handle
         end
 
         function Afull = expand(Ared, fields, bcs)
-            first_dof = 1;
+            first_reddof  = 1;
+            first_fulldof = 1;
             nsteps = size(Ared,2);
-            Afull = cell(size(fields,1),1);
+            ndofs = sum([fields.nDofs]);
+            Afull = sparse(ndofs,nsteps);
             for iField = 1:size(fields,1)
                 field  = fields(iField);
                 bc = bcs(iField);
@@ -83,11 +85,13 @@ classdef BCApplier < handle
                 free   = setdiff(dofs, dirich);
                 
                 Af = zeros(field.nDofs,nsteps);
-                last_dof = first_dof + length(free) - 1;
-                Af(free,:) = Ared(first_dof:last_dof,:);
+                last_reddof  = first_reddof + length(free) - 1;
+                last_fulldof = first_fulldof + field.nDofs - 1;
+                Af(free,:) = Ared(first_reddof:last_reddof,:);
                 Af(dirich,:) = bc.val;
-                Afull{iField,1} = Af;
-                first_dof = last_dof + 1;
+                Afull(first_fulldof:last_fulldof,:) = Af;
+                first_reddof  = first_reddof  + last_reddof;
+                first_fulldof = first_fulldof + field.nDofs;
             end
 
         end
