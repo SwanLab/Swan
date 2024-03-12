@@ -107,12 +107,12 @@ classdef OptimizerNullSpace < Optimizer
             vgJ     = obj.gJFlowRatio;
             DxJ     = obj.computeNullSpaceFlow();
             Dxg     = obj.computeRangeSpaceFlow();
-            obj.eta = min(vgJ*DxJ/Dxg,2*DxJ/tau);
+            h       = obj.designVariable.fun.mesh.computeMinCellSize(); % academic tests do not have h !!
+            obj.eta = vgJ*min(DxJ/Dxg,2*DxJ/(h*tau));
         end
 
         function DxJ = computeNullSpaceFlow(obj)
             DJ     = obj.cost.gradient;
-            g      = obj.constraint.value;
             Dg     = obj.constraint.gradient;
             Prange = Dg*((Dg'*Dg)\Dg');
             DxJ    = norm((eye(size(Prange))-Prange)*DJ);

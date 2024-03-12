@@ -165,13 +165,13 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 100;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.4;
             s.primal         = 'SLERP';
-            s.etaNorm        = inf;
-            s.gJFlowRatio    = 1;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 1.5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
