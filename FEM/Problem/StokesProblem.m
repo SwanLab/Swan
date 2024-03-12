@@ -39,10 +39,10 @@ classdef StokesProblem < handle
         function computeVariables(obj)
             tol = 1e-6;
 
-            fields = {obj.velocityFun; obj.pressureFun};
+            fields = [obj.velocityFun; obj.pressureFun];
 
             LHSr = BCApplier.reduce(obj.LHS, fields, obj.dirichlet);
-            RHSr = BCApplier.reduce(obj.RHSvectors, fields, obj.dirichlet);
+            RHSr = BCApplier.reduce(obj.RHS, fields, obj.dirichlet);
             total_free_dof = size(LHSr,1);
             switch obj.state
                 case 'Steady'
@@ -107,7 +107,7 @@ classdef StokesProblem < handle
             inBC.velocityBC    = cParams.bc.velocityBC;
             inBC.forcesFormula = cParams.bc.forcesFormula;
             obj.inputBC    = inBC;
-            obj.dirichlet = {cParams.bc.dirichletFun(1), cParams.bc.dirichletFun(2)};
+            obj.dirichlet = cParams.bc.dirichletFun;
         end
 
         function createVelocity(obj)
@@ -198,7 +198,7 @@ classdef StokesProblem < handle
         function RHS = updateRHS(obj, RHS0, x0)
             RHS = zeros(size(RHS0));
             M = obj.massMatrix;
-            Mred = BCApplier.reduce({M}, {obj.velocityFun}, obj.dirichlet(1));
+            Mred = BCApplier.reduce(M, obj.velocityFun, obj.dirichlet(1));
             lenFreeV = size(Mred,1);
             x_n = x0(1:lenFreeV);
             Mred_x_n = Mred*x_n;

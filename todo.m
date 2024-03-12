@@ -2,9 +2,10 @@
 
     % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
     % bc domain / use product of domain*value, result will be 0 if out of
-    % domain
+    %                                                             domain
     % lhsint_stokes: symgrad twice?
     % rhs_stokes: reactions?
+    % stokes: cell arrays are slow
 
 % WEBSITE
     % STEP 1
