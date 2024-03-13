@@ -108,7 +108,7 @@ classdef OptimizerNullSpace < Optimizer
             DxJ     = obj.computeNullSpaceFlow();
             Dxg     = obj.computeRangeSpaceFlow();
             x       = obj.designVariable.fun;
-            if isfield(x,'mesh')
+            if isprop(x,'mesh')
                 h = obj.designVariable.fun.mesh.computeMinCellSize(); % academic tests do not have h !!
             else
                 h = 1;
