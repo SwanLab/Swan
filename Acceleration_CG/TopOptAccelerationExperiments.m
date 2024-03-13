@@ -42,8 +42,8 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,200);%linspace(0,2,100);%
-            x2      = linspace(0,1,100);%linspace(0,1,50);%
+            x1      = linspace(0,2,100);%linspace(0,2,100);%
+            x2      = linspace(0,1,50);%linspace(0,1,50);%
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -114,8 +114,8 @@ classdef TopOptAccelerationExperiments < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.designVariable = obj.designVariable;
-            s.volume = obj.volume;
+            s.solverVars.designVariable = obj.designVariable;
+            s.solverVars.volume = obj.volume;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end

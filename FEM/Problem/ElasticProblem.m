@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
 
-        designVariable,volume
+        solverVars
     end
 
     properties (Access = protected)
@@ -77,8 +77,7 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'designVariable'); obj.designVariable = cParams.designVariable; end
-            if isfield(cParams,'volume'); obj.volume = cParams.volume; end
+            if isfield(cParams,'solverVars'); obj.solverVars = cParams.solverVars; end
         end
 
         function createQuadrature(obj)
@@ -109,8 +108,7 @@ classdef ElasticProblem < handle
 
         function createSolver(obj)
             s.type = 'CONJUGATE GRADIENT';%'DIRECT';%
-            s.designVariable = obj.designVariable;
-            s.volume         = obj.volume;
+            s.solverVars = obj.solverVars;
             obj.solver = Solver.create(s);
         end
 

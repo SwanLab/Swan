@@ -1,103 +1,131 @@
 classdef Conjugate_Gradient < handle
 
-    properties
-        xOld
-        rhoOld
-        
-        tolMax
-        tolMin
-        tolStandard
-        tol
-        rhoNormOld
-
-        globalIters
-
-        designVariable,volume
-
+    properties (Access = private)
+        xOld, xStep
+        rhoIter, rhoOld, rhoOld_step
+        rhoNormIter, rhoNormOld, rhoNorm_step
+        tolMax, tolMin, tolStandard, tol
         rhoNormFactor, tolNormFactor
+        isZero
+        designVariable,volume
     end
 
-    methods
+    methods (Access = public)
 
         function obj = Conjugate_Gradient(cParams)
-            obj.designVariable = cParams.designVariable;
-            obj.volume         = cParams.volume;
+            obj.designVariable = cParams.solverVars.designVariable;
+            obj.volume         = cParams.solverVars.volume;
             obj.setToleranceFunctions();
-
-            obj.globalIters = 1; 
-            obj.rhoNormFactor = 4/log10(numel(obj.designVariable.fun.fValues));            
+            
+            obj.rhoNormFactor = 4/log10(numel(obj.designVariable.fun.fValues)); % Scaled with number of design vars            
         end
-
-    end
-    
-    methods (Access = public)
 
         function x = solve(obj,A,b)
             tic
-            % Design variable
-            rho        = obj.designVariable.fun.fValues;
-            rhoNorm    = obj.returnDesignVarIncNorm(rho);
-            obj.rhoOld = rho;
+            obj.updateDesignVarIter();
             if isempty(obj.xOld)
                 x = A\b;                
                 disp('Iter: DIRECT')
-                obj.tolNormFactor = 4.5/norm(b);
-                obj.tol = 1e-1*obj.tolNormFactor;
-                obj.rhoNormOld = 0;
+                obj.computeFirstIterParameters(b);
+                obj.xOld = x;
             else
-                obj.obtainTolerance(rhoNorm);
-                x   = obj.xOld;
+                obj.defineToleranceValue();
+                x = obj.xOld;
                 [x,~,~,it] = pcg(A,b,obj.tol,3e3,[],[],x);
                 disp('Iter: ' + string(it))
-                disp('Tol: ' + string(obj.tol/obj.tolNormFactor))
+                disp('Tol: '  + string(obj.tol/obj.tolNormFactor))
             end
-            % disp('E: ' + string(1/2*x'*A*x - b'*x))
-            disp('rho normInc: ' + string(rhoNorm))
+            disp('rho normInc: ' + string(obj.rhoNormIter))
             disp('Convergence time: ' + string(toc) + ' s')
             disp('------------------')
+            % obj.xAccepted = obj.xOld;
             obj.xOld = x;
-        end
-
-        function rhoNorm = returnDesignVarIncNorm(obj,rho)
-            if isempty(obj.rhoOld)
-                rhoNorm = 0;
-            else
-                rhoNorm = norm(rho - obj.rhoOld);
-            end
         end
 
     end
 
     methods (Access = private)
 
-        function obtainTolerance(obj,rhoNorm)
-            d = obj.designVariable;
-            [c,~] = obj.volume.computeFunctionAndGradient(d);
-            if rhoNorm >= obj.rhoNormOld
-                if rhoNorm > 1/obj.rhoNormFactor
-                    obj.tol = obj.tolStandard(c)*obj.rhoNormFactor*rhoNorm;
-                elseif rhoNorm > 0 && rhoNorm < 1
-                    obj.tol = 0.1*obj.tolStandard(c);
+        function defineToleranceValue(obj)
+            rNIter = obj.computeDesignVarIncNorm(obj.rhoIter,obj.rhoOld);
+            obj.rhoNormIter = rNIter;
+            if rNIter > 0
+                % - ||rho_k+1 - rho_k|| > 0 -
+                rhoNormStep = obj.computeDesignVarIncNorm(obj.rhoIter,obj.rhoOld_step);
+                if rhoNormStep > 0
+                    % relation    = obj.computeDesignVarIncNormRelation(rhoNormStep);
+                    if obj.isZero
+                        % - Increasing step -
+                        disp('- New step... -')
+                        obj.updateDesignVarPreviousStep(obj.rhoOld);
+                        d       = obj.designVariable;
+                        [c,~]   = obj.volume.computeFunctionAndGradient(d);
+                        t       = obj.tolStandard(c)*max(1,obj.rhoNormFactor*obj.rhoNormIter);
+                        obj.tol = min(obj.tolMax(c),max(obj.tolMin(c),t))*obj.tolNormFactor;
+                        obj.isZero = false;
+                    else
+                        % - Decreasing step -
+                        disp('- Decreasing step... -')
+                    end
+                    obj.updateDesignVarPrevious(obj.rhoIter);
+                    obj.updateOldNorm(rhoNormStep);
+                else
+                    % - Restarting merit function step -
+                    disp('- Restarting merit function... ')
+                    obj.tol = 1e-3;
                 end
-                obj.tol = min(obj.tolMax(c),max(obj.tolMin(c),obj.tol))*obj.tolNormFactor;
+            else
+                obj.isZero = true;
             end
+        end
+
+        function updateDesignVarIter(obj)            
+            obj.rhoIter = obj.designVariable.fun.fValues;
+        end
+
+        function updateDesignVarPreviousStep(obj,rho)
+            obj.rhoOld_step = rho;
+        end
+
+        function updateDesignVarPrevious(obj,rho)
+            obj.rhoOld = rho;
+        end
+
+        function updateOldNorm(obj,rhoNorm)
             obj.rhoNormOld = rhoNorm;
+        end
+
+        function relation = computeDesignVarIncNormRelation(obj,rhoNorm)
+            relation = rhoNorm/obj.rhoNormOld;
+        end
+
+        function computeFirstIterParameters(obj,b)
+            obj.tolNormFactor = 4.5/norm(b); % Factor for pcg function
+            obj.tol           = 0.1*obj.tolNormFactor;
+            obj.updateDesignVarPrevious(obj.rhoIter);
+            obj.updateDesignVarPreviousStep(obj.rhoIter);
+            obj.rhoNormIter  = 1e-5;
+            obj.rhoNorm_step = 1e-5;
+            obj.rhoNormOld   = 1e-5;
+            obj.isZero       = false;
         end
 
         function setToleranceFunctions(obj)
             d = obj.designVariable;
             [cInit,~] = obj.volume.computeFunctionAndGradient(d);
-            obj.tolStandard = @(c) interp1([0,0.2,1],[5e-3,1e-2,7e-2],abs(c/cInit));
-            obj.tolMax      = @(c) interp1([0,0.8,1],[7e-2,1e-1,5e-2],abs(c/cInit));          
-            obj.tolMin      = @(c) interp1([0,0.5,1],[1e-4,1e-3,3e-3],abs(c/cInit));
-            % obj.tolStandard = @(c) interp1([0,0.2,1],[1e-3,5e-3,1e-3],abs(c/cInit));
-            % obj.tolMax      = @(c) interp1([0,0.8,1],[1e-2,5e-2,1e-2],abs(c/cInit));          
-            % obj.tolMin      = @(c) interp1([0,0.5,1],[1e-5,5e-4,1e-4],abs(c/cInit));
+            obj.tolStandard = @(c) interp1([0,0.2,1],[1e-3,1e-2,5e-2],abs(c/cInit));
+            obj.tolMax      = @(c) interp1([0,0.2,1],[1e-2,6e-2,2e-1],abs(c/cInit));          
+            obj.tolMin      = @(c) interp1([0,0.5,1],[1e-5,5e-4,5e-4],abs(c/cInit));
         end
 
     end
 
     methods (Static, Access = private)
 
+        function rhoNorm = computeDesignVarIncNorm(rho1,rho2)
+            rhoNorm = norm(rho1 - rho2);
+        end
+        
     end
+
 end

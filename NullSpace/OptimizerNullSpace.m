@@ -16,6 +16,7 @@ classdef OptimizerNullSpace < Optimizer
         oldDesignVariable
         oldCost
         hasFinished
+        notRestarted
         mOld
         meritNew
         meritGradient
@@ -41,7 +42,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            obj.hasFinished = false;
+            obj.hasFinished  = false;
             obj.printOptimizerVariable();
             obj.updateMonitoring();
             while ~obj.hasFinished
@@ -194,6 +195,7 @@ classdef OptimizerNullSpace < Optimizer
             g0 = obj.constraint.value;
             obj.calculateInitialStep();
             obj.acceptableStep      = false;
+            obj.notRestarted        = true;
             obj.lineSearchTrials    = 0;
             d.nullSpaceCoefficient  = obj.aJ;
             d.rangeSpaceCoefficient = obj.aG;
@@ -259,6 +261,10 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
+                if obj.lineSearchTrials == 2 && obj.notRestarted % Recomputing the merit old for CG
+                    obj.mOld         = obj.computeMeritFunction(x0);
+                    obj.notRestarted = false;
+                end
             end
         end
 
