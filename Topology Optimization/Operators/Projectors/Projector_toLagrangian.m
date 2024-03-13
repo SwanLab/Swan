@@ -12,11 +12,11 @@ classdef Projector_toLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-            LHS = obj.computeLHS();
+            LHS = obj.computeLHS(x);
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
-            s.fValues = xProj;
+            s.fValues = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             s.order = obj.order;
             xFun = LagrangianFunction(s);
         end
@@ -25,56 +25,39 @@ classdef Projector_toLagrangian < Projector
 
     methods (Access = private)
         
-        function LHS = computeLHS(obj)
+        function LHS = computeLHS(obj,fun)
             s.mesh  = obj.mesh;
-            s.test  = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            s.trial = LagrangianFunction.create(obj.mesh, 1, obj.order);
-            s.quadratureOrder = 'ORDER10'; % no
+            s.test  = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
+            s.trial = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
+            s.quadratureOrder = 'QUADRATIC'; % no
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
         function RHS = computeRHS(obj,fun)
-            quad = obj.createRHSQuadrature(fun);
-            xV = quad.posgp;
-            fGaus = fun.evaluate(xV);
-            dV = obj.mesh.computeDvolume(quad);
-            
-            f = LagrangianFunction.create(obj.mesh, 1,obj.order);
-            shapes = f.computeShapeFunctions(xV);
-            conne = f.computeDofConnectivity()';
-
-            nGaus = size(xV,2);
-            nFlds = size(fGaus,1);
-            nNode = size(conne,2);
-            nDofs = max(max(conne));
-
-            f     = zeros(nDofs,nFlds);
-            for iField = 1:nFlds
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    fG = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nNode
-                        dofs = conne(:,inode);
-                        Ni = shapes(inode,igaus);
-                        int = Ni*fG.*dVg;
-                        f(:,iField) = f(:,iField) + accumarray(dofs,int,[nDofs 1]);
-                    end
-                end
+            ord = obj.createRHSQuadrature(fun);
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
+                otherwise
+                    s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
             end
-            RHS = f;
+            s.quadType = ord;
+            int        = RHSintegrator.create(s);
+            test       = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.order);
+            RHS        = int.compute(fun,test);
         end
 
-        function q = createRHSQuadrature(obj, fun)
+        function ord = createRHSQuadrature(obj, fun)
             if isa(fun, 'FGaussDiscontinuousFunction')
                 ord = fun.getQuadratureOrder();
             else
                 ord = obj.determineQuadratureOrder(fun);
-                ord = 'ORDER10'; % no
+                ord = 'QUADRATIC'; % no
             end
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(ord);
         end
 
     end

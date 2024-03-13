@@ -44,10 +44,12 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hasConverged = false;
             obj.hasFinished = false;
             obj.previousComputations();
+            obj.printOptimizerVariable();
             obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
                 obj.checkNewBarrierProblem();
@@ -236,7 +238,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function obj = calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
+            x  = obj.designVariable;
             DJ = obj.cost.gradient;
             if obj.nIter == 0
                 factor = 1;

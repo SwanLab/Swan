@@ -50,13 +50,11 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.printOptimizerVariable();
             obj.monitoring.update(obj.nIter);
             while ~obj.hasFinished
-%             while ~obj.hasConverged
                 obj.update();
+                obj.printOptimizerVariable();
                 obj.updateIterInfo();
                 obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
-%                 obj.saveVariablesForAnalysis();
             end
         end
 
@@ -125,7 +123,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             d = obj.designVariable;
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
-            x       = obj.designVariable.fun.fValues;
+            x       = obj.designVariable;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;

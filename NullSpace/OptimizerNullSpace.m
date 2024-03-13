@@ -25,14 +25,6 @@ classdef OptimizerNullSpace < Optimizer
         aG
         eta
         Vtar
-
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalMerit
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
     methods (Access = public) 
@@ -55,9 +47,9 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
                 obj.checkParameters();
             end
         end
@@ -184,7 +176,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMaximumVolumeRemoved(obj)
             if obj.nIter==0
-                obj.eta = inf;
+                obj.eta = 0.05;
             else
                 if obj.aG <= 0.5*obj.aGmax
                     obj.eta = 0.05;
@@ -200,7 +192,6 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMaximumVolumeRemoved();
             x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
-            obj.calculateInitialStep();
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
             d.nullSpaceCoefficient  = obj.aJ;
@@ -208,6 +199,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualUpdater.update(d);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeMeritGradient();
+            obj.calculateInitialStep();
 
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
@@ -220,11 +212,11 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
-            DJ = obj.cost.gradient;
+            x   = obj.designVariable;
+            DmF = obj.meritGradient;
             if obj.nIter == 0
                 factor = 1;
-                obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.2;
                 obj.primalUpdater.increaseStepLength(factor);

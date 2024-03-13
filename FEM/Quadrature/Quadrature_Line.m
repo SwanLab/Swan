@@ -65,7 +65,7 @@ classdef Quadrature_Line < Quadrature
                     obj.posgp = [9.81560634246719e-01, 9.04117256370475e-01, 7.69902674194305e-01, 5.87317954286617e-01, 3.67831498998180e-01, 1.25233408511469e-01, -1.25233408511469e-01, -3.67831498998180e-01, -5.87317954286617e-01, -7.69902674194305e-01, -9.04117256370475e-01, -9.81560634246719e-01];
                     
                 otherwise
-                    disp('Quadrature not implemented for triangle elements')
+                    disp('Quadrature not implemented for line elements')
             end
         end
     end

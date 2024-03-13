@@ -37,14 +37,9 @@ classdef PerimeterFunctional < handle
         end
 
         function J = computeFunction(obj,xD,xR)
-            rhoei     = xR.fValues;
-            s.fValues = 1-rhoei;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            f         = LagrangianFunction(s);
-            int       = Integrator.create('ScalarProduct',obj.mesh,'QUADRATICMASS');
-            result    = int.compute(f,xD);
-            J         = 2/(obj.epsilon)*result;
+            f   = xD.*(1-xR);
+            int = Integrator.compute(f,obj.mesh,'QUADRATIC');
+            J   = 2/(obj.epsilon)*int;
         end
 
         function dJ = computeGradient(obj,xR)

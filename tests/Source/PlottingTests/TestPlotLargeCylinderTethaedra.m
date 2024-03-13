@@ -42,12 +42,14 @@ classdef TestPlotLargeCylinderTethaedra < handle
         end
 
         function createLevelSet(obj)
-            s.type = 'cylinder';
-            s.fracRadius = 1.1;
-            s.coord      = obj.backgroundMesh.coord;
-            s.ndim       = obj.backgroundMesh.ndim;
-            lsCreator = LevelSetCreator.create(s);
-            obj.levelSet = lsCreator.getValue();
+            mesh = obj.backgroundMesh;
+            s.type = 'Cylinder';
+            s.radius = 1.1;
+            s.xCoorCenter = 0.5;
+            s.yCoorCenter = 0.5;
+            fun = GeometricalFunction(s);
+            lsfun = fun.computeLevelSetFunction(mesh);
+            obj.levelSet = lsfun.fValues;
         end
 
         function createUnfittedMesh(obj)

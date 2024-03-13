@@ -52,9 +52,9 @@ classdef OptimizerBisection < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.monitoring.update(obj.nIter);
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
             end
         end
 
@@ -105,7 +105,6 @@ classdef OptimizerBisection < Optimizer
             x = obj.designVariable;
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
-            x       = obj.designVariable.fun.fValues;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;

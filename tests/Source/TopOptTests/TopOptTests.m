@@ -11,7 +11,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_interiorPerimeter',...
             'test_anisotropy','test_anisotropy_interior','test_nullspace',...
             'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
-            'test_gripping','test_micro', 'test_micro2'
+            'test_dirichletProjection','test_gripping','test_micro', 'test_micro2'
             }
     end
 
@@ -35,17 +35,20 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             m      = gid.mesh;
             dim    = gid.dim;
             bc     = gid.boundaryConditions;
-            x      = obj.createDesignVariable(designVariable,m,geomFunSettings);
+            x      = obj.createDesignVariable(designVariable,m,geomFunSettings,plotting);
             filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
             filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);
             mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
-            fem    = obj.createElasticProblem(x,m,mI,ptype,dim,bc);
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mI);
-            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mI);
+            mat    = obj.createMaterial(x,mI);
+            fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
+            Msmooth = obj.createMassMatrix(m);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth);
+            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
             t      = obj.createOptimizer(optimizer,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
+            close all;
         end
 
         function s = readGidFile(file)
@@ -53,7 +56,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s          = FemDataContainer(a);
         end
 
-        function x = createDesignVariable(type,mesh,gSet)
+        function x = createDesignVariable(type,mesh,gSet,plotting)
             g      = GeometricalFunction(gSet);
             lsFun  = g.computeLevelSetFunction(mesh);
             switch type
@@ -68,6 +71,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.fun  = fun;
             s.mesh = mesh;
             s.type = type;
+            s.plotting = plotting;
             x      = DesignVariable.create(s);
         end
 
@@ -108,10 +112,17 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             mI = MaterialInterpolator.create(s);
         end
 
-        function fem = createElasticProblem(x,mesh,mI,scale,dim,bc)
-            f   = x.obtainDomainFunction();
-            f   = f.project('P1');
-            mat = mI.computeConsitutiveTensor(f);
+        function m = createMaterial(x,mI)
+            f = x.obtainDomainFunction();
+            f = f.project('P1');
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = mI;
+            s.dim                  = '2D';
+            m = Material.create(s);
+        end
+
+        function fem = createElasticProblem(mesh,mat,scale,dim,bc)
             s.mesh               = mesh;
             s.scale              = scale;
             s.material           = mat;
@@ -123,31 +134,43 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             fem                  = ElasticProblem(s);
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mI)
+        function M = createMassMatrix(mesh)
+            s.test  = LagrangianFunction.create(mesh,1,'P1');
+            s.trial = LagrangianFunction.create(mesh,1,'P1');
+            s.mesh  = mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;
+        end
+
+        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth)
             for i = 1:length(cost)
-                s.type                 = cost{i};
-                s.mesh                 = mesh;
-                s.physicalProblem      = fem;
-                s.filter               = filter{i};
-                s.materialInterpolator = mI;
-                sF{i}                  = ShapeFunctional.create(s);
+                s.type            = cost{i};
+                s.mesh            = mesh;
+                s.physicalProblem = fem;
+                s.filter          = filter{i};
+                s.material        = mat;
+                sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
             ss.weights        = weights;
+            ss.Msmooth        = Msmooth;
             sFCost            = Cost(ss);
         end
 
-        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mI)
+        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth)
             for i = 1:length(constraint)
-                s.type                 = constraint{i};
-                s.target               = target;
-                s.mesh                 = mesh;
-                s.physicalProblem      = fem;
-                s.filter               = filter{i};
-                s.materialInterpolator = mI;
-                sF{i}                  = ShapeFunctional.create(s);
+                s.type            = constraint{i};
+                s.target          = target;
+                s.mesh            = mesh;
+                s.physicalProblem = fem;
+                s.filter          = filter{i};
+                s.material        = mat;
+                s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
+                sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
+            ss.Msmooth        = Msmooth;
             sFConstraint      = Constraint(ss);
         end
 

@@ -23,7 +23,8 @@ classdef HamiltonJacobi < handle
         end
 
         function computeFirstStepLength(obj,g,x,f)
-            obj.tau = f*sqrt(norm(g)/norm(x));
+            xVal    = x.fun.fValues;
+            obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
 
         function is = isTooSmall(obj)
@@ -52,7 +53,7 @@ classdef HamiltonJacobi < handle
             ss.fun       = LagrangianFunction(s);
             ss.uMesh     = obj.phi.getUnfittedMesh();
             unfFun       = UnfittedBoundaryFunction(ss);
-            gFilter      = obj.filter.compute(unfFun,'QUADRATICMASS');
+            gFilter      = obj.filter.compute(unfFun,'QUADRATIC');
             V            = -gFilter.fValues;
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
