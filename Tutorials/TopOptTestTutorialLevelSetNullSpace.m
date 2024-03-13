@@ -42,7 +42,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
+            x1      = linspace(0,6,300);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -191,16 +191,21 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             yMax    = max(obj.mesh.coord(:,2));
 
             %isDir1, isDir2... if you want (optional)
-            isDir   = @(coor)  abs(coor(:,1))==0;
+            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.04*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.04*yMax];
+            isDir2   = @(coor)  [abs(coor(:,1))>=0.96*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.04*yMax];
 
-            isForce1 = @(coor) abs(coor(:,1))==xMax;
-            isForce2 = @(coor) abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax;
-            isForce  = @(coor) isForce1(coor) & isForce2(coor);
-            % isForce = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Alternatively
+            isForce1 = @(coor) [abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax ]; %FORÇA DIRECCIÓ X
+            isForce2 = @(coor) abs(coor(:,2))==yMax; %FORÇA DIRECCIÓ Y
+            isForce  = @(coor) isForce1(coor) & isForce2(coor); 
+            %isForce = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Alternatively
             
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
