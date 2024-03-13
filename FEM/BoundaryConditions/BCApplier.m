@@ -40,7 +40,7 @@ classdef BCApplier < handle
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
         
                     dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
-                    uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, order); % !!
+                    uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1'); % !!
         
                     b.mesh  = mesh_left2;
                     b.test  = dLambda;

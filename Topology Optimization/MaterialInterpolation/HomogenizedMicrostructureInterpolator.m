@@ -11,9 +11,9 @@ classdef HomogenizedMicrostructureInterpolator < Material
         
         function obj = HomogenizedMicrostructureInterpolator(cParams)
             obj.init(cParams);
-            [mx,my,C] = obj.loadVademecum();    
+            [mx,my,C] = obj.loadVademecum();
             obj.createStructuredMesh(mx,my);
-            obj.createCtensorFunction(C);               
+            obj.createCtensorFunction(C);
         end
 
         function C = obtainTensor(obj)
@@ -35,13 +35,12 @@ classdef HomogenizedMicrostructureInterpolator < Material
         end
         
     end
- 
     
     methods (Access = private)
         
-        function init(obj,cParams)            
-           obj.fileName    = cParams.fileName; 
-           obj.microParams = cParams.microParams; 
+        function init(obj,cParams)
+           obj.fileName    = cParams.fileName;
+           obj.microParams = cParams.microParams;
         end
 
          function [mxV,myV,C] = loadVademecum(obj)
@@ -49,22 +48,22 @@ classdef HomogenizedMicrostructureInterpolator < Material
             matFile   = [fName,'.mat'];
             file2load = fullfile('Vademecums',matFile);
             v = load(file2load);
-            var = v.d;   
+            var = v.d;
             mxV = var.domVariables.mxV;
-            myV = var.domVariables.myV; 
+            myV = var.domVariables.myV;
              for imx = 1:length(mxV)
                  for imy = 1:length(myV)
                      C(:,:,imx,imy) = var.variables{imx,imy}.('Ctensor');
                  end
-             end            
+             end
          end 
 
         function createStructuredMesh(obj,mxV,myV)
             s.x = mxV;
             s.y = myV;
-            m = StructuredMesh(s); 
+            m = StructuredMesh(s);
             obj.sMesh = m;
-        end    
+        end
 
         function  createCtensorFunction(obj,C)
             m = obj.sMesh.mesh;
@@ -76,7 +75,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
                      obj.Ctensor{i,j} = CijF;
                  end
              end
-        end        
+        end
         
         function C = evaluate(obj,xV)
             [mL,cells] = obj.obtainLocalCoord(xV);
@@ -87,12 +86,12 @@ classdef HomogenizedMicrostructureInterpolator < Material
             C  = zeros(nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cv = obj.Ctensor{i,j}.sampleFunction(mL,cells);  
+                    Cv = obj.Ctensor{i,j}.sampleFunction(mL,cells);
                     Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
                     C(i,j,:,:)   = Cij(1,1,:,:);
                 end
             end
-        end 
+        end
 
         function dC = evaluateGradientM1(obj,xV)
             dC = obj.evaluateGradient(xV,1);
@@ -130,7 +129,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
             mG(:,1) = mxG(:);
             mG(:,2) = myG(:);
             [mL,cells] = obj.sMesh.obtainLocalFromGlobalCoord(mG);
-        end        
+        end
         
     end
     
@@ -148,6 +147,6 @@ classdef HomogenizedMicrostructureInterpolator < Material
             end
         end
         
-    end    
+    end
     
 end

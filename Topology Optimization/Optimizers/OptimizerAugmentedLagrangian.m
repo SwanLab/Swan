@@ -123,7 +123,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             d = obj.designVariable;
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
-            x       = obj.designVariable.fun.fValues;
+            x       = obj.designVariable;
             l       = obj.dualVariable.value;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
