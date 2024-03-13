@@ -58,7 +58,7 @@ classdef LHSintegrator_Mass < handle
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            M = zeros(nDofTest, nDofTrial, nElem);
+            M = zeros(nDofTrial, nDofTest, nElem);
 %             for igaus = 1:nGaus
 %                 dv(1,1,:) = dVolu(igaus,:);
 %                 Nv = shapesTest(:,igaus);
@@ -68,15 +68,15 @@ classdef LHSintegrator_Mass < handle
 %                 lhs = lhs + Aij;
 %             end
             for igauss = 1 :nGaus
-                for inode= 1:nNodeTest
-                    for jnode= 1:nNodeTrial
+                for inode= 1:nNodeTrial
+                    for jnode= 1:nNodeTest
                         for iunkn= 1:obj.test.ndimf
                        %     for junkn= 1:obj.trial.ndimf
-                                idof = obj.test.ndimf*(inode-1)+iunkn;
-                                jdof = obj.trial.ndimf*(jnode-1)+iunkn;
+                                idof = obj.trial.ndimf*(inode-1)+iunkn;
+                                jdof = obj.test.ndimf*(jnode-1)+iunkn;
                                 dvol = dVolu(igauss,:);
-                                Ni = shapesTest(inode,igauss,:);
-                                Nj = shapesTrial(jnode,igauss,:);
+                                Ni = shapesTrial(inode,igauss,:);
+                                Nj = shapesTest(jnode,igauss,:);
                                 v = squeeze(Ni.*Nj);
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
                                     + v(:).*dvol';
