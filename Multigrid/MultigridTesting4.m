@@ -2,6 +2,10 @@ classdef MultigridTesting4 < handle
     
     
     properties (Access = private)
+        nLevel        
+        multiLevelMesh
+
+
         nDimf
         boundaryConditionsFine
         fineMaterial
@@ -28,8 +32,7 @@ classdef MultigridTesting4 < handle
         CoarseFred
         data
         
-        nMesh
-        mesh
+        
         I
         material
         boundaryConditions
@@ -44,16 +47,19 @@ classdef MultigridTesting4 < handle
         function obj = MultigridTesting4()
             close all;
             addpath(genpath(fileparts(mfilename('fullpath'))))
-            obj.init()
-            obj.createCoarseMesh(1)
-            s.mesh = obj.mesh{1};
-            s.bc   = obj.createBoundaryConditions(s.mesh);
+            obj.init();
+            obj.createMultiLevelMesh();
+            mF = obj.multiLevelMesh.mesh;
+             
+
+            s.mesh = mF;
+            s.bc   = obj.createBoundaryConditions(mF);
             %             obj.createBoundaryConditions(0)
             %             obj.createMaterial(0)
-            s.material = obj.createMaterial(s.mesh);
-            s.dispFun  = P1Function.create(s.mesh, obj.nDimf);
-            s.RHS      = obj.createRHS(s.mesh,s.dispFun,s.bc);
-            s.LHS      = obj.computeStiffnessMatrix(s.mesh,s.material,s.dispFun);
+            s.material = obj.createMaterial(mF);
+            s.dispFun  = P1Function.create(mF, obj.nDimf);
+            s.RHS      = obj.createRHS(mF,s.dispFun,s.bc);
+            s.LHS      = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
             s.type     = 'ELASTIC';
             s.scale    = 'MACRO';
             s.dim      = '2D';
@@ -68,24 +74,7 @@ classdef MultigridTesting4 < handle
             %             obj.computeKred(0)
             %             obj.computeFred(0)
 
-            for i = 1:obj.nMesh-1
-
-                obj.createMatrixInterpolation(i)
-                s.mesh     = obj.createMesh(i);
-                s.bc       = obj.createBoundaryConditions(s.mesh);
-                s.material = obj.createMaterial(s.mesh);
-                s.type     = 'ELASTIC';
-                s.scale    = 'MACRO';
-                s.dim      = '2D';
-                s.solverTyp = 'ITERATIVE';
-                s.iterativeSolverTyp = 'CG';
-
-                obj.fem{i+1} = FEM.create(s);
-%                 obj.computeKred(i)
-%                 obj.computeFred(i)
-                
-            end
-             obj.createData();
+     
 
         end
 
@@ -98,7 +87,7 @@ classdef MultigridTesting4 < handle
         end
 
         function r = getMesh(obj)
-            r = obj.mesh;
+            r = obj.multiLevelMesh;
         end
     end
 
@@ -108,23 +97,18 @@ classdef MultigridTesting4 < handle
             obj.nDimf = 2;
             obj.nbasis = 20;
             obj.functionType = 'P1';
-            obj.nMesh = 5;
+            obj.nLevel = 5;
         end
 
-        function createCoarseMesh(obj,i)
-            numero1 = 2;
-            numero2 = 2;
-            % Generate coordinates
-            x1 = linspace(0,2,numero1);
-            x2 = linspace(0,1,numero2);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+ 
+        
 
-            s.coord = V(:,1:2);
-            s.connec = F;
-            obj.mesh{i} = Mesh(s);
+        function createMultiLevelMesh(obj)
+           s.nX = 2;
+           s.nY = 2;
+           s.nLevel = obj.nLevel;
+           m = MultilevelMesh(s);
+           obj.multiLevelMesh = m;
         end
 
         function createMatrixInterpolation(obj,nMesh)
@@ -186,7 +170,7 @@ classdef MultigridTesting4 < handle
         
         function bc = createBoundaryConditions(obj,mesh)
             rawBc    = obj.createRawBoundaryConditions(mesh);
-            dim = getFunDims(obj,0);
+            dim = obj.getFunDims(mesh);
             rawBc.ndimf = dim.ndimf;
             rawBc.ndofs = dim.ndofs;
             s.mesh  = obj.fineMesh;
@@ -198,14 +182,14 @@ classdef MultigridTesting4 < handle
             %obj.boundaryConditions{i+1} = bc;
         end
         
-        function dim = getFunDims(obj,i)
-            s.fValues = obj.mesh{i+1}.coord;
-            s.mesh = obj.mesh{i+1};
+        function dim = getFunDims(obj,mesh)
+            s.fValues = mesh.coord;
+            s.mesh = mesh;
             disp = P1Function(s);
             d.ndimf  = disp.ndimf;
             d.nnodes = size(disp.fValues, 1);
             d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh{i+1}.nnodeElem; % should come from interp..
+            d.nnodeElem = mesh.nnodeElem; % should come from interp..
             d.ndofsElem = d.nnodeElem*d.ndimf;
             dim = d;
         end
@@ -301,8 +285,8 @@ classdef MultigridTesting4 < handle
         function createData(obj)
             
             for i = 1:obj.nMesh
-                obj.data(i).p = obj.mesh{i}.coord;
-                obj.data(i).t = obj.mesh{i}.connec;
+                obj.data(i).p = obj.multiLevelMesh{i}.coord;
+                obj.data(i).t = obj.multiLevelMesh{i}.connec;
                 if i < obj.nMesh
                     obj.data(i).T = obj.I{i};
                     obj.data(i).R = obj.I{i}';
