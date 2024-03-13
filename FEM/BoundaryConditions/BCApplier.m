@@ -27,49 +27,27 @@ classdef BCApplier < handle
             nFields = numel(fields);
             nFree = zeros(size(fields));
             nDofs = [fields.nDofs];
-            freeDofs = cell(size(fields,1),1);
+            freeDofsGlob = cell(size(fields,1),1);
+            lastDof = 0;
             % Find free dofs, nfree
-            for iF = 1:numel(fields)
+            for iF = 1:nFields
                 field = fields(iF);
                 dofs   = 1:field.nDofs;
                 dirich = field.getDofsFromCondition(bcs(iF).domain);
                 free   = setdiff(dofs,dirich);
                 nFree(iF) = length(free);
-                freeDofs{iF,1} = free;
+                freeDofsGlob{iF,1} = free + lastDof;
+                lastDof = lastDof + field.nDofs;
             end
-            nRed = sum(nFree);
+            dofs = [freeDofsGlob{:}];
+
             isTensor = size(A,2) ~= 1;
-            row_freeadd = 0;
-            row_fulladd = 0;
-            idx = [];
-            for iF = 1:nFields
-                row_free = freeDofs{iF,1};
-                col_freeadd = 0;
-                col_fulladd = 0;
-                full_rowdofs = row_free + row_fulladd;
-                if isTensor
-                    for jF = 1:nFields
-                        col_free = freeDofs{jF,1};
-                        full_coldofs = col_free + col_fulladd;
-                        [adofs, bdofs, vals] = find(A(full_rowdofs,full_coldofs));
-                        
-                        idx = [idx; adofs+row_freeadd, bdofs+col_freeadd, vals];
-                        col_freeadd = col_freeadd + nFree(jF);
-                        col_fulladd = col_fulladd + nDofs(jF);
-                    end
-                else
-                    [adofs, ~, vals] = find(A(full_rowdofs));
-                    idx = [idx; adofs+row_freeadd, vals];
-                end
-                row_freeadd = row_freeadd + nFree(iF);
-                row_fulladd = row_fulladd + nDofs(iF);
-            end
             if isTensor
-                Ared = sparse(idx(:,1), idx(:,2), idx(:,3), nRed, nRed);
+                Ared = A(dofs, dofs);
             else
-                Ared = sparse(idx(:,1), ones(length(idx),1), idx(:,2), nRed, 1);
+                Ared = A(dofs);
             end
-            % sparse(idx(:,1), idx(:,2), idx(:,3), sum(nFree), sum(nFree));
+
         end
 
         function Afull = expand(Ared, fields, bcs)
