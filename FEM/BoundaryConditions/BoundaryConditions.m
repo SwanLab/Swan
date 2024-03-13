@@ -54,7 +54,11 @@ classdef BoundaryConditions < handle
             obj.dirichlet_vals = vals;
             obj.dirichlet_domain = domain;
             obj.dirichletFun = fun;
-            obj.free_dofs = setdiff(1:fun.nDofs,dofs);
+            if ~isempty(fun)
+                obj.free_dofs = setdiff(1:fun.nDofs,dofs);
+            else
+                obj.free_dofs = [];
+            end
         end
 
         function [dofs,vals,domain,bcFun] = createBCFun(obj,input)

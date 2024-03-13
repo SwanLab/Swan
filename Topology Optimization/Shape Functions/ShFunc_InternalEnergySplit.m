@@ -12,14 +12,16 @@ classdef ShFunc_InternalEnergySplit < handle
         end
         
         function F = computeFunction(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
-            energyFun = DDP(SymGrad(u),C,SymGrad(u));
-            int = Integrator.create('Function',obj.mesh,quadOrder);
-            F = 0.5*int.compute(energyFun);
+            Fbulk = computeEnergyBulk(u,phi,quadOrder);
+            Fshear = computeEnergyShear(u,phi,quadOrder);
+            F = Fbulk + Fshear;
         end
 
         function [Ju, Jphi] = computeGradient(obj,u,phi,quadOrder)
-            Ju = obj.computeGradientDisplacement(u,phi,quadOrder);
+            JuBulk = obj.computeGradientDisplacementBulk(u,phi,quadOrder);
+            JuShear = obj.computeGradientDisplacementShear(u,phi,quadOrder);
+            Ju = JuBulk + JuShear;
+
             Jphi = obj.computeGradientDamage(u,phi,quadOrder);
         end
 
@@ -34,6 +36,21 @@ classdef ShFunc_InternalEnergySplit < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.materialPhaseField = cParams.materialPhaseField;
+        end
+
+        function F = computeEnergyBulk(obj,u,phi,quadOrder)
+            k = obj.materialPhaseField.getBulkFun(phi,'Interpolated');
+            bulkFun = k.*trace(SymGrad(u)).^2;
+            int = Integrator.create('Function',obj.mesh,quadOrder);
+            F = 0.5*int.compute(bulkFun);
+        end
+
+        function F = computeEnergyShear(obj,u,phi,quadOrder)
+            mu = obj.materialPhaseField.getShearFun(phi,'Interpolated');
+            strainDev = deviatoric(SymGrad(u));
+            shearFun = mu.*DDP(strainDev,strainDev');
+            int = Integrator.create('Function',obj.mesh,quadOrder);
+            F = int.compute(shearFun);
         end
         
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)

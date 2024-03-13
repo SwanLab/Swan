@@ -49,6 +49,11 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             C(3,3,:,:)= mu;
         end
 
+        function k = getBulkFun(phi,u,type)
+            [~, k] = obj.computeShearAndBulk(xV);
+            
+        end
+
     end
 
     methods (Access = private)
