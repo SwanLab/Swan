@@ -121,6 +121,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createVolume(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');            
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -155,18 +156,39 @@ classdef TopOptViaHomogenizationTutorial < handle
         end
 
         function createOptimizer(obj)
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 1000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase = 'EQUALITY';
+%             s.ub             = 1;
+%             s.lb             = 0;
+%             opt = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+
+
+
+     s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            opt = OptimizerMMA(s);
+            s.constraintCase = {'EQUALITY'};
+            s.volumeTarget   = 0.4;
+            s.primal         = 'SLERP';
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
+
+
+
+
         end
 
         function bc = createBoundaryConditions(obj)

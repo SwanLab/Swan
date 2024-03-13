@@ -45,7 +45,9 @@ classdef ComplianceFunctionalFromVademecum < handle
                 obj.value0 = J;
             end
             J          = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            for ivar = 1:numel(dJ)
+                dJ{ivar}.fValues = obj.computeNonDimensionalValue(dJ{ivar}.fValues);
+            end
         end
 
         function x = computeNonDimensionalValue(obj,x)
