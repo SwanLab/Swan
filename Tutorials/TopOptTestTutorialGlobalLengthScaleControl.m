@@ -77,7 +77,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
 
         function createFilterPerimeter(obj)
             s.filterType        = 'PDE';
-            s.boundaryType      = 'Neumann';
+            s.boundaryType      = 'Robin';
             s.mesh              = obj.mesh;
             s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
             f                   = Filter.create(s);
@@ -145,7 +145,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         end
 
         function createPerimeter(obj)
-            eOverhmin     = 8; % 10
+            eOverhmin     = 10; % 10
             epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh        = obj.mesh;
             s.filter      = obj.filterPerimeter;
@@ -195,7 +195,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.constraintCase = {'INEQUALITY','EQUALITY'};
             s.primal         = 'SLERP';
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 1.5;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
