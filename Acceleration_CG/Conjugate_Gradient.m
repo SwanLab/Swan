@@ -8,16 +8,13 @@ classdef Conjugate_Gradient < handle
         rhoNormFactor, tolNormFactor
         isZero
         designVariable,volume
+        defineToleranceValue
     end
 
     methods (Access = public)
 
         function obj = Conjugate_Gradient(cParams)
-            obj.designVariable = cParams.solverVars.designVariable;
-            obj.volume         = cParams.solverVars.volume;
-            obj.setToleranceFunctions();
-            
-            obj.rhoNormFactor = 4/log10(numel(obj.designVariable.fun.fValues)); % Scaled with number of design vars            
+            obj.init(cParams);          
         end
 
         function x = solve(obj,A,b)
@@ -35,7 +32,7 @@ classdef Conjugate_Gradient < handle
                 disp('Iter: ' + string(it))
                 disp('Tol: '  + string(obj.tol/obj.tolNormFactor))
             end
-            disp('rho normInc: ' + string(obj.rhoNormIter))
+            disp('rho normInc (scaled): ' + string(obj.rhoNormIter*obj.rhoNormFactor))
             disp('Convergence time: ' + string(toc) + ' s')
             disp('------------------')
             % obj.xAccepted = obj.xOld;
@@ -46,14 +43,20 @@ classdef Conjugate_Gradient < handle
 
     methods (Access = private)
 
-        function defineToleranceValue(obj)
+        function init(obj,cParams)
+            obj.designVariable = cParams.solverVars.designVariable;
+            obj.volume         = cParams.solverVars.volume;
+            obj.setToleranceDefinitionStrategy(cParams);            
+            obj.rhoNormFactor = 4/log10(numel(obj.designVariable.fun.fValues)); % Scaled with number of design vars  
+        end
+
+        function computeProjectedGradientTolerance(obj)
             rNIter = obj.computeDesignVarIncNorm(obj.rhoIter,obj.rhoOld);
             obj.rhoNormIter = rNIter;
             if rNIter > 0
                 % - ||rho_k+1 - rho_k|| > 0 -
                 rhoNormStep = obj.computeDesignVarIncNorm(obj.rhoIter,obj.rhoOld_step);
                 if rhoNormStep > 0
-                    % relation    = obj.computeDesignVarIncNormRelation(rhoNormStep);
                     if obj.isZero
                         % - Increasing step -
                         disp('- New step... -')
@@ -75,8 +78,45 @@ classdef Conjugate_Gradient < handle
                     obj.tol = 1e-3;
                 end
             else
+                % - Accepted step, recomputing gradient (?) -
                 obj.isZero = true;
             end
+        end
+
+        function computeMMATolerance(obj)
+            rNIter          = obj.computeDesignVarIncNorm(obj.rhoIter,obj.rhoOld);
+            obj.rhoNormIter = rNIter;
+            rNScaled        = rNIter*obj.rhoNormFactor;
+            t               = obj.tolStandard(rNScaled)*rNScaled;
+            obj.tol         = min(obj.tolMax,max(obj.tolMin,t))*obj.tolNormFactor;
+            obj.updateDesignVarPrevious(obj.rhoIter);
+        end
+
+        function setToleranceDefinitionStrategy(obj,cParams)
+            switch cParams.solverVars.optimizer
+                case 'MMA'
+                    obj.defineToleranceValue = @obj.computeMMATolerance;
+                    obj.setMMAToleranceBounds();
+                case 'Null Space'
+                    obj.defineToleranceValue = @obj.computeProjectedGradientTolerance;
+                    obj.setProjectedGradientToleranceBounds();
+                otherwise
+                    error('Tolerance update strategy not implemented for this optimizer')
+            end
+        end
+
+        function setProjectedGradientToleranceBounds(obj)
+            d = obj.designVariable;
+            [cInit,~] = obj.volume.computeFunctionAndGradient(d);
+            obj.tolStandard = @(c) interp1([0,0.2,1],[1e-3,1e-2,5e-2],abs(c/cInit));
+            obj.tolMax      = @(c) interp1([0,0.2,1],[1e-2,6e-2,2e-1],abs(c/cInit));
+            obj.tolMin      = @(c) interp1([0,0.5,1],[1e-5,5e-4,5e-4],abs(c/cInit));
+        end
+
+        function setMMAToleranceBounds(obj)
+            obj.tolStandard = @(rhoNorm) interp1([0,0.01,0.05,0.21,1,1e5],[1e-12,1e-5,1e-5,1e-1,10,10],rhoNorm);
+            obj.tolMax      = 8e-1;
+            obj.tolMin      = 1e-8;
         end
 
         function updateDesignVarIter(obj)            
@@ -113,7 +153,7 @@ classdef Conjugate_Gradient < handle
         function setToleranceFunctions(obj)
             d = obj.designVariable;
             [cInit,~] = obj.volume.computeFunctionAndGradient(d);
-            obj.tolStandard = @(c) interp1([0,0.2,1],[1e-3,1e-2,5e-2],abs(c/cInit));
+            obj.tolStandard = @(c) interp1([0,0.2,1],[1e-3,1e-2,1e-1],abs(c/cInit));
             obj.tolMax      = @(c) interp1([0,0.2,1],[1e-2,6e-2,2e-1],abs(c/cInit));          
             obj.tolMin      = @(c) interp1([0,0.5,1],[1e-5,5e-4,5e-4],abs(c/cInit));
         end
