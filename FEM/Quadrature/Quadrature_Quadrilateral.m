@@ -10,7 +10,7 @@ classdef Quadrature_Quadrilateral < Quadrature
                     obj.posgp(:,1) = [0,0];
                     obj.weigp = 4;
                     
-                case {'QUADRATIC','CUBIC'}
+                case {'QUADRATIC','CUBIC','QUADRATICMASS'}
                     obj.ngaus = 4;
                     a =  0.577350269189626;
                     obj.posgp(:,1) = [-a,-a];
