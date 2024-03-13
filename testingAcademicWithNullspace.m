@@ -109,3 +109,73 @@ problem              = AcademicProblem(cParams);
 
 problem.compute();
 xStar = problem.result;
+
+%% Problem 4
+
+close all;
+clear;
+
+% Min problem
+cost.cF = @(x) 2*x(1)^2-3*x(2)^2-2*x(1);
+cost.gF = @(x) [4*x(1)-2; -6*x(2)];
+
+constraint.cF{1} = @(x) x(1)^2+x(2)^2-1;
+constraint.gF{1} = @(x) [2*x(1); 2*x(2)];
+
+% Solution
+% x1=0.2; x2=+-0.9798; l=3;
+
+
+% Setting up
+x0               = [5;2];
+s.type           = "NullSpace";
+s.ub             = inf;
+s.lb             = -inf;
+s.maxIter        = 400;
+s.constraintCase = {'INEQUALITY'};
+s.etaNorm        = 0.02;
+s.gJFlowRatio    = 2.5;
+
+cParams.cost         = cost;
+cParams.constraint   = constraint;
+cParams.initialGuess = x0;
+cParams.settings     = s;
+problem              = AcademicProblem(cParams);
+
+problem.compute();
+xStar = problem.result;
+
+%% Problem 5
+
+close all;
+clear;
+
+% Min problem
+cost.cF = @(x) 3*x(1)^2+x(2)^2+x(3)^2-2*x(1)*x(2);
+cost.gF = @(x) [6*x(1)-2*x(2); 2*x(2)-2*x(1); 2*x(3)];
+
+constraint.cF{1} = @(x) 2*x(1)^2+x(2)^2+x(3)^2-1;
+constraint.gF{1} = @(x) [4*x(1); 2*x(2); 2*x(3)];
+
+% Solution
+% x1=x2=x3=0; l=0;
+
+
+% Setting up
+x0               = [1;1;1];
+s.type           = "NullSpace";
+s.ub             = inf;
+s.lb             = -inf;
+s.maxIter        = 400;
+s.constraintCase = {'INEQUALITY'};
+s.etaNorm        = 0.02;
+s.gJFlowRatio    = 4;
+
+cParams.cost         = cost;
+cParams.constraint   = constraint;
+cParams.initialGuess = x0;
+cParams.settings     = s;
+problem              = AcademicProblem(cParams);
+
+problem.compute();
+xStar = problem.result;
