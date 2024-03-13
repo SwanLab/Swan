@@ -191,8 +191,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             yMax    = max(obj.mesh.coord(:,2));
 
             %isDir1, isDir2... if you want (optional)
-            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.04*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.04*yMax];
-            isDir2   = @(coor)  [abs(coor(:,1))>=0.96*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.04*yMax];
+            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
+            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
 
             isForce1 = @(coor) [abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax ]; %FORÇA DIRECCIÓ X
             isForce2 = @(coor) abs(coor(:,2))==yMax; %FORÇA DIRECCIÓ Y
@@ -204,7 +204,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             sDir{1}.value     = 0;  %desplaçament =0
 
             sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.direction = [2]; %restricció vertical i horitzontal
             sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
