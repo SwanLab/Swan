@@ -50,26 +50,28 @@ classdef MultigridTesting4 < handle
             obj.init();
             obj.createMultiLevelMesh();
             mF = obj.multiLevelMesh.mesh;
+            coarseMeshes = obj.multiLevelMesh.coarseMeshes;
+            interpolator = obj.multiLevelMesh.interpolator;
              
 
-            s.mesh = mF;
-            s.bc   = obj.createBoundaryConditions(mF);
-            %             obj.createBoundaryConditions(0)
-            %             obj.createMaterial(0)
-            s.material = obj.createMaterial(mF);
-            s.dispFun  = P1Function.create(mF, obj.nDimf);
-            s.RHS      = obj.createRHS(mF,s.dispFun,s.bc);
-            s.LHS      = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
-            s.type     = 'ELASTIC';
-            s.scale    = 'MACRO';
-            s.dim      = '2D';
-            s.solverType           = 'ITERATIVE';
+            s.mesh                = mF;
+            s.coarseMeshes        = coarseMeshes;
+            s.interpolator        = interpolator;
+            s.bc                  = obj.createBoundaryConditions(mF);
+            s.material            = obj.createMaterial(mF);
+            s.dispFun             = P1Function.create(mF, obj.nDimf);
+            s.RHS                 = obj.createRHS(mF,s.dispFun,s.bc);
+            s.LHS                 = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
+            s.type                = 'ELASTIC';
+            s.scale               = 'MACRO';
+            s.dim                 = '2D';
+            s.solverType          = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
             s.tol                 = 1e-6;
             s.nLevel              = 5;
-            s.nDimf = 2;
-            solver = Solver.create(s);
-            u = solver.solve();
+            s.nDimf               = 2;
+            solver                = Solver.create(s);
+            u                     = solver.solve();
 %             obj.fem{1} = FEM.create(s);
             %             obj.computeKred(0)
             %             obj.computeFred(0)
@@ -109,63 +111,6 @@ classdef MultigridTesting4 < handle
            s.nLevel = obj.nLevel;
            m = MultilevelMesh(s);
            obj.multiLevelMesh = m;
-        end
-
-        function createMatrixInterpolation(obj,nMesh)
-            mesh = obj.fem{nMesh}.getMesh();
-            p = mesh.coord;
-            t = mesh.connec;
-
-            n = size(p,1);
-            q = size(t,1);
-            T = sparse(eye(n,n)); 
-            tnew = []; j = 1;
-            p_ori = p;
-            for i = 1:q % this will add all the midpoints into p
-                tcurr = t(i,:);
-                pmid = [(p(tcurr(1),:) + p(tcurr(2),:)) / 2;
-                        (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                        (p(tcurr(3),:) + p(tcurr(1),:)) / 2];
-                p = [p; pmid];
-            end
-            
-            [~,ia] = unique(p,'rows','stable');
-            Ia = ia(n+1:end);
-            ias = ia(n+1:end) - n ;   
-            potential_tri = ceil(ias./3);
-            d = 1;
-            midpt_curr = [];
-            
-            for i = potential_tri' % now need to loop thru ia and find the triangle that 
-                %corresponds to this midpoint
-                tcurr = t(i,:);
-                midpt_curr(1,:) = p(Ia(d),:);
-                
-                pmid = [(p(tcurr(1),:) + p(tcurr(2),:)) / 2;
-                        (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                        (p(tcurr(3),:) + p(tcurr(1),:)) / 2];
-                    
-                if midpt_curr(1,:) == pmid(1,:)
-                    T(n + 1, [tcurr(1),tcurr(2)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(2,:)
-                    T(n + 1, [tcurr(2),tcurr(3)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(3,:)
-                    T(n + 1, [tcurr(1),tcurr(3)]) = 1/2;
-                end
-                n = n + 1;
-                d = d + 1;
-            end
-            obj.I{nMesh} = T;
-        end
-        
-        function meshfine = createMesh(obj,i)
-            meshcoarse = obj.fem{i}.getMesh();
-            meshCoord = obj.I{i} * meshcoarse.coord;
-            meshConnec = delaunayn(meshCoord);
-            s.coord = meshCoord;
-            s.connec = meshConnec;
-%             obj.mesh{i+1} = Mesh(s);
-            meshfine = Mesh(s);
         end
         
         function bc = createBoundaryConditions(obj,mesh)
