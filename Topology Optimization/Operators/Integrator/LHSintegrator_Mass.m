@@ -27,7 +27,7 @@ classdef LHSintegrator_Mass < handle
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
+            % obj.setQuadratureOrder(cParams);
         end
 
         function setQuadratureOrder(obj, cParams)
@@ -39,8 +39,11 @@ classdef LHSintegrator_Mass < handle
         end
         
         function createQuadrature(obj)
+            orderTr = obj.trial.getOrderNum();
+            orderTe = obj.test.getOrderNum();
+            order = ['ORDER', num2str(orderTr + orderTe)];
             quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
+            quad.computeQuadrature(order);
             obj.quadrature = quad;
         end
 
