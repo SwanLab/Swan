@@ -5,9 +5,8 @@ classdef NonSelfAdjointComplianceFunctional < handle
     end
 
     properties (Access = private)
+        quadrature
         adjointProblem
-        fAdjDofs
-        fAdjValues
     end
 
     properties (Access = private)
@@ -20,6 +19,7 @@ classdef NonSelfAdjointComplianceFunctional < handle
     methods (Access = public)
         function obj = NonSelfAdjointComplianceFunctional(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
             obj.createAdjointProblem(cParams);
         end
 
@@ -29,7 +29,7 @@ classdef NonSelfAdjointComplianceFunctional < handle
             [C,dC]     = obj.computeTensorFunctionAndGradient(xR);
             uS         = obj.computeStateVariable(C);
             uA         = obj.computeAdjointVariable(C);
-            J          = obj.computeFunctionValue(uS);
+            J          = obj.computeFunctionValue(C,uS,uA);
             dJ         = obj.computeGradient(dC,uS,uA);
             dJ         = obj.filter.compute(dJ,'LINEAR');
             dJ.fValues = dJ.fValues/obj.value0;
@@ -37,12 +37,17 @@ classdef NonSelfAdjointComplianceFunctional < handle
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.filter       = cParams.filter;
             obj.material     = cParams.material;
             obj.stateProblem = cParams.stateProblem;
+        end
+
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('QUADRATIC');
+            obj.quadrature = quad;
         end
 
         function xR = filterDesignVariable(obj,x)
@@ -61,57 +66,44 @@ classdef NonSelfAdjointComplianceFunctional < handle
             u = obj.stateProblem.uFun;
         end
 
-        function J = computeFunctionValue(obj,uFun)
-            ndimf = uFun.ndimf;
-            u     = uFun.fValues;
-            nnode = size(u,1);
-            u     = reshape(u',[nnode*ndimf,1]);
-            f     = obj.computeDisplacementWeight();
-            J     = f'*u;
-            if isempty(obj.value0)
-                obj.value0 = J;
-            end
-            J = J/obj.value0;
-        end
-        
         function u = computeAdjointVariable(obj,C)
             obj.adjointProblem.updateMaterial(C);
             obj.adjointProblem.solve();
             u = obj.adjointProblem.uFun;
         end
 
+        function J = computeFunctionValue(obj,C,uS,uA)
+            stateStrain   = SymGrad(uS);
+            adjointStrain = SymGrad(uA);
+            stressA       = DDP(C,adjointStrain);
+            dCompliance   = DDP(stateStrain,stressA);
+            J             = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
+            if isempty(obj.value0)
+                obj.value0 = J;
+            end
+            J = J/obj.value0;
+        end
+
         function createAdjointProblem(obj,cParams)
-            file               = cParams.filename;
-            [fAdj, fAdj2]      = Preprocess.getBC_adjoint(file, obj.mesh);
-            a.fileName         = file;
-            s                  = FemDataContainer(a);
-            s.bc.pointload     = fAdj;
+            file                 = cParams.filename;
+            [fAdj, fAdj2]        = Preprocess.getBC_adjoint(file, obj.mesh);
+            a.fileName           = file;
+            s                    = FemDataContainer(a);
+            s.bc.pointload       = fAdj;
             s.newBC.pointloadFun = fAdj2;
             bcAdj = obj.getAdjointBoundaryConditions(fAdj2);
-            s.boundaryConditions.pointloadFun = bcAdj.pointloadFun;
+            s.boundaryConditions.pointloadFun   = bcAdj.pointloadFun;
             s.boundaryConditions.pointload_dofs = bcAdj.pointload_dofs;
             s.boundaryConditions.pointload_vals = bcAdj.pointload_vals;
             obj.adjointProblem = PhysicalProblem.create(s);
-            obj.fAdjDofs = bcAdj.pointload_dofs;
-            obj.fAdjValues = bcAdj.pointload_vals;
         end
         
         function bc = getAdjointBoundaryConditions(obj, fAdj2)
-            a.mesh = obj.mesh;
+            a.mesh         = obj.mesh;
             a.pointloadFun = fAdj2;
             a.dirichletFun = [];
-            a.periodicFun = [];
-            bc = BoundaryConditions(a);
-        end
-
-        function f = computeDisplacementWeight(obj)
-            nnode = obj.mesh.nnodes;
-            ndim  = obj.mesh.ndim;
-            ndof  = nnode*ndim;
-            f = zeros(ndof,1);
-            if ~isempty(obj.fAdjDofs)
-                f(obj.fAdjDofs) = obj.fAdjValues;
-            end
+            a.periodicFun  = [];
+            bc             = BoundaryConditions(a);
         end
     end
 
