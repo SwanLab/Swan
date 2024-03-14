@@ -49,14 +49,14 @@ classdef MultigridTesting4 < handle
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init();
             obj.createMultiLevelMesh();
-            mF = obj.multiLevelMesh.mesh;
+            mF           = obj.multiLevelMesh.mesh;
             coarseMeshes = obj.multiLevelMesh.coarseMeshes;
             interpolator = obj.multiLevelMesh.interpolator;
              
 
             s.mesh                = mF;
             s.coarseMeshes        = coarseMeshes;
-            s.interpolator        = interpolator;
+            s.interpolator        = interpolator;  
             s.bc                  = obj.createBoundaryConditions(mF);
             s.material            = obj.createMaterial(mF);
             s.dispFun             = P1Function.create(mF, obj.nDimf);
@@ -71,138 +71,99 @@ classdef MultigridTesting4 < handle
             s.nLevel              = 5;
             s.nDimf               = 2;
             solver                = Solver.create(s);
-            u                     = solver.solve();
-%             obj.fem{1} = FEM.create(s);
-            %             obj.computeKred(0)
-            %             obj.computeFred(0)
-
-     
-
-        end
-
-        function r = getdata(obj)
-            r = obj.data;
-        end
-
-        function r = getBC(obj)
-            r = obj.boundaryConditions;
-        end
-
-        function r = getMesh(obj)
-            r = obj.multiLevelMesh;
+            u                     = solver.solve();   
         end
     end
 
     methods (Access = private)
         
         function init(obj)
-            obj.nDimf = 2;
-            obj.nbasis = 20;
+            obj.nDimf        = 2;
+            obj.nbasis       = 20;
             obj.functionType = 'P1';
-            obj.nLevel = 5;
+            obj.nLevel       = 5;
         end
 
- 
-        
-
         function createMultiLevelMesh(obj)
-           s.nX = 2;
-           s.nY = 2;
-           s.nLevel = obj.nLevel;
-           m = MultilevelMesh(s);
+           s.nX               = 2;
+           s.nY               = 2;
+           s.nLevel           = obj.nLevel;
+           m                  = MultilevelMesh(s);
            obj.multiLevelMesh = m;
         end
         
         function bc = createBoundaryConditions(obj,mesh)
-            rawBc    = obj.createRawBoundaryConditions(mesh);
-            dim = obj.getFunDims(mesh);
+            rawBc       = obj.createRawBoundaryConditions(mesh);
+            dim         = obj.getFunDims(mesh);
             rawBc.ndimf = dim.ndimf;
             rawBc.ndofs = dim.ndofs;
-            s.mesh  = obj.fineMesh;
-            s.scale = 'MACRO';
-            s.bc    = {rawBc};
-            s.ndofs = dim.ndofs;
-            bc = BoundaryConditions(s);
+            s.mesh      = obj.fineMesh;
+            s.scale     = 'MACRO';
+            s.bc        = {rawBc};
+            s.ndofs     = dim.ndofs;
+            bc          = BoundaryConditions(s);
             bc.compute();
-            %obj.boundaryConditions{i+1} = bc;
         end
         
         function dim = getFunDims(obj,mesh)
-            s.fValues = mesh.coord;
-            s.mesh = mesh;
-            disp = P1Function(s);
-            d.ndimf  = disp.ndimf;
-            d.nnodes = size(disp.fValues, 1);
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = mesh.nnodeElem; % should come from interp..
+            s.fValues   = mesh.coord;
+            s.mesh      = mesh;
+            disp        = P1Function(s);
+            d.ndimf     = disp.ndimf;
+            d.nnodes    = size(disp.fValues, 1);
+            d.ndofs     = d.nnodes*d.ndimf;
+            d.nnodeElem = mesh.nnodeElem; 
             d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
+            dim         = d;
         end
         
         function bc = createRawBoundaryConditions(obj,mesh)
             dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
             rightSide  = max(mesh.coord(:,1));
             isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-            isInMiddleEdge = abs(mesh.coord(:,2)-1.5) < 0.1;
-            %forceNodes = isInRight & isInMiddleEdge;
             forceNodes = isInRight;
             nodes = 1:mesh.nnodes;
             bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
             nodesdir=size(nodes(dirichletNodes),2);
-            bcDir(1:nodesdir,end+1) = 1;
+            bcDir(1:nodesdir,end+1)   = 1;
             bcDir(nodesdir+1:end,end) = 2;
-            bcDir(:,end+1)=0;
-            bc.dirichlet = bcDir;
-            bc.pointload(:,1) = nodes(forceNodes);
-            bc.pointload(:,2) = 2;
-            bc.pointload(:,3) = -1/length(forceNodes);
+            bcDir(:,end+1)            = 0;
+            bc.dirichlet              = bcDir;
+            bc.pointload(:,1)         = nodes(forceNodes);
+            bc.pointload(:,2)         = 2;
+            bc.pointload(:,3)         = -1/length(forceNodes);
         end
         
         function mat = createMaterial(obj,mesh)
-            s.mesh = mesh;
-            s.type = 'ELASTIC';
+            s.mesh  = mesh;
+            s.type  = 'ELASTIC';
             s.scale = 'MACRO';
-            ngaus = 1;
-            Id = ones(mesh.nelem,ngaus);
+            ngaus   = 1;
+            Id      = ones(mesh.nelem,ngaus);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
             s.nelem = mesh.nelem;
             s.mesh  = mesh;
             s.kappa = .9107*Id;
             s.mu    = .3446*Id;
-            mat = Material.create(s);
+            mat     = Material.create(s);
             mat.compute(s);
-%             obj.material{i+1} = mat;
         end
-        
-%         function LHS = computeKred(obj,i)
-%             obj.dispFun{i+1} = P1Function.create(obj.mesh{i+1}, obj.nDimf);
-%             LHS    = obj.computeStiffnessMatrix(obj.mesh{i+1},obj.material{i+1},obj.dispFun{i+1});
-%             %obj.Kred{i+1} = obj.boundaryConditions{i+1}.fullToReducedMatrix(K);
-%         end
 
         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
             s.fun      = displacementFun;
-            % s.test      = displacementFun;
-            % s.trial      = displacementFun;
             s.material = material;
-            lhs = LHSintegrator.create(s);
-            LHS   = lhs.compute();
+            lhs        = LHSintegrator.create(s);
+            LHS        = lhs.compute();
         end 
-        
-%         function RHS = computeRHS(obj,i)
-%             RHS  = obj.createRHS(obj.mesh{i+1},obj.dispFun{i+1},obj.boundaryConditions{i+1});
-%             RHS = RHS.compute();
-%             %obj.Fred{i+1} = obj.boundaryConditions{i+1}.fullToReducedVector(Fext);
-%         end
         
         function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
             dim.ndimf  = dispFun.ndimf;
             dim.nnodes = size(dispFun.fValues, 1);
             dim.ndofs  = dim.nnodes*dim.ndimf;
-            dim.nnodeElem = mesh.nnodeElem; % should come from interp..
+            dim.nnodeElem = mesh.nnodeElem; 
             dim.ndofsElem = dim.nnodeElem*dim.ndimf;
             c.dim=dim;
             c.mesh=mesh;
@@ -210,37 +171,21 @@ classdef MultigridTesting4 < handle
             RHS    = RHSintegrator_ElasticMacro(c);
             RHS = RHS.compute();
         end
-
-        function fem = createFEM(obj)
-            s.mesh     = obj.meshDomain;
-            s.bc       = obj.boundaryConditions;
-            s.material = obj.material;
-            s.type     = 'ELASTIC';
-            s.scale    = 'MACRO';
-            s.dim      = '2D';
-            s.solverTyp = 'ITERATIVE';
-            s.iterativeSolverTyp = 'PCG';
-            s.preconditionerType = 'EIFEM';
-            s.tol = 1e-6;
-
-            fem        = FEM.create(s);
-%             fem.solve();
-        end
         
-        function createData(obj)
-            
-            for i = 1:obj.nMesh
-                obj.data(i).p = obj.multiLevelMesh{i}.coord;
-                obj.data(i).t = obj.multiLevelMesh{i}.connec;
-                if i < obj.nMesh
-                    obj.data(i).T = obj.I{i};
-                    obj.data(i).R = obj.I{i}';
-                end
-                obj.data(i).A = obj.Kred{i};
-                obj.data(i).b = obj.Fred{i};
-            end
-            
-        end
+%         function createData(obj)
+%             
+%             for i = 1:obj.nMesh
+%                 obj.data(i).p = obj.multiLevelMesh{i}.coord;
+%                 obj.data(i).t = obj.multiLevelMesh{i}.connec;
+%                 if i < obj.nMesh
+%                     obj.data(i).T = obj.I{i};
+%                     obj.data(i).R = obj.I{i}';
+%                 end
+%                 obj.data(i).A = obj.Kred{i};
+%                 obj.data(i).b = obj.Fred{i};
+%             end
+%             
+%         end
 
     end
 

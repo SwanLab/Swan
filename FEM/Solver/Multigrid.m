@@ -28,11 +28,11 @@ classdef Multigrid < handle
 
         function obj = Multigrid(cParams)
             obj.init(cParams)
-            s.type                = 'ELASTIC';
-            s.scale               = 'MACRO';
-            s.dim                 = '2D';
-            s.solverTyp           = 'ITERATIVE';
-            s.iterativeSolverType = 'CG';
+%             s.type                = 'ELASTIC';
+%             s.scale               = 'MACRO';
+%             s.dim                 = '2D';
+%             s.solverTyp           = 'ITERATIVE';
+%             s.iterativeSolverType = 'CG';
             
             obj.createFEMlevel();
 
