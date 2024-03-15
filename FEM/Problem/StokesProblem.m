@@ -19,8 +19,6 @@ classdef StokesProblem < handle
         LHS, massMatrix
         RHS
 
-        LHSmatrices
-        RHSvectors
         dirichlet
     end
 
@@ -171,7 +169,6 @@ classdef StokesProblem < handle
             LHS = LHS_int.compute();
             obj.LHS = LHS;
             obj.massMatrix = LHS_int.M;
-            obj.LHSmatrices = LHS_int.getMatrices();
         end
         
         function RHS = computeRHS(obj)
@@ -187,8 +184,6 @@ classdef StokesProblem < handle
 %             RHS = F + R;
 %             obj.RHS = RHS;
             obj.RHS = F;
-
-            obj.RHSvectors = RHSint.getVectors();
         end
         
         function variable = separateVariables(obj,x)

@@ -16,12 +16,6 @@ classdef RHSintegrator_Stokes < RHSintegrator
             rhs = obj.computeRHS();
         end
 
-        function rhs = getVectors(obj)
-            Fext = obj.computeVolumetricFext();
-            g = obj.computeVelocityDivergence();
-            rhs = {Fext; g};
-        end
-
     end
 
     methods (Access = private)

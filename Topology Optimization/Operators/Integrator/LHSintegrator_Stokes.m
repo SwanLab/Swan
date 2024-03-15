@@ -10,7 +10,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         velocityFun
         pressureFun
         material
-        D
     end
 
     methods (Access = public)
@@ -24,13 +23,6 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             D      = obj.computeWeakDivergenceMatrix();
             prsLHS = obj.computePressureLHS();
             LHS = [velLHS, D; D',prsLHS];
-        end
-
-        function LHS = getMatrices(obj)
-            velLHS = obj.computeVelocityLHS();
-            D      = obj.computeWeakDivergenceMatrix();
-            prsLHS = obj.computePressureLHS();
-            LHS = {velLHS, D; D', prsLHS};
         end
 
     end
