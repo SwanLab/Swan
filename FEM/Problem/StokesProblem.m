@@ -28,8 +28,8 @@ classdef StokesProblem < handle
 
         function obj = StokesProblem(cParams)
             obj.init(cParams);
-            obj.createVelocity();
-            obj.createPressure();
+            obj.createFields();
+            obj.applyBoundaryConditions();
 %             obj.createBoundaryConditions();
             obj.createSolver();
             obj.computeLHS();
@@ -41,8 +41,8 @@ classdef StokesProblem < handle
 
             fields = [obj.velocityFun; obj.pressureFun];
 
-            LHSr = BCApplier.reduce(obj.LHS, fields, obj.dirichlet);
-            RHSr = BCApplier.reduce(obj.RHS, fields, obj.dirichlet);
+            LHSr = BCApplier.reduce(obj.LHS, fields);
+            RHSr = BCApplier.reduce(obj.RHS, fields);
             total_free_dof = size(LHSr,1);
             switch obj.state
                 case 'Steady'
@@ -110,12 +110,14 @@ classdef StokesProblem < handle
             obj.dirichlet = cParams.bc.dirichletFun;
         end
 
-        function createVelocity(obj)
+        function createFields(obj)
             obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            obj.pressureFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
-        function createPressure(obj)
-            obj.pressureFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
+        function applyBoundaryConditions(obj)
+            obj.velocityFun.applyDirichlet(obj.dirichlet(1));
+            obj.pressureFun.applyDirichlet(obj.dirichlet(2));
         end
 
         function createBoundaryConditions(obj)
@@ -198,7 +200,7 @@ classdef StokesProblem < handle
         function RHS = updateRHS(obj, RHS0, x0)
             RHS = zeros(size(RHS0));
             M = obj.massMatrix;
-            Mred = BCApplier.reduce(M, obj.velocityFun, obj.dirichlet(1));
+            Mred = BCApplier.reduce(M, obj.velocityFun);
             lenFreeV = size(Mred,1);
             x_n = x0(1:lenFreeV);
             Mred_x_n = Mred*x_n;

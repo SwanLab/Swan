@@ -23,23 +23,23 @@ classdef BCApplier < handle
 
     methods (Static, Access = public)
 
-        function Ared = reduce(A, fields, bcs)
+        function Ared = reduce(A, fields)
             nFields = numel(fields);
-            nFree = zeros(size(fields));
-            nDofs = [fields.nDofs];
-            freeDofsGlob = cell(size(fields,1),1);
-            lastDof = 0;
+            nFree   = length([fields.freeDofs]);
+            dofs = zeros(nFree,1);
+            glob_add = 0;
+            first = 1;
+            last = 0;
             % Find free dofs, nfree
             for iF = 1:nFields
                 field = fields(iF);
-                dofs   = 1:field.nDofs;
-                dirich = field.getDofsFromCondition(bcs(iF).domain);
-                free   = setdiff(dofs,dirich);
-                nFree(iF) = length(free);
-                freeDofsGlob{iF,1} = free + lastDof;
-                lastDof = lastDof + field.nDofs;
+                free  = field.freeDofs;
+                free_glob = free + glob_add;
+                last = last + length(field.freeDofs);
+                dofs(first:last, 1) = free_glob;
+                glob_add = field.nDofs;
+                first = last + 1;
             end
-            dofs = [freeDofsGlob{:}];
 
             isTensor = size(A,2) ~= 1;
             if isTensor
