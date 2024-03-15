@@ -125,8 +125,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj.mesh, 'ORDER2');
             obj.quadrature = quad;
         end
 
@@ -266,19 +265,6 @@ classdef ElasticProblemMicro < handle
                         stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
                     end
                 end
-    
-                obj.Chomog(:,iVoigt) = stressHomog;
-    
-%                 a.mesh       = obj.mesh;
-%                 a.fValues    = permute(stress, [2 1 3]);
-%                 a.quadrature = obj.quadrature;
-%                 obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
-%     
-%                 a.mesh       = obj.mesh;
-%                 a.fValues    = permute(strain, [2 1 3]);
-%                 a.quadrature = obj.quadrature;
-%                 obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
-    
     
                 vars.stress_fluct = stressFluct;
                 vars.strain_fluct = strainFluct;

@@ -42,8 +42,7 @@ classdef LHSintegrator_Mass < handle
             orderTr = obj.trial.getOrderNum();
             orderTe = obj.test.getOrderNum();
             order = ['ORDER', num2str(orderTr + orderTe)];
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(order);
+            quad = Quadrature.create(obj.mesh,order);
             obj.quadrature = quad;
         end
 
