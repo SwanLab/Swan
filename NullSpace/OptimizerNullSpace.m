@@ -26,6 +26,7 @@ classdef OptimizerNullSpace < Optimizer
         aG
         eta
         Vtar
+        currentTolCase
     end
 
     methods (Access = public) 
@@ -69,6 +70,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged   = false;
             obj.nIter          = 0;
             obj.Vtar           = cParams.volumeTarget;
+            obj.currentTolCase = 'Standard';
             obj.createMonitoring(cParams);
         end
 
@@ -202,7 +204,6 @@ classdef OptimizerNullSpace < Optimizer
             obj.dualUpdater.update(d);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeMeritGradient();
-
             while ~obj.acceptableStep
                 x = obj.updatePrimal();
                 s.x  = x;
@@ -243,6 +244,7 @@ classdef OptimizerNullSpace < Optimizer
             x    = s.x;
             x0   = s.x0;
             g0   = s.g0;
+            
             mNew = obj.computeMeritFunction(x);
             g    = obj.constraint.value;
             v0   = obj.computeVolume(g0);
@@ -251,6 +253,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
+                obj.currentTolCase = 'Standard';
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
@@ -261,10 +264,12 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
-                if obj.lineSearchTrials == 2 && obj.notRestarted % Recomputing the merit old for CG
-                    obj.mOld         = obj.computeMeritFunction(x0);
-                    obj.notRestarted = false;
+                if obj.notRestarted && obj.lineSearch > 1% Recomputing the merit old for CG
+                    obj.currentTolCase = 'Restarting';
+                    obj.mOld           = obj.computeMeritFunction(x0);
+                    obj.notRestarted   = false;
                 end
+                obj.currentTolCase = 'Decreasing';
             end
         end
 
@@ -276,12 +281,31 @@ classdef OptimizerNullSpace < Optimizer
         function mF = computeMeritFunction(obj,xVal)
             x = obj.designVariable;
             x.update(xVal);
+            obj.setSolverTol();
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
             l  = obj.dualVariable.value;
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;
+        end
+
+        function setSolverTol(obj)
+            switch obj.currentTolCase
+                case 'Standard'
+                    obj.setStandardSolverTolerance();
+                case 'Decreasing'
+                    obj.solverTol.compute('Decreasing');
+                case 'Restarting'
+                    obj.solverTol.compute('Restarting');
+            end
+        end
+
+        function setStandardSolverTolerance(obj)
+            iNorm  = obj.designVariable.computeNonScaledL2normIncrement;
+            t      = obj.primalUpdater.tau;
+            mGNorm = t*norm(obj.meritGradient)/numel(obj.meritGradient)*100;
+            obj.solverTol.compute('Standard',mGNorm,iNorm);
         end
 
         function obj = updateOldValues(obj,xV)

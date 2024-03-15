@@ -36,6 +36,11 @@ classdef DesignVariable < handle
            nX0    = Norm.computeL2(obj.mesh,obj.funOld);
            norm   = nIncX/nX0;
         end
+
+        function norm = computeNonScaledL2normIncrement(obj)
+           incFun = obj.fun-obj.funOld;
+           norm   = sqrt(Norm.computeL2(obj.mesh,incFun));
+        end
         
     end
     

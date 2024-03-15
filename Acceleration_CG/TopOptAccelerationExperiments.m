@@ -6,6 +6,7 @@ classdef TopOptAccelerationExperiments < handle
         designVariable
         materialInterpolator
         physicalProblem
+        solverTol
         compliance
         volume
         cost
@@ -23,6 +24,7 @@ classdef TopOptAccelerationExperiments < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createVolumeConstraint();
+            obj.createSolverTolerance();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -42,8 +44,8 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,200);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,2,400);
+            x2      = linspace(0,1,200);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -105,6 +107,13 @@ classdef TopOptAccelerationExperiments < handle
             m = Material.create(s);
         end
 
+        function createSolverTolerance(obj)
+            s.solver    = 'CONJUGATE GRADIENT';
+            s.optimizer = 'Null Space';
+            s.nDofs     = obj.designVariable.fun.nDofs;
+            obj.solverTol     = ConjugateGradientToleranceCalculator(s);
+        end
+
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
@@ -114,9 +123,8 @@ classdef TopOptAccelerationExperiments < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverVars.designVariable = obj.designVariable;
-            s.solverVars.volume         = obj.volume;
-            s.solverVars.optimizer      = 'MMA';
+            s.solverCase = 'CONJUGATE GRADIENT';
+            s.solverTol  = obj.solverTol;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -185,9 +193,10 @@ classdef TopOptAccelerationExperiments < handle
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
-            % s.primal         = 'PROJECTED GRADIENT';
-            % opt = OptimizerNullSpace(s);
-            opt = OptimizerMMA(s);
+            s.primal         = 'PROJECTED GRADIENT';
+            s.solverTol      = obj.solverTol;
+            opt = OptimizerNullSpace(s);
+            % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

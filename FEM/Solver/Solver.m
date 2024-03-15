@@ -13,7 +13,7 @@ classdef Solver < handle
                     stype = Cholesky_Direct_Solver();
 
                 case {'CONJUGATE GRADIENT'}
-                    stype = Conjugate_Gradient(cParams);
+                    stype = ConjugateGradient(cParams);
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
