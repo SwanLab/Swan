@@ -5,12 +5,12 @@ classdef Quadrature_Quadrilateral < Quadrature
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
-                case {'CONSTANT','LINEAR'}
+                case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
                     obj.posgp(:,1) = [0,0];
                     obj.weigp = 4;
                     
-                case {'QUADRATIC','CUBIC','QUADRATICMASS'}
+                case {'ORDER2','ORDER3','QUADRATICMASS'}
                     obj.ngaus = 4;
                     a =  0.577350269189626;
                     obj.posgp(:,1) = [-a,-a];

@@ -4,12 +4,12 @@ classdef Quadrature_Line < Quadrature
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
-                case {'CONSTANT','LINEAR'}
+                case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
                     obj.weigp = 2;
                     obj.posgp = [0];
 
-                case {'QUADRATIC','CUBIC'}
+                case {'ORDER2','ORDER3'}
                     obj.ngaus = 2;
                     obj.weigp = [1,1];
                     obj.posgp = [-1/sqrt(3),1/sqrt(3)];

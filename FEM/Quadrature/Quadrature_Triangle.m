@@ -4,12 +4,12 @@ classdef Quadrature_Triangle < Quadrature
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
-                case {'CONSTANT','LINEAR'}
+                case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
                     obj.weigp = 1/2;
                     obj.posgp = [1/3;1/3];
                     
-                case {'QUADRATIC','CUBIC','QUADRATICMASS'}
+                case {'ORDER2','ORDER3','QUADRATICMASS'}
                     obj.ngaus = 4;
                     obj.weigp = [9.09793091280113e-02, 1.59020690871988e-01, 9.09793091280113e-02, 1.59020690871988e-01];
                     obj.posgp(1,:) = [7.50311102226081e-02, 1.78558728263616e-01, 2.80019915499074e-01, 6.66390246014701e-01];

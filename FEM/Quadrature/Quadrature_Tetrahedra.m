@@ -3,12 +3,12 @@ classdef Quadrature_Tetrahedra < Quadrature
         function computeQuadrature(obj,order)
             computeQuadrature@Quadrature(obj,order);
             switch order
-                case {'CONSTANT','LINEAR'}
+                case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
                     obj.weigp = 1/6;
                     obj.posgp = [1/4;1/4;1/4];
                     
-                case {'QUADRATIC','CUBIC'}
+                case {'ORDER2','ORDER3'}
                     obj.ngaus = 8;
                     obj.weigp = [9.16942992147974e-03, 1.60270405984766e-02, 2.11570064545241e-02, 3.69798563588529e-02, 9.16942992147974e-03, 1.60270405984766e-02, 2.11570064545241e-02, 3.69798563588529e-02];
                     obj.posgp(1,:) = [5.44151844011225e-01, 5.44151844011225e-01, 1.22514822655441e-01, 1.22514822655441e-01, 5.44151844011225e-01, 5.44151844011225e-01, 1.22514822655441e-01, 1.22514822655441e-01];
