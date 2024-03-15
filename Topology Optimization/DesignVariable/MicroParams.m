@@ -1,24 +1,19 @@
 classdef MicroParams < DesignVariable
     
-    properties (Access = private)
-        m1
-        m2
-    end
-    
     methods (Access = public)
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
-            %obj.m1 = cParams.fun{1};
-            %obj.m2 = cParams.fun{2};
             obj.init(cParams);
         end
         
         function update(obj,x)
             x  = obj.splitDesignVariable(x);
             x  = obj.addFixedValues(x);
-            x = obj.assambleDesignVariable(x);
-            obj.value = x;
+            for ivar = 1:obj.nVariables                
+               obj.fun{ivar}         = obj.fun{ivar}.copy();
+               obj.fun{ivar}.fValues = x{ivar};
+            end
         end
         
         function xf = getVariablesToPlot(obj)
@@ -26,7 +21,7 @@ classdef MicroParams < DesignVariable
             xf{3} = obj.computeDensity();
         end
         
-        function v = computeVolumeFraction(obj)
+        function v = obtainDomainFunction(obj)
             v = obj.computeDensity();
         end
         
@@ -51,7 +46,7 @@ classdef MicroParams < DesignVariable
         end
         
         function rho = computeDensity(obj)
-            xf = obj.splitDesignVariable(obj.value);
+            xf = obj.fun;
             obj.homogenizedVariablesComputer.computeDensity(xf);
             rho = obj.homogenizedVariablesComputer.rho;
         end        
@@ -76,18 +71,6 @@ classdef MicroParams < DesignVariable
             end
         end
         
-        function x = assambleDesignVariable(obj,xS)
-            nVar = obj.nVariables;
-            nx = length(xS{1});
-            x = zeros(nVar*nx,1);
-            for ivar = 1:nVar
-                i0 = nx*(ivar-1) + 1;
-                iF = nx*ivar;
-                xs = xS{ivar};
-                x(i0:iF) = xs;
-            end
-        end
-    
         function xVn = addFixedValues(obj,xV)
           xVn = cell(size(xV));
             if ~isempty(obj.isFixed)

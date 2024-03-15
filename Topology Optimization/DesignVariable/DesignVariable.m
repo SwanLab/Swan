@@ -25,9 +25,33 @@ classdef DesignVariable < handle
     end
 
     methods (Access = public)
+
+        function x = getValue(obj)
+            nVar = obj.nVariables;
+            nx = length(obj.fun{1});
+            x = zeros(nVar*nx,1);
+            for ivar = 1:nVar
+                i0 = nx*(ivar-1) + 1;
+                iF = nx*ivar;
+                xs = obj.fun{ivar};
+                x(i0:iF) = xs;
+            end
+        end
+
+        function ndofs = getDofs(obj)
+            nVar = obj.nVariables;    
+            ndofs = 0;
+            for ivar = 1:nVar
+                xs = obj.fun{ivar};
+                ndofs = ndofs + xs.nDofs;
+            end
+        end
         
         function updateOld(obj)
-            obj.funOld = obj.fun.copy();
+            nVar = obj.nVariables;                
+            for ivar = 1:nVar
+                obj.funOld{ivar} = obj.fun{ivar}.copy();
+            end                        
         end
         
         function norm = computeL2normIncrement(obj)
@@ -49,7 +73,7 @@ classdef DesignVariable < handle
               obj.isFixed = cParams.isFixed;
             end
         end
-        
+
     end
 
 end

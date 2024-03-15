@@ -55,6 +55,11 @@ classdef ComplianceFunctionalFromVademecum < handle
             x    = x/refX;
         end
 
-
     end
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Compliance';
+        end
+    end    
 end
