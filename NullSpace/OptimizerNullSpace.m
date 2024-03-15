@@ -35,10 +35,10 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
-                obj.updateIterInfo();
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.updateIterInfo();
             end
         end
 
@@ -107,13 +107,7 @@ classdef OptimizerNullSpace < Optimizer
             vgJ     = obj.gJFlowRatio;
             DxJ     = obj.computeNullSpaceFlow();
             Dxg     = obj.computeRangeSpaceFlow();
-            x       = obj.designVariable.fun;
-            if isprop(x,'mesh')
-                h = obj.designVariable.fun.mesh.computeMinCellSize(); % academic tests do not have h !!
-            else
-                h = 1;
-            end
-            obj.eta = vgJ*min(DxJ/Dxg,2*DxJ/(h*tau));
+            obj.eta = vgJ*min(DxJ/Dxg,inf); % 2*DxJ/(h*tau))
         end
 
         function DxJ = computeNullSpaceFlow(obj)
@@ -243,6 +237,7 @@ classdef OptimizerNullSpace < Optimizer
         function updateIterInfo(obj)
             obj.increaseIter();
             obj.updateStatus();
+            obj.designVariable.updateOld();
         end
 
         function increaseIter(obj)

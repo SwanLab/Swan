@@ -31,6 +31,7 @@ cParams.cost         = cost;
 cParams.constraint   = constraint;
 cParams.initialGuess = x0;
 cParams.settings     = s;
+cParams.printingPath = true;
 problem              = AcademicProblem(cParams);
 
 problem.compute();
@@ -58,7 +59,7 @@ x0               = [1;0];
 s.type           = "NullSpace";
 s.ub             = inf;
 s.lb             = -inf;
-s.maxIter        = 400;
+s.maxIter        = 50;
 s.constraintCase = {'EQUALITY'};
 s.etaNorm        = 0.02;
 s.gJFlowRatio    = 4;
@@ -67,6 +68,7 @@ cParams.cost         = cost;
 cParams.constraint   = constraint;
 cParams.initialGuess = x0;
 cParams.settings     = s;
+cParams.printingPath = true;
 problem              = AcademicProblem(cParams);
 
 problem.compute();
@@ -105,6 +107,7 @@ cParams.cost         = cost;
 cParams.constraint   = constraint;
 cParams.initialGuess = x0;
 cParams.settings     = s;
+cParams.printingPath = true;
 problem              = AcademicProblem(cParams);
 
 problem.compute();
@@ -140,6 +143,7 @@ cParams.cost         = cost;
 cParams.constraint   = constraint;
 cParams.initialGuess = x0;
 cParams.settings     = s;
+cParams.printingPath = true;
 problem              = AcademicProblem(cParams);
 
 problem.compute();
@@ -175,6 +179,7 @@ cParams.cost         = cost;
 cParams.constraint   = constraint;
 cParams.initialGuess = x0;
 cParams.settings     = s;
+cParams.printingPath = true;
 problem              = AcademicProblem(cParams);
 
 problem.compute();
