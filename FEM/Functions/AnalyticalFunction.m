@@ -2,7 +2,7 @@ classdef AnalyticalFunction < L2Function
     
     properties (Access = public)
         ndimf
-        order = 0
+        order = 2
     end
     
     properties (Access = private)
@@ -36,7 +36,7 @@ classdef AnalyticalFunction < L2Function
         end
         
         function ord = getOrderNum(obj)
-            ord = 0;
+            ord = 2;
         end
 
     end
