@@ -35,7 +35,6 @@ classdef LagrangianFunction < FeFunction
                     fxV(:,:,iGaus,:) = squeezeParticular(fxV(:,:,iGaus,:),3) + f;
                 end
             end
-
         end
 
         function fxV = sampleFunction(obj,xP,cells)

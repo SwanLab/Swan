@@ -37,7 +37,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
         end
 
         function C = evaluate(obj,xV)
-            [mu,l] = obj.computeMatParams(xV);
+            [mu,l] = obj.computeMatTensorParams(xV);
             nPoints = size(mu,3);                        
             nElem = size(mu,4);
             nStre = 3;
@@ -49,9 +49,36 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             C(3,3,:,:)= mu;
         end
 
-        function k = getBulkFun(phi,u,type)
-            [~, k] = obj.computeShearAndBulk(xV);
+        function kFun = getBulkFun(obj,phi,type)
+            obj.setMaterial(phi,type);
+            g = obj.computeDegradationFun();
+
+            E = obj.young.fValues;
+            nu = obj.poisson.fValues;
+            kV = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+
+            s.mesh = obj.mesh;
+            s.order = obj.young.order;
+            s.fValues = kV;
+            k = LagrangianFunction(s);
+
+            kFun = times(g,k);
+        end
+
+        function muFun = getShearFun(obj,phi,type)
+            obj.setMaterial(phi,type);
+            g = obj.computeDegradationFun();
+
+            E = obj.young.fValues;
+            nu = obj.poisson.fValues;
+            muV = obj.computeMuFromYoungAndPoisson(E,nu);
             
+            s.mesh = obj.mesh;
+            s.order = 'P1';
+            s.fValues = muV;
+            mu = LagrangianFunction(s);
+
+            muFun = g.*mu;
         end
 
     end
@@ -69,24 +96,22 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = private)
 
-        function [mu,l] = computeMatParams(obj,xV)
-            gV = obj.evaluateDegradationFun(xV);
-            [mu, l] = obj.computeMuAndLambda(gV,xV);
-        end
-
-        function gV = evaluateDegradationFun(obj,xV)
-            s.mesh = obj.mesh;
-            s.handleFunction = obj.fun;
-            s.l2function = obj.phi;
-            g = CompositionFunction(s);
-            gV = g.evaluate(xV);
-        end
-
-        function [mu, l] = computeMuAndLambda(obj,gV,xV)
-            [muV,kV] = obj.computeShearAndBulk(xV);
-            mu = gV.*muV;
-            k = gV.*kV;
+        function [mu,l] = computeMatTensorParams(obj,xV)
+            g = obj.computeDegradationFun();
+            [mu, k] = obj.computeMuAndKappa(g,xV);
             l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
+        end
+
+        function g = computeDegradationFun(obj)
+            s.operation = @(xV) obj.fun(obj.phi.evaluate(xV));
+            s.ndimf = obj.phi.ndimf;
+            g = DomainFunction(s);
+        end
+
+        function [mu, k] = computeMuAndKappa(obj,g,xV)
+            [muV,kV] = obj.computeShearAndBulk(xV);
+            mu = g.evaluate(xV).*muV;
+            k = g.evaluate(xV).*kV;
         end
     end
 

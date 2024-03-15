@@ -7,10 +7,9 @@ end
 if ismatrix(A)
     t = full(sum(diag(A)));
 else
-    sum = 0;
+    t = 0;
     for i=1:size(A,1)
         diagElem = A(i,i,:,:);
-        sum = sum + diagElem;
+        t = t + diagElem;
     end
-    t = sum;
 end

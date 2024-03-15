@@ -154,7 +154,7 @@ classdef PhaseFieldComputer < handle
             s.constant = obj.constant;
             s.l0 = obj.l0;
 
-            obj.functional.energy         = ShFunc_InternalEnergy(s);
+            obj.functional.energy         = ShFunc_InternalEnergySplit(s);
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);
@@ -174,13 +174,13 @@ classdef PhaseFieldComputer < handle
 
         function RHS = computeElasticResidual(obj,u,phi)
             fExt = obj.BC.pointloadFun;
-            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'LINEAR');
+            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'QUADRATIC');
             Fext = obj.functional.extWork.computeGradient(u,fExt,'LINEAR');
             RHS = Fint + Fext;
         end
 
         function LHS = computeElasticLHS(obj,u,phi)
-            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'LINEAR');
+            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'QUADRATIC');
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn)

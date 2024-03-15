@@ -34,8 +34,10 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
         
        function createBoundaryConditions(obj,prescribedVal)
           % obj.createBendingConditions(prescribedVal)
-          % obj.createForceTractionConditions(prescribedVal)
-           obj.createDisplacementTractionConditions(prescribedVal)
+           obj.createForceTractionConditions(prescribedVal)
+          % obj.createDisplacementTractionConditions(prescribedVal) 
+          % NOT
+          % FULLY DIRICHLET
           % obj.createLshapeDisplacementConditions(prescribedVal)
           % obj.createFiberMatrixDisplacementConditions(prescribedVal);
         end
@@ -87,12 +89,12 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              sDir.direction = [1,2];
              sDir.value     = 0;
              Dir1 = DirichletCondition(obj.mesh,sDir);
-
+             % 
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
-             sDir.domain    = @(coor) isInUp(coor);
-             sDir.direction = [1];
-             sDir.value     = 0;
-             Dir2 = DirichletCondition(obj.mesh,sDir);
+             % sDir.domain    = @(coor) isInUp(coor);
+             % sDir.direction = [1];
+             % sDir.value     = 0;
+             % Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [2];
@@ -100,7 +102,7 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
              s.mesh = obj.mesh;
-             s.dirichletFun = [Dir1 Dir2 Dir3];
+             s.dirichletFun = [Dir1 Dir3];
              s.pointloadFun = [];
              s.periodicFun = [];
              obj.boundaryConditions = BoundaryConditions(s);
