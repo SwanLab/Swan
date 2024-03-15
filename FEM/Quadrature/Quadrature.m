@@ -1,13 +1,10 @@
 classdef Quadrature < handle
+
     properties (GetAccess = public, SetAccess = protected)
         posgp
         weigp
         ngaus
         order
-    end
-    
-    methods (Access = public)
-        
     end
     
     methods (Static, Access = public)
@@ -33,10 +30,6 @@ classdef Quadrature < handle
 
     methods (Abstract, Access = protected)
         computeQuadrature(obj,order)
-    end
-
-    methods (Access = private)
-
     end
 
 end

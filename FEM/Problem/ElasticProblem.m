@@ -28,7 +28,6 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
@@ -76,12 +75,6 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
         end
 
         function createDisplacementFun(obj)
@@ -156,14 +149,16 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            xV = quad.posgp;
             obj.strainFun = SymGrad(obj.displacementFun);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress = obj.stressFun.evaluate(xV);

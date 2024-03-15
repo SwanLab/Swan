@@ -42,9 +42,9 @@ classdef LHSintegrator < handle
         end
         
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quadOrder = obj.fun.orderTextual();
-            quad.computeQuadrature(quadOrder);
+            quadOrderN = obj.fun.getOrderNum*2;
+            quadOrder  = ['ORDER', num2str(quadOrderN)];
+            quad = Quadrature.create(obj.mesh, quadOrder);
             obj.quadrature = quad;
         end
 
