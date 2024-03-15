@@ -63,8 +63,13 @@ classdef ShapeFunctional_Factory < handle
                     end
                 case 'enforceCh_CCstar_L2'
                     sF = ShFunc_Chomog_EnforceCh_CCstar_L2(cParams);
-                case 'nonadjoint_compliance'
-                    sF = ShFunc_NonSelfAdjoint_Compliance(cParams);
+                case 'nonadjointCompliance'
+                    s.mesh         = cParams.mesh;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.filename     = cParams.filename;
+                    sF             = NonSelfAdjointComplianceFunctional(s);
                 case 'volume'
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
