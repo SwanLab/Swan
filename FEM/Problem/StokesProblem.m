@@ -68,7 +68,7 @@ classdef StokesProblem < handle
                     end
                     x = x_n;
             end
-            fullx = BCApplier.expand(x, fields, obj.dirichlet);
+            fullx = BCApplier.expand(x, fields);
             vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);

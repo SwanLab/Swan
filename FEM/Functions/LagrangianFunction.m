@@ -4,13 +4,13 @@ classdef LagrangianFunction < FeFunction
         nDofs
         nDofsElem
         freeDofs
+        dirichletDofs, dirichletVals
     end
 
     properties (Access = private)
         interpolation
         coord
         connec
-        dirichletDofs, dirichletVals
     end
 
     methods (Access = public)
@@ -114,6 +114,7 @@ classdef LagrangianFunction < FeFunction
             frDofs  = setdiff(dofs,dirDofs);
             obj.freeDofs      = frDofs;
             obj.dirichletDofs = dirDofs;
+            obj.dirichletVals = dirich.val;
         end
 
         function plot(obj) % 2D domains only

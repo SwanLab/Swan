@@ -50,24 +50,22 @@ classdef BCApplier < handle
 
         end
 
-        function Afull = expand(Ared, fields, bcs)
+        function Afull = expand(Ared, fields)
             first_reddof  = 1;
             first_fulldof = 1;
             nsteps = size(Ared,2);
             ndofs = sum([fields.nDofs]);
-            Afull = sparse(ndofs,nsteps);
+            Afull = zeros(ndofs,nsteps);
             for iField = 1:size(fields,1)
                 field  = fields(iField);
-                bc = bcs(iField);
-                dofs  = 1:field.nDofs;
-                dirich = field.getDofsFromCondition(bc.domain);
-                free   = setdiff(dofs, dirich);
+                dirich = field.dirichletDofs;
+                free   = field.freeDofs;
                 
                 Af = zeros(field.nDofs,nsteps);
                 last_reddof  = first_reddof + length(free) - 1;
                 last_fulldof = first_fulldof + field.nDofs - 1;
                 Af(free,:) = Ared(first_reddof:last_reddof,:);
-                Af(dirich,:) = bc.val;
+                Af(dirich,:) = field.dirichletVals;
                 Afull(first_fulldof:last_fulldof,:) = Af;
                 first_reddof  = first_reddof  + last_reddof;
                 first_fulldof = first_fulldof + field.nDofs;
