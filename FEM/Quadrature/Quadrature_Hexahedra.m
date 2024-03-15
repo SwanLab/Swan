@@ -1,8 +1,9 @@
 classdef Quadrature_Hexahedra < Quadrature
     
-    methods
+    methods (Access = protected)
+
         function computeQuadrature(obj,order)
-            computeQuadrature@Quadrature(obj,order);
+            obj.order = order;
             switch order
                 case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
@@ -217,5 +218,7 @@ classdef Quadrature_Hexahedra < Quadrature
                     error('Invalid interpolation order for element Hexahedra.');
             end
         end
+        
     end
+
 end

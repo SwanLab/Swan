@@ -1,9 +1,9 @@
 classdef Quadrature_Quadrilateral < Quadrature
 
-    methods (Access = public)
+    methods (Access = protected)
         
         function computeQuadrature(obj,order)
-            computeQuadrature@Quadrature(obj,order);
+            obj.order = order;
             switch order
                 case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;

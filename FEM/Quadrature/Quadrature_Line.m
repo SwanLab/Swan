@@ -1,8 +1,9 @@
 classdef Quadrature_Line < Quadrature
 
-    methods
+    methods (Access = protected)
+
         function computeQuadrature(obj,order)
-            computeQuadrature@Quadrature(obj,order);
+            obj.order = order;
             switch order
                 case {'ORDER0','ORDER1'}
                     obj.ngaus = 1;
