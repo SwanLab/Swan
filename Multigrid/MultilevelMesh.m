@@ -7,10 +7,6 @@ classdef MultilevelMesh < handle
     end
     
     properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
         nX
         nY
         nLevel
@@ -51,10 +47,9 @@ classdef MultilevelMesh < handle
             meshCoarse = mesh;
             meshCoord  = I * meshCoarse.coord;
             meshConnec = delaunayn(meshCoord);
-            s.coord  = meshCoord;
-            s.connec = meshConnec;
-            %             obj.mesh{i+1} = Mesh(s);
-            meshFine = Mesh(s);
+            s.coord    = meshCoord;
+            s.connec   = meshConnec;
+            meshFine   = Mesh(s);
        end        
         
        function I = createInterpolator(obj,mesh)

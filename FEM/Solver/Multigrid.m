@@ -35,6 +35,7 @@ classdef Multigrid < handle
 %             s.iterativeSolverType = 'CG';
             
             obj.createFEMlevel();
+            obj.createSolver();
 
 
             obj.createData();
@@ -81,6 +82,19 @@ classdef Multigrid < handle
             FEM            = createFem(s);
             obj.coarseLHS  = FEM.LHS;
             obj.coarseRHS  = FEM.RHS;
+        end
+        
+        function createSolver(obj)
+            s.solverType          = 'ITERATIVE';
+            s.iterativeSolverType = 'CG';
+            s.tol                 = obj.tol;
+            s.nLevel              = obj.nLevel;
+            s.LHS                 = obj.LHS;
+            s.RHS                 = obj.RHS;
+            s.coarseLHS           = obj.coarseLHS;
+            s.coarseRHS           = obj.coarseRHS;
+            createCGSolver(s)
+            
         end
     end
 end
