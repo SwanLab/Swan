@@ -18,7 +18,8 @@ classdef AcademicProblemPathComputer < handle
                 y     = values(2,:);
                 [X,Y] = obj.setMeshGrid(x,y);
                 obj.plotCostContour(X,Y);
-                obj.plotConstraintContour(x);
+                obj.plotConstraintContour(X,Y);
+                obj.plotDesignVariablePath(values);
             end
         end
     end
@@ -36,22 +37,40 @@ classdef AcademicProblemPathComputer < handle
             fX = obj.cost(x);
             v  = linspace(min(fX(:)),max(fX(:)),30);
             figure
-            contour(X,Y,fX,v,'linewidth',2);
+            contour(X,Y,fX,v,'linewidth',1);
             hold on;
         end
 
-        function plotConstraintContour(obj,x)
-            xmin   = min(x);
-            xmax   = max(x);
-            xV     = linspace(0.8*xmin,1.2*xmax,2000);
-            x      = @(y,i) xV.*(i==1)+y.*(i==2);
+        function plotConstraintContour(obj,X,Y)
+            x  = @(i) X.*(i==1)+Y.*(i==2);
             nConst = length(obj.constraint);
             for i = 1:nConst
-                c   = obj.constraint{i};
-                fun = @(y) c(x(y,':'));
-                y   = fzero(fun,0);
-                % here
+                c = obj.constraint{i};
+                switch obj.constraintCase{i}
+                    case 'EQUALITY'
+                        fX = c(x);
+                        v  = linspace(-1e-3,1e-3,2);
+                        [~,h] = contour(X,Y,fX,v,'linewidth',2);
+                        h.LineColor='m';
+                        hold on;
+                end
             end
+        end
+
+        function plotDesignVariablePath(obj,values)
+            vx = values(1,:);
+            vy = values(2,:);
+            plot(vx(1),vy(1),"o",'MarkerSize',10,'MarkerFaceColor','red');
+            plot(vx(2:end-1),vy(2:end-1),'-k','linewidth',1);
+            plot(vx(end),vy(end),"p",'MarkerSize',10,'MarkerFaceColor','red');
+            nConst = length(obj.constraint);
+            leg = "J";
+            for i = 1:nConst
+                leg = [leg,string(['g_',char(string(i))])];
+            end
+            leg = [leg,"Initial point","Path","Solution"];
+            legend(leg);
+            hold off;
         end
     end
 
@@ -59,12 +78,13 @@ classdef AcademicProblemPathComputer < handle
         function [X,Y] = setMeshGrid(x,y)
             xmin  = min(x);
             xmax  = max(x);
+            dx    = xmax-xmin;
             ymin  = min(y);
             ymax  = max(y);
-            xV    = linspace(0.8*xmin,1.2*xmax,2000);
-            yV    = linspace(0.8*ymin,1.2*ymax,2000);
+            dy    = ymax-ymin;
+            xV    = linspace(xmin-0.1*dx,xmax+0.1*dx,2000);
+            yV    = linspace(ymin-0.1*dy,ymax+0.1*dy,2000);
             [X,Y] = meshgrid(xV,yV);
         end
     end
-
 end
