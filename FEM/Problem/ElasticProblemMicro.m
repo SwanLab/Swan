@@ -125,7 +125,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            quad = Quadrature.create(obj.mesh, 'ORDER1');
             obj.quadrature = quad;
         end
 
@@ -266,6 +266,8 @@ classdef ElasticProblemMicro < handle
                     end
                 end
     
+                obj.Chomog(:,iVoigt) = stressHomog;
+                
                 vars.stress_fluct = stressFluct;
                 vars.strain_fluct = strainFluct;
     

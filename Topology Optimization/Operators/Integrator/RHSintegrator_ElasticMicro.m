@@ -78,7 +78,7 @@ classdef RHSintegrator_ElasticMicro < handle
         
         
         function F = computeStrainRHS(obj,vstrain)
-            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            quad = Quadrature.create(obj.mesh, 'ORDER1');
             xV    = quad.posgp;
             dVol  = obj.mesh.computeDvolume(quad)';
             Cmat  = obj.material.evaluate(xV);
