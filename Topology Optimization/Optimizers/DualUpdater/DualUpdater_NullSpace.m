@@ -45,9 +45,11 @@ classdef DualUpdater_NullSpace < handle
             end
         end
 
-        function update(obj,eta)
+        function update(obj,eta,ub,lb)
             s.prob = obj.computeDualBounds();
             s.eta  = eta;
+            s.ub   = ub;
+            s.lb   = lb;
             obj.computeQuadraticProblem(s);
         end
 
@@ -102,11 +104,32 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function l = computeDualGlobal(obj,s)
-            eta             = s.eta;
-            problem         = s.prob;
-            g               = obj.constraint.value;
-            Dg              = obj.constraint.gradient;
-            DJ              = obj.cost.gradient;
+            % Main point in next meeting 18/03/2024:
+            eta     = s.eta;
+            problem = s.prob;
+            ub      = s.ub;
+            lb      = s.lb;
+            g       = obj.constraint.value;
+            Dg      = obj.constraint.gradient;
+            DJ      = obj.cost.gradient;
+            l       = obj.dualVariable.value;
+            if sum(l)~=0
+                dMref = DJ+Dg*l;
+                x = obj.designVariable.fun.fValues;
+                switch class(obj.designVariable)
+                    case 'LevelSet'
+                        isUBActive = find(x<=0 & dMref<0);
+                        isLBActive = find(x>0 & dMref>0);
+                    otherwise
+                        isUBActive = find(abs(x-ub)<=1e-8 & dMref<0);
+                        isLBActive = find(abs(x-lb)<=1e-8 & dMref>0);
+                end
+                noAct = [isUBActive;isLBActive];
+            else
+                noAct = [];
+            end
+            Dg(noAct)       = 0;
+            DJ(noAct)       = 0;
             problem.H       = Dg'*Dg;
             problem.f       = Dg'*DJ-eta*g;
             problem.solver  = 'quadprog';

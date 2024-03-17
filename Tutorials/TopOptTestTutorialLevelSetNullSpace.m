@@ -170,6 +170,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.4;
             s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 1.5;
             opt = OptimizerNullSpace(s);

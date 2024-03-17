@@ -183,8 +183,8 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 5;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

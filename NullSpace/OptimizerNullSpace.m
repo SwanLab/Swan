@@ -13,6 +13,8 @@ classdef OptimizerNullSpace < Optimizer
         mOld
         meritNew
         meritGradient
+        ub
+        lb
         eta
         etaNorm
         gJFlowRatio
@@ -35,10 +37,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
+                obj.updateIterInfo();
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.updateIterInfo();
+                obj.designVariable.updateOld();
             end
         end
 
@@ -51,6 +54,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint     = cParams.constraint;
             obj.designVariable = cParams.designVariable;
             obj.dualVariable   = cParams.dualVariable;
+            obj.ub             = cParams.ub;
+            obj.lb             = cParams.lb;
             obj.maxIter        = cParams.maxIter;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
@@ -99,6 +104,10 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateEtaParameter(obj)
+            g = obj.constraint.value;
+            if norm(g)<=1e-3
+                obj.gJFlowRatio = 0;
+            end
             if obj.nIter>0
                 tau = obj.primalUpdater.tau;
             else
@@ -136,7 +145,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateEtaParameter();
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
-            obj.dualUpdater.update(obj.eta);
+            obj.dualUpdater.update(obj.eta,obj.ub,obj.lb);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeMeritGradient();
             obj.calculateInitialStep();
@@ -237,7 +246,6 @@ classdef OptimizerNullSpace < Optimizer
         function updateIterInfo(obj)
             obj.increaseIter();
             obj.updateStatus();
-            obj.designVariable.updateOld();
         end
 
         function increaseIter(obj)

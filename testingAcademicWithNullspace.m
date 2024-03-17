@@ -59,9 +59,9 @@ x0               = [1;0];
 s.type           = "NullSpace";
 s.ub             = inf;
 s.lb             = -inf;
-s.maxIter        = 400;
+s.maxIter        = 2000;
 s.constraintCase = {'EQUALITY'};
-s.etaNorm        = 0.02;
+s.etaNorm        = 0.005;
 s.gJFlowRatio    = 4;
 
 cParams.cost         = cost;
