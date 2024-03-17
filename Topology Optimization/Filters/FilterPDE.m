@@ -23,10 +23,7 @@ classdef FilterPDE < handle
         end
 
         function xF = compute(obj,fun,quadType)
-            s.feFunType = class(obj.trial);
-            s.mesh      = obj.mesh;
-            s.ndimf     = 1;
-            xF          = FeFunction.createEmpty(s);
+            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
             xF.fValues  = obj.trial.fValues;
@@ -42,9 +39,7 @@ classdef FilterPDE < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            cParams.feFunType = class(cParams.trial);
-            cParams.ndimf     = 1;
-            obj.trial         = FeFunction.createEmpty(cParams);
+            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
             obj.LHStype       = cParams.LHStype;
             obj.mesh          = cParams.mesh;
             obj.epsilon       = cParams.mesh.computeMeanCellSize();
@@ -78,10 +73,11 @@ classdef FilterPDE < handle
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
                 otherwise
                     s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
             end
-            s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
             test       = obj.trial;

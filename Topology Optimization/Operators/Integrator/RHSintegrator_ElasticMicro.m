@@ -22,7 +22,8 @@ classdef RHSintegrator_ElasticMicro < handle
         end
 
         function Fext = compute(obj)
-            nVoigt = obj.material.nstre;
+            oX     = zeros(obj.dim.ndimf,1);
+            nVoigt = size(obj.material.evaluate(oX),1);
             basis   = diag(ones(nVoigt,1));
             Fvol = zeros(obj.dim.ndofs, nVoigt);
             for iVoigt = 1:nVoigt
@@ -92,24 +93,20 @@ classdef RHSintegrator_ElasticMicro < handle
         
         
         function F = computeStrainRHS(obj,vstrain)
-            Cmat  = obj.material.C;
+            xV    = obj.quadrature.posgp;
+            Cmat  = obj.material.evaluate(xV);
             nunkn = obj.dim.ndimf;
             nstre = size(Cmat,1);
-            nelem = size(Cmat,3);
+            nelem = size(Cmat,4);
             nnode = obj.dim.nnodeElem;
             ngaus = obj.quadrature.ngaus;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);
             sigma = zeros(nstre,ngaus,nelem);
 
-            a.mesh       = obj.mesh;
-            a.fValues    = sigma;
-            a.quadrature = obj.quadrature;
-            sigmaF = FGaussDiscontinuousFunction(a);
-
-            sigmaF.ndimf = size(obj.mesh.coord,2); 
-            s.fun  = sigmaF;
-            s.dNdx = sigmaF.computeCartesianDerivatives(obj.quadrature);
+            ndimf = size(obj.mesh.coord,2);
+            s.fun  = LagrangianFunction.create(obj.mesh,ndimf,'P1');
+            s.dNdx = s.fun.evaluateCartesianDerivatives(xV);
 
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
@@ -117,7 +114,7 @@ classdef RHSintegrator_ElasticMicro < handle
                 dV(:,1) = obj.dvolume(:,igaus);
                 for istre = 1:nstre
                     for jstre = 1:nstre
-                        Cij = squeeze(Cmat(istre,jstre,:,igaus));
+                        Cij = squeeze(Cmat(istre,jstre,igaus,:));
                         vj  = vstrain(jstre);
                         si  = squeeze(sigma(istre,igaus,:));
                         sigma(istre,igaus,:) = si + Cij*vj;

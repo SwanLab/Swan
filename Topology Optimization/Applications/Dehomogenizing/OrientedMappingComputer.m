@@ -116,10 +116,11 @@ classdef OrientedMappingComputer < handle
         function computeDilatedOrientationVector(obj)
             s.fValues = exp(obj.dilation.fValues);
             s.mesh    = obj.mesh;
-            er = P1Function(s);
+            s.order   = 'P1';
+            er = LagrangianFunction(s);
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientationP1{iDim};
-                dO = P1Function.times(er,b);
+                dO = er.*b;
                 obj.dilatedOrientation{iDim} = dO;
             end
         end            

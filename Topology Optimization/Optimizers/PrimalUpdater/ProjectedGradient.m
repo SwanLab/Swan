@@ -24,7 +24,8 @@ classdef ProjectedGradient < handle
         end
 
         function computeFirstStepLength(obj,g,x,f)
-            obj.tau = f*sqrt(norm(g)/norm(x));
+            xVal    = x.fun.fValues;
+            obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         
         function increaseStepLength(obj,f)
@@ -44,8 +45,8 @@ classdef ProjectedGradient < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.upperBound     = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound     = cParams.uncOptimizerSettings.lb;
+            obj.upperBound     = cParams.ub;
+            obj.lowerBound     = cParams.lb;
         end
 
     end

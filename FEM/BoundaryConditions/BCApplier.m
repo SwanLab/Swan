@@ -5,18 +5,16 @@ classdef BCApplier < handle
     % Use: BCApplier.computeLinearConditionsMatrix()
 
     properties (Access = public)
-        dirichlet_dofs, dirichlet_vals
-        dirichletFun
-        pointload_dofs, pointload_vals
-        pointloadFun
-        periodic_leader, periodic_follower
     end
     
     properties (Access = private)
         mesh
-        dirichletInput
-        pointloadInput
-        periodicInput
+
+        dirichlet_dofs, dirichlet_vals, dirichlet_domain
+        dirichletFun
+        pointload_dofs, pointload_vals
+        pointloadFun
+        periodic_leader, periodic_follower
     end
     
     properties (Access = private)
@@ -27,17 +25,36 @@ classdef BCApplier < handle
         
         function obj = BCApplier(cParams)
             obj.init(cParams)
-            obj.createDirichletFun();
-            obj.createPointloadFun();
-            obj.createPeriodicConditions();
         end
         
-        function Ct = computeLinearConditionsMatrix(obj)
-            % generalize lagrange multiplier -> dirac and stuff
-            dir_dofs = obj.dirichlet_dofs;
-            nDofs = obj.dirichletFun.nDofs;
-            nDirich = length(dir_dofs);
-            Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
+        function Ct = computeLinearConditionsMatrix(obj, order)
+            switch order
+                case 'Dirac'
+                    % generalize lagrange multiplier -> dirac and stuff
+                    dir_dofs = obj.dirichlet_dofs;
+                    nDofs = obj.dirichletFun.nDofs;
+                    nDirich = length(dir_dofs);
+                    Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+                otherwise
+                    dir_dom = obj.dirichlet_domain;
+                    [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
+        
+                    dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
+                    uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1'); % !!
+        
+                    b.mesh  = mesh_left2;
+                    b.test  = dLambda;
+                    b.trial = uFun.restrictTo(dir_dom);
+                    b.type  = 'MassMatrix';
+                    lhs = LHSintegrator.create(b);
+                    LHS = lhs.compute();
+                    [iLoc,jLoc,vals] = find(LHS);
+
+                    l2g_dof = ((l2g_mesh*dLambda.ndimf)' - ((dLambda.ndimf-1):-1:0))';
+                    l2g_dof = l2g_dof(:);
+                    jGlob = l2g_dof(jLoc);
+                    Ct = sparse(iLoc,jGlob,vals, dLambda.nDofs, uFun.nDofs);
+            end
         end
 
         function Ct = computeLinearPeriodicConditionsMatrix(obj)
@@ -45,7 +62,7 @@ classdef BCApplier < handle
             per_fllw = obj.periodic_follower;
             nDofs = obj.dirichletFun.nDofs;
             nPer = length(per_lead);
-            Ct = full(sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs)); % !!
+            Ct = sparse([(1:nPer)', (1:nPer)'], [per_lead, per_fllw], [ones(size(per_lead,1),1), -ones(size(per_lead,1),1)], nPer, nDofs); % !!
         end
 
         function Ct = computeSingleDirichletPeriodicCondition(obj, iVoigt, nVoigt)
@@ -67,7 +84,7 @@ classdef BCApplier < handle
             xx_left   = nDofsPerBorder+1 : 2*nDofsPerBorder;
             yy_bottom = 2*nDofsPerBorder + 1 : 3*nDofsPerBorder;
             yy_left   = 3*nDofsPerBorder + 1 : 4*nDofsPerBorder;
-            CtPer = full(sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
+            CtPer = sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
                          (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
@@ -79,7 +96,7 @@ classdef BCApplier < handle
                          ], ...
                          [ones(length(per_lead),1), -ones(length(per_lead),1); ...
                          ], ...
-                         nDofsPerBorder*nVoigt, nDofs));
+                         nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
         end
 
@@ -115,88 +132,17 @@ classdef BCApplier < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            inBC = cParams.boundaryConditions;
             obj.mesh = cParams.mesh;
-            obj.dirichletInput = cParams.boundaryConditions.dirichletFun;
-            obj.pointloadInput  = cParams.boundaryConditions.pointloadFun;
-            obj.periodicInput  = cParams.boundaryConditions.periodicFun;
-        end
-
-        function createPointloadFun(obj)
-            if ~isequal(obj.pointloadInput, [])
-                opndofs  = obj.pointloadInput(1).fun.nDofs;
-                ndimf  = obj.pointloadInput(1).fun.ndimf;
-                pl = P1Function.create(obj.mesh, ndimf);
-                pl_dofs = [];
-                pl_vals = [];
-                pl_domain = @(coor) obj.pointloadInput(1).domain(coor);
-                for i = 1:numel(obj.pointloadInput)
-                    values = obj.pointloadInput(i).getValues();
-                    dofs   = obj.pointloadInput(i).getDofs();
-        
-                    % fV = dirich.fValues(:); % wrong, it needs to be overwritten
-                    % fV(dofs) = values;
-                    % fV = reshape(fV, [ndimf ndofs/ndimf])';
-                    % dirich.fValues = fV;
-                    pl_dofs = [pl_dofs; dofs];
-                    pl_vals = [pl_vals; values];
-                    pl_domain = @(coor) pl_domain(coor) | obj.pointloadInput(i).domain(coor);
-                end
-                obj.pointload_dofs = pl_dofs;
-                obj.pointload_vals = pl_vals;
-                obj.pointloadFun = pl;
-            end
-        end
-
-        function createDirichletFun(obj)
-            if ~isequal(obj.dirichletInput, [])
-            opndofs  = obj.dirichletInput(1).fun.nDofs;
-            ndimf  = obj.dirichletInput(1).fun.ndimf;
-            dirich = P1Function.create(obj.mesh, ndimf);
-            dir_fV = [];
-            dir_dofs = [];
-            dir_vals = [];
-            dir_domain = @(coor) obj.dirichletInput(1).domain(coor);
-            for i = 1:numel(obj.dirichletInput)
-                values = obj.dirichletInput(i).getValues();
-                dofs   = obj.dirichletInput(i).getDofs();
-    
-                % fV = dirich.fValues(:); % wrong, it needs to be overwritten
-                % fV(dofs) = values;
-                % fV = reshape(fV, [ndimf ndofs/ndimf])';
-                % dirich.fValues = fV;
-                dir_dofs = [dir_dofs; dofs];
-                dir_vals = [dir_vals; values];
-                dir_domain = @(coor) dir_domain(coor) | obj.dirichletInput(i).domain(coor);
-            end
-            obj.dirichlet_dofs = dir_dofs;
-            obj.dirichlet_vals = dir_vals;
-            obj.dirichletFun = dirich;
-            end
-        end
-
-        function createPeriodicConditions(obj)
-            obj.periodic_leader   = [];
-            obj.periodic_follower = [];
-            if ~isequal(obj.periodicInput, [])
-                mR = MasterSlaveRelator(obj.mesh.coord);
-                MS = mR.getRelation();
-                obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
-                obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
-            end
-        end
-        
-        function perDof = computePeriodicNodes(obj,perNodes)
-            nunkn = obj.dirichletFun.ndimf;
-            nlib = size(perNodes,1);
-            perDof = zeros(nlib*nunkn,1);
-            for iunkn = 1:nunkn
-                indDof = nlib*(iunkn - 1) + [1:nlib];
-                perDof(indDof,1) = obj.nod2dof(obj.dirichletFun.ndimf, perNodes,iunkn);
-            end
-        end
-
-        function idof = nod2dof(obj, ndimf, inode, iunkn)
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
+            obj.dirichletFun    = inBC.dirichletFun;
+            obj.dirichlet_dofs  = inBC.dirichlet_dofs;
+            obj.dirichlet_vals  = inBC.dirichlet_vals;
+            obj.dirichlet_domain = inBC.dirichlet_domain;
+            obj.pointloadFun    = inBC.pointloadFun;
+            obj.pointload_dofs  = inBC.pointload_dofs;
+            obj.pointload_vals  = inBC.pointload_vals;
+            obj.periodic_leader = inBC.periodic_leader;
+            obj.periodic_follower = inBC.periodic_follower;
         end
 
     end

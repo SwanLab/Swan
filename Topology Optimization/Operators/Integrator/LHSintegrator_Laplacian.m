@@ -25,8 +25,9 @@ classdef LHSintegrator_Laplacian < handle
     methods (Access = protected)
 
         function LHSe = computeElementalLHS(obj)
-            shapesTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            shapesTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            shapesTs = obj.test.evaluateCartesianDerivatives(xV);
+            shapesTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
 
             nGaus = obj.quadrature.ngaus;
@@ -41,8 +42,8 @@ classdef LHSintegrator_Laplacian < handle
             
             lhs = zeros(nDofETs, nDofETr, nElem);
             for iGaus = 1:nGaus
-                dNdxTs = shapesTs(:,:,:,iGaus);
-                dNdxTr = shapesTr(:,:,:,iGaus);
+                dNdxTs = squeeze(shapesTs(:,:,iGaus,:));
+                dNdxTr = squeeze(shapesTr(:,:,iGaus,:));
                 BmatTs = obj.computeB(dNdxTs);
                 BmatTr = obj.computeB(dNdxTr);
                 dV(1,1,:) = dVolu(iGaus,:)';

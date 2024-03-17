@@ -34,7 +34,7 @@ classdef LHSintegrator_Mass < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = obj.trial.order;
+                obj.quadratureOrder = obj.trial.orderTextual();
             end
         end
         
@@ -46,8 +46,9 @@ classdef LHSintegrator_Mass < handle
 
         function lhs = computeElementalLHS(obj)
             quad = obj.quadrature;
-            shapesTest  = obj.test.computeShapeFunctions(quad);
-            shapesTrial = obj.trial.computeShapeFunctions(quad);
+            xV   = quad.posgp;
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            shapesTrial = obj.trial.computeShapeFunctions(xV);
             dVolu  = obj.mesh.computeDvolume(quad);
 
             nGaus  = obj.quadrature.ngaus;

@@ -1,4 +1,4 @@
-classdef LHSintegratorDivergenceMatrix < handle 
+classdef LHSintegratorDivergenceMatrix < handle
 
     properties (Access = private)
         mesh
@@ -23,10 +23,11 @@ classdef LHSintegratorDivergenceMatrix < handle
 
     methods (Access = protected)
 
-         function lhs = computeElementalLHS(obj)
-            dNdxTe  = obj.test.computeCartesianDerivatives(obj.quadrature);          
-            dNdxTr  = obj.trial.computeCartesianDerivatives(obj.quadrature);
-            
+        function lhs = computeElementalLHS(obj)
+            xV = obj.quadrature.posgp;
+            dNdxTe  = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr  = obj.trial.evaluateCartesianDerivatives(xV);
+
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -44,7 +45,7 @@ classdef LHSintegratorDivergenceMatrix < handle
                     for jNode = 1:nNodeTrial
                         for iDim = 1:obj.test.ndimf
                             for jDim = 1:obj.trial.ndimf
-                                dVG   = dVolu(iGaus,:)';                                
+                                dVG   = dVolu(iGaus,:)';
                                 idof = obj.test.ndimf*(iNode-1)+iDim;
                                 jdof = obj.trial.ndimf*(jNode-1)+jDim;
                                 dNi = squeeze(dNdxTr(iDim,iNode,:,iGaus));

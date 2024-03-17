@@ -48,5 +48,6 @@ regularizedDensity = chiFilter.getP1fromP1(LS.value);
 ss.mesh = s.mesh;
 ss.fValues = regularizedDensity;
 ss.filename = 'seminarExample';
-rhoe = P1Function(ss);
+ss.order   = 'P1';
+rhoe = LagrangianFunction(ss);
 rhoe.print(ss);

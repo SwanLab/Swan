@@ -10,7 +10,6 @@ classdef TopologyMonitoring < handle
         convergenceVars
         monitorDocker
         postProcess
-        incrementalScheme
         monitor
     end
 
@@ -49,10 +48,10 @@ classdef TopologyMonitoring < handle
         end
 
         function create(obj,cParams)
-            obj.createHistoryPrinter(cParams.historyPrinterSettings);
-            obj.createConvergenceVariables(cParams);
-            obj.createMonitorDocker(cParams.monitoringDockerSettings);
-            obj.createPostProcess(cParams.postProcessSettings);
+            %obj.createHistoryPrinter(cParams.historyPrinterSettings);
+            %obj.createConvergenceVariables(cParams);
+            %obj.createMonitorDocker(cParams.monitoringDockerSettings);
+            %obj.createPostProcess(cParams.postProcessSettings);
         end
         
     end
@@ -63,9 +62,8 @@ classdef TopologyMonitoring < handle
             obj.type     = cParams.type;
             obj.cost              = cParams.cost;
             obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
+            obj.designVariable    = cParams.designVariable;
             obj.dualVariable      = cParams.dualVariable;
-            obj.incrementalScheme = cParams.incrementalScheme;
         end
         
         function plotFmincon(obj,cParams)
@@ -252,8 +250,7 @@ classdef TopologyMonitoring < handle
         end
         
         function printHistory(obj)
-            iStep = obj.incrementalScheme.iStep;
-            obj.historyPrinter.print(obj.nIter,iStep);
+            obj.historyPrinter.print(obj.nIter,1);
         end
         
         function printHistoryFinalValues(obj)
@@ -261,9 +258,7 @@ classdef TopologyMonitoring < handle
         end
 
         function refreshMonitoring(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,iStep,nStep);
+            obj.monitorDocker.refresh(obj.nIter,obj.hasFinished,1,1);
         end
              
     end

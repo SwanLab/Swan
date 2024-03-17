@@ -29,10 +29,14 @@ mesh = m;
 sAF.fHandle = @(x,y) x(1,:,:);
 % sAF.fHandle = @(x,y) [-x(2,:,:)./10,x(1,:,:)./10];
 sAF.ndimf   = 1;
-sAF.mesh    = mesh;
+sAF.mesh    = UnitQuadMesh(5,5);
 xFun = AnalyticalFunction(sAF);
 
-%% Create projectors to P0, P1 and P1D
+p0 = xFun.project('P0');
+p1 = xFun.project('P1');
+p2 = xFun.project('P2');
+
+% %% Create projectors to P0, P1 and P1D
 % % Projector to P0
 % pp0.mesh   = mesh;
 % pp0.connec = mesh.connec;
@@ -40,44 +44,16 @@ xFun = AnalyticalFunction(sAF);
 % p0fun = projP0.project(xFun);
 % p0fun.plot()
 % title('P0')
-
-%% Projector to P1
-clc
-pp1.mesh   = mesh;
-pp1.connec = mesh.connec;
-pp1.polynomialOrder = 2;
-pp1.feParams.type = "Lagrange Simplicial";
-pp1.feParams.order = 2;
-pp1.feParams.dim = 2;
-projP1 = FE_Projector(pp1);
-p1fun = projP1.project(xFun);
-p1fun.plot()
-% title('Order1')
-
-% pp1.polynomialOrder = 2;
-% projP1 = FE_Projector(pp1);
-% p1fun = projP1.project(xFun);
-% p1fun.plot()
-% title('Order2')
 % 
-% pp1.polynomialOrder = 3;
-% projP1 = FE_Projector(pp1);
+% % Projector to P1
+% pp1.mesh   = mesh;
+% pp1.connec = mesh.connec;
+% projP1 = Projector_toP1(pp1);
 % p1fun = projP1.project(xFun);
 % p1fun.plot()
-% title('Order3')
+% title('P1 (quad linear)')
 % 
-% pp1.polynomialOrder = 4;
-% projP1 = FE_Projector(pp1);
-% p1fun = projP1.project(xFun);
-% p1fun.plot()
-% title('Order4')
-
-% projP12 = Projector_toP1(pp1);
-% p1fun2 = projP12.project(xFun);
-% p1fun2.plot()
-% title('P1 (quad linear) old')
-
-%% Projector to P1 Discontinuous
+% % Projector to P1 Discontinuous
 % pp1d.mesh   = mesh;
 % pp1d.connec = mesh.connec;
 % projP1D = Projector_toP1Discontinuous(pp1d);

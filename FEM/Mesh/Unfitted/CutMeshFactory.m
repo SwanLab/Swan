@@ -40,7 +40,7 @@ classdef CutMeshFactory < handle
             s.coord  = bMesh.coord;
             s.connec = bMesh.connec(cutCells,:);
             s.kFace  = bMesh.kFace;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
     end
     

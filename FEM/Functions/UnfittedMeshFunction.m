@@ -79,12 +79,15 @@ classdef UnfittedMeshFunction < handle
         end
 
         function computeBackgroundFunction(obj,f)
-            fType = f.fType;
-            switch fType
-                case 'L2' % Provisional
-                    f = f.project('P1');
+            switch class(f) % Provisional
+                case 'LagrangianFunction'
+                    fBackgr = f;
+                case 'DomainFunction'
+                    fBackgr = f.project('P1',obj.unfittedMesh.backgroundMesh);
+                otherwise
+                    fBackgr = f.project('P1');
             end
-            obj.backgroundFunction = f;
+            obj.backgroundFunction = fBackgr;
         end
 
         function computeInnerMeshFunction(obj)
@@ -96,7 +99,8 @@ classdef UnfittedMeshFunction < handle
                 glob2loc(connecLoc(:)) = connecGlob(:);
                 s.fValues = fP1.fValues(glob2loc);
                 s.mesh    = iMesh.mesh;
-                fP1Inner  = P1Function(s);
+                s.order = 'P1';
+                fP1Inner  = LagrangianFunction(s);
                 obj.innerMeshFunction = fP1Inner;
             end
         end
@@ -113,7 +117,8 @@ classdef UnfittedMeshFunction < handle
                 cutValues                = obj.computeCutValues(subMesh,subLevelSet,subfValues);
                 s.mesh                   = obj.unfittedMesh.innerCutMesh.mesh;
                 s.fValues                = [innerValues;subParams.cutMeshfValues;cutValues];
-                fP1InnerCut              = P1Function(s);
+                s.order                  = 'P1';
+                fP1InnerCut              = LagrangianFunction(s);
                 obj.innerCutMeshFunction = fP1InnerCut;
                 obj.fCutValues           = cutValues;
             end
@@ -128,7 +133,8 @@ classdef UnfittedMeshFunction < handle
                 cutValues   = obj.fCutValues;
                 s.mesh      = bCutMesh;
                 s.fValues   = [innerValues;cutValues];
-                bCutFun     = P1Function(s);
+                s.order     = 'P1';
+                bCutFun     = LagrangianFunction(s);
                 obj.boundaryCutMeshFunction = bCutFun;
             end
         end
@@ -145,7 +151,8 @@ classdef UnfittedMeshFunction < handle
                     glob2loc(connecLoc(:)) = connecGlob(:);
                     s.fValues  = fP1.fValues(glob2loc);
                     s.mesh     = uMeshi.backgroundMesh;
-                    fbackMeshi = P1Function(s);
+                    s.order    = 'P1';
+                    fbackMeshi = LagrangianFunction(s);
                     glob2loc   = [];
                     fi         = uMeshi.obtainFunctionAtUnfittedMesh(fbackMeshi);
                     obj.unfittedBoundaryMeshFunction.activeFuns{i} = fi;
@@ -158,7 +165,7 @@ classdef UnfittedMeshFunction < handle
             s.coord  = mesh.coord;
             s.connec = mesh.connec(obj.cutCells,:);
             s.kFace  = mesh.kFace;
-            cMesh    = Mesh(s);
+            cMesh    = Mesh.create(s);
         end
 
         function [fCutMesh,lsCutMesh] = computeNodalValuesFromNonCutMesh(obj)
@@ -188,7 +195,7 @@ classdef UnfittedMeshFunction < handle
                         connecIso    = delaunay(Xiso);
                         ss.coord     = Xiso;
                         ss.connec    = connecIso;
-                        localMesh    = Mesh(ss);
+                        localMesh    = Mesh.create(ss);
                         nelem        = cMeshGlobal.nelem;
                         bCutConnec   = cMeshGlobal.connec;
                         connecIso    = localMesh.connec;
@@ -198,7 +205,7 @@ classdef UnfittedMeshFunction < handle
                         subConnec    = reshape(subConnec',[nnodeSubMesh,nelem*nElemIso])';
                         sss.coord    = cMeshGlobal.coord;
                         sss.connec   = subConnec;
-                        subMesh      = Mesh(sss);
+                        subMesh      = Mesh.create(sss);
                         subMesh      = subMesh.computeCanonicalMesh();
 
                     otherwise
@@ -212,10 +219,12 @@ classdef UnfittedMeshFunction < handle
                     cMesh           = cMeshGlobal.computeCanonicalMesh();
                     sf.fValues      = fCutMesh;
                     sf.mesh         = cMesh;
-                    fbMesh          = P1Function(sf);
+                    sf.order        = 'P1';
+                    fbMesh          = LagrangianFunction(sf);
                     sl.fValues      = lsCutMesh;
                     sl.mesh         = cMesh;
-                    blsFun          = P1Function(sl);
+                    sl.order        = 'P1';
+                    blsFun          = LagrangianFunction(sl);
                     fsubMesh        = obj.computeSubMeshValues(fbMesh);
                     lssubMesh       = obj.computeSubMeshValues(blsFun);
                     subMeshfValues  = fsubMesh.values;

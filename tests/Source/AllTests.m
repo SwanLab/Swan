@@ -16,4 +16,7 @@ RemeshingTestsSuite;
 DehomogenizationTestsSuite;
 close all;
 AcademicTestsSuite;
+close all;
 BoundaryCondTestsSuite;
+GeomFunTestsSuite;
+close all;

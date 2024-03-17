@@ -89,11 +89,11 @@ classdef CorrectorCoefficientsComputer < handle
 
         function createOrthogonalCorrectorDerivatives(obj)
             psi = obj.orthogonalCorrector;
-            q   = obj.quadrature;
+            xV  = obj.quadrature.posgp;
             nSing = numel(psi);
             dP = cell(nSing,1);
             for iSing = 1:nSing
-                dPsiV = psi{iSing}.computeGradient(q);
+                dPsiV = psi{iSing}.evaluateGradient(xV);
                 dP{iSing} = dPsiV.fValues;
             end
             obj.oCorrectorDerivative = dP;

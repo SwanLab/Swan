@@ -48,7 +48,7 @@ classdef test1DLHS < handle
             s.connec(:,1) = 1:n-1;
             s.connec(:,2) = 2:n;
             s.kFace = -1;
-            m = Mesh(s);
+            m = Mesh.create(s);
 %             m.plot();
             obj.mesh = m;
         end
@@ -62,8 +62,8 @@ classdef test1DLHS < handle
 
         function createStifnessMatrix(obj)
             l.type  = 'StiffnessMatrix';
-            l.trial = P1Function.create(obj.mesh,1);
-            l.test  = P1Function.create(obj.mesh,1);
+            l.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            l.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             l.mesh  = obj.mesh;
             lhs = LHSintegrator.create(l);
             obj.K = lhs.compute();
@@ -71,8 +71,8 @@ classdef test1DLHS < handle
         
         function createMassMatrix(obj)
             s.type  = 'MassMatrix';
-            s.test  = P1Function.create(obj.mesh,1);
-            s.trial = P1Function.create(obj.mesh,1);
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             lhs    = LHSintegrator.create(s);
             obj.M  = lhs.compute();
@@ -85,7 +85,8 @@ classdef test1DLHS < handle
             
             s.mesh = obj.mesh;
             s.fValues = f;
-            fL2 = P1Function(s);
+            s.order = 'P1';
+            fL2 = LagrangianFunction(s);
 %             fL2.plot;
             obj.RHS = obj.M*(fL2.fValues)';
             obj.funL2 = fL2;
@@ -98,7 +99,8 @@ classdef test1DLHS < handle
     
             s.mesh = obj.mesh;
             s.fValues = fH1Values;
-            fH1 = P1Function(s);
+            s.order = 'P1';
+            fH1 = LagrangianFunction(s);
 %             fH1.plot()
             obj.funH1 = fH1;
 %             obj.mesh.plot();

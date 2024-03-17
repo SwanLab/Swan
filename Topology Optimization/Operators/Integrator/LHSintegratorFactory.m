@@ -30,6 +30,8 @@ classdef LHSintegratorFactory < handle
                case 'StiffnessMass'
                    cParams.stiffType = 'StiffnessMatrix';
                    obj = LHSintegratorStiffnessMass(cParams);
+               case 'MassBoundaryMass'
+                   obj = LHSintegratorMassBoundaryMass(cParams);
                case 'AnisotropicStiffnessMassBoundaryMass'
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegratorStiffnessMassBoundaryMass(cParams);

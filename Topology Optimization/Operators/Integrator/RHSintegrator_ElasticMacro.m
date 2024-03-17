@@ -43,7 +43,7 @@ classdef RHSintegrator_ElasticMacro < handle
             obj.dim                = cParams.dim;
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.BC;
-%             obj.newBCs = cParams.newBCs;
+            % obj.newBCs = cParams.newBCs;
         end
 
         function Fp = computePunctualFext(obj)

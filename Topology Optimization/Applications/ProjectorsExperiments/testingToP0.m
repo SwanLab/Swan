@@ -17,12 +17,14 @@ femU      = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 z.fValues = femStrain(:,1:2);
 % z.fValues = femStrain(:,2);
 z.mesh    = s.mesh;
-sigP0 = P0Function(z);
+z.order   = 'P0';
+sigP0 = LagrangianFunction(z);
 
 % P1 Function
 z.mesh    = s.mesh;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order   = 'P1';
+uP1 = LagrangianFunction(z);
 
 % P1 Discontinuous Function
 cc.mesh   = s.mesh;

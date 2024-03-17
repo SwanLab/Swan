@@ -24,8 +24,9 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -63,7 +64,7 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = obj.trial.order;
+                obj.quadratureOrder = obj.trial.orderTextual();
             end
         end
 

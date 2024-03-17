@@ -2,36 +2,24 @@ filename='Tests_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
-cost = {'compliance','perimeterInterior'};
+geomFunSettings.type = 'Full';
+cost = {'compliance','perimeter'};
 weights = [1 1];
 constraint = {'volumeConstraint'};
-%optimizer = 'DualNestedInPrimal';
-optimizer = 'AlternatingPrimalDual';
-
+constraint_case = {'EQUALITY'};
+target = 0.3;
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-incrementFactor = 1;
+optimizer = 'AlternatingPrimalDual';
 designVariable = 'Density';
-filterType = 'PDE';
-
-nsteps = 1;
-Vfrac_final = 0.3;
-optimality_final =1e-3;
-constr_final =1e-3;
-
-Vfrac_initial = 1;
-optimality_initial = 1e-2;
-constr_initial = 1e-3;
-
-TOL.rho_plus = 1;
-TOL.rho_minus = 0;
-TOL.E_plus = 1;
-TOL.E_minus = 1e-3;
-TOL.nu_plus = 1/3;
-TOL.nu_minus = 1/3;
-
+filterCostType = {'PDE','PDE'};
+filterConstraintType = {[]};
+f1 = [];
+f2.boundaryType = 'Neumann';
+f2.metric       = 'Isotropy';
+f3 = [];
+filterCostSettings = {f1,f2};
+filterConstraintSettings = {f3};
 plotting = false;
 printing = false;
 monitoring = false;
-
 maxiter = 2;
