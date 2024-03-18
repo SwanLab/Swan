@@ -98,8 +98,7 @@ classdef RHSintegrator_ShapeFunction < handle
             orderTr = fun.getOrderNum();
             orderTe = test.getOrderNum();
             order = ['ORDER', num2str(orderTr + orderTe)];
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(order);
+            q = Quadrature.create(obj.mesh,order);
             obj.quadrature = q;
         end
 
