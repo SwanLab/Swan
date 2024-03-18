@@ -25,13 +25,14 @@ classdef MeshCreatorFromRVE < handle
             obj.init(cParams)
         end
 
-        function [mD,mSD,interfaceConnec] = create(obj)
+        function [mD,mSD,interfaceConnec,bdSB] = create(obj)
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
             mD  = obj.meshDomain;
             mSD = obj.meshSubDomain;
             interfaceConnec = obj.interfaceConnec;
+            bdSB = obj.interfaceMeshSubDomain;
         end
 
     end
