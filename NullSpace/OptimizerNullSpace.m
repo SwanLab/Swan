@@ -51,6 +51,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.checkParameters();
+                obj.designVariable.fun.print(['Output/CantileverEx/CantileverEx_',char(string(obj.nIter))]);
             end
         end
 
