@@ -190,7 +190,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateNullSpaceCoefficient();
             obj.updateRangeSpaceCoefficient();
             obj.updateMaximumVolumeRemoved();
-            x0 = obj.designVariable.fun.fValues;
+            x0 = obj.designVariable.getValue();
             g0 = obj.constraint.value;
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
@@ -224,7 +224,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x       = obj.designVariable.fun.fValues;
+            x       = obj.designVariable.getValue();
             g       = obj.meritGradient;
             x       = obj.primalUpdater.update(g,x);
         end

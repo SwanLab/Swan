@@ -54,8 +54,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function createDesignVariable(obj)
             s.type = 'Full';
             g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
+            lsFun    = g.computeLevelSetFunction(obj.mesh);
+            s.fun{1} = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
@@ -177,7 +177,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function m = createMaterial(obj)
             x = obj.designVariable;
-            f = x.obtainDomainFunction();
+            f{1} = x.obtainDomainFunction();
             f = obj.filter.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
             s.density              = f;

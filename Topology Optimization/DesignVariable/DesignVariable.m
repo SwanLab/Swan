@@ -28,13 +28,13 @@ classdef DesignVariable < handle
 
         function x = getValue(obj)
             nVar = obj.nVariables;
-            nx = length(obj.fun{1});
+            nx = length(obj.fun{1}.fValues);
             x = zeros(nVar*nx,1);
             for ivar = 1:nVar
                 i0 = nx*(ivar-1) + 1;
                 iF = nx*ivar;
                 xs = obj.fun{ivar};
-                x(i0:iF) = xs;
+                x(i0:iF) = xs.fValues;
             end
         end
 
@@ -55,10 +55,14 @@ classdef DesignVariable < handle
         end
         
         function norm = computeL2normIncrement(obj)
-           incFun = obj.fun-obj.funOld;
-           nIncX  = Norm.computeL2(obj.mesh,incFun);
-           nX0    = Norm.computeL2(obj.mesh,obj.funOld);
-           norm   = nIncX/nX0;
+            nVar  = length(obj.fun);
+            norm = 0;
+            for iVar = 1:nVar
+                incFun = obj.fun{iVar}-obj.funOld{iVar};
+                nIncX  = Norm.computeL2(obj.mesh,incFun);
+                nX0    = Norm.computeL2(obj.mesh,obj.funOld{iVar});
+                norm   = norm + nIncX/nX0;  
+            end            
         end
         
     end

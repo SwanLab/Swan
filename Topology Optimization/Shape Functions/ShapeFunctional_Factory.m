@@ -30,7 +30,9 @@ classdef ShapeFunctional_Factory < handle
                         'complianceConstraintC4'}
                     sF = ShFunc_Compliance_constraint(cParams);
                 case 'complianceConstraint'
-                    sF = ShFunc_ComplianceComparison_constraint(cParams);
+                    sF = ShFunc_ComplianceComparison_constraint(cParams);  
+                case 'complianceFromVademecum'
+                    sF = ComplianceFunctionalFromVademecum(cParams);
                 case 'stressNorm'
                     sF = ShFunc_StressNorm(cParams);
                 case {'perimeter','perimeterInterior','anisotropicPerimeter2D','anisotropicPerimeterInterior2D'}
@@ -78,6 +80,10 @@ classdef ShapeFunctional_Factory < handle
                     s.volumeTarget = cParams.target;
                     s.gradientTest = cParams.gradientTest;
                     sF             = VolumeConstraint(s);
+
+                case 'volumeConstraintFromMicroParams'     
+                    sF = VolumeFunctionalMicroParams(cParams);
+
                 case 'firstEignValue_functional'
                     sF = ShFunc_FirstEigenValue(cParams);
                 case 'doubleEig'

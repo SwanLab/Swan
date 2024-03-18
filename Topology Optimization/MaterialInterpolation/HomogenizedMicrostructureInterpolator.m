@@ -2,7 +2,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
     
     properties (Access = private)
         fileName
-        sMesh
+        structuredMesh
         Ctensor
         microParams
     end
@@ -20,15 +20,16 @@ classdef HomogenizedMicrostructureInterpolator < Material
           s.operation = @(xV) obj.evaluate(xV);
           C = DomainFunction(s);            
         end
-        
+
         function dC = obtainTensorDerivative(obj)
-          s.operation = @(xV) obj.evaluateGradientM1(xV);
-          s.ndimf = 1;
-          dC{1} =  DomainFunction(s);
-          s.operation = @(xV) obj.evaluateGradientM2(xV);
-          s.ndimf = 1;
-          dC{2} =  DomainFunction(s);
-        end             
+          nVar = numel(obj.microParams);
+          dC   = cell(nVar,1);
+            for iVar = 1:nVar
+                s.operation = @(xV) obj.evaluateGradient(xV,iVar);
+                s.ndimf = 1;
+                dC{iVar} =  DomainFunction(s);
+            end
+        end
 
         function setDesignVariable(obj,x)
             obj.microParams = x;
@@ -62,11 +63,11 @@ classdef HomogenizedMicrostructureInterpolator < Material
             s.x = mxV;
             s.y = myV;
             m = StructuredMesh(s);
-            obj.sMesh = m;
+            obj.structuredMesh = m;
         end
 
         function  createCtensorFunction(obj,C)
-            m = obj.sMesh.mesh;
+            m = obj.structuredMesh.mesh;
              for i = 1:size(C,1)
                  for j = 1:size(C,2)
                      Cij = squeeze(C(i,j,:,:));
@@ -92,14 +93,6 @@ classdef HomogenizedMicrostructureInterpolator < Material
                 end
             end
         end
-
-        function dC = evaluateGradientM1(obj,xV)
-            dC = obj.evaluateGradient(xV,1);
-        end
-
-        function dC = evaluateGradientM2(obj,xV)
-            dC = obj.evaluateGradient(xV,2);
-        end        
 
         function dCt = evaluateGradient(obj,xV,dir)
             [mL,cells] = obj.obtainLocalCoord(xV);
@@ -128,7 +121,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
             myG = my.evaluate(xV);
             mG(:,1) = mxG(:);
             mG(:,2) = myG(:);
-            [mL,cells] = obj.sMesh.obtainLocalFromGlobalCoord(mG);
+            [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
         end
         
     end

@@ -24,6 +24,10 @@ classdef MicroParams < DesignVariable
         function v = obtainDomainFunction(obj)
             v = obj.computeDensity();
         end
+
+        function plot(obj)
+
+        end        
         
     end
     

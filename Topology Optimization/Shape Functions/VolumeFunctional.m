@@ -38,7 +38,7 @@ classdef VolumeFunctional < handle
 
         function createTotalVolume(obj)
             dV = obj.mesh.computeDvolume(obj.quadrature);
-            obj.totalVolume = sum(dV(:));
+            obj.totalVolume = dV;
         end
 
         function J = computeFunction(obj,x)

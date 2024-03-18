@@ -21,25 +21,25 @@ classdef Cost < handle
         end
 
         function computeFunctionAndGradient(obj,x)
-            nF  = length(obj.shapeFunctions);
-            Jc  = cell(nF,1);
-            dJc = cell(nF,1);
-            for iF = 1:nF
+            nS  = length(obj.shapeFunctions);
+            Jc  = cell(nS,1);
+            dJc = cell(nS,1);
+            for iF = 1:nS
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ{iF}.fValues;   
+                dJc{iF} = dJ;   
             end
             obj.shapeValues = Jc;
             jV  = 0;
             djV = zeros(size(dJc{1}));
-            for iF = 1:nF
+            for iF = 1:nS
                 wI  = obj.weights(iF);
                 jV  = jV  + wI*Jc{iF};
                 djV = djV + wI*dJc{iF};
+
             end
             obj.value    = jV;
-            %obj.gradient = obj.Msmooth*djV;
             obj.gradient = djV;
         end
 

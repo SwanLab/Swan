@@ -16,23 +16,22 @@ classdef Constraint < handle
         end
 
         function computeFunctionAndGradient(obj,x)
-            nF  = length(obj.shapeFunctions);
-            Jc  = cell(nF,1);
-            dJc = cell(nF,1);
-            for iF = 1:nF
+            nS  = length(obj.shapeFunctions);
+            Jc  = cell(nS,1);
+            dJc = cell(nS,1);
+            for iF = 1:nS
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;
+                dJc{iF} = dJ;
             end
-            jV  = zeros(nF,1);
-            djV = zeros(length(dJc{1}),nF);
-            for iF = 1:nF
+            jV  = zeros(nS,1);
+            djV = zeros(length(dJc{1}),nS);
+            for iF = 1:nS
                 jV(iF)    = Jc{iF};
                 djV(:,iF) = dJc{iF};
             end
             obj.value    = jV;
-            %obj.gradient = obj.Msmooth*djV;
             obj.gradient = djV;
         end
 

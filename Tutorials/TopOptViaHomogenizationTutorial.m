@@ -50,7 +50,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.5*ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) 0.1*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -113,17 +113,20 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial(obj.designVariable.fun);
-            c = ComplianceFunctionalFromVademecum(s);
+            s.type                        = 'complianceFromVademecum';
+            c = ShapeFunctional.create(s);            
             c.computeFunctionAndGradient(obj.designVariable);
             obj.compliance = c;
         end
 
         function createVolume(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');            
-            s.volumeTarget = 0.4;
-            v = VolumeConstraint(s);
+            s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
+            s.volumeTarget = 0.4;            
+            s.fileName     = 'Rectangle';
+            s.type         = 'volumeConstraintFromMicroParams';
+            v = ShapeFunctional.create(s);
+            v.computeFunctionAndGradient(obj.designVariable);            
             obj.volume = v;
         end
 
@@ -145,7 +148,6 @@ classdef TopOptViaHomogenizationTutorial < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
@@ -163,11 +165,14 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.constraintCase = {'EQUALITY'};
+            s.ub             = 0.95;
+            s.lb             = 0.05;
             opt = OptimizerMMA(s);
+         %   s.volumeTarget   = 0.4;
+         %   s.primal         = 'PROJECTED GRADIENT';
+         %   opt = OptimizerNullSpace(s);
+
             opt.solveProblem();
             obj.optimizer = opt;
         end

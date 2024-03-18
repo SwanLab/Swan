@@ -17,7 +17,7 @@ classdef PlotterDensity < handle
         end
         
         function plot(obj)
-            rho     =   obj.designVariable.fun;
+            rho     = obj.designVariable.fun;
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 

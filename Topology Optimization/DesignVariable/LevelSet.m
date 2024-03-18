@@ -72,7 +72,7 @@ classdef LevelSet < DesignVariable
         end
         
         function updateUnfittedMesh(obj)
-            obj.unfittedMesh.compute(obj.fun.fValues);
+            obj.unfittedMesh.compute(obj.fun{1}.fValues);
         end
 
         function createPlotter(obj,cParams)

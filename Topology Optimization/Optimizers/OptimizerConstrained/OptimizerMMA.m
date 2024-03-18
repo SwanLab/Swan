@@ -60,7 +60,7 @@ classdef OptimizerMMA < Optimizer
        end
         
         function update(obj)
-            x = obj.designVariable.fun.fValues;
+            x = obj.designVariable.getValue();
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
