@@ -119,10 +119,10 @@ close all;
 clear;
 
 % Min problem
-cost.cF = @(x) 2*x(1)^2-3*x(2)^2-2*x(1);
+cost.cF = @(x) 2*x(1).^2-3*x(2).^2-2*x(1);
 cost.gF = @(x) [4*x(1)-2; -6*x(2)];
 
-constraint.cF{1} = @(x) x(1)^2+x(2)^2-1;
+constraint.cF{1} = @(x) x(1).^2+x(2).^2-1;
 constraint.gF{1} = @(x) [2*x(1); 2*x(2)];
 
 % Solution

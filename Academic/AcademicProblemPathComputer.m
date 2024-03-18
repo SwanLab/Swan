@@ -45,14 +45,20 @@ classdef AcademicProblemPathComputer < handle
             x  = @(i) X.*(i==1)+Y.*(i==2);
             nConst = length(obj.constraint);
             for i = 1:nConst
-                c = obj.constraint{i};
+                c  = obj.constraint{i};
+                fX = c(x);
+                v  = linspace(-1e-3,1e-3,2);
+                [C,h] = contour(X,Y,fX,v,'linewidth',2);
+                h.LineColor='m';
+                hold on;
                 switch obj.constraintCase{i}
-                    case 'EQUALITY'
-                        fX = c(x);
-                        v  = linspace(-1e-3,1e-3,2);
-                        [~,h] = contour(X,Y,fX,v,'linewidth',2);
-                        h.LineColor='m';
-                        hold on;
+                    case 'INEQUALITY'
+                        ymin = min(Y(:));
+                        n  = size(C,2);
+                        xg = C(1,2:n/2);
+                        yg = C(2,2:n/2);
+                        area(xg, yg,BaseValue=ymin,FaceColor='m');
+                        alpha(.4);
                 end
             end
         end
