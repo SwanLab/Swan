@@ -97,7 +97,7 @@ classdef RHSintegrator_ShapeFunction < handle
         function createQuadrature(obj,fun,test)
             orderTr = fun.getOrderNum();
             orderTe = test.getOrderNum();
-            order = ['ORDER', num2str(orderTr + orderTe)];
+            order = orderTr + orderTe;
             q = Quadrature.create(obj.mesh,order);
             obj.quadrature = q;
         end

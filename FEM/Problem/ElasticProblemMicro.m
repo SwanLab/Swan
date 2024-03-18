@@ -51,6 +51,7 @@ classdef ElasticProblemMicro < handle
             s.mesh     = obj.mesh;
             s.fun      = obj.displacementFun;
             s.material = obj.material;
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
@@ -125,7 +126,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.create(obj.mesh, 'ORDER1');
+            quad = Quadrature.create(obj.mesh, 1);
             obj.quadrature = quad;
         end
 

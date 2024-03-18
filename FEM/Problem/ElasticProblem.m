@@ -107,6 +107,7 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.fun      = obj.displacementFun;
             s.material = obj.material;
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
@@ -149,7 +150,7 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.strainFun = SymGrad(obj.displacementFun);
 %             strFun = strFun.obtainVoigtFormat();
@@ -157,7 +158,7 @@ classdef ElasticProblem < handle
         end
 
         function computeStress(obj)
-            quad = Quadrature.create(obj.mesh, 'ORDER2');
+            quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = obj.strainFun.ndimf;

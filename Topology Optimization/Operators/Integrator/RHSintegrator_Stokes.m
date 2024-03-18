@@ -36,7 +36,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
         function Fext = computeVolumetricFext(obj)
             a.type = 'ShapeFunction';
             a.mesh = obj.mesh;
-            a.quadType = 'ORDER3';
+            a.quadType = 3;
             rhsI       = RHSintegrator.create(a);
             test = LagrangianFunction.create(obj.mesh, 2, 'P2');
             Fext = rhsI.compute(obj.forcesFormula,test);

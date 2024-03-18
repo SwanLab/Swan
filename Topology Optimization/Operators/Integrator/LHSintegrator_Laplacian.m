@@ -70,7 +70,7 @@ classdef LHSintegrator_Laplacian < handle
         function createQuadrature(obj)
             orderTr = obj.trial.getOrderNum();
             orderTe = obj.test.getOrderNum();
-            order = ['ORDER', num2str(orderTr + orderTe)];
+            order = orderTr + orderTe;
             quad = Quadrature.create(obj.mesh,order);
             obj.quadrature = quad;
         end

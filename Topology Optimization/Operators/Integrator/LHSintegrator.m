@@ -37,14 +37,14 @@ classdef LHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = 'QUADRATIC';%obj.fun.order;
+                warning('Assuming quadrature order = 2')
+                obj.quadratureOrder = 2;%obj.fun.order;
             end
         end
         
         function createQuadrature(obj)
-            quadOrderN = obj.fun.getOrderNum*2;
-            quadOrder  = ['ORDER', num2str(quadOrderN)];
-            quad = Quadrature.create(obj.mesh, quadOrder);
+%             quadOrder = obj.fun.getOrderNum();
+            quad = Quadrature.create(obj.mesh, obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
