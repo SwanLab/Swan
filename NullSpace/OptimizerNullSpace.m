@@ -264,7 +264,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
-                if obj.notRestarted && obj.lineSearch > 1% Recomputing the merit old for CG
+                if obj.notRestarted % Recomputing the merit old for CG
                     obj.currentTolCase = 'Restarting';
                     obj.mOld           = obj.computeMeritFunction(x0);
                     obj.notRestarted   = false;
@@ -311,6 +311,7 @@ classdef OptimizerNullSpace < Optimizer
         function obj = updateOldValues(obj,xV)
             x = obj.designVariable;
             x.update(xV);
+            x.updateOld();
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
         end

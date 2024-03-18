@@ -46,7 +46,7 @@ classdef ConjugateGradient < handle
     methods (Access = private)
 
         function defineCorrectionFactor(obj,b)
-            obj.tolFactor = 1/norm(b);
+            obj.tolFactor = 4/norm(b);
         end
 
     end

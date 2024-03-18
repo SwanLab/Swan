@@ -44,8 +44,8 @@ classdef ConjugateGradientToleranceCalculator < handle
         end
 
         function computeMMATolerance(obj,incNorm)
-            disp('rho inc norm: ', string(incNorm));
-            t               = obj.tolStandard(incNorm)*incNorm;
+            disp('rho inc norm: ' + string(incNorm));
+            t               = obj.tolStandard(incNorm);
             obj.val         = min(obj.tolMax,max(obj.tolMin,t));
         end
 
@@ -53,14 +53,14 @@ classdef ConjugateGradientToleranceCalculator < handle
             switch type
                 case 'Standard'
                     disp('- New step... -')
-                    meritGradNorm = varargin{1};
-                    incNorm       = varargin{2};
+                    charNorm = varargin{1};
+                    incNorm  = varargin{2};
                     disp('rho inc norm: ' + string(incNorm))                    
                     if incNorm > 0
-                        disp('Merit norm: ' + string(meritGradNorm))
-                        t       = obj.tolStandard(meritGradNorm)*(1 + incNorm);
-                        obj.val = min(obj.tolMax(meritGradNorm),max(obj.tolMin(meritGradNorm),t));
-                        obj.restartingVal = obj.tolMin(meritGradNorm);
+                        disp('Characteristic norm: ' + string(charNorm))
+                        t       = obj.tolStandard(charNorm)*(1 + incNorm);
+                        obj.val = min(obj.tolMax(charNorm),max(obj.tolMin(charNorm),t));
+                        obj.restartingVal = obj.tolMin(charNorm);
                     end
                 case 'Decreasing'
                     disp('- Decreasing step... -')
@@ -81,11 +81,12 @@ classdef ConjugateGradientToleranceCalculator < handle
         end
 
         function setNullSpaceToleranceParameters(obj)
-            obj.tolStandard = @(mG) interp1([0,0.2,1,100],[5e-4,1e-2,1e-1,1e-1],mG);
-            obj.tolMax      = @(mG) interp1([0,0.2,0.5,1,100],[1e-3,5e-2,8e-2,5e-1,5e-1],mG);
-            obj.tolMin      = @(mG) interp1([0,0.2,1,100],[1e-6,1e-3,5e-2,5e-2],mG);
+            obj.tolStandard = @(mG) interp1([0,1e-5,1e-3,1e-1,0.2,1,100],[1e-4,1e-3,5e-3,1e-2,5e-2,1e-1,1e-1],mG);
+            obj.tolMax      = @(mG) interp1([0,1e-5,1e-3,1e-1,0.2,1,100],[1e-3,1e-2,5e-2,1e-1,5e-1,8e-1,8e-1],mG);
+            obj.tolMin      = @(mG) interp1([0,1e-5,1e-3,1e-1,0.2,1,100],[5e-5,5e-4,1e-3,5e-3,8e-3,8e-3,8e-3],mG);        
             obj.val         = obj.tolMax(1); % Initial value
         end
+            
 
     end
 

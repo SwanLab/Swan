@@ -77,9 +77,10 @@ classdef OptimizerMMA < Optimizer
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
             f = obj.designVariable;
+            obj.solverTol.compute(f.computeNonScaledL2normIncrement*100);
             obj.cost.computeFunctionAndGradient(f);
             obj.constraint.computeFunctionAndGradient(f);
-            
+            f.updateOld();
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
             [~,kktnorm] = obj.kktcheck(obj.m,obj.n,xmma,ymma,zmma,lam,xsi,eta,mu,zet,s, ...
