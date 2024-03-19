@@ -7,6 +7,10 @@ classdef AcademicProblemPathComputer < handle
         constraintCase
     end
 
+    properties (Access = private)
+        colors = 'mgr'
+    end
+
     methods (Access = public)
         function obj = AcademicProblemPathComputer(cParams)
             obj.init(cParams);
@@ -42,25 +46,31 @@ classdef AcademicProblemPathComputer < handle
         end
 
         function plotConstraintContour(obj,X,Y)
+            x1 = unique(X);
+            x2 = unique(Y);
             x  = @(i) X.*(i==1)+Y.*(i==2);
             nConst = length(obj.constraint);
+            isFeasible = ones(length(x1),length(x2));
             for i = 1:nConst
                 c  = obj.constraint{i};
+                cr = obj.colors(i);
                 fX = c(x);
                 v  = linspace(-1e-3,1e-3,2);
-                [C,h] = contour(X,Y,fX,v,'linewidth',2);
-                h.LineColor='m';
+                [~,h] = contour(X,Y,fX,v,'linewidth',2);
+                h.LineColor=cr;
                 hold on;
                 switch obj.constraintCase{i}
                     case 'INEQUALITY'
-                        ymin = min(Y(:));
-                        n  = size(C,2);
-                        xg = C(1,2:n/2);
-                        yg = C(2,2:n/2);
-                        area(xg, yg,BaseValue=ymin,FaceColor='m');
-                        alpha(.4);
+                        isFeasible = isFeasible & fX<=0;
                 end
             end
+            output = NaN(length(x1),length(x2));
+            output(isFeasible) = 1;
+            a = surf(X,Y,output,'EdgeColor','none');
+            alpha(.25);
+            view([0 90]);
+            set(get(get(a,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+            hold on;
         end
 
         function plotDesignVariablePath(obj,values)
