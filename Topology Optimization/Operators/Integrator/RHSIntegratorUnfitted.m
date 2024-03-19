@@ -59,8 +59,7 @@ classdef RHSIntegratorUnfitted < handle
         function createQuadratureInnerCut(obj)
             if ~isempty(obj.unfittedMesh.innerCutMesh)
                 m = obj.unfittedMesh.innerCutMesh.mesh;
-                q = Quadrature.set(m.type);
-                q.computeQuadrature(obj.quadType);
+                q = Quadrature.create(m,obj.quadType);
                 obj.innerCutQuad = q;
             end
         end
@@ -68,8 +67,7 @@ classdef RHSIntegratorUnfitted < handle
         function createQuadratureBoundaryCut(obj)
             if ~isempty(obj.unfittedMesh.boundaryCutMesh)
                 m = obj.unfittedMesh.boundaryCutMesh.mesh;
-                q = Quadrature.set(m.type);
-                q.computeQuadrature(obj.quadType);
+                q = Quadrature.create(m,obj.quadType);
                 obj.boundCutQuad = q;
             end
         end

@@ -54,6 +54,7 @@ classdef Projector_toLagrangian < Projector
         function ord = createRHSQuadrature(obj, fun)
             ord = obj.determineQuadratureOrder(fun);
             ord = 'QUADRATIC'; % no
+            ord = 2;
         end
 
     end
