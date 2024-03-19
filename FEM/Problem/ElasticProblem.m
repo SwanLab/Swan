@@ -103,9 +103,11 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
+            ndimf = obj.displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
+            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+            s.trial    = obj.displacementFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);

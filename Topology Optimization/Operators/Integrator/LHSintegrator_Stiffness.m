@@ -69,8 +69,7 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
+            quad = Quadrature.create(obj.mesh,obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
