@@ -115,8 +115,8 @@ classdef BNN2 < handle
             %             mS         = femD.mesh;
             %             bS         = mS.createBoundaryMesh();
             % Generate coordinates
-            x1 = linspace(0,1,8);
-            x2 = linspace(0,0.5,8);
+            x1 = linspace(0,1,3);
+            x2 = linspace(0,1,3);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -354,12 +354,13 @@ classdef BNN2 < handle
 
           function hExt = computeHarmonicExtension(obj)
             for idom = 1:obj.nSubdomains(1)
-                ndof = obj.displacementFun{idom}.nDofs;
                 bdDOF = obj.boundaryDof{idom};
                 interiorDof  = obj.interiorDof{idom};
                 Kii          = obj.LHS{idom}(interiorDof,interiorDof);
                 KiL          = obj.LHS{idom}(interiorDof,bdDOF);
-                hExt{idom}   = -Kii\KiL;
+                Kii = full(Kii);
+                KiL = full(KiL);
+                hExt{idom}   = -(Kii\KiL);
             end
         end
         
@@ -657,10 +658,10 @@ classdef BNN2 < handle
             fclose('all');
         end
 
-        function print(obj, filename, software)
+        function print(obj, filename, software,funNames,fun,mesh)
             if nargin == 2; software = 'GiD'; end
-            [fun, funNames] = obj.getFunsToPlot();
-            a.mesh     = obj.mesh;
+%             [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = mesh;
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
@@ -676,17 +677,22 @@ classdef BNN2 < handle
         end
 
         function plotfields(obj,basis)
+            software = 'Paraview';
+            funNames = {'translationX', 'translationY', 'rotation'};
             for idom=1:obj.nSubdomains(1)
                 nbasis = size(basis{idom},2);
                 for ibasis = 1:nbasis
-                     values = basis{idom}(:,ibasis);
-                     s.fValues = reshape(values,2,[])';
-                     s.mesh = obj.meshSubDomain{idom};
-                     s.fValues(:,end+1) = 0;
-                     s.ndimf = 3;
-                     fun(ibasis) = P1Function(s);
+                    values = basis{idom}(:,ibasis);
+                    s.fValues = reshape(values,2,[])';
+                    s.mesh = obj.meshSubDomain{idom};
+                    s.fValues(:,end+1) = 0;
+                    s.ndimf = 3;
+                    fun{ibasis} = P1Function(s);
                 end
-               
+%                 a.fun=fun;
+                mesh=obj.meshSubDomain{idom};
+                filename = ['domain',num2str(idom)];
+                obj.print(filename,software,funNames,fun,mesh)
             end
         end
 

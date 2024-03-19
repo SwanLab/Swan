@@ -111,8 +111,8 @@ classdef BalancingNeumannNeumann < handle
             %             mS         = femD.mesh;
             %             bS         = mS.createBoundaryMesh();
             % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,0.5,2);
+            x1 = linspace(0,1,4);
+            x2 = linspace(0,0.5,4);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
