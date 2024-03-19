@@ -34,7 +34,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
-            s.ndimf = a.ndimf;
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -42,7 +42,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
-            s.ndimf = a.ndimf;
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -50,7 +50,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
-            s.ndimf = a.ndimf;
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
         
@@ -112,6 +112,8 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
+            elseif class(a) == "double"
+                op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);
             end

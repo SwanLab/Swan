@@ -17,9 +17,7 @@ classdef ShFunc_InternalEnergySplit < handle
             F = Fbulk + Fshear;
         end
 
-        function [JSplitu, JSplitphi] = computeGradient(obj,u,phi,quadOrder)
-            JSplitu = obj.computeGradientDisplacementSplit(u,phi,quadOrder);
-            JSplitphi = obj.computeGradientDamageSplit(u,phi,quadOrder);
+        function [Ju, Jphi] = computeGradient(obj,u,phi,quadOrder)
             Ju = obj.computeGradientDisplacement(u,phi,quadOrder);
             Jphi = obj.computeGradientDamage(u,phi,quadOrder);
         end
@@ -53,61 +51,24 @@ classdef ShFunc_InternalEnergySplit < handle
         end
         
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
-            sigma = DDP(C,Voigt(SymGrad(u)));
-            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-
-            s.mesh = obj.mesh;
-            s.quadratureOrder = quadOrder;
-            s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSintegrator.create(s);
-            Ju = RHS.compute(sigma,test);
-        end
-
-        function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Jacobian');
-            dEnergyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
-            
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
-            s.quadType = quadOrder;
-            RHS = RHSintegrator.create(s);
-            Jphi = 0.5*RHS.compute(dEnergyFun,test);
-        end
-
-
-        function Ju = computeGradientDisplacementSplit(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Interpolated');
-            sigma = DDP(C,Voigt(SymGrad(u))).evaluate([0;0]);
-            sigmaK = zeros(3,1);
-            sigmaK(1:2) = sum(sigma(1:2));
-            sigmaK(3) = 0;
-            sigmaVol = sigmaK*0.5;
-            sigmaDev = sigma - sigmaVol;
             k = obj.materialPhaseField.getBulkFun(phi,'Interpolated');
             mu = obj.materialPhaseField.getShearFun(phi,'Interpolated');
             strain = SymGrad(u);
-            sigmaBulk = k.*Voigt(Spherical(strain));
-            sigmaShear = mu.*Voigt(Deviatoric(strain));
-            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            sigmaBulk = 2.*k.*VoigtStress(Spherical(strain));
+            sigmaShear = 2.*mu.*VoigtStress(Deviatoric(strain));
 
+            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             s.mesh = obj.mesh;
             s.quadratureOrder = quadOrder;
             s.type = 'ShapeSymmetricDerivative';
             RHS = RHSintegrator.create(s);
-            JbulkU = 2.*RHS.compute(sigmaBulk,test);
-            JshearU = 2.*RHS.compute(sigmaShear,test);
+            JbulkU = RHS.compute(sigmaBulk,test);
+            JshearU = RHS.compute(sigmaShear,test);
 
             Ju = JbulkU + JshearU;
         end
 
-
-
-
-
-
-        function Jphi = computeGradientDamageSplit(obj,u,phi,quadOrder)
+        function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             k = obj.materialPhaseField.getBulkFun(phi,'Jacobian');
             mu = obj.materialPhaseField.getShearFun(phi,'Jacobian');
             strain = SymGrad(u);
@@ -124,8 +85,6 @@ classdef ShFunc_InternalEnergySplit < handle
             JshearPhi = RHS.compute(dShearFun,test);
 
             Jphi = JbulkPhi + JshearPhi;
-
-
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)

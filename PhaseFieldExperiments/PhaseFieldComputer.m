@@ -174,13 +174,13 @@ classdef PhaseFieldComputer < handle
 
         function RHS = computeElasticResidual(obj,u,phi)
             fExt = obj.BC.pointloadFun;
-            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'QUADRATIC');
+            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'LINEAR');
             Fext = obj.functional.extWork.computeGradient(u,fExt,'LINEAR');
             RHS = Fint + Fext;
         end
 
         function LHS = computeElasticLHS(obj,u,phi)
-            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'QUADRATIC');
+            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'LINEAR');
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn)
