@@ -38,7 +38,7 @@ classdef LHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                warning('Assuming quadrature order')
+                % warning('Assuming quadrature order')
                 quadOrderTe = obj.test.getOrderNum();
                 quadOrderTr = obj.trial.getOrderNum();
                 obj.quadratureOrder = quadOrderTe + quadOrderTr;
