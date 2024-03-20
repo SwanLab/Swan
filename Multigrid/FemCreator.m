@@ -1,10 +1,11 @@
-classdef createFem < handle
+classdef FemCreator < handle
     %UNTITLED4 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties (Access = public)
         LHS
         RHS
+        bc
     end
     
     properties (Access = private)
@@ -20,7 +21,7 @@ classdef createFem < handle
     end
     
     methods (Access = public)
-        function obj = createFem(cParams)
+        function obj = FemCreator(cParams)
             obj.init(cParams)
             obj.createLHSandRHS()
         end
@@ -40,7 +41,7 @@ classdef createFem < handle
             for i = 1:obj.nLevel
                 
                 u   = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
-                bc  = obj.createBoundaryConditions(obj.coarseMeshes{i},obj.coarseDispFun{i});
+                obj.bc{i}  = obj.createBoundaryConditions(obj.coarseMeshes{i},u);
                 mat = obj.createMaterial(obj.coarseMeshes{i});
                 m   = obj.coarseMeshes{i};
 %                 s.solverTyp             = 'ITERATIVE';
@@ -49,7 +50,7 @@ classdef createFem < handle
 %                 s.maxIter               = 20;
 
                 obj.LHS{i} = obj.computeStiffnessMatrix(m,mat,u);
-                obj.RHS{i} = obj.createRHS(m,u,bc);
+                obj.RHS{i} = obj.createRHS(m,u,obj.bc{i});
 
             end
         end

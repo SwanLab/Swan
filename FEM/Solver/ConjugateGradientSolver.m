@@ -1,11 +1,9 @@
-classdef conjugateGradient_Solver < Solver
+classdef ConjugateGradientSolver < Solver
 
     methods (Static)
-
-        function x = solve(LHS,RHS,mesh,bc)
+        
+        function x = solve(LHS,RHS,maxIter,x)
             tol = 1e-6;
-            n = length(RHS);
-            x = RHS; 
             r = RHS - LHS * x; 
             p = r; 
             rsold = r' * r;
@@ -20,7 +18,6 @@ classdef conjugateGradient_Solver < Solver
                 r = r - alpha * Ap;
                 rsnew = r' * r;
 
-                %hasNotConverged = sqrt(rsnew) > tol;
                 hasNotConverged = max(LHS*x - RHS) > tol;
 
                 p = r + (rsnew / rsold) * p;

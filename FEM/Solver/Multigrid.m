@@ -16,8 +16,11 @@ classdef Multigrid < handle
         LHS
         coarseMeshes
         interpolator
+        coarseBc
         coarseLHS
         coarseRHS
+        solverType
+        iterativeSolverType
         
 %         solver
     end
@@ -33,18 +36,22 @@ classdef Multigrid < handle
 %             s.iterativeSolverType = 'CG';
             
             obj.createFEMlevel();
-            obj.createSolver();
+            %obj.createSolver();
 
 
-            obj.createData();
+            %obj.createData();
 
         end
 
         function u = solve(obj)
-            while norm(data(nlevels).b - data(nlevels).A * u, inf) >= obj.tol
-                [u,numero] = vcycle(u, data(nlevels).b, data, vdown, vup, nlevels, bc, numero, mesh, meshType);
-                res_record(i) = norm(data(nlevels).b - data(nlevels).A * u,inf);
-                i = i + 1;
+            obj.coarseBc{1,obj.nLevel + 1} = obj.boundaryConditions;
+            obj.coarseLHS{1,obj.nLevel + 1} = obj.LHS;
+            obj.coarseRHS{1,obj.nLevel + 1} = obj.RHS;
+            u = 0*obj.coarseRHS{obj.nLevel + 1};
+            level = obj.nLevel + 1;
+            b = obj.RHS;
+            while norm(obj.coarseRHS{obj.nLevel + 1} - obj.coarseLHS{obj.nLevel + 1} * u, inf) >= obj.tol
+                u = obj.vCycle(u,b,level);
             end
 
         end
@@ -78,22 +85,73 @@ classdef Multigrid < handle
             s.scale        = obj.scale;
             s.pdim         = obj.pdim;
             FEM            = FemCreator(s);
+            obj.coarseBc   = FEM.bc;
             obj.coarseLHS  = FEM.LHS;
             obj.coarseRHS  = FEM.RHS;
         end
         
         function createSolver(obj)
-            s.solverType          = 'ITERATIVE';
-            s.iterativeSolverType = 'CG';
-            s.tol                 = obj.tol;
-            s.nLevel              = obj.nLevel;
-            s.LHS                 = obj.LHS;
-            s.RHS                 = obj.RHS;
-            s.coarseLHS           = obj.coarseLHS;
-            s.coarseRHS           = obj.coarseRHS;
-            CGSolverCreator(s);
+%             s.solverType          = 'ITERATIVE';
+%             s.iterativeSolverType = 'CG';
+%             s.tol                 = obj.tol;
+%             s.nLevel              = obj.nLevel;
+%             s.LHS                 = obj.LHS;
+%             s.RHS                 = obj.RHS;
+%             s.coarseLHS           = obj.coarseLHS;
+%             s.coarseRHS           = obj.coarseRHS;
             
+            u = obj.solve();
+%             createVCycle();
+          
         end
+        
+        function u = vCycle(obj,u,b,level)
+            if level == 1
+                maxIter = 1000;
+                solver = Solver.create('DIRECT');
+                u = solver.solve(LHS,RHS);
+              %  u = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
+            else
+                maxIter = 20;
+                LHS = obj.coarseLHS{level};
+                RHS = b;
+                s.solverType = 'ITERATIVE';
+                s.iterativeSolverType = 'CG';
+                solver = Solver.create(s);
+                u = solver.solve(LHS,RHS,maxIter,u);
+                r = b - obj.coarseLHS{level}*u;
+                [Rr] = obj.interpolate(r,obj.coarseBc,obj.interpolator,level);
+                [ur] = obj.interpolate(u,obj.coarseBc,data,level);
+                er = vCycle(0*ur, Rr, level - 1);
+                e = obj.restriction(er,obj.coarseBc,data,level);
+                u = u + e;
+                maxIter = 20;
+                LHS = obj.coarseLHS{level};
+                RHS = b;
+                solver = Solver.create(s);
+                u = solver.solve(LHS,RHS,maxIter,u);                
+                %[u, res, numero] = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
+             end
+
+        end
+
+        function fF = restriction(obj,fC,bc,I,level)
+                fF = bc{level - 1}.reducedToFullVector(fC);
+                fF = reshape(fF,2,[])';
+                fF = I(level - 1) * fF; 
+                fF = reshape(fF',[],1);
+                fF = bc{level}.fullToReducedVector(fF);
+        end
+
+        function [fCoarse] = interpolate(obj,fFine,bc,data,level)
+
+                fFine = bc{level}.reducedToFullVector(fFine);
+                fFine = reshape(fFine,2,[])';
+                fCoarse = data(level - 1).R * fFine;
+                fCoarse = reshape(fCoarse',[],1);
+                fCoarse = bc{level - 1}.fullToReducedVector(fCoarse);
+        end
+        
     end
 end
 
