@@ -26,26 +26,31 @@ classdef LagrangianPlotter < handle
 
         
         function plotLagrangianFunc(~,s)
-            figure(1000)
             for idim = 1:s.func.ndimf
-                subplot(1,s.func.ndimf,idim);
-                hold on
-                
                 c = s.func.getCoord();
-                x = c(:,1);
-                y = c(:,2);
-                z = s.func.fValues(:,idim);
-                %T = delaunay(x,y);
-                T = s.mesh.connec;
-                a = trisurf(T,x,y,z);
-                
-                view(0,90)
-                colorbar
-                shading interp
-                grid on
-                title(['dim = ', num2str(idim)]);
-                a.EdgeColor = [0 0 0];
-                a.EdgeColor = [0 0 0];
+                if size(c,2) > 1
+                    subplot(1,s.func.ndimf,idim);
+                    hold on
+                    x = c(:,1);
+                    y = c(:,2);
+                    z = s.func.fValues(:,idim);
+                    %T = delaunay(x,y);
+                    T = s.mesh.connec;
+                    a = trisurf(T,x,y,z);
+
+                    view(0,90)
+                    colorbar
+                    shading interp
+                    grid on
+                    title(['dim = ', num2str(idim)]);
+                    a.EdgeColor = [0 0 0];
+                    a.EdgeColor = [0 0 0];
+                else
+                    x = c(:,1);
+                    z = s.func.fValues(:,idim);
+                    plot(x,z);
+                    xlim([0,1])
+                end
             end
         end
         

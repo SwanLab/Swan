@@ -1,17 +1,19 @@
 classdef Tutorial02p2FEMElasticityMicro < handle
-
-    properties (Access = private)
+   
+    properties (SetAccess = private, GetAccess = public)
         mesh
         young
         poisson
+        bulk
+        shear
         material
         stateProblem
     end
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro()
-            obj.createMesh();
+        function obj = Tutorial02p2FEMElasticityMicro(length,type)
+            obj.createMesh(length,type);
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
@@ -21,32 +23,53 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = private)
         
-        function createMesh(obj)
+        function createMesh(obj,length,type)
             fullmesh = UnitTriangleMesh(20,20);
-            ls = obj.computeCircleLevelSet(fullmesh);
-            sUm.backgroundMesh = fullmesh;
-            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(ls);
-            holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
+            ls = obj.computeCircleLevelSet(fullmesh,length,type);
+            if type ~= "Full"
+                sUm.backgroundMesh = fullmesh;
+                sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+                uMesh              = UnfittedMesh(sUm);
+                uMesh.compute(ls);
+                holeMesh = uMesh.createInnerMesh();
+                obj.mesh = holeMesh;
+            else
+                obj.mesh = fullmesh;
+            end
         end
 
-        function ls = computeCircleLevelSet(obj, mesh)
-            gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
-            gPar.xCoorCenter   = 0.5;
-            gPar.yCoorCenter   = 0.5;
-            g                  = GeometricalFunction(gPar);
-            phiFun             = g.computeLevelSetFunction(mesh);
-            lsCircle           = phiFun.fValues;
-            ls = -lsCircle;
+        function ls = computeCircleLevelSet(obj, mesh,length,type)
+            if type == "Circle"
+                gPar.type          = 'Circle';
+                gPar.radius        = length;
+                gPar.xCoorCenter   = 0.5;
+                gPar.yCoorCenter   = 0.5;
+                g                  = GeometricalFunction(gPar);
+                phiFun             = g.computeLevelSetFunction(mesh);
+                lsCircle           = phiFun.fValues;
+                ls = -lsCircle;
+            elseif type == "Square"
+                gPar.type          = 'Square';
+                gPar.length        = length;
+                gPar.xCoorCenter   = 0.5;
+                gPar.yCoorCenter   = 0.5;
+                g                  = GeometricalFunction(gPar);
+                phiFun             = g.computeLevelSetFunction(mesh);
+                lsSquare           = phiFun.fValues;
+                ls = -lsSquare;
+            elseif type == "Full"
+                gPar.type          = 'Full';
+                g                  = GeometricalFunction(gPar);
+                phiFun             = g.computeLevelSetFunction(mesh);
+                lsFull             = phiFun.fValues;
+                ls = -lsFull;
+            end
         end
 
 
         function computeElasticProperties(obj)
-            E1  = 1;
-            nu1 = 1/3;
+            E1  = 210;
+            nu1 = 0.3;
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             obj.young   = E;
@@ -57,6 +80,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
+            s.bulk = obj.bulk;
+            s.shear = obj.shear;
             s.young   = obj.young;
             s.poisson = obj.poisson;
             tensor    = Material.create(s);

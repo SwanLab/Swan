@@ -74,6 +74,7 @@ classdef SurfaceMesh < Mesh
                 axis('equal');
                 hold on
             end
+            hold off
         end
 
         function m = provideExtrudedMesh(obj, height)

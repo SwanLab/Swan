@@ -8,12 +8,13 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);
+            obj.ndim = 2;
             obj.ndimf = 4;
         end
 
         function C = evaluate(obj,xV)
             [mu,k] = obj.computeShearAndBulk(xV);
-            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndimf);
+            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
             nGaus = size(xV,2);                        
             nElem = length(mu);
             nStre = 3;

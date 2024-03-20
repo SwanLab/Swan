@@ -196,7 +196,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStrain(obj, iVoigt)
-            obj.strainFluctFun{iVoigt} = SymGrad(obj.uFun{iVoigt});
+            obj.strainFluctFun{iVoigt} = Voigt(SymGrad(obj.uFun{iVoigt}));
         end
 
         function computeStress(obj, iVoigt)
