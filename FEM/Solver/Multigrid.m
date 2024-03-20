@@ -4,7 +4,6 @@ classdef Multigrid < handle
     properties (Access = private)
         nDimf
         data
-
         nLevel
         mesh
         material
@@ -15,7 +14,6 @@ classdef Multigrid < handle
         pdim
         RHS
         LHS
-      
         coarseMeshes
         interpolator
         coarseLHS
@@ -27,7 +25,7 @@ classdef Multigrid < handle
     methods (Access = public)
 
         function obj = Multigrid(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
 %             s.type                = 'ELASTIC';
 %             s.scale               = 'MACRO';
 %             s.dim                 = '2D';
@@ -93,7 +91,7 @@ classdef Multigrid < handle
             s.RHS                 = obj.RHS;
             s.coarseLHS           = obj.coarseLHS;
             s.coarseRHS           = obj.coarseRHS;
-            createCGSolver(s)
+            createCGSolver(s);
             
         end
     end

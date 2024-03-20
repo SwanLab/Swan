@@ -13,7 +13,7 @@ classdef conjugateGradient_Solver < Solver
 
             hasNotConverged = true;
 
-            while hasNotConverged
+            while iter < maxIter && hasNotConverged
                 Ap = LHS * p;
                 alpha = rsold / (p' * Ap);
                 x = x + alpha * p;
