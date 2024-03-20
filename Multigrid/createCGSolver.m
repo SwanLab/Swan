@@ -54,7 +54,9 @@ classdef createCGSolver < handle
         function u = vCycle(obj,u,b,level)
             if level == 1
                 maxIter = 1000;
-                u = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
+                solver = Solver.create('DIRECT');
+                u = solver.solve(LHS,RHS);
+              %  u = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
             else
                 
                 s.maxIter = 20;
@@ -74,17 +76,19 @@ classdef createCGSolver < handle
                 [er,numero,res] = vCycle(0*ur, Rr, level - 1);
                 e = restriction(er,bc,data,level);
                 u = u + e;
-                [u, res, numero] = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
+                solver = Solver.create('CG');
+                u = solver.solve(LHS,RHS);                
+                %[u, res, numero] = conjugateGradient_Solver(data(level).A,b,u,meshType,maxIter, level, mesh, numero,res);
              end
 
         end
 
-        function fFine = restriction(fCoarse,bc,data,level)
-                fFine = bc{level - 1}.reducedToFullVector(fCoarse);
-                fFine = reshape(fFine,2,[])';
-                fFine = data(level - 1).T * fFine; 
-                fFine = reshape(fFine',[],1);
-                fFine = bc{level}.fullToReducedVector(fFine);
+        function fF = restriction(fC,bc,data,level)
+                fF = bc{level - 1}.reducedToFullVector(fC);
+                fF = reshape(fF,2,[])';
+                fF = data(level - 1).T * fF; 
+                fF = reshape(fF',[],1);
+                fF = bc{level}.fullToReducedVector(fF);
         end
 
         function [fCoarse] = interpolate(fFine,bc,data,level)

@@ -77,7 +77,7 @@ classdef Multigrid < handle
             s.type         = obj.type;
             s.scale        = obj.scale;
             s.pdim         = obj.pdim;
-            FEM            = createFem(s);
+            FEM            = FemCreator(s);
             obj.coarseLHS  = FEM.LHS;
             obj.coarseRHS  = FEM.RHS;
         end
@@ -91,7 +91,7 @@ classdef Multigrid < handle
             s.RHS                 = obj.RHS;
             s.coarseLHS           = obj.coarseLHS;
             s.coarseRHS           = obj.coarseRHS;
-            createCGSolver(s);
+            CGSolverCreator(s);
             
         end
     end

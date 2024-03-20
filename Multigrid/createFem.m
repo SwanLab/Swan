@@ -39,16 +39,17 @@ classdef createFem < handle
         function createLHSandRHS(obj)
             for i = 1:obj.nLevel
                 
-                obj.coarseDispFun{i}  = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
-                obj.coarseBc{i}       = obj.createBoundaryConditions(obj.coarseMeshes{i},obj.coarseDispFun{i});
-                obj.coarseMaterial{i} = obj.createMaterial(obj.coarseMeshes{i});
+                u   = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
+                bc  = obj.createBoundaryConditions(obj.coarseMeshes{i},obj.coarseDispFun{i});
+                mat = obj.createMaterial(obj.coarseMeshes{i});
+                m   = obj.coarseMeshes{i};
 %                 s.solverTyp             = 'ITERATIVE';
 %                 s.iterativeSolverTyp    = 'CG';
 %                 s.tol                   = 1e-6;
 %                 s.maxIter               = 20;
 
-                obj.LHS{i} = obj.computeStiffnessMatrix(obj.coarseMeshes{i},obj.coarseMaterial{i},obj.coarseDispFun{i});
-                obj.RHS{i} = obj.createRHS(obj.coarseMeshes{i},obj.coarseDispFun{i},obj.coarseBc{i});
+                obj.LHS{i} = obj.computeStiffnessMatrix(m,mat,u);
+                obj.RHS{i} = obj.createRHS(m,u,bc);
 
             end
         end
