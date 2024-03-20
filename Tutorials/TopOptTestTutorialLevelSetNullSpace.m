@@ -180,7 +180,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             f{1} = x.obtainDomainFunction();
             f = obj.filter.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
-            s.density              = f;
+            s.density              = f{1};
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             m = Material.create(s);

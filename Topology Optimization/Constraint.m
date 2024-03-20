@@ -7,7 +7,7 @@ classdef Constraint < handle
 
     properties (Access = private)
         shapeFunctions
-        Msmooth
+     %   Msmooth
     end
 
     methods (Access = public)
@@ -19,25 +19,36 @@ classdef Constraint < handle
             nS  = length(obj.shapeFunctions);
             Jc  = cell(nS,1);
             dJc = cell(nS,1);
-            for iF = 1:nS
-                shI     = obj.shapeFunctions{iF};
+            for iS = 1:nS
+                shI     = obj.shapeFunctions{iS};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
-                Jc{iF}  = j;
-                dJc{iF} = dJ;
+                Jc{iS}  = j;
+                dJc{iS} = dJ;
             end
             jV  = zeros(nS,1);
-            djV = zeros(length(dJc{1}),nS);
-            for iF = 1:nS
-                jV(iF)    = Jc{iF};
-                djV(:,iF) = dJc{iF};
+            nG  = obj.computeGradientLength(dJc{1});            
+            djV = zeros(nG,nS);
+            for iS = 1:nS
+                jV(iS) = Jc{iS};
+                dJs    = dJc{iS};
+                dJv = [];                
+                for iF = 1:numel(x.fun)
+                    dJv = [dJv;dJs{iF}.fValues];                    
+                end                
+                djV(:,iS) = dJv;
             end
             obj.value    = jV;
             obj.gradient = djV;
         end
 
-        function nF = obtainNumberFields(obj)
-            nF = length(obj.shapeFunctions);
-        end
+        function nG = computeGradientLength(obj,dJ)
+            nF = numel(dJ);
+            nG = 0;
+            for iF = 1:nF
+                nG = nG + length(dJ{iF}.fValues);
+            end
+        end        
+
 
         function titles = getTitleFields(obj)
             nF = length(obj.shapeFunctions);
@@ -51,7 +62,7 @@ classdef Constraint < handle
     methods (Access = private)
         function obj = init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
-            obj.Msmooth        = cParams.Msmooth;
+%            obj.Msmooth        = cParams.Msmooth;
         end
     end
 end

@@ -19,10 +19,8 @@ classdef LevelSet < DesignVariable
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-            s.mesh    = obj.mesh;
-            s.fValues = value;
-            s.order   = 'P1';
-            obj.fun   = LagrangianFunction(s);
+            obj.fun{1} = obj.fun{1}.copy();
+            obj.fun{1}.fValues = value;
             obj.updateUnfittedMesh();
         end
 

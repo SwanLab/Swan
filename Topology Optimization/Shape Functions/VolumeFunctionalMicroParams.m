@@ -26,11 +26,7 @@ classdef VolumeFunctionalMicroParams < handle
         function [J,dJ] = computeFunctionAndGradient(obj,m)
             obj.microParams = m;
             J  = obj.computeFunction();
-            dJm = obj.computeGradient();
-            dJ = [];
-            for ivar = 1:numel(dJm)
-                dJ = [dJ;dJm{ivar}.fValues];                
-            end              
+            dJ = obj.computeGradient();                  
         end
     end
 
@@ -75,7 +71,7 @@ classdef VolumeFunctionalMicroParams < handle
 
         function createTotalVolume(obj)
             m  = obj.mesh;            
-            obj.totalVolume = m.computeVolume;
+            obj.totalVolume = m.computeVolume();
         end        
 
         function J = computeFunction(obj)

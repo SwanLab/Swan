@@ -24,27 +24,36 @@ classdef Cost < handle
             nS  = length(obj.shapeFunctions);
             Jc  = cell(nS,1);
             dJc = cell(nS,1);
-            for iF = 1:nS
-                shI     = obj.shapeFunctions{iF};
+            for iS = 1:nS
+                shI     = obj.shapeFunctions{iS};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
-                Jc{iF}  = j;
-                dJc{iF} = dJ;   
+                Jc{iS}  = j;
+                dJc{iS} = dJ;   
             end
             obj.shapeValues = Jc;
             jV  = 0;
-            djV = zeros(size(dJc{1}));
-            for iF = 1:nS
-                wI  = obj.weights(iF);
-                jV  = jV  + wI*Jc{iF};
-                djV = djV + wI*dJc{iF};
-
+            nG  = obj.computeGradientLength(dJc{1});
+            djV = zeros(nG,1);            
+            for iS = 1:nS
+                wI  = obj.weights(iS);
+                jV  = jV  + wI*Jc{iS};
+                dJs = dJc{iS};
+                dJv = [];                
+                for iF = 1:numel(x.fun)
+                    dJv = [dJv;dJs{iF}.fValues];                    
+                end
+                djV = djV + wI*dJv;
             end
             obj.value    = jV;
             obj.gradient = djV;
         end
 
-        function nF = obtainNumberFields(obj)
-            nF = length(obj.shapeFunctions);
+        function nG = computeGradientLength(obj,dJ)
+            nF = numel(dJ);
+            nG = 0;
+            for iF = 1:nF
+                nG = nG + length(dJ{iF}.fValues);
+            end
         end
 
         function titles = getTitleFields(obj)

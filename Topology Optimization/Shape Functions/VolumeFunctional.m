@@ -18,9 +18,9 @@ classdef VolumeFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
-            J  = obj.computeFunction(xD);
-            dJ = obj.computeGradient(xD);
+            xD    = x.obtainDomainFunction();
+            J     = obj.computeFunction(xD);
+            dJ{1} = obj.computeGradient(xD);
         end
     end
 
@@ -37,8 +37,8 @@ classdef VolumeFunctional < handle
         end
 
         function createTotalVolume(obj)
-            dV = obj.mesh.computeDvolume(obj.quadrature);
-            obj.totalVolume = dV;
+            vt = obj.mesh.computeVolume();
+            obj.totalVolume = vt;
         end
 
         function J = computeFunction(obj,x)
@@ -47,9 +47,8 @@ classdef VolumeFunctional < handle
         end
 
         function dJ = computeGradient(obj,x)
-            test    = obj.gradientTest;
-            fValues = ones(test.nDofs,1)/obj.totalVolume;
-            dJ      = FeFunction.create(test.order,fValues,obj.mesh);
+            dJ = obj.gradientTest.copy();
+            dJ.fValues = ones(dJ.nDofs,1)/obj.totalVolume;
         end
     end
 

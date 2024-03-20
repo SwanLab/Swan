@@ -39,14 +39,21 @@ classdef ComplianceFunctional < handle
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj)
             C   = obj.material.obtainTensor();
-            dC  = obj.material.obtainTensorDerivative();
+            dC  = obj.material.obtainTensorDerivative();            
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filter.compute(dJ,'LINEAR');
+            dJ     = obj.filter.compute(dJ,'QUADRATIC');
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J          = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            J = obj.computeNonDimensionalValue(J);
+            for ivar = 1:numel(dJ)
+                dJ{ivar}.fValues = obj.computeNonDimensionalValue(dJ{ivar}.fValues);
+            end
+       %     dJV = [];
+       %     for ivar = 1:numel(dJ)
+       %         dJV = [dJV;dJ{ivar}.fValues];                
+        %    end 
+       %     dJ = dJV;
         end
 
         function x = computeNonDimensionalValue(obj,x)

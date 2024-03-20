@@ -23,11 +23,11 @@ classdef DensityBasedMaterial < handle
         
         function dC = obtainTensorDerivative(obj)
           s.operation = @(xV) obj.evaluateGradient(xV);
-          dC = DomainFunction(s);
+          dC{1} = DomainFunction(s);
         end
         
         function setDesignVariable(obj,x)
-            obj.density = x;
+            obj.density = x{1};
         end
         
     end

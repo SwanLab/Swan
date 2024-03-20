@@ -70,7 +70,7 @@ classdef SLERP < handle
 
         function V = computeVolumeFromTau(obj,g,ls)
             lsAux  = ls.copy();
-            phiRef = lsAux.fun.fValues;
+            phiRef = lsAux.getValue();
             phiNew = obj.update(g,phiRef);
             lsAux.update(phiNew);
             V      = obj.volume.computeFunctionAndGradient(lsAux);
