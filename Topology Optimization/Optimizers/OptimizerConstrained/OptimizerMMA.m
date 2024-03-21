@@ -55,6 +55,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
+               obj.designVariable.fun.print(['Output/MBBprojecteprova/MBBprojecteprova_',char(string(obj.nIter))]);
            end
             obj.hasConverged = 0;
        end

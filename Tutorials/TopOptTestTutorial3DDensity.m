@@ -41,7 +41,14 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(6,0.5,0.5,120,10,10);
+            obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            
+            %INTRODUIM COM GENERA LA MALLA EL GiD
+            %file = 'GiD_PauCornudellaQuer_Prova_3';
+            %a.fileName = file;
+            %s = FemDataContainer(a);
+            %obj.mesh = s.mesh;   %faltava ficar el obj????
+
         end
 
         function createDesignVariable(obj)
@@ -57,7 +64,7 @@ classdef TopOptTestTutorial3DDensity < handle
             obj.designVariable = dens;
             %%%%DENSITY^%%%%
             %%%%LEVELSETv%%%%
-            %  s.type = 'Full';
+            %s.type = 'Full';
             %g      = GeometricalFunction(s);
             %lsFun  = g.computeLevelSetFunction(obj.mesh);
             %s.fun  = lsFun;
@@ -192,61 +199,28 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax = max(obj.mesh.coord(:,1));
-            yMax = max(obj.mesh.coord(:,2));
-            zMax = max(obj.mesh.coord(:,3));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
 
+            %isDir1, isDir2... if you want (optional)
             isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
             isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
-            isForce = @(coor)  [abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax];
-            sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = [2,3];
-            sDir{1}.value     = 0;
 
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2,3];
-            sDir{2}.value     = 0;
+            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+           
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
 
-%%%%--------------------------------------------------
-
-            %isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
-            %isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
-
-            %isForce1 = @(coor) [abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax ]; %FORÇA DIRECCIÓ X
-            %isForce2 = @(coor) abs(coor(:,2))==yMax; %FORÇA DIRECCIÓ Y
-            %isForce  = @(coor) isForce1(coor) & isForce2(coor); 
-            %isForce = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Alternatively
-            
-            %sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
-            %sDir{1}.direction = [2]; %restricció vertical només
-            %sDir{1}.value     = 0;  %desplaçament =0
-
-            %sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-            %sDir{2}.direction = [2]; %restricció vertical i horitzontal
-            %sDir{2}.value     = 0; %desplaçament =0
-
-            %sPL{1}.domain    = @(coor) isForce(coor);
-            %sPL{1}.direction = 2;
-            %sPL{1}.value     = -1;
-
-
-%%%%--------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
+            %No tocar a partir d'aqui
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
