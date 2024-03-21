@@ -7,6 +7,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
     properties (Access = private)
         fun
         phi
+        tensorType
     end
 
     properties (Access = private)
@@ -17,9 +18,10 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = public)
 
-        function obj = setMaterial(obj,phi,type)
+        function obj = setMaterial(obj,phi,interpType,tensorType)
             obj.phi = phi;
-            switch type
+            obj.tensorType = tensorType;
+            switch interpType
                 case 'Isotropic'
                     obj.fun = @(phi) 1;
                 case 'Interpolated'
@@ -49,8 +51,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             C(3,3,:,:)= mu;
         end
 
-        function kFun = getBulkFun(obj,phi,type)
-            obj.setMaterial(phi,type);
+        function kFun = getBulkFun(obj,phi,interpType)
+            obj.setMaterial(phi,interpType,'');
             g = obj.computeDegradationFun();
 
             E = obj.young.fValues;
@@ -65,8 +67,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             kFun = times(g,k);
         end
 
-        function muFun = getShearFun(obj,phi,type)
-            obj.setMaterial(phi,type);
+        function muFun = getShearFun(obj,phi,interpType)
+            obj.setMaterial(phi,interpType,'');
             g = obj.computeDegradationFun();
 
             E = obj.young.fValues;
@@ -110,6 +112,12 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
         function [mu, k] = computeMuAndKappa(obj,g,xV)
             [muV,kV] = obj.computeShearAndBulk(xV);
+            if obj.tensorType == "Deviatoric"
+                kV = 0.*kV;
+            elseif obj.tensorType == "Volumetric"
+                muV = 0.*muV; 
+            end
+
             mu = g.evaluate(xV).*muV;
             k = g.evaluate(xV).*kV;
         end
