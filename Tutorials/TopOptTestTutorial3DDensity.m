@@ -44,7 +44,7 @@ classdef TopOptTestTutorial3DDensity < handle
             %obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            file = 'GiD_Provamalla_MBB';
+            file = 'GiD_PauCornudellaQuer_Prova_3';
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;   %faltava ficar el obj????
