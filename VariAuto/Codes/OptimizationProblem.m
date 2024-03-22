@@ -11,7 +11,7 @@ classdef OptimizationProblem < handle
         optimizer
         plotter
     end
-
+  
    methods (Access = public)
 
        function obj = OptimizationProblem(cParams)

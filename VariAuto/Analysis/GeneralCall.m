@@ -2,7 +2,6 @@
 clc;
 clear;
 close all;
-addpath ../Codes;
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
@@ -20,7 +19,9 @@ for i = 1:length(datasets)
     fprintf('%d - %s \n',i,datasets(i))
 end
 fileN = datasets(input('Choose: '));
-
+s.fileName        = fileN;
+s.testRatio       = testratio;
+s.polynomialOrder = pol_deg;
 data  = Data(s);
 
 %% Create Network and trainer Objects
@@ -29,7 +30,13 @@ structure = [data.nFeatures,hiddenlayers,data.nLabels];
 % network = Network(data,structure,'-loglikelihood','ReLU','softmax',lambda);
 
 %% Run Optimization Problem
-optProblem   = OptimizationProblem(data,structure,learningRate);
+p.data            = data;
+p.structure       = structure;
+p.optimizerParams.learningRate = learningRate;
+p.costParams.lambda = lambda;
+p.networkParams.hiddenLayers = hiddenlayers;
+
+optProblem   = OptimizationProblem(p);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;
 % opt.maxepochs     = 100    ; opt.earlyStop     = 10;
 % opt.time          = Inf([1,1]); opt.fv         = 10^-4;
@@ -39,7 +46,7 @@ optProblem   = OptimizationProblem(data,structure,learningRate);
 %% RUN & Possible functions
 data.plotCorrMatrix();
 % network.plotBoundary('contour'); Amb errors dins?
-optProblem.plotConections();
+% optProblem.plotConections();
 optProblem.plotConfusionMatrix();
 
 

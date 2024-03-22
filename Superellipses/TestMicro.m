@@ -9,17 +9,21 @@ classdef TestMicro < handle
     
     properties (Access = public)
         stateProblem
+        geometryInclusion
     end
 
     methods (Access = public)
 
-        function obj = TestMicro()
+        function obj = TestMicro(cParams)
+            obj.init(cParams);
             obj.createMesh();
-            obj.mesh.plot();
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
-            obj.stateProblem.Chomog
+        end
+        
+        function init(obj,cParams)
+            obj.geometryInclusion = cParams;
         end
 
     end
@@ -38,10 +42,10 @@ classdef TestMicro < handle
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
-            gPar.type               = 'Ellipse';
-            gPar.semiHorizontalAxis = 0.25;
-            gPar.semiVerticalAxis   = 0.25;
-            gPar.superEllipseFactor = 0.5;
+            gPar.type               = obj.geometryInclusion.type;
+            gPar.semiHorizontalAxis = obj.geometryInclusion.a;
+            gPar.semiVerticalAxis   = obj.geometryInclusion.b;
+            gPar.superEllipseFactor = obj.geometryInclusion.n;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
