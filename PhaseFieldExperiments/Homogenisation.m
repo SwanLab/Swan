@@ -1,16 +1,21 @@
+close all
+
 type0 = "Square";
 
 [density,matHomog] = runCases(type0);
- C = createFunctions(density,matHomog);
- plot(C);
+ Chomog = createFunctions(density,matHomog);
+ Ciso = computeIsotropicDamage();
+ plot(Ciso,Chomog);
 
  function [density,matHomog] = runCases(type0)
      if type0 == "Circle"
          max = 0.5;
      elseif type0 == "Square"
          max = 0.94;
+     elseif type0 == "Full"
+         max = 1;
      end
-     squareLength = linspace(0,max,20);
+     squareLength = linspace(0,max,30);
      matHomog = zeros(3,3,length(squareLength));
      density = zeros(length(squareLength),1);
     
@@ -31,40 +36,74 @@ type0 = "Square";
     
          matHomog(:,:,i) = mat.stateProblem.Chomog;
          if type == "Circle"
-             holeArea = pi*l^2;
+             area = mat.mesh.computeVolume;
+             holeArea = 1 - area;
+             diameter = 2*l;
+             perimeter = 2*pi*l/4;
          elseif type == "Square"
-             holeArea = l^2;
+             area = mat.mesh.computeVolume;
+             holeArea = 1 - area;
+             diameter = l;
+             perimeter = 4*l/4;
          elseif type == "Full"
-             holeArea = 0;
+             area = mat.mesh.computeVolume;
+             holeArea = 1 - area;
+             diameter = 0;
+             perimeter = 0;
          end
-         density(i,1) = mat.mesh.computeVolume;
-         %density(i,1) = 1-2*l;
+         density(i,1) = perimeter;
      end
  end
 
-function C = createFunctions(density,matHomog)
-C = {};
+ function  Ciso = computeIsotropicDamage()
+    C = zeros(3,3);
+    E = 1;
+    v = 0.3;
+    constant = E/(1-v^2);
+
+    C(1,1) = constant; 
+    C(1,2) = constant*v;
+    C(2,1) = constant*v;
+    C(2,2) = constant;
+    C(3,3) = constant*(1-v)/2;
+
+    x = linspace(0,1,30);
+    for i=1:3
+        for j=1:3
+            sM.coord = x';
+            sM.connec = [1:length(x)-1]' + [0,1];
+            s.mesh = Mesh.create(sM);
+            s.fValues = [(1-x).^2*C(i,j)]';
+            s.order = 'P1';
+            Ciso{i,j} = LagrangianFunction(s);
+        end
+    end
+ end
+
+function Chomog = createFunctions(density,matHomog)
 for i=1:3
     for j=1:3
         sM.coord = density;
-        sM.connec = 1:length(density)-1 + [1,0];
-        %sM.kFace = 0;
+        sM.connec = [1:length(density)-1]' + [0,1];
         s.mesh = Mesh.create(sM);
         s.fValues = squeeze(matHomog(i,j,:));
         s.order = 'P1';
-        C{i,j} = LagrangianFunction(s);
+        Chomog{i,j} = LagrangianFunction(s).project('P2');
     end
 end
 end
 
-function plot(C)
+function plot(Ciso,Chomog)
 figure(2)
 for i=1:3
     for j=1:3
         k = 3*(i-1)+j;
         subplot(3,3,k)
-        C{i,j}.plot;
-        set ( gca, 'XDir', 'reverse' ) 
+        Chomog{i,j}.plot;
+        %set ( gca, 'XDir', 'reverse' ) %% ONLY FOR AREA DENSITY
+        hold on
+        Ciso{i,j}.plot
+        hold off
         title(['C',num2str(i),num2str(j)]);
     end
 end

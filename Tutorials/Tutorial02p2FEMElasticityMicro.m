@@ -68,7 +68,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
 
         function computeElasticProperties(obj)
-            E1  = 210;
+            E1  = 1;
             nu1 = 0.3;
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
