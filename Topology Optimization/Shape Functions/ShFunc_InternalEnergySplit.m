@@ -36,14 +36,14 @@ classdef ShFunc_InternalEnergySplit < handle
         end
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
-            k = obj.materialPhaseField.getBulkFun(phi,'Interpolated');
+            k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
             bulkFun = k.*trace(SymGrad(u)).^2;
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(bulkFun);
         end
 
         function F = computeEnergyShear(obj,u,phi,quadOrder)
-            mu = obj.materialPhaseField.getShearFun(phi,'Interpolated');
+            mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
             strainDev = Deviatoric(SymGrad(u));
             shearFun = mu.*DDP(Voigt(strainDev),Voigt(strainDev));
             int = Integrator.create('Function',obj.mesh,quadOrder);
@@ -51,8 +51,8 @@ classdef ShFunc_InternalEnergySplit < handle
         end
         
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            k = obj.materialPhaseField.getBulkFun(phi,'Interpolated');
-            mu = obj.materialPhaseField.getShearFun(phi,'Interpolated');
+            k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
+            mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
             strain = SymGrad(u);
             sigmaBulk = 2.*k.*VoigtStress(Spherical(strain)); % 2 is from ndim = 2;
             sigmaShear = 2.*mu.*VoigtStress(Deviatoric(strain));
@@ -69,8 +69,8 @@ classdef ShFunc_InternalEnergySplit < handle
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
-            k = obj.materialPhaseField.getBulkFun(phi,'Jacobian');
-            mu = obj.materialPhaseField.getShearFun(phi,'Jacobian');
+            k = obj.materialPhaseField.getBulkFun(u,phi,'Jacobian');
+            mu = obj.materialPhaseField.getShearFun(u,phi,'Jacobian');
             strain = SymGrad(u);
             strainDev = Deviatoric(strain);
             dBulkFun = k.*trace(SymGrad(u)).^2;
@@ -88,7 +88,7 @@ classdef ShFunc_InternalEnergySplit < handle
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
-            mat = obj.materialPhaseField.setMaterial(phi,'Interpolated','Deviatoric');
+            mat = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Deviatoric');
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
@@ -97,7 +97,7 @@ classdef ShFunc_InternalEnergySplit < handle
             LHS = LHSintegrator.create(s);
             HshearUU = LHS.compute();
 
-            mat = obj.materialPhaseField.setMaterial(phi,'Interpolated','Volumetric');
+            mat = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Volumetric');
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
@@ -113,7 +113,7 @@ classdef ShFunc_InternalEnergySplit < handle
             strain = SymGrad(u);
             strainDev = Deviatoric(strain);
 
-            k = obj.materialPhaseField.getBulkFun(phi,'Hessian');
+            k = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
             ddBulkFun = k.*trace(SymGrad(u)).^2;
             s.function = ddBulkFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
@@ -124,7 +124,7 @@ classdef ShFunc_InternalEnergySplit < handle
             LHS = LHSintegrator.create(s);
             HbulkPhiPhi = 0.5*LHS.compute();
 
-            mu = obj.materialPhaseField.getShearFun(phi,'Hessian');
+            mu = obj.materialPhaseField.getShearFun(u,phi,'Hessian');
             ddShearFun = mu.*DDP(Voigt(strainDev),Voigt(strainDev));
             s.function = ddShearFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);

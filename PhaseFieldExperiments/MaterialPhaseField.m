@@ -7,6 +7,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
     properties (Access = private)
         fun
         phi
+        u
         tensorType
     end
 
@@ -18,7 +19,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = public)
 
-        function obj = setMaterial(obj,phi,interpType,tensorType)
+        function obj = setMaterial(obj,u,phi,interpType,tensorType)
+            obj.u = u;
             obj.phi = phi;
             obj.tensorType = tensorType;
             switch interpType
@@ -51,9 +53,9 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             C(3,3,:,:)= mu;
         end
 
-        function kFun = getBulkFun(obj,phi,interpType)
-            obj.setMaterial(phi,interpType,'');
-            g = obj.computeDegradationFun();
+        function kFun = getBulkFun(obj,u,phi,interpType)
+            obj.setMaterial(u,phi,interpType,'');
+            [g,~] = obj.computeDegradationFun();
 
             E = obj.young.fValues;
             nu = obj.poisson.fValues;
@@ -67,9 +69,9 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             kFun = times(g,k);
         end
 
-        function muFun = getShearFun(obj,phi,interpType)
-            obj.setMaterial(phi,interpType,'');
-            g = obj.computeDegradationFun();
+        function muFun = getShearFun(obj,u,phi,interpType)
+            obj.setMaterial(u,phi,interpType,'');
+            [~,g0] = obj.computeDegradationFun();
 
             E = obj.young.fValues;
             nu = obj.poisson.fValues;
@@ -80,7 +82,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             s.fValues = muV;
             mu = LagrangianFunction(s);
 
-            muFun = g.*mu;
+            muFun = g0.*mu;
         end
 
     end
@@ -99,18 +101,22 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
     methods (Access = private)
 
         function [mu,l] = computeMatTensorParams(obj,xV)
-            g = obj.computeDegradationFun();
-            [mu, k] = obj.computeMuAndKappa(g,xV);
+            [g, g0] = obj.computeDegradationFun();
+            [mu, k] = obj.computeMuAndKappa(g,g0,xV);
             l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
         end
 
-        function g = computeDegradationFun(obj)
+        function [g, g0] = computeDegradationFun(obj)
             s.operation = @(xV) obj.fun(obj.phi.evaluate(xV));
             s.ndimf = obj.phi.ndimf;
-            g = DomainFunction(s);
+            g0 = DomainFunction(s);
+
+            trcSign = heaviside(trace(SymGrad(obj.u)));
+            g = g0.*trcSign + (1-trcSign);
+
         end
 
-        function [mu, k] = computeMuAndKappa(obj,g,xV)
+        function [mu, k] = computeMuAndKappa(obj,g,g0,xV)
             [muV,kV] = obj.computeShearAndBulk(xV);
             if obj.tensorType == "Deviatoric"
                 kV = 0.*kV;
@@ -118,8 +124,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
                 muV = 0.*muV; 
             end
 
-            mu = g.evaluate(xV).*muV;
-            k = g.evaluate(xV).*kV;
+            mu = g0.evaluate(xV).*muV;
+            k  = g.evaluate(xV).*kV;
         end
     end
 

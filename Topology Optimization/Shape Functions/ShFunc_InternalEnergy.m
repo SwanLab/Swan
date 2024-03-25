@@ -12,7 +12,7 @@ classdef ShFunc_InternalEnergy < handle
         end
         
         function F = computeFunction(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Interpolated','');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','');
             energyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
@@ -38,7 +38,7 @@ classdef ShFunc_InternalEnergy < handle
         end
         
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Interpolated','');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','');
             sigma = DDP(C,Voigt(SymGrad(u)));
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
 
@@ -50,7 +50,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Jacobian','');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Jacobian','');
             dEnergyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             
@@ -62,7 +62,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
-            mat = obj.materialPhaseField.setMaterial(phi,'Interpolated',''); 
+            mat = obj.materialPhaseField.setMaterial(u,phi,'Interpolated',''); 
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
@@ -73,7 +73,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(phi,'Hessian','');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Hessian','');
             ddEnergyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
             
             s.function = ddEnergyFun;
