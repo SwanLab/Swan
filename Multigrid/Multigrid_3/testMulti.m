@@ -14,7 +14,7 @@ vDown = 2;
 vUp = 2;
 hmax = 0.5;
 
-o = MultigridTesting4;
+o = MultigridTesting3;
 dataTotal = o.getdata;
 bcTotal = o.getBC;
 meshTotal = o.getMesh;

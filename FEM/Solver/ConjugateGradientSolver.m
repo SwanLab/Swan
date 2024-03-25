@@ -7,7 +7,7 @@ classdef ConjugateGradientSolver < Solver
             r = RHS - LHS * x; 
             p = r; 
             rsold = r' * r;
-            iter = 0;
+            iter = 1;
 
             hasNotConverged = true;
 
@@ -18,13 +18,13 @@ classdef ConjugateGradientSolver < Solver
                 r = r - alpha * Ap;
                 rsnew = r' * r;
 
-                hasNotConverged = max(LHS*x - RHS) > tol;
+                hasNotConverged = norm(LHS*x - RHS) > tol;
 
                 p = r + (rsnew / rsold) * p;
                 rsold = rsnew;
                 iter = iter + 1;
-                residu(iter) = norm(LHS*x - RHS); %Ax - b
-                res = LHS*x - RHS;
+%                 residu(iter) = norm(LHS*x - RHS); %Ax - b
+%                 res = LHS*x - RHS;
                 
                 %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
                 

@@ -1,6 +1,4 @@
 classdef FemCreator < handle
-    %UNTITLED4 Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties (Access = public)
         LHS
@@ -23,7 +21,8 @@ classdef FemCreator < handle
     methods (Access = public)
         function obj = FemCreator(cParams)
             obj.init(cParams)
-            obj.createLHSandRHS()
+            obj.createLHS()
+            obj.createRHS()
         end
     end
     
@@ -37,20 +36,26 @@ classdef FemCreator < handle
             obj.pdim         = cParams.pdim;
         end
         
-        function createLHSandRHS(obj)
+        function createLHS(obj)
             for i = 1:obj.nLevel
                 
-                u   = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
+                u          = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
                 obj.bc{i}  = obj.createBoundaryConditions(obj.coarseMeshes{i},u);
-                mat = obj.createMaterial(obj.coarseMeshes{i});
-                m   = obj.coarseMeshes{i};
-%                 s.solverTyp             = 'ITERATIVE';
-%                 s.iterativeSolverTyp    = 'CG';
-%                 s.tol                   = 1e-6;
-%                 s.maxIter               = 20;
+                mat        = obj.createMaterial(obj.coarseMeshes{i});
+                m          = obj.coarseMeshes{i};
 
-                obj.LHS{i} = obj.computeStiffnessMatrix(m,mat,u);
-                obj.RHS{i} = obj.createRHS(m,u,obj.bc{i});
+                obj.LHS{i} = obj.computeKred(m,mat,u,obj.bc{i});
+            end
+        end
+        
+        function createRHS(obj)
+            for i = 1:obj.nLevel
+                
+                u          = P1Function.create(obj.coarseMeshes{i}, obj.nDimf);
+                obj.bc{i}  = obj.createBoundaryConditions(obj.coarseMeshes{i},u);
+                m          = obj.coarseMeshes{i};
+
+                obj.RHS{i} = obj.computeFred(m,u,obj.bc{i});
 
             end
         end
@@ -110,6 +115,11 @@ classdef FemCreator < handle
             mat.compute(s);
         end
         
+        function Kred = computeKred(obj,m,mat,u,bc)
+            K    = obj.computeStiffnessMatrix(m,mat,u);
+            Kred = bc.fullToReducedMatrix(K);
+        end
+        
         function k = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
@@ -119,7 +129,12 @@ classdef FemCreator < handle
             k          = lhs.compute();
         end
         
-        function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
+        function Fred = computeFred(obj,m,u,bc)
+            b    = obj.computeRHS(m,u,bc);
+            Fred = bc.fullToReducedVector(b);
+        end
+        
+        function RHS = computeRHS(obj,mesh,dispFun,boundaryConditions)
             dim.ndimf     = dispFun.ndimf;
             dim.nnodes    = size(dispFun.fValues, 1);
             dim.ndofs     = dim.nnodes*dim.ndimf;

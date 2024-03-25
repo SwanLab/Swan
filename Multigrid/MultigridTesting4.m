@@ -60,8 +60,8 @@ classdef MultigridTesting4 < handle
             s.bc                  = obj.createBoundaryConditions(mF);
             s.material            = obj.createMaterial(mF);
             s.dispFun             = P1Function.create(mF, obj.nDimf);
-            s.RHS                 = obj.createRHS(mF,s.dispFun,s.bc);
-            s.LHS                 = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
+            s.RHS                 = obj.computeFred(mF,s.dispFun,s.bc);
+            s.LHS                 = obj.computeKred(mF,s.material,s.dispFun,s.bc);
             s.type                = 'ELASTIC';
             s.scale               = 'MACRO';
             s.dim                 = '2D';
@@ -150,6 +150,11 @@ classdef MultigridTesting4 < handle
             mat.compute(s);
         end
 
+        function Kred = computeKred(obj,m,mat,u,bc)
+            K    = obj.computeStiffnessMatrix(m,mat,u);
+            Kred = bc.fullToReducedMatrix(K);
+        end
+        
         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
@@ -158,6 +163,11 @@ classdef MultigridTesting4 < handle
             lhs        = LHSintegrator.create(s);
             LHS        = lhs.compute();
         end 
+        
+        function Fred = computeFred(obj,m,u,bc)
+            b  = obj.createRHS(m,u,bc);
+            Fred = bc.fullToReducedVector(b);
+        end
         
         function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
             dim.ndimf  = dispFun.ndimf;
@@ -171,22 +181,6 @@ classdef MultigridTesting4 < handle
             RHS    = RHSintegrator_ElasticMacro(c);
             RHS = RHS.compute();
         end
-        
-%         function createData(obj)
-%             
-%             for i = 1:obj.nMesh
-%                 obj.data(i).p = obj.multiLevelMesh{i}.coord;
-%                 obj.data(i).t = obj.multiLevelMesh{i}.connec;
-%                 if i < obj.nMesh
-%                     obj.data(i).T = obj.I{i};
-%                     obj.data(i).R = obj.I{i}';
-%                 end
-%                 obj.data(i).A = obj.Kred{i};
-%                 obj.data(i).b = obj.Fred{i};
-%             end
-%             
-%         end
-
     end
 
 end

@@ -35,10 +35,10 @@ classdef MultilevelMesh < handle
            for iLevel = 1:obj.nLevel
               obj.coarseMeshes{iLevel} = nMesh;
               obj.interpolator{iLevel} = nInterp;               
-              m       = obj.coarseMeshes{iLevel};
-              int     = obj.interpolator{iLevel};
-              nMesh   = obj.remesh(m,int);
-              nInterp = obj.createInterpolator(nMesh);            
+              m                        = obj.coarseMeshes{iLevel};
+              int                      = obj.interpolator{iLevel};
+              nMesh                    = obj.remesh(m,int);
+              nInterp                  = obj.createInterpolator(nMesh);            
            end
          obj.mesh = nMesh;
         end
