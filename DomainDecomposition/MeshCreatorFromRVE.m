@@ -17,6 +17,7 @@ classdef MeshCreatorFromRVE < handle
         interfaceMeshSubDomain
         meshDomain
         interfaceConnec
+        localGlobalConnec
     end
 
     methods (Access = public)
@@ -25,7 +26,7 @@ classdef MeshCreatorFromRVE < handle
             obj.init(cParams)
         end
 
-        function [mD,mSD,interfaceConnec,bdSB] = create(obj)
+        function [mD,mSD,interfaceConnec,bdSB,localGlobalConnec] = create(obj)
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
@@ -33,6 +34,7 @@ classdef MeshCreatorFromRVE < handle
             mSD = obj.meshSubDomain;
             interfaceConnec = obj.interfaceConnec;
             bdSB = obj.interfaceMeshSubDomain;
+            localGlobalConnec = obj.localGlobalConnec;
         end
 
     end
@@ -117,6 +119,7 @@ classdef MeshCreatorFromRVE < handle
             DMesh = DomainMeshComputer(s);
             DMesh.compute();
             obj.meshDomain = DMesh.domainMesh;
+            obj.localGlobalConnec = DMesh.localGlobalConnec;
         end
     end
 

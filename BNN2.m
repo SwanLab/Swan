@@ -57,6 +57,7 @@ classdef BNN2 < handle
 
 
             obj.createDisplacementFun();
+
             [obj.interfaceDof,obj.interfaceDom] = obj.computeLocalInterfaceDof();
             obj.dofInterfaceDomain = obj.assingInterfaceDof2Domain();
             [obj.interiorDof,obj.boundaryDof] = obj.assingInteriorBoundaryDof();
@@ -65,10 +66,7 @@ classdef BNN2 < handle
             coarseSpace = obj.computeCoarseSpace();
             obj.plotfields(coarseSpace)
 
-
-
             obj.createSubdomainBoundaryConditions();
-
             obj.interfaceNeumanDof = obj.identifyNeumanInterfaceDof();
             obj.interfaceDirichletDof = obj.identifyDirichletInterfaceDof();
 
@@ -115,8 +113,8 @@ classdef BNN2 < handle
             %             mS         = femD.mesh;
             %             bS         = mS.createBoundaryMesh();
             % Generate coordinates
-            x1 = linspace(0,1,3);
-            x2 = linspace(0,1,3);
+            x1 = linspace(0,1,5);
+            x2 = linspace(0,1,2);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities

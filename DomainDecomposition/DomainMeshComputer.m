@@ -2,6 +2,7 @@ classdef DomainMeshComputer < handle
 
     properties (Access = public)
         domainMesh
+        localGlobalConnec
     end
 
     properties (Access = private)
@@ -11,11 +12,14 @@ classdef DomainMeshComputer < handle
         ninterfaces
         meshSubDomain
         interfaceConnec
+        
     end
 
     properties (Access = private)
         connecGlob
         coordGlob
+        updtConnecGlob
+        updtCoordGlob
     end
 
     methods (Access = public)
@@ -30,8 +34,9 @@ classdef DomainMeshComputer < handle
             obj.createGlobalCoord();
             obj.updateGlobalConnec();
             obj.updateGlobalCoord();
-            s.coord=obj.coordGlob;
-            s.connec=obj.connecGlob;
+            obj.computeLocalGlobalConnec()
+            s.coord=obj.updtCoordGlob;
+            s.connec=obj.updtConnecGlob;
             obj.domainMesh=Mesh(s); 
         end
 
@@ -107,11 +112,26 @@ classdef DomainMeshComputer < handle
                     rCconnec(rCconnec>aux(icopy)) = rCconnec(rCconnec>aux(icopy))-1;
                 end
             end
-            obj.connecGlob=updtConnecGlob;
+            obj.updtConnecGlob=updtConnecGlob;
         end
 
         function  updateGlobalCoord(obj)
-            obj.coordGlob  = unique(obj.coordGlob,'rows','stable');
+            obj.updtCoordGlob  = unique(obj.coordGlob,'rows','stable');
+        end
+
+        function  computeLocalGlobalConnec(obj)
+            nodeG  = reshape(obj.updtConnecGlob',[],1);
+            nodeL  = reshape(obj.connecGlob',[],1);
+            nnode = obj.meshReference.nnodes;
+            localGlobalConnec(:,1) = nodeG;
+            localGlobalConnec(:,2) = nodeL;
+            localGlobalConnec      = unique(localGlobalConnec,'rows','stable');    
+            localGlobalConnec      = permute(reshape(localGlobalConnec',2,nnode,[]),[2,1,3]);
+           
+            for dom = 1:size(localGlobalConnec,3)
+                localGlobalConnec(:,2,dom) = localGlobalConnec(:,2,dom)-(dom-1)*nnode;
+            end
+             obj.localGlobalConnec  = localGlobalConnec;
         end
     end
 end

@@ -1,4 +1,4 @@
-classdef BalancingNeumannNeumann < handle
+classdef BalancingNeumannNeumann_ndom < handle
 
     properties (Access = public)
 
@@ -48,7 +48,7 @@ classdef BalancingNeumannNeumann < handle
 
     methods (Access = public)
 
-        function obj = BalancingNeumannNeumann()
+        function obj = BalancingNeumannNeumann_ndom()
             close all
             obj.init();
             obj.createReferenceMesh();
@@ -108,40 +108,40 @@ classdef BalancingNeumannNeumann < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains = [3 1]; %nx ny
+            obj.nSubdomains = [3 2]; %nx ny
             obj.scale    = 'MACRO';
             obj.weight   = 0.5;
             obj.theta    = 0.1;
         end
 
         function createReferenceMesh(obj)
-            %             filename   = 'lattice_ex1';
-            %             a.fileName = filename;
-            %             femD       = FemDataContainer(a);
-            %             mS         = femD.mesh;
-            %             bS         = mS.createBoundaryMesh();
-            % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,0.5,2);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-            s.coord    = coord(:,1:2);
-            s.connec   = F;
-            mS         = Mesh(s);
-            bS         = mS.createBoundaryMesh();
+                        filename   = 'lattice_ex1';
+                        a.fileName = filename;
+                        femD       = FemDataContainer(a);
+                        mS         = femD.mesh;
+                        bS         = mS.createBoundaryMesh();
+%             % Generate coordinates
+%             x1 = linspace(0,1,2);
+%             x2 = linspace(0,0.5,2);
+%             % Create the grid
+%             [xv,yv] = meshgrid(x1,x2);
+%             % Triangulate the mesh to obtain coordinates and connectivities
+%             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+% 
+%             s.coord    = coord(:,1:2);
+%             s.connec   = F;
+%             mS         = Mesh(s);
+%             bS         = mS.createBoundaryMesh();
 
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
             obj.ninterfaces = length(bS);
         end
 
-        function createDomainMaterial(obj,i)
+        function createDomainMaterial(obj,j,i)
             %             ngaus = 1;
             %             m = obj.meshSubDomain{i};
-            obj.material{i} = obj.createMaterial(i);
+            obj.material{j,i} = obj.createMaterial(j,i);
         end
 
         function BC = createRawBoundaryConditionsDirichlet(obj,i)
@@ -283,12 +283,12 @@ classdef BalancingNeumannNeumann < handle
         end
 
 
-        function material = createMaterial(obj,i)
-            I = ones(obj.meshSubDomain{i}.nelem,obj.quad{i}.ngaus);
+        function material = createMaterial(obj,j,i)
+            I = ones(obj.meshSubDomain{j,i}.nelem,obj.quad{j,i}.ngaus);
             s.ptype = 'ELASTIC';
             s.pdim  = '2D';
-            s.nelem = obj.meshSubDomain{i}.nelem;
-            s.mesh  = obj.meshSubDomain{i};
+            s.nelem = obj.meshSubDomain{j,i}.nelem;
+            s.mesh  = obj.meshSubDomain{j,i};
             s.kappa = .9107*I;
             s.mu    = .3446*I;
             mat = Material.create(s);
@@ -320,13 +320,13 @@ classdef BalancingNeumannNeumann < handle
             dim = d;
         end
 
-        function computeStiffnessMatrix(obj,i)
+        function computeStiffnessMatrix(obj,j,i)
             s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.meshSubDomain{i};
-            s.fun      = obj.displacementFun{i};
-            s.material = obj.material{i};
+            s.mesh     = obj.meshSubDomain{j,i};
+            s.fun      = obj.displacementFun{j,i};
+            s.material = obj.material{j,i};
             lhs = LHSintegrator.create(s);
-            obj.LHS{i} = lhs.compute();
+            obj.LHS{j,i} = lhs.compute();
         end
 
         function [Fext,RHS] = computeForces(obj,boundaryConditions,material,mesh,disp,LHS)
@@ -347,22 +347,26 @@ classdef BalancingNeumannNeumann < handle
         end
 
         function computeSubdomainLHS(obj)
-            for idom=1:obj.nSubdomains(1)
-                obj.quad{idom} = Quadrature.set(obj.meshSubDomain{idom}.type);
-                obj.quad{idom}.computeQuadrature('QUADRATIC');
-                obj.createDomainMaterial(idom);
-                obj.computeStiffnessMatrix(idom);
+            for jdom = 1:obj.nSubdomains(2)
+                for idom=1:obj.nSubdomains(1)
+                    obj.quad{jdom,idom} = Quadrature.set(obj.meshSubDomain{jdom,idom}.type);
+                    obj.quad{jdom,idom}.computeQuadrature('QUADRATIC');
+                    obj.createDomainMaterial(jdom,idom);
+                    obj.computeStiffnessMatrix(jdom,idom);
+                end
             end
         end
 
         function computeDomainLHS(obj)
             ndimf  = obj.domainFun.ndimf;
             Gmat   = zeros(obj.meshDomain.nnodes*ndimf);
-            for idom = 1:obj.nSubdomains(1)
-                locMat = obj.LHS{idom};
-                connec = obj.localGlobalDofConnec(:,:,idom);
-                mat    = obj.local2globalMatrix(locMat,connec);
-                Gmat   = Gmat+mat;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    locMat = obj.LHS{jdom,idom};
+                    connec = obj.localGlobalDofConnec{jdom,idom};
+                    mat    = obj.local2globalMatrix(locMat,connec);
+                    Gmat   = Gmat+mat;
+                end
             end
             obj.domLHS = Gmat;
         end
@@ -393,21 +397,22 @@ classdef BalancingNeumannNeumann < handle
 
         
         function RBbasis = computeRigidBodyBasis(obj)
-            ndom = obj.nSubdomains(1);
             fvalues=[1 0 0;0 1 0; 0 0 1];
             nbasis = size(fvalues,2);
-            for idom = 1:ndom
-                ss.mesh=obj.meshSubDomain{idom};
-                maxCord = max(ss.mesh.coord);
-                minCord = min(ss.mesh.coord);
-                ss.refPoint= (maxCord + minCord)*0.5;
-                for ibasis = 1:nbasis
-                    ss.fvalues = fvalues(ibasis,:);
-                    a=RigidBodyFunction(ss);
-                    p1FUNC = a.project('P1');
-                    bValues = p1FUNC.fValues;
-                    bValues = reshape(bValues',1,[])';
-                    RBbasis{idom}(:,ibasis)=bValues;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    ss.mesh=obj.meshSubDomain{jdom,idom};
+                    maxCord = max(ss.mesh.coord);
+                    minCord = min(ss.mesh.coord);
+                    ss.refPoint= (maxCord + minCord)*0.5;
+                    for ibasis = 1:nbasis
+                        ss.fvalues = fvalues(ibasis,:);
+                        a=RigidBodyFunction(ss);
+                        p1FUNC = a.project('P1');
+                        bValues = p1FUNC.fValues;
+                        bValues = reshape(bValues',1,[])';
+                        RBbasis{jdom,idom}(:,ibasis)=bValues;
+                    end
                 end
             end
         end
@@ -420,10 +425,12 @@ classdef BalancingNeumannNeumann < handle
             for iint=1:nint
                 for idom = 1:ndom
                     dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
                     dof = obj.interfaceDof(:,idom,iint);
-                    nfields = size(values{dom},2);
+                    nfields = size(values{row,col},2);
                     for ifield = 1:nfields
-                        values{dom}(dof,ifield) = values{dom}(dof,ifield)*w(idom);
+                        values{row,col}(dof,ifield) = values{row,col}(dof,ifield)*w(idom);
                     end
                 end
             end           
@@ -443,12 +450,14 @@ classdef BalancingNeumannNeumann < handle
 
         function globBasis = createGlobalBasis(obj,locBasis)
             nbasis = size(locBasis{1},2);
-            for idom = 1:obj.nSubdomains(1)
-                for ibasis = 1:nbasis
-                    locVec  = locBasis{idom}(:,ibasis);
-                    connec  = obj.localGlobalDofConnec(:,:,idom);
-                    globVec = obj.local2global(locVec,connec);
-                    globBasis{idom}(:,ibasis) = globVec;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    for ibasis = 1:nbasis
+                        locVec  = locBasis{jdom,idom}(:,ibasis);
+                        connec  = obj.localGlobalDofConnec{jdom,idom};
+                        globVec = obj.local2global(locVec,connec);
+                        globBasis{jdom,idom}(:,ibasis) = globVec;
+                    end
                 end
             end
         end
@@ -475,20 +484,38 @@ classdef BalancingNeumannNeumann < handle
         end
 
         function cBasis = computeCoarseSpaceBasis2(obj,basis)
-            alldof = 1:1:obj.domainFun.nDofs;
+            nx = size(basis,2);
+            ny = size(basis,1);
             
-            for idom = 1:obj.nSubdomains(1)
-                dofR = obj.localGlobalDofConnec(:,1,idom);
-                dofF = setdiff(alldof,dofR);
-                Kff = obj.domLHS(dofF,dofF);
-                Kfr = obj.domLHS(dofF,dofR); 
-                nbasis = size(basis{idom},2);
-                for ibasis = 1:nbasis
-                    disp = basis{idom}(dofR,ibasis);
-                    F   = Kfr*disp; 
-                    u   = Kff\F;
-                    cBasis{idom}(dofF,ibasis)  = u;
-                    cBasis{idom}(dofR,ibasis)  = disp;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    dvalues = basis{jdom,idom}; 
+                    nbasis = size(dvalues,2);
+                    for ibasis = 1:nbasis
+                        values = dvalues(:,ibasis);
+                        for kdom = 1:obj.nSubdomains
+                            for 
+                            end
+                        end
+                    end
+                end
+            end
+
+            alldof = 1:1:obj.domainFun.nDofs;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    dofR = obj.localGlobalDofConnec(:,1,idom);
+                    dofF = setdiff(alldof,dofR);
+                    Kff = obj.domLHS(dofF,dofF);
+                    Kfr = obj.domLHS(dofF,dofR);
+                    nbasis = size(basis{jdom,idom},2);
+                    for ibasis = 1:nbasis
+                        disp = basis{idom}(dofR,ibasis);
+                        F   = Kfr*disp;
+                        u   = Kff\F;
+                        cBasis{idom}(dofF,ibasis)  = u;
+                        cBasis{idom}(dofR,ibasis)  = disp;
+                    end
                 end
             end
         end
@@ -504,8 +531,8 @@ classdef BalancingNeumannNeumann < handle
         end
 
         function [interfaceDof,interfaceDom] = computeLocalInterfaceDof(obj)
-            intConec = reshape(obj.interfaceConnec,obj.interfaceMeshReference{1}.mesh.nnodes,2,[]);
-            intConec = permute(intConec,[1 3 2]);
+            intConec = reshape(obj.interfaceConnec',2,obj.interfaceMeshReference{1}.mesh.nnodes,[]);
+            intConec = permute(intConec,[2 1 3]);
             nint = size(intConec,3);
             globaldof=0;
             dim = obj.getFunDims(obj.displacementFun{1});
@@ -533,15 +560,17 @@ classdef BalancingNeumannNeumann < handle
         function dofInterfaceDomain = assingInterfaceDof2Domain(obj)
             nint = size(obj.interfaceDof,3);
             ndom = size(obj.interfaceDof,2);
-            dofInterfaceDomain = cell(1,obj.nSubdomains(1));
+            dofInterfaceDomain = cell(obj.nSubdomains(2),obj.nSubdomains(1));
             for iint=1:nint
                 for idom = 1:ndom
                     dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
                     dof = obj.interfaceDof(:,idom,iint);
-                    if isempty(dofInterfaceDomain{dom})
-                        dofInterfaceDomain{dom} = dof;
+                    if isempty(dofInterfaceDomain{row,col})
+                        dofInterfaceDomain{row,col} = dof;
                     else
-                        dofInterfaceDomain{dom} = [dofInterfaceDomain{dom};dof];
+                        dofInterfaceDomain{row,col} = [dofInterfaceDomain{row,col};dof];
                     end
                 end
             end
@@ -549,25 +578,30 @@ classdef BalancingNeumannNeumann < handle
         end
 
         function interiorDof = assingInteriorDof(obj)
-            for idom=1:obj.nSubdomains(1)
-                ndof = obj.displacementFun{idom}.nDofs;
-                dofs = 1:1:ndof;
-                interfaceDof = obj.dofInterfaceDomain{idom};
-                interiorDof{idom}  = setdiff(dofs,interfaceDof);
+            for jdom = 1:obj.nSubdomains(2)
+                for idom=1:obj.nSubdomains(1)
+                    ndof = obj.displacementFun{jdom,idom}.nDofs;
+                    dofs = 1:1:ndof;
+                    interfaceDof = obj.dofInterfaceDomain{jdom,idom};
+                    interiorDof{jdom,idom}  = setdiff(dofs,interfaceDof);
+                end
             end
         end
 
         function  localGlobalDofConnec = createlocalGlobalDofConnec(obj)
             ndimf = obj.displacementFun{1}.ndimf;
-            for idom = 1:obj.nSubdomains(1)
+            ndom  = obj.nSubdomains(1)*obj.nSubdomains(2); 
+            for dom = 1:ndom
+                row = ceil(dom/obj.nSubdomains(1));
+                col = dom-(row-1)*obj.nSubdomains(1);
                 localGlobalDofConnecDom = zeros(1,2);
-                nodeG = obj.locGlobConnec(:,1,idom);
-                nodeL = obj.locGlobConnec(:,2,idom);
+                nodeG = obj.locGlobConnec(:,1,dom);
+                nodeL = obj.locGlobConnec(:,2,dom);
                 for iunkn = 1:ndimf
                     dofConec = [ndimf*(nodeG - 1) + iunkn ,  ndimf*(nodeL - 1) + iunkn] ;
                     localGlobalDofConnecDom = [localGlobalDofConnecDom;dofConec ];
                 end
-                localGlobalDofConnec(:,:,idom) = localGlobalDofConnecDom(2:end,:);
+                localGlobalDofConnec{row,col} = localGlobalDofConnecDom(2:end,:);
             end
         end
 
@@ -762,20 +796,22 @@ classdef BalancingNeumannNeumann < handle
         function plotfields(obj,basis)
             software = 'Paraview';
             funNames = {'translationX', 'translationY', 'rotation'};
-            for idom=1:obj.nSubdomains(1)
-                nbasis = size(basis{idom},2);
-                for ibasis = 1:nbasis
-                    values = basis{idom}(:,ibasis);
-                    s.fValues = reshape(values,2,[])';
-                    s.mesh = obj.meshDomain;
-                    s.fValues(:,end+1) = 0;
-                    s.ndimf = 3;
-                    fun{ibasis} = P1Function(s);
+            for jdom=1:obj.nSubdomains(2)
+                for idom=1:obj.nSubdomains(1)
+                    nbasis = size(basis{jdom,idom},2);
+                    for ibasis = 1:nbasis
+                        values = basis{jdom,idom}(:,ibasis);
+                        s.fValues = reshape(values,2,[])';
+                        s.mesh = obj.meshDomain;
+                        s.fValues(:,end+1) = 0;
+                        s.ndimf = 3;
+                        fun{ibasis} = P1Function(s);
+                    end
+                    %                 a.fun=fun;
+                    mesh=obj.meshDomain;
+                    filename = ['domain',num2str(jdom,idom)];
+                    obj.print(filename,software,funNames,fun,mesh)
                 end
-%                 a.fun=fun;
-                mesh=obj.meshDomain;
-                filename = ['domain',num2str(idom)];
-                obj.print(filename,software,funNames,fun,mesh)
             end
         end
 
