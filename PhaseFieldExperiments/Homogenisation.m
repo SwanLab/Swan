@@ -1,114 +1,76 @@
+% [C_P_Circle,P_Circle] = PFH.computeHomogMaterial("Circle","Perimeter",30);
+% [C_A_Circle,A_Circle] = PFH.computeHomogMaterial("Circle","Area",30);
+% [C_L_Circle,L_Circle] = PFH.computeHomogMaterial("Circle","Diameter",30);
+% 
+% [C_P_Square,P_Square] = PFH.computeHomogMaterial("Square","Perimeter",30);
+% [C_A_Square,A_Square] = PFH.computeHomogMaterial("Square","Area",30);
+% [C_L_Square,L_Square] = PFH.computeHomogMaterial("Square","Diameter",30);
+% 
+% [C_Iso,AT1] = PFH.computeIsotropicMaterial("AT1",30);
+% [~,AT2] = PFH.computeIsotropicMaterial("AT2",30);
+
+%%% PLOT %%%
 close all
-
-type0 = "Square";
-
-[density,matHomog] = runCases(type0);
- Chomog = createFunctions(density,matHomog);
- Ciso = computeIsotropicDamage();
- plot(Ciso,Chomog);
-
- function [density,matHomog] = runCases(type0)
-     if type0 == "Circle"
-         max = 0.5;
-     elseif type0 == "Square"
-         max = 0.94;
-     elseif type0 == "Full"
-         max = 1;
-     end
-     squareLength = linspace(0,max,30);
-     matHomog = zeros(3,3,length(squareLength));
-     density = zeros(length(squareLength),1);
-    
-     for i=1:length(squareLength)
-         l = squareLength(i);
-         if l<0.015
-             type = "Full";
-             l = 0;
-         else
-             type = type0;
-         end
-         mat = Tutorial02p2FEMElasticityMicro(l,type);
-    
-         figure(1)
-         cla reset
-         mat.mesh.plot
-    
-    
-         matHomog(:,:,i) = mat.stateProblem.Chomog;
-         if type == "Circle"
-             area = mat.mesh.computeVolume;
-             holeArea = 1 - area;
-             diameter = 2*l;
-             perimeter = 2*pi*l/4;
-         elseif type == "Square"
-             area = mat.mesh.computeVolume;
-             holeArea = 1 - area;
-             diameter = l;
-             perimeter = 4*l/4;
-         elseif type == "Full"
-             area = mat.mesh.computeVolume;
-             holeArea = 1 - area;
-             diameter = 0;
-             perimeter = 0;
-         end
-         density(i,1) = perimeter;
-     end
- end
-
- function  Ciso = computeIsotropicDamage()
-    C = zeros(3,3);
-    E = 1;
-    v = 0.3;
-    constant = E/(1-v^2);
-
-    C(1,1) = constant; 
-    C(1,2) = constant*v;
-    C(2,1) = constant*v;
-    C(2,2) = constant;
-    C(3,3) = constant*(1-v)/2;
-
-    x = linspace(0,1,30);
-    for i=1:3
-        for j=1:3
-            sM.coord = x';
-            sM.connec = [1:length(x)-1]' + [0,1];
-            s.mesh = Mesh.create(sM);
-            s.fValues = [(1-x).^2*C(i,j)]';
-            s.order = 'P1';
-            Ciso{i,j} = LagrangianFunction(s);
-        end
-    end
- end
-
-function Chomog = createFunctions(density,matHomog)
-for i=1:3
-    for j=1:3
-        sM.coord = density;
-        sM.connec = [1:length(density)-1]' + [0,1];
-        s.mesh = Mesh.create(sM);
-        s.fValues = squeeze(matHomog(i,j,:));
-        s.order = 'P1';
-        Chomog{i,j} = LagrangianFunction(s).project('P2');
-    end
-end
-end
-
-function plot(Ciso,Chomog)
 figure(2)
+tiledlayout(3,3)
 for i=1:3
     for j=1:3
         k = 3*(i-1)+j;
-        subplot(3,3,k)
-        Chomog{i,j}.plot;
-        %set ( gca, 'XDir', 'reverse' ) %% ONLY FOR AREA DENSITY
+        nexttile
         hold on
-        Ciso{i,j}.plot
-        hold off
-        title(['C',num2str(i),num2str(j)]);
+
+        plotFun(C_P_Circle{i,j},P_Circle,"none","#0072BD",".");
+        plotFun(C_A_Circle{i,j},A_Circle,"none","#D95319",".");
+        plotFun(C_L_Circle{i,j},L_Circle,"none","#EDB120",".");
+
+        plotFun(C_P_Square{i,j},P_Square,"--","#0072BD","none");
+        plotFun(C_A_Square{i,j},A_Square,"--","#D95319","none");
+        %plotFun(C_L_Square{i,j},L_Square,"--","#EDB120","none");
+
+        plotFun(C_Iso{i,j},AT1,"-","#7E2F8E","none")
+        plotFun(C_Iso{i,j},AT2,"-","#77AC30","none")
+
+        ylabel(['C',num2str(i),num2str(j)]);
+        xlabel("$\alpha$",'Interpreter','latex');
     end
 end
-end
+% leg = legend('Circle (Perimeter)', ...
+%              'Circle (Area)', ...
+%              'Circle (Length)', ...
+%              'Analytical (AT1)', ...
+%              'Analytical (AT2)','Orientation', 'Vertical');
 
+% leg = legend('Square (Perimeter)', ...
+%              'Square (Area)', ...
+%              'Square (Length)', ...
+%              'Analytical (AT1)', ...
+%              'Analytical (AT2)','Orientation', 'Vertical');
+
+leg = legend('Circle (Perimeter)', ...
+             'Circle (Area)', ...
+             'Circle (Length)', ...
+             'Square (Perimeter/Length)', ...
+             'Square (Area)', ...
+             'Analytical (AT1)', ...
+             'Analytical (AT2)','Orientation', 'Vertical');
+leg.Layout.Tile = 'east';
+
+function plotFun(C,alpha,op1,op2,op3)
+    switch C.order
+        case "P1"
+            p = plot(alpha,C.fValues);
+            p.LineStyle = op1;
+            p.Color = op2;
+            p.Marker = op3;
+        case "P2"
+            [x,sortIdx] = sort(C.getCoord());
+            y = C.fValues(sortIdx);
+            p = plot(x,y);
+            p.LineStyle = op1;
+            p.Color = op2;
+            p.Marker = op3;
+    end
+end
 
 
 
