@@ -373,14 +373,23 @@ classdef BalancingNeumannNeumann_ndom < handle
 
        
 
-        function hExt = computeHarmonicExtension(obj)
-            for idom = 1:obj.nSubdomains(1)
-                ndof = obj.displacementFun{idom}.nDofs;
-                interfaceDof = obj.dofInterfaceDomain{idom};
-                interiorDof  = obj.interiorDof{idom};
-                Kii          = obj.LHS{idom}(interiorDof,interiorDof);
-                KiL          = obj.LHS{idom}(interiorDof,interfaceDof);
-                hExt{idom}   = -Kii\KiL;
+        function hExtG = computeHarmonicExtension(obj,vector)
+            hExtG = zeros(size(vector,1),1);
+            for jdom= 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    connec  = obj.localGlobalDofConnec{jdom,idom};
+                    vec = obj.global2local(vector,connec);
+                    interfaceDof = obj.dofInterfaceDomain{jdom,idom};
+                    interiorDof  = obj.interiorDof{jdom,idom};
+                    Kii          = obj.LHS{jdom,idom}(interiorDof,interiorDof);
+                    KiL          = obj.LHS{jdom,idom}(interiorDof,interfaceDof);
+                    hExt   = -Kii\KiL;
+                    hExt   = hExt*vec(interfaceDof);
+                    hExtD(interiorDof) = hExt;
+                    hExtD(interfaceDof) = vec(interfaceDof);
+%                     hExtD  = obj.scaleInterfaceValues(hExtD)
+                    hExtG   = hExtG + obj.local2global(hExtD,connec);
+                end
             end
         end
 
@@ -391,7 +400,7 @@ classdef BalancingNeumannNeumann_ndom < handle
            
 %             obj.hExt    = obj.computeHarmonicExtension();
             coarseSpace = obj.computeCoarseSpaceBasis2(RBbasisg);
-             obj.plotfields(RBbasisg)
+             obj.plotfields(coarseSpace)
 %             coarseSpace = obj.computeCoarseSpaceBasisNoHarmonic(RBbasisg);
         end
 
@@ -444,7 +453,7 @@ classdef BalancingNeumannNeumann_ndom < handle
 
         function Lvec = global2local(obj,Gvec,locGlobConnec)
             ndimf  = obj.displacementFun{1}.ndimf;
-            Lvec   = zeros(obj.meshDomain.nnodes*ndimf);
+            Lvec   = zeros(obj.meshReference.nnodes*ndimf,1);
             Lvec(locGlobConnec(:,2)) = Gvec(locGlobConnec(:,1));
         end
 
@@ -493,31 +502,30 @@ classdef BalancingNeumannNeumann_ndom < handle
                     nbasis = size(dvalues,2);
                     for ibasis = 1:nbasis
                         values = dvalues(:,ibasis);
-                        for kdom = 1:obj.nSubdomains
-                            for 
-                            end
-                        end
+                        cBasis{jdom,idom}(:,ibasis) = obj.computeHarmonicExtension(values);
                     end
                 end
             end
 
-            alldof = 1:1:obj.domainFun.nDofs;
-            for jdom = 1:obj.nSubdomains(2)
-                for idom = 1:obj.nSubdomains(1)
-                    dofR = obj.localGlobalDofConnec(:,1,idom);
-                    dofF = setdiff(alldof,dofR);
-                    Kff = obj.domLHS(dofF,dofF);
-                    Kfr = obj.domLHS(dofF,dofR);
-                    nbasis = size(basis{jdom,idom},2);
-                    for ibasis = 1:nbasis
-                        disp = basis{idom}(dofR,ibasis);
-                        F   = Kfr*disp;
-                        u   = Kff\F;
-                        cBasis{idom}(dofF,ibasis)  = u;
-                        cBasis{idom}(dofR,ibasis)  = disp;
-                    end
-                end
-            end
+            cBasis = obj.scaleInterfaceValues(cBasis);
+
+%             alldof = 1:1:obj.domainFun.nDofs;
+%             for jdom = 1:obj.nSubdomains(2)
+%                 for idom = 1:obj.nSubdomains(1)
+%                     dofR = obj.localGlobalDofConnec(:,1,idom);
+%                     dofF = setdiff(alldof,dofR);
+%                     Kff = obj.domLHS(dofF,dofF);
+%                     Kfr = obj.domLHS(dofF,dofR);
+%                     nbasis = size(basis{jdom,idom},2);
+%                     for ibasis = 1:nbasis
+%                         disp = basis{idom}(dofR,ibasis);
+%                         F   = Kfr*disp;
+%                         u   = Kff\F;
+%                         cBasis{idom}(dofF,ibasis)  = u;
+%                         cBasis{idom}(dofR,ibasis)  = disp;
+%                     end
+%                 end
+%             end
         end
 
         function cBasis = computeCoarseSpaceBasisNoHarmonic(obj,basis)
@@ -530,6 +538,7 @@ classdef BalancingNeumannNeumann_ndom < handle
 %             cBasis = obj.domLHS*basis;
         end
 
+       
         function [interfaceDof,interfaceDom] = computeLocalInterfaceDof(obj)
             intConec = reshape(obj.interfaceConnec',2,obj.interfaceMeshReference{1}.mesh.nnodes,[]);
             intConec = permute(intConec,[2 1 3]);
@@ -775,8 +784,8 @@ classdef BalancingNeumannNeumann_ndom < handle
             s.fValues(:,end+1) = 0;
             s.ndimf = 3;
             xF = P1Function(s);
-            %     xF.plot();
-            xF.print(['domain',num2str(domain),'_',num2str(iter)],'Paraview')
+                xF.plot();
+%             xF.print(['domain',num2str(domain),'_',num2str(iter)],'Paraview')
             fclose('all');
         end
 
@@ -809,7 +818,7 @@ classdef BalancingNeumannNeumann_ndom < handle
                     end
                     %                 a.fun=fun;
                     mesh=obj.meshDomain;
-                    filename = ['domain',num2str(jdom,idom)];
+                    filename = ['domain',num2str(jdom),num2str(idom)];
                     obj.print(filename,software,funNames,fun,mesh)
                 end
             end
