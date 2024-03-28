@@ -111,7 +111,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             s.ndimf = obj.phi.ndimf;
             g0 = DomainFunction(s);
 
-            trcSign = heaviside(trace(SymGrad(obj.u)));
+            trcSign = Heaviside(trace(SymGrad(obj.u)));
             g = g0.*trcSign + (1-trcSign);
 
         end

@@ -35,10 +35,10 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
        function createBoundaryConditions(obj,prescribedVal)
           % obj.createBendingConditions(prescribedVal)
           % obj.createForceTractionConditions(prescribedVal)
-           obj.createDisplacementTractionConditions(prescribedVal) 
+          % obj.createDisplacementTractionConditions(prescribedVal) 
           % NOT
           % FULLY DIRICHLET
-          % obj.createLshapeDisplacementConditions(prescribedVal)
+           obj.createLshapeDisplacementConditions(prescribedVal)
           % obj.createFiberMatrixDisplacementConditions(prescribedVal);
         end
         
@@ -109,35 +109,44 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
          end
          
          function createLshapeDisplacementConditions(obj,uVal)
-             nodes = 1:obj.mesh.nnodes;
-             ndim = 2;
-
-             % Enforce fixed Dirichlet conditions to the down nodes
-             downSide = min(obj.mesh.coord(:,2));
-             isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
-             dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-             for i=1:ndim
-                 dirichletDown(i:2:end,1) = nodes(isInDown);
-                 dirichletDown(i:2:end,2) = i;
-             end
+             isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInDown(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir1 = DirichletCondition(obj.mesh,sDir);
 
              % Enforce displacement under tip
-             rightSide = max(obj.mesh.coord(:,1));
-             isInRight = abs(obj.mesh.coord(:,1)-rightSide) < 1e-12;
-             upSide = max(obj.mesh.coord(:,2));
-             midPlane = upSide - downSide;
-             isInMiddle = abs(obj.mesh.coord(:,2)-midPlane) < 1e-12;
-             isInTip = isInRight & isInMiddle;
+             isInTip = @(coor) (abs(coor(:,2)-(max(coor(:,2))-min(coor(:,2)))) < 1e-12) & (abs(coor(:,1)-max(coor(:,1))) < 1e-12);
 
-             dirichletTip   = zeros(length(nodes(isInTip)),3);
-             dirichletTip(:,1) = nodes(isInTip);
-             dirichletTip(:,2) = 2;
-             dirichletTip(:,3) = uVal;
+             sDir.domain    = @(coor) isInTip(coor);
+             sDir.direction = [2];
+             sDir.value     = uVal;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
 
              % Merge
-             bc.dirichlet = [dirichletDown; dirichletTip];
+             bc.dirichlet = [Dir1 Dir2];
              bc.pointload = [];
              obj.boundaryConditions = bc;
+
+
+
+
+                          isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
+
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [2];
+             sDir.value     = uVal;       
+             Dir3 = DirichletCondition(obj.mesh,sDir);
+
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1 Dir2 Dir3];
+             s.pointloadFun = [];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);
          end
 
          function createFiberMatrixDisplacementConditions(obj,uVal)
