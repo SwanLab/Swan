@@ -12,9 +12,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro(length,type)
+        function obj = Tutorial02p2FEMElasticityMicro(length,type,E,v)
             obj.createMesh(length,type);
-            obj.computeElasticProperties();
+            obj.computeElasticProperties(E,v);
             obj.createMaterial();
             obj.solveElasticProblem();
         end
@@ -67,9 +67,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
 
-        function computeElasticProperties(obj)
-            E1  = 1;
-            nu1 = 0.3;
+        function computeElasticProperties(obj,E1,nu1)
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             obj.young   = E;
