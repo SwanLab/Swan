@@ -30,8 +30,8 @@ for i=1:3
         plotFun(C_Iso{i,j},AT1,"-","#7E2F8E","none")
         plotFun(C_Iso{i,j},AT2,"-","#77AC30","none")
 
-        ylabel(['C',num2str(i),num2str(j)]);
-        xlabel("$\alpha$",'Interpreter','latex');
+        xlabel(['C',num2str(i),num2str(j)]);
+        ylabel("$\alpha$",'Interpreter','latex');
     end
 end
 % leg = legend('Circle (Perimeter)', ...
@@ -58,14 +58,16 @@ leg.Layout.Tile = 'east';
 function plotFun(C,alpha,op1,op2,op3)
     switch C.order
         case "P1"
-            p = plot(alpha,C.fValues);
+            x = alpha;
+            y = C.fValues;
+            p = plot(y,x);
             p.LineStyle = op1;
             p.Color = op2;
             p.Marker = op3;
         case "P2"
             [x,sortIdx] = sort(C.getCoord());
             y = C.fValues(sortIdx);
-            p = plot(x,y);
+            p = plot(y,x);
             p.LineStyle = op1;
             p.Color = op2;
             p.Marker = op3;
