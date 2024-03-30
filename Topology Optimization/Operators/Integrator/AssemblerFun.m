@@ -24,7 +24,7 @@ classdef AssemblerFun < handle
             ndofsElem1 = size(Aelem,1);
             ndofsElem2 = size(Aelem,2);
 
-            res = zeros(ndofsElem1*ndofsElem2 * nElem, 3);
+            res = zeros(ndofsElem1*ndofsElem2*nElem, 3);
             strt = 1;
             fnsh = nElem;
             for i = 1:ndofsElem1
@@ -44,7 +44,7 @@ classdef AssemblerFun < handle
 
         function V = assembleV(obj, F, fun)
             % Via indices
-            dofConnec = obj.fun.getConnec();
+            dofConnec = fun.getConnec();
             nDofsEl   = size(dofConnec,2);
             nDofs     = max(max(dofConnec)); %obj.fun.nDofs;
             nGaus     = size(F,2);

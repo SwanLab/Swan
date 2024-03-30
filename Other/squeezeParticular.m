@@ -8,7 +8,11 @@ function squeezed = squeezeParticular(varargin) % t, dim, (TOTALDIM)
         squeezed = DomainFunction(s);
     else
         z = size(t);
-        index = setdiff(1:length(z),dim);
-        squeezed = reshape(t,[z(index) z(dim)]);
+        if length(z) < dim
+            squeezed = t;
+        else
+            index = setdiff(1:length(z),dim);
+            squeezed = reshape(t,[z(index) z(dim)]);
+        end
     end
 end

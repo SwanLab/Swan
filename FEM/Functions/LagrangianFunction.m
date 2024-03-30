@@ -3,12 +3,12 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        connec
     end
 
     properties (Access = private)
         interpolation
         coord
-        connec
     end
 
     methods (Access = public)
@@ -25,17 +25,16 @@ classdef LagrangianFunction < FeFunction
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF,nGaus,nElem);
+            fxV = zeros(nF,1,nGaus,nElem);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
                     Ni = shapes(iNode,iGaus);
                     fi = obj.fValues(node,:);
                     f(:,1,:) = Ni*fi';
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+                    fxV(:,:,iGaus,:) = squeezeParticular(fxV(:,:,iGaus,:),3) + f;
                 end
             end
-
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -92,6 +91,83 @@ classdef LagrangianFunction < FeFunction
             end
             dNdx = dShapes;
         end
+
+        function fVR = evaluateGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
+            nDimf = obj.ndimf;
+            nDimG = size(dNdx, 1);
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+            nElem = size(dNdx, 4);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            grad = zeros(nDimG,nDimf, nPoints, nElem);
+            for iDimG = 1:nDimG
+                for jDimf = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
+                        iDofE = nDimf*(kNodeE-1)+jDimf;
+                        dofs = obj.connec(:,iDofE);
+                        fKJ = repmat(fV(dofs),[nPoints 1]);
+                        gradIJ= dNdxIK.*fKJ;
+                        grad(iDimG,jDimf,:,:) = squeezeParticular(grad(iDimG,jDimf,:,:),[1 2]) + gradIJ;
+                    end
+                end
+            end
+            fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
+        end
+
+        function symGrad = evaluateSymmetricGradient(obj,xV)
+            grad = obj.evaluateGradient(xV);
+            nDimf = obj.ndimf;
+            nDims = size(grad, 1)/nDimf;
+            nGaus = size(grad, 2);
+            nElem = size(grad, 3);
+
+            gradReshp = reshape(grad, [nDims,nDimf,nGaus,nElem]);
+            gradT = permute(gradReshp, [2 1 3 4]);
+            symGrad = 0.5*(gradReshp + gradT);
+            
+            symGrad =  reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
+        end
+
+        function symGrad = evaluateSymmetricGradientVoigt(obj,xV)
+            sgr = obj.evaluateSymmetricGradient(xV);
+            symGrad = obj.obtainVoigtFormat(sgr);
+        end
+
+        function newObj = obtainVoigtFormat(obj, sgr)
+            ndim = size(sgr,1);
+            switch ndim
+                case 4
+                    newObj = obj.applyVoigt2D(sgr);
+                case 9
+                    newObj = obj.applyVoigt3D(sgr);
+            end
+        end
+
+        function fV = applyVoigt2D(obj, fV)
+            nGaus = size(fV,2);
+            nElem = size(fV,3);
+            fVal(1,:,:) = fV(1,:,:); % xx
+            fVal(2,:,:) = fV(4,:,:); % yy
+            fVal(3,:,:) = fV(2,:,:) + fV(3,:,:); % xy
+            fV = reshape(fVal, [3 nGaus nElem]);
+%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
+        end
+
+        function fV = applyVoigt3D(obj, fV)
+            nGaus = size(fV,2);
+            nElem = size(fV,3);
+            fVal(1,:,:) = fV(1,:,:); % xx
+            fVal(2,:,:) = fV(5,:,:); % yy
+            fVal(3,:,:) = fV(9,:,:); % zz
+            fVal(4,:,:) = fV(2,:,:) + fV(4,:,:); % xy
+            fVal(5,:,:) = fV(3,:,:) + fV(7,:,:); % xz
+            fVal(6,:,:) = fV(6,:,:) + fV(8,:,:); % yz
+            fV = reshape(fVal, [6 nGaus nElem]);
+%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
+        end
         
         function ord = orderTextual(obj)
             switch obj.order
@@ -112,7 +188,7 @@ classdef LagrangianFunction < FeFunction
                 case {'TRIANGLE','QUAD'}
                     x = obj.coord(:,1);
                     y = obj.coord(:,2);
-                    figure()
+                    figure(1000)
                     for idim = 1:obj.ndimf
                         subplot(1,obj.ndimf,idim);
                         z = obj.fValues(:,idim);
@@ -126,7 +202,7 @@ classdef LagrangianFunction < FeFunction
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
                     y = obj.fValues;
-                    figure()
+                    figure(1000)
                     plot(x,y)
                 end
             else

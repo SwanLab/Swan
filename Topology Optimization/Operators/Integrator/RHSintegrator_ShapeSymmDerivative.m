@@ -23,7 +23,7 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
         end
         
         function rhsC = computeElementalRHS(obj, fun, test)
-            fG = fun.evaluate(obj.quadrature.posgp);
+            fG = squeezeParticular(fun.evaluate(obj.quadrature.posgp),2);
             dV = obj.mesh.computeDvolume(obj.quadrature);
             dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             nDim  = size(dNdx,1);

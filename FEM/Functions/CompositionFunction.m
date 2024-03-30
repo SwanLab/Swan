@@ -24,7 +24,15 @@ classdef CompositionFunction < L2Function
             f = obj.project('P1D');
             f.plot();
         end
-        
+
+        function r = times(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
     end
 
     methods (Access = public, Static)

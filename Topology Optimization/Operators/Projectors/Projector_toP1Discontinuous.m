@@ -64,7 +64,7 @@ classdef Projector_toP1Discontinuous < Projector
             nNode = size(conne,2);
             nDofs = nElem*nNode;
 
-            fGaus = fun.evaluate(xV);
+            fGaus = squeezeParticular(fun.evaluate(xV),2);
             nFlds = size(fGaus,1);
             f     = zeros(nDofs,nFlds);
             for iField = 1:nFlds

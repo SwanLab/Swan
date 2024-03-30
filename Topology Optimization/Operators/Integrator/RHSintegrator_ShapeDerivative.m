@@ -24,7 +24,7 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
         
         function rhsC = computeElementalRHS(obj, fun, test)
             xV = obj.quadrature.posgp;
-            fG    = fun.evaluate(xV);
+            fG    = squeezeParticular(fun.evaluate(xV),2);
             dNdx  = test.evaluateCartesianDerivatives(xV);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             nDim  = size(dNdx,1);
@@ -43,13 +43,12 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
                     end
                 end
             end
-            rhsC = transpose(int);
+            rhsC = int;
         end
 
         function f = assembleIntegrand(obj,rhsElem,test)
-            integrand = rhsElem;
-            %connec = obj.mesh.connec;
-            connec = test.computeDofConnectivity()';
+            integrand = rhsElem';
+            connec = test.getConnec();
             nDofs = max(max(connec));
             nNode  = size(connec,2);
             f = zeros(nDofs,1);

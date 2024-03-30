@@ -1,4 +1,5 @@
- classdef FGaussDiscontinuousFunction < handle
+
+classdef FGaussDiscontinuousFunction < handle
     % nDimf * nGaus * nElem
     properties (Constant, Access = public)
         fType = 'GAUSSPOINTS'

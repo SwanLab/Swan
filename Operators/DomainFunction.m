@@ -26,6 +26,7 @@ classdef DomainFunction < handle
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagetranspose(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
         
@@ -33,6 +34,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -40,6 +42,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -47,30 +50,42 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
         
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) aOp(xV).^b;
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = trace(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) trace(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -84,16 +99,12 @@ classdef DomainFunction < handle
     end
     
     methods (Access = private)
-
+        
         function init(obj,cParams)
             obj.operation = cParams.operation;
-            if isfield(cParams,'ndimf')
-                obj.ndimf = cParams.ndimf;
-            else
-                obj.ndimf = 1;
-            end
+            obj.ndimf = cParams.ndimf;
         end
-
+        
     end
 
     methods (Static, Access = public)
@@ -101,6 +112,8 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
+            elseif class(a) == "double"
+                op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);
             end

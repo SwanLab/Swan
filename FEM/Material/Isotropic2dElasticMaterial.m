@@ -1,9 +1,15 @@
 classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
+    
+    properties (Access = public)
+        ndimf
+    end
 
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);
+            obj.ndim = 2;
+            obj.ndimf = 4;
         end
 
         function C = evaluate(obj,xV)
