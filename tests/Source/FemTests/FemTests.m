@@ -118,12 +118,13 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
 
-        function testStokes(testCase, stokesTests)
-            s.computerType     = 'STOKES';
+%% STOKES
+        function testStokes(testCase, stokesTests) % S T O K E S
+            s.computerType     = 'STOKES'; % Omplim l'estructura s.
             s.testName         = stokesTests;
             s.variablesToStore = {'u','p'};
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
+            test = PrecomputedVariableTest(s); % Anem a "PrecomputedVariableTest"
+            err = test.computeError(); % Cridem el mètode "computeError" de la classe "PrecomputedVariableTest"
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
