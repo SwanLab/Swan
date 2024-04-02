@@ -1,4 +1,8 @@
 classdef VolumeConstraint < handle
+    
+    properties (Access = public) % Modified
+        currentVal
+    end
 
     properties (Access = private)
         mesh
@@ -13,6 +17,7 @@ classdef VolumeConstraint < handle
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
+            obj.currentVal = V;
             J      = obj.computeFunction(V);
             dJ     = obj.computeGradient(dV);
         end  

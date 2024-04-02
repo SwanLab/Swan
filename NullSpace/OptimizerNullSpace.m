@@ -278,6 +278,29 @@ classdef OptimizerNullSpace < Optimizer
             mF = J+l'*h;
         end
 
+<<<<<<< Updated upstream
+=======
+        function setSolverTol(obj)
+            switch obj.currentTolCase
+                case 'Standard'
+                    obj.setStandardSolverTolerance();
+                case 'Decreasing'
+                    obj.solverTol.compute('Decreasing');
+                case 'Restarting'
+                    obj.solverTol.compute('Restarting');
+            end
+        end
+
+        function setStandardSolverTolerance(obj)
+            iNorm  = obj.designVariable.computeNonScaledL2normIncrement;
+            % t      = obj.primalUpdater.tau;
+            % mGNorm = t*norm(obj.meritGradient)/numel(obj.meritGradient)*100;
+            % cVal   = obj.constraint.value;
+            % scaleVal = max(cVal,mGNorm);
+            obj.solverTol.compute('Standard',iNorm);%,iNorm);
+        end
+
+>>>>>>> Stashed changes
         function obj = updateOldValues(obj,xV)
             x = obj.designVariable;
             x.update(xV);

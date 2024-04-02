@@ -44,8 +44,8 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,150);
-            x2      = linspace(0,1,75);
+            x1      = linspace(0,2,200);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -125,6 +125,7 @@ classdef TopOptAccelerationExperiments < handle
             s.solverMode = 'DISP';
             s.solverCase = 'CONJUGATE GRADIENT';
             s.solverTol  = obj.solverTol;
+            s.volume     = obj.volume;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -195,7 +196,7 @@ classdef TopOptAccelerationExperiments < handle
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
-            opt = OptimizerNullSpace(s);
+            opt = OptimizerAugmentedLagrangian(s);
             % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

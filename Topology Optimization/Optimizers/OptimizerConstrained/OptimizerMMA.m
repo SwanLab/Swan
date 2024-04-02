@@ -77,7 +77,7 @@ classdef OptimizerMMA < Optimizer
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
             f = obj.designVariable;
-            obj.solverTol.compute(f.computeNonScaledL2normIncrement*100);
+            obj.solverTol.compute(f.computeNonScaledL2normIncrement);
             obj.cost.computeFunctionAndGradient(f);
             obj.constraint.computeFunctionAndGradient(f);
             f.updateOld();

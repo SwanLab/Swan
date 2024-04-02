@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
 
-        solverCase, solverTol
+        solverCase, solverTol, volume
     end
 
     properties (Access = protected)
@@ -80,6 +80,7 @@ classdef ElasticProblem < handle
             obj.solverCase  = cParams.solverCase;
             obj.solverTol   = cParams.solverTol;
             obj.boundaryConditions = cParams.boundaryConditions;
+            if isfield(cParams,'volume'); obj.volume = cParams.volume; end
         end
 
         function createQuadrature(obj)
@@ -109,8 +110,9 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type = obj.solverCase;
-            s.tol  = obj.solverTol;
+            s.type     = obj.solverCase;
+            s.tol      = obj.solverTol;
+            s.volume   = obj.volume;
             obj.solver = Solver.create(s);
         end
 
@@ -151,14 +153,33 @@ classdef ElasticProblem < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
             pb = ProblemSolver(s);
-            [u,L] = pb.solve();
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
-            uFeFun = LagrangianFunction(z);
-            obj.uFun = uFeFun;
-            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            % - TO RECOVER
+            solveIterations = false;
+            if solveIterations
+                tolVals = [1:-0.01:0.1,5e-2,1e-2,5e-3,1e-3,1e-5];
+                for i = 1:numel(tolVals)
+                    obj.solverTol.val = tolVals(i);
+                    [u,L] = pb.solve();
+                    z.mesh    = obj.mesh;
+                    z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+                    z.order   = 'P1';
+                    uFeFun = LagrangianFunction(z);
+                    obj.uFun = uFeFun;
+                    uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+                    obj.displacementFun.fValues = uSplit;
+                    saveDisplacements(obj.displacementFun,string(i));
+                end
+            else
+                [u,L] = pb.solve();
+                z.mesh    = obj.mesh;
+                z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+                z.order   = 'P1';
+                uFeFun = LagrangianFunction(z);
+                obj.uFun = uFeFun;
+                uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+                obj.displacementFun.fValues = uSplit;
+            end
+            % -
         end
 
         function computeStrain(obj)
