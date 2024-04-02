@@ -4,16 +4,26 @@ classdef Quadrilateral_Cubic < Interpolation
         
         function obj = Quadrilateral_Cubic(cParams)
             obj.init(cParams);
-            obj.computeParams();
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeParams(obj)
+            obj.type = 'QUADRILATERAL_CUBIC';
+            obj.ndime = 2;
+            obj.nnode = 16;
+            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             shape = zeros(obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
-                s = posgp(1,igaus);
-                t = posgp(2,igaus);
+                s = xV(1,igaus);
+                t = xV(2,igaus);
                 shape(:,igaus,:) = [
                     (81*s^3*t^3)/256 - (81*s^3*t^2)/256 - (9*s^3*t)/256 + (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 - (9*s*t^3)/256 + (9*s*t^2)/256 + (s*t)/256 - s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
                     - (81*s^3*t^3)/256 + (81*s^3*t^2)/256 + (9*s^3*t)/256 - (9*s^3)/256 - (81*s^2*t^3)/256 + (81*s^2*t^2)/256 + (9*s^2*t)/256 - (9*s^2)/256 + (9*s*t^3)/256 - (9*s*t^2)/256 - (s*t)/256 + s/256 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256;
@@ -34,13 +44,13 @@ classdef Quadrilateral_Cubic < Interpolation
             end
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
-                s = posgp(1,igaus);
-                t = posgp(2,igaus);
+                s = xV(1,igaus);
+                t = xV(2,igaus);
                 deriv(:,:,igaus,:) = [
                     (243*s^2*t^3)/256 - (243*s^2*t^2)/256 - (27*s^2*t)/256 + (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 - (9*t^3)/256 + (9*t^2)/256 + t/256 - 1/256,
                     - (243*s^2*t^3)/256 + (243*s^2*t^2)/256 + (27*s^2*t)/256 - (27*s^2)/256 - (81*s*t^3)/128 + (81*s*t^2)/128 + (9*s*t)/128 - (9*s)/128 + (9*t^3)/256 - (9*t^2)/256 - t/256 + 1/256,
@@ -76,17 +86,6 @@ classdef Quadrilateral_Cubic < Interpolation
                     - (2187*s^3*t^2)/256 - (243*s^3*t)/128 + (729*s^3)/256 + (729*s^2*t^2)/256 + (81*s^2*t)/128 - (243*s^2)/256 + (2187*s*t^2)/256 + (243*s*t)/128 - (729*s)/256 - (729*t^2)/256 - (81*t)/128 + 243/256,
                     (2187*s^3*t^2)/256 + (243*s^3*t)/128 - (729*s^3)/256 + (729*s^2*t^2)/256 + (81*s^2*t)/128 - (243*s^2)/256 - (2187*s*t^2)/256 - (243*s*t)/128 + (729*s)/256 - (729*t^2)/256 - (81*t)/128 + 243/256];
             end
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeParams(obj)
-            obj.type = 'QUADRILATERAL_CUBIC';
-            obj.ndime = 2;
-            obj.nnode = 16;
-            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
         end
 
     end

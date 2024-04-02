@@ -104,6 +104,7 @@ classdef ProblemSolver < handle
                         Km  = obj.stiffness;
                         LHS = [Km C; C' Z];
                     else
+                        % Micro
                         iV = bcs.iVoigt;
                         nV = bcs.nVoigt;
                         % CtDir = bcapp.computeLinearConditionsMatrix();
