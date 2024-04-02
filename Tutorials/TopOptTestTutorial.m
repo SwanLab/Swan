@@ -183,7 +183,7 @@ classdef TopOptTestTutorial < handle
             s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerBisection(s);
+            opt              = Optimizer_fmincon(s);
             % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
