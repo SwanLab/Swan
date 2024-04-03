@@ -26,7 +26,7 @@ classdef TopOptAccelerationExperiments < handle
             obj.createVolumeConstraint();
             obj.createSolverTolerance();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
+            obj.createComplianceFromConstitutive();
             obj.createCompliance();
             obj.createCost();
             obj.createConstraint();
@@ -109,28 +109,30 @@ classdef TopOptAccelerationExperiments < handle
 
         function createSolverTolerance(obj)
             s.solver      = 'CONJUGATE GRADIENT';
-            s.optimizer   = 'Null Space';
-            s.nDofs       = obj.designVariable.fun.nDofs;
+            s.tolMax      = 1e-2;
+            s.tolMin      = 1e-5;
             obj.solverTol = ConjugateGradientToleranceCalculator(s);
         end
 
         function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
+            s.mesh     = obj.mesh;
+            s.scale    = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.dim      = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = 'CONJUGATE GRADIENT';
-            s.solverTol  = obj.solverTol;
-            s.volume     = obj.volume;
+            s.interpolationType  = 'LINEAR';
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'DISP';
+            s.solverCase         = 'CONJUGATE GRADIENT';
+            s.solverTol          = obj.solverTol;
+            p.maxIters           = 5e3;
+            p.displayInfo        = true;
+            s.solverParams       = p;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
+        function c = createComplianceFromConstitutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
@@ -139,7 +141,7 @@ classdef TopOptAccelerationExperiments < handle
         function createCompliance(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+            s.complainceFromConstitutive  = obj.createComplianceFromConstitutive();
             s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
@@ -197,7 +199,6 @@ classdef TopOptAccelerationExperiments < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
             opt = OptimizerAugmentedLagrangian(s);
-            % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

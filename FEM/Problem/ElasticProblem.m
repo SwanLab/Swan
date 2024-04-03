@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
 
-        solverCase, solverTol, volume
+        solverTol, solverParams
     end
 
     properties (Access = protected)
@@ -71,16 +71,15 @@ classdef ElasticProblem < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
-            obj.scale       = cParams.scale;
-            obj.mesh        = cParams.mesh;
-            obj.solverType  = cParams.solverType;
-            obj.solverMode  = cParams.solverMode;
-            obj.solverCase  = cParams.solverCase;
-            obj.solverTol   = cParams.solverTol;
+            obj.mesh         = cParams.mesh;
+            obj.material     = cParams.material;
+            obj.scale        = cParams.scale;
+            obj.mesh         = cParams.mesh;
+            obj.solverType   = cParams.solverType;
+            obj.solverMode   = cParams.solverMode;
+            obj.solverTol    = cParams.solverTol;
+            obj.solverParams = cParams.solverParams;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'volume'); obj.volume = cParams.volume; end
         end
 
         function createQuadrature(obj)
@@ -110,10 +109,9 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type     = obj.solverCase;
-            s.tol      = obj.solverTol;
-            s.volume   = obj.volume;
-            obj.solver = Solver.create(s);
+            s.tol          = obj.solverTol;
+            s.solverParams = obj.solverParams;
+            obj.solver     = Solver.create(s);
         end
 
         function computeStiffnessMatrix(obj)

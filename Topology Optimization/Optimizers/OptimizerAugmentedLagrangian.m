@@ -22,6 +22,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         penalty
         meritGradient
         Vtar
+        update
 
         globalCost
         globalConstraint
@@ -42,7 +43,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.prepareFirstIter();
         end
 
-        function obj = solveProblem(obj)
+        function solveProblem(obj)
             x = obj.designVariable;
             obj.hasConverged = false;
             obj.cost.computeFunctionAndGradient(x);
@@ -74,6 +75,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.hasConverged           = false;
             obj.nIter                  = 0;
             obj.Vtar                   = cParams.volumeTarget;
+            if cParams.constantTau
+                obj.update = @obj.updateWithConstantTau;
+                obj.primalUpdater.computeFirstStepLength(1e-2,1,1);
+            else
+                obj.update = @obj.updateWithVariableTau;
+            end
             obj.createMonitoring(cParams);
         end
 
@@ -126,7 +133,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.penalty            = 3;
         end
 
-        function obj = update(obj)
+        function obj = updateWithVariableTau(obj)
             x0 = obj.designVariable.fun.fValues;
             obj.designVariable.update(x0);
             obj.saveOldValues(x0);
@@ -139,6 +146,13 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 x = obj.updatePrimal();
                 obj.checkStep(x,x0);
             end
+            obj.updateOldValues(x);
+        end
+
+        function updateWithConstantTau(obj)
+            obj.lineSearchTrials = 0;
+            obj.computeMeritGradient();
+            x = obj.updatePrimal();
             obj.updateOldValues(x);
         end
 
