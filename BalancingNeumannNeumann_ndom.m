@@ -33,7 +33,8 @@ classdef BalancingNeumannNeumann_ndom < handle
         localGlobalDofConnec
         coarseSpace
         domainFun
-        domLHS
+        domainLHS
+        LHScoarse
 
         displacementFun
         LHS
@@ -70,9 +71,11 @@ classdef BalancingNeumannNeumann_ndom < handle
 
             obj.computeDomainLHS();
 
-            coarseSpace = obj.computeCoarseSpace();
-            obj.plotfields(coarseSpace)
-
+            obj.coarseSpace = obj.computeCoarseSpace();
+            obj.LHScoarse = obj.computeCoarseLHS();
+%             obj.plotfields(coarseSpace)
+            
+            
 
 %             obj.createSubdomainBoundaryConditions();
 
@@ -348,7 +351,7 @@ classdef BalancingNeumannNeumann_ndom < handle
                     Gmat   = Gmat+mat;
                 end
             end
-            obj.domLHS = Gmat;
+            obj.domainLHS = Gmat;
         end
 
 
@@ -491,36 +494,35 @@ classdef BalancingNeumannNeumann_ndom < handle
                     end
                 end
             end
-
-            %             cBasis = obj.scaleInterfaceValues(cBasis);
-
-            %             alldof = 1:1:obj.domainFun.nDofs;
-            %             for jdom = 1:obj.nSubdomains(2)
-            %                 for idom = 1:obj.nSubdomains(1)
-            %                     dofR = obj.localGlobalDofConnec(:,1,idom);
-            %                     dofF = setdiff(alldof,dofR);
-            %                     Kff = obj.domLHS(dofF,dofF);
-            %                     Kfr = obj.domLHS(dofF,dofR);
-            %                     nbasis = size(basis{jdom,idom},2);
-            %                     for ibasis = 1:nbasis
-            %                         disp = basis{idom}(dofR,ibasis);
-            %                         F   = Kfr*disp;
-            %                         u   = Kff\F;
-            %                         cBasis{idom}(dofF,ibasis)  = u;
-            %                         cBasis{idom}(dofR,ibasis)  = disp;
-            %                     end
-            %                 end
-            %             end
         end
 
         function cBasis = computeCoarseSpaceBasisNoHarmonic(obj,basis)
             for idom = 1:obj.nSubdomains(1)
                 nbasis = size(basis{idom},2);
                 for ibasis = 1:nbasis
-                    cBasis{idom}(:,ibasis)  = obj.domLHS*basis{idom}(:,ibasis);
+                    cBasis{idom}(:,ibasis)  = obj.domainLHS*basis{idom}(:,ibasis);
                 end
             end
             %             cBasis = obj.domLHS*basis;
+        end
+
+        function Kcoarse = computeCoarseLHS(obj)
+            Kfine = obj.domainLHS;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    basis = obj.coarseSpace{jdom,idom};
+                    Kcoarse{jdom,idom} = obj.projectMat(Kfine,basis);
+                end
+            end
+        end
+
+        function pmat = projectMat(obj,mat,basis)
+            pmat = mat*basis;
+            pmat = basis'*pmat;
+        end
+
+        function pvec = projectVec(obj,vec,basis)
+            pvec = basis'*vec;
         end
 
 
@@ -600,21 +602,39 @@ classdef BalancingNeumannNeumann_ndom < handle
         end
 
         function ind = identifyNeumanInterfaceDof(obj)
-            for idom=1:obj.nSubdomains(1)
-                bN = obj.boundaryConditions.neumannStep{idom};
-                for idof = 1: length(obj.interfaceDof(:,idom))
-                    ind(idof,idom) = find(bN.neumann == obj.interfaceDof(idof,idom));
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    bN = obj.boundaryConditions.neumannStep{row,col};
+                    [~,ind(:,idom,iint)] = ismember(dof,bN.neumann);
                 end
             end
         end
 
         function ind = identifyDirichletInterfaceDof(obj)
-            for idom=1:obj.nSubdomains(1)
-                bD = obj.boundaryConditions.dirichletStep{idom};
-                for idof = 1: length(obj.interfaceDof(:,idom))
-                    ind(idof,idom) = find(bD.dirichlet == obj.interfaceDof(idof,idom));
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    bN = obj.boundaryConditions.dirichletStep{row,col};
+                    [~,ind(:,idom,iint)] = ismember(dof,bN.dirichlet);
                 end
             end
+%             for idom=1:obj.nSubdomains(1)
+%                 bD = obj.boundaryConditions.dirichletStep{idom};
+%                 for idof = 1: length(obj.interfaceDof(:,idom))
+%                     ind(idof,idom) = find(bD.dirichlet == obj.interfaceDof(idof,idom));
+%                 end
+%             end
         end
 
 
@@ -622,19 +642,48 @@ classdef BalancingNeumannNeumann_ndom < handle
             tol=1e-8;
             e=1;
             iter=1;
-            uInt = zeros(size(obj.interfaceDof,1),1);
+            nint = size(obj.interfaceDof,3);
+            uIntOld = zeros(size(obj.interfaceDof,1),nint);
             while e(iter)>tol
 
                 [uD,RHS] = obj.solveFEM(obj.boundaryConditions.dirichletStep);
                 R = obj.computeInterfaceResidual(uD,RHS);
                 obj.updateNeumanValues(R);
 
+                for jdom = 1:obj.nSubdomains(2)
+                    for idom =1:obj.nSubdomains(1)
+                        mesh = obj.meshSubDomain{jdom,idom};
+                        x = uD{jdom,idom};
+                        row = jdom;
+                        col = idom;
+                        obj.plotSolution(x,mesh,row,col,iter)
+                    end
+                end
+
+                [u0,RHS] = obj.solveCoarseProblem(obj.boundaryConditions.neumannStep);
+                Rint = obj.balanceResidual(u0,RHS);
+                obj.updateBalancedNeumanValues(Rint);
+%                 R = obj.computeInterfaceResidual(u0,RHS);
+%                 obj.updateNeumanValues(R);
+%                 for jdom = 1:obj.nSubdomains(2)
+%                     for idom =1:obj.nSubdomains(1)
+%                         mesh = obj.meshSubDomain{jdom,idom};
+%                         x = u{jdom,idom};
+%                         row = jdom;
+%                         col = idom;
+%                         obj.plotSolution(x,mesh,row,col,iter)
+%                     end
+%                 end
+
                 [uN,~] = obj.solveFEM(obj.boundaryConditions.neumannStep);
-                uInt_new = obj.updateDirichletStepBC(uN);
+%                 uN = u0 + uN;
+                uInt = obj.computeInterfaceDisp(uN);
+                uIntNew = obj.updateDirichletValues(uInt);
+%                 uInt_new = obj.updateDirichletStepBC(uN);
 
                 iter=iter+1;
-                e(iter) = norm(uInt_new-uInt);
-                uInt = uInt_new;
+                e(iter) = norm(uIntNew-uIntOld);
+                uIntOld = uIntNew;
 
                 %                 [uD,RHS] = obj.dirichletStep();
 
@@ -664,18 +713,20 @@ classdef BalancingNeumannNeumann_ndom < handle
         end
 
         function [uD,RHS] = dirichletStep(obj)
-            for idom = 1:obj.nSubdomains(1)
-                bD = obj.boundaryConditions.dirichletStep{idom};
-                lhs = obj.LHS{idom};
-                mesh = obj.meshSubDomain{idom};
-                disp = obj.displacementFun{idom};
-                mat  = obj.material{idom};
-                [Fext,RHS{idom}] = obj.computeForces(bD,mat,mesh,disp,lhs);
-                Kred    = bD.fullToReducedMatrix(obj.LHS{idom});
-                Fred    = bD.fullToReducedVector(RHS{idom});
-                u{idom} = Kred\Fred;
-                u{idom} = bD.reducedToFullVector(u{idom});
-                uD{idom} = reshape(u{idom},2,[])';
+            for jdom=1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    bD = obj.boundaryConditions.dirichletStep{jdom,idom};
+                    lhs = obj.LHS{jdom,idom};
+                    mesh = obj.meshSubDomain{jdom,idom};
+                    disp = obj.displacementFun{jdom,idom};
+                    mat  = obj.material{jdom,idom};
+                    [Fext,RHS{idom}] = obj.computeForces(bD,mat,mesh,disp,lhs);
+                    Kred    = bD.fullToReducedMatrix(obj.LHS{idom});
+                    Fred    = bD.fullToReducedVector(RHS{idom});
+                    u{idom} = Kred\Fred;
+                    u{idom} = bD.reducedToFullVector(u{idom});
+                    uD{idom} = reshape(u{idom},2,[])';
+                end
             end
         end
 
@@ -695,82 +746,189 @@ classdef BalancingNeumannNeumann_ndom < handle
         end
 
         function [u,RHS] = solveFEM(obj,bc)
-            for idom = 1:obj.nSubdomains(1)
-                %                 bc = obj.boundaryConditions.neumannStep{idom};
-                lhs = obj.LHS{idom};
-                mesh = obj.meshSubDomain{idom};
-                mat  = obj.material{idom};
-                disp = obj.displacementFun{idom};
-                bc_dom = bc{idom};
-                [obj.Fext,RHS{idom}] = obj.computeForces(bc_dom,mat,mesh,disp,lhs);
-                Kred    = bc_dom.fullToReducedMatrix(obj.LHS{idom});
-                Fred    = bc_dom.fullToReducedVector(RHS{idom});
-                u{idom} = Kred\Fred;
-                u{idom} = bc_dom.reducedToFullVector(u{idom});
-                u{idom} = reshape(u{idom},2,[])';
+            for jdom=1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    %                 bc = obj.boundaryConditions.neumannStep{idom};
+                    lhs = obj.LHS{jdom,idom};
+                    mesh = obj.meshSubDomain{jdom,idom};
+                    mat  = obj.material{jdom,idom};
+                    disp = obj.displacementFun{jdom,idom};
+                    bc_dom = bc{jdom,idom};
+                    [obj.Fext,RHS{jdom,idom}] = obj.computeForces(bc_dom,mat,mesh,disp,lhs);
+                    Kred    = bc_dom.fullToReducedMatrix(obj.LHS{jdom,idom});
+                    Fred    = bc_dom.fullToReducedVector(RHS{jdom,idom});
+                    u{jdom,idom} = pinv(full(Kred))*Fred;
+                    u{jdom,idom} = bc_dom.reducedToFullVector(u{jdom,idom});
+                    u{jdom,idom} = reshape(u{jdom,idom},2,[])';
+                end
             end
         end
 
-        function R2 = computeInterfaceResidual(obj,u,RHS)
+        function [u,RHS] = solveCoarseProblem(obj,bc)
+            for jdom=1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    %                 bc = obj.boundaryConditions.neumannStep{idom};
+                    lhs = obj.LHS{jdom,idom};
+                    mesh = obj.meshSubDomain{jdom,idom};
+                    mat  = obj.material{jdom,idom};
+                    disp = obj.displacementFun{jdom,idom};
+                    bc_dom = bc{jdom,idom};
+                    [obj.Fext,RHS{jdom,idom}] = obj.computeForces(bc_dom,mat,mesh,disp,lhs);
+                    basis = obj.coarseSpace{jdom,idom};
+                    connec = obj.localGlobalDofConnec{jdom,idom};
+                    F = obj.local2global(RHS{jdom,idom},connec);
+                    F = obj.projectVec(F,basis);
+                    uRed    = obj.LHScoarse{jdom,idom}\F;
+                    uG      = obj.projectVec(uRed,basis');
+                    uL      = obj.global2local(uG,connec);
+                    u{jdom,idom} = reshape(uG,2,[])';
+%                     u{jdom,idom} = uL;
+                end
+            end
+        end
+
+        function Rint = computeInterfaceResidual(obj,u,RHS)
 
             w = [obj.weight,1-obj.weight];
             %              w  = [1,1];
             R=zeros(size(obj.interfaceDof,1),1);
-            R2=zeros(size(obj.interfaceDof,1),1);
-            for idom=1:obj.nSubdomains(1)
-                unodal = reshape(u{idom}',1,[])';
-                interfaceDOF = obj.interfaceDof(:,idom);
-                R2 = R2 + w(idom)*(RHS{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal ...
-                    + obj.LHS{idom}(interfaceDOF,interfaceDOF)*unodal(interfaceDOF));
-                %                R = R + w(idom)*(obj.Fext{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal);
-                %                 aaa = norm(R2-R);
+%             R2=zeros(size(obj.interfaceDof,1),1);
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                R=zeros(size(obj.interfaceDof,1),1);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    unodal = reshape(u{row,col}',1,[])';
+                    dof = obj.interfaceDof(:,idom,iint);
+                    R = R + w(idom)*(RHS{row,col}(dof)-obj.LHS{row,col}(dof,:)*unodal ...
+                    + obj.LHS{row,col}(dof,dof)*unodal(dof));
+                end
+                Rint(:,iint)=R;
             end
+%             for idom=1:obj.nSubdomains(1)
+%                 unodal = reshape(u{idom}',1,[])';
+%                 interfaceDOF = obj.interfaceDof(:,idom);
+%                 R2 = R2 + w(idom)*(RHS{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal ...
+%                     + obj.LHS{idom}(interfaceDOF,interfaceDOF)*unodal(interfaceDOF));
+%                 %                R = R + w(idom)*(obj.Fext{idom}(interfaceDOF)-obj.LHS{idom}(interfaceDOF,:)*unodal);
+%                 %                 aaa = norm(R2-R);
+%             end
         end
 
         function updateNeumanValues(obj,R)
-            for idom=1:obj.nSubdomains(1)
-                ind = obj.interfaceNeumanDof(:,idom);
-                obj.boundaryConditions.neumannStep{idom}.neumann_values(ind) = R;
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    ind = obj.interfaceNeumanDof(:,idom,iint);
+                    obj.boundaryConditions.neumannStep{row,col}.neumann_values(ind) = R(:,iint);
+                end
             end
         end
 
+        function updateBalancedNeumanValues(obj,R)
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    ind = obj.interfaceNeumanDof(:,idom,iint);
+                    obj.boundaryConditions.neumannStep{row,col}.neumann_values(ind) = R(:,idom,iint);
+                end
+            end
+        end
 
-        function uIntNew = updateDirichletStepBC(obj,u)
-            uInt = obj.computeInterfaceDisp(u);
-            uIntNew = obj.updateDirichletValues(uInt);
+        function Rbal = balanceResidual(obj,u,RHS)
+            R=zeros(size(obj.interfaceDof,1),1);
+%             R2=zeros(size(obj.interfaceDof,1),1);
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    unodal = reshape(u{row,col}',1,[])';
+                    dof = obj.interfaceDof(:,idom,iint);
+%                      R = R + w(idom)*(RHS{row,col}(dof)-obj.LHS{row,col}(dof,:)*unodal ...
+%                     + obj.LHS{row,col}(dof,dof)*unodal(dof));
+                    connec = obj.localGlobalDofConnec{row,col};
+                    Res = obj.local2global(RHS{row,col},connec);
+                    Rg = Res-obj.domainLHS*unodal;
+                    Rl = obj.global2local(Rg,connec);
+                    Rbal(:,idom,iint)=Rl(dof);
+                end
+%                 Rbal(:,,iint)=R;
+            end
         end
 
         function uInt = computeInterfaceDisp(obj,u)
+            nint = size(obj.interfaceDof,3);
+            uInt = zeros(size(obj.interfaceDof,1),nint);
             w = [obj.weight,1- obj.weight];
-            %             w  = [1,1];
-            uInt=zeros(size(obj.interfaceDof,1),1);
-            for idom=1:obj.nSubdomains(1)
-                unodal = reshape(u{idom}',1,[])';
-                interfaceDOF = obj.interfaceDof(:,idom);
-                uInt = uInt + w(idom)*unodal(interfaceDOF);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    unodal = reshape(u{row,col}',1,[])';
+                    dof = obj.interfaceDof(:,idom,iint);
+                    uInt(:,iint) = uInt(:,iint) + w(idom)*unodal(dof);
+                end
             end
+%             w = [obj.weight,1- obj.weight];
+%             %             w  = [1,1];
+%             uInt=zeros(size(obj.interfaceDof,1),1);
+%             for idom=1:obj.nSubdomains(1)
+%                 unodal = reshape(u{idom}',1,[])';
+%                 interfaceDOF = obj.interfaceDof(:,idom);
+%                 uInt = uInt + w(idom)*unodal(interfaceDOF);
+%             end
         end
 
         function uIntNew = updateDirichletValues(obj,u)
-            for idom=1:obj.nSubdomains(1)
-                bD{idom} = obj.boundaryConditions.dirichletStep{idom};
-                ind = obj.interfaceDirichletDof(:,idom);
-                bD{idom}.dirichlet_values(ind) = bD{idom}.dirichlet_values(ind) + obj.theta*u;
-
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    row = ceil(dom/obj.nSubdomains(1));
+                    col = dom-(row-1)*obj.nSubdomains(1);
+                    ind = obj.interfaceNeumanDof(:,idom,iint);
+                    bD{row,col} = obj.boundaryConditions.dirichletStep{row,col};
+                    bD{row,col}.dirichlet_values(ind) = bD{row,col}.dirichlet_values(ind)+ obj.theta*u(:,iint)/10;
+                end
+                uIntNew(:,iint) = bD{row,col}.dirichlet_values(ind);
             end
+%             
+%             for idom=1:obj.nSubdomains(1)
+%                 bD{idom} = obj.boundaryConditions.dirichletStep{idom};
+%                 ind = obj.interfaceDirichletDof(:,idom);
+%                 bD{idom}.dirichlet_values(ind) = bD{idom}.dirichlet_values(ind) + obj.theta*u;
+% 
+%             end
             obj.boundaryConditions.dirichletStep = bD;
-            uIntNew = bD{end}.dirichlet_values(obj.interfaceDirichletDof(:,end));
+%             uIntNew = bD{end}.dirichlet_values(obj.interfaceDirichletDof(:,end));
         end
 
-        function plotSolution(obj,x,mesh,domain,iter)
+        function plotSolution(obj,x,mesh,row,col,iter)
             %             xFull = bc.reducedToFullVector(x);
             s.fValues = reshape(x,2,[])';
             s.mesh = mesh;
             s.fValues(:,end+1) = 0;
             s.ndimf = 3;
             xF = P1Function(s);
-            xF.plot();
-            %             xF.print(['domain',num2str(domain),'_',num2str(iter)],'Paraview')
+%             xF.plot();
+            xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
             fclose('all');
         end
 
