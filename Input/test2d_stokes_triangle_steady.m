@@ -114,7 +114,7 @@ sDir{2}.direction = 1;
 sDir{2}.value     = 0;
 
 velocityBC.domain = 'Border';
-velocityBC.value  = 0;
+velocityBC.value  = 0; % Velocitat a les vores
 
 velocity = [
 1 1 0 

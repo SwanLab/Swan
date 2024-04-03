@@ -20,9 +20,11 @@ classdef StokesProblem < handle
         RHS
     end
 
+%% Mètode públics:
+
     methods (Access = public)
 
-        function obj = StokesProblem(cParams)
+        function obj = StokesProblem(cParams) % Aquí anem executant les funcions als mètodes privats de més avall
             obj.init(cParams);
             obj.createVelocity();
             obj.createPressure();
@@ -88,7 +90,9 @@ classdef StokesProblem < handle
         end
 
     end
-    
+
+%% Mètodes privats:
+
     methods (Access = private)
         
         function init(obj, cParams)
@@ -106,7 +110,7 @@ classdef StokesProblem < handle
         end
 
         function createVelocity(obj)
-            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2'); % Anem a LagrangianFunction
         end
 
         function createPressure(obj)
@@ -138,7 +142,7 @@ classdef StokesProblem < handle
             obj.boundaryConditions = bc;
         end
 
-        % Should be removed
+        % Should be removed (ningú ho fa servir)
         function dirich = adaptForDirichletConditions(obj,dirDofs)
             nodes = 1 + (dirDofs(2:2:end)-2)/obj.velocityFun.ndimf;
             nodes2 = repmat(nodes, [1 2]);
@@ -160,8 +164,8 @@ classdef StokesProblem < handle
             s.material      = obj.material;
             s.velocityFun = obj.velocityFun;
             s.pressureFun = obj.pressureFun;
-            LHS_int = LHSintegrator.create(s);
-            LHS = LHS_int.compute();
+            LHS_int = LHSintegrator.create(s); % Anem a la classe LHSintegrator, al seu mètode "create", i li donem totes les dades a LHSintegrator_Stokes
+            LHS = LHS_int.compute(); % T'envia a LHSintegrator_Stokes
             obj.LHS = LHS;
             obj.LHSintegrator = LHS_int;
         end
