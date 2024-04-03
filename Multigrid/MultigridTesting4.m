@@ -85,8 +85,8 @@ classdef MultigridTesting4 < handle
         end
 
         function createMultiLevelMesh(obj)
-           s.nX               = 2;
-           s.nY               = 2;
+           s.nX               = 4;
+           s.nY               = 4;
            s.nLevel           = obj.nLevel;
            m                  = MultilevelMesh(s);
            obj.multiLevelMesh = m;

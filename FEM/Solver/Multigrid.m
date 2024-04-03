@@ -86,44 +86,50 @@ classdef Multigrid < handle
                 solver                = Solver.create(s);
                 u                     = solver.solve(LHS,RHS,maxIter,u);
             else
-                maxIter = 20;
-                LHS                   = obj.coarseLHS{level};
+                LHS                   = obj.coarseLHS{level};                
                 RHS                   = b;
-                s.solverType          = 'ITERATIVE';
-                s.iterativeSolverType = 'CG';
-                solver                = Solver.create(s);
-                u                     = solver.solve(LHS,RHS,maxIter,u);
-                r                     = b - obj.coarseLHS{level}*u;
-                Rr                    = obj.interpolate(r,obj.coarseBc,obj.interpolator,level);
-                ur]+                  = obj.interpolate(u,obj.coarseBc,obj.interpolator,level);
+              %  int = obj.interpolator{level};
+                intOld = obj.interpolator{level-1};
+                bc  = obj.coarseBc{level};                
+                bcOld  = obj.coarseBc{level-1};       
+                
+                u = obj.solveProblem(LHS,RHS,u);
+
+                r                     = b - LHS*u;
+                Rr                    = obj.interpolate(r,bcOld,bc,intOld);
+                ur                    = obj.interpolate(u,bcOld,bc,intOld);
                 er                    = obj.vCycle(0*ur, Rr, level - 1);
-                e                     = obj.restriction(er,obj.coarseBc,obj.interpolator,level);
+                e                     = obj.restriction(er,bcOld,bc,intOld);
                 u                     = u + e;
-                maxIter               = 20;
-                LHS                   = obj.coarseLHS{level};
-                RHS                   = b;
-                s.solverType          = 'ITERATIVE';
-                s.iterativeSolverType = 'CG';
-                solver                = Solver.create(s);
-                u                     = solver.solve(LHS,RHS,maxIter,u);                
+                
+                
+                u = obj.solveProblem(LHS,RHS,u);
              end
 
         end
 
-        function fF = restriction(obj,fC,bc,I,level)
-                fF = bc{level - 1}.reducedToFullVector(fC);
-                fF = reshape(fF,2,[])';
-                fF = I{level - 1} * fF; 
-                fF = reshape(fF',[],1);
-                fF = bc{level}.fullToReducedVector(fF);
+        function u = solveProblem(obj,LHS,RHS,u)
+                maxIter               = 20;
+                s.solverType          = 'ITERATIVE';
+                s.iterativeSolverType = 'CG';
+                solver                = Solver.create(s);
+                u                     = solver.solve(LHS,RHS,maxIter,u);                
         end
 
-        function fCoarse = interpolate(obj,fFine,bc,I,level)
-                fFine   = bc{level}.reducedToFullVector(fFine);
+        function fF = restriction(obj,fC,bcOld,bc,IOld)
+                fF = bcOld.reducedToFullVector(fC);
+                fF = reshape(fF,2,[])';
+                fF = IOld * fF; 
+                fF = reshape(fF',[],1);
+                fF = bc.fullToReducedVector(fF);
+        end
+
+        function fCoarse = interpolate(obj,fFine,bcOld,bc,IOld)
+                fFine   = bc.reducedToFullVector(fFine);
                 fFine   = reshape(fFine,2,[])';
-                fCoarse = I{level - 1}' * fFine;
+                fCoarse = IOld' * fFine;
                 fCoarse = reshape(fCoarse',[],1);
-                fCoarse = bc{level - 1}.fullToReducedVector(fCoarse);
+                fCoarse = bcOld.fullToReducedVector(fCoarse);
         end
         
     end
