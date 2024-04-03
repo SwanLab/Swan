@@ -34,7 +34,7 @@ classdef StokesProblem < handle
             obj.computeRHS();
         end
         
-        function computeVariables(obj)
+        function computeVariables(obj) % Aquí venim desde l'StokesComputer per acabar de resoldre el problema
             tol = 1e-6;
             bc  = obj.boundaryConditions;
             free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
@@ -157,7 +157,7 @@ classdef StokesProblem < handle
             obj.solver = Solver.create(s);
         end
         
-        function LHS = computeLHS(obj)
+        function LHS = computeLHS(obj) % Creem la LHS
             s.type          = 'Stokes';
             s.dt            = obj.dtime;
             s.mesh          = obj.mesh;
@@ -170,7 +170,7 @@ classdef StokesProblem < handle
             obj.LHSintegrator = LHS_int;
         end
         
-        function RHS = computeRHS(obj)
+        function RHS = computeRHS(obj) % Creem la RHS
             s.type          = 'Stokes';
             s.mesh          = obj.mesh;
             s.velocityFun   = obj.velocityFun;

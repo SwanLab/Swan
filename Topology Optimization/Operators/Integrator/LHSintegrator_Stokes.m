@@ -20,7 +20,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function LHS = compute(obj) % Venim de StokesProblem per calcular la LHS. Anem executant les funcions privades d'aquesta classe
-            velLHS = obj.computeVelocityLHS();
+            velLHS = obj.computeVelocityLHS(); %
             D      = obj.computeWeakDivergenceMatrix();
             prsLHS = obj.computePressureLHS(D);
             LHS = [velLHS, D; D',prsLHS];

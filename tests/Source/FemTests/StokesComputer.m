@@ -11,7 +11,7 @@ classdef StokesComputer < handle
 
     methods (Access = public)
         function obj = StokesComputer(cParams)
-            obj.testName = cParams.testName;
+            obj.testName = cParams.testName; % Aquí arribem desde "testComputer = TestComputer.create(obj.computerType, s);", a PrecomputedVariableTest, passant per TestComputer.
         end
 
         function compute(obj)
@@ -23,7 +23,7 @@ classdef StokesComputer < handle
             obj.computation = femSolver;
             u = obj.computation.velocityFun.fValues;
             obj.variables.p = obj.computation.pressureFun.fValues;
-            obj.variables.u = reshape(u', [numel(u) 1]);
+            obj.variables.u = reshape(u', [numel(u) 1]); % AQUÍ JA TENIM ELS RESULTATS
         end
     end
 
