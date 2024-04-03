@@ -28,6 +28,10 @@ classdef ProjectedGradient < handle
             obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         
+        function setConstantStepLength(obj,val)
+            obj.tau = val;
+        end
+
         function increaseStepLength(obj,f)
             obj.tau = f*obj.tau;
         end

@@ -15,6 +15,13 @@ classdef ConjugateGradientToleranceCalculator < handle
             obj.init(cParams);
         end
 
+        function compute(obj,indNorm)
+            t          = indNorm;
+            t          = 0.5*(t + obj.oldVal); % Relaxing the change of TOL
+            obj.val    = max(obj.tolMin,min(t,obj.tolMax));
+            obj.oldVal = obj.val;
+        end
+
     end
 
     methods (Access = private)
@@ -25,16 +32,11 @@ classdef ConjugateGradientToleranceCalculator < handle
             obj.tolMin  = cParams.tolMin;
             obj.tolMax  = cParams.tolMax;
         end
-
-        function compute(obj,indNorm)
-            t       = indNorm^2;
-            obj.val = max(obj.tolMin,max(t,obj.tolMin));
-        end
         
         function updateOldTol(obj)
             obj.oldVal = obj.val;
         end
 
     end
-    
+
 end

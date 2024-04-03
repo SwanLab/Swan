@@ -33,8 +33,8 @@ classdef ConjugateGradient < handle
 
         function init(obj,cParams)
             obj.tol      = cParams.tol;
-            obj.maxIters = cParams.solverParams.maxSolverIters;
-            if cParams.solverParams.displayIterInfo
+            obj.maxIters = cParams.solverParams.maxIters;
+            if cParams.solverParams.displayInfo
                 obj.displayInfo = @obj.printSolverInfo;
             else
                 obj.displayInfo = @obj.emptyFunc;

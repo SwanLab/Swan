@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
 
-        solverTol, solverParams
+        solverTol, solverParams, solverCase
     end
 
     properties (Access = protected)
@@ -79,6 +79,7 @@ classdef ElasticProblem < handle
             obj.solverMode   = cParams.solverMode;
             obj.solverTol    = cParams.solverTol;
             obj.solverParams = cParams.solverParams;
+            obj.solverCase   = cParams.solverCase;
             obj.boundaryConditions = cParams.boundaryConditions;
         end
 
@@ -111,6 +112,7 @@ classdef ElasticProblem < handle
         function createSolver(obj)
             s.tol          = obj.solverTol;
             s.solverParams = obj.solverParams;
+            s.type         = obj.solverCase;
             obj.solver     = Solver.create(s);
         end
 

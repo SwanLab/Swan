@@ -37,9 +37,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         
         function obj = OptimizerAugmentedLagrangian(cParams)
             obj.initOptimizer(cParams);
-            obj.init(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
+            obj.init(cParams);
             obj.prepareFirstIter();
         end
 
@@ -77,9 +77,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.Vtar                   = cParams.volumeTarget;
             if cParams.constantTau
                 obj.update = @obj.updateWithConstantTau;
-                obj.primalUpdater.computeFirstStepLength(1e-2,1,1);
+                obj.primalUpdater.setConstantStepLength(cParams.tauValue);
+                obj.penalty  = cParams.tauValue*10;
+                obj.meritNew = 0;
             else
-                obj.update = @obj.updateWithVariableTau;
+                obj.update  = @obj.updateWithVariableTau;
+                obj.penalty = 3;
             end
             obj.createMonitoring(cParams);
         end
@@ -130,7 +133,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.value = zeros(obj.nConstr,1);
-            obj.penalty            = 3;
         end
 
         function obj = updateWithVariableTau(obj)
@@ -151,9 +153,16 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         function updateWithConstantTau(obj)
             obj.lineSearchTrials = 0;
+            obj.mOld = obj.meritNew;
             obj.computeMeritGradient();
+            iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
+            obj.solverTol.compute(iNorm);
             x = obj.updatePrimal();
+            obj.designVariable.updateOld();
             obj.updateOldValues(x);
+            obj.meritNew = computeMeritFunction(obj,x);
+            obj.dualUpdater.updatePenalty(obj.penalty);
+            obj.dualUpdater.update();
         end
 
         function displayIter(obj,x)
@@ -257,7 +266,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = updateOldValues(obj,x)
-            obj.designVariable.update(x);
+            obj.designVariable.update(x);            
             d = obj.designVariable;
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);

@@ -44,8 +44,8 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,200);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,2,300);
+            x2      = linspace(0,1,150);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -109,7 +109,7 @@ classdef TopOptAccelerationExperiments < handle
 
         function createSolverTolerance(obj)
             s.solver      = 'CONJUGATE GRADIENT';
-            s.tolMax      = 1e-2;
+            s.tolMax      = 2e-1;
             s.tolMin      = 1e-5;
             obj.solverTol = ConjugateGradientToleranceCalculator(s);
         end
@@ -198,6 +198,8 @@ classdef TopOptAccelerationExperiments < handle
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
+            s.constantTau    = true;
+            s.tauValue       = 5e-2;
             opt = OptimizerAugmentedLagrangian(s);
             opt.solveProblem();
             obj.optimizer = opt;
