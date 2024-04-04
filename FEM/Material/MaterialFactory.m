@@ -24,6 +24,9 @@ classdef MaterialFactory < handle
                     
                 case 'PhaseField'
                     material = MaterialPhaseField(cParams);
+                    
+                case 'PhaseFieldHomog'
+                    material = HomogenizedPhaseField(cParams);
             end
 
         end

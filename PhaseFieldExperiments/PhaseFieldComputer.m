@@ -164,7 +164,7 @@ classdef PhaseFieldComputer < handle
             s.constant = obj.constant;
             s.l0 = obj.l0;
 
-            obj.functional.energy         = ShFunc_InternalEnergySplit(s);
+            obj.functional.energy         = ShFunc_InternalEnergy(s);
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);
