@@ -1,5 +1,5 @@
-classdef CellFinderInStructuredMesh < handle
-
+classdef CellFinderInStructuredMesh1D < handle
+    
     properties (Access = public)
         naturalCoord
         cells
@@ -8,13 +8,12 @@ classdef CellFinderInStructuredMesh < handle
     properties (Access = private)
         sMesh
         xLeftIndex
-        yLeftIndex
         points
     end
 
     methods (Access = public)
 
-        function obj = CellFinderInStructuredMesh(cParams)
+        function obj = CellFinderInStructuredMesh1D(cParams)
             obj.init(cParams);
             obj.obtainLeftIndeces();
             obj.obtainCellNumber();
@@ -31,30 +30,20 @@ classdef CellFinderInStructuredMesh < handle
         end
 
         function obtainLeftIndeces(obj)
-            xi(:,1) = obj.sMesh.x(1,:);
-            yi(:,1) = obj.sMesh.y(:,1);
+            xi = obj.sMesh.x;
             obj.xLeftIndex = obj.obtainLeftIndex(obj.points.x,xi);
-            obj.yLeftIndex = obj.obtainLeftIndex(obj.points.y,yi);
         end
 
         function obtainCellNumber(obj)
-            xL = obj.xLeftIndex;
-            yL = obj.yLeftIndex;
-            nx = obj.sMesh.nx;
-            obj.cells(:,1) = (xL) + (nx-1)*(yL-1);            
+            obj.cells(:,1) = obj.xLeftIndex;        
         end
 
         function obtainNaturalCoordinates(obj)
-            xi(:,1) = obj.sMesh.x(1,:);
+            xi = obj.sMesh.x;
             xL = obj.xLeftIndex;
             txi = obj.obtainCoordinate(obj.points.x,xi,xL);
 
-            yL = obj.yLeftIndex;
-            yi(:,1) = obj.sMesh.y(:,1);
-            eta = obj.obtainCoordinate(obj.points.y,yi,yL);
-
-            obj.naturalCoord(1,:) = txi;
-            obj.naturalCoord(2,:) = eta;
+            obj.naturalCoord = txi;
         end
 
     end
@@ -66,7 +55,7 @@ classdef CellFinderInStructuredMesh < handle
             npoints = length(xpoints);
             dif = bsxfun(@(x, xi) (x-xi),xpoints,xi')';
             [~,imin] = min(abs(dif));
-            idx = imin + nx*[0:npoints-1];
+            idx = imin + nx*(0:npoints-1);
             minPos = dif(idx) >= 0;
             minNeg = dif(idx) < 0;
             lIndex = zeros(size(imin));

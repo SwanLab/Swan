@@ -50,12 +50,14 @@ classdef Interpolation < handle
 
         function createShapeFunctions(obj)
             s.operation = @(xV) obj.evaluateShapeFunctions(xV);
+            s.ndimf = 1;
             shape = DomainFunction(s);
             obj.shapeFun = shape;
         end
 
         function createShapeDerivatives(obj)
             s.operation = @(xV) obj.evaluateShapeDerivatives(xV);
+            s.ndimf = 1;
             deriv = DomainFunction(s);
             obj.shapeDer = deriv;
         end
