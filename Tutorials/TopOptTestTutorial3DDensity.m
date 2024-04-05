@@ -41,7 +41,7 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,20,20,20);
+            obj.mesh = HexaMesh(1,1,1,20,20,20);
         end
 
         function createDesignVariable(obj)
@@ -130,7 +130,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.3;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -174,7 +174,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.3;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -184,16 +184,16 @@ classdef TopOptTestTutorial3DDensity < handle
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  abs(coor(:,1))==0;
+            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2))>=0.7*yMax & abs(coor(:,3))>=0.7*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))<=0.3*yMax & abs(coor(:,3))<=0.3*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))>=0.7*yMax & abs(coor(:,3))<=0.3*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))<=0.3*yMax & abs(coor(:,3))>=0.7*zMax); % 4 potes
             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
-
+ 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
-
+ 
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 3;
-            sPL{1}.value     = -1;
+            sPL{1}.direction = 1; % direccio x +
+            sPL{1}.value     = -1; % sentit -
 
             dirichletFun = [];
             for i = 1:numel(sDir)

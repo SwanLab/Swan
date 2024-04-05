@@ -55,6 +55,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
+               obj.designVariable.fun.print(['densityIter',num2str(obj.nIter)],'Paraview');
            end
             obj.hasConverged = 0;
        end
