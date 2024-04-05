@@ -94,7 +94,7 @@ classdef OptimizationProblem < handle
            s.network   = obj.network;
            s.data      = obj.data;
            s.costfunc  = obj.costFunc;
-           obj.plotter = Plotter(s);
+           obj.plotter = PlotterNN(s);
        end
          
    end

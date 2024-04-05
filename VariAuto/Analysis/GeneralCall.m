@@ -18,7 +18,9 @@ disp('Datsets available:')
 for i = 1:length(datasets)
     fprintf('%d - %s \n',i,datasets(i))
 end
-fileN = datasets(input('Choose: '));
+fileN = 'Iris.csv';%datasets(input('Choose: '));
+
+s.features = 1:4;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
@@ -43,6 +45,7 @@ optProblem   = OptimizationProblem(p);
 % nplt              = 1;
 % optimizer       = Trainer.create(network,'SGD',learningRate,momentum,batch,opt,'static',nplt);
 
+optProblem.solve();
 %% RUN & Possible functions
 data.plotCorrMatrix();
 % network.plotBoundary('contour'); Amb errors dins?

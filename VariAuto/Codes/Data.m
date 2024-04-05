@@ -18,6 +18,7 @@ classdef Data < handle
         data
         fileName
         testRatio
+        features
     end
 
     methods (Access = public)
@@ -78,13 +79,15 @@ classdef Data < handle
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
             obj.polynomialOrder = cParams.polynomialOrder;
+            obj.features        = cParams.features;
         end
 
         function loadData(obj)
             f = obj.fileName;
             obj.data = load(f);
-            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
+       %     fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
+       %     feat = input(' ');
+            feat = obj.features;
             x = obj.data(:, feat);
 
             % IDENTIFIER
