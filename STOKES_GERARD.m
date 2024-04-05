@@ -7,7 +7,7 @@ clear
 
 
 
-m = QuadMesh(1,1,50,50);
+m = QuadMesh(1,1,200,200);
 s.type='CircleInclusion';
 s.radius = 0.25;
 s.xCoorCenter = 0.5;
@@ -37,7 +37,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(coor(:,1) - 0.5).^2+abs(coor(:,2) - 0.5).^2-0.25^2 < 1e-12);
+isCyl    = @(coor) (abs(coor(:,1) - 0.5).^2+abs(coor(:,2) - 0.5).^2-0.25^2 < 1e-5);
 
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
 dir_vel{2}.direction = [1,2];
