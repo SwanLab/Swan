@@ -3,11 +3,23 @@ clear
 % INPUT DATA
 file = 'test_gerard';
 a.fileName = file;
-s = StokesDataContainer(a);
+f = StokesDataContainer(a);
 
-mesh = s.mesh;
-material = s.material;
-dtime = s.dtime;
+material = f.material;
+dtime = f.dtime;
+
+m=QuadMesh(1,1,20,20);
+s.type='CircleInclusion';
+s.radius = 0.25;
+s.xCoorCenter = 0.5;
+s.yCoorCenter = 0.5;
+g = GeometricalFunction(s);
+lsFun = g.computeLevelSetFunction(m);
+sUm.backgroundMesh = m;
+sUm.boundaryMesh = m.createBoundaryMesh();
+uMesh = UnfittedMesh(sUm);
+uMesh.compute(lsFun.fValues);
+mesh = uMesh.createInnerMesh();
 
 % VELOCITY AND PRESSURE FUNCTIONS
 velocityFun = LagrangianFunction.create(mesh, 2, 'P2');
