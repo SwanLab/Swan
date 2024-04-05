@@ -1,14 +1,13 @@
 clear
 
-% INPUT DATA
-file = 'test_gerard';
-a.fileName = file;
-f = StokesDataContainer(a);
+% % INPUT DATA
+% file = 'test_gerard';
+% a.fileName = file;
+% f = StokesDataContainer(a);
 
-material = f.material;
-dtime = f.dtime;
 
-m=QuadMesh(1,1,20,20);
+
+m = QuadMesh(1,1,50,50);
 s.type='CircleInclusion';
 s.radius = 0.25;
 s.xCoorCenter = 0.5;
@@ -21,6 +20,13 @@ uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues);
 mesh = uMesh.createInnerMesh();
 
+% mesh = TriangleMesh(1,1,40,40);
+
+e.type  = 'STOKES';
+e.nelem = mesh.nelem;
+material = Material.create(e);
+dtime = Inf;
+
 % VELOCITY AND PRESSURE FUNCTIONS
 velocityFun = LagrangianFunction.create(mesh, 2, 'P2');
 pressureFun = LagrangianFunction.create(mesh, 1, 'P1');
@@ -31,7 +37,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(coor(:,1) - 1).^2+abs(coor(:,2) - 1).^2-0.5^2 < 1e-12);
+isCyl    = @(coor) (abs(coor(:,1) - 0.5).^2+abs(coor(:,2) - 0.5).^2-0.25^2 < 1e-12);
 
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
 dir_vel{2}.direction = [1,2];

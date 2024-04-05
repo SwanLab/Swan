@@ -46,11 +46,11 @@ classdef FacesConnectivitiesComputer < handle
             obj.type = cParams.type;
             switch obj.type
                 case 'TRIANGLE'
-                    obj.localFacesInElem = [];
+                    obj.localFacesInElem = [1 2 3];
                     obj.nEdgeByFace = 3;
                     
                 case 'QUAD'
-                    obj.localFacesInElem = [];
+                    obj.localFacesInElem = [1 2 3 4];
                     obj.nEdgeByFace = 4;
 
                 case 'TETRAHEDRA'
