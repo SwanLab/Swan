@@ -68,10 +68,12 @@ classdef MultigridTesting4 < handle
             s.solverType          = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
             s.tol                 = 1e-6;
-            s.nLevel              = 5;
+            s.nLevel              = obj.nLevel;
             s.nDimf               = 2;
             solver                = Solver.create(s);
-            u                     = solver.solve();   
+            tic
+            u                     = solver.solve();
+            toc
         end
     end
 
@@ -81,7 +83,7 @@ classdef MultigridTesting4 < handle
             obj.nDimf        = 2;
             obj.nbasis       = 20;
             obj.functionType = 'P1';
-            obj.nLevel       = 5;
+            obj.nLevel       = 4;
         end
 
         function createMultiLevelMesh(obj)

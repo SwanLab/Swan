@@ -86,23 +86,19 @@ classdef Multigrid < handle
                 solver                = Solver.create(s);
                 u                     = solver.solve(LHS,RHS,maxIter,u);
             else
-                LHS                   = obj.coarseLHS{level};                
-                RHS                   = b;
+                LHS    = obj.coarseLHS{level};                
+                RHS    = b;
               %  int = obj.interpolator{level};
                 intOld = obj.interpolator{level-1};
-                bc  = obj.coarseBc{level};                
-                bcOld  = obj.coarseBc{level-1};       
-                
-                u = obj.solveProblem(LHS,RHS,u);
-
-                r                     = b - LHS*u;
-                Rr                    = obj.interpolate(r,bcOld,bc,intOld);
-                ur                    = obj.interpolate(u,bcOld,bc,intOld);
-                er                    = obj.vCycle(0*ur, Rr, level - 1);
-                e                     = obj.restriction(er,bcOld,bc,intOld);
-                u                     = u + e;
-                
-                
+                bc     = obj.coarseBc{level};                
+                bcOld  = obj.coarseBc{level-1};        
+                u      = obj.solveProblem(LHS,RHS,u);
+                r      = b - LHS*u;
+                Rr     = obj.interpolate(r,bcOld,bc,intOld);
+                ur     = obj.interpolate(u,bcOld,bc,intOld);
+                er     = obj.vCycle(0*ur, Rr, level - 1);
+                e      = obj.restriction(er,bcOld,bc,intOld);
+                u      = u + e; 
                 u = obj.solveProblem(LHS,RHS,u);
              end
 
