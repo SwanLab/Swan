@@ -78,13 +78,9 @@ classdef Multigrid < handle
         
         function u = vCycle(obj,u,b,level)
             if level == 1
-                maxIter               = 100000;
-                LHS                   = obj.coarseLHS{level};
-                RHS                   = b;
-                s.solverType          = 'ITERATIVE';
-                s.iterativeSolverType = 'CG';
-                solver                = Solver.create(s);
-                u                     = solver.solve(LHS,RHS,maxIter,u);
+                LHS = obj.coarseLHS{level};
+                RHS = b;
+                u   = solveProblemCoarse(obj,LHS,RHS,u);
             else
                 LHS    = obj.coarseLHS{level};                
                 RHS    = b;
@@ -99,7 +95,7 @@ classdef Multigrid < handle
                 er     = obj.vCycle(0*ur, Rr, level - 1);
                 e      = obj.restriction(er,bcOld,bc,intOld);
                 u      = u + e; 
-                u = obj.solveProblem(LHS,RHS,u);
+                u      = obj.solveProblem(LHS,RHS,u);
              end
 
         end
@@ -110,6 +106,14 @@ classdef Multigrid < handle
                 s.iterativeSolverType = 'CG';
                 solver                = Solver.create(s);
                 u                     = solver.solve(LHS,RHS,maxIter,u);                
+        end
+        
+        function u = solveProblemCoarse(obj,LHS,RHS,u)
+                maxIter               = 100000;
+                s.solverType          = 'ITERATIVE';
+                s.iterativeSolverType = 'CG';
+                solver                = Solver.create(s);
+                u                     = solver.solve(LHS,RHS,maxIter,u);
         end
 
         function fF = restriction(obj,fC,bcOld,bc,IOld)
