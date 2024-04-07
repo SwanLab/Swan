@@ -37,7 +37,7 @@ classdef StokesProblem < handle
         function computeVariables(obj) % Aquí venim desde l'StokesComputer per acabar de resoldre el problema
             tol = 1e-6;
             bc  = obj.boundaryConditions;
-            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
+            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})]; % 9*9-64 = 98  i  25-1 = 24
             total_free_dof = sum(free_dof);
             LHSr = bc.fullToReducedMatrix(obj.LHS);
             RHSr = bc.fullToReducedVector(obj.RHS);
@@ -70,6 +70,7 @@ classdef StokesProblem < handle
             vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
+            
         end
        
         function print(obj, filename, software)
