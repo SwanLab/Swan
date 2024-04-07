@@ -7,8 +7,8 @@ clear
 
 
 
-m = QuadMesh(1,1,200,200);
-s.type='CircleInclusion';
+m = QuadMesh(1,1,100,100);
+s.type='CircleInclusion';%
 s.radius = 0.25;
 s.xCoorCenter = 0.5;
 s.yCoorCenter = 0.5;
@@ -39,13 +39,20 @@ isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 isCyl    = @(coor) (abs(coor(:,1) - 0.5).^2+abs(coor(:,2) - 0.5).^2-0.25^2 < 1e-5);
 
-dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [0,0]; 
+% 
+% % dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+% % dir_vel{1}.direction = [1,2];
+% % dir_vel{1}.value     = [0,0];
+
+dir_vel{2}.domain    = @(coor) isLeft(coor) | isRight(coor) | isCyl(coor);
 dir_vel{2}.direction = [1,2];
 dir_vel{2}.value     = [0,0]; 
-
-dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+dir_vel{1}.domain    = @(coor) isTop(coor) & not(isLeft(coor) | isRight(coor)); %Hem de posar el not per no incloure els nodes a les puntes
 dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [1,0];
+dir_vel{1}.value     = [0,1];
 
 % dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
 % dir_pre{1}.direction = 1;
