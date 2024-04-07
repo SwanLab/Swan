@@ -193,7 +193,8 @@ classdef TopOptTestTutorial3DDensity < handle
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
-            opt = OptimizerMMA(s);
+            opt = OptimizerMMA(s);  %%MMA en DENSITY 
+            %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set
             opt.solveProblem();
             obj.optimizer = opt;
         end
