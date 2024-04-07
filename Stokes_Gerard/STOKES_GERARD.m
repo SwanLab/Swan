@@ -1,4 +1,5 @@
 clear
+close all
 
 % % INPUT DATA
 % file = 'test_gerard';
@@ -7,7 +8,7 @@ clear
 
 
 
-m = QuadMesh(1,1,100,100);
+m = QuadMesh(1,1,20,20);
 s.type='CircleInclusion';%
 s.radius = 0.25;
 s.xCoorCenter = 0.5;
@@ -116,7 +117,7 @@ RHS = F + R;
 % SOLVE PROBLEM
 % free_dofs_plus = setdiff(1:(n_dofs+1),dir_dofs);
 free_dofs_plus = setdiff(1:n_dofs,dir_dofs);
-LHSr = LHS(free_dofs_plus,free_dofs_plus);
+LHSr = LHS(free_dofs_plus,free_dofs_plus); %Li treiem els nodes restringits per deixar la LHS només amb lliures i la RHS de la mateixa mida
 RHSr = RHS(free_dofs_plus);
 x = solver.solve(LHSr, RHSr);
 % x(end)=[];
