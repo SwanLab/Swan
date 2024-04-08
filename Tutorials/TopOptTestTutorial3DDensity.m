@@ -44,10 +44,10 @@ classdef TopOptTestTutorial3DDensity < handle
             %obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            file = 'GiD_PauCornudellaQuer_Prova_3';
+            file = 'Unstructured_mesh_PecaMiquel1';
             a.fileName = file;
             s = FemDataContainer(a);
-            obj.mesh = s.mesh;   %faltava ficar el obj????
+            obj.mesh = s.mesh;  %faltava ficar el obj
 
         end
 
@@ -148,7 +148,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.2;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -202,20 +202,15 @@ classdef TopOptTestTutorial3DDensity < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+            zMax    = max(obj.mesh.coord(:,3));
 
-            %isDir1, isDir2... if you want (optional)
-            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
-            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.03*yMax];
+            isDir1   = @(coor)  abs(coor(:,1))==0;
 
-            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+            isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
            
             sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
-            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.direction = [1,2,3]; %restricció vertical només
             sDir{1}.value     = 0;  %desplaçament =0
-
-            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
-            sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
