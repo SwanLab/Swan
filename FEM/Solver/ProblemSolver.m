@@ -24,8 +24,8 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             [LHS, RHS] = obj.computeMatrices();
-            % LHS        = obj.createHandleLHS(LHS);
-            sol        = obj.solver.solve(LHS, RHS);
+            Fi = @(x) obj.createInternalForces(x,LHS);
+            sol        = obj.solver.solve(Fi, RHS);
             % sol        = obj.solveSystem(LHS,RHS);
             [u, L]     = obj.cleanupSolution(sol);
         end
@@ -34,8 +34,22 @@ classdef ProblemSolver < handle
     
     methods (Access = private)
 
-        function LHS = createHandleLHS(obj,A)
-            LHS = @(x) A*x;
+        function Fi = createInternalForces(obj,x,LHS)
+           % Fi =  LHS*x;
+
+             xV = obj.quadrature.posgp;
+             u = ...
+            strainFun = SymGrad(obj.displacementFun);
+             stressFun = DDP(obj.material, strainFun);
+
+            s.type     = 'ShapeSymmetricDerivative';
+            s.scale    = 'MACRO';
+            s.mesh         = obj.mesh;
+            s.quadratureOrder = obj.quadratureOrder;
+            s.globalConnec = obj.mesh.connec;
+            RHSint = RHSintegrator.create(s);
+            test = LagrangianFunction.create(mesh,2,'P1');
+            Fi = RHSint.compute(stress,test)
         end
         
         function init(obj,cParams)
