@@ -16,6 +16,9 @@ classdef OptimizerNullSpace < Optimizer
         ub
         lb
         eta
+        lG
+        lJ
+        etaMax
         etaNorm
         gJFlowRatio
     end
@@ -57,6 +60,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.ub             = cParams.ub;
             obj.lb             = cParams.lb;
             obj.maxIter        = cParams.maxIter;
+            obj.eta            = 0;
+            obj.lG             = 0;
+            obj.lJ             = 0;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -75,12 +81,12 @@ classdef OptimizerNullSpace < Optimizer
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Line Search';'Line Search trials'}];
+            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'lG';'lJ'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
@@ -95,18 +101,22 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.value];
             if obj.nIter == 0
-                data = [data;0;0];
+                data = [data;0;0;0;0;0];
             else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.lG;obj.lJ];
             end
             % merit?
             obj.monitoring.update(obj.nIter,data);
         end
 
         function updateEtaParameter(obj)
+            obj.etaMax = 1;
+
             g = obj.constraint.value;
+            Dg = obj.constraint.gradient;
+            DJ = obj.cost.gradient;
             if norm(g)<=1e-3
-                obj.gJFlowRatio = 0;
+                %obj.gJFlowRatio = 0;
             end
             if obj.nIter>0
                 tau = obj.primalUpdater.tau;
@@ -116,7 +126,9 @@ classdef OptimizerNullSpace < Optimizer
             vgJ     = obj.gJFlowRatio;
             DxJ     = obj.computeNullSpaceFlow();
             Dxg     = obj.computeRangeSpaceFlow();
-            obj.eta = vgJ*min(DxJ/Dxg,inf); % 2*DxJ/(h*tau))
+            obj.eta = vgJ*min(DxJ/Dxg,obj.etaMax); % 2*DxJ/(h*tau))
+            obj.lG  = obj.eta/(Dg'*Dg)*g;
+            obj.lJ  = -1/(Dg'*Dg)*Dg'*DJ;
         end
 
         function DxJ = computeNullSpaceFlow(obj)
@@ -161,7 +173,7 @@ classdef OptimizerNullSpace < Optimizer
             x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 1;
+                factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.2;

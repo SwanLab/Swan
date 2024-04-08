@@ -8,8 +8,9 @@ classdef DualUpdater_NullSpace < handle
        options
        constraintCase
        nConstr
+       ub
+       lb
        dualOld
-       isInequality
        position
     end
 
@@ -25,23 +26,27 @@ classdef DualUpdater_NullSpace < handle
             k = 1;
             for i = 1:obj.nConstr
                 switch obj.constraintCase{i}
-                    case {'EQUALITY'}
-                       obj.isInequality  = false;
                     case {'INEQUALITY'}
-                        obj.isInequality = true;
-                        obj.position(k)  = i;
-                        k                = k + 1;
+                        obj.position(k) = i;
+                        k               = k + 1;
                 end
             end
         end
 
         function prob = computeDualBounds(obj)
-            tol     = inf;
-            prob.lb = -tol*ones(obj.nConstr,1);
-            prob.ub = tol*ones(obj.nConstr,1);
-            if obj.isInequality
-                p          = obj.position;
-                prob.lb(p) = 0;
+            nDof       = obj.designVariable.fun.nDofs;
+            tol        = inf;
+            prob.lb    = -tol*ones(obj.nConstr,1);
+            prob.ub    = tol*ones(obj.nConstr,1);
+            p          = obj.position;
+            prob.lb(p) = 0;
+            if obj.ub~=inf
+                prob.ub = [prob.ub;tol*ones(nDof,1)];
+                prob.lb = [prob.lb;0*ones(nDof,1)];
+            end
+            if obj.lb~=-inf
+                prob.ub = [prob.ub;tol*ones(nDof,1)];
+                prob.lb = [prob.lb;0*ones(nDof,1)];
             end
         end
 
@@ -73,6 +78,8 @@ classdef DualUpdater_NullSpace < handle
             obj.dualVariable   = cParams.dualVariable;
             obj.dualOld        = obj.dualVariable.value;
             obj.nConstr        = length(cParams.dualVariable.value);
+            obj.ub             = cParams.ub;
+            obj.lb             = cParams.lb;
         end
 
         function computeQuadraticProblem(obj,s)
@@ -104,7 +111,6 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function l = computeDualGlobal(obj,s)
-            % Main point in next meeting 18/03/2024:
             eta     = s.eta;
             problem = s.prob;
             ub      = s.ub;
@@ -128,8 +134,8 @@ classdef DualUpdater_NullSpace < handle
             else
                 noAct = [];
             end
-            Dg(noAct)       = 0;
-            DJ(noAct)       = 0;
+%             Dg(noAct)       = 0;
+%             DJ(noAct)       = 0;
             problem.H       = Dg'*Dg;
             problem.f       = Dg'*DJ-eta*g;
             problem.solver  = 'quadprog';
