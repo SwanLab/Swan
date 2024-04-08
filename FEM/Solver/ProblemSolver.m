@@ -24,6 +24,7 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             [LHS, RHS] = obj.computeMatrices();
+            % LHS        = obj.createHandleLHS(LHS);
             sol        = obj.solver.solve(LHS, RHS);
             % sol        = obj.solveSystem(LHS,RHS);
             [u, L]     = obj.cleanupSolution(sol);
@@ -32,6 +33,10 @@ classdef ProblemSolver < handle
     end
     
     methods (Access = private)
+
+        function LHS = createHandleLHS(obj,A)
+            LHS = @(x) A*x;
+        end
         
         function init(obj,cParams)
             obj.type               = cParams.solverType;

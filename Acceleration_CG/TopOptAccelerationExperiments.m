@@ -13,6 +13,7 @@ classdef TopOptAccelerationExperiments < handle
         constraint
         dualVariable
         optimizer
+        momentum
     end
 
     methods (Access = public)
@@ -31,6 +32,7 @@ classdef TopOptAccelerationExperiments < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createMomentum();
             obj.createOptimizer();
         end
 
@@ -44,8 +46,8 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,200);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,2,300);
+            x2      = linspace(0,1,150);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -112,6 +114,7 @@ classdef TopOptAccelerationExperiments < handle
             s.tolMax      = 2e-1;
             s.tolMin      = 1e-5;
             obj.solverTol = ConjugateGradientToleranceCalculator(s);
+            quadprog
         end
 
         function createElasticProblem(obj)
@@ -184,6 +187,14 @@ classdef TopOptAccelerationExperiments < handle
             obj.dualVariable = l;
         end
 
+        function createMomentum(obj)
+            s.momentumCase = 'Nesterov';
+            s.betaStrategy = 'Adaptative';
+            % s.momentumVal  = 0.5;
+            s.x0           = obj.designVariable.fun.fValues;
+            obj.momentum   = Momentum(s);
+        end
+
         function createOptimizer(obj)
             s.monitoring     = true;
             s.cost           = obj.cost;
@@ -199,8 +210,10 @@ classdef TopOptAccelerationExperiments < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
             s.constantTau    = true;
-            s.tauValue       = 5e-2;
+            s.tauValue       = 5e-2;%1e-2;%
+            s.momentum       = obj.momentum;
             opt = OptimizerAugmentedLagrangian(s);
+            % opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

@@ -23,6 +23,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         meritGradient
         Vtar
         update
+        momentum
 
         globalCost
         globalConstraint
@@ -81,6 +82,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.penalty  = cParams.tauValue*10;
                 obj.meritNew = 0;
                 obj.lineSearchTrials = 0;
+                obj.momentum = cParams.momentum;
             else
                 obj.update  = @obj.updateWithVariableTau;
                 obj.penalty = 3;
@@ -105,6 +107,10 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 chCost{i} = 'plot';
             end
             chartTypes = [{'plot'},chCost,chConstr,{'log'},{'plot'},chConstr,{'plot','bar','bar'}];
+            if ~isempty(obj.momentum)
+                titles{end+1} = '\beta_{Momentum}';
+                chartTypes = [chartTypes,{'plot'}];
+            end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
@@ -124,6 +130,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 data = [data;0;0];
             else
                 data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            if ~isempty(obj.momentum)
+                data = [data;obj.momentum.beta];
             end
             obj.monitoring.update(obj.nIter,data);
         end
@@ -153,23 +162,19 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function updateWithConstantTau(obj)
-            obj.designVariable.updateOld();
+            dV = obj.designVariable;
+            dV.updateOld();
             obj.mOld = obj.meritNew;
+            % 
+            x0 = obj.designVariable.fun.fValues;
+            [y,xF] = obj.momentum.apply(x0);
+            dV.update(xF);
+            %
+            obj.cost.computeFunctionAndGradient(dV);
+            obj.constraint.computeFunctionAndGradient(dV);
             obj.computeMeritGradient();
-            % isAcceptable = false;
-            % x0 = obj.designVariable.fun.fValues;
-            % obj.primalUpdater.restart();
-            % while ~isAcceptable
-            %     x = obj.updatePrimal();
-            %     obj.designVariable.update(x);
-            %     iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
-            %     if iNorm > 0.2
-            %         obj.primalUpdater.decreaseStepLength();
-            %         obj.designVariable.update(x0);
-            %     else
-            %         isAcceptable = true;
-            %     end
-            % end
+            %
+            dV.update(y);
             x = obj.updatePrimal();
             obj.designVariable.update(x);
             iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
@@ -178,11 +183,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.dualUpdater.updatePenalty(obj.penalty);
             obj.dualUpdater.update();
         end
-
-        % function iNorm = computeSolverTolerance(obj)
-        %     iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
-        %     obj.solverTol.compute(iNorm);
-        % end
 
         function displayIter(obj,x)
             m = obj.designVariable.mesh;

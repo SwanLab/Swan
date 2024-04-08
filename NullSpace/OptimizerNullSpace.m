@@ -25,14 +25,16 @@ classdef OptimizerNullSpace < Optimizer
         aG
         eta
         Vtar
+        update   % We might move it to Optimizer class
+        momentum % Idem
     end
 
     methods (Access = public) 
         
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
-            obj.init(cParams);
             obj.createPrimalUpdater(cParams);
+            obj.init(cParams);            
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
             obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
@@ -68,6 +70,15 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged   = false;
             obj.nIter          = 0;
             obj.Vtar           = cParams.volumeTarget;
+            if cParams.constantTau
+                obj.momentum = cParams.momentum;
+                obj.update   = @obj.updateWithConstantTau;
+                obj.primalUpdater.setConstantStepLength(cParams.tauValue);
+                obj.meritNew = 0;
+                obj.lineSearchTrials = 0;
+            else
+                obj.update  = @obj.updateWithVariableTau;
+            end
             obj.createMonitoring(cParams);
         end
 
@@ -88,6 +99,10 @@ classdef OptimizerNullSpace < Optimizer
                 chCost{i} = 'plot';
             end
             chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'plot','bar','bar'}];
+            if ~isempty(obj.momentum)
+                titles{end+1} = '\beta_{Momentum}';
+                chartTypes = [chartTypes,{'plot'}];
+            end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
@@ -106,6 +121,9 @@ classdef OptimizerNullSpace < Optimizer
                 data = [data;0;0];
             else
                 data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            if ~isempty(obj.momentum)
+                data = [data;obj.momentum.beta];
             end
             % merit?
             obj.monitoring.update(obj.nIter,data);
@@ -186,7 +204,7 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function update(obj)
+        function updateWithVariableTau(obj)
             obj.updateNullSpaceCoefficient();
             obj.updateRangeSpaceCoefficient();
             obj.updateMaximumVolumeRemoved();
@@ -209,6 +227,34 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkStep(s);
             end
             obj.updateOldValues(x);
+        end
+
+        function updateWithConstantTau(obj)
+            obj.updateNullSpaceCoefficient();
+            obj.updateRangeSpaceCoefficient();
+            obj.updateMaximumVolumeRemoved();
+            dV = obj.designVariable;
+            dV.updateOld();
+            obj.mOld = obj.meritNew;
+            % - Momentum
+            x0 = obj.designVariable.fun.fValues;
+            [y,xF] = obj.momentum.apply(x0);
+            dV.update(xF);
+            % - Dual
+            d.nullSpaceCoefficient  = obj.aJ;
+            d.rangeSpaceCoefficient = obj.aG;
+            obj.dualUpdater.update(d);
+            % - 
+            obj.cost.computeFunctionAndGradient(dV);
+            obj.constraint.computeFunctionAndGradient(dV);
+            obj.computeMeritGradient();
+            % - 
+            dV.update(y);
+            x = obj.updatePrimal();
+            dV.update(x);
+            iNorm = 5*dV.computeNonScaledL2normIncrement();
+            obj.solverTol.compute(iNorm);
+            obj.meritNew = obj.computeMeritFunction(x);
         end
 
         function calculateInitialStep(obj)
@@ -278,29 +324,6 @@ classdef OptimizerNullSpace < Optimizer
             mF = J+l'*h;
         end
 
-<<<<<<< Updated upstream
-=======
-        function setSolverTol(obj)
-            switch obj.currentTolCase
-                case 'Standard'
-                    obj.setStandardSolverTolerance();
-                case 'Decreasing'
-                    obj.solverTol.compute('Decreasing');
-                case 'Restarting'
-                    obj.solverTol.compute('Restarting');
-            end
-        end
-
-        function setStandardSolverTolerance(obj)
-            iNorm  = obj.designVariable.computeNonScaledL2normIncrement;
-            % t      = obj.primalUpdater.tau;
-            % mGNorm = t*norm(obj.meritGradient)/numel(obj.meritGradient)*100;
-            % cVal   = obj.constraint.value;
-            % scaleVal = max(cVal,mGNorm);
-            obj.solverTol.compute('Standard',iNorm);%,iNorm);
-        end
-
->>>>>>> Stashed changes
         function obj = updateOldValues(obj,xV)
             x = obj.designVariable;
             x.update(xV);

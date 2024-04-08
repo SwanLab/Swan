@@ -13,6 +13,7 @@ classdef TopOptAccelerationExperiments3D < handle
         constraint
         dualVariable
         optimizer
+        momentum
     end
 
     methods (Access = public)
@@ -31,6 +32,7 @@ classdef TopOptAccelerationExperiments3D < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createMomentum();
             obj.createOptimizer();
         end
 
@@ -53,9 +55,9 @@ classdef TopOptAccelerationExperiments3D < handle
             x1 = 2;
             x2 = 1;
             x3 = 1;
-            d1 = 50;
-            d2 = 25;
-            d3 = 25;
+            d1 = 40;
+            d2 = 20;
+            d3 = 20;
             obj.mesh = TetraMesh(x1,x3,x2,d1,d3,d2);
         end
 
@@ -190,6 +192,14 @@ classdef TopOptAccelerationExperiments3D < handle
             obj.dualVariable = l;
         end
 
+        function createMomentum(obj)
+            s.momentumCase = 'Nesterov';
+            s.betaStrategy = 'Adaptative';
+            % s.momentumVal  = 0.5;
+            s.x0           = obj.designVariable.fun.fValues;
+            obj.momentum   = Momentum(s);
+        end
+
         function createOptimizer(obj)
             s.monitoring     = true;
             s.cost           = obj.cost;
@@ -206,6 +216,7 @@ classdef TopOptAccelerationExperiments3D < handle
             s.solverTol      = obj.solverTol;
             s.constantTau    = true;
             s.tauValue       = 5e-2;
+            s.momentum       = obj.momentum;
             opt = OptimizerAugmentedLagrangian(s);
             opt.solveProblem();
             obj.optimizer = opt;
