@@ -80,6 +80,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 obj.primalUpdater.setConstantStepLength(cParams.tauValue);
                 obj.penalty  = cParams.tauValue*10;
                 obj.meritNew = 0;
+                obj.lineSearchTrials = 0;
             else
                 obj.update  = @obj.updateWithVariableTau;
                 obj.penalty = 3;
@@ -152,18 +153,36 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function updateWithConstantTau(obj)
-            obj.lineSearchTrials = 0;
+            obj.designVariable.updateOld();
             obj.mOld = obj.meritNew;
             obj.computeMeritGradient();
+            % isAcceptable = false;
+            % x0 = obj.designVariable.fun.fValues;
+            % obj.primalUpdater.restart();
+            % while ~isAcceptable
+            %     x = obj.updatePrimal();
+            %     obj.designVariable.update(x);
+            %     iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
+            %     if iNorm > 0.2
+            %         obj.primalUpdater.decreaseStepLength();
+            %         obj.designVariable.update(x0);
+            %     else
+            %         isAcceptable = true;
+            %     end
+            % end
+            x = obj.updatePrimal();
+            obj.designVariable.update(x);
             iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
             obj.solverTol.compute(iNorm);
-            x = obj.updatePrimal();
-            obj.designVariable.updateOld();
-            obj.updateOldValues(x);
             obj.meritNew = computeMeritFunction(obj,x);
             obj.dualUpdater.updatePenalty(obj.penalty);
             obj.dualUpdater.update();
         end
+
+        % function iNorm = computeSolverTolerance(obj)
+        %     iNorm = 5*obj.designVariable.computeNonScaledL2normIncrement();
+        %     obj.solverTol.compute(iNorm);
+        % end
 
         function displayIter(obj,x)
             m = obj.designVariable.mesh;

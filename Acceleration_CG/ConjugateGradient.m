@@ -16,8 +16,10 @@ classdef ConjugateGradient < handle
         function x = solve(obj,A,b)
             tic
             if isempty(obj.xOld) % - Might be replaced in the future by an stored initial guess
-                x  = A\b;
-                it = -1;
+                % x  = A\b;
+                % it = -1;
+                t = obj.tol.val;  
+                [x,~,~,it] = pcg(A,b,t,obj.maxIters);
             else
                 x = obj.xOld;
                 t = obj.tol.val;                

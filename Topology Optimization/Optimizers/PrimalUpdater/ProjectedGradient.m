@@ -7,6 +7,7 @@ classdef ProjectedGradient < handle
     properties (Access = private)
         upperBound
         lowerBound
+        % tau0
     end
     
     methods (Access = public)
@@ -29,7 +30,8 @@ classdef ProjectedGradient < handle
         end
         
         function setConstantStepLength(obj,val)
-            obj.tau = val;
+            obj.tau  = val;
+            % obj.tau0 = val;
         end
 
         function increaseStepLength(obj,f)
@@ -43,6 +45,10 @@ classdef ProjectedGradient < handle
         function is = isTooSmall(obj)
             is = obj.tau < 1e-10;
         end
+
+        % function restart(obj)
+        %     obj.tau = obj.tau0;
+        % end
 
     end
 
