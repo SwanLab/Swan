@@ -41,13 +41,13 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            %obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            file = 'Unstructured_mesh_PecaMiquel1';
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;  %faltava ficar el obj
+            %file = 'Volume_mesh_PecaMiquel1';
+            %a.fileName = file;
+            %s = FemDataContainer(a);
+            %obj.mesh = s.mesh;  %faltava ficar el obj
 
         end
 
@@ -148,7 +148,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.2;
+            s.volumeTarget = 0.3; %CONDICCIÓ VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
