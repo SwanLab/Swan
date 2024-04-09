@@ -19,8 +19,7 @@ classdef Multigrid < handle
         coarseBc
         coarseLHS
         coarseRHS
-        solverType
-        iterativeSolverType
+        solver
     end
 
     methods (Access = public)
@@ -70,50 +69,35 @@ classdef Multigrid < handle
             s.type         = obj.type;
             s.scale        = obj.scale;
             s.pdim         = obj.pdim;
+            s.tol          = obj.tol;
             FEM            = FemCreator(s);
             obj.coarseBc   = FEM.bc;
             obj.coarseLHS  = FEM.LHS;
             obj.coarseRHS  = FEM.RHS;
+            obj.solver     = FEM.solver;
         end
         
         function u = vCycle(obj,u,b,level)
             if level == 1
                 LHS = obj.coarseLHS{level};
                 RHS = b;
-                u   = solveProblemCoarse(obj,LHS,RHS,u);
+                u   = obj.solver{level}.solve(LHS,RHS,u);
             else
                 LHS    = obj.coarseLHS{level};                
                 RHS    = b;
-              %  int = obj.interpolator{level};
                 intOld = obj.interpolator{level-1};
                 bc     = obj.coarseBc{level};                
-                bcOld  = obj.coarseBc{level-1};        
-                u      = obj.solveProblem(LHS,RHS,u);
+                bcOld  = obj.coarseBc{level-1};
+                u      = obj.solver{level}.solve(LHS,RHS,u);
                 r      = b - LHS*u;
                 Rr     = obj.interpolate(r,bcOld,bc,intOld);
                 ur     = obj.interpolate(u,bcOld,bc,intOld);
                 er     = obj.vCycle(0*ur, Rr, level - 1);
                 e      = obj.restriction(er,bcOld,bc,intOld);
                 u      = u + e; 
-                u      = obj.solveProblem(LHS,RHS,u);
+                u      = obj.solver{level}.solve(LHS,RHS,u);
              end
 
-        end
-
-        function u = solveProblem(obj,LHS,RHS,u)
-                maxIter               = 20;
-                s.solverType          = 'ITERATIVE';
-                s.iterativeSolverType = 'CG';
-                solver                = Solver.create(s);
-                u                     = solver.solve(LHS,RHS,maxIter,u);                
-        end
-        
-        function u = solveProblemCoarse(obj,LHS,RHS,u)
-                maxIter               = 100000;
-                s.solverType          = 'ITERATIVE';
-                s.iterativeSolverType = 'CG';
-                solver                = Solver.create(s);
-                u                     = solver.solve(LHS,RHS,maxIter,u);
         end
 
         function fF = restriction(obj,fC,bcOld,bc,IOld)

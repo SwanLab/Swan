@@ -1,9 +1,17 @@
-classdef ConjugateGradientSolver < Solver
-
-    methods (Static)
+classdef ConjugateGradientSolver < handle
+    
+    properties (Access = private)
+        maxIter
+        tol
+    end
+    
+    methods (Access = public)
         
-        function x = solve(LHS,RHS,maxIter,x)
-            tol = 1e-6;
+        function obj = ConjugateGradientSolver(cParams)
+            obj.init(cParams);
+        end
+        
+        function x = solve(obj,LHS,RHS,x)
             r = RHS - LHS * x; 
             p = r; 
             rsold = r' * r;
@@ -11,14 +19,14 @@ classdef ConjugateGradientSolver < Solver
 
             hasNotConverged = true;
 
-            while iter < maxIter && hasNotConverged
+            while iter < obj.maxIter && hasNotConverged
                 Ap = LHS * p;
                 alpha = rsold / (p' * Ap);
                 x = x + alpha * p;
                 r = r - alpha * Ap;
                 rsnew = r' * r;
 
-                hasNotConverged = norm(LHS*x - RHS) > tol;
+                hasNotConverged = norm(LHS*x - RHS) > obj.tol;
 
                 p = r + (rsnew / rsold) * p;
                 rsold = rsnew;
@@ -33,28 +41,36 @@ classdef ConjugateGradientSolver < Solver
             %save('residuConjugateZeros.mat', 'residu')
         end
         
-        function plotSolution(x,mesh,bc,numItr)
-            xFull = bc.reducedToFullVector(x);
-            s.fValues = reshape(xFull,2,[])';
-            s.mesh = mesh;
-            s.fValues(:,end+1) = 0;
-            s.ndimf = 3;
-            xF = P1Function(s);
-            %xF.plot();
-            xF.print(['sol',num2str(numItr)],'Paraview')
-            fclose('all');
-        end
+%         function plotSolution(x,mesh,bc,numItr)
+%             xFull = bc.reducedToFullVector(x);
+%             s.fValues = reshape(xFull,2,[])';
+%             s.mesh = mesh;
+%             s.fValues(:,end+1) = 0;
+%             s.ndimf = 3;
+%             xF = P1Function(s);
+%             %xF.plot();
+%             xF.print(['sol',num2str(numItr)],'Paraview')
+%             fclose('all');
+%         end
+%         
+%         function plotRes(res,mesh,bc,numItr)
+%             xFull = bc.reducedToFullVector(res);
+%             s.fValues = reshape(xFull,2,[])';
+%             s.mesh = mesh;
+%             s.fValues(:,end+1) = 0;
+%             s.ndimf = 3;
+%             xF = P1Function(s);
+%             %xF.plot();
+%             xF.print(['Res',num2str(numItr)],'Paraview')
+%             fclose('all');
+%         end
+    end
+    
+    methods (Access = private)
         
-        function plotRes(res,mesh,bc,numItr)
-            xFull = bc.reducedToFullVector(res);
-            s.fValues = reshape(xFull,2,[])';
-            s.mesh = mesh;
-            s.fValues(:,end+1) = 0;
-            s.ndimf = 3;
-            xF = P1Function(s);
-            %xF.plot();
-            xF.print(['Res',num2str(numItr)],'Paraview')
-            fclose('all');
+        function init(obj,cParams)
+            obj.maxIter = cParams.maxIter;
+            obj.tol     = cParams.tol;
         end
     end
 end

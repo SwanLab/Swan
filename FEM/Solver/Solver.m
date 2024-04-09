@@ -18,7 +18,7 @@ classdef Solver < handle
                         case{'PCG'}
                             stype = PCG(cParams);
                         case{'CG'}    
-                            stype = ConjugateGradientSolver();    
+                            stype = ConjugateGradientSolver(cParams);    
                         case{'MULTIGRID'}
                             stype = Multigrid(cParams);
                     end

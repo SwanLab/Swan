@@ -4,6 +4,7 @@ classdef FemCreator < handle
         LHS
         RHS
         bc
+        solver
     end
     
     properties (Access = private)
@@ -16,13 +17,16 @@ classdef FemCreator < handle
         type
         scale
         pdim
+        tol
     end
     
     methods (Access = public)
         function obj = FemCreator(cParams)
-            obj.init(cParams)
-            obj.createLHS()
-            obj.createRHS()
+            obj.init(cParams);
+            obj.createLHS();
+            obj.createRHS();
+            obj.createSolver();
+            obj.createSolverCoarse();
         end
     end
     
@@ -34,6 +38,7 @@ classdef FemCreator < handle
             obj.type         = cParams.type;
             obj.scale        = cParams.scale;
             obj.pdim         = cParams.pdim;
+            obj.tol          = cParams.tol;
         end
         
         function createLHS(obj)
@@ -145,6 +150,24 @@ classdef FemCreator < handle
             c.BC          = boundaryConditions;
             RHS           = RHSintegrator_ElasticMacro(c);
             RHS           = RHS.compute();
+        end
+        
+        function createSolver(obj)
+            for i = 2:obj.nLevel+1
+                s.maxIter             = 20;
+                s.tol                 = obj.tol;
+                s.solverType          = 'ITERATIVE';
+                s.iterativeSolverType = 'CG';
+                obj.solver{i}         = Solver.create(s);
+            end
+        end
+        
+        function createSolverCoarse(obj)
+            s.maxIter             = 100000;
+            s.tol                 = obj.tol;
+            s.solverType          = 'ITERATIVE';
+            s.iterativeSolverType = 'CG';
+            obj.solver{1}         = Solver.create(s);
         end
         
     end
