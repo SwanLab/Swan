@@ -1,22 +1,18 @@
-classdef DualUpdater_NullSpace < handle
+classdef DualUpdaterNullSpace < handle
 
     properties (Access = private)
        constraint
        cost
-       designVariable
        dualVariable
        options
        constraintCase
        nConstr
-       ub
-       lb
        dualOld
        position
     end
 
     methods (Access = public)
-
-        function obj = DualUpdater_NullSpace(cParams)
+        function obj = DualUpdaterNullSpace(cParams)
             obj.init(cParams);
             obj.defineConstraintCases();
             obj.computeDualProblemOptions();
@@ -34,27 +30,23 @@ classdef DualUpdater_NullSpace < handle
         end
 
         function prob = computeDualBounds(obj)
-            nDof       = obj.designVariable.fun.nDofs;
             tol        = inf;
             prob.lb    = -tol*ones(obj.nConstr,1);
             prob.ub    = tol*ones(obj.nConstr,1);
             p          = obj.position;
             prob.lb(p) = 0;
-            if obj.ub~=inf
-                prob.ub = [prob.ub;tol*ones(nDof,1)];
-                prob.lb = [prob.lb;0*ones(nDof,1)];
-            end
-            if obj.lb~=-inf
-                prob.ub = [prob.ub;tol*ones(nDof,1)];
-                prob.lb = [prob.lb;0*ones(nDof,1)];
-            end
         end
 
-        function update(obj,eta,ub,lb)
+        function update(obj,eta,primalUpdater)
             s.prob = obj.computeDualBounds();
             s.eta  = eta;
-            s.ub   = ub;
-            s.lb   = lb;
+            if isempty(primalUpdater.tau)
+                s.lUB = 0;
+                s.lLB = 0;
+            else
+                s.lUB = primalUpdater.lUB/primalUpdater.tau;
+                s.lLB = primalUpdater.lLB/primalUpdater.tau;
+            end
             obj.computeQuadraticProblem(s);
         end
 
@@ -65,86 +57,35 @@ classdef DualUpdater_NullSpace < handle
         function updateOld(obj)
             obj.dualOld = obj.dualVariable.value;
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
-            obj.designVariable = cParams.designVariable;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
             obj.dualOld        = obj.dualVariable.value;
             obj.nConstr        = length(cParams.dualVariable.value);
-            obj.ub             = cParams.ub;
-            obj.lb             = cParams.lb;
         end
 
         function computeQuadraticProblem(obj,s)
-%             lJ = obj.computeDualNullSpace();
-%             lG = obj.computeDualRangeSpace(s);
-            l  = obj.computeDualGlobal(s);
-            obj.dualVariable.value = l;
-        end
-
-        function lJ = computeDualNullSpace(obj)
+            eta             = s.eta;
+            lUB             = s.lUB;
+            lLB             = s.lLB;
+            problem         = s.prob;
+            g               = obj.constraint.value;
             Dg              = obj.constraint.gradient;
             DJ              = obj.cost.gradient;
             problem.H       = Dg'*Dg;
-            problem.f       = Dg'*DJ;
-            problem.solver  = 'quadprog';
-            problem.options = obj.options;
-            lJ              = quadprog(problem);
-        end
-
-        function lG = computeDualRangeSpace(obj,s)
-            eta             = s.eta;
-            Dg              = obj.constraint.gradient;
-            g               = obj.constraint.value;
-            problem.H       = Dg'*Dg;
-            problem.f       = -eta*g;
-            problem.solver  = 'quadprog';
-            problem.options = obj.options;
-            lG              = quadprog(problem);
-        end
-
-        function l = computeDualGlobal(obj,s)
-            eta     = s.eta;
-            problem = s.prob;
-            ub      = s.ub;
-            lb      = s.lb;
-            g       = obj.constraint.value;
-            Dg      = obj.constraint.gradient;
-            DJ      = obj.cost.gradient;
-            l       = obj.dualVariable.value;
-            if sum(l)~=0
-                dMref = DJ+Dg*l;
-                x = obj.designVariable.fun.fValues;
-                switch class(obj.designVariable)
-                    case 'LevelSet'
-                        isUBActive = find(x<=0 & dMref<0);
-                        isLBActive = find(x>0 & dMref>0);
-                    otherwise
-                        isUBActive = find(abs(x-ub)<=1e-8 & dMref<0);
-                        isLBActive = find(abs(x-lb)<=1e-8 & dMref>0);
-                end
-                noAct = [isUBActive;isLBActive];
-            else
-                noAct = [];
-            end
-%             Dg(noAct)       = 0;
-%             DJ(noAct)       = 0;
-            problem.H       = Dg'*Dg;
-            problem.f       = Dg'*DJ-eta*g;
+            problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
             problem.solver  = 'quadprog';
             problem.options = obj.options;
             l               = quadprog(problem);
+            obj.dualVariable.value = l;
         end
 
         function computeDualProblemOptions(obj)
-            %             opts = optimoptions("quadprog");
             opts = struct( ...
                 'Algorithm','interior-point-convex', ...
                 'Diagnostics','off', ...
@@ -165,7 +106,5 @@ classdef DualUpdater_NullSpace < handle
                 );
             obj.options = opts;
         end
-
     end
-
 end

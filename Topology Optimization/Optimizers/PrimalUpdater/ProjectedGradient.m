@@ -2,6 +2,8 @@ classdef ProjectedGradient < handle
 
     properties (Access = public)
         tau
+        lUB
+        lLB
     end
 
     properties (Access = private)
@@ -10,17 +12,17 @@ classdef ProjectedGradient < handle
     end
     
     methods (Access = public)
-
         function obj = ProjectedGradient(cParams)
             obj.init(cParams);
         end
 
-        function x = update(obj,g,x)
+        function x = update(obj,g,y)
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
-            x  = x - t*g;
-            x  = min(ub,max(x,lb));
+            y  = y - t*g;
+            x  = min(ub,max(y,lb));
+            obj.updateBoundsMultipliers(x,y);
         end
 
         function computeFirstStepLength(obj,g,x,f)
@@ -39,16 +41,22 @@ classdef ProjectedGradient < handle
         function is = isTooSmall(obj)
             is = obj.tau < 1e-10;
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.upperBound     = cParams.ub;
-            obj.lowerBound     = cParams.lb;
+            obj.upperBound = cParams.ub;
+            obj.lowerBound = cParams.lb;
         end
 
+        function updateBoundsMultipliers(obj,x,y)
+            dyx            = y-x;
+            dxy            = x-y;
+            obj.lUB        = zeros(size(x));
+            obj.lLB        = zeros(size(x));
+            obj.lUB(dyx>0) = dyx(dyx>0);
+            obj.lLB(dxy>0) = dxy(dxy>0);
+        end
     end
 
 end
