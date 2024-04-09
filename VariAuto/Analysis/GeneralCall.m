@@ -47,9 +47,11 @@ optProblem   = OptimizationProblem(p);
 
 optProblem.solve();
 %% RUN & Possible functions
-data.plotCorrMatrix();
-% network.plotBoundary('contour'); Amb errors dins?
-% optProblem.plotConections();
-optProblem.plotConfusionMatrix();
+% optProblem.plotCostFnc();
+optProblem.plotConections();
+% optProblem.plotBoundary('contour'); NOT WORKING
+% optProblem.plotSurface();
+% optProblem.plotConfusionMatrix();
+
 
 

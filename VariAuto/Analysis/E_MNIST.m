@@ -1,10 +1,11 @@
-clear;clc;close all;addpath ../Codes;
+clear;clc;close all
 
 %% INITIALIZATION
 % Data choose between 32x32 or dct
-s.fileName = '../Datasets/MNIST.csv';
+s.fileName = 'MNIST.csv';
 s.polynomialOrder = 1;
 s.testRatio       = 30;
+s.features        = 1:784;
 data = Data(s);
 
 

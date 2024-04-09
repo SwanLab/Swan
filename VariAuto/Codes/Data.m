@@ -3,7 +3,7 @@ classdef Data < handle
     properties (Access = public)
         nFeatures
         nLabels
-        
+        polyGrade
         Xtrain
         Ytrain       
         Xtest
@@ -12,7 +12,6 @@ classdef Data < handle
     end
 
     properties (Access = private)
-        polynomialOrder
         X
         Y
         data
@@ -28,7 +27,7 @@ classdef Data < handle
             obj.loadData();
             obj.splitdata()
             obj.nLabels   = size(obj.Ytrain,2);                        
-            obj.nFeatures = size(obj.Xtrain,2);            
+            obj.nFeatures = size(obj.Xtrain,2);
         end
 
         function plotdata(self,i,j)
@@ -67,8 +66,8 @@ classdef Data < handle
                    obj.testRatio = h.value;
                    obj.splitdata()
                case 'polyGrade'
-                   obj.polynomialOrder = h.value;
-                   obj.buildModel(obj.X,obj.polynomialOrder);
+                   obj.polyGrade = h.value;
+                   obj.buildModel(obj.X,obj.polyGrade);
            end
         end
     end
@@ -78,7 +77,7 @@ classdef Data < handle
         function init(obj,cParams)
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
-            obj.polynomialOrder = cParams.polynomialOrder;
+            obj.polyGrade       = cParams.polynomialOrder;
             obj.features        = cParams.features;
         end
 
@@ -114,7 +113,7 @@ classdef Data < handle
 
         function Xful = buildModel(obj)
             x  = obj.X;
-            d  = obj.polynomialOrder;
+            d  = obj.polyGrade;
             x1 = x(:,1);
             x2 = x(:,2);
             cont = 1;
