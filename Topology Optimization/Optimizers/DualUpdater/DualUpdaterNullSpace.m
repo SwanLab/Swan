@@ -44,8 +44,9 @@ classdef DualUpdaterNullSpace < handle
                 s.lUB = 0;
                 s.lLB = 0;
             else
-                s.lUB = primalUpdater.lUB/primalUpdater.tau;
-                s.lLB = primalUpdater.lLB/primalUpdater.tau;
+                t     = primalUpdater.boxConstraints.refTau;
+                s.lUB = primalUpdater.boxConstraints.lUB/t;
+                s.lLB = primalUpdater.boxConstraints.lLB/t;
             end
             obj.computeQuadraticProblem(s);
         end

@@ -16,7 +16,6 @@ classdef OptimizerNullSpace < Optimizer
         eta
         lG
         lJ
-        etaMax
         etaNorm
         gJFlowRatio
     end
@@ -103,14 +102,18 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateEtaParameter(obj)
-            obj.etaMax = 1e5;
+            if isempty(obj.primalUpdater.boxConstraints)
+                t = 1e-9;
+            else
+                t = obj.primalUpdater.boxConstraints.refTau;
+            end
             g          = obj.constraint.value;
             Dg         = obj.constraint.gradient;
             DJ         = obj.cost.gradient;
             vgJ        = obj.gJFlowRatio;
             DxJ        = obj.computeNullSpaceFlow();
             Dxg        = obj.computeRangeSpaceFlow();
-            obj.eta    = vgJ*min(DxJ/Dxg,obj.etaMax); % 2*DxJ/(h*tau))
+            obj.eta    = min(vgJ*DxJ/Dxg,1/t);
             obj.lG     = obj.eta/(Dg'*Dg)*g;
             obj.lJ     = -1/(Dg'*Dg)*Dg'*DJ;
         end
@@ -149,7 +152,6 @@ classdef OptimizerNullSpace < Optimizer
                 x = obj.updatePrimal();
                 obj.checkStep(x,x0);
             end
-            obj.updateOldValues(x);
         end
 
         function calculateInitialStep(obj)
@@ -220,13 +222,6 @@ classdef OptimizerNullSpace < Optimizer
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;
-        end
-
-        function obj = updateOldValues(obj,xV)
-            x = obj.designVariable;
-            x.update(xV);
-            obj.cost.computeFunctionAndGradient(x);
-            obj.constraint.computeFunctionAndGradient(x);
         end
 
         function obj = checkConvergence(obj)

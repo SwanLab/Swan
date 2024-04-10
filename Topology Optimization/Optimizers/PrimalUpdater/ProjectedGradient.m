@@ -2,8 +2,7 @@ classdef ProjectedGradient < handle
 
     properties (Access = public)
         tau
-        lUB
-        lLB
+        boxConstraints
     end
 
     properties (Access = private)
@@ -50,12 +49,16 @@ classdef ProjectedGradient < handle
         end
 
         function updateBoundsMultipliers(obj,x,y)
-            dyx            = y-x;
-            dxy            = x-y;
-            obj.lUB        = zeros(size(x));
-            obj.lLB        = zeros(size(x));
-            obj.lUB(dyx>0) = dyx(dyx>0);
-            obj.lLB(dxy>0) = dxy(dxy>0);
+            t          = obj.tau;
+            dyx        = y-x;
+            dxy        = x-y;
+            lUB        = zeros(size(x));
+            lLB        = zeros(size(x));
+            lUB(dyx>0) = dyx(dyx>0);
+            lLB(dxy>0) = dxy(dxy>0);
+            obj.boxConstraints.lUB    = lUB;
+            obj.boxConstraints.lLB    = lLB;
+            obj.boxConstraints.refTau = t;
         end
     end
 
