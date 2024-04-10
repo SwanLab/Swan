@@ -145,12 +145,12 @@ classdef OptimizerNullSpace < Optimizer
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
             obj.dualUpdater.update(obj.eta,obj.primalUpdater);
-            obj.mOld = obj.computeMeritFunction(x0);
+            obj.mOld = obj.computeMeritFunction();
             obj.computeMeritGradient();
             obj.calculateInitialStep();
             while ~obj.acceptableStep
-                x = obj.updatePrimal();
-                obj.checkStep(x,x0);
+                obj.updatePrimal();
+                obj.checkStep(x0);
             end
         end
 
@@ -166,10 +166,11 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function x = updatePrimal(obj)
-            x = obj.designVariable.fun.fValues;
+        function updatePrimal(obj)
+            x = obj.designVariable;
             g = obj.meritGradient;
             x = obj.primalUpdater.update(g,x);
+            obj.designVariable = x;
         end
 
         function computeMeritGradient(obj)
@@ -180,8 +181,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x,x0)
-            mNew = obj.computeMeritFunction(x);
+        function checkStep(obj,x0)
+            x    = obj.designVariable.fun.fValues;
+            mNew = obj.computeMeritFunction();
             etaN = obj.obtainTrustRegion();
             if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
                 obj.acceptableStep = true;
@@ -213,9 +215,8 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function mF = computeMeritFunction(obj,xVal)
+        function mF = computeMeritFunction(obj)
             x = obj.designVariable;
-            x.update(xVal);
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
             l  = obj.dualVariable.value;
