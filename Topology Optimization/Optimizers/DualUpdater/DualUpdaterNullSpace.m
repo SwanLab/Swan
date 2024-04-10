@@ -9,6 +9,8 @@ classdef DualUpdaterNullSpace < handle
        nConstr
        dualOld
        position
+       primalUpdater
+       acceptableStep
     end
 
     methods (Access = public)
@@ -16,6 +18,7 @@ classdef DualUpdaterNullSpace < handle
             obj.init(cParams);
             obj.defineConstraintCases();
             obj.computeDualProblemOptions();
+            obj.createPrimalUpdater();
         end
 
         function defineConstraintCases(obj)
@@ -56,7 +59,7 @@ classdef DualUpdaterNullSpace < handle
         end
 
         function updateOld(obj)
-            obj.dualOld = obj.dualVariable.value;
+            obj.dualOld = obj.dualVariable.fun.fValues;
         end
     end
 
@@ -66,8 +69,8 @@ classdef DualUpdaterNullSpace < handle
             obj.constraint     = cParams.constraint;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
-            obj.dualOld        = obj.dualVariable.value;
-            obj.nConstr        = length(cParams.dualVariable.value);
+            obj.dualOld        = obj.dualVariable.fun.fValues;
+            obj.nConstr        = length(cParams.dualVariable.fun.fValues);
         end
 
         function computeQuadraticProblem(obj,s)
@@ -83,7 +86,54 @@ classdef DualUpdaterNullSpace < handle
             problem.solver  = 'quadprog';
             problem.options = obj.options;
             l               = quadprog(problem);
-            obj.dualVariable.value = l;
+            obj.dualVariable.fun.fValues = l;
+
+            %obj.solveWithProjectedGradient(s);
+        end
+
+        function solveWithProjectedGradient(obj,s)
+            eta   = s.eta;
+            lUB   = s.lUB;
+            lLB   = s.lLB;
+            l     = obj.dualVariable;
+            g     = obj.constraint.value;
+            Dg    = obj.constraint.gradient;
+            DJ    = obj.cost.gradient;
+            A     = Dg'*Dg;
+            b     = eta*g-Dg'*(DJ+lUB-lLB);
+            Df    = A*l.fun.fValues-b;
+            obj.primalUpdater.tau = Df'*Df/(Df'*A*Df);
+            delta = inf;
+            while delta>1e-8
+                lValk              = l.fun.fValues;
+                r                  = b-A*lValk;
+                obj.acceptableStep = false;
+                while (~obj.acceptableStep)
+                    l     = obj.primalUpdater.update(-r,l);
+                    lValk1   = l.fun.fValues;
+                    obj.checkStep(A,b,lValk,lValk1);
+                end
+                delta = norm(lValk1-lValk);
+                obj.primalUpdater.increaseStepLength(1.2);
+            end
+            obj.dualVariable = l;
+        end
+
+        function checkStep(obj,A,b,lOld,l)
+            Mold = obj.computeMeritFunction(A,b,lOld);
+            M    = obj.computeMeritFunction(A,b,l);
+            if M<Mold+1e-6
+                obj.acceptableStep = true;
+            else
+                obj.primalUpdater.decreaseStepLength();
+                obj.dualVariable.update(lOld);
+            end
+        end
+        
+        function M = computeMeritFunction(obj,A,b,l)
+            lLB = obj.primalUpdater.boxConstraints.lLB;
+            q   = 0.5*l'*A*l-l'*b;
+            M   = q-sum(lLB);
         end
 
         function computeDualProblemOptions(obj)
@@ -106,6 +156,12 @@ classdef DualUpdaterNullSpace < handle
                 'ObjectiveLimit', -1e20 ...
                 );
             obj.options = opts;
+        end
+
+        function createPrimalUpdater(obj)
+            s                     = obj.computeDualBounds();
+            p                     = ProjectedGradient(s);
+            obj.primalUpdater     = p;
         end
     end
 end

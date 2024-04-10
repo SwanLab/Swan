@@ -93,7 +93,7 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.dualVariable.value];
+            data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
                 data = [data;0;0;0;0;0];
             else
@@ -133,7 +133,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(size(obj.dualVariable.value));
+            obj.dualVariable.fun.fValues = zeros(size(obj.dualVariable.fun.fValues));
         end
 
         function update(obj)
@@ -173,7 +173,7 @@ classdef OptimizerNullSpace < Optimizer
         function computeMeritGradient(obj)
             DJ  = obj.cost.gradient;
             Dg  = obj.constraint.gradient;
-            l   = obj.dualVariable.value;
+            l   = obj.dualVariable.fun.fValues;
             DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
@@ -227,7 +227,7 @@ classdef OptimizerNullSpace < Optimizer
             x = obj.designVariable;
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
-            l  = obj.dualVariable.value;
+            l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;
