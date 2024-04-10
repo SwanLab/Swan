@@ -1,10 +1,11 @@
-% [C_P_Circle,P_Circle] = PFH.computeHomogMaterial("Circle","Perimeter",30);
+
+%[C_P_Circle,P_Circle] = PFH.computeHomogMaterial("Circle","Perimeter",30);
 % [C_A_Circle,A_Circle] = PFH.computeHomogMaterial("Circle","Area",30);
 % [C_L_Circle,L_Circle] = PFH.computeHomogMaterial("Circle","Diameter",30);
 % 
 % [C_P_Square,P_Square] = PFH.computeHomogMaterial("Square","Perimeter",30);
 % [C_A_Square,A_Square] = PFH.computeHomogMaterial("Square","Area",30);
-% [C_L_Square,L_Square] = PFH.computeHomogMaterial("Square","Diameter",30);
+ [C_L_Square,L_Square] = PFH.computeHomogMaterial("Square","Diameter",30);
 % 
 % [C_Iso,AT1] = PFH.computeIsotropicMaterial("AT1",30);
 % [~,AT2] = PFH.computeIsotropicMaterial("AT2",30);

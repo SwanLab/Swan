@@ -64,7 +64,7 @@ classdef Interpolation < handle
         
     end
     
-    methods (Abstract, Access = public)
+    methods (Abstract, Access = protected)
         computeParams(obj)
         evaluateShapeFunctions(obj)
         evaluateShapeDerivatives(obj)

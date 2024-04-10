@@ -8,7 +8,7 @@ classdef Line_Linear < Interpolation
         
     end
     
-    methods (Access = public)
+    methods (Access = protected)
 
         function computeParams(obj)
             obj.ndime = 1;
