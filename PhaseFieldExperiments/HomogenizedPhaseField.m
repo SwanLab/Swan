@@ -42,29 +42,26 @@ classdef HomogenizedPhaseField < handle
             end
         end
 
-        function setDesignVariable(obj,x)
-            obj.microParams = x;
-        end
+        function obj = setDesignVariable(obj,u,phi,t)
+            obj.microParams{1} = phi;
+        end             
 
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.fileName    = cParams.fileName;
-            obj.microParams = cParams.microParams;
+            obj.fileName       = cParams.fileName;
+            obj.microParams{1} = cParams.microParams;
         end
 
         function [mxV, C] = loadVademecum(obj)
-            fName = [obj.fileName,'WithAmplificators'];
+            fName = [obj.fileName];
             matFile   = [fName,'.mat'];
-            file2load = fullfile('Vademecums',matFile);
+            file2load = fullfile('VademecumDamage',matFile);
             v = load(file2load);
-            var = v.d;
-            mxV = var.domVariables.mxV;
-            for imx = 1:length(mxV)
-                C(:,:,imx,imy) = var.variables{imx,imy}.('Ctensor');
-            end
+            mxV = v.alpha;
+            C   = v.mat;
         end
 
         function createStructuredMesh(obj,mxV)
@@ -78,9 +75,10 @@ classdef HomogenizedPhaseField < handle
             for i = 1:size(C,1)
                 for j = 1:size(C,2)
                     Cij = squeeze(C(i,j,:));
-                    CijF = LagrangianFunction.create(m, 1,'P2');
-                    CijF.fValues  = Cij(:); %%% [Cx1;Cx2 ... ;Cx1.5 ...] %%%
-                    obj.Ctensor{i,j} = CijF;
+                    CijF = LagrangianFunction.create(m, 1,'P1');
+                    CijF.fValues = Cij;
+                    Cij = CijF.project('P2');                                        
+                    obj.Ctensor{i,j} = Cij;
                 end
             end
         end
@@ -139,7 +137,7 @@ classdef HomogenizedPhaseField < handle
 
         function [mL, cells] = obtainLocalCoord(obj,xV)
             mx = obj.microParams{1};
-            mG = mx.evaluate(xV);
+            mG = squeezeParticular(squeezeParticular(mx.evaluate(xV),2),1);
             [mL, cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
 
         end

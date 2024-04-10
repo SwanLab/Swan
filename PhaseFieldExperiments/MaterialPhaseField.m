@@ -19,39 +19,42 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = public)
 
-        function obj = setMaterial(obj,u,phi,interpType,tensorType)
-            obj.u = u;
-            obj.phi = phi;
-            obj.tensorType = tensorType;
-            switch interpType
-                case 'Isotropic'
-                    obj.fun = @(phi) 1;
-                case 'Interpolated'
-                    obj.fun = obj.matInterpolation.fun;
-                case 'Jacobian'
-                    obj.fun = obj.matInterpolation.dfun;
-                case 'Hessian'
-                    obj.fun = obj.matInterpolation.ddfun;
-            end
-        end
-
         function obj = MaterialPhaseField(cParams)
             obj.init(cParams)
             obj.initPhaseField(cParams)
+        end        
+
+        function obj = setDesignVariable(obj,phi,u,tensorType)
+            obj.u = u;
+            obj.phi = phi;
+            obj.tensorType = tensorType;
         end
 
-        function C = evaluate(obj,xV)
-            [mu,l] = obj.computeMatTensorParams(xV);
-            nPoints = size(mu,3);                        
-            nElem = size(mu,4);
-            nStre = 3;
-            C = zeros(nStre,nStre,nPoints,nElem);
-            C(1,1,:,:)= 2*mu+l;
-            C(1,2,:,:)= l;
-            C(2,1,:,:)= l;
-            C(2,2,:,:)= 2*mu+l;
-            C(3,3,:,:)= mu;
+        function C = obtainTensor(obj)
+            s.operation = @(xV) obj.evaluate(xV);
+            s.ndimf = 9;
+            C = DomainFunction(s);
         end
+
+        function dC = obtainTensorDerivative(obj)
+            nVar = numel(obj.microParams);
+            dC   = cell(nVar,1);
+            for iVar = 1:nVar
+                s.operation = @(xV) obj.evaluateGradient(xV,iVar);
+                s.ndimf = 9;
+                dC{iVar} =  DomainFunction(s);
+            end
+        end
+
+        function d2C = obtainTensorSecondDerivative(obj)
+            nVar = numel(obj.microParams);
+            d2C   = cell(nVar,1);
+            for iVar = 1:nVar
+                s.operation = @(xV) obj.evaluateHessian(xV,iVar);
+                s.ndimf = 9;
+                d2C{iVar} =  DomainFunction(s);
+            end
+        end   
 
         function kFun = getBulkFun(obj,u,phi,interpType)
             obj.setMaterial(u,phi,interpType,'');
@@ -100,6 +103,19 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = private)
 
+        function C = evaluate(obj,xV)
+            [mu,l] = obj.computeMatTensorParams(xV);
+            nPoints = size(mu,3);
+            nElem = size(mu,4);
+            nStre = 3;
+            C = zeros(nStre,nStre,nPoints,nElem);
+            C(1,1,:,:)= 2*mu+l;
+            C(1,2,:,:)= l;
+            C(2,1,:,:)= l;
+            C(2,2,:,:)= 2*mu+l;
+            C(3,3,:,:)= mu;
+        end
+
         function [mu,l] = computeMatTensorParams(obj,xV)
             [g, g0] = obj.computeDegradationFun();
             [mu, k] = obj.computeMuAndKappa(g,g0,xV);
@@ -123,7 +139,6 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             elseif obj.tensorType == "Volumetric"
                 muV = 0.*muV; 
             end
-
             mu = g0.evaluate(xV).*muV;
             k  = g.evaluate(xV).*kV;
         end
