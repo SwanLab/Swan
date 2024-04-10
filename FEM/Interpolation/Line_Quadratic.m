@@ -7,7 +7,7 @@ classdef Line_Quadratic < Interpolation
             obj.computeParams();
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
+        function shape = evaluateShapeFunctions(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
             s = posgp(1,:,:);
@@ -17,7 +17,7 @@ classdef Line_Quadratic < Interpolation
             shape(3,:,:) = -(s - 1).*(s + 1);
         end
         
-        function deriv = computeShapeDerivatives(obj,posgp)
+        function deriv = evaluateShapeDerivatives(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
             s = posgp(1,:,:);
@@ -27,9 +27,19 @@ classdef Line_Quadratic < Interpolation
             deriv(1,3,:,:) = -2.*s;
         end
 
+        function deriv2 = evaluateShape2Derivatives(obj,posgp)
+            ngaus = size(posgp,2);
+            nelem = size(posgp,3);
+            s = posgp(1,:,:);
+            deriv2 = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv2(1,1,:,:) = 1;
+            deriv2(1,2,:,:) = 1;
+            deriv2(1,3,:,:) = -2;
+        end
+
     end
     
-    methods (Access = private)
+    methods (Access = public)
 
         function computeParams(obj)
             obj.ndime = 1;

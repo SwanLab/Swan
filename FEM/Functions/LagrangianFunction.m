@@ -117,6 +117,31 @@ classdef LagrangianFunction < FeFunction
             fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
         end
 
+        function hessianfV = sampleHessian(obj,xV)
+            dNdx = obj.evaluateCartesian2Derivatives(xV);
+            nDimf = obj.ndimf;
+            nDimG = size(dNdx, 1);
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+            nElem = size(dNdx, 4);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            hessian = zeros(nDimG,nDimf, nPoints, nElem);
+            for iDimG = 1:nDimG
+                for jDimf = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        d2NdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
+                        iDofE = nDimf*(kNodeE-1)+jDimf;
+                        dofs = obj.connec(:,iDofE);
+                        fKJ = repmat(fV(dofs),[nPoints 1]);
+                        hessianIJ= d2NdxIK.*fKJ;
+                        hessian(iDimG,jDimf,:,:) = squeezeParticular(hessian(iDimG,jDimf,:,:),[1 2]) + hessianIJ;
+                    end
+                end
+            end
+            hessianfV = reshape(hessian, [nDimG*nDimf,nPoints, nElem]);
+        end
+
         function symGrad = evaluateSymmetricGradient(obj,xV)
             grad = obj.evaluateGradient(xV);
             nDimf = obj.ndimf;

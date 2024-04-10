@@ -38,7 +38,7 @@ classdef Interpolation < handle
 
     end
 
-    methods (Access = protected)
+    methods (Access = public)
         
         function init(obj,cParams)
             obj.type  = cParams.type;
@@ -64,7 +64,7 @@ classdef Interpolation < handle
         
     end
     
-    methods (Abstract, Access = protected)
+    methods (Abstract, Access = public)
         computeParams(obj)
         evaluateShapeFunctions(obj)
         evaluateShapeDerivatives(obj)
