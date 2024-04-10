@@ -1,4 +1,4 @@
-function [c, ceq,gradc,gradceq] = nlcon(x)
+function [c, ceq,gradc,gradceq] = nlcon(x,h)
 
 %Constants:
 %g = phisical_cons(1,1);
@@ -12,7 +12,7 @@ v_0 = 10;
 x_1_0 = 0;
 x_2_0 = 0;
 t_0 = 0;
-h = 300;
+%h = 300;
 
 %inequality constrains
 c = [];
@@ -20,6 +20,17 @@ c = [];
     ceq = zeros(4.*h+1, 1);
 %Constrains:
 for i= 1:(h-1)
+
+    dx1 = 
+    dx2 = 
+    dv = 
+    dgamma = 
+
+    dy = [dx1;dx2;dv;dgamma];
+    yold = [x1Old,x2Old,vOld,gammaOld];
+    ynew = [x1,x2,v,gamma];
+    ceq() = ynew - yold - incT*dy ;
+    
     ceq(4.*i+1,1) = x(4.*(i-1)+1) + ((x(4.*h+1)-t_0)/h).*x(4.*(i-1)+3).*cos(x(4.*(i-1)+4))-x(4.*i+1);
     ceq(4.*i+2,1) = x(4.*(i-1)+2) + ((x(4.*h+1)-t_0)/h).*x(4.*(i-1)+3).*sin(x(4.*(i-1)+4))-x(4.*i+2);
     ceq(4.*i+3,1) = x(4.*(i-1)+3) -((x(4.*h+1)-t_0)/h).*g.*sin(x(4.*(i-1)+4))-x(4.*i+3);
@@ -42,39 +53,45 @@ gradceq = zeros(4.*h+1,4.*h+2); % For future code constrains in colums variables
 %Secction 1:
 for i = 1:(h-1)
     %C1
+    tF    = x(4.*h+1);
+    gamma = x(4.*(i-1)+4);
+    incT  = ((tF-t_0)./h);
+    dx1 = cos(gamma);
+    dx2 = 
+
     gradceq(4.*i+1,4.*i+1) = -1;
     gradceq(4.*i+1,4.*(i-1)+1) = 1;
     
-    gradceq(4.*i+1,4.*(i-1)+3) = ((x(4.*h+1)-t_0)./h).*cos(4.*(i-1)+4);
-    gradceq(4.*i+1,4.*(i-1)+4) = -((x(4.*h+1)-t_0)./h).*x(4.*(i-1)+3).*sin(4.*(i-1)+4);
+    gradceq(4.*i+1,4.*(i-1)+3) = incT*dx1;
+    gradceq(4.*i+1,4.*(i-1)+4) = -((x(4.*h+1)-t_0)./h).*x(4.*(i-1)+3).*sin(gamma);
 
-    gradceq(4.*i+1,4.*h+1) = (1./h).*x(4.*(i-1)+3).*cos(x(4.*(i-1)+4));
+    gradceq(4.*i+1,4.*h+1) = (1./h).*x(4.*(i-1)+3).*cos(x(gamma));
 
     %C2
     gradceq(4.*i+2,4.*i+2) = -1;
     gradceq(4.*i+2,4.*(i-1)+2) = 1;
     
-    gradceq(4.*i+2,4.*(i-1)+3) = ((x(4.*h+1)-t_0)./h).*sin(4.*(i-1)+4);
-    gradceq(4.*i+2,4.*(i-1)+4) = ((x(4.*h+1)-t_0)./h).*x(4.*(i-1)+3).*cos(4.*(i-1)+4);
+    gradceq(4.*i+2,4.*(i-1)+3) = ((x(4.*h+1)-t_0)./h).*sin(gamma);
+    gradceq(4.*i+2,4.*(i-1)+4) = ((x(4.*h+1)-t_0)./h).*x(4.*(i-1)+3).*cos(gamma);
 
-    gradceq(4.*i+2,4.*h+1) = (1./h).*x(4.*(i-1)+3).*sin(x(4.*(i-1)+4));
+    gradceq(4.*i+2,4.*h+1) = (1./h).*x(4.*(i-1)+3).*sin(gamma);
     
     %C3
     gradceq(4.*i+3,4.*i+3) = -1;
     gradceq(4.*i+3,4.*(i-1)+3) = 1;
     
     
-    gradceq(4.*i+3,4.*(i-1)+4) = -((x(4.*h+1)-t_0)./h).*g.*cos(4.*(i-1)+4);
+    gradceq(4.*i+3,4.*(i-1)+4) = -((x(4.*h+1)-t_0)./h).*g.*cos(gamma);
 
-    gradceq(4.*i+3,4.*h+1) = -(1./h).*g.*sin(x(4.*(i-1)+4));
+    gradceq(4.*i+3,4.*h+1) = -(1./h).*g.*sin(gamma);
 
     %C4
 
     gradceq(4.*i+4,4.*i+4) = -1;
-    gradceq(4.*i+4,4.*(i-1)+4) = 1 + ((x(4.*h+1)-t_0)./h).*(g./x(4.*(i-1)+3)).*sin(x(4.*(i-1)+4));
+    gradceq(4.*i+4,4.*(i-1)+4) = 1 + ((x(4.*h+1)-t_0)./h).*(g./x(4.*(i-1)+3)).*sin(gamma);
     
     
-    gradceq(4.*i+4,4.*(i-1)+3) = ((x(4.*h+1)-t_0)./h).*(g./((x(4.*(i-1)+3)).^2)).*cos(4.*(i-1)+4);
+    gradceq(4.*i+4,4.*(i-1)+3) = ((x(4.*h+1)-t_0)./h).*(g./((x(4.*(i-1)+3)).^2)).*cos(gamma);
 
     gradceq(4.*i+4,4.*h+1) = -(1./h).*(g./x(4.*(i-1)+3)).*cos(x(4.*(i-1)+4));
 

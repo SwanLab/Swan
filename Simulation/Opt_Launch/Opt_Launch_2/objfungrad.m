@@ -1,4 +1,4 @@
-function [f,gradf] = objfungrad(x)
+function [f,gradf] = objfungrad(x,h)
 h = 300;
 f = -x(4.*h+1);
 % Gradient of the objective function:

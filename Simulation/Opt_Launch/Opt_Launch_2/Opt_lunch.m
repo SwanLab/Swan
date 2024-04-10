@@ -1,7 +1,3 @@
-% Define the objective function
-fun = @objfungrad;
-nonlincon =@nlcon;
-
 %Constants:
 g = 9.81;
 v_0 = 10;
@@ -9,6 +5,12 @@ x_1_0 = 0;
 x_2_0 = 0;
 t_0 = 0;
 h = 300;
+% Define the objective function
+fun = @(x) objfungrad(x,h);
+nonlincon =@nlcon(x,h);
+
+
+
 
 num_cons = zeros(1,1);
 num_cons(1,1) = h;
