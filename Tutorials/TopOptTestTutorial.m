@@ -85,8 +85,8 @@ classdef TopOptTestTutorial < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.interpolation  = 'SIMP_P3';
+            %s.dim            = '2D';
             s.matA = matA;
             s.matB = matB;
 
