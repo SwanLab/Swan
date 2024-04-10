@@ -39,7 +39,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
 
         function init(obj)
             close all;
-            obj.filename = 'ChairAlvaro'; % ChairAlvaro / Bicycle
+            obj.filename = 'ChairAlvaro';
         end
 
         function createMesh(obj)
@@ -186,23 +186,9 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            femReader = FemInputReader_GiD();
-            s = femReader.read(obj.filename);
-            [u,v]=unique(s.pointload(:,3));
-            for i = 1:length(v)
-                rows    = find(s.pointload(:,3)==u(i));
-                isForce = @(coor) s.pointload(rows,1);
-                sPL{i}.domain    = @(coor) isForce(coor);
-                sPL{i}.direction = s.pointload(v(i),2);
-                sPL{i}.value     = u(i);
-            end
-
-            isDir   = @(coor)  unique(s.dirichlet(:,1));
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
-
+            sDir = obj.computeConstrainedNodes();
+            sPL  = obj.computeExternalForces();
+ 
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -220,6 +206,42 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+
+        function sDir = computeConstrainedNodes(obj)
+            t      = 0.2;
+            xMax   = max(obj.mesh.coord(:,1));
+            yMax   = max(obj.mesh.coord(:,2));
+            isDirx = @(coor) coor(:,1)<=t*xMax | coor(:,1)>=(1-t)*xMax;
+            isDiry = @(coor) coor(:,2)<=t*yMax | coor(:,2)>=(1-t)*yMax;
+            isDir  = @(coor) coor(:,3)==0 & isDirx(coor) & isDiry(coor);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2,3];
+            sDir{1}.value     = 0;
+        end
+
+        function sPL = computeExternalForces(obj)
+            xMax = max(obj.mesh.coord(:,1));
+            zMax = max(obj.mesh.coord(:,3));
+            zHS  = 0.5*zMax;
+            xVS  = xMax-8;
+
+            % Horizontal surface
+            fHS      = 3;
+            isForceH = @(coor) coor(:,3)==zHS & coor(:,1)<=xVS;
+
+            % Vertical surface
+            fVS      = 1;
+            isForceV = @(coor) coor(:,1)==xVS & coor(:,3)>=zHS;
+
+            sPL{1}.domain    = @(coor) isForceH(coor);
+            sPL{1}.direction = 3;
+            sPL{1}.value     = -fHS;
+
+            sPL{2}.domain    = @(coor) isForceV(coor);
+            sPL{2}.direction = 1;
+            sPL{2}.value     = fVS;
         end
     end
 end
