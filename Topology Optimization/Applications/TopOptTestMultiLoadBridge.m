@@ -4,10 +4,12 @@ classdef TopOptTestMultiLoadBridge < handle
         mesh
         filter
         designVariable
+        designVarHoles
         materialInterpolator
         physicalProblemLeft
         physicalProblemCenter
         physicalProblemRight
+        targetCompliance
         complianceLeft
         complianceCenter
         complianceRight
@@ -24,15 +26,17 @@ classdef TopOptTestMultiLoadBridge < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
+            obj.createDesignVariableForInitialCompliance();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblemLeft();
             obj.createElasticProblemCenter();
             obj.createElasticProblemRight();
+            obj.computeTargetCompliance();
             obj.createComplianceLeft();
             obj.createComplianceCenter();
             obj.createComplianceRight();
-            obj.createVolumeConstraint();
+            obj.createVolumeFunctional();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -48,8 +52,8 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createMesh(obj)
-            x1       = linspace(0,10,200);
-            x2       = linspace(0,2,40);
+            x1       = linspace(0,10,300);
+            x2       = linspace(0,2,60);
             [xv,yv]  = meshgrid(x1,x2);
             [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -61,12 +65,35 @@ classdef TopOptTestMultiLoadBridge < handle
             s.type             = 'Full';
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
-            s.fun              = lsFun;
+            sDV.fValues        = 1-heaviside(lsFun.fValues);
+            sDV.mesh           = obj.mesh;
+            sDV.order          = 'P1';
+            s.fun              = LagrangianFunction(sDV);
             s.mesh             = obj.mesh;
-            s.type             = 'LevelSet';
+            s.type             = 'Density';
             s.plotting         = true;
             ls                 = DesignVariable.create(s);
             obj.designVariable = ls;
+        end
+
+        function createDesignVariableForInitialCompliance(obj)
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [4,3];
+            s.totalLengths     = [2,1];
+            s.phiZero          = 0.4;
+            s.phases           = [0,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            sDV.fValues        = 1-heaviside(lsFun.fValues);
+            sDV.mesh           = obj.mesh;
+            sDV.order          = 'P1';
+            s.fun              = LagrangianFunction(sDV);
+            s.mesh             = obj.mesh;
+            s.type             = 'Density';
+            s.plotting         = false;
+            ls                 = DesignVariable.create(s);
+            obj.designVarHoles = ls;
         end
 
         function createFilter(obj)
@@ -101,9 +128,10 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createElasticProblemLeft(obj)
+            x                       = obj.designVariable;
             s.mesh                  = obj.mesh;
             s.scale                 = 'MACRO';
-            s.material              = obj.createMaterial();
+            s.material              = obj.createMaterial(x);
             s.dim                   = '2D';
             s.boundaryConditions    = obj.createBoundaryConditions(0,1/9);
             s.interpolationType     = 'LINEAR';
@@ -114,9 +142,10 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createElasticProblemCenter(obj)
+            x                         = obj.designVariable;
             s.mesh                    = obj.mesh;
             s.scale                   = 'MACRO';
-            s.material                = obj.createMaterial();
+            s.material                = obj.createMaterial(x);
             s.dim                     = '2D';
             s.boundaryConditions      = obj.createBoundaryConditions(4/9,5/9);
             s.interpolationType       = 'LINEAR';
@@ -127,9 +156,10 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createElasticProblemRight(obj)
+            x                        = obj.designVariable;
             s.mesh                   = obj.mesh;
             s.scale                  = 'MACRO';
-            s.material               = obj.createMaterial();
+            s.material               = obj.createMaterial(x);
             s.dim                    = '2D';
             s.boundaryConditions     = obj.createBoundaryConditions(8/9,1);
             s.interpolationType      = 'LINEAR';
@@ -139,6 +169,21 @@ classdef TopOptTestMultiLoadBridge < handle
             obj.physicalProblemRight = fem;
         end
 
+        function computeTargetCompliance(obj)
+            x     = obj.designVarHoles;
+            mat   = obj.createMaterial(x);
+            C     = mat.obtainTensor();
+            dC    = mat.obtainTensorDerivative();
+
+            cL     = obj.createComplianceFromConstiutive(obj.physicalProblemLeft);
+            cC     = obj.createComplianceFromConstiutive(obj.physicalProblemCenter);
+            cR     = obj.createComplianceFromConstiutive(obj.physicalProblemRight);
+            [jL,~] = cL.computeFunctionAndGradient(C,dC);
+            [jC,~] = cC.computeFunctionAndGradient(C,dC);
+            [jR,~] = cR.computeFunctionAndGradient(C,dC);
+            obj.targetCompliance = 0.7*max([jL,jC,jR]);
+        end
+
         function c = createComplianceFromConstiutive(obj,physicalProblem)
             s.mesh         = obj.mesh;
             s.stateProblem = physicalProblem;
@@ -146,43 +191,51 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createComplianceLeft(obj)
+            x                            = obj.designVariable;
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblemLeft);
-            s.material                   = obj.createMaterial();
-            c                            = ComplianceFunctional(s);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
             obj.complianceLeft           = c;
         end
 
         function createComplianceCenter(obj)
+            x                            = obj.designVariable;
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblemCenter);
-            s.material                   = obj.createMaterial();
-            c                            = ComplianceFunctional(s);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
             obj.complianceCenter         = c;
         end
 
         function createComplianceRight(obj)
+            x                            = obj.designVariable;
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblemRight);
-            s.material                   = obj.createMaterial();
-            c                            = ComplianceFunctional(s);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
             obj.complianceRight          = c;
         end
 
-        function createVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
+        function createVolumeFunctional(obj)
+            s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
-            v = VolumeConstraint(s);
-            obj.volume = v;
+            v              = VolumeFunctional(s);
+            obj.volume     = v;
         end
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.complianceLeft;
+            s.shapeFunctions{1} = obj.volume;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
@@ -198,13 +251,15 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{1} = obj.complianceLeft;
+            s.shapeFunctions{2} = obj.complianceCenter;
+            s.shapeFunctions{3} = obj.complianceRight;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;
+            s.nConstraints   = 3;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -217,18 +272,18 @@ classdef TopOptTestMultiLoadBridge < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;
-            s.primal         = 'SLERP';
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 1.5;
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.ub             = 1;
+            s.lb             = 0;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
-        function m = createMaterial(obj)
-            x = obj.designVariable;
+        function m = createMaterial(obj,x)
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
