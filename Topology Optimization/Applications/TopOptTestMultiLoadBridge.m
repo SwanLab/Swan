@@ -52,8 +52,8 @@ classdef TopOptTestMultiLoadBridge < handle
         end
 
         function createMesh(obj)
-            x1       = linspace(0,10,300);
-            x2       = linspace(0,2,60);
+            x1       = linspace(0,10,200);
+            x2       = linspace(0,2,40);
             [xv,yv]  = meshgrid(x1,x2);
             [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
