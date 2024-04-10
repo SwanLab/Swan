@@ -14,6 +14,7 @@ classdef OptimizerNullSpace < Optimizer
         meritNew
         meritGradient
         eta
+        etaMax
         lG
         lJ
         etaNorm
@@ -55,6 +56,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
+            obj.etaMax         = inf;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -102,18 +104,13 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateEtaParameter(obj)
-            if isempty(obj.primalUpdater.boxConstraints)
-                t = 1e-9;
-            else
-                t = obj.primalUpdater.boxConstraints.refTau;
-            end
             g          = obj.constraint.value;
             Dg         = obj.constraint.gradient;
             DJ         = obj.cost.gradient;
             vgJ        = obj.gJFlowRatio;
             DxJ        = obj.computeNullSpaceFlow();
             Dxg        = obj.computeRangeSpaceFlow();
-            obj.eta    = min(vgJ*DxJ/Dxg,1/t);
+            obj.eta    = min(vgJ*DxJ/Dxg,obj.etaMax);
             obj.lG     = obj.eta/(Dg'*Dg)*g;
             obj.lJ     = -1/(Dg'*Dg)*Dg'*DJ;
         end
@@ -189,6 +186,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
+                obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
@@ -199,6 +197,16 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
+            end
+        end
+
+        function updateEtaMax(obj)
+            switch class(obj.primalUpdater)
+                case 'SLERP'
+                    obj.etaMax = 0.2;
+                otherwise
+                    t          = obj.primalUpdater.tau;
+                    obj.etaMax = 1/t;
             end
         end
 

@@ -27,7 +27,7 @@ classdef SLERP < handle
             phiNew = obj.computeNewLevelSet(phiN,gN,theta);
             phi.update(phiNew);
             x = obj.computeRegularizedDensity(phi);
-            obj.updateBoundsMultipliers(x,y,g);
+            obj.updateBoundsMultipliers(x,y,g,phiNew);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
@@ -141,12 +141,14 @@ classdef SLERP < handle
             rhoe    = obj.filter.compute(charFun,'QUADRATIC');
         end
 
-        function updateBoundsMultipliers(obj,xF,yF,g)
+        function updateBoundsMultipliers(obj,xF,yF,g,phi)
             x            = xF.fValues;
             y            = yF.fValues;
             t            = sum(abs(y-x))/sum(abs(g));
             isUBAct      = abs(x-1)<=1e-6;
             isLBAct      = abs(x)<=1e-6;
+            isUBAct      = phi<0 & g<0;
+            isLBAct      = phi>0 & g>0;
             lUB          = zeros(size(x));
             lLB          = zeros(size(x));
             lUB(isUBAct) = -g(isUBAct);
