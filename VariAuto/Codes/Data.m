@@ -109,7 +109,6 @@ classdef Data < handle
             % obj.Y = y;
             obj.Y = obj.X;
         end
-        
 
         function Xful = buildModel(obj)
             x  = obj.X;

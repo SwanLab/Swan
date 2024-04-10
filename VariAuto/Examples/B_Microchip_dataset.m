@@ -18,13 +18,16 @@ disp('Datsets available:')
 for i = 1:length(datasets)
     fprintf('%d - %s \n',i,datasets(i))
 end
-fileN = 'Gender.csv';%datasets(input('Choose: '));
+fileN = 'Microchip.csv';%datasets(input('Choose: '));
 
 s.features = 1:2;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
 data  = Data(s);
+
+%% Initial visualization
+plot(data.Xtrain(:,1), data.Xtrain(:,2),'o')
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
