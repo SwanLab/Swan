@@ -19,7 +19,7 @@ classdef DesignVariableAcademic < handle
         end
 
         function res = computeL2normIncrement(obj)
-            incFun = obj.fun.fValues-obj.valuesOld(:,end);
+            incFun = obj.fun.fValues - obj.valuesOld(:,end);
             nIncX  = norm(incFun);
             nX0    = norm(obj.valuesOld(:,end));
             res    = nIncX/nX0;
