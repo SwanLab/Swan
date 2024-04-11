@@ -27,8 +27,8 @@ classdef ConjugateGradientToleranceCalculator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.val     = 1e-3;
-            obj.oldVal  = 1e-3;
+            obj.val     = 1e-1;
+            obj.oldVal  = 1e-1;
             obj.tolMin  = cParams.tolMin;
             obj.tolMax  = cParams.tolMax;
         end

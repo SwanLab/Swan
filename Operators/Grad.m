@@ -4,7 +4,10 @@ function dom = Grad(u)
 end
 
 function fVR = evaluate(u, xV)
+    tic
     dNdx = u.evaluateCartesianDerivatives(xV);
+    disp('Cartesian derivatives ' + string(toc) + ' s')
+    tic
     nDofs   = u.nDofs;
     nDimf   = u.ndimf;
     nDimG   = size(dNdx, 1);
@@ -28,4 +31,5 @@ function fVR = evaluate(u, xV)
     end
 
     fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
+    disp('Assembly ' + string(toc) + ' s')
 end

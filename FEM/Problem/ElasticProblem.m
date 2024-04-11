@@ -18,6 +18,7 @@ classdef ElasticProblem < handle
         strain, stress
 
         solverTol, solverParams, solverCase
+        internalForcesComputer, testFunction
     end
 
     properties (Access = protected)
@@ -33,6 +34,7 @@ classdef ElasticProblem < handle
             obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBCApplier();
+            obj.prepareInternalForcesFunction();
             obj.createSolver();
         end
 
@@ -40,8 +42,8 @@ classdef ElasticProblem < handle
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacement();
-            obj.computeStrain();
-            obj.computeStress();
+            % obj.computeStrain();
+            % obj.computeStress();
         end
 
         function updateMaterial(obj, mat)
@@ -152,6 +154,7 @@ classdef ElasticProblem < handle
             s.forces = obj.forces;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
+            s.internalForces = @obj.computeInternalForces;
             pb = ProblemSolver(s);
             % - TO RECOVER
             [u,L] = pb.solve();
@@ -162,6 +165,62 @@ classdef ElasticProblem < handle
             obj.uFun = uFeFun;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
+        end
+
+        function [u, L] = cleanupSolution(obj,sol)
+            % bcapp = obj.BCApplier;
+            bcs   = obj.boundaryConditions;
+            % hasPeriodic = ~isequal(bcs.periodic_leader, []);
+            switch true
+                case strcmp(obj.solverType, 'MONOLITHIC')
+                    nDisp = size(obj.stiffness,1);
+                    u = sol(1:nDisp, :);
+                    L = -sol( (nDisp+1):end, : );
+                case strcmp(obj.solverType, 'REDUCED') && strcmp(obj.solverMode, 'DISP')
+                    dofs = 1:size(obj.stiffness);
+                    free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
+                    u = zeros(size(obj.stiffness,1), 1);
+                    u(free_dofs) = sol;
+                    u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
+                    L = [];
+                case strcmp(obj.solverType, 'REDUCED') && strcmp(obj.solverMode, 'FLUC')
+                    lead = bcs.periodic_leader;
+                    fllw = bcs.periodic_follower;
+                    drch = bcs.dirichlet_dofs;
+                    dofs = 1:size(obj.stiffness);
+                    free = setdiff(dofs, [lead; fllw; drch]);
+                    u = zeros(length(dofs),1);
+                    u(free) = sol(1:1:size(free,2));
+                    u(lead) = sol(size(free,2)+1:1:size(sol,1));
+                    u(fllw) = u(lead);
+                    u(drch) = bcs.dirichlet_vals;
+                    L = [];
+                otherwise
+                    u = [];
+                    L = [];
+            end
+        end
+
+        function prepareInternalForcesFunction(obj)
+            s.type                     = 'ShapeSymmetricDerivative';
+            s.scale                    = 'MACRO';
+            s.mesh                     = obj.mesh;
+            s.quadratureOrder          = obj.quadrature.order;
+            s.globalConnec             = obj.mesh.connec;
+            obj.internalForcesComputer = RHSintegrator.create(s);
+            obj.testFunction           = LagrangianFunction.create(s.mesh,s.mesh.ndim,'P1');
+        end
+
+        function Fi = computeInternalForces(obj,x)
+            [u,~]             = obj.cleanupSolution(x);
+            uSplit            = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            obj.displacementFun.fValues = uSplit;
+            strainF           = SymGrad(obj.displacementFun);
+            stressF           = DDP(obj.material, strainF);
+            Fi                = obj.internalForcesComputer.compute(stressF,obj.testFunction);
+            dofs              = 1:numel(Fi);
+            free_dofs         = setdiff(dofs, obj.boundaryConditions.dirichlet_dofs);
+            Fi                = Fi(free_dofs);
         end
 
         function computeStrain(obj)

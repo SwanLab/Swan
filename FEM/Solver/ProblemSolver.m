@@ -10,10 +10,7 @@ classdef ProblemSolver < handle
         forces
         boundaryConditions
         BCApplier
-    end
-    
-    properties (Access = private)
-        
+        internalForces
     end
     
     methods (Access = public)
@@ -23,9 +20,10 @@ classdef ProblemSolver < handle
         end
 
         function [u,L] = solve(obj)
-            [LHS, RHS] = obj.computeMatrices();
-            Fi = @(x) obj.createInternalForces(x,LHS);
-            sol        = obj.solver.solve(Fi, RHS);
+            % [LHS, RHS] = obj.computeMatrices();
+            RHS = obj.assembleRHS();
+            sol = obj.solver.solve(obj.internalForces, RHS);
+            % sol = obj.solver.solve(LHS, RHS);
             % sol        = obj.solveSystem(LHS,RHS);
             [u, L]     = obj.cleanupSolution(sol);
         end
@@ -33,24 +31,6 @@ classdef ProblemSolver < handle
     end
     
     methods (Access = private)
-
-        function Fi = createInternalForces(obj,x,LHS)
-           % Fi =  LHS*x;
-
-             xV = obj.quadrature.posgp;
-             u = ...
-            strainFun = SymGrad(obj.displacementFun);
-             stressFun = DDP(obj.material, strainFun);
-
-            s.type     = 'ShapeSymmetricDerivative';
-            s.scale    = 'MACRO';
-            s.mesh         = obj.mesh;
-            s.quadratureOrder = obj.quadratureOrder;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSintegrator.create(s);
-            test = LagrangianFunction.create(mesh,2,'P1');
-            Fi = RHSint.compute(stress,test)
-        end
         
         function init(obj,cParams)
             obj.type               = cParams.solverType;
@@ -60,6 +40,7 @@ classdef ProblemSolver < handle
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
             obj.solver             = cParams.solver;
+            obj.internalForces     = cParams.internalForces;
         end
 
         function [LHS, RHS] = computeMatrices(obj)

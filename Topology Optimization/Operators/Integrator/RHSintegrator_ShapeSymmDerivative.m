@@ -37,10 +37,13 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
                     fGI = squeezeParticular(fG(:,igaus,:),2);
                     fdv = fGI.*dV(igaus,:);
                     fdv = reshape(fdv,[1 size(fdv,1) nElem]);
+                    % tic
                     B = BComp.compute(igaus);
+                    % disp(strcat('B computation: ',string(toc),' s'))
                     intI = pagemtimes(fdv,B);
                     rhsC = rhsC + squeezeParticular(intI,1);
             end
+            % disp(strcat('Time RHS assembly: ',string(toc),' s'))
         end
 
         function f = assembleIntegrand(obj, rhsElem, test)

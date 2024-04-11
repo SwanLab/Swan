@@ -55,9 +55,9 @@ classdef TopOptAccelerationExperiments3D < handle
             x1 = 2;
             x2 = 1;
             x3 = 1;
-            d1 = 40;
-            d2 = 20;
-            d3 = 20;
+            d1 = 50;
+            d2 = 25;
+            d3 = 25;
             obj.mesh = TetraMesh(x1,x3,x2,d1,d3,d2);
         end
 
