@@ -91,7 +91,7 @@ classdef HomogenizedPhaseField < handle
             C = zeros(nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cv = obj.Ctensor{i,j}.sampleFunction(mL,cells);
+                    Cv = obj.Ctensor{i,j}.sampleFunction(mL',cells');
                     Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
                     C(i,j,:,:)   = Cij(1,1,:,:);
                 end
@@ -137,7 +137,8 @@ classdef HomogenizedPhaseField < handle
 
         function [mL, cells] = obtainLocalCoord(obj,xV)
             mx = obj.microParams{1};
-            mG = squeezeParticular(squeezeParticular(mx.evaluate(xV),2),1);
+            mG = squeeze(mx.evaluate(xV));
+            mG = reshape(mG,numel(mG),[]);
             [mL, cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
 
         end
