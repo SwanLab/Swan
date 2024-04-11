@@ -12,7 +12,7 @@ classdef ElasticProblem < handle
 
         stiffness
         forces
-        solver, solverType, solverMode
+        solver, solverType, solverMode, solverCase
         scale
         
         strain, stress
@@ -76,6 +76,11 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
+            if isfield(cParams,'solverCase')
+                obj.solverCase  = cParams.solverCase;
+            else
+                obj.solverCase = 'DIRECT';
+            end
         end
 
         function createQuadrature(obj)
@@ -105,7 +110,7 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type =  'DIRECT';
+            s.type     = obj.solverCase;
             obj.solver = Solver.create(s);
         end
 
@@ -140,10 +145,11 @@ classdef ElasticProblem < handle
         function u = computeDisplacement(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.stiffness = obj.stiffness;
-            s.forces = obj.forces;
+            s.stiffness  = obj.stiffness;
+            s.forces     = obj.forces;
+            s.solver     = obj.solver;
             s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier = obj.BCApplier;
+            s.BCApplier          = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
             z.mesh    = obj.mesh;
