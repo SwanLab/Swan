@@ -26,6 +26,20 @@ s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
 data  = Data(s);
 
+%% Overview of the data (divided in men and women)
+% overv = load(fileN);
+% hold on
+% for i = 1:size(overv,1)
+%     if overv(i,3) == 1
+%         plot(overv(i,1),overv(i,2),'og') % Men
+%     elseif overv(i,3) == 2 
+%         plot(overv(i,1),overv(i,2),'or') % Women
+%     end
+% end
+% hold off
+% xlabel("Height (cm)")
+% ylabel("Weight (kg)")
+
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
 % network   = Network(data,structure);
