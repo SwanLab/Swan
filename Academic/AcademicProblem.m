@@ -79,7 +79,7 @@ classdef AcademicProblem < handle
 
         function solve(obj)
             obj.optimizer.solveProblem();
-            obj.result = obj.designVariable.value;
+            obj.result = obj.designVariable.fun.fValues;
         end
 
     end

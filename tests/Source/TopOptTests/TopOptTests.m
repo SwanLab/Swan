@@ -42,7 +42,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             mat    = obj.createMaterial(x,mI);
             fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
             Msmooth = obj.createMassMatrix(m);
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename);
             sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
@@ -143,13 +143,14 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             M = LHS.compute;
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth)
+        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename)
             for i = 1:length(cost)
                 s.type            = cost{i};
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
                 s.filter          = filter{i};
                 s.material        = mat;
+                s.filename        = filename;
                 sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
