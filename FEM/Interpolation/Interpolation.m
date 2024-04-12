@@ -12,7 +12,7 @@ classdef Interpolation < handle
     
     properties (Access = protected)
         type
-        shapeFun, shapeDer
+        shapeFun, shapeDer, shapeSecondDer
     end
     
     methods (Static, Access = public)
@@ -36,6 +36,10 @@ classdef Interpolation < handle
             deriv = obj.shapeDer.evaluate(xV);
         end
 
+        function secondDeriv = computeShapeSecondDerivatives(obj,xV)
+            secondDeriv = obj.shapeSecondDer.evaluate(xV);
+        end
+
     end
 
     methods (Access = public)
@@ -46,6 +50,7 @@ classdef Interpolation < handle
             obj.computeParams();
             obj.createShapeFunctions();
             obj.createShapeDerivatives();
+            obj.createShapeSecondDerivatives();
         end
 
         function createShapeFunctions(obj)
@@ -61,6 +66,13 @@ classdef Interpolation < handle
             deriv = DomainFunction(s);
             obj.shapeDer = deriv;
         end
+
+        function createShapeSecondDerivatives(obj)
+            s.operation = @(xV) obj.evaluateShapeSecondDerivatives(xV);
+            s.ndimf = 1;
+            secondDeriv = DomainFunction(s);
+            obj.shapeSecondDer = secondDeriv;
+        end
         
     end
     
@@ -68,6 +80,8 @@ classdef Interpolation < handle
         computeParams(obj)
         evaluateShapeFunctions(obj)
         evaluateShapeDerivatives(obj)
+        %evaluateShapeSecondDerivatives(obj) %% HAS TO BE IMPLEMENTED IN
+        %ALL CLASSES
     end
     
 end

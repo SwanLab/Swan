@@ -24,12 +24,6 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             obj.initPhaseField(cParams)
         end        
 
-        function obj = setDesignVariable(obj,phi,u,tensorType)
-            obj.u = u;
-            obj.phi = phi;
-            obj.tensorType = tensorType;
-        end
-
         function C = obtainTensor(obj)
             s.operation = @(xV) obj.evaluate(xV);
             s.ndimf = 9;
@@ -86,6 +80,12 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             mu = LagrangianFunction(s);
 
             muFun = g0.*mu;
+        end
+
+        function obj = setDesignVariable(obj,phi,u,tensorType)
+            obj.u = u;
+            obj.phi = phi;
+            obj.tensorType = tensorType;
         end
 
     end

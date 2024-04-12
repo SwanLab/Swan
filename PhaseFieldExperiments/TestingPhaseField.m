@@ -10,7 +10,7 @@ classdef TestingPhaseField < handle
         %         linspace(8.5e-3,0,100), ...
         %         linspace(0,-1e-2,100), ...
         %         ];
-         bcVal = linspace(1e-4,1e-1,100);
+         bcVal = linspace(0,1e-1,100);
         % bcVal = 1;
         % bcVal = [0.001];
     end

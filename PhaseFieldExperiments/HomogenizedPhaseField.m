@@ -32,7 +32,7 @@ classdef HomogenizedPhaseField < handle
             end
         end
 
-        function d2C = obtainTensor2Derivative(obj)
+        function d2C = obtainTensorSecondDerivative(obj)
             nVar = numel(obj.microParams);
             d2C   = cell(nVar,1);
             for iVar = 1:nVar
@@ -126,7 +126,7 @@ classdef HomogenizedPhaseField < handle
             d2C  = zeros(nDim,nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    d2Cv = obj.Ctensor{i,j}.sampleHessian(mL,cells);
+                    d2Cv = obj.Ctensor{i,j}.sampleHessian(mL',cells');
                     d2Cv = squeezeParticular(d2Cv,1);
                     d2Cij(:,1,1,:,:)  = reshape(d2Cv,nDim,nGaus,nElem);
                     d2C(:,i,j,:,:) = d2Cij;

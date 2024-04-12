@@ -20,36 +20,40 @@ classdef LagrangianFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            shapes = obj.interpolation.computeShapeFunctions(xV);
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2);
-            nF     = size(obj.fValues,2);
-            nElem  = size(obj.connec,1);
-            fxV = zeros(nF,1,nGaus,nElem);
-            for iGaus = 1:nGaus
-                for iNode = 1:nNode
-                    node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    Ni = shapes(iNode,iGaus);
-                    fi = obj.fValues(node,:);
-                    f(:,1,:) = Ni*fi';
-                    fxV(:,:,iGaus,:) = squeezeParticular(fxV(:,:,iGaus,:),3) + f;
+            shapes  = obj.interpolation.computeShapeFunctions(xV);
+            nNodesE  = size(shapes,1);
+            nPoints = size(shapes,2);
+            nF      = size(obj.fValues,2);
+            nElem   = size(obj.connec,1);
+            fxV = zeros(nF,1,nPoints,nElem);
+            for iF = 1:nF
+                for iNodeE = 1:nNodesE
+                    dofE = (iNodeE-1)*nF + iF;
+                    dofs = (obj.connec(:,dofE));
+                    nodes = (dofs - iF)/nF + 1;
+                    Ni = shapes(iNodeE,:);
+                    fi = obj.fValues(nodes,iF);
+                    f(1,1,:,:) = (fi*Ni)';
+                    fxV(iF,:,:,:) = fxV(iF,:,:,:)  + f;
                 end
             end
         end
 
         function fxV = sampleFunction(obj,xP,cells)
             shapes  = obj.interpolation.computeShapeFunctions(xP);
-            nNode   = size(shapes,1);
+            nNodesE   = size(shapes,1);
             nF      = size(obj.fValues,2);
             nPoints = size(xP,2);
-            fxV = zeros(nF,nPoints);
+            fxV = zeros(nF,1,nPoints);
             for iF = 1:nF
-                for iNode = 1:nNode
-                    node = obj.mesh.connec(cells,iNode);
-                    Ni = shapes(iNode,:)';
-                    fi = obj.fValues(node,:);
-                    f(1,:) = fi.*Ni;
-                    fxV(iF,:) = fxV(iF,:) + f;
+                for iNodeE = 1:nNodesE
+                    dofE = (iNodeE-1)*nF + iF;
+                    dofs = (obj.connec(cells,dofE));
+                    nodes = (dofs - iF)/nF + 1;
+                    Ni = shapes(iNodeE,:);
+                    fi = obj.fValues(nodes,iF);
+                    f(1,1,:) = Ni.*fi';
+                    fxV(iF,:,:) = fxV(iF,:,:)  + f;
                 end
             end
         end
@@ -93,7 +97,32 @@ classdef LagrangianFunction < FeFunction
         end
 
         function fVR = evaluateGradient(obj, xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
+            dNdx = obj.interpolation.computeShapeDerivatives(xV);
+            nF = obj.ndimf;
+            nDimG = size(dNdx, 1);
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+            nElem = size(dNdx, 4);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            grad = zeros(nDimG,nF, nPoints, nElem);
+            for iDimG = 1:nDimG
+                for jF = 1:nF
+                    for kNodeE = 1:nNodeE
+                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
+                        dofE = (kNodeE-1)*nF + jF;
+                        dofs = obj.connec(:,dofE);
+                        fKJ = repmat(fV(dofs),[1 nPoints]);
+                        gradIJ= dNdxIK.*fKJ;
+                        grad(iDimG,jF,:,:) = squeezeParticular(grad(iDimG,jF,:,:),[1 2]) + gradIJ;
+                    end
+                end
+            end
+            fVR = reshape(grad, [nDimG*nF,nPoints, nElem]);
+        end
+
+        function hessianfV = sampleGradient(obj,xP,cells)
+            dNdx = obj.evaluateCartesianDerivatives(xP);
             nDimf = obj.ndimf;
             nDimG = size(dNdx, 1);
             nNodeE = size(dNdx, 2);
@@ -107,91 +136,14 @@ classdef LagrangianFunction < FeFunction
                     for kNodeE = 1:nNodeE
                         dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
                         iDofE = nDimf*(kNodeE-1)+jDimf;
-                        dofs = obj.connec(:,iDofE);
+                        dofs = obj.connec(cells,iDofE);
                         fKJ = repmat(fV(dofs),[nPoints 1]);
                         gradIJ= dNdxIK.*fKJ;
                         grad(iDimG,jDimf,:,:) = squeezeParticular(grad(iDimG,jDimf,:,:),[1 2]) + gradIJ;
                     end
                 end
             end
-            fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
-        end
-
-        function hessianfV = sampleHessian(obj,xV)
-            dNdx = obj.evaluateCartesian2Derivatives(xV);
-            nDimf = obj.ndimf;
-            nDimG = size(dNdx, 1);
-            nNodeE = size(dNdx, 2);
-            nPoints = size(dNdx, 3);
-            nElem = size(dNdx, 4);
-           
-            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
-            hessian = zeros(nDimG,nDimf, nPoints, nElem);
-            for iDimG = 1:nDimG
-                for jDimf = 1:nDimf
-                    for kNodeE = 1:nNodeE
-                        d2NdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
-                        iDofE = nDimf*(kNodeE-1)+jDimf;
-                        dofs = obj.connec(:,iDofE);
-                        fKJ = repmat(fV(dofs),[nPoints 1]);
-                        hessianIJ= d2NdxIK.*fKJ;
-                        hessian(iDimG,jDimf,:,:) = squeezeParticular(hessian(iDimG,jDimf,:,:),[1 2]) + hessianIJ;
-                    end
-                end
-            end
-            hessianfV = reshape(hessian, [nDimG*nDimf,nPoints, nElem]);
-        end
-
-        function symGrad = evaluateSymmetricGradient(obj,xV)
-            grad = obj.evaluateGradient(xV);
-            nDimf = obj.ndimf;
-            nDims = size(grad, 1)/nDimf;
-            nGaus = size(grad, 2);
-            nElem = size(grad, 3);
-
-            gradReshp = reshape(grad, [nDims,nDimf,nGaus,nElem]);
-            gradT = permute(gradReshp, [2 1 3 4]);
-            symGrad = 0.5*(gradReshp + gradT);
-            
-            symGrad =  reshape(symGrad, [nDims*nDimf,nGaus,nElem]);
-        end
-
-        function symGrad = evaluateSymmetricGradientVoigt(obj,xV)
-            sgr = obj.evaluateSymmetricGradient(xV);
-            symGrad = obj.obtainVoigtFormat(sgr);
-        end
-
-        function newObj = obtainVoigtFormat(obj, sgr)
-            ndim = size(sgr,1);
-            switch ndim
-                case 4
-                    newObj = obj.applyVoigt2D(sgr);
-                case 9
-                    newObj = obj.applyVoigt3D(sgr);
-            end
-        end
-
-        function fV = applyVoigt2D(obj, fV)
-            nGaus = size(fV,2);
-            nElem = size(fV,3);
-            fVal(1,:,:) = fV(1,:,:); % xx
-            fVal(2,:,:) = fV(4,:,:); % yy
-            fVal(3,:,:) = fV(2,:,:) + fV(3,:,:); % xy
-            fV = reshape(fVal, [3 nGaus nElem]);
-%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
-        end
-
-        function fV = applyVoigt3D(obj, fV)
-            nGaus = size(fV,2);
-            nElem = size(fV,3);
-            fVal(1,:,:) = fV(1,:,:); % xx
-            fVal(2,:,:) = fV(5,:,:); % yy
-            fVal(3,:,:) = fV(9,:,:); % zz
-            fVal(4,:,:) = fV(2,:,:) + fV(4,:,:); % xy
-            fVal(5,:,:) = fV(3,:,:) + fV(7,:,:); % xz
-            fVal(6,:,:) = fV(6,:,:) + fV(8,:,:); % yz
-            fV = reshape(fVal, [6 nGaus nElem]);
-%             newObj = FGaussDiscontinuousFunction.create(fV,obj.mesh,obj.quadrature);
+            hessianfV = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
         end
         
         function ord = orderTextual(obj)

@@ -37,11 +37,14 @@ classdef Line_Quadratic < Interpolation
             deriv(1,2,:,:) = s+0.5;
             deriv(1,3,:,:) = -2.*s;
         end
+        
+    end
 
-        function deriv2 = evaluateShape2Derivatives(obj,posgp)
+    methods (Access = public) %%% When implented in all interpolations, move to protected
+        
+        function deriv2 = evaluateShapeSecondDerivatives(obj,posgp)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
-            s = posgp(1,:,:);
             deriv2 = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             deriv2(1,1,:,:) = 1;
             deriv2(1,2,:,:) = 1;
