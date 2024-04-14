@@ -7,9 +7,9 @@ clear
 
 
 
-m = QuadMesh(1,1,200,200);
+m = QuadMesh(1,1,100,100);
 s.type='Given';
-s.fHandle = @(x) -((x(1,:,:)-0.5).^2+(x(2,:,:)-0.5).^2-0.25^2);
+s.fHandle = @(x) -((x(1,:,:)-0.6).^2+(x(2,:,:)-0.5).^2-0.25^2);
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m);
 sUm.backgroundMesh = m;
