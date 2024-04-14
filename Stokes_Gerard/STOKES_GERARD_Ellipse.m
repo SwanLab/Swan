@@ -7,19 +7,18 @@ clc
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-dim_a = 0.1;
-dim_b = 0.07;
-center_posx = 0.5;
-center_posy = 0.5;
-AOAd = -5;
+dim_a = 0.2; % Semi-major axis
+dim_b = 0.02; % Semi-minor axis
+center_posx = 0.6; % x position of the ellipse center
+center_posy = 0.5; % y position of the ellipse center
+AOAd = 20; % Angle of attack of the semi-major axis
 
 
-m = QuadMesh(2,1,100,100); %Per alguna raó, amb 150 la P no surt correcte.
+m = QuadMesh(2,1,200,200); %Per alguna raó, amb 150 la P no surt correcte.
 s.type='Given';
-AOAr = deg2rad(AOAd);
+AOAr = -deg2rad(AOAd);
 
 del_ab=calc_ellipse(AOAr,center_posx,center_posy);
-
 
 s.fHandle = @(x) -((((x(1,:,:)*cos(AOAr)+x(2,:,:)*sin(AOAr))-del_ab(1))/dim_a).^2+(((-x(1,:,:)*sin(AOAr)+x(2,:,:)*cos(AOAr))-del_ab(2))/dim_b).^2-1);
 g = GeometricalFunction(s);
