@@ -41,13 +41,13 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            %obj.mesh = HexaMesh(3,0.5,0.5,60,10,10); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            %file = 'Volume_mesh_PecaMiquel1';
-            %a.fileName = file;
-            %s = FemDataContainer(a);
-            %obj.mesh = s.mesh;  %faltava ficar el obj
+            file = 'Volume_mesh_PecaMiquel1';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;  %faltava ficar el obj
 
         end
 
@@ -148,7 +148,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3; %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget = 0.9;                                           %CONDICCIÓ VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -204,9 +204,9 @@ classdef TopOptTestTutorial3DDensity < handle
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
 
-            isDir1   = @(coor)  abs(coor(:,1))==0;
+            isDir1   = @(coor)  abs(coor(:,3))==zMax;
 
-            isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
+            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax & abs(coor(:,3))>=0.1*zMax & abs(coor(:,3))<=0.2*zMax;
            
             sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
             sDir{1}.direction = [1,2,3]; %restricció vertical només

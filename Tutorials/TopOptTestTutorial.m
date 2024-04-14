@@ -42,7 +42,7 @@ classdef TopOptTestTutorial < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
+            x1      = linspace(0,4,200);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -137,7 +137,7 @@ classdef TopOptTestTutorial < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.4;                       %VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -181,7 +181,7 @@ classdef TopOptTestTutorial < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.4;                   %VOLUM FINAL
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -191,21 +191,23 @@ classdef TopOptTestTutorial < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
-            %isDir1, isDir2... if you want (optional)
-            isDir   = @(coor)  abs(coor(:,1))==0;
+           %2DCantieleverbeam
+            isDir1   = @(coor) abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
+            isDir2   = @(coor) abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
+            isForce  = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
 
-            isForce1 = @(coor) abs(coor(:,1))==xMax;
-            isForce2 = @(coor) abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax;
-            isForce  = @(coor) isForce1(coor) & isForce2(coor);
-            % isForce = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Alternatively
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{1}.value     = 0;  %desplaçament =0
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [2]; %restricció vertical
+            sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
+
 
             dirichletFun = [];
             for i = 1:numel(sDir)
