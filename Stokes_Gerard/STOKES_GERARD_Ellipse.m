@@ -11,14 +11,17 @@ dim_a = 0.2; % Semi-major axis
 dim_b = 0.02; % Semi-minor axis
 center_posx = 0.6; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 20; % Angle of attack of the semi-major axis
+AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
 m = QuadMesh(2,1,200,200); %Per alguna raó, amb 150 la P no surt correcte.
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
-del_ab=calc_ellipse(AOAr,center_posx,center_posy);
+ellipse = calc_ellipse_classe(AOAr,center_posx,center_posy);
+del_ab = ellipse.solvesys();
+
+% del_ab=calc_ellipse(AOAr,center_posx,center_posy);
 
 s.fHandle = @(x) -((((x(1,:,:)*cos(AOAr)+x(2,:,:)*sin(AOAr))-del_ab(1))/dim_a).^2+(((-x(1,:,:)*sin(AOAr)+x(2,:,:)*cos(AOAr))-del_ab(2))/dim_b).^2-1);
 g = GeometricalFunction(s);
