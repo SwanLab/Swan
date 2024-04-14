@@ -1,15 +1,27 @@
 clear
+close all
+clc
 
 % % INPUT DATA
 % file = 'test_gerard';
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
+dim_a = 0.1;
+dim_b = 0.07;
+center_posx = 0.5;
+center_posy = 0.5;
+AOAd = -5;
 
 
-m = QuadMesh(1,1,100,100);
+m = QuadMesh(2,1,100,100); %Per alguna raó, amb 150 la P no surt correcte.
 s.type='Given';
-s.fHandle = @(x) -((x(1,:,:)-0.6).^2+(x(2,:,:)-0.5).^2-0.25^2);
+AOAr = deg2rad(AOAd);
+
+del_ab=calc_ellipse(AOAr,center_posx,center_posy);
+
+
+s.fHandle = @(x) -((((x(1,:,:)*cos(AOAr)+x(2,:,:)*sin(AOAr))-del_ab(1))/dim_a).^2+(((-x(1,:,:)*sin(AOAr)+x(2,:,:)*cos(AOAr))-del_ab(2))/dim_b).^2-1);
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m);
 sUm.backgroundMesh = m;
@@ -35,8 +47,9 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(coor(:,1) - 0.5).^2+abs(coor(:,2) - 0.5).^2-0.25^2 < 1e-5);
+isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2+abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2-1 < 1e-3);
 
+%% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
 dir_vel{2}.direction = [1,2];
 dir_vel{2}.value     = [0,0]; 
@@ -44,10 +57,6 @@ dir_vel{2}.value     = [0,0];
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
-
-% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
-% dir_pre{1}.direction = 1;
-% dir_pre{1}.value     = 0;
 
 dirichlet = [];
 dir_dofs = [];
@@ -107,7 +116,7 @@ RHS = F + R;
 % SOLVE PROBLEM
 % free_dofs_plus = setdiff(1:(n_dofs+1),dir_dofs);
 free_dofs_plus = setdiff(1:n_dofs,dir_dofs);
-LHSr = LHS(free_dofs_plus,free_dofs_plus);
+LHSr = LHS(free_dofs_plus,free_dofs_plus); %Li treiem els nodes restringits per deixar la LHS només amb lliures i la RHS de la mateixa mida
 RHSr = RHS(free_dofs_plus);
 x = solver.solve(LHSr, RHSr);
 % x(end)=[];
