@@ -60,11 +60,7 @@ classdef StructuredMesh < handle
             lse = obj.createVertex(2:Nx,1:Ny-1);
             lne = obj.createVertex(2:Nx,2:Ny);
             lnw = obj.createVertex(1:Nx-1,2:Ny);
-            usw = obj.createVertex()
-            use =0;
-            une =0;
-            unw = 0;
-            connec = [lsw lse lne lnw usw use une unw];
+            connec = [lsw lse lne lnw];
         end
         
         function v = createVertex(obj,xv,yv)

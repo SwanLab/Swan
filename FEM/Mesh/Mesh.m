@@ -295,6 +295,22 @@ classdef Mesh < handle
             end
         end
 
+        function J = sampleJacobian(obj,xV,cells)
+            nDimGlo  = size(obj.coordElem,1);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1);
+                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,cells),1);
+                        jacIJ    = sum(dShapeIK.*xKJ,1)';
+                        J(iDimElem,iDimGlo,:) = squeezeParticular(J(iDimElem,iDimGlo,:),[1 2]) + jacIJ;
+                end
+            end
+        end   
+
     end
 
     methods (Access = private)

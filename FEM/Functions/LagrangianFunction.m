@@ -19,45 +19,232 @@ classdef LagrangianFunction < FeFunction
             obj.createDOFCoordConnec();
         end
 
+        %%% Function %%%
         function fxV = evaluate(obj, xV)
             shapes  = obj.interpolation.computeShapeFunctions(xV);
             nNodesE  = size(shapes,1);
             nPoints = size(shapes,2);
-            nF      = size(obj.fValues,2);
+            nDimf      = size(obj.fValues,2);
             nElem   = size(obj.connec,1);
-            fxV = zeros(nF,1,nPoints,nElem);
-            for iF = 1:nF
+            fxV = zeros(nDimf,1,nPoints,nElem);
+            for iDimf = 1:nDimf
                 for iNodeE = 1:nNodesE
-                    dofE = (iNodeE-1)*nF + iF;
+                    dofE = (iNodeE-1)*nDimf + iDimf;
                     dofs = (obj.connec(:,dofE));
-                    nodes = (dofs - iF)/nF + 1;
+                    nodes = (dofs - iDimf)/nDimf + 1;
                     Ni = shapes(iNodeE,:);
-                    fi = obj.fValues(nodes,iF);
+                    fi = obj.fValues(nodes,iDimf);
                     f(1,1,:,:) = (fi*Ni)';
-                    fxV(iF,:,:,:) = fxV(iF,:,:,:)  + f;
+                    fxV(iDimf,:,:,:) = fxV(iDimf,:,:,:)  + f;
                 end
             end
         end
 
-        function fxV = sampleFunction(obj,xP,cells)
+        function fxP = sampleFunction(obj,xP,cells)
             shapes  = obj.interpolation.computeShapeFunctions(xP);
             nNodesE   = size(shapes,1);
-            nF      = size(obj.fValues,2);
             nPoints = size(xP,2);
-            fxV = zeros(nF,1,nPoints);
-            for iF = 1:nF
+            nDimf      = size(obj.fValues,2);
+            fxP = zeros(nDimf,1,nPoints);
+            for iDimf = 1:nDimf
                 for iNodeE = 1:nNodesE
-                    dofE = (iNodeE-1)*nF + iF;
+                    dofE = (iNodeE-1)*nDimf + iDimf;
                     dofs = (obj.connec(cells,dofE));
-                    nodes = (dofs - iF)/nF + 1;
+                    nodes = (dofs - iDimf)/nDimf + 1;
                     Ni = shapes(iNodeE,:);
-                    fi = obj.fValues(nodes,iF);
+                    fi = obj.fValues(nodes,iDimf);
                     f(1,1,:) = Ni.*fi';
-                    fxV(iF,:,:) = fxV(iF,:,:)  + f;
+                    fxP(iDimf,:,:) = fxP(iDimf,:,:)  + f;
                 end
             end
         end
-       
+
+        %%% Jacobian %%%
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            nElem = size(obj.connec,1);
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.interpolation.computeShapeDerivatives(xV);
+            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                    end
+                end
+            end
+            dNdx = dShapes;
+        end
+
+        function dNdx  = sampleCartesianDerivatives(obj,xP,cells)
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xP, 2);
+            invJ  = obj.mesh.sampleInverseJacobian(xP,cells);
+            deriv = obj.interpolation.computeShapeDerivatives(xP);
+            dShapes  = zeros(nDimG,nNodeE,nPoints);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                        dShapes(iDimG,kNodeE,:) = dShapes(iDimG,kNodeE,:) + dShapes_KI;
+                    end
+                end
+            end
+            dNdx = dShapes;
+        end 
+
+        function dfxV = evaluateGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
+            nDimf = obj.ndimf;
+            nDimG = size(dNdx, 1);
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+            nElem = size(dNdx, 4);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            grad = zeros(nDimG, nDimf, nPoints, nElem);
+            for iDimG = 1:nDimG
+                for jF = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
+                        dofE = (kNodeE-1)*nDimf + jF;
+                        dofs = obj.connec(:,dofE);
+                        fKJ = repmat(fV(dofs),[1 nPoints]);
+                        gradIJ= dNdxIK.*fKJ';
+                        grad(iDimG,jF,:,:) = squeezeParticular(grad(iDimG,jF,:,:),[1 2]) + gradIJ;
+                    end
+                end
+            end
+            dfxV = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
+        end
+
+        function dfxP = sampleGradient(obj,xP,cells)
+            dNdx = obj.sampleCartesianDerivatives(xP,cells);
+            nDimf = obj.ndimf;
+            nDimG = size(dNdx, 1);
+            nNodeE = size(dNdx, 2);
+            nPoints = size(dNdx, 3);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            grad = zeros(nDimG,nDimf,nPoints);
+            for iDimG = 1:nDimG
+                for jDimf = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:),[1 2]);
+                        iDofE = nDimf*(kNodeE-1)+jDimf;
+                        dofs = obj.connec(cells,iDofE);
+                        fKJ = fV(dofs);
+                        gradIJ = dNdxIK.*fKJ;
+                        grad(iDimG,jDimf,:) = squeezeParticular(grad(iDimG,jDimf,:),[1 2]) + gradIJ;
+                    end
+                end
+            end
+            dfxP = reshape(grad, [nDimG*nDimf,nPoints]);
+        end
+
+       %%% Hessian %%%
+        function d2Ndx = evaluateCartesianSecondDerivatives(obj,xV)
+            nElem = size(obj.connec,1);
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv2 = obj.interpolation.computeShapeSecondDerivatives(xV);
+            ddShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        ddShapes_JK = deriv2(jDimE,kNodeE,:);
+                        ddShapes_KI   = pagemtimes(invJ_IJ,ddShapes_JK);
+                        ddShapes(iDimG,kNodeE,:,:) = ddShapes(iDimG,kNodeE,:,:) + ddShapes_KI;
+                    end
+                end
+            end
+            d2Ndx = ddShapes;
+        end
+
+        function d2Ndx = sampleCartesianSecondDerivatives(obj,xP,cells)
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xP, 2);
+            invJ  = obj.mesh.sampleInverseJacobian(xP,cells);
+            deriv2 = obj.interpolation.computeShapeSecondDerivatives(xP);
+            ddShapes  = zeros(nDimG,nNodeE,nPoints);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:);
+                        ddShapes_JK = deriv2(jDimE,kNodeE,:);
+                        ddShapes_KI   = pagemtimes(invJ_IJ,ddShapes_JK);
+                        ddShapes(iDimG,kNodeE,:) = ddShapes(iDimG,kNodeE,:) + ddShapes_KI;
+                    end
+                end
+            end
+            d2Ndx = ddShapes;
+        end
+
+        function d2fxV = evaluateHessian(obj,xV)
+            d2Ndx = obj.evaluateCartesianSecondDerivatives(xV);
+            nDimf = obj.ndimf;
+            nDimG = size(d2Ndx, 1);
+            nNodeE = size(d2Ndx, 2);
+            nPoints = size(d2Ndx, 3);
+            nElem = size(d2Ndx, 4);
+           
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            hessian = zeros(nDimG, nDimf, nPoints, nElem);
+            for iDimG = 1:nDimG
+                for jDimf = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        d2NdxIK = squeezeParticular(d2Ndx(iDimG, kNodeE,:,:),[1 2]);
+                        dofE = (kNodeE-1)*nDimf + jDimf;
+                        dofs = obj.connec(:,dofE);
+                        fKJ = repmat(fV(dofs),[1 nPoints]);
+                        hessianIJ= d2NdxIK.*fKJ';
+                        hessian(iDimG,jDimf,:,:) = squeezeParticular(hessian(iDimG,jDimf,:,:),[1 2]) + hessianIJ;
+                    end
+                end
+            end
+            d2fxV = reshape(hessian, [nDimG*nDimf,nPoints, nElem]);
+        end
+
+        function d2fxP = sampleHessian(obj,xP,cells)
+            d2Ndx = obj.sampleCartesianSecondDerivatives(xP,cells);
+            nDimf = obj.ndimf;
+            nDimG = size(d2Ndx, 1);
+            nNodeE = size(d2Ndx, 2);
+            nPoints = size(d2Ndx, 3);
+
+            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
+            hessian = zeros(nDimG,nDimf,nPoints);
+            for iDimG = 1:nDimG
+                for jDimf = 1:nDimf
+                    for kNodeE = 1:nNodeE
+                        d2NdxIK = squeezeParticular(d2Ndx(iDimG, kNodeE,:),[1 2]);
+                        iDofE = nDimf*(kNodeE-1)+jDimf;
+                        dofs = obj.connec(cells,iDofE);
+                        fKJ = fV(dofs);
+                        hessianIJ= d2NdxIK.*fKJ;
+                        hessian(iDimG,jDimf,:) = squeezeParticular(hessian(iDimG,jDimf,:),[1 2]) + hessianIJ;
+                    end
+                end
+            end
+            d2fxP = reshape(hessian, [nDimG*nDimf,nPoints]);
+        end
+        
         function c = getCoord(obj)
             c = obj.coord;
         end
@@ -73,77 +260,9 @@ classdef LagrangianFunction < FeFunction
         function dN = computeShapeDerivatives(obj, xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
-        
-        function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            nElem = size(obj.connec,1);
-            nNodeE = obj.interpolation.nnode;
-            nDimE = obj.interpolation.ndime;
-            nDimG = obj.mesh.ndim;
-            nPoints = size(xV, 2);
-            invJ  = obj.mesh.computeInverseJacobian(xV);
-            deriv = obj.computeShapeDerivatives(xV);
-            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
-            for iDimG = 1:nDimG
-                for kNodeE = 1:nNodeE
-                    for jDimE = 1:nDimE
-                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
-                        dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
-                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
-                    end
-                end
-            end
-            dNdx = dShapes;
-        end
 
-        function fVR = evaluateGradient(obj, xV)
-            dNdx = obj.interpolation.computeShapeDerivatives(xV);
-            nF = obj.ndimf;
-            nDimG = size(dNdx, 1);
-            nNodeE = size(dNdx, 2);
-            nPoints = size(dNdx, 3);
-            nElem = size(dNdx, 4);
-           
-            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
-            grad = zeros(nDimG,nF, nPoints, nElem);
-            for iDimG = 1:nDimG
-                for jF = 1:nF
-                    for kNodeE = 1:nNodeE
-                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
-                        dofE = (kNodeE-1)*nF + jF;
-                        dofs = obj.connec(:,dofE);
-                        fKJ = repmat(fV(dofs),[1 nPoints]);
-                        gradIJ= dNdxIK.*fKJ;
-                        grad(iDimG,jF,:,:) = squeezeParticular(grad(iDimG,jF,:,:),[1 2]) + gradIJ;
-                    end
-                end
-            end
-            fVR = reshape(grad, [nDimG*nF,nPoints, nElem]);
-        end
-
-        function hessianfV = sampleGradient(obj,xP,cells)
-            dNdx = obj.evaluateCartesianDerivatives(xP);
-            nDimf = obj.ndimf;
-            nDimG = size(dNdx, 1);
-            nNodeE = size(dNdx, 2);
-            nPoints = size(dNdx, 3);
-            nElem = size(dNdx, 4);
-           
-            fV = reshape(obj.fValues',[numel(obj.fValues) 1]);
-            grad = zeros(nDimG,nDimf, nPoints, nElem);
-            for iDimG = 1:nDimG
-                for jDimf = 1:nDimf
-                    for kNodeE = 1:nNodeE
-                        dNdxIK = squeezeParticular(dNdx(iDimG, kNodeE,:,:),[1 2]);
-                        iDofE = nDimf*(kNodeE-1)+jDimf;
-                        dofs = obj.connec(cells,iDofE);
-                        fKJ = repmat(fV(dofs),[nPoints 1]);
-                        gradIJ= dNdxIK.*fKJ;
-                        grad(iDimG,jDimf,:,:) = squeezeParticular(grad(iDimG,jDimf,:,:),[1 2]) + gradIJ;
-                    end
-                end
-            end
-            hessianfV = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
+        function ddN = computeShapeSecondDerivatives(obj,xV)
+            ddN = obj.interpolation.computeShapeSecondDerivatives(xV);
         end
         
         function ord = orderTextual(obj)

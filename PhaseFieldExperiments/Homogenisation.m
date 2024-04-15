@@ -1,13 +1,17 @@
-
+PFH = PhaseFieldHomog()
 %[C_P_Circle,P_Circle] = PFH.computeHomogMaterial("Circle","Perimeter",30);
 % [C_A_Circle,A_Circle] = PFH.computeHomogMaterial("Circle","Area",30);
 % [C_L_Circle,L_Circle] = PFH.computeHomogMaterial("Circle","Diameter",30);
 % 
 % [C_P_Square,P_Square] = PFH.computeHomogMaterial("Square","Perimeter",30);
 % [C_A_Square,A_Square] = PFH.computeHomogMaterial("Square","Area",30);
- [C_L_Square,L_Square] = PFH.computeHomogMaterial("Square","Diameter",30);
+[mat,alpha] = PFH.computeHomogMaterial("Square","Diameter",100);
+mat(:,:,end+1) = zeros(3,3); alpha(end+1) = 1;
+alpha = alpha';
+save('SquareMicroDamage','mat','alpha')
 % 
-% [C_Iso,AT1] = PFH.computeIsotropicMaterial("AT1",30);
+ % [mat,alpha] = PFH.computeIsotropicMaterial("AT2",1000);
+ % save('IsoMicroDamage','mat','alpha')
 % [~,AT2] = PFH.computeIsotropicMaterial("AT2",30);
 
 %%% PLOT %%%

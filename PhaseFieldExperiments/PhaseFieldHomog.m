@@ -8,12 +8,12 @@ classdef PhaseFieldHomog < handle
     methods (Access = public)
         
         function obj = PhaseFieldHomog(obj)
-            cParams.E = 1;
+            cParams.E = 210;
             cParams.nu = 0.3;
             obj.init(cParams);
         end
         
-        function [Chomog,alpha] = computeHomogMaterial(obj,holeType,aType,steps)
+        function [mat,alpha] = computeHomogMaterial(obj,holeType,aType,steps)
             holeMax = obj.computeHoleMax(holeType);
             holeLength = linspace(0,holeMax,steps);
             mat = zeros(3,3,length(holeLength));
@@ -27,7 +27,7 @@ classdef PhaseFieldHomog < handle
             Chomog = obj.createMaterialFun(mat,alpha);
         end
         
-        function [Ciso,alpha] = computeIsotropicMaterial(obj,aType,steps)
+        function [mat,holeLength] = computeIsotropicMaterial(obj,aType,steps)
             constant =obj.E/(1-obj.nu^2);
             C(1,1) = constant;
             C(1,2) = constant*obj.nu;
@@ -53,6 +53,14 @@ classdef PhaseFieldHomog < handle
                     Ciso{i,j} = LagrangianFunction(s);
                 end
             end
+            
+            holeLength = linspace(0,1,steps);
+            mat = zeros(3,3,length(holeLength));
+            mat(1,1,:) = constant*(1-holeLength).^2 ;
+            mat(1,2,:) = constant*obj.nu*(1-holeLength).^2;
+            mat(2,1,:) = constant*obj.nu*(1-holeLength).^2;
+            mat(2,2,:) = constant*(1-holeLength).^2;
+            mat(3,3,:) = constant*(1-obj.nu)*(1-holeLength).^2 /2;
         end
         
     end
@@ -70,7 +78,7 @@ classdef PhaseFieldHomog < handle
                 case "Circle"
                     holeMax = 0.5;
                 case "Square"
-                    holeMax = 0.94;
+                    holeMax = 0.99;
                 case "Full"
                     holeMax = 1;
             end

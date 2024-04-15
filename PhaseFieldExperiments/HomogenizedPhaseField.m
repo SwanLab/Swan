@@ -102,13 +102,13 @@ classdef HomogenizedPhaseField < handle
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
-            nDim  = obj.microParams{1}.mesh.ndim;
+            nDim  = obj.microParams{1}.ndimf;
             nStre = size(obj.Ctensor,1);
             %  nDofs = size(mL,2);
             dC  = zeros(nDim,nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    dCv = obj.Ctensor{i,j}.sampleGradient(mL,cells);
+                    dCv = obj.Ctensor{i,j}.sampleGradient(mL',cells');
                     dCv = squeezeParticular(dCv,1);
                     dCij(:,1,1,:,:)  = reshape(dCv,nDim,nGaus,nElem);
                     dC(:,i,j,:,:) = dCij;
@@ -121,7 +121,7 @@ classdef HomogenizedPhaseField < handle
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
-            nDim  = obj.microParams{1}.mesh.ndim;
+            nDim  = obj.microParams{1}.ndimf;
             nStre = size(obj.Ctensor,1);
             d2C  = zeros(nDim,nStre,nStre,nGaus,nElem);
             for i = 1:nStre
