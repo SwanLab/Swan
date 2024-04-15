@@ -58,98 +58,82 @@ disp(strcat('Peclet number: ',num2str(Pe)));
 if stab==1
     disp('Galerkin formulation')
     if p==1
-        [K,f] = system_p1(a,nu,xnode); 
+        [K,f] = system_p1(a,nu,xnode,problem); 
     else
-        [K,f] = system_p2(a,nu,xnode);       
+        [K,f] = system_p2(a,nu,xnode,problem);       
     end
 elseif stab==2 
     disp('SU formulation')
     alfa = coth(Pe)-1/Pe; 
-    tau = alfa*h/(2*a);
-    disp(strcat('Recommended coefficient for the stabilization =',num2str(tau)));
-    tau = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+    tau = alfa*h/(2*a); % Recommended
     if isempty(tau)
         tau = alfa*h/(2*a);
     end
     if p == 1
-        [K,f] = system_SU_p1(tau,a,nu,xnode); 
+        [K,f] = system_SU_p1(tau,a,nu,xnode,problem); 
     else
         beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
-        tau_c = beta*h/(2*a);
-        disp(strcat('Recommended coefficient for the stabilization on corner nodes = ',num2str(tau_c)));
-        tau_c = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+        tau_c = beta*h/(2*a); % Recommended
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SU_p2(tau, tau_c,a,nu,xnode);
+        [K,f] = system_SU_p2(tau, tau_c,a,nu,xnode,problem);
     end
 elseif stab == 3
     disp('SUPG formulation')
     alfa = coth(Pe)-1/Pe; 
-    tau = alfa*h/(2*a);
-    disp(strcat('Recommended coefficient for the stabilization',num2str(tau)));
-    tau = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+    tau = alfa*h/(2*a); % Recommended
     if isempty(tau)
         tau = alfa*h/(2*a);
     end
     if p == 1 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
-        tau_c = beta*h/(2*a);
-        disp(strcat('Recommended coefficient for the stabilization on corner nodes = ',num2str(tau_c)));
-        tau_c = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+        tau_c = beta*h/(2*a); % Recommended
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SUPG_p2(tau, tau_c,a,nu,xnode);
+        [K,f] = system_SUPG_p2(tau, tau_c,a,nu,xnode,problem);
     end
 elseif stab == 4
     disp ('GLS formulation');
     alfa = coth(Pe)-1/Pe; 
-    tau = alfa*h/(2*a);
-    disp(strcat('Recommended coefficient for the stabilization =',num2str(tau)));
-    tau = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+    tau = alfa*h/(2*a); % Recommended
     if isempty(tau)
         tau = alfa*h/(2*a);
     end
     if p == 1 
         % When using linear elements, the same solution is obtained with SUPG and GLS 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
-        tau_c = beta*h/(2*a);
-        disp(strcat('Recommended coefficient for the stabilization on corner nodes = ',num2str(tau_c)));
-        tau_c = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+        tau_c = beta*h/(2*a); % Recommended
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_GLS_p2(tau, tau_c,a,nu,xnode);
+        [K,f] = system_GLS_p2(tau, tau_c,a,nu,xnode,problem);
     end
 elseif stab == 5
     disp ('Formulación SGS');
     alfa = coth(Pe)-1/Pe; 
-    tau = alfa*h/(2*a);
-    disp(strcat('Recommended coefficient for the stabilization =',num2str(tau)));
-    tau = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+    tau = alfa*h/(2*a); % Recommended
     if isempty(tau)
         tau = alfa*h/(2*a);
     end
     if p == 1
         % When using linear elements, the same solution is obtained with SUPG and SGS 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
-        tau_c = beta*h/(2*a);
-        disp(strcat('Recommended coefficient for the stabilization on corner nodes = ',num2str(tau_c)));
-        tau_c = input ('Stabilization parameter to be used (press return for using the recommended one)= ');
+        tau_c = beta*h/(2*a); % Recommended
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SGS_p2(tau, tau_c,a,nu,xnode);
+        [K,f] = system_SGS_p2(tau, tau_c,a,nu,xnode,problem);
     end
 else
     error('unavailable formulation');
@@ -174,7 +158,7 @@ sol = Ktot\ftot;
 % Postproces
 u_h = sol(1:numnp);
 x = 0:0.01:1;
-exacto = u(x,a,nu);
+exacto = u(x,a,nu,problem);
 if p == 1
     plot(xnode,u_h,'r-o',x,exacto,'k:','LineWidth',3,'MarkerSize',10)
 else

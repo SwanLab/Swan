@@ -1,4 +1,4 @@
-function [K,f] = system_SU_p1(tau,a,nu,xnode)
+function [K,f] = system_SU_p1(tau,a,nu,xnode,problem)
 % [K,f] = system_SU_p1(tau,a,nu,xnode)
 % System obtained by discretizing the weak form associated to
 % the convection-diffusion equation
@@ -49,6 +49,6 @@ for i=1:nelem
         % Assembly
         K(isp,isp) = K(isp,isp) + w_ig*(N'*a*Nx+Nx'*nu*Nx) ...
                                 + w_ig*(tau*a*Nx)'*(a*Nx);
-        f(isp) = f(isp) + w_ig*(N)'*SourceTerm(x);
+        f(isp) = f(isp) + w_ig*(N)'*SourceTerm(x,problem);
     end
 end

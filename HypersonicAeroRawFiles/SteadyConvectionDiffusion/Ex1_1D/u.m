@@ -1,10 +1,8 @@
-function res = u(x,a,nu)
+function res = u(x,a,nu,problem)
 % res = u(x,a,nu)
 % Analytical solution of a one-dimensional convection-diffusion problem
 % with essential boundary conditions on both ends.
 %  
-
-global problem
 
 if problem == 1
     res = (1-exp(x*a/nu))/(1-exp(a/nu));

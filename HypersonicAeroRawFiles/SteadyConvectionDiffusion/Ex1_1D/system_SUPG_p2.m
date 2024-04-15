@@ -1,4 +1,4 @@
-function [K,f] = system_SUPG_p2(tau,tau_c,a,nu,xnode)
+function [K,f] = system_SUPG_p2(tau,tau_c,a,nu,xnode,problem)
 % [K,f] = system_SUPG_p2(a,nu,xnode)
 % System obtained by discretizing the weak form associated to
 % the convection-diffusion equation
@@ -53,7 +53,7 @@ for i = 1:numel
         % Assembly
         K(isp,isp) = K(isp,isp) + w_ig*(N'*a*Nx+Nx'*nu*Nx) ...
                                 + w_ig*Tau*(a*Nx)'*(a*Nx-nu*Nxx);
-        f(isp) = f(isp) + w_ig*(N'+Tau*(a*Nx)')*SourceTerm(x);
+        f(isp) = f(isp) + w_ig*(N'+Tau*(a*Nx)')*SourceTerm(x,problem);
     end
 end
 

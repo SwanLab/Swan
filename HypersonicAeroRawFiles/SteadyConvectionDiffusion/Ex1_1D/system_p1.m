@@ -1,4 +1,4 @@
-function [K,f] = system_p1(a,nu,xnode)
+function [K,f] = system_p1(a,nu,xnode,problem)
 % [K,f] = system_p1(a,nu,xnode)
 % System obtained by discretizing the weak form associated to
 % the convection-diffusion equation
@@ -48,7 +48,7 @@ for i=1:numel
         x = xm + h/2*xipg(ig); % x-coordinate of the gauss point
         % Assmebly
         K(isp,isp) = K(isp,isp) + w_ig*(N'*(a*Nx)+Nx'*(nu*Nx));
-        f(isp) = f(isp) + w_ig*(N')*SourceTerm(x);
+        f(isp) = f(isp) + w_ig*(N')*SourceTerm(x,problem);
     end
 end
 
