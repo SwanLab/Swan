@@ -152,18 +152,11 @@ else
     error('unavailable formulation');
 end
 
-% Boundary conditions are imposed using Lagrange multipliers
-A = zeros(2,numnp);
-A(1,1) = 1; A(2,numnp) = 1;   % solution in prescribed on nodes 1 and numnp
-if problem == 2
-    b = [0;0]; 
-else
-    b = [0;1];
-end
-
-% Entire matrix (including Lagrange multipliers)
-Ktot = [K A';A zeros(2,2)];
-ftot = [f;b];
+s.nnodes    = numnp;
+s.K         = K;
+s.f         = f;
+KCf         = MonolithicFormComputer(s);
+[Ktot,ftot] = KCf.compute(problem);
 
 % Solution 
 sol = Ktot\ftot;
