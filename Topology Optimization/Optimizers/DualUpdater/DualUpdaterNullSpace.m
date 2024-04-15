@@ -73,6 +73,24 @@ classdef DualUpdaterNullSpace < handle
             obj.nConstr        = length(cParams.dualVariable.fun.fValues);
         end
 
+        function is = isEquality(obj,i)
+            switch obj.constraintCase{i}
+                case 'EQUALITY'
+                    is = true;
+                case 'INEQUALITY'
+                    is = false;
+            end
+        end
+
+        function is = isInequality(obj,i)
+            switch obj.constraintCase{i}
+                case 'EQUALITY'
+                    is = false;
+                case 'INEQUALITY'
+                    is = true;
+            end        
+        end
+
         function computeQuadraticProblem(obj,s)
             eta             = s.eta;
             lUB             = s.lUB;
@@ -80,15 +98,32 @@ classdef DualUpdaterNullSpace < handle
             problem         = s.prob;
             g               = obj.constraint.value;
             Dg              = obj.constraint.gradient;
+            isActive        = obj.checkComplementaryKKT(g);
+            problem.lb(~isActive) = [];
+            problem.ub(~isActive) = [];
+            g               = g(isActive);
+            Dg              = Dg(:,isActive);
             DJ              = obj.cost.gradient;
-            problem.H       = Dg'*Dg;
-            problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
-            problem.solver  = 'quadprog';
-            problem.options = obj.options;
-            l               = quadprog(problem);
+            l               = zeros(obj.nConstr,1);
+            if ~isempty(g)
+                problem.H       = Dg'*Dg;
+                problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
+                problem.solver  = 'quadprog';
+                problem.options = obj.options;
+                l(isActive)     = quadprog(problem);
+            end
             obj.dualVariable.fun.fValues = l;
 
             %obj.solveWithProjectedGradient(s);
+        end
+
+        function isActive = checkComplementaryKKT(obj,g)
+            isActive = true(obj.nConstr,1);
+            for i = 1:obj.nConstr
+                if obj.isInequality(i) && g(i)<-1e-6
+                    isActive(i) = false;
+                end
+            end
         end
 
         function solveWithProjectedGradient(obj,s)
