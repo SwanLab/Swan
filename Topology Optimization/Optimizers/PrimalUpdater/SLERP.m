@@ -142,21 +142,18 @@ classdef SLERP < handle
         end
 
         function updateBoundsMultipliers(obj,xF,yF,g,phi)
-            x            = xF.fValues;
-            y            = yF.fValues;
-            t            = sum(abs(y-x))/sum(abs(g));
-            isUBAct      = abs(x-1)<=1e-6;
-            isLBAct      = abs(x)<=1e-6;
-            isUBAct      = phi<0 & g<0;
-            isLBAct      = phi>0 & g>0;
-            lUB          = zeros(size(x));
-            lLB          = zeros(size(x));
-            lUB(isUBAct) = -g(isUBAct);
-            lLB(isLBAct) = g(isLBAct);
-            lUB(lUB<=0)  = 0;
-            lLB(lLB<=0)  = 0;
-            obj.boxConstraints.lUB    = t*lUB;
-            obj.boxConstraints.lLB    = t*lLB;
+            x       = xF.fValues;
+            y       = yF.fValues;
+            t       = sum(abs(y-x))/sum(abs(g));
+            isUBAct = phi<0 & g<0;
+            isLBAct = phi>0 & g>0;
+            lUB     = y-t*g-x;
+            lLB     = x+t*g-y;
+
+            lUB(~isUBAct | lUB<0)     = 0;
+            lLB(~isLBAct | lLB<0)     = 0;
+            obj.boxConstraints.lUB    = lUB;
+            obj.boxConstraints.lLB    = lLB;
             obj.boxConstraints.refTau = t;
         end
 
