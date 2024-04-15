@@ -1,4 +1,4 @@
-function [K,f] = system_SGS_p2(tau,tau_c,a,nu,xnode,problem)
+function [K,f] = system_SGS_p2(tau,tau_c,a,nu,xnode,source)
 % [K,f] = system_SGS_p2(a,nu,xnode)
 % System obtained by discretizing the weak form associated 
 % to the convection-diffusion equation
@@ -50,10 +50,11 @@ for i=1:numel
         Nxx= Nxxi_mef(ig,:)/(h^2);
         w_ig = weigth(ig);
         x = xnode(2*i) + h*xipg(ig); % x-coordinate of the gaussian point
+        s = source.compute(x);
         % Assembly
         K(isp,isp) = K(isp,isp) + w_ig*(N'*a*Nx+Nx'*nu*Nx) ...
                                + w_ig*Tau*(a*Nx+nu*Nxx)'*(a*Nx-nu*Nxx);
-        f(isp) = f(isp) + w_ig*(N'+Tau*(a*Nx+nu*Nxx)')*SourceTerm(x,problem);
+        f(isp) = f(isp) + w_ig*(N'+Tau*(a*Nx+nu*Nxx)')*s;
     end
  end
 

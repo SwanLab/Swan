@@ -39,6 +39,19 @@ function sol = computeSteadyConvectionDiffusion1D(problem,a,nu,numel,p,stab)
 
 % END INPUTS
 
+switch problem
+    case 1
+        source = SourceTermComputer.create(@(x) 0);
+    case 2
+        source = SourceTermComputer.create(@(x) 1);
+    case 3
+        source = SourceTermComputer.create(@(x) sin(pi*x));
+    case 4
+        source = SourceTermComputer.create(@(x) 20*exp(-5*(x-1/8))-10*exp(-5*(x-1/4)));
+    case 5
+        source = SourceTermComputer.create(@(x) 10*exp(-5*x)-4*exp(-x));
+end
+
 if p == 1 
     h = 1/numel;
     numnp = numel + 1;
@@ -58,9 +71,9 @@ disp(strcat('Peclet number: ',num2str(Pe)));
 if stab==1
     disp('Galerkin formulation')
     if p==1
-        [K,f] = system_p1(a,nu,xnode,problem); 
+        [K,f] = system_p1(a,nu,xnode,source); 
     else
-        [K,f] = system_p2(a,nu,xnode,problem);       
+        [K,f] = system_p2(a,nu,xnode,source);       
     end
 elseif stab==2 
     disp('SU formulation')
@@ -70,14 +83,14 @@ elseif stab==2
         tau = alfa*h/(2*a);
     end
     if p == 1
-        [K,f] = system_SU_p1(tau,a,nu,xnode,problem); 
+        [K,f] = system_SU_p1(tau,a,nu,xnode,source); 
     else
         beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
         tau_c = beta*h/(2*a); % Recommended
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SU_p2(tau, tau_c,a,nu,xnode,problem);
+        [K,f] = system_SU_p2(tau, tau_c,a,nu,xnode,source);
     end
 elseif stab == 3
     disp('SUPG formulation')
@@ -87,7 +100,7 @@ elseif stab == 3
         tau = alfa*h/(2*a);
     end
     if p == 1 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,source); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
@@ -95,7 +108,7 @@ elseif stab == 3
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SUPG_p2(tau, tau_c,a,nu,xnode,problem);
+        [K,f] = system_SUPG_p2(tau, tau_c,a,nu,xnode,source);
     end
 elseif stab == 4
     disp ('GLS formulation');
@@ -106,7 +119,7 @@ elseif stab == 4
     end
     if p == 1 
         % When using linear elements, the same solution is obtained with SUPG and GLS 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,source); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
@@ -114,7 +127,7 @@ elseif stab == 4
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_GLS_p2(tau, tau_c,a,nu,xnode,problem);
+        [K,f] = system_GLS_p2(tau, tau_c,a,nu,xnode,source);
     end
 elseif stab == 5
     disp ('Formulación SGS');
@@ -125,7 +138,7 @@ elseif stab == 5
     end
     if p == 1
         % When using linear elements, the same solution is obtained with SUPG and SGS 
-        [K,f] = system_SUPG_p1(tau,a,nu,xnode,problem); 
+        [K,f] = system_SUPG_p1(tau,a,nu,xnode,source); 
     else
         beta = ((2*Pe-1)*exp(3*Pe)+(-6*Pe+7)*exp(Pe)+(-6*Pe-7)*exp(-Pe)+(2*Pe+1)*exp(-3*Pe))...
                /( (Pe+3)*exp(3*Pe)+(-7*Pe-3)*exp(Pe)+ (7*Pe-3)*exp(-Pe)-  (Pe+3)*exp(-3*Pe));
@@ -133,7 +146,7 @@ elseif stab == 5
         if isempty(tau_c)
             tau_c = beta*h/(2*a);
         end
-        [K,f] = system_SGS_p2(tau, tau_c,a,nu,xnode,problem);
+        [K,f] = system_SGS_p2(tau, tau_c,a,nu,xnode,source);
     end
 else
     error('unavailable formulation');

@@ -1,4 +1,4 @@
-function [K,f] = system_SU_p1(tau,a,nu,xnode,problem)
+function [K,f] = system_SU_p1(tau,a,nu,xnode,source)
 % [K,f] = system_SU_p1(tau,a,nu,xnode)
 % System obtained by discretizing the weak form associated to
 % the convection-diffusion equation
@@ -46,9 +46,10 @@ for i=1:nelem
         Nx = Nxi_mef(ig,:)*2/h;
         w_ig = weigth(ig);
         x = xm + h/2*xipg(ig); % x-coordinate of the Gauus point
+        s = source.compute(x);
         % Assembly
         K(isp,isp) = K(isp,isp) + w_ig*(N'*a*Nx+Nx'*nu*Nx) ...
                                 + w_ig*(tau*a*Nx)'*(a*Nx);
-        f(isp) = f(isp) + w_ig*(N)'*SourceTerm(x,problem);
+        f(isp) = f(isp) + w_ig*(N)'*s;
     end
 end
