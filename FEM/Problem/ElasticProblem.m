@@ -137,13 +137,14 @@ classdef ElasticProblem < handle
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            if strcmp(obj.solverType,'REDUCED')
-                R = RHSint.computeReactions(obj.stiffness);
-                obj.forces = rhs+R;
-            else
-                obj.forces = rhs;
-            end
+            obj.forces = rhs;
+            % Perhaps move it inside RHSint? -> Careful with this
+            % if strcmp(obj.solverType,'REDUCED')
+            %     R = RHSint.computeReactions(obj.stiffness);
+            %     obj.forces = rhs+R;
+            % else
+            %     obj.forces = rhs;
+            % end
         end
 
         function u = computeDisplacement(obj)
@@ -202,12 +203,12 @@ classdef ElasticProblem < handle
         end
 
         function prepareInternalForcesFunction(obj)
-            s.type                     = 'ShapeSymmetricDerivative';
-            s.scale                    = 'MACRO';
+            % s.type                     = 'ShapeSymmetricDerivative';
+            % s.scale                    = 'MACRO';
             s.mesh                     = obj.mesh;
             s.quadratureOrder          = obj.quadrature.order;
             s.globalConnec             = obj.mesh.connec;
-            obj.internalForcesComputer = RHSintegrator.create(s);
+            obj.internalForcesComputer = InternalForceIntegrator(s);
             obj.testFunction           = LagrangianFunction.create(s.mesh,s.mesh.ndim,'P1');
         end
 

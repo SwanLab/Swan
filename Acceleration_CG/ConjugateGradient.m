@@ -50,6 +50,21 @@ classdef ConjugateGradient < handle
             disp('------------------')
         end
 
+        % function solveAcceleratedGradientDescent(obj,A,b,x0)
+        %     % beta = 0.5;
+        %     % tau  = 0.1;
+        %     x    = b;
+        %     x0   = x;
+        %     grad = A(x) - b;
+        %     t    = obj.tol*norm(b);
+        %     it   = 1;
+        %     while norm(grad) > t
+        %         y    = x - x0;
+        %         x    = x - tau*grad + beta*();
+        %         grad = A(x) - b;
+        %     end
+        % end
+
     end
 
     methods (Static, Access = private)

@@ -8,9 +8,9 @@ classdef InternalForceIntegrator < RHSintegrator
             obj.createQuadrature();
         end
         
-        function rhs = compute(obj, fun, test)
-            rhsElem = obj.computeElementalRHS(fun,test);
-            rhs     = obj.assembleIntegrand(rhsElem,test);
+        function Fi = compute(obj, stress, testFunc)
+            FiElem = obj.computeElementalInternalForce(stress, testFunc);
+            Fi     = obj.assembleIntegrand(FiElem, testFunc);
         end
         
     end
@@ -22,57 +22,59 @@ classdef InternalForceIntegrator < RHSintegrator
             obj.quadratureOrder = cParams.quadratureOrder;
         end
         
-        function rhsC = computeElementalRHS(obj, fun, test)
-            disp('-------')
-            tic
-            fG = fun.evaluate(obj.quadrature.posgp);
-            toc
-            tic
-            dV = obj.mesh.computeDvolume(obj.quadrature);
-            toc
-            tic
-            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-            toc
-            tic
-            nDim  = size(dNdx,1);
-            nNode = size(dNdx,2);
-            nGaus = size(dNdx,3);
-            nElem = size(dNdx,4);
-
-            BComp = obj.createBComputer(test,dNdx);
-            rhsC = zeros(nNode*nDim,nElem);
-            for igaus = 1:nGaus
-                    fGI = squeezeParticular(fG(:,igaus,:),2);
-                    fdv = fGI.*dV(igaus,:);
-                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
-                    % tic
-                    B = BComp.compute(igaus);
-                    % disp(strcat('B computation: ',string(toc),' s'))
-                    intI = pagemtimes(fdv,B);
-                    rhsC = rhsC + squeezeParticular(intI,1);
+        function Fi_el = computeElementalInternalForce(obj, stress, testFunc)
+            sig    = stress.evaluate(obj.quadrature.posgp);
+            sig    = obj.revertVoigtNotation(sig);
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
+            dNdx   = testFunc.evaluateCartesianDerivatives(obj.quadrature.posgp);
+            nDim   = size(dNdx,1);
+            nNode  = size(dNdx,2);
+            nGaus  = size(dNdx,3);
+            nElem  = size(dNdx,4);
+            Fi_el  = zeros(nNode*nDim,nElem);
+            for iGaus = 1:nGaus
+                sig_scaled = sig.*dV(:,iGaus);
+                dN         = squeeze(dNdx(:,:,iGaus,:));
+                fi_int     = pagemtimes(sig_scaled,dN);
+                Fi_el      = Fi_el + reshape(fi_int,[nNode*nDim,nElem]);
             end
-            toc
-            % disp(strcat('Time RHS assembly: ',string(toc),' s'))
         end
 
-        function f = assembleIntegrand(obj, rhsElem, test)
-            integrand = pagetranspose(rhsElem);
-            connec = test.getConnec();
-            nDofs = max(max(connec));
+    end
+
+    methods (Static, Access = private)
+
+        function Fi = assembleIntegrand(FiElem, test)
+            integrand = pagetranspose(FiElem);
+            connec    = test.getConnec();
+            nDofs     = max(max(connec));
             nDofElem  = size(connec,2);
-            f = zeros(nDofs,1);
+            Fi        = zeros(nDofs,1);
             for idof = 1:nDofElem
                 int = integrand(:,idof);
                 con = connec(:,idof);
-                f = f + accumarray(con,int,[nDofs,1],@sum,0);
+                Fi  = Fi + accumarray(con,int,[nDofs,1],@sum,0);
             end
         end
 
-        function BComp = createBComputer(obj, fun, dNdx)
-            s.fun = fun;
-            s.dNdx = dNdx;
-            BComp = BMatrixComputer(s);
+        function f_new = revertVoigtNotation(f)
+            ndim = size(f,1);
+            nel  = size(f,3);
+            switch ndim
+                case 1
+                    f_new = f;
+                case 3
+                    f_new        = zeros(2,2,nel);
+                    f_new(:,1,:) = f([1 3],:,:);
+                    f_new(:,2,:) = f([2 3],:,:);
+                case 6
+                    f_new        = zeros(3,3,nel);
+                    f_new(:,1,:) = f([1 6 5],:,:);
+                    f_new(:,2,:) = f([6 2 4],:,:);
+                    f_new(:,3,:) = f([5 4 3],:,:);
+            end
         end
+
     end
     
 end
