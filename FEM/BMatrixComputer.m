@@ -16,7 +16,7 @@ classdef BMatrixComputer < handle
             ndimf = obj.fun.ndimf;
             switch ndimf
                 case 1
-                    obj.nVoigt = 2;
+                    obj.nVoigt = 1;
                     B = obj.computeBin1D(igaus);
                 case 2
                     obj.nVoigt = 3;
@@ -86,7 +86,6 @@ classdef BMatrixComputer < handle
             for inode = 1:nNode
                 j = nDimf*(inode-1) + 1;
                 B(1,j,:) = deriv(1,inode,iGaus,:);
-                B(2,j,:) = deriv(2,inode,iGaus,:);
             end
         end
 

@@ -1,18 +1,18 @@
 classdef WeakFormSolverFactory < handle
     
     methods (Access = public, Static)  
-        function op = create(cParams)
+        function wf = create(cParams)
             switch cParams.stab
                 case 1
-                    op = OptimizerAugmentedLagrangian(cParams);
+                    wf = ConvDifGalerkinSystem(cParams);
                 case 2
-                    op = OptimizerMMA(cParams);
+                    wf = OptimizerMMA(cParams);
                 case 3
-                    op = Optimizer_IPOPT(cParams);
+                    wf = Optimizer_IPOPT(cParams);
                 case 4
-                    op = OptimizerBisection(cParams);
+                    wf = OptimizerBisection(cParams);
                 case 5
-                    op = Optimizer_fmincon(cParams);
+                    wf = Optimizer_fmincon(cParams);
             end
         end
     end

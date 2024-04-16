@@ -41,8 +41,6 @@ classdef SteadyConvectionDiffusionProblem1D < handle
 
     properties (Access = private)
         problem
-%         a
-%         nu
         numel
         p
         stab
@@ -51,13 +49,14 @@ classdef SteadyConvectionDiffusionProblem1D < handle
     properties (Access = private)
         source
         coord
+        mesh
     end
 
     methods (Access = public)
         function obj = SteadyConvectionDiffusionProblem1D(cParams)
             obj.init(cParams);
-            obj.computeSourceTerm();
             obj.computeCoordinateMatrix();
+            obj.computeSourceTerm();
         end
 
         function sol = compute(obj,a,nu)
@@ -78,29 +77,27 @@ classdef SteadyConvectionDiffusionProblem1D < handle
         function computeSourceTerm(obj)
             switch obj.problem
                 case 1
-                    s = SourceTermComputer.create(@(x) 0);
+                    s = AnalyticalFunction.create(@(x) zeros(size(x(1,:,:))),1,obj.mesh);
                 case 2
-                    s = SourceTermComputer.create(@(x) 1);
+                    s = AnalyticalFunction.create(@(x) ones(size(x(1,:,:))), 1, obj.mesh);
                 case 3
-                    s = SourceTermComputer.create(@(x) sin(pi*x));
+                    s = AnalyticalFunction.create(@(x) sin(pi*x(1,:,:)), 1, obj.mesh);
                 case 4
-                    s = SourceTermComputer.create(@(x) 20*exp(-5*(x-1/8))-10*exp(-5*(x-1/4)));
+                    s = AnalyticalFunction.create(@(x) 20*exp(-5*(x(1,:,:)-1/8))-10*exp(-5*(x(1,:,:)-1/4)), 1, obj.mesh);
                 case 5
-                    s = SourceTermComputer.create(@(x) 10*exp(-5*x)-4*exp(-x));
+                    s = AnalyticalFunction.create(@(x) 10*exp(-5*x(1,:,:))-4*exp(-x(1,:,:)), 1, obj.mesh);
             end
             obj.source = s;
         end
 
         function computeCoordinateMatrix(obj)
-            nEl = obj.numel;
-            switch obj.p
-                case 1
-                    h = 1/nEl;
-                case 2
-                    h = 1/(2*nEl);
-            end
-            xnode     = 0:h:1;
-            obj.coord = xnode;
+            nEl           = obj.numel;
+            xnode         = 0:1/nEl:1;
+            obj.coord     = xnode;
+            s.coord       = xnode';
+            s.connec(:,1) = 1:length(xnode)-1;
+            s.connec(:,2) = 2:length(xnode);
+            obj.mesh      = Mesh.create(s);
         end
 
         function [K,f] = computeSystemLHSandRHS(obj,a,nu)
@@ -108,7 +105,13 @@ classdef SteadyConvectionDiffusionProblem1D < handle
             Pe = a*h/(2*nu);
             if obj.stab==1
                 if obj.p==1
-                    [K,f] = system_p1(a,nu,obj.coord,obj.source);
+                    %
+                    s.stab  = obj.stab;
+                    s.mesh  = obj.mesh;
+                    s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+                    wf      = WeakFormSolver.create(s);
+                    [K,f]   = wf.compute(a,nu,obj.source);
+                    %
                 else
                     [K,f] = system_p2(a,nu,obj.coord,obj.source);
                 end
@@ -177,7 +180,7 @@ classdef SteadyConvectionDiffusionProblem1D < handle
             if obj.p == 1
                 plot(obj.coord,uh,'r-o',x,exacto,'k:','LineWidth',3,'MarkerSize',10)
             else
-                [x0,y0]=plot_p2(sol,obj.coord);
+                [x0,y0]=obj.plotQuadraticElements(sol);
                 plot(obj.coord,uh,'ro', x,exacto,'k:', x0,y0,'r-','LineWidth',3,'MarkerSize',10)
             end
             if obj.stab == 1
@@ -193,6 +196,21 @@ classdef SteadyConvectionDiffusionProblem1D < handle
             end
             set(l, 'FontSize',14);
             set(gca, 'FontSize',14);
+        end
+
+        function [x0,y0] = plotQuadraticElements(obj,sol)
+            xnode = obj.coord;
+            x0    = [];
+            y0    = [];
+            x     = -1:0.1:1;
+            N     = [((x-1).*x/2)'  (1-x.^2)'  ((x+1).*x/2)'];
+            for i = 1:obj.numel
+                isp   = [2*i-1 2*i 2*i+1];
+                delta = (xnode(2*i+1)-xnode(2*i-1))/2;
+                x0    = [x0,(xnode(2*i)+x*delta)];
+                y     = N*sol(isp);
+                y0    = [y0,y'];
+            end
         end
     end
 end
