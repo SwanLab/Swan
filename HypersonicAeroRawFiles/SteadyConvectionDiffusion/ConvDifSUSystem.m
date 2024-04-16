@@ -25,10 +25,10 @@ classdef ConvDifSUSystem < handle
         end
 
         function K = computeLHS(obj,a,nu)
-            t    = obj.tau;
             Kadv = obj.computeAdvectionMatrix(a);
             Kst  = obj.computeStiffnessMatrix();
-            K    = Kadv + nu*Kst + (t*a^2)*Kst; % The a^2 can be seen as L2-norm squared
+            Kast = obj.computeAnisotropicStiffnessMatrix();
+            K    = Kadv + nu*Kst + a^2*Kast; % The a^2 can be seen as L2-norm squared
         end
 
         function Kadv = computeAdvectionMatrix(obj,a)
@@ -51,6 +51,17 @@ classdef ConvDifSUSystem < handle
             s.quadratureOrder = 'QUADRATIC';
             lhs     = LHSintegrator.create(s);
             Kst     = lhs.compute();
+        end
+
+        function Kast = computeAnisotropicStiffnessMatrix(obj)
+            s.trial = obj.trial;
+            s.test  = obj.trial;
+            s.mesh  = obj.mesh;
+            s.type  = 'AnisotropicStiffnessMatrix';
+            s.quadratureOrder = 'QUADRATIC';
+            s.CGlobal = obj.tau;
+            lhs     = LHSintegrator.create(s);
+            Kast    = lhs.compute();
         end
 
         function f = computeRHS(obj,source)

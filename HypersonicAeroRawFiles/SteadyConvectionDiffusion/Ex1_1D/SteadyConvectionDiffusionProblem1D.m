@@ -1,5 +1,7 @@
 classdef SteadyConvectionDiffusionProblem1D < handle
 
+% PER P1 FUNCIONA MILLOR QUE PER P2 !!!
+
 % This program solves a one-dimensional convection-diffusion equation
 %        a·u_x - nu·u_xx = f
 % with Dirichlet boundary conditions using

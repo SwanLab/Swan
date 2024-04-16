@@ -22,7 +22,7 @@ classdef MonolithicFormComputer < handle
             f    = obj.extFluxesVector;
             A    = obj.Cmatrix;
             Ktot = [K A';A zeros(2,2)];
-            ftot = [f;b];
+            ftot = [f;b]; % There is an issue in P2 case !!
         end
     end
 
