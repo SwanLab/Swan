@@ -43,6 +43,7 @@ classdef SteadyConvectionDiffusionProblem1D < handle
         problem
         numel
         p
+        trial
         stab
     end
 
@@ -56,6 +57,12 @@ classdef SteadyConvectionDiffusionProblem1D < handle
         function obj = SteadyConvectionDiffusionProblem1D(cParams)
             obj.init(cParams);
             obj.computeCoordinateMatrix();
+            switch obj.p
+                case 1
+                    obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+                case 2
+                    obj.trial = LagrangianFunction.create(obj.mesh,1,'P2');
+            end
             obj.computeSourceTerm();
         end
 
@@ -104,17 +111,11 @@ classdef SteadyConvectionDiffusionProblem1D < handle
             h  = obj.coord(2)-obj.coord(1);
             Pe = a*h/(2*nu);
             if obj.stab==1
-                if obj.p==1
-                    %
-                    s.stab  = obj.stab;
-                    s.mesh  = obj.mesh;
-                    s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-                    wf      = WeakFormSolver.create(s);
-                    [K,f]   = wf.compute(a,nu,obj.source);
-                    %
-                else
-                    [K,f] = system_p2(a,nu,obj.coord,obj.source);
-                end
+                s.trial = obj.trial;
+                s.stab = obj.stab;
+                s.mesh = obj.mesh;
+                wf     = WeakFormSolver.create(s);
+                [K,f]  = wf.compute(a,nu,obj.source);
             elseif obj.stab==2
                 alfa = coth(Pe)-1/Pe;
                 tau = alfa*h/(2*a); % Recommended
@@ -165,23 +166,24 @@ classdef SteadyConvectionDiffusionProblem1D < handle
 
         function sol = solveSystem(obj,K,f)
             s.nnodes    = length(obj.coord);
+            s.p         = obj.p;
             s.K         = K;
             s.f         = f;
             KCf         = MonolithicFormComputer(s);
             [Ktot,ftot] = KCf.compute(obj.problem);
             sol         = Ktot\ftot;
+            obj.trial.fValues = sol(1:end-2);
         end
 
         function applyPostProcess(obj,sol,a,nu)
-            nnodes = length(obj.coord);
-            uh     = sol(1:nnodes);
+            uh     = sol(1:end-2);
             x      = 0:0.01:1;
             exacto = u(x,a,nu,obj.problem);
             if obj.p == 1
-                plot(obj.coord,uh,'r-o',x,exacto,'k:','LineWidth',3,'MarkerSize',10)
+                plot(obj.coord,uh,'r-',x,exacto,'k:','LineWidth',3,'MarkerSize',10)
             else
-                [x0,y0]=obj.plotQuadraticElements(sol);
-                plot(obj.coord,uh,'ro', x,exacto,'k:', x0,y0,'r-','LineWidth',3,'MarkerSize',10)
+                [x0,y0]=obj.plotQuadraticElements();
+                plot(x0,y0,'r-', x,exacto,'k:','LineWidth',3,'MarkerSize',10)
             end
             if obj.stab == 1
                 l = legend('Galerkin solution','exact solution');
@@ -198,19 +200,12 @@ classdef SteadyConvectionDiffusionProblem1D < handle
             set(gca, 'FontSize',14);
         end
 
-        function [x0,y0] = plotQuadraticElements(obj,sol)
-            xnode = obj.coord;
-            x0    = [];
-            y0    = [];
-            x     = -1:0.1:1;
-            N     = [((x-1).*x/2)'  (1-x.^2)'  ((x+1).*x/2)'];
-            for i = 1:obj.numel
-                isp   = [2*i-1 2*i 2*i+1];
-                delta = (xnode(2*i+1)-xnode(2*i-1))/2;
-                x0    = [x0,(xnode(2*i)+x*delta)];
-                y     = N*sol(isp);
-                y0    = [y0,y'];
-            end
+        function [x0,y0] = plotQuadraticElements(obj)
+            xg     = -1:0.1:1;
+            xElg   = obj.mesh.computeXgauss(xg);
+            yElg   = obj.trial.evaluate(xg);
+            [x0,v] = unique(xElg);
+            y0     = yElg(v);
         end
     end
 end

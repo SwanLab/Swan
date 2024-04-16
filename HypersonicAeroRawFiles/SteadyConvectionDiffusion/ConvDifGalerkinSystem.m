@@ -45,7 +45,7 @@ classdef ConvDifGalerkinSystem < handle
             s.test  = obj.trial;
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            s.quadratureOrder = 'LINEAR';
+            s.quadratureOrder = 'QUADRATIC';
             lhs     = LHSintegrator.create(s);
             Kst     = lhs.compute();
         end
@@ -53,7 +53,7 @@ classdef ConvDifGalerkinSystem < handle
         function f = computeRHS(obj,source)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
-            s.quadType = 'LINEAR';
+            s.quadType = 'QUADRATIC';
             int        = RHSintegrator.create(s);
             test       = obj.trial;
             f          = int.compute(source,test);
