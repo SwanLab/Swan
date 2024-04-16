@@ -120,11 +120,21 @@ classdef SteadyConvectionDiffusionProblem1D < handle
                 alfa = coth(Pe)-1/Pe;
                 tau = alfa*h/(2*a); % Recommended
                 if obj.p == 1
-                    [K,f] = system_SU_p1(tau,a,nu,obj.coord,obj.source);
+                    s.trial = obj.trial;
+                    s.stab = obj.stab;
+                    s.mesh = obj.mesh;
+                    s.tau  = tau;
+                    wf     = WeakFormSolver.create(s);
+                    [K,f]  = wf.compute(a,nu,obj.source);
                 else
                     beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
                     tau_c = beta*h/(2*a); % Recommended
-                    [K,f] = system_SU_p2(tau, tau_c,a,nu,obj.coord,obj.source);
+                    s.trial = obj.trial;
+                    s.stab = obj.stab;
+                    s.mesh = obj.mesh;
+                    s.tau  = diag([tau_c,tau_c,tau]); % must be function
+                    wf     = WeakFormSolver.create(s);
+                    [K,f]  = wf.compute(a,nu,obj.source);
                 end
             elseif obj.stab == 3
                 alfa = coth(Pe)-1/Pe;

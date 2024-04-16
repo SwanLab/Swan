@@ -6,7 +6,7 @@ classdef WeakFormSolverFactory < handle
                 case 1
                     wf = ConvDifGalerkinSystem(cParams);
                 case 2
-                    wf = OptimizerMMA(cParams);
+                    wf = ConvDifSUSystem(cParams);
                 case 3
                     wf = Optimizer_IPOPT(cParams);
                 case 4
