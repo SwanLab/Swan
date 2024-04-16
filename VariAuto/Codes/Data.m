@@ -86,28 +86,32 @@ classdef Data < handle
             obj.data = load(f);
        %     fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
        %     feat = input(' ');
-            feat = obj.features;
-            x = obj.data(:, feat);
+            xfeat = obj.features;
+            x = obj.data(:, xfeat);
+            yfeat = xfeat(end)+1:size(obj.data,2);
+            y = obj.data(:, yfeat);
+            obj.X = x;
+            obj.Y = y;
 
             % IDENTIFIER
             % ydata = obj.data(:, end);
             % y = zeros(length(ydata),max(ydata));
 
-            ydata = obj.data(:, feat);
-            y = zeros(length(ydata),width(ydata));
-            
-            u = unique(ydata);
-            for i=1:length(ydata)
-                for j = 1:length(u)
-                    if ydata(i) == u(j)
-                        y(i,j) = 1;
-                    end
-                end
-            end
-            
-            obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            % obj.Y = y;
-            obj.Y = obj.X;
+%             ydata = obj.data(:, feat);
+%             y = zeros(length(ydata),width(ydata));
+%             
+%             u = unique(ydata);
+%             for i=1:length(ydata)
+%                 for j = 1:length(u)
+%                     if ydata(i) == u(j)
+%                         y(i,j) = 1;
+%                     end
+%                 end
+%             end
+%             
+%             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
+%             % obj.Y = y;
+%             obj.Y = obj.X;
         end
 
         function Xful = buildModel(obj)

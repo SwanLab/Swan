@@ -3,9 +3,12 @@ clear
 close all
 % General call for testMicro --> General sampling
 gPar.type = "Ellipse";
-a = 0.01:0.01:0.499;
-b = 0.01:0.01:0.499;
-n = 0.5:0.1:35; % Hacer n adaptativo a los semiejes para evitar errores
+% a = 0.01:0.01:0.499;
+% b = 0.01:0.01:0.499;
+% n = 0.5:0.1:35; 
+a = 0.1:0.1:0.5;
+b = 0.1:0.1:0.5;
+n = 2;
 sample = 1;
 dataset = zeros(length(a)*length(b)*length(n),9);
 for i = 1:length(n)
@@ -20,5 +23,5 @@ for i = 1:length(n)
         end
     end
 end
-
+writematrix(dataset, "testDataset.csv", 'Delimiter', ",");
 
