@@ -42,7 +42,7 @@ classdef TopOptTestTutorial < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
+            x1      = linspace(0,4,210);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -176,7 +176,7 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 250;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -188,20 +188,29 @@ classdef TopOptTestTutorial < handle
         end
 
         function bc = createBoundaryConditions(obj)
-          xMax    = max(obj.mesh.coord(:,1));
-          yMax    = max(obj.mesh.coord(:,2));
-          
-          isDir  = @(coor)  abs(coor(:,1))==0;
-          isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax;
-          
-          sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
-          sDir{1}.direction = [1,2]; %restricció vertical i horitzontal
-          sDir{1}.value     = 0;  %desplaçament =0
-          
-          sPL{1}.domain    = @(coor) isForce(coor);
-          sPL{1}.direction = 2;
-          sPL{1}.value     = -1;
+          %---------------2D MBB CASE-------------%
+ 
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+    
+           
+            isDir1   = @(coor) abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
+            isDir2   = @(coor) abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
+            isForce  = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
 
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [2]; %restricció vertical
+            sDir{2}.value     = 0; %desplaçament =0
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
+
+%---------------2D MBB CASE-------------%
 
             dirichletFun = [];
             for i = 1:numel(sDir)
