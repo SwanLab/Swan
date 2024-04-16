@@ -36,15 +36,17 @@ classdef MonolithicFormComputer < handle
 
     methods (Static,Access = private)
         function A = computeMultipliersCoefficientsMatrix(cParams)
+            dirInit      = 1;
+            dirEnd       = cParams.nnodes;
             switch cParams.p
                 case 1
                     numnp = cParams.nnodes;
                 case 2
                     numnp = 2*cParams.nnodes - 1;
             end
-            A          = zeros(2,numnp);
-            A(1,1)     = 1;
-            A(2,numnp) = 1;
+            A            = zeros(2,numnp);
+            A(1,dirInit) = 1;
+            A(2,dirEnd)  = 1;
         end
     end
 end
