@@ -11,7 +11,7 @@ classdef HomogenizedPhaseField < handle
 
         function obj = HomogenizedPhaseField(cParams)
             obj.init(cParams)
-            [mxV, C] = obj.loadVademecum(); %%% Pending %%%
+            [mxV, C] = obj.loadVademecum();
             obj.createStructuredMesh(mxV);
             obj.createCtensorFunction(C);
         end
@@ -19,7 +19,7 @@ classdef HomogenizedPhaseField < handle
         function C = obtainTensor(obj)
             s.operation = @(xV) obj.evaluate(xV);
             s.ndimf = 9;
-            C = DomainFunction(s);
+            C{1} = DomainFunction(s);
         end
 
         function dC = obtainTensorDerivative(obj)

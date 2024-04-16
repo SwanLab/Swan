@@ -22,33 +22,29 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
         function obj = MaterialPhaseField(cParams)
             obj.init(cParams)
             obj.initPhaseField(cParams)
-        end        
+        end
 
         function C = obtainTensor(obj)
+            obj.fun = obj.matInterpolation.fun;
             s.operation = @(xV) obj.evaluate(xV);
             s.ndimf = 9;
-            C = DomainFunction(s);
+            C{1} = DomainFunction(s);
         end
 
         function dC = obtainTensorDerivative(obj)
-            nVar = numel(obj.microParams);
-            dC   = cell(nVar,1);
-            for iVar = 1:nVar
-                s.operation = @(xV) obj.evaluateGradient(xV,iVar);
-                s.ndimf = 9;
-                dC{iVar} =  DomainFunction(s);
-            end
+            obj.fun = obj.matInterpolation.dfun;
+            s.operation = @(xV) obj.evaluate(xV);
+            s.ndimf = 9;
+            dC{1} =  DomainFunction(s);
+
         end
 
-        function d2C = obtainTensorSecondDerivative(obj)
-            nVar = numel(obj.microParams);
-            d2C   = cell(nVar,1);
-            for iVar = 1:nVar
-                s.operation = @(xV) obj.evaluateHessian(xV,iVar);
-                s.ndimf = 9;
-                d2C{iVar} =  DomainFunction(s);
-            end
-        end   
+        function ddC = obtainTensorSecondDerivative(obj)
+            obj.fun = obj.matInterpolation.ddfun;
+            s.operation = @(xV) obj.evaluate(xV);
+            s.ndimf = 9;
+            ddC{1} =  DomainFunction(s);
+        end
 
         function kFun = getBulkFun(obj,u,phi,interpType)
             obj.setMaterial(u,phi,interpType,'');
@@ -82,7 +78,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             muFun = g0.*mu;
         end
 
-        function obj = setDesignVariable(obj,phi,u,tensorType)
+        function obj = setDesignVariable(obj,u,phi,tensorType)
             obj.u = u;
             obj.phi = phi;
             obj.tensorType = tensorType;
@@ -129,7 +125,6 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
             trcSign = Heaviside(trace(SymGrad(obj.u)));
             g = g0.*trcSign + (1-trcSign);
-
         end
 
         function [mu, k] = computeMuAndKappa(obj,g,g0,xV)

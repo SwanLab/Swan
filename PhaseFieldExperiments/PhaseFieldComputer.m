@@ -66,11 +66,11 @@ classdef PhaseFieldComputer < handle
                 obj.costFun(1,end+1) = obj.computeCostFunction(u,phi);
                 obj.costFun(2,end) = 2;
 
-                eStag = 1; iterStag = 1; costOldStag = 0;
+                eStag = 1; iterStag = 0; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
                 while (eStag > obj.tolErrStag) && (iterStag < 100)
 
-                    eU = 1;iterU = 1; costOldU = 0;
+                    eU = 1; iterU = 0; costOldU = 0;
                     while (eU > obj.tolErrU) && (iterU < 100)
                         LHS = obj.computeElasticLHS(u,phi);
                         RHS = obj.computeElasticResidual(u,phi);
@@ -87,7 +87,7 @@ classdef PhaseFieldComputer < handle
                         iterUMax = iterU;
                     end
 
-                    ePhi = 1;  iterPhi = 1; costOldPhi = 0;
+                    ePhi = 1;  iterPhi = 0; costOldPhi = 0;
                     while (ePhi > obj.tolErrPhi) && (iterPhi < 100)
                         LHS = obj.computePhaseFieldLHS(u,phi);
                         RHS = obj.computePhaseFieldResidual(u,phi);
@@ -114,9 +114,9 @@ classdef PhaseFieldComputer < handle
                 phiOld = phi;
 
                 s.step = i;
-                s.numIterU = iterUMax;
-                s.numIterP = iterPhiMax;
-                s.numIterStag = iterStag;
+                s.numIterU = iterUMax-1;
+                s.numIterP = iterPhiMax-1;
+                s.numIterStag = iterStag-1;
                 s.u = u; s.phi = phi; s.F = F;
                 obj.saveData(s);
                 %obj.printPlots(phi,i);

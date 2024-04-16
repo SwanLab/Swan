@@ -14,7 +14,7 @@ classdef ShFunc_InternalEnergy < handle
         function F = computeFunction(obj,u,phi,quadOrder)
             obj.materialPhaseField.setDesignVariable(u,phi,'');
             C = obj.materialPhaseField.obtainTensor();
-            energyFun = DDP(Voigt(SymGrad(u)),DDP(C,Voigt(SymGrad(u))));
+            energyFun = DDP(Voigt(SymGrad(u)),DDP(C{1},Voigt(SymGrad(u))));
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
         end
@@ -42,7 +42,7 @@ classdef ShFunc_InternalEnergy < handle
         
         function Ju = computeGradientDisplacement(obj,u,quadOrder)
             C = obj.materialPhaseField.obtainTensor();
-            sigma = DDP(C,Voigt(SymGrad(u)));
+            sigma = DDP(C{1},Voigt(SymGrad(u)));
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
 
             s.mesh = obj.mesh;
@@ -69,7 +69,7 @@ classdef ShFunc_InternalEnergy < handle
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
-            s.material = C;
+            s.material = C{1};
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
             Huu = LHS.compute();

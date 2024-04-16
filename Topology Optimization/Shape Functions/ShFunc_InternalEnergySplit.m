@@ -88,20 +88,20 @@ classdef ShFunc_InternalEnergySplit < handle
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
-            mat = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Deviatoric');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Deviatoric');
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
-            s.material = mat;
+            s.material = C{1};
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
             HshearUU = LHS.compute();
 
-            mat = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Volumetric');
+            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Volumetric');
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.fun      = u;
-            s.material = mat;
+            s.material = C{1};
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
             HbulkUU = LHS.compute();

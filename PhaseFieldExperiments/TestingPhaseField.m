@@ -10,7 +10,7 @@ classdef TestingPhaseField < handle
         %         linspace(8.5e-3,0,100), ...
         %         linspace(0,-1e-2,100), ...
         %         ];
-         bcVal = linspace(0,1e-1,300);
+        bcVal = linspace(0,1e-1,300);
         % bcVal = 1;
         % bcVal = [0.001];
     end
@@ -71,21 +71,21 @@ classdef TestingPhaseField < handle
         end
 
         function createMaterialPhaseField(obj)
-%             sParam.mesh = obj.mesh;
-%             sParam.order = 'P1';
-%             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
-%             s.young = LagrangianFunction(sParam);
-%             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
-%             s.poisson = LagrangianFunction(sParam);
-%             sIso.ndim = obj.mesh.ndim;
-% 
-%             s.isoMat = Isotropic2dElasticMaterial(sIso);
-%             s.ndim = obj.mesh.ndim;
-%             s.mesh = obj.mesh;
-%             s.materialInterpolation = obj.createMaterialInterpolation();
-%             s.Gc = obj.Gc;
-            
-       %     obj.materialPhaseField = MaterialPhaseField(s);
+            %  sParam.mesh = obj.mesh;
+            %  sParam.order = 'P1';
+            %  sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
+            %  s.young = LagrangianFunction(sParam);
+            %  sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
+            %  s.poisson = LagrangianFunction(sParam);
+            %  sIso.ndim = obj.mesh.ndim;
+            %
+            %  s.isoMat = Isotropic2dElasticMaterial(sIso);
+            %  s.ndim = obj.mesh.ndim;
+            %  s.mesh = obj.mesh;
+            %  s.materialInterpolation = obj.createMaterialInterpolation();
+            %  s.Gc = obj.Gc;
+            %
+            % obj.materialPhaseField = MaterialPhaseField(s);
 
             s.type = 'MicroDamage';
             s.fun  = obj.initialPhaseField;
