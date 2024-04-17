@@ -52,11 +52,19 @@ norm(integ(:)-K(:))
 clear dVolu
 
 operation = ShapeDerSym(trial)' * ShapeDerSym(test);
-dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
 
+dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
 integ = bsxfun(@times, operation.evaluate(xV), dVolu);
 integ = squeezeParticular(sum(integ,3),3);
 
+K = stiffnessmatrix(quad,mesh,test,trial);
+
+norm(integ(:)-K(:))
+
+%% Fake stiffness v3
+
+operation = ShapeDerSym(trial)' * ShapeDerSym(test);
+integ = Integral(operation, mesh, quad);
 K = stiffnessmatrix(quad,mesh,test,trial);
 
 norm(integ(:)-K(:))
