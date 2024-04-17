@@ -1,10 +1,15 @@
-classdef RHSintegrator_ShapeDerivative < RHSintegrator
+classdef RHSintegrator_ShapeDerivative < handle
+
+    properties (Access = private)
+        quadType
+        mesh
+        quadrature
+    end
 
     methods (Access = public)
 
         function obj = RHSintegrator_ShapeDerivative(cParams)
             obj.init(cParams);
-            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 
@@ -17,9 +22,9 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.mesh         = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
+        function init(obj,cParams)
+            obj.quadType = cParams.quadType;
+            obj.mesh     = cParams.mesh;
         end
         
         function rhsC = computeElementalRHS(obj, fun, test)
@@ -48,8 +53,7 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
 
         function f = assembleIntegrand(obj,rhsElem,test)
             integrand = rhsElem;
-            %connec = obj.mesh.connec;
-            connec = test.computeDofConnectivity()';
+            connec = test.getConnec();
             nDofs = max(max(connec));
             nNode  = size(connec,2);
             f = zeros(nDofs,1);
@@ -58,6 +62,12 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
             end         
+        end
+
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadType);
+            obj.quadrature = q;
         end
 
     end

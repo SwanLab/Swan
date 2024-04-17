@@ -8,11 +8,7 @@ classdef WeakFormSolverFactory < handle
                 case 2
                     wf = ConvDifSUSystem(cParams);
                 case 3
-                    wf = Optimizer_IPOPT(cParams);
-                case 4
-                    wf = OptimizerBisection(cParams);
-                case 5
-                    wf = Optimizer_fmincon(cParams);
+                    wf = ConvDifSUPGSystem(cParams);
             end
         end
     end

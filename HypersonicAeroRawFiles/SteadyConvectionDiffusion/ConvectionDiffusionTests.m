@@ -2,7 +2,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         tests  = {'lowPecletLinearElem','highPecletQuadElem'};
-        p2test = {'highPecletQuadElem'};
+        p1test = {'lowPecletLinearElem'};
     end
 
     methods (Test, TestTags = {'ConvectionDiffusion'})
@@ -12,7 +12,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.p       = p;
             s.stab    = 1;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DGalerkinNoSource.mat'],'x');
             err = norm(sol-x)/norm(x);
@@ -27,7 +27,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.p       = p;
             s.stab    = 1;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DGalerkinSource.mat'],'x');
             err = norm(sol-x)/norm(x);
@@ -42,7 +42,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.p       = p;
             s.stab    = 2;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DSUNoSource.mat'],'x');
             err = norm(sol-x)/norm(x);
@@ -57,7 +57,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.p       = p;
             s.stab    = 2;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DSUSource.mat'],'x');
             err = norm(sol-x)/norm(x);
@@ -66,90 +66,30 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             close all;
         end
 
-        function testWithoutSourceTermSUPG(testCase,tests)
-            run(tests)
+        function testWithoutSourceTermSUPG(testCase,p1test)
+            run(p1test)
             s.problem = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 3;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
-            load([tests,'Steady1DSUPGNoSource.mat'],'x');
+            load([p1test,'Steady1DSUPGNoSource.mat'],'x');
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
             close all;
         end
 
-        function testWithSourceTermSUPG(testCase,tests)
-            run(tests)
+        function testWithSourceTermSUPG(testCase,p1test)
+            run(p1test)
             s.problem = 3;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 3;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
+            prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
-            load([tests,'Steady1DSUPGSource.mat'],'x');
-            err = norm(sol-x)/norm(x);
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-            close all;
-        end
-
-        function testWithoutSourceTermGLS(testCase,p2test)
-            run(p2test)
-            s.problem = 1;
-            s.numel   = 100;
-            s.p       = p;
-            s.stab    = 4;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
-            sol       = prob.compute(a,nu);
-            load([p2test,'Steady1DGLSNoSource.mat'],'x');
-            err = norm(sol-x)/norm(x);
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-            close all;
-        end
-
-        function testWithSourceTermGLS(testCase,p2test)
-            run(p2test)
-            s.problem = 3;
-            s.numel   = 100;
-            s.p       = p;
-            s.stab    = 4;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
-            sol       = prob.compute(a,nu);
-            load([p2test,'Steady1DGLSSource.mat'],'x');
-            err = norm(sol-x)/norm(x);
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-            close all;
-        end
-
-        function testWithoutSourceTermSGS(testCase,p2test)
-            run(p2test)
-            s.problem = 1;
-            s.numel   = 100;
-            s.p       = p;
-            s.stab    = 5;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
-            sol       = prob.compute(a,nu);
-            load([p2test,'Steady1DSGSNoSource.mat'],'x');
-            err = norm(sol-x)/norm(x);
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-            close all;
-        end
-
-        function testWithSourceTermSGS(testCase,p2test)
-            run(p2test)
-            s.problem = 3;
-            s.numel   = 100;
-            s.p       = p;
-            s.stab    = 5;
-            prob      = SteadyConvectionDiffusionProblem1D(s);
-            sol       = prob.compute(a,nu);
-            load([p2test,'Steady1DSGSource.mat'],'x');
+            load([p1test,'Steady1DSUPGSource.mat'],'x');
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
