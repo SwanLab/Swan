@@ -3,7 +3,6 @@ classdef SteadyConvectionDiffusionProblem < handle
     properties (Access = private)
         dirValues
         mesh
-        p
         trial
         stab
     end
@@ -15,12 +14,6 @@ classdef SteadyConvectionDiffusionProblem < handle
     methods (Access = public)
         function obj = SteadyConvectionDiffusionProblem(cParams)
             obj.init(cParams);
-            switch obj.p
-                case 1
-                    obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-                case 2
-                    obj.trial = LagrangianFunction.create(obj.mesh,1,'P2');
-            end
             obj.computeSourceTerm(cParams);
         end
 
@@ -35,7 +28,7 @@ classdef SteadyConvectionDiffusionProblem < handle
         function init(obj,cParams)
             obj.dirValues = cParams.dirValues;
             obj.mesh      = cParams.mesh;
-            obj.p         = cParams.p;
+            obj.trial     = cParams.trial;
             obj.stab      = cParams.stab;
         end
 
@@ -63,7 +56,7 @@ classdef SteadyConvectionDiffusionProblem < handle
             elseif obj.stab==2
                 alfa = coth(Pe)-1/Pe;
                 tau = alfa*h/(2*a);
-                if obj.p == 2
+                if obj.trial.order == "P2"
                     beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
                     tau_c = beta*h/(2*a);
                     tau  = diag([tau_c,tau_c,tau]);
@@ -71,7 +64,7 @@ classdef SteadyConvectionDiffusionProblem < handle
             elseif obj.stab == 3
                 alfa = coth(Pe)-1/Pe;
                 tau  = alfa*h/(2*a);
-                if obj.p == 2
+                if obj.trial.order == "P2"
                     error('SUPG not available with quadratic elements')
                 end
             end
@@ -79,7 +72,7 @@ classdef SteadyConvectionDiffusionProblem < handle
 
         function sol = solveSystem(obj,K,f)
             s.nnodes    = obj.mesh.nnodes;
-            s.p         = obj.p;
+            s.order     = obj.trial.order;
             s.K         = K;
             s.f         = f;
             s.bc        = obj.createBoundaryConditions1D();
@@ -92,7 +85,7 @@ classdef SteadyConvectionDiffusionProblem < handle
         function plotSolution(obj,sol)
             x  = obj.mesh.coord;
             uh = sol(1:end-2);
-            if obj.p == 1
+            if obj.trial.order == "P1"
                 plot(x,uh,'r-','LineWidth',1.5)
             else
                 [x0,y0]=obj.plotQuadraticElements();

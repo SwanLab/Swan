@@ -14,12 +14,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
             s.sHandle = @(x) zeros(size(x(1,:,:)));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 1;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
@@ -38,12 +43,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
             s.sHandle = @(x) sin(pi*x(1,:,:));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 1;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
@@ -62,12 +72,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
             s.sHandle = @(x) zeros(size(x(1,:,:)));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 2;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
@@ -79,19 +94,24 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithSourceTermSU(testCase,tests)
+            run(tests)
             nEl            = 100;
             xnode          = 0:1/nEl:1;
             sM.coord       = xnode';
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
-            run(tests)
             s.sHandle = @(x) sin(pi*x(1,:,:));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 2;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
@@ -103,19 +123,24 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithoutSourceTermSUPG(testCase,p1test)
+            run(p1test)
             nEl            = 100;
             xnode          = 0:1/nEl:1;
             sM.coord       = xnode';
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
-            run(p1test)
             s.sHandle = @(x) zeros(size(x(1,:,:)));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 3;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
@@ -127,19 +152,24 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithSourceTermSUPG(testCase,p1test)
+            run(p1test)
             nEl            = 100;
             xnode          = 0:1/nEl:1;
             sM.coord       = xnode';
             sM.connec(:,1) = 1:length(xnode)-1;
             sM.connec(:,2) = 2:length(xnode);
             m              = Mesh.create(sM);
+            switch p
+                case 1
+                    s.trial = LagrangianFunction.create(m,1,'P1');
+                case 2
+                    s.trial = LagrangianFunction.create(m,1,'P2');
+            end
             s.mesh    = m;
-            run(p1test)
             s.sHandle = @(x) sin(pi*x(1,:,:));
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.p       = p;
             s.stab    = 3;
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
