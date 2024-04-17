@@ -19,19 +19,34 @@ dVolu(1,:,:)  = mesh.computeDvolume(quad);
 mult = pagemtimes(shTr',shTe);
 integ = bsxfun(@times, mult, dVolu);
 % kron(squeeze(A(:,:,1)),eye(2)) % !!!!
+% integ = squeezeParticular(sum(integ,3),3);
+
+
+dVolu2(1,1,:,:)  = mesh.computeDvolume(quad)/quad.ngaus;
+mult2 = pagemtimes(shTr',shTe);
+integ2 = bsxfun(@times, mult2, dVolu2);
+% kron(squeeze(A(:,:,1)),eye(2)) % !!!!
+integ2 = squeezeParticular(sum(integ2,3),3);
+
 integ = openprod(integ,eye(ndimf));
 
 M = massmatrix(quad,mesh,test,trial);
-
-shDerTe = ShapeDer(test).evaluate(xV);
+norm(integ(:)-M(:))
 
 %% Fake stiffness matrix
+clear dVolu
 
 shTr = ShapeDerSym(trial).evaluate(xV);
 shTe = ShapeDerSym(test).evaluate(xV);
-dVolu(1,:,:)  = mesh.computeDvolume(quad);
+dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
 mult = pagemtimes(permute(shTr,[2 1 3 4]),shTe);
 
+integ = bsxfun(@times, mult, dVolu);
+integ = squeezeParticular(sum(integ,3),3);
+
+K = stiffnessmatrix(quad,mesh,test,trial);
+
+norm(integ(:)-K(:))
 
 %% Functions
 function z = openprod(A,B)
@@ -79,7 +94,7 @@ function lhs = stiffnessmatrix(quad,mesh, test, trial)
     xV = quad.posgp;
     dNdxTs = test.evaluateCartesianDerivatives(xV);
     dNdxTr = trial.evaluateCartesianDerivatives(xV);
-    dVolu = mesh.computeDvolume(obj.quadrature);
+    dVolu = mesh.computeDvolume(quad);
     nGaus = quad.ngaus;
     nElem = size(dVolu,2);
 
