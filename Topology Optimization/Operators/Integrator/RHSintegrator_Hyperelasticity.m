@@ -14,8 +14,7 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
             obj.createQuadrature();
         end
         
-        function rhs = compute(obj, fun)
-            test = fun;
+        function rhs = compute(obj, fun, test)
             rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(rhsElem,test);
         end
@@ -26,41 +25,41 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
         
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
-            obj.quadratureOrder = cParams.quadratureOrder;
             obj.lambda = 1;
             obj.mu = 1;
+            obj.quadratureOrder = 'LINEAR';
         end
         
-        function rhsC = computeElementalRHS(obj, u, test)
+        function rhsC = computeElementalRHS(obj, uFun, test)
             
             % Matrices
-            
-            u = [1 1 1];
             quad = obj.quadrature;
+            xG = quad.posgp;
+            uG = uFun.evaluate(xG);
             F = eye(3) + Grad(u).evaluate(quad.ngaus); % deformation gradient
             invF = inv(F);
             jac = det(F);
             
             piola = obj.mu*(F-invF') + obj.lambda*(jac-1)*jac*invF';
 
-%             fG = fun.evaluate(obj.quadrature.posgp);
-%             dV = obj.mesh.computeDvolume(obj.quadrature);
-%             dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-%             nDim  = size(dNdx,1);
-%             nNode = size(dNdx,2);
-%             nGaus = size(dNdx,3);
-%             nElem = size(dNdx,4);
-% 
-%             BComp = obj.createBComputer(test,dNdx);
-%             rhsC = zeros(nNode*nDim,nElem);
-%             for igaus = 1:nGaus
-%                     fGI = squeezeParticular(fG(:,igaus,:),2);
-%                     fdv = fGI.*dV(igaus,:);
-%                     fdv = reshape(fdv,[1 size(fdv,1) nElem]);
-%                     B = BComp.compute(igaus);
-%                     intI = pagemtimes(fdv,B);
-%                     rhsC = rhsC + squeezeParticular(intI,1);
-%             end
+            fG = fun.evaluate(obj.quadrature.posgp);
+            dV = obj.mesh.computeDvolume(obj.quadrature);
+            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
+            nDim  = size(dNdx,1);
+            nNode = size(dNdx,2);
+            nGaus = size(dNdx,3);
+            nElem = size(dNdx,4);
+
+            BComp = obj.createBComputer(test,dNdx);
+            rhsC = zeros(nNode*nDim,nElem);
+            for igaus = 1:nGaus
+                    fGI = squeezeParticular(fG(:,igaus,:),2);
+                    fdv = fGI.*dV(igaus,:);
+                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
+                    B = BComp.compute(igaus);
+                    intI = pagemtimes(fdv,B);
+                    rhsC = rhsC + squeezeParticular(intI,1);
+            end
         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
