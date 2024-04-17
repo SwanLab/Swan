@@ -3,11 +3,11 @@ classdef WeakFormSolverFactory < handle
     methods (Access = public, Static)  
         function wf = create(cParams)
             switch cParams.stab
-                case 1
+                case 'Galerkin'
                     wf = ConvDifGalerkinSystem(cParams);
-                case 2
+                case 'Upwind'
                     wf = ConvDifSUSystem(cParams);
-                case 3
+                case 'SUPG'
                     wf = ConvDifSUPGSystem(cParams);
             end
         end

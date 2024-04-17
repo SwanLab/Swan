@@ -25,7 +25,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 1;
+            s.stab    = 'Galerkin';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DGalerkinNoSource.mat'],'x');
@@ -54,7 +54,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 1;
+            s.stab    = 'Galerkin';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DGalerkinSource.mat'],'x');
@@ -83,7 +83,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 2;
+            s.stab    = 'Upwind';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DSUNoSource.mat'],'x');
@@ -112,7 +112,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 2;
+            s.stab    = 'Upwind';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([tests,'Steady1DSUSource.mat'],'x');
@@ -141,7 +141,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 3;
+            s.stab    = 'SUPG';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([p1test,'Steady1DSUPGNoSource.mat'],'x');
@@ -170,7 +170,7 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.dirValues.left  = 0;
             s.dirValues.right = 1;
             s.numel   = 100;
-            s.stab    = 3;
+            s.stab    = 'SUPG';
             prob      = SteadyConvectionDiffusionProblem(s);
             sol       = prob.compute(a,nu);
             load([p1test,'Steady1DSUPGSource.mat'],'x');

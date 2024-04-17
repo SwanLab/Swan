@@ -51,22 +51,23 @@ classdef SteadyConvectionDiffusionProblem < handle
         function tau = computeRecommendedStabilizationParameter(obj,a,nu)
             h  = obj.mesh.computeMeanCellSize();
             Pe = a*h/(2*nu);
-            if obj.stab==1
-                tau = [];
-            elseif obj.stab==2
-                alfa = coth(Pe)-1/Pe;
-                tau = alfa*h/(2*a);
-                if obj.trial.order == "P2"
-                    beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
-                    tau_c = beta*h/(2*a);
-                    tau  = diag([tau_c,tau_c,tau]);
-                end
-            elseif obj.stab == 3
-                alfa = coth(Pe)-1/Pe;
-                tau  = alfa*h/(2*a);
-                if obj.trial.order == "P2"
-                    error('SUPG not available with quadratic elements')
-                end
+            switch obj.stab
+                case 'Galerkin'
+                    tau = [];
+                case 'Upwind'
+                    alfa = coth(Pe)-1/Pe;
+                    tau  = alfa*h/(2*a);
+                    if obj.trial.order == "P2"
+                        beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
+                        tau_c = beta*h/(2*a);
+                        tau  = diag([tau_c,tau_c,tau]);
+                    end
+                case 'SUPG'
+                    alfa = coth(Pe)-1/Pe;
+                    tau  = alfa*h/(2*a);
+                    if obj.trial.order == "P2"
+                        error('SUPG not available with quadratic elements')
+                    end
             end
         end
 
@@ -91,13 +92,7 @@ classdef SteadyConvectionDiffusionProblem < handle
                 [x0,y0]=obj.plotQuadraticElements();
                 plot(x0,y0,'r-','LineWidth',1.5)
             end
-            if obj.stab == 1
-                l = legend('Galerkin solution');
-            elseif obj.stab==2
-                l = legend('SU solution');
-            elseif obj.stab == 3
-                l = legend('SUPG solution');
-            end
+            l = legend([obj.stab,' solution']);
             set(l, 'FontSize',14);
             set(gca, 'FontSize',14);
         end
