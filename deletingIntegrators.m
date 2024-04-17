@@ -69,6 +69,17 @@ K = stiffnessmatrix(quad,mesh,test,trial);
 
 norm(integ(:)-K(:))
 
+%% Elastic stiffness
+% it works!
+% operation = ShapeDerSym(trial)' * obj.material * ShapeDerSym(test);
+% integ = Integral(operation, obj.mesh, obj.quadrature);
+
+%% Real stiffness
+
+operation = ShapeDer(trial)' * ShapeDer(test);
+integ = Integral(operation, mesh, quad);
+K = stiffnessmatrix(quad,mesh,test,trial);
+
 %% Functions
 function z = openprod(A,B)
     z = bsxfun(@times, permute(A, [4 1 5 2 3]), permute(B, [1 4 2 5 3]));  %// step 1
