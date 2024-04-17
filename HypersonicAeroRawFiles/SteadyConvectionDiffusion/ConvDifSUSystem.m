@@ -57,9 +57,9 @@ classdef ConvDifSUSystem < handle
             s.trial = obj.trial;
             s.test  = obj.trial;
             s.mesh  = obj.mesh;
-            s.type  = 'AnisotropicStiffnessMatrix';
+            s.type  = 'StabilizedStiffnessMatrix';
             s.quadratureOrder = 'QUADRATIC';
-            s.CGlobal = obj.tau;
+            s.Tau   = obj.tau;
             lhs     = LHSintegrator.create(s);
             Kast    = lhs.compute();
         end

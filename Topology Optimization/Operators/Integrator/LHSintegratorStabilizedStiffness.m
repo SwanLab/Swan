@@ -1,15 +1,16 @@
-classdef LHSintegrator_Stiffness < handle %LHSintegrator
+classdef LHSintegratorStabilizedStiffness < handle %LHSintegrator
 
     properties (Access = private)
         mesh
         test, trial
         quadrature
         quadratureOrder
+        Tau
     end
 
     methods (Access = public)
 
-        function obj = LHSintegrator_Stiffness(cParams)
+        function obj = LHSintegratorStabilizedStiffness(cParams)
             obj.init(cParams);
             obj.createQuadrature();
         end
@@ -36,13 +37,15 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
+            t   = obj.Tau;
             lhs = zeros(nDofETs,nDofETr,nElem);
             for igaus = 1:nGaus
                 BmatTs = squeezeParticular(dNdxTs(:,:,igaus,:),3);
                 BmatTr = squeezeParticular(dNdxTr(:,:,igaus,:),3);
                 dV(1,1,:) = dVolu(igaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
-                BtCB = pagemtimes(Bt, BmatTr);
+                BtC  = pagemtimes(t,Bt);
+                BtCB = pagemtimes(BtC, BmatTr);
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
         end
@@ -55,6 +58,7 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
+            obj.Tau   = cParams.Tau;
             obj.setQuadratureOrder(cParams);
         end
 
@@ -62,26 +66,20 @@ classdef LHSintegrator_Stiffness < handle %LHSintegrator
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = obj.trial.orderTextual();
+                obj.quadratureOrder = obj.trial.orderTextual;
             end
         end
-
+        
         function createQuadrature(obj)
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
-        function Bcomp = createBComputer(obj, fun, dNdx)
-            s.fun  = fun;
-            s.dNdx = dNdx;
-            Bcomp = BMatrixComputer(s);
-        end
-
         function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
+            s.fun     = [];
             assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
+            LHS       = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

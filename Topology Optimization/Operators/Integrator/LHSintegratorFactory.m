@@ -49,6 +49,8 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
+               case 'StabilizedStiffnessMatrix'
+                   obj = LHSintegratorStabilizedStiffness(cParams);
            end
        end
    end

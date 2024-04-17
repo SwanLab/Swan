@@ -51,7 +51,7 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
                 BmatTr = BcompTr.compute(iGaus);
                 dV(1,1,:) = dVolu(iGaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
-                BtC  = pagemtimes(Cmat,Bt);
+                BtC  = pagemtimes(Bt,Cmat);
                 BtCB = pagemtimes(BtC, BmatTr);
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
@@ -95,13 +95,9 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
         end
 
         function initAnisotropicTensor(obj,cParams)
-            if isfield(cParams,'CAnisotropic')
-                CLocal = cParams.CAnisotropic;
-                obj.alphaDeg = cParams.aniAlphaDeg;
-                obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
-            else
-                obj.CAnisotropic = cParams.CGlobal;
-            end
+            CLocal = cParams.CAnisotropic;
+            obj.alphaDeg = cParams.aniAlphaDeg;
+            obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
         end
 
         function CGlobal = rotateAnisotropicMatrix(obj,CLocal)

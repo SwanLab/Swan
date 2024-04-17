@@ -134,7 +134,7 @@ classdef SteadyConvectionDiffusionProblem1D < handle
                     s.trial = obj.trial;
                     s.stab = obj.stab;
                     s.mesh = obj.mesh;
-                    s.tau  = diag([tau_c,tau_c,tau]); % must be function
+                    s.tau  = diag([tau_c,tau_c,tau]);
                     wf     = WeakFormSolver.create(s);
                     [K,f]  = wf.compute(a,nu,obj.source);
                 end
