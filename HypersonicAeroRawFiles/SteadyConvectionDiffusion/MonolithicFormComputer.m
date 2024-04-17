@@ -4,6 +4,7 @@ classdef MonolithicFormComputer < handle
         stiffnessMatrix
         extFluxesVector
         Cmatrix
+        bc
     end
 
     methods (Access = public)
@@ -11,13 +12,8 @@ classdef MonolithicFormComputer < handle
             obj.init(cParams);
         end
 
-        function [Ktot,ftot] = compute(obj,problem)
-            switch problem
-                case 2
-                    b = [0;0];
-                otherwise
-                    b = [0;1];
-            end
+        function [Ktot,ftot] = compute(obj)
+            b    = obj.bc.dirichlet_vals;
             K    = obj.stiffnessMatrix;
             f    = obj.extFluxesVector;
             A    = obj.Cmatrix;
@@ -28,16 +24,14 @@ classdef MonolithicFormComputer < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.Cmatrix = obj.computeMultipliersCoefficientsMatrix(cParams);
             obj.stiffnessMatrix = cParams.K;
             obj.extFluxesVector = cParams.f;
+            obj.bc              = cParams.bc;
+            obj.Cmatrix = obj.computeMultipliersCoefficientsMatrix(cParams);
         end
-    end
 
-    methods (Static,Access = private)
-        function A = computeMultipliersCoefficientsMatrix(cParams)
-            dirInit      = 1;
-            dirEnd       = cParams.nnodes;
+        function A = computeMultipliersCoefficientsMatrix(obj,cParams)
+            dirDofs = obj.bc.dirichlet_dofs;
             switch cParams.p
                 case 1
                     numnp = cParams.nnodes;
@@ -45,8 +39,8 @@ classdef MonolithicFormComputer < handle
                     numnp = 2*cParams.nnodes - 1;
             end
             A            = zeros(2,numnp);
-            A(1,dirInit) = 1;
-            A(2,dirEnd)  = 1;
+            A(1,dirDofs(1)) = 1;
+            A(2,dirDofs(2)) = 1;
         end
     end
 end

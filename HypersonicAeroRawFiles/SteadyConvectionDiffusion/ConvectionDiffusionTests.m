@@ -8,7 +8,16 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'ConvectionDiffusion'})
         function testWithoutSourceTermGalerkin(testCase, tests)
             run(tests)
-            s.problem = 1;
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
+            s.sHandle = @(x) zeros(size(x(1,:,:)));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 1;
@@ -23,7 +32,16 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
 
         function testWithSourceTermGalerkin(testCase,tests)
             run(tests)
-            s.problem = 3;
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
+            s.sHandle = @(x) sin(pi*x(1,:,:));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 1;
@@ -38,7 +56,16 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
 
         function testWithoutSourceTermSU(testCase,tests)
             run(tests)
-            s.problem = 1;
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
+            s.sHandle = @(x) zeros(size(x(1,:,:)));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 2;
@@ -52,8 +79,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithSourceTermSU(testCase,tests)
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
             run(tests)
-            s.problem = 3;
+            s.sHandle = @(x) sin(pi*x(1,:,:));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 2;
@@ -67,8 +103,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithoutSourceTermSUPG(testCase,p1test)
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
             run(p1test)
-            s.problem = 1;
+            s.sHandle = @(x) zeros(size(x(1,:,:)));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 3;
@@ -82,8 +127,17 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
         end
 
         function testWithSourceTermSUPG(testCase,p1test)
+            nEl            = 100;
+            xnode          = 0:1/nEl:1;
+            sM.coord       = xnode';
+            sM.connec(:,1) = 1:length(xnode)-1;
+            sM.connec(:,2) = 2:length(xnode);
+            m              = Mesh.create(sM);
+            s.mesh    = m;
             run(p1test)
-            s.problem = 3;
+            s.sHandle = @(x) sin(pi*x(1,:,:));
+            s.dirValues.left  = 0;
+            s.dirValues.right = 1;
             s.numel   = 100;
             s.p       = p;
             s.stab    = 3;
