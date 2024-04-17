@@ -31,35 +31,42 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
         end
         
         function rhsC = computeElementalRHS(obj, uFun, test)
-            
             % Matrices
             quad = obj.quadrature;
             xG = quad.posgp;
-            uG = uFun.evaluate(xG);
-            F = eye(3) + Grad(u).evaluate(quad.ngaus); % deformation gradient
-            invF = inv(F);
-            jac = det(F);
+            nPoints  = obj.quadrature.ngaus;
+            nElem = obj.mesh.nelem;
+            nDimG = obj.mesh.ndim;
+            nDimf = uFun.ndimf;
+            GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
+            I33 = zeros(size(GradU));
+            I33(1,1,:,:) = 1;
+            I33(2,2,:,:) = 1;
+
+            I33(3,3,:,:) = 1;
+            F = I33 + GradU; % deformation gradient
+            invF = MatrixVectorizedInverter.computeInverse(F);
+            invFt = permute(invF, [2 1 3 4]);
+            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             
-            piola = obj.mu*(F-invF') + obj.lambda*(jac-1)*jac*invF';
+            piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*jac.*invFt;
+            % can i subtract 1 to the jacobian directly?
 
-            fG = fun.evaluate(obj.quadrature.posgp);
-            dV = obj.mesh.computeDvolume(obj.quadrature);
+            dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
             dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-            nDim  = size(dNdx,1);
-            nNode = size(dNdx,2);
-            nGaus = size(dNdx,3);
-            nElem = size(dNdx,4);
+            nNodeE = size(dNdx,2);
+            % piola:dNdx
+            % piola: nDimG*nDimF*nGaus*nElem
+            % dNdx:  nDimG*nNodE*nGaus*nElem
+            % do we need to transpose piola to make it consistent?
+            % ndimF*nDimG x nDimG*nNodeE
 
-            BComp = obj.createBComputer(test,dNdx);
-            rhsC = zeros(nNode*nDim,nElem);
-            for igaus = 1:nGaus
-                    fGI = squeezeParticular(fG(:,igaus,:),2);
-                    fdv = fGI.*dV(igaus,:);
-                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
-                    B = BComp.compute(igaus);
-                    intI = pagemtimes(fdv,B);
-                    rhsC = rhsC + squeezeParticular(intI,1);
-            end
+            piola = permute(piola, [2 1 3 4]);
+            mult = pagemtimes(piola, dNdx);
+            intI = mult.*dV;
+            rhsC = squeezeParticular(sum(intI,3),3);
+            rhsC = reshape(rhsC, [nDimf*nNodeE, nElem]);
+            % rhsC = zeros(nNode*nDim,nElem);
         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
@@ -74,12 +81,7 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
             end
         end
-
-        function BComp = createBComputer(obj, fun, dNdx)
-            s.fun = fun;
-            s.dNdx = dNdx;
-            BComp = BMatrixComputer(s);
-        end
+        
     end
     
 end
