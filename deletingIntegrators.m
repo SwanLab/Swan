@@ -48,6 +48,19 @@ K = stiffnessmatrix(quad,mesh,test,trial);
 
 norm(integ(:)-K(:))
 
+%% Fake stiffness v2
+clear dVolu
+
+operation = ShapeDerSym(trial)' * ShapeDerSym(test);
+dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
+
+integ = bsxfun(@times, operation.evaluate(xV), dVolu);
+integ = squeezeParticular(sum(integ,3),3);
+
+K = stiffnessmatrix(quad,mesh,test,trial);
+
+norm(integ(:)-K(:))
+
 %% Functions
 function z = openprod(A,B)
     z = bsxfun(@times, permute(A, [4 1 5 2 3]), permute(B, [1 4 2 5 3]));  %// step 1
