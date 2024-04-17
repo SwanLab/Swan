@@ -189,3 +189,38 @@ pressureFun.fValues = vars.p(:,end);
 % PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
+
+%% PRESURE AT SURFACE
+boundary_mesh = uMesh.boundaryCutMesh.mesh;
+
+pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+pressure_boundary.boundaryCutMeshFunction.plot()
+
+normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim);
+length_element = zeros(boundary_mesh.nelem,1);
+
+centroid = mean(boundary_mesh.coord);
+central_points = (boundary_mesh.coord(boundary_mesh.connec(:,1),:)+boundary_mesh.coord(boundary_mesh.connec(:,2),:))/2;
+ref_vect = central_points - centroid;
+
+for iE = 1:boundary_mesh.nelem
+    node1 = boundary_mesh.coord(boundary_mesh.connec(iE,1),:);
+    node2 = boundary_mesh.coord(boundary_mesh.connec(iE,2),:);
+    nvect = (node2-node1)/(abs(norm(node2-node1)));
+    nvect = nvect * [0 -1;1 0];
+    if dot(ref_vect(iE,:),nvect)<0
+        nvect = -nvect;
+    end
+    normal_vectors(iE,:) = nvect;
+    length_element(iE) = abs(norm(node1-node2));
+end
+
+quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2))
+hold on
+boundary_mesh.plot()
+
+
+
+
+
+
