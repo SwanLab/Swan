@@ -8,20 +8,28 @@ quad = Quadrature.set(mesh.type);
 quad.computeQuadrature('QUADRATIC');
 xV = quad.posgp;
 
-trial = TrialFunction.create(mesh, 2, 'P1');
-test  = TestFunction.create(mesh, 2, 'P1');
+ndimf = 2;
+trial = TrialFunction.create(mesh, ndimf, 'P1');
+test  = TestFunction.create(mesh, ndimf, 'P1');
 
 shTr = Shape(trial).evaluate(xV);
 shTe = Shape(test).evaluate(xV);
 dVolu(1,:,:)  = mesh.computeDvolume(quad);
-mult = pagemtimes(shTr,shTe);
-integ = bsxfun(@times, mult,dVolu);
+mult = pagemtimes(shTr,shTe');
+integ = bsxfun(@times, mult, dVolu);
+% kron(squeeze(A(:,:,1)),eye(2)) % !!!!
+integ = openprod(integ,eye(ndimf));
 
-M = computeElementalLHS(quad,mesh,test,trial);
+M = massmatrix(quad,mesh,test,trial);
 
 shDerTe = ShapeDer(test).evaluate(xV);
 
-function lhs = computeElementalLHS(quad,mesh, test, trial)
+function z = openprod(A,B)
+    z = bsxfun(@times, permute(A, [4 1 5 2 3]), permute(B, [1 4 2 5 3]));  %// step 1
+    z = reshape(z, size(A,1)*size(B,1), size(A,2)*size(B,2), size(A,3)); 
+end
+
+function lhs = massmatrix(quad,mesh, test, trial)
     xV   = quad.posgp;
     shapesTest  = test.computeShapeFunctions(xV);
     shapesTrial = trial.computeShapeFunctions(xV);
