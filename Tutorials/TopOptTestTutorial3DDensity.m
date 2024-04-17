@@ -41,13 +41,13 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,40,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            %obj.mesh = HexaMesh(2,1,1,40,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            %file = 'Volume_mesh_PecaMiquel1';
-            %a.fileName = file;
-            %s = FemDataContainer(a);
-            %obj.mesh = s.mesh;  %faltava ficar el obj
+            file = 'Volume_mesh_PecaMiquel2';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;  %faltava ficar el obj
 
         end
 
@@ -189,11 +189,12 @@ classdef TopOptTestTutorial3DDensity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 100;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = 'EQUALITY'; %{'EQUALITY'}; per Level Set  // 'EQUALITY'; per Density
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.1;                                %CONDICCIÓ VOLUM FINAL
             opt = OptimizerMMA(s);  %%MMA en DENSITY 
+            %s.primal         = 'SLERP';   %%NullSpace en Level Set (faltava?) --> NO VA EL LEVEL SET 3D
             %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set
             opt.solveProblem();
             obj.optimizer = opt;
@@ -201,13 +202,19 @@ classdef TopOptTestTutorial3DDensity < handle
 
         function bc = createBoundaryConditions(obj)
 
-%---------------3D CANTIELEVER CASE-------------%
+%---------------3D PECA MIQUEL-------------%
           xMax    = max(obj.mesh.coord(:,1));
           yMax    = max(obj.mesh.coord(:,2));
           zMax    = max(obj.mesh.coord(:,3));
+
+          xMin    = min(obj.mesh.coord(:,1));
+          yMin    = min(obj.mesh.coord(:,2));
+          zMin   = min(obj.mesh.coord(:,3));
           
-          isDir  = @(coor)  abs(coor(:,1))==0;
-          isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
+          
+          isDir  = @(coor)  abs(coor(:,3))==zMax;
+          isForce = @(coor) abs(coor(:,3))==zMin;
+
           
           sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
           sDir{1}.direction = [1,2,3]; %restricció vertical, horitzontal i 3r eix
@@ -216,7 +223,12 @@ classdef TopOptTestTutorial3DDensity < handle
           sPL{1}.domain    = @(coor) isForce(coor);
           sPL{1}.direction = 2;
           sPL{1}.value     = -1;
-          %---------------3D CANTIELEVER CASE-------------%
+%---------------3D PECA MIQUEL -------------%
+
+
+
+
+
 
             %No tocar a partir d'aqui
             dirichletFun = [];

@@ -51,7 +51,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.checkParameters();
-                obj.designVariable.fun.print(['TFGBenchmark/2DMBB_LevelSet/Iter_',char(string(obj.nIter))]);
+                obj.designVariable.fun.print(['TFGBenchmark/3DCantielever_LevelSet/Iter_',char(string(obj.nIter))]);
             end
         end
 
