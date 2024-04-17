@@ -44,11 +44,11 @@ classdef SteadyConvectionDiffusionProblem < handle
             s.stab  = obj.stab;
             s.mesh  = obj.mesh;
             s.tau   = tau;
-            wf      = WeakFormSolver.create(s);
+            wf      = WeakFormSolver.create(s); % Inside the a-vector would change in 2D
             [K,f]   = wf.compute(a,nu,obj.source);
         end
 
-        function tau = computeRecommendedStabilizationParameter(obj,a,nu)
+        function tau = computeRecommendedStabilizationParameter(obj,a,nu) % Independent class to choose tau between 1D/2D
             h  = obj.mesh.computeMeanCellSize();
             Pe = a*h/(2*nu);
             switch obj.stab
@@ -83,7 +83,7 @@ classdef SteadyConvectionDiffusionProblem < handle
             obj.trial.fValues = sol(1:end-2);
         end
 
-        function plotSolution(obj,sol)
+        function plotSolution(obj,sol) % Should differentiate between 1D and 2D
             x  = obj.mesh.coord;
             uh = sol(1:end-2);
             if obj.trial.order == "P1"
