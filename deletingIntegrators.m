@@ -36,21 +36,6 @@ norm(integ(:)-M(:))
 %% Fake stiffness matrix
 clear dVolu
 
-shTr = ShapeDerSym(trial).evaluate(xV);
-shTe = ShapeDerSym(test).evaluate(xV);
-dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
-mult = pagemtimes(permute(shTr,[2 1 3 4]),shTe);
-
-integ = bsxfun(@times, mult, dVolu);
-integ = squeezeParticular(sum(integ,3),3);
-
-K = stiffnessmatrix(quad,mesh,test,trial);
-
-norm(integ(:)-K(:))
-
-%% Fake stiffness v2
-clear dVolu
-
 operation = ShapeDerSym(trial)' * ShapeDerSym(test);
 
 dVolu(1,1,:,:)  = mesh.computeDvolume(quad);
@@ -64,8 +49,16 @@ norm(integ(:)-K(:))
 %% Fake stiffness v3
 
 operation = ShapeDerSym(trial)' * ShapeDerSym(test);
-integ = Integral(operation, mesh, quad);
-K = stiffnessmatrix(quad,mesh,test,trial);
+integ = Integral(operation, [test, trial], mesh, quad);
+% K = stiffnessmatrix(quad,mesh,test,trial);
+
+s.test = test;
+s.trial = trial;
+s.mesh = mesh;
+s.quadratureOrder='QUADRATIC';
+s.type = 'StiffnessMatrix';
+K = LHSintegrator.create(s);
+K = K.compute();
 
 norm(integ(:)-K(:))
 
@@ -77,8 +70,7 @@ norm(integ(:)-K(:))
 %% Real stiffness
 
 operation = ShapeDer(trial)' * ShapeDer(test);
-integ = Integral(operation, mesh, quad);
-K = stiffnessmatrix(quad,mesh,test,trial);
+integ = Integral(operation, [test, trial], mesh, quad);
 
 %% Functions
 function z = openprod(A,B)
