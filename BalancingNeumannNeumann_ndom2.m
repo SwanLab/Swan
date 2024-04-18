@@ -72,6 +72,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             obj.computeDomainLHS();
 
             obj.coarseSpace = obj.computeCoarseSpace();
+%             obj.coarseSpace = obj.coarseSpace(1,1:3);
             obj.LHScoarse = obj.computeCoarseLHS();
             obj.plotfields(obj.coarseSpace)
             
@@ -115,27 +116,34 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             obj.nSubdomains = [3 2]; %nx ny
             obj.scale    = 'MACRO';
             obj.weight   = 0.5;
-            obj.theta    = 0.3;
+            obj.theta    = 0.2;
         end
 
         function createReferenceMesh(obj)
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mS         = femD.mesh;
-            bS         = mS.createBoundaryMesh();
-%                         % Generate coordinates
-%                         x1 = linspace(0,1,5);
-%                         x2 = linspace(0,0.5,5);
-%                         % Create the grid
-%                         [xv,yv] = meshgrid(x1,x2);
-%                         % Triangulate the mesh to obtain coordinates and connectivities
-%                         [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+%             filename   = 'lattice_ex1';
+%             a.fileName = filename;
+%             femD       = FemDataContainer(a);
+%             mS         = femD.mesh;
+%             bS         = mS.createBoundaryMesh();
+                        % Generate coordinates
+                        x1 = linspace(0,1,8);
+                        x2 = linspace(0,0.5,8);
+                        % Create the grid
+                        [xv,yv] = meshgrid(x1,x2);
+                        % Triangulate the mesh to obtain coordinates and connectivities
+                        [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+                        %remove corners
+                        coord(coord(:,1) == max(coord(:,1)) & coord(:,2) == max(coord(:,2)),:)=[];
+                        coord(coord(:,1) == max(coord(:,1)) & coord(:,2) == min(coord(:,2)),:)=[];
+                        coord(coord(:,1) == min(coord(:,1)) & coord(:,2) == max(coord(:,2)),:)=[];
+                        coord(coord(:,1) == min(coord(:,1)) & coord(:,2) == min(coord(:,2)),:)=[];
+                        F = delaunay(coord(:,1:2));
 %             
-%                         s.coord    = coord(:,1:2);
-%                         s.connec   = F;
-%                         mS         = Mesh(s);
-%                         bS         = mS.createBoundaryMesh();
+                        s.coord    = coord(:,1:2);
+                        s.connec   = F;
+                        mS         = Mesh(s);
+                        bS         = mS.createBoundaryMesh();
 
             obj.meshReference = mS;
             obj.interfaceMeshReference = bS;
@@ -152,17 +160,22 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             library = obj.bcDirichletStepLibrary();
             dirichletBc{1,1} = library.dirichletBottomLeft;
             dirichletBc{1,2} = library.dirichletBottomMiddle;
+%             dirichletBc{1,3} = library.dirichletBottomMiddle;
+%             dirichletBc{1,4} = library.dirichletBottomMiddle;
             dirichletBc{1,3} = library.dirichletBottomRight;
 
             dirichletBc{2,1} = library.dirichletTopLeft;
             dirichletBc{2,2} = library.dirichletTopMiddle;
+%             dirichletBc{2,3} = library.dirichletTopMiddle;
             dirichletBc{2,3} = library.dirichletTopRight;
 
             newmanBc{1,1}=[];
             newmanBc{1,2}=[];
+%             newmanBc{1,3}=[];
+%             newmanBc{1,4}=[];
             newmanBc{1,3}.boundaryId=2;
             newmanBc{1,3}.dof{1}=[2];
-            newmanBc{1,3}.value{1}=[-1];
+            newmanBc{1,3}.value{1}=[-0.1];
 %             newmanBc{1,1}.boundaryId=4;
 %             newmanBc{1,1}.dof{1}=[2];
 %             newmanBc{1,1}.value{1}=[0];
@@ -175,9 +188,10 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 
             newmanBc{2,1}=[];
             newmanBc{2,2}=[];
+%             newmanBc{2,3}=[];
             newmanBc{2,3}.boundaryId=2;
             newmanBc{2,3}.dof{1}=[2];
-            newmanBc{2,3}.value{1}=[-1];
+            newmanBc{2,3}.value{1}=[-0.1];
 
             bM = obj.meshSubDomain{j,i}.createBoundaryMesh();
             [dirichlet,pointload] = obj.createBc(bM,dirichletBc{j,i},newmanBc{j,i});
@@ -193,6 +207,8 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             dirichletBc{1,1}.value{1}=[0,0];
             dirichletBc{1,2}=[];
             dirichletBc{1,3}=[];
+            dirichletBc{1,4}=[];
+            dirichletBc{1,5}=[];
 %             dirichletBc{1,3}.boundaryId=[2];
 %             dirichletBc{1,3}.dof{1}=[1,2];
 %             dirichletBc{1,3}.value{1}=[0,0];
@@ -202,13 +218,17 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             dirichletBc{2,1}.value{1}=[0,0];
             dirichletBc{2,2}=[];
             dirichletBc{2,3}=[];
+            dirichletBc{2,4}=[];
 
             newmanBc{1,1} = library.neumannBottomLeft;
             newmanBc{1,2} = library.neumannBottomMiddle;
+%             newmanBc{1,3} = library.neumannBottomMiddle;
+%             newmanBc{1,4} = library.neumannBottomMiddle;
             newmanBc{1,3} = library.neumannBottomRight;
 
             newmanBc{2,1} = library.neumannTopLeft;
             newmanBc{2,2} = library.neumannTopMiddle;
+%             newmanBc{2,3} = library.neumannTopMiddle;
             newmanBc{2,3} = library.neumannTopRight;
 
            
@@ -400,6 +420,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 
             %             obj.hExt    = obj.computeHarmonicExtension();
             coarseSpace = obj.computeCoarseSpaceBasis2(RBbasisl);
+            
             %              obj.plotfields(coarseSpace)
             %             coarseSpace = obj.computeCoarseSpaceBasisNoHarmonic(RBbasisg);
         end
@@ -518,7 +539,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
                 nfields = size(basis{ibasis},2);
                 values  = basis{ibasis};
                 for ifield = 1:nfields
-                     ivalues = values(:,ifield);
+                     ivalues = values(:,ifield)*0.5;
                      cBasis{ibasis}(:,ifield) = obj.computeHarmonicExtension(ivalues);
                 end
             end
@@ -687,20 +708,30 @@ classdef BalancingNeumannNeumann_ndom2 < handle
                 R = obj.computeInterfaceResidual(uD,RHS);
 %                 obj.updateNeumanValues(R);
                 RG = obj.constructGlobalResidual(R);
-
-                for jdom = 1:obj.nSubdomains(2)
-                    for idom =1:obj.nSubdomains(1)
-                        mesh = obj.meshSubDomain{jdom,idom};
-                        x = uD{jdom,idom};
-                        row = jdom;
-                        col = idom;
-                        obj.plotSolution(x,mesh,row,col,iter)
-                    end
-                end
+%                 obj.plotSolution(RG,obj.meshDomain,11,11,iter,2)
+%                 for jdom = 1:obj.nSubdomains(2)
+%                     for idom =1:obj.nSubdomains(1)
+%                         mesh = obj.meshSubDomain{jdom,idom};
+%                         x = uD{jdom,idom};
+%                         row = jdom;
+%                         col = idom;
+%                         obj.plotSolution(x,mesh,row,col,iter)
+%                     end
+%                 end
 
 %                 [u0,RHS] = obj.solveCoarseProblem(obj.boundaryConditions.neumannStep);
                 u0 = obj.solveCoarseProblem2(RG);
+%                 obj.plotSolution(u0,obj.meshDomain,10,10,iter)
                 Rbal = obj.balanceResidual3(u0,RG);
+%                 for jdom = 1:obj.nSubdomains(2)
+%                     for idom =1:obj.nSubdomains(1)
+%                         mesh = obj.meshSubDomain{jdom,idom};
+%                         x = Rbal{jdom,idom};
+%                         row = jdom;
+%                         col = idom;
+%                         obj.plotSolution(x,mesh,row,col,iter,1)
+%                     end
+%                 end
 %                 Rbal = obj.balanceResidual2(u0,RHS);
                 obj.updateBalancedNeumanValues(Rbal);
 %                 R = obj.computeInterfaceResidual(u0,RHS);
@@ -716,6 +747,15 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %                 end
 
                 [uN,~] = obj.solveFEM(obj.boundaryConditions.neumannStep);
+%                 for jdom = 1:obj.nSubdomains(2)
+%                     for idom =1:obj.nSubdomains(1)
+%                         mesh = obj.meshSubDomain{jdom,idom};
+%                         x = uN{jdom,idom};
+%                         row = jdom;
+%                         col = idom;
+%                         obj.plotSolution(x,mesh,row,col,iter,3)
+%                     end
+%                 end
 %                 [uN,~] = obj.solveFineNeumann(obj.boundaryConditions.neumannStep,Rbal);
                 uN     = obj.constructNeumannDisplacement(uN,u0); 
 
@@ -725,7 +765,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %                         x = uN{jdom,idom};
 %                         row = jdom;
 %                         col = idom;
-%                         obj.plotSolution(x,mesh,row,col,iter)
+%                         obj.plotSolution(x,mesh,row,col,iter,4)
 %                     end
 %                 end
 %                 uN = u0 + uN;;
@@ -739,30 +779,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
                 end
                 uIntOld = uIntNew;
 
-                %                 [uD,RHS] = obj.dirichletStep();
-
-                % for idom = 1:obj.nSubdomains(1)
-                %      uplot = reshape(obj.displacementFun{idom}.fValues',1,[])';
-                %                     uplot = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(uN{idom});
-                %      obj.plotSolution(uplot,obj.meshSubDomain{idom}, idom,iter)
-                %  end
-                %                 iter=iter+1;
-
-                %                 uN = obj.neumannStep();
-
-
-                %  for idom = 1:obj.nSubdomains(1)
-                %                     uplot = obj.boundaryConditions.neumannStep{idom}.reducedToFullVector(uN{idom});
-                %      uplot = uN{idom};
-                %      obj.plotSolution(uplot,obj.meshSubDomain{idom}, idom,iter)
-                %  end
-
-                %                 iter=iter+1;
-                %                 e(iter) = norm(uInt_new-uInt);
-                %                 uInt = uInt_new;
-
-                %                iter=iter+1;
-                %                 end
+              
             end
         end
 
@@ -899,6 +916,8 @@ classdef BalancingNeumannNeumann_ndom2 < handle
                     dof = obj.interfaceDof(:,idom,iint);
                     R = R + w(idom)*(RHS{row,col}(dof)-obj.LHS{row,col}(dof,:)*unodal ...
                     + obj.LHS{row,col}(dof,dof)*unodal(dof));
+%                     R = R + 1*(RHS{row,col}(dof)-obj.LHS{row,col}(dof,:)*unodal ...
+%                     + obj.LHS{row,col}(dof,dof)*unodal(dof));
                 end
                 Rint(:,iint)=R;
             end
@@ -1089,7 +1108,10 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %             uIntNew = bD{end}.dirichlet_values(obj.interfaceDirichletDof(:,end));
         end
 
-        function plotSolution(obj,x,mesh,row,col,iter)
+        function plotSolution(obj,x,mesh,row,col,iter,flag)
+            if nargin <7
+                 flag =0;
+            end
             %             xFull = bc.reducedToFullVector(x);
             if size(x,2)==1
                  s.fValues = reshape(x,2,[])';
@@ -1103,7 +1125,17 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             s.ndimf = 3;
             xF = P1Function(s);
 %             xF.plot();
-            xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            if flag == 0
+                xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 1
+                xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 2
+                xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 3
+                xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 4
+                xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            end
             fclose('all');
         end
 
@@ -1147,7 +1179,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %             bc.dirichletBottomLeft.dof{2}=[1,2];
 %             bc.dirichletBottomLeft.value{1}=[0,0];
 %             bc.dirichletBottomLeft.value{2}=[0,0];
-            
+%             
             bc.dirichletBottomLeft.boundaryId=[1,2,4];
             bc.dirichletBottomLeft.dof{1}=[1,2];
             bc.dirichletBottomLeft.dof{2}=[1,2];
@@ -1212,7 +1244,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %             bc.neumannBottomLeft.boundaryId=[2];
 %             bc.neumannBottomLeft.dof{1}=[1,2];
 %             bc.neumannBottomLeft.value{1}=[0,0];
-            %             bc.newmanNo=[];
+% %             %             bc.newmanNo=[];
             
             bc.neumannBottomLeft.boundaryId=[2,4];
             bc.neumannBottomLeft.dof{1}=[1,2];
