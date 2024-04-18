@@ -9,12 +9,28 @@ end
 
 function A = assemble(Aelem, funs)
     % funs: test, trial. in that order.
-    test = funs(1);
+    nfuns = length(funs);
+    switch nfuns
+        case 1
+            A = assembleVector(Aelem, funs(1));
+
+        case 2
+            A = assembleMatrix(Aelem, funs(1), funs(2));
+
+        otherwise
+            error('Unknown number of functions to assemble')
+    end
+end
+
+
+function A = assembleMatrix(Aelem, test, trial)
     dofsF1 = test.getConnec();
-    if length(funs) == 2
-        trial = funs(2);
+    if isequal(test, trial)
+        dofsF2 = dofsF1;
+    else
         dofsF2 = trial.getConnec();
     end
+    
     nElem = size(Aelem,3);
     nDofs1 = numel(test.fValues);
     nDofs2 = numel(trial.fValues);
@@ -36,6 +52,30 @@ function A = assemble(Aelem, funs)
         end
     end
     A = sparse(res(:,1), res(:,2), res(:,3), nDofs1, nDofs2);
+
+end
+
+function V = assembleVector(F, test)
+    % Via indices
+    dofConnec = test.getConnec();
+    nDofsEl   = size(dofConnec,2);
+    nDofs     = max(max(dofConnec));
+    nGaus     = size(F,2);
+    nElem     = size(F,3);
+    strt = 1;
+    fnsh = nElem;
+    res = zeros(nDofsEl * nElem, 2);
+    for iDof = 1:nDofsEl
+        for igaus = 1:nGaus
+            dofs = dofConnec(:,iDof);
+            c = squeeze(F(iDof,igaus,:));
+            matRes = [dofs, c];
+            res(strt:fnsh,:) = matRes;
+            strt = strt + nElem;
+            fnsh = fnsh + nElem;
+        end
+    end
+    V = sparse(res(:,1), 1, res(:,2), nDofs, 1);
 end
 
 % function dom = Integral(operation,mesh)

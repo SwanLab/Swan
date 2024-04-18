@@ -65,7 +65,7 @@ norm(integ(:)-K(:))
 %% Elastic stiffness
 % it works!
 % operation = ShapeDerSym(trial)' * obj.material * ShapeDerSym(test);
-% integ = Integral(operation, obj.mesh, obj.quadrature);
+% integ = Integral(operation, [test, trial], obj.mesh, obj.quadrature);
 
 %% Real stiffness
 
