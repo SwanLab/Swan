@@ -90,10 +90,15 @@ classdef GeometricalFunction < handle
                     n  = cParams.superEllipseFactor;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) abs((x1(x)-x0)/a).^n+abs((x2(x)-y0)/b).^n-1;
+                    fH = @(x) -(abs((x1(x)-x0)/a).^n+abs((x2(x)-y0)/b).^n-1);
                     obj.fHandle = fH;
+                    
+                case 'EllipseInclusion'
+                    s      = cParams;
+                    s.type = 'Ellipse';
+                    obj.computeInclusion(s);
                 
-                case 'Superform'
+                case 'Superformula'
                     a  = cParams.semiHorizontalAxis;
                     b  = cParams.semiVerticalAxis;
                     m  = cParams.m;
@@ -106,6 +111,11 @@ classdef GeometricalFunction < handle
                     r  = @(x) ((x1(x)-x0).^2+(x2(x)-y0).^2).^0.5;
                     fH = @(x) (abs(cos(m*th(x)/4)/a).^n2+abs(sin(m*th(x)/4)/b).^n3).^(-1/n1)-r(x);
                     obj.fHandle = fH;
+                    
+                case 'SuperformulaInclusion'
+                    s      = cParams;
+                    s.type = 'Superformula';
+                    obj.computeInclusion(s);
 
                 case 'CircleInclusion'
                     s      = cParams;

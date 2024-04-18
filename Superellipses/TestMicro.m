@@ -17,6 +17,7 @@ classdef TestMicro < handle
         function obj = TestMicro(cParams)
             obj.init(cParams);
             obj.createMesh();
+            obj.mesh.plot();
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
@@ -43,9 +44,17 @@ classdef TestMicro < handle
 
         function ls = computeCircleLevelSet(obj, mesh)
             gPar.type               = obj.geometryInclusion.type;
+            % For the superellipse
+%             gPar.semiHorizontalAxis = obj.geometryInclusion.a;
+%             gPar.semiVerticalAxis   = obj.geometryInclusion.b;
+%             gPar.superEllipseFactor = obj.geometryInclusion.n;
+            % For the superformula
             gPar.semiHorizontalAxis = obj.geometryInclusion.a;
             gPar.semiVerticalAxis   = obj.geometryInclusion.b;
-            gPar.superEllipseFactor = obj.geometryInclusion.n;
+            gPar.m = obj.geometryInclusion.m;
+            gPar.n1 = obj.geometryInclusion.n1;
+            gPar.n2 = obj.geometryInclusion.n2;
+            gPar.n3 = obj.geometryInclusion.n3;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
