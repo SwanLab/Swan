@@ -18,7 +18,7 @@ classdef ElasticProblemMicro < handle
         strain, stress
         stiffness, forces
 
-        solverType, solverMode
+        solverType, solverMode, solverCase = 'DIRECT'
         lagrangeMultipliers
     end
 
@@ -155,7 +155,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function createSolver(obj)
-            s.type =  'DIRECT';
+            s.type =  obj.solverCase;
             obj.solver = Solver.create(s);
         end
 
@@ -177,6 +177,7 @@ classdef ElasticProblemMicro < handle
         function u = computeDisplacement(obj, iVoigt)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
+            s.solver     = obj.solver;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces(:, iVoigt);
             s.boundaryConditions = obj.boundaryConditions;
