@@ -6,11 +6,11 @@ close all
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-xpos = 0.5;
+xpos = 1.2;
 ypos = 0.5;
-radius = 0.05;
+radius = 0.08;
 
-m = QuadMesh(2,1,100,100); %Per alguna raó, amb 150 la P no surt correcte.
+m = QuadMesh(2,1,120,120); %Per alguna raó, amb 150 la P no surt correcte.
 s.type='Given';
 s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
 g = GeometricalFunction(s);
@@ -194,6 +194,7 @@ pressureFun.plot()
 boundary_mesh = uMesh.boundaryCutMesh.mesh;
 
 pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+%velocity_boundary = uMesh.obtainFunctionAtUnfittedMesh(velocityFun);
 pressure_boundary.boundaryCutMeshFunction.plot()
 
 normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim);
@@ -216,8 +217,8 @@ for iE = 1:boundary_mesh.nelem
 end
 
 F_total = [0,0];
-for iE = 1:boundary_mesh.nelem
-    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*-pressure_boundary.boundaryCutMeshFunction.fValues(iE);
+for iE = 1:boundary_mesh.nelem-1
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-((pressure_boundary.boundaryCutMeshFunction.fValues(iE)+pressure_boundary.boundaryCutMeshFunction.fValues(iE+1))/2));
 end
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors

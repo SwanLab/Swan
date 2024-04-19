@@ -9,12 +9,12 @@ clc
 
 dim_a = 0.2; % Semi-major axis 0.2
 dim_b = 0.02; % Semi-minor axis 0.02
-center_posx = 0.9; % x position of the ellipse center
+center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,300,300); %Per alguna raó, amb 150 la P no surt correcte.
+m = QuadMesh(2,1,200,200); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -49,7 +49,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1 < 1e-12);
+isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1 < 1e-3);
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
@@ -183,6 +183,7 @@ pressureFun.plot()
 boundary_mesh = uMesh.boundaryCutMesh.mesh;
 
 pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+%velocity_boundary = uMesh.obtainFunctionAtUnfittedMesh(velocityFun);
 pressure_boundary.boundaryCutMeshFunction.plot() %Plot the ellipse
 
 normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim); %Assign the space for the vectors
@@ -206,7 +207,7 @@ end
 
 F_total = [0,0];
 for iE = 1:boundary_mesh.nelem
-    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*-pressure_boundary.boundaryCutMeshFunction.fValues(iE);
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-pressure_boundary.boundaryCutMeshFunction.fValues(iE));
 end
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
