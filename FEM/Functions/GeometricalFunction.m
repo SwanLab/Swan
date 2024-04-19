@@ -107,9 +107,13 @@ classdef GeometricalFunction < handle
                     n3 = cParams.n3;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    th = @(x) atan((x2(x)-y0)./(x1(x)-x0));
-                    r  = @(x) ((x1(x)-x0).^2+(x2(x)-y0).^2).^0.5;
-                    fH = @(x) (abs(cos(m*th(x)/4)/a).^n2+abs(sin(m*th(x)/4)/b).^n3).^(-1/n1)-r(x);
+                    
+                    phi = @(x) atan2((x2(x)-y0), (x1(x)-x0));
+                    r1aux = @(x) abs(cos(m.*phi(x)/4)./a).^n2;
+                    r2aux = @(x) abs(sin(m.*phi(x)/4)./b).^n3;
+                    r = @(x) (r1aux(x) + r2aux(x)).^(-1./n1);
+                    fH = @(x) 1-(((x1(x)-x0)./r(x)).^2 + ((x2(x)-y0)./r(x)).^2); 
+                    % fH = @(x) (abs(cos(m*th(x)/4)/a).^n2+abs(sin(m*th(x)/4)/b).^n3).^(-1/n1)-r(x);
                     obj.fHandle = fH;
                     
                 case 'SuperformulaInclusion'
