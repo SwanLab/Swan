@@ -32,7 +32,7 @@ classdef TestMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitQuadMesh(100,100);
+            fullmesh = UnitQuadMesh(200,200);
             ls = obj.computeCircleLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
