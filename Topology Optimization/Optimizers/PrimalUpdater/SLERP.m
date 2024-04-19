@@ -152,8 +152,8 @@ classdef SLERP < handle
 
             lUB(~isUBAct | lUB<0)     = 0;
             lLB(~isLBAct | lLB<0)     = 0;
-            obj.boxConstraints.lUB    = lUB;
-            obj.boxConstraints.lLB    = lLB;
+            obj.boxConstraints.lUB    = 0; % lUB
+            obj.boxConstraints.lLB    = 0; % lLB
             obj.boxConstraints.refTau = t;
         end
 

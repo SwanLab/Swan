@@ -204,7 +204,7 @@ classdef OptimizerNullSpace < Optimizer
             switch class(obj.primalUpdater)
                 case 'SLERP'
                     t          = obj.primalUpdater.boxConstraints.refTau;
-                    obj.etaMax = 0.2;
+                    obj.etaMax = 1e-4;
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;

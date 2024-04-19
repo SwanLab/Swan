@@ -145,6 +145,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
             M = LHS.compute;
+
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*eye(size(M));
         end
 
         function createConstraint(obj)
