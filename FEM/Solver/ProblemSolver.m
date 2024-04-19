@@ -10,6 +10,7 @@ classdef ProblemSolver < handle
         forces
         boundaryConditions
         BCApplier
+        solver
     end
     
     properties (Access = private)
@@ -24,7 +25,7 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             [LHS, RHS] = obj.computeMatrices();
-            sol        = obj.solveSystem(LHS, RHS);
+            sol        = obj.solver.solve(LHS, RHS);
             [u, L]     = obj.cleanupSolution(sol);
         end
         
@@ -39,15 +40,12 @@ classdef ProblemSolver < handle
             obj.forces             = cParams.forces;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
+            obj.solver             = cParams.solver;
         end
 
         function [LHS, RHS] = computeMatrices(obj)
             LHS = obj.assembleLHS();
             RHS = obj.assembleRHS();
-        end
-
-        function sol = solveSystem(obj, LHS, RHS)
-            sol = LHS\RHS;
         end
 
         function [u, L] = cleanupSolution(obj,sol)
