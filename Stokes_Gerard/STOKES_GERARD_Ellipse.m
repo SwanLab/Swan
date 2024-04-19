@@ -1,4 +1,4 @@
-clear
+clear all
 close all
 clc
 
@@ -7,14 +7,14 @@ clc
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-dim_a = 0.2; % Semi-major axis
-dim_b = 0.02; % Semi-minor axis
-center_posx = 0.6; % x position of the ellipse center
+dim_a = 0.2; % Semi-major axis 0.2
+dim_b = 0.02; % Semi-minor axis 0.02
+center_posx = 0.9; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,200,200); %Per alguna raó, amb 150 la P no surt correcte.
+m = QuadMesh(2,1,300,300); %Per alguna raó, amb 150 la P no surt correcte.
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -49,7 +49,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2+abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2-1 < 1e-3);
+isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1 < 1e-12);
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
@@ -59,6 +59,30 @@ dir_vel{2}.value     = [0,0];
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
+
+% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
+% dir_pre{1}.direction = 1;
+% dir_pre{1}.value     = 0;
+
+% dir_vel{2}.domain    = @(coor) isTop(coor) & not(isLeft(coor));
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [0,0]; 
+% 
+% dir_vel{4}.domain    = @(coor) isBottom(coor) & not(isLeft(coor));
+% dir_vel{4}.direction = [1,2];
+% dir_vel{4}.value     = [0,0]; 
+% 
+% dir_vel{3}.domain    = @(coor) isCyl(coor);
+% dir_vel{3}.direction = [1,2];
+% dir_vel{3}.value     = [0,0]; 
+% 
+% dir_vel{1}.domain    = @(coor) isLeft(coor);
+% dir_vel{1}.direction = [1,2];
+% dir_vel{1}.value     = [1,0];
+% 
+% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
+% dir_pre{1}.direction = 1;
+% dir_pre{1}.value     = 0;
 
 dirichlet = [];
 dir_dofs = [];
@@ -154,3 +178,39 @@ pressureFun.fValues = vars.p(:,end);
 % PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
+
+%% PRESURE AT SURFACE
+boundary_mesh = uMesh.boundaryCutMesh.mesh;
+
+pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+pressure_boundary.boundaryCutMeshFunction.plot() %Plot the ellipse
+
+normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim); %Assign the space for the vectors
+length_element = zeros(boundary_mesh.nelem,1); %Assign the space for lenghts of the elements
+
+centroid = mean(boundary_mesh.coord);
+central_points = (boundary_mesh.coord(boundary_mesh.connec(:,1),:)+boundary_mesh.coord(boundary_mesh.connec(:,2),:))/2;
+ref_vect = central_points - centroid;
+
+for iE = 1:boundary_mesh.nelem
+    node1 = boundary_mesh.coord(boundary_mesh.connec(iE,1),:);
+    node2 = boundary_mesh.coord(boundary_mesh.connec(iE,2),:);
+    nvect = (node2-node1)/(abs(norm(node2-node1)));
+    nvect = nvect * [0 -1;1 0];
+    if dot(ref_vect(iE,:),nvect)<0
+        nvect = -nvect;
+    end
+    normal_vectors(iE,:) = nvect;
+    length_element(iE) = abs(norm(node1-node2));
+end
+
+F_total = [0,0];
+for iE = 1:boundary_mesh.nelem
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*-pressure_boundary.boundaryCutMeshFunction.fValues(iE);
+end
+
+quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
+hold on
+quiver(center_posx,center_posy,F_total(1,1),F_total(1,2));
+hold on
+boundary_mesh.plot() %Plot mesh points

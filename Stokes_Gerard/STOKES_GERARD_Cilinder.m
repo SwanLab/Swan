@@ -215,9 +215,16 @@ for iE = 1:boundary_mesh.nelem
     length_element(iE) = abs(norm(node1-node2));
 end
 
-quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2))
+F_total = [0,0];
+for iE = 1:boundary_mesh.nelem
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*-pressure_boundary.boundaryCutMeshFunction.fValues(iE);
+end
+
+quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on
-boundary_mesh.plot()
+quiver(centroid(1,1),centroid(1,2),F_total(1,1),F_total(1,2));
+hold on
+boundary_mesh.plot() %Plot mesh points
 
 
 
