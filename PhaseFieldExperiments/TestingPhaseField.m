@@ -67,6 +67,7 @@ classdef TestingPhaseField < handle
 
         function createInitialPhaseField(obj)
             phi = LagrangianFunction.create(obj.mesh,1,'P1');
+            phi.fValues = 0.4*ones(4,1);
             obj.initialPhaseField = phi;
         end
 
@@ -91,7 +92,7 @@ classdef TestingPhaseField < handle
             s.fun  = obj.initialPhaseField;
             s.mesh = obj.mesh;
             mp     = MicroDamageParams(s);
-            sH.fileName    = 'SquareMicroDamagePerimeter';
+            sH.fileName    = 'CircleMicroDamagePerimeter';
             sH.microParams = mp;
             obj.materialPhaseField = HomogenizedPhaseField(sH);
         end

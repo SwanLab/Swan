@@ -56,8 +56,8 @@ classdef CellFinderInStructuredMesh1D < handle
             dif = bsxfun(@(x, xi) (x-xi),xpoints,xi')';
             [~,imin] = min(abs(dif));
             idx = imin + nx*(0:npoints-1);
-            minPos = dif(idx) >= -1e-20;
-            minNeg = dif(idx) < -1e-20;
+            minPos = dif(idx) >= 0;
+            minNeg = dif(idx) < 0;
             lIndex = zeros(size(imin));
             lIndex(minPos) = imin(minPos);
             lIndex(minNeg) = imin(minNeg)-1;
