@@ -48,7 +48,7 @@ classdef LagrangianPlotter < handle
                 else
                     x = c(:,1);
                     z = s.func.fValues(:,idim);
-                    plot(x,z,'*');
+                    plot(x,z);
                     xlim([0,1])
                 end
             end

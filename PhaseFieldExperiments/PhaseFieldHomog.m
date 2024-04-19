@@ -15,14 +15,13 @@ classdef PhaseFieldHomog < handle
         
         function [mat,alpha] = computeHomogMaterial(obj,holeType,aType,steps)
             holeMax = obj.computeHoleMax(holeType);
-            holeLength = linspace(0,holeMax,steps);
+            holeLength = linspace(1e-16,holeMax,steps);
             mat = zeros(3,3,length(holeLength));
             alpha = zeros(length(holeLength),1);
             for i=1:steps
                 l = holeLength(i);
                 mat(:,:,i) = obj.computeHomogenisation(l,holeType);
                 alpha(i) = obj.computeDissipationMetric(l,holeType,aType);
-                
             end
             Chomog = obj.createMaterialFun(mat,alpha);
         end
@@ -85,13 +84,7 @@ classdef PhaseFieldHomog < handle
         end
         
         function matHomog = computeHomogenisation(obj,l,holeType)
-            if l<0.015
-                type = "Full";
-                l = 0;
-            else
-                type = holeType;
-            end
-            mat = Tutorial02p2FEMElasticityMicro(l,type,obj.E,obj.nu);
+            mat = Tutorial02p2FEMElasticityMicro(l,holeType,obj.E,obj.nu);
             matHomog = mat.stateProblem.Chomog;
             
             figure(1)
@@ -104,25 +97,16 @@ classdef PhaseFieldHomog < handle
                 case "Area"
                     switch holeType
                         case "Circle"
-                            alpha = pi*l^2;
+                            alpha = (pi*l^2)/(pi*0.5*0.5);
                         case "Square"
                             alpha = l^2;
-                        case "Full"
-                            alpha = 0;
-                    end
-                case "Diameter"
-                    switch holeType
-                        case "Circle"
-                            alpha = 2*l;
-                        case "Square"
-                            alpha = l;
                         case "Full"
                             alpha = 0;
                     end
                 case "Perimeter"
                     switch holeType
                         case "Circle"
-                            alpha = 2*pi*l/4;
+                            alpha = 2*pi*l/pi;
                         case "Square"
                             alpha = 4*l/4;
                         case "Full"

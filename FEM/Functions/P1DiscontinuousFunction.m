@@ -155,18 +155,32 @@ classdef P1DiscontinuousFunction < FeFunction
         function plot(obj)
             fD = obj.getFvaluesAsVector();
             mD = obj.mesh.createDiscontinuousMesh();
-            x = mD.coord(:,1);
-            y = mD.coord(:,2);
-            figure()
-            for idim = 1:obj.ndimf
-                subplot(1,obj.ndimf,idim);
-                z = fD(:,idim);
-                a = trisurf(mD.connec,x,y,double(z));
-                view(0,90)
-                colorbar
-                shading interp
-                a.EdgeColor = [0 0 0];
-                title(['dim = ', num2str(idim)]);
+            ndimG = size(mD.coord);
+            if ndimG == 2
+                x = mD.coord(:,1);
+                y = mD.coord(:,2);
+                for idim = 1:obj.ndimf
+                    subplot(1,obj.ndimf,idim);
+                    z = fD(:,idim);
+                    a = trisurf(mD.connec,x,y,double(z));
+                    view(0,90)
+                    colorbar
+                    shading interp
+                    a.EdgeColor = [0 0 0];
+                    title(['dim = ', num2str(idim)]);
+                end
+            else
+                x = mD.coord(:,1);
+                for idim = 1:obj.ndimf
+                    subplot(1,obj.ndimf,idim);
+                    y = fD(:,idim);
+                    plot(x,y)
+                    view(0,90)
+                    colorbar
+                    shading interp
+                    a.EdgeColor = [0 0 0];
+                    title(['dim = ', num2str(idim)]);
+                end
             end
         end
 

@@ -1,18 +1,17 @@
-PFH = PhaseFieldHomog()
-%[C_P_Circle,P_Circle] = PFH.computeHomogMaterial("Circle","Perimeter",30);
-% [C_A_Circle,A_Circle] = PFH.computeHomogMaterial("Circle","Area",30);
-% [C_L_Circle,L_Circle] = PFH.computeHomogMaterial("Circle","Diameter",30);
-% 
-% [C_P_Square,P_Square] = PFH.computeHomogMaterial("Square","Perimeter",30);
-% [C_A_Square,A_Square] = PFH.computeHomogMaterial("Square","Area",30);
-[mat,alpha] = PFH.computeHomogMaterial("Square","Diameter",100);
-mat(:,:,end+1) = zeros(3,3); alpha(end+1) = 1;
-alpha = alpha';
-save('SquareMicroDamage','mat','alpha')
-% 
- % [mat,alpha] = PFH.computeIsotropicMaterial("AT2",1000);
- % save('IsoMicroDamage','mat','alpha')
-% [~,AT2] = PFH.computeIsotropicMaterial("AT2",30);
+PFH = PhaseFieldHomog();
+% [mat,phi] = PFH.computeHomogMaterial("Circle","Perimeter",100);
+% save('CircleMicroDamagePerimeter','mat','phi')
+% [mat,phi] = PFH.computeHomogMaterial("Circle","Area",100);
+% save('CircleMicroDamageArea','mat','phi')
+
+[mat,phi]  = PFH.computeHomogMaterial("Square","Perimeter",100);
+save('SquareMicroDamagePerimeter','mat','phi')
+[mat,phi]  = PFH.computeHomogMaterial("Square","Area",100);
+save('SquareMicroDamageArea','mat','phi')
+
+[mat,phi] = PFH.computeIsotropicMaterial("AT1",100);
+save('IsoMicroDamage','mat','phi')
+%[~,AT2] = PFH.computeIsotropicMaterial("AT2",30);
 
 %%% PLOT %%%
 close all
@@ -24,16 +23,14 @@ for i=1:3
         nexttile
         hold on
 
-        plotFun(C_P_Circle{i,j},P_Circle,"none","#0072BD",".");
-        plotFun(C_A_Circle{i,j},A_Circle,"none","#D95319",".");
-        plotFun(C_L_Circle{i,j},L_Circle,"none","#EDB120",".");
+        plot(squeeze(P_Circle,C_P_Circle(i,j,:)),'.','Color','#0072BD');
+        plot(squeeze(A_Circle,C_A_Circle(i,j,:)),'.','Color','#D95319');
 
-        plotFun(C_P_Square{i,j},P_Square,"--","#0072BD","none");
-        plotFun(C_A_Square{i,j},A_Square,"--","#D95319","none");
-        %plotFun(C_L_Square{i,j},L_Square,"--","#EDB120","none");
+        plot(squeeze(P_Square,C_P_Square(i,j,:)),'--','Color','#0072BD');
+        plot(squeeze(A_Square,C_A_Square(i,j,:)),'--','Color','#D95319');
 
-        plotFun(C_Iso{i,j},AT1,"-","#7E2F8E","none")
-        plotFun(C_Iso{i,j},AT2,"-","#77AC30","none")
+        plot(squeeze(AT1,C_Iso(i,j,:)),'-','Color','#7E2F8E');
+        plot(squeeze(AT2,C_Iso(i,j,:)),'-','Color','#77AC30');
 
         xlabel(['C',num2str(i),num2str(j)]);
         ylabel("$\alpha$",'Interpreter','latex');
@@ -54,7 +51,7 @@ end
 leg = legend('Circle (Perimeter)', ...
              'Circle (Area)', ...
              'Circle (Length)', ...
-             'Square (Perimeter/Length)', ...
+             'Square (Perimeter)', ...
              'Square (Area)', ...
              'Analytical (AT1)', ...
              'Analytical (AT2)','Orientation', 'Vertical');
@@ -65,14 +62,14 @@ function plotFun(C,alpha,op1,op2,op3)
         case "P1"
             x = alpha;
             y = C.fValues;
-            p = plot(y,x);
+            p = plot(x,y);
             p.LineStyle = op1;
             p.Color = op2;
             p.Marker = op3;
         case "P2"
             [x,sortIdx] = sort(C.getCoord());
             y = C.fValues(sortIdx);
-            p = plot(y,x);
+            p = plot(x,y);
             p.LineStyle = op1;
             p.Color = op2;
             p.Marker = op3;

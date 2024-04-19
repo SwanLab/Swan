@@ -60,7 +60,11 @@ classdef HomogenizedPhaseField < handle
             matFile   = [fName,'.mat'];
             file2load = fullfile('VademecumDamage',matFile);
             v = load(file2load);
-            mxV = v.alpha;
+
+            %v.phi(end+1) = 1;
+            %v.mat(:,:,end+1) = zeros(3,3);
+
+            mxV = v.phi;
             C   = v.mat;
         end
 
@@ -77,8 +81,8 @@ classdef HomogenizedPhaseField < handle
                     Cij = squeeze(C(i,j,:));
                     CijF = LagrangianFunction.create(m, 1,'P1');
                     CijF.fValues = Cij;
-                    Cij = CijF.project('P2');                                        
-                    obj.Ctensor{i,j} = Cij;
+                    %Cij = CijF.project('P2');                                        
+                    obj.Ctensor{i,j} = CijF;
                 end
             end
         end
@@ -98,41 +102,58 @@ classdef HomogenizedPhaseField < handle
             end
         end
 
-        function dCt = evaluateGradient(obj,xV,dir)
+        function dCt = evaluateGradient(obj,xV,dir)         
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
-            nDim  = obj.microParams{1}.ndimf;
             nStre = size(obj.Ctensor,1);
-            %  nDofs = size(mL,2);
-            dC  = zeros(nDim,nStre,nStre,nGaus,nElem);
+            dCt = zeros(nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    dCv = obj.Ctensor{i,j}.sampleGradient(mL',cells');
-                    dCv = squeezeParticular(dCv,1);
-                    dCij(:,1,1,:,:)  = reshape(dCv,nDim,nGaus,nElem);
-                    dC(:,i,j,:,:) = dCij;
+                    dCtensorDomF = Grad(obj.Ctensor{i,j});
+                    dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
+
+                    % for k=1:10
+                    %     ss.filterType = 'LUMP';
+                    %     ss.mesh       = obj.structuredMesh.mesh;
+                    %     ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
+                    %     filter        = Filter.create(ss);
+                    %     dCtensor       = filter.compute(dCtensor,'QUADRATIC');
+                    % end
+
+                    dCv = dCtensor.sampleFunction(mL',cells');
+                    dCij(1,1,:,:) = reshape(dCv,nGaus,[]);
+                    dCt(i,j,:,:)   = dCij(1,1,:,:);
                 end
             end
-            dCt = squeezeParticular(dC(dir,:,:,:,:),1);
         end
 
         function d2Ct = evaluateHessian(obj,xV,dir)
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
-            nDim  = obj.microParams{1}.ndimf;
             nStre = size(obj.Ctensor,1);
-            d2C  = zeros(nDim,nStre,nStre,nGaus,nElem);
+            d2Ct = zeros(nStre,nStre,nGaus,nElem);
             for i = 1:nStre
                 for j = 1:nStre
-                    d2Cv = obj.Ctensor{i,j}.sampleHessian(mL',cells');
-                    d2Cv = squeezeParticular(d2Cv,1);
-                    d2Cij(:,1,1,:,:)  = reshape(d2Cv,nDim,nGaus,nElem);
-                    d2C(:,i,j,:,:) = d2Cij;
+                    dCtensorDomF = Grad(obj.Ctensor{i,j});
+                    dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    d2CtensorDomF = Grad(dCtensor);
+                    d2Ctensor = d2CtensorDomF.project('P1',obj.structuredMesh.mesh);
+
+                    for k=1:10
+                        ss.filterType = 'LUMP';
+                        ss.mesh       = obj.structuredMesh.mesh;
+                        ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
+                        filter        = Filter.create(ss);
+                        d2Ctensor       = filter.compute(d2Ctensor,'QUADRATIC');
+                    end
+
+                    d2Cv = d2Ctensor.sampleFunction(mL',cells');
+                    d2Cij(1,1,:,:) = reshape(d2Cv,nGaus,[]);
+                    d2Ct(i,j,:,:)   = d2Cij(1,1,:,:);
                 end
             end
-            d2Ct = squeezeParticular(d2C(dir,:,:,:,:),1);
         end
 
         function [mL, cells] = obtainLocalCoord(obj,xV)

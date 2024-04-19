@@ -5,12 +5,12 @@ classdef TestingPhaseField < handle
         nu = 0.3;
         Gc = 5e-3;
         l0 = 0.1;
-        pExp = 2;
+        pExp = 1;
         % bcVal = [linspace(0,8.5e-3,100), ...
         %         linspace(8.5e-3,0,100), ...
         %         linspace(0,-1e-2,100), ...
         %         ];
-        bcVal = linspace(0,1e-1,300);
+        bcVal = linspace(1e-4,1e-1,100);
         % bcVal = 1;
         % bcVal = [0.001];
     end
@@ -78,20 +78,20 @@ classdef TestingPhaseField < handle
             %  sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
             %  s.poisson = LagrangianFunction(sParam);
             %  sIso.ndim = obj.mesh.ndim;
-            %
+            % 
             %  s.isoMat = Isotropic2dElasticMaterial(sIso);
             %  s.ndim = obj.mesh.ndim;
             %  s.mesh = obj.mesh;
             %  s.materialInterpolation = obj.createMaterialInterpolation();
             %  s.Gc = obj.Gc;
-            %
+            % 
             % obj.materialPhaseField = MaterialPhaseField(s);
 
             s.type = 'MicroDamage';
             s.fun  = obj.initialPhaseField;
             s.mesh = obj.mesh;
             mp     = MicroDamageParams(s);
-            sH.fileName    = 'SquareMicroDamage';
+            sH.fileName    = 'SquareMicroDamagePerimeter';
             sH.microParams = mp;
             obj.materialPhaseField = HomogenizedPhaseField(sH);
         end

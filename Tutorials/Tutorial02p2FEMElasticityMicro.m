@@ -24,7 +24,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj,length,type)
-            fullmesh = UnitTriangleMesh(200,200);
+            fullmesh = UnitTriangleMesh(300,300);
             ls = obj.computeCircleLevelSet(fullmesh,length,type);
             if type ~= "Full"
                 sUm.backgroundMesh = fullmesh;

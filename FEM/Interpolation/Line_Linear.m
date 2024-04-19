@@ -36,4 +36,13 @@ classdef Line_Linear < Interpolation
         
     end
     
+    methods (Access = public)
+        function deriv2 = evaluateShapeSecondDerivatives(obj, xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            deriv2 = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv2(1,1,:,:) = 0;
+            deriv2(1,2,:,:) = 0;
+        end
+    end
 end
