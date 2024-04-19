@@ -26,7 +26,7 @@ classdef Projector_toP0 < Projector
     methods (Access = private)
 
         function createMassMatrix(obj)
-            quad = Quadrature.create(obj.mesh,2);
+            quad = Quadrature.create(obj.mesh,1);
             dv = obj.mesh.computeDvolume(quad);
             a = sum(dv(1,:),1);
             obj.M = spdiags(a',0,length(a),length(a));
