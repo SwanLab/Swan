@@ -56,7 +56,8 @@ classdef OptimizerMMA < Optimizer
                obj.printOptimizerVariable();
                obj.updateMonitoring();
            end
-            obj.hasConverged = 0;
+           obj.hasConverged = 0;
+           obj.designVariable.fun.print('MMA_DesignVar');
        end
         
         function update(obj)

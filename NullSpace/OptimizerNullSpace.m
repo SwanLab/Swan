@@ -52,6 +52,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.checkParameters();
             end
+            obj.designVariable.fun.print('NS_DesignVar');
         end
 
     end
