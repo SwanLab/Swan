@@ -41,7 +41,7 @@ classdef SteadyConvectionDiffusionProblem < handle
         function [K,f] = computeSystemLHSandRHS(obj,a,nu)
             tau     = obj.computeRecommendedStabilizationParameter(a,nu);
             s.trial = obj.trial;
-            s.stab  = obj.stab;
+            s.stab  = obj.stab; % ['LHSintegratior',obj.stab]
             s.mesh  = obj.mesh;
             s.tau   = tau;
             wf      = WeakFormSolver.create(s); % Inside the a-vector would change in 2D
@@ -49,7 +49,7 @@ classdef SteadyConvectionDiffusionProblem < handle
         end
 
         function tau = computeRecommendedStabilizationParameter(obj,a,nu) % Independent class to choose tau between 1D/2D
-            h  = obj.mesh.computeMeanCellSize();
+            h  = obj.mesh.computeMeanCellSize(); % TAU AS LAGRANG FUN FIELD + include in LHSIntegrators
             Pe = a*h/(2*nu);
             switch obj.stab
                 case 'Galerkin'
@@ -71,7 +71,7 @@ classdef SteadyConvectionDiffusionProblem < handle
             end
         end
 
-        function sol = solveSystem(obj,K,f)
+        function sol = solveSystem(obj,K,f) % Fer aquí
             s.nnodes    = obj.mesh.nnodes;
             s.order     = obj.trial.order;
             s.K         = K;
@@ -87,10 +87,10 @@ classdef SteadyConvectionDiffusionProblem < handle
             x  = obj.mesh.coord;
             uh = sol(1:end-2);
             if obj.trial.order == "P1"
-                plot(x,uh,'r-','LineWidth',1.5)
+                plot(x,uh,'-','LineWidth',1.5)
             else
                 [x0,y0]=obj.plotQuadraticElements();
-                plot(x0,y0,'r-','LineWidth',1.5)
+                plot(x0,y0,'-','LineWidth',1.5)
             end
             l = legend([obj.stab,' solution']);
             set(l, 'FontSize',14);

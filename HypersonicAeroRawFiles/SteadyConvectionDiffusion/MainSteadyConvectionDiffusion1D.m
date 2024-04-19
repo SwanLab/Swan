@@ -1,4 +1,4 @@
-classdef MainSteadyConvectionDiffusion1D < handle
+classdef MainSteadyConvectionDiffusion1D < handle % Transform to mlx
 
     properties (Access = private)
         a
@@ -26,12 +26,12 @@ classdef MainSteadyConvectionDiffusion1D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.a  = 1;
+            obj.a  = 10;
             obj.nu = 0.01;
         end
 
         function createMesh(obj)
-            nEl           = 10;
+            nEl           = 100;
             xnode         = 0:1/nEl:1; % Podríem demanar com a 1a pregunta que modifiquin els inputs amb Peclet
             s.coord       = xnode';
             s.connec(:,1) = 1:length(xnode)-1;
@@ -55,13 +55,18 @@ classdef MainSteadyConvectionDiffusion1D < handle
         end
 
         function solveProblem(obj)
-            s.mesh       = obj.mesh;
-            s.trial      = obj.trial;
-            s.sHandle    = obj.source;
-            s.dirValues  = obj.dirValues;
-            s.stab       = 'Galerkin';
-            prob         = SteadyConvectionDiffusionProblem(s);
-            obj.solution = prob.compute(obj.a,obj.nu);
+            cases = {'Galerkin','Upwind','SUPG'}; % Complete Nxx and SGS/GLS
+            for i=1:length(cases)
+                s.mesh       = obj.mesh;
+                s.trial      = obj.trial;
+                s.sHandle    = obj.source;
+                s.dirValues  = obj.dirValues;
+                s.stab       = cases{i};
+                prob         = SteadyConvectionDiffusionProblem(s);
+                obj.solution = prob.compute(obj.a,obj.nu);
+                % prob.plot
+                hold on
+            end
         end
     end
 end
