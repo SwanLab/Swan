@@ -41,14 +41,7 @@ classdef TopOptTestTutorial < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -183,9 +176,9 @@ classdef TopOptTestTutorial < handle
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerInteriorPoint(s);
-            % opt = OptimizerMMA(s);
+            % s.primal         = 'PROJECTED GRADIENT';
+            % opt              = OptimizerInteriorPoint(s);
+            opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
