@@ -6,11 +6,11 @@ close all
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-xpos = 0.8;
+xpos = 0.5;
 ypos = 0.5;
 radius = 0.08;
 
-m = QuadMesh(2,1,100,100); 
+m = QuadMesh(1,1,100,100); 
 s.type='Given';
 s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
 g = GeometricalFunction(s);
