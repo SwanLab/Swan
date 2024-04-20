@@ -4,7 +4,7 @@ function psi = mainTFGMultimaterial()
 clear all; close all; clc
 % load problem data
 
-% Set penalization, line search and stop criterion parameters
+% Topology Optimization parameters: set penalization, line search and stop criterion parameters
 params = ParametersComputer();
 
 % Generate mesh
@@ -14,40 +14,39 @@ mesh = MeshComputer();
 cParams.e = mesh.e;
 cParams.p = mesh.p;
 cParams.t = mesh.t;
+cParams.g = mesh.g;
 bc = BoundaryConditionsComputer(cParams);
 
+% Set material properties
+matProp = MaterialPropertiesComputer();
 
-[mesh, pdecoef, matprop, params, bc, psi] = viga2x1_4m;
 
+% Set pde coefficients
+mat.A = matProp.matA;
+mat.B = matProp.matB;
+mat.C = matProp.matC;
+mat.D = matProp.matD;
+pdeCoeff = PDECoefficientsComputer(mat);
 
-filename = 'viga2x1_2m';
-%Configure default settings for plot functions
-set(groot,'defaulttextinterpreter','latex');  
-set(groot, 'defaultAxesTickLabelInterpreter','latex');  
-set(groot, 'defaultLegendInterpreter','latex'); 
-set(groot,'defaultAxesFontSize',16)
+% Set an initial guess on level set
+psi = InitialLevelSetComputer(mat,cParams);
 
-% mesh and geometry  parameter
-p = mesh.p; e = mesh.e; t = mesh.t; g = mesh.g;
-
-% topology optimization parameters
-stop = params.stop;  kmin = params.kmin; penalization = params.penalization; 
-volfrac = params.volfrac; auglag = params.auglag; voleps = params.voleps;
-% freeze nodes
-phold = [];
-for i = 1:size(mesh.ghold,1)
-    phold = cat(1,phold,unique(t(1:3,t(4,:)==mesh.ghold(i))));
-end
-pfree = setdiff(1:size(p,2),phold); % free nodes
-
-%figure(10); clf;
-pdeplot(p,e,t,'xydata',t(4,:),'xystyle','flat','colormap','gray',...
+% Plot mesh
+figure(1); clf;
+pdeplot(mesh.p,mesh.e,mesh.t,'xydata',mesh.t(4,:),'xystyle','flat','colormap','gray',...
               'xygrid','off','colorbar','off','title','Geometry'); 
 axis image; axis off;
 
-%figure(1); clf;
-%set(1,'WindowStyle','docked');
-pdemesh(p,e,t); axis image; axis off;
+pdemesh(mesh.p,mesh.e,mesh.t); axis image; axis off;
+
+
+%freeze nodes --- WHY??
+phold = [];
+for i = 1:size(mesh.ghold,1)
+    phold = cat(1,phold,unique(mesh.t(1:3,mesh.t(4,:)==mesh.ghold(i))));
+end
+pfree = setdiff(1:size(mesh.p,2),phold); % free nodes
+
 
 % shape functional and volume associated to the hold-all domain
 psi_hold_all = ones(length(p),length(matprop.E)-1); psi_hold_all(:,1) = -1;
@@ -183,59 +182,4 @@ option = 'null';
         end
     end
         
-%     option = 'null';
-
-%     if (option == 'r')
-%         for i = 1:(strcmp(mesh.remesh,'longest')*2 + strcmp(mesh.remesh,'regular'))
-%             [p,e,t,psi] = refinemesh(g,p,e,t,psi,mesh.remesh);
-%             mesh.p = p; mesh.e = e; mesh.t = t;
-%         end
-%         
-%         % update mesh parameters
-% %         figure(1); clf;
-% %         set(1,'WindowStyle','docked');
-% %         pdemesh(p,e,t); axis image; axis off;
-%         [~,unitM,~] = assema(p,t,0,1,0);
-%         area = pdetrg(p,t); mesh.area = area;
-%         k = 1;
-%         
-%         %Update bc
-%         ldir = bc.Neu.ldir;
-%         ldof = bc.Neu.ldof;
-%         lval = bc.Neu.lval;
-%         pbc = bouncon(p,e,t,ldir,ldof,lval);
-%         pbc = unique(pbc,'rows'); %just for symetry_cog_2 eliminate otherwise
-%         bc.pNeu = pbc;
-%         
-%         ldir = bc.Dir.ldir;
-%         ldof = bc.Dir.ldof;
-%         lval = bc.Dir.lval;
-%         pbc = bouncon(p,e,t,ldir,ldof,lval);
-%         pbc = unique(pbc,'rows'); %just for symetry_cog_2 eliminate otherwise
-%         bc.pDir = pbc;
-%         
-%         % freeze groups
-%         phold = [];
-%         for i = 1:size(mesh.ghold,1)
-%             phold = cat(1,phold,unique(t(1:3,t(4,:)==mesh.ghold(i)))); %nodes to block
-%         end
-%         pfree = setdiff(1:size(p,2),phold);
-%         option = 'null';
-%         
-%         % shape functional and volume associated to the hold-all domain
-%         psi_hold_all = ones(length(p),length(matprop.E)-1); psi_hold_all(:,1) = -1;
-%         [U,F,vol_hold_all] = solve(psi_hold_all, mesh, matprop, pdecoef, bc);
-%         params.energy0 = 0.5 * dot(F,U); % initial energy
-%         max_vol = vol_hold_all(1);
-%         params.volinit = max_vol; % store maximum volume for each fase
-%         voltarget = max_vol.*volfrac;
-%         
-%         % stop criterion over the volume constraint
-%         volstop = voleps.*max_vol;
-%         if penalization == 1
-%             volstop = max_vol;
-%         end
-%     end    
-%end
-
 end

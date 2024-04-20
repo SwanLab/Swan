@@ -25,6 +25,7 @@ function [mesh, pdecoef, matprop, params, bc, psi] = viga2x1_4m
     
     
         
+    
     %% mesh generation
     prec = 1e6;
     n = 40;
