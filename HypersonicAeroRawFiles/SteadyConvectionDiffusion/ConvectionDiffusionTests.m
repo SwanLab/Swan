@@ -27,8 +27,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'Galerkin';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([tests,'Steady1DGalerkinNoSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -56,8 +58,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'Galerkin';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([tests,'Steady1DGalerkinSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -85,8 +89,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'Upwind';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([tests,'Steady1DSUNoSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -114,8 +120,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'Upwind';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([tests,'Steady1DSUSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -143,8 +151,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'SUPG';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([p1test,'Steady1DSUPGNoSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -172,8 +182,10 @@ classdef ConvectionDiffusionTests < handle & matlab.unittest.TestCase
             s.numel   = 100;
             s.stab    = 'SUPG';
             prob      = SteadyConvectionDiffusionProblem(s);
-            sol       = prob.compute(a,nu);
+            prob.compute(a,nu);
+            sol = prob.trial.fValues;
             load([p1test,'Steady1DSUPGSource.mat'],'x');
+            x = x(1:end-2);
             err = norm(sol-x)/norm(x);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)

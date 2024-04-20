@@ -1,9 +1,12 @@
 classdef SteadyConvectionDiffusionProblem < handle
 
+    properties (Access = public)
+        trial
+    end
+
     properties (Access = private)
         dirValues
         mesh
-        trial
         stab
     end
 
@@ -17,11 +20,13 @@ classdef SteadyConvectionDiffusionProblem < handle
             obj.computeSourceTerm(cParams);
         end
 
-        function sol = compute(obj,a,nu)
+        function compute(obj,a,nu)
             [K,f] = obj.computeSystemLHSandRHS(a,nu);
             obj.solveSystem(K,f);
+        end
+
+        function plot(obj)
             obj.plotSolution();
-            sol = obj.trial;
         end
     end
 
@@ -93,9 +98,6 @@ classdef SteadyConvectionDiffusionProblem < handle
                 [x0,y0]=obj.plotQuadraticElements();
                 plot(x0,y0,'-','LineWidth',1.5)
             end
-            l = legend([obj.stab,' solution']);
-            set(l, 'FontSize',14);
-            set(gca, 'FontSize',14);
         end
 
         function [x0,y0] = plotQuadraticElements(obj)
