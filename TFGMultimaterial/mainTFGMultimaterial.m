@@ -1,33 +1,21 @@
 function psi = mainTFGMultimaterial()
 
-%**************************************************************************
-% Compliance Topology Optimization with Volume Constraint in Plane Stress,
-% Steady-State Heat Conduction and Kirchhoff Plates considering multiple
-% materials.
-%**************************************************************************
-%
-% DESCRIPTION
-% Computes the topological derivative and use it together with a level-set 
-% domain representation method in the multi-material topology optimization
-% design context.
-%
-% HISTORY
-% S. Amstutz       06/2009: code implementation.
-% A.A. Novotny     06/2009: code updating.
-% D.E. Campeão     12/2010: code updating.
-% J-M.C. Farias
-% A.A. Novotny
-% A.A. Romero      11/2018: multimaterial extension.
-%**************************************************************************
-% MAIN REFERENCE
-% Onco, A. R., & Giusti, S. M. (2020). 
-% A robust topological derivative-based multi-material optimization
-% approach: Optimality condition and computational algorithm. Computer
-% Methods in Applied Mechanics and Engineering, 366, 113044.
-%**************************************************************************
 
 clear all; close all; clc
 % load problem data
+
+% Set penalization, line search and stop criterion parameters
+params = ParametersComputer();
+
+% Generate mesh
+mesh = MeshComputer();
+
+% Generate boundary conditions
+cParams.e = mesh.e;
+cParams.p = mesh.p;
+cParams.t = mesh.t;
+bc = BoundaryConditionsComputer(cParams);
+
 
 [mesh, pdecoef, matprop, params, bc, psi] = viga2x1_4m;
 
