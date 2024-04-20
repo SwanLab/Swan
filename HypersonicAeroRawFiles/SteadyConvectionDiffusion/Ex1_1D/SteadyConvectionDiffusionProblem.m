@@ -19,8 +19,9 @@ classdef SteadyConvectionDiffusionProblem < handle
 
         function sol = compute(obj,a,nu)
             [K,f] = obj.computeSystemLHSandRHS(a,nu);
-            sol   = obj.solveSystem(K,f);
-            obj.plotSolution(sol);
+            obj.solveSystem(K,f);
+            obj.plotSolution();
+            sol = obj.trial;
         end
     end
 
@@ -28,7 +29,7 @@ classdef SteadyConvectionDiffusionProblem < handle
         function init(obj,cParams)
             obj.dirValues = cParams.dirValues;
             obj.mesh      = cParams.mesh;
-            obj.trial     = cParams.trial;
+            obj.trial     = cParams.trial.copy();
             obj.stab      = cParams.stab;
         end
 
@@ -71,7 +72,7 @@ classdef SteadyConvectionDiffusionProblem < handle
             end
         end
 
-        function sol = solveSystem(obj,K,f) % Fer aquí
+        function solveSystem(obj,K,f) % Fer aquí
             s.nnodes    = obj.mesh.nnodes;
             s.order     = obj.trial.order;
             s.K         = K;
@@ -83,9 +84,9 @@ classdef SteadyConvectionDiffusionProblem < handle
             obj.trial.fValues = sol(1:end-2);
         end
 
-        function plotSolution(obj,sol) % Should differentiate between 1D and 2D
+        function plotSolution(obj) % Should differentiate between 1D and 2D
             x  = obj.mesh.coord;
-            uh = sol(1:end-2);
+            uh = obj.trial.fValues;
             if obj.trial.order == "P1"
                 plot(x,uh,'-','LineWidth',1.5)
             else
