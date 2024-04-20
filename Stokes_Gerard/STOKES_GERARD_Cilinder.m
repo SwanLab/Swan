@@ -6,11 +6,11 @@ close all
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-xpos = 1.2;
+xpos = 0.8;
 ypos = 0.5;
 radius = 0.08;
 
-m = QuadMesh(2,1,120,120); %Per alguna raó, amb 150 la P no surt correcte.
+m = QuadMesh(2,1,100,100); 
 s.type='Given';
 s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
 g = GeometricalFunction(s);
@@ -41,13 +41,13 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 isCyl    = @(coor) (abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2 < 1e-5);
 
 %% Original (no-slip condition)
-dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
-dir_vel{2}.direction = [1,2];
-dir_vel{2}.value     = [0,0]; 
-
-dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [1,0];
+% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [0,0]; 
+% 
+% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+% dir_vel{1}.direction = [1,2];
+% dir_vel{1}.value     = [1,0];
 
 %% Cavity:
 % dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor) | isRight;
@@ -59,17 +59,17 @@ dir_vel{1}.value     = [1,0];
 % dir_vel{1}.value     = [0,1];
 
 %% Modificat (free-slip condition)
-% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [1,0]; 
-% 
-% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-% dir_vel{1}.direction = [1,2];
-% dir_vel{1}.value     = [1,0];
-% 
-% dir_vel{3}.domain    = @(coor) isCyl(coor);
-% dir_vel{3}.direction = [1,2];
-% dir_vel{3}.value     = [0,0]; 
+dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
+dir_vel{2}.direction = [1,2];
+dir_vel{2}.value     = [1,0]; 
+
+dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+dir_vel{1}.direction = [1,2];
+dir_vel{1}.value     = [1,0];
+
+dir_vel{3}.domain    = @(coor) isCyl(coor);
+dir_vel{3}.direction = [1,2];
+dir_vel{3}.value     = [0,0]; 
 
 
 %% 
@@ -217,8 +217,9 @@ for iE = 1:boundary_mesh.nelem
 end
 
 F_total = [0,0];
-for iE = 1:boundary_mesh.nelem-1
-    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-((pressure_boundary.boundaryCutMeshFunction.fValues(iE)+pressure_boundary.boundaryCutMeshFunction.fValues(iE+1))/2));
+for iE = 1:boundary_mesh.nelem
+    pressure_mean = (pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,1)) + pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,2)))/2;
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-pressure_mean);
 end
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors

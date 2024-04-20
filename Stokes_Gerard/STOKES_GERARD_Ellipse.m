@@ -14,7 +14,7 @@ center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,200,200); % MESH
+m = QuadMesh(2,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -47,6 +47,7 @@ n_dofs = velocityFun.nDofs + pressureFun.nDofs;
 % DEFINE BOUNDARY CONDITIONS
 isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+%isMiddle = @(coor) (abs(coor(:,2))- 0.7   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1 < 1e-3);
@@ -60,6 +61,20 @@ dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
 
+%% Modificat (free-slip condition)
+% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [1,0]; 
+% 
+% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+% dir_vel{1}.direction = [1,2];
+% dir_vel{1}.value     = [1,0];
+% 
+% dir_vel{3}.domain    = @(coor) isCyl(coor);
+% dir_vel{3}.direction = [1,2];
+% dir_vel{3}.value     = [0,0]; 
+
+%% Altres
 % dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
 % dir_pre{1}.direction = 1;
 % dir_pre{1}.value     = 0;
@@ -207,7 +222,8 @@ end
 
 F_total = [0,0];
 for iE = 1:boundary_mesh.nelem
-    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-pressure_boundary.boundaryCutMeshFunction.fValues(iE));
+    pressure_mean = (pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,1)) + pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,2)))/2;
+    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-pressure_mean);
 end
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
