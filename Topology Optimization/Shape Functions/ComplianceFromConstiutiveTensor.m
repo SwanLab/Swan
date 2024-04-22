@@ -32,8 +32,7 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
+            quad = Quadrature.create(obj.mesh,2);
             obj.quadrature = quad;
         end
 

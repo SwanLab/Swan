@@ -28,7 +28,6 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
@@ -83,12 +82,6 @@ classdef ElasticProblem < handle
             end
         end
 
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
-        end
-
         function createDisplacementFun(obj)
             obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
@@ -115,10 +108,13 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)
+            ndimf = obj.displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
+            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+            s.trial    = obj.displacementFun;
             s.material = obj.material;
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
@@ -162,14 +158,16 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 2);
+            xV = quad.posgp;
             obj.strainFun = SymGrad(obj.displacementFun);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 2);
+            xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress = obj.stressFun.evaluate(xV);
