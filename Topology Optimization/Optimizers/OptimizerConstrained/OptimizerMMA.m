@@ -55,7 +55,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
-               obj.designVariable.fun.print(['TFGBenchmark/Peca095_Density/Iter_',char(string(obj.nIter))]);
+               %obj.designVariable.fun.print(['TFGBenchmark/Peca095_Density/Iter_',char(string(obj.nIter))]);
            end
             obj.hasConverged = 0;
        end
