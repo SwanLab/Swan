@@ -25,8 +25,8 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
         
         function init(obj, cParams)
             obj.mesh = cParams.mesh;
-            obj.lambda = 1;
-            obj.mu = 1;
+            obj.lambda = cParams.material.lambda;
+            obj.mu     = cParams.material.mu;
             obj.quadratureOrder = 1;
         end
         

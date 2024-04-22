@@ -81,6 +81,7 @@ classdef HyperelasticProblem < handle
 
         function intfor = computeInternalForces(obj)
             s.mesh = obj.mesh;
+            s.material = obj.material;
             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             rhs = RHSintegrator_FirstPiola(s);
             intfor = rhs.compute(obj.uFun, test);
@@ -90,6 +91,7 @@ classdef HyperelasticProblem < handle
             s.mesh = obj.mesh;
             s.test  = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             s.trial = obj.uFun;
+            s.material = obj.material;
             lhs = LHSintegrator_SecondPiola(s);
             hess = lhs.compute();
         end

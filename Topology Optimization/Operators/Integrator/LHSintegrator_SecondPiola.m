@@ -23,8 +23,8 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
     methods (Access = private)
         
         function initMat(obj, cParams)
-            obj.lambda = 1;
-            obj.mu = 1;
+            obj.lambda = cParams.material.lambda;
+            obj.mu     = cParams.material.mu;
         end
         
         function lhsC = computeElementalLHS(obj)
