@@ -79,7 +79,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
-            s.quadratureOrder = 'QUADRATIC';
+            s.quadratureOrder = 3;
             LHS = LHSintegrator.create(s);
             m = LHS.compute();
 

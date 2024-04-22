@@ -106,6 +106,10 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
+        function ord = getOrderNum(obj)
+            ord = str2double(obj.order(end));
+        end
+
         function plot(obj) % 2D domains only
             if  strcmp(obj.order,'LINEAR')
                 switch obj.mesh.type
