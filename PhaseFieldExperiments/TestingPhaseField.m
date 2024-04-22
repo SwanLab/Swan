@@ -57,17 +57,16 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            obj.createOneElementMesh();
+            %obj.createOneElementMesh();
             %obj.createTwoElementMesh();
             % obj.createArbitraryElementMesh(1,1,30,30);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
-            %obj.createLshapeMesh();
+            obj.createLshapeMesh();
         end
 
         function createInitialPhaseField(obj)
             phi = LagrangianFunction.create(obj.mesh,1,'P1');
-            phi.fValues = 0.4*ones(4,1);
             obj.initialPhaseField = phi;
         end
 
@@ -92,7 +91,7 @@ classdef TestingPhaseField < handle
             s.fun  = obj.initialPhaseField;
             s.mesh = obj.mesh;
             mp     = MicroDamageParams(s);
-            sH.fileName    = 'CircleMicroDamagePerimeter';
+            sH.fileName    = 'CircleMicroDamageArea';
             sH.microParams = mp;
             obj.materialPhaseField = HomogenizedPhaseField(sH);
         end

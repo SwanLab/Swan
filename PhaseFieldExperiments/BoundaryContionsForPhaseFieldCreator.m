@@ -35,8 +35,8 @@ classdef BoundaryContionsForPhaseFieldCreator < handle
        function createBoundaryConditions(obj,prescribedVal)
           % obj.createBendingConditions(prescribedVal)
           % obj.createForceTractionConditions(prescribedVal)
-           obj.createDisplacementTractionConditions(prescribedVal) 
-          % obj.createLshapeDisplacementConditions(prescribedVal)
+          % obj.createDisplacementTractionConditions(prescribedVal) 
+           obj.createLshapeDisplacementConditions(prescribedVal)
           % obj.createFiberMatrixDisplacementConditions(prescribedVal);
         end
         

@@ -5,6 +5,10 @@ classdef HomogenizedPhaseField < handle
         structuredMesh
         Ctensor
         microParams
+
+        fun
+        dfun
+        ddfun
     end
 
     methods (Access = public)
@@ -14,6 +18,7 @@ classdef HomogenizedPhaseField < handle
             [mxV, C] = obj.loadVademecum();
             obj.createStructuredMesh(mxV);
             obj.createCtensorFunction(C);
+            obj.computeFunctionsAndDerivatives(mxV,C);
         end
 
         function C = obtainTensor(obj)
@@ -88,70 +93,82 @@ classdef HomogenizedPhaseField < handle
         end
 
         function C = evaluate(obj,xV)
-            [mL,cells] = obj.obtainLocalCoord(xV);
+            %[mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
             nStre = size(obj.Ctensor,1);
             C = zeros(nStre,nStre,nGaus,nElem);
+
+            phiV = obj.microParams{1}.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
-                    Cv = obj.Ctensor{i,j}.sampleFunction(mL',cells');
-                    Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
-                    C(i,j,:,:)   = Cij(1,1,:,:);
+                    % Cv = obj.Ctensor{i,j}.sampleFunction(mL',cells');
+                    % Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
+                    % C(i,j,:,:)   = Cij(1,1,:,:);
+                    
+                    C(i,j,:,:) = double(subs(obj.fun{i,j},phiV));
                 end
             end
         end
 
         function dCt = evaluateGradient(obj,xV,dir)         
-            [mL,cells] = obj.obtainLocalCoord(xV);
+            %[mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
             nStre = size(obj.Ctensor,1);
             dCt = zeros(nStre,nStre,nGaus,nElem);
+
+            phiV = obj.microParams{1}.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
-                    dCtensorDomF = Grad(obj.Ctensor{i,j});
-                    dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    % dCtensorDomF = Grad(obj.Ctensor{i,j});
+                    % dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    % 
+                    % % for k=1:10
+                    % %     ss.filterType = 'LUMP';
+                    % %     ss.mesh       = obj.structuredMesh.mesh;
+                    % %     ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
+                    % %     filter        = Filter.create(ss);
+                    % %     dCtensor       = filter.compute(dCtensor,'QUADRATIC');
+                    % % end
+                    % 
+                    % dCv = dCtensor.sampleFunction(mL',cells');
+                    % dCij(1,1,:,:) = reshape(dCv,nGaus,[]);
+                    % dCt(i,j,:,:)   = dCij(1,1,:,:);
 
-                    % for k=1:10
-                    %     ss.filterType = 'LUMP';
-                    %     ss.mesh       = obj.structuredMesh.mesh;
-                    %     ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
-                    %     filter        = Filter.create(ss);
-                    %     dCtensor       = filter.compute(dCtensor,'QUADRATIC');
-                    % end
-
-                    dCv = dCtensor.sampleFunction(mL',cells');
-                    dCij(1,1,:,:) = reshape(dCv,nGaus,[]);
-                    dCt(i,j,:,:)   = dCij(1,1,:,:);
+                    dCt(i,j,:,:) = double(subs(obj.dfun{i,j},phiV));
                 end
             end
         end
 
         function d2Ct = evaluateHessian(obj,xV,dir)
-            [mL,cells] = obj.obtainLocalCoord(xV);
+            %[mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             nElem = obj.microParams{1}.mesh.nelem;
             nStre = size(obj.Ctensor,1);
             d2Ct = zeros(nStre,nStre,nGaus,nElem);
+
+            phiV = obj.microParams{1}.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
-                    dCtensorDomF = Grad(obj.Ctensor{i,j});
-                    dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
-                    d2CtensorDomF = Grad(dCtensor);
-                    d2Ctensor = d2CtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    % dCtensorDomF = Grad(obj.Ctensor{i,j});
+                    % dCtensor = dCtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    % d2CtensorDomF = Grad(dCtensor);
+                    % d2Ctensor = d2CtensorDomF.project('P1',obj.structuredMesh.mesh);
+                    % 
+                    % for k=1:10
+                    %     ss.filterType = 'LUMP';
+                    %     ss.mesh       = obj.structuredMesh.mesh;
+                    %     ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
+                    %     filter        = Filter.create(ss);
+                    %     d2Ctensor       = filter.compute(d2Ctensor,'QUADRATIC');
+                    % end
+                    % 
+                    % d2Cv = d2Ctensor.sampleFunction(mL',cells');
+                    % d2Cij(1,1,:,:) = reshape(d2Cv,nGaus,[]);
+                    % d2Ct(i,j,:,:)   = d2Cij(1,1,:,:);
 
-                    for k=1:10
-                        ss.filterType = 'LUMP';
-                        ss.mesh       = obj.structuredMesh.mesh;
-                        ss.trial      = LagrangianFunction.create(obj.structuredMesh.mesh,1,'P1');
-                        filter        = Filter.create(ss);
-                        d2Ctensor       = filter.compute(d2Ctensor,'QUADRATIC');
-                    end
-
-                    d2Cv = d2Ctensor.sampleFunction(mL',cells');
-                    d2Cij(1,1,:,:) = reshape(d2Cv,nGaus,[]);
-                    d2Ct(i,j,:,:)   = d2Cij(1,1,:,:);
+                    d2Ct(i,j,:,:) = double(subs(obj.ddfun{i,j},phiV)); 
                 end
             end
         end
@@ -162,6 +179,23 @@ classdef HomogenizedPhaseField < handle
             mG = reshape(mG,numel(mG),[]);
             [mL, cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
 
+        end
+
+        function computeFunctionsAndDerivatives(obj,mxV,C)
+            x = reshape(mxV,length(mxV),[]);
+            y = C;
+
+            obj.fun   = cell(3,3);
+            obj.dfun  = cell(3,3);
+            obj.ddfun = cell(3,3);
+            for i=1:3
+                for j=1:3
+                    f = fit(x,squeeze(y(i,j,:)),'poly9');
+                    obj.fun{i,j} = poly2sym(coeffvalues(f));
+                    obj.dfun{i,j} = diff(obj.fun{i,j});
+                    obj.ddfun{i,j} = diff(obj.dfun{i,j});
+                end
+            end
         end
 
     end
