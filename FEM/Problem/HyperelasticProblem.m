@@ -40,7 +40,7 @@ classdef HyperelasticProblem < handle
                 Fint = obj.computeInternalForces();
                 res  = Fint + obj.Fext;
                 hess = obj.computeSecondPiola();
-                [hess_red,res_red] = full2reduced(obj,hess,res);
+                [hess_red,res_red] = obj.full2reduced(hess,res);
                 x = hess_red\res_red;
                 % x = obj.computeNewtonRaphson(xpre, res, hess);
                 obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
