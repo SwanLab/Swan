@@ -38,9 +38,11 @@ classdef HyperelasticProblem < handle
             nIter = 0;
             while nIter < 10
                 Fint = obj.computeInternalForces();
-                res  = Fint - obj.Fext;
+                res  = Fint + obj.Fext;
                 hess = obj.computeSecondPiola();
-                x = obj.computeNewtonRaphson(xpre, res, hess);
+                [hess_red,res_red] = full2reduced(obj,hess,res);
+                x = hess_red\res_red;
+                % x = obj.computeNewtonRaphson(xpre, res, hess);
                 obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
                 norm(x-xpre)
                 xpre = x;
@@ -124,7 +126,15 @@ classdef HyperelasticProblem < handle
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
         end
-        
+
+        function [LHS,RHS] = full2reduced(obj,LHS,RHS)
+            bc = obj.boundaryConditions;
+            dofs = 1:obj.uFun.nDofs;
+            free_dofs = setdiff(dofs, bc.dirichlet_dofs);
+            LHS = LHS(free_dofs, free_dofs);
+            RHS = RHS(free_dofs);
+        end
+
     end
 
 end
