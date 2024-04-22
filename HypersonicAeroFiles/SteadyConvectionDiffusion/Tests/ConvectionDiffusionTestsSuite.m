@@ -3,7 +3,7 @@ classdef ConvectionDiffusionTestsSuite < handle
     methods
 
         function obj = ConvectionDiffusionTestsSuite()
-            path = './HypersonicAeroRawFiles/SteadyConvectionDiffusion/ConvectionDiffusionTests.m';
+            path = './HypersonicAeroFiles/SteadyConvectionDiffusion/Tests/ConvectionDiffusionTests.m';
             suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','ConvectionDiffusion');
             results = suite.run;
             table(results)
