@@ -29,7 +29,8 @@ classdef HyperelasticProblem < handle
         function obj = HyperelasticProblem()
             obj.init();
             obj.createDisplacementFun();
-            obj.computeInternalForces();
+            intf = obj.computeInternalForces();
+            hess = obj.computeSecondPiola();
         end
 
         function solve(obj)
@@ -50,11 +51,19 @@ classdef HyperelasticProblem < handle
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function computeInternalForces(obj)
+        function intfor = computeInternalForces(obj)
             s.mesh = obj.mesh;
             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            rhs = RHSintegrator_Hyperelasticity(s);
-            rhs.compute(obj.uFun, test);
+            rhs = RHSintegrator_FirstPiola(s);
+            intfor = rhs.compute(obj.uFun, test);
+        end
+
+        function hess = computeSecondPiola(obj)
+            s.mesh = obj.mesh;
+            test  = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            lhs = LHSintegrator_SecondPiola(s);
+            hess = lhs.compute(obj.uFun, test);
         end
 
     end

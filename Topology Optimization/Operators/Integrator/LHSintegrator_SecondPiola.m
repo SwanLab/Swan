@@ -1,4 +1,4 @@
-classdef RHSintegrator_Hyperelasticity < RHSintegrator
+classdef LHSintegrator_SecondPiola < RHSintegrator
     
     % \int Piola : Fdot
 
@@ -8,14 +8,14 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
 
     methods (Access = public)
         
-        function obj = RHSintegrator_Hyperelasticity(cParams)
+        function obj = LHSintegrator_SecondPiola(cParams)
             obj.init(cParams)
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
         
         function rhs = compute(obj, fun, test)
-            rhsElem = obj.computeElementalRHS(fun,test);
+            rhsElem = obj.computeElementalLHS(fun,test);
             rhs = obj.assembleIntegrand(rhsElem,test);
         end
         
@@ -30,7 +30,7 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
             obj.quadratureOrder = 'LINEAR';
         end
         
-        function rhsC = computeElementalRHS(obj, uFun, test)
+        function lhsC = computeElementalLHS(obj, uFun, test)
             % Matrices
             quad = obj.quadrature;
             xG = quad.posgp;
@@ -45,11 +45,12 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
 
             I33(3,3,:,:) = 1;
             F = I33 + GradU; % deformation gradient
-            invF = MatrixVectorizedInverter.computeInverse(F);
-            invFt = permute(invF, [2 1 3 4]);
+            Ft = permute(F, [2 1 3 4]);
+            C = pagemtimes(Ft,F);
+            invC = MatrixVectorizedInverter.computeInverse(C);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             
-            piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*jac.*invFt;
+            secPiola = obj.mu*(I33-invC) + obj.lambda*(jac-1).*jac.*invC;
             % can i subtract 1 to the jacobian directly?
 
             dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
@@ -61,11 +62,13 @@ classdef RHSintegrator_Hyperelasticity < RHSintegrator
             % do we need to transpose piola to make it consistent?
             % ndimF*nDimG x nDimG*nNodeE
 
-            piola = permute(piola, [2 1 3 4]);
-            mult = pagemtimes(piola, dNdx);
+            dNdxT = permute(dNdx, [2 1 3 4]);
+            secPiola = permute(secPiola, [2 1 3 4]);
+            mult = pagemtimes(secPiola, dNdx);
+            mult = pagemtimes(dNdxT, mult);
             intI = mult.*dV;
-            rhsC = squeezeParticular(sum(intI,3),3);
-            rhsC = reshape(rhsC, [nDimf*nNodeE, nElem]);
+            lhsC = squeezeParticular(sum(intI,3),3);
+%             lhsC = reshape(lhsC, [nDimf*nNodeE, nElem]);
             % rhsC = zeros(nNode*nDim,nElem);
         end
 
