@@ -1,4 +1,4 @@
-classdef LHSintegrator_SecondPiola < RHSintegrator
+classdef LHSintegrator_SecondPiola < LHSintegrator
     
     % \int Piola : Fdot
 
@@ -9,29 +9,27 @@ classdef LHSintegrator_SecondPiola < RHSintegrator
     methods (Access = public)
         
         function obj = LHSintegrator_SecondPiola(cParams)
-            obj.init(cParams)
-            obj.setQuadratureOrder(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
+            obj.initMat(cParams)
         end
         
-        function rhs = compute(obj, fun, test)
-            rhsElem = obj.computeElementalLHS(fun,test);
-            rhs = obj.assembleIntegrand(rhsElem,test);
+        function LHS = compute(obj)
+            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrix(lhs);
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj, cParams)
-            obj.mesh = cParams.mesh;
+        function initMat(obj, cParams)
             obj.lambda = 1;
             obj.mu = 1;
-            obj.quadratureOrder = 'LINEAR';
         end
         
-        function lhsC = computeElementalLHS(obj, uFun, test)
+        function lhsC = computeElementalLHS(obj)
             % Matrices
+            uFun = obj.trial;
             quad = obj.quadrature;
             xG = quad.posgp;
             nPoints  = obj.quadrature.ngaus;
@@ -54,35 +52,17 @@ classdef LHSintegrator_SecondPiola < RHSintegrator
             % can i subtract 1 to the jacobian directly?
 
             dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-            nNodeE = size(dNdx,2);
-            % piola:dNdx
-            % piola: nDimG*nDimF*nGaus*nElem
-            % dNdx:  nDimG*nNodE*nGaus*nElem
-            % do we need to transpose piola to make it consistent?
-            % ndimF*nDimG x nDimG*nNodeE
+            dNdxTest  = obj.test.evaluateCartesianDerivatives(obj.quadrature.posgp);
+            dNdxTrial = obj.trial.evaluateCartesianDerivatives(obj.quadrature.posgp);
 
-            dNdxT = permute(dNdx, [2 1 3 4]);
+            dNdxT = permute(dNdxTest, [2 1 3 4]);
             secPiola = permute(secPiola, [2 1 3 4]);
-            mult = pagemtimes(secPiola, dNdx);
+            mult = pagemtimes(secPiola, dNdxTrial);
             mult = pagemtimes(dNdxT, mult);
             intI = mult.*dV;
             lhsC = squeezeParticular(sum(intI,3),3);
 %             lhsC = reshape(lhsC, [nDimf*nNodeE, nElem]);
             % rhsC = zeros(nNode*nDim,nElem);
-        end
-
-        function f = assembleIntegrand(obj, rhsElem, test)
-            integrand = pagetranspose(rhsElem);
-            connec = test.getConnec();
-            nDofs = max(max(connec));
-            nDofElem  = size(connec,2);
-            f = zeros(nDofs,1);
-            for idof = 1:nDofElem
-                int = integrand(:,idof);
-                con = connec(:,idof);
-                f = f + accumarray(con,int,[nDofs,1],@sum,0);
-            end
         end
         
     end

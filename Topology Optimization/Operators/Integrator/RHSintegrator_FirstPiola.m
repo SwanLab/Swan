@@ -27,7 +27,7 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             obj.mesh = cParams.mesh;
             obj.lambda = 1;
             obj.mu = 1;
-            obj.quadratureOrder = 'LINEAR';
+            obj.quadratureOrder = 1;
         end
         
         function rhsC = computeElementalRHS(obj, uFun, test)

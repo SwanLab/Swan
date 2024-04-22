@@ -60,10 +60,10 @@ classdef HyperelasticProblem < handle
 
         function hess = computeSecondPiola(obj)
             s.mesh = obj.mesh;
-            test  = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            s.test  = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             lhs = LHSintegrator_SecondPiola(s);
-            hess = lhs.compute(obj.uFun, test);
+            hess = lhs.compute();
         end
 
     end

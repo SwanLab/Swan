@@ -29,7 +29,7 @@ classdef RHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = 'ORDER2';
+                obj.quadratureOrder = 2;
             end
         end
 
