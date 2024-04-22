@@ -29,7 +29,7 @@ classdef LHSintegrator < handle
 
         function init(obj, cParams)
             obj.test  = cParams.test;
-            obj.trial = cParams.test;
+            obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
             obj.setQuadratureOrder(cParams);
         end
