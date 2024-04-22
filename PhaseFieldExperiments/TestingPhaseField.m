@@ -4,13 +4,13 @@ classdef TestingPhaseField < handle
         E = 210;
         nu = 0.3;
         Gc = 5e-3;
-        l0 = 0.1;
+        l0 = 1e-5;
         pExp = 1;
         % bcVal = [linspace(0,8.5e-3,100), ...
         %         linspace(8.5e-3,0,100), ...
         %         linspace(0,-1e-2,100), ...
         %         ];
-        bcVal = linspace(1e-4,1e-1,100);
+        bcVal = linspace(1e-4,1,100);
         % bcVal = 1;
         % bcVal = [0.001];
     end

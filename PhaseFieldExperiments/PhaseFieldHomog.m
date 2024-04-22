@@ -18,8 +18,10 @@ classdef PhaseFieldHomog < handle
             holeLength = linspace(1e-16,holeMax,steps);
             mat = zeros(3,3,length(holeLength));
             alpha = zeros(length(holeLength),1);
+            steps = 1;
             for i=1:steps
                 l = holeLength(i);
+                l = holeLength(end);
                 mat(:,:,i) = obj.computeHomogenisation(l,holeType);
                 alpha(i) = obj.computeDissipationMetric(l,holeType,aType);
             end

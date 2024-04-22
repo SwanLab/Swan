@@ -1,5 +1,4 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%% ALL TYPE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 matType{1} = load('CircleMicroDamageArea.mat');
 matType{2} = load('CircleMicroDamagePerimeter.mat');
 matType{3} = load('SquareMicroDamageArea.mat');
@@ -8,11 +7,10 @@ matType{5} = load('IsoMicroDamage.mat');
 
 filterTimes1 = 0;
 filterTimes2 = 0;
-derivMatType = cell(length(matType));
-deriv2MatType = cell(length(matType));
 for i=1:length(matType)
     derivMatType{i} = computeGradient(matType{i},filterTimes1);
     deriv2MatType{i} = computeGradient(derivMatType{i},filterTimes2);
+    [funMat(:,:,i),dfunMat(:,:,i),ddfunMat(:,:,i)] = computeFunctionsAndDerivatives(matType{i});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% ONE TYPE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,8 +38,6 @@ switch type
         derivMat = derivMatType{5};
         deriv2Mat = deriv2MatType{5};
 end
-[funMat,dfunMat,ddfunMat] = computeFunctionsAndDerivatives(mat);
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% PLOT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -107,7 +103,40 @@ for i=1:3
         % xlabel("$\phi$",'Interpreter','latex');
         % title(t,[type,' homogenized constitutive tensor (filter ',num2str(filterTimes1),'/',num2str(filterTimes2),')'])
         % legType = 1;
-        
+
+        %%%%%%%%%%%%%%%%%%% PLOT ANALYTICAL ALL TYPES %%%%%%%%%%%%%%%%%%
+        % fplot(funMat(i,j,1),[0 1],'--','Color','#0072BD');
+        % fplot(funMat(i,j,2),[0 1],'Color','#0072BD');
+        % fplot(funMat(i,j,3),[0 1],'--','Color','#D95319');
+        % fplot(funMat(i,j,4),[0 1],'Color','#D95319');
+        % fplot(funMat(i,j,5),[0 1],'Color','#EDB120');
+        % ylabel(['C',num2str(i),num2str(j)]);
+        % xlabel("$\phi$",'Interpreter','latex');
+        % title(t,'ANALYTICAL homogenized constitutive tensor')
+        % legType = 2;
+
+        %%%%%%%%%%%%%%%%%%%% PLOT DERIVATIVES ALL TYPES %%%%%%%%%%%%%%%%%
+        % fplot(dfunMat(i,j,1),[0 1],'--','Color','#0072BD');
+        % fplot(dfunMat(i,j,2),[0 1],'Color','#0072BD');
+        % fplot(dfunMat(i,j,3),[0 1],'--','Color','#D95319');
+        % fplot(dfunMat(i,j,4),[0 1],'Color','#D95319');
+        % fplot(dfunMat(i,j,5),[0 1],'Color','#EDB120');
+        % ylabel(['C',num2str(i),num2str(j)]);
+        % xlabel("$\phi$",'Interpreter','latex');
+        % title(t,'ANALYTICAL homogenized constitutive tensor DERIVATIVE')
+        % legType = 2;
+
+        %%%%%%%%%%%%%%%%%%% PLOT SECOND DERIVATIVES ALL TYPES %%%%%%%%%%%%%
+        fplot(ddfunMat(i,j,1),[0 1],'--','Color','#0072BD');
+        fplot(ddfunMat(i,j,2),[0 1],'Color','#0072BD');
+        fplot(ddfunMat(i,j,3),[0 1],'--','Color','#D95319');
+        fplot(ddfunMat(i,j,4),[0 1],'Color','#D95319');
+        fplot(ddfunMat(i,j,5),[0 1],'Color','#EDB120');
+        ylabel(['C',num2str(i),num2str(j)]);
+        xlabel("$\phi$",'Interpreter','latex');
+        title(t,'ANALYTICAL homogenized constitutive tensor SECOND DERIVATIVE')
+        legType = 2;
+
         %%%%%%%%%%%%% DERIVATIVES COEFFICIENT ALL TYPES %%%%%%%%%%%%%%%
         % for k=1:length(matType)
         %     matTypeInfo = matType{k};
