@@ -51,6 +51,12 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorDivergenceMatrix(cParams); 
                case 'StabilizedStiffnessMatrix'
                    obj = LHSintegratorStabilizedStiffness(cParams);
+               case 'ConvDifGalerkin'
+                   obj = LHSintegratorConvDifGalerkinSystem(cParams);
+               case 'ConvDifUpwind'
+                   obj = LHSintegratorConvDifSUSystem(cParams);
+               case 'ConvDifSUPG'
+                   obj = LHSintegratorConvDifSUPGSystem(cParams);
            end
        end
    end

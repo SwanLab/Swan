@@ -1,4 +1,4 @@
-classdef ConvDifGalerkinSystem < handle
+classdef LHSintegratorConvDifGalerkinSystem < handle
 
     properties (Access = private)
         mesh
@@ -6,13 +6,14 @@ classdef ConvDifGalerkinSystem < handle
     end
 
     methods (Access = public)
-        function obj = ConvDifGalerkinSystem(cParams)
+        function obj = LHSintegratorConvDifGalerkinSystem(cParams)
             obj.init(cParams)
         end
 
-        function [K,f] = compute(obj,a,nu,source)
-            K = obj.computeLHS(a,nu);
-            f = obj.computeRHS(source);
+        function K = compute(obj,a,nu)
+            Kadv = obj.computeAdvectionMatrix(a);
+            Kst  = obj.computeStiffnessMatrix();
+            K    = Kadv + nu*Kst;
         end
     end
 
@@ -22,14 +23,8 @@ classdef ConvDifGalerkinSystem < handle
             obj.trial = cParams.trial;
         end
 
-        function K = computeLHS(obj,a,nu)
-            Kadv = obj.computeAdvectionMatrix(a);
-            Kst  = obj.computeStiffnessMatrix();
-            K    = Kadv + nu*Kst;
-        end
-
         function Kadv = computeAdvectionMatrix(obj,a)
-            aFun = AnalyticalFunction.create(@(x) a*ones(size(x(1,:,:))),1,obj.mesh);
+            aFun       = AnalyticalFunction.create(@(x) a*ones(size(x(1,:,:))),1,obj.mesh);
             s.trial    = obj.trial;
             s.test     = obj.trial;
             s.function = aFun;
@@ -48,15 +43,6 @@ classdef ConvDifGalerkinSystem < handle
             s.quadratureOrder = 'QUADRATIC';
             lhs     = LHSintegrator.create(s);
             Kst     = lhs.compute();
-        end
-
-        function f = computeRHS(obj,source)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = 'QUADRATIC';
-            int        = RHSintegrator.create(s);
-            test       = obj.trial;
-            f          = int.compute(source,test);
         end
     end
 end

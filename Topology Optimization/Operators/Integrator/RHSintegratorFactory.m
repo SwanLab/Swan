@@ -39,6 +39,12 @@ classdef RHSintegratorFactory < handle
                     obj = RHSintegrator_Stokes(cParams);
                 case 'Unfitted'
                     obj = RHSIntegratorUnfitted(cParams);
+                case 'ConvDifGalerkin'
+                    obj = RHSintegratorConvDifGalerkinSystem(cParams);
+                case 'ConvDifUpwind'
+                    obj = RHSintegratorConvDifSUSystem(cParams);
+                case 'ConvDifSUPG'
+                    obj = RHSintegratorConvDifSUPGSystem(cParams);
             end
         end
 

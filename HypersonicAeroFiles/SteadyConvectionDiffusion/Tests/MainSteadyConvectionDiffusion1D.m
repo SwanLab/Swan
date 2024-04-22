@@ -32,7 +32,7 @@ classdef MainSteadyConvectionDiffusion1D < handle % Transform to mlx
 
         function createMesh(obj)
             nEl           = 100;
-            xnode         = 0:1/nEl:1; % Podríem demanar com a 1a pregunta que modifiquin els inputs amb Peclet
+            xnode         = 0:1/nEl:1;
             s.coord       = xnode';
             s.connec(:,1) = 1:length(xnode)-1;
             s.connec(:,2) = 2:length(xnode);
@@ -40,7 +40,7 @@ classdef MainSteadyConvectionDiffusion1D < handle % Transform to mlx
         end
 
         function createFiniteElementFunction(obj)
-            order     = 'P1'; % P1/P2
+            order     = 'P1';
             obj.trial = LagrangianFunction.create(obj.mesh,1,order);
         end
 
@@ -55,7 +55,7 @@ classdef MainSteadyConvectionDiffusion1D < handle % Transform to mlx
         end
 
         function solveProblem(obj)
-            cases = {'Galerkin','Upwind','SUPG'}; % Complete Nxx and SGS/GLS
+            cases = {'Galerkin','Upwind','SUPG'};
             for i=1:length(cases)
                 s.mesh       = obj.mesh;
                 s.trial      = obj.trial;

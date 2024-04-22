@@ -1,19 +1,21 @@
-classdef ConvDifSUSystem < handle
+classdef LHSintegratorConvDifSUPGSystem < handle
 
     properties (Access = private)
         mesh
         trial
-        tau
     end
 
     methods (Access = public)
-        function obj = ConvDifSUSystem(cParams)
+        function obj = LHSintegratorConvDifSUPGSystem(cParams)
             obj.init(cParams)
         end
 
-        function [K,f] = compute(obj,a,nu,source)
-            K = obj.computeLHS(a,nu);
-            f = obj.computeRHS(source);
+        function K = compute(obj,a,nu)
+            t    = obj.computeStabParameter(a,nu);
+            Kadv = obj.computeAdvectionMatrix(a);
+            Kst  = obj.computeStiffnessMatrix();
+            Kast = obj.computeStabilizedStiffnessMatrix(t);
+            K    = Kadv + nu*Kst + a^2*Kast;
         end
     end
 
@@ -21,14 +23,13 @@ classdef ConvDifSUSystem < handle
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
             obj.trial = cParams.trial;
-            obj.tau   = cParams.tau;
         end
 
-        function K = computeLHS(obj,a,nu)
-            Kadv = obj.computeAdvectionMatrix(a);
-            Kst  = obj.computeStiffnessMatrix();
-            Kast = obj.computeAnisotropicStiffnessMatrix();
-            K    = Kadv + nu*Kst + a^2*Kast; % The a^2 can be seen as L2-norm squared
+        function tau = computeStabParameter(obj,a,nu)
+            h    = obj.mesh.computeMeanCellSize();
+            Pe   = a*h/(2*nu);
+            alfa = coth(Pe)-1/Pe;
+            tau  = alfa*h/(2*a);
         end
 
         function Kadv = computeAdvectionMatrix(obj,a)
@@ -53,24 +54,15 @@ classdef ConvDifSUSystem < handle
             Kst     = lhs.compute();
         end
 
-        function Kast = computeAnisotropicStiffnessMatrix(obj)
+        function Kast = computeStabilizedStiffnessMatrix(obj,tau)
             s.trial = obj.trial;
             s.test  = obj.trial;
             s.mesh  = obj.mesh;
             s.type  = 'StabilizedStiffnessMatrix';
             s.quadratureOrder = 'QUADRATIC';
-            s.Tau   = obj.tau;
+            s.Tau   = tau;
             lhs     = LHSintegrator.create(s);
             Kast    = lhs.compute();
-        end
-
-        function f = computeRHS(obj,source)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = 'QUADRATIC';
-            int        = RHSintegrator.create(s);
-            test       = obj.trial;
-            f          = int.compute(source,test);
         end
     end
 end

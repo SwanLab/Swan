@@ -21,12 +21,20 @@ classdef SteadyConvectionDiffusionProblem < handle
         end
 
         function compute(obj,a,nu)
-            [K,f] = obj.computeSystemLHSandRHS(a,nu);
+            K = obj.computeLHS(a,nu);
+            f = obj.computeRHS(a,nu);
             obj.solveSystem(K,f);
         end
 
         function plot(obj)
-            obj.plotSolution();
+            x  = obj.mesh.coord;
+            uh = obj.trial.fValues;
+            if obj.trial.order == "P1"
+                plot(x,uh,'-','LineWidth',1.5)
+            else
+                [x0,y0]=obj.plotQuadraticElements();
+                plot(x0,y0,'-','LineWidth',1.5)
+            end
         end
     end
 
@@ -40,64 +48,37 @@ classdef SteadyConvectionDiffusionProblem < handle
 
         function computeSourceTerm(obj,cParams)
             sH         = cParams.sHandle;
-            s          = AnalyticalFunction.create(sH,1,obj.mesh);
-            obj.source = s;
+            obj.source = AnalyticalFunction.create(sH,1,obj.mesh);
         end
 
-        function [K,f] = computeSystemLHSandRHS(obj,a,nu)
-            tau     = obj.computeRecommendedStabilizationParameter(a,nu);
+        function LHS = computeLHS(obj,a,nu)            
             s.trial = obj.trial;
-            s.stab  = obj.stab; % ['LHSintegratior',obj.stab]
             s.mesh  = obj.mesh;
-            s.tau   = tau;
-            wf      = WeakFormSolver.create(s); % Inside the a-vector would change in 2D
-            [K,f]   = wf.compute(a,nu,obj.source);
+            s.type  = ['ConvDif',obj.stab];
+            lhs     = LHSintegrator.create(s);
+            LHS     = lhs.compute(a,nu);
         end
 
-        function tau = computeRecommendedStabilizationParameter(obj,a,nu) % Independent class to choose tau between 1D/2D
-            h  = obj.mesh.computeMeanCellSize(); % TAU AS LAGRANG FUN FIELD + include in LHSIntegrators
-            Pe = a*h/(2*nu);
-            switch obj.stab
-                case 'Galerkin'
-                    tau = [];
-                case 'Upwind'
-                    alfa = coth(Pe)-1/Pe;
-                    tau  = alfa*h/(2*a);
-                    if obj.trial.order == "P2"
-                        beta = 2*((coth(Pe)-1/Pe)-(cosh(Pe))^2*(coth(2*Pe)-1/(2*Pe)))/(2-(cosh(Pe))^2);
-                        tau_c = beta*h/(2*a);
-                        tau  = diag([tau_c,tau_c,tau]);
-                    end
-                case 'SUPG'
-                    alfa = coth(Pe)-1/Pe;
-                    tau  = alfa*h/(2*a);
-                    if obj.trial.order == "P2"
-                        error('SUPG not available with quadratic elements')
-                    end
-            end
+        function RHS = computeRHS(obj,a,nu)
+            s.mesh = obj.mesh;
+            s.type = ['ConvDif',obj.stab];
+            int    = RHSintegrator.create(s);
+            test   = obj.trial;
+            RHS    = int.compute(a,nu,obj.source,test);
         end
 
-        function solveSystem(obj,K,f) % Fer aquí
-            s.nnodes    = obj.mesh.nnodes;
-            s.order     = obj.trial.order;
-            s.K         = K;
-            s.f         = f;
-            s.bc        = obj.createBoundaryConditions1D();
-            KCf         = MonolithicFormComputer(s);
-            [Ktot,ftot] = KCf.compute();
-            sol         = Ktot\ftot;
+        function solveSystem(obj,K,f)
+            nDofs   = obj.trial.nDofs;
+            bc      = obj.createBoundaryConditions1D();
+            dirDofs = bc.dirichlet_dofs;
+            b       = bc.dirichlet_vals;
+            A       = zeros(2,nDofs);
+            A(1,dirDofs(1)) = 1;
+            A(2,dirDofs(2)) = 1;
+            Ktot = [K A';A zeros(2,2)];
+            ftot = [f;b];
+            sol  = Ktot\ftot;
             obj.trial.fValues = sol(1:end-2);
-        end
-
-        function plotSolution(obj) % Should differentiate between 1D and 2D
-            x  = obj.mesh.coord;
-            uh = obj.trial.fValues;
-            if obj.trial.order == "P1"
-                plot(x,uh,'-','LineWidth',1.5)
-            else
-                [x0,y0]=obj.plotQuadraticElements();
-                plot(x0,y0,'-','LineWidth',1.5)
-            end
         end
 
         function [x0,y0] = plotQuadraticElements(obj)
