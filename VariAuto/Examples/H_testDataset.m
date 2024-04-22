@@ -30,7 +30,7 @@ p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
 p.networkParams.HUtype       = 'ReLU';
-p.networkParams.OUtype       = 'None';
+p.networkParams.OUtype       = 'ReLU';
 optProblem   = OptimizationProblem(p);
 
 optProblem.solve();
