@@ -49,6 +49,10 @@ classdef OptimizationProblem < handle
        function plotImage(obj,row)
            obj.plotter.image(row);
        end
+       
+       function E = computeError(obj,X,Y)
+           E = obj.network.forwardprop(X,Y);
+       end
 
    end
 

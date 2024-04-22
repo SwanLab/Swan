@@ -30,10 +30,26 @@ p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
 p.networkParams.HUtype       = 'ReLU';
-p.networkParams.OUtype       = 'ReLU';
+p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
 
 optProblem.solve();
+
+%% Additional plots
+optProblem.plotCostFnc();
+
+%% Error
+% Evaluation for the train data
+errTrain = optProblem.computeError(data.Xtrain, data.Ytrain);
+% Evaluation for the test data
+errTest = optProblem.computeError(data.Xtest, data.Ytest);
+
+
+
+
+
+
+
 
 
 

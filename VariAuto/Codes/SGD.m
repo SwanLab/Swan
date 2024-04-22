@@ -55,7 +55,8 @@ classdef SGD < Trainer
 
         function plotCostFunc(obj)
             figure(3);
-            epoch = 1:obj.MaxEpochs;
+            % epoch = 1:obj.MaxEpochs;
+            epoch = 1:length(obj.fplot);
             % plot(epoch,obj.fplot,'-o');
             plot(epoch,obj.fplot);
             xlabel('Epochs')
