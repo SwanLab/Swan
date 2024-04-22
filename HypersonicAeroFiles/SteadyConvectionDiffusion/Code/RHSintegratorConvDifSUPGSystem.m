@@ -10,10 +10,9 @@ classdef RHSintegratorConvDifSUPGSystem < handle
         end
 
         function f = compute(obj,a,nu,source,test)
-            t      = obj.computeStabParameter(a,nu);
-            fShape = obj.computeRHSShape(source,test);
-            fDeriv = obj.computeRHSShapeDeriv(source,test);
-            f      = fShape + t*a*fDeriv;
+            t  = obj.computeStabParameter(a,nu);
+            f1 = obj.computeRHSShape(source,test);
+            f  = f1 + t*a*f2;
         end
     end
 
@@ -32,14 +31,6 @@ classdef RHSintegratorConvDifSUPGSystem < handle
         function f = computeRHSShape(obj,source,test)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
-            s.quadType = 'QUADRATIC';
-            int        = RHSintegrator.create(s);
-            f          = int.compute(source,test);
-        end
-
-        function f = computeRHSShapeDeriv(obj,source,test)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeDerivative';
             s.quadType = 'QUADRATIC';
             int        = RHSintegrator.create(s);
             f          = int.compute(source,test);
