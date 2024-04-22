@@ -2,7 +2,6 @@
 clc;
 clear;
 close all;
-
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;  
@@ -33,6 +32,8 @@ p.networkParams.costType     = 'L2';
 p.networkParams.HUtype       = 'ReLU';
 p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
+
+optProblem.solve();
 
 
 

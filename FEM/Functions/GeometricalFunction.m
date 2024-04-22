@@ -113,7 +113,6 @@ classdef GeometricalFunction < handle
                     r2aux = @(x) abs(sin(m.*phi(x)/4)./b).^n3;
                     r = @(x) (r1aux(x) + r2aux(x)).^(-1./n1);
                     fH = @(x) 1-(((x1(x)-x0)./r(x)).^2 + ((x2(x)-y0)./r(x)).^2); 
-                    % fH = @(x) (abs(cos(m*th(x)/4)/a).^n2+abs(sin(m*th(x)/4)/b).^n3).^(-1/n1)-r(x);
                     obj.fHandle = fH;
                     
                 case 'SuperformulaInclusion'
