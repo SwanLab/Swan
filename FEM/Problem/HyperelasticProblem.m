@@ -58,9 +58,9 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
-            obj.mesh = UnitHexaMesh(3,3,3);
-            obj.material.lambda = 1;
-            obj.material.mu = 1;
+            obj.mesh = UnitHexaMesh(5,5,5);
+            obj.material.lambda = 3/4;
+            obj.material.mu = 3/8;
         end
 
         function createDisplacementFun(obj)
