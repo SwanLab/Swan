@@ -119,6 +119,14 @@ classdef PhaseFieldComputer < handle
                 s.numIterStag = iterStag-1;
                 s.u = u; s.phi = phi; s.F = F;
                 obj.saveData(s);
+
+                figure(400)
+                hold on
+                phi.plot;
+                title(['Damage at step ',num2str(i)])
+                colorbar
+                clim([0 1])
+
                 %obj.printPlots(phi,i);
                 %exportgraphics(gcf,'Lshape.gif','Append',true);
             end
@@ -300,10 +308,15 @@ classdef PhaseFieldComputer < handle
         end
 
         function totReact = computeTotalReaction(obj,F)
-            UpSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % UpSide  = max(obj.mesh.coord(:,2));
+            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % nodes = 1:obj.mesh.nnodes;
+            % totReact = -sum(F(2*nodes(isInUp)));
+
+            DownSide  = min(obj.mesh.coord(:,2));
+            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = -sum(F(2*nodes(isInUp)));
+            totReact = -sum(F(2*nodes(isInDown)));
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,costOld)

@@ -81,16 +81,16 @@ for i=1:3
         % legType = 2;
 
         %%%%%%%%%%%%% PLOT SECOND DERIVATIVE TENSOR ALL TYPES %%%%%%%%%%%%%%%
-        % plot(deriv2MatType{1}.phi,squeeze(deriv2MatType{1}.mat(i,j,:)),'.','Color','#0072BD');
-        % plot(deriv2MatType{2}.phi,squeeze(deriv2MatType{2}.mat(i,j,:)),'Color','#0072BD');
-        % plot(deriv2MatType{3}.phi,squeeze(deriv2MatType{3}.mat(i,j,:)),'.','Color','#D95319');
-        % plot(deriv2MatType{4}.phi,squeeze(deriv2MatType{4}.mat(i,j,:)),'Color','#D95319');
-        % plot(deriv2MatType{5}.phi,squeeze(deriv2MatType{5}.mat(i,j,:)),'Color','#EDB120');
-        % 
-        % ylabel(['C',num2str(i),num2str(j)]);
-        % xlabel("$\phi$",'Interpreter','latex');
-        % title(t,'Homogenized constitutive tensors derivatives')
-        % legType = 2;
+        plot(deriv2MatType{1}.phi,squeeze(deriv2MatType{1}.mat(i,j,:)),'.','Color','#0072BD');
+        plot(deriv2MatType{2}.phi,squeeze(deriv2MatType{2}.mat(i,j,:)),'Color','#0072BD');
+        plot(deriv2MatType{3}.phi,squeeze(deriv2MatType{3}.mat(i,j,:)),'.','Color','#D95319');
+        plot(deriv2MatType{4}.phi,squeeze(deriv2MatType{4}.mat(i,j,:)),'Color','#D95319');
+        plot(deriv2MatType{5}.phi,squeeze(deriv2MatType{5}.mat(i,j,:)),'Color','#EDB120');
+
+        ylabel(['C',num2str(i),num2str(j)]);
+        xlabel("$\phi$",'Interpreter','latex');
+        title(t,'Homogenized constitutive tensors derivatives')
+        legType = 2;
 
         %%%%%%%%%%%%% PLOT DERIVATIVES OF 1 TYPE (POLY VS. PROJECTION) %%%%%%%%%%%%%%%
         % fplot(funMat{i,j},[0 1],'Color','#0072BD');

@@ -91,7 +91,7 @@ classdef TestingPhaseField < handle
             s.fun  = obj.initialPhaseField;
             s.mesh = obj.mesh;
             mp     = MicroDamageParams(s);
-            sH.fileName    = 'CircleMicroDamageArea';
+            sH.fileName    = 'SquareMicroDamageArea';
             sH.microParams = mp;
             obj.materialPhaseField = HomogenizedPhaseField(sH);
         end

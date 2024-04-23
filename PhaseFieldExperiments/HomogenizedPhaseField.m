@@ -106,7 +106,8 @@ classdef HomogenizedPhaseField < handle
                     % Cij(1,1,:,:) = reshape(Cv,nGaus,[]);
                     % C(i,j,:,:)   = Cij(1,1,:,:);
                     
-                    C(i,j,:,:) = double(subs(obj.fun{i,j},phiV));
+                    %C(i,j,:,:) = double(subs(obj.fun{i,j},phiV));
+                    C(i,j,:,:) = obj.fun{i,j}(phiV);
                 end
             end
         end
@@ -136,7 +137,10 @@ classdef HomogenizedPhaseField < handle
                     % dCij(1,1,:,:) = reshape(dCv,nGaus,[]);
                     % dCt(i,j,:,:)   = dCij(1,1,:,:);
 
-                    dCt(i,j,:,:) = double(subs(obj.dfun{i,j},phiV));
+                    %dCt(i,j,:,:) = double(subs(obj.dfun{i,j},phiV)); WITH
+                    %SYM
+                    dCt(i,j,:,:) = obj.dfun{i,j}(phiV);
+                    
                 end
             end
         end
@@ -168,7 +172,8 @@ classdef HomogenizedPhaseField < handle
                     % d2Cij(1,1,:,:) = reshape(d2Cv,nGaus,[]);
                     % d2Ct(i,j,:,:)   = d2Cij(1,1,:,:);
 
-                    d2Ct(i,j,:,:) = double(subs(obj.ddfun{i,j},phiV)); 
+                    %d2Ct(i,j,:,:) = double(subs(obj.ddfun{i,j},phiV)); 
+                    d2Ct(i,j,:,:) = obj.ddfun{i,j}(phiV);
                 end
             end
         end
@@ -194,6 +199,16 @@ classdef HomogenizedPhaseField < handle
                     obj.fun{i,j} = poly2sym(coeffvalues(f));
                     obj.dfun{i,j} = diff(obj.fun{i,j});
                     obj.ddfun{i,j} = diff(obj.dfun{i,j});
+                    if all(coeffvalues(f))
+                        obj.fun{i,j} = matlabFunction(obj.fun{i,j});
+                        obj.dfun{i,j} = matlabFunction(obj.dfun{i,j});
+                        obj.ddfun{i,j} = matlabFunction(obj.ddfun{i,j});
+                    else
+                        obj.fun{i,j} = @(x) x-x;
+                        obj.dfun{i,j} = @(x) x-x;
+                        obj.ddfun{i,j} = @(x) x-x;
+                    end
+
                 end
             end
         end
