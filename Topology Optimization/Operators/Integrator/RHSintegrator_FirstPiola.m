@@ -33,25 +33,31 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
         function rhsC = computeElementalRHS(obj, uFun, test)
             % Matrices
             quad = obj.quadrature;
+%             uFun = smallU;
             xG = quad.posgp;
             nPoints  = obj.quadrature.ngaus;
             nElem = obj.mesh.nelem;
             nDimG = obj.mesh.ndim;
             nDimf = uFun.ndimf;
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-            I33 = zeros(size(GradU));
-            I33(1,1,:,:) = 1;
-            I33(2,2,:,:) = 1;
 
-            I33(3,3,:,:) = 1;
+            I33 = zeros(size(GradU));
+            I33(1,1,:,:) = 1/nPoints;
+            I33(2,2,:,:) = 1/nPoints;
+            I33(3,3,:,:) = 1/nPoints;
+            
             F = I33 + GradU; % deformation gradient
             invF = MatrixVectorizedInverter.computeInverse(F);
             invFt = permute(invF, [2 1 3 4]);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             
             piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*jac.*invFt;
+%             piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*invFt;
             % can i subtract 1 to the jacobian directly?
 
+%             strs = obj.revertVoigtNotation(smallStress);
+%             Ft = permute(F, [2 1 3 4]);
+%             streMeu = pagemtimes(1./jac, pagemtimes(Ft,piola))
             dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
             dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             nNodeE = size(dNdx,2);
@@ -79,6 +85,37 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
                 int = integrand(:,idof);
                 con = connec(:,idof);
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
+            end
+        end
+    end
+
+    methods (Static, Access = private)
+
+        function f_new = revertVoigtNotation(f)
+            ndim = size(f,1);
+            ngaus = size(f,2);
+            nel  = size(f,3);
+            b = 1;
+            switch ndim
+                case 1
+                    f_new = f;
+                case 3
+                    f_new        = zeros(2,2,ngaus,nel);
+                    f_new(1,1,:,:) = f(1,:,:,:);
+                    f_new(2,2,:,:) = f(2,:,:,:);
+                    f_new(1,2,:,:) = f(3,:,:,:)/b;
+                    f_new(2,1,:,:) = f_new(1,2,:,:);
+                case 6
+                    f_new        = zeros(3,3,ngaus,nel);
+                    f_new(1,1,:,:) = f(1,:,:,:);
+                    f_new(2,2,:,:) = f(2,:,:,:);
+                    f_new(3,3,:,:) = f(3,:,:,:);
+                    f_new(1,2,:,:) = f(6,:,:,:)/b;
+                    f_new(2,1,:,:) = f_new(1,2,:,:);
+                    f_new(1,3,:,:) = f(5,:,:,:)/b;
+                    f_new(3,1,:,:) = f_new(1,3,:,:);
+                    f_new(2,3,:,:) = f(4,:,:,:)/b;
+                    f_new(3,2,:,:) = f_new(2,3,:,:);
             end
         end
         

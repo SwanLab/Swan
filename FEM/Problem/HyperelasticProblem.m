@@ -28,6 +28,7 @@ classdef HyperelasticProblem < handle
     methods (Access = public)
 
         function obj = HyperelasticProblem()
+            close all;
             obj.init();
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
@@ -35,15 +36,20 @@ classdef HyperelasticProblem < handle
 
             % Check first piola convergence
 
+            bc = obj.boundaryConditions;
             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+            u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
+
             r = 1;
             i = 1;
+            rpre = 1;
             alpha = 0.01;
             f = animatedline;
             while r > 10e-6
                 Fint = obj.computeInternalForces();
                 res  = Fint - obj.Fext;
                 u_next = u_k - alpha*res;
+                u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                 r = norm(u_next - u_k)
                 u_k = u_next;
@@ -53,6 +59,7 @@ classdef HyperelasticProblem < handle
                 end
                 addpoints(f,i,r);
                 drawnow
+                rpre = r;
             end
 
 
@@ -89,7 +96,7 @@ classdef HyperelasticProblem < handle
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.uFun.fValues = obj.uFun.fValues + 0.001;
+            obj.uFun.fValues = obj.uFun.fValues + 0.1;
         end
 
         function computeForces(obj)
