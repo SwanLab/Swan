@@ -30,9 +30,25 @@ classdef HyperelasticProblem < handle
         function obj = HyperelasticProblem()
             close all;
             obj.init();
-            obj.createDisplacementFun();
+%             obj.createDisplacementFun();
+
+            sAF.fHandle = @(x) [x(1,:,:) + x(1,:,:);
+                                -2*x(2,:,:);
+                                x(3,:,:)];
+            sAF.ndimf   = 3;
+            sAF.mesh    = obj.mesh;
+            xFun = AnalyticalFunction(sAF);
+
+            uFun = xFun.project('P1');
+            obj.uFun = 
             obj.createBoundaryConditions();
             obj.computeForces();
+
+            s.material = obj.material;
+            s.mesh = obj.mesh;
+            neo = NeohookeanFunctional(s);
+
+            
 
             % Check first piola convergence
 
@@ -43,9 +59,10 @@ classdef HyperelasticProblem < handle
             r = 1;
             i = 1;
             rpre = 1;
-            alpha = 0.01;
+            alpha = 0.02;
             f = animatedline;
             while r > 10e-6
+                val = max(neo.compute(obj.uFun))
                 Fint = obj.computeInternalForces();
                 res  = Fint - obj.Fext;
                 u_next = u_k - alpha*res;
@@ -54,9 +71,9 @@ classdef HyperelasticProblem < handle
                 r = norm(u_next - u_k)
                 u_k = u_next;
                 i = i+1;
-                if r>1
-                    break
-                end
+%                 if r>1
+%                     break
+%                 end
                 addpoints(f,i,r);
                 drawnow
                 rpre = r;
@@ -89,7 +106,7 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
-            obj.mesh = UnitHexaMesh(5,5,5);
+            obj.mesh = UnitHexaMesh(7,7,7);
             obj.material.lambda = 3/4;
             obj.material.mu = 3/8;
         end
