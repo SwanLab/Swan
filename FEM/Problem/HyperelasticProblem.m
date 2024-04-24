@@ -32,22 +32,46 @@ classdef HyperelasticProblem < handle
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.computeForces();
-            bc = obj.boundaryConditions;
-            xpre = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
-            xpre(bc.dirichlet_dofs) = bc.dirichlet_vals;
-            nIter = 0;
-            while nIter < 10
+
+            % Check first piola convergence
+
+            u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+            r = 1;
+            i = 1;
+            alpha = 0.01;
+            f = animatedline;
+            while r > 10e-6
                 Fint = obj.computeInternalForces();
-                res  = Fint + obj.Fext;
-                hess = obj.computeSecondPiola();
-                [hess_red,res_red] = obj.full2reduced(hess,res);
-                x = hess_red\res_red;
-                % x = obj.computeNewtonRaphson(xpre, res, hess);
-                obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
-                norm(x-xpre)
-                xpre = x;
-                nIter = nIter + 1;
+                res  = Fint - obj.Fext;
+                u_next = u_k - alpha*res;
+                obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+                r = norm(u_next - u_k)
+                u_k = u_next;
+                i = i+1;
+                if r>1
+                    break
+                end
+                addpoints(f,i,r);
+                drawnow
             end
+
+
+%             bc = obj.boundaryConditions;
+%             xpre = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+%             xpre(bc.dirichlet_dofs) = bc.dirichlet_vals;
+%             nIter = 0;
+%             while nIter < 10
+%                 Fint = obj.computeInternalForces();
+%                 res  = Fint + obj.Fext;
+%                 hess = obj.computeSecondPiola();
+%                 [hess_red,res_red] = obj.full2reduced(hess,res);
+%                 x = hess_red\res_red;
+%                 % x = obj.computeNewtonRaphson(xpre, res, hess);
+%                 obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
+%                 norm(x-xpre)
+%                 xpre = x;
+%                 nIter = nIter + 1;
+%             end
         end
 
         function solve(obj)

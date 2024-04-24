@@ -54,7 +54,7 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
             dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
 
             dNdxTrial = obj.arrangedNdx(obj.trial);
-            dNdxTest = obj.arrangedNdx(obj.test);
+            dNdxTest = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
             % dNdxTest  = obj.test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             % dNdxTrial = obj.trial.evaluateCartesianDerivatives(obj.quadrature.posgp);
 
