@@ -6,6 +6,7 @@ clear all; close all; clc
 
 % Topology Optimization parameters: set penalization, line search and stop criterion parameters
 params = ParametersComputer();
+params = params.params;
 
 % Generate mesh
 mesh = MeshComputer();
@@ -20,7 +21,7 @@ bc = BoundaryConditionsComputer(cParams);
 % Set material properties
 matProp = MaterialPropertiesComputer();
 
-
+nMat = 4;
 % Set pde coefficients
 mat.A = matProp.matA;
 mat.B = matProp.matB;
@@ -40,6 +41,7 @@ axis image; axis off;
 pdemesh(mesh.p,mesh.e,mesh.t); axis image; axis off;
 
 
+
 %freeze nodes --- WHY??
 phold = [];
 for i = 1:size(mesh.ghold,1)
@@ -54,18 +56,38 @@ s.coord  = mesh.p';
 m = Mesh.create(s);
 
 % shape functional and volume associated to the hold-all domain
-psi_hold_all = ones(length(p),length(matprop.E)-1); psi_hold_all(:,1) = -1;
-[U,F,vol_hold_all] = solve(psi_hold_all, mesh, matprop, pdecoef, bc); 
+psi_hold_all = ones(length(mesh.p),nMat-1);
+psi_hold_all(:,1) = -1;
+s.matProp = matProp;
+s.mesh = mesh;
+s.pdeCoeff = pdeCoeff;
+s.psi = psi_hold_all;
+s.bc  = bc.bc;
+
+
+sys = SystemSolver(s); 
+[U,F,vol_hold_all] = sys.computeStiffnessMatrixAndForce();
+
+% ElasticProblem
+% [U,F]
+
+
 params.energy0 = 0.5 * dot(F,U); % initial energy 
 max_vol = vol_hold_all(1); %volinit = volinit.*gamma; %calculate maximum vol for each fase
 params.max_vol = max_vol; % store maximum volume for each fase
-voltarget = max_vol.*volfrac;
+voltarget = max_vol.*params.volfrac;
 
 % stop criterion over the volume constraint 
-volstop = voleps.*max_vol;
-if penalization == 1
+volstop = params.voleps.*max_vol;
+if params.penalization == 1
     volstop = max_vol;
 end
+
+p = mesh.p;
+t = mesh.t;
+
+
+
 
 [~,unitM,~] = assema(p,t,0,1,0); % mass matrix of unity density
 psi = psi./normL2( unitM,psi ); % level-set function nomalization 
@@ -82,6 +104,10 @@ option = 'null';
 %while not(strcmp(option,'s'))
     %-----------Initial values-----------%
     [U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
+
+   [U,F]    = solveFEM(psi, mesh, matprop, pdecoef, bc);
+   [volume] = computeVolume(psi, mesh, matprop, pdecoef, bc);
+
     [sf,Epot] = shfunc(F,U,volume,params);
     
     % compute function g: g = -DT (bulk) and g = DT (inclusion)
