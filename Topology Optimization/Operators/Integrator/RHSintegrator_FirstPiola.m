@@ -42,11 +42,12 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
 
             I33 = zeros(size(GradU));
-            I33(1,1,:,:) = 1/nPoints;
-            I33(2,2,:,:) = 1/nPoints;
-            I33(3,3,:,:) = 1/nPoints;
+            I33(1,1,:,:) = 1;
+            I33(2,2,:,:) = 1;
+            I33(3,3,:,:) = 1;
             
             F = I33 + GradU; % deformation gradient
+            F = permute(F, [2 1 3 4]);
             invF = MatrixVectorizedInverter.computeInverse(F);
             invFt = permute(invF, [2 1 3 4]);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
@@ -67,7 +68,7 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             % do we need to transpose piola to make it consistent?
             % ndimF*nDimG x nDimG*nNodeE
 
-            piola = permute(piola, [2 1 3 4]);
+%             piola = permute(piola, [2 1 3 4]);
             mult = pagemtimes(piola, dNdx);
             intI = mult.*dV;
             rhsC = squeezeParticular(sum(intI,3),3);

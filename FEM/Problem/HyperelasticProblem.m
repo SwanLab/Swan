@@ -30,17 +30,7 @@ classdef HyperelasticProblem < handle
         function obj = HyperelasticProblem()
             close all;
             obj.init();
-%             obj.createDisplacementFun();
-
-            sAF.fHandle = @(x) [x(1,:,:) + x(1,:,:);
-                                -2*x(2,:,:);
-                                x(3,:,:)];
-            sAF.ndimf   = 3;
-            sAF.mesh    = obj.mesh;
-            xFun = AnalyticalFunction(sAF);
-
-            uFun = xFun.project('P1');
-            obj.uFun = 
+            obj.createDisplacementFun();
             obj.createBoundaryConditions();
             obj.computeForces();
 
@@ -106,7 +96,7 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
-            obj.mesh = UnitHexaMesh(7,7,7);
+            obj.mesh = UnitHexaMesh(5,5,5);
             obj.material.lambda = 3/4;
             obj.material.mu = 3/8;
         end

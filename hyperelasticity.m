@@ -1,18 +1,23 @@
 % Material parameters
 mesh = UnitHexaMesh(7,7,7);
-material.lambda = 3/4;
-material.mu = 3/8;
+material.lambda = 0.6;
+material.mu = 1;
 
 
 % Creem uFun
-sAF.fHandle = @(x) [x(1,:,:) + x(2,:,:);
-                    -2*x(2,:,:);
-                    x(3,:,:)];
+sAF.fHandle = @(x) [0*x(1,:,:) + x(2,:,:);
+                    -0.5*x(2,:,:);
+                    0*x(3,:,:)];
 sAF.ndimf   = 3;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
 
 uFun = xFun.project('P1');
+
+s.mesh= mesh;
+s.material= material;
+neo = NeohookeanFunctional(s);
+neo.compute(uFun)
 
 quad = Quadrature.create(mesh, 2);
 xG = quad.posgp;
