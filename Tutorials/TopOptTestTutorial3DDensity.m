@@ -1,6 +1,7 @@
 classdef TopOptTestTutorial3DDensity < handle
 
     properties (Access = private)
+        filename %AFEGIDA PER LLEGIR MALLA
         mesh
         filter
         designVariable
@@ -44,7 +45,8 @@ classdef TopOptTestTutorial3DDensity < handle
             %obj.mesh = HexaMesh(2,1,1,40,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            file = 'Mallanova2';
+            file = 'Malla_ambconstraints_GiD_2';
+            obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;  %faltava ficar el obj
@@ -148,7 +150,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.9;                                           %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget = 0.4;                                           %CONDICCIÓ VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -192,7 +194,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraintCase = 'EQUALITY'; %{'EQUALITY'}; per Level Set  // 'EQUALITY'; per Density
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.9;                                %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget   = 0.4;                                %CONDICCIÓ VOLUM FINAL
             opt = OptimizerMMA(s);  %%MMA en DENSITY 
             %s.primal         = 'SLERP';   %%NullSpace en Level Set (faltava?) --> NO VA EL LEVEL SET 3D
             %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set
@@ -202,29 +204,24 @@ classdef TopOptTestTutorial3DDensity < handle
 
         function bc = createBoundaryConditions(obj)
 
-%---------------3D CANTIELEVER CASE-------------%
-          xMax    = max(obj.mesh.coord(:,1));
-          yMax    = max(obj.mesh.coord(:,2));
-          zMax    = max(obj.mesh.coord(:,3));
+            femReader = FemInputReader_GiD();  %Llegim malla GiD
+            s = femReader.read(obj.filename);  %Llegim malla GiD
 
-          xMin    = min(obj.mesh.coord(:,1));
-          yMin    = min(obj.mesh.coord(:,2));
-          zMin    = min(obj.mesh.coord(:,3));
-          
-          isDir  = @(coor)  abs(coor(:,1))==zMin;
-          isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
-          
-          sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
-          sDir{1}.direction = [1,2,3]; %restricció vertical, horitzontal i 3r eix
-          sDir{1}.value     = 0;  %desplaçament =0
-          
-          sPL{1}.domain    = @(coor) isForce(coor);
-          sPL{1}.direction = 2;
-          sPL{1}.value     = -1;
-%---------------3D CANTIELEVER CASE-------------%
+            [u,v]=unique(s.pointload(:,3));  %Creem un vector [u,v] que es igual a totes les files de la tercera columna de s.pointload
+                                             % u= valors diferents de les forces aplicades en diferents punts. v= nº de forces diferents
+            for i = 1:length(v)  
+                rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...) 
+                isForce = @(coor) s.pointload(rows,1);  %isForce guarda tots els valors dels nodes amb força aplicada
+                sPL{i}.domain    = @(coor) isForce(coor);
+                sPL{i}.direction = s.pointload(v(i),2); %La direcció de la força serà la segona columna de s.pointload
+                sPL{i}.value     = u(i);                %El valor de la força serà la u(v)             
+            end 
 
+            isDir   = @(coor)  unique(s.dirichlet(:,1));  %llegeix les constraints de desplaçaments del GiD
+            sDir{i}.domain    = @(coor) isDir(coor);   
+            sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
+            sDir{i}.value     = 0;
 
-            %No tocar a partir d'aqui
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -243,5 +240,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+  
+    
     end
 end
