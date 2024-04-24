@@ -48,6 +48,11 @@ end
 pfree = setdiff(1:size(mesh.p,2),phold); % free nodes
 
 
+s.connec = mesh.t';
+s.connec = s.connec(:,1:3);
+s.coord  = mesh.p';
+m = Mesh.create(s);
+
 % shape functional and volume associated to the hold-all domain
 psi_hold_all = ones(length(p),length(matprop.E)-1); psi_hold_all(:,1) = -1;
 [U,F,vol_hold_all] = solve(psi_hold_all, mesh, matprop, pdecoef, bc); 
