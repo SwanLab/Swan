@@ -9,7 +9,7 @@ lambda          = 0.1;
 learningRate    = 0.1;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [3];
+hiddenlayers    = [0];
 
 %% Loading of files/datasets
 fileN = 'testDataset2.csv';
