@@ -74,7 +74,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
 
             E1 = 1;
-            nu1 = 1/3;
+            nu1 = 0.499;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -169,7 +169,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 700;%1000
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -184,8 +184,8 @@ classdef TopOptTestTutorial3DDensity < handle
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2))>=0.7*yMax & abs(coor(:,3))>=0.7*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))<=0.3*yMax & abs(coor(:,3))<=0.3*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))>=0.7*yMax & abs(coor(:,3))<=0.3*zMax) | (abs(coor(:,1))==0 & abs(coor(:,2))<=0.3*yMax & abs(coor(:,3))>=0.7*zMax); % 4 potes
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+            isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
+            isForce = @(coor)  abs(coor(:,1))==xMax;
  
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
