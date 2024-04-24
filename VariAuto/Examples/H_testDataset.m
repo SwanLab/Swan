@@ -9,15 +9,21 @@ lambda          = 0.1;
 learningRate    = 0.1;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [10,15];
+hiddenlayers    = [3];
 
 %% Loading of files/datasets
-fileN = 'testDataset.csv';
+fileN = 'testDataset2.csv';
 s.features = 1:3;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
 data  = Data(s);
+
+data.Ytest = data.Ytest(~isnan(data.Ytest(:,1)),:);
+data.Xtest = data.Xtest(~isnan(data.Ytest(:,1)),:);
+data.Xtrain = data.Xtrain(~isnan(data.Ytrain(:,1)),:);
+data.Ytrain = data.Ytrain(~isnan(data.Ytrain(:,1)),:);
+data.Ntest = size(data.Ytest,1);
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
@@ -29,9 +35,10 @@ p.optimizerParams.learningRate = learningRate;
 p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
-p.networkParams.HUtype       = 'ReLU';
+p.networkParams.HUtype       = 'None';
 p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
+
 
 optProblem.solve();
 

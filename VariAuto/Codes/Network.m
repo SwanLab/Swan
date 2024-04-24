@@ -6,7 +6,7 @@ classdef Network < handle
 
     properties (Access = private)
         delta
-        a_fcn
+        aValues
         HUtype
         OUtype
         Costtype
@@ -25,17 +25,21 @@ classdef Network < handle
         end
 
         function c = forwardprop(obj,Xb,Yb)
-            a = obj.computeAvalues(Xb);
-            obj.a_fcn = a;
-            yOut   = a{end};            
+            obj.computeAvalues(Xb);
+            yOut  = obj.aValues{end}            
             [c,~] = obj.lossFunction(Yb,yOut);
         end
 
-        function a = computeAvalues(obj,Xb)
+        function yOut = computeYOut(obj,Xb)
+            obj.computeAvalues(Xb);
+            yOut = obj.aValues{end}; 
+        end
+
+        function computeAvalues(obj,X)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             nLy = obj.nLayers;
             a = cell(nLy,1);
-            a{1} = Xb;
+            a{1} = X;
             for i = 2:nLy
                 g_prev = a{i-1};
                 Wi = W{i-1};
@@ -44,11 +48,12 @@ classdef Network < handle
                 [g,~] = obj.actFCN(h,i);
                 a{i} = g;
             end
+            obj.aValues = a;
         end
 
         function dc = backprop(obj,Yb)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
-            a = obj.a_fcn;
+            a = obj.aValues;
             nPl = obj.neuronsPerLayer;
             nLy = obj.nLayers;
             m = length(Yb);
@@ -103,15 +108,15 @@ classdef Network < handle
             obj.nLabels      = cParams.data.nLabels;
             obj.createNeuronsPerLayer();
             obj.createNumberOfLayers();
-   %         if length(cParams) <= 2
-   %             obj.Costtype = '-loglikelihood';
-   %             obj.HUtype = 'ReLU';%'sigmoid';
-   %             obj.OUtype = 'sigmoid';'softmax';
-   %         else
-                obj.Costtype = cParams.costType;
-                obj.HUtype   = cParams.HUtype;
-                obj.OUtype   = cParams.OUtype;
-    %        end
+            %         if length(cParams) <= 2
+            %             obj.Costtype = '-loglikelihood';
+            %             obj.HUtype = 'ReLU';%'sigmoid';
+            %             obj.OUtype = 'sigmoid';'softmax';
+            %         else
+            obj.Costtype = cParams.costType;
+            obj.HUtype   = cParams.HUtype;
+            obj.OUtype   = cParams.OUtype;
+            %        end
         end
 
         function createNumberOfLayers(obj)
