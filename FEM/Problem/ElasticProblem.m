@@ -203,12 +203,13 @@ classdef ElasticProblem < handle
         end
 
         function prepareInternalForcesFunction(obj)
-            % s.type                     = 'ShapeSymmetricDerivative';
-            % s.scale                    = 'MACRO';
+            s.type                     = 'ShapeSymmetricDerivative';
+            s.scale                    = 'MACRO';
+
             s.mesh                     = obj.mesh;
             s.quadratureOrder          = obj.quadrature.order;
             s.globalConnec             = obj.mesh.connec;
-            obj.internalForcesComputer = InternalForceIntegrator(s);
+            obj.internalForcesComputer = InternalForceIntegrator(s);%RHSintegrator.create(s);%
             obj.testFunction           = LagrangianFunction.create(s.mesh,s.mesh.ndim,'P1');
         end
 
