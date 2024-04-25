@@ -52,8 +52,9 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             invFt = permute(invF, [2 1 3 4]);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             
-            piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*jac.*invFt;
-%             piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*invFt;
+            % piola = obj.mu*(F-invFt) + obj.lambda*(jac-1).*jac.*invFt;
+            piola = obj.mu*(F-invFt) + obj.lambda*log(jac); % stanford
+
             % can i subtract 1 to the jacobian directly?
 
 %             strs = obj.revertVoigtNotation(smallStress);

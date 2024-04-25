@@ -45,26 +45,29 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
             F = I33 + GradU; % deformation gradient
             Ft = permute(F, [2 1 3 4]);
             C = pagemtimes(Ft,F);
-            invC = MatrixVectorizedInverter.computeInverse(C);
+            invC  = MatrixVectorizedInverter.computeInverse(C);
+            invF = MatrixVectorizedInverter.computeInverse(F);
+            invFt = MatrixVectorizedInverter.computeInverse(Ft);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-            
-            secPiola = obj.mu*(I33-invC) + obj.lambda*(jac-1).*jac.*invC;
-            % can i subtract 1 to the jacobian directly?
+            logJac(1,1,:,:,:,:) = log(jac);
+            Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
+                obj.mu*obj.kron_topF(I33,I33) + ...
+                (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
 
-            dV(1,1,:,:) = obj.mesh.computeDvolume(obj.quadrature);
+            dV(1,1,:,:,:,:) = obj.mesh.computeDvolume(obj.quadrature);
 
-            dNdxTrial = obj.arrangedNdx(obj.trial);
-            dNdxTest = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
+            dNdxTrial(1,1,:,:,:,:) = obj.arrangedNdx(obj.trial);
+            dNdxTest(1,1,:,:,:,:) = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
             % dNdxTest  = obj.test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             % dNdxTrial = obj.trial.evaluateCartesianDerivatives(obj.quadrature.posgp);
 
             % dNdxTr = full(sparse(1:numel(dNdxTrial), repmat(1:size(dNdxTrial,1),1,size(dNdxTrial,2)), dNdxTrial(:)))';
             % dNdxTe = full(sparse(1:numel(dNdxTest), repmat(1:size(dNdxTest,1),1,size(dNdxTest,2)), dNdxTest(:)))';
 
-            dNdxT = permute(dNdxTest, [2 1 3 4]);
+            dNdxT = permute(dNdxTest, [1 2 4 3 5 6 ]);
 
-            secPiola = permute(secPiola, [2 1 3 4]);
-            mult = pagemtimes(secPiola, dNdxTrial);
+            % secPiola = permute(secPiola, [2 1 3 4]);
+            mult = pagemtimes(Aneo, dNdxTrial);
             mult = pagemtimes(dNdxT, mult); % hmmm
             intI = mult.*dV;
             lhsC = squeezeParticular(sum(intI,3),3);
@@ -88,6 +91,34 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
             end
 
         end
+
+        function C = outerProduct(obj, A, B)  % version 1
+            C = zeros([size(A,1), size(A,2),size(B)]);
+            for i = 1:size(A,1)
+                for j = 1:size(A,2)
+                    for k = 1:size(B,1)
+                        for l = 1:size(B,2)
+                            C(i,j,k,l,:,:) = A(i,j,:,:).*B(k,l,:,:);
+                        end
+                    end
+                end
+            end
+        end
+
+        function C= kron_topF(obj, A,B)
+            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+            for i = 1:size(A,1)
+                for k = 1:size(B,1)
+                    C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
+                end
+            end
+        end
+
+        function C= kron_botF(obj,A,B)
+            C = obj.kron_topF(A,B);
+            C = pagetranspose(C);
+        end
+
 
     end
     

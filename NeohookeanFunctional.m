@@ -46,7 +46,8 @@ classdef NeohookeanFunctional < handle
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
-            val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
+            % val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
+            val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
             val = pagemtimes(val,dV);
             val = sum(val, 'all');
         end

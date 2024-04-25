@@ -65,12 +65,12 @@ C = kron_topF(I33,I33);
 % idea: pillar un elasticproblem, guardar u, comparar hessian amb K.
 
 function C = OuterProductDelta(A, B)  % version 1
-    C = zeros([size(A),size(B)]);
+    C = zeros([size(A,1), size(A,2),size(B)]);
     for i = 1:size(A,1)
         for j = 1:size(A,2)
             for k = 1:size(B,1)
                 for l = 1:size(B,2)
-                    C(i,j,k,l) = A(i,j)*B(k,l);
+                    C(i,j,k,l,:,:) = A(i,j,:,:).*B(k,l,:,:);
                 end
             end
         end
@@ -78,7 +78,7 @@ function C = OuterProductDelta(A, B)  % version 1
 end
 
 function C = OuterProduct(A, B)  % version 5
-    C = reshape(A(:) * B(:).', [size(A), size(B)]);
+    C = reshape(A(:) * B(:).', [size(A),size(A,2), size(B)]);
 end
 
 function C= kron_topF(A,B)
