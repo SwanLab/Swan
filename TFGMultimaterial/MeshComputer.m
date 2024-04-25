@@ -22,11 +22,14 @@ classdef MeshComputer < handle
 
         function create(obj)
             load viga2x1.mat;
+            prec = 1e6;
             obj.g = g;
             n = 40;
-            [obj.p,obj.e,obj.t] = poimesh(obj.g,2*n,n); %p1 = round(prec*p1)/prec; 
-            obj.t(4,:) = 1;
-
+            [obj.p,obj.e,~] = poimesh(obj.g,2*n,n); %p1 = round(prec*p1)/prec; 
+            %obj.t(4,:) = 1;
+            
+            load ConnectivitiesOriginal.mat;
+            obj.t = t; 
             obj.ghold  = 0;
             nsteps = 1;
             obj.remesh  = 'longest';

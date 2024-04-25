@@ -29,8 +29,10 @@ mat.C = matProp.matC;
 mat.D = matProp.matD;
 pdeCoeff = PDECoefficientsComputer(mat);
 
+
 % Set an initial guess on level set
-psi = InitialLevelSetComputer(mat,cParams);
+ls = InitialLevelSetComputer(mat,cParams);
+psi = ls.psi;
 
 % Plot mesh
 figure(1); clf;
@@ -50,10 +52,10 @@ end
 pfree = setdiff(1:size(mesh.p,2),phold); % free nodes
 
 
-s.connec = mesh.t';
-s.connec = s.connec(:,1:3);
-s.coord  = mesh.p';
-m = Mesh.create(s);
+% s.connec = mesh.t';
+% s.connec = s.connec(:,1:3);
+% s.coord  = mesh.p';
+% m = Mesh.create(s);
 
 % shape functional and volume associated to the hold-all domain
 psi_hold_all = ones(length(mesh.p),nMat-1);
@@ -85,7 +87,7 @@ end
 
 p = mesh.p;
 t = mesh.t;
-
+e = mesh.e;
 
 
 
@@ -103,20 +105,22 @@ option = 'null';
 
 %while not(strcmp(option,'s'))
     %-----------Initial values-----------%
-    [U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
+    %[U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
+    [U,F,volume] = sys.computeStiffnessMatrixAndForce();
 
-   [U,F]    = solveFEM(psi, mesh, matprop, pdecoef, bc);
-   [volume] = computeVolume(psi, mesh, matprop, pdecoef, bc);
+    % IMPLEMENTAR AIXO
+    %[U,F]    = solveFEM(psi, mesh, matprop, pdecoef, bc);
+   % [volume] = computeVolume(psi, mesh, matprop, pdecoef, bc);
 
     [sf,Epot] = shfunc(F,U,volume,params);
     
     % compute function g: g = -DT (bulk) and g = DT (inclusion)
-    dt = topder(mesh,U,volume,matprop,psi,params,pdecoef);
+    dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff);
     dt = dt/normL2(unitM,dt);  % g function normalization
     
     dt(phold,:) = psi(phold,:); % freeze dt function
     
-    for i = 1 : length(matprop.E)-1
+    for i = 1 : (nMat-1)
         cosin(i) = psi(:,i)'*unitM*dt(:,i);
     end
     cosin = max(min(sum(cosin),1.0),-1.0);
@@ -124,19 +128,27 @@ option = 'null';
     
     difvol = volume(1:end-1)-voltarget;
     ic = (abs(difvol) > volstop); %index control
-    while and(and( or(any(ic),theta > stop) , k/2 > kmin), iter<=4) % remove iter<=4
-                
+    while and(and( or(any(ic),theta > params.stop) , k/2 > params.kmin), iter<=4) % remove iter<=4
+    % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
         iter = iter + 1;
-        [U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
+
+        s.psi = psi;
+        s.mesh = mesh;
+        s.matProp = matProp;
+        s.pdeCoeff = pdeCoeff;
+        s.bc  = bc.bc;
+
+        sys = SystemSolver(s);
+        [U,F,volume] = sys.computeStiffnessMatrixAndForce();
         [sf,Epot] = shfunc(F,U,volume,params);
         
         % compute function g: g = -DT (bulk) and g = DT (inclusion)
-        dt = topder(mesh,U,volume,matprop,psi,params,pdecoef);
+        dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff);
         dt = dt./normL2(unitM,dt);  % g function normalization
         
         dt(phold,:) = psi(phold,:); % freeze dt function
         
-        for i = 1 : length(matprop.E)-1
+        for i = 1 : (nMat-1)
             cosin(i) = psi(:,i)'*unitM*dt(:,i);
         end
         cosin = max(min(sum(cosin),1.0),-1.0);
@@ -145,19 +157,33 @@ option = 'null';
         % performs a line-search
         sfold = sf; psiold = psi; sf = sf + 1; k = min(1-(1e-5),1.5*k); % trick
 %         
-        while and((sf > sfold) , k>kmin)
+        while and((sf > sfold) , k>params.kmin)
 %             (sf - sfold > eps(sf))
             % update level-set function
             psi(pfree,:)  = (sin((1-k)*theta)*psiold(pfree,:)...
                 +  sin(k*theta)*dt(pfree,:))./sin(theta);
-            [U,F,volume] = solve(psi,mesh,matprop,pdecoef,bc);
+            
+            s.psi = psi;
+            s.mesh = mesh;
+            s.matProp = matProp;
+            s.pdeCoeff = pdeCoeff;
+            s.bc  = bc.bc;
+
+            sys = SystemSolver(s);
+            [U,F,volume] = sys.computeStiffnessMatrixAndForce();
             [sf,Epot] = shfunc(F,U,volume,params);
             k = k / 2;
         end
         psi = psi/normL2(unitM,psi);
         k = k * 2;
-        
-        [fi,~] = charfunc( p,t,psi); %calculate characteristic function for plot
+
+        s.psi = psi;
+        s.p = mesh.p;
+        s.t = mesh.t;
+
+        charfun = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
+        [fi,~] = charfun.compute();
+        %[fi,~] = charfunc( p,t,psi); %calculate characteristic function for plot
         
         gsf  = [gsf,sf];
         gEpot = [gEpot,Epot];
@@ -178,35 +204,35 @@ option = 'null';
 %        set(3,'WindowStyle','docked');
         multimat_plot( p,t,fi );
         drawnow
-%             FRAMES(iter) = getframe(gcf);
-%         figure(4); clf;hold on, plot(gsf,'k-','LineWidth',1.2); %title('Shape Function');
-%         yyaxis left; ylabel('Shape Function'),
-%         yyaxis right; plot(gEpot,'-','LineWidth',1.2);   ylabel('Epot'),grid minor, xlim([0 iter])
-%         set(4,'WindowStyle','docked');
-%         figure(5); clf; plot(gth*180/pi,'-','MarkerFaceColor',facecolor,'Color',linecolor,'LineWidth',1.2); title('Theta Angle');
-%         grid minor , xlim([0 iter]),ylim([min(gth*180/pi)-5 max(gth*180/pi)+10])
-%         set(5,'WindowStyle','docked');   
-%         drawnow
-%         figure(6); clf;
-%         for index = 1:size(gvol,1)
-%             plot(gvol(index,:),'-','LineWidth',1.2), hold on
-%             leyenda{index} = sprintf('$V_{f%d}$',index);
-%         end
-%         title('Volume'); legend(leyenda),grid minor, xlim([0 iter]), ylim([-5 105])    
-%         set(6,'WindowStyle','docked');
+        %     FRAMES(iter) = getframe(gcf);
+        % figure(4); clf;hold on, plot(gsf,'k-','LineWidth',1.2); %title('Shape Function');
+        % yyaxis left; ylabel('Shape Function'),
+        % yyaxis right; plot(gEpot,'-','LineWidth',1.2);   ylabel('Epot'),grid minor, xlim([0 iter])
+        % set(4,'WindowStyle','docked');
+        % figure(5); clf; plot(gth*180/pi,'-','MarkerFaceColor',facecolor,'Color',linecolor,'LineWidth',1.2); title('Theta Angle');
+        % grid minor , xlim([0 iter]),ylim([min(gth*180/pi)-5 max(gth*180/pi)+10])
+        % set(5,'WindowStyle','docked');   
+        % drawnow
+        % figure(6); clf;
+        % for index = 1:size(gvol,1)
+        %     plot(gvol(index,:),'-','LineWidth',1.2), hold on
+        %     leyenda{index} = sprintf('$V_{f%d}$',index);
+        % end
+        % title('Volume'); legend(leyenda),grid minor, xlim([0 iter]), ylim([-5 105])    
+        % set(6,'WindowStyle','docked');
         
         %Update augmented lagrangian parameters
         difvol = volume(1:end-1)-voltarget;
         ic = (abs(difvol) > volstop); %index control
         
         if any(ic==1) 
-            if penalization == 2 % increase the penalization parameter
+            if params.penalization == 2 % increase the penalization parameter
                 params.penalty = 2.0 * params.penalty;
                 k = 1;
-            elseif penalization == 3 % increase the lagrangian multiplier
-                coef = volume(1:end-1)./ voltarget; coef = coef(ic); tau = auglag;
+            elseif params.penalization == 3 % increase the lagrangian multiplier
+                coef = volume(1:end-1)./ voltarget; coef = coef(ic); tau = params.auglag;
                 penalty = params.penalty(ic);
-                penalty = penalty + (tau(ic)./auglag(ic)) .* (max(0,penalty - auglag(ic).*(1.0-coef))-penalty);
+                penalty = penalty + (tau(ic)./params.auglag(ic)) .* (max(0,penalty - params.auglag(ic).*(1.0-coef))-penalty);
                 params.penalty(ic) = penalty;
                 k = 1;
             end

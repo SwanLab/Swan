@@ -30,7 +30,7 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
     penalization = params.penalization; penalty = params.penalty;
     volfrac = params.volfrac; auglag = params.auglag; max_vol = params.max_vol; 
     energy0 = params.energy0; voltarget = max_vol*volfrac;
-    nmat = length(matprop.E);
+    nmat = 4; % changed 
     %% topological derivative of the compliance shape functional
     % Topological derivatives are stored as following:
     % TD{i,j} ------> dti->j (perturbatation made of material "j" inside the material domain "i")
@@ -61,16 +61,24 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
     elseif size(pdecoef.f,1)==2 % vectorial second order pde
         TD = cell(nmat,nmat);
         %% material properties
-        E1 = matprop.E(1); nu = matprop.nu;
+        E1 = matprop.matA.young; nu = matprop.matA.nu;
         % Lame's coefficients
         la0 = nu.*E1./((1+nu).*(1-2.*nu)); mu0 = E1./(2.*(1+nu)); % plane strain
         la0 = 2.*mu0.*la0./(la0+2.*mu0); % plane stress
-        gamma  = matprop.E./E1; 
+        gamma(1)  = matprop.matA.young/E1;
+        gamma(2)  = matprop.matB.young/E1; 
+        gamma(3)  = matprop.matC.young/E1; 
+        gamma(4)  = matprop.matD.young/E1; 
         % element characteristic function: 1 if psi>0 and gama if psi<=0 
-        [~,tfi] = charfunc( p,t,psi);        
+        cParams.psi = psi;
+        cParams.p = p;
+        cParams.t = t; 
+        charfun = CharacteristicFunctionComputer(cParams); % s'ha de construir la classe - charfunc!!
+        [~,tfi] = charfun.compute();
 %         tgamma = pdeintrp(p,t,fi*gamma'); %P1 projection method
         tgamma = gamma*tfi; %Mixed formulation method
         tE = E1*tgamma; beta = (1+nu)/(1-nu); alpha = (3-nu)/(1+nu);
+        E = [matprop.matA.young matprop.matB.young matprop.matC.young matprop.matD.young];
         %% nominal stress
         [ux,uy]=pdegrad(p,t,U); % solution gradient
         e=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain
@@ -84,7 +92,7 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
         
         for i = 1:nmat
             for j = 1:nmat
-                gamma  = matprop.E(j)/matprop.E(i);
+                gamma  = E(j)/E(i);
                 coef1 = 0.5*((1-gamma)./(1+alpha*gamma))./tE;
                 coef2 = coef1.*((gamma.*(alpha-2*beta)-1)./(1+beta*gamma));
                 TD{i,j} = coef1.*(4*(s(1,:).*s(1,:)+2*s(2,:).*s(2,:)+s(3,:).*s(3,:))) ...
@@ -173,7 +181,8 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
         dt(2,:) = tfi(1,:).*TD{1,2} - tfi(2,:).*TD{2,1};
         
     elseif nmat==4
-        [~,tfi] = charfunc( p,t,psi); % get characteristic function - Mixed formulation method
+        charfun = CharacteristicFunctionComputer(cParams); 
+        [~,tfi] = charfun.compute();
         [tXi2,~] = integ_exact(t,p,psi(:,2)); chi2 = (1 - tXi2); %- Mixed formulation method
         [tXi3,~] = integ_exact(t,p,psi(:,3)); chi3 = (1 - tXi3); %- Mixed formulation method
         %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method

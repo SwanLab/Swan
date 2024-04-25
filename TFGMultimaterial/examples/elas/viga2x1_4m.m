@@ -1,5 +1,6 @@
 function [mesh, pdecoef, matprop, params, bc, psi] = viga2x1_4m
 
+    clear all
     %% load g and b
     load viga2x1.mat;
     

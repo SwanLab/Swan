@@ -79,9 +79,10 @@ classdef SystemSolver < handle
             s.pdeCoeff = obj.pdeCoeff; 
             s.psi = obj.levelSet;
 
-            chi = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
+            charfun = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
+            [~,tchi] = charfun.compute();
           %  [ ~,tfi ] = charfunc(p,t,psi);
-            obj.charFunc = chi.tfi;
+            obj.charFunc = tchi;
         end
 
         function computeEffectiveTensor(obj)
