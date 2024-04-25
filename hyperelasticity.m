@@ -52,15 +52,72 @@ nNodeE = size(dNdx,2);
 mult = pagemtimes(piola, dNdx);
 intI = mult.*dV;
 
-s.mesh = obj.mesh;
-s.material = obj.material;
-test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-rhs = RHSintegrator_FirstPiola(s);
-intfor = rhs.compute(obj.uFun, test);
+% Products
+C = kron_top(I33,I33);
+C = kron_topF(I33,I33);
+
+
+% s.mesh = obj.mesh;
+% s.material = obj.material;
+% test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+% rhs = RHSintegrator_FirstPiola(s);
+% intfor = rhs.compute(obj.uFun, test);
 % idea: pillar un elasticproblem, guardar u, comparar hessian amb K.
 
-function kron_top
+function C = OuterProductDelta(A, B)  % version 1
+    C = zeros([size(A),size(B)]);
+    for i = 1:size(A,1)
+        for j = 1:size(A,2)
+            for k = 1:size(B,1)
+                for l = 1:size(B,2)
+                    C(i,j,k,l) = A(i,j)*B(k,l);
+                end
+            end
+        end
+    end
 end
 
-function kron_bot
+function C = OuterProduct(A, B)  % version 5
+    C = reshape(A(:) * B(:).', [size(A), size(B)]);
+end
+
+function C= kron_topF(A,B)
+    C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+    for i = 1:size(A,1)
+        for k = 1:size(B,1)
+            C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
+        end
+    end
+end
+
+function C= kron_top(A,B)
+    C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+    for i = 1:size(A,1)
+        for j = 1:size(A,2)
+            for k = 1:size(B,1)
+                for l = 1:size(B,2)
+                    C(i,j,k,l,:,:) = A(i,k,:,:).*B(j,l,:,:);
+                end
+            end
+        end
+    end
+end
+
+function C= kron_botF(A,B)
+    C = kron_topF(A,B);
+    C = pagetranspose(C);
+end
+
+function C= kron_bot(A,B)
+    % isequal(pagetranspose(kron_bot(eye(3),eye(3))), kron_top(eye(3),eye(3)))
+    C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+    for i = 1:size(A,1)
+        for j = 1:size(A,2)
+            for k = 1:size(B,1)
+                for l = 1:size(B,2)
+                    C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
+                end
+            end
+        end
+    end
 end
