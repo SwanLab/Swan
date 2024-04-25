@@ -2,6 +2,7 @@ classdef SLERP < handle
 
     properties (Access = public)
         tau
+        Theta
         boxConstraints
     end
 
@@ -24,6 +25,7 @@ classdef SLERP < handle
             gN     = gF.normalize('L2');
             phiN   = phiF.normalize('L2');
             theta  = obj.computeTheta(phiN,gN);
+            obj.Theta = theta;
             phiNew = obj.computeNewLevelSet(phiN,gN,theta);
             phi.update(phiNew);
             x = obj.computeRegularizedDensity(phi);
@@ -45,7 +47,7 @@ classdef SLERP < handle
             obj.tau = 0.5*(tUpper+tLower);
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
-            cond1   = delta==0;
+            cond1   = delta<=1e-10;
             cond2   = delta>=0.05;
             while (cond1 || cond2)
                 if cond1

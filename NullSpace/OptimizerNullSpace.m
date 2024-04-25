@@ -203,7 +203,17 @@ classdef OptimizerNullSpace < Optimizer
         function updateEtaMax(obj)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    t          = obj.primalUpdater.boxConstraints.refTau;
+%                     phi = obj.designVariable.fun;
+%                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
+%                     dV = phi.mesh.computeDvolume(quad);
+%                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
+%                     intBall = sum(dV.*chiBall,"all");
+%                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
+%                     gk.fValues = obj.meritGradient;
+%                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
+%                     k  = obj.primalUpdater.tau;
+%                     t  = obj.primalUpdater.Theta;
+%                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
                     obj.etaMax = 1e-4;
                 otherwise
                     t          = obj.primalUpdater.tau;
