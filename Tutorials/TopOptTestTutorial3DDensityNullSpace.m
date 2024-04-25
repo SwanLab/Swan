@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial3DDensity < handle
+classdef TopOptTestTutorial3DDensityNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial3DDensity()
+        function obj = TopOptTestTutorial3DDensityNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -174,11 +174,14 @@ classdef TopOptTestTutorial3DDensity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 700;%1000
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = {'EQUALITY'};
+            s.volumeTarget   = 0.3;
+            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.3;
-            opt = OptimizerMMA(s);
+            s.aJmax          = 0.2;
+            s.aGmax          = 50;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -189,11 +192,11 @@ classdef TopOptTestTutorial3DDensity < handle
             zMax = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
             isForce = @(coor)  abs(coor(:,1))==xMax;
- 
+
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
- 
+
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 1; % direccio x +
             sPL{1}.value     = -1; % sentit -
