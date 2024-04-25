@@ -48,7 +48,7 @@ classdef NeohookeanFunctional < handle
 
             val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
             val = pagemtimes(val,dV);
-            val = sum(val);
+            val = sum(val, 'all');
         end
 
     end
