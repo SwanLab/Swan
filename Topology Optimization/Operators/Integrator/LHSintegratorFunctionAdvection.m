@@ -65,7 +65,7 @@ classdef LHSintegratorFunctionAdvection < handle
                                 idof = obj.test.ndimf*(iNode-1)+iDim;
                                 jdof = obj.trial.ndimf*(jNode-1)+jDim;
                                 Ni = shapesTest(iNode,iGaus,:);
-                                dNj = squeeze(dNdxTr(iDim,jNode,:,iGaus));
+                                dNj = squeeze(dNdxTr(iDim,jNode,iGaus,:));
                                 v = squeeze(Ni.*dNj.*(fdv'));
                                 lhs(idof, jdof, :)= squeeze(lhs(idof,jdof,:)) ...
                                     + v(:);

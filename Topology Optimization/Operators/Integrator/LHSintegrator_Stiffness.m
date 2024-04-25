@@ -28,12 +28,10 @@ classdef LHSintegrator_Stiffness < LHSintegrator
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
-            BcompTs = obj.createBComputer(obj.test, dNdxTs);
-            BcompTr = obj.createBComputer(obj.trial, dNdxTr);
             lhs = zeros(nDofETs,nDofETr,nElem);
             for igaus = 1:nGaus
-                BmatTs = BcompTs.compute(igaus);
-                BmatTr = BcompTr.compute(igaus);
+                BmatTs = squeezeParticular(dNdxTs(:,:,igaus,:),3);
+                BmatTr = squeezeParticular(dNdxTr(:,:,igaus,:),3);
                 dV(1,1,:) = dVolu(igaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
                 BtCB = pagemtimes(Bt, BmatTr);
