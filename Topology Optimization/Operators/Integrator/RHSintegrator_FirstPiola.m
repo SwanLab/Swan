@@ -47,7 +47,7 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             I33(3,3,:,:) = 1;
             
             F = I33 + GradU; % deformation gradient
-            F = permute(F, [2 1 3 4]);
+            F = permute(F, [2 1 3 4]); % F: nDimf, nDimG, nGaus, nElem
             invF = MatrixVectorizedInverter.computeInverse(F);
             invFt = permute(invF, [2 1 3 4]);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
@@ -63,7 +63,7 @@ classdef RHSintegrator_FirstPiola < RHSintegrator
             dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             nNodeE = size(dNdx,2);
             % piola:dNdx
-            % piola: nDimG*nDimF*nGaus*nElem
+            % piola: nDimF*nDimG*nGaus*nElem
             % dNdx:  nDimG*nNodE*nGaus*nElem
             % do we need to transpose piola to make it consistent?
             % ndimF*nDimG x nDimG*nNodeE

@@ -49,7 +49,7 @@ classdef HyperelasticProblem < handle
             r = 1;
             i = 1;
             rpre = 1;
-            alpha = 0.02;
+            alpha = 0.03;
             f = animatedline;
             while r > 10e-6
                 val = max(neo.compute(obj.uFun))

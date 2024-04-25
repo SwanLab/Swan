@@ -33,6 +33,11 @@ I33(2,2,:,:) = 1;
 I33(3,3,:,:) = 1;
 
 F = I33 + GradU; % deformation gradient
+F = permute(F, [2 1 3 4]); % F: nDimf, nDimG, nGaus, nElem
+invF = MatrixVectorizedInverter.computeInverse(F);
+invFt = permute(invF, [2 1 3 4]);
+
+jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
 
 % WE NEED TO TRANSPOSE F!!
 
