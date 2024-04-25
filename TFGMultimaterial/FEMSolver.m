@@ -1,10 +1,6 @@
-classdef SystemSolver < handle
+classdef FEMSolver < handle
 
     properties (Access = public)
-        displacements
-        force
-        stiffnessMatrix
-        volume
         charFunc
     end
 
@@ -21,14 +17,14 @@ classdef SystemSolver < handle
 
     methods (Access = public)
 
-        function obj = SystemSolver(cParams)
+        function obj = FEMSolver(cParams)
             obj.init(cParams)
             obj.computeGamma();
             obj.computeCharacteristicFunction();
             obj.computeEffectiveTensor();
         end
 
-        function [U,F,vol] = computeStiffnessMatrixAndForce(obj)
+        function [U,F] = computeStiffnessMatrixAndForce(obj)
             p = obj.mesh.p;
             t = obj.mesh.t;
             a = obj.pdeCoeff.a;
@@ -41,15 +37,6 @@ classdef SystemSolver < handle
             [K,~,F] = assema(p,t,c,a,f);
             [K,F] = pdeupdate(K,F,obj.bc,obj.mesh);
             U = K \ F;  % solve linear system
-            %     vol  = area*tchi';  %calculate volume assigned to each material including void -- P1 projection aproach
-            vol  = obj.mesh.area*tfi';  %calculate volume assigned to each material including void -- mixed formulation aproach
-
-
-            % assembly = assema(s); % s'ha de construir la classe!!
-            %  obj.stiffnessMatrix = assembly.computeStiffMatrix();
-            %  obj.force = assembly.computeForce();
-
-
         end
 
     end

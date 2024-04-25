@@ -42,7 +42,7 @@ axis image; axis off;
 
 pdemesh(mesh.p,mesh.e,mesh.t); axis image; axis off;
 
-
+pdegplot(mesh.g,"EdgeLabels","on","FaceLabels","on") % es per veure la geometria de la mesh
 
 %freeze nodes --- WHY??
 phold = [];
@@ -52,10 +52,12 @@ end
 pfree = setdiff(1:size(mesh.p,2),phold); % free nodes
 
 
-% s.connec = mesh.t';
-% s.connec = s.connec(:,1:3);
-% s.coord  = mesh.p';
-% m = Mesh.create(s);
+s.connec = mesh.t';
+s.connec = s.connec(:,1:3);
+s.coord  = mesh.p';
+%m = Mesh.create(s);
+m = TriangleMesh(2,1,80,40); % why connectivites and coord are not the same? 
+
 
 % shape functional and volume associated to the hold-all domain
 psi_hold_all = ones(length(mesh.p),nMat-1);
@@ -67,8 +69,12 @@ s.psi = psi_hold_all;
 s.bc  = bc.bc;
 
 
-sys = SystemSolver(s); 
-[U,F,vol_hold_all] = sys.computeStiffnessMatrixAndForce();
+sys = FEMSolver(s);
+[U,F] = sys.computeStiffnessMatrixAndForce();
+s.tfi = sys.charFunc;
+s.mesh = mesh;
+vol = VolumeComputer(s);
+vol_hold_all = vol.computeVolume();
 
 % ElasticProblem
 % [U,F]
@@ -106,11 +112,13 @@ option = 'null';
 %while not(strcmp(option,'s'))
     %-----------Initial values-----------%
     %[U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
-    [U,F,volume] = sys.computeStiffnessMatrixAndForce();
-
-    % IMPLEMENTAR AIXO
-    %[U,F]    = solveFEM(psi, mesh, matprop, pdecoef, bc);
-   % [volume] = computeVolume(psi, mesh, matprop, pdecoef, bc);
+        
+    sys = FEMSolver(s);
+    [U,F] = sys.computeStiffnessMatrixAndForce();
+    s.tfi = sys.charFunc;
+    s.mesh = mesh;
+    vol = VolumeComputer(s);
+    volume = vol.computeVolume();
 
     [sf,Epot] = shfunc(F,U,volume,params);
     
@@ -138,8 +146,12 @@ option = 'null';
         s.pdeCoeff = pdeCoeff;
         s.bc  = bc.bc;
 
-        sys = SystemSolver(s);
-        [U,F,volume] = sys.computeStiffnessMatrixAndForce();
+        sys = FEMSolver(s);
+        [U,F] = sys.computeStiffnessMatrixAndForce();
+        s.tfi = sys.charFunc;
+        s.mesh = mesh;
+        vol = VolumeComputer(s);
+        volume = vol.computeVolume();
         [sf,Epot] = shfunc(F,U,volume,params);
         
         % compute function g: g = -DT (bulk) and g = DT (inclusion)
@@ -169,8 +181,12 @@ option = 'null';
             s.pdeCoeff = pdeCoeff;
             s.bc  = bc.bc;
 
-            sys = SystemSolver(s);
-            [U,F,volume] = sys.computeStiffnessMatrixAndForce();
+            sys = FEMSolver(s);
+            [U,F] = sys.computeStiffnessMatrixAndForce();
+            s.tfi = sys.charFunc;
+            s.mesh = mesh;
+            vol = VolumeComputer(s);
+            volume = vol.computeVolume();
             [sf,Epot] = shfunc(F,U,volume,params);
             k = k / 2;
         end
