@@ -232,4 +232,11 @@ boundary_mesh.plot() %Plot mesh points
 
 
 
+% Nosaltres fariem el plot a la boundary aixi (Ton/Jose):
 
+nodesCyl = pressureFun.getDofsFromCondition(isCyl);
+presCyl  = pressureFun.fValues(nodesCyl,1);
+xCyl     = mesh.coord(nodesCyl,1);
+yCyl     = mesh.coord(nodesCyl,2);
+figure
+scatter3(xCyl,yCyl,presCyl)
