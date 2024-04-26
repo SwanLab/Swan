@@ -38,7 +38,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2 < 1e-5);
+isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 5e-5;
 
 %% Original (no-slip condition)
 % dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
@@ -234,9 +234,19 @@ boundary_mesh.plot() %Plot mesh points
 
 % Nosaltres fariem el plot a la boundary aixi (Ton/Jose):
 
-nodesCyl = pressureFun.getDofsFromCondition(isCyl);
-presCyl  = pressureFun.fValues(nodesCyl,1);
-xCyl     = mesh.coord(nodesCyl,1);
-yCyl     = mesh.coord(nodesCyl,2);
-figure
-scatter3(xCyl,yCyl,presCyl)
+nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+presCylVals = pressureFun.fValues(nodesCyl,1);
+xCyl        = mesh.coord(nodesCyl,1);
+yCyl        = mesh.coord(nodesCyl,2);
+mesh.computeEdges();
+e  = mesh.edges.nodesInEdges;
+bE = ismember(e,nodesCyl);
+bE = find(prod(bE,2));
+connec = e(bE,:);
+ss.coord    = mesh.coord;
+ss.connec   = connec;
+ss.kFace    = -1;
+bMesh       = Mesh.create(ss);
+bMesh       = bMesh.computeCanonicalMesh();
+presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order);
+presCyl.fValues = presCylVals;
