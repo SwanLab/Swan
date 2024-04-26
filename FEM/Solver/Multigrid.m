@@ -36,9 +36,11 @@ classdef Multigrid < handle
             u                               = 0*obj.coarseRHS{obj.nLevel + 1};
             level                           = obj.nLevel + 1;
             b                               = obj.RHS;
+            Res                             = 1;
             
-            while norm(obj.coarseRHS{obj.nLevel + 1} - obj.coarseLHS{obj.nLevel + 1} * u, inf) >= obj.tol
+            while norm(Res, inf) >= obj.tol
                 u = obj.vCycle(u,b,level);
+                Res = obj.RHS - obj.LHS * u;
             end
 
         end
@@ -102,7 +104,7 @@ classdef Multigrid < handle
 
         function fF = restriction(obj,fC,bcOld,bc,IOld)
                 fF = bcOld.reducedToFullVector(fC);
-                fF = reshape(fF,2,[])';
+                fF = reshape(fF,3,[])';
                 fF = IOld * fF; 
                 fF = reshape(fF',[],1);
                 fF = bc.fullToReducedVector(fF);
@@ -110,10 +112,22 @@ classdef Multigrid < handle
 
         function fCoarse = interpolate(obj,fFine,bcOld,bc,IOld)
                 fFine   = bc.reducedToFullVector(fFine);
-                fFine   = reshape(fFine,2,[])';
+                fFine   = reshape(fFine,3,[])';
                 fCoarse = IOld' * fFine;
                 fCoarse = reshape(fCoarse',[],1);
                 fCoarse = bcOld.fullToReducedVector(fCoarse);
+        end
+        
+         function plotRes(obj,res,mesh,bc,numItr)
+            xFull = bc.reducedToFullVector(res);
+            s.fValues = reshape(xFull,2,[])';
+            s.mesh = mesh;
+            s.fValues(:,end+1) = 0;
+            s.ndimf = 3;
+            xF = P1Function(s);
+            xF.plot();
+            %xF.print(['Res',num2str(numItr)],'Paraview')
+            fclose('all');
         end
         
     end
