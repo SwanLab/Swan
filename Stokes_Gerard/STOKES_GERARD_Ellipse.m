@@ -8,10 +8,10 @@ clc
 % f = StokesDataContainer(a);
 
 dim_a = 0.2; % Semi-major axis 0.2
-dim_b = 0.02; % Semi-minor axis 0.02
+dim_b = 0.05; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = -20; % Angle of attack of the semi-major axis (in degrees)
 
 
 m = QuadMesh(2,1,100,100); % MESH
@@ -49,56 +49,58 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1 < 1e-5);
+isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < 3.5e-3); %3.5e-2 per l'el·lipse fina
+
+
 %El problema és que li costa distingir els nodes a la frontera, perquè en
 %alguns llocs si que els nodes cauen a prop de l'el·lipse, però en altres
 %no.
-
-isMiddle_a1 = @(coor) (abs(coor(:,2)) - 0.9   < 1e-12);
-isMiddle_a2 = @(coor) (0.1 - abs(coor(:,2))   < 1e-12);
-
-isMiddle_b1 = @(coor) (abs(coor(:,2)) - 0.8   < 1e-12);
-isMiddle_b2 = @(coor) (0.2 - abs(coor(:,2))   < 1e-12);
-
-isMiddle_c1 = @(coor) (abs(coor(:,2)) - 0.7   < 1e-12);
-isMiddle_c2 = @(coor) (0.3 - abs(coor(:,2))   < 1e-12);
-
-isMiddle_d1 = @(coor) (abs(coor(:,2)) - 0.95   < 1e-12);
-isMiddle_d2 = @(coor) (0.05 - abs(coor(:,2))   < 1e-12);
+% %Distribució
+% isMiddle_a1 = @(coor) (abs(coor(:,2)) - 0.9   < 1e-12);
+% isMiddle_a2 = @(coor) (0.1 - abs(coor(:,2))   < 1e-12);
+% 
+% isMiddle_b1 = @(coor) (abs(coor(:,2)) - 0.8   < 1e-12);
+% isMiddle_b2 = @(coor) (0.2 - abs(coor(:,2))   < 1e-12);
+% 
+% isMiddle_c1 = @(coor) (abs(coor(:,2)) - 0.7   < 1e-12);
+% isMiddle_c2 = @(coor) (0.3 - abs(coor(:,2))   < 1e-12);
+% 
+% isMiddle_d1 = @(coor) (abs(coor(:,2)) - 0.95   < 1e-12);
+% isMiddle_d2 = @(coor) (0.05 - abs(coor(:,2))   < 1e-12);
 
 %% Original (no-slip condition)
-% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [0,0]; 
-% 
-% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-% dir_vel{1}.direction = [1,2];
-% dir_vel{1}.value     = [1,0];
-
-%% Prova distribució
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
 dir_vel{2}.direction = [1,2];
 dir_vel{2}.value     = [0,0]; 
 
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [0.2,0];
+dir_vel{1}.value     = [1,0];
 
-dir_vel{3}.domain    = @(coor) isMiddle_d1(coor) & isMiddle_d2(coor) & isLeft(coor);
-dir_vel{3}.direction = [1,2];
-dir_vel{3}.value     = [0.4,0];
-
-dir_vel{4}.domain    = @(coor) isMiddle_a1(coor) & isMiddle_a2(coor) & isLeft(coor);
-dir_vel{4}.direction = [1,2];
-dir_vel{4}.value     = [0.6,0];
-
-dir_vel{5}.domain    = @(coor) isMiddle_b1(coor) & isMiddle_b2(coor) & isLeft(coor);
-dir_vel{5}.direction = [1,2];
-dir_vel{5}.value     = [0.8,0];
-
-dir_vel{6}.domain    = @(coor) isMiddle_c1(coor) & isMiddle_c2(coor) & isLeft(coor);
-dir_vel{6}.direction = [1,2];
-dir_vel{6}.value     = [1,0];
+%% Prova distribució
+% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [0,0]; 
+% 
+% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+% dir_vel{1}.direction = [1,2];
+% dir_vel{1}.value     = [0.2,0];
+% 
+% dir_vel{3}.domain    = @(coor) isMiddle_d1(coor) & isMiddle_d2(coor) & isLeft(coor);
+% dir_vel{3}.direction = [1,2];
+% dir_vel{3}.value     = [0.4,0];
+% 
+% dir_vel{4}.domain    = @(coor) isMiddle_a1(coor) & isMiddle_a2(coor) & isLeft(coor);
+% dir_vel{4}.direction = [1,2];
+% dir_vel{4}.value     = [0.6,0];
+% 
+% dir_vel{5}.domain    = @(coor) isMiddle_b1(coor) & isMiddle_b2(coor) & isLeft(coor);
+% dir_vel{5}.direction = [1,2];
+% dir_vel{5}.value     = [0.8,0];
+% 
+% dir_vel{6}.domain    = @(coor) isMiddle_c1(coor) & isMiddle_c2(coor) & isLeft(coor);
+% dir_vel{6}.direction = [1,2];
+% dir_vel{6}.value     = [1,0];
 
 %% Modificat (free-slip condition)
 % dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);

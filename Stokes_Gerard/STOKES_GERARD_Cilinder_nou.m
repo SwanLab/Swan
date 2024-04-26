@@ -190,49 +190,7 @@ pressureFun.fValues = vars.p(:,end);
 velocityFun.plot()
 pressureFun.plot()
 
-%% PRESURE AT SURFACE
-boundary_mesh = uMesh.boundaryCutMesh.mesh;
-
-pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
-%velocity_boundary = uMesh.obtainFunctionAtUnfittedMesh(velocityFun);
-pressure_boundary.boundaryCutMeshFunction.plot()
-
-normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim);
-length_element = zeros(boundary_mesh.nelem,1);
-
-centroid = mean(boundary_mesh.coord);
-central_points = (boundary_mesh.coord(boundary_mesh.connec(:,1),:)+boundary_mesh.coord(boundary_mesh.connec(:,2),:))/2;
-ref_vect = central_points - centroid;
-
-for iE = 1:boundary_mesh.nelem
-    node1 = boundary_mesh.coord(boundary_mesh.connec(iE,1),:);
-    node2 = boundary_mesh.coord(boundary_mesh.connec(iE,2),:);
-    nvect = (node2-node1)/(abs(norm(node2-node1)));
-    nvect = nvect * [0 -1;1 0];
-    if dot(ref_vect(iE,:),nvect)<0
-        nvect = -nvect;
-    end
-    normal_vectors(iE,:) = nvect;
-    length_element(iE) = abs(norm(node1-node2));
-end
-
-F_total = [0,0];
-for iE = 1:boundary_mesh.nelem
-    pressure_mean = (pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,1)) + pressure_boundary.boundaryCutMeshFunction.fValues(boundary_mesh.connec(iE,2)))/2;
-    F_total = F_total + normal_vectors(iE,:)*length_element(iE)*(-pressure_mean);
-end
-
-quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
-hold on
-quiver(centroid(1,1),centroid(1,2),F_total(1,1),F_total(1,2));
-hold on
-boundary_mesh.plot() %Plot mesh points
-
-
-
-
-
-% Nosaltres fariem el plot a la boundary aixi (Ton/Jose):
+%% Lift and drag
 
 nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
 presCylVals = pressureFun.fValues(nodesCyl,1);
@@ -248,9 +206,31 @@ ss.connec   = connec;
 ss.kFace    = -1;
 bMesh       = Mesh.create(ss);
 bMesh       = bMesh.computeCanonicalMesh();
-presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); %pressure_boundary
+presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
 presCyl.fValues = presCylVals;
 
+pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+
+presCyl.plot()
+
+normal_vectors = zeros(bMesh.nelem,bMesh.ndim);
+length_element = zeros(bMesh.nelem,1);
+
+centroid = mean(bMesh.coord);
+central_points = (bMesh.coord(bMesh.connec(:,1),:)+bMesh.coord(bMesh.connec(:,2),:))/2;
+ref_vect = central_points - centroid;
+
+for iE = 1:bMesh.nelem
+    node1 = bMesh.coord(bMesh.connec(iE,1),:);
+    node2 = bMesh.coord(bMesh.connec(iE,2),:);
+    nvect = (node2-node1)/(abs(norm(node2-node1)));
+    nvect = nvect * [0 -1;1 0];
+    if dot(ref_vect(iE,:),nvect)<0
+        nvect = -nvect;
+    end
+    normal_vectors(iE,:) = nvect;
+    length_element(iE) = abs(norm(node1-node2));
+end
 
 nx = LagrangianFunction.create(bMesh,1,'P0');%Vectors normals
 ny = LagrangianFunction.create(bMesh,1,'P0');
@@ -262,3 +242,20 @@ D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
 sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
 L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
+
+quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
+hold on
+quiver(centroid(1,1),centroid(1,2),D,0);
+hold on
+quiver(centroid(1,1),centroid(1,2),0,L);
+hold on
+bMesh.plot() %Plot mesh points
+
+
+
+
+
+
+
+
+
