@@ -42,14 +42,16 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            %obj.mesh = HexaMesh(2,1,1,40,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            obj.mesh = HexaMesh(4,1,1,80,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            file = 'Malla_ambconstraints_GiD_2';
+           %{ 
+            file = 'Malla_ambconstraints_GiD_1';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;  %faltava ficar el obj
+           %}
 
         end
 
@@ -203,7 +205,10 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            %---------------------------------------------------%
+            %---------------BOUNDARY CONDITIONS GiD-------------%
 
+            %{ 
             femReader = FemInputReader_GiD();  %Llegim malla GiD
             s = femReader.read(obj.filename);  %Llegim malla GiD
 
@@ -221,6 +226,38 @@ classdef TopOptTestTutorial3DDensity < handle
             sDir{i}.domain    = @(coor) isDir(coor);   
             sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
             sDir{i}.value     = 0;
+            %}
+
+           %---------------BOUNDARY CONDITIONS GiD-------------%
+           %---------------------------------------------------%
+           
+           %---------------------------------------------------%
+           %-------------BOUNDARY CONDITIONS MATLAB------------%
+           
+           %---------------3D MBB CASE-------------%
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+
+            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+
+            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+           
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.value     = 0; %desplaçament =0
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
+            %---------------3D MBB CASE-------------%
+
+           %-------------BOUNDARY CONDITIONS MATLAB------------%
+           %---------------------------------------------------%
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -239,6 +276,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+           
         end
   
     
