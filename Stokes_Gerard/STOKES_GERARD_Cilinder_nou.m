@@ -10,7 +10,7 @@ xpos = 0.7;
 ypos = 0.5;
 radius = 0.2;
 
-m = QuadMesh(2,1,100,100); 
+m = QuadMesh(2,1,200,200); 
 s.type='Given';
 s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
 g = GeometricalFunction(s);
@@ -38,7 +38,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 5e-5;
+isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 2e-5;
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
@@ -209,7 +209,7 @@ bMesh       = bMesh.computeCanonicalMesh();
 presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
 presCyl.fValues = presCylVals;
 
-pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
+% pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
 
 presCyl.plot()
 
