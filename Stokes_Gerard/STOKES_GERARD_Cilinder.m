@@ -250,3 +250,15 @@ bMesh       = Mesh.create(ss);
 bMesh       = bMesh.computeCanonicalMesh();
 presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order);
 presCyl.fValues = presCylVals;
+
+
+nx = LagrangianFunction.create(bMesh,1,'P0');
+ny = LagrangianFunction.create(bMesh,1,'P0');
+nx.fValues = normal_vectors(:,1);
+ny.fValues = normal_vectors(:,2);
+sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
+pNx           = DomainFunction(sss);
+D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
+sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
+pNy           = DomainFunction(sss);
+L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
