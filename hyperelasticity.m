@@ -121,3 +121,5 @@ function C= kron_bot(A,B)
         end
     end
 end
+
+% fer curva f-u
