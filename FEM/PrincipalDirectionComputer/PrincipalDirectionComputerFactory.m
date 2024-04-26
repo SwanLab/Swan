@@ -5,9 +5,9 @@ classdef PrincipalDirectionComputerFactory < handle
         function pdc = create(cParams)
             
             switch cParams.type
-                case 2
+                case {'2D',2}
                     pdc = PrincipalDirectionComputerIn2D(cParams);
-                case 3
+                case {'3D',3}
                     pdc = PrincipalDirectionComputerIn3D(cParams);
             end
         end

@@ -173,7 +173,7 @@ classdef NumericalHomogenizer < handle
             cParams.coord  = mpMesh.coord;
             cParams.connec = mpMesh.connec;
 %             mesh = Mesh_Total(cParams);
-            mesh = Mesh(cParams);
+            mesh = Mesh.create(cParams);
 
             d = obj.volDataBase;
             s = SettingsDesignVariable();
@@ -187,6 +187,26 @@ classdef NumericalHomogenizer < handle
             scalarPr.mesh = mesh;
             s.scalarProductSettings    = scalarPr;
             d.filterParams.femSettings = d.femSettings;
+
+            % (19/12/2023): The future idea will be to destroy
+            % LevelSerCreator and use GeometricalFunction
+            sLs        = s.creatorSettings;
+            sLs.ndim   = s.mesh.ndim;
+            sLs.coord  = s.mesh.coord;
+            sLs.type   = s.initialCase;
+            lsCreator  = LevelSetCreator.create(sLs);
+            phi        = lsCreator.getValue();
+            switch s.type
+                case 'Density'
+                    value = 1 - heaviside(phi);
+                case 'LevelSet'
+                    value = phi;
+            end
+            ss.fValues = value;
+            ss.mesh    = s.mesh;
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
+
             desVar = DesignVariable.create(s);
             d.filterParams.mesh = desVar.mesh;
             d.filterParams.designVarType = desVar.type;
@@ -194,14 +214,19 @@ classdef NumericalHomogenizer < handle
             d.mesh = mesh;
 %             d.mesh.computeMasterSlaveNodes();
             d.designVariable = desVar;
+
+            sF            = d.filterParams.femSettings;
+            sF.filterType = d.filterParams.filterType;
+            sF.mesh       = d.designVariable.mesh;
+            sF.test       = LagrangianFunction.create(sF.mesh, 1, 'P0');
+            sF.trial      = LagrangianFunction.create(sF.mesh, 1, 'P1');
+            d.femSettings.designVariableFilter = Filter.create(sF);
+            d.femSettings.gradientFilter       = Filter.create(sF);
+
             vComputer = ShFunc_Volume(d);
             vComputer.computeFunctionFromDensity(obj.density);
             obj.cellVariables.volume = vComputer.value;
             obj.cellVariables.geometricVolume = vComputer.geometricVolume;
-        end
-        
-        function mesh = setMasterSlaveNodes(obj,mesh)
-           
         end
         
         function obtainIntegrationUsedVariables(obj)

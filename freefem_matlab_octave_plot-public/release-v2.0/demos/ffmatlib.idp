@@ -1,0 +1,94 @@
+/*ffmatlib.idp Export Macros (Plot Solutions for Matlab and Octave)
+ *
+ * Author: Chloros2 <chloros2@gmx.de>
+ * Created: 2018-12-21
+ *
+ *   This file is part of the ffmatlib which is hosted at
+ *   https://github.com/samplemaker/freefem_matlab_octave_plot
+ *
+ * Copyright (C) 2018 Chloros2 <chloros2@gmx.de>
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ */
+
+//Save finite element connectivity (j-th degree of freedom for i-th element)
+macro ffSaveVh(Th, Vh, filename){
+  {
+  ofstream file(filename);
+  file.precision(10);
+  for (int i=0; i<Th.nt; i++){
+    for (int j=0; j<Vh.ndofK; j++){
+      file << Vh(i,j) << "\n";
+    }
+  }
+  }
+} //EOM
+
+//Save FE Space data
+macro ffSaveData(u, filename){
+  {
+  ofstream file(filename);
+  file.precision(10);
+  for (int j=0; j<u[].n; j++){
+    file << u[][j] << endl;
+  }
+  }
+} //EOM
+
+macro ffSaveData2(u1, u2, filename){
+  {
+  ofstream file(filename);
+  int datalen=u1[].n;
+  if (u2[].n!=datalen){
+    cout << "error: arguments must have same size" << endl;
+    exit(1);
+  }
+  file.precision(10);
+  for (int j=0; j<datalen; j++){
+    file << u1[][j] << " " << u2[][j] << endl;
+  }
+  }
+} //EOM
+
+macro ffSaveData3(u1, u2, u3, filename){
+  {
+  ofstream file(filename);
+  int datalen=u1[].n;
+  if ((u2[].n!=datalen) | (u3[].n!=datalen)){
+    cout << "error: arguments must have same size" << endl;
+    exit(1);
+  }
+  file.precision(10);
+  for (int j=0; j<datalen; j++){
+    file << u1[][j] << " " << u2[][j] << " " << u3[][j] << endl;
+  }
+  }
+} //EOM
+
+macro ffSaveData4(u1, u2, u3, u4, filename){
+  {
+  ofstream file(filename);
+  int datalen=u1[].n;
+  if ((u2[].n!=datalen) | (u3[].n!=datalen) | (u4[].n!=datalen)){
+    cout << "error: arguments must have same size" << endl;
+    exit(1);
+  }
+  file.precision(10);
+  for (int j=0; j<datalen; j++){
+    file << u1[][j] << " " << u2[][j] << " " << u3[][j] << " " << u4[][j] << endl;
+  }
+  }
+} //EOM

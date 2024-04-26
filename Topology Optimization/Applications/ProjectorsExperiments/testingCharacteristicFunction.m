@@ -94,7 +94,8 @@ filter = Filter.create(y);
 filteredVals = filter.getP1fromP1(fxy);
 z.mesh    = m.mesh;
 z.fValues = filteredVals;
-filterToP1 = P1Function(z);
+z.order   = 'P1';
+filterToP1 = LagrangianFunction(z);
 filterToP1.plot();
 title('PDE Filter');
 
