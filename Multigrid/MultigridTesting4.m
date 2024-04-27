@@ -1,11 +1,11 @@
 classdef MultigridTesting4 < handle
-    
+
     properties (Access = public)
         u
     end
-    
+
     properties (Access = private)
-        nLevel        
+        nLevel
         multiLevelMesh
 
 
@@ -13,13 +13,13 @@ classdef MultigridTesting4 < handle
         boundaryConditionsFine
         fineMaterial
         quad
-        
+
         functionType
         nbasis
-        
+
         Lt
         FineK
-        
+
         FineKred
         coarseMesh
         CoarseK
@@ -34,8 +34,8 @@ classdef MultigridTesting4 < handle
         FineFred
         CoarseFred
         data
-        
-        
+
+
         I
         material
         boundaryConditions
@@ -44,9 +44,9 @@ classdef MultigridTesting4 < handle
         Fred
         fem
     end
-    
+
     methods (Access = public)
-        
+
         function obj = MultigridTesting4()
             tic
             close all;
@@ -56,35 +56,47 @@ classdef MultigridTesting4 < handle
             mF           = obj.multiLevelMesh.mesh;
             coarseMeshes = obj.multiLevelMesh.coarseMeshes;
             interpolator = obj.multiLevelMesh.interpolator;
-             
 
-            s.mesh                = mF;
-            s.coarseMeshes        = coarseMeshes;
-            s.interpolator        = interpolator;  
-            s.bc                  = obj.createBoundaryConditions(mF);
-            s.material            = obj.createMaterial(mF);
-            s.dispFun             = P1Function.create(mF, obj.nDimf);
-            s.RHS                 = obj.computeFred(mF,s.dispFun,s.bc);
-            s.LHS                 = obj.computeKred(mF,s.material,s.dispFun,s.bc);
             s.type                = 'ELASTIC';
             s.scale               = 'MACRO';
             s.dim                 = '3D';
             s.solverType          = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
+            s.solverCase          = 'REDUCED';
+
+            s.mesh                = mF;
+            s.coarseMeshes        = coarseMeshes;
+            s.interpolator        = interpolator;
+
+            s.bc                  = obj.createBoundaryConditions(mF);
+            ss.mesh               = mF;
+            ss.boundaryConditions = s.bc;
+            s.bcApplier           = BCApplier(ss);
+
+            s.material            = obj.createMaterial(mF);
+            s.dispFun             = LagrangianFunction.create(mF, obj.nDimf,obj.functionType);
+            LHS                   = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
+            RHS                   = obj.computeForces(mF,s.dispFun,s.bc,s.material,LHS,s.solverCase);
+            s.LHS                 = s.bcApplier.fullToReducedMatrixDirichlet(LHS);
+%             s.LHS                 = obj.computeKred(mF,s.material,s.dispFun,s.bc);
+            s.RHS                 = s.bcApplier.fullToReducedVectorDirichlet(RHS);
+%             s.RHS                 = obj.computeFred(mF,s.dispFun,s.bc,s.material,s.LHS,s.solverCase);
+            
+            
             s.tol                 = 1e-6;
             s.nLevel              = obj.nLevel;
             s.nDimf               = obj.nDimf;
             solver                = Solver.create(s);
             obj.u                 = solver.solve();
             toc
-            
+
             obj.postProcess();
             obj.plotRes(obj.u,mF,s.bc);
         end
     end
 
     methods (Access = private)
-        
+
         function init(obj)
             obj.nDimf        = 3;
             obj.nbasis       = 20;
@@ -93,27 +105,35 @@ classdef MultigridTesting4 < handle
         end
 
         function createMultiLevelMesh(obj)
-           s.nX               = 1;
-           s.nY               = 1;
-           s.nZ               = 1;
-           s.nLevel           = obj.nLevel;
-           m                  = MultilevelMesh(s);
-           obj.multiLevelMesh = m;
+            s.nX               = 1;
+            s.nY               = 1;
+            s.nZ               = 1;
+            s.nLevel           = obj.nLevel;
+            m                  = MultilevelMesh(s);
+            obj.multiLevelMesh = m;
         end
-        
+
         function bc = createBoundaryConditions(obj,mesh)
-            rawBc       = obj.createRawBoundaryConditions(mesh);
-            dim         = obj.getFunDims(mesh);
-            rawBc.ndimf = dim.ndimf;
-            rawBc.ndofs = dim.ndofs;
-            s.mesh      = obj.fineMesh;
-            s.scale     = 'MACRO';
-            s.bc        = {rawBc};
-            s.ndofs     = dim.ndofs;
+            [Dir,PL]  = obj.createRawBoundaryConditions(mesh);
+            dirichlet = DirichletCondition(mesh,Dir);
+            pointload = PointLoad(mesh,PL);
+            pointload.values=pointload.values/size(pointload.dofs,1); % need this because force applied in the face not in a point
+            s.pointloadFun = pointload;
+            s.dirichletFun = dirichlet;
+            s.periodicFun =[];
+            s.mesh = mesh;
             bc          = BoundaryConditions(s);
-            bc.compute();
+%             dim         = obj.getFunDims(mesh);
+%             rawBc.ndimf = dim.ndimf;
+%             rawBc.ndofs = dim.ndofs;
+%             s.mesh      = obj.fineMesh;
+%             s.scale     = 'MACRO';
+%             s.bc        = {rawBc};
+%             s.ndofs     = dim.ndofs;
+%             bc          = BoundaryConditions(s);
+%             bc.compute();
         end
-        
+
         function dim = getFunDims(obj,mesh)
             s.fValues   = mesh.coord;
             s.mesh      = mesh;
@@ -121,83 +141,147 @@ classdef MultigridTesting4 < handle
             d.ndimf     = disp.ndimf;
             d.nnodes    = size(disp.fValues, 1);
             d.ndofs     = d.nnodes*d.ndimf;
-            d.nnodeElem = mesh.nnodeElem; 
+            d.nnodeElem = mesh.nnodeElem;
             d.ndofsElem = d.nnodeElem*d.ndimf;
             dim         = d;
         end
-        
-        function bc = createRawBoundaryConditions(obj,mesh)
-            dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
-            rightSide  = max(mesh.coord(:,1));
-            isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-            forceNodes = isInRight;
-            nodes = 1:mesh.nnodes;
-            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
-            nodesdir=size(nodes(dirichletNodes),2);
-            bcDir(1:nodesdir,end+1)   = 1;
-            bcDir(nodesdir+1:end,end) = 2;
-            bcDir(:,end+1)            = 0;
-            bc.dirichlet              = bcDir;
-            bc.pointload(:,1)         = nodes(forceNodes);
-            bc.pointload(:,2)         = 2;
-            bc.pointload(:,3)         = -1/length(forceNodes);
-        end
-        
-        function mat = createMaterial(obj,mesh)
-            s.mesh  = mesh;
-            s.type  = 'ELASTIC';
-            s.scale = 'MACRO';
-            ngaus   = 1;
-            Id      = ones(mesh.nelem,ngaus);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '3D';
-            s.nelem = mesh.nelem;
-            s.mesh  = mesh;
-            s.kappa = .9107*Id;
-            s.mu    = .3446*Id;
-            mat     = Material.create(s);
-            mat.compute(s);
+
+        function [Dir,PL] = createRawBoundaryConditions(obj,mesh)
+            %             dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
+            %             rightSide  = max(mesh.coord(:,1));
+            %             isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
+
+            %             forceNodes = isInRight;
+            %             nodes = 1:mesh.nnodes;
+            %             bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+            %             nodesdir=size(nodes(dirichletNodes),2);
+            %             bcDir(1:nodesdir,end+1)   = 1;
+            %             bcDir(nodesdir+1:end,end) = 2;
+            %             bcDir(:,end+1)            = 0;
+            %             bc.dirichlet              = bcDir;
+            %             bc.pointload(:,1)         = nodes(forceNodes);
+            %             bc.pointload(:,2)         = 2;
+            %             bc.pointload(:,3)         = -1/length(forceNodes);
+
+            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+            Dir.domain    = @(coor) isLeft(coor);
+            Dir.direction = [1,2,3];
+            Dir.value     = 0;
+
+            PL.domain    = @(coor) isRight(coor);
+            PL.direction = 2;
+            PL.value     = -1;
         end
 
-        function Kred = computeKred(obj,m,mat,u,bc)
-            K    = obj.computeStiffnessMatrix(m,mat,u);
-            Kred = bc.fullToReducedMatrix(K);
+        %         function mat = createMaterial(obj,mesh)
+        %             s.mesh  = mesh;
+        %             s.type  = 'ELASTIC';
+        %             s.scale = 'MACRO';
+        %             ngaus   = 1;
+        %             Id      = ones(mesh.nelem,ngaus);
+        %             s.ptype = 'ELASTIC';
+        %             s.pdim  = '3D';
+        %             s.nelem = mesh.nelem;
+        %             s.mesh  = mesh;
+        %             s.kappa = .9107*Id;
+        %             s.mu    = .3446*Id;
+        %             mat     = Material.create(s);
+        %             mat.compute(s);
+        %         end
+
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E1  = 1;
+            nu1 = 1/3;
+            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            young   = E;
+            poisson = nu;
         end
-        
+
+        function material = createMaterial(obj,mesh)
+            [young,poisson] = obj.computeElasticProperties(mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = mesh.ndim;
+            s.young   = young;
+            s.poisson = poisson;
+            tensor    = Material.create(s);
+            material = tensor;
+        end
+
+%         function Kred = computeKred(obj,m,mat,u,bc)
+%             K    = obj.computeStiffnessMatrix(m,mat,u);
+%             Kred = bc.fullToReducedMatrix(K);
+%         end
+
+%         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
+%             s.type     = 'ElasticStiffnessMatrix';
+%             s.mesh     = mesh;
+%             s.fun      = displacementFun;
+%             s.material = material;
+%             lhs        = LHSintegrator.create(s);
+%             LHS        = lhs.compute();
+%         end
+
         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
+            ndimf      = displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
-            s.fun      = displacementFun;
+            s.test     = LagrangianFunction.create(mesh,ndimf, 'P1');
+            s.trial    = displacementFun;
             s.material = material;
-            lhs        = LHSintegrator.create(s);
-            LHS        = lhs.compute();
-        end 
-        
-        function Fred = computeFred(obj,m,u,bc)
-            b  = obj.createRHS(m,u,bc);
-            Fred = bc.fullToReducedVector(b);
+            s.quadratureOrder = 2;
+            lhs = LHSintegrator.create(s);
+            LHS = lhs.compute();
         end
-        
-        function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
-            dim.ndimf  = dispFun.ndimf;
-            dim.nnodes = size(dispFun.fValues, 1);
-            dim.ndofs  = dim.nnodes*dim.ndimf;
-            dim.nnodeElem = mesh.nnodeElem; 
-            dim.ndofsElem = dim.nnodeElem*dim.ndimf;
-            c.dim=dim;
-            c.mesh=mesh;
-            c.BC = boundaryConditions;
-            RHS    = RHSintegrator_ElasticMacro(c);
-            RHS = RHS.compute();
+
+%         function Fred = computeFred(obj,m,u,bc,material,stiffness,solverCase)
+%             b  = obj.computeForces(m,u,bc,material,stiffness,solverCase);
+%             Fred = bc.fullToReducedVector(b);
+%         end
+% 
+%         function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
+%             dim.ndimf  = dispFun.ndimf;
+%             dim.nnodes = size(dispFun.fValues, 1);
+%             dim.ndofs  = dim.nnodes*dim.ndimf;
+%             dim.nnodeElem = mesh.nnodeElem;
+%             dim.ndofsElem = dim.nnodeElem*dim.ndimf;
+%             c.dim=dim;
+%             c.mesh=mesh;
+%             c.BC = boundaryConditions;
+%             RHS    = RHSintegrator_ElasticMacro(c);
+%             RHS = RHS.compute();
+%         end
+
+         function forces = computeForces(obj,mesh,dispFun,boundaryConditions,material,stiffness,solverCase)
+            s.type      = 'Elastic';
+            s.scale     = 'MACRO';
+%             s.dim       = obj.getFunDims();
+            s.dim.ndofs = dispFun.nDofs;
+            s.BC       = boundaryConditions;
+            s.mesh     = mesh;
+            s.material = material;
+%             s.globalConnec = mesh.connec;
+            RHSint = RHSintegrator.create(s);
+            rhs = RHSint.compute();
+            % Perhaps move it inside RHSint?
+            if strcmp(solverCase,'REDUCED')
+                R = RHSint.computeReactions(stiffness);
+                forces = rhs+R;
+            else
+                forces = rhs;
+            end
         end
-        
+
         function postProcess(obj)
             DOFs = [1056 9312 25760 50400 83232];
             time2 = [0.051821 0.072445 0.113856 0.229354 0.282576];
             time5 = [0.00513 0.020559 0.046073 0.090326 0.130545];
             time10 = [0.004523 0.031546 0.067093 0.135769 0.16341];
             time20 = [0.005 0.046528 0.084207 0.174044 0.292117];
-            
+
             figure(1)
             plot(DOFs,time2)
             hold on
@@ -207,7 +291,7 @@ classdef MultigridTesting4 < handle
             title('Time vs DOFs')
             xlabel('DOFs')
             ylabel('Time(s)')
-            
+
             legend('2 iters per level','5 iters per level','10 iters per level','20 iters per level','location','northwest')
 
             time2Total = [0.887724, 1.18978, 7.160798, 38.034618, 155.408853];
@@ -224,19 +308,24 @@ classdef MultigridTesting4 < handle
             title('Total Time vs DOFs')
             xlabel('DOFs')
             ylabel('Time(s)')
-            
+
             legend('2 iters per level','5 iters per level','10 iters per level','20 iters per level','location','northwest')
         end
 
-        function plotRes(obj,res,mesh,bc,numItr)
-            xFull = bc.reducedToFullVector(res);
-            s.fValues = reshape(xFull,3,[])';
+        function plotRes(obj,res,mesh,bcApplier,numItr)
+            xFull = bcApplier.reducedToFullVectorDirichlet(res);
+            s.fValues = reshape(xFull,obj.nDimf,[])';
             s.mesh = mesh;
-            %s.fValues(:,end+1) = 0;
-            s.ndimf = 3;
-            xF = P1Function(s);
+            if obj.nDimf<3
+                s.fValues(:,end+1) = 0;
+            end
+            s.order   = 'P1';
+%             s.ndimf = obj.nDimf;
+            uFeFun = LagrangianFunction(s);
+%             xF = P1Function(s);
             %xF.plot();
-            xF.print('uPrueva','Paraview')
+            uFeFun.print('uPrueva','Paraview')
+            uFeFun.print('uPrueva','Paraview')
             fclose('all');
         end
     end
