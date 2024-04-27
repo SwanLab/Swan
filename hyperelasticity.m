@@ -1,3 +1,5 @@
+% Bonet (6.5) pag 173
+
 % Material parameters
 mesh = UnitHexaMesh(7,7,7);
 material.lambda = 0.6;
