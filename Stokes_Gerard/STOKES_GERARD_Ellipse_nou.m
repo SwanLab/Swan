@@ -1,17 +1,16 @@
 clear all
 close all
-clc
 
 % % INPUT DATA
 % file = 'test_gerard';
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-dim_a = 0.2; % Semi-major axis 0.2
-dim_b = 0.2; % Semi-minor axis 0.02
+dim_a = 0.08; % Semi-major axis 0.2
+dim_b = 0.04; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 2; % Angle of attack of the semi-major axis (in degrees)
 
 
 m = QuadMesh(2,1,200,200); % MESH
@@ -49,7 +48,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < 5e-4); %3.5e-2, 1.2 per l'el·lipse fina
+isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < 4.6e-3); %3.5e-2, 1.2 per l'el·lipse fina
 
 
 %El problema és que li costa distingir els nodes a la frontera, perquè en
