@@ -4,26 +4,26 @@ clear;
 close all;
 %% Initialization of hyperparameters
 pol_deg         = 1;
-testratio       = 30;  
-lambda          = 0.1;
+testratio       = 0;
+lambda          = 0;
 learningRate    = 0.1;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [0];
+hiddenlayers    = [];
 
 %% Loading of files/datasets
-fileN = 'testDataset2.csv';
-s.features = 1:3;
+fileN = 'regression_dataset.csv';
+s.features = 1:1;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
 data  = Data(s);
 
-data.Ytest = data.Ytest(~isnan(data.Ytest(:,1)),:);
-data.Xtest = data.Xtest(~isnan(data.Ytest(:,1)),:);
-data.Xtrain = data.Xtrain(~isnan(data.Ytrain(:,1)),:);
-data.Ytrain = data.Ytrain(~isnan(data.Ytrain(:,1)),:);
-data.Ntest = size(data.Ytest,1);
+% data.Ytest = data.Ytest(~isnan(data.Ytest(:,1)),:);
+% data.Xtest = data.Xtest(~isnan(data.Ytest(:,1)),:);
+% data.Xtrain = data.Xtrain(~isnan(data.Ytrain(:,1)),:);
+% data.Ytrain = data.Ytrain(~isnan(data.Ytrain(:,1)),:);
+% data.Ntest = size(data.Ytest,1);
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];

@@ -30,7 +30,7 @@ classdef SGD < Trainer
             obj.Xtest  = s.Xtest;
             obj.Ytest  = s.Ytest;
             obj.maxFunEvals  = 5000;
-            obj.optTolerance = 10^(-6);
+            obj.optTolerance = 10^(-8);
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 10^(-4);
             obj.nPlot       = 1;
