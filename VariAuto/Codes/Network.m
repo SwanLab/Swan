@@ -148,7 +148,9 @@ classdef Network < handle
                     gc = (yp-y)./(yp.*(1-yp));
                 case 'L2'
                     c = ((yp-y).^2);
-                    J = sum(mean(c,1));
+                    % J = sum(mean(c,1)); % Erroneo
+                    % J = sqrt(sum(c)); % Propuesta 1
+                    J = norm(yp-y,2); % Propuesta 2
                     gc = (yp-y);
                 otherwise
                     msg = [type,' is not a valid cost function'];
