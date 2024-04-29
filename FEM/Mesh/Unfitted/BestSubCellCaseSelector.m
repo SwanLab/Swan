@@ -61,7 +61,7 @@ classdef BestSubCellCaseSelector < handle
             if size(obj.coord,2) == 3
                s.kFace = -1;
             end
-            m = Mesh(s);
+            m = Mesh.create(s);
             q = m.computeElementQuality();
         end
       

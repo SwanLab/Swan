@@ -1829,7 +1829,19 @@ pointload_complete = [
 89 2      -0.0125
 ];
 
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isMiddle = @(coor) (abs(coor(:,2)) <=  max(coor(:,2)/2));
 
+% Dirichlet
+sDir{1}.domain    = @(coor) isLeft(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = 0;
+
+% Point load
+sPL{1}.domain    = @(coor) isMiddle(coor) & isRight(coor);
+sPL{1}.direction = 2;
+sPL{1}.value     = -0.0125;
 
 %% Volumetric Force
 % Element        Dim                Force_Dim

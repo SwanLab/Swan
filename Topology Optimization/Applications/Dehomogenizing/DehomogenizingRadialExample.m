@@ -17,7 +17,7 @@ classdef DehomogenizingRadialExample < handle
         
         function obj = DehomogenizingRadialExample()
             obj.init();
-            for i = 10:50
+            for i = 20:50
                 obj.nCells = i;
                 obj.createBackgroundMesh();
                 obj.createOrientation();
@@ -33,9 +33,9 @@ classdef DehomogenizingRadialExample < handle
     methods (Access = private)
         
         function init(obj)
-            obj.nx1    = 40*2;%180
-            obj.nx2    = 40;%180
-            obj.nCells = 32;%32
+            obj.nx1    = 55*2;%180
+            obj.nx2    = 55;%180
+            obj.nCells = 42;%32
         end
         
         function createBackgroundMesh(obj)
@@ -69,7 +69,7 @@ classdef DehomogenizingRadialExample < handle
              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
              s.coord  = V(:,1:2);
              s.connec = F;
-             obj.backgroundMesh = Mesh(s);
+             obj.backgroundMesh = Mesh.create(s);
         %     obj.backgroundMesh.plot()
 %             obj.coord = s.coord;
             
@@ -78,7 +78,7 @@ classdef DehomogenizingRadialExample < handle
         function createOrientation(obj)
             x2 = obj.backgroundMesh.coord(:,2);
             x1 = obj.backgroundMesh.coord(:,1);
-            obj.theta = atan((x2+0.1)./x1);            
+            obj.theta = atan((x2+0.4)./x1);            
             isLeft = x1 < 0;
             %obj.theta(isLeft) = obj.theta(isLeft) + 180;
         end
@@ -96,17 +96,37 @@ classdef DehomogenizingRadialExample < handle
         
         function createLevelSetCellParams(obj)
            s.type   = 'rectangleInclusion';%'smoothRectangle';
-           s.widthH = 0.87*ones(size(obj.superEllipse.m1));
-           s.widthV = 0.87*ones(size(obj.superEllipse.m2));
+           s.widthH = 0.95*ones(size(obj.superEllipse.m1));
+           s.widthV = 0.95*ones(size(obj.superEllipse.m2));
            s.pnorm  = obj.superEllipse.q;
            s.ndim   = 2;
            obj.cellLevelSetParams = s;
         end
         
         function dehomogenize(obj)
+
+            alphaM(:,2) = cos(obj.theta);
+            alphaM(:,1) = sin(obj.theta);
+            
+
+            s.fValues = alphaM;
+            s.mesh    = obj.backgroundMesh;
+            s.order   = 'P1';
+            a1{1} = LagrangianFunction(s);
+            %a1{1} = a0{1}.project('P1');
+
+
+            s.fValues(:,1) = -alphaM(:,2);
+            s.fValues(:,2) = alphaM(:,1);
+            s.mesh    = obj.backgroundMesh;
+            s.order   = 'P1';
+            a1{2} = LagrangianFunction(s);
+            %a1{2} = a0{2}.project('P1');
+
+
             s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = obj.nCells;
-            s.theta              = obj.theta;
+            s.theta              = a1;
             s.cellLevelSetParams = obj.cellLevelSetParams;
             s.mesh               = obj.backgroundMesh;
             d = Dehomogenizer(s);

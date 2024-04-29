@@ -9,13 +9,16 @@ classdef FeFunction < handle
     end
 
     properties (Access = public)
+       fValues        
+    end
+
+    properties (GetAccess = public, SetAccess = protected)
        ndimf
        order
-       fValues
+       mesh       
     end
     
     properties (Access = protected)
-        mesh
     end
 
     properties (Access = private)
@@ -24,10 +27,8 @@ classdef FeFunction < handle
     
     methods (Access = public)
 
-        function obj = FeFunction()
-        end
-
         function fun = project(obj,target,vargin,vargin2)
+
             s.mesh          = obj.mesh;
             s.projectorType = target;
             if nargin == 4
@@ -43,24 +44,27 @@ classdef FeFunction < handle
             fun = proj.project(obj);
         end
 
+        function n = computeL2norm(obj)
+            l2Norm = L2Norm(obj.mesh);
+            n = l2Norm.compute(obj);
+        end
     end
 
     methods (Static, Access = public)
-
-        function obj = create(cParams)
-            fun = FunctionFactory();
-            obj = fun.create(cParams);
-        end
-        
-    end
-
-    methods (Access = private)
-        
-        function init(obj, cParams)
-
+        function obj = create(type,fValues,mesh)
+            s.order   = type;
+            s.fValues = fValues;
+            s.mesh    = mesh;
+            obj       = LagrangianFunction(s);
         end
 
+        function obj = createEmpty(cParams)
+            feFunType = cParams.feFunType;
+            mesh      = cParams.mesh;
+            ndimf     = int2str(cParams.ndimf);
+            specs     = ['.create(mesh,',ndimf,')'];
+            obj       = eval([feFunType,specs]);
+        end
     end
 
 end
-

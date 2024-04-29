@@ -1,10 +1,9 @@
 classdef SingularitiesComputer < handle
 
-    properties (Access = private)
-        meshDisc
+   properties (GetAccess = public, SetAccess = private)
+        nSing
         isElemSingular
-        singularitiesCoord
-    end    
+    end      
 
     properties (Access = private)
         orientation
@@ -17,10 +16,25 @@ classdef SingularitiesComputer < handle
             obj.init(cParams)
         end
 
-        function sC = compute(obj)
+        function compute(obj)
             obj.computeSingularElements();
-            obj.computeSingluaritiesCoord();
-            sC = obj.singularitiesCoord;
+            obj.computeNumberOfSingularities();
+        end
+
+        function are = isNodeInTwoSingularElements(obj)
+            nodesS =  obj.mesh.connec(obj.isElemSingular.fValues,:);
+            allNodes = nodesS(:);
+            [~,indU] = unique(allNodes);
+            nonUnique = unique(allNodes(setdiff((1:length(allNodes)),indU)));
+            are = ~isempty(nonUnique);
+        end
+
+        function itIs = isSingularityInBoundary(obj)
+            nodesS   =  obj.mesh.connec(obj.isElemSingular.fValues,:);
+            allNodes = unique(nodesS(:));
+            nodes = boundary(obj.mesh.coord,1);
+            singNodesInB = intersect(allNodes,nodes);
+            itIs = ~isempty(singNodesInB);
         end
 
         function plot(obj)
@@ -46,35 +60,19 @@ classdef SingularitiesComputer < handle
             a1(1:2,:) = aD(:,:,1);
             a2(1:2,:) = aD(:,:,2);
             a3(1:2,:) = aD(:,:,3);
-                      
             a1a2 = dot(a1,a2);
             a1a3 = dot(a1,a3);
             a2a3 = dot(a2,a3);
-
-            aV(1,:,1) = a2a3;
-            aV(1,:,2) = a1a3;
-            aV(1,:,3) = a1a2;
-            
-            s.fValues = (aV);
-            s.mesh    = obj.mesh;
-            f = P1DiscontinuousFunction(s);
-            f.plot()
-            colorbar
-
             isS = sign(a1a2.*a1a3.*a2a3)';
             s.fValues = isS<0;
+            s.order   = 'P0';
             s.mesh    = obj.mesh;
-            f = P0Function(s);
-
+            f = LagrangianFunction(s);
             obj.isElemSingular = f;
         end
 
-        function computeSingluaritiesCoord(obj)
-            isS = obj.isElemSingular.fValues;
-            coord = obj.mesh.computeBaricenter();
-            coord = transpose(coord);
-            sC    = coord(isS,:); 
-            obj.singularitiesCoord = sC;
+        function computeNumberOfSingularities(obj)
+            obj.nSing = sum(obj.isElemSingular.fValues);
         end
 
     end

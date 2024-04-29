@@ -41,6 +41,7 @@ classdef L2Function < handle
 
     methods (Access = private)
 
+
     end
 
 end

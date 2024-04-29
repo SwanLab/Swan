@@ -27,9 +27,8 @@ classdef IntegratorFunction < handle
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG       = squeeze(fGaus(iField,igaus,:));
-
-                    int = fG.*dVg;
-                    h   = h + sum(int);
+                    int      = fG.*dVg;
+                    h        = h + sum(int);
                 end
             end
             int = h;
@@ -44,8 +43,7 @@ classdef IntegratorFunction < handle
         end
 
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadType);
+            q = Quadrature.create(obj.mesh,obj.quadType);
             obj.quadrature = q;
         end
 

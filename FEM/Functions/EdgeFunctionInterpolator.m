@@ -34,14 +34,14 @@ classdef EdgeFunctionInterpolator < handle
             s.mesh    = obj.edgeMesh;
             s.fValues = obj.fNodes;
             s.functionType = 'P1';
-            f = P1Function(s);
+            s.order   = 'P1';
+            f = LagrangianFunction(s);
             obj.fInEdge = f;
         end
         
         function fE = interpolateInMiddleEdge(obj)
             m = obj.edgeMesh;
-            q = Quadrature.set(m.type);
-            q.computeQuadrature('CONSTANT');
+            q = Quadrature.create(m,1);
             xV = q.posgp;
             f  = obj.fInEdge;
             fE = squeeze(f.evaluate(xV));            
