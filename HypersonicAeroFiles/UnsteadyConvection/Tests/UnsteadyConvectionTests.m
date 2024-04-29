@@ -6,9 +6,12 @@ classdef UnsteadyConvectionTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'UnsteadyConvection'})
         function testDiffMeth(testCase, tests)
-            meth = tests;
-            u    = UnsteadyConvectionProblem(meth,1,120,false);
-            load(['UnsteadyConvection',char(string(meth)),'.mat'],'x');
+            s.method      = tests;
+            s.revolutions = 1;
+            s.timeSteps   = 120;
+            prob          = UnsteadyConvectionProblem(s);
+            u             = prob.compute();
+            load(['UnsteadyConvection',char(string(tests)),'.mat'],'x');
             err = norm(u(:)-x(:))/norm(x(:));
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
