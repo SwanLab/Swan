@@ -159,6 +159,7 @@ classdef TopOptViaHomogenizationTutorial < handle
 
         function createOptimizer(obj)
             s.monitoring     = true;
+            s.plotting       = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
