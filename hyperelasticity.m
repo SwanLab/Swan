@@ -1,5 +1,8 @@
 % Bonet (6.5) pag 173
 
+% fer curva f-u
+% idea: ferrite -> comprar resultats per un mateix gradU
+
 % Material parameters
 mesh = UnitHexaMesh(7,7,7);
 material.lambda = 0.6;
@@ -123,5 +126,3 @@ function C= kron_bot(A,B)
         end
     end
 end
-
-% fer curva f-u

@@ -149,40 +149,40 @@ classdef HyperelasticProblem < handle
             isLeft   = @(coor)  abs(coor(:,1))==0;
             isRight = @(coor)  abs(coor(:,1))==xMax;
 
-%             sDir.domain    = @(coor) isLeft(coor);
-%             sDir.direction = [1,2,3];
-%             sDir.value     = 0;
+            sDir.domain    = @(coor) isLeft(coor);
+            sDir.direction = [1,2,3];
+            sDir.value     = 0;
+            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
+
+
+            sPL.domain    = @(coor) isRight(coor);
+            sPL.direction = 2;
+            sPL.value     = -1;
+            s.pointloadFun = PointLoad(obj.mesh, sPL);
+
+
+%             sDir{1}.domain    = @(coor) isLeft(coor);
+%             sDir{1}.direction = 1;
+%             sDir{1}.value     = -0.1;
 %             s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
 % 
 % 
-%             sPL.domain    = @(coor) isRight(coor);
-%             sPL.direction = 2;
-%             sPL.value     = -1;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-
-
-            sDir{1}.domain    = @(coor) isLeft(coor);
-            sDir{1}.direction = 1;
-            sDir{1}.value     = -0.1;
-            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
-
-
-            sDir{2}.domain    = @(coor) isLeft(coor);
-            sDir{2}.direction = [2,3];
-            sDir{2}.value     = 0;
-            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
-
-
-            sDir{3}.domain    = @(coor) isRight(coor);
-            sDir{3}.direction = 1;
-            sDir{3}.value     = +0.1;
-            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
-
-
-            sDir{4}.domain    = @(coor) isRight(coor);
-            sDir{4}.direction = [2,3];
-            sDir{4}.value     = 0;
-            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
+%             sDir{2}.domain    = @(coor) isLeft(coor);
+%             sDir{2}.direction = [2,3];
+%             sDir{2}.value     = 0;
+%             s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
+% 
+% 
+%             sDir{3}.domain    = @(coor) isRight(coor);
+%             sDir{3}.direction = 1;
+%             sDir{3}.value     = +0.1;
+%             s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
+% 
+% 
+%             sDir{4}.domain    = @(coor) isRight(coor);
+%             sDir{4}.direction = [2,3];
+%             sDir{4}.value     = 0;
+%             s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;

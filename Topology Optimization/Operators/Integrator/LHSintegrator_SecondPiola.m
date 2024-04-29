@@ -28,15 +28,25 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
         end
         
         function lhsC = computeElementalLHS(obj)
+%             obj.mu = 10 / (2*(1 + 0.3));
+%             obj.lambda = (10*0.3) / ((1 + 0.3) * (1 - 2*0.3));
+
             % Matrices
             uFun = obj.trial;
             quad = obj.quadrature;
+
             xG = quad.posgp;
+            dV(1,1,:,:,:,:) = obj.mesh.computeDvolume(obj.quadrature);
+            dNdxTrial(1,1,:,:,:,:) = obj.arrangedNdx(obj.trial);
+            dNdxTest(1,1,:,:,:,:)  = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
+
             nPoints  = obj.quadrature.ngaus;
             nElem = obj.mesh.nelem;
             nDimG = obj.mesh.ndim;
             nDimf = uFun.ndimf;
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
+%             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
+
             I33 = zeros(size(GradU));
             I33(1,1,:,:) = 1;
             I33(2,2,:,:) = 1;
@@ -54,17 +64,22 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
                 obj.mu*obj.kron_topF(I33,I33) + ...
                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
 
-            dV(1,1,:,:,:,:) = obj.mesh.computeDvolume(obj.quadrature);
-
-            dNdxTrial(1,1,:,:,:,:) = obj.arrangedNdx(obj.trial);
-            dNdxTest(1,1,:,:,:,:) = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
             % dNdxTest  = obj.test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             % dNdxTrial = obj.trial.evaluateCartesianDerivatives(obj.quadrature.posgp);
+
+            dNdxT = permute(dNdxTest, [1 2 4 3 5 6 ]);
+            part = zeros([24,24,size(Aneo,5),size(Aneo,6)])
+            for i = 1:size(Aneo,1)
+                for j = 1:size(Aneo,2)
+                    Ctan = squeeze(Aneo(i,j,:,:,:,:)); % 3x3xnGxnElem
+                    pr = squeeze(sum(pagemtimes(Ctan, squeeze(dNdxTr)),1));
+                    
+                end
+            end
 
             % dNdxTr = full(sparse(1:numel(dNdxTrial), repmat(1:size(dNdxTrial,1),1,size(dNdxTrial,2)), dNdxTrial(:)))';
             % dNdxTe = full(sparse(1:numel(dNdxTest), repmat(1:size(dNdxTest,1),1,size(dNdxTest,2)), dNdxTest(:)))';
 
-            dNdxT = permute(dNdxTest, [1 2 4 3 5 6 ]);
 
             % secPiola = permute(secPiola, [2 1 3 4]);
             mult = pagemtimes(Aneo, dNdxTrial);
@@ -115,8 +130,18 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
         end
 
         function C= kron_botF(obj,A,B)
-            C = obj.kron_topF(A,B);
-            C = pagetranspose(C);
+%             C = obj.kron_topF(A,B);
+%             C = pagetranspose(C);
+        C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+        for i = 1:size(A,1)
+            for j = 1:size(A,2)
+                for k = 1:size(B,1)
+                    for l = 1:size(B,2)
+                        C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
+                    end
+                end
+            end
+        end
         end
 
 
