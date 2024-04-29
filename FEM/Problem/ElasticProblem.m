@@ -12,7 +12,7 @@ classdef ElasticProblem < handle
 
         stiffness
         forces
-        solver, solverType, solverMode
+        solver, solverType, solverMode, solverCase
         scale
         
         strain, stress
@@ -28,7 +28,6 @@ classdef ElasticProblem < handle
 
         function obj = ElasticProblem(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
@@ -76,12 +75,11 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
+            if isfield(cParams,'solverCase')
+                obj.solverCase  = cParams.solverCase;
+            else
+                obj.solverCase = 'DIRECT';
+            end
         end
 
         function createDisplacementFun(obj)
@@ -105,15 +103,18 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type =  'DIRECT';
+            s.type     = obj.solverCase;
             obj.solver = Solver.create(s);
         end
 
         function computeStiffnessMatrix(obj)
+            ndimf = obj.displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = obj.displacementFun;
+            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+            s.trial    = obj.displacementFun;
             s.material = obj.material;
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
@@ -140,10 +141,11 @@ classdef ElasticProblem < handle
         function u = computeDisplacement(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.stiffness = obj.stiffness;
-            s.forces = obj.forces;
+            s.stiffness  = obj.stiffness;
+            s.forces     = obj.forces;
+            s.solver     = obj.solver;
             s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier = obj.BCApplier;
+            s.BCApplier          = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
             z.mesh    = obj.mesh;
@@ -156,14 +158,16 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 2);
+            xV = quad.posgp;
             obj.strainFun = SymGrad(obj.displacementFun);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            xV = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 2);
+            xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress = obj.stressFun.evaluate(xV);

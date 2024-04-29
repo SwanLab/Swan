@@ -21,6 +21,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         meritNew
         penalty
         meritGradient
+        Vtar
 
         globalCost
         globalConstraint
@@ -48,12 +49,12 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient(x);
             obj.hasFinished = 0;
             obj.printOptimizerVariable();
-            obj.monitoring.update(obj.nIter);
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.printOptimizerVariable();
                 obj.updateIterInfo();
-                obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
             end
         end
@@ -72,15 +73,48 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.maxIter                = cParams.maxIter;
             obj.hasConverged           = false;
             obj.nIter                  = 0;
+            obj.Vtar                   = cParams.volumeTarget;
             obj.createMonitoring(cParams);
         end
 
         function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x';'Penalty'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
+                chConstr{i}   = 'plot';
+            end
+            titles  = [titles;{'Volume';'Line Search';'Line Search trials'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},{'plot'},chConstr,{'plot','bar','bar'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.penalty];
+            data = [data;obj.dualVariable.value];
+            data = [data;obj.computeVolume(obj.constraint.value)];
+            if obj.nIter == 0
+                data = [data;0;0];
+            else
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            obj.monitoring.update(obj.nIter,data);
         end
 
         function prepareFirstIter(obj)
@@ -224,15 +258,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
 
         end
 
-        function obj = updateMonitoring(obj)
-            s.nIter            = obj.nIter;
-            s.tau              = obj.primalUpdater.tau;
-            s.lineSearch       = obj.lineSearch;
-            s.lineSearchTrials = obj.lineSearchTrials;
-            s.oldCost          = obj.oldCost;
-            s.hasFinished      = obj.hasFinished;
-            s.meritNew         = obj.meritNew;
-            obj.outputFunction.monitoring.compute(s);
+        function v = computeVolume(obj,g)
+            targetVolume = obj.Vtar;
+            v            = targetVolume*(1+g);
         end
 
         function updateIterInfo(obj)

@@ -31,7 +31,7 @@ classdef NonSelfAdjointComplianceFunctional < handle
             uA         = obj.computeAdjointVariable(C);
             J          = obj.computeFunctionValue(C,uS,uA);
             dJ         = obj.computeGradient(dC,uS,uA);
-            dJ         = obj.filter.compute(dJ,'LINEAR');
+            dJ         = obj.filter.compute(dJ,2);
             dJ.fValues = dJ.fValues/obj.value0;
         end
     end
@@ -45,13 +45,12 @@ classdef NonSelfAdjointComplianceFunctional < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
+            quad = Quadrature.create(obj.mesh, 2);
             obj.quadrature = quad;
         end
 
         function xR = filterDesignVariable(obj,x)
-            xR = obj.filter.compute(x,'LINEAR');
+            xR = obj.filter.compute(x,2);
         end
 
         function [C,dC] = computeTensorFunctionAndGradient(obj,xR)
