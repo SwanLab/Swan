@@ -14,10 +14,6 @@ classdef UnsteadyConvectionProblem < handle
         a
     end
 
-    properties (Access = private)
-        fValues
-    end
-
     methods (Access = public)
         function obj = UnsteadyConvectionProblem(cParams)
             obj.init(cParams);
@@ -179,21 +175,21 @@ classdef UnsteadyConvectionProblem < handle
                     u(:,n+1) = u(:,n) + aux(1:numnp);
                 end
             end
-            if max(u(:,nstep+1))<100 &&  min(u(:,nstep+1))>-100
-                obj.fValues = u;
-            else
+            if not(max(u(:,nstep+1))<100 &&  min(u(:,nstep+1))>-100)
                 error('Time step too large');
             end
         end
 
-        function plot(obj)
+        function plot(obj,u,i)
             x_lo=-1/2; x_up=1/2; y_lo=-1/2; y_up=1/2;
-            u = obj.fValues;
+            X     = obj.coord;
+            nx    = obj.nElemX;
+            ny    = obj.nElemY;
             % Solution at time t=t_end
             figure(1); clf;
             set(gca,'FontSize',12,...
                 'XTick', [-0.5,0,0.5],'YTick', [-0.5,0,0.5],'ZTick', 0:0.25:1);
-            [xx,yy,sol] = MatSol(X,nx,ny,u(:,nstep+1));
+            [xx,yy,sol] = MatSol(X,nx,ny,u(:,i));
             surface(xx,yy,sol);
             view([40,30])
             axis([x_lo,x_up,y_lo,y_up,0,1])
@@ -207,25 +203,6 @@ classdef UnsteadyConvectionProblem < handle
             axis equal; axis([x_lo,x_up,y_lo,y_up]);
             set(gca,'XTick',[x_lo,(x_up+x_lo)/2,x_up]);
             set(gca,'YTick',[y_lo,(y_up+y_lo)/2,y_up]);
-        end
-
-        function record(obj)
-            x_lo=-1/2; x_up=1/2; y_lo=-1/2; y_up=1/2;
-            u = obj.fValues;
-            % Movie
-            figure(10); clf;
-            peli = moviein(nstep+1);
-            axis manual
-            axis([x_lo,x_up,y_lo,y_up,0,1]);
-            set(gca,'nextplot','replacechildren',...
-                'FontSize',12,...
-                'ZTick', 0:0.25:1);
-            for n=1:nstep+1
-                [xx,yy,sol] = MatSol(X,nx,ny,u(:,n));
-                surf(xx,yy,sol);
-                pause(0.1)
-                peli(:,n) = getframe;
-            end
         end
     end
 
