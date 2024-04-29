@@ -75,49 +75,21 @@ classdef FemCreator < handle
         function bc = createBoundaryConditions(obj,mesh,Dir,PL)
             dirichlet = DirichletCondition(mesh,Dir);
             pointload = PointLoad(mesh,PL);
-            pointload.values=pointload.values/size(pointload.dofs,1); % need this because force applied in the face not in a point
+             % need this because force applied in the face not in a point
+            pointload.values=pointload.values/size(pointload.dofs,1);
+            fvalues = zeros(mesh.nnodes*obj.nDimf,1);
+            fvalues(pointload.dofs) = pointload.values;
+            fvalues = reshape(fvalues,obj.nDimf,[])';
+            pointload.fun.fValues = fvalues;
+
             s.pointloadFun = pointload;
             s.dirichletFun = dirichlet;
             s.periodicFun =[];
             s.mesh = mesh;
             bc          = BoundaryConditions(s);
-            %             rawBc       = obj.createRawBoundaryConditions(mesh);
-            %             dim         = getFunDims(obj,mesh,disp);
-            %             rawBc.ndimf = dim.ndimf;
-            %             rawBc.ndofs = dim.ndofs;
-            %             s.mesh      = mesh;
-            %             s.scale     = 'MACRO';
-            %             s.bc        = {rawBc};
-            %             s.ndofs     = dim.ndofs;
-            %             bc          = BoundaryConditions(s);
-            %             bc.compute();
-        end
-
-        function dim = getFunDims(obj,mesh,disp)
-            d.ndimf     = disp.ndimf;
-            d.nnodes    = size(disp.fValues, 1);
-            d.ndofs     = d.nnodes*d.ndimf;
-            d.nnodeElem = mesh.nnodeElem;
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim         = d;
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
-            %             dirichletNodes            = abs(mesh.coord(:,1)-0) < 1e-12;
-            %             rightSide                 = max(mesh.coord(:,1));
-            %             isInRight                 = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-            %             forceNodes                = isInRight;
-            %             nodes                     = 1:mesh.nnodes;
-            %             bcDir                     = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
-            %             nodesdir                  = size(nodes(dirichletNodes),2);
-            %             bcDir(1:nodesdir,end+1)   = 1;
-            %             bcDir(nodesdir+1:end,end) = 2;
-            %             bcDir(:,end+1)            = 0;
-            %             bc.dirichlet              = bcDir;
-            %             bc.pointload(:,1)         = nodes(forceNodes);
-            %             bc.pointload(:,2)         = 2;
-            %             bc.pointload(:,3)         = -1/length(forceNodes);
-
             isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
             isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
@@ -156,45 +128,23 @@ classdef FemCreator < handle
             material  = tensor;
         end
 
-        %         function mat = createMaterial(obj,mesh)
-        %             s.mesh  = mesh;
-        %             s.type  = obj.type;
-        %             s.scale = obj.scale;
-        %             ngaus   = 1;
-        %             Id      = ones(mesh.nelem,ngaus);
-        %             s.ptype = 'ELASTIC';
-        %             s.pdim  = obj.pdim;
-        %             s.nelem = mesh.nelem;
-        %             s.mesh  = mesh;
-        %             s.kappa = .9107*Id;
-        %             s.mu    = .3446*Id;
-        %             mat     = Material.create(s);
-        %             mat.compute(s);
-        %         end
-
         function LHS = createLHS(obj,dispFunLevels,bcLevels,matLevels)
             for i = 1:obj.nLevel
                 disFun     = dispFunLevels(i);
-%                 bc         = bcLevels(i);
                 mat        = matLevels(i);
                 m          = obj.coarseMeshes{i};
-
-                LHS{i}        = obj.computeStiffnessMatrix(m,mat,disFun);
-                %                 obj.LHS    = obj.bcApplier(i).fullToReducedMatrixDirichlet(LHS);
-                %                 obj.LHS{i} = obj.computeKred(m,mat,disFun,bc);
+                LHS{i}     = obj.computeStiffnessMatrix(m,mat,disFun);
             end
         end
 
         function RHS = createRHS(obj,dispFunLevels,bcLevels,matLevels,LHSlevels)
             for i = 1:obj.nLevel
-                dispFun     = dispFunLevels(i);
+                dispFun    = dispFunLevels(i);
                 bc         = bcLevels(i);
                 mat        = matLevels(i);
                 LHS        = LHSlevels{i};
                 m          = obj.coarseMeshes{i};
-
                 RHS{i}     = obj.computeForces(m,dispFun,bc,material,LHS,obj.solverCase);
-%                 RHS{i} = obj.computeFred(m,u,bc,LHS);
             end
         end
 
@@ -202,16 +152,7 @@ classdef FemCreator < handle
             K    = obj.computeStiffnessMatrix(m,mat,u);
             Kred = bc.fullToReducedMatrix(K);
         end
-        %
-        %         function k = computeStiffnessMatrix(obj,mesh,material,displacementFun)
-        %             s.type     = 'ElasticStiffnessMatrix';
-        %             s.mesh     = mesh;
-        %             s.fun      = displacementFun;
-        %             s.material = material;
-        %             lhs        = LHSintegrator.create(s);
-        %             k          = lhs.compute();
-        %         end
-
+        
         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             ndimf      = displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
@@ -229,24 +170,9 @@ classdef FemCreator < handle
             Fred = bc.fullToReducedVector(b);
         end
 
-%         function RHS = computeRHS(obj,mesh,dispFun,boundaryConditions)
-%             dim.ndimf     = dispFun.ndimf;
-%             dim.nnodes    = size(dispFun.fValues, 1);
-%             dim.ndofs     = dim.nnodes*dim.ndimf;
-%             dim.nnodeElem = mesh.nnodeElem;
-%             dim.ndofsElem = dim.nnodeElem*dim.ndimf;
-%             c.dim         = dim;
-%             c.mesh        = mesh;
-%             c.BC          = boundaryConditions;
-%             RHS           = RHSintegrator_ElasticMacro(c);
-%             RHS           = RHS.compute();
-%         end
-
-
          function forces = computeForces(obj,mesh,dispFun,boundaryConditions,material,stiffness,solverCase)
             s.type      = 'Elastic';
             s.scale     = 'MACRO';
-%             s.dim       = obj.getFunDims();
             s.dim.ndofs = dispFun.nDofs;
             s.BC       = boundaryConditions;
             s.mesh     = mesh;

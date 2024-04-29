@@ -8,7 +8,7 @@ classdef MultigridTesting4 < handle
         nLevel
         multiLevelMesh
 
-
+        ndim
         nDimf
         boundaryConditionsFine
         fineMaterial
@@ -78,9 +78,7 @@ classdef MultigridTesting4 < handle
             LHS                   = obj.computeStiffnessMatrix(mF,s.material,s.dispFun);
             RHS                   = obj.computeForces(mF,s.dispFun,s.bc,s.material,LHS,s.solverCase);
             s.LHS                 = s.bcApplier.fullToReducedMatrixDirichlet(LHS);
-%             s.LHS                 = obj.computeKred(mF,s.material,s.dispFun,s.bc);
             s.RHS                 = s.bcApplier.fullToReducedVectorDirichlet(RHS);
-%             s.RHS                 = obj.computeFred(mF,s.dispFun,s.bc,s.material,s.LHS,s.solverCase);
             
             
             s.tol                 = 1e-6;
@@ -102,6 +100,7 @@ classdef MultigridTesting4 < handle
             obj.nbasis       = 20;
             obj.functionType = 'P1';
             obj.nLevel       = 3;
+            obj.ndim         = 3;
         end
 
         function createMultiLevelMesh(obj)
@@ -109,29 +108,30 @@ classdef MultigridTesting4 < handle
             s.nY               = 1;
             s.nZ               = 1;
             s.nLevel           = obj.nLevel;
+            s.length           = 1;
+            s.height           = 1;
+            s.width            = 1;
+            s.ndim             = obj.ndim;
             m                  = MultilevelMesh(s);
             obj.multiLevelMesh = m;
         end
 
         function bc = createBoundaryConditions(obj,mesh)
-            [Dir,PL]  = obj.createRawBoundaryConditions(mesh);
+            [Dir,PL]  = obj.createRawBoundaryConditions();
             dirichlet = DirichletCondition(mesh,Dir);
             pointload = PointLoad(mesh,PL);
-            pointload.values=pointload.values/size(pointload.dofs,1); % need this because force applied in the face not in a point
+             % need this because force applied in the face not in a point
+            pointload.values=pointload.values/size(pointload.dofs,1);
+            fvalues = zeros(mesh.nnodes*obj.nDimf,1);
+            fvalues(pointload.dofs) = pointload.values;
+            fvalues = reshape(fvalues,obj.nDimf,[])';
+            pointload.fun.fValues = fvalues;
+
             s.pointloadFun = pointload;
             s.dirichletFun = dirichlet;
             s.periodicFun =[];
             s.mesh = mesh;
             bc          = BoundaryConditions(s);
-%             dim         = obj.getFunDims(mesh);
-%             rawBc.ndimf = dim.ndimf;
-%             rawBc.ndofs = dim.ndofs;
-%             s.mesh      = obj.fineMesh;
-%             s.scale     = 'MACRO';
-%             s.bc        = {rawBc};
-%             s.ndofs     = dim.ndofs;
-%             bc          = BoundaryConditions(s);
-%             bc.compute();
         end
 
         function dim = getFunDims(obj,mesh)
@@ -146,23 +146,7 @@ classdef MultigridTesting4 < handle
             dim         = d;
         end
 
-        function [Dir,PL] = createRawBoundaryConditions(obj,mesh)
-            %             dirichletNodes = abs(mesh.coord(:,1)-0) < 1e-12;
-            %             rightSide  = max(mesh.coord(:,1));
-            %             isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
-
-            %             forceNodes = isInRight;
-            %             nodes = 1:mesh.nnodes;
-            %             bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
-            %             nodesdir=size(nodes(dirichletNodes),2);
-            %             bcDir(1:nodesdir,end+1)   = 1;
-            %             bcDir(nodesdir+1:end,end) = 2;
-            %             bcDir(:,end+1)            = 0;
-            %             bc.dirichlet              = bcDir;
-            %             bc.pointload(:,1)         = nodes(forceNodes);
-            %             bc.pointload(:,2)         = 2;
-            %             bc.pointload(:,3)         = -1/length(forceNodes);
-
+        function [Dir,PL] = createRawBoundaryConditions(obj)
             isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
             isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
@@ -174,22 +158,6 @@ classdef MultigridTesting4 < handle
             PL.direction = 2;
             PL.value     = -1;
         end
-
-        %         function mat = createMaterial(obj,mesh)
-        %             s.mesh  = mesh;
-        %             s.type  = 'ELASTIC';
-        %             s.scale = 'MACRO';
-        %             ngaus   = 1;
-        %             Id      = ones(mesh.nelem,ngaus);
-        %             s.ptype = 'ELASTIC';
-        %             s.pdim  = '3D';
-        %             s.nelem = mesh.nelem;
-        %             s.mesh  = mesh;
-        %             s.kappa = .9107*Id;
-        %             s.mu    = .3446*Id;
-        %             mat     = Material.create(s);
-        %             mat.compute(s);
-        %         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E1  = 1;
@@ -208,22 +176,8 @@ classdef MultigridTesting4 < handle
             s.young   = young;
             s.poisson = poisson;
             tensor    = Material.create(s);
-            material = tensor;
+            material  = tensor;
         end
-
-%         function Kred = computeKred(obj,m,mat,u,bc)
-%             K    = obj.computeStiffnessMatrix(m,mat,u);
-%             Kred = bc.fullToReducedMatrix(K);
-%         end
-
-%         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
-%             s.type     = 'ElasticStiffnessMatrix';
-%             s.mesh     = mesh;
-%             s.fun      = displacementFun;
-%             s.material = material;
-%             lhs        = LHSintegrator.create(s);
-%             LHS        = lhs.compute();
-%         end
 
         function LHS = computeStiffnessMatrix(obj,mesh,material,displacementFun)
             ndimf      = displacementFun.ndimf;
@@ -236,24 +190,6 @@ classdef MultigridTesting4 < handle
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
-
-%         function Fred = computeFred(obj,m,u,bc,material,stiffness,solverCase)
-%             b  = obj.computeForces(m,u,bc,material,stiffness,solverCase);
-%             Fred = bc.fullToReducedVector(b);
-%         end
-% 
-%         function RHS = createRHS(obj,mesh,dispFun,boundaryConditions)
-%             dim.ndimf  = dispFun.ndimf;
-%             dim.nnodes = size(dispFun.fValues, 1);
-%             dim.ndofs  = dim.nnodes*dim.ndimf;
-%             dim.nnodeElem = mesh.nnodeElem;
-%             dim.ndofsElem = dim.nnodeElem*dim.ndimf;
-%             c.dim=dim;
-%             c.mesh=mesh;
-%             c.BC = boundaryConditions;
-%             RHS    = RHSintegrator_ElasticMacro(c);
-%             RHS = RHS.compute();
-%         end
 
          function forces = computeForces(obj,mesh,dispFun,boundaryConditions,material,stiffness,solverCase)
             s.type      = 'Elastic';

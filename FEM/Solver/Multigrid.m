@@ -17,7 +17,7 @@ classdef Multigrid < handle
         LHS
         coarseMeshes
         interpolator
-        coarseBc
+%         coarseBc
         bcApplierCoarse
         coarseLHS
         coarseRHS
@@ -33,7 +33,6 @@ classdef Multigrid < handle
         end
 
         function u = solve(obj)
-            obj.coarseBc{1,obj.nLevel + 1}    = obj.boundaryConditions;
             obj.bcApplierCoarse(obj.nLevel+1) = obj.BcApplierFine;
             obj.coarseLHS{1,obj.nLevel + 1}   = obj.LHS;
             obj.coarseRHS{1,obj.nLevel + 1}   = obj.RHS;
@@ -58,7 +57,6 @@ classdef Multigrid < handle
             obj.tol                = cParams.tol;
             obj.nLevel             = cParams.nLevel;
             obj.mesh               = cParams.mesh;
-            obj.boundaryConditions = cParams.bc;
             obj.BcApplierFine      = cParams.bcApplier;
             obj.material           = cParams.material;
             obj.LHS                = cParams.LHS;
@@ -80,7 +78,6 @@ classdef Multigrid < handle
             s.tol                = obj.tol;
             s.solverCase         = obj.solverCase;
             FEM                  = FemCreator(s);
-            obj.coarseBc         = FEM.bc;
             obj.bcApplierCoarse  = FEM.bcApplier;
             obj.coarseLHS        = FEM.LHS;
             obj.coarseRHS        = FEM.RHS;
@@ -96,8 +93,6 @@ classdef Multigrid < handle
                 LHS    = obj.coarseLHS{level};                
                 RHS    = b;
                 intOld = obj.interpolator{level-1};
-%                 bc     = obj.coarseBc{level};                
-%                 bcOld  = obj.coarseBc{level-1};
                 bcApplierold = obj.bcApplierCoarse(level-1);
                 bcApplier = obj.bcApplierCoarse(level);
                 u      = obj.solver{level}.solve(LHS,RHS,u);

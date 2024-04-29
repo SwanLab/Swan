@@ -11,6 +11,10 @@ classdef MultilevelMesh < handle
         nY
         nZ
         nLevel
+        Length
+        Height
+        Width
+        ndim
     end
     
     methods (Access = public)
@@ -24,20 +28,20 @@ classdef MultilevelMesh < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)        
+        function init(obj,cParams)
             obj.nX     = cParams.nX;
             obj.nY     = cParams.nY;
             obj.nZ     = cParams.nZ;
             obj.nLevel = cParams.nLevel;
+            obj.Length = cParams.length;
+            obj.Height = cParams.height;
+            obj.Width  = cParams.width ;
+            obj.ndim   = cParams.ndim;
         end
         
         function createCoarseMeshesAndInterpolators(obj)
-           % nMesh   = obj.createCoarseMesh();
-           length = 1;
-           height = 1;
-           width = 1;
-
-           nMesh = TetraMesh(length,height,width,obj.nX,obj.nY,obj.nZ);
+          
+           nMesh   = obj.createCoarseMesh();
 
            nInterp = obj.createInterpolator(nMesh);
            for iLevel = 1:obj.nLevel
@@ -124,20 +128,19 @@ classdef MultilevelMesh < handle
         
        
         function m = createCoarseMesh(obj)
-        
-            % Generate coordinates
-            x1 = linspace(0,2,obj.nX);
-            x2 = linspace(0,1,obj.nY);
-            x3 = linspace(0,1,obj.nZ);
-            % Create the grid
-            [xv,yv,zv] = meshgrid(x1,x2,x3);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            meshConnec = delaunayn([xv,yv,zv]);
-            %[F,V] = mesh2tri(xv,yv,zeros(length(xv)),'x');
-
-            s.coord = V(:,1:2);
-            s.connec = F;
-            m = Mesh(s);        
+            
+            if obj.ndim == 2
+                x1 = linspace(0,obj.Length,obj.nX);
+                x2 = linspace(0,obj.Height,obj.nY);
+                [xv,yv] = meshgrid(x1,x2);
+                [F,V] = mesh2tri(xv,yv,zeros(length(xv)),'x');
+                s.coord = V(:,1:2);
+                s.connec = F;
+                m = Mesh.create(s);
+            elseif obj.ndim ==3
+                m = TetraMesh(obj.Length,obj.Height,obj.Width,obj.nX,obj.nY,obj.nZ);
+               
+            end
         end
 
         function m = createCoarseMesh3D(obj)
