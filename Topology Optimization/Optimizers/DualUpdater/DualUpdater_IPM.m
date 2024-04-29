@@ -57,7 +57,7 @@ classdef DualUpdater_IPM < handle
     methods (Static, Access = public)
         function zLB = computeLowerBound(cParams)
             mu  = cParams.mu;
-            x   = cParams.designVariable.fun.fValues';
+            x   = cParams.designVariable.getValue()';
             xLB = cParams.bounds.xLB;
             s   = cParams.slack';
             sLB = cParams.bounds.sLB;
@@ -67,7 +67,7 @@ classdef DualUpdater_IPM < handle
 
         function zUB = computeUpperBound(cParams)
             mu  = cParams.mu;
-            x   = cParams.designVariable.fun.fValues';
+            x   = cParams.designVariable.getValue()';
             xUB = cParams.bounds.xUB;
             s   = cParams.slack';
             sUB = cParams.bounds.sUB;

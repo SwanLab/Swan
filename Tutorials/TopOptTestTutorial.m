@@ -56,7 +56,7 @@ classdef TopOptTestTutorial < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
+            s.fun{1}  = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = true;

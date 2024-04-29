@@ -58,7 +58,7 @@ classdef IPMErrorComputer < handle
             lZ          = obj.bounds.zLB;
             uZ          = obj.bounds.zUB;
             nConstr     = length(obj.constraint.value);
-            nnode       = obj.designVariable.fun.mesh.nnodes;
+            nnode       = obj.designVariable.getDofs();
             den         = nConstr+2*(nnode+obj.nSlack);
             obj.gradRef = max(lb,(sum(abs(l))+sum(abs(lZ))+sum(abs(uZ)))/den);
         end
@@ -67,7 +67,7 @@ classdef IPMErrorComputer < handle
             lb           = obj.sMax;
             lZ           = obj.bounds.zLB;
             uZ           = obj.bounds.zUB;
-            nnode        = obj.designVariable.fun.mesh.nnodes;
+            nnode        = obj.designVariable.getDofs();
             den          = 2*(nnode+obj.nSlack);
             obj.fieldRef = max(lb,(sum(abs(uZ))+sum(abs(lZ)))/den);
         end
@@ -88,24 +88,24 @@ classdef IPMErrorComputer < handle
         end
 
         function computeErrorDueToLowerBoundMargins(obj)
-            x                 = obj.designVariable.fun.fValues';
+            x                 = obj.designVariable.getValue()';
             lX                = obj.bounds.xLB;
             s                 = obj.slack;
             lS                = obj.bounds.sLB;
             lZ                = obj.bounds.zLB;
-            nnode             = obj.designVariable.fun.mesh.nnodes;
+            nnode             = obj.designVariable.getDofs();
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;
             obj.errorDesVarLB = max(abs(diag([x-lX s-lS])*diag(lZ)*e))/sC;
         end
 
         function computeErrorDueToUpperBoundMargins(obj)
-            x                 = obj.designVariable.fun.fValues';
+            x                 = obj.designVariable.getValue()';
             uX                = obj.bounds.xUB;
             s                 = obj.slack;
             uS                = obj.bounds.sUB;
             uZ                = obj.bounds.zUB;
-            nnode             = obj.designVariable.fun.mesh.nnodes;
+            nnode             = obj.designVariable.getDofs();
             e                 = ones(nnode+obj.nSlack,1);
             sC                = obj.fieldRef;
             obj.errorDesVarUB = max(abs(diag([uX-x uS-s])*diag(uZ)*e))/sC;

@@ -6,7 +6,7 @@ classdef PlotterFactory < handle
             d = designVariable;
             switch d.type
                 case 'Density'
-                    s.mesh           = d.fun.mesh;
+                    s.mesh           = d.fun{1}.mesh;
                     s.designVariable = d;
                     plotter          = PlotterDensity(s);
                 case 'LevelSet'

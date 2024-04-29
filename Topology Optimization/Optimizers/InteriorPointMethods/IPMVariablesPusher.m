@@ -19,7 +19,7 @@ classdef IPMVariablesPusher < handle
         end
 
         function x = replaceOutOfDesignVarBounds(obj)
-            s.x   = obj.designVariable.fun.fValues;
+            s.x   = obj.designVariable.getValue();
             s.xUB = obj.bounds.xUB;
             s.xLB = obj.bounds.xLB;
             x     = obj.computeOutOfBounds(s);

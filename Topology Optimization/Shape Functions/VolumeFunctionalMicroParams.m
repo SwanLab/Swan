@@ -78,7 +78,7 @@ classdef VolumeFunctionalMicroParams < handle
           s.operation = @(xV) obj.evaluateDensity(xV);
           rho         = DomainFunction(s);              
           m           = obj.mesh;
-          volume      = Integrator.compute(rho,m,'QUADRATIC');
+          volume      = Integrator.compute(rho,m,2);
           tV          = obj.totalVolume;
           J           = volume/tV - obj.volumeTarget;
         end
@@ -91,7 +91,7 @@ classdef VolumeFunctionalMicroParams < handle
             s.ndimf = 1;
             dJ{iVar} =  DomainFunction(s);
           end
-          dJ = obj.filter.compute(dJ,'QUADRATIC');
+          dJ = obj.filter.compute(dJ,2);
         end        
 
         function rho = evaluateDensity(obj,xV)

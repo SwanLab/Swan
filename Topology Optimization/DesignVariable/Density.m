@@ -14,15 +14,15 @@ classdef Density < DesignVariable
         end
 
         function fun = obtainDomainFunction(obj)
-            fun = obj.fun;
+            fun = obj.fun{1};
         end
 
         function update(obj,value)
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-            obj.fun   = obj.fun.copy();
-            obj.fun.fValues = value;
+            obj.fun{1}   = obj.fun{1}.copy();
+            obj.fun{1}.fValues = value;
         end
 
         function plot(obj)

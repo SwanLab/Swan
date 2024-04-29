@@ -55,13 +55,13 @@ classdef IPMDirectionComputer < handle
             obj.baseVariables  = cParams.baseVariables;
             obj.hessian        = cParams.hessian;
             obj.nConstr        = length(cParams.constraint.value);
-            obj.nnode          = cParams.designVariable.fun.mesh.nnodes;
+            obj.nnode          = cParams.designVariable.getDofs();
             obj.nSlack         = cParams.nSlack;
             obj.bounds         = cParams.bounds;
         end
 
         function computeBoundsMargins(obj)
-            x       = obj.designVariable.fun.fValues';
+            x       = obj.designVariable.getValue()';
             s       = obj.slack;
             obj.dLX = [x-obj.bounds.xLB s-obj.bounds.sLB];
             obj.dUX = [obj.bounds.xUB-x obj.bounds.sUB-s];

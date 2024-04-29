@@ -76,7 +76,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.constraintCase    = cParams.constraintCase;
             obj.Vtar              = cParams.volumeTarget;
             obj.cost.computeFunctionAndGradient(x);
-            obj.hessian = eye(obj.designVariable.fun.mesh.nnodes);
+            obj.hessian = eye(obj.designVariable.getDofs());
             obj.constraint.computeFunctionAndGradient(x);
             obj.loadIPMVariables();
             obj.createMonitoring(cParams);
@@ -153,7 +153,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function correctUpperAndLowerBounds(obj)
-            nnode          = obj.designVariable.fun.mesh.nnodes;
+            nnode          = obj.designVariable.getDofs();
             obj.bounds.xLB = (obj.bounds.xLB-1e-6)*ones(1,nnode);
             obj.bounds.xUB = (obj.bounds.xUB+1e-6)*ones(1,nnode);
         end
@@ -225,7 +225,7 @@ classdef OptimizerInteriorPoint < Optimizer
         function penalizeDueToDesignVariable(obj)
             c              = obj.cost.value;
             mu             = obj.baseVariables.mu;
-            s.field        = obj.designVariable.fun.fValues;
+            s.field        = obj.designVariable.getValue();
             s.lowerBound   = obj.bounds.xLB';
             s.upperBound   = obj.bounds.xUB';
             obj.cost.value = c - mu*obj.computeLogPenaltyTerm(s);
@@ -266,7 +266,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function update(obj)
-            x0 = obj.designVariable.fun.fValues;
+            x0 = obj.designVariable.getValue();
             obj.saveOldValues(x0);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeOptimizerDirections();
@@ -315,7 +315,7 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x = obj.designVariable.fun.fValues;
+            x = obj.designVariable.getValue();
             g = -obj.dx;
             x = obj.primalUpdater.update(g,x);
         end
@@ -358,7 +358,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.oldCost             = obj.cost.value;
             obj.oldCostGradient     = obj.cost.gradient;
             obj.designVariable.updateOld;
-            obj.oldDesignVariable   = obj.designVariable.fun.fValues;
+            obj.oldDesignVariable   = obj.designVariable.getValue();
         end
 
         function meritF = computeMeritFunction(obj,x)
@@ -417,7 +417,7 @@ classdef OptimizerInteriorPoint < Optimizer
 
         function computeNewHessian(obj)
             s.initHessian             = obj.hessian;
-            s.designVariable.value    = obj.designVariable.fun.fValues;
+            s.designVariable.value    = obj.designVariable.getValue();
             s.designVariable.valueOld = obj.oldDesignVariable;
             s.cost.gradient           = obj.cost.gradient;
             s.cost.gradientOld        = obj.oldCostGradient;

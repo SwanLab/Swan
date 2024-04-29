@@ -58,7 +58,7 @@ classdef ProblemSolver < handle
                     u = sol(1:nDisp, :);
                     L = -sol( (nDisp+1):end, : );
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(obj.stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     u = zeros(size(obj.stiffness,1), 1);
                     u(free_dofs) = sol;
@@ -113,7 +113,7 @@ classdef ProblemSolver < handle
                         LHS = [Km C; C' Z];
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(obj.stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     LHS = obj.stiffness(free_dofs, free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
@@ -160,7 +160,7 @@ classdef ProblemSolver < handle
                         RHS = bcapp.computeMicroDisplMonolithicRHS(iV, nV);
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(obj.stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     RHS = obj.forces(free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
