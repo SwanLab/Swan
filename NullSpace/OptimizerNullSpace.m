@@ -81,8 +81,13 @@ classdef OptimizerNullSpace < Optimizer
                 chCost{i} = 'plot';
             end
             chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    titles = [titles;{'Theta'}];
+                    chartTypes = [chartTypes,{'plot'}];
+            end
             s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 5;
+            s.maxNColumns  = 6;
             s.titles       = titles;
             s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
@@ -98,6 +103,14 @@ classdef OptimizerNullSpace < Optimizer
                 data = [data;0;0;0;0;0];
             else
                 data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;norm(obj.lG);norm(obj.lJ)];
+            end
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    if obj.nIter == 0
+                        data = [data;0];
+                    else
+                        data = [data;obj.primalUpdater.Theta];
+                    end
             end
             % merit?
             obj.monitoring.update(obj.nIter,data);
@@ -203,18 +216,19 @@ classdef OptimizerNullSpace < Optimizer
         function updateEtaMax(obj)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-%                     phi = obj.designVariable.fun;
-%                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
-%                     dV = phi.mesh.computeDvolume(quad);
-%                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
-%                     intBall = sum(dV.*chiBall,"all");
-%                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
-%                     gk.fValues = obj.meritGradient;
-%                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
-%                     k  = obj.primalUpdater.tau;
-%                     t  = obj.primalUpdater.Theta;
-%                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
-                    obj.etaMax = 1e-4;
+                    %                     phi = obj.designVariable.fun;
+                    %                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
+                    %                     dV = phi.mesh.computeDvolume(quad);
+                    %                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
+                    %                     intBall = sum(dV.*chiBall,"all");
+                    %                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
+                    %                     gk.fValues = obj.meritGradient;
+                    %                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
+                    %                     k  = obj.primalUpdater.tau;
+                    %                     t  = obj.primalUpdater.Theta;
+                    %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
+                    k          = obj.primalUpdater.tau;
+                    obj.etaMax = 0.01/k;
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;
