@@ -132,10 +132,11 @@ classdef MultigridTesting4 < handle
             isInRight = abs(mesh.coord(:,1)-rightSide)< 1e-12;
             forceNodes = isInRight;
             nodes = 1:mesh.nnodes;
-            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)'];
+            bcDir = [nodes(dirichletNodes)';nodes(dirichletNodes)';nodes(dirichletNodes)'];
             nodesdir=size(nodes(dirichletNodes),2);
             bcDir(1:nodesdir,end+1)   = 1;
             bcDir(nodesdir+1:end,end) = 2;
+            bcDir(2*nodesdir+1:end,end) = 3;
             bcDir(:,end+1)            = 0;
             bc.dirichlet              = bcDir;
             bc.pointload(:,1)         = nodes(forceNodes);
@@ -153,8 +154,8 @@ classdef MultigridTesting4 < handle
             s.pdim  = '3D';
             s.nelem = mesh.nelem;
             s.mesh  = mesh;
-            s.kappa = .9107*Id;
-            s.mu    = .3446*Id;
+            s.kappa = 1*Id;
+            s.mu    = .3750*Id;
             mat     = Material.create(s);
             mat.compute(s);
         end
