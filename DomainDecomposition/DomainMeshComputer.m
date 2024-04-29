@@ -35,9 +35,9 @@ classdef DomainMeshComputer < handle
             obj.updateGlobalConnec();
             obj.updateGlobalCoord();
             obj.computeLocalGlobalConnec()
-            s.coord=obj.updtCoordGlob;
-            s.connec=obj.updtConnecGlob;
-            obj.domainMesh=Mesh(s); 
+            s.coord        = obj.updtCoordGlob;
+            s.connec       = obj.updtConnecGlob;
+            obj.domainMesh = Mesh.create(s); 
         end
 
     end

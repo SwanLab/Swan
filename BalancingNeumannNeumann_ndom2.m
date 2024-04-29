@@ -9,6 +9,8 @@ classdef BalancingNeumannNeumann_ndom2 < handle
     end
 
     properties (Access = private)
+        ndimf
+        functionType
         meshDomain
         boundaryConditions
         material
@@ -59,7 +61,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             m = MeshCreatorFromRVE(s);
             [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
 
-            obj.domainFun = P1Function.create(obj.meshDomain, obj.meshDomain.ndim);
+            obj.domainFun = LagrangianFunction.create(obj.meshDomain, obj.ndimf,obj.functionType);
             obj.createSubdomainDisplacementFun();
             [obj.interfaceDof,obj.interfaceDom] = obj.computeLocalInterfaceDof();
             obj.dofInterfaceDomain = obj.assingInterfaceDof2Domain();
@@ -114,10 +116,12 @@ classdef BalancingNeumannNeumann_ndom2 < handle
     methods (Access = private)
 
         function init(obj)
+            obj.ndimf    = 2;
             obj.nSubdomains = [4 1]; %nx ny
             obj.scale    = 'MACRO';
             obj.weight   = 0.5;
             obj.theta    = 0.4;
+            obj.functionType = 'P1';
         end
 
         function createReferenceMesh(obj)
@@ -127,8 +131,8 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %             mS         = femD.mesh;
 %             bS         = mS.createBoundaryMesh();
                         % Generate coordinates
-                        x1 = linspace(0,1,8);
-                        x2 = linspace(0,0.5,8);
+                        x1 = linspace(0,1,2);
+                        x2 = linspace(0,0.5,2);
                         % Create the grid
                         [xv,yv] = meshgrid(x1,x2);
                         % Triangulate the mesh to obtain coordinates and connectivities
@@ -143,7 +147,7 @@ classdef BalancingNeumannNeumann_ndom2 < handle
 %             
                         s.coord    = coord(:,1:2);
                         s.connec   = F;
-                        mS         = Mesh(s);
+                        mS         = Mesh.create(s);
                         bS         = mS.createBoundaryMesh();
 
             obj.meshReference = mS;
@@ -312,26 +316,46 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             end
         end
 
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E1  = 1;
+            nu1 = 1/3;
+            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            young   = E;
+            poisson = nu;
+        end
 
         function material = createMaterial(obj,j,i)
-            I = ones(obj.meshSubDomain{j,i}.nelem,obj.quad{j,i}.ngaus);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.nelem = obj.meshSubDomain{j,i}.nelem;
-            s.mesh  = obj.meshSubDomain{j,i};
-            s.kappa = .9107*I;
-            s.mu    = .3446*I;
-            mat = Material.create(s);
-            mat.compute(s);
-            material = mat;
+            mesh = obj.meshSubDomain{j,i};
+            [young,poisson] = obj.computeElasticProperties(mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = mesh.ndim;
+            s.young   = young;
+            s.poisson = poisson;
+            tensor    = Material.create(s);
+            material  = tensor;
         end
+
+%         function material = createMaterial(obj,j,i)
+%             I = ones(obj.meshSubDomain{j,i}.nelem,obj.quad{j,i}.ngaus);
+%             s.ptype = 'ELASTIC';
+%             s.pdim  = '2D';
+%             s.nelem = obj.meshSubDomain{j,i}.nelem;
+%             s.mesh  = obj.meshSubDomain{j,i};
+%             s.kappa = .9107*I;
+%             s.mu    = .3446*I;
+%             mat = Material.create(s);
+%             mat.compute(s);
+%             material = mat;
+%         end
 
         function createSubdomainDisplacementFun(obj)
             nx = obj.nSubdomains(1);
             ny = obj.nSubdomains(2);
             for i=1:ny
                 for j=1:nx
-                    obj.displacementFun{i,j} = P1Function.create(obj.meshSubDomain{i,j}, obj.meshSubDomain{i,j}.ndim);
+                    obj.displacementFun{i,j} = LagrangianFunction.create(obj.meshSubDomain{i,j},obj.ndimf,obj.functionType);
                 end
             end
 
@@ -350,13 +374,24 @@ classdef BalancingNeumannNeumann_ndom2 < handle
             dim = d;
         end
 
-        function computeStiffnessMatrix(obj,j,i)
+%         function computeStiffnessMatrix(obj,j,i)
+%             s.type     = 'ElasticStiffnessMatrix';
+%             s.mesh     = obj.meshSubDomain{j,i};
+%             s.fun      = obj.displacementFun{j,i};
+%             s.material = obj.material{j,i};
+%             lhs = LHSintegrator.create(s);
+%             obj.LHS{j,i} = lhs.compute();
+%         end
+
+        function LHS = computeStiffnessMatrix(obj,j,i)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.meshSubDomain{j,i};
-            s.fun      = obj.displacementFun{j,i};
+            s.test     = LagrangianFunction.create(s.mesh,obj.ndimf, 'P1');
+            s.trial    = obj.displacementFun{j,i};
             s.material = obj.material{j,i};
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
-            obj.LHS{j,i} = lhs.compute();
+            LHS = lhs.compute();
         end
 
         function [Fext,RHS] = computeForces(obj,boundaryConditions,material,mesh,disp,LHS)
@@ -379,8 +414,8 @@ classdef BalancingNeumannNeumann_ndom2 < handle
         function computeSubdomainLHS(obj)
             for jdom = 1:obj.nSubdomains(2)
                 for idom=1:obj.nSubdomains(1)
-                    obj.quad{jdom,idom} = Quadrature.set(obj.meshSubDomain{jdom,idom}.type);
-                    obj.quad{jdom,idom}.computeQuadrature('QUADRATIC');
+%                     obj.quad{jdom,idom} = Quadrature.set(obj.meshSubDomain{jdom,idom}.type);
+%                     obj.quad{jdom,idom}.computeQuadrature('QUADRATIC');
                     obj.createDomainMaterial(jdom,idom);
                     obj.computeStiffnessMatrix(jdom,idom);
                 end
@@ -1186,6 +1221,18 @@ classdef BalancingNeumannNeumann_ndom2 < handle
         end
 
         function bc = bcDirichletStepLibrary(obj)
+            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
+            isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
+
+            bc.dirichletBottomLeft{1}.domain    = @(coor) isLeft(coor) ;
+            bc.dirichletBottomLeft{1}.direction = [1,2,3];
+            bc.dirichletBottomLeft{1}.value     = 0;
+            bc.dirichletBottomLeft{2}.domain    = @(coor) isRight(coor);
+            bc.dirichletBottomLeft{2}.direction = [1,2,3];
+            bc.dirichletBottomLeft{2}.value     = 0;
+
             bc.dirichletBottomLeft.boundaryId=[1,2];
             bc.dirichletBottomLeft.dof{1}=[1,2];
             bc.dirichletBottomLeft.dof{2}=[1,2];

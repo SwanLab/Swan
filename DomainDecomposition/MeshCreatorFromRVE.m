@@ -84,7 +84,7 @@ classdef MeshCreatorFromRVE < handle
             connec0  = obj.meshReference.connec;
             s.coord  = coord;
             s.connec = connec0;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
 
         function createInterfaceSubDomainMeshes(obj)
