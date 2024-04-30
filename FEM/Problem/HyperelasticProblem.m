@@ -51,41 +51,41 @@ classdef HyperelasticProblem < handle
             rpre = 1;
             alpha = 0.03;
             f = animatedline;
-%             while r > 10e-6
-%                 val = max(neo.compute(obj.uFun))
-%                 Fint = obj.computeInternalForces();
-%                 res  = Fint - obj.Fext;
-%                 u_next = u_k - alpha*res;
-%                 u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
-%                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-%                 r = norm(u_next - u_k)
-%                 u_k = u_next;
-%                 i = i+1;
-% %                 if r>1
-% %                     break
-% %                 end
-%                 addpoints(f,i,r);
-%                 drawnow
-%                 rpre = r;
-%             end
-
-
-            bc = obj.boundaryConditions;
-            xpre = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
-            xpre(bc.dirichlet_dofs) = bc.dirichlet_vals;
-            nIter = 0;
-            while nIter < 10
+            while r > 10e-6
+                val = max(neo.compute(obj.uFun))
                 Fint = obj.computeInternalForces();
-                res  = Fint + obj.Fext;
-                hess = obj.computeSecondPiola();
-                [hess_red,res_red] = obj.full2reduced(hess,res);
-                x = hess_red\res_red;
-                % x = obj.computeNewtonRaphson(xpre, res, hess);
-                obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
-                norm(x-xpre)
-                xpre = x;
-                nIter = nIter + 1;
+                res  = Fint - obj.Fext;
+                u_next = u_k - alpha*res;
+                u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+                obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+                r = norm(u_next - u_k)
+                u_k = u_next;
+                i = i+1;
+%                 if r>1
+%                     break
+%                 end
+                addpoints(f,i,r);
+                drawnow
+                rpre = r;
             end
+
+
+%             bc = obj.boundaryConditions;
+%             xpre = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+%             xpre(bc.dirichlet_dofs) = bc.dirichlet_vals;
+%             nIter = 0;
+%             while nIter < 10
+%                 Fint = obj.computeInternalForces();
+%                 res  = Fint + obj.Fext;
+%                 hess = obj.computeSecondPiola();
+%                 [hess_red,res_red] = obj.full2reduced(hess,res);
+%                 x = hess_red\res_red;
+%                 % x = obj.computeNewtonRaphson(xpre, res, hess);
+%                 obj.uFun.fValues = reshape(x,[obj.mesh.ndim,obj.mesh.nnodes])';
+%                 norm(x-xpre)
+%                 xpre = x;
+%                 nIter = nIter + 1;
+%             end
         end
 
         function solve(obj)
