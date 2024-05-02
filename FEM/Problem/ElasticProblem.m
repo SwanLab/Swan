@@ -19,7 +19,6 @@ classdef ElasticProblem < handle
     end
 
     properties (Access = protected)
-        quadrature
         material
         vstrain
         mesh % For Homogenization

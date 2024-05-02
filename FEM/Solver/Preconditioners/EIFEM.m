@@ -7,13 +7,14 @@ classdef EIFEM < handle
     properties (Access = private)
         RVE
         mesh
-
+        DirCond
     end
 
     properties (Access = private)
         LHS
         Kel
         boundaryConditions
+        bcApplier
     end
 
     methods (Access = public)
@@ -23,9 +24,13 @@ classdef EIFEM < handle
             LHS = obj.computeLHS();
             obj.LHS = LHS;
             obj.createBoundaryConditions();
+            ss.mesh                 = obj.mesh;
+            ss.boundaryConditions   = obj.boundaryConditions;
+            obj.bcApplier           = BCApplier(ss);
         end
 
         function x = apply(obj,r)
+            Fcoarse = obj.projectExternalForce(r);
             x=obj.D\r;
         end
 
@@ -37,6 +42,7 @@ classdef EIFEM < handle
             obj.mesh = cParams.mesh;
             obj.RVE  = cParams.RVE;
             obj.Kel  = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            obj.DirCond = cParams.DirCond;
         end
 
         function dim = getDims(obj)
@@ -49,27 +55,43 @@ classdef EIFEM < handle
         end
 
         function LHS = computeLHS(obj)
-            s.dim          = obj.getDims();
-            s.nnodeEl      = obj.mesh.nnodeElem;
-            s.globalConnec = obj.mesh.connec;
-            assembler = Assembler(s);
-            LHS = assembler.assemble(obj.Kel);
+            LHS = obj.assembleMatrix();
+%             s.dim          = obj.getDims();
+%             s.nnodeEl      = obj.mesh.nnodeElem;
+%             s.globalConnec = obj.mesh.connec;
+%             assembler = Assembler(s);
+%             LHS = assembler.assemble(obj.Kel);
+        end
+
+        function LHS = assembleMatrix(obj)
+            s.fun    = []; % !!!
+            trial  = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
+            test   = trial;
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(obj.Kel, test, trial);
         end
 
         function createBoundaryConditions(obj)
-            bM = obj.mesh.createBoundaryMesh();
+            dirichlet = DirichletCondition(obj.mesh,obj.DirCond);
 
-            dirichletBc.boundaryId=1;
-            dirichletBc.dof=[1,2];
-            dirichletBc.value=[0,0];
-            %             newmanBc.boundaryId=2;
-            %             newmanBc.dof=[2];
-            %             newmanBc.value=[10];
-            newmanBc= [];
+            s.pointloadFun = [];
+            s.dirichletFun = dirichlet;
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc             = BoundaryConditions(s);
+%             bM = obj.mesh.createBoundaryMesh();
 
-            [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
-            bc.dirichlet=dirichlet;
-            bc.pointload=pointload;
+%             dirichletBc.boundaryId=1;
+%             dirichletBc.dof=[1,2];
+%             dirichletBc.value=[0,0];
+%             %             newmanBc.boundaryId=2;
+%             %             newmanBc.dof=[2];
+%             %             newmanBc.value=[10];
+%             newmanBc= [];
+% 
+%             [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
+%             bc.dirichlet=dirichlet;
+%             bc.pointload=pointload;
             obj.boundaryConditions = bc;
         end
 
@@ -94,6 +116,16 @@ classdef EIFEM < handle
                 cond = cond(2:end,:);
             else
                 cond= [];
+            end
+        end
+
+        function Fcoarse = projectExternalForce(obj,Ffine)
+            nelem = obj.mesh.nelem;
+            Udef  = obj.RVE.Udef;
+            Urb   = obj.RVE.Ubr;
+            Ut    = (Udef + Urb)';
+            for ielem = nelem
+                Fcoarse(ielem) = Ut*Ffine(ielem);
             end
         end
 

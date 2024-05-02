@@ -29,10 +29,10 @@ classdef TrainedRVE < handle
         
         function init(obj,filename)
             load(filename);
-            obj.Kcoarse = rom.kcoarse;
-            obj.Udef    = rom.Udef;
-            obj.Urb     = rom.Urb;
-            obj.ndimf   = rom.ndimf;
+            obj.Kcoarse = EIFEoper.Kcoarse;
+            obj.Udef    = EIFEoper.Udef;
+            obj.Urb     = EIFEoper.Urb;
+            obj.ndimf   = 2;
         end
         
     end
