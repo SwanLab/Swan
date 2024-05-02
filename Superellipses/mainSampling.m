@@ -2,16 +2,16 @@ clc
 clear
 close all
 % General call for testMicro --> General sampling
-p.type = "SuperformulaInclusion";
-% a = 0.25;
-% b = 0.25;
-% n = 10; 
-p.a  = 0.25;
-p.b  = 0.25;
-p.m  = 19;
-p.n1 = 9;
-p.n2 = 14;
-p.n3 = 11;
+p.type = "EllipseInclusion";
+p.a = 0.4;
+p.b = 0.2;
+p.n = 5; 
+% p.a  = 0.25;
+% p.b  = 0.25;
+% p.m  = 19;
+% p.n1 = 9;
+% p.n2 = 14;
+% p.n3 = 11;
 TestMicro(p);
 % sample = 1;
 % dataset = zeros(length(a)*length(b)*length(n),9);

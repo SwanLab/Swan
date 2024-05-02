@@ -72,6 +72,8 @@ classdef SurfaceMesh < Mesh
                 p.FaceAlpha = faceAlpha;
                 p.LineWidth = 1.5;
                 axis('equal');
+                xlabel('x');
+                ylabel('y');
                 hold on
             end
         end
