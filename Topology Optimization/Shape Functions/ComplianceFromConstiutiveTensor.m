@@ -41,8 +41,8 @@ classdef ComplianceFromConstiutiveTensor < handle
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             u = obj.stateProblem.uFun;
-            %u.print('Displacements');
-        end
+            %u.print('Displacements3');           %Imprimir el vector desplaçaments quan es vulgui
+        end 
 
         function J = computeFunction(obj,C,u)
             strain      = SymGrad(u);

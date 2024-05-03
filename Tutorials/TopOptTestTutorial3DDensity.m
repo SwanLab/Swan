@@ -42,16 +42,16 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(4,1,1,80,20,20); %DE MOMENT AIXÒ HO TREIEM (és com genera la malla el matlab)
+            obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
-           %{ 
-            file = 'Malla_ambconstraints_GiD_1';
+            
+            %file = 'Malla_ambconstraints_GiD_1';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;  %faltava ficar el obj
-           %}
+           
 
         end
 
@@ -59,24 +59,24 @@ classdef TopOptTestTutorial3DDensity < handle
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
+            aFun      = AnalyticalFunction(s); 
+            s.fun     = aFun.project('P1'); 
             s.mesh    = obj.mesh;
             s.type = 'Density';
-            s.plotting = false;
+            s.plotting = false; %false no mostrara malla matlab
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
             %%%%DENSITY^%%%%
             %%%%LEVELSETv%%%%
-            %s.type = 'Full';
-            %g      = GeometricalFunction(s);
-            %lsFun  = g.computeLevelSetFunction(obj.mesh);
-            %s.fun  = lsFun;
-            %s.mesh = obj.mesh;
-            %s.type = 'LevelSet';
-            %s.plotting = true;
-            %ls     = DesignVariable.create(s);
-            %obj.designVariable = ls;
+            % s.type = 'Full';
+            % g      = GeometricalFunction(s);
+            % lsFun  = g.computeLevelSetFunction(obj.mesh);
+            % s.fun  = lsFun;
+            % s.mesh = obj.mesh;
+            % s.type = 'Density';  %LevelSet
+            % s.plotting = true;
+            % ls     = DesignVariable.create(s);
+            % obj.designVariable = ls;
          end
 
         function createFilter(obj)
@@ -89,7 +89,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
-            nu0 = 1/3;
+            nu0 = 1/3;   
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
@@ -100,7 +100,7 @@ classdef TopOptTestTutorial3DDensity < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL';
+            s.interpolation  = 'SIMPALL'; %Falta s.typeOfMaterial = 'ISOTROPIC'; ?????
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
@@ -136,7 +136,8 @@ classdef TopOptTestTutorial3DDensity < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstiutiveTensor(s);   %Dins d'aquest hi ha el vector desplaçaments
+                                                      %Imprimir el vector quan es vulgui
         end
 
         function createCompliance(obj)
@@ -152,7 +153,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;                                           %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget = 0.9;                                           %CONDICCIÓ VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -191,15 +192,15 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 100;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY'; %{'EQUALITY'}; per Level Set  // 'EQUALITY'; per Density
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;                                %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget   = 0.9;                                %CONDICCIÓ VOLUM FINAL
             opt = OptimizerMMA(s);  %%MMA en DENSITY 
-            %s.primal         = 'SLERP';   %%NullSpace en Level Set (faltava?) --> NO VA EL LEVEL SET 3D
-            %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set
+            %s.primal         = 'SLERP';   %%faltava això pel NullSpace en Level Set
+            %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set o Density
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -208,7 +209,7 @@ classdef TopOptTestTutorial3DDensity < handle
             %---------------------------------------------------%
             %---------------BOUNDARY CONDITIONS GiD-------------%
 
-            %{ 
+             
             femReader = FemInputReader_GiD();  %Llegim malla GiD
             s = femReader.read(obj.filename);  %Llegim malla GiD
 
@@ -226,7 +227,7 @@ classdef TopOptTestTutorial3DDensity < handle
             sDir{i}.domain    = @(coor) isDir(coor);   
             sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
             sDir{i}.value     = 0;
-            %}
+            
 
            %---------------BOUNDARY CONDITIONS GiD-------------%
            %---------------------------------------------------%
@@ -235,25 +236,25 @@ classdef TopOptTestTutorial3DDensity < handle
            %-------------BOUNDARY CONDITIONS MATLAB------------%
            
            %---------------3D MBB CASE-------------%
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-
-            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
-            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
-
-            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
-           
-            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
-            sDir{1}.direction = [2]; %restricció vertical només
-            sDir{1}.value     = 0;  %desplaçament =0
-
-            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
-            sDir{2}.value     = 0; %desplaçament =0
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+           %  xMax    = max(obj.mesh.coord(:,1));
+           %  yMax    = max(obj.mesh.coord(:,2));
+           % 
+           %  isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+           %  isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+           % 
+           %  isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+           % 
+           %  sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+           %  sDir{1}.direction = [2]; %restricció vertical només
+           %  sDir{1}.value     = 0;  %desplaçament =0
+           % 
+           %  sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+           %  sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+           %  sDir{2}.value     = 0; %desplaçament =0
+           % 
+           %  sPL{1}.domain    = @(coor) isForce(coor);
+           %  sPL{1}.direction = 2;
+           %  sPL{1}.value     = -1;
             %---------------3D MBB CASE-------------%
 
            %-------------BOUNDARY CONDITIONS MATLAB------------%

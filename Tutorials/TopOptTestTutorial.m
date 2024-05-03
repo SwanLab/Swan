@@ -171,18 +171,31 @@ classdef TopOptTestTutorial < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;       %MMA OPTIMIZER
+            % s.dualVariable   = obj.dualVariable;
+            % s.maxIter        = 250;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = 'EQUALITY';
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.volumeTarget   = 0.4;                   %VOLUM FINAL
+            % opt = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
+            s.dualVariable   = obj.dualVariable;          %NULLSPACE OPTIMIZER
             s.maxIter        = 250;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.4;                   %VOLUM FINAL
-            opt = OptimizerMMA(s);
+            s.constraintCase = {'EQUALITY'};
+            s.volumeTarget   = 0.4;              %VOLUM FINAL
+            s.primal         = 'SLERP';
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
