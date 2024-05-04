@@ -37,39 +37,39 @@ classdef HyperelasticProblem < handle
             s.material = obj.material;
             s.mesh = obj.mesh;
             neo = NeohookeanFunctional(s);
-
+            hess = neo.computeHessian(obj.uFun);
             
 
-            % Check first piola convergence
-
-            bc = obj.boundaryConditions;
-            u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
-            u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
-
-            r = 1;
-            i = 1;
-            rpre = 1;
-            alpha = 0.03;
-            f = animatedline;
-            while r > 10e-6
-                val = max(neo.compute(obj.uFun))
-                Fint = obj.computeInternalForces();
-                res  = Fint - obj.Fext;
-                u_next = u_k - alpha*res;
-                u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
-                obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-                r = norm(u_next - u_k)
-                u_k = u_next;
-                i = i+1;
-%                 if r>1
-%                     break
-%                 end
-                addpoints(f,i,r);
-                drawnow
-                rpre = r;
-            end
-
-
+%             % Check first piola convergence
+% 
+%             bc = obj.boundaryConditions;
+%             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+%             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
+% 
+%             r = 1;
+%             i = 1;
+%             rpre = 1;
+%             alpha = 0.01;
+%             f = animatedline;
+% %             while r > 10e-6
+% %                 val = max(neo.compute(obj.uFun))
+% %                 Fint = obj.computeInternalForces();
+% %                 res  = Fint - obj.Fext;
+% %                 u_next = u_k - alpha*res;
+% %                 u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+% %                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+% %                 r = norm(u_next - u_k)
+% %                 u_k = u_next;
+% %                 i = i+1;
+% % %                 if r>1
+% % %                     break
+% % %                 end
+% %                 addpoints(f,i,r);
+% %                 drawnow
+% %                 rpre = r;
+% %             end
+% 
+% 
 %             bc = obj.boundaryConditions;
 %             xpre = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
 %             xpre(bc.dirichlet_dofs) = bc.dirichlet_vals;

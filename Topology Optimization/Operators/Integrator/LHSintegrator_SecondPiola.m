@@ -37,8 +37,8 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
 
             xG = quad.posgp;
             dV(1,1,:,:,:,:) = obj.mesh.computeDvolume(obj.quadrature);
-            dNdxTrial(1,1,:,:,:,:) = obj.arrangedNdx(obj.trial);
-            dNdxTest(1,1,:,:,:,:)  = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
+            dNdxTrial = obj.arrangedNdx(obj.trial);
+            dNdxTest  = obj.arrangedNdx(obj.test); % tesi ester 2 . 2 2 25, holzapfel te ctan
 
             nPoints  = obj.quadrature.ngaus;
             nElem = obj.mesh.nelem;
@@ -60,9 +60,31 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
             invFt = MatrixVectorizedInverter.computeInverse(Ft);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             logJac(1,1,:,:,:,:) = log(jac);
+
             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
                 obj.mu*obj.kron_topF(I33,I33) + ...
                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
+
+            for iGaus = 1:nPoints
+
+
+                A = squeeze(Aneo(:,:,:,:,iGaus,:));
+                Aij = zeros([size(A,1)*8, size(A,2)*8, size(A,5)]);
+                
+                for iNod = 1:3
+                    for jNod = 3
+                        for kNod = 1:size(A,3)
+                            for lNod = 1:size(A,4)
+                                dNdx = dNdxTrial(:,:,iGaus,:);
+                                Aev = A(:,:,kNod,lNod);
+                                producte = squeezeParticular(sum(pagemtimes(Aev, squeeze(dNdx)),1),1);
+                                Aij(iNod,:,:) = producte;
+                            end
+                        end
+                    end
+                end
+
+            end
 
             % dNdxTest  = obj.test.evaluateCartesianDerivatives(obj.quadrature.posgp);
             % dNdxTrial = obj.trial.evaluateCartesianDerivatives(obj.quadrature.posgp);
@@ -130,18 +152,18 @@ classdef LHSintegrator_SecondPiola < LHSintegrator
         end
 
         function C= kron_botF(obj,A,B)
-%             C = obj.kron_topF(A,B);
-%             C = pagetranspose(C);
-        C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
-        for i = 1:size(A,1)
-            for j = 1:size(A,2)
-                for k = 1:size(B,1)
-                    for l = 1:size(B,2)
-                        C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
+    %             C = obj.kron_topF(A,B);
+    %             C = pagetranspose(C);
+            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+            for i = 1:size(A,1)
+                for j = 1:size(A,2)
+                    for k = 1:size(B,1)
+                        for l = 1:size(B,2)
+                            C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
+                        end
                     end
                 end
             end
-        end
         end
 
 

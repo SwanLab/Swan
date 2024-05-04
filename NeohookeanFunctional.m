@@ -52,6 +52,53 @@ classdef NeohookeanFunctional < handle
             val = sum(val, 'all');
         end
 
+        function hess = computeHessian(obj, uFun)
+            trial = uFun;
+            test  = LagrangianFunction.create(obj.mesh, 3, 'P1');
+            quad = Quadrature.create(obj.mesh,2);
+
+            xG = quad.posgp;
+            dV = obj.mesh.computeDvolume(quad);
+
+            Ctan = obj.computeTangentConstitutive(uFun,xG);
+
+            dNdxTest  = test.evaluateCartesianDerivatives(xG);
+            dNdxTrial = trial.evaluateCartesianDerivatives(xG);
+            nGaus = size(dNdxTrial,3);
+            nElem = size(dNdxTrial,4);
+
+            dofToDim = repmat(1:3,[1,8]);
+            dofToNode = repmat(1:8,[1,3]);
+
+            K = zeros(24,24,nGaus,nElem);
+            for iDof = 1:24 % test dof
+                for jDof = 1:24 % trial dof
+                    iNode = dofToNode(iDof);
+                    iDim  = dofToDim(iDof);
+                    jNode = dofToNode(jDof);
+                    jDim  = dofToDim(jDof);
+
+                    GradDeltaV = zeros(3,3, nGaus, nElem);
+                    GradDeltaU = zeros(3,3, nGaus, nElem);
+                    
+                    GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
+
+                    res = zeros(3,3,nGaus,nElem);
+                    for a = 1:3
+                        for b = 1:3
+                            C = squeeze(Ctan(a,b,:,:,:,:));
+                            res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), C,GradDeltaU);
+                        end
+                    end
+
+                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, C);
+                end
+            end
+            K = squeeze(sum(K,3));
+        end
+
+
     end
     
     methods (Access = private)
@@ -60,6 +107,84 @@ classdef NeohookeanFunctional < handle
             obj.lambda = cParams.material.lambda;
             obj.mu     = cParams.material.mu;
             obj.mesh   = cParams.mesh;
+        end
+
+        function Aneo = computeTangentConstitutive(obj,uFun,xG)
+            [F,I33] = obj.computeDeformationGradient(uFun, xG);
+            Ft = permute(F, [2 1 3 4]);
+
+            invF = MatrixVectorizedInverter.computeInverse(F);
+            invFt = MatrixVectorizedInverter.computeInverse(Ft);
+
+            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
+            logJac(1,1,:,:,:,:) = log(jac);
+
+            Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
+                obj.mu*obj.kron_topF(I33,I33) + ...
+                (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
+        end
+
+        function [F,I33] = computeDeformationGradient(obj, uFun, xG)
+            nPoints  = size(xG,2);
+            nElem = obj.mesh.nelem;
+            nDimG = obj.mesh.ndim;
+            nDimf = uFun.ndimf;
+
+            GradUT = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
+            GradU = permute(GradUT, [2 1 3 4]);
+
+            I33 = zeros(size(GradU));
+            I33(1,1,:,:) = 1;
+            I33(2,2,:,:) = 1;
+            I33(3,3,:,:) = 1;
+
+            F = I33 + GradU;
+        end
+
+
+        % Operators
+        function C = double_dot(obj,A, B)
+            assert(~isvector(A) && ~isvector(B))
+            idx = max(0, ndims(A) - 1);
+            B_t = permute(B, circshift(1:ndims(A) + ndims(B), [0, idx - 1]));
+            C = squeeze(sum(squeeze(sum(bsxfun(@times, A, B_t), idx)), idx));
+        end
+
+        function C = outerProduct(obj, A, B)  % version 1
+            C = zeros([size(A,1), size(A,2),size(B)]);
+            for i = 1:size(A,1)
+                for j = 1:size(A,2)
+                    for k = 1:size(B,1)
+                        for l = 1:size(B,2)
+                            C(i,j,k,l,:,:) = A(i,j,:,:).*B(k,l,:,:);
+                        end
+                    end
+                end
+            end
+        end
+
+        function C= kron_topF(obj, A,B)
+            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+            for i = 1:size(A,1)
+                for k = 1:size(B,1)
+                    C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
+                end
+            end
+        end
+
+        function C= kron_botF(obj,A,B)
+    %             C = obj.kron_topF(A,B);
+    %             C = pagetranspose(C);
+            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+            for i = 1:size(A,1)
+                for j = 1:size(A,2)
+                    for k = 1:size(B,1)
+                        for l = 1:size(B,2)
+                            C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
+                        end
+                    end
+                end
+            end
         end
         
     end

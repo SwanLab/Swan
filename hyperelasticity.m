@@ -1,4 +1,5 @@
 % Bonet (6.5) pag 173
+% Continuum mechanics for engineers
 
 % fer curva f-u
 % idea: ferrite -> comprar resultats per un mateix gradU
