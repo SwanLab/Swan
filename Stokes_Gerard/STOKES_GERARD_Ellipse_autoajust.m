@@ -3,14 +3,14 @@ close all
 
 % % INPUT DATA
 
-dim_a = 0.1; % Semi-major axis 0.2
-dim_b = 0.1; % Semi-minor axis 0.02
+dim_a = 0.4; % Semi-major axis 0.2
+dim_b = 0.4; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(3,2,100,100); % MESH
+m = QuadMesh(2,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -21,11 +21,11 @@ del_ab = ellipse.solvesys();
 
 s.fHandle = @(x) -((((x(1,:,:)*cos(AOAr)+x(2,:,:)*sin(AOAr))-del_ab(1))/dim_a).^2+(((-x(1,:,:)*sin(AOAr)+x(2,:,:)*cos(AOAr))-del_ab(2))/dim_b).^2-1);
 g = GeometricalFunction(s);
-lsFun = g.computeLevelSetFunction(m);
+lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
 sUm.backgroundMesh = m;
-sUm.boundaryMesh = m.createBoundaryMesh();
+sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
 uMesh = UnfittedMesh(sUm);
-uMesh.compute(lsFun.fValues);
+uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
 
 % mesh = TriangleMesh(1,1,40,40);
@@ -152,7 +152,8 @@ while correct_margin == false
     end
 
     if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
-        correct_margin = true;
+        correct_margin = true; 
+        break
     else
         if k<1
             h=h+1;
@@ -167,7 +168,6 @@ while correct_margin == false
 
 end
 
-isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < (margin-0.1*(10^(-h))));
 
 plot(bMesh);
 
