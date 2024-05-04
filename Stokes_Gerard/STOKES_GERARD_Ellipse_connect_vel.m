@@ -1,28 +1,34 @@
-clear
+clear all
 close all
 
 % % INPUT DATA
-% file = 'test_gerard';
-% a.fileName = file;
-% f = StokesDataContainer(a);
 
-xpos = 0.5;
-ypos = 0.5;
-radius = 0.25;
+dim_a = 0.25; % Semi-major axis 0.2
+dim_b = 0.23; % Semi-minor axis 0.02
+center_posx = 0.5; % x position of the ellipse center
+center_posy = 0.5; % y position of the ellipse center
+AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
-%m = TriangleMesh(1,1,100,100);
-m = QuadMesh(1,1,100,100); 
+
+m = QuadMesh(1,1,100,100); % MESH
 s.type='Given';
-s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
+AOAr = -deg2rad(AOAd);
+
+ellipse = calc_ellipse_classe(AOAr,center_posx,center_posy);
+del_ab = ellipse.solvesys();
+
+% del_ab=calc_ellipse(AOAr,center_posx,center_posy);
+
+s.fHandle = @(x) -((((x(1,:,:)*cos(AOAr)+x(2,:,:)*sin(AOAr))-del_ab(1))/dim_a).^2+(((-x(1,:,:)*sin(AOAr)+x(2,:,:)*cos(AOAr))-del_ab(2))/dim_b).^2-1);
 g = GeometricalFunction(s);
-lsFun = g.computeLevelSetFunction(m);
+lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
 sUm.backgroundMesh = m;
-sUm.boundaryMesh = m.createBoundaryMesh();
+sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
 uMesh = UnfittedMesh(sUm);
-uMesh.compute(lsFun.fValues);
+uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
 
-
+% mesh = TriangleMesh(1,1,40,40);
 
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
@@ -39,7 +45,147 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 0.00001;
+
+correct_margin = false;
+connectat = true;
+
+%Franja alta:
+k=1;
+h=7;
+margin = k*(10^(-h));
+
+while correct_margin == false
+    connectat = true;
+
+    isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
+
+    nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+    xCyl        = mesh.coord(nodesCyl,1);
+    yCyl        = mesh.coord(nodesCyl,2);
+    mesh.computeEdges();
+    e  = mesh.edges.nodesInEdges;
+    bE = ismember(e,nodesCyl);
+    bE = find(prod(bE,2));
+    connec = e(bE,:);
+    ss.coord    = mesh.coord;
+    ss.connec   = connec;
+    ss.kFace    = -1;
+    bMesh       = Mesh.create(ss);
+    bMesh       = bMesh.computeCanonicalMesh();
+
+    single_col = reshape(bMesh.connec, [], 1);
+    [unique_el, ~, idx] = unique(single_col);
+    count = accumarray(idx(:), 1);
+    repeated_num = unique_el(count > 1);
+    repetitions = zeros(size(unique_el));
+    for i = 1:length(unique_el)
+       idx = find(single_col == unique_el(i));
+       if numel(idx)>2.5
+          connectat = false;
+       end
+       repetitions(i) = numel(idx);
+    end
+
+    if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
+        correct_margin = true;
+        break
+    else
+        if k>9
+            h=h-1;
+            k=1;
+        else
+            k=k+0.1;
+        end
+        margin = k*(10^(-h));
+    end
+
+    disp(margin)
+
+    if margin>1
+        plot(bMesh);
+        disp('MARGE NO TROBAT')
+        return
+    end
+
+end
+
+
+% %Franja baixa:
+% k=1;
+% h=1;
+% margin = k*(10^(-h));
+% 
+% while correct_margin == false
+%     connectat = true;
+%     isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
+% 
+%     nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+%     xCyl        = mesh.coord(nodesCyl,1);
+%     yCyl        = mesh.coord(nodesCyl,2);
+%     mesh.computeEdges();
+%     e  = mesh.edges.nodesInEdges;
+%     bE = ismember(e,nodesCyl);
+%     bE = find(prod(bE,2));
+%     connec = e(bE,:);
+%     ss.coord    = mesh.coord;
+%     ss.connec   = connec;
+%     ss.kFace    = -1;
+%     bMesh       = Mesh.create(ss);
+%     bMesh       = bMesh.computeCanonicalMesh();
+% 
+%     single_col = reshape(bMesh.connec, [], 1);
+%     [unique_el, ~, idx] = unique(single_col);
+%     count = accumarray(idx(:), 1);
+%     repeated_num = unique_el(count > 1);
+%     repetitions = zeros(size(unique_el));
+%     for i = 1:length(unique_el)
+%        idx = find(single_col == unique_el(i));
+%        if numel(idx)>2.5
+%           connectat = false;
+%        end
+%        repetitions(i) = numel(idx);
+%     end
+% 
+%     if size(bMesh.coord,1)==0 && size(bMesh.connec,1)==0
+%         disp('MARGE NO TROBAT')
+%         return
+% 
+%     end
+% 
+%     if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
+%         correct_margin = true; 
+%         break
+%     else
+%         if k<1
+%             h=h+1;
+%             k=9;
+%         else
+%             k=k-0.1;
+%         end
+%         margin = k*(10^(-h));
+%     end
+% 
+%     disp(margin)
+% 
+% end
+% 
+%     nodesCylv    = velocityFun.getDofsFromCondition(isCyl);
+%     xCylv        = mesh.coord(nodesCylv,1);
+%     yCylv        = mesh.coord(nodesCylv,2);
+%     mesh.computeEdges();
+%     e  = mesh.edges.nodesInEdges;
+%     bE = ismember(e,nodesCylv);
+%     bE = find(prod(bE,2));
+%     connec = e(bE,:);
+%     ss.coord    = mesh.coord;
+%     ss.connec   = connec;
+%     ss.kFace    = -1;
+%     bMeshv       = Mesh.create(ss);
+%     bMeshv       = bMeshv.computeCanonicalMesh();
+
+
+disp(margin)
+plot(bMesh);
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
@@ -49,15 +195,6 @@ dir_vel{2}.value     = [0,0];
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
-
-%% Cavity:
-% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor) | isRight;
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [0,0]; 
-% 
-% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-% dir_vel{1}.direction = [1,2];
-% dir_vel{1}.value     = [0,1];
 
 %% Modificat (free-slip condition)
 % dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
@@ -72,26 +209,7 @@ dir_vel{1}.value     = [1,0];
 % dir_vel{3}.direction = [1,2];
 % dir_vel{3}.value     = [0,0]; 
 
-
-%% 
-% dir_vel{2}.domain    = @(coor) isLeft(coor) | isRight(coor) | isCyl(coor);
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [0,0]; 
-
-% dir_vel{2}.domain    = @(coor) isLeft(coor) | isRight(coor);
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [0,0]; 
-% 
-
-% 
-% dir_vel{1}.domain    = @(coor) isTop(coor) & not(isLeft(coor) | isRight(coor)); %Hem de posar el not per no incloure els nodes a les puntes
-% dir_vel{1}.direction = [1,2];
-% dir_vel{1}.value     = [0,1];
-% 
-% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
-% dir_pre{1}.direction = 1;
-% dir_pre{1}.value     = 0;
-
+%%Pressió:
 % dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
 % dir_pre{1}.direction = 1;
 % dir_pre{1}.value     = 0;
@@ -108,13 +226,6 @@ for i = 1:length(dir_vel)
     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(iNod),:) = [iNod mat12 valmat];
     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(iNod),1) = dirDofs;
 end
-% for i = 1:length(dir_pre)
-%     dirDofs = pressureFun.getDofsFromCondition(dir_pre{i}.domain);
-%     mat12 = ones(size(dirDofs));
-%     valmat = ones(size(dirDofs)).*dir_pre{i}.value';
-%     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(dirDofs),:) = [dirDofs+velocityFun.nDofs mat12 valmat];
-%     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(dirDofs),1) = dirDofs+velocityFun.nDofs;
-% end
 
 % DEFINE APPLIED FORCES
 sAF.fHandle = @(coor) [0.*coor,0.*coor];
@@ -135,8 +246,7 @@ c.velocityFun   = velocityFun;
 c.pressureFun   = pressureFun;
 LHSintegrator = LHSintegrator.create(c);
 LHS = LHSintegrator.compute();
-% LHS(end+1,:) = [0;ones(n_dofs-1,1)]';
-% LHS(1:end,end+1) = [0;ones(n_dofs-1,1);0];
+
 
 % COMPUTE RHS
 d.type          = 'Stokes';
@@ -152,12 +262,11 @@ R  = -LHS(:,dir_dofs)*uD;
 RHS = F + R;
 
 % SOLVE PROBLEM
-% free_dofs_plus = setdiff(1:(n_dofs+1),dir_dofs);
 free_dofs_plus = setdiff(1:n_dofs,dir_dofs);
 LHSr = LHS(free_dofs_plus,free_dofs_plus); %Li treiem els nodes restringits per deixar la LHS només amb lliures i la RHS de la mateixa mida
 RHSr = RHS(free_dofs_plus);
 x = solver.solve(LHSr, RHSr);
-% x(end)=[];
+
 
 % ADD DDIRICHLET BOUNDARY CONDITIONS
 uD  = dirichlet(:,3);
@@ -193,7 +302,7 @@ pressureFun.plot()
 
 %% Lift and drag
 
-nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+nodesCyl    = pressureFun.getDofsFromCondition(isCyl); %Abans (per dirichlet) hem fet el mateix però pels nodes de la velocitat (velocityFun)
 presCylVals = pressureFun.fValues(nodesCyl,1);
 xCyl        = mesh.coord(nodesCyl,1);
 yCyl        = mesh.coord(nodesCyl,2);
@@ -209,8 +318,6 @@ bMesh       = Mesh.create(ss);
 bMesh       = bMesh.computeCanonicalMesh();
 presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
 presCyl.fValues = presCylVals;
-
-% pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
 
 presCyl.plot()
 
@@ -251,12 +358,4 @@ hold on
 quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
-
-
-
-
-
-
-
-
 

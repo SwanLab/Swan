@@ -3,14 +3,14 @@ close all
 
 % % INPUT DATA
 
-dim_a = 0.4; % Semi-major axis 0.2
-dim_b = 0.4; % Semi-minor axis 0.02
-center_posx = 0.7; % x position of the ellipse center
+dim_a = 0.25; % Semi-major axis 0.2
+dim_b = 0.23; % Semi-minor axis 0.02
+center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(1,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -49,73 +49,14 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 correct_margin = false;
 connectat = true;
 
-% %Franja alta:
-% k=1;
-% h=7;
-% margin = k*(10^(-h));
-% 
-% while correct_margin == false
-%     connectat = true;
-% 
-%     isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
-% 
-%     nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
-%     xCyl        = mesh.coord(nodesCyl,1);
-%     yCyl        = mesh.coord(nodesCyl,2);
-%     mesh.computeEdges();
-%     e  = mesh.edges.nodesInEdges;
-%     bE = ismember(e,nodesCyl);
-%     bE = find(prod(bE,2));
-%     connec = e(bE,:);
-%     ss.coord    = mesh.coord;
-%     ss.connec   = connec;
-%     ss.kFace    = -1;
-%     bMesh       = Mesh.create(ss);
-%     bMesh       = bMesh.computeCanonicalMesh();
-% 
-%     single_col = reshape(bMesh.connec, [], 1);
-%     [unique_el, ~, idx] = unique(single_col);
-%     count = accumarray(idx(:), 1);
-%     repeated_num = unique_el(count > 1);
-%     repetitions = zeros(size(unique_el));
-%     for i = 1:length(unique_el)
-%        idx = find(single_col == unique_el(i));
-%        if numel(idx)>2.5
-%           connectat = false;
-%        end
-%        repetitions(i) = numel(idx);
-%     end
-% 
-%     if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
-%         correct_margin = true;
-%         break
-%     else
-%         if k>9
-%             h=h-1;
-%             k=1;
-%         else
-%             k=k+0.1;
-%         end
-%         margin = k*(10^(-h));
-%     end
-% 
-%     disp(margin)
-% 
-%     if margin>1
-%         disp('MARGE NO TROBAT')
-%         return
-%     end
-% 
-% end
-
-
-%Franja baixa:
+%Franja alta:
 k=1;
-h=1;
+h=7;
 margin = k*(10^(-h));
 
 while correct_margin == false
     connectat = true;
+
     isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
 
     nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
@@ -145,30 +86,90 @@ while correct_margin == false
        repetitions(i) = numel(idx);
     end
 
-    if size(bMesh.coord,1)==0 && size(bMesh.connec,1)==0
-        disp('MARGE NO TROBAT')
-        return
-
-    end
-
     if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
-        correct_margin = true; 
+        correct_margin = true;
         break
     else
-        if k<1
-            h=h+1;
-            k=9;
+        if k>9
+            h=h-1;
+            k=1;
         else
-            k=k-0.1;
+            k=k+0.1;
         end
         margin = k*(10^(-h));
     end
 
     disp(margin)
 
+    if margin>1
+        plot(bMesh);
+        disp('MARGE NO TROBAT')
+        return
+    end
+
 end
 
 
+% %Franja baixa:
+% k=1;
+% h=1;
+% margin = k*(10^(-h));
+% 
+% while correct_margin == false
+%     connectat = true;
+%     isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
+% 
+%     nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+%     xCyl        = mesh.coord(nodesCyl,1);
+%     yCyl        = mesh.coord(nodesCyl,2);
+%     mesh.computeEdges();
+%     e  = mesh.edges.nodesInEdges;
+%     bE = ismember(e,nodesCyl);
+%     bE = find(prod(bE,2));
+%     connec = e(bE,:);
+%     ss.coord    = mesh.coord;
+%     ss.connec   = connec;
+%     ss.kFace    = -1;
+%     bMesh       = Mesh.create(ss);
+%     bMesh       = bMesh.computeCanonicalMesh();
+% 
+%     single_col = reshape(bMesh.connec, [], 1);
+%     [unique_el, ~, idx] = unique(single_col);
+%     count = accumarray(idx(:), 1);
+%     repeated_num = unique_el(count > 1);
+%     repetitions = zeros(size(unique_el));
+%     for i = 1:length(unique_el)
+%        idx = find(single_col == unique_el(i));
+%        if numel(idx)>2.5
+%           connectat = false;
+%        end
+%        repetitions(i) = numel(idx);
+%     end
+% 
+%     if size(bMesh.coord,1)==0 && size(bMesh.connec,1)==0
+%         disp('MARGE NO TROBAT')
+%         return
+% 
+%     end
+% 
+%     if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true
+%         correct_margin = true; 
+%         break
+%     else
+%         if k<1
+%             h=h+1;
+%             k=9;
+%         else
+%             k=k-0.1;
+%         end
+%         margin = k*(10^(-h));
+%     end
+% 
+%     disp(margin)
+% 
+% end
+
+disp(margin)
 plot(bMesh);
 
 %% Original (no-slip condition)
@@ -286,7 +287,7 @@ pressureFun.plot()
 
 %% Lift and drag
 
-nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+nodesCyl    = pressureFun.getDofsFromCondition(isCyl); %Abans (per dirichlet) hem fet el mateix però pels nodes de la velocitat (velocityFun)
 presCylVals = pressureFun.fValues(nodesCyl,1);
 xCyl        = mesh.coord(nodesCyl,1);
 yCyl        = mesh.coord(nodesCyl,2);

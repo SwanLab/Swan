@@ -155,7 +155,7 @@ classdef LagrangianFunction < FeFunction
             dofConnec = dofsElem;
         end
 
-        function dof = getDofsFromCondition(obj, condition)
+        function dof = getDofsFromCondition(obj, condition) %l'objecte té les coordenades dels nodes de velocitat
             nodes = condition(obj.coord);
             iNode = find(nodes==1);
             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
