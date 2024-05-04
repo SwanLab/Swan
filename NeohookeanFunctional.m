@@ -88,6 +88,14 @@ classdef NeohookeanFunctional < handle
                     GradDeltaU(jDim,:,:,:) = dNdxTrial(:,jNode,:,:);
 
                     res = zeros(3,3,nGaus,nElem);
+%                     for a = 1:3
+%                         for b = 1:3
+%                             C = squeeze(Ctan(:,:,a,b,:,:));
+%                             res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
+%                         end
+%                     end
+%                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), re, C);
+
                     for a = 1:3
                         for b = 1:3
                             C = squeeze(Ctan(a,b,:,:,:,:));
@@ -95,7 +103,7 @@ classdef NeohookeanFunctional < handle
                         end
                     end
 
-                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, C);
+                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, res);
                 end
             end
             K = K.*dV;
