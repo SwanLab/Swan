@@ -18,6 +18,8 @@ classdef NeohookeanFunctional < handle
         
         function obj = NeohookeanFunctional(cParams)
             obj.init(cParams)
+%             obj.mu = 10 / (2*(1 + 0.3));
+%             obj.lambda = (10*0.3) / ((1 + 0.3) * (1 - 2*0.3));
             
         end
 
@@ -58,19 +60,20 @@ classdef NeohookeanFunctional < handle
             quad = Quadrature.create(obj.mesh,2);
 
             xG = quad.posgp;
-            dV = obj.mesh.computeDvolume(quad);
+            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
             Ctan = obj.computeTangentConstitutive(uFun,xG);
 
             dNdxTest  = test.evaluateCartesianDerivatives(xG);
             dNdxTrial = trial.evaluateCartesianDerivatives(xG);
+            nNode = size(dNdxTrial,2);
             nGaus = size(dNdxTrial,3);
             nElem = size(dNdxTrial,4);
 
-            dofToDim = repmat(1:3,[1,8]);
-            dofToNode = repmat(1:8,[1,3]);
+            dofToDim = repmat(1:3,[1,nNode]);
+            dofToNode = repmat(1:nNode,[1,3]);
 
-            K = zeros(24,24,nGaus,nElem);
+            K = zeros(3*nNode,3*nNode,nGaus,nElem);
             for iDof = 1:24 % test dof
                 for jDof = 1:24 % trial dof
                     iNode = dofToNode(iDof);
@@ -81,8 +84,8 @@ classdef NeohookeanFunctional < handle
                     GradDeltaV = zeros(3,3, nGaus, nElem);
                     GradDeltaU = zeros(3,3, nGaus, nElem);
                     
-                    GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
+                    GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
+                    GradDeltaU(jDim,:,:,:) = dNdxTrial(:,jNode,:,:);
 
                     res = zeros(3,3,nGaus,nElem);
                     for a = 1:3
@@ -95,7 +98,14 @@ classdef NeohookeanFunctional < handle
                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, C);
                 end
             end
+            K = K.*dV;
             K = squeeze(sum(K,3));
+
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            hess = assembler.assemble(K, test, trial);
+            % - Not symmetric
+            % - Negative values at diagonal
         end
 
 
@@ -132,6 +142,7 @@ classdef NeohookeanFunctional < handle
 
             GradUT = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
             GradU = permute(GradUT, [2 1 3 4]);
+%             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
             I33 = zeros(size(GradU));
             I33(1,1,:,:) = 1;
