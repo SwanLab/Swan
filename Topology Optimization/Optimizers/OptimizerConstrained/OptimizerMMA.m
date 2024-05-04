@@ -55,7 +55,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
-               obj.designVariable.fun.print(['TFGBenchmark/Basura/Iter_',char(string(obj.nIter))]);
+               obj.designVariable.fun.print(['ConceptualDesign/Basura/Iter_',char(string(obj.nIter))]);
            end
             obj.hasConverged = 0;
        end

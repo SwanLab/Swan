@@ -42,15 +42,15 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
+            obj.mesh = HexaMesh(4,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
             
             %INTRODUIM COM GENERA LA MALLA EL GiD
             
-            %file = 'Malla_ambconstraints_GiD_1';
-            obj.filename = file;
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;  %faltava ficar el obj
+            %file = 'Malla_NOVESCONSTRAINTS_1';
+            %obj.filename = file;
+            %a.fileName = file;
+            %s = FemDataContainer(a);
+            %obj.mesh = s.mesh;  %faltava ficar el obj
            
 
         end
@@ -100,7 +100,7 @@ classdef TopOptTestTutorial3DDensity < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL'; %Falta s.typeOfMaterial = 'ISOTROPIC'; ?????
+            s.interpolation  = 'SIMPALL'; 
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
@@ -153,7 +153,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.9;                                           %CONDICCIÓ VOLUM FINAL
+            s.volumeTarget = 0.4;                                           %CONDICCIÓ VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -192,15 +192,19 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 250;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY'; %{'EQUALITY'}; per Level Set  // 'EQUALITY'; per Density
+            s.constraintCase = {'EQUALITY'}; %{'EQUALITY'}; per Level Set  // 'EQUALITY'; per Density
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.9;                                %CONDICCIÓ VOLUM FINAL
-            opt = OptimizerMMA(s);  %%MMA en DENSITY 
-            %s.primal         = 'SLERP';   %%faltava això pel NullSpace en Level Set
-            %opt = OptimizerNullSpace(s);  %%NullSpace en Level Set o Density
+            s.volumeTarget   = 0.4;                                %CONDICCIÓ VOLUM FINAL
+            %---------------Optimizer MMA (Density)---------------------%
+            %opt = OptimizerMMA(s);  %%MMA en DENSITY
+            %---------------Optimizer MMA (Density)---------------------%
+            %---------------Optimizer NullSpace (Density/LevelSet)---------------------%
+            s.primal= 'PROJECTED GRADIENT';   %% 'PROJECTED GRADIENT' (3D)  |  'SLERP' (2D)  ???
+            opt = OptimizerNullSpace(s);  
+            %---------------Optimizer NullSpace (Density/LevelSet)---------------------%
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -210,23 +214,23 @@ classdef TopOptTestTutorial3DDensity < handle
             %---------------BOUNDARY CONDITIONS GiD-------------%
 
              
-            femReader = FemInputReader_GiD();  %Llegim malla GiD
-            s = femReader.read(obj.filename);  %Llegim malla GiD
-
-            [u,v]=unique(s.pointload(:,3));  %Creem un vector [u,v] que es igual a totes les files de la tercera columna de s.pointload
-                                             % u= valors diferents de les forces aplicades en diferents punts. v= nº de forces diferents
-            for i = 1:length(v)  
-                rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...) 
-                isForce = @(coor) s.pointload(rows,1);  %isForce guarda tots els valors dels nodes amb força aplicada
-                sPL{i}.domain    = @(coor) isForce(coor);
-                sPL{i}.direction = s.pointload(v(i),2); %La direcció de la força serà la segona columna de s.pointload
-                sPL{i}.value     = u(i);                %El valor de la força serà la u(v)             
-            end 
-
-            isDir   = @(coor)  unique(s.dirichlet(:,1));  %llegeix les constraints de desplaçaments del GiD
-            sDir{i}.domain    = @(coor) isDir(coor);   
-            sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
-            sDir{i}.value     = 0;
+            % femReader = FemInputReader_GiD();  %Llegim malla GiD
+            % s = femReader.read(obj.filename);  %Llegim malla GiD
+            % 
+            % [u,v]=unique(s.pointload(:,3));  %Creem un vector [u,v] que es igual a totes les files de la tercera columna de s.pointload
+            %                                  % u= valors diferents de les forces aplicades en diferents punts. v= nº de forces diferents
+            % for i = 1:length(v)  
+            %     rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...) 
+            %     isForce = @(coor) s.pointload(rows,1);  %isForce guarda tots els valors dels nodes amb força aplicada
+            %     sPL{i}.domain    = @(coor) isForce(coor);
+            %     sPL{i}.direction = s.pointload(v(i),2); %La direcció de la força serà la segona columna de s.pointload
+            %     sPL{i}.value     = u(i);                %El valor de la força serà la u(v)             
+            % end 
+            % 
+            % isDir   = @(coor)  unique(s.dirichlet(:,1));  %llegeix les constraints de desplaçaments del GiD
+            % sDir{i}.domain    = @(coor) isDir(coor);   
+            % sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
+            % sDir{i}.value     = 0;
             
 
            %---------------BOUNDARY CONDITIONS GiD-------------%
@@ -236,25 +240,25 @@ classdef TopOptTestTutorial3DDensity < handle
            %-------------BOUNDARY CONDITIONS MATLAB------------%
            
            %---------------3D MBB CASE-------------%
-           %  xMax    = max(obj.mesh.coord(:,1));
-           %  yMax    = max(obj.mesh.coord(:,2));
-           % 
-           %  isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
-           %  isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
-           % 
-           %  isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
-           % 
-           %  sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
-           %  sDir{1}.direction = [2]; %restricció vertical només
-           %  sDir{1}.value     = 0;  %desplaçament =0
-           % 
-           %  sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-           %  sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
-           %  sDir{2}.value     = 0; %desplaçament =0
-           % 
-           %  sPL{1}.domain    = @(coor) isForce(coor);
-           %  sPL{1}.direction = 2;
-           %  sPL{1}.value     = -1;
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+
+            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+
+            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.value     = 0; %desplaçament =0
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
             %---------------3D MBB CASE-------------%
 
            %-------------BOUNDARY CONDITIONS MATLAB------------%
