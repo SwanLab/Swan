@@ -13,6 +13,8 @@ classdef FEMSolver < handle
         gamma
         levelSet
         effectiveTensor
+        designVariable
+        m % our mesh!!
     end
 
     methods (Access = public)
@@ -33,7 +35,7 @@ classdef FEMSolver < handle
             gamma = obj.gamma;
             tfi = obj.charFunc;
     
-          %  tgamma = pdeintrp(p,t,fi*gamma');  %for P1-projection aproach -- WHAT IS THIS?
+          %  tgamma = pdeintrp(p,t,fi*gamma');  %for P1-projection aproach
             [K,~,F] = assema(p,t,c,a,f);
             [K,F] = pdeupdate(K,F,obj.bc,obj.mesh);
             U = K \ F;  % solve linear system
@@ -53,6 +55,8 @@ classdef FEMSolver < handle
             obj.pdeCoeff = cParams.pdeCoeff;
             obj.bc       = cParams.bc;
             obj.levelSet = cParams.psi;
+            obj.designVariable = cParams.designVariable;
+            obj.m = cParams.m;
         end
         
         function computeGamma(obj)
@@ -65,11 +69,12 @@ classdef FEMSolver < handle
             s.t = obj.mesh.t;
             s.pdeCoeff = obj.pdeCoeff; 
             s.psi = obj.levelSet;
+            s.designVariable = obj.designVariable;
+            s.m = obj.m;
 
             charfun = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
-            [~,tchi] = charfun.compute();
-          %  [ ~,tfi ] = charfunc(p,t,psi);
-            obj.charFunc = tchi;
+            [~,tfi] = charfun.computeFiandTfi();
+            obj.charFunc = tfi;
         end
 
         function computeEffectiveTensor(obj)
@@ -78,11 +83,6 @@ classdef FEMSolver < handle
             obj.effectiveTensor = c0*tgamma; % effective elasticity tensor
         end
 
-    
-
-
     end
-end
-   
-%
 
+end

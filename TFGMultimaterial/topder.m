@@ -24,7 +24,7 @@
 % A.A. Novotny
 %**************************************************************************
 
-function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
+function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef,designVariable,m)
 
     p = mesh.p; t = mesh.t;
     penalization = params.penalization; penalty = params.penalty;
@@ -73,8 +73,10 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
         cParams.psi = psi;
         cParams.p = p;
         cParams.t = t; 
+        cParams.designVariable = designVariable;
+        cParams.m = m;
         charfun = CharacteristicFunctionComputer(cParams); % s'ha de construir la classe - charfunc!!
-        [~,tfi] = charfun.compute();
+        [~,tfi] = charfun.computeFiandTfi();
 %         tgamma = pdeintrp(p,t,fi*gamma'); %P1 projection method
         tgamma = gamma*tfi; %Mixed formulation method
         tE = E1*tgamma; beta = (1+nu)/(1-nu); alpha = (3-nu)/(1+nu);
@@ -182,7 +184,7 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef)
         
     elseif nmat==4
         charfun = CharacteristicFunctionComputer(cParams); 
-        [~,tfi] = charfun.compute();
+        [~,tfi] = charfun.computeFiandTfi();
         [tXi2,~] = integ_exact(t,p,psi(:,2)); chi2 = (1 - tXi2); %- Mixed formulation method
         [tXi3,~] = integ_exact(t,p,psi(:,3)); chi3 = (1 - tXi3); %- Mixed formulation method
         %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method

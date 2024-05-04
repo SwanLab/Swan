@@ -47,11 +47,21 @@ classdef PDECoefficientsComputer < handle
 
         function computeConstitutiveTensor(obj)
             c=zeros(16,length(obj.E));
-    
+            
             c(1,:) = obj.lambda + 2*obj.mu; c(2,:) = 0; c(3,:) = 0; c(4,:) = obj.mu;
             c(5,:) = 0; c(6,:) = obj.lambda; c(7,:) = obj.mu; c(8,:) = 0;
             c(9,:) = c(8,:); c(10,:) = c(7,:); c(11,:) = c(6,:); c(12,:) = c(5,:);
             c(13,:)= c(4,:); c(14,:) = c(3,:); c(15,:) = c(2,:); c(16,:) = c(1,:); 
+            % nStre = 3;
+            % nGaus = 2;
+            % nElem = 25600;
+            % 
+            % C = zeros(nStre,nStre,nGaus,nElem);
+            % C(1,1,:,:)= 2*obj.mu+obj.lambda;
+            % C(1,2,:,:)= obj.lambda;
+            % C(2,1,:,:)= obj.lambda;
+            % C(2,2,:,:)= 2*obj.mu+obj.lambda;
+            % C(3,3,:,:)= obj.mu;
 
             obj.tensor = c;   
         end

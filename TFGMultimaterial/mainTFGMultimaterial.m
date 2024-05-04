@@ -12,11 +12,21 @@ params = params.params;
 mesh = MeshComputer();
 
 % Generate boundary conditions
-cParams.e = mesh.e;
-cParams.p = mesh.p;
-cParams.t = mesh.t;
+
+% GENERATION OF THE MESH WITH SWAN
+s.connec = mesh.t';
+s.connec = s.connec(:,1:3);
+s.coord  = mesh.p';
+m = Mesh.create(s);
+cParams.m = m; 
+cParams.mesh = mesh;
 cParams.g = mesh.g;
-bc = BoundaryConditionsComputer(cParams);
+
+
+% GENERATION OF BOUNDARY CONDITIONS WITH SWAN
+bounCon = BoundaryConditionsComputer(cParams);
+%bc = bounCon.createBoundaryConditions();
+bc = bounCon.bc;
 
 % Set material properties
 matProp = MaterialPropertiesComputer();
@@ -29,10 +39,42 @@ mat.C = matProp.matC;
 mat.D = matProp.matD;
 pdeCoeff = PDECoefficientsComputer(mat);
 
-
 % Set an initial guess on level set
+cParams.p = mesh.p;
 ls = InitialLevelSetComputer(mat,cParams);
 psi = ls.psi;
+
+% GENERATION OF LEVEL SET WITH SWAN
+s.type = 'Full';
+lsFun{1} = -ones(size(m.coord,1),1);
+lsFun{2} = ones(size(m.coord,1),1);
+lsFun{3} = ones(size(m.coord,1),1);
+s.mesh = m;
+s.type = 'LevelSet';
+s.plotting = false;
+s.fValues = lsFun{1};
+s.order   = 'P1';
+s.fun   = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{1} = ls1;
+s.fValues = lsFun{2};
+s.fun  = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{2} = ls1;
+s.fValues = lsFun{3};
+s.fun  = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{3} = ls1;
+
+% GENERATION OF CHARACTERISTIC FUNCTION 
+cParams.designVariable = designVariable;
+cParams.p = mesh.p;
+cParams.t = mesh.t; 
+cParams.psi = psi;
+cParams.m = m;
+
+charfunc = CharacteristicFunctionComputer(cParams);
+[~,tfi] = charfunc.computeFiandTfi();
 
 % Plot mesh
 figure(1); clf;
@@ -52,11 +94,8 @@ end
 pfree = setdiff(1:size(mesh.p,2),phold); % free nodes
 
 
-s.connec = mesh.t';
-s.connec = s.connec(:,1:3);
-s.coord  = mesh.p';
-%m = Mesh.create(s);
-m = TriangleMesh(2,1,80,40); % why connectivites and coord are not the same? 
+
+%m = TriangleMesh(2,1,80,40); % why connectivites and coord are not the same? 
 
 
 % shape functional and volume associated to the hold-all domain
@@ -66,11 +105,26 @@ s.matProp = matProp;
 s.mesh = mesh;
 s.pdeCoeff = pdeCoeff;
 s.psi = psi_hold_all;
-s.bc  = bc.bc;
-
+s.bc  = bc;
+s.designVariable = designVariable;
+s.m = m;
 
 sys = FEMSolver(s);
-[U,F] = sys.computeStiffnessMatrixAndForce();
+[U,F] = sys.computeStiffnessMatrixAndForce(); 
+
+%trying to solve with our FEM
+% a.material = pdeCoeff.tensor; 
+% a.mesh = m;
+% a.scale = 'MACRO';
+% a.dim = '2D';
+% a.boundaryConditions = bc;
+% a.solverType = 'REDUCED';
+% a.solverMode = 'DISP';
+% fem = ElasticProblem(a);
+% fem.solve();
+% U = fem.uFun;
+
+
 s.tfi = sys.charFunc;
 s.mesh = mesh;
 vol = VolumeComputer(s);
@@ -100,6 +154,27 @@ e = mesh.e;
 [~,unitM,~] = assema(p,t,0,1,0); % mass matrix of unity density
 psi = psi./normL2( unitM,psi ); % level-set function nomalization 
 
+s.type = 'Full';
+lsFun{1} = psi(:,1);
+lsFun{2} = psi(:,2);
+lsFun{3} = psi(:,3);
+s.mesh = m;
+s.type = 'LevelSet';
+s.plotting = false;
+s.fValues = lsFun{1};
+s.order   = 'P1';
+s.fun   = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{1} = ls1;
+s.fValues = lsFun{2};
+s.fun  = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{2} = ls1;
+s.fValues = lsFun{3};
+s.fun  = LagrangianFunction(s);
+ls1 = DesignVariable.create(s);
+designVariable{3} = ls1;
+
 % plot hold-all domain
 %figure(2); clf;
 %set(2,'WindowStyle','docked');
@@ -112,7 +187,14 @@ option = 'null';
 %while not(strcmp(option,'s'))
     %-----------Initial values-----------%
     %[U,F,volume] = solve(psi, mesh, matprop, pdecoef, bc);
-        
+    s.psi = psi;
+    s.mesh = mesh;
+    s.matProp = matProp;
+    s.pdeCoeff = pdeCoeff;
+    s.bc  = bc;
+    s.m = m;
+    s.designVariable = designVariable;
+   
     sys = FEMSolver(s);
     [U,F] = sys.computeStiffnessMatrixAndForce();
     s.tfi = sys.charFunc;
@@ -123,7 +205,7 @@ option = 'null';
     [sf,Epot] = shfunc(F,U,volume,params);
     
     % compute function g: g = -DT (bulk) and g = DT (inclusion)
-    dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff);
+    dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff,designVariable,m);
     dt = dt/normL2(unitM,dt);  % g function normalization
     
     dt(phold,:) = psi(phold,:); % freeze dt function
@@ -134,17 +216,43 @@ option = 'null';
     cosin = max(min(sum(cosin),1.0),-1.0);
     theta = max(real(acos(cosin)),1.0e-4);
     
-    difvol = volume(1:end-1)-voltarget;
+    difvol = volume(1:end-1)-voltarget; 
     ic = (abs(difvol) > volstop); %index control
+
+    % FINS AQUÍ EL CODI FUNCIONA BÉ 
+
     while and(and( or(any(ic),theta > params.stop) , k/2 > params.kmin), iter<=4) % remove iter<=4
     % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
         iter = iter + 1;
 
+        s.type = 'Full';
+        lsFun{1} = psi(:,1);
+        lsFun{2} = psi(:,2);
+        lsFun{3} = psi(:,3);
+        s.mesh = m;
+        s.type = 'LevelSet';
+        s.plotting = false;
+        s.fValues = lsFun{1};
+        s.order   = 'P1';
+        s.fun   = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{1} = ls1;
+        s.fValues = lsFun{2};
+        s.fun  = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{2} = ls1;
+        s.fValues = lsFun{3};
+        s.fun  = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{3} = ls1;   
+        
         s.psi = psi;
         s.mesh = mesh;
         s.matProp = matProp;
         s.pdeCoeff = pdeCoeff;
-        s.bc  = bc.bc;
+        s.bc  = bc;
+        s.m = m;
+        s.designVariable = designVariable;
 
         sys = FEMSolver(s);
         [U,F] = sys.computeStiffnessMatrixAndForce();
@@ -155,7 +263,7 @@ option = 'null';
         [sf,Epot] = shfunc(F,U,volume,params);
         
         % compute function g: g = -DT (bulk) and g = DT (inclusion)
-        dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff);
+        dt = topder(mesh,U,volume,matProp,psi,params,pdeCoeff,designVariable,m);
         dt = dt./normL2(unitM,dt);  % g function normalization
         
         dt(phold,:) = psi(phold,:); % freeze dt function
@@ -175,11 +283,34 @@ option = 'null';
             psi(pfree,:)  = (sin((1-k)*theta)*psiold(pfree,:)...
                 +  sin(k*theta)*dt(pfree,:))./sin(theta);
             
+            s.type = 'Full';
+            lsFun{1} = psi(:,1);
+            lsFun{2} = psi(:,2);
+            lsFun{3} = psi(:,3);
+            s.mesh = m;
+            s.type = 'LevelSet';
+            s.plotting = false;
+            s.fValues = lsFun{1};
+            s.order   = 'P1';
+            s.fun   = LagrangianFunction(s);
+            ls1 = DesignVariable.create(s);
+            designVariable{1} = ls1;
+            s.fValues = lsFun{2};
+            s.fun  = LagrangianFunction(s);
+            ls1 = DesignVariable.create(s);
+            designVariable{2} = ls1;
+            s.fValues = lsFun{3};
+            s.fun  = LagrangianFunction(s);
+            ls1 = DesignVariable.create(s);
+            designVariable{3} = ls1;
+            
             s.psi = psi;
             s.mesh = mesh;
             s.matProp = matProp;
             s.pdeCoeff = pdeCoeff;
-            s.bc  = bc.bc;
+            s.bc  = bc;
+            s.designVariable = designVariable;
+            s.m = m;
 
             sys = FEMSolver(s);
             [U,F] = sys.computeStiffnessMatrixAndForce();
@@ -193,12 +324,35 @@ option = 'null';
         psi = psi/normL2(unitM,psi);
         k = k * 2;
 
+        s.type = 'Full';
+        lsFun{1} = psi(:,1);
+        lsFun{2} = psi(:,2);
+        lsFun{3} = psi(:,3);
+        s.mesh = m;
+        s.type = 'LevelSet';
+        s.plotting = false;
+        s.fValues = lsFun{1};
+        s.order   = 'P1';
+        s.fun   = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{1} = ls1;
+        s.fValues = lsFun{2};
+        s.fun  = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{2} = ls1;
+        s.fValues = lsFun{3};
+        s.fun  = LagrangianFunction(s);
+        ls1 = DesignVariable.create(s);
+        designVariable{3} = ls1;
+
         s.psi = psi;
         s.p = mesh.p;
         s.t = mesh.t;
+        s.designVariable = designVariable;
+        s.m = m;
 
-        charfun = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
-        [fi,~] = charfun.compute();
+        charfun = CharacteristicFunctionComputer(s); 
+        [fi,~] = charfun.computeFiandTfi();
         %[fi,~] = charfunc( p,t,psi); %calculate characteristic function for plot
         
         gsf  = [gsf,sf];
@@ -214,12 +368,12 @@ option = 'null';
         disp(['penalty = ', num2str(params.penalty)]);
         disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
         
-        facecolor = [186 212 244]/255;
-        linecolor = [0 62 102]/255;
-        %HH = figure(3); clf; %HH.Units='Normalized'; HH.OuterPosition=[0 0 1 1];
-%        set(3,'WindowStyle','docked');
-        multimat_plot( p,t,fi );
-        drawnow
+         facecolor = [186 212 244]/255;
+         linecolor = [0 62 102]/255;
+         %HH = figure(3); clf; %HH.Units='Normalized'; HH.OuterPosition=[0 0 1 1];
+% %        set(3,'WindowStyle','docked');
+         multimat_plot( p,t,fi );
+         drawnow
         %     FRAMES(iter) = getframe(gcf);
         % figure(4); clf;hold on, plot(gsf,'k-','LineWidth',1.2); %title('Shape Function');
         % yyaxis left; ylabel('Shape Function'),

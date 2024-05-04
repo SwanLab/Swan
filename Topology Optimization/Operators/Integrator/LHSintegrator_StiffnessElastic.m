@@ -31,6 +31,7 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
             Cmat  = obj.material.evaluate(xV);
+            %Cmat = obj.material;
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);
                 C    = squeeze(Cmat(:,:,igaus,:));

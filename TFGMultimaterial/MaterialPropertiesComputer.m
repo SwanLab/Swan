@@ -43,10 +43,10 @@ classdef MaterialPropertiesComputer < handle
             dim = obj.ndim;
 
             %obj.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            la = nu0.*E0./((1+nu0).*(1-2.*nu0)); 
+            la = nu0.*E0./((1+nu0).*(1-2.*nu0)); % plain strain
             obj.matA.shear = E0./(2.*(1+nu0));
             mu0 = obj.matA.shear;
-            obj.matA.lambda = 2.*mu0.*la./(la+2.*mu0);
+            obj.matA.lambda = 2.*mu0.*la./(la+2.*mu0); % plane stress
             obj.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,dim);
             %obj.matA.lambda = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(E0,nu0,dim);
         end

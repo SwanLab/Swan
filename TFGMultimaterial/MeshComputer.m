@@ -8,6 +8,8 @@ classdef MeshComputer < handle
         remesh
         area
         ghold
+        type
+        ndim
     end
 
     methods (Access = public)
@@ -28,11 +30,11 @@ classdef MeshComputer < handle
             [obj.p,obj.e,obj.t] = poimesh(obj.g,2*n,n); %p1 = round(prec*p1)/prec; 
             obj.t(4,:) = 1;
             
-            %load ConnectivitiesOriginal.mat;
-            %obj.t = t; 
             obj.ghold  = 0;
             nsteps = 1;
             obj.remesh  = 'longest';
+            obj.type = 'TRIANGLE';
+            obj.ndim = 2;
         
             for i=1:2*nsteps
                 [obj.p,obj.e,obj.t] = refinemesh(obj.g,obj.p,obj.e,obj.t,obj.remesh);            
