@@ -48,12 +48,13 @@ classdef NeohookeanFunctional < handle
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
             % val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
-            val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
+            val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
             val = pagemtimes(val,dV);
             val = sum(val, 'all');
         end
 
         function Fint = computeInternalForces(obj, uFun)
+            nDimf = uFun.ndimf;
             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             quad = Quadrature.create(obj.mesh,2);
 
@@ -64,16 +65,17 @@ classdef NeohookeanFunctional < handle
             nNode = size(dNdxTest,2);
             nGaus = size(dNdxTest,3);
             nElem = size(dNdxTest,4);
+            nDof = nDimf*nNode;
 
             piola = obj.computeFirstPiola(uFun,xG);
             dofToDim = repmat(1:3,[1,nNode]);
             dofToNode = repmat(1:nNode,[1,3]);
 
-            fint = zeros(3*nNode,1,nGaus,nElem);
-            for iDof = 1:24
+            fint = zeros(nDof,1,nGaus,nElem);
+            for iDof = 1:nDof
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
-                GradDeltaV = zeros(3,3, nGaus, nElem);
+                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
                 GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
                 GradDeltaV = permute(GradDeltaV, [2 1 3 4]);
                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,piola));
@@ -97,8 +99,9 @@ classdef NeohookeanFunctional < handle
         end
 
         function hess = computeHessian(obj, uFun)
+            nDimf = uFun.ndimf;
             trial = uFun;
-            test  = LagrangianFunction.create(obj.mesh, 3, 'P1');
+            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
             quad = Quadrature.create(obj.mesh,2);
 
             xG = quad.posgp;
@@ -111,30 +114,31 @@ classdef NeohookeanFunctional < handle
             nNode = size(dNdxTrial,2);
             nGaus = size(dNdxTrial,3);
             nElem = size(dNdxTrial,4);
+            nDof = nDimf*nNode;
 
-            dofToDim = repmat(1:3,[1,nNode]);
-            dofToNode = repmat(1:nNode,[1,3]);
+            dofToDim = repmat(1:nDimf,[1,nNode]);
+            dofToNode = repmat(1:nNode,[1,nDimf]);
 
-            K = zeros(3*nNode,3*nNode,nGaus,nElem);
-            for iDof = 1:24 % test dof
+            K = zeros(nDof,nDof,nGaus,nElem);
+            for iDof = 1:nDof % test dof
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
-                GradDeltaV = zeros(3,3, nGaus, nElem);
+                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
                 GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
 
-                res = zeros(3,3,nGaus,nElem);
-                for a = 1:3
-                    for b = 1:3
+                res = zeros(nDimf,nDimf,nGaus,nElem);
+                for a = 1:nDimf
+                    for b = 1:nDimf
                         C = squeeze(Ctan(:,:,a,b,:,:));
                         res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
                     end
                 end
 
-                for jDof = 1:24 % trial dof
+                for jDof = 1:nDof % trial dof
                     jNode = dofToNode(jDof);
                     jDim  = dofToDim(jDof);
 
-                    GradDeltaU = zeros(3,3, nGaus, nElem);
+                    GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
                     GradDeltaU(jDim,:,:,:) = dNdxTrial(:,jNode,:,:);
                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
 
@@ -204,14 +208,18 @@ classdef NeohookeanFunctional < handle
             GradU = permute(GradUT, [2 1 3 4]);
 %             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
-            I33 = zeros(size(GradU));
-            I33(1,1,:,:) = 1;
-            I33(2,2,:,:) = 1;
-            I33(3,3,:,:) = 1;
+            I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU;
         end
 
+
+        function I = createIdentityMatrix(obj,sz)
+            I = zeros(sz);
+            for i = 1:sz(1)
+                I(i,i,:,:) = 1;
+            end
+        end
 
         % Operators
         function C = double_dot(obj,A, B)
