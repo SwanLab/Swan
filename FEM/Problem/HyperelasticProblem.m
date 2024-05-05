@@ -11,6 +11,8 @@ classdef HyperelasticProblem < handle
         boundaryConditions, BCApplier
         dirichletFun
 
+        neohookeanFun
+
         stiffness
         Fext
         solver, solverType, solverMode, solverCase
@@ -37,37 +39,44 @@ classdef HyperelasticProblem < handle
             s.material = obj.material;
             s.mesh = obj.mesh;
             neo = NeohookeanFunctional(s);
-            hess = neo.computeHessian(obj.uFun);
+            obj.neohookeanFun = neo;
+%             fint = neo.computeInternalForces(obj.uFun);
+%             hess = neo.computeHessian(obj.uFun);
+            
             
 
-%             % Check first piola convergence
-% 
-%             bc = obj.boundaryConditions;
-%             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
-%             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
-% 
-%             r = 1;
-%             i = 1;
-%             rpre = 1;
-%             alpha = 0.01;
-%             f = animatedline;
-% %             while r > 10e-6
-% %                 val = max(neo.compute(obj.uFun))
-% %                 Fint = obj.computeInternalForces();
-% %                 res  = Fint - obj.Fext;
-% %                 u_next = u_k - alpha*res;
-% %                 u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
-% %                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-% %                 r = norm(u_next - u_k)
-% %                 u_k = u_next;
-% %                 i = i+1;
-% % %                 if r>1
-% % %                     break
-% % %                 end
-% %                 addpoints(f,i,r);
-% %                 drawnow
-% %                 rpre = r;
-% %             end
+            % Check first piola convergence
+
+            bc = obj.boundaryConditions;
+            u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+            u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
+
+            r = 1;
+            i = 1;
+            rpre = 1;
+            alpha = 0.01;
+            f = animatedline;
+            obj.applyDirichletToUFun();
+            while r > 10e-6
+                val = max(neo.compute(obj.uFun))
+                hess = neo.computeHessian(obj.uFun);
+                Fint = obj.computeInternalForces();
+                res  = Fint - obj.Fext;
+                deltaUk = hess\res;
+%                 u_next = u_k - alpha*res;
+                u_next = u_k - deltaUk;
+                u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+                obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+                r = norm(u_next - u_k)
+                u_k = u_next;
+                i = i+1;
+%                 if r>1
+%                     break
+%                 end
+                addpoints(f,i,r);
+                drawnow
+                rpre = r;
+            end
 % 
 % 
 %             bc = obj.boundaryConditions;
@@ -103,7 +112,14 @@ classdef HyperelasticProblem < handle
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.uFun.fValues = obj.uFun.fValues + 0.1;
+            obj.uFun.fValues = obj.uFun.fValues + 0;
+        end
+
+        function applyDirichletToUFun(obj)
+            bc = obj.boundaryConditions;
+            u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
+            u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
+            obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
         function computeForces(obj)
@@ -118,11 +134,12 @@ classdef HyperelasticProblem < handle
         end
 
         function intfor = computeInternalForces(obj)
-            s.mesh = obj.mesh;
-            s.material = obj.material;
-            test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            rhs = RHSintegrator_FirstPiola(s);
-            intfor = rhs.compute(obj.uFun, test);
+%             s.mesh = obj.mesh;
+%             s.material = obj.material;
+%             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+%             rhs = RHSintegrator_FirstPiola(s);
+%             intfor = rhs.compute(obj.uFun, test);
+            intfor = obj.neohookeanFun.computeInternalForces(obj.uFun);
         end
 
         function hess = computeSecondPiola(obj)

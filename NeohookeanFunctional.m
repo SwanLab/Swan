@@ -20,7 +20,6 @@ classdef NeohookeanFunctional < handle
             obj.init(cParams)
 %             obj.mu = 10 / (2*(1 + 0.3));
 %             obj.lambda = (10*0.3) / ((1 + 0.3) * (1 - 2*0.3));
-            
         end
 
         function val = compute(obj, uFun)
@@ -54,6 +53,49 @@ classdef NeohookeanFunctional < handle
             val = sum(val, 'all');
         end
 
+        function Fint = computeInternalForces(obj, uFun)
+            test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            quad = Quadrature.create(obj.mesh,2);
+
+            xG = quad.posgp;
+            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
+            dNdxTest  = test.evaluateCartesianDerivatives(xG);
+
+            nNode = size(dNdxTest,2);
+            nGaus = size(dNdxTest,3);
+            nElem = size(dNdxTest,4);
+
+            piola = obj.computeFirstPiola(uFun,xG);
+            dofToDim = repmat(1:3,[1,nNode]);
+            dofToNode = repmat(1:nNode,[1,3]);
+
+            fint = zeros(3*nNode,1,nGaus,nElem);
+            for iDof = 1:24
+                iNode = dofToNode(iDof);
+                iDim  = dofToDim(iDof);
+                GradDeltaV = zeros(3,3, nGaus, nElem);
+                GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
+                GradDeltaV = permute(GradDeltaV, [2 1 3 4]);
+                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,piola));
+            end
+            fint = fint.*dV;
+            fint = squeeze(sum(fint,3));
+            Fint = obj.assembleIntegrand(fint,test);
+        end
+
+        function f = assembleIntegrand(obj, rhsElem, test)
+            integrand = pagetranspose(rhsElem);
+            connec = test.getConnec();
+            nDofs = max(max(connec));
+            nDofElem  = size(connec,2);
+            f = zeros(nDofs,1);
+            for idof = 1:nDofElem
+                int = integrand(:,idof);
+                con = connec(:,idof);
+                f = f + accumarray(con,int,[nDofs,1],@sum,0);
+            end
+        end
+
         function hess = computeHessian(obj, uFun)
             trial = uFun;
             test  = LagrangianFunction.create(obj.mesh, 3, 'P1');
@@ -75,35 +117,35 @@ classdef NeohookeanFunctional < handle
 
             K = zeros(3*nNode,3*nNode,nGaus,nElem);
             for iDof = 1:24 % test dof
+                iNode = dofToNode(iDof);
+                iDim  = dofToDim(iDof);
+                GradDeltaV = zeros(3,3, nGaus, nElem);
+                GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
+
+                res = zeros(3,3,nGaus,nElem);
+                for a = 1:3
+                    for b = 1:3
+                        C = squeeze(Ctan(:,:,a,b,:,:));
+                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
+                    end
+                end
+
                 for jDof = 1:24 % trial dof
-                    iNode = dofToNode(iDof);
-                    iDim  = dofToDim(iDof);
                     jNode = dofToNode(jDof);
                     jDim  = dofToDim(jDof);
 
-                    GradDeltaV = zeros(3,3, nGaus, nElem);
                     GradDeltaU = zeros(3,3, nGaus, nElem);
-                    
-                    GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
                     GradDeltaU(jDim,:,:,:) = dNdxTrial(:,jNode,:,:);
+                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
 
-                    res = zeros(3,3,nGaus,nElem);
 %                     for a = 1:3
 %                         for b = 1:3
-%                             C = squeeze(Ctan(:,:,a,b,:,:));
-%                             res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
+%                             C = squeeze(Ctan(a,b,:,:,:,:));
+%                             res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), C,GradDeltaU);
 %                         end
 %                     end
-%                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), re, C);
 
-                    for a = 1:3
-                        for b = 1:3
-                            C = squeeze(Ctan(a,b,:,:,:,:));
-                            res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), C,GradDeltaU);
-                        end
-                    end
-
-                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, res);
+%                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, res);
                 end
             end
             K = K.*dV;
@@ -125,6 +167,16 @@ classdef NeohookeanFunctional < handle
             obj.lambda = cParams.material.lambda;
             obj.mu     = cParams.material.mu;
             obj.mesh   = cParams.mesh;
+        end
+
+        function piola = computeFirstPiola(obj,uFun,xG)
+            [F,~] = obj.computeDeformationGradient(uFun, xG);
+            Ft = permute(F, [2 1 3 4]);
+
+            invFt = MatrixVectorizedInverter.computeInverse(Ft);
+            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
+
+            piola = obj.mu*(F-invFt) + obj.lambda*log(jac).*invFt;
         end
 
         function Aneo = computeTangentConstitutive(obj,uFun,xG)
