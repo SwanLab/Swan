@@ -11,7 +11,7 @@ ypos = 0.5;
 radius = 0.25;
 
 %m = TriangleMesh(1,1,100,100);
-m = QuadMesh(1,1,100,100); 
+m = QuadMesh(1,1,4,4); 
 s.type='Given';
 s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
 g = GeometricalFunction(s);
@@ -39,7 +39,7 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 0.00001;
+isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 0.02;
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);

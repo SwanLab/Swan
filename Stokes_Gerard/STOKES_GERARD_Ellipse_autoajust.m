@@ -4,13 +4,13 @@ close all
 % % INPUT DATA
 
 dim_a = 0.25; % Semi-major axis 0.2
-dim_b = 0.23; % Semi-minor axis 0.02
+dim_b = 0.25; % Semi-minor axis 0.02
 center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(1,1,100,100); % MESH
+m = QuadMesh(1,1,4,4); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -171,6 +171,9 @@ end
 
 disp(margin)
 plot(bMesh);
+
+Nodoccult = @(coor) isCyl(coor);
+Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
 
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
