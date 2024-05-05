@@ -141,7 +141,7 @@ classdef MultigridTesting4 < handle
             bc.dirichlet              = bcDir;
             bc.pointload(:,1)         = nodes(forceNodes);
             bc.pointload(:,2)         = 2;
-            bc.pointload(:,3)         = -1/length(forceNodes);
+            bc.pointload(:,3)         = -1/length(nonzeros(forceNodes));
         end
         
         function mat = createMaterial(obj,mesh)
