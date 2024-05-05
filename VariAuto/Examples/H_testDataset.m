@@ -5,15 +5,15 @@ close all;
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 0;
-lambda          = 0;
-learningRate    = 0.1;
+lambda          = 0.01;
+learningRate    = 0.05;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [];
+hiddenlayers    = [3 4 5];
 
 %% Loading of files/datasets
-fileN = 'regression_dataset.csv';
-s.features = 1:1;
+fileN = 'testDataset.csv';
+s.features = 1:3;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
@@ -35,7 +35,7 @@ p.optimizerParams.learningRate = learningRate;
 p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
-p.networkParams.HUtype       = 'None';
+p.networkParams.HUtype       = 'ReLU';
 p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
 
