@@ -1,6 +1,7 @@
 clear all
 close all
 
+% Prova per veure si es podia trobar els nodes de la frontera de manera diferent. NO VA.
 % % INPUT DATA
 
 dim_a = 0.25; % Semi-major axis 0.2

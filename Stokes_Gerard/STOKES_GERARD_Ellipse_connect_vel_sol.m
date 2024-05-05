@@ -95,7 +95,7 @@ while correct_margin == false
     Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
     disp(size(Dofscyl,1) - bMesh.nnodes*4);
 
-    if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true && size(Dofscyl,1) == bMesh.nnodes*4
+    if  size(bMesh.coord,1)~=0 && size(Dofscyl,1) == bMesh.nnodes*4
         marginbo=margin;
         correct_margin = true;
         break
@@ -192,7 +192,7 @@ end
 
 end
 
-disp(margin)
+disp(marginbo)
 plot(bMesh);
 disp(size(bMesh.coord,1) - size(bMesh.connec,1));
 

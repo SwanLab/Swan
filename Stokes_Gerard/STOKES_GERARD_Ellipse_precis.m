@@ -3,16 +3,16 @@ close all
 
 % % INPUT DATA
 
-dim_a = 0.25; % Semi-major axis 0.2
-dim_b = 0.22; % Semi-minor axis 0.02
-center_posx = 0.5; % x position of the ellipse center
+dim_a = 0.08; % Semi-major axis 0.2
+dim_b = 0.04; % Semi-minor axis 0.02
+center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 2; % Angle of attack of the semi-major axis (in degrees)
 
 metode = 1; %Mètode del marge
 
 
-m = QuadMesh(1,1,200,200); % MESH
+m = QuadMesh(2,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -144,74 +144,6 @@ if metode == 1
             %
         end
 
-        %     if size(bMesh.coord,1) - size(bMesh.connec,1) < 0
-        %         disp(size(bMesh.coord,1) - size(bMesh.connec,1));
-        %         disp(margin)
-        %         disp('SODAAAAAAAA')
-        %         disp('SODAAAAAAAA')
-        %         disp('SODAAAAAAAA')
-        %         A = margin_ant;
-        %         B = margin;
-        %         fB = size(bMesh.coord,1) - size(bMesh.connec,1);
-        %         fA = diffmesh_ans;
-        %
-        %         C = 1;
-        %
-        %         while parar_bolz == false
-        %
-        %             C_ant=C;
-        %             C = (A+B)/2;
-        %
-        %             isCyl = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < C);
-        %
-        %             nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
-        %             xCyl        = mesh.coord(nodesCyl,1);
-        %             yCyl        = mesh.coord(nodesCyl,2);
-        %             mesh.computeEdges();
-        %             e  = mesh.edges.nodesInEdges;
-        %             bE = ismember(e,nodesCyl);
-        %             bE = find(prod(bE,2));
-        %             connec = e(bE,:);
-        %             ss.coord    = mesh.coord;
-        %             ss.connec   = connec;
-        %             ss.kFace    = -1;
-        %             bMesh       = Mesh.create(ss);
-        %             bMesh       = bMesh.computeCanonicalMesh();
-        %
-        %             fC=(size(bMesh.coord,1) - size(bMesh.connec,1));
-        %
-        %
-        %             if fA*fC > 0
-        %                 A = C;
-        %                 fA = fC;
-        %
-        %             else
-        %                 B = C;
-        %                 fB = fC;
-        %             end
-        %
-        %
-        %             disp(C)
-        %             diffces=C_ant-C;
-        %             disp(C_ant-C);
-        %
-        %             if abs(C_ant-C) < 1*10^(-18)
-        %                 parar_bolz = true;
-        %             end
-        %         end
-        %
-        %                 marginbo=C;
-        %                 break
-        %         %
-        %         %         disp(size(bMesh.coord,1) - size(bMesh.connec,1))
-        %         %         disp(margin)
-        %         %         disp(diffmesh_ans)
-        %         %         disp(margin_ant)
-        %         %         return
-        %         %
-        %     end
-
-
 
 
         %Check that the connectivieties are correct (there is no more than 2 repetitions of each value):
@@ -249,7 +181,7 @@ if metode == 1
 
         diffmesh_ans= size(bMesh.coord,1) - size(bMesh.connec,1);
 
-        %     disp(size(Dofscyl,1) - bMesh.nnodes*4)
+        %    disp(size(Dofscyl,1) - bMesh.nnodes*4)
         %    disp(size(bMesh.coord,1) - size(bMesh.connec,1));
         disp(margin_ant)
 
@@ -314,7 +246,7 @@ while correct_margin == false
     Nodoccult = @(coor) isCyl(coor);
     Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
     
-    if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true && size(Dofscyl,1) == bMesh.nnodes*4
+    if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0  && size(Dofscyl,1) == bMesh.nnodes*4 %&& connectat==true
         marginbo=margin;
         correct_margin = true; 
         break
@@ -329,7 +261,7 @@ while correct_margin == false
     end
 
     disp(margin)
-
+    disp(size(bMesh.coord,1) - size(bMesh.connec,1));
 end
 
 end
