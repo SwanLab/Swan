@@ -12,7 +12,7 @@ AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 metode = 1; %Mètode del marge
 
 
-m = QuadMesh(1,1,100,100); % MESH
+m = QuadMesh(1,1,200,200); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -50,75 +50,218 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 
 correct_margin = false;
 connectat = true;
+parar_bolz = false;
 
 if metode == 1
-%Franja alta:
-k=1;
-h=5;
-margin = k*(10^(-h));
+    %Franja alta:
+    k=1;
+    h=8;
+    margin = k*(10^(-h));
 
-while correct_margin == false
-    connectat = true;
+    while correct_margin == false
+        connectat = true;
 
-    isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
+        isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < margin);
 
-    nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
-%     xCyl        = mesh.coord(nodesCyl,1);
-%     yCyl        = mesh.coord(nodesCyl,2);
-    mesh.computeEdges();
-    e  = mesh.edges.nodesInEdges;
-    bE = ismember(e,nodesCyl);
-    bE = find(prod(bE,2));
-    connec = e(bE,:);
-    ss.coord    = mesh.coord;
-    ss.connec   = connec;
-    ss.kFace    = -1;
-    bMesh       = Mesh.create(ss);
-    bMesh       = bMesh.computeCanonicalMesh();
-    
-    %Check that the connectivieties are correct (there is no more than 2 repetitions of each value):
-    single_col = reshape(bMesh.connec, [], 1);
-    [unique_el, ~, idx] = unique(single_col);
-    count = accumarray(idx(:), 1);
-    repeated_num = unique_el(count > 1);
-    repetitions = zeros(size(unique_el));
-    for i = 1:length(unique_el)
-       idx = find(single_col == unique_el(i));
-       if numel(idx)>2.5
-          connectat = false;
-       end
-       repetitions(i) = numel(idx);
-    end
-    
-    %Check the "interpolation" nodes of the surface of the object
-    Nodoccult = @(coor) isCyl(coor);
-    Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
+        nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+        xCyl        = mesh.coord(nodesCyl,1);
+        yCyl        = mesh.coord(nodesCyl,2);
+        mesh.computeEdges();
+        e  = mesh.edges.nodesInEdges;
+        bE = ismember(e,nodesCyl);
+        bE = find(prod(bE,2));
+        connec = e(bE,:);
+        ss.coord    = mesh.coord;
+        ss.connec   = connec;
+        ss.kFace    = -1;
+        bMesh       = Mesh.create(ss);
+        bMesh       = bMesh.computeCanonicalMesh();
 
-    if size(bMesh.coord,1) == size(bMesh.connec,1) && size(bMesh.coord,1)~=0 && connectat==true && size(Dofscyl,1) == bMesh.nnodes*4
-        marginbo=margin;
-        correct_margin = true;
-        break
-    else
-        if k>9
-            h=h-1;
-            k=1;
-        else
-            k=k+0.1;
+        if size(bMesh.coord,1) - size(bMesh.connec,1) < 0
+            disp(size(bMesh.coord,1) - size(bMesh.connec,1));
+            disp(margin)
+            disp('SODAAAAAAAA')
+            disp('SODAAAAAAAA')
+            disp('SODAAAAAAAA')
+            A = margin_ant;
+            B = margin;
+            fB = size(bMesh.coord,1) - size(bMesh.connec,1);
+            fA = diffmesh_ans;
+
+            C = 1;
+
+            while parar_bolz == false
+
+                C_ant=C;
+                C = (A+B)/2;
+
+                isCyl = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < C);
+
+                nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+                mesh.computeEdges();
+                e  = mesh.edges.nodesInEdges;
+                bE = ismember(e,nodesCyl);
+                bE = find(prod(bE,2));
+                connec = e(bE,:);
+                ss.coord    = mesh.coord;
+                ss.connec   = connec;
+                ss.kFace    = -1;
+                bMesh       = Mesh.create(ss);
+                bMesh       = bMesh.computeCanonicalMesh();
+
+                fC=(size(bMesh.coord,1) - size(bMesh.connec,1));
+
+
+                if fA*fC > 0
+                    A = C;
+                    fA = fC;
+
+                else
+                    B = C;
+                    fB = fC;
+                end
+
+
+                disp(C)
+                diffces=C_ant-C;
+                disp(C_ant-C);
+                Nodoccult = @(coor) isCyl(coor);
+                Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
+
+                if abs(C_ant-C) < 1*10^(-18) || (fA == 0 && fB == 0 && size(Dofscyl,1) == bMesh.nnodes*4)
+                    parar_bolz = true;
+                end
+            end
+
+            marginbo=C;
+            break
+            %
+            %         disp(size(bMesh.coord,1) - size(bMesh.connec,1))
+            %         disp(margin)
+            %         disp(diffmesh_ans)
+            %         disp(margin_ant)
+            %         return
+            %
         end
-        margin = k*(10^(-h));
+
+        %     if size(bMesh.coord,1) - size(bMesh.connec,1) < 0
+        %         disp(size(bMesh.coord,1) - size(bMesh.connec,1));
+        %         disp(margin)
+        %         disp('SODAAAAAAAA')
+        %         disp('SODAAAAAAAA')
+        %         disp('SODAAAAAAAA')
+        %         A = margin_ant;
+        %         B = margin;
+        %         fB = size(bMesh.coord,1) - size(bMesh.connec,1);
+        %         fA = diffmesh_ans;
+        %
+        %         C = 1;
+        %
+        %         while parar_bolz == false
+        %
+        %             C_ant=C;
+        %             C = (A+B)/2;
+        %
+        %             isCyl = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < C);
+        %
+        %             nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+        %             xCyl        = mesh.coord(nodesCyl,1);
+        %             yCyl        = mesh.coord(nodesCyl,2);
+        %             mesh.computeEdges();
+        %             e  = mesh.edges.nodesInEdges;
+        %             bE = ismember(e,nodesCyl);
+        %             bE = find(prod(bE,2));
+        %             connec = e(bE,:);
+        %             ss.coord    = mesh.coord;
+        %             ss.connec   = connec;
+        %             ss.kFace    = -1;
+        %             bMesh       = Mesh.create(ss);
+        %             bMesh       = bMesh.computeCanonicalMesh();
+        %
+        %             fC=(size(bMesh.coord,1) - size(bMesh.connec,1));
+        %
+        %
+        %             if fA*fC > 0
+        %                 A = C;
+        %                 fA = fC;
+        %
+        %             else
+        %                 B = C;
+        %                 fB = fC;
+        %             end
+        %
+        %
+        %             disp(C)
+        %             diffces=C_ant-C;
+        %             disp(C_ant-C);
+        %
+        %             if abs(C_ant-C) < 1*10^(-18)
+        %                 parar_bolz = true;
+        %             end
+        %         end
+        %
+        %                 marginbo=C;
+        %                 break
+        %         %
+        %         %         disp(size(bMesh.coord,1) - size(bMesh.connec,1))
+        %         %         disp(margin)
+        %         %         disp(diffmesh_ans)
+        %         %         disp(margin_ant)
+        %         %         return
+        %         %
+        %     end
+
+
+
+
+        %Check that the connectivieties are correct (there is no more than 2 repetitions of each value):
+        single_col = reshape(bMesh.connec, [], 1);
+        [unique_el, ~, idx] = unique(single_col);
+        count = accumarray(idx(:), 1);
+        repeated_num = unique_el(count > 1);
+        repetitions = zeros(size(unique_el));
+        for i = 1:length(unique_el)
+            idx = find(single_col == unique_el(i));
+            if numel(idx)>2.5
+                connectat = false;
+            end
+            repetitions(i) = numel(idx);
+        end
+
+        %Check the "interpolation" nodes of the surface of the object
+        Nodoccult = @(coor) isCyl(coor);
+        Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
+
+        if size(bMesh.coord,1)~=0 && connectat==true && size(Dofscyl,1) == bMesh.nnodes*4
+            marginbo=margin;
+            correct_margin = true;
+            break
+        else
+            margin_ant=margin;
+            if k>9
+                h=h-1;
+                k=1;
+            else
+                k=k+0.1;
+            end
+            margin = k*(10^(-h));
+        end
+
+        diffmesh_ans= size(bMesh.coord,1) - size(bMesh.connec,1);
+
+        %     disp(size(Dofscyl,1) - bMesh.nnodes*4)
+        %    disp(size(bMesh.coord,1) - size(bMesh.connec,1));
+        disp(margin_ant)
+
+
+        if margin>1
+            plot(bMesh);
+            disp('MARGE NO TROBAT')
+            return
+        end
+
+
     end
-
-    disp(margin)
-
-
-    if margin>1
-        plot(bMesh);
-        disp('MARGE NO TROBAT')
-        return
-    end
-
-
-end
 
 else
 
@@ -191,12 +334,14 @@ end
 
 end
 
-disp(margin)
+disp(marginbo)
 plot(bMesh);
 disp(size(bMesh.coord,1) - size(bMesh.connec,1));
 
-isCyl    = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < marginbo);
 
+isCyl = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < marginbo);
+    Nodoccult = @(coor) isCyl(coor);
+    Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor)isTop(coor) | isBottom(coor) |  isCyl(coor); 
 dir_vel{2}.direction = [1,2];
