@@ -89,7 +89,7 @@ classdef MultigridTesting4 < handle
             toc
 
             obj.postProcess();
-            obj.plotRes(obj.u,mF,s.bc);
+            obj.plotRes(obj.u,mF,s.bcApplier);
         end
     end
 
