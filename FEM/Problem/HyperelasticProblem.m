@@ -48,6 +48,8 @@ classdef HyperelasticProblem < handle
             % Check first piola convergence
 
             bc = obj.boundaryConditions;
+            dofs = 1:obj.uFun.nDofs;
+            free = setdiff(dofs, bc.dirichlet_dofs);
             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
 
@@ -58,13 +60,23 @@ classdef HyperelasticProblem < handle
             f = animatedline;
             obj.applyDirichletToUFun();
             while r > 10e-6
+                % Energy
                 val = max(neo.compute(obj.uFun))
+
+                % Residual
                 Fint = obj.computeInternalForces();
-%                 hess = neo.computeHessian(obj.uFun);
                 res  = Fint - obj.Fext;
-%                 deltaUk = hess\res;
-                u_next = u_k - alpha*res;
-%                 u_next = u_k - deltaUk;
+
+                % Hessian
+                hess = neo.computeHessian(obj.uFun);
+                h_red = hess(free,free);
+
+                deltaUk_free = h_red\res(free);
+                deltaUk = zeros(size(Fint));
+                deltaUk(free) = deltaUk_free;
+                u_next = u_k - deltaUk;
+
+%                 u_next = u_k - alpha*res;
                 u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                 r = norm(u_next - u_k)
@@ -106,7 +118,7 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(1,1);
+            obj.mesh = UnitQuadMesh(3,3);
             obj.material.lambda = 3/4;
             obj.material.mu = 3/8;
         end

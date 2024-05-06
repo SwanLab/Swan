@@ -216,7 +216,7 @@ classdef NeohookeanFunctional < handle
             nDimf = uFun.ndimf;
 
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-%             GradU = permute(GradUT, [2 1 3 4]);
+%             GradU = permute(GradU, [2 1 3 4]);
 %             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
             I33 = obj.createIdentityMatrix(size(GradU));
