@@ -169,8 +169,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.maxIter        = 250;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};   %{'EQUALITY'};
-            s.volumeTarget   = 0.4;              %VOLUM FINAL
             s.primal         = 'SLERP';
+            s.etaNorm        = 0.05;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
