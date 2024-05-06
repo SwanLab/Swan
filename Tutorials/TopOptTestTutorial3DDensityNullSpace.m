@@ -175,12 +175,11 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.maxIter        = 700;%1000
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.3;
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.aJmax          = 0.2;
-            s.aGmax          = 50;
+            s.etaNorm        = 0.05;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
