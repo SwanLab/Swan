@@ -11,6 +11,7 @@ classdef ProblemSolver < handle
         boundaryConditions
         BCApplier
         solver
+        systemSolver
     end
     
     properties (Access = private)
@@ -20,7 +21,8 @@ classdef ProblemSolver < handle
     methods (Access = public)
         
         function obj = ProblemSolver(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+            obj.createSystemSolver();
         end
 
         function [u,L] = solve(obj)
@@ -43,9 +45,18 @@ classdef ProblemSolver < handle
             obj.solver             = cParams.solver;
         end
 
+        function createSystemSolver(obj)
+            s.type           = 'rMINRES'; % DIRECT
+            obj.systemSolver = Solver.create(s);
+        end
+
         function [LHS, RHS] = computeMatrices(obj)
             LHS = obj.assembleLHS();
             RHS = obj.assembleRHS();
+        end
+
+        function sol = solveSystem(obj, LHS, RHS)
+            sol = obj.systemSolver.solve(LHS,RHS);
         end
 
         function [u, L] = cleanupSolution(obj,sol)
