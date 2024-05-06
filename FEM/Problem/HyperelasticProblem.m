@@ -59,12 +59,12 @@ classdef HyperelasticProblem < handle
             obj.applyDirichletToUFun();
             while r > 10e-6
                 val = max(neo.compute(obj.uFun))
-                hess = neo.computeHessian(obj.uFun);
                 Fint = obj.computeInternalForces();
+                hess = neo.computeHessian(obj.uFun);
                 res  = Fint - obj.Fext;
-                deltaUk = hess\res;
-%                 u_next = u_k - alpha*res;
-                u_next = u_k - deltaUk;
+%                 deltaUk = hess\res;
+                u_next = u_k - alpha*res;
+%                 u_next = u_k - deltaUk;
                 u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
                 obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                 r = norm(u_next - u_k)
@@ -105,7 +105,8 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
-            obj.mesh = UnitHexaMesh(5,5,5);
+%             obj.mesh = UnitHexaMesh(5,5,5);
+            obj.mesh = UnitQuadMesh(1,1);
             obj.material.lambda = 3/4;
             obj.material.mu = 3/8;
         end
@@ -167,7 +168,7 @@ classdef HyperelasticProblem < handle
             isRight = @(coor)  abs(coor(:,1))==xMax;
 
             sDir.domain    = @(coor) isLeft(coor);
-            sDir.direction = [1,2,3];
+            sDir.direction = [1,2];
             sDir.value     = 0;
             s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
 
