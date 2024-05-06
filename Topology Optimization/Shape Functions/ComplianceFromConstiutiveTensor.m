@@ -50,13 +50,6 @@ classdef ComplianceFromConstiutiveTensor < handle
             dCompliance = DDP(strain,stress);
             J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
         end
- 
-
-        function fd = createGaussFunction(obj,f)
-            m  = obj.mesh;
-            q  = obj.quadrature;
-            fd = FGaussDiscontinuousFunction.create(f,m,q);
-        end
 
     end
 

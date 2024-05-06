@@ -10,14 +10,14 @@ classdef Line_Constant < Interpolation
         function shape = computeShapeFunctions(obj,posgp)
             ngaus = length(posgp);
             nelem = size(posgp,3);
-            N = ones(1,ngaus, nelem);
+            N = ones(obj.nnode,ngaus, nelem);
             shape = N;
         end
         
         function deriv = computeShapeDerivatives(obj,posgp)
             ngaus = length(posgp);
             nelem = size(posgp,3);
-            dN = zeros(2,ngaus, nelem);
+            dN = zeros(obj.ndime,ngaus, nelem);
             deriv = dN;
         end
 

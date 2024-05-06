@@ -71,6 +71,7 @@ classdef Optimizer < handle
                     isAcceptable = true;
                 else
                     isAcceptable = false;
+                    break;
                 end
             end
         end
