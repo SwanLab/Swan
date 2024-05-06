@@ -41,6 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
+                obj.designVariable.fun.print(['densityNullSpaceIter',num2str(obj.nIter)],'Paraview');
                 obj.designVariable.updateOld();
             end
         end
