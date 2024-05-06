@@ -23,6 +23,7 @@ classdef OptimizerBisection < Optimizer
         meritNew
         constrProjector
         isInitialStep
+        Vtar
 
         globalCost
         globalConstraint
@@ -48,12 +49,14 @@ classdef OptimizerBisection < Optimizer
             obj.isInitialStep = true;
             obj.hasFinished = false;
             obj.printOptimizerVariable();
-            obj.monitoring.update(obj.nIter);
+            d = obj.designVariable;
+            obj.constraint.computeFunctionAndGradient(d);
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.printOptimizerVariable();
-                obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
             end
         end
@@ -70,15 +73,41 @@ classdef OptimizerBisection < Optimizer
             obj.nX             = obj.designVariable.fun.nDofs;
             obj.maxIter        = cParams.maxIter;
             obj.nIter          = 0;
+            obj.Vtar           = cParams.volumeTarget;
             obj.createMonitoring(cParams);
         end
 
         function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x';'\lambda'}];
+            titles  = [titles;{'Volume';'Line Search';'Line Search trials'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,{'plot','log','plot','plot','bar','bar'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.dualVariable.value];
+            data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
+            if obj.nIter == 0
+                data = [data;0;0];
+            else
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            obj.monitoring.update(obj.nIter,data);
         end
 
         function prepareFirstIter(obj)
@@ -138,6 +167,11 @@ classdef OptimizerBisection < Optimizer
             end
         end
 
+        function v = computeVolume(obj,g)
+            targetVolume = obj.Vtar;
+            v            = targetVolume*(1+g);
+        end
+
         function mF = computeMeritFunction(obj,x)
             obj.designVariable.update(x)
             obj.cost.computeFunctionAndGradient();
@@ -170,15 +204,6 @@ classdef OptimizerBisection < Optimizer
                
            end
 
-        end
-
-        function obj = updateMonitoring(obj)
-            s.nIter            = obj.nIter;
-            s.tau              = obj.primalUpdater.tau;
-            s.lineSearch       = obj.lineSearch;
-            s.lineSearchTrials = obj.lineSearchTrials;
-            s.oldCost          = obj.oldCost;
-            s.hasFinished      = obj.hasFinished;
         end
 
         function updateIterInfo(obj)

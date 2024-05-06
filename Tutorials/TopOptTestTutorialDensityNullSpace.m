@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial < handle
+classdef TopOptTestTutorialDensityNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptTestTutorialDensityNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -85,8 +85,8 @@ classdef TopOptTestTutorial < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMP_P3';
-            %s.dim            = '2D';
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
             s.matA = matA;
             s.matB = matB;
 
@@ -114,7 +114,6 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -180,12 +179,13 @@ classdef TopOptTestTutorial < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerInteriorPoint(s);
-            % opt = OptimizerMMA(s);
+            s.ub             = 1;
+            s.lb             = 0;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
