@@ -60,7 +60,7 @@ classdef HyperelasticProblem < handle
             while r > 10e-6
                 val = max(neo.compute(obj.uFun))
                 Fint = obj.computeInternalForces();
-                hess = neo.computeHessian(obj.uFun);
+%                 hess = neo.computeHessian(obj.uFun);
                 res  = Fint - obj.Fext;
 %                 deltaUk = hess\res;
                 u_next = u_k - alpha*res;

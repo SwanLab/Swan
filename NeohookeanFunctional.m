@@ -68,7 +68,8 @@ classdef NeohookeanFunctional < handle
 
             piola = obj.computeFirstPiola(uFun,xG);
             dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode,[1,nDimf]);
+            dofToNode = repmat(1:nNode, nDimf, 1);
+            dofToNode = dofToNode(:);
 
             fint = zeros(nDof,1,nGaus,nElem);
             for iDof = 1:nDof
@@ -117,7 +118,8 @@ classdef NeohookeanFunctional < handle
             nDof = nDimf*nNode;
 
             dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode,[1,nDimf]);
+            dofToNode = repmat(1:nNode, nDimf, 1);
+            dofToNode = dofToNode(:);
 
             K = zeros(nDof,nDof,nGaus,nElem);
             for iDof = 1:nDof % test dof
@@ -129,7 +131,7 @@ classdef NeohookeanFunctional < handle
                 res = zeros(nDimf,nDimf,nGaus,nElem);
                 for a = 1:nDimf
                     for b = 1:nDimf
-                        C = squeeze(Ctan(:,:,a,b,:,:));
+                        C = squeezeParticular(Ctan(:,:,a,b,:,:),[3 4]);
                         res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
                     end
                 end
@@ -177,22 +179,30 @@ classdef NeohookeanFunctional < handle
             [F,~] = obj.computeDeformationGradient(uFun, xG);
             Ft = permute(F, [2 1 3 4]);
 
+            nGaus = size(xG,2);
+            nElem = size(Ft,4);
+
             invFt = MatrixVectorizedInverter.computeInverse(Ft);
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-
+            jac = reshape(jac, [1 1 nGaus nElem]);
             piola = obj.mu*(F-invFt) + obj.lambda*log(jac).*invFt;
         end
 
         function Aneo = computeTangentConstitutive(obj,uFun,xG)
             [F,I33] = obj.computeDeformationGradient(uFun, xG);
             Ft = permute(F, [2 1 3 4]);
+            
+            nGaus = size(xG,2);
+            nElem = size(Ft,4);
 
             invF = MatrixVectorizedInverter.computeInverse(F);
             invFt = MatrixVectorizedInverter.computeInverse(Ft);
 
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
+            jac = reshape(jac, [1 1 1 1 nGaus nElem]);
+            logJac = log(jac);
 %             logJac(1,1,:,:,:,:) = log(jac);
-            logJac(1,1,1,1,:,:) = log(jac);
+%             logJac(1,1,1,1,:,:) = log(jac);
 
             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
                 obj.mu*obj.kron_topF(I33,I33) + ...
@@ -205,8 +215,8 @@ classdef NeohookeanFunctional < handle
             nDimG = obj.mesh.ndim;
             nDimf = uFun.ndimf;
 
-            GradUT = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-            GradU = permute(GradUT, [2 1 3 4]);
+            GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
+%             GradU = permute(GradUT, [2 1 3 4]);
 %             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
             I33 = obj.createIdentityMatrix(size(GradU));
