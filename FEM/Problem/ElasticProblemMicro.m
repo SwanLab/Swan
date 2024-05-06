@@ -83,8 +83,8 @@ classdef ElasticProblemMicro < handle
             quad = obj.quadrature;
         end
 
-        function setC(obj, C)
-            obj.material.C = C;
+        function updateMaterial(obj, mat)
+            obj.material = mat;
         end
 
         function dim = getDimensions(obj)
