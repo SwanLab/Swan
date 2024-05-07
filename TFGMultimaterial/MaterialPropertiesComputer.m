@@ -47,7 +47,7 @@ classdef MaterialPropertiesComputer < handle
             obj.matA.shear = E0./(2.*(1+nu0));
             mu0 = obj.matA.shear;
             obj.matA.lambda = 2.*mu0.*la./(la+2.*mu0); % plane stress
-            obj.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,dim);
+            %obj.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,dim);
             %obj.matA.lambda = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(E0,nu0,dim);
         end
 

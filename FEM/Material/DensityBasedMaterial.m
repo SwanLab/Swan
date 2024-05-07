@@ -29,6 +29,14 @@ classdef DensityBasedMaterial < handle
         function setDesignVariable(obj,x)
             obj.density = x;
         end
+
+        function C = evaluate(obj,xV)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [mu,kappa] = mI.computeConsitutiveTensor(rho);
+            m = obj.createMaterial(mu,kappa);
+            C = m.evaluate(xV);
+        end
         
     end
     
@@ -49,13 +57,13 @@ classdef DensityBasedMaterial < handle
             m = Material.create(s);
         end
         
-        function C = evaluate(obj,xV)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            C = m.evaluate(xV);
-        end
+        % function C = evaluate(obj,xV)
+        %     mI  = obj.materialInterpolator;
+        %     rho = obj.density;
+        %     [mu,kappa] = mI.computeConsitutiveTensor(rho);
+        %     m = obj.createMaterial(mu,kappa);
+        %     C = m.evaluate(xV);
+        % end
         
         function dC = evaluateGradient(obj,xV)
             mI  = obj.materialInterpolator;

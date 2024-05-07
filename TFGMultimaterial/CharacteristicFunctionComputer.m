@@ -1,7 +1,6 @@
 classdef CharacteristicFunctionComputer < handle
 
     properties (Access = private)
-        levelSet
         t
         p
         designVariable
@@ -74,7 +73,6 @@ classdef CharacteristicFunctionComputer < handle
         function init(obj,cParams)
             obj.p = cParams.p;
             obj.t = cParams.t;
-            obj.levelSet = cParams.psi;
             obj.mesh = cParams.m;
             obj.designVariable = cParams.designVariable;
         end

@@ -32,12 +32,14 @@ bc = bounCon.bc;
 matProp = MaterialPropertiesComputer();
 
 nMat = 4;
+
 % Set pde coefficients
-mat.A = matProp.matA;
-mat.B = matProp.matB;
-mat.C = matProp.matC;
-mat.D = matProp.matD;
+mat.A = matProp.matA; % MATERIAL 1
+mat.B = matProp.matB; % MATERIAL 2
+mat.C = matProp.matC; % MATERIAL 3
+mat.D = matProp.matD; % VOID
 pdeCoeff = PDECoefficientsComputer(mat);
+
 
 % Set an initial guess on level set
 cParams.p = mesh.p;
@@ -70,11 +72,130 @@ designVariable{3} = ls1;
 cParams.designVariable = designVariable;
 cParams.p = mesh.p;
 cParams.t = mesh.t; 
-cParams.psi = psi;
 cParams.m = m;
 
 charfunc = CharacteristicFunctionComputer(cParams);
 [~,tfi] = charfunc.computeFiandTfi();
+
+% Let's try creating different material interpolators for each case
+a.mat = mat;
+interpolator = MaterialInterpolatorsComputer(a);
+materialInterpolator = interpolator.materialInterpolator;
+
+% Now let's create the "6" necessary material and solve the elastic problems
+% for i=1:6
+%     x.mesh = m;
+%     x.t = mesh.t;
+%     x.p = mesh.p;
+%     x.scale = 'MACRO';
+%     x.dim = '2D';
+%     x.interpolationType = 'LINEAR';
+%     x.solverType = 'REDUCED';
+%     x.solverMode = 'DISP';
+% 
+%     if i==1 % VOID + MATERIAL 1
+%        x.materialInterpolator = materialInterpolator{1};
+%        x.designVariable = designVariable{1};
+%        a.type = 'Full';
+%        a.mesh = m;
+%        a.plotting = false;
+%        a.fValues = tfi(1,:)';
+%        a.order   = 'P1';
+%        tfiFunction  = LagrangianFunction(a); 
+%        x.charFunc = tfiFunction;
+%        matt = MaterialComputer(x); 
+%        x.material = matt.material;
+%        s.mesh = m;
+%        bounCon = BoundaryConditionsSwan(s);
+%        x.boundaryConditions = bounCon.createBoundaryConditions();
+%        fem = ElasticProblem(x);
+%        fem.solve();
+%        elasticProblem{1} = fem;
+%     end
+% 
+%     if i==2 % VOID + MATERIAL 2
+%        x.materialInterpolator = materialInterpolator{2};
+%        x.designVariable = designVariable{2};
+%        a.type = 'Full';
+%        a.mesh = m;
+%        a.plotting = false;
+%        a.fValues = tfi(2,:)';
+%        a.order   = 'P1';
+%        tfiFunction  = LagrangianFunction(a); 
+%        x.charFunc = tfiFunction;
+%        matt = MaterialComputer(x); 
+%        x.material = matt.material;
+%        s.mesh = m;
+%        bounCon = BoundaryConditionsSwan(s);
+%        x.boundaryConditions = bounCon.createBoundaryConditions();
+%        fem = ElasticProblem(x);
+%        fem.solve();
+%        elasticProblem{2} = fem;
+%     end
+% 
+%     if i==3 % VOID + MATERIAL 3
+%        x.materialInterpolator = materialInterpolator{3};
+%        x.designVariable = designVariable{3};
+%        a.type = 'Full';
+%        a.mesh = m;
+%        a.plotting = false;
+%        a.fValues = tfi(3,:)';
+%        a.order   = 'P1';
+%        tfiFunction  = LagrangianFunction(a); 
+%        x.charFunc = tfiFunction;
+%        matt = MaterialComputer(x); 
+%        x.material = matt.material;
+%        s.mesh = m;
+%        bounCon = BoundaryConditionsSwan(s);
+%        x.boundaryConditions = bounCon.createBoundaryConditions();
+%        fem = ElasticProblem(x);
+%        fem.solve();
+%        elasticProblem{3} = fem;
+%     end
+
+    % if i==4 % MATERIAL 1 + MATERIAL 2
+    %    x.materialInterpolator = materialInterpolator{4};
+    %    x.designVariable = designVariable{1:2};
+    %    matt = MaterialComputer(x); 
+    %    x.material = matt.material;
+    %    s.mesh = m;
+    %    bounCon = BoundaryConditionsSwan(s);
+    %    x.boundaryConditions = bounCon.createBoundaryConditions();
+    %    fem = ElasticProblem(x);
+    %    fem.solve();
+    %    elasticProblem{4} = fem;
+    % end
+    % 
+    % 
+    % if i==5 % MATERIAL 1 + MATERIAL 3
+    %    x.materialInterpolator = materialInterpolator{5};
+    %    x.designVariable = {designVariable{1} designVariable{3}};
+    %    matt = MaterialComputer(x); 
+    %    x.material = matt.material;
+    %    s.mesh = m;
+    %    bounCon = BoundaryConditionsSwan(s);
+    %    x.boundaryConditions = bounCon.createBoundaryConditions();
+    %    fem = ElasticProblem(x);
+    %    fem.solve();
+    %    elasticProblem{5} = fem;
+    % end
+    % 
+    % if i==6 % MATERIAL 2 + MATERIAL 3
+    %    x.materialInterpolator = materialInterpolator{5};
+    %    x.designVariable = designVariable{2:3};
+    %    matt = MaterialComputer(x); 
+    %    x.material = matt.material;
+    %    s.mesh = m;
+    %    bounCon = BoundaryConditionsSwan(s);
+    %    x.boundaryConditions = bounCon.createBoundaryConditions();
+    %    fem = ElasticProblem(x);
+    %    fem.solve();
+    %    elasticProblem{6} = fem;
+    % end
+
+%end
+
+
 
 % Plot mesh
 figure(1); clf;
@@ -109,6 +230,10 @@ s.bc  = bc;
 s.designVariable = designVariable;
 s.m = m;
 
+C = ElasticTensorComputer(s);
+tensor = C.effectiveTensor;
+s.effTensor = tensor;
+
 sys = FEMSolver(s);
 [U,F] = sys.computeStiffnessMatrixAndForce(); 
 
@@ -125,7 +250,7 @@ sys = FEMSolver(s);
 % U = fem.uFun;
 
 
-s.tfi = sys.charFunc;
+s.tfi = C.charFunc;
 s.mesh = mesh;
 vol = VolumeComputer(s);
 vol_hold_all = vol.computeVolume();
@@ -194,10 +319,15 @@ option = 'null';
     s.bc  = bc;
     s.m = m;
     s.designVariable = designVariable;
+
+    C = ElasticTensorComputer(s);
+    tensor = C.effectiveTensor;
+    s.effTensor = tensor;
    
     sys = FEMSolver(s);
     [U,F] = sys.computeStiffnessMatrixAndForce();
-    s.tfi = sys.charFunc;
+    
+    s.tfi = C.charFunc;
     s.mesh = mesh;
     vol = VolumeComputer(s);
     volume = vol.computeVolume();
@@ -254,9 +384,14 @@ option = 'null';
         s.m = m;
         s.designVariable = designVariable;
 
+        C = ElasticTensorComputer(s);
+        tensor = C.effectiveTensor;
+        s.effTensor = tensor;
+
         sys = FEMSolver(s);
         [U,F] = sys.computeStiffnessMatrixAndForce();
-        s.tfi = sys.charFunc;
+        
+        s.tfi = C.charFunc;
         s.mesh = mesh;
         vol = VolumeComputer(s);
         volume = vol.computeVolume();
@@ -312,9 +447,14 @@ option = 'null';
             s.designVariable = designVariable;
             s.m = m;
 
+            C = ElasticTensorComputer(s);
+            tensor = C.effectiveTensor;
+            s.effTensor = tensor;
+
             sys = FEMSolver(s);
             [U,F] = sys.computeStiffnessMatrixAndForce();
-            s.tfi = sys.charFunc;
+            
+            s.tfi = C.charFunc;
             s.mesh = mesh;
             vol = VolumeComputer(s);
             volume = vol.computeVolume();
