@@ -76,9 +76,8 @@ classdef NeohookeanFunctional < handle
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
                 GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-                GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
-                GradDeltaV = permute(GradDeltaV, [2 1 3 4]);
-                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,piola));
+                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
             end
             fint = fint.*dV;
             fint = squeeze(sum(fint,3));
@@ -116,7 +115,7 @@ classdef NeohookeanFunctional < handle
             nGaus = size(dNdxTrial,3);
             nElem = size(dNdxTrial,4);
             nDof = nDimf*nNode;
-
+            
             dofToDim = repmat(1:nDimf,[1,nNode]);
             dofToNode = repmat(1:nNode, nDimf, 1);
             dofToNode = dofToNode(:);
@@ -126,7 +125,7 @@ classdef NeohookeanFunctional < handle
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
                 GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-                GradDeltaV(iDim,:,:,:) = dNdxTest(:,iNode,:,:);
+                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
 
                 res = zeros(nDimf,nDimf,nGaus,nElem);
                 for a = 1:nDimf
@@ -141,17 +140,8 @@ classdef NeohookeanFunctional < handle
                     jDim  = dofToDim(jDof);
 
                     GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
-                    GradDeltaU(jDim,:,:,:) = dNdxTrial(:,jNode,:,:);
+                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
-
-%                     for a = 1:3
-%                         for b = 1:3
-%                             C = squeeze(Ctan(a,b,:,:,:,:));
-%                             res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), C,GradDeltaU);
-%                         end
-%                     end
-
-%                     K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV, res);
                 end
             end
             K = K.*dV;

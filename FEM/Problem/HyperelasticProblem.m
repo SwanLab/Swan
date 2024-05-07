@@ -34,7 +34,6 @@ classdef HyperelasticProblem < handle
             obj.init();
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
-            obj.computeForces();
 
             s.material = obj.material;
             s.mesh = obj.mesh;
@@ -56,38 +55,48 @@ classdef HyperelasticProblem < handle
             r = 1;
             i = 1;
             rpre = 1;
-            alpha = 0.01;
+            alpha = 0.001;
             f = animatedline;
             obj.applyDirichletToUFun();
-            while r > 10e-6
-                % Energy
-                val = max(neo.compute(obj.uFun))
 
-                % Residual
-                Fint = obj.computeInternalForces();
-                res  = Fint - obj.Fext;
-
-                % Hessian
-                hess = neo.computeHessian(obj.uFun);
-                h_red = hess(free,free);
-
-                deltaUk_free = h_red\res(free);
-                deltaUk = zeros(size(Fint));
-                deltaUk(free) = deltaUk_free;
-                u_next = u_k - deltaUk;
-
-%                 u_next = u_k - alpha*res;
-                u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
-                obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-                r = norm(u_next - u_k)
-                u_k = u_next;
-                i = i+1;
-%                 if r>1
-%                     break
-%                 end
-                addpoints(f,i,r);
-                drawnow
-                rpre = r;
+            nsteps = 10;
+            for iStep = 1:nsteps
+                disp('------')
+                disp('------')
+                disp('------')
+                disp('NEW LOAD STEP')
+                loadPercent = iStep/nsteps;
+                Fext = obj.computeForces(loadPercent);
+                while r > 10e-6
+                    % Energy
+                    val = max(neo.compute(obj.uFun))
+    
+                    % Residual
+                    Fint = obj.computeInternalForces();
+                    res  = Fint - Fext;
+    
+    %                 % Hessian
+    %                 hess = neo.computeHessian(obj.uFun);
+    %                 h_red = hess(free,free);
+    % 
+    %                 deltaUk_free = h_red\res(free);
+    %                 deltaUk = zeros(size(Fint));
+    %                 deltaUk(free) = deltaUk_free;
+    %                 u_next = u_k - deltaUk;
+    
+                    u_next = u_k - alpha*res;
+                    u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+                    obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+                    r = norm(u_next - u_k)
+                    u_k = u_next;
+                    i = i+1;
+    %                 if r>1
+    %                     break
+    %                 end
+                    addpoints(f,i,r);
+                    drawnow
+                    rpre = r;
+                end
             end
 % 
 % 
@@ -118,7 +127,7 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(3,3);
+            obj.mesh = UnitQuadMesh(1,1);
             obj.material.lambda = 3/4;
             obj.material.mu = 3/8;
         end
@@ -135,15 +144,16 @@ classdef HyperelasticProblem < handle
             obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
-        function computeForces(obj)
+        function Fext = computeForces(obj, perc)
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
             s.dim.ndofs = obj.uFun.nDofs;
             s.BC       = obj.boundaryConditions;
+            s.BC.pointload_vals = s.BC.pointload_vals*perc;
             s.mesh     = obj.mesh;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            obj.Fext = rhs;
+            Fext = rhs;
         end
 
         function intfor = computeInternalForces(obj)
