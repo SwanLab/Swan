@@ -31,11 +31,20 @@ classdef MicroAlphaBetaFunctional < handle
             a  = obj.alpha;
             b  = obj.beta;
             J  = a'*Sh*b;
-            tstrain = obj.stateProblem.strainFluctFun{1}; % NO HAURIA DE SER STRAINFUN?? eij+epsij
-            dStr    = DDP(dC,tstrain);
-            dj      = -DDP(tstrain,dStr);
+            tstrain = obj.stateProblem.strainFun;
+            op = @(xV) [];
+            for i = 1:length(tstrain)
+                opj = @(xV) [];
+                for j = 1:length(tstrain)
+                    dStrj  = DDP(dC,tstrain{j});
+                    dChVij = -DDP(tstrain{i},dStrj);
+                    dChEv  = @(xV) reshape(dChVij.evaluate(xV),1,1,size(xV,2),[]);
+                    opj    = @(xV) cat(2,opj(xV),dChEv(xV));
+                end
+                op = @(xV) cat(1,op(xV),opj(xV));
+            end
             wInv = Sh*a*b'*Sh;
-            s.operation = @(xV) pagemtimes(wInv,dj.evaluate(xV));
+            s.operation = @(xV) squeezeParticular(sum(wInv.*op(xV),[1,2]),1);
             dJ = DomainFunction(s);
             dJ     = obj.filter.compute(dJ,2);
             if isempty(obj.value0)

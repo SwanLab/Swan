@@ -199,7 +199,14 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStrain(obj, iVoigt)
-            obj.strainFluctFun{iVoigt} = SymGrad(obj.uFun{iVoigt});
+            nCases    = size(obj.Chomog,1);
+            e         = zeros(nCases,1,1);
+            e(iVoigt) = 1;
+            strn      = SymGrad(obj.uFun{iVoigt});
+
+            obj.strainFluctFun{iVoigt} = strn;
+            s.operation                = @(xV) e+strn.evaluate(xV);
+            obj.strainFun{iVoigt}      = DomainFunction(s);
         end
 
         function computeStress(obj, iVoigt)
