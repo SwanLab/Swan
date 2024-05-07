@@ -1,17 +1,17 @@
 clear all
 close all
 
-% Prova per veure si es podia trobar els nodes de la frontera de manera diferent. NO VA.
+% Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
 dim_a = 0.25; % Semi-major axis 0.2
-dim_b = 0.23; % Semi-minor axis 0.02
+dim_b = 0.25; % Semi-minor axis 0.02
 center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(1,1,100,100); % MESH
+m = QuadMesh(1,1,4,4); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -46,11 +46,10 @@ isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
 isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-%isCyl    = @(coor) sum(find(uMesh.boundaryCutMesh.mesh.coord(:,1)==coor(:,1)))>0; %&& sum(find(uMesh.boundaryCutMesh.mesh.coord(:,2)==coor(:,2)))>0
 
 
 %% Original (no-slip condition)
-dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
 dir_vel{2}.direction = [1,2];
 dir_vel{2}.value     = [0,0]; 
 
@@ -58,12 +57,59 @@ dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
 
+%Nodesnormals = uMesh.boundaryCutMesh.mesh
+
+%Trobem els nodes de pressió al voltant de l'el·lipse
+size_cutmesh = size(uMesh.boundaryCutMesh.mesh.coord,1);
+dirDofspresscyl=zeros(2,size_cutmesh);
+for i = 1:1:size_cutmesh
+    isxcoord    = @(coor) coor(:,1) == uMesh.boundaryCutMesh.mesh.coord(i,1);
+    isycoord    = @(coor) coor(:,2) == uMesh.boundaryCutMesh.mesh.coord(i,2);
+    dircyl      = @(coor) isxcoord(coor) & isycoord(coor);
+
+    dirDofspresscyl(:,i) = velocityFun.getDofsFromCondition(dircyl);
+
+end
+
+plot(uMesh.boundaryCutMesh.mesh);
+dirDofspresscyl_bo = sort(reshape(dirDofspresscyl,size(dirDofspresscyl,2)*2,1));
+nodespresscyl = 1 + (dirDofspresscyl_bo(2:2:end)-2)/velocityFun.ndimf;
+scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
+
+%Trobem les coordenades dels nodes intermitjos
+coor_occult=zeros(size_cutmesh,2);
+for i = 1:1:size_cutmesh
+    coor_occult(i,1)=(uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,1),1)+uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,2),1))/2;
+    coor_occult(i,2)=(uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,1),2)+uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,2),2))/2;
+end
+
+dirDofsoccucyl=zeros(2,size_cutmesh);
+for i = 1:1:size_cutmesh
+    isxcoord    = @(coor) coor(:,1) == coor_occult(i,1);
+    isycoord    = @(coor) coor(:,2) == coor_occult(i,2);
+    dircyloccu  = @(coor) isxcoord(coor) & isycoord(coor);
+
+    dirDofsoccucyl(:,i) = velocityFun.getDofsFromCondition(dircyloccu);
+
+end
+
+dirDofsoccucyl_bo = sort(reshape(dirDofsoccucyl,size(dirDofsoccucyl,2)*2,1));
+nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
+scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 
 dirichlet = [];
 dir_dofs = [];
-for i = 1:length(dir_vel)
-    dirDofs = velocityFun.getDofsFromCondition(dir_vel{i}.domain);
+for i = 1:1:4
+    if i == 1 || i == 2
+        dirDofs = velocityFun.getDofsFromCondition(dir_vel{i}.domain);
+    elseif i == 3
+        dirDofs = dirDofspresscyl_bo;
+        dir_vel{i}.value     = [0,0]; 
+    elseif i == 4
+        dirDofs = dirDofsoccucyl_bo;
+        dir_vel{i}.value     = [0,0]; 
+    end
     nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf;
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
@@ -148,12 +194,20 @@ pressureFun.plot()
 
 %% Lift and drag
 
-nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
+nodesCyl    = nodespresscyl; 
 presCylVals = pressureFun.fValues(nodesCyl,1);
-
-
-bMesh       = uMesh.boundaryCutMesh.mesh; %NOU
-
+xCyl        = mesh.coord(nodesCyl,1);
+yCyl        = mesh.coord(nodesCyl,2);
+mesh.computeEdges();
+e  = mesh.edges.nodesInEdges;
+bE = ismember(e,nodesCyl);
+bE = find(prod(bE,2));
+connec = e(bE,:);
+ss.coord    = mesh.coord;
+ss.connec   = connec;
+ss.kFace    = -1;
+bMesh       = Mesh.create(ss);
+bMesh       = bMesh.computeCanonicalMesh();
 presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
 presCyl.fValues = presCylVals;
 

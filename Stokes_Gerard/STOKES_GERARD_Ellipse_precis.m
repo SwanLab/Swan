@@ -3,8 +3,8 @@ close all
 
 % % INPUT DATA
 
-dim_a = 0.08; % Semi-major axis 0.2
-dim_b = 0.07; % Semi-minor axis 0.02
+dim_a = 0.25; % Semi-major axis 0.2
+dim_b = 0.25; % Semi-minor axis 0.02
 center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
@@ -12,7 +12,7 @@ AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 metode = 1; %Mètode del marge
 
 
-m = QuadMesh(1,1,100,100); % MESH
+m = QuadMesh(1,1,4,4); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -275,6 +275,25 @@ Nodoccult = @(coor) isCyl(coor);
 Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
 nodesfrontera = 1 + (Dofscyl(2:2:end)-2)/velocityFun.ndimf;
 scatter(velocityFun.coord(nodesfrontera(:),1),velocityFun.coord(nodesfrontera(:),2),'.','b');
+
+%nodesrandom=[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24];
+% nodesrandom=[1;
+% 3;
+% 5;
+% 7;
+% 10;
+% 12;
+% 14;
+% 16;
+% 22;
+% 23;
+% 33;
+% 34;
+% 35;
+% 36];
+
+%scatter(velocityFun.coord(nodesrandom(:),1),velocityFun.coord(nodesrandom(:),2),'o');
+
 % xCylvel        = mesh.coord(Dofscyl,1);
 % yCylvel        = mesh.coord(Dofscyl,2);
 
