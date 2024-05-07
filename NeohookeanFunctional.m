@@ -35,7 +35,7 @@ classdef NeohookeanFunctional < handle
             I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU; % deformation gradient
-            F = permute(F, [2 1 3 4]);
+            % F = permute(F, [2 1 3 4]);
             Ft = permute(F, [2 1 3 4]);
             
             C = pagemtimes(Ft,F);
