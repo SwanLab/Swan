@@ -4,15 +4,15 @@ close all
 % % INPUT DATA
 
 dim_a = 0.08; % Semi-major axis 0.2
-dim_b = 0.04; % Semi-minor axis 0.02
-center_posx = 0.7; % x position of the ellipse center
+dim_b = 0.07; % Semi-minor axis 0.02
+center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 2; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 metode = 1; %Mètode del marge
 
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(1,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -55,7 +55,7 @@ parar_bolz = false;
 if metode == 1
     %Franja alta:
     k=1;
-    h=8;
+    h=5;
     margin = k*(10^(-h));
 
     while correct_margin == false
@@ -80,9 +80,9 @@ if metode == 1
         if size(bMesh.coord,1) - size(bMesh.connec,1) < 0
             disp(size(bMesh.coord,1) - size(bMesh.connec,1));
             disp(margin)
-            disp('SODAAAAAAAA')
-            disp('SODAAAAAAAA')
-            disp('SODAAAAAAAA')
+            disp('AAAAAAAAAAAAAAAAAAAAA')
+            disp('AAAAAAAAAAAAAAAAAAAAA')
+            disp('AAAAAAAAAAAAAAAAAAAAA')
             A = margin_ant;
             B = margin;
             fB = size(bMesh.coord,1) - size(bMesh.connec,1);
@@ -135,13 +135,7 @@ if metode == 1
 
             marginbo=C;
             break
-            %
-            %         disp(size(bMesh.coord,1) - size(bMesh.connec,1))
-            %         disp(margin)
-            %         disp(diffmesh_ans)
-            %         disp(margin_ant)
-            %         return
-            %
+
         end
 
 
@@ -268,12 +262,22 @@ end
 
 disp(marginbo)
 plot(bMesh);
+plot(velocityFun.mesh)
+% scatter(velocityFun.coord(:,1),velocityFun.coord(:,2),'.','b');
 disp(size(bMesh.coord,1) - size(bMesh.connec,1));
 
 
+
+
+
 isCyl = @(coor) (abs(abs(((coor(:,1)*cos(AOAr)+coor(:,2)*sin(AOAr))-del_ab(1))/dim_a).^2 + abs(((-coor(:,1)*sin(AOAr)+coor(:,2)*cos(AOAr))-del_ab(2))/dim_b).^2 - 1) < marginbo);
-    Nodoccult = @(coor) isCyl(coor);
-    Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
+Nodoccult = @(coor) isCyl(coor);
+Dofscyl = velocityFun.getDofsFromCondition(Nodoccult);
+nodesfrontera = 1 + (Dofscyl(2:2:end)-2)/velocityFun.ndimf;
+scatter(velocityFun.coord(nodesfrontera(:),1),velocityFun.coord(nodesfrontera(:),2),'.','b');
+% xCylvel        = mesh.coord(Dofscyl,1);
+% yCylvel        = mesh.coord(Dofscyl,2);
+
 %% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor)isTop(coor) | isBottom(coor) |  isCyl(coor); 
 dir_vel{2}.direction = [1,2];
@@ -288,12 +292,12 @@ dirichlet = [];
 dir_dofs = [];
 for i = 1:length(dir_vel)
     dirDofs = velocityFun.getDofsFromCondition(dir_vel{i}.domain);
-    nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf;
+    nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf; %Nodes directament (sense duplicar per dos pels DoF)
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
     mat12 = repmat([1;2], [length(iNod)/2 1]);
     valmat = repmat(dir_vel{i}.value', [length(iNod)/2 1]);
-    dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(iNod),:) = [iNod mat12 valmat];
+    dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(iNod),:) = [iNod mat12 valmat]; %Tots els nodes amb restriccions amb els valors de les restriccions
     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(iNod),1) = dirDofs;
 end
 

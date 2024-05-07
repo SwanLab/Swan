@@ -3,12 +3,15 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        coord % Ho he cambiat, avans estava a privat
+        interpolation
+        connec
     end
 
     properties (Access = private)
-        interpolation
-        coord
-        connec
+        %interpolation
+        %coord
+        %connec
     end
 
     methods (Access = public)
