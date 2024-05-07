@@ -62,6 +62,19 @@ classdef ElasticTensorComputer < handle
             tgamma = obj.gamma*obj.charFunc; % for mixed formulation approach
             c0 =  obj.pdeCoeff.tensor(:,1);
             obj.effectiveTensor = c0*tgamma; % effective elasticity tensor
+
+            % Prova
+            cSeba = obj.effectiveTensor;
+            lambdaVals = cSeba(6,:);
+            muVals     = cSeba(4,:);
+            s.order = 'P0';
+            s.fValues = lambdaVals;
+            s.mesh    = obj.mesh;
+            lambdaField = LagrangianFunction(s);
+            % ...
+            % muField
+            % MaterialGiven
+            %
         end
     end
 end

@@ -63,6 +63,13 @@ classdef PDECoefficientsComputer < handle
             % C(2,2,:,:)= 2*obj.mu+obj.lambda;
             % C(3,3,:,:)= obj.mu;
 
+            % Proves per mat 1
+            s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(1)*ones(size(x(1,:,:))));
+            s.muField     = AnalyticalFunction.create(@(x) obj.mu(1)*ones(size(x(1,:,:))));
+            s.type        = 'Given';
+            C1            = Material.create(s);
+            %
+
             obj.tensor = c;   
         end
 
