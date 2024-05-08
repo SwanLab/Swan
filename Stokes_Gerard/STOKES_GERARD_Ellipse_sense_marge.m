@@ -5,16 +5,18 @@ close all
 % % INPUT DATA
 
 dim_a = 0.2; % Semi-major axis 0.2
-dim_b = 0.02; % Semi-minor axis 0.02
+dim_b = 0.1; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = -50; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,200,200); % MESH
+m = QuadMesh(2,1,200,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
+
+%% Create mesh and boundary conditions
 ellipse = calc_ellipse_classe(AOAr,center_posx,center_posy);
 del_ab = ellipse.solvesys();
 
@@ -28,8 +30,6 @@ sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de 
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
-
-% mesh = TriangleMesh(1,1,40,40);
 
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
@@ -48,7 +48,7 @@ isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 
 
-%% Original (no-slip condition)
+% Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
 dir_vel{2}.direction = [1,2];
 dir_vel{2}.value     = [0,0]; 
@@ -71,7 +71,7 @@ for i = 1:1:size_cutmesh
 
 end
 
-plot(uMesh.boundaryCutMesh.mesh);
+plot(uMesh);
 dirDofspresscyl_bo = sort(reshape(dirDofspresscyl,size(dirDofspresscyl,2)*2,1));
 nodespresscyl = 1 + (dirDofspresscyl_bo(2:2:end)-2)/velocityFun.ndimf;
 scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
@@ -110,7 +110,9 @@ for i = 1:1:4
         dirDofs = dirDofsoccucyl_bo;
         dir_vel{i}.value     = [0,0]; 
     end
+    
     nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf;
+    scatter(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),'y','g');
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
     mat12 = repmat([1;2], [length(iNod)/2 1]);
@@ -125,6 +127,7 @@ sAF.ndimf   = 2;
 sAF.mesh    = mesh;
 forcesFormula = AnalyticalFunction(sAF);
 
+%% Solver
 % CREATE SOLVER
 b.type =  'DIRECT';
 solver = Solver.create(b);
@@ -188,9 +191,16 @@ end
 velocityFun.fValues = velfval;
 pressureFun.fValues = vars.p(:,end);
 
-% PLOT RESULTS
+%% PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
+
+% isEsquerra   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-2);
+% 
+% nodes_elim = pressureFun.getDofsFromCondition(isEsquerra);
+% pressureFun_cut = pressureFun;
+
+
 
 %% Lift and drag
 
