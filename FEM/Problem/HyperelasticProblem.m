@@ -59,7 +59,7 @@ classdef HyperelasticProblem < handle
             f = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 100;
+            nsteps = 1;
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
@@ -67,7 +67,7 @@ classdef HyperelasticProblem < handle
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
                 Fext = obj.computeForces(loadPercent);
-                while r > 10e-6
+                while r > 10e-8
                     % Energy
                     val = max(neo.compute(obj.uFun))
     
@@ -75,16 +75,16 @@ classdef HyperelasticProblem < handle
                     Fint = obj.computeInternalForces();
                     res  = Fint - Fext;
     
-                    % Hessian
-                    hess = neo.computeHessian(obj.uFun);
-                    h_red = hess(free,free);
-
-                    deltaUk_free = h_red\res(free);
-                    deltaUk = zeros(size(Fint));
-                    deltaUk(free) = deltaUk_free;
-                    u_next = u_k - deltaUk;
+%                     % Hessian
+%                     hess = neo.computeHessian(obj.uFun);
+%                     h_red = hess(free,free);
+% 
+%                     deltaUk_free = h_red\res(free);
+%                     deltaUk = zeros(size(Fint));
+%                     deltaUk(free) = deltaUk_free;
+%                     u_next = u_k - deltaUk;
     
-                    % u_next = u_k - alpha*res;
+                    u_next = u_k - alpha*res;
                     u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     r = norm(u_next - u_k)
@@ -126,10 +126,14 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
-            obj.mesh = HexaMesh(2,1,1,20,5,5);
-            % obj.mesh = UnitQuadMesh(1,1);
-            obj.material.lambda = 3/4;
-            obj.material.mu = 3/8;
+%             obj.mesh = HexaMesh(2,1,1,20,5,5);
+            obj.mesh = UnitQuadMesh(1,1);
+%             obj.material.lambda = 3/4;
+%             obj.material.mu = 3/8;
+            E = 10.0;
+            nu = 0.3;
+            obj.material.lambda = E*nu/((1 + nu)*(1 - 2*nu));
+            obj.material.mu = E/(2*(1 + nu));
         end
 
         function createDisplacementFun(obj)
@@ -186,18 +190,28 @@ classdef HyperelasticProblem < handle
 
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
             isLeft   = @(coor)  abs(coor(:,1))==0;
-            isRight = @(coor)  abs(coor(:,1))==xMax;
+            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            isTop    = @(coor)  abs(coor(:,2))==yMax;
+            isBottom = @(coor)  abs(coor(:,2))==0;
+            isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
 
-            sDir.domain    = @(coor) isLeft(coor);
-            sDir.direction = [1,2,3];
-            sDir.value     = 0;
-            s.dirichletFun =  DirichletCondition(obj.mesh, sDir);
+            sDir1.domain    = @(coor) isLeft(coor) & isTop(coor);
+            sDir1.direction = [1];
+            sDir1.value     = 0;
+            dir1 =  DirichletCondition(obj.mesh, sDir1);
 
+            sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
+            sDir2.direction = [1,2];
+            sDir2.value     = 0;
+            dir2 =  DirichletCondition(obj.mesh, sDir2);
+
+            s.dirichletFun = [dir1, dir2];
 
             sPL.domain    = @(coor) isRight(coor);
-            sPL.direction = 2;
-            sPL.value     = -1;
+            sPL.direction = 1;
+            sPL.value     = 1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
 
 
