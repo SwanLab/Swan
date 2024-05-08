@@ -171,7 +171,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.2;
+                factor = 3;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -229,7 +229,9 @@ classdef OptimizerNullSpace < Optimizer
                     %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
                     theta      = obj.primalUpdater.Theta;
                     k          = obj.primalUpdater.tau;
-                    obj.etaMax = k*sin(theta);
+                    b          = obj.primalUpdater.Beta;
+                    a          = obj.primalUpdater.Alpha;
+                    obj.etaMax = theta;
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;
