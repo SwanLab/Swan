@@ -60,11 +60,13 @@ classdef MicroAlphaBetaFunctional < handle
         end
 
         function dJ = computeGradient(obj,dC)
-            Ch      = obj.stateProblem.Chomog;
-            a       = obj.alpha;
-            b       = obj.beta;
+            op = obj.computeChomogGradientOperation(dC);
+            dJ = obj.computeGradientOfInverse(op);
+        end
+
+        function dChOp = computeChomogGradientOperation(obj,dC)
             tstrain = obj.stateProblem.strainFun;
-            op      = @(xV) [];
+            dChOp   = @(xV) [];
             for i = 1:length(tstrain)
                 opj = @(xV) [];
                 for j = 1:length(tstrain)
@@ -73,11 +75,17 @@ classdef MicroAlphaBetaFunctional < handle
                     dChEv  = @(xV) reshape(dChVij.evaluate(xV),1,1,size(xV,2),[]);
                     opj    = @(xV) cat(2,opj(xV),dChEv(xV));
                 end
-                op = @(xV) cat(1,op(xV),opj(xV));
+                dChOp = @(xV) cat(1,dChOp(xV),opj(xV));
             end
+        end
+
+        function dChInv = computeGradientOfInverse(obj,dChOp)
+            Ch          = obj.stateProblem.Chomog;
+            a           = obj.alpha;
+            b           = obj.beta;
             wInv        = (Ch\a)*(b'/Ch);
-            s.operation = @(xV) squeezeParticular(sum(wInv.*op(xV),[1,2]),1);
-            dJ          = DomainFunction(s);
+            s.operation = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
+            dChInv      = DomainFunction(s);
         end
 
         function x = computeNonDimensionalValue(obj,x)
