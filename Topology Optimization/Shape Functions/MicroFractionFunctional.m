@@ -1,4 +1,4 @@
-classdef MicroAlphaBetaFunctional < handle
+classdef MicroFractionFunctional < handle
 
     properties (Access = private)
         value0
@@ -14,7 +14,7 @@ classdef MicroAlphaBetaFunctional < handle
     end
 
     methods (Access = public)
-        function obj = MicroAlphaBetaFunctional(cParams)
+        function obj = MicroFractionFunctional(cParams)
             obj.init(cParams);
         end
 
@@ -53,15 +53,30 @@ classdef MicroAlphaBetaFunctional < handle
         end
 
         function J = computeFunction(obj)
-            Ch = obj.stateProblem.Chomog;
-            a  = obj.alpha;
-            b  = obj.beta;
-            J  = a'*(Ch\b);
+            [JAB,JBA,JAA,JBB] = obj.computeAllAlphaBetaValues();
+            J = JAB/JAA + JBA/JBB;
         end
 
         function dJ = computeGradient(obj,dC)
-            op = obj.computeChomogGradientOperation(dC);
-            dJ = obj.computeGradientOfInverse(op);
+            [JAB,JBA,JAA,JBB] = obj.computeAllAlphaBetaValues();
+            a     = obj.alpha;
+            b     = obj.beta;
+            op    = obj.computeChomogGradientOperation(dC);
+            beta1 = (JAA*b - JAB*a)/(JAA^2);
+            beta2 = (JBB*a - JBA*b)/(JBB^2);
+            dJ1   = obj.computeGradientOfInverse(op,a,beta1);
+            dJ2   = obj.computeGradientOfInverse(op,b,beta2);
+            dJ    = dJ1+dJ2;
+        end
+
+        function [JAB,JBA,JAA,JBB] = computeAllAlphaBetaValues(obj)
+            Ch  = obj.stateProblem.Chomog;
+            a   = obj.alpha;
+            b   = obj.beta;
+            JAB = a'*(Ch\b);
+            JBA = b'*(Ch\a);
+            JAA = a'*(Ch\a);
+            JBB = b'*(Ch\b);
         end
 
         function dChOp = computeChomogGradientOperation(obj,dC)
@@ -79,10 +94,8 @@ classdef MicroAlphaBetaFunctional < handle
             end
         end
 
-        function dChInv = computeGradientOfInverse(obj,dChOp)
+        function dChInv = computeGradientOfInverse(obj,dChOp,a,b)
             Ch          = obj.stateProblem.Chomog;
-            a           = obj.alpha;
-            b           = obj.beta;
             wInv        = (Ch\a)*(b'/Ch);
             s.operation = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
             dChInv      = DomainFunction(s);
@@ -96,7 +109,7 @@ classdef MicroAlphaBetaFunctional < handle
 
     methods (Static, Access = public)
         function title = getTitleToPlot()
-            title = 'ChomogAlphaBeta';
+            title = 'ChomogFraction';
         end
     end
 end

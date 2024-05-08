@@ -137,7 +137,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.solverType         = 'REDUCED';
             switch s.scale
                 case 'MACRO'
-                    s.solverMode         = 'DISP';
+                    s.solverMode = 'DISP';
                 case 'MICRO'
                     s.solverMode = 'FLUC';
             end
