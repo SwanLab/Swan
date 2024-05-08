@@ -4,15 +4,15 @@ close all
 % % INPUT DATA
 
 dim_a = 0.25; % Semi-major axis 0.2
-dim_b = 0.25; % Semi-minor axis 0.02
+dim_b = 0.24; % Semi-minor axis 0.02
 center_posx = 0.5; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 2; % Angle of attack of the semi-major axis (in degrees)
 
 metode = 1; %Mètode del marge
 
 
-m = QuadMesh(1,1,4,4); % MESH
+m = QuadMesh(1,1,100,100); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
