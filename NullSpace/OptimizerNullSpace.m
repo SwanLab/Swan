@@ -75,16 +75,16 @@ classdef OptimizerNullSpace < Optimizer
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'lG';'lJ'}];
+            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    titles = [titles;{'Theta'}];
-                    chartTypes = [chartTypes,{'plot'}];
+                    titles = [titles;{'Theta';'Alpha';'Beta'}];
+                    chartTypes = [chartTypes,{'plot','plot','plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -100,16 +100,16 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
-                data = [data;0;0;0;0;0];
+                data = [data;0;0;0;obj.etaMax;0;0];
             else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;norm(obj.lG);norm(obj.lJ)];
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ)];
             end
             switch class(obj.designVariable)
                 case 'LevelSet'
                     if obj.nIter == 0
-                        data = [data;0];
+                        data = [data;0;0;0];
                     else
-                        data = [data;obj.primalUpdater.Theta];
+                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
                     end
             end
             % merit?

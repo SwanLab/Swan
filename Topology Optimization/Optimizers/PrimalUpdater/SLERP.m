@@ -3,6 +3,8 @@ classdef SLERP < handle
     properties (Access = public)
         tau
         Theta
+        Alpha
+        Beta
         boxConstraints
     end
 
@@ -136,6 +138,8 @@ classdef SLERP < handle
             a  = sin((1-k)*t)/sin(t);
             b  = sin(k*t)/sin(t);
             p  = a*pN + b*gN;
+            obj.Alpha = a;
+            obj.Beta  = b;
         end
 
         function rhoe = computeRegularizedDensity(obj,phi)
