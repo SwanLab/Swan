@@ -58,11 +58,20 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+%             s.filterType = 'LUMP';
+%             s.mesh  = obj.mesh;
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             f = Filter.create(s);
+%             obj.filter = f;
+
+            s.filterType   = 'PDE';
+            s.mesh         = obj.mesh;
+            s.boundaryType = 'Robin';
+            s.metric       = 'Isotropy';
+            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.filter     = Filter.create(s);
+            epsilon        = 1*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
+            obj.filter.updateEpsilon(epsilon);
         end
 
         function createMaterialInterpolator(obj)
