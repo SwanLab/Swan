@@ -45,7 +45,7 @@ classdef LagrangianPlotter < handle
                 grid on
                 title(['dim = ', num2str(idim)]);
                 a.EdgeColor = [0 0 0];
-                a.EdgeColor = [0 0 0];
+                a.EdgeAlpha = 0;
             end
         end
         

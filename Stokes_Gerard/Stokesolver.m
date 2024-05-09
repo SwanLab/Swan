@@ -1,17 +1,6 @@
-clear all
-close all
+function [L,D]=Stokesolver(dim_a,dim_b,center_posx,center_posy,AOAd)
 
-% Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
-% % INPUT DATA
-
-dim_a = 0.1; % Semi-major axis 0.2
-dim_b = 0.08; % Semi-minor axis 0.02
-center_posx = 0.7; % x position of the ellipse center
-center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
-
-
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(2,1,50,50); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -51,7 +40,7 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 % Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
 dir_vel{2}.direction = [1,2];
-dir_vel{2}.value     = [0,0]; 
+dir_vel{2}.value     = [0,0];
 
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
@@ -71,10 +60,10 @@ for i = 1:1:size_cutmesh
 
 end
 
-plot(uMesh);
+%  plot(uMesh);
 dirDofspresscyl_bo = sort(reshape(dirDofspresscyl,size(dirDofspresscyl,2)*2,1));
 nodespresscyl = 1 + (dirDofspresscyl_bo(2:2:end)-2)/velocityFun.ndimf;
-scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
+%  scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
 
 %Trobem les coordenades dels nodes intermitjos
 coor_occult=zeros(size_cutmesh,2);
@@ -95,7 +84,7 @@ end
 
 dirDofsoccucyl_bo = sort(reshape(dirDofsoccucyl,size(dirDofsoccucyl,2)*2,1));
 nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
-scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
+%  scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 
 dirichlet = [];
@@ -105,14 +94,14 @@ for i = 1:1:4
         dirDofs = velocityFun.getDofsFromCondition(dir_vel{i}.domain);
     elseif i == 3
         dirDofs = dirDofspresscyl_bo;
-        dir_vel{i}.value     = [0,0]; 
+        dir_vel{i}.value     = [0,0];
     elseif i == 4
         dirDofs = dirDofsoccucyl_bo;
-        dir_vel{i}.value     = [0,0]; 
+        dir_vel{i}.value     = [0,0];
     end
-    
+
     nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf;
-    scatter(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),'y','g');
+    % scatter(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),'y','g');
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
     mat12 = repmat([1;2], [length(iNod)/2 1]);
@@ -192,11 +181,11 @@ velocityFun.fValues = velfval;
 pressureFun.fValues = vars.p(:,end);
 
 %% PLOT RESULTS
-velocityFun.plot()
-pressureFun.plot()
+%     velocityFun.plot()
+%     pressureFun.plot()
 
 % isEsquerra   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-2);
-% 
+%
 % nodes_elim = pressureFun.getDofsFromCondition(isEsquerra);
 % pressureFun_cut = pressureFun;
 
@@ -204,10 +193,10 @@ pressureFun.plot()
 
 %% Lift and drag
 
-nodesCyl    = nodespresscyl; 
+nodesCyl    = nodespresscyl;
 presCylVals = pressureFun.fValues(nodesCyl,1);
-xCyl        = mesh.coord(nodesCyl,1);
-yCyl        = mesh.coord(nodesCyl,2);
+%     xCyl        = mesh.coord(nodesCyl,1);
+%     yCyl        = mesh.coord(nodesCyl,2);
 mesh.computeEdges();
 e  = mesh.edges.nodesInEdges;
 bE = ismember(e,nodesCyl);
@@ -218,10 +207,10 @@ ss.connec   = connec;
 ss.kFace    = -1;
 bMesh       = Mesh.create(ss);
 bMesh       = bMesh.computeCanonicalMesh();
-presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
+presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order);
 presCyl.fValues = presCylVals;
 
-presCyl.plot()
+%presCyl.plot()
 
 normal_vectors = zeros(bMesh.nelem,bMesh.ndim);
 length_element = zeros(bMesh.nelem,1);
@@ -253,11 +242,26 @@ sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
 L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
-quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
-hold on
-quiver(centroid(1,1),centroid(1,2),D,0);
-hold on
-quiver(centroid(1,1),centroid(1,2),0,L);
-hold on
-bMesh.plot() %Plot mesh points
+%     quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
+%     hold on
+%     quiver(centroid(1,1),centroid(1,2),D,0);
+%     hold on
+%     quiver(centroid(1,1),centroid(1,2),0,L);
+%     hold on
+%     bMesh.plot() %Plot mesh points
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
 

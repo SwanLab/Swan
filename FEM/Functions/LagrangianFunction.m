@@ -124,6 +124,7 @@ classdef LagrangianFunction < FeFunction
                         %             colorbar
                         shading interp
                         a.EdgeColor = [0 0 0];
+                        a.EdgeAlpha = 0;
                         title(['dim = ', num2str(idim)]);
                     end
                 case 'LINE'
