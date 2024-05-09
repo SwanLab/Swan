@@ -3,11 +3,11 @@
 clear;
 close all;
 
-%fig = open("lsMagicRatio.fig");
 fig = open("lsMagicRatio2.fig");
+% fig = open("lsMagicRatio3.fig");
 
 ch         = fig.Children;
-iters      = ch(1).Children.XData(27:end);
+iters      = ch(1).Children.XData(27:end); % ex 2: 27-end; ex 3.1: 3-end; ex3.2: 3-20
 beta       = ch(1).Children.YData(27:end);
 alpha      = ch(2).Children.YData(27:end);
 theta      = ch(3).Children.YData(27:end);
