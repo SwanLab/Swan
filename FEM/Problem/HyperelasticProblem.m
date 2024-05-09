@@ -39,7 +39,7 @@ classdef HyperelasticProblem < handle
             s.mesh = obj.mesh;
             neo = NeohookeanFunctional(s);
             obj.neohookeanFun = neo;
-%             fint = neo.computeInternalForces(obj.uFun);
+%             fint = obj.computeIntForcesShape(perc);
 %             hess = neo.computeHessian(obj.uFun);
             
             
@@ -60,34 +60,42 @@ classdef HyperelasticProblem < handle
             obj.applyDirichletToUFun();
 
             nsteps = 1;
+            F = zeros(obj.uFun.nDofs,1);
+            R = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
                 disp('------')
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
-                Fext = obj.computeForces(loadPercent);
-                while r > 10e-8
+                DeltaF = -obj.computeForces(loadPercent);
+                DeltaF = -obj.computeIntForcesShape(loadPercent);
+                F = F + DeltaF;
+                R = R - DeltaF;
+                while norm(R)/norm(F) > 10e-8
                     % Energy
                     val = max(neo.compute(obj.uFun))
     
-                    % Residual
-                    Fint = obj.computeInternalForces();
-                    res  = Fint - Fext;
+                    % Hessian
+                    hess = neo.computeHessian(obj.uFun);
+                    h_red = hess(free,free);
+
+                    deltaUk_free = -h_red\R(free);
+                    deltaUk = zeros(size(R));
+                    deltaUk(free) = deltaUk_free;
+                    u_next = u_k - deltaUk;
     
-%                     % Hessian
-%                     hess = neo.computeHessian(obj.uFun);
-%                     h_red = hess(free,free);
-% 
-%                     deltaUk_free = h_red\res(free);
-%                     deltaUk = zeros(size(Fint));
-%                     deltaUk(free) = deltaUk_free;
-%                     u_next = u_k - deltaUk;
-    
-                    u_next = u_k - alpha*res;
+%                     u_next = u_k - alpha*res;
                     u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-                    r = norm(u_next - u_k)
+
+
+    
+                    % Residual
+                    T = obj.computeInternalForces();
+                    R  = T - F;
+
+                    r = norm(R)
                     u_k = u_next;
                     i = i+1;
     %                 if r>1
@@ -95,7 +103,6 @@ classdef HyperelasticProblem < handle
     %                 end
                     addpoints(f,i,r);
                     drawnow
-                    rpre = r;
                 end
             end
 % 
@@ -127,7 +134,7 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(1,1,1);
+            obj.mesh = UnitHexaMesh(8,8,8);
 %             obj.mesh = UnitQuadMesh(5,5);
 %             obj.material.lambda = 3/4;
 %             obj.material.mu = 3/8;
@@ -149,6 +156,17 @@ classdef HyperelasticProblem < handle
             obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
+        function Fext = computeIntForcesShape(obj,perc)
+            pl = obj.boundaryConditions.pointloadFun;
+            pl.fValues = pl.fValues*perc;
+            s.mesh = obj.mesh;
+            s.type = 'ShapeFunction';
+            s.quadType = 1;
+            rhsI       = RHSintegrator.create(s);
+            test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
+            Fext = rhsI.compute(pl,test);
+        end
+
         function Fext = computeForces(obj, perc)
             s.type     = 'Elastic';
             s.scale    = 'MACRO';
@@ -168,8 +186,8 @@ classdef HyperelasticProblem < handle
         function createBoundaryConditions(obj)
 %             obj.createBC2D_oneelem();
 %             obj.createBC2D_nelem();
-            obj.createBC3D_oneelem();
-%             obj.createBC3D_nelem();
+%             obj.createBC3D_oneelem();
+            obj.createBC3D_nelem();
         end
 
         function bc = createBC2D_oneelem(obj)
@@ -228,7 +246,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
@@ -261,7 +279,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
@@ -294,7 +312,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];

@@ -260,10 +260,10 @@ classdef NeohookeanFunctional < handle
             I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU;
-            if size(F,1) == 2
-                F = [F,zeros(2,1,nPoints,nElem); zeros(1,2,nPoints,nElem), ones(1,1,nPoints,nElem)];
-                I33 = obj.createIdentityMatrix(size(F));
-            end
+%             if size(F,1) == 2
+%                 F = [F,zeros(2,1,nPoints,nElem); zeros(1,2,nPoints,nElem), ones(1,1,nPoints,nElem)];
+%                 I33 = obj.createIdentityMatrix(size(F));
+%             end
         end
 
         function trC = computeTrace(obj,C)
