@@ -51,8 +51,9 @@ classdef NeohookeanFunctional < handle
             val = pagemtimes(val,dV);
             val = sum(val, 'all');
         end
+        
 
-        function Fint = computeInternalForces(obj, uFun)
+        function Fint = computeInternalForces(obj, uFun,bcs)
             nDimf = uFun.ndimf;
             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             quad = Quadrature.create(obj.mesh,1);
@@ -72,17 +73,65 @@ classdef NeohookeanFunctional < handle
             dofToNode = dofToNode(:);
 
             fint = zeros(nDof,1,nGaus,nElem);
+            connec = test.getConnec();
+            dir_dofs = bcs.dirichlet_dofs;
+            dir_vals = bcs.dirichlet_vals;
+%             for iElem = 1:nElem
+%                 dofsInElem = connec(iElem,:);
+%                 for iDof = 1:nDof
+%                     iNode = dofToNode(iDof);
+%                     iDim  = dofToDim(iDof);
+%                     globalDof = dofsInElem(globalDof);
+%                     GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
+%                     GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+%                 end
+%             end
+
+
             for iDof = 1:nDof
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
-                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+                dv = zeros(nNode,nDimf, nGaus, nElem);
+                dv(iNode,iDim,:,:) = 1;
+                GradDeltaV = pagemtimes(dNdxTest,dv);
                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
             end
             fint = fint.*dV;
             fint = squeeze(sum(fint,3));
             Fint = obj.assembleIntegrand(fint,test);
         end
+
+%         function Fint = computeInternalForces(obj, uFun)
+%             nDimf = uFun.ndimf;
+%             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+%             quad = Quadrature.create(obj.mesh,1);
+% 
+%             xG = quad.posgp;
+%             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
+%             dNdxTest  = test.evaluateCartesianDerivatives(xG);
+% 
+%             nNode = size(dNdxTest,2);
+%             nGaus = size(dNdxTest,3);
+%             nElem = size(dNdxTest,4);
+%             nDof = nDimf*nNode;
+% 
+%             piola = obj.computeFirstPiola(uFun,xG);
+%             dofToDim = repmat(1:nDimf,[1,nNode]);
+%             dofToNode = repmat(1:nNode, nDimf, 1);
+%             dofToNode = dofToNode(:);
+% 
+%             fint = zeros(nDof,1,nGaus,nElem);
+%             for iDof = 1:nDof
+%                 iNode = dofToNode(iDof);
+%                 iDim  = dofToDim(iDof);
+%                 GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
+%                 GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+%                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
+%             end
+%             fint = fint.*dV;
+%             fint = squeeze(sum(fint,3));
+%             Fint = obj.assembleIntegrand(fint,test);
+%         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
             integrand = pagetranspose(rhsElem);
@@ -205,12 +254,16 @@ classdef NeohookeanFunctional < handle
             nDimf = uFun.ndimf;
 
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-%             GradU = permute(GradU, [2 1 3 4]);
+            GradU = permute(GradU, [2 1 3 4]);
 %             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
             I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU;
+            if size(F,1) == 2
+                F = [F,zeros(2,1,nPoints,nElem); zeros(1,2,nPoints,nElem), ones(1,1,nPoints,nElem)];
+                I33 = obj.createIdentityMatrix(size(F));
+            end
         end
 
         function trC = computeTrace(obj,C)
