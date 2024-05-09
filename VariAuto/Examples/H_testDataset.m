@@ -51,6 +51,32 @@ errTrain = optProblem.computeError(data.Xtrain, data.Ytrain);
 % Evaluation for the test data
 errTest = optProblem.computeError(data.Xtest, data.Ytest);
 
+%% Surfaces differences
+X = data.Xtrain(:,1);
+Y = data.Xtrain(:,2);
+z_theo = data.Ytrain;
+z_calc = optProblem.computeOutputValues(data.Xtrain);
+
+% Define la cuadrícula en la que se interpolan los puntos
+[Xq,Yq] = meshgrid(min(X):0.1:max(X), min(Y):0.1:max(Y));
+
+z_vec_label = {'C_{11}','C_{12}','C_{13}','C_{22}','C_{23}','C_{33}'};
+for i = 1:6
+    Zq = griddata(X, Y, z_calc(:,i), Xq, Yq);
+    Zp = griddata(X, Y, z_theo(:,i), Xq, Yq);
+    
+    % Crea el gráfico de superficie
+    figure ();
+    surf(Xq, Yq, Zq,'FaceColor','red');
+    hold on
+    surf(Xq, Yq, Zp,'FaceColor','green');
+    xlabel('a')
+    ylabel('b')
+    zlabel(z_vec_label{i})
+    legend('NN Calculation','Comp. Homog. Calculation')
+end
+
+
 
 
 

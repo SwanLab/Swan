@@ -53,6 +53,10 @@ classdef OptimizationProblem < handle
        function E = computeError(obj,X,Y)
            E = obj.network.forwardprop(X,Y);
        end
+       
+       function yOut = computeOutputValues(obj,X)
+           yOut = obj.network.computeYOut(X);
+       end
 
    end
 
