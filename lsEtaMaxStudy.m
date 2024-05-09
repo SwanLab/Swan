@@ -3,16 +3,17 @@
 clear;
 close all;
 
-fig = open("lsMagicRatio.fig");
+%fig = open("lsMagicRatio.fig");
+fig = open("lsMagicRatio2.fig");
 
 ch         = fig.Children;
-iters      = 2:24;
-beta       = ch(1).Children.YData(3:end);
-alpha      = ch(2).Children.YData(3:end);
-theta      = ch(3).Children.YData(3:end);
-magicRatio = ch(4).Children.YData(3:end);
-eta        = ch(8).Children.YData(3:end);
-k          = ch(10).Children.YData(3:end);
+iters      = ch(1).Children.XData(27:end);
+beta       = ch(1).Children.YData(27:end);
+alpha      = ch(2).Children.YData(27:end);
+theta      = ch(3).Children.YData(27:end);
+magicRatio = ch(4).Children.YData(27:end);
+eta        = ch(8).Children.YData(27:end);
+k          = ch(10).Children.YData(27:end);
 close all;
 
 etaMax = 1./magicRatio;
@@ -36,8 +37,8 @@ grid minor
 xlabel('Theta sinus exponent')
 ylabel('Error')
 
-b=10;
-a=0.5;
+b=0;
+a=0.87;
 combo = (k.^a).*(sin(theta)).^b;
 
 figure
