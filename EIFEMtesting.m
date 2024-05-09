@@ -29,6 +29,9 @@ classdef EIFEMtesting < handle
         interfaceConnec
         locGlobConnec
         localGlobalDofConnec
+        interfaceDof
+        interfaceDom
+        weight
 
         displacementFun
         LHS
@@ -57,6 +60,7 @@ classdef EIFEMtesting < handle
             ss.boundaryConditions    = obj.boundaryConditions;
             obj.bcApplier            = BCApplier(ss);
             obj.localGlobalDofConnec = obj.createlocalGlobalDofConnec();
+            [obj.interfaceDof,obj.interfaceDom] = obj.computeLocalInterfaceDof();
 %             obj.quad               = Quadrature.set(obj.meshDomain.type);
 %             obj.quad.computeQuadrature('QUADRATIC');
 %             obj.createDomainMaterial();
@@ -115,12 +119,13 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
+            obj.nSubdomains  = [6 1]; %nx ny
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
             obj.solverCase   = 'REDUCED';
-            obj.EIFEMfilename  = '/home/raul/Documents/Thesis/EIFEM/EXAMPLE/EIFE_LIBRARY/DEF_Q4por_1.mat';
+            obj.EIFEMfilename  = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_8_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_1.mat';
+            obj.weight       = 0.5;
         end
 
         function createReferenceMesh(obj)
@@ -157,14 +162,22 @@ classdef EIFEMtesting < handle
             xmin = min(obj.meshReference.coord(:,1));
             ymax = max(obj.meshReference.coord(:,2));
             ymin = min(obj.meshReference.coord(:,2));
-            coord(1,1) = xmax;
+            coord(1,1) = xmin;
             coord(1,2) = ymin;
             coord(2,1) = xmax;
-            coord(2,2) = ymax;
-            coord(3,1) = xmin;
+            coord(2,2) = ymin;
+            coord(3,1) = xmax;
             coord(3,2) = ymax;
             coord(4,1) = xmin;
-            coord(4,2) = ymin;
+            coord(4,2) = ymax;
+%             coord(1,1) = xmax;
+%             coord(1,2) = ymin;
+%             coord(2,1) = xmax;
+%             coord(2,2) = ymax;
+%             coord(3,1) = xmin;
+%             coord(3,2) = ymax;
+%             coord(4,1) = xmin;
+%             coord(4,2) = ymin;
             connec = [1 2 3 4];
             s.coord = coord;
             s.connec = connec;
@@ -187,14 +200,16 @@ classdef EIFEMtesting < handle
         function [Dir,PL] = createRawBoundaryConditions(obj)
             isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
             isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
+            isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir.domain    = @(coor) isLeft(coor);
+            Dir.domain    = @(coor) isLeft(coor) | isRight(coor) ;
             Dir.direction = [1,2];
             Dir.value     = 0;
 
-            PL.domain    = @(coor) isRight(coor);
+            PL.domain    = @(coor) isTop(coor);
             PL.direction = 2;
-            PL.value     = -1;
+            PL.value     = -0.1;
         end        
 
          function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -215,26 +230,26 @@ classdef EIFEMtesting < handle
             bc             = BoundaryConditions(s);
         end
 
-        function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-            dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
-            pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
-        end
-
-        function cond = createBondaryCondition(obj,bM,condition)
-            nbound = length(condition.boundaryId);
-            cond = zeros(1,3);
-            for ibound=1:nbound
-                ncond  = length(condition.dof(nbound,:));
-                nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
-                nbd   = length(nodeId);
-                condition.value{ibound} = condition.value{ibound}/nbd;
-                for icond=1:ncond
-                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-                    cond=[cond;bdcond];
-                end
-            end
-            cond = cond(2:end,:);
-        end
+%         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
+%             dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
+%             pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
+%         end
+% 
+%         function cond = createBondaryCondition(obj,bM,condition)
+%             nbound = length(condition.boundaryId);
+%             cond = zeros(1,3);
+%             for ibound=1:nbound
+%                 ncond  = length(condition.dof(nbound,:));
+%                 nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
+%                 nbd   = length(nodeId);
+%                 condition.value{ibound} = condition.value{ibound}/nbd;
+%                 for icond=1:ncond
+%                     bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
+%                     cond=[cond;bdcond];
+%                 end
+%             end
+%             cond = cond(2:end,:);
+%         end
 
 %         function material = createMaterial(obj,mesh)
 %             I = ones(mesh.nelem,obj.quad.ngaus);
@@ -332,6 +347,17 @@ classdef EIFEMtesting < handle
             else
                 forces = rhs;
             end
+            F = obj.assembleVec();
+%             forces = forces+F;
+        end
+
+        function rhs = assembleVec(obj)
+            f = -0.01*ones(obj.displacementFun.nDofsElem,1);
+            f(1:2:end) = 0;
+            F = repmat(f,[1,1,obj.meshDomain.nelem]);
+            s.fun  = obj.displacementFun; % !!!
+            assembler = AssemblerFun(s);
+            rhs = assembler.assembleV(F, s.fun);
         end
 
          function  localGlobalDofConnec = createlocalGlobalDofConnec(obj)
@@ -350,11 +376,48 @@ classdef EIFEMtesting < handle
                 localGlobalDofConnec{row,col} = localGlobalDofConnecDom(2:end,:);
             end
          end
+
+         function [interfaceDof,interfaceDom] = computeLocalInterfaceDof(obj)
+            intConec = reshape(obj.interfaceConnec',2,obj.interfaceMeshReference{1}.mesh.nnodes,[]);
+            intConec = permute(intConec,[2 1 3]);
+            nint = size(intConec,3);
+            globaldof=0;
+            ndimf = obj.ndimf;
+            ndofs = obj.meshReference.nnodes*ndimf;
+            
+            for iint=1:nint
+                ndom = size(intConec,2); %length(intConec(1,:,iint));
+                for idom = 1:ndom
+                    dofaux=0;
+                    nodesI = intConec(:,idom,iint);
+                    dom = ceil(intConec(1,idom,iint)/obj.meshReference.nnodes);
+                    globaldof = (dom-1)*ndofs;
+                    for iunkn=1:ndimf
+                        DOF = ndimf*(nodesI - 1) + iunkn;
+                        DOF = DOF-globaldof;
+                        dofaux= [dofaux; DOF];
+                    end
+                    interfaceDof(:,idom,iint) = dofaux(2:end);
+                    interfaceDom(iint,idom) = dom;
+                    %                     globaldof = globaldof + (iint*(idom-1)+iint)*dim.ndofs;
+                end
+                %                 interfaceDof(:,iint) = dofaux(2:end);
+                %                 globaldof = globaldof + dim.ndofs;
+            end
+        end
          
-        function Gvec = local2global(obj,Lvec,locGlobConnec)
-            ndimf  = obj.displacementFun.ndimf;
-            Gvec   = zeros(obj.meshDomain.nnodes*ndimf,1);
-            Gvec(locGlobConnec(:,1)) = Lvec(locGlobConnec(:,2));
+        function Gvec = local2global(obj,Lvec)
+%             ndimf  = obj.displacementFun.ndimf;
+            Gvec   = zeros(obj.displacementFun.nDofs,obj.nSubdomains(1)*obj.nSubdomains(2));
+%             Gvec(locGlobConnec(:,1)) = Lvec(locGlobConnec(:,2));
+            ind    = 1;
+            for jdom = 1: obj.nSubdomains(2)
+                for idom = 1: obj.nSubdomains(1)
+                    locGlobConnec = obj.localGlobalDofConnec{jdom,idom};
+                    Gvec(locGlobConnec(:,1),ind) = Lvec(locGlobConnec(:,2),ind);
+                    ind=ind+1;
+                end
+            end
         end
 
         function Lvec = global2local(obj,Gvec)
@@ -378,85 +441,121 @@ classdef EIFEMtesting < handle
             eifem       = EIFEM(s1);
         end
 
+        function uInt = computeInterfaceDisp(obj,u)
+            nint = size(obj.interfaceDof,3);
+            uInt = zeros(size(obj.interfaceDof,1),nint);
+            w = [obj.weight,1- obj.weight];
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    unodal = u(:,dom);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    uInt(:,iint) = uInt(:,iint) + w(idom)*unodal(dof);
+                end
+            end
+        end
+
+        function u = smoothDisplacement(obj,u,uInterface)
+            uG = obj.local2global(u);
+            uG = sum(uG,2);
+            u  = obj.updateInterfaceValues(uG,uInterface); 
+        end
+
+        function u = updateInterfaceValues(obj,u,uInterface)
+            nint = size(obj.interfaceDof,3);
+            for iint = 1:nint
+                dom = obj.interfaceDom(iint,1);
+                dof = obj.interfaceDof(:,1,iint);
+                row = ceil(dom/obj.nSubdomains(1));
+                col = dom-(row-1)*obj.nSubdomains(1);
+                locGlobConnec = obj.localGlobalDofConnec{row,col};
+                [~,ind]    = ismember(dof,locGlobConnec(:,2));
+                dofGlob    = locGlobConnec(ind,1);
+                u(dofGlob) = uInterface(:,iint);
+            end
+        end
+
+        function R = scaleInterfaceValues(obj,R)
+            nint = size(obj.interfaceDof,3);
+            uInt = zeros(size(obj.interfaceDof,1),nint);
+            w = [obj.weight,1- obj.weight];
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    Rnodal = R(:,dom);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    R(dof,dom) = w(idom)* R(dof,dom);
+                end
+            end
+        end
+
         function u = solver(obj,LHS,RHS)
             tol=1e-8;
-            e=1;
             iter=1;
-            u = zeros(length(RHS),1);
+            uN = zeros(length(RHS),1);
+            R  = RHS - LHS*uN; 
+            e(iter) = norm(R);
+            theta = 0.99;
             while e(iter)>tol
-                R = RHS - LHS*u;
-                RG = obj.bcApplier.reducedToFullVectorDirichlet(R);
+                          
+                RG    = obj.bcApplier.reducedToFullVectorDirichlet(R);
                 RGsbd = obj.global2local(RG);
-
-
-                [uD,RHS] = obj.solveFEM(obj.boundaryConditions.dirichletStep,obj.bcApplier.dirichletStep);
-                R = obj.computeInterfaceResidual(uD,RHS);
-%                 obj.updateNeumanValues(R);
-                RG = obj.constructGlobalResidual(R);
-%                 obj.plotSolution(RG,obj.meshDomain,11,11,iter,2)
-%                 for jdom = 1:obj.nSubdomains(2)
-%                     for idom =1:obj.nSubdomains(1)
-%                         mesh = obj.meshSubDomain{jdom,idom};
-%                         x = uD{jdom,idom};
-%                         row = jdom;
-%                         col = idom;
-%                         obj.plotSolution(x,mesh,row,col,iter)
-%                     end
-%                 end
-
-%                 [u0,RHS] = obj.solveCoarseProblem(obj.boundaryConditions.neumannStep);
-                u0 = obj.solveCoarseProblem2(RG);
-%                 obj.plotSolution(u0,obj.meshDomain,10,10,iter)
-                Rbal = obj.balanceResidual3(u0,RG);
-%                 for jdom = 1:obj.nSubdomains(2)
-%                     for idom =1:obj.nSubdomains(1)
-%                         mesh = obj.meshSubDomain{jdom,idom};
-%                         x = Rbal{jdom,idom};
-%                         row = jdom;
-%                         col = idom;
-%                         obj.plotSolution(x,mesh,row,col,iter,1)
-%                     end
-%                 end
-%                 Rbal = obj.balanceResidual2(u0,RHS);
-                obj.updateBalancedNeumanValues(Rbal);
-%                 R = obj.computeInterfaceResidual(u0,RHS);
-%                 obj.updateNeumanValues(R);
-
-                [uN,~] = obj.solveFEM(obj.boundaryConditions.neumannStep,obj.bcApplier.dirichletStep);
-%                 for jdom = 1:obj.nSubdomains(2)
-%                     for idom =1:obj.nSubdomains(1)
-%                         mesh = obj.meshSubDomain{jdom,idom};
-%                         x = uN{jdom,idom};
-%                         row = jdom;
-%                         col = idom;
-%                         obj.plotSolution(x,mesh,row,col,iter,3)
-%                     end
-%                 end
-%                 [uN,~] = obj.solveFineNeumann(obj.boundaryConditions.neumannStep,Rbal);
-                uN     = obj.constructNeumannDisplacement(uN,u0); 
-
-%                  for jdom = 1:obj.nSubdomains(2)
-%                     for idom =1:obj.nSubdomains(1)
-%                         mesh = obj.meshSubDomain{jdom,idom};
-%                         x = uN{jdom,idom};
-%                         row = jdom;
-%                         col = idom;
-%                         obj.plotSolution(x,mesh,row,col,iter,4)
-%                     end
-%                 end
-%                 uN = u0 + uN;;
-                uInt = obj.computeInterfaceDisp(uN);
-                uIntNew = obj.updateDirichletValues(uInt);
-
-                iter=iter+1;
-                e(iter) = norm(uIntNew-uIntOld)/norm(uIntOld);
-                if e(iter)>e(iter-1)
-                    aaaa=1;
+                RGsbd = obj.scaleInterfaceValues(RGsbd);
+                uSbd  = obj.EIFEM.apply(RGsbd);
+                for jdom = 1:obj.nSubdomains(2)
+                    for idom =1:obj.nSubdomains(1)
+                        mesh = obj.meshSubDomain{jdom,idom};
+                        ind = obj.nSubdomains(2)*(jdom-1)+idom;
+                        x = uSbd(:,ind);
+                        row = jdom;
+                        col = idom;
+                        obj.plotSolution(x,mesh,row,col,iter,0)
+                    end
                 end
-                uIntOld = uIntNew;
+                uInt  = obj.computeInterfaceDisp(uSbd);
+                u     = obj.smoothDisplacement(uSbd,uInt);
+                u     = obj.bcApplier.fullToReducedVectorDirichlet(u);
 
-              
+                uN    = theta*uN + (1-theta)*u;
+                R     = RHS - LHS*uN; 
+                iter = iter+1;
+                e(iter) = norm(R);
+                    
             end
+        end
+
+        function plotSolution(obj,x,mesh,row,col,iter,flag)
+            if nargin <7
+                 flag =0;
+            end
+            %             xFull = bc.reducedToFullVector(x);
+            if size(x,2)==1
+                 s.fValues = reshape(x,2,[])';
+            else
+                 s.fValues = x; 
+            end
+%            
+            
+            s.mesh = mesh;
+            s.fValues(:,end+1) = 0;
+            s.ndimf = 2;
+            s.order = obj.functionType;
+            xF = LagrangianFunction(s);
+%             xF.plot();
+            if flag == 0
+                xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 1
+                xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 2
+                xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 3
+                xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            elseif flag == 4
+                xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            end
+            fclose('all');
         end
 
     end

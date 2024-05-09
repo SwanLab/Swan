@@ -67,7 +67,7 @@ classdef MeshCreatorFromRVE < handle
         function L = computeReferenceMeshLength(obj)
             coord = obj.meshReference.coord;
             Lx = max(coord(:,1))-min(coord(:,1));
-            Ly = max(coord(:,2))-min(coord(:,1));
+            Ly = max(coord(:,2))-min(coord(:,2));
             L = [Lx Ly];
         end
 
