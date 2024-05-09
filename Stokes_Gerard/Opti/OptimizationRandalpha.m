@@ -3,11 +3,12 @@ clear
 
 H = 1;
 trobat = false;
-h_aoa = 0.01;
-h_ratio = 0.01;
-pas = 0.5;
+h_aoa = 0.1;
+h_ratio = 0.1;
+pas = 1;
+nombrenodes = 100;
 
-AOAd = 5;% (x_0)
+AOAd = 30;% (x_0)
 dim_a = 0.1;
 ratio = 1; % r = a/b (y_0)
 
@@ -22,7 +23,7 @@ while trobat==false
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
 
-    m = QuadMesh(2,1,30,30); % MESH
+    m = QuadMesh(2,1,nombrenodes,nombrenodes); % MESH
     s.type='Given';
     AOAr = -deg2rad(AOAd);
 
@@ -240,7 +241,7 @@ while trobat==false
 
     E = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
 
     AOAd = AOAd + h_aoa;
 
@@ -249,7 +250,7 @@ while trobat==false
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
 
-    m = QuadMesh(2,1,30,30); % MESH
+    m = QuadMesh(2,1,nombrenodes,nombrenodes); % MESH
     s.type='Given';
     AOAr = -deg2rad(AOAd);
 
@@ -469,7 +470,7 @@ while trobat==false
 
     E_xh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
 
     ratio = ratio + h_ratio;
     dim_b = dim_a/ratio;
@@ -481,7 +482,7 @@ while trobat==false
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
 
-    m = QuadMesh(2,1,30,30); % MESH
+    m = QuadMesh(2,1,nombrenodes,nombrenodes); % MESH
     s.type='Given';
     AOAr = -deg2rad(AOAd);
 
@@ -699,26 +700,38 @@ while trobat==false
 
     E_yh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
 
     gradE(1,H) = (E_xh - E)/h_aoa;
     gradE(2,H) = (E_yh - E)/h_ratio;
 
+    AOAd_rec(1,H) = AOAd;
+    ratio_rec(1,H) = ratio_ant;
+
     AOAd = AOAd + pas*gradE(1,H);
-    ratio = ratio + pas*gradE(2,H);
+    ratio = ratio_ant + pas*gradE(2,H);
+
+%     if ratio > 2
+%         ratio = 2;
+%     end
 
     if abs(ratio_ant-ratio) < 0.001
         trobat = true;
     end
     
-    AOAd_rec(1,H) = AOAd;
-    retio_rec(1,H) = ratio;
-    disp(H);
-    H=H+1;
 
+    disp(H);
+    
+
+    hold on
+    quiver(AOAd_rec(1,H),ratio_rec(1,H),gradE(1,H),gradE(2,H));
+    hold on
+    scatter(AOAd_rec(1,H),ratio_rec(1,H));
+
+    H=H+1;
 end
 
-quiver(AOAd_rec(1,:),retio_rec(1,:),gradE(1,:),gradE(2,:));
+quiver(AOAd_rec(1,:),ratio_rec(1,:),gradE(1,:),gradE(2,:));
 % plot(Ef(2,:),Ef(1,:));
 % xlabel('AOA')
 % ylabel('E');

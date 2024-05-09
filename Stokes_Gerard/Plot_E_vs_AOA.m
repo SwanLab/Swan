@@ -15,7 +15,7 @@ for AOAd = 0:5:50
     % % INPUT DATA
 
     dim_a = 0.1; % Semi-major axis 0.2
-    dim_b = 0.08; % Semi-minor axis 0.02
+    dim_b = 0.05; % Semi-minor axis 0.02
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
 %     AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
