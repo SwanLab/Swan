@@ -19,6 +19,7 @@ classdef OptimizerNullSpace < Optimizer
         lJ
         etaNorm
         gJFlowRatio
+        magicRatio
     end
 
     methods (Access = public) 
@@ -75,12 +76,12 @@ classdef OptimizerNullSpace < Optimizer
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ'}];
+            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ';'1/\eta (1-gk1/gk)'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
@@ -100,9 +101,9 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
-                data = [data;0;0;0;obj.etaMax;0;0];
+                data = [data;0;0;0;obj.etaMax;0;0;0];
             else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ)];
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);obj.magicRatio];
             end
             switch class(obj.designVariable)
                 case 'LevelSet'
@@ -150,6 +151,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function update(obj)
+            gk = obj.constraint.value;
             x0 = obj.designVariable.fun.fValues;
             obj.updateEtaParameter();
             obj.acceptableStep   = false;
@@ -160,7 +162,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.calculateInitialStep();
             while ~obj.acceptableStep
                 obj.updatePrimal();
-                obj.checkStep(x0);
+                obj.checkStep(x0,gk);
             end
         end
 
@@ -191,11 +193,13 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x0)
+        function checkStep(obj,x0,gk)
             x    = obj.designVariable.fun.fValues;
             mNew = obj.computeMeritFunction();
+            gk1 = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
             if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
+                obj.magicRatio     = (1-gk1/gk)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
