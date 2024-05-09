@@ -21,7 +21,7 @@ for AOAd = 0:5:50
 %     AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
 
 
-    m = QuadMesh(2,1,200,200); % MESH
+    m = QuadMesh(2,1,30,30); % MESH
     s.type='Given';
     AOAr = -deg2rad(AOAd);
 

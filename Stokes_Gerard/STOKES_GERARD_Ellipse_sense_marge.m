@@ -5,13 +5,13 @@ close all
 % % INPUT DATA
 
 dim_a = 0.1; % Semi-major axis 0.2
-dim_b = 0.08; % Semi-minor axis 0.02
+dim_b = 0.06; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 40; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(2,1,30,30); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
