@@ -17,7 +17,7 @@ classdef OptimizerNullSpace < Optimizer
         etaMax
         lG
         lJ
-        etaNorm
+        etaNorm %Unrecognized file
         gJFlowRatio
     end
 
@@ -41,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                %obj.designVariable.fun.print(['TFGBenchmark/3DMBB_LevelSet/Iter_',char(string(obj.nIter))]);
+                obj.designVariable.fun.print(['TFGBenchmark/Basura/3DLevelSetNullSpace_',char(string(obj.nIter))]);
                 obj.designVariable.updateOld();
             end
         end

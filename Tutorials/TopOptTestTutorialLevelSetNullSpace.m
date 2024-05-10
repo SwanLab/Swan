@@ -41,15 +41,15 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createMesh(obj)
-            % %UnitMesh better
-            % x1      = linspace(0,4,210);
-            % x2      = linspace(0,1,50);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % s.coord  = V(:,1:2);
-            % s.connec = F;
-            % obj.mesh = Mesh.create(s);
-            obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB 3D
+            %UnitMesh better
+            x1      = linspace(0,4,210);
+            x2      = linspace(0,1,50);
+            [xv,yv] = meshgrid(x1,x2);
+            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            s.coord  = V(:,1:2);
+            s.connec = F;
+            obj.mesh = Mesh.create(s);
+            %obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB 3D
         end
 
         function createDesignVariable(obj)
@@ -87,7 +87,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
-            s.dim            = '3D';  %Provo 3D aquí??
+            s.dim            = '2D';  %Provo 3D aquí??
             s.matA = matA;
             s.matB = matB;
 
@@ -99,7 +99,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '3D';            %Provo 3D aquí??
+            s.dim = '2D';            %Provo 3D aquí??
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -184,7 +184,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '3D';  %Si provo aquí 3D?????
+            s.dim                  = '2D';  %Provo aquí 3D?????
             m = Material.create(s);
         end
 

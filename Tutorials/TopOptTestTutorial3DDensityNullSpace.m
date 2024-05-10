@@ -1,6 +1,7 @@
 classdef TopOptTestTutorial3DDensityNullSpace < handle
 
     properties (Access = private)
+        filename %AFEGIDA PER LLEGIR MALLA
         mesh
         filter
         designVariable
@@ -41,7 +42,15 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(1,1,1,20,20,20);
+            obj.mesh = HexaMesh(4,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
+
+            %INTRODUIM COM GENERA LA MALLA EL GiD
+            
+            % file = 'Malla_ambconstraints_GiD_1';
+            % obj.filename = file;
+            % a.fileName = file;
+            % s = FemDataContainer(a);
+            % obj.mesh = s.mesh;  %faltava ficar el obj
         end
 
         function createDesignVariable(obj)
@@ -51,10 +60,21 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             aFun      = AnalyticalFunction(s);
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
-            s.type = 'Density';
+            s.type = 'Density';    %PRIMER PROVA NOMÉS DE CANVIAR LevelSet aquí a veure si funciona (Anirà amb projected gradient?)
             s.plotting = false;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
+            %%%%DENSITY^%%%%
+            %%%%LEVELSETv%%%%
+            % s.type = 'Full';
+            % g      = GeometricalFunction(s);
+            % lsFun  = g.computeLevelSetFunction(obj.mesh);
+            % s.fun  = lsFun;
+            % s.mesh = obj.mesh;
+            % s.type = 'LevelSet';
+            % s.plotting = true;
+            % ls     = DesignVariable.create(s);
+            % obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -85,6 +105,28 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
+            %%%%%%%%%%%%%%%%%DENSITY ^%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%LEVEL SET v%%%%%%%%%%%%%%%%%%     CANVIO? O no fa falta?
+            % E0   = 1e-3;
+            % nu0  = 1/3;
+            % E1   = 1;
+            % nu1  = 1/3;
+            % ndim = 2;
+            % 
+            % matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            % matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            % 
+            % matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            % matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+            % 
+            % s.typeOfMaterial = 'ISOTROPIC';
+            % s.interpolation  = 'SIMPALL';
+            % s.dim            = '3D';  
+            % s.matA = matA;
+            % s.matB = matB;
+            % 
+            % m = MaterialInterpolator.create(s);
+            % obj.materialInterpolator = m;
         end
 
         function m = createMaterial(obj)
@@ -130,7 +172,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            s.volumeTarget = 0.4;                       %VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -172,35 +214,94 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 700;%1000
+            s.maxIter        = 250;                       %Iteracions
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.3;
-            s.primal         = 'PROJECTED GRADIENT';
+            s.volumeTarget   = 0.4;                       %VOLUM FINAL
+            s.primal         = 'PROJECTED GRADIENT';  %'SLERP' en LevelSet
             s.ub             = 1;
             s.lb             = 0;
             s.aJmax          = 0.2;
             s.aGmax          = 50;
+            s.etaNorm        = 0.05;
+            s.gJFlowRatio    = 1;       %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+           
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            %%%%%%%% Density  ^%%%%%%%%%
+            
+            %%%%%%%%%% LevelSet v %%%%%%%%
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = obj.dualVariable;
+            % s.maxIter        = 250;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY'};   %{'EQUALITY'};
+            % s.primal         = 'SLERP';
+            % s.etaNorm        = 0.05;
+            % s.gJFlowRatio    = 1;
+            % opt = OptimizerNullSpace(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+        
+        
+        
+        
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax = max(obj.mesh.coord(:,1));
-            yMax = max(obj.mesh.coord(:,2));
-            zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
-            isForce = @(coor)  abs(coor(:,1))==xMax;
+            %---------------------------------------------------%
+            %---------------BOUNDARY CONDITIONS GiD-------------%
+            % femReader = FemInputReader_GiD();  %Llegim malla GiD
+            % s = femReader.read(obj.filename);  %Llegim malla GiD
+            % 
+            % [u,v]=unique(s.pointload(:,3));  %Creem un vector [u,v] que es igual a totes les files de la tercera columna de s.pointload
+            %                                  % u= valors diferents de les forces aplicades en diferents punts. v= nº de forces diferents
+            % for i = 1:length(v)  
+            %     rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...) 
+            %     isForce = @(coor) s.pointload(rows,1);  %isForce guarda tots els valors dels nodes amb força aplicada
+            %     sPL{i}.domain    = @(coor) isForce(coor);
+            %     sPL{i}.direction = s.pointload(v(i),2); %La direcció de la força serà la segona columna de s.pointload
+            %     sPL{i}.value     = u(i);                %El valor de la força serà la u(v)             
+            % end 
+            % 
+            % isDir   = @(coor)  unique(s.dirichlet(:,1));  %llegeix les constraints de desplaçaments del GiD
+            % sDir{i}.domain    = @(coor) isDir(coor);   
+            % sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
+            % sDir{i}.value     = 0;
+            
+           %---------------BOUNDARY CONDITIONS GiD-------------%
+           %---------------------------------------------------%
+           %---------------------------------------------------%
+           %-------------BOUNDARY CONDITIONS MATLAB------------%
+           
+           %---------------3D MBB CASE-------------%
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
+            isDir1   = @(coor)  [abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+            isDir2   = @(coor)  [abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax];
+
+            isForce = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+
+            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
+            sDir{1}.direction = [2]; %restricció vertical només
+            sDir{1}.value     = 0;  %desplaçament =0
+
+            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
+            sDir{2}.direction = [1,2]; %restricció vertical i horitzontal
+            sDir{2}.value     = 0; %desplaçament =0
 
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 1; % direccio x +
-            sPL{1}.value     = -1; % sentit -
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
+            %---------------3D MBB CASE-------------%
 
+           %-------------BOUNDARY CONDITIONS MATLAB------------%
+           %---------------------------------------------------%
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
