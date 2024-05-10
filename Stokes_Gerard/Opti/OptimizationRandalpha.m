@@ -6,14 +6,16 @@ trobat = false;
 h_aoa = 0.1;
 h_ratio = 0.1;
 pas = 1;
-nombrenodes = 100;
+nombrenodes = 60;
 
 AOAd = 30;% (x_0)
 dim_a = 0.1;
 ratio = 1; % r = a/b (y_0)
+E = 5;
 
 while trobat==false
     ratio_ant = ratio;
+    E_ant = E;
     dim_b = dim_a/ratio;
     AOAd_ant = AOAd;
 
@@ -241,7 +243,7 @@ while trobat==false
 
     E = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     AOAd = AOAd + h_aoa;
 
@@ -470,7 +472,7 @@ while trobat==false
 
     E_xh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     ratio = ratio + h_ratio;
     dim_b = dim_a/ratio;
@@ -700,7 +702,7 @@ while trobat==false
 
     E_yh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     gradE(1,H) = (E_xh - E)/h_aoa;
     gradE(2,H) = (E_yh - E)/h_ratio;
@@ -711,11 +713,11 @@ while trobat==false
     AOAd = AOAd + pas*gradE(1,H);
     ratio = ratio_ant + pas*gradE(2,H);
 
-%     if ratio > 2
-%         ratio = 2;
-%     end
+    if ratio > 2
+        ratio = 2;
+    end
 
-    if abs(ratio_ant-ratio) < 0.001
+    if abs(E_ant-E) < 0.00001
         trobat = true;
     end
     

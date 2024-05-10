@@ -8,20 +8,20 @@ clear
 % center_posy = 0.5; % y position of the ellipse center
 H = 1;
 
-for AOAd = 0:5:50
+for ratio = 10:1.5:20
     %[L,D] = Stokesolver(dim_a,dim_b,center_posx,center_posy,AOAd);
 
     % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
     % % INPUT DATA
 
-    dim_a = 0.1; % Semi-major axis 0.2
-    dim_b = 0.05; % Semi-minor axis 0.02
+    dim_a = 0.2; % Semi-major axis 0.2
+    dim_b = dim_a/ratio;
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
-%     AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+    AOAd = 30; % Angle of attack of the semi-major axis (in degrees)
 
 
-    m = QuadMesh(2,1,60,60); % MESH
+    m = QuadMesh(2,1,200,200); % MESH
     s.type='Given';
     AOAr = -deg2rad(AOAd);
 
@@ -276,7 +276,7 @@ for AOAd = 0:5:50
 
 
     Ef(1,H) = L/D;
-    Ef(2,H) = AOAd;
+    Ef(2,H) = ratio;
     
     disp(H);
     H=H+1;
@@ -285,23 +285,5 @@ for AOAd = 0:5:50
 end
 
 plot(Ef(2,:),Ef(1,:));
-xlabel('AOA')
+xlabel('Ratio (a 30º)');
 ylabel('E');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
