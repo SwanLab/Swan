@@ -42,15 +42,15 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(4,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
+            %             obj.mesh = HexaMesh(4,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
 
             %INTRODUIM COM GENERA LA MALLA EL GiD
-            
-            % file = 'Malla_ambconstraints_GiD_1';
-            % obj.filename = file;
-            % a.fileName = file;
-            % s = FemDataContainer(a);
-            % obj.mesh = s.mesh;  %faltava ficar el obj
+
+            file = 'Malla_ambconstraints_GiD_1';
+            obj.filename = file;
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;  %faltava ficar el obj
         end
 
         function createDesignVariable(obj)
@@ -94,7 +94,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
 
             E1 = 1;
-            nu1 = 0.499;
+            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -112,19 +112,19 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % E1   = 1;
             % nu1  = 1/3;
             % ndim = 2;
-            % 
+            %
             % matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             % matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-            % 
+            %
             % matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             % matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-            % 
+            %
             % s.typeOfMaterial = 'ISOTROPIC';
             % s.interpolation  = 'SIMPALL';
-            % s.dim            = '3D';  
+            % s.dim            = '3D';
             % s.matA = matA;
             % s.matB = matB;
-            % 
+            %
             % m = MaterialInterpolator.create(s);
             % obj.materialInterpolator = m;
         end
@@ -132,7 +132,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = f.project('P1');
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -145,7 +145,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createNewBoundaryConditionsWithGiD();%obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -185,15 +185,18 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
+%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.mesh  = obj.mesh;
+%             s.type  = 'MassMatrix';
+%             LHS = LHSintegrator.create(s);
+%             M = LHS.compute;
 
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            nnodes  = obj.mesh.nnodes;
+            indices = transpose(1:nnodes);
+            vals    = ones(size(indices));
+            h       = obj.mesh.computeMinCellSize();
+            M       = h^2*sparse(indices,indices,vals,nnodes,nnodes);
         end
 
         function createConstraint(obj)
@@ -217,20 +220,17 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.maxIter        = 250;                       %Iteracions
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;                       %VOLUM FINAL
             s.primal         = 'PROJECTED GRADIENT';  %'SLERP' en LevelSet
             s.ub             = 1;
             s.lb             = 0;
-            s.aJmax          = 0.2;
-            s.aGmax          = 50;
             s.etaNorm        = 0.05;
             s.gJFlowRatio    = 1;       %major=complirconstraintrapid    menor=prioritzarminimitzarcost
-           
+
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
             %%%%%%%% Density  ^%%%%%%%%%
-            
+
             %%%%%%%%%% LevelSet v %%%%%%%%
             % s.monitoring     = true;
             % s.cost           = obj.cost;
@@ -246,10 +246,10 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % opt = OptimizerNullSpace(s);
             % opt.solveProblem();
             % obj.optimizer = opt;
-        
-        
-        
-        
+
+
+
+
         end
 
         function bc = createBoundaryConditions(obj)
@@ -257,28 +257,28 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             %---------------BOUNDARY CONDITIONS GiD-------------%
             % femReader = FemInputReader_GiD();  %Llegim malla GiD
             % s = femReader.read(obj.filename);  %Llegim malla GiD
-            % 
+            %
             % [u,v]=unique(s.pointload(:,3));  %Creem un vector [u,v] que es igual a totes les files de la tercera columna de s.pointload
             %                                  % u= valors diferents de les forces aplicades en diferents punts. v= nº de forces diferents
-            % for i = 1:length(v)  
-            %     rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...) 
+            % for i = 1:length(v)
+            %     rows    = find(s.pointload(:,3)==u(i)); %Creem "rows" = numero de nodes que tenen força aplicada (1,2,...)
             %     isForce = @(coor) s.pointload(rows,1);  %isForce guarda tots els valors dels nodes amb força aplicada
             %     sPL{i}.domain    = @(coor) isForce(coor);
             %     sPL{i}.direction = s.pointload(v(i),2); %La direcció de la força serà la segona columna de s.pointload
-            %     sPL{i}.value     = u(i);                %El valor de la força serà la u(v)             
-            % end 
-            % 
+            %     sPL{i}.value     = u(i);                %El valor de la força serà la u(v)
+            % end
+            %
             % isDir   = @(coor)  unique(s.dirichlet(:,1));  %llegeix les constraints de desplaçaments del GiD
-            % sDir{i}.domain    = @(coor) isDir(coor);   
-            % sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts. 
+            % sDir{i}.domain    = @(coor) isDir(coor);
+            % sDir{i}.direction = [1,2,3]; % [1,2] 2D  /  [1,2,3] 3D  %restricció en aquest punts.
             % sDir{i}.value     = 0;
-            
-           %---------------BOUNDARY CONDITIONS GiD-------------%
-           %---------------------------------------------------%
-           %---------------------------------------------------%
-           %-------------BOUNDARY CONDITIONS MATLAB------------%
-           
-           %---------------3D MBB CASE-------------%
+
+            %---------------BOUNDARY CONDITIONS GiD-------------%
+            %---------------------------------------------------%
+            %---------------------------------------------------%
+            %-------------BOUNDARY CONDITIONS MATLAB------------%
+
+            %---------------3D MBB CASE-------------%
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
@@ -300,8 +300,8 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             sPL{1}.value     = -1;
             %---------------3D MBB CASE-------------%
 
-           %-------------BOUNDARY CONDITIONS MATLAB------------%
-           %---------------------------------------------------%
+            %-------------BOUNDARY CONDITIONS MATLAB------------%
+            %---------------------------------------------------%
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -320,5 +320,52 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+        function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
+            femReader = FemInputReader_GiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            newbcGiD = BoundaryConditions(s);
+        end
+
+    end
+
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
+        end
+
     end
 end
