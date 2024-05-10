@@ -68,8 +68,8 @@ classdef HyperelasticProblem < handle
                 disp('------')
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
-                DeltaF = -obj.computeForces(loadPercent);
-                DeltaF = -obj.computeIntForcesShape(loadPercent);
+%                 DeltaF = -obj.computeForces(loadPercent);
+                DeltaF = -obj.computeExtForcesShape(loadPercent);
                 F = F + DeltaF;
                 R = R - DeltaF;
                 while norm(R)/norm(F) > 10e-8
@@ -156,7 +156,7 @@ classdef HyperelasticProblem < handle
             obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
-        function Fext = computeIntForcesShape(obj,perc)
+        function Fext = computeExtForcesShape(obj,perc)
             pl = obj.boundaryConditions.pointloadFun;
             pl.fValues = pl.fValues*perc;
             s.mesh = obj.mesh;
@@ -298,17 +298,22 @@ classdef HyperelasticProblem < handle
             isBottom = @(coor)  abs(coor(:,3))==0;
             isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
             
-            % 2D N ELEMENTS
-            sDir1.domain    = @(coor) isLeft(coor) & ~isMiddle(coor);
-            sDir1.direction = [1];
-            sDir1.value     = 0;
-            dir1 =  DirichletCondition(obj.mesh, sDir1);
+            % 3D N ELEMENTS
+%             sDir1.domain    = @(coor) isLeft(coor) & ~isMiddle(coor);
+%             sDir1.direction = [1];
+%             sDir1.value     = 0;
+%             dir1 =  DirichletCondition(obj.mesh, sDir1);
+% 
+%             sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
+%             sDir2.direction = [1,2,3];
+%             sDir2.value     = 0;
+%             dir2 =  DirichletCondition(obj.mesh, sDir2);
+%             s.dirichletFun = [dir1, dir2];
 
-            sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
+            sDir2.domain    = @(coor) isLeft(coor);
             sDir2.direction = [1,2,3];
             sDir2.value     = 0;
-            dir2 =  DirichletCondition(obj.mesh, sDir2);
-            s.dirichletFun = [dir1, dir2];
+            s.dirichletFun =  DirichletCondition(obj.mesh, sDir2);
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
