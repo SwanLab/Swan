@@ -65,65 +65,11 @@ classdef MultilevelMesh < handle
        end        
         
        function I = createInterpolator(obj,mesh)
-            p = mesh.coord;
-            t = mesh.connec;
+           s.meshType = mesh.type;
+           s.mesh     = mesh;
 
-            n = size(p,1);
-            q = size(t,1);
-            T = sparse(eye(n,n));
-            tnew = []; j = 1;
-            p_ori = p;
-            for i = 1:q % this will add all the midpoints into p
-                tcurr = t(i,:);
-                pmid = [
-                    (p(tcurr(1),:) + p(tcurr(2),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(1),:)) / 2;
-                    (p(tcurr(1),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(4),:)) / 2;
-                    ];
-                p = [p; pmid];
-            end
-
-            [~,ia] = unique(p,'rows','stable');
-            Ia = ia(n+1:end);
-            ias = ia(n+1:end) - n ;
-            potential_tri = ceil(ias./6);
-            d = 1;
-            midpt_curr = [];
-
-            for i = potential_tri' % now need to loop thru ia and find the triangle that
-                %corresponds to this midpoint
-                tcurr = t(i,:);
-                midpt_curr(1,:) = p(Ia(d),:);
-
-                pmid = [
-                    (p(tcurr(1),:) + p(tcurr(2),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(1),:)) / 2;
-                    (p(tcurr(1),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(4),:)) / 2;
-                    ];
-
-                if midpt_curr(1,:) == pmid(1,:)
-                    T(n + 1, [tcurr(1),tcurr(2)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(2,:)
-                    T(n + 1, [tcurr(2),tcurr(3)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(3,:)
-                    T(n + 1, [tcurr(1),tcurr(3)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(4,:)
-                    T(n + 1, [tcurr(1),tcurr(4)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(5,:)
-                    T(n + 1, [tcurr(2),tcurr(4)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(6,:)
-                    T(n + 1, [tcurr(3),tcurr(4)]) = 1/2;
-                end
-                n = n + 1;
-                d = d + 1;
-            end
-            I = T;
+           inter = Interpolator.create(s);
+           I     = inter.I;
         end
         
        
@@ -137,18 +83,18 @@ classdef MultilevelMesh < handle
                 s.coord = V(:,1:2);
                 s.connec = F;
                 m = Mesh.create(s);
-            elseif obj.ndim ==3
+            elseif obj.ndim == 3
                 m = TetraMesh(obj.Length,obj.Height,obj.Width,obj.nX,obj.nY,obj.nZ);
                
             end
         end
 
-        function m = createCoarseMesh3D(obj)
-            filename   = 'test3d_tetrahedra';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            m         = femD.mesh;
-        end
+        % function m = createCoarseMesh3D(obj)
+        %     filename   = 'test3d_tetrahedra';
+        %     a.fileName = filename;
+        %     femD       = FemDataContainer(a);
+        %     m         = femD.mesh;
+        % end
 
 %         function m = TetraMesh(obj,length, height, width, nx, ny, nz)
 %            cMeshGlobal =  obj.HexaMesh(length, height, width, nx, ny, nz);

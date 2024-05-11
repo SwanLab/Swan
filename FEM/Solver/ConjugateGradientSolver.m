@@ -12,25 +12,25 @@ classdef ConjugateGradientSolver < handle
         end
         
         function x = solve(obj,LHS,RHS,x)
-            r = RHS - LHS * x; 
-            p = r; 
+            r     = RHS - LHS * x; 
+            p     = r; 
             rsold = r' * r;
-            iter = 1;
+            iter  = 1;
 
             hasNotConverged = true;
 
             while iter < obj.maxIter && hasNotConverged
-                Ap = LHS * p;
+                Ap    = LHS * p;
                 alpha = rsold / (p' * Ap);
-                x = x + alpha * p;
-                r = r - alpha * Ap;
+                x     = x + alpha * p;
+                r     = r - alpha * Ap;
                 rsnew = r' * r;
 
                 hasNotConverged = norm(LHS*x - RHS) > obj.tol;
 
-                p = r + (rsnew / rsold) * p;
+                p     = r + (rsnew / rsold) * p;
                 rsold = rsnew;
-                iter = iter + 1;
+                iter  = iter + 1;
 %                 residu(iter) = norm(LHS*x - RHS); %Ax - b
 %                 res = LHS*x - RHS;
                 

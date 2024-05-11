@@ -198,7 +198,7 @@ classdef FemCreator < handle
 
         function createSolver(obj)
             for i = 2:obj.nLevel+1
-                s.maxIter             = 5;
+                s.maxIter             = 100;
                 s.tol                 = obj.tol;
                 s.solverType          = 'ITERATIVE';
                 s.iterativeSolverType = 'CG';

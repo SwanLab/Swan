@@ -15,6 +15,10 @@ classdef Solver < handle
                 case {'ITERATIVE'}
 %                     error('Not implemented yet')
                     switch cParams.iterativeSolverType
+                        case{'JACOBI'}
+                            stype = JacobiSolver(cParams);
+                        case{'GAUSS'}
+                            stype = GaussSolver(cParams);
                         case{'PCG'}
                             stype = PCG(cParams);
                         case{'CG'}    

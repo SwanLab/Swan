@@ -59,7 +59,7 @@ classdef MultigridTesting4 < handle
 
             s.type                = 'ELASTIC';
             s.scale               = 'MACRO';
-            s.dim                 = '3D';
+            s.dim                 = '3D'; % Canviar per fer 2D
             s.solverType          = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
             s.solverCase          = 'REDUCED';
@@ -96,21 +96,21 @@ classdef MultigridTesting4 < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nDimf        = 3;
+            obj.nDimf        = 3; % Canviar per fer 2D
             obj.nbasis       = 20;
             obj.functionType = 'P1';
             obj.nLevel       = 3;
-            obj.ndim         = 3;
+            obj.ndim         = 3; % Canviar per fer 2D
         end
 
         function createMultiLevelMesh(obj)
-            s.nX               = 1;
-            s.nY               = 1;
-            s.nZ               = 1;
+            s.nX               = 1; % Canviar per fer 2D
+            s.nY               = 1; % Canviar per fer 2D
+            s.nZ               = 1; % Canviar per fer 2D
             s.nLevel           = obj.nLevel;
-            s.length           = 1;
-            s.height           = 1;
-            s.width            = 1;
+            s.length           = 1; % Canviar per fer 2D
+            s.height           = 1; % Canviar per fer 2D
+            s.width            = 1; % Canviar per fer 2D
             s.ndim             = obj.ndim;
             m                  = MultilevelMesh(s);
             obj.multiLevelMesh = m;
