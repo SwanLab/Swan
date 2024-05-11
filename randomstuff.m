@@ -30,14 +30,26 @@ nDimG = msh.ndim;
 nDimf = p1.ndimf;
 
 GradU = reshape(Grad(p1).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-F = eye(2) + GradU
+F = eye(2) + GradU;
 
 % Bonet, p. 197 - We need to transpose F!
 F = permute(F, [2 1])
-C = F'.*F
+C = F'.*F;
 
 for I = 1:2
     for J = 1:2
         C(I,J) = sum(F(:,I).*F(:,J));
     end
 end
+
+%% 
+
+mu = 1;
+lambda = 1;
+GradU2 = ActualGrad(p1);
+I33 = Identity(p1);
+F = GradU2 + I33;
+b = F*F';
+
+jac = Det(F);
+sigma = mu.*(b-Identity(p1))./jac + lambda.*(log(jac)).*Identity(p1)./jac;
