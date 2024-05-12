@@ -6,7 +6,8 @@ classdef MultimaterialTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'MultiMat'})
         function test3Materials(testCase)
-            psiC = mainTFGMultimaterial();
+            levelSet = mainTFGMultimaterial();
+            psiC = levelSet.psi;
             load('resultMultiMat.mat','psiReal');
             err = norm(psiC-psiReal)/norm(psiReal);
             tol      = 1e-6;

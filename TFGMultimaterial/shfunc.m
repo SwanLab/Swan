@@ -22,11 +22,11 @@
 % A. Romero  6/2018: code updating multimaterial.
 %**************************************************************************
 
-function [sf,Epot] = shfunc(F,U,volume,params)
+function [sf,Epot] = shfunc(F,U,volume,params,TOParams)
 
-    penalty = params.penalty; max_vol = params.max_vol;  auglag= params.auglag;
+    penalty = params.penalty; max_vol = TOParams.max_vol;  auglag= params.auglag;
     volfrac = params.volfrac; voltarget = max_vol.*volfrac;
-    sf = 0.5*dot(F,U) / params.energy0 ; %normalizing compliance
+    sf = 0.5*dot(F,U) / TOParams.energy0 ; %normalizing compliance
     Epot = sf;
     if params.penalization == 1 % linear penalization
         sf = sf + sum( penalty .* volume(1:end-1) ./ max_vol ) ; 

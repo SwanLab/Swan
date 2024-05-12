@@ -3,6 +3,8 @@ classdef ElasticTensorComputer < handle
     properties (Access = public)
         effectiveTensor
         charFunc
+        C
+        stateProblem
     end
 
     properties (Access = private)
@@ -13,6 +15,7 @@ classdef ElasticTensorComputer < handle
         designVariable
         m
         bc
+        bounCon
         E
     end
 
@@ -30,10 +33,11 @@ classdef ElasticTensorComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.E(1) = cParams.matProp.matA.young;
-            obj.E(2) = cParams.matProp.matB.young;
-            obj.E(3) = cParams.matProp.matC.young;
-            obj.E(4) = cParams.matProp.matD.young;
+            mat = cParams.matProp;
+            obj.E(1) = mat.A.young;
+            obj.E(2) = mat.B.young;
+            obj.E(3) = mat.C.young;
+            obj.E(4) = mat.D.young;
 
             obj.mesh     = cParams.mesh;
             obj.pdeCoeff = cParams.pdeCoeff;
@@ -63,18 +67,29 @@ classdef ElasticTensorComputer < handle
             c0 =  obj.pdeCoeff.tensor(:,1);
             obj.effectiveTensor = c0*tgamma; % effective elasticity tensor
 
-            % Prova
+            % Prova Swan
             cSeba = obj.effectiveTensor;
             lambdaVals = cSeba(6,:);
             muVals     = cSeba(4,:);
+            
             s.order = 'P0';
-            s.fValues = lambdaVals;
-            s.mesh    = obj.mesh;
+            s.fValues = lambdaVals';
+            s.mesh    = obj.m;
             lambdaField = LagrangianFunction(s);
-            % ...
-            % muField
-            % MaterialGiven
-            %
+
+            s.order = 'P0';
+            s.fValues = muVals';
+            s.mesh = obj.m;
+            muField = LagrangianFunction(s); 
+
+            % Material Given
+            s.type    = 'Given';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = 2;
+            s.lambdaField = lambdaField;
+            s.muField = muField; 
+            obj.C    = Material.create(s);
         end
+
     end
 end

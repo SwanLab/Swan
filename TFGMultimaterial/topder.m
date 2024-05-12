@@ -24,12 +24,12 @@
 % A.A. Novotny
 %**************************************************************************
 
-function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef,designVariable,m)
+function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef,designVariable,m, TOParams)
 
     p = mesh.p; t = mesh.t;
     penalization = params.penalization; penalty = params.penalty;
-    volfrac = params.volfrac; auglag = params.auglag; max_vol = params.max_vol; 
-    energy0 = params.energy0; voltarget = max_vol*volfrac;
+    volfrac = params.volfrac; auglag = params.auglag; max_vol = TOParams.max_vol; 
+    energy0 = TOParams.energy0; voltarget = max_vol*volfrac;
     nmat = 4; % changed 
     %% topological derivative of the compliance shape functional
     % Topological derivatives are stored as following:
@@ -61,14 +61,14 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef,designVariable,m)
     elseif size(pdecoef.f,1)==2 % vectorial second order pde
         TD = cell(nmat,nmat);
         %% material properties
-        E1 = matprop.matA.young; nu = matprop.matA.nu;
+        E1 = matprop.A.young; nu = matprop.A.nu;
         % Lame's coefficients
         la0 = nu.*E1./((1+nu).*(1-2.*nu)); mu0 = E1./(2.*(1+nu)); % plane strain
         la0 = 2.*mu0.*la0./(la0+2.*mu0); % plane stress
-        gamma(1)  = matprop.matA.young/E1;
-        gamma(2)  = matprop.matB.young/E1; 
-        gamma(3)  = matprop.matC.young/E1; 
-        gamma(4)  = matprop.matD.young/E1; 
+        gamma(1)  = matprop.A.young/E1;
+        gamma(2)  = matprop.B.young/E1; 
+        gamma(3)  = matprop.C.young/E1; 
+        gamma(4)  = matprop.D.young/E1; 
         % element characteristic function: 1 if psi>0 and gama if psi<=0 
         cParams.psi = psi;
         cParams.p = p;
@@ -80,7 +80,7 @@ function dt = topder(mesh,U,volume,matprop,psi,params,pdecoef,designVariable,m)
 %         tgamma = pdeintrp(p,t,fi*gamma'); %P1 projection method
         tgamma = gamma*tfi; %Mixed formulation method
         tE = E1*tgamma; beta = (1+nu)/(1-nu); alpha = (3-nu)/(1+nu);
-        E = [matprop.matA.young matprop.matB.young matprop.matC.young matprop.matD.young];
+        E = [matprop.A.young matprop.B.young matprop.C.young matprop.D.young];
         %% nominal stress
         [ux,uy]=pdegrad(p,t,U); % solution gradient
         e=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain

@@ -11,9 +11,18 @@ classdef MaterialGiven < handle
             obj.init(cParams);
         end
 
-        function matEv = evaluate(obj,xV)
+        function C = evaluate(obj,xV)
             lambdaEv = obj.lambda.evaluate(xV);
-            muEv     = 
+            muEv     = obj.mu.evaluate(xV);
+            nGaus = size(xV,2);
+            nElem = length(muEv);
+            nStre = 3;
+            C = zeros(nStre,nStre,nGaus,nElem);
+            C(1,1,:,:)= 2*muEv+lambdaEv;
+            C(1,2,:,:)= lambdaEv;
+            C(2,1,:,:)= lambdaEv;
+            C(2,2,:,:)= 2*muEv+lambdaEv;
+            C(3,3,:,:)= muEv;
         end
     end
 

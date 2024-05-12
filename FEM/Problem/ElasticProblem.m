@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        forces
     end
 
     properties (Access = private)
@@ -11,7 +12,6 @@ classdef ElasticProblem < handle
         boundaryConditions, BCApplier
 
         stiffness
-        forces
         solver, solverType, solverMode, solverCase
         scale
         
