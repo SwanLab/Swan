@@ -53,80 +53,81 @@ classdef mainTFGMultimaterial < handle
         end
 
         function C = computeElasticTensor(obj)
-            s.psi = obj.psi;
-            s.mesh = obj.mesh;
-            s.matProp = obj.mat;
-            s.pdeCoeff = obj.pdeCoeff;
-            s.bc  = obj.bc;
-            s.m = obj.meshSwan;
-            s.designVariable = obj.designVariable;
+            s.psi               = obj.psi;
+            s.mesh              = obj.mesh;
+            s.matProp           = obj.mat;
+            s.pdeCoeff          = obj.pdeCoeff;
+            s.bc                = obj.bc;
+            s.m                 = obj.meshSwan;
+            s.designVariable    = obj.designVariable;
             
             constituitiveTensor = ElasticTensorComputer(s);
             C = constituitiveTensor.C;
         end
 
         function [U,F] = solveFEM(obj)
-            s.mesh = obj.meshSwan;
-            s.scale = 'MACRO';
-            s.material = obj.tensor;
-            s.dim = '2D';
+            s.mesh               = obj.meshSwan;
+            s.scale              = 'MACRO';
+            s.material           = obj.tensor;
+            s.dim                = '2D';
             s.boundaryConditions = obj.bcSwan;
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'DISP';
 
-            fem = ElasticProblem(s);
+            fem         = ElasticProblem(s);
             fem.solve();
-            displ = fem.uFun.fValues; 
-            U = reshape(displ, [26082, 1]);
-            force = fem.forces; 
-            Fx = force(1:2:end); % Fx values are at odd indices
-            Fy = force(2:2:end); % Fy values are at even indices
+            displ      = fem.uFun.fValues; 
+            U          = reshape(displ, [26082, 1]);
+            force      = fem.forces; 
+            Fx         = force(1:2:end); % Fx values are at odd indices
+            Fy         = force(2:2:end); % Fy values are at even indices
             forcesVect = [Fx Fy];
-            F = reshape(forcesVect, [26082, 1]);
+            F          = reshape(forcesVect, [26082, 1]);
         end
 
         function volume = computeVolume(obj)
             [~,tfi] = computeCharacteristicFunction(obj);  
-            s.tfi = tfi;
-            s.mesh = obj.mesh;
-            vol = VolumeComputer(s);
-            volume = vol.computeVolume();     
+            s.tfi   = tfi;
+            s.mesh  = obj.mesh;
+            vol     = VolumeComputer(s);
+            volume  = vol.computeVolume();     
         end
 
         function [fi, tfi] = computeCharacteristicFunction(obj)
-            s.psi = obj.psi;
-            s.p = obj.mesh.p;
-            s.t = obj.mesh.t;
+            s.psi            = obj.psi;
+            s.p              = obj.mesh.p;
+            s.t              = obj.mesh.t;
             s.designVariable = obj.designVariable;
-            s.m = obj.meshSwan;
+            s.m              = obj.meshSwan;
     
-            charfun = CharacteristicFunctionComputer(s); 
-            [fi,tfi] = charfun.computeFiandTfi();
+            charfun          = CharacteristicFunctionComputer(s); 
+            [fi,tfi]         = charfun.computeFiandTfi();
         end
 
         function [sf, energyPot] = updateShapeFunctions(obj)
-            U = obj.displacements;
-            F = obj.forces;
-            V = obj.volume;
-            parameters = obj.params;
-            TOParams = obj.optParams;
+            U              = obj.displacements;
+            F              = obj.forces;
+            V              = obj.volume;
+            parameters     = obj.params;
+            TOParams       = obj.optParams;
+            
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
         function TopDer = computeTopologicalDerivative(obj)
-            meshSeba = obj.mesh;
-            U = obj.displacements;
-            V = obj.volume;
-            matProp = obj.mat;
-            ls = obj.psi;
+            meshSeba   = obj.mesh;
+            U          = obj.displacements;
+            V          = obj.volume;
+            matProp    = obj.mat;
+            ls         = obj.psi;
             parameters = obj.params;
-            PDECoeff = obj.pdeCoeff;
-            desVar = obj.designVariable;
-            m = obj.meshSwan;
-            TOParams = obj.optParams;
+            PDECoeff   = obj.pdeCoeff;
+            desVar     = obj.designVariable;
+            m          = obj.meshSwan;
+            TOParams   = obj.optParams;
 
-            dt = topder(meshSeba,U,V,matProp,ls,parameters,PDECoeff,desVar,m, TOParams); 
-            TopDer = dt/normL2(obj.unitM,dt);  
+            dt         = topder(meshSeba,U,V,matProp,ls,parameters,PDECoeff,desVar,m, TOParams); 
+            TopDer     = dt/normL2(obj.unitM,dt);  
         end
 
     end
@@ -250,7 +251,7 @@ classdef mainTFGMultimaterial < handle
                 obj.updateDesignVariable();
 
                 [fi, ~] = computeCharacteristicFunction(obj);
-                obj.fiFunction = fi;
+                obj.fiFunction = fi';
 
                 % Plot the evolution of iterations
                 obj.updatePlotAndDisplay();
@@ -285,6 +286,7 @@ classdef mainTFGMultimaterial < handle
             s.connec     = obj.mesh.t';
             s.connec     = s.connec(:,1:3);
             s.coord      = obj.mesh.p';
+            
             obj.meshSwan = Mesh.create(s);
         end
 
@@ -295,44 +297,46 @@ classdef mainTFGMultimaterial < handle
             bounCon    = BoundaryConditionsComputer(s);
             obj.bc     = bounCon.bc;
             s.mesh     = obj.meshSwan; 
+            
             BoundCond  = BoundaryConditionsSwan(s);
             obj.bcSwan = BoundCond.createBoundaryConditions();
         end
 
         function createMaterial(obj)
-            matProp = MaterialPropertiesComputer(); 
-            obj.mat.A = matProp.matA; % MATERIAL 1
-            obj.mat.B = matProp.matB; % MATERIAL 2
-            obj.mat.C = matProp.matC; % MATERIAL 3
-            obj.mat.D = matProp.matD; % VOID
-            s.mat = obj.mat;
-            s.m = obj.meshSwan;
+            matProp      = MaterialPropertiesComputer(); 
+            obj.mat.A    = matProp.matA; % MATERIAL 1
+            obj.mat.B    = matProp.matB; % MATERIAL 2
+            obj.mat.C    = matProp.matC; % MATERIAL 3
+            obj.mat.D    = matProp.matD; % VOID
+            s.mat        = obj.mat;
+            s.m          = obj.meshSwan;
+            
             obj.pdeCoeff = PDECoefficientsComputer(s);  
         end
 
         function computeInitialLevelSet(obj)
-            s.mesh = obj.meshSwan;
-            s.type = 'Full';
-            lsFun{1} = -ones(size(s.mesh.coord,1),1);
-            lsFun{2} = ones(size(s.mesh.coord,1),1);
-            lsFun{3} = ones(size(s.mesh.coord,1),1);
+            s.mesh                 = obj.meshSwan;
+            s.type                 = 'Full';
+            lsFun{1}               = -ones(size(s.mesh.coord,1),1);
+            lsFun{2}               = ones(size(s.mesh.coord,1),1);
+            lsFun{3}               = ones(size(s.mesh.coord,1),1);
             
-            s.type = 'LevelSet';
-            s.plotting = false;
-            s.fValues = lsFun{1};
-            s.order   = 'P1';
-            s.fun   = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            s.type                 = 'LevelSet';
+            s.plotting             = false;
+            s.fValues              = lsFun{1};
+            s.order                = 'P1';
+            s.fun                  = LagrangianFunction(s);
+            ls1                    = DesignVariable.create(s);
             obj.initialLevelSet{1} = ls1;
             
-            s.fValues = lsFun{2};
-            s.fun  = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            s.fValues              = lsFun{2};
+            s.fun                  = LagrangianFunction(s);
+            ls1                    = DesignVariable.create(s);
             obj.initialLevelSet{2} = ls1;
             
-            s.fValues = lsFun{3};
-            s.fun  = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            s.fValues              = lsFun{3};
+            s.fun                  = LagrangianFunction(s);
+            ls1                    = DesignVariable.create(s);
             obj.initialLevelSet{3} = ls1;
         end
 
@@ -348,40 +352,40 @@ classdef mainTFGMultimaterial < handle
         end
 
         function computeFreeNodes(obj)
-            m = obj.mesh;
+            m         = obj.mesh;
             obj.phold = []; % freeze nodes
+            
             for i = 1:size(m.ghold,1)
                 obj.phold = cat(1,obj.phold,unique(m.t(1:3,m.t(4,:)==m.ghold(i))));
             end
+            
             obj.pfree = setdiff(1:size(m.p,2),obj.phold); % free nodes
         end
 
         function solveInitialElasticProblem(obj)
-            m = obj.mesh;
-            psi_hold_all = ones(length(m.p),obj.nMat-1);
-            psi_hold_all(:,1) = -1;
+            m                  = obj.mesh;
+            psi_hold_all       = ones(length(m.p),obj.nMat-1);
+            psi_hold_all(:,1)  = -1;
             
-            obj.psi = psi_hold_all;
+            obj.psi            = psi_hold_all;
             obj.designVariable = obj.initialLevelSet;
             
             C = computeElasticTensor(obj);
             obj.tensor = C;
 
             [obj.displacements,obj.forces] = solveFEM(obj);
-
-            obj.volume = computeVolume(obj);
+            obj.volume                     = computeVolume(obj);
         end
 
         function createOptimizationParameters(obj)
-            F = obj.forces;
-            U = obj.displacements;
-            obj.optParams.energy0 = 0.5 * dot(F,U); % initial energy 
-            max_vol = 2; %volinit = volinit.*gamma; %calculate maximum vol for each fase
-            obj.optParams.max_vol = max_vol; % store maximum volume for each fase
-            obj.optParams.voltarget = max_vol.*obj.params.volfrac;
+            F                       = obj.forces;
+            U                       = obj.displacements;
+            obj.optParams.energy0   = 0.5 * dot(F,U); % initial energy 
+            max_vol                 = 2;
+            obj.optParams.max_vol   = max_vol; 
+            obj.optParams.voltarget = max_vol.*obj.params.volfrac; 
+            obj.optParams.volstop   = obj.params.voleps.*max_vol;
             
-            % stop criterion over the volume constraint 
-            obj.optParams.volstop = obj.params.voleps.*max_vol;
             if obj.params.penalization == 1
                 obj.optParams.volstop = max_vol;
             end
@@ -398,26 +402,29 @@ classdef mainTFGMultimaterial < handle
             
             levelSet = obj.psi; 
             levelSet = levelSet./normL2( obj.unitM,levelSet ); % level-set function nomalization  
-            obj.psi = levelSet;
-            s.type = 'Full';
+            obj.psi  = levelSet;
+            s.type   = 'Full';
             lsFun{1} = levelSet(:,1);
             lsFun{2} = levelSet(:,2);
             lsFun{3} = levelSet(:,3);
-            s.mesh = obj.meshSwan;
-            s.type = 'LevelSet';
-            s.plotting = false;
-            s.fValues = lsFun{1};
-            s.order   = 'P1';
-            s.fun   = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            
+            s.mesh                = obj.meshSwan;
+            s.type                = 'LevelSet';
+            s.plotting            = false;
+            s.fValues             = lsFun{1};
+            s.order               = 'P1';
+            s.fun                 = LagrangianFunction(s);
+            ls1                   = DesignVariable.create(s);
             obj.designVariable{1} = ls1;
-            s.fValues = lsFun{2};
-            s.fun  = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            
+            s.fValues             = lsFun{2};
+            s.fun                 = LagrangianFunction(s);
+            ls1                   = DesignVariable.create(s); 
             obj.designVariable{2} = ls1;
-            s.fValues = lsFun{3};
-            s.fun  = LagrangianFunction(s);
-            ls1 = DesignVariable.create(s);
+            
+            s.fValues             = lsFun{3};
+            s.fun                 = LagrangianFunction(s);
+            ls1                   = DesignVariable.create(s);
             obj.designVariable{3} = ls1;
         end
 
@@ -425,10 +432,10 @@ classdef mainTFGMultimaterial < handle
             for i = 1 : (obj.nMat-1)
                 cos(i) = obj.psi(:,i)'*obj.unitM*obj.DT(:,i);
             end
-            cos = max(min(sum(cos),1.0),-1.0);
-            obj.cosAngle = cos;
+            cos            = max(min(sum(cos),1.0),-1.0);
+            obj.cosAngle   = cos;
 
-            theta = max(real(acos(cos)),1.0e-4);
+            theta          = max(real(acos(cos)),1.0e-4);
             obj.thetaAngle = theta;
         end
 
@@ -444,9 +451,9 @@ classdef mainTFGMultimaterial < handle
             facecolor = [186 212 244]/255;
             linecolor = [0 62 102]/255;
 
-            p = obj.mesh.p;
-            t = obj.mesh.t;
-            fi = obj.fiFunction;
+            p          = obj.mesh.p;
+            t          = obj.mesh.t;
+            fi         = obj.fiFunction;
                      
             multimat_plot( p,t,fi );
             drawnow

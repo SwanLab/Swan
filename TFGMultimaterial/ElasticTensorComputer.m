@@ -53,7 +53,7 @@ classdef ElasticTensorComputer < handle
             s.designVariable = obj.designVariable;
             s.m = obj.m;
 
-            charfun = CharacteristicFunctionComputer(s); % s'ha de construir la classe - charfunc!!
+            charfun = CharacteristicFunctionComputer(s); 
             [~,tfi] = charfun.computeFiandTfi();
             obj.charFunc = tfi;
         end
@@ -66,8 +66,8 @@ classdef ElasticTensorComputer < handle
             tgamma = obj.gamma*obj.charFunc; % for mixed formulation approach
             c0 =  obj.pdeCoeff.tensor(:,1);
             obj.effectiveTensor = c0*tgamma; % effective elasticity tensor
-
-            % Prova Swan
+            
+            % Swan Elastic Tensor
             cSeba = obj.effectiveTensor;
             lambdaVals = cSeba(6,:);
             muVals     = cSeba(4,:);
