@@ -40,7 +40,7 @@ classdef HyperelasticProblem < handle
             neo = NeohookeanFunctional(s);
             obj.neohookeanFun = neo;
 %             fint = obj.computeIntForcesShape(perc);
-            hess = neo.computeHessian(obj.uFun);
+            % hess = neo.computeHessian(obj.uFun);
             
             
 
@@ -60,50 +60,90 @@ classdef HyperelasticProblem < handle
             obj.applyDirichletToUFun();
 
             nsteps = 5;
-            F = zeros(obj.uFun.nDofs,1);
-            R = zeros(obj.uFun.nDofs,1);
+            % F = zeros(obj.uFun.nDofs,1);
+            % R = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
                 disp('------')
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
-%                 DeltaF = -obj.computeForces(loadPercent);
-                DeltaF = obj.computeExtForcesShape(loadPercent);
-                F = F + DeltaF;
-                R = R - DeltaF;
-                while norm(R)/norm(F) > 10e-8
-                    % Energy
+                residual = 1;
+                while residual > 10e-6
                     val = max(neo.compute(obj.uFun))
-    
+
+                    % Residual
+                    Fint = obj.computeInternalForces();
+                    Fext = obj.computeForces(loadPercent);
+                    R = Fext - Fint;
+                    R_red = R(free);
+
                     % Hessian
                     hess = neo.computeHessian(obj.uFun);
                     h_red = hess(free,free);
 
-                    deltaUk_free = -h_red\R(free);
+                    % DeltaU
+                    DeltaU_free = h_red\R_red;
                     deltaUk = zeros(size(R));
-                    deltaUk(free) = deltaUk_free;
-%                     u_next = u_k + deltaUk;
-                    u_next = deltaUk;
-    
-%                     u_next = u_k - alpha*res;
-                    u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+                    deltaUk(free) = DeltaU_free;
+
+                    % Next iteration
+                    u_next = u_k + deltaUk;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-
-
-                    sigma = obj.computeCauchyStress();
-    
-                    % Residual
-                    T = obj.computeInternalForces();
-                    R  = T - F;
-
-                    r = norm(R)/norm(F)
                     u_k = u_next;
+                    residual = norm(R)
+
+                    % Plot
                     i = i+1;
-                    addpoints(f,i,r);
+                    addpoints(f,i,residual);
                     drawnow
                 end
             end
+
+            
+
+%             for iStep = 1:nsteps
+%                 disp('------')
+%                 disp('------')
+%                 disp('------')
+%                 disp('NEW LOAD STEP')
+%                 loadPercent = iStep/nsteps;
+% %                 DeltaF = -obj.computeForces(loadPercent);
+%                 DeltaF = obj.computeExtForcesShape(loadPercent);
+%                 F = F + DeltaF;
+%                 R = R - DeltaF;
+%                 while norm(R)/norm(F) > 10e-8
+%                     % Energy
+%                     val = max(neo.compute(obj.uFun))
+% 
+%                     % Hessian
+%                     hess = neo.computeHessian(obj.uFun);
+%                     h_red = hess(free,free);
+% 
+%                     deltaUk_free = -h_red\R(free);
+%                     deltaUk = zeros(size(R));
+%                     deltaUk(free) = deltaUk_free;
+% %                     u_next = u_k + deltaUk;
+%                     u_next = deltaUk;
+% 
+% %                     u_next = u_k - alpha*res;
+%                     u_next(bc.dirichlet_dofs) = bc.dirichlet_vals;
+%                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+% 
+% 
+%                     sigma = obj.computeCauchyStress();
+% 
+%                     % Residual
+%                     T = obj.computeInternalForces();
+%                     R  = T - F;
+% 
+%                     r = norm(R)/norm(F)
+%                     u_k = u_next;
+%                     i = i+1;
+%                     addpoints(f,i,r);
+%                     drawnow
+%                 end
+%             end
 % 
         end
 
