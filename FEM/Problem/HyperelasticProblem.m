@@ -69,13 +69,13 @@ classdef HyperelasticProblem < handle
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
                 residual = 1;
-                while residual > 10e-8
+                while residual > 10e-12
                     val = max(neo.compute(obj.uFun))
 
                     % Residual
                     Fint = obj.computeInternalForces();
                     Fext = obj.computeExtForcesShape(loadPercent);
-                    R = Fext - Fint;
+                    R = Fint - Fext;
                     R_red = R(free);
 
                     % Hessian
@@ -83,7 +83,7 @@ classdef HyperelasticProblem < handle
                     h_red = hess(free,free);
 
                     % DeltaU
-                    DeltaU_free = h_red\R_red;
+                    DeltaU_free = -h_red\R_red;
                     deltaUk = zeros(size(R));
                     deltaUk(free) = DeltaU_free;
 
@@ -157,7 +157,7 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
             obj.mesh = UnitHexaMesh(12,12,12);
-            % obj.mesh = UnitQuadMesh(6,6);
+            % obj.mesh = UnitQuadMesh(12,12);
 %             obj.material.lambda = 3/4;
 %             obj.material.mu = 3/8;
             E = 10.0;
@@ -167,7 +167,7 @@ classdef HyperelasticProblem < handle
         end
         
         function createBoundaryConditions(obj)
-%             obj.createBC2D_oneelem();
+            % obj.createBC2D_oneelem();
             % obj.createBC2D_nelem();
 %             obj.createBC3D_oneelem();
             obj.createBC3D_nelem();
@@ -369,7 +369,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 0.1;
+            sPL.value     = 10;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
