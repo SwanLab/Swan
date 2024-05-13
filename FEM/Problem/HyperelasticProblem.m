@@ -159,7 +159,8 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
             % obj.mesh = UnitHexaMesh(1,1,1);
-            obj.mesh = UnitQuadMesh(12,12);
+%             obj.mesh = UnitQuadMesh(12,12);
+            obj.mesh = QuadMesh(2,1,2,1);
 %             obj.material.lambda = 3/4;
 %             obj.material.mu = 3/8;
             E = 10.0;
@@ -170,7 +171,8 @@ classdef HyperelasticProblem < handle
         
         function createBoundaryConditions(obj)
 %             obj.createBC2D_oneelem();
-            obj.createBC2D_nelem();
+            obj.createBCflexio();
+%             obj.createBC2D_nelem();
             % obj.createBC3D_oneelem();
             % obj.createBC3D_nelem();
         end
@@ -274,6 +276,40 @@ classdef HyperelasticProblem < handle
             s.dirichletFun = [dir1, dir2];
 
             sPL.domain    = @(coor) isRight(coor);
+            sPL.direction = 1;
+            sPL.value     = 1;
+            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+
+            bc = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
+
+        function bc = createBCflexio(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft   = @(coor)  abs(coor(:,1))==0;
+            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            isHalf   = @(coor)  abs(coor(:,1))==xMax/2;
+            isTop    = @(coor)  abs(coor(:,2))==yMax;
+            isBottom = @(coor)  abs(coor(:,2))==0;
+            isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
+
+            % 2D ONE ELEMENT
+            sDir1.domain    = @(coor) isLeft(coor);
+            sDir1.direction = [1,2];
+            sDir1.value     = 0;
+            dir1 =  DirichletCondition(obj.mesh, sDir1);
+
+            sDir2.domain    = @(coor) isRight(coor);
+            sDir2.direction = [1,2];
+            sDir2.value     = 0;
+            dir2 =  DirichletCondition(obj.mesh, sDir2);
+            s.dirichletFun = [dir1, dir2];
+
+            sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
             sPL.direction = 1;
             sPL.value     = 1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
