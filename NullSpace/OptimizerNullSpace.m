@@ -132,8 +132,9 @@ classdef OptimizerNullSpace < Optimizer
         function DxJ = computeNullSpaceFlow(obj)
             DJ     = obj.cost.gradient;
             Dg     = obj.constraint.gradient;
-            Prange = Dg*((Dg'*Dg)\Dg');
-            DxJ    = norm((eye(size(Prange))-Prange)*DJ);
+            %Prange = Dg*((Dg'*Dg)\Dg');
+            %DxJ    = norm((eye(size(Prange))-Prange)*DJ);
+            DxJ    = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
         end
 
         function Dxg = computeRangeSpaceFlow(obj)
