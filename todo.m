@@ -1,4 +1,8 @@
 %% To-do
+    % In this commit: first iteration seems okay, the following iterations
+    % become increasingly crap.
+
+
 
     % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
     
