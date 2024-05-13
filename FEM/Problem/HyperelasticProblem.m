@@ -158,8 +158,8 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(12,12,12);
-            % obj.mesh = UnitQuadMesh(12,12);
+            % obj.mesh = UnitHexaMesh(1,1,1);
+            obj.mesh = UnitQuadMesh(1,1);
 %             obj.material.lambda = 3/4;
 %             obj.material.mu = 3/8;
             E = 10.0;
@@ -169,10 +169,10 @@ classdef HyperelasticProblem < handle
         end
         
         function createBoundaryConditions(obj)
-            % obj.createBC2D_oneelem();
+            obj.createBC2D_oneelem();
             % obj.createBC2D_nelem();
-%             obj.createBC3D_oneelem();
-            obj.createBC3D_nelem();
+            % obj.createBC3D_oneelem();
+            % obj.createBC3D_nelem();
         end
 
         function createDisplacementFun(obj)
