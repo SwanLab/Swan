@@ -92,6 +92,8 @@ classdef HyperelasticProblem < handle
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     u_k = u_next;
                     residual = norm(R)
+%                     sigma = obj.computeCauchyStress();
+                    lambdas = obj.computeStretches();
 
                     % Plot
                     i = i+1;
@@ -210,6 +212,14 @@ classdef HyperelasticProblem < handle
 
         function intfor = computeInternalForces(obj)
             intfor = obj.neohookeanFun.computeInternalForces(obj.uFun,obj.boundaryConditions);
+        end
+
+        function lambdas = computeStretches(obj)
+            GradU2 = ActualGrad(obj.uFun);
+            Id = Identity(obj.uFun);
+            F = GradU2 + Id;
+            C = F'*F;
+            lambdas = (Eigen(C).^0.5);
         end
 
         function sigma = computeCauchyStress(obj)
