@@ -41,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.designVariable.fun.print(['TFGBenchmark/Basura/3DLevelSetNullSpace_',char(string(obj.nIter))]);
+                obj.designVariable.fun.print(['ConceptualDesign/BASURA/3DDensityNullSpace_',char(string(obj.nIter))]);
                 obj.designVariable.updateOld();
             end
         end
@@ -57,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
+            obj.etaMax         = inf;   %CANVIAT DE 0 A INF
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
