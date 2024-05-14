@@ -3,21 +3,20 @@ clear
 
 H = 1;
 trobat = false;
-h_aoa = 0.1;
-h_ratio = 0.1;
-pas = 1;
-nombrenodes = 60;
+h_a = 0.01;
+h_b = 0.01;
+pas = 0.0005;
+nombrenodes = 100;
 
-AOAd = 30;% (x_0)
+AOAd = 0;
 dim_a = 0.1;
-ratio = 1; % r = a/b (y_0)
-E = 5;
+dim_b = 0.1;
+D = 5;
 
 while trobat==false
-    ratio_ant = ratio;
-    E_ant = E;
-    %dim_b = dim_a/ratio;
-    AOAd_ant = AOAd;
+    dim_b_ant = dim_b;
+    D_ant = D;
+    dim_a_ant = dim_a;
 
     %% calc (E)
 
@@ -234,20 +233,16 @@ while trobat==false
     sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
     pNx           = DomainFunction(sss);
     D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
-    sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
-    pNy           = DomainFunction(sss);
-    L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
+%     sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
+%     pNy           = DomainFunction(sss);
+%     L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
 
+    clearvars('-except', 'D','H','dim_a','dim_b','trobat','h_a','h_b','AOAd','dim_a_ant','D_xh','D_yh','gradD','pas','dim_b_ant','dim_a_rec','dim_b_rec','nombrenodes','D_ant');
 
+    dim_a = dim_a + h_a;
 
-    E = L/D;
-
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
-
-    AOAd = AOAd + h_aoa;
-
-    %% calc (E_x+h)
+    %% calc (D_x+h)
     % % INPUT DATA
     center_posx = 0.7; % x position of the ellipse center
     center_posy = 0.5; % y position of the ellipse center
@@ -460,23 +455,18 @@ while trobat==false
     ny.fValues = normal_vectors(:,2);
     sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
     pNx           = DomainFunction(sss);
-    D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
-    sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
-    pNy           = DomainFunction(sss);
-    L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
+    D_xh             = Integrator.compute(pNx,bMesh,'QUADRATIC');
+%     sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
+%     pNy           = DomainFunction(sss);
+%     L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
 
 
+    clearvars('-except', 'D','H','dim_a','dim_b','trobat','h_a','h_b','AOAd','dim_a_ant','D_xh','D_yh','gradD','pas','dim_b_ant','dim_a_rec','dim_b_rec','nombrenodes','D_ant');
 
-
-
-    E_xh = L/D;
-
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
-
-    ratio = ratio + h_ratio;
-    dim_b = dim_a/ratio;
-    AOAd = AOAd_ant;
+   
+    dim_b = dim_b+h_b;
+    dim_a = dim_a_ant;
 
 
     %% calc (E_y+h)
@@ -692,32 +682,29 @@ while trobat==false
     ny.fValues = normal_vectors(:,2);
     sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
     pNx           = DomainFunction(sss);
-    D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
-    sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
-    pNy           = DomainFunction(sss);
-    L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
+    D_yh            = Integrator.compute(pNx,bMesh,'QUADRATIC');
+%     sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
+%     pNy           = DomainFunction(sss);
+%     L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
+    plot(bMesh)
 
+    clearvars('-except', 'D','H','dim_a','dim_b','trobat','h_a','h_b','AOAd','dim_a_ant','D_xh','D_yh','gradD','pas','dim_b_ant','dim_a_rec','dim_b_rec','nombrenodes','D_ant');
 
+    gradD(1,H) = (D_xh - D)/h_a;
+    gradD(2,H) = (D_yh - D)/h_b;
 
-    E_yh = L/D;
+    dim_a_rec(1,H) = dim_a;
+    dim_b_rec(1,H) = dim_b_ant;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
+    dim_a = dim_a - pas*gradD(1,H); %Negatiu perquè volem minimitzar el D
+    dim_b = dim_b_ant - pas*gradD(2,H);
 
-    gradE(1,H) = (E_xh - E)/h_aoa;
-    gradE(2,H) = (E_yh - E)/h_ratio;
+%     if ratio > 2
+%         ratio = 2;
+%     end
 
-    AOAd_rec(1,H) = AOAd;
-    ratio_rec(1,H) = ratio_ant;
-
-    AOAd = AOAd + pas*gradE(1,H);
-    ratio = ratio_ant + pas*gradE(2,H);
-
-    if ratio > 2
-        ratio = 2;
-    end
-
-    if abs(E_ant-E) < 0.00001
+    if abs(D_ant-D) < 0.00001
         trobat = true;
     end
     
@@ -726,39 +713,13 @@ while trobat==false
     
 
     hold on
-    quiver(AOAd_rec(1,H),ratio_rec(1,H),gradE(1,H),gradE(2,H));
+    quiver(dim_a_rec(1,H),dim_b_rec(1,H),gradD(1,H),gradD(2,H));
+    xlabel('dim_a')
+    ylabel('dim_b')
     hold on
-    scatter(AOAd_rec(1,H),ratio_rec(1,H));
+    scatter(dim_a_rec(1,H),dim_b_rec(1,H));
 
     H=H+1;
 end
 
-quiver(AOAd_rec(1,:),ratio_rec(1,:),gradE(1,:),gradE(2,:));
-% plot(Ef(2,:),Ef(1,:));
-% xlabel('AOA')
-% ylabel('E');
-
-
-% while trobat==false
-% 
-% dim_b = dim_a/ratio;
-% AoAd_ant = AoAd;
-% 
-% %calc (E)
-% 
-% AOAd = AOAd + h_aoa;
-% 
-% %calc (E_x+h)
-% 
-% ratio = ratio + h_ratio;
-% dim_b = dim_a/ratio;
-% AoAd = AoAd_ant;
-% 
-% %calc (E_y+h)
-% 
-% gradE(1,1) = (E_xh - E)/h_aoa;
-% gradE(2,1) = (E_yh - E)/h_ratio;
-% 
-% AoAd = AoAd + pas*gradE(1,1);
-% ratio = ratio + pas*gradE(2,1);
-
+quiver(dim_a_rec(1,:),dim_b_rec(1,:),gradD(1,:),gradD(2,:));
