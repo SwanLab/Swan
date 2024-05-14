@@ -1,6 +1,7 @@
 classdef DualVariable < handle
     
     properties (Access = public)
+       value
        fun
     end
     
