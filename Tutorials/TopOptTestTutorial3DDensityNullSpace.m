@@ -224,7 +224,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 10;       %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+            s.gJFlowRatio    = 2;       %major=complirconstraintrapid    menor=prioritzarminimitzarcost
 
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
