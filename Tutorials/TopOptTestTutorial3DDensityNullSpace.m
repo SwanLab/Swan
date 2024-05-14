@@ -195,7 +195,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             nnodes  = obj.mesh.nnodes;
             indices = transpose(1:nnodes);
             vals    = ones(size(indices));
-            h       = obj.mesh.computeMinCellSize();
+            h       = obj.mesh.computeMeanCellSize();
             M       = h^2*sparse(indices,indices,vals,nnodes,nnodes);   
         end
 
