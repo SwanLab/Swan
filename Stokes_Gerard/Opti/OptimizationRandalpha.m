@@ -3,7 +3,7 @@ clear
 
 H = 1;
 trobat = false;
-h_aoa = 2;
+h_aoa = 0.1;
 h_ratio = 0.1;
 pas_ang = 2000;
 pas_rat = 0.01;
