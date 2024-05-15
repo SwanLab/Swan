@@ -1,9 +1,9 @@
 clear
 close all
 
-xpos = 0.7;
+xpos = 0.5;
 ypos = 0.5;
-radius = 0.08;
+radius = 0.25;
 
 m = QuadMesh(1,1,100,100); 
 s.type='Given';
