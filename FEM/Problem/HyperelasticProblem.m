@@ -53,25 +53,34 @@ classdef HyperelasticProblem < handle
             i = 1;
             rpre = 1;
             alpha = 0.001;
-            f = animatedline;
+%             f = animatedline;
+%             fig2 = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 5;
+            nsteps = 750;
             % F = zeros(obj.uFun.nDofs,1);
             % R = zeros(obj.uFun.nDofs,1);
+            displ_grafic = [];
+            fext_grafic = [];
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
                 disp('------')
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
-                residual = 1;
+                obj.createBoundaryConditions();
+                Fext = obj.computeForces(loadPercent);
+                Fint = obj.computeInternalForces();
+                R = Fint - Fext;
+                R_red = R(free);
+                residual = norm(R_red);
+                i = 0;
                 while residual > 10e-12
                     val = max(neo.compute(obj.uFun))
 
                     % Residual
                     Fint = obj.computeInternalForces();
-                    Fext = obj.computeExtForcesShape(loadPercent);
+%                     Fext = obj.computeExtForcesShape(loadPercent);
                     R = Fint - Fext;
                     R_red = R(free);
 
@@ -88,17 +97,41 @@ classdef HyperelasticProblem < handle
                     u_next = u_k + deltaUk;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     u_k = u_next;
-                    residual = norm(R)
+                    residual = norm(R_red)
+                    obj.uFun.fValues
 %                     sigma = obj.computeCauchyStress();
-                    lambdas = obj.computeStretches();
+%                     lambdas = obj.computeStretches();
 
+%                     obj.uFun.print(['AAAAA_paraview',int2str(i)])
                     % Plot
                     i = i+1;
-                    addpoints(f,i,residual);
-                    drawnow
+%                     addpoints(f,i,residual);
+%                     drawnow
+            
+                    
+                    
                 end
+                displ_grafic = [displ_grafic, obj.uFun.fValues(3,1)];
+                fext_grafic  = [fext_grafic, Fext(5)];
+
+                num_is(iStep) = i;
+                f = figure(1);
+                clf(f)
+                subplot(1,2,1)
+                plot(displ_grafic, fext_grafic)
+                subplot(1,2,2)
+                bar(1:iStep, num_is)
+                hold on
+                drawnow
+%                 addpoints(fig2, obj.uFun.fValues(3,1), Fext(5))
+%                 drawnow
+%                 num_is(iStep) = i;
+
+
+
             end
 
+%             hbar(1:nsteps, num_is)
             
 
 %             for iStep = 1:nsteps
@@ -155,8 +188,8 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(5,5,5);
-%             obj.mesh = UnitQuadMesh(1,1);
+%             obj.mesh = UnitHexaMesh(5,5,5);
+            obj.mesh = UnitQuadMesh(1,1);
 %             obj.mesh = QuadMesh(2,1,2,1);
 %             obj.material.lambda = 3/4;
 %             obj.material.mu = 3/8;
@@ -173,11 +206,11 @@ classdef HyperelasticProblem < handle
         end
         
         function createBoundaryConditions(obj)
-%             obj.createBC2D_oneelem();
+            obj.createBC2D_oneelem();
 %             obj.createBCflexio();
 %             obj.createBC2D_nelem();
             % obj.createBC3D_oneelem();
-            obj.createBC3D_nelem();
+%             obj.createBC3D_nelem();
         end
 
         function createDisplacementFun(obj)
@@ -197,23 +230,23 @@ classdef HyperelasticProblem < handle
             pl.fValues = pl.fValues*perc;
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
-            s.quadType = 1;
+            s.quadType = 2;
             rhsI       = RHSintegrator.create(s);
             test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
             Fext = rhsI.compute(pl,test);
         end
 
-        % function Fext = computeForces(obj, perc)
-        %     s.type     = 'Elastic';
-        %     s.scale    = 'MACRO';
-        %     s.dim.ndofs = obj.uFun.nDofs;
-        %     s.BC       = obj.boundaryConditions;
-        %     s.BC.pointload_vals = s.BC.pointload_vals*perc;
-        %     s.mesh     = obj.mesh;
-        %     RHSint = RHSintegrator.create(s);
-        %     rhs = RHSint.compute();
-        %     Fext = rhs;
-        % end
+        function Fext = computeForces(obj, perc)
+            s.type     = 'Elastic';
+            s.scale    = 'MACRO';
+            s.dim.ndofs = obj.uFun.nDofs;
+            s.BC       = obj.boundaryConditions;
+            s.BC.pointload_vals = s.BC.pointload_vals*perc;
+            s.mesh     = obj.mesh;
+            RHSint = RHSintegrator.create(s);
+            rhs = RHSint.compute();
+            Fext = rhs;
+        end
 
         function intfor = computeInternalForces(obj)
             intfor = obj.neohookeanFun.computeInternalForces(obj.uFun,obj.boundaryConditions);
