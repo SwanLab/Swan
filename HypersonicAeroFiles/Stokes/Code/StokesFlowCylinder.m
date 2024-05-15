@@ -33,6 +33,25 @@ classdef StokesFlowCylinder < handle
             [vValues,pValues] = obj.solveSystem(LHS,RHS,dir,dirDofs);
             [v,p]             = obj.fillTrialFunctions(vValues,pValues);
         end
+
+        function [pCyl,bMesh] = obtainPressureDistributionAtCylinder(obj,pressureFun)
+            [~,~,~,isCyl] = obj.computeBoundariesHandles();
+            mesh          = obj.innerMesh;
+            nodesCyl      = pressureFun.getDofsFromCondition(isCyl);
+            pCylVals      = pressureFun.fValues(nodesCyl,1);
+            mesh.computeEdges();
+            e            = mesh.edges.nodesInEdges;
+            bE = ismember(e,nodesCyl);
+            bE = find(prod(bE,2));
+            connec = e(bE,:);
+            s.coord      = mesh.coord;
+            s.connec     = connec;
+            s.kFace      = -1;
+            bMesh        = Mesh.create(s);
+            bMesh        = bMesh.computeCanonicalMesh();
+            pCyl         = LagrangianFunction.create(bMesh,1,pressureFun.order);
+            pCyl.fValues = pCylVals;
+        end
     end
 
     methods (Access = private)
