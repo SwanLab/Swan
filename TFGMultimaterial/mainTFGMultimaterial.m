@@ -157,12 +157,12 @@ classdef mainTFGMultimaterial < handle
             gsf = []; gEpot = []; gth = []; gvol = [];
             
             % Shape functional and potential energy
-            [sf, energyPot] = updateShapeFunctions(obj);
+            [sf, energyPot] = obj.updateShapeFunctions();
             obj.shapeFunc = sf;
             obj.Epot = energyPot;
 
             % Compute topological derivative
-            obj.DT = computeTopologicalDerivative(obj);
+            obj.DT = obj.computeTopologicalDerivative();
             obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
             % Compute cosinus and theta
@@ -175,7 +175,7 @@ classdef mainTFGMultimaterial < handle
              
            
             % We start the loop    
-            while and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4) % remove iter<=4
+            while obj.hasNotFinished(theta) 
             % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
                 
                 obj.iter = obj.iter + 1;
@@ -199,7 +199,7 @@ classdef mainTFGMultimaterial < handle
                 obj.Epot = energyPot;
 
                 % Update topological derivative
-                obj.DT = computeTopologicalDerivative(obj);
+                obj.DT = obj.computeTopologicalDerivative();
                 obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
                 % Update cosinus and theta
@@ -273,6 +273,10 @@ classdef mainTFGMultimaterial < handle
                     end
                 end
             end
+        end
+
+        function hasNotFinished(obj,theta)
+            and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4) % remove iter<=4
         end
 
         function uploadParameters(obj)
