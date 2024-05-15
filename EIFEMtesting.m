@@ -87,8 +87,8 @@ classdef EIFEMtesting < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(obj.RHS);
             Usol = LHS\RHS;
 
-%             x = obj.conjugateGradient(LHS,RHS);
-            obj.preconditionedConjugateGradient(LHS,RHS,Usol)
+%             [uCG,residualCG]  = obj.conjugateGradient(LHS,RHS);
+            [uPCG,residualPCG,err,errAnorm] = obj.preconditionedConjugateGradient(LHS,RHS,Usol);
 
             u = obj.solver2(LHS,RHS,refLHS);
 
@@ -133,8 +133,8 @@ classdef EIFEMtesting < handle
             obj.ndimf        = 2;
             obj.functionType = 'P1';
             obj.solverCase   = 'REDUCED';
-            obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-%           obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_8_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_1.mat';
+%             obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+          obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_8_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_1.mat';
             obj.weight       = 0.5;
         end
 
@@ -669,15 +669,16 @@ classdef EIFEMtesting < handle
             rzold = r' * z;
             
 
-            hasNotConverged = true;
-
             while norm(r) > tol
                 Ap = A * p;
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
+                uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
+%               obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
                 r = r - alpha * Ap;
                 %                 z = ModalTesting.applyPreconditioner(M,r);
                 RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
+%                  obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
                 RGsbd = obj.global2local(RG);
                 RGsbd = obj.scaleInterfaceValues(RGsbd);
                 uSbd =  obj.EIFEM.apply(RGsbd);
@@ -692,8 +693,7 @@ classdef EIFEMtesting < handle
 
                 p = z + (rznew / rzold) * p;
                 rzold = rznew;
-                uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
-%                 obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
+
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
                 err(iter)=norm(x-xsol);
@@ -704,7 +704,7 @@ classdef EIFEMtesting < handle
 
        
 
-        function x = conjugateGradient(obj,LHS,RHS)
+        function [x,residu] = conjugateGradient(obj,LHS,RHS)
             tol = 1e-8;
             iter = 1;
             x = zeros(size(RHS));
