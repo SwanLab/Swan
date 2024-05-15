@@ -68,9 +68,9 @@ classdef NeohookeanFunctional < handle
             for iDof = 1:nDof
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
-                dv = zeros(nNode,nDimf, nGaus, nElem);
-                dv(iNode,iDim,:,:) = 1;
-                GradDeltaV = pagemtimes(dNdxTest,dv);
+                deltav = zeros(nNode,nDimf, nGaus, nElem);
+                deltav(iNode,iDim,:,:) = 1;
+                GradDeltaV = pagemtimes(dNdxTest,deltav);
                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
             end
             fint = fint.*dV;
