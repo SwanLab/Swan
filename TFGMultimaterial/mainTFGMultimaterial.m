@@ -114,20 +114,28 @@ classdef mainTFGMultimaterial < handle
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
-        function TopDer = computeTopologicalDerivative(obj)
-            meshSeba   = obj.mesh;
-            U          = obj.displacements;
-            V          = obj.volume;
-            matProp    = obj.mat;
-            ls         = obj.psi;
-            parameters = obj.params;
-            PDECoeff   = obj.pdeCoeff;
-            desVar     = obj.designVariable;
-            m          = obj.meshSwan;
-            TOParams   = obj.optParams;
+        function x = computeTopologicalDerivative(obj)
+            s.meshSeba   = obj.mesh;
+            s.U          = obj.displacements;
+            s.volume     = obj.volume;
+            s.mat    = obj.mat;
+            s.psi         = obj.psi;
+            s.designVariable    = obj.designVariable;
+            s.mesh          = obj.meshSwan;
+            s.penalization = obj.params.penalization;
+            s.penalty = obj.params.penalty;
+            s.volfrac = obj.params.volfrac;
+            s.auglag = obj.params.auglag;
+            s.max_vol = obj.optParams.max_vol; 
+            s.energy0 = obj.optParams.energy0;
+            s.nMat = obj.nMat;
+            s.mat = obj.mat;
+            s.psi = obj.psi;     
+            s.designVariable = obj.designVariable;
 
-            dt         = topder(meshSeba,U,V,matProp,ls,parameters,PDECoeff,desVar,m, TOParams); 
-            TopDer     = dt/normL2(obj.unitM,dt);  
+            Topder = TopologicalDerivativeComputer(s);
+            dt = Topder.dt;
+            x = dt/normL2(obj.unitM,dt);
         end
 
     end
@@ -216,9 +224,14 @@ classdef mainTFGMultimaterial < handle
                     theta = obj.thetaAngle;
                     free = obj.pfree;
                     dt = obj.DT;
+                    s.mesh = obj.meshSwan;
+                    s.tau = obj.k;
+                    
+                    primalUpdater = SLERP(s);
+                    obj.psi = primalUpdater.update(dt,psiold);
 
-                    obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
-                            +  sin(obj.k*theta)*dt(free,:))./sin(theta);
+                    %obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
+                            %+  sin(obj.k*theta)*dt(free,:))./sin(theta);
                         
                     % Solve elastic problem again    
                     obj.updateDesignVariable();
@@ -327,17 +340,17 @@ classdef mainTFGMultimaterial < handle
             s.order                = 'P1';
             s.fun                  = LagrangianFunction(s);
             ls1                    = DesignVariable.create(s);
-            obj.initialLevelSet{1} = ls1;
+            obj.designVariable{1} = ls1;
             
             s.fValues              = lsFun{2};
             s.fun                  = LagrangianFunction(s);
             ls1                    = DesignVariable.create(s);
-            obj.initialLevelSet{2} = ls1;
+            obj.designVariable{2} = ls1;
             
             s.fValues              = lsFun{3};
             s.fun                  = LagrangianFunction(s);
             ls1                    = DesignVariable.create(s);
-            obj.initialLevelSet{3} = ls1;
+            obj.designVariable{3} = ls1;
         end
 
         function plotMesh(obj)
@@ -368,7 +381,6 @@ classdef mainTFGMultimaterial < handle
             psi_hold_all(:,1)  = -1;
             
             obj.psi            = psi_hold_all;
-            obj.designVariable = obj.initialLevelSet;
             
             C = computeElasticTensor(obj);
             obj.tensor = C;
@@ -403,29 +415,14 @@ classdef mainTFGMultimaterial < handle
             levelSet = obj.psi; 
             levelSet = levelSet./normL2( obj.unitM,levelSet ); % level-set function nomalization  
             obj.psi  = levelSet;
-            s.type   = 'Full';
             lsFun{1} = levelSet(:,1);
             lsFun{2} = levelSet(:,2);
             lsFun{3} = levelSet(:,3);
             
-            s.mesh                = obj.meshSwan;
-            s.type                = 'LevelSet';
-            s.plotting            = false;
-            s.fValues             = lsFun{1};
-            s.order               = 'P1';
-            s.fun                 = LagrangianFunction(s);
-            ls1                   = DesignVariable.create(s);
-            obj.designVariable{1} = ls1;
+            obj.designVariable{1}.update(lsFun{1});
+            obj.designVariable{2}.update(lsFun{2});
+            obj.designVariable{3}.update(lsFun{3});
             
-            s.fValues             = lsFun{2};
-            s.fun                 = LagrangianFunction(s);
-            ls1                   = DesignVariable.create(s); 
-            obj.designVariable{2} = ls1;
-            
-            s.fValues             = lsFun{3};
-            s.fun                 = LagrangianFunction(s);
-            ls1                   = DesignVariable.create(s);
-            obj.designVariable{3} = ls1;
         end
 
         function computeThetaAndCosinus(obj)
