@@ -53,11 +53,11 @@ classdef HyperelasticProblem < handle
             i = 1;
             rpre = 1;
             alpha = 0.001;
-%             f = animatedline;
+            f = animatedline;
 %             fig2 = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 750;
+            nsteps = 100;
             % F = zeros(obj.uFun.nDofs,1);
             % R = zeros(obj.uFun.nDofs,1);
             displ_grafic = [];
@@ -75,7 +75,9 @@ classdef HyperelasticProblem < handle
                 R_red = R(free);
                 residual = norm(R_red);
                 i = 0;
-                while residual > 10e-12
+                hess0 = neo.computeHessian(obj.uFun);
+                h_red0 = hess0(free,free);
+                while residual > 10e-14
                     val = max(neo.compute(obj.uFun))
 
                     % Residual
@@ -89,9 +91,10 @@ classdef HyperelasticProblem < handle
                     h_red = hess(free,free);
 
                     % DeltaU
-                    DeltaU_free = -h_red\R_red;
+                    DeltaU_free = -h_red0\R_red;
                     deltaUk = zeros(size(R));
-                    deltaUk(free) = DeltaU_free;
+%                     deltaUk(free) = DeltaU_free;
+                    deltaUk(free) = -alpha*R_red;
 
                     % Next iteration
                     u_next = u_k + deltaUk;
@@ -105,8 +108,8 @@ classdef HyperelasticProblem < handle
 %                     obj.uFun.print(['AAAAA_paraview',int2str(i)])
                     % Plot
                     i = i+1;
-%                     addpoints(f,i,residual);
-%                     drawnow
+                    addpoints(f,i,log10(residual));
+                    drawnow
             
                     
                     
@@ -309,7 +312,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 10;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
