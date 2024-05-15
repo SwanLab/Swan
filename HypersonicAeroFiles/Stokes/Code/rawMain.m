@@ -3,7 +3,7 @@ close all
 
 xpos = 0.5;
 ypos = 0.5;
-radius = 0.25;
+radius = 0.08;
 
 m = QuadMesh(1,1,100,100); 
 s.type='Given';
@@ -36,13 +36,13 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 isCyl    = @(coor) abs(abs(coor(:,1) - xpos).^2+abs(coor(:,2) - ypos).^2-radius^2) < 5e-5;
 
 %% Original (no-slip condition)
-dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
-dir_vel{2}.direction = [1,2];
-dir_vel{2}.value     = [0,0]; 
-
-dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [1,0];
+% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor);
+% dir_vel{2}.direction = [1,2];
+% dir_vel{2}.value     = [0,0]; 
+% 
+% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+% dir_vel{1}.direction = [1,2];
+% dir_vel{1}.value     = [1,0];
 
 %% Cavity:
 % dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor) | isCyl(coor) | isRight;
@@ -54,17 +54,17 @@ dir_vel{1}.value     = [1,0];
 % dir_vel{1}.value     = [0,1];
 
 %% Modificat (free-slip condition)
-% dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
-% dir_vel{2}.direction = [1,2];
-% dir_vel{2}.value     = [1,0]; 
-% 
-% dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
-% dir_vel{1}.direction = [1,2];
-% dir_vel{1}.value     = [1,0];
-% 
-% dir_vel{3}.domain    = @(coor) isCyl(coor);
-% dir_vel{3}.direction = [1,2];
-% dir_vel{3}.value     = [0,0]; 
+dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
+dir_vel{2}.direction = [1,2];
+dir_vel{2}.value     = [1,0]; 
+
+dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
+dir_vel{1}.direction = [1,2];
+dir_vel{1}.value     = [1,0];
+
+dir_vel{3}.domain    = @(coor) isCyl(coor);
+dir_vel{3}.direction = [1,2];
+dir_vel{3}.value     = [0,0]; 
 
 
 %% 
@@ -181,14 +181,44 @@ end
 velocityFun.fValues = velfval;
 pressureFun.fValues = vars.p(:,end);
 
+ssP.trial        = LagrangianFunction.create(mesh,1,'P1');
+ssP.filterType   = 'PDE';
+ssP.mesh         = mesh;
+ssP.boundaryType = 'Neumann';
+ssP.metric       = 'Isotropy';
+filter           = Filter.create(ssP);
+newPressureFun   = filter.compute(pressureFun,'QUADRATIC');
+
 % PLOT RESULTS
 velocityFun.plot()
-pressureFun.plot()
+newPressureFun.plot()
 
-%% Lift and drag
+%% PRESURE AT SURFACE
+boundary_mesh = uMesh.boundaryCutMesh.mesh;
 
-nodesCyl    = pressureFun.getDofsFromCondition(isCyl);
-presCylVals = pressureFun.fValues(nodesCyl,1);
+normal_vectors = zeros(boundary_mesh.nelem,boundary_mesh.ndim);
+
+centroid = mean(boundary_mesh.coord);
+central_points = (boundary_mesh.coord(boundary_mesh.connec(:,1),:)+boundary_mesh.coord(boundary_mesh.connec(:,2),:))/2;
+ref_vect = central_points - centroid;
+
+for iE = 1:boundary_mesh.nelem
+    node1 = boundary_mesh.coord(boundary_mesh.connec(iE,1),:);
+    node2 = boundary_mesh.coord(boundary_mesh.connec(iE,2),:);
+    nvect = (node2-node1)/(abs(norm(node2-node1)));
+    nvect = nvect * [0 -1;1 0];
+    if dot(ref_vect(iE,:),nvect)<0
+        nvect = -nvect;
+    end
+    normal_vectors(iE,:) = nvect;
+end
+
+
+
+% Nosaltres fariem el plot a la boundary aixi (Ton/Jose):
+
+nodesCyl    = newPressureFun.getDofsFromCondition(isCyl);
+presCylVals = newPressureFun.fValues(nodesCyl,1);
 xCyl        = mesh.coord(nodesCyl,1);
 yCyl        = mesh.coord(nodesCyl,2);
 mesh.computeEdges();
@@ -201,33 +231,11 @@ ss.connec   = connec;
 ss.kFace    = -1;
 bMesh       = Mesh.create(ss);
 bMesh       = bMesh.computeCanonicalMesh();
-presCyl     = LagrangianFunction.create(bMesh,1,pressureFun.order); 
+presCyl     = LagrangianFunction.create(bMesh,1,newPressureFun.order);
 presCyl.fValues = presCylVals;
 
-pressure_boundary = uMesh.obtainFunctionAtUnfittedMesh(pressureFun);
 
-presCyl.plot()
-
-normal_vectors = zeros(bMesh.nelem,bMesh.ndim);
-length_element = zeros(bMesh.nelem,1);
-
-centroid = mean(bMesh.coord);
-central_points = (bMesh.coord(bMesh.connec(:,1),:)+bMesh.coord(bMesh.connec(:,2),:))/2;
-ref_vect = central_points - centroid;
-
-for iE = 1:bMesh.nelem
-    node1 = bMesh.coord(bMesh.connec(iE,1),:);
-    node2 = bMesh.coord(bMesh.connec(iE,2),:);
-    nvect = (node2-node1)/(abs(norm(node2-node1)));
-    nvect = nvect * [0 -1;1 0];
-    if dot(ref_vect(iE,:),nvect)<0
-        nvect = -nvect;
-    end
-    normal_vectors(iE,:) = nvect;
-    length_element(iE) = abs(norm(node1-node2));
-end
-
-nx = LagrangianFunction.create(bMesh,1,'P0');%Vectors normals
+nx = LagrangianFunction.create(bMesh,1,'P0');
 ny = LagrangianFunction.create(bMesh,1,'P0');
 nx.fValues = normal_vectors(:,1);
 ny.fValues = normal_vectors(:,2);
@@ -237,11 +245,3 @@ D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
 sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
 L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
-
-quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
-hold on
-quiver(centroid(1,1),centroid(1,2),D,0);
-hold on
-quiver(centroid(1,1),centroid(1,2),0,L);
-hold on
-bMesh.plot() %Plot mesh points

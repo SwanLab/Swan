@@ -40,7 +40,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
 
         function LHS = computeVelocityLHS(obj)
             K = obj.computeVelocityLaplacian();
-            M = obj.computeMassMatrix();
+            M = obj.computeMassMatrix(); % Unsteady term
             lhs = K + M;
             LHS = obj.symGradient(lhs);
         end
