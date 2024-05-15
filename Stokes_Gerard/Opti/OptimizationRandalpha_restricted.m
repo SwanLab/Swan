@@ -3,18 +3,15 @@ clear
 
 H = 1;
 trobat = false;
-h_aoa = 2;
+h_aoa = 0.1;
 h_ratio = 0.1;
-pas_ang = 2000;
-pas_rat = 0.01;
+pas = 1;
 nombrenodes = 60;
 
-AOAd = 47;% (x_0)
+AOAd = 30;% (x_0)
 dim_a = 0.1;
 ratio = 1; % r = a/b (y_0)
 E = 5;
-% load('Plot60x60','Ef');
-% plot3(Ef(2,:),Ef(3,:),Ef(1,:),'.','MarkerSize',15)
 
 while trobat==false
     ratio_ant = ratio;
@@ -246,7 +243,7 @@ while trobat==false
 
     E = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas_ang','pas_rat','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     AOAd = AOAd + h_aoa;
 
@@ -475,7 +472,7 @@ while trobat==false
 
     E_xh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas_ang','pas_rat','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     ratio = ratio + h_ratio;
     dim_b = dim_a/ratio;
@@ -705,7 +702,7 @@ while trobat==false
 
     E_yh = L/D;
 
-    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas_ang','pas_rat','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
+    clearvars('-except', 'E','H','dim_a','dim_b','trobat','h_aoa','h_ratio','AOAd','ratio','AOAd_ant','E_xh','E_yh','gradE','pas','ratio_ant','AOAd_rec','retio_rec','nombrenodes','E_ant');
 
     gradE(1,H) = (E_xh - E)/h_aoa;
     gradE(2,H) = (E_yh - E)/h_ratio;
@@ -713,15 +710,11 @@ while trobat==false
     AOAd_rec(1,H) = AOAd;
     ratio_rec(1,H) = ratio_ant;
 
-    AOAd = AOAd + pas_ang*gradE(1,H);
-    ratio = ratio_ant + pas_rat*gradE(2,H);
+    AOAd = AOAd + pas*gradE(1,H);
+    ratio = ratio_ant + pas*gradE(2,H);
 
     if ratio > 2
         ratio = 2;
-    end
-
-    if ratio < 1
-        ratio = 1;
     end
 
     if abs(E_ant-E) < 0.00001
@@ -737,15 +730,10 @@ while trobat==false
     hold on
     scatter(AOAd_rec(1,H),ratio_rec(1,H));
 
-%     hold on
-%     quiver3(AOAd_rec(1,H),ratio_rec(1,H),0,gradE(1,H),gradE(2,H),0);
-%     hold on
-%     scatter3(AOAd_rec(1,H),ratio_rec(1,H),0);
-
     H=H+1;
 end
 
-%quiver(AOAd_rec(1,:),ratio_rec(1,:),gradE(1,:),gradE(2,:));
+quiver(AOAd_rec(1,:),ratio_rec(1,:),gradE(1,:),gradE(2,:));
 % plot(Ef(2,:),Ef(1,:));
 % xlabel('AOA')
 % ylabel('E');
