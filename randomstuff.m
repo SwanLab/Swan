@@ -1,17 +1,19 @@
 clc; clear; close all
 
 X = [0, 0;
-    4,0;
-    0,3];
-connec = [1 2 3];
+    1,0;
+    1,1;
+    0, 1];
+connec = [1 2 3 4];
 
 s.coord = X;
 s.connec = connec;
 msh = Mesh.create(s);
 
-x = [2,3;
-    10,3;
-    10,9;];
+x = [0,0;
+    1.2,0;
+    1.2,0.9;
+    0, 0.9];
 
 a.fValues = x - X;
 a.mesh = msh;
@@ -20,7 +22,7 @@ p1 = LagrangianFunction(a);
 
 quad = Quadrature.create(msh, 1);
 xG = quad.posgp;
-p1.evaluateCartesianDerivatives(xG);
+dNdx = p1.evaluateCartesianDerivatives(xG);
 Grad(p1).evaluate(xG);
 
 
