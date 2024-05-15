@@ -248,10 +248,6 @@ classdef HyperelasticProblem < handle
             I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU;
-%             if size(F,1) == 2
-%                 F = [F,zeros(2,1,nPoints,nElem); zeros(1,2,nPoints,nElem), ones(1,1,nPoints,nElem)];
-%                 I33 = obj.createIdentityMatrix(size(F));
-%             end
         end
 
         function bc = createBC2D_oneelem(obj)
@@ -297,21 +293,31 @@ classdef HyperelasticProblem < handle
             isBottom = @(coor)  abs(coor(:,2))==0;
             isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
 
-            % 2D ONE ELEMENT
-            sDir1.domain    = @(coor) isLeft(coor);
-            sDir1.direction = [1,2];
+            % 2D BENDING
+            sDir1.domain    = @(coor) isLeft(coor) & ~isBottom(coor);
+            sDir1.direction = [1];
             sDir1.value     = 0;
             dir1 =  DirichletCondition(obj.mesh, sDir1);
 
-            sDir2.domain    = @(coor) isRight(coor);
+            sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
             sDir2.direction = [1,2];
             sDir2.value     = 0;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
-            s.dirichletFun = [dir1, dir2];
+
+            sDir3.domain    = @(coor) isRight(coor) & ~isBottom(coor);
+            sDir3.direction = [1];
+            sDir3.value     = 0;
+            dir3 =  DirichletCondition(obj.mesh, sDir3);
+
+            sDir4.domain    = @(coor) isRight(coor) & isBottom(coor);
+            sDir4.direction = [1,2];
+            sDir4.value     = 0;
+            dir4 =  DirichletCondition(obj.mesh, sDir4);
+            s.dirichletFun = [dir1, dir2, dir3, dir4];
 
             sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
-            sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.direction = 2;
+            sPL.value     = -0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];

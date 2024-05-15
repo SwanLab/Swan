@@ -25,28 +25,18 @@ classdef NeohookeanFunctional < handle
         function val = compute(obj, uFun)
             quad = Quadrature.create(obj.mesh, 2);
             xG = quad.posgp;
-
-            nPoints  = quad.ngaus;
-            nElem = obj.mesh.nelem;
-            nDimG = obj.mesh.ndim;
             nDimf = uFun.ndimf;
-            GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-
-            I33 = obj.createIdentityMatrix(size(GradU));
-
-            F = I33 + GradU; % deformation gradient
-            % F = permute(F, [2 1 3 4]);
+            
+            [F,~] = obj.computeDeformationGradient(uFun, xG);
             Ft = permute(F, [2 1 3 4]);
             
             C = pagemtimes(Ft,F);
-%             trC = C(1,1,:,:) +C(2,2,:,:)+C(3,3,:,:);
-%             trC = C(1,1,:,:) +C(2,2,:,:);
             trC = obj.computeTrace(C);
 
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
-            % val = obj.mu/2*(trC - 3) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
+            % val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
             val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
             val = pagemtimes(val,dV);
             val = sum(val, 'all');
@@ -73,21 +63,8 @@ classdef NeohookeanFunctional < handle
             dofToNode = dofToNode(:);
 
             fint = zeros(nDof,1,nGaus,nElem);
-            connec = test.getConnec();
-            dir_dofs = bcs.dirichlet_dofs;
-            dir_vals = bcs.dirichlet_vals;
-%             for iElem = 1:nElem
-%                 dofsInElem = connec(iElem,:);
-%                 for iDof = 1:nDof
-%                     iNode = dofToNode(iDof);
-%                     iDim  = dofToDim(iDof);
-%                     globalDof = dofsInElem(globalDof);
-%                     GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-%                     GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-%                 end
-%             end
-
-
+            % GradDeltaV is not always compatible (see BCs), but we dont
+            % worry about it since we reduce the matrix later on    
             for iDof = 1:nDof
                 iNode = dofToNode(iDof);
                 iDim  = dofToDim(iDof);
@@ -100,38 +77,6 @@ classdef NeohookeanFunctional < handle
             fint = squeeze(sum(fint,3));
             Fint = obj.assembleIntegrand(fint,test);
         end
-
-%         function Fint = computeInternalForces(obj, uFun)
-%             nDimf = uFun.ndimf;
-%             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-%             quad = Quadrature.create(obj.mesh,1);
-% 
-%             xG = quad.posgp;
-%             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-%             dNdxTest  = test.evaluateCartesianDerivatives(xG);
-% 
-%             nNode = size(dNdxTest,2);
-%             nGaus = size(dNdxTest,3);
-%             nElem = size(dNdxTest,4);
-%             nDof = nDimf*nNode;
-% 
-%             piola = obj.computeFirstPiola(uFun,xG);
-%             dofToDim = repmat(1:nDimf,[1,nNode]);
-%             dofToNode = repmat(1:nNode, nDimf, 1);
-%             dofToNode = dofToNode(:);
-% 
-%             fint = zeros(nDof,1,nGaus,nElem);
-%             for iDof = 1:nDof
-%                 iNode = dofToNode(iDof);
-%                 iDim  = dofToDim(iDof);
-%                 GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-%                 GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-%                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
-%             end
-%             fint = fint.*dV;
-%             fint = squeeze(sum(fint,3));
-%             Fint = obj.assembleIntegrand(fint,test);
-%         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
             integrand = pagetranspose(rhsElem);
@@ -195,11 +140,10 @@ classdef NeohookeanFunctional < handle
             K = K.*dV;
             K = squeeze(sum(K,3));
 
+            % Assembly
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
             hess = assembler.assemble(K, test, trial);
-            % - Not symmetric
-            % - Negative values at diagonal
         end
 
 
@@ -239,8 +183,6 @@ classdef NeohookeanFunctional < handle
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             jac = reshape(jac, [1 1 1 1 nGaus nElem]);
             logJac = log(jac);
-%             logJac(1,1,:,:,:,:) = log(jac);
-%             logJac(1,1,1,1,:,:) = log(jac);
 
             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
                 obj.mu*obj.kron_topF(I33,I33) + ...
@@ -260,10 +202,6 @@ classdef NeohookeanFunctional < handle
             I33 = obj.createIdentityMatrix(size(GradU));
 
             F = I33 + GradU;
-%             if size(F,1) == 2
-%                 F = [F,zeros(2,1,nPoints,nElem); zeros(1,2,nPoints,nElem), ones(1,1,nPoints,nElem)];
-%                 I33 = obj.createIdentityMatrix(size(F));
-%             end
         end
 
         function trC = computeTrace(obj,C)
@@ -301,11 +239,26 @@ classdef NeohookeanFunctional < handle
             end
         end
 
-        function C= kron_topF(obj, A,B)
+%         function C= kron_topF(obj, A,B)
+%             C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
+%             for i = 1:size(A,1)
+%                 for k = 1:size(B,1)
+%                     C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
+%                 end
+%             end
+%         end
+
+        function C= kron_topF(obj,A,B)
+    %             C = obj.kron_topF(A,B);
+    %             C = pagetranspose(C);
             C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
             for i = 1:size(A,1)
-                for k = 1:size(B,1)
-                    C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
+                for k = 1:size(A,2)
+                    for j = 1:size(B,1)
+                        for l = 1:size(B,2)
+                            C(i,j,k,l,:,:) = A(i,k,:,:).*B(j,l,:,:);
+                        end
+                    end
                 end
             end
         end
