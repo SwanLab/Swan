@@ -35,23 +35,20 @@ classdef HyperelasticProblem < handle
             obj.createDisplacementFun();
             obj.createBoundaryConditions();
 
+            % Create Neohookean Functional
             s.material = obj.material;
-            s.mesh = obj.mesh;
+            s.mesh     = obj.mesh;
             neo = NeohookeanFunctional(s);
             obj.neohookeanFun = neo;
-%             fint = obj.computeIntForcesShape(perc);
-            % hess = neo.computeHessian(obj.uFun);
-            
-            
 
-            % Check first piola convergence
-
+            % Apply boundary conditions
             bc = obj.boundaryConditions;
             dofs = 1:obj.uFun.nDofs;
             free = setdiff(dofs, bc.dirichlet_dofs);
             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
 
+            % Init Newton-Raphson
             r = 1;
             i = 1;
             rpre = 1;
