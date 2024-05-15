@@ -5,6 +5,9 @@ classdef TrainedRVE < handle
         Kcoarse
         Udef
         Urb
+        PhiDef
+        PhiRb
+        Grb
     end
     
     properties (Access = private)
@@ -33,6 +36,9 @@ classdef TrainedRVE < handle
             obj.Udef    = EIFEoper.Udef;
             obj.Urb     = EIFEoper.Urb;
             obj.ndimf   = 2;
+            obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
+            obj.PhiRb   = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS;
+            obj.Grb     = EIFEoper.Grb;
         end
         
     end
