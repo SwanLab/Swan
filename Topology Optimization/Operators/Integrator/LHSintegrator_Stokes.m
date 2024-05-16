@@ -46,7 +46,12 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function D = computeCrossMatrix(obj)
-            % ...
+            s.type  = 'WeakDivergence';
+            s.test  = obj.velocityFun;
+            s.trial = obj.pressureFun;
+            s.mesh  = obj.mesh;
+            lhs     = LHSintegrator.create(s);
+            D       = lhs.compute();
         end
 
         function BB = computePressureLHS(obj,D)
