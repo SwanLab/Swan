@@ -41,7 +41,7 @@ classdef ComplianceFromConstiutiveTensor < handle
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             u = obj.stateProblem.uFun;
-            %u.print('DisplacementsNOU');           %Imprimir el vector desplaçaments quan es vulgui
+            %u.print('DisplacementsPOCEXTENSA4');           %Imprimir el vector desplaçaments quan es vulgui
         end 
 
         function J = computeFunction(obj,C,u)

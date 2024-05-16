@@ -17,7 +17,7 @@ classdef OptimizerNullSpace < Optimizer
         etaMax
         lG
         lJ
-        etaNorm %Unrecognized file
+        etaNorm 
         gJFlowRatio
     end
 
@@ -41,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.designVariable.fun.print(['ConceptualDesign/BASURA/3DDensityNullSpace_',char(string(obj.nIter))]);
+                obj.designVariable.fun.print(['ConceptualDesign/Density_NullSpaceBO/MallaPOCEXTENSA4_',char(string(obj.nIter))]);
                 obj.designVariable.updateOld();
             end
         end

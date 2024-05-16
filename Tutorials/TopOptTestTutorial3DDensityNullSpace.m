@@ -46,7 +46,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
             %INTRODUIM COM GENERA LA MALLA EL GiD
 
-            file = 'Malla_POCEXTENSA';
+            file = 'Malla_POCEXTENSA_4';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -72,7 +72,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % s.fun  = lsFun;
             % s.mesh = obj.mesh;
             % s.type = 'LevelSet';
-            % s.plotting = true;
+            % s.plotting = false;
             % ls     = DesignVariable.create(s);
             % obj.designVariable = ls;
         end
@@ -106,38 +106,38 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
             %%%%%%%%%%%%%%%%%DENSITY ^%%%%%%%%%%%%%%%%%%
-            %%%%%%%%%%%%%%%LEVEL SET v%%%%%%%%%%%%%%%%%%     CANVIO? O no fa falta?
-            % E0   = 1e-3;
-            % nu0  = 1/3;
-            % E1   = 1;
-            % nu1  = 1/3;
-            % ndim = 2;
-            %
-            % matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            % matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-            %
-            % matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            % matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-            %
-            % s.typeOfMaterial = 'ISOTROPIC';
-            % s.interpolation  = 'SIMPALL';
-            % s.dim            = '3D';
-            % s.matA = matA;
-            % s.matB = matB;
-            %
-            % m = MaterialInterpolator.create(s);
-            % obj.materialInterpolator = m;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f.project('P1');
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '3D';
-            m = Material.create(s);
+            %%%%%%%%%%%%%%%LEVEL SET v%%%%%%%%%%%%%%%%%%
+        %     E0   = 1e-3;
+        %     nu0  = 1/3;
+        %     E1   = 1;
+        %     nu1  = 1/3;
+        %     ndim = 2;
+        % 
+        %     matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+        %     matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+        % 
+        %     matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+        %     matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+        % 
+        %     s.typeOfMaterial = 'ISOTROPIC';
+        %     s.interpolation  = 'SIMPALL';
+        %     s.dim            = '3D';
+        %     s.matA = matA;
+        %     s.matB = matB;
+        % 
+        %     m = MaterialInterpolator.create(s);
+        %     obj.materialInterpolator = m;
+        % end
+        % 
+        % function m = createMaterial(obj)
+        %     x = obj.designVariable;
+        %     f = x.obtainDomainFunction();
+        %     f = f.project('P1');
+        %     s.type                 = 'DensityBased';
+        %     s.density              = f;
+        %     s.materialInterpolator = obj.materialInterpolator;
+        %     s.dim                  = '3D';
+        %     m = Material.create(s);
         end
 
         function createElasticProblem(obj)
@@ -185,12 +185,12 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');       %CANVI JOSE
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.mesh  = obj.mesh;
-%             s.type  = 'MassMatrix';
-%             LHS = LHSintegrator.create(s);
-%             M = LHS.compute;
+             % s.test  = LagrangianFunction.create(obj.mesh,1,'P1'); %CANVI JOSE (NO TOCAR)
+             % s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+             % s.mesh  = obj.mesh;
+             % s.type  = 'MassMatrix';
+             % LHS = LHSintegrator.create(s);
+             % M = LHS.compute;
 
             nnodes  = obj.mesh.nnodes;
             indices = transpose(1:nnodes);
@@ -217,15 +217,14 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 250;                       %Iteracions
+            s.maxIter        = 500;                       %Iteracions
             s.tolerance      = 1e-8;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';  %'SLERP' en LevelSet
+            s.primal         = 'PROJECTED GRADIENT'; 
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.05;
+            s.etaNorm        = 0.001; %HI HAVIA 0.05 (A menor valor menor oscilació del resultat?)
             s.gJFlowRatio    = 2;       %major=complirconstraintrapid    menor=prioritzarminimitzarcost
-
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -239,16 +238,13 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % s.dualVariable   = obj.dualVariable;
             % s.maxIter        = 250;
             % s.tolerance      = 1e-8;
-            % s.constraintCase = {'EQUALITY'};   %{'EQUALITY'};
+            % s.constraintCase = {'EQUALITY'};
             % s.primal         = 'SLERP';
-            % s.etaNorm        = 0.05;
-            % s.gJFlowRatio    = 1;
+            % s.etaNorm        = 0.05; %HI HAVIA 0.05 (A menor valor menor oscilació del resultat?)
+            % s.gJFlowRatio    = 1;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
             % opt = OptimizerNullSpace(s);
             % opt.solveProblem();
             % obj.optimizer = opt;
-
-
-
 
         end
 
