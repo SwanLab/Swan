@@ -1,22 +1,30 @@
 % Test polar coordinates
 theta = 0:0.01:2*pi;
-a = 1;
-b = 1;
-m = 5;
-n1 = 2;
-n2 = 6;
-n3 = 6;
+a = 0.8;
+b = 0.6;
+n = 3;
+r_parameter = 0.5:0.1:1;
 
 % Polar coordinates
-r = (abs(cos(m*theta/4)/a).^n2+abs(sin(m*theta/4)/b).^n3).^(-1/n1);
-figure
-polarplot(theta,r)
-
-% Cartesian coordinates
-rc = (abs(cos(m*theta/4)/a).^n2+abs(sin(m*theta/4)/b).^n3).^(-1/n1);
-x = rc.*cos(theta);
-y = rc.*sin(theta);
+% r = r_parameter*(abs(cos(theta)/a).^n+abs(sin(theta)/b).^n).^(-1/n);
+% figure
+% polarplot(theta,r)
 
 figure
-plot(x,y);
-grid on;
+for i = 1:length(r_parameter)
+    % Cartesian coordinates
+    rc = r_parameter(i)*(abs(cos(theta)/a).^n+abs(sin(theta)/b).^n).^(-1/n);
+    x = rc.*cos(theta);
+    y = rc.*sin(theta);
+    
+    plot(x,y,'k','LineWidth', 2);
+    grid on;
+    axis equal;
+    hold on
+end
+xlim([-1 1])
+ylim([-1 1])
+ta = annotation('textarrow', [0.515 0.75], [0.515 0.75]);
+ta.Color = [0 0.5 0.5];
+ta.String = 'r';  
+ta.FontSize = 15;

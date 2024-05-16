@@ -35,10 +35,9 @@ p.optimizerParams.learningRate = learningRate;
 p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
-p.networkParams.HUtype       = 'ReLU';
+p.networkParams.HUtype       = 'None';
 p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
-
 
 optProblem.solve();
 
