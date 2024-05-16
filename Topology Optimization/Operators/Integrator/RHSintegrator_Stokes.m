@@ -43,7 +43,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
             a.mesh = obj.mesh;
             a.quadType = 'QUADRATIC';
             rhsI       = RHSintegrator.create(a);
-            test = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            test = LagrangianFunction.create(obj.mesh, 2, obj.velocityFun.order);
             Fext = rhsI.compute(obj.forcesFormula,test);
         end
 
