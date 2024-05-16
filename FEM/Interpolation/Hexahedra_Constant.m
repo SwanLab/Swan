@@ -17,13 +17,13 @@ classdef Hexahedra_Constant < Interpolation
             obj.pos_nodes = [0 0 0];
         end
 
-        function shape = computeShapeFunctions(obj,xV)
+        function shape = evaluateShapeFunctions(obj,xV)
             ngaus = size(xV,2);
             N = ones(obj.nnode,ngaus, nelem);
             shape = N;
         end
 
-        function deriv = computeShapeDerivatives(obj,xV)
+        function deriv = evaluateShapeDerivatives(obj,xV)
             ngaus = size(xV,2);
             dN = zeros(obj.ndime,obj.nnode,ngaus, nelem);
             deriv = dN;
