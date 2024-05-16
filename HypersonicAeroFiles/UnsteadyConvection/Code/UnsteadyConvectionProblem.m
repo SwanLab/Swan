@@ -33,7 +33,7 @@ classdef UnsteadyConvectionProblem < handle
             % Number of Gauss points (numerical quadrature)
             ngaus=4;
             % Quadrature
-            [pospg,wpg] = Quadrature(ngaus);
+            [pospg,wpg] = QuadratureP2(ngaus);
             % Shape Functions
             [N,Nxi,Neta] = ShapeFunc(pospg);
 
