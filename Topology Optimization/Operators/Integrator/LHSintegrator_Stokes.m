@@ -46,7 +46,14 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
         end
 
         function D = computeCrossMatrix(obj)
-            % ...
+            s.type  = 'WeakDivergence';
+            s.mesh  = obj.mesh;
+            s.test  = obj.pressureFun;
+            s.trial = obj.pressureFun;
+            s.material = obj.material;
+            LHS = LHSintegrator.create(s);
+            D = LHS.compute();
+            D = obj.symGradient(D);
         end
 
         function BB = computePressureLHS(obj,D)
