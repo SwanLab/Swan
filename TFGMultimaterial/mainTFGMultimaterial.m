@@ -182,9 +182,10 @@ classdef mainTFGMultimaterial < handle
             difvol = obj.volume(1:end-1)-obj.optParams.voltarget; 
             ic = (abs(difvol) > obj.optParams.volstop); %index control
              
-           
+           % UPDATE MONITORING ITER 0
+
             % We start the loop    
-            while obj.hasNotFinished(theta) 
+            while obj.hasNotFinished(theta,ic) 
             % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
                 
                 obj.iter = obj.iter + 1;
@@ -286,11 +287,14 @@ classdef mainTFGMultimaterial < handle
                         obj.k = 1;
                     end
                 end
+
+                % UPDATE MONITORING CURRENT ITERATION
+
             end
         end
 
-        function hasNotFinished(obj,theta)
-            and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4) % remove iter<=4
+        function isNotFinished = hasNotFinished(obj,theta,ic)
+            isNotFinished = and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4); % remove iter<=4
         end
 
         function uploadParameters(obj)
@@ -299,12 +303,17 @@ classdef mainTFGMultimaterial < handle
         end
 
         function createMesh(obj) 
+            % Per passar test:
             obj.mesh     = MeshComputer();
             s.connec     = obj.mesh.t';
             s.connec     = s.connec(:,1:3);
             s.coord      = obj.mesh.p';
             
             obj.meshSwan = Mesh.create(s);
+
+            % Per fer altres exemples:
+            %obj.meshSwan = TriangleMesh(6,1,150,25);
+            %obj.meshSwan = QuadMesh(2,1,100,50);
         end
 
         function createBoundaryConditions(obj)
@@ -316,7 +325,12 @@ classdef mainTFGMultimaterial < handle
             s.mesh     = obj.meshSwan; 
             
             BoundCond  = BoundaryConditionsSwan(s);
-            obj.bcSwan = BoundCond.createBoundaryConditions();
+
+            % Per passar test:
+            obj.bcSwan = BoundCond.createBoundaryConditionsTest();
+
+            % Per fer altres exemples:
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorial();
         end
 
         function createMaterial(obj)

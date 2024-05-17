@@ -10,7 +10,7 @@ classdef BoundaryConditionsSwan < handle
             obj.init(cParams)
         end
 
-         function bc = createBoundaryConditions(obj)
+         function bc = createBoundaryConditionsTest(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
@@ -41,7 +41,45 @@ classdef BoundaryConditionsSwan < handle
             s.periodicFun  = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
-        end
+         end
+
+         function bc = createBoundaryConditionsTutorial(obj)
+             xMax    = max(obj.mesh.coord(:,1));
+             yMax    = max(obj.mesh.coord(:,2));
+             isDir1  = @(coor)  abs(coor(:,2))==0 & abs(coor(:,1))<=0.3;
+             isDir2  = @(coor)  abs(coor(:,2))==0 & abs(coor(:,1))>=5.7 & abs(coor(:,1))<=6;
+             isForce = @(coor)  abs(coor(:,2))==yMax & abs(coor(:,1))>=2.85 & abs(coor(:,1))<=3.15;
+
+             sDir{1}.domain    = @(coor) isDir1(coor);
+             sDir{1}.direction = [2];
+             sDir{1}.value     = 0;
+
+             sDir{2}.domain    = @(coor) isDir2(coor);
+             sDir{2}.direction = [1,2];
+             sDir{2}.value     = 0;
+
+             sPL{1}.domain    = @(coor) isForce(coor);
+             sPL{1}.direction = 2;
+             sPL{1}.value     = -1;
+
+             dirichletFun = [];
+             for i = 1:numel(sDir)
+                 dir = DirichletCondition(obj.mesh, sDir{i});
+                 dirichletFun = [dirichletFun, dir];
+             end
+             s.dirichletFun = dirichletFun;
+
+             pointloadFun = [];
+             for i = 1:numel(sPL)
+                 pl = PointLoad(obj.mesh, sPL{i});
+                 pointloadFun = [pointloadFun, pl];
+             end
+             s.pointloadFun = pointloadFun;
+
+             s.periodicFun  = [];
+             s.mesh = obj.mesh;
+             bc = BoundaryConditions(s);
+         end
     end
 
     methods (Access = private)
