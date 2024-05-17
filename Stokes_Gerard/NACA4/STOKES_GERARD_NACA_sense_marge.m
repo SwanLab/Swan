@@ -1,4 +1,4 @@
-clear all
+clear 
 close all
 
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
@@ -7,28 +7,38 @@ close all
 
 
 
-m = QuadMesh(2,1,60,60); % MESH
+m = QuadMesh(2,1,100,100); % MESH
 s.type='Given';
-sx = 0.1;
-sy = 0.1;
-x0 = 0.5;
-y0 = 0.5;
-% fH = @(x) max(abs(x(1,:,:)-x0)/sx,abs(x(2,:,:)-y0)/sy) - 0.5;
-% r  = 0.2;
+% sx = 0.1;
+% sy = 0.1;
 % x0 = 0.5;
 % y0 = 0.5;
-% fH = @(x) -((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-r^2);
+% fH = @(x) max(abs(x(1,:,:)-x0)/sx,abs(x(2,:,:)-y0)/sy) - 0.5;
+r  = 0.05;
+x0 = 0.5;
+y0 = 0.5;
+% fH{1} = @(x) -((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-r^2);
+r2  = 0.2;
+x02 = 0.3;
+y02 = 0.5;
+% fH{2} = @(x) -((x(1,:,:)-x02).^2+(x(2,:,:)-y02).^2-r2^2);
+% 
+% fH= @(x) f2 | f1;
 
 %% Create mesh and boundary conditions
-s.fHandle = @(x) -(max(abs(x(1,:,:)-x0)/sx,abs(x(2,:,:)-y0)/sy) - 0.5);
+s.fHandle = @(x) -min(((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-r^2),((x(1,:,:)-x02).^2+(x(2,:,:)-y02).^2-r2^2));
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
 sUm.backgroundMesh = m;
 sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
 uMesh = UnfittedMesh(sUm);
+% for gg=1:1:2
+% 
+% end
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
 plot(uMesh)
+plot(lsFun)
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
 material = Material.create(e);
@@ -192,7 +202,6 @@ pressureFun.fValues = vars.p(:,end);
 %% PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
-axis equal
 
 % isEsquerra   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-2);
 % 

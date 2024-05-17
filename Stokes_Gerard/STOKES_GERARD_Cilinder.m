@@ -6,21 +6,25 @@ close all
 % a.fileName = file;
 % f = StokesDataContainer(a);
 
-xpos = 0.7;
+xpos = 0.5;
 ypos = 0.5;
-radius = 0.08;
+radius = 0.25;
+% fa = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
+% fb = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-0.9).^2-radius^2);
 
-m = QuadMesh(1,1,100,100); 
+m = QuadMesh(1,1,4,4); 
 s.type='Given';
-s.fHandle = @(x) -((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2);
+s.fHandle = @(x) (-((x(1,:,:)-xpos).^2+(x(2,:,:)-ypos).^2-radius^2));
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m);
 sUm.backgroundMesh = m;
 sUm.boundaryMesh = m.createBoundaryMesh();
 uMesh = UnfittedMesh(sUm);
+% lsFun.fValues(25)=-0.0001;
 uMesh.compute(lsFun.fValues);
 mesh = uMesh.createInnerMesh();
-
+plot(uMesh);
+plot(lsFun);
 % mesh = TriangleMesh(1,1,40,40);
 
 e.type  = 'STOKES';
