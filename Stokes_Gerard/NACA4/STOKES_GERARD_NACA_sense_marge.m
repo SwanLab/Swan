@@ -4,18 +4,18 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(4,2,600,600); % MESH
 s.type='Given';
 
 
 % per ordre
-M=0/100;
-p=4/10;
-t=6/100;
+M=6/100;
+p=7/10;
+t=12/100;
 
 pas=0.001;
 
-x_p=[pas:pas:1];
+x_p=[pas:pas:1-pas*15];
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
 
@@ -31,25 +31,25 @@ end
 % axis equal
 % grid on
 
-figure
-for ii=1:1:size(x_p,2)
-    x_c = [x_p(ii)-yt(ii):0.001:x_p(ii)+yt(ii)+0.001];
-    y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+% figure
+% for ii=1:1:size(x_p,2)
+%     x_c = [x_p(ii)-yt(ii):0.001:x_p(ii)+yt(ii)+0.001];
+%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+% 
+% 
+%     plot(x_c,y+y_c(ii));
+%     hold on
+%     plot(x_c,-y+y_c(ii));
+%     hold on
+% 
+% end
+% 
+% axis equal
 
-
-    plot(x_c,y+y_c(ii));
-    hold on
-    plot(x_c,-y+y_c(ii));
-    hold on
-
-end
-
-axis equal
-
-
+% 30%
 rn  = yt;
-x_cn = x_p+0.2;
-y_cn = y_c+0.5;
+x_cn = x_p+1;
+y_cn = y_c+1;
 % % r = [0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2]
 % % x_c = [0.3 0.5 0.7 0.9 1.1 1.3 1.5 1.7 1.9];
 % % y_c = [0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5];
@@ -57,9 +57,9 @@ y_cn = y_c+0.5;
 % rn = [0.0573754299023625 0.0580301084764790 0.0456336906586778 0.0262311798047250 0.00125999999999998];
 % x_cn = [0.200000000000000 0.400000000000000 0.600000000000000 0.800000000000000 1];
 % y_cn = [0 0 0 0 0];
-
+% 
 % func_str = '';
-% for jj = 1:30%length(rn)
+% for jj = 1:length(rn) 
 %     seq_str = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
 %     if jj == 1
 %         func_str = [func_str, seq_str];
@@ -69,7 +69,31 @@ y_cn = y_c+0.5;
 % end
 % func_str = ['@(x) ', func_str];
 % fH_a = str2func(func_str);
-% 
+
+% rn = [0.0573754299023625 0.0580301084764790 0.0456336906586778 0.0262311798047250 0.00125999999999998];
+% x_cn = [0.200000000000000 0.400000000000000 0.600000000000000 0.800000000000000 1];
+% y_cn = [0 0 0 0 0];
+
+terms = cell(1, length(rn));
+
+for jj = 1:length(rn)
+    terms{jj} = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
+end
+
+while length(terms) > 1
+    new_terms = {};
+    for jj = 1:2:length(terms)-1
+        new_terms{end+1} = sprintf('min(%s, %s)', terms{jj}, terms{jj+1});
+    end
+    if mod(length(terms), 2) == 1
+        new_terms{end+1} = terms{end};
+    end
+    terms = new_terms;
+end
+
+func_str = ['@(x) -', terms{1}];
+fH = str2func(func_str);
+
 % func_str = '';
 % for jj = 31:60%length(rn)
 %     seq_str = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
@@ -122,7 +146,9 @@ sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de 
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
+figure
 plot(uMesh)
+figure
 plot(lsFun)
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;

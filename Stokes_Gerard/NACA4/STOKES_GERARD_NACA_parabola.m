@@ -4,7 +4,7 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(2,1,300,300); % MESH
 s.type='Given';
 
 % sx = 0.2;
@@ -21,26 +21,33 @@ x_p = [1.5 0.4 0.9 0.6];
 y_c = [0.5 0.5 0.5 0.6];
 
 %fH = @(x) max(((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)),(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:)));
-%fH = @(x) -((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)).*(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:));
+
+%fH = @(x) -((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)).*(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:)).*(x(1,:,:)-0.45228);
+
+fH = @(x) min((min((((1-x(1,:,:)).^2 + 0.2 - x(2,:,:)).*((1-x(1,:,:)).^2 - 0.8 + x(2,:,:))),(x(1,:,:)-0.46))),(-x(1,:,:)+1.547722));
+
 %fH = @(x) -min(((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)),(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:))).*min(((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)),(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:)));
 %fH = @(x) -((x(1,:,:)-x_p(1)).^2+(x(2,:,:)-y_c(1)).^2-r(1)^2).*((x(1,:,:)-x_p(2)).^2+(x(2,:,:)-y_c(2)).^2-r(2)^2).*((x(1,:,:)-x_p(3)).^2+(x(2,:,:)-y_c(3)).^2-r(3)^2);
 
 %fH = @(x) -min([(((x(1,:,:)-x_p(1)).^2+(x(2,:,:)-y_c(1)).^2)-(r(1)^2)), (((x(1,:,:)-x_p(2)).^2+(x(2,:,:)-y_c(2)).^2)-(r(2)^2))]);
 %fH = @(x) -min(((x(1,:,:)-x_p(1)).^2+(x(2,:,:)-y_c(1)).^2-r(1)^2),((x(1,:,:)-x_p(2)).^2+(x(2,:,:)-y_c(2)).^2-r(2)^2)) && -min(((x(1,:,:)-x_p(3)).^2+(x(2,:,:)-y_c(3)).^2-r(3)^2),((x(1,:,:)-x_p(4)).^2+(x(2,:,:)-y_c(4)).^2-r(4)^2));
 
-fH = @(x) -min(((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)),(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:)));
+%fH = @(x) -min(((x(1,:,:)-1).^2 + 0.2 - x(2,:,:)),(-(x(1,:,:)-1).^2 + 0.8 - x(2,:,:)));
 
 %% Create mesh and boundary conditions
 s.fHandle = fH;
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
+plot(lsFun)
 sUm.backgroundMesh = m;
 sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
+
+figure
 plot(uMesh)
-plot(lsFun)
+
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
 material = Material.create(e);
