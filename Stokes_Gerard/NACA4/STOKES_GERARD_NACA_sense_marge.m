@@ -4,7 +4,7 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(10,4,400,300); % MESH
+m = QuadMesh(4,2,200,200); % MESH
 s.type='Given';
 
 % NACA 4
@@ -13,13 +13,13 @@ p=4/10;
 t=12/100;
 
 AOAd = 0; %deg
-x_centr = 5;
-y_centr = 2;
+x_centr = 1.5;
+y_centr = 1;
 
 %% Airfoil creation
 pas=0.001;
 
-x_p=[pas:pas:1-pas*15];
+x_p=[pas:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
 
@@ -36,10 +36,10 @@ end
 % axis equal
 % grid on
 
-%Plot airfoil with circles:
+% %Plot airfoil with circles:
 % figure
 % for ii=1:1:size(x_p,2)
-%     x_c = [x_p(ii)-yt(ii):0.001:x_p(ii)+yt(ii)+0.001];
+%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.001];
 %     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
 % 
 % 
@@ -306,10 +306,10 @@ for iE = 1:bMesh.nelem
     node1 = bMesh.coord(bMesh.connec(iE,1),:);
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
     nvect = (node2-node1)/(abs(norm(node2-node1)));
-    nvect = nvect * [0 -1;1 0];
-    if dot(ref_vect(iE,:),nvect)<0
-        nvect = -nvect;
-    end
+    nvect = -nvect * [0 -1;1 0];
+%     if dot(ref_vect(iE,:),nvect)<0 %No cal
+%         nvect = -nvect;
+%     end
     normal_vectors(iE,:) = nvect;
     length_element(iE) = abs(norm(node1-node2));
 end

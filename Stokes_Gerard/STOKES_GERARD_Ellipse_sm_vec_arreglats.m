@@ -5,13 +5,13 @@ close all
 % % INPUT DATA
 
 dim_a = 0.2; % Semi-major axis 0.2
-dim_b = 0.0138; % Semi-minor axis 0.02
+dim_b = 0.013; % Semi-minor axis 0.02
 center_posx = 0.7; % x position of the ellipse center
 center_posy = 0.5; % y position of the ellipse center
 AOAd = 30; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(2,1,200,200); % MESH
 s.type='Given';
 AOAr = -deg2rad(AOAd);
 
@@ -247,13 +247,23 @@ for iE = 1:bMesh.nelem
     node1 = bMesh.coord(bMesh.connec(iE,1),:);
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
     nvect = (node2-node1)/(abs(norm(node2-node1)));
-    nvect = nvect * [0 -1;1 0];
-    if dot(ref_vect(iE,:),nvect)<0
-        nvect = -nvect;
-    end
+    nvect = -nvect * [0 -1;1 0];
+%     if (tan(AOAr)*(central_points(iE,1) - centroid(1))+centroid(2)-central_points(iE,2))>0 && nvect(2)>0 || (tan(AOAr)*(central_points(iE,1) - centroid(1))+centroid(2)-central_points(iE,2))<0 && nvect(2)<0
+%         nvect = -nvect;
+%     end
+%     if dot(ref_vect(iE,:),nvect)<0 %NO CAL ARREGLAR LA DIRECCIÓ, JA SURT SOL
+%         nvect = -nvect;
+%     end
     normal_vectors(iE,:) = nvect;
     length_element(iE) = abs(norm(node1-node2));
 end
+
+x_plot = [0:1:4];
+y_plot = tan(AOAr)*(x_plot - centroid(1))+centroid(2);
+
+hold on
+plot(x_plot,y_plot);
+
 
 nx = LagrangianFunction.create(bMesh,1,'P0');%Vectors normals
 ny = LagrangianFunction.create(bMesh,1,'P0');
@@ -266,10 +276,11 @@ sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
 L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
+hold on
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on
-quiver(central_points(:,1),central_points(:,2),ref_vect(:,1),ref_vect(:,2),'g') %Plot the vectors
-hold on
+% quiver(central_points(:,1),central_points(:,2),ref_vect(:,1),ref_vect(:,2),'g') %Plot the vectors
+% hold on
 quiver(centroid(1,1),centroid(1,2),D,0);
 hold on
 quiver(centroid(1,1),centroid(1,2),0,L);
