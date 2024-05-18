@@ -91,13 +91,12 @@ dir_vel{1}.value     = [1,0];
 % dir_vel{1}.direction = [1,2];
 % dir_vel{1}.value     = [0,1];
 % 
-% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
-% dir_pre{1}.direction = 1;
-% dir_pre{1}.value     = 0;
 
-% dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
-% dir_pre{1}.direction = 1;
-% dir_pre{1}.value     = 0;
+
+dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
+dir_pre{1}.direction = 1;
+dir_pre{1}.value     = 0;
+
 
 dirichlet = [];
 dir_dofs = [];
@@ -111,13 +110,13 @@ for i = 1:length(dir_vel)
     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(iNod),:) = [iNod mat12 valmat];
     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(iNod),1) = dirDofs;
 end
-% for i = 1:length(dir_pre)
-%     dirDofs = pressureFun.getDofsFromCondition(dir_pre{i}.domain);
-%     mat12 = ones(size(dirDofs));
-%     valmat = ones(size(dirDofs)).*dir_pre{i}.value';
-%     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(dirDofs),:) = [dirDofs+velocityFun.nDofs mat12 valmat];
-%     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(dirDofs),1) = dirDofs+velocityFun.nDofs;
-% end
+for i = 1:length(dir_pre)
+    dirDofs = pressureFun.getDofsFromCondition(dir_pre{i}.domain);
+    mat12 = ones(size(dirDofs));
+    valmat = ones(size(dirDofs)).*dir_pre{i}.value';
+    dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(dirDofs),:) = [dirDofs+velocityFun.nDofs mat12 valmat];
+    dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(dirDofs),1) = dirDofs+velocityFun.nDofs;
+end
 
 % DEFINE APPLIED FORCES
 sAF.fHandle = @(coor) [0.*coor,0.*coor];
