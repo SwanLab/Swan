@@ -12,7 +12,7 @@ M=6/100;
 p=4/10;
 t=12/100;
 
-AOAd = 20; %deg
+AOAd = 0; %deg
 x_centr = 1.5;
 y_centr = 1;
 
@@ -31,10 +31,12 @@ for j=1:1:size(x_p,2)
     end
 end
 
-% plot(x,y_c)
+%Plot chamber line:
+% plot(x_p,y_c)
 % axis equal
 % grid on
 
+%Plot airfoil with circles:
 % figure
 % for ii=1:1:size(x_p,2)
 %     x_c = [x_p(ii)-yt(ii):0.001:x_p(ii)+yt(ii)+0.001];
@@ -118,7 +120,7 @@ dir_vel{2}.value     = [0,0];
 
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [1,0];
+dir_vel{1}.value     = [1,0]; %Velocity on the inlet
 
 %Nodesnormals = uMesh.boundaryCutMesh.mesh
 
@@ -257,8 +259,8 @@ pressureFun.fValues = vars.p(:,end);
 %% PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
-caxis([-115 80]);
-
+caxis([-50 50]);
+%caxis([-115 80]);
 
 %% Lift and drag
 
