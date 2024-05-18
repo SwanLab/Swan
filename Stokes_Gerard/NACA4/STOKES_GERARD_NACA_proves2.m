@@ -16,7 +16,6 @@ AOAd = 20; %deg
 x_centr = 1.5;
 y_centr = 1;
 
-%% Airfoil creation
 pas=0.001;
 
 x_p=[pas:pas:1-pas*15];
@@ -60,6 +59,30 @@ y_cnr = y_c+y_centr;
 x_cn = (x_cnr-x_centr).*cos(AOA)-(y_cnr-y_centr).*sin(AOA)+x_centr;
 y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
 
+% % r = [0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2]
+% % x_c = [0.3 0.5 0.7 0.9 1.1 1.3 1.5 1.7 1.9];
+% % y_c = [0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5];
+% % x_c = x_p+0.2;
+% rn = [0.0573754299023625 0.0580301084764790 0.0456336906586778 0.0262311798047250 0.00125999999999998];
+% x_cn = [0.200000000000000 0.400000000000000 0.600000000000000 0.800000000000000 1];
+% y_cn = [0 0 0 0 0];
+% 
+% func_str = '';
+% for jj = 1:length(rn) 
+%     seq_str = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
+%     if jj == 1
+%         func_str = [func_str, seq_str];
+%     else
+%         func_str = ['min(', func_str, ',', seq_str, ')'];
+%     end
+% end
+% func_str = ['@(x) ', func_str];
+% fH_a = str2func(func_str);
+
+% rn = [0.0573754299023625 0.0580301084764790 0.0456336906586778 0.0262311798047250 0.00125999999999998];
+% x_cn = [0.200000000000000 0.400000000000000 0.600000000000000 0.800000000000000 1];
+% y_cn = [0 0 0 0 0];
+
 terms = cell(1, length(rn));
 
 for jj = 1:length(rn)
@@ -80,9 +103,51 @@ end
 func_str = ['@(x) -', terms{1}];
 fH = str2func(func_str);
 
+% func_str = '';
+% for jj = 31:60%length(rn)
+%     seq_str = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
+%     if jj == 31
+%         func_str = [func_str, seq_str];
+%     else
+%         func_str = ['min(', func_str, ',', seq_str, ')'];
+%     end
+% end
+% func_str = ['@(x) ', func_str];
+% fH_b = str2func(func_str);
+% 
+% func_str = '';
+% for jj = 61:90%length(rn)
+%     seq_str = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
+%     if jj == 61
+%         func_str = [func_str, seq_str];
+%     else
+%         func_str = ['min(', func_str, ',', seq_str, ')'];
+%     end
+% end
+% func_str = ['@(x) ', func_str];
+% fH_c = str2func(func_str);
+
+% % Construir l'expressió del mínim
+% for i = 1:length(rn)
+%     term = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f^2)', x_cn(i), y_cn(i), rn(i));
+%     if i == 1
+%         min_expr = term;
+%     else
+%         min_expr = strcat(min_expr, '.* ', term);
+%     end
+% end
+% 
+% % Crear la funció anònima
+% fH = eval(['@(x) -(', min_expr, ')']);
+% 
+% % Comprova la funció
+% disp(fH);
+
+
+
 
 %% Create mesh and boundary conditions
-s.fHandle = fH; 
+s.fHandle = fH; %@(x) -min(min(fH_a(x),fH_b(x)),fH_c(x));
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
 sUm.backgroundMesh = m;
@@ -258,6 +323,12 @@ pressureFun.fValues = vars.p(:,end);
 velocityFun.plot()
 pressureFun.plot()
 caxis([-115 80]);
+
+% isEsquerra   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-2);
+% 
+% nodes_elim = pressureFun.getDofsFromCondition(isEsquerra);
+% pressureFun_cut = pressureFun;
+
 
 
 %% Lift and drag
