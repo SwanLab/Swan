@@ -51,8 +51,8 @@ classdef TopologicalDerivativeComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.p = cParams.meshSeba.p; 
-            obj.t = cParams.meshSeba.t;
+            obj.p = cParams.mesh.coord';
+            obj.t = cParams.mesh.connec';
             obj.mesh = cParams.mesh;
             obj.penalization = cParams.penalization;
             obj.penalty = cParams.penalty;
@@ -89,8 +89,6 @@ classdef TopologicalDerivativeComputer < handle
 
         function computeTgamma(obj)
             s.psi = obj.psi;
-            s.p = obj.p;
-            s.t = obj.t; 
             s.designVariable = obj.designVariable;
             s.m = obj.mesh;
             
@@ -189,8 +187,6 @@ classdef TopologicalDerivativeComputer < handle
         function smoothTopologicalDerivative(obj)
 
             s.psi = obj.psi;
-            s.p = obj.p;
-            s.t = obj.t; 
             s.designVariable = obj.designVariable;
             s.m = obj.mesh;
   

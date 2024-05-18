@@ -32,8 +32,6 @@ classdef CharacteristicFunctionComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.p = cParams.p;
-            obj.t = cParams.t;
             obj.mesh = cParams.m;
             obj.designVariable = cParams.designVariable;
         end
