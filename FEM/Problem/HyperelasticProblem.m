@@ -57,11 +57,12 @@ classdef HyperelasticProblem < handle
 %             fig2 = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 100;
+            nsteps = 10;
             % F = zeros(obj.uFun.nDofs,1);
             % R = zeros(obj.uFun.nDofs,1);
             displ_grafic = [];
             fext_grafic = [];
+            jac_grafic = [];
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
@@ -75,7 +76,7 @@ classdef HyperelasticProblem < handle
                 R_red = R(free);
                 residual = norm(R_red);
                 i = 0;
-                hess0 = neo.computeHessian0(obj.uFun);
+                hess0 = neo.computeHessian(obj.uFun);
                 h_red0 = hess0(free,free);
                 while residual > 10e-14
                     val = max(neo.compute(obj.uFun))
@@ -108,14 +109,17 @@ classdef HyperelasticProblem < handle
 %                     obj.uFun.print(['AAAAA_paraview',int2str(i)])
                     % Plot
                     i = i+1;
-                    addpoints(f,i,log10(residual));
-                    drawnow
+%                     addpoints(f,i,log10(residual));
+%                     drawnow
             
                     
                     
                 end
                 displ_grafic = [displ_grafic, obj.uFun.fValues(3,1)];
                 fext_grafic  = [fext_grafic, Fext(5)];
+                posgp = Quadrature.create(obj.mesh,1).posgp;
+                F = obj.computeDeformationGradient(obj.uFun,posgp);
+                jac_grafic = [jac_grafic, det(F)];
 
                 num_is(iStep) = i;
                 f = figure(1);
@@ -191,48 +195,51 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(5,5,5);
-%             obj.mesh = UnitQuadMesh(5,5);
+%             obj.mesh = UnitHexaMesh(5,5,5);
+            obj.mesh = UnitQuadMesh(2,2);
 
 %               s.coord = [0,0; 1,0; 1,1; 0,1];
 %               s.connec = [1 2 3 4];
 %               obj.mesh = Mesh.create(s);
 
 %             obj.mesh = QuadMesh(2,1,2,1);
-            obj.material.lambda = 3/4;
-            obj.material.mu = 3/8;
+%             obj.material.mu = 3/8;
+%             obj.material.lambda = 3/4;
 
-%             N = obj.mesh.ndim;
-%             E = 10.0;
-%             nu = 0.3;
-% 
-%             mu = E/(2*(1 + nu));
-%             k = E./(N*(1-(N-1)*nu));
-%             lambda = k - 2/N*mu;
-% 
-%             obj.material.lambda = lambda;
-%             obj.material.mu = mu;
+%             obj.material.mu = 10;
+%             obj.material.lambda = 3/8*100;
+
+            N = obj.mesh.ndim;
+            E = 10.0;
+            nu = 0.3;
+
+            mu = E/(2*(1 + nu));
+            k = E./(N*(1-(N-1)*nu));
+            lambda = k - 2/N*mu;
+
+            obj.material.lambda = lambda;
+            obj.material.mu = mu;
         end
         
         function createBoundaryConditions(obj)
 %             obj.createBC2D_oneelem();
 %             obj.createBC2D_knownexample();
 %             obj.createBCflexio();
-%             obj.createBC2D_nelem();
+            obj.createBC2D_nelem();
 %             obj.createBC3D_oneelem();
-            obj.createBC3D_nelem();
+%             obj.createBC3D_nelem();
         end
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             obj.uFun.fValues = obj.uFun.fValues + 0;
-            sAF.fHandle = @(x) [1*x(1,:,:);
-            0.15*x(2,:,:);
-            0.1*x(3,:,:)];
-            sAF.ndimf   = 3;
-            sAF.mesh    = obj.mesh;
-            xFun = AnalyticalFunction(sAF);
-            obj.uFun = xFun.project('P1');
+%             sAF.fHandle = @(x) [1*x(1,:,:);
+%             0.15*x(2,:,:);
+%             0.1*x(3,:,:)];
+%             sAF.ndimf   = 3;
+%             sAF.mesh    = obj.mesh;
+%             xFun = AnalyticalFunction(sAF);
+%             obj.uFun = xFun.project('P1');
         end
 
         function applyDirichletToUFun(obj)
@@ -303,6 +310,13 @@ classdef HyperelasticProblem < handle
             F = I33 + GradU;
         end
 
+        function I = createIdentityMatrix(obj,sz)
+            I = zeros(sz);
+            for i = 1:sz(1)
+                I(i,i,:,:) = 1;
+            end
+        end
+
         function bc = createBC2D_oneelem(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
@@ -326,7 +340,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 10;
+            sPL.value     = 0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
@@ -458,7 +472,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 0.1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
