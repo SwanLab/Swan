@@ -31,8 +31,8 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function computeElasticProperties(obj)
-            E1  = 10;
-            nu1 = 0.3;
+            E1  = 2.9474;
+            nu1 = 0.4737;
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             obj.young   = E;

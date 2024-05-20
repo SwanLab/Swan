@@ -24,7 +24,7 @@ classdef DistributedLoad < BoundaryCondition
             % P1
             fun = LagrangianFunction.create(mesh, mesh.ndim,'P1'); % not necessarily mesh.ndim
             pl_dofs = s.domain(mesh.coord);
-            nNodes = length(pl_dofs);
+            nNodes = sum(pl_dofs);
             fun.fValues(pl_dofs,s.direction) = s.value/nNodes;
             
             obj.fun    = fun;
