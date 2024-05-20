@@ -226,13 +226,13 @@ classdef HyperelasticProblem < handle
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             obj.uFun.fValues = obj.uFun.fValues + 0;
-%             sAF.fHandle = @(x) [1*x(1,:,:);
-%             0.15*x(2,:,:);
-%             0.1*x(3,:,:)];
-%             sAF.ndimf   = 3;
-%             sAF.mesh    = obj.mesh;
-%             xFun = AnalyticalFunction(sAF);
-%             obj.uFun = xFun.project('P1');
+            sAF.fHandle = @(x) [1*x(1,:,:);
+            0.15*x(2,:,:);
+            0.1*x(3,:,:)];
+            sAF.ndimf   = 3;
+            sAF.mesh    = obj.mesh;
+            xFun = AnalyticalFunction(sAF);
+            obj.uFun = xFun.project('P1');
         end
 
         function applyDirichletToUFun(obj)

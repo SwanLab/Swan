@@ -237,6 +237,7 @@ classdef NeohookeanFunctional < handle
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             jac = reshape(jac, [1 1 nGaus nElem]);
             piola = obj.mu*(F-invFt) + obj.lambda*log(jac).*invFt;
+%             piola = obj.mu*(F-invFt) + obj.lambda/2*(jac.^2-1).*invFt;
         end
 
         function Aneo = computeTangentConstitutive(obj,uFun,xG)
