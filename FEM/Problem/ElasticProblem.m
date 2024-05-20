@@ -16,6 +16,8 @@ classdef ElasticProblem < handle
         scale
         
         strain, stress
+
+        problemSolver
     end
 
     properties (Access = protected)
@@ -110,8 +112,12 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            s.type     = obj.solverCase;
-            obj.solver = Solver.create(s);
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = obj.solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.BCApplier;
+            obj.problemSolver    = ProblemSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -143,15 +149,10 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacement(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.stiffness  = obj.stiffness;
-            s.forces     = obj.forces;
-            s.solver     = obj.solver;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.BCApplier;
-            pb = ProblemSolver(s);
-            [u,L] = pb.solve();
+            stiff = obj.stiffness;
+            forc  = obj.forces;
+            pb    = obj.problemSolver;
+            [u,L] = pb.solve(stiff,forc);
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
