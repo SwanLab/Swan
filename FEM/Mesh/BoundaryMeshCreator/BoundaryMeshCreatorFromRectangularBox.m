@@ -63,7 +63,7 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
                 case 2
                     connec = obj.computeConnectivities1D(facetCoords);
                 case 3
-                    connec = obj.computeConnectivities2D(facetCoords);
+                    connec = obj.computeConnectivities2D(nodes,facetCoords,obj.backgroundMesh);
             end
         end
         
@@ -98,12 +98,23 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
             connec = [I circshift(I,-1)];
             connec(end,:) = [];
         end
-        
-        function connec = computeConnectivities2D(coord)
-            DT = delaunayTriangulation(coord);
-            connec = DT.ConnectivityList;
+
+        function connec = computeConnectivities2D(nodes,coord,mesh)
+            switch mesh.type
+                case 'ideaHEXAHEDRA'
+                    nodes = find(nodes);
+                    mesh.computeFaces();
+                    nodesFaces = mesh.faces.nodesInFaces;
+                    faces      = logical(prod(ismember(nodesFaces,nodes),2));
+                    connec     = nodesFaces(faces,:);
+                    [~,~,w]    = unique(connec);
+                    connec(:)  = w;
+                otherwise
+                    DT = delaunayTriangulation(coord);
+                    connec = DT.ConnectivityList;
+            end
         end
-        
+
     end
-    
+
 end

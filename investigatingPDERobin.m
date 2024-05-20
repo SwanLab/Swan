@@ -29,3 +29,5 @@ rhoEps = filter.compute(rho,'LINEAR');
 % Quad 4: [3 4 8 7]
 % Quad 5: [2 3 7 6]
 % Quad 6: [1 4 8 5]
+
+bM1=m.createBoundaryMesh{1}.mesh;
