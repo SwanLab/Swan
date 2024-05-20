@@ -57,12 +57,12 @@ classdef HyperelasticProblem < handle
 %             fig2 = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 10;
+            nsteps = 50;
             % F = zeros(obj.uFun.nDofs,1);
             % R = zeros(obj.uFun.nDofs,1);
             displ_grafic = [];
             fext_grafic = [];
-            jac_grafic = [];
+            nrg_grafic = [];
             react = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
@@ -71,15 +71,15 @@ classdef HyperelasticProblem < handle
                 disp('NEW LOAD STEP')
                 loadPercent = iStep/nsteps;
                 obj.createBoundaryConditions();
-                Fext = obj.computeForces(loadPercent);
+                Fext = obj.computeExtForcesShape(loadPercent);
                 Fint = obj.computeInternalForces();
                 hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext;
 %                 R_red = R(free);
                 residual = norm(R);
                 i = 0;
-                while residual > 10e-14
-                    val = max(neo.compute(obj.uFun))
+                while residual > 10e-8
+                    nrg = max(neo.compute(obj.uFun))
 
                     % Update U
                     [deltaUk,react_k] = obj.solveProblem(hess,-R);
@@ -109,8 +109,27 @@ classdef HyperelasticProblem < handle
                     
                     
                 end
-                displ_grafic = [displ_grafic, obj.uFun.fValues(7,1)];
-                fext_grafic  = [fext_grafic, Fext(13)];
+                    obj.uFun.print(['AAShape_paraview',int2str(iStep)])
+
+                xMax    = max(obj.mesh.coord(:,1));
+
+                isRight  = @(coor)  abs(coor(:,1))==xMax;
+                isBottom = @(coor)  abs(coor(:,2))==0;
+                bot_right = @(coor) isBottom(coor) & isRight(coor);
+                dof = obj.uFun.getDofsFromCondition(bot_right);
+                dof = dof(1);
+                nDimf = obj.uFun.ndimf;
+                nNode = obj.mesh.nnodes;
+                dofToDim = repmat(1:nDimf,[1,nNode]);
+                dofToNode = repmat(1:nNode, nDimf, 1);
+                dofToNode = dofToNode(:);
+
+                nod = dofToNode(dof);
+                dof_dir = dofToDim(dof); 
+
+                nrg_grafic  = [nrg_grafic, nrg];
+                displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
+                fext_grafic  = [fext_grafic, Fext(dof)];
                 posgp = Quadrature.create(obj.mesh,1).posgp;
 %                 F = obj.computeDeformationGradient(obj.uFun,posgp);
 %                 jac_grafic = [jac_grafic, det(F)];
@@ -118,9 +137,11 @@ classdef HyperelasticProblem < handle
                 num_is(iStep) = i;
                 f = figure(1);
                 clf(f)
-                subplot(1,2,1)
-                plot(displ_grafic, fext_grafic)
-                subplot(1,2,2)
+                subplot(1,3,1)
+                plot(displ_grafic, fext_grafic,'-x')
+                subplot(1,3,2)
+                plot(1:iStep, nrg_grafic,'-x')
+                subplot(1,3,3)
                 bar(1:iStep, num_is)
                 hold on
                 drawnow
@@ -214,7 +235,7 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(2,2);
+            obj.mesh = UnitTriangleMesh(5,5);
 
 %               s.coord = [0,0; 1,0; 1,1; 0,1];
 %               s.connec = [1 2 3 4];
@@ -224,19 +245,19 @@ classdef HyperelasticProblem < handle
 %             obj.material.mu = 3/8;
 %             obj.material.lambda = 3/4;
 
-%             obj.material.mu = 10;
-%             obj.material.lambda = 3/8*100;
+            obj.material.mu = 1;
+            obj.material.lambda = 1*10;
 
-            N = obj.mesh.ndim;
-            E = 10.0;
-            nu = 0.3;
-
-            mu = E/(2*(1 + nu));
-            k = E./(N*(1-(N-1)*nu));
-            lambda = k - 2/N*mu;
-
-            obj.material.lambda = lambda;
-            obj.material.mu = mu;
+%             N = obj.mesh.ndim;
+%             E = 10.0;
+%             nu = 0.3;
+% 
+%             mu = E/(2*(1 + nu));
+%             k = E./(N*(1-(N-1)*nu));
+%             lambda = k - 2/N*mu;
+% 
+%             obj.material.lambda = lambda;
+%             obj.material.mu = mu;
         end
         
         function createBoundaryConditions(obj)
@@ -490,7 +511,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 0.1;
+            sPL.value     = 1;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
