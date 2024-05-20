@@ -109,7 +109,7 @@ classdef HyperelasticProblem < handle
                     
                     
                 end
-                    obj.uFun.print(['AAShape_paraview',int2str(iStep)])
+                    obj.uFun.print(['AAShapeFine_paraview',int2str(iStep)])
 
                 xMax    = max(obj.mesh.coord(:,1));
 
@@ -288,7 +288,7 @@ classdef HyperelasticProblem < handle
             obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
-        function Fext = computeExtForcesShape(obj,perc)
+        function [Fext] = computeExtForcesShape(obj,perc)
             pl = obj.boundaryConditions.pointloadFun;
             pl.fValues = pl.fValues*perc;
             s.mesh = obj.mesh;
@@ -297,6 +297,14 @@ classdef HyperelasticProblem < handle
             rhsI       = RHSintegrator.create(s);
             test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
             Fext = rhsI.compute(pl,test);
+
+%             Fext = pl.fValues;
+%             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
+%             sum(Fext)
+            s.mesh = obj.mesh;
+            s.quadType = 2;
+            scalar = IntegratorScalarProduct(s);
+            intF = scalar.compute(pl,pl);
         end
 
         function Fext = computeForces(obj, perc)
@@ -509,9 +517,18 @@ classdef HyperelasticProblem < handle
             dir2 =  DirichletCondition(obj.mesh, sDir2);
             s.dirichletFun = [dir1, dir2];
 
+
+            %%
+            [m_r, l2g_r] = obj.mesh.getBoundarySubmesh(isRight);
+            sAF.fHandle = @(x) [5*ones(size(x(1,:,:)));
+                                0*ones(size(x(2,:,:)))];
+            sAF.ndimf   = 2;
+            sAF.mesh    = m_r;
+            xFun = AnalyticalFunction(sAF);
+
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 5;
             s.pointloadFun = PointLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
