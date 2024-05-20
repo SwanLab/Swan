@@ -226,6 +226,7 @@ classdef HyperelasticProblem < handle
 %             Fext = pl.fValues;
 %             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
 %             sum(Fext)
+
             s.mesh = obj.mesh;
             s.quadType = 2;
             scalar = IntegratorScalarProduct(s);
@@ -432,7 +433,7 @@ classdef HyperelasticProblem < handle
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
             sPL.value     = 5;
-            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            s.pointloadFun = DistributedLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
