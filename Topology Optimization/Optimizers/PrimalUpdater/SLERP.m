@@ -144,7 +144,7 @@ classdef SLERP < handle
 
         function rhoe = computeRegularizedDensity(obj,phi)
             charFun = phi.obtainDomainFunction();
-            rhoe    = obj.filter.compute(charFun,'QUADRATIC');
+            rhoe    = obj.filter.compute(charFun,2);
         end
 
         function updateBoundsMultipliers(obj,xF,yF,g,phi)
