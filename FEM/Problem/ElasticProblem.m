@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        forces
     end
 
     properties (Access = private)
@@ -11,7 +12,6 @@ classdef ElasticProblem < handle
         boundaryConditions, BCApplier
 
         stiffness
-        forces
         solver, solverType, solverMode, solverCase
         scale
         
@@ -63,6 +63,27 @@ classdef ElasticProblem < handle
             funNames = {'displacement', 'strain', 'stress'};
         end
 
+        function Ju = computeInternalForces(obj)
+            u = obj.uFun;
+            quadOrder = 4;
+            C = obj.material;
+            sigma = DDP(C,SymGrad(u));
+            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+
+            s.mesh = obj.mesh;
+            s.quadratureOrder = quadOrder;
+            s.type = 'ShapeSymmetricDerivative';
+            RHS = RHSintegrator.create(s);
+            Ju = RHS.compute(sigma,test);
+
+%             Ju = reshape(Ju,[obj.mesh.ndim,obj.mesh.nnodes])';
+% 
+%             aa.fValues = Ju;
+%             aa.mesh = obj.mesh;
+%             aa.order = 'P1';
+%             p1 = LagrangianFunction(aa)
+%             p1.plot
+        end
     end
 
     methods (Access = private)
@@ -138,6 +159,7 @@ classdef ElasticProblem < handle
             end
         end
 
+
         function u = computeDisplacement(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
@@ -148,6 +170,14 @@ classdef ElasticProblem < handle
             s.BCApplier          = obj.BCApplier;
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
+            
+            bc = obj.boundaryConditions;
+            dofs = 1:obj.displacementFun.nDofs;
+            free = setdiff(dofs, bc.dirichlet_dofs);
+            reactions = zeros(obj.displacementFun.nDofs, 1);
+            reactions(bc.dirichlet_dofs) = L;
+            reac_rshp = reshape(reactions,[obj.mesh.ndim,obj.mesh.nnodes])';
+
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';

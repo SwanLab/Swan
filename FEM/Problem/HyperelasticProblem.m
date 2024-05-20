@@ -63,6 +63,7 @@ classdef HyperelasticProblem < handle
             displ_grafic = [];
             fext_grafic = [];
             jac_grafic = [];
+            react = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
                 disp('------')
@@ -72,37 +73,30 @@ classdef HyperelasticProblem < handle
                 obj.createBoundaryConditions();
                 Fext = obj.computeForces(loadPercent);
                 Fint = obj.computeInternalForces();
+                hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext;
-                R_red = R(free);
-                residual = norm(R_red);
+%                 R_red = R(free);
+                residual = norm(R);
                 i = 0;
-                hess0 = neo.computeHessian(obj.uFun);
-                h_red0 = hess0(free,free);
                 while residual > 10e-14
                     val = max(neo.compute(obj.uFun))
 
-                    % Residual
-                    Fint = obj.computeInternalForces();
-%                     Fext = obj.computeExtForcesShape(loadPercent);
-                    R = Fint - Fext;
-                    R_red = R(free);
-
-                    % Hessian
-                    hess = neo.computeHessian(obj.uFun);
-                    h_red = hess(free,free);
-
-                    % DeltaU
-                    DeltaU_free = -h_red\R_red;
-                    deltaUk = zeros(size(R));
-                    deltaUk(free) = DeltaU_free;
-%                     deltaUk(free) = -alpha*R_red;
-
-                    % Next iteration
+                    % Update U
+                    [deltaUk,react_k] = obj.solveProblem(hess,-R);
+                    
                     u_next = u_k + deltaUk;
+                    react = react + react_k;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     u_k = u_next;
-                    residual = norm(R_red)
                     obj.uFun.fValues
+
+                    % Calculate residual
+                    Fint = obj.computeInternalForces();
+                    hess = neo.computeHessian(obj.uFun);
+                    R = Fint - Fext - react;
+
+                    residual = norm(R)/norm(Fext)
+
 %                     sigma = obj.computeCauchyStress();
 %                     lambdas = obj.computeStretches();
 
@@ -115,11 +109,11 @@ classdef HyperelasticProblem < handle
                     
                     
                 end
-                displ_grafic = [displ_grafic, obj.uFun.fValues(3,1)];
-                fext_grafic  = [fext_grafic, Fext(5)];
+                displ_grafic = [displ_grafic, obj.uFun.fValues(7,1)];
+                fext_grafic  = [fext_grafic, Fext(13)];
                 posgp = Quadrature.create(obj.mesh,1).posgp;
-                F = obj.computeDeformationGradient(obj.uFun,posgp);
-                jac_grafic = [jac_grafic, det(F)];
+%                 F = obj.computeDeformationGradient(obj.uFun,posgp);
+%                 jac_grafic = [jac_grafic, det(F)];
 
                 num_is(iStep) = i;
                 f = figure(1);
@@ -186,7 +180,31 @@ classdef HyperelasticProblem < handle
 % 
         end
 
-        function solve(obj)
+
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);
+            obj.BCApplier = bc;
+        end
+
+        function [u,reactions] = solveProblem(obj, lhs, rhs)
+            obj.createBCApplier();
+            a.type = 'DIRECT';
+            solv = Solver.create(a);
+            s.solverType = 'MONOLITHIC';
+            s.solverMode = 'DISP';
+            s.stiffness  = lhs;
+            s.forces     = rhs;
+            s.solver     = solv;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.BCApplier;
+            pb = ProblemSolver(s);
+            [u,L] = pb.solve();
+
+            reactions = zeros(obj.uFun.nDofs, 1);
+            reactions(obj.boundaryConditions.dirichlet_dofs) = L;
+            reac_rshp = reshape(reactions,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
     end

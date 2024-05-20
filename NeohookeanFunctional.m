@@ -46,7 +46,7 @@ classdef NeohookeanFunctional < handle
         function Fint = computeInternalForces(obj, uFun,bcs)
             nDimf = uFun.ndimf;
             test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            quad = Quadrature.create(obj.mesh,1);
+            quad = Quadrature.create(obj.mesh,3);
 
             xG = quad.posgp;
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
