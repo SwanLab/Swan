@@ -75,7 +75,7 @@ classdef HyperelasticProblem < handle
                 R_red = R(free);
                 residual = norm(R_red);
                 i = 0;
-                hess0 = neo.computeHessian(obj.uFun);
+                hess0 = neo.computeHessian0(obj.uFun);
                 h_red0 = hess0(free,free);
                 while residual > 10e-14
                     val = max(neo.compute(obj.uFun))
@@ -91,10 +91,10 @@ classdef HyperelasticProblem < handle
                     h_red = hess(free,free);
 
                     % DeltaU
-                    DeltaU_free = -h_red0\R_red;
+                    DeltaU_free = -h_red\R_red;
                     deltaUk = zeros(size(R));
-%                     deltaUk(free) = DeltaU_free;
-                    deltaUk(free) = -alpha*R_red;
+                    deltaUk(free) = DeltaU_free;
+%                     deltaUk(free) = -alpha*R_red;
 
                     % Next iteration
                     u_next = u_k + deltaUk;
@@ -191,39 +191,48 @@ classdef HyperelasticProblem < handle
 
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-%             obj.mesh = UnitHexaMesh(5,5,5);
-%             obj.mesh = UnitQuadMesh(1,1);
+            obj.mesh = UnitHexaMesh(5,5,5);
+%             obj.mesh = UnitQuadMesh(5,5);
 
-              s.coord = [0,0; 1,0; 1,1; 0,1];
-              s.connec = [1 2 3 4];
-              obj.mesh = Mesh.create(s);
+%               s.coord = [0,0; 1,0; 1,1; 0,1];
+%               s.connec = [1 2 3 4];
+%               obj.mesh = Mesh.create(s);
+
 %             obj.mesh = QuadMesh(2,1,2,1);
-%             obj.material.lambda = 3/4;
-%             obj.material.mu = 3/8;
-            N = obj.mesh.ndim;
-            E = 10.0;
-            nu = 0.3;
+            obj.material.lambda = 3/4;
+            obj.material.mu = 3/8;
 
-            mu = E/(2*(1 + nu));
-            k = E./(N*(1-(N-1)*nu));
-            lambda = k - 2/N*mu;
-
-            obj.material.lambda = lambda;
-            obj.material.mu = mu;
+%             N = obj.mesh.ndim;
+%             E = 10.0;
+%             nu = 0.3;
+% 
+%             mu = E/(2*(1 + nu));
+%             k = E./(N*(1-(N-1)*nu));
+%             lambda = k - 2/N*mu;
+% 
+%             obj.material.lambda = lambda;
+%             obj.material.mu = mu;
         end
         
         function createBoundaryConditions(obj)
 %             obj.createBC2D_oneelem();
-            obj.createBC2D_knownexample();
+%             obj.createBC2D_knownexample();
 %             obj.createBCflexio();
 %             obj.createBC2D_nelem();
 %             obj.createBC3D_oneelem();
-%             obj.createBC3D_nelem();
+            obj.createBC3D_nelem();
         end
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             obj.uFun.fValues = obj.uFun.fValues + 0;
+%             sAF.fHandle = @(x) [1*x(1,:,:);
+%             0.15*x(2,:,:);
+%             0.1*x(3,:,:)];
+%             sAF.ndimf   = 3;
+%             sAF.mesh    = obj.mesh;
+%             xFun = AnalyticalFunction(sAF);
+%             obj.uFun = xFun.project('P1');
         end
 
         function applyDirichletToUFun(obj)

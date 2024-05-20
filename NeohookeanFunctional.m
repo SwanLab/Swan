@@ -92,6 +92,8 @@ classdef NeohookeanFunctional < handle
         end
 
         function hess = computeHessian(obj, uFun)
+            % This is the LINEALIZED hessian (Holzapfel, 401)
+            % See  Holzapfel, 396, Bonet 190.
             nDimf = uFun.ndimf;
             trial = uFun;
             test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
@@ -101,7 +103,8 @@ classdef NeohookeanFunctional < handle
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
             Ctan = obj.computeTangentConstitutive(uFun,xG);
-
+            piola = obj.computeFirstPiola(uFun,xG);
+            GradU = ActualGrad(uFun).evaluate(xG);
             dNdxTest  = test.evaluateCartesianDerivatives(xG);
             dNdxTrial = trial.evaluateCartesianDerivatives(xG);
             nNode = size(dNdxTrial,2);
@@ -134,7 +137,73 @@ classdef NeohookeanFunctional < handle
 
                     GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
                     GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
-                    K(iDof,jDof,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
+
+%                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
+
+                    Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
+                    K(iDof,jDof,:,:) = Ktan;
+                end
+            end
+            K = K.*dV;
+            K = squeeze(sum(K,3));
+
+            % Assembly
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            hess = assembler.assemble(K, test, trial);
+        end
+
+        function hess = computeHessian0(obj, uFun)
+            % This is the LINEALIZED hessian (Holzapfel, 401)
+            % See  Holzapfel, 396
+            nDimf = uFun.ndimf;
+            trial = uFun;
+            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
+            quad = Quadrature.create(obj.mesh,2);
+
+            xG = quad.posgp;
+            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
+
+            Ctan = obj.computeTangentConstitutive(uFun,xG);
+            piola = obj.computeFirstPiola(uFun,xG);
+            GradU = ActualGrad(uFun).evaluate(xG);
+            dNdxTest  = test.evaluateCartesianDerivatives(xG);
+            dNdxTrial = trial.evaluateCartesianDerivatives(xG);
+            nNode = size(dNdxTrial,2);
+            nGaus = size(dNdxTrial,3);
+            nElem = size(dNdxTrial,4);
+            nDof = nDimf*nNode;
+            
+            dofToDim = repmat(1:nDimf,[1,nNode]);
+            dofToNode = repmat(1:nNode, nDimf, 1);
+            dofToNode = dofToNode(:);
+
+            K = zeros(nDof,nDof,nGaus,nElem);
+            for iDof = 1:nDof % test dof
+                iNode = dofToNode(iDof);
+                iDim  = dofToDim(iDof);
+                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
+                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
+
+                res = zeros(nDimf,nDimf,nGaus,nElem);
+                for a = 1:nDimf
+                    for b = 1:nDimf
+                        C = squeezeParticular(Ctan(:,:,a,b,:,:),[3 4]);
+                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
+                    end
+                end
+
+                for jDof = 1:nDof % trial dof
+                    jNode = dofToNode(jDof);
+                    jDim  = dofToDim(jDof);
+
+                    GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
+                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
+
+%                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
+
+                    Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
+                    K(iDof,jDof,:,:) = Ktan;
                 end
             end
             K = K.*dV;

@@ -44,6 +44,14 @@ for I = 1:2
     end
 end
 
+jac = det(F);
+invFt = inv(F');
+
+mu = 1;
+lambda = 2;
+
+piola = mu*(F-invFt) + lambda*log(jac).*invFt;
+
 %% 
 
 mu = 1;

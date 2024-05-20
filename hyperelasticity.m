@@ -11,9 +11,9 @@ material.mu = 1;
 
 
 % Creem uFun
-sAF.fHandle = @(x) [0*x(1,:,:) + x(2,:,:);
-                    -0.5*x(2,:,:);
-                    0*x(3,:,:)];
+sAF.fHandle = @(x) [1*x(1,:,:);
+                    0.15*x(2,:,:);
+                    0.1*x(3,:,:)];
 sAF.ndimf   = 3;
 sAF.mesh    = mesh;
 xFun = AnalyticalFunction(sAF);
