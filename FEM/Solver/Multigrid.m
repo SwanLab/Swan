@@ -41,8 +41,13 @@ classdef Multigrid < handle
             b                                 = obj.RHS;
             Res                               = 1;
             
+            % % Enumerate the iterations 
+            % i = 1;
+            % j = 1;
+            % obj.coarseMeshes{1,obj.nLevel + 1} = obj.mesh;
+
             while norm(Res, inf) >= obj.tol
-                u = obj.vCycle(u,b,level);
+                [u] = obj.vCycle(u,b,level);
                 Res = obj.RHS - obj.LHS * u;
             end
 
@@ -84,11 +89,19 @@ classdef Multigrid < handle
             obj.solver           = FEM.solver;
         end
         
-        function u = vCycle(obj,u,b,level)
+        function [u] = vCycle(obj,u,b,level)
             if level == 1
                 LHS = obj.coarseLHS{level};
                 RHS = b;
                 u   = obj.solver{level}.solve(LHS,RHS,u);
+                % % Plot de la u
+                % bcApplier = obj.bcApplierCoarse(level);
+                % obj.plotU(u,obj.coarseMeshes{level},bcApplier,i);
+                % i = i + 1;
+                % r      = b - LHS*u;
+                % % Plot del res
+                % obj.plotRes(r,obj.coarseMeshes{level},bcApplier,j);
+                % j = j + 1;
             else
                 LHS    = obj.coarseLHS{level};                
                 RHS    = b;
@@ -96,13 +109,28 @@ classdef Multigrid < handle
                 bcApplierold = obj.bcApplierCoarse(level-1);
                 bcApplier = obj.bcApplierCoarse(level);
                 u      = obj.solver{level}.solve(LHS,RHS,u);
+                % % Plot de la u
+                % obj.plotU(u,obj.coarseMeshes{level},bcApplier,i);
+                % i = i + 1;
+
                 r      = b - LHS*u;
+                % % Plot del res
+                % obj.plotRes(r,obj.coarseMeshes{level},bcApplier,j);
+                % j = j + 1;
+
                 Rr     = obj.interpolate(r,bcApplierold,bcApplier,intOld);
                 ur     = obj.interpolate(u,bcApplierold,bcApplier,intOld);
-                er     = obj.vCycle(0*ur, Rr, level - 1);
+                [er]     = obj.vCycle(0*ur, Rr, level - 1);
                 e      = obj.restriction(er,bcApplierold,bcApplier,intOld);
                 u      = u + e; 
                 u      = obj.solver{level}.solve(LHS,RHS,u);
+                % % Plot de la u 
+                % obj.plotU(u,obj.coarseMeshes{level},bcApplier,i);
+                % i = i + 1;
+                % r      = b - LHS*u;
+                % % Plot del res
+                % obj.plotRes(r,obj.coarseMeshes{level},bcApplier,j);
+                % j = j + 1;
              end
 
         end
@@ -135,7 +163,23 @@ classdef Multigrid < handle
             uFeFun = LagrangianFunction(s);
 %             xF = P1Function(s);
             %xF.plot();
-            uFeFun.print('uPrueva','Paraview')
+            uFeFun.print(['Res', num2str(numItr)],'Paraview')
+            fclose('all');
+         end
+
+         function plotU(obj,u,mesh,bcApplier,numItr)
+            xFull = bcApplier.reducedToFullVectorDirichlet(u);
+            s.fValues = reshape(xFull,obj.nDimf,[])';
+            s.mesh = mesh;
+            if obj.nDimf<3
+                s.fValues(:,end+1) = 0;
+            end
+             s.order   = 'P1';
+%             s.ndimf = obj.nDimf;
+            uFeFun = LagrangianFunction(s);
+%             xF = P1Function(s);
+            %xF.plot();
+            uFeFun.print(['U', num2str(numItr)],'Paraview')
             fclose('all');
         end
         

@@ -1,4 +1,4 @@
-classdef TetrahedreInterpolator < Interpolator
+classdef QuadrilaterInterpolator < Interpolator
 
     properties (Access = public)
         I
@@ -10,7 +10,7 @@ classdef TetrahedreInterpolator < Interpolator
 
     methods (Access = public)
 
-        function obj = TetrahedreInterpolator(cParams)
+        function obj = QuadrilaterInterpolator(cParams)
             obj.init(cParams);
             obj.createInterpolator(obj.mesh);
         end
@@ -36,18 +36,18 @@ classdef TetrahedreInterpolator < Interpolator
                 pmid = [
                     (p(tcurr(1),:) + p(tcurr(2),:)) / 2;
                     (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(1),:)) / 2;
-                    (p(tcurr(1),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(4),:)) / 2;
                     (p(tcurr(3),:) + p(tcurr(4),:)) / 2;
+                    (p(tcurr(4),:) + p(tcurr(1),:)) / 2
                     ];
                 p = [p; pmid];
+                pcenter = (p(5,:) + p(7,:)) / 2;
+                p = [p; pcenter];
             end
 
             [~,ia] = unique(p,'rows','stable');
             Ia = ia(n+1:end);
             ias = ia(n+1:end) - n ;
-            potential_tri = ceil(ias./6);
+            potential_tri = ceil(ias./4);
             d = 1;
             midpt_curr = [];
 
@@ -59,10 +59,8 @@ classdef TetrahedreInterpolator < Interpolator
                 pmid = [
                     (p(tcurr(1),:) + p(tcurr(2),:)) / 2;
                     (p(tcurr(2),:) + p(tcurr(3),:)) / 2;
-                    (p(tcurr(3),:) + p(tcurr(1),:)) / 2;
-                    (p(tcurr(1),:) + p(tcurr(4),:)) / 2;
-                    (p(tcurr(2),:) + p(tcurr(4),:)) / 2;
                     (p(tcurr(3),:) + p(tcurr(4),:)) / 2;
+                    (p(tcurr(4),:) + p(tcurr(1),:)) / 2
                     ];
 
                 if midpt_curr(1,:) == pmid(1,:)
@@ -70,13 +68,11 @@ classdef TetrahedreInterpolator < Interpolator
                 elseif midpt_curr(1,:) == pmid(2,:)
                     T(n + 1, [tcurr(2),tcurr(3)]) = 1/2;
                 elseif midpt_curr(1,:) == pmid(3,:)
-                    T(n + 1, [tcurr(1),tcurr(3)]) = 1/2;
+                    T(n + 1, [tcurr(3),tcurr(4)]) = 1/2;
                 elseif midpt_curr(1,:) == pmid(4,:)
                     T(n + 1, [tcurr(1),tcurr(4)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(5,:)
-                    T(n + 1, [tcurr(2),tcurr(4)]) = 1/2;
-                elseif midpt_curr(1,:) == pmid(6,:)
-                    T(n + 1, [tcurr(3),tcurr(4)]) = 1/2;
+                else
+                    T(n + 1, [tcurr(5),tcurr(7)]) = 1/4;
                 end
                 n = n + 1;
                 d = d + 1;

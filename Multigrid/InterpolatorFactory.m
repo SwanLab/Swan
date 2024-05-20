@@ -6,6 +6,8 @@ classdef InterpolatorFactory < handle
             switch cParams.meshType
                 case {'TRIANGLE'}
                     obj = TriangleInterpolator(cParams);
+                case {'QUAD'}
+                    obj = QuadrilaterInterpolator(cParams);
                 case {'TETRAHEDRA'}
                     obj = TetrahedreInterpolator(cParams);
             end

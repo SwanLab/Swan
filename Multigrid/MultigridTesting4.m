@@ -48,7 +48,7 @@ classdef MultigridTesting4 < handle
     methods (Access = public)
 
         function obj = MultigridTesting4()
-            tic
+            % tic
             close all;
             addpath(genpath(fileparts(mfilename('fullpath'))))
             obj.init();
@@ -59,7 +59,7 @@ classdef MultigridTesting4 < handle
 
             s.type                = 'ELASTIC';
             s.scale               = 'MACRO';
-            s.dim                 = '3D'; % Canviar per fer 2D
+            s.dim                 = '2D'; % Canviar per fer 2D
             s.solverType          = 'ITERATIVE';
             s.iterativeSolverType = 'MULTIGRID';
             s.solverCase          = 'REDUCED';
@@ -84,29 +84,30 @@ classdef MultigridTesting4 < handle
             s.tol                 = 1e-6;
             s.nLevel              = obj.nLevel;
             s.nDimf               = obj.nDimf;
+            tic
             solver                = Solver.create(s);
             obj.u                 = solver.solve();
             toc
 
             obj.postProcess();
-            obj.plotRes(obj.u,mF,s.bcApplier);
+            % obj.plotRes(obj.u,mF,s.bcApplier);
         end
     end
 
     methods (Access = private)
 
         function init(obj)
-            obj.nDimf        = 3; % Canviar per fer 2D
+            obj.nDimf        = 2; % Canviar per fer 2D
             obj.nbasis       = 20;
             obj.functionType = 'P1';
             obj.nLevel       = 3;
-            obj.ndim         = 3; % Canviar per fer 2D
+            obj.ndim         = 2; % Canviar per fer 2D
         end
 
         function createMultiLevelMesh(obj)
-            s.nX               = 1; % Canviar per fer 2D
-            s.nY               = 1; % Canviar per fer 2D
-            s.nZ               = 1; % Canviar per fer 2D
+            s.nX               = 1; % Canviar per fer 2D 
+            s.nY               = 1; % Canviar per fer 2D 
+            s.nZ               = 1; % Canviar per fer 2D 
             s.nLevel           = obj.nLevel;
             s.length           = 1; % Canviar per fer 2D
             s.height           = 1; % Canviar per fer 2D
@@ -246,6 +247,20 @@ classdef MultigridTesting4 < handle
             ylabel('Time(s)')
 
             legend('2 iters per level','5 iters per level','10 iters per level','20 iters per level','location','northwest')
+
+            DOFs3D = [1944, 13872, 45000, 104544, 201720, 345744, 545832, 753248];
+            multigridTime = [0.863221, 14.131017, 159.585559, 916.336431, 3782.675412, 9980.822431, 24716.03475, 61790.087];
+            directTime = [0.030516, 0.112095, 4.781604, 5.6041, 246.187, 3577.882947, 3760.532118, 109925.6268];
+
+            figure(3)
+            plot(DOFs3D,multigridTime)
+            hold on
+            plot(DOFs3D,directTime)
+            title('Total Time vs DOFs')
+            xlabel('DOFs')
+            ylabel('Time(s)')
+
+            legend('Multigrid', 'Direct','Location','northwest')
         end
 
         function plotRes(obj,res,mesh,bcApplier,numItr)

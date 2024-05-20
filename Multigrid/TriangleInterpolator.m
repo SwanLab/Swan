@@ -28,7 +28,7 @@ classdef TriangleInterpolator < Interpolator
 
             n = size(p,1);
             q = size(t,1);
-            T = sparse(eye(n,n));
+            T = sparse(speye(n,n));
             tnew = []; j = 1;
             p_ori = p;
             for i = 1:q % this will add all the midpoints into p
