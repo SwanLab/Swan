@@ -1,13 +1,15 @@
-classdef TopOptTestTutorialLevelSetNullSpace < handle
+classdef TopOptTestTutorialGlobalLengthScaleControl < handle
 
     properties (Access = private)
         mesh
-        filter
+        filterCompliance
+        filterPerimeter
         designVariable
         materialInterpolator
         physicalProblem
         compliance
         volume
+        perimeter
         cost
         constraint
         dualVariable
@@ -16,16 +18,18 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetNullSpace()
+        function obj = TopOptTestTutorialGlobalLengthScaleControl()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
-            obj.createFilter();
+            obj.createFilterCompliance();
+            obj.createFilterPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createComplianceConstraint();
             obj.createVolumeConstraint();
+            obj.createPerimeter();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -63,12 +67,21 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.designVariable = ls;
         end
 
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+        function createFilterCompliance(obj)
+            s.filterType         = 'LUMP';
+            s.mesh               = obj.mesh;
+            s.trial              = LagrangianFunction.create(obj.mesh,1,'P1');
+            f                    = Filter.create(s);
+            obj.filterCompliance = f;
+        end
+
+        function createFilterPerimeter(obj)
+            s.filterType        = 'PDE';
+            s.boundaryType      = 'Robin';
+            s.mesh              = obj.mesh;
+            s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
+            f                   = Filter.create(s);
+            obj.filterPerimeter = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -113,26 +126,37 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             c = ComplianceFromConstiutiveTensor(s);
         end
 
-        function createCompliance(obj)
+        function createComplianceConstraint(obj)
             s.mesh                       = obj.mesh;
-            s.filter                     = obj.filter;
+            s.filter                     = obj.filterCompliance;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
             s.material                   = obj.createMaterial();
-            c = ComplianceFunctional(s);
+            s.complianceTarget           = 3;
+            c = ComplianceConstraint(s);
             obj.compliance = c;
         end
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
 
+        function createPerimeter(obj)
+            eOverhmin     = 10; % 10
+            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filterPerimeter;
+            s.epsilon     = epsilon;
+            s.value0      = 6; % external Perimeter
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
+        end
+
         function createCost(obj)
-            s.shapeFunctions{1} = obj.compliance;
+            s.shapeFunctions{1} = obj.perimeter;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
@@ -145,19 +169,17 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
             M = LHS.compute;
-
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{1} = obj.compliance;
+            s.shapeFunctions{2} = obj.volume;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;
+            s.nConstraints   = 2;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -170,13 +192,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;
+            s.constraintCase = {'INEQUALITY','EQUALITY'};
             s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -185,7 +204,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filter.compute(f,'LINEAR');            
+            f = obj.filterCompliance.compute(f,'LINEAR');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -197,7 +216,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
