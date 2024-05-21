@@ -1,10 +1,10 @@
-clear
+clear all
 close all
 
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(6,3,100,100); % MESH
+m = QuadMesh(10,4,200,100); % MESH
 s.type='Given';
 
 % NACA 4
@@ -12,9 +12,9 @@ M=6/100;
 p=4/10;
 t=12/100;
 
-AOAd = 10; %deg
-x_centr = 2.5;
-y_centr = 1.5;
+AOAd = 20; %deg
+x_centr = 3;
+y_centr = 2;
 
 %% Airfoil creation
 pas=0.001;
