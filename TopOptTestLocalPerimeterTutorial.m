@@ -10,6 +10,10 @@ classdef TopOptTestLocalPerimeterTutorial < handle
         constraint
         dualVariable
         optimizerGP
+        locPer1
+        locPer2
+        locPer3
+        locPer4
     end
 
     methods (Access = public)
@@ -21,10 +25,14 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             obj.createFilterPerimeter();
             obj.createVolume();
             obj.createGlobalPerimeterConstraint();
-            obj.createCostSimulation1();
+            obj.createCostSimulations();
             obj.createConstraintSimulation1();
             obj.createDualVariableSimulation1();
             obj.createOptimizerSimulation1();
+            obj.createLocalPerimeterConstraints();
+            obj.createConstraintSimulation2();
+            obj.createDualVariableSimulation2();
+            obj.createOptimizerSimulation2();
         end
 
     end
@@ -84,17 +92,16 @@ classdef TopOptTestLocalPerimeterTutorial < handle
         end
 
         function createGlobalPerimeterConstraint(obj)
-            eOverhmin = 8;
-            epsilon   = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
             s.filter  = obj.filterPerimeter;
-            s.epsilon = epsilon;
+            s.epsilon = 8*obj.mesh.computeMeanCellSize();
+            s.minEpsilon = 4*obj.mesh.computeMeanCellSize();
             s.perimeterTargetAbs = 4*(0.25*pi); % Internal perimeter of 4 circular holes with D=0.25
             P         = PerimeterConstraint(s);
             obj.perimeterConstraint = P;
         end
 
-        function createCostSimulation1(obj)
+        function createCostSimulations(obj)
             s.shapeFunctions{1} = obj.volume;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
@@ -131,7 +138,7 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 60; % 60
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -143,5 +150,68 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             opt.solveProblem();
             obj.optimizerGP = opt;
         end
+
+        function createLocalPerimeterConstraints(obj)
+            x1 = @(x) x(1,:,:);
+            x2 = @(x) x(2,:,:);
+            s.mesh    = obj.mesh;
+            s.filter  = obj.filterPerimeter;
+            s.epsilon = 8*obj.mesh.computeMeanCellSize();
+            s.minEpsilon = 4*obj.mesh.computeMeanCellSize();
+            s.perimeterTargetAbs = 1*(0.25*pi);
+            s.subDomainHandle = @(x) max(abs(x1(x)-0.25),abs(x2(x)-0.75))/0.5 - 0.5;
+            P         = LocalPerimeterConstraint(s);
+            obj.locPer1 = P;
+
+            s.perimeterTargetAbs = 0.5*(0.25*pi);
+            s.subDomainHandle = @(x) max(abs(x1(x)-0.75),abs(x2(x)-0.75))/0.5 - 0.5;
+            P         = LocalPerimeterConstraint(s);
+            obj.locPer2 = P;
+
+            s.perimeterTargetAbs = 0.5*(0.25*pi);
+            s.subDomainHandle = @(x) max(abs(x1(x)-0.25),abs(x2(x)-0.25))/0.5 - 0.5;
+            P         = LocalPerimeterConstraint(s);
+            obj.locPer3 = P;
+
+            s.perimeterTargetAbs = 0.25*(0.25*pi);
+            s.subDomainHandle = @(x) max(abs(x1(x)-0.75),abs(x2(x)-0.25))/0.5 - 0.5;
+            P         = LocalPerimeterConstraint(s);
+            obj.locPer4 = P;
+        end
+
+        function createConstraintSimulation2(obj)
+            s.shapeFunctions{1} = obj.locPer1;
+            s.shapeFunctions{2} = obj.locPer2;
+            s.shapeFunctions{3} = obj.locPer3;
+            s.shapeFunctions{4} = obj.locPer4;
+            s.Msmooth           = obj.createMassMatrix();
+            obj.constraint      = Constraint(s);
+        end
+
+        function createDualVariableSimulation2(obj)
+            s.nConstraints   = 4;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
+        end
+
+        function createOptimizerSimulation2(obj)
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 300;
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY','EQUALITY','EQUALITY','EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.ub             = 1;
+            s.lb             = 0;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            opt = OptimizerNullSpace(s);
+            opt.solveProblem();
+            obj.optimizerGP = opt;
+        end
+
     end
 end

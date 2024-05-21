@@ -1,20 +1,20 @@
-classdef PerimeterConstraint < handle
+classdef LocalPerimeterConstraint < handle
 
     properties (Access = private)
         mesh
         epsilon
         minEpsilon
         perimeterTargetAbs
-        perimeter
+        locPerimeter
     end
     
     methods (Access = public)
-        function obj = PerimeterConstraint(cParams)
+        function obj = LocalPerimeterConstraint(cParams)
             obj.init(cParams);
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            [P,dP]  = obj.perimeter.computeFunctionAndGradient(x);
+            [P,dP]  = obj.locPerimeter.computeFunctionAndGradient(x);
             J       = obj.computeFunction(P);
             dJ      = obj.computeGradient(dP);
             obj.updateEpsilonForNextIteration(J);
@@ -28,7 +28,7 @@ classdef PerimeterConstraint < handle
             obj.minEpsilon         = cParams.minEpsilon;
             obj.perimeterTargetAbs = cParams.perimeterTargetAbs;
             cParams.value0         = 1;
-            obj.perimeter          = PerimeterFunctional(cParams);
+            obj.locPerimeter          = LocalPerimeterFunctional(cParams);
         end
 
         function J = computeFunction(obj,P)
@@ -46,14 +46,14 @@ classdef PerimeterConstraint < handle
             if abs(J)<=1e-2
                 obj.epsilon = obj.epsilon/1.001;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
-                obj.perimeter.updateEpsilon(obj.epsilon);
+                obj.locPerimeter.updateEpsilon(obj.epsilon);
             end
         end
     end
 
     methods (Static, Access = public)
         function title = getTitleToPlot()
-            title = 'Perimeter constraint';
+            title = 'Loc. perimeter constraint';
         end
     end
 end
