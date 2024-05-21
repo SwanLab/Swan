@@ -206,6 +206,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
+                obj.magicRatio     = (1-gk1/gk)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew = obj.mOld;
                 obj.designVariable.update(x0);

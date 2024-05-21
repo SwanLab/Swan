@@ -22,6 +22,10 @@ classdef PerimeterFunctional < handle
             dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
         end
 
+        function updateEpsilon(obj,epsilon)
+            obj.filter.updateEpsilon(epsilon);
+        end
+
     end
 
     methods (Access = private)
