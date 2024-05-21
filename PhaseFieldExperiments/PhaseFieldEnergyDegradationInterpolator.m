@@ -24,11 +24,17 @@ classdef PhaseFieldEnergyDegradationInterpolator < handle
         end
 
         function createEnergyDegradationFunctionAndDerivatives(obj)
-            p = 2;
+            obj.fun      = @(phi) ((1-phi).^2);
+            obj.dfun     = @(phi) -2.*(1-phi);
+            obj.ddfun    = @(phi) 2;
 
-            obj.fun      = @(phi) ((1-phi).^p);
-            obj.dfun     = @(phi) -p*((1-phi).^(p-1));
-            obj.ddfun    = @(phi) p*(p-1)*((1-phi).^(p-2));
+            % obj.fun      = @(phi) ((1-sqrt(phi)).^2);
+            % obj.dfun     = @(phi) (sqrt(phi)-1)./sqrt(phi);
+            % obj.ddfun    = @(phi) 1/(2.*phi.^(3/2));
+            
+            % obj.fun      = @(phi) ((1-phi.^2).^2);
+            % obj.dfun     = @(phi) -4.*(phi-phi.^3);
+            % obj.ddfun    = @(phi) -4 + 12.*phi.^2;
         end
 
     end

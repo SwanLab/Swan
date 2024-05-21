@@ -316,7 +316,7 @@ classdef PhaseFieldComputer < handle
             DownSide  = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = -sum(F(2*nodes(isInDown)));
+            totReact = sum(F(2*nodes(isInDown)));
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,costOld)
@@ -405,6 +405,7 @@ classdef PhaseFieldComputer < handle
             %        'Theoretical result')
             xlabel('Displacement [mm]')
             ylabel('Damage [-]')
+            ylim([0 1]);
 
             figure(200)
             hold on

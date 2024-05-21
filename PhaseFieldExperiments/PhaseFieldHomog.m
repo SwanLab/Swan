@@ -54,14 +54,14 @@ classdef PhaseFieldHomog < handle
                     Ciso{i,j} = LagrangianFunction(s);
                 end
             end
-            
             holeLength = linspace(0,1,steps);
-            mat = zeros(3,3,length(holeLength));
-            mat(1,1,:) = constant*(1-holeLength).^2 ;
-            mat(1,2,:) = constant*obj.nu*(1-holeLength).^2;
-            mat(2,1,:) = constant*obj.nu*(1-holeLength).^2;
-            mat(2,2,:) = constant*(1-holeLength).^2;
-            mat(3,3,:) = constant*(1-obj.nu)*(1-holeLength).^2 /2;
+            phi = sqrt(holeLength);
+            mat = zeros(3,3,length(phi));
+            mat(1,1,:) = constant*(1-phi).^2 ;
+            mat(1,2,:) = constant*obj.nu*(1-phi).^2;
+            mat(2,1,:) = constant*obj.nu*(1-phi).^2;
+            mat(2,2,:) = constant*(1-phi).^2;
+            mat(3,3,:) = constant*(1-obj.nu)*(1-phi).^2 /2;
         end
         
     end

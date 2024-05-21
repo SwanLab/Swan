@@ -1,18 +1,23 @@
 classdef TestingPhaseField < handle
 
     properties (Access = public)
-        E = 210;
+        E  = 210;
         nu = 0.3;
         Gc = 5e-3;
-        l0 = 1e-5;
-        pExp = 1;
+        l0 = 0.1;
+        pExp = 2;
         % bcVal = [linspace(0,8.5e-3,100), ...
         %         linspace(8.5e-3,0,100), ...
         %         linspace(0,-1e-2,100), ...
         %         ];
-        bcVal = linspace(1e-4,1,100);
+        bcVal = linspace(1e-4,1e-1,100);
         % bcVal = 1;
         % bcVal = [0.001];
+
+
+        % 1) CHANGE MESH
+        % 2) CHANGE BC (TYPE AND DIRECTION)
+        % 3) CHANGE REACTIONS (TYPE AND DIRECTION)
     end
 
     properties (Access = private)
@@ -57,12 +62,12 @@ classdef TestingPhaseField < handle
         end
 
         function createMesh(obj)
-            %obj.createOneElementMesh();
+            obj.createOneElementMesh();
             %obj.createTwoElementMesh();
             % obj.createArbitraryElementMesh(1,1,30,30);
             %obj.createFiberMatrixMesh();
             %obj.createSingleEdgeNotchedMesh();
-            obj.createLshapeMesh();
+            %obj.createLshapeMesh();
         end
 
         function createInitialPhaseField(obj)
@@ -71,29 +76,29 @@ classdef TestingPhaseField < handle
         end
 
         function createMaterialPhaseField(obj)
-            %  sParam.mesh = obj.mesh;
-            %  sParam.order = 'P1';
-            %  sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
-            %  s.young = LagrangianFunction(sParam);
-            %  sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
-            %  s.poisson = LagrangianFunction(sParam);
-            %  sIso.ndim = obj.mesh.ndim;
-            % 
-            %  s.isoMat = Isotropic2dElasticMaterial(sIso);
-            %  s.ndim = obj.mesh.ndim;
-            %  s.mesh = obj.mesh;
-            %  s.materialInterpolation = obj.createMaterialInterpolation();
-            %  s.Gc = obj.Gc;
-            % 
-            % obj.materialPhaseField = MaterialPhaseField(s);
+             sParam.mesh = obj.mesh;
+             sParam.order = 'P1';
+             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
+             s.young = LagrangianFunction(sParam);
+             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
+             s.poisson = LagrangianFunction(sParam);
+             sIso.ndim = obj.mesh.ndim;
 
-            s.type = 'MicroDamage';
-            s.fun  = obj.initialPhaseField;
-            s.mesh = obj.mesh;
-            mp     = MicroDamageParams(s);
-            sH.fileName    = 'SquareMicroDamageArea';
-            sH.microParams = mp;
-            obj.materialPhaseField = HomogenizedPhaseField(sH);
+             s.isoMat = Isotropic2dElasticMaterial(sIso);
+             s.ndim = obj.mesh.ndim;
+             s.mesh = obj.mesh;
+             s.materialInterpolation = obj.createMaterialInterpolation();
+             s.Gc = obj.Gc;
+
+            obj.materialPhaseField = MaterialPhaseField(s);
+
+            % s.type = 'MicroDamage';
+            % s.fun  = obj.initialPhaseField;
+            % s.mesh = obj.mesh;
+            % mp     = MicroDamageParams(s);
+            % sH.fileName    = 'IsoMicroDamage';
+            % sH.microParams = mp;
+            % obj.materialPhaseField = HomogenizedPhaseField(sH);
         end
 
         function createDissipationInterpolation(obj)
