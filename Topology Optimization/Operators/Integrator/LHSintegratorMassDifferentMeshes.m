@@ -46,36 +46,28 @@ classdef LHSintegratorMassDifferentMeshes < handle
         end
 
         function lhs = assembleMatrix(obj, M)
-            iMesh  = obj.uMesh.innerMesh.mesh;
-            inNodes = iMesh.nnodes;
-            iCMesh = obj.uMesh.innerCutMesh;
-            subDomain = obj.uMesh.createInnerMesh();
-            coordCut = subDomain.coord(inNodes+1:end,:);
-            coordIC  = iCMesh.mesh.coord;
-            l2g      = find(prod(ismembertol(coordIC,coordCut,1e-6),2));
-            nDofTest  = subDomain.nnodes;
-            nDofTrial = obj.trial.nDofs;
-            lhs       = sparse(nDofTest,nDofTrial);
-
-
-
-            connecTest  = obj.testIC.computeDofConnectivity()';
-            connecTrial = obj.trial.computeDofConnectivity()';
-            nDofElemTest    = size(connecTest,2);
-            nDofElemTrial    = size(connecTrial,2);
+            nElem         = obj.uMesh.innerMesh.mesh.nelem;
+            iCMesh        = obj.uMesh.innerCutMesh;
+            subDomain     = obj.uMesh.createInnerMesh();
+            globalConnec  = subDomain.connec(nElem+1:end,:);
+            nDofTest      = subDomain.nnodes;
+            nDofTrial     = obj.trial.nDofs;
+            connecTest    = obj.testIC.computeDofConnectivity()';
+            connecTrial   = obj.trial.computeDofConnectivity()';
+            nDofElemTest  = size(connecTest,2);
+            nDofElemTrial = size(connecTrial,2);
             l2g(iCMesh.mesh.connec(:)) = globalConnec(:);
-            lhs         = zeros(nDofTest,nDofTrial);
+            lhs = sparse(nDofTest,nDofTrial);
             for iDof = 1:nDofElemTest
                 for jDof = 1:nDofElemTrial
-                    int = M(iDof,jDof,:);
-                    conTest = globalConnec(:,iDof);
-                    conTestReal = conTest(l2g);
-                    lhs   = lhs + accumarray(conTest,int,[ndofs,1],@sum,0);
+                    conTestReal = zeros(size(connecTrial,1),1);
+                    int      = M(iDof,jDof,:);
+                    conTest  = connecTest(:,iDof);
+                    conTestReal(l2g) = conTest;
+                    conTrial = connecTrial(:,jDof);
+                    lhs   = lhs + sparse(conTestReal,conTrial,squeeze(int),nDofTest,nDofTrial);
                 end
             end
-
-
-            
         end
 
         function lhs = computeElementalLHSInner(obj)
