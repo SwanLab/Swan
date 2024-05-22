@@ -22,7 +22,7 @@ phisical_cons(1,4) = x_2_0;
 phisical_cons(1,5) = t_0;
 
 fun = @(x) objfungrad(x,num_cons,phisical_cons);
-nonlincon = @(x) nlcon(x,num_cons,phisical_cons);
+%nonlincon = @(x) nlcon(x,num_cons,phisical_cons);
 
 % Initial guess
 x0 = zeros(2,1);
@@ -39,7 +39,7 @@ ub = [0.5.*pi;inf];
 
 % Solve the optimization problem
 
-x = fmincon(fun,x0,[],[],[],[],lb,ub,nonlincon);
+x = fmincon(fun,x0,[],[],[],[],lb,ub);
 gamma0 = x(1);
 tf = x(2);
 y = launch(gamma0,tf,num_cons,phisical_cons);
@@ -61,7 +61,7 @@ axis equal
 disp('time')
 x(2)
 disp('angle')
-ylim([0 4])
+%ylim([0 4])
 xlim([0 inf])
 x(1)
 

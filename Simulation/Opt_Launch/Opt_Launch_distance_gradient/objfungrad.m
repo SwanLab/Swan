@@ -10,14 +10,15 @@ t_0=phisical_cons(1,5);
 %Gradient
 %gradf = [0;-1];
 
+weight = 10;
 %% Max distance:
 y = launch(gamma0,tf,num_cons,phisical_cons);
-f = -y(1,end)+0.5.*(y(2,end)).^2;
+f = -y(1,end)+weight*0.5.*(y(2,end)).^2;
 %% Calculation of p value 
 [sy, st] = size(y);
 p = zeros(sy,st);
 p(1,end) = -1;
-p(2,end) = -y(2,end);
+p(2,end) = -weight*y(2,end);
 Inc_time = ((tf-t_0)./h);
 for i = st:-1:2 
     x_1 = y(1,i);
