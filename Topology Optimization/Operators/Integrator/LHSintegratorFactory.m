@@ -49,6 +49,8 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
+               case 'MassMatrixDiffMeshes'
+                   obj = LHSintegratorMassDifferentMeshes(cParams);
            end
        end
    end

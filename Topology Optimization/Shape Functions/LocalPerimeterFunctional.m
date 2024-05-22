@@ -71,6 +71,18 @@ classdef LocalPerimeterFunctional < handle
             dj         = 2/(obj.epsilon)*(1-2*xR.fValues);
             dJ         = LagrangianFunction.create(obj.uMesh.backgroundMesh,1,'P1');
             dJ.fValues(obj.l2g) = dj;
+
+            %M = obj.createMassMatrix();
+        end
+
+        function M = createMassMatrix(obj)
+            s.uMesh       = obj.uMesh;
+            s.testOrder   = 'P1';
+            s.trialOrder  = 'P1';
+            s.quadratureOrder = 2;
+            s.type  = 'MassMatrixDiffMeshes';
+            lhs = LHSintegrator.create(s);
+            M = lhs.compute();
         end
 
         function x = computeNonDimensionalValue(obj,x)

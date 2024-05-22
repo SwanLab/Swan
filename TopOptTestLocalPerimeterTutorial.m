@@ -28,7 +28,7 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             obj.createCostSimulations();
             obj.createConstraintSimulation1();
             obj.createDualVariableSimulation1();
-            obj.createOptimizerSimulation1();
+            %obj.createOptimizerSimulation1();
             obj.createLocalPerimeterConstraints();
             obj.createConstraintSimulation2();
             obj.createDualVariableSimulation2();
