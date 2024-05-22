@@ -82,28 +82,28 @@ classdef mainTFGMultimaterial < handle
             fem.solve();
             displ      = fem.uFun.fValues; 
             %Beam
-            % U          = reshape(displ, [26082, 1]);
+            % U          = reshape(displ, [size(displ,1)*2, 1]);
             % force      = fem.forces; 
             % Fx         = force(1:2:end); % Fx values are at odd indices
             % Fy         = force(2:2:end); % Fy values are at even indices
             % forcesVect = [Fx Fy];
-            % F          = reshape(forcesVect, [26082, 1]);
+            % F          = reshape(forcesVect, [size(displ,1)*2, 1]);
 
             % %Bridge 
-            % U          = reshape(displ, [14652, 1]);
-            % force      = fem.forces; 
-            % Fx         = force(1:2:end); % Fx values are at odd indices
-            % Fy         = force(2:2:end); % Fy values are at even indices
-            % forcesVect = [Fx Fy];
-            % F          = reshape(forcesVect, [14652, 1]);
-
-            % Arch
-            U          = reshape(displ, [19702, 1]);
+            U          = reshape(displ, [size(displ,1)*2, 1]);
             force      = fem.forces; 
             Fx         = force(1:2:end); % Fx values are at odd indices
             Fy         = force(2:2:end); % Fy values are at even indices
             forcesVect = [Fx Fy];
-            F          = reshape(forcesVect, [19702, 1]);
+            F          = reshape(forcesVect, [size(displ,1)*2, 1]);
+
+            % Arch
+            % U          = reshape(displ, [size(displ,1)*2, 1]);
+            % force      = fem.forces; 
+            % Fx         = force(1:2:end); % Fx values are at odd indices
+            % Fy         = force(2:2:end); % Fy values are at even indices
+            % forcesVect = [Fx Fy];
+            % F          = reshape(forcesVect, [size(displ,1)*2, 1]);
 
 
         end
@@ -135,7 +135,7 @@ classdef mainTFGMultimaterial < handle
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
-        function x = computeTopologicalDerivative(obj)
+        function [x,dC] = computeTopologicalDerivative(obj)
             %s.meshSeba   = obj.mesh;
             s.U          = obj.displacements;
             s.volume     = obj.volume;
@@ -157,6 +157,7 @@ classdef mainTFGMultimaterial < handle
             Topder = TopologicalDerivativeComputer(s);
             dt = Topder.dt;
             x = dt/normL2(obj.unitM,dt);
+            dC = Topder.dC;
         end
 
     end
@@ -178,9 +179,6 @@ classdef mainTFGMultimaterial < handle
             obj.psi = ls;
             
             obj.updateDesignVariable();
-            %obj.updateUnfittedMesh();
-            %designVar = ls.designVariable;
-            
             vol = computeVolume(obj);
             obj.volume = vol;
 
@@ -193,7 +191,7 @@ classdef mainTFGMultimaterial < handle
             obj.Epot = energyPot;
 
             % Compute topological derivative
-            obj.DT = obj.computeTopologicalDerivative();
+            [obj.DT, dC] = obj.computeTopologicalDerivative();
             obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
             % Compute cosinus and theta
@@ -233,7 +231,7 @@ classdef mainTFGMultimaterial < handle
                 obj.Epot = energyPot;
 
                 % Update topological derivative
-                obj.DT = obj.computeTopologicalDerivative();
+                [obj.DT,dC] = obj.computeTopologicalDerivative();
                 obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
                 % Update cosinus and theta
@@ -321,7 +319,7 @@ classdef mainTFGMultimaterial < handle
         end
 
         function isNotFinished = hasNotFinished(obj,theta,ic)
-            isNotFinished = and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=100); % remove iter<=4
+            isNotFinished = and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4); % remove iter<=4
         end
 
         function uploadParameters(obj)
@@ -331,17 +329,16 @@ classdef mainTFGMultimaterial < handle
 
         function createMesh(obj) 
             % Per passar test:
-            % obj.mesh     = MeshComputer();
-            % s.connec     = obj.mesh.t';
-            % s.connec     = s.connec(:,1:3);
-            % s.coord      = obj.mesh.p';
-            % % 
-            %  obj.meshSwan = Mesh.create(s);
+             % obj.mesh     = MeshComputer();
+             % s.connec     = obj.mesh.t';
+             % s.connec     = s.connec(:,1:3);
+             % s.coord      = obj.mesh.p';
+             % obj.meshSwan = Mesh.create(s);
 
             % Per fer altres exemples:
-            %obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
+            obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
             %obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
-            obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
+            %obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
             p = obj.meshSwan.coord';
             t = obj.meshSwan.connec';
             obj.area = pdetrg(p,t);
@@ -362,8 +359,9 @@ classdef mainTFGMultimaterial < handle
             %obj.bcSwan = BoundCond.createBoundaryConditionsTest();
 
             % Per fer altres exemples:
-            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
-            obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBeam();
+            obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
         end
 
         function createMaterial(obj)
@@ -450,8 +448,8 @@ classdef mainTFGMultimaterial < handle
             F                       = obj.forces;
             U                       = obj.displacements;
             obj.optParams.energy0   = 0.5 * dot(F,U); % initial energy 
-            max_vol                 = 2; % Beam and arch
-            %max_vol                  = 6; % Bridge
+            %max_vol                 = 2; % Beam and arch
+            max_vol                  = 6; % Bridge
             obj.optParams.max_vol   = max_vol; 
             obj.optParams.voltarget = max_vol.*obj.params.volfrac; 
             obj.optParams.volstop   = obj.params.voleps.*max_vol;
@@ -530,7 +528,7 @@ classdef mainTFGMultimaterial < handle
         end
 
         function createMonitoring(obj)
-            titles  = {'Volume Mat 1'; 'Volume Mat 2'; 'Volume Mat 3'; 'Volume void'; 'Line Search';'Compliance';'Theta'};
+            titles  = {'Vol_Constraint 1'; 'Vol_Constraint 2'; 'Vol_Constraint Mat 3'; 'Vol_Constraint void'; 'Line Search';'Compliance';'Theta'};
             chartTypes = {'plot'; 'plot'; 'plot'; 'plot'; 'bar'; 'plot'; 'plot'};
             
             s.shallDisplay = true;
@@ -543,7 +541,18 @@ classdef mainTFGMultimaterial < handle
         end
 
         function obj = updateMonitoring(obj)
-            data = [obj.volume(1); obj.volume(2); obj.volume(3); obj.volume(4)];
+            for i=1:3
+                vol_constraint(i) = (obj.volume(i)/obj.optParams.voltarget(i))-1;
+            end
+
+            %voltarget_void = 0.8; % Beam
+            voltarget_void = 2.4; % Bridge
+
+            %volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
+            volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
+            void_constraint = (volume_void/voltarget_void)-1;
+
+            data = [vol_constraint(1); vol_constraint(2); vol_constraint(3); void_constraint];
             data = [data;obj.k];
             data = [data;obj.Epot];
             data = [data;obj.thetaAngle];

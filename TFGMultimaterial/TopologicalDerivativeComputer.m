@@ -2,9 +2,12 @@ classdef TopologicalDerivativeComputer < handle
 
     properties (Access = public)
         dt
+        dC
     end
 
     properties (Access = private)
+        tensor
+        strain
         TD
         p
         t
@@ -31,6 +34,7 @@ classdef TopologicalDerivativeComputer < handle
         stress
         U
         volume
+        swanStress
     end
 
     methods (Access = public)
@@ -42,7 +46,7 @@ classdef TopologicalDerivativeComputer < handle
             obj.computeBetaAndAlpha();
             obj.computeLameParameters();
             obj.computeStressAndStrain();
-            obj.computeTopologicalDerivative();
+            obj.computeTopologicalDerivativeAndDC();
             obj.computeVolumeConstraintinDT();
             obj.smoothTopologicalDerivative();
         end
@@ -118,33 +122,43 @@ classdef TopologicalDerivativeComputer < handle
 
         function computeStressAndStrain(obj)
             [ux,uy]=pdegrad(obj.p,obj.t,obj.U); % solution gradient
-            e=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain
+            obj.strain=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain
+            e = obj.strain;
             id=[1 0 1]';
-            
+            obj.tensor = [obj.la0+2*obj.mu0 0 obj.la0; 0 2*obj.mu0 0; obj.la0 0 obj.la0+2*obj.mu0];
+            sSwan = obj.tensor*e;
             s=obj.la0*id*(e(1,:)+e(3,:))+2*obj.mu0*e; % stress
             % effective stress
             tgamma3 = [obj.tgamma;obj.tgamma;obj.tgamma]; 
             obj.stress = s.*tgamma3;
+            obj.swanStress = sSwan.*tgamma3; 
         end
 
-        function computeTopologicalDerivative(obj)
-            nmat = obj.nMat;
-            obj.TD = cell(nmat,nmat);
+        function computeTopologicalDerivativeAndDC(obj)
+            sSwan = obj.swanStress;
+            C = obj.tensor;
+            e = obj.strain;
             E = obj.young;
             a = obj.alpha;
             b = obj.beta;
-            s = obj.stress;
 
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
                     g  = E(j)/E(i);
-                    coef1 = 0.5*((1-g)./(1+a*g))./obj.tE;
-                    coef2 = coef1.*((g.*(a-2*b)-1)./(1+b*g));
-                    obj.TD{i,j} = coef1.*(4*(s(1,:).*s(1,:)+2*s(2,:).*s(2,:)+s(3,:).*s(3,:))) ...
-                    + coef2.*((s(1,:)+s(3,:)).*(s(1,:)+s(3,:))) ;
+                    c1 = 0.5*((1-g)./(1+a*g))./obj.tE;
+                    c2 = c1.*((g.*(a-2*b)-1)./(1+b*g));
+                    
+                    for k=1:size(sSwan,2)
+                        coefMatrix = [4*c1(k)+c2(k) 0 c2(k); 0 8*c1(k) 0; c2(k) 0 4*c1(k)+c2(k)]; 
+                        obj.dC = C*coefMatrix*C;
+                        derTop(k) = e(:,k)'*obj.dC*e(:,k);
+                    end
+                    obj.TD{i,j} = derTop;
                 end
             end
+
         end
+
 
         function computeVolumeConstraintinDT(obj)
             coef = obj.volume(1:end-1) ./ obj.voltarget;
