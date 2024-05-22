@@ -48,24 +48,24 @@ classdef LHSintegratorMassDifferentMeshes < handle
         function lhs = assembleMatrix(obj, M)
             nElem         = obj.uMesh.innerMesh.mesh.nelem;
             iCMesh        = obj.uMesh.innerCutMesh;
-            subDomain     = obj.uMesh.createInnerMesh();
+            globCell  = iCMesh.cellContainingSubcell;
+            [subDomain,old2new]     = obj.uMesh.createInnerMesh();
             globalConnec  = subDomain.connec(nElem+1:end,:);
             nDofTest      = subDomain.nnodes;
             nDofTrial     = obj.trial.nDofs;
-            connecTest    = obj.testIC.computeDofConnectivity()';
+            connecTest    = obj.uMesh.innerCutMesh.mesh.connec;
             connecTrial   = obj.trial.computeDofConnectivity()';
             nDofElemTest  = size(connecTest,2);
             nDofElemTrial = size(connecTrial,2);
-            l2g(iCMesh.mesh.connec(:)) = globalConnec(:);
             lhs = sparse(nDofTest,nDofTrial);
             for iDof = 1:nDofElemTest
                 for jDof = 1:nDofElemTrial
-                    conTestReal = zeros(size(connecTrial,1),1);
-                    int      = M(iDof,jDof,:);
+                    conTestReal = [];
+                    int      = M(iDof,jDof,globCell);
                     conTest  = connecTest(:,iDof);
-                    conTestReal(l2g) = conTest;
+                    conTestReal = old2new(conTest);
                     conTrial = connecTrial(:,jDof);
-                    lhs   = lhs + sparse(conTestReal,conTrial,squeeze(int),nDofTest,nDofTrial);
+                    lhs   = lhs + sparse(conTestReal,conTrial(globCell),squeeze(int),nDofTest,nDofTrial);
                 end
             end
         end

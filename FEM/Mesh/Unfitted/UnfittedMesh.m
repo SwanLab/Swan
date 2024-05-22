@@ -112,11 +112,11 @@ classdef UnfittedMesh < handle
             sp.plot();
         end
 
-        function m = createInnerMesh(obj)
+        function [m,l2g] = createInnerMesh(obj)
             s.type         = 'Matlab';
             s.unfittedMesh = obj;
             imc = FullInnerMeshCreator.create(s);
-            m = imc.export();
+            [m,l2g] = imc.export();
         end
 
         function m = createInnerMeshGoodConditioning(obj)

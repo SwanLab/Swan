@@ -72,7 +72,8 @@ classdef LocalPerimeterFunctional < handle
             dJ         = LagrangianFunction.create(obj.uMesh.backgroundMesh,1,'P1');
             dJ.fValues(obj.l2g) = dj;
 
-            %M = obj.createMassMatrix();
+            M = obj.createMassMatrix();
+            
         end
 
         function M = createMassMatrix(obj)
