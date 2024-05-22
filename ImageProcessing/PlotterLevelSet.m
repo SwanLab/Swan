@@ -11,36 +11,28 @@ classdef PlotterLevelSet < handle
     methods (Access = public)
 
         function obj = PlotterLevelSet(cParams)
-            obj.init(cParams);
-            obj.createFigure();
+            obj.createFigure(cParams.unfittedMesh);
         end
         
-        function plot(obj)
+        function plot(obj,uMesh)
             figure(obj.figHandle);
             cla reset;
-            obj.plotUnfittedMesh();
+            hold on
+            uMesh.plot();
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.designVariable = cParams.designVariable;
-        end
         
-        function createFigure(obj)
+        function createFigure(obj,uMesh)
             obj.figHandle = figure();
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
-            obj.plotUnfittedMesh();
+            uMesh.plot();            
         end
 
-        function plotUnfittedMesh(obj)
-            hold on
-            uMesh = obj.designVariable.getUnfittedMesh();
-            uMesh.plot();
-        end
-            
+
     end
     
 end

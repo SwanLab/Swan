@@ -45,7 +45,7 @@ classdef LevelSet < DesignVariable
 
         function plot(obj)
             if obj.plotting
-                obj.plotter.plot();
+                obj.plotter.plot(obj.unfittedMesh);
             end
         end
 
@@ -76,7 +76,9 @@ classdef LevelSet < DesignVariable
         function createPlotter(obj,cParams)
             obj.plotting = cParams.plotting;
             if obj.plotting
-                obj.plotter  = Plotter.create(obj);
+                s.unfittedMesh = obj.unfittedMesh();
+                s.type         = 'LevelSet';
+                obj.plotter    = Plotter.create(s);
             end
         end
 

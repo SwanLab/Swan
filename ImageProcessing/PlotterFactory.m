@@ -7,7 +7,7 @@ classdef PlotterFactory < handle
                 case 'Density'
                     plotter   = PlotterDensity(cParams);
                 case 'LevelSet'
-                    plotter   = PlotterLevelSet(s);   
+                    plotter   = PlotterLevelSet(cParams);   
             end
         end
 
