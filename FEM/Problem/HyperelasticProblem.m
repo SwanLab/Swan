@@ -58,7 +58,6 @@ classdef HyperelasticProblem < handle
             fext_grafic = [];
             nrg_grafic = [];
             react = zeros(obj.uFun.nDofs,1);
-            hess = neo.computeHessian(obj.uFun);
             for iStep = 1:nsteps
                 disp('------')
                 disp('NEW LOAD STEP')
@@ -121,7 +120,7 @@ classdef HyperelasticProblem < handle
 
                 nrg_grafic  = [nrg_grafic, nrg];
                 displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
-                fext_grafic  = [fext_grafic, Fext(dof)];
+                fext_grafic  = [fext_grafic, sum(Fext)];
                 posgp = Quadrature.create(obj.mesh,1).posgp;
 
                 num_is(iStep) = i;
@@ -224,26 +223,6 @@ classdef HyperelasticProblem < handle
         end
 
         function [Fext] = computeExternalForces(obj,perc)
-%             pl = obj.boundaryConditions.pointloadFun;
-%             pl.fValues = pl.fValues*perc;
-%             s.mesh = obj.mesh;
-%             s.type = 'ShapeFunction';
-%             s.quadType = 2;
-%             rhsI       = RHSintegrator.create(s);
-%             test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
-%             Fext2 = rhsI.compute(pl,test);
-% 
-%             Fext = pl.fValues;
-%             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
-% %             sum(Fext)
-% 
-%             s.mesh = obj.mesh;
-%             s.quadType = 2;
-%             scalar = IntegratorScalarProduct(s);
-%             intF = scalar.compute(pl,pl)
-% %             Fext = reshape(Fext2,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             sumFext2 = sum(Fext2)
-%             Fext = Fext2;
             Fext = perc*obj.FextInitial;
             Fext = obj.reshapeToVector(Fext);
         end
