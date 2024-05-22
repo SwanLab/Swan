@@ -135,7 +135,7 @@ classdef mainTFGMultimaterial < handle
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
-        function [x,dC] = computeTopologicalDerivative(obj)
+        function [dt] = computeTopologicalDerivative(obj)
             %s.meshSeba   = obj.mesh;
             s.U          = obj.displacements;
             s.volume     = obj.volume;
@@ -153,11 +153,18 @@ classdef mainTFGMultimaterial < handle
             s.mat = obj.mat;
             s.psi = obj.psi;     
             s.designVariable = obj.designVariable;
+            
+            [dC,dt2] = obj.computedC()
 
-            Topder = TopologicalDerivativeComputer(s);
-            dt = Topder.dt;
-            x = dt/normL2(obj.unitM,dt);
-            dC = Topder.dC;
+            ...
+            ...
+
+            dt = dt/normL2(obj.unitM,dt);            ...
+            dt
+
+            norm(dt(:)- dt2(:)) 
+
+            %dC = Topder.dC;
         end
 
     end
@@ -167,6 +174,17 @@ classdef mainTFGMultimaterial < handle
         function init(obj)
             close all;
             obj.nMat = 4;
+        end
+
+        function [dC,dt2] = computedC(obj)
+            t =  TopologicalDerivativeComputer()
+            dC = t.dC;
+            dt2 = t.dt2;
+        end
+
+        function computeStrain(obj)
+            strainFun = SymGrad(obj.displacementFun);
+            strainFun.project('P0')
         end
 
         function compute(obj)
@@ -216,7 +234,7 @@ classdef mainTFGMultimaterial < handle
                 %obj.updateUnfittedMesh();
             
                 % Then compute again the elastic tensor 
-                obj.tensor = computeElasticTensor(obj);
+                obj.tensor = obj.computeElasticTensor();
 
                 % Solve elastic problem
                 [U,F] = solveFEM(obj);
@@ -226,7 +244,7 @@ classdef mainTFGMultimaterial < handle
                 % Update volume, energy and shape functionals
                 vol = computeVolume(obj);
                 obj.volume = vol;
-                [sf, energyPot] = updateShapeFunctions(obj);
+                [sf, energyPot] = obj.updateShapeFunctions();
                 obj.shapeFunc = sf;
                 obj.Epot = energyPot;
 
@@ -267,9 +285,9 @@ classdef mainTFGMultimaterial < handle
                     obj.forces = F;
 
                      % Update volume, energy and shape functionals
-                    vol = computeVolume(obj);
+                    vol = obj.computeVolume();
                     obj.volume = vol;
-                    [sf, energyPot] = updateShapeFunctions(obj);
+                    [sf, energyPot] = obj.updateShapeFunctions();
                     obj.shapeFunc = sf;
                     obj.Epot = energyPot;
 
@@ -288,7 +306,7 @@ classdef mainTFGMultimaterial < handle
                 obj.updateDesignVariable();
                 
 
-                [fi, ~] = computeCharacteristicFunction(obj);
+                [fi, ~] = obj.computeCharacteristicFunction();
                 obj.fiFunction = fi';
 
                 % Plot the evolution of iterations
@@ -299,6 +317,8 @@ classdef mainTFGMultimaterial < handle
                 difvol = obj.volume(1:end-1)-obj.optParams.voltarget;
                 ic = (abs(difvol) > obj.optParams.volstop); %index control
                 
+
+                %%% In a function
                 if any(ic==1) 
                     if obj.params.penalization == 2 % increase the penalization parameter
                         obj.params.penalty = 2.0 * obj.params.penalty;
