@@ -91,6 +91,16 @@ classdef NeohookeanFunctional < handle
             end
         end
 
+        function hess = computeHessian2(obj,uFun)
+            trial = uFun;
+            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
+            quad = Quadrature.create(obj.mesh,2);
+
+            xG = quad.posgp;
+            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
+            
+        end
+
         function hess = computeHessian(obj, uFun)
             % This is the LINEALIZED hessian (Holzapfel, 401)
             % See  Holzapfel, 396
@@ -102,6 +112,8 @@ classdef NeohookeanFunctional < handle
             xG = quad.posgp;
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
+            [F,~] = obj.computeDeformationGradient(uFun, xG);
+            Ft = permute(F,[2 1 3 4]);
             Aneo = obj.computeTangentConstitutive(uFun,xG);
             dNdxTest  = test.evaluateCartesianDerivatives(xG);
             dNdxTrial = trial.evaluateCartesianDerivatives(xG);
@@ -120,7 +132,7 @@ classdef NeohookeanFunctional < handle
                 iDim  = dofToDim(iDof);
                 GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
                 GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-
+%                 GradDeltaV = pagemtimes(F,GradDeltaV);
                 res = zeros(nDimf,nDimf,nGaus,nElem);
                 for a = 1:nDimf
                     for b = 1:nDimf
@@ -135,10 +147,11 @@ classdef NeohookeanFunctional < handle
 
                     GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
                     GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
+%                     GradDeltaU = pagemtimes(GradDeltaU,Ft);
 
 %                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
 
-                    Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
+                   Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
                     K(iDof,jDof,:,:) = Ktan;
                 end
             end
@@ -193,6 +206,31 @@ classdef NeohookeanFunctional < handle
             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
                 obj.mu*obj.kron_topF(I33,I33) + ...
                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
+%             quad = Quadrature.create(obj.mesh,3);
+%             xG = quad.posgp;
+
+%             [F,~] = obj.computeDeformationGradient(uFun, xG);
+%             Ft = permute(F, [2 1 3 4]);
+%             nF    = size(F,1);
+%             nGaus = size(F,3);
+%             nElem = size(F,4);
+%             A = zeros(nF,nF,nF,nF,nGaus,nElem);
+%                 for i = 1:nF
+%                 for j = 1:nF
+%                 for k = 1:nF
+%                 for l = 1:nF
+%                     first_term(1,1,1,1,:,:) = squeeze(obj.lambda*invF(j,i,:,:).*invF(l,k,:,:));
+%                     secnd_term(1,1,1,1,:,:) = squeeze(obj.mu*I33(i,k,:,:).*I33(j,l,:,:));
+%                     trd(1,1,:,:,:,:) = invF(l,i,:,:).*invF(j,k,:,:);
+%                     third_term(1,1,1,1,:,:) = squeeze((obj.mu - obj.lambda*log(jac)).*trd);
+%                     A(i,j,k,l,:,:) = first_term + secnd_term + third_term;
+% %                     A(i,j,k,l,:,:) = first_term;
+%                 end
+%                 end
+%                 end
+%                 end
+%             norm(Aneo(:)-A(:))
+%             Aneo = A;
         end
 
         function [F,I33] = computeDeformationGradient(obj, uFun, xG)

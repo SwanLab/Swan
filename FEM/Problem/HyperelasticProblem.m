@@ -174,7 +174,7 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(2,2);
+            obj.mesh = UnitQuadMesh(10,10);
 
 %             obj.material.mu = 3/8;
 %             obj.material.lambda = 3/4;
@@ -224,12 +224,12 @@ classdef HyperelasticProblem < handle
         function [Fext] = computeExtForcesShape(obj,perc)
             pl = obj.boundaryConditions.pointloadFun;
             pl.fValues = pl.fValues*perc;
-%             s.mesh = obj.mesh;
-%             s.type = 'ShapeFunction';
-%             s.quadType = 2;
-%             rhsI       = RHSintegrator.create(s);
-%             test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
-%             Fext = rhsI.compute(pl,test);
+            s.mesh = obj.mesh;
+            s.type = 'ShapeFunction';
+            s.quadType = 2;
+            rhsI       = RHSintegrator.create(s);
+            test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
+            Fext2 = rhsI.compute(pl,test);
 
             Fext = pl.fValues;
             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
@@ -239,6 +239,8 @@ classdef HyperelasticProblem < handle
 %             s.quadType = 2;
 %             scalar = IntegratorScalarProduct(s);
 %             intF = scalar.compute(pl,pl);
+%             Fext = reshape(Fext2,[obj.mesh.ndim,obj.mesh.nnodes])';
+            Fext = Fext2;
         end
 
         function Fext = computeForces(obj, perc)
