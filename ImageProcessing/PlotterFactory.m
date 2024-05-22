@@ -5,11 +5,9 @@ classdef PlotterFactory < handle
         function plotter = create(cParams)
             switch cParams.type
                 case 'Density'
-                    s.density = cParams.density;
-                    plotter   = PlotterDensity(s);
+                    plotter   = PlotterDensity(cParams);
                 case 'LevelSet'
-                    s.designVariable = d;
-                    plotter          = PlotterLevelSet(s);   
+                    plotter   = PlotterLevelSet(s);   
             end
         end
 

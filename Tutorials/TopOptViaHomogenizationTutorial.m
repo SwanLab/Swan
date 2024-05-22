@@ -68,6 +68,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.density        = obj.vademecum.createDensity();
             s.structuredMesh = obj.vademecum.getStructuredMesh();            
             s.type    = 'MicroParams';
+            s.plotting = true;            
             desVar    = DesignVariable.create(s);
             obj.designVariable = desVar;
         end
@@ -183,10 +184,10 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.constraintCase = {'EQUALITY'};
             s.ub             = 0.95;
             s.lb             = 0.05;
-            opt = OptimizerMMA(s);
-         %   s.volumeTarget   = 0.4;
-         %   s.primal         = 'PROJECTED GRADIENT';
-         %   opt = OptimizerNullSpace(s);
+         %   opt = OptimizerMMA(s);
+            s.volumeTarget   = 0.4;
+            s.primal         = 'PROJECTED GRADIENT';
+            opt = OptimizerNullSpace(s);
 
             opt.solveProblem();
             obj.optimizer = opt;

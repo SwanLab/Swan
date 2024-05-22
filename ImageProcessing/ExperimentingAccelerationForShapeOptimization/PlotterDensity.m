@@ -11,12 +11,10 @@ classdef PlotterDensity < handle
     methods (Access = public)
         
         function obj = PlotterDensity(cParams)
-            obj.init(cParams);
-            obj.createFigure();
+            obj.createFigure(cParams.mesh);
         end
         
-        function plot(obj)
-            rho     = obj.density;
+        function plot(obj,rho)
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
@@ -26,12 +24,11 @@ classdef PlotterDensity < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.density = cParams.density;
+        function init(obj)
         end
         
-        function createFigure(obj)
-            m = obj.density.mesh;
+        function createFigure(obj,mesh)
+            m = mesh;
             figure;
             set(gcf,'Pointer','arrow','NumberTitle','off');
             hold on

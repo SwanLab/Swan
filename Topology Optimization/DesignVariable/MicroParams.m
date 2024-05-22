@@ -2,6 +2,8 @@ classdef MicroParams < DesignVariable
     
     properties (Access = private)
         density
+        plotting
+        plotter
         structuredMesh
     end
     
@@ -12,7 +14,7 @@ classdef MicroParams < DesignVariable
             obj.init(cParams);
             obj.density        = cParams.density;
             obj.structuredMesh = cParams.structuredMesh;
-            %obj.createDensityField();
+            obj.createPlotter(cParams)
         end
         
         function update(obj,x)
@@ -36,7 +38,9 @@ classdef MicroParams < DesignVariable
         function plot(obj)
             rho = obj.computeDensity();
             rho1 = rho.project('P1',obj.mesh);
-            rho1.plot()
+            if obj.plotting
+                obj.plotter.plot(rho1);
+            end            
         end        
         
     end
@@ -68,7 +72,7 @@ classdef MicroParams < DesignVariable
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);
             rhoV = obj.density.sampleFunction(mL,cells);
-            rho(:,:) = reshape(rhoV,nGaus,[]);
+            rho(1,:,:) = reshape(rhoV,nGaus,[]);
         end        
 
         function [mL,cells] = obtainLocalCoord(obj,xV)
@@ -80,7 +84,6 @@ classdef MicroParams < DesignVariable
             mG(:,2) = myG(:);
             [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
         end        
-
         
         function xS = splitDesignVariable(obj,x)
             nVar = obj.nVariables;
@@ -110,6 +113,16 @@ classdef MicroParams < DesignVariable
                xVn{iVar} = xI;
             end
         end
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            if obj.plotting
+                s.type    = 'Density';
+                s.mesh    = obj.fun{1}.mesh;
+                obj.plotter  = Plotter.create(s);
+            end
+        end
+        
     end
     
 end
