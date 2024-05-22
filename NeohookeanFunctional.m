@@ -98,7 +98,6 @@ classdef NeohookeanFunctional < handle
 
             xG = quad.posgp;
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-            
         end
 
         function hess = computeHessian(obj, uFun)

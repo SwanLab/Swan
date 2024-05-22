@@ -91,7 +91,7 @@ classdef HyperelasticProblem < handle
                     R = Fint - Fext - react;
 
                     residual = norm(R)/norm(Fext)
-%                     sigma = obj.computeCauchyStress();
+                    sigma = obj.computeCauchyStress();
 %                     lambdas = obj.computeStretches();
 
                     % Plot
@@ -277,6 +277,7 @@ classdef HyperelasticProblem < handle
             b = F*F';
             jac = Det(F);
             sigma = mu.*(b-Id)./jac + lambda.*(log(jac)).*Id./jac;
+            sigma.ndimf = [2 2];
         end
 
 %         function bc = createBC2D_oneelem(obj)
