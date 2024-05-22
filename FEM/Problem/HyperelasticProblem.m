@@ -19,6 +19,8 @@ classdef HyperelasticProblem < handle
         scale
         
         strain, stress
+
+        FextInitial
     end
 
     properties (Access = protected)
@@ -174,7 +176,7 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(30,30);
+            obj.mesh = UnitQuadMesh(50,50);
 
 %             obj.material.mu = 3/8;
 %             obj.material.lambda = 3/4;
@@ -222,26 +224,28 @@ classdef HyperelasticProblem < handle
         end
 
         function [Fext] = computeExternalForces(obj,perc)
-            pl = obj.boundaryConditions.pointloadFun;
-            pl.fValues = pl.fValues*perc;
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
-            s.quadType = 2;
-            rhsI       = RHSintegrator.create(s);
-            test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
-            Fext2 = rhsI.compute(pl,test);
-
-            Fext = pl.fValues;
-            Fext = reshape(Fext',[obj.uFun.nDofs,1]);
-%             sum(Fext)
-
-            s.mesh = obj.mesh;
-            s.quadType = 2;
-            scalar = IntegratorScalarProduct(s);
-            intF = scalar.compute(pl,pl)
-%             Fext = reshape(Fext2,[obj.mesh.ndim,obj.mesh.nnodes])';
-            sumFext2 = sum(Fext2)
-            Fext = Fext2;
+%             pl = obj.boundaryConditions.pointloadFun;
+%             pl.fValues = pl.fValues*perc;
+%             s.mesh = obj.mesh;
+%             s.type = 'ShapeFunction';
+%             s.quadType = 2;
+%             rhsI       = RHSintegrator.create(s);
+%             test = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
+%             Fext2 = rhsI.compute(pl,test);
+% 
+%             Fext = pl.fValues;
+%             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
+% %             sum(Fext)
+% 
+%             s.mesh = obj.mesh;
+%             s.quadType = 2;
+%             scalar = IntegratorScalarProduct(s);
+%             intF = scalar.compute(pl,pl)
+% %             Fext = reshape(Fext2,[obj.mesh.ndim,obj.mesh.nnodes])';
+%             sumFext2 = sum(Fext2)
+%             Fext = Fext2;
+            Fext = perc*obj.FextInitial;
+            Fext = obj.reshapeToVector(Fext);
         end
 
         function intfor = computeInternalForces(obj)
@@ -254,6 +258,14 @@ classdef HyperelasticProblem < handle
             F = GradU2 + Id;
             C = F'*F;
             lambdas = (Eigen(C).^0.5);
+        end
+
+        function rshp = reshapeToVector(obj, A)
+            rshp = reshape(A',[obj.uFun.nDofs,1]);
+        end
+
+        function rshp = reshapeToMatrix(obj, A)
+            rshp = reshape(A,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
         function sigma = computeCauchyStress(obj)
@@ -444,7 +456,7 @@ classdef HyperelasticProblem < handle
             Fext = zeros(obj.mesh.nnodes,2);
             Fext(l2g,:) = Fext3;
 
-            
+            obj.FextInitial = Fext; 
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
