@@ -51,7 +51,7 @@ classdef HyperelasticProblem < handle
 %             fig2 = animatedline;
             obj.applyDirichletToUFun();
 
-            nsteps = 50;
+            nsteps = 100;
             displ_grafic = [];
             fext_grafic = [];
             nrg_grafic = [];
@@ -422,8 +422,29 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1000;
-            s.pointloadFun = DistributedLoad(obj.mesh, sPL);
+            sPL.value     = 1;
+            s.pointloadFun = [];DistributedLoad(obj.mesh, sPL);
+
+            [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
+
+            sAF.fHandle = @(x) [sPL.value*ones(size(x(1,:,:)));0*x(2,:,:)];
+            sAF.ndimf   = 2;
+            sAF.mesh    = bM;
+            xFun = AnalyticalFunction(sAF);
+            xFunP1  =xFun.project('P1');
+
+            s.mesh = bM;
+            s.type = 'ShapeFunction';
+            s.quadType = 2;
+            rhsI       = RHSintegrator.create(s);
+            test = LagrangianFunction.create(bM,xFun.ndimf,'P1');
+            Fext2 = rhsI.compute(xFunP1,test);   
+            Fext3 = reshape(Fext2,[bM.ndim,bM.nnodes])';
+
+            Fext = zeros(obj.mesh.nnodes,2);
+            Fext(l2g,:) = Fext3;
+
+            
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
