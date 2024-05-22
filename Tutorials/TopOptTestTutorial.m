@@ -184,8 +184,8 @@ classdef TopOptTestTutorial < handle
             s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerInteriorPoint(s);
-            % opt = OptimizerMMA(s);
+            %opt              = OptimizerInteriorPoint(s);
+            opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

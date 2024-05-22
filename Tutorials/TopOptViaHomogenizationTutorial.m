@@ -1,6 +1,7 @@
 classdef TopOptViaHomogenizationTutorial < handle
 
     properties (Access = private)
+        vademecum
         mesh
         filter
         designVariable
@@ -17,7 +18,8 @@ classdef TopOptViaHomogenizationTutorial < handle
     methods (Access = public)
 
         function obj = TopOptViaHomogenizationTutorial()
-            obj.init()
+            obj.init();
+            obj.loadVademecum();
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -36,6 +38,12 @@ classdef TopOptViaHomogenizationTutorial < handle
 
         function init(obj)
 
+        end
+
+        function loadVademecum(obj)
+             s.fileName = 'Rectangle';
+             v = VademecumHomogenizedVariablesLoader(s);
+             obj.vademecum = v;
         end
 
         function createMesh(obj)
@@ -57,6 +65,8 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.fun{1}  = aFun.project('P1');
             s.fun{2}  = aFun.project('P1');
             s.mesh    = obj.mesh;
+            s.density        = obj.vademecum.createDensity();
+            s.structuredMesh = obj.vademecum.getStructuredMesh();            
             s.type    = 'MicroParams';
             desVar    = DesignVariable.create(s);
             obj.designVariable = desVar;
@@ -71,6 +81,8 @@ classdef TopOptViaHomogenizationTutorial < handle
         end
 
         function m = createMaterial(obj,m)
+
+
              ndim = 2;            
              E0 = 1e-3; 
              nu0 = 1/3;
@@ -84,8 +96,10 @@ classdef TopOptViaHomogenizationTutorial < handle
 
 
             s.type  = 'HomogenizedMicrostructure';
-            s.fileName = 'Rectangle';
+
             s.microParams = m;
+            s.structuredMesh = obj.vademecum.getStructuredMesh();
+            s.Ctensor        = obj.vademecum.createCtensor();
             m = Material.create(s);
         end
 
@@ -169,10 +183,10 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.constraintCase = {'EQUALITY'};
             s.ub             = 0.95;
             s.lb             = 0.05;
-         %   opt = OptimizerMMA(s);
-            s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt = OptimizerNullSpace(s);
+            opt = OptimizerMMA(s);
+         %   s.volumeTarget   = 0.4;
+         %   s.primal         = 'PROJECTED GRADIENT';
+         %   opt = OptimizerNullSpace(s);
 
             opt.solveProblem();
             obj.optimizer = opt;

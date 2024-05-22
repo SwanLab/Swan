@@ -1,10 +1,18 @@
 classdef MicroParams < DesignVariable
     
+    properties (Access = private)
+        density
+        structuredMesh
+    end
+    
     methods (Access = public)
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
             obj.init(cParams);
+            obj.density        = cParams.density;
+            obj.structuredMesh = cParams.structuredMesh;
+            %obj.createDensityField();
         end
         
         function update(obj,x)
@@ -26,7 +34,9 @@ classdef MicroParams < DesignVariable
         end
 
         function plot(obj)
-
+            rho = obj.computeDensity();
+            rho1 = rho.project('P1',obj.mesh);
+            rho1.plot()
         end        
         
     end
@@ -50,18 +60,27 @@ classdef MicroParams < DesignVariable
         end
         
         function rho = computeDensity(obj)
-            xf = obj.fun;
-            obj.homogenizedVariablesComputer.computeDensity(xf);
-            rho = obj.homogenizedVariablesComputer.rho;
+          s.operation = @(xV) obj.evaluate(xV);
+          rho = DomainFunction(s);  
         end        
         
-        function createHomogenziedVariableComputer(obj,cParams)
-            s.fileName = cParams.homogSettings.fileName;
-            s.type = cParams.homogSettings.type;
-            s.designVariable = obj;
-            h = HomogenizedVarComputer.create(s);
-            obj.homogenizedVariablesComputer = h;
-        end
+        function rho = evaluate(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV);
+            nGaus = size(xV,2);
+            rhoV = obj.density.sampleFunction(mL,cells);
+            rho(:,:) = reshape(rhoV,nGaus,[]);
+        end        
+
+        function [mL,cells] = obtainLocalCoord(obj,xV)
+            mx = obj.fun{1};
+            my = obj.fun{2};
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
+            mG(:,1) = mxG(:);
+            mG(:,2) = myG(:);
+            [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
+        end        
+
         
         function xS = splitDesignVariable(obj,x)
             nVar = obj.nVariables;
