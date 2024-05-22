@@ -63,7 +63,7 @@ classdef HyperelasticProblem < handle
 
                 loadPercent = iStep/nsteps;
                 obj.createBoundaryConditions();
-                Fext = obj.computeExtForcesShape(loadPercent);
+                Fext = obj.computeExternalForces(loadPercent);
                 Fint = obj.computeInternalForces();
                 hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext - react;
@@ -174,7 +174,7 @@ classdef HyperelasticProblem < handle
         function init(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(10,10);
+            obj.mesh = UnitQuadMesh(30,30);
 
 %             obj.material.mu = 3/8;
 %             obj.material.lambda = 3/4;
@@ -221,7 +221,7 @@ classdef HyperelasticProblem < handle
             obj.uFun.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
-        function [Fext] = computeExtForcesShape(obj,perc)
+        function [Fext] = computeExternalForces(obj,perc)
             pl = obj.boundaryConditions.pointloadFun;
             pl.fValues = pl.fValues*perc;
             s.mesh = obj.mesh;
@@ -235,24 +235,13 @@ classdef HyperelasticProblem < handle
             Fext = reshape(Fext',[obj.uFun.nDofs,1]);
 %             sum(Fext)
 
-%             s.mesh = obj.mesh;
-%             s.quadType = 2;
-%             scalar = IntegratorScalarProduct(s);
-%             intF = scalar.compute(pl,pl);
+            s.mesh = obj.mesh;
+            s.quadType = 2;
+            scalar = IntegratorScalarProduct(s);
+            intF = scalar.compute(pl,pl)
 %             Fext = reshape(Fext2,[obj.mesh.ndim,obj.mesh.nnodes])';
+            sumFext2 = sum(Fext2)
             Fext = Fext2;
-        end
-
-        function Fext = computeForces(obj, perc)
-            s.type     = 'Elastic';
-            s.scale    = 'MACRO';
-            s.dim.ndofs = obj.uFun.nDofs;
-            s.BC       = obj.boundaryConditions;
-            s.BC.pointload_vals = s.BC.pointload_vals*perc;
-            s.mesh     = obj.mesh;
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-            Fext = rhs;
         end
 
         function intfor = computeInternalForces(obj)
@@ -433,7 +422,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 0.5;
+            sPL.value     = 1000;
             s.pointloadFun = DistributedLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
