@@ -25,7 +25,8 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
-            obj.splitdata()
+            obj.buildModel();
+            obj.splitdata();
             obj.nLabels   = size(obj.Ytrain,2);                        
             obj.nFeatures = size(obj.Xtrain,2);
         end

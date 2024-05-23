@@ -3,16 +3,16 @@ clc;
 clear;
 close all;
 %% Initialization of hyperparameters
-pol_deg         = 1;
+pol_deg         = 3;
 testratio       = 0;
 lambda          = 0.01;
 learningRate    = 0.05;
 momentum        = 0.9;
 batch           = 200;
-hiddenlayers    = [3 4 5];
+hiddenlayers    = [9 8 7];
 
 %% Loading of files/datasets
-fileN = 'testDataset.csv';
+fileN = 'testDatasetExtended.csv';
 s.features = 1:3;
 s.fileName        = fileN;
 s.testRatio       = testratio;
@@ -57,7 +57,7 @@ z_theo = data.Ytrain;
 z_calc = optProblem.computeOutputValues(data.Xtrain);
 
 % Define la cuadrícula en la que se interpolan los puntos
-[Xq,Yq] = meshgrid(min(X):0.1:max(X), min(Y):0.1:max(Y));
+[Xq,Yq] = meshgrid(min(X):0.01:max(X), min(Y):0.01:max(Y));
 
 z_vec_label = {'C_{11}','C_{12}','C_{13}','C_{22}','C_{23}','C_{33}'};
 for i = 1:6
