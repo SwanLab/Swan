@@ -43,10 +43,8 @@ classdef SurfaceMesh < Mesh
             n = obj.computeNormalVectors(J);
         end
 
-        function n = getNormals(obj) % only 
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('CONSTANT');
-            % g = obj.geometry;
+        function n = getNormals(obj) 
+            quad = Quadrature.create(obj,0);
             n = obj.computeNormals(quad.posgp);
         end
         

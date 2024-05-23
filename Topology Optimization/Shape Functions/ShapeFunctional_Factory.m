@@ -42,9 +42,21 @@ classdef ShapeFunctional_Factory < handle
                 case 'perimeterConstraint'
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
-                    sF = ShFunc_Chomog_alphabeta(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.alpha        = cParams.alpha;
+                    s.beta         = cParams.beta;
+                    sF             = MicroAlphaBetaFunctional(s);
                 case 'chomog_fraction'
-                    sF = ShFunc_Chomog_fraction(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.alpha        = cParams.alpha;
+                    s.beta         = cParams.beta;
+                    sF             = MicroFractionFunctional(s);
                 case 'chomog_CC'
                     sF = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'

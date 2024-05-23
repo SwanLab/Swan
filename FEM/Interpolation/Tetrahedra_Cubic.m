@@ -36,7 +36,7 @@ classdef Tetrahedra_Cubic < Interpolation
             % obj.isoDv = 1/6;
         end
 
-        function shape = computeShapeFunctions(obj,xV)
+        function shape = evaluateShapeFunctions(obj,xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             s = xV(1,:,:);
@@ -68,7 +68,7 @@ classdef Tetrahedra_Cubic < Interpolation
             shape(20,:,:) = s.*t.*u.*2.7e+1;
         end
 
-        function deriv = computeShapeDerivatives(obj,xV)
+        function deriv = evaluateShapeDerivatives(obj,xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             s = xV(1,:,:);
