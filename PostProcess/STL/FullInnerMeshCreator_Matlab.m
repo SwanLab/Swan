@@ -7,7 +7,7 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
             
         end
 
-        function [m,old2new] = export(obj)
+        function m = export(obj)
             uM = obj.unfittedMesh;
             innerMesh    = uM.innerMesh.mesh;
             innerCutMesh = uM.innerCutMesh.mesh;
@@ -35,8 +35,8 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
             newConnecCutInner = old2new(connecCutInner);
             s.coord  = [coordInner; coordCutInner];
             s.connec = [connecInner; newConnecCutInner];
-            m = Mesh.create(s);
-            %m = msh.computeCanonicalMesh();
+            msh = Mesh.create(s);
+            m = msh.computeCanonicalMesh();
         end
         
     end

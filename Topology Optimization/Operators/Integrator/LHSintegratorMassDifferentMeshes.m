@@ -46,36 +46,35 @@ classdef LHSintegratorMassDifferentMeshes < handle
         end
 
         function lhs = assembleMatrix(obj, M)
-            nElem         = obj.uMesh.innerMesh.mesh.nelem;
+            iMesh         = obj.uMesh.innerMesh;
             iCMesh        = obj.uMesh.innerCutMesh;
-            globCell  = iCMesh.cellContainingSubcell;
-            [subDomain,old2new]     = obj.uMesh.createInnerMesh();
-            globalConnec  = subDomain.connec(nElem+1:end,:);
-            nDofTest      = subDomain.nnodes;
+            globCell      = iCMesh.cellContainingSubcell;
+            nDofTest      = iCMesh.mesh.nnodes;
             nDofTrial     = obj.trial.nDofs;
             connecTest    = obj.uMesh.innerCutMesh.mesh.connec;
             connecTrial   = obj.trial.computeDofConnectivity()';
             nDofElemTest  = size(connecTest,2);
             nDofElemTrial = size(connecTrial,2);
-            lhs = sparse(nDofTest,nDofTrial);
+            lhsIC = sparse(nDofTest,nDofTrial);
             for iDof = 1:nDofElemTest
                 for jDof = 1:nDofElemTrial
-                    conTestReal = [];
-                    int      = M(iDof,jDof,globCell);
+                    int      = M(iDof,jDof,:);
                     conTest  = connecTest(:,iDof);
-                    conTestReal = old2new(conTest);
                     conTrial = connecTrial(:,jDof);
-                    lhs   = lhs + sparse(conTestReal,conTrial(globCell),squeeze(int),nDofTest,nDofTrial);
+                    lhsIC   = lhsIC + sparse(conTest,conTrial(globCell),squeeze(int),nDofTest,nDofTrial);
                 end
             end
+            nDofTest = iMesh.mesh.nnodes+iCMesh.mesh.nnodes;
+            lhs      = sparse(nDofTest,nDofTrial);
+            setNodes = iMesh.mesh.nnodes+1:nDofTest;
+            lhs(setNodes,:) = lhsIC;
         end
 
         function lhs = computeElementalLHSInner(obj)
-            subDomain = obj.uMesh.createInnerMesh();
-            nDofTest  = subDomain.nnodes;
+            iMesh     = obj.uMesh.innerMesh.mesh;
+            nDofTest  = iMesh.nnodes+obj.uMesh.innerCutMesh.mesh.nnodes;
             nDofTrial = obj.trial.nDofs;
             lhs       = sparse(nDofTest,nDofTrial);
-            iMesh     = obj.uMesh.innerMesh.mesh;
             setNodes  = 1:iMesh.nnodes;
             l2g(iMesh.connec(:)) = obj.uMesh.innerMesh.globalConnec(:);
             s.mesh    = iMesh;
@@ -90,7 +89,6 @@ classdef LHSintegratorMassDifferentMeshes < handle
 
         function lhs = computeElementalLHSInnerCut(obj)
             iCMesh    = obj.uMesh.innerCutMesh;
-            globCell  = iCMesh.cellContainingSubcell;
             quad      = obj.quadrature;
             xVLoc     = quad.posgp;
             dVolu     = iCMesh.mesh.computeDvolume(quad);
@@ -101,7 +99,7 @@ classdef LHSintegratorMassDifferentMeshes < handle
             nDofTestLoc = size(Ni,1);
             nDofTrialLoc = size(Nj,1);
             nGaus     = quad.ngaus;
-            nElem     = obj.uMesh.backgroundMesh.nelem;
+            nElem     = obj.uMesh.innerCutMesh.mesh.nelem;
             M         = zeros(nDofTestLoc,nDofTrialLoc,nElem);
             for igauss = 1 :nGaus
                 for idof= 1:nDofTestLoc
@@ -111,8 +109,7 @@ classdef LHSintegratorMassDifferentMeshes < handle
                         Njg  = Nj(jdof,igauss,:);
                         v    = squeeze(Nig.*Njg);
                         MLoc = v(:).*dvol';
-                        int  = accumarray(globCell,MLoc,[nElem,1],@sum,0);
-                        M(idof,jdof,:) = M(idof,jdof,:) + reshape(int,[1,1,nElem]);
+                        M(idof,jdof,:) = M(idof,jdof,:) + reshape(MLoc,[1,1,nElem]);
                     end
                 end
             end
