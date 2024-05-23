@@ -95,8 +95,8 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             s.mesh    = obj.mesh;
             s.filter  = obj.filterPerimeter;
             s.epsilon = 8*obj.mesh.computeMeanCellSize();
-            s.minEpsilon = 4*obj.mesh.computeMeanCellSize();
-            s.perimeterTargetAbs = 4*(0.25*pi); % Internal perimeter of 4 circular holes with D=0.25
+            s.minEpsilon = 8*obj.mesh.computeMeanCellSize();
+            s.perimeterTargetAbs = 4*(0.125*pi); % Internal perimeter of 4 circular holes
             P         = PerimeterConstraint(s);
             obj.perimeterConstraint = P;
         end
@@ -138,7 +138,7 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 60; % 60
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -158,22 +158,22 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             s.filter  = obj.filterPerimeter;
             s.epsilon = 8*obj.mesh.computeMeanCellSize();
             s.minEpsilon = 4*obj.mesh.computeMeanCellSize();
-            s.perimeterTargetAbs = 1*(0.25*pi);
+            s.perimeterTargetAbs = 1.25*(0.125*pi);
             s.subDomainHandle = @(x) max(abs(x1(x)-0.25),abs(x2(x)-0.75))/0.5 - 0.5;
             P         = LocalPerimeterConstraint(s);
             obj.locPer1 = P;
 
-            s.perimeterTargetAbs = 0.5*(0.25*pi);
+            s.perimeterTargetAbs = 1*(0.125*pi);
             s.subDomainHandle = @(x) max(abs(x1(x)-0.75),abs(x2(x)-0.75))/0.5 - 0.5;
             P         = LocalPerimeterConstraint(s);
             obj.locPer2 = P;
 
-            s.perimeterTargetAbs = 0.5*(0.25*pi);
+            s.perimeterTargetAbs = 0.75*(0.125*pi);
             s.subDomainHandle = @(x) max(abs(x1(x)-0.25),abs(x2(x)-0.25))/0.5 - 0.5;
             P         = LocalPerimeterConstraint(s);
             obj.locPer3 = P;
 
-            s.perimeterTargetAbs = 0.25*(0.25*pi);
+            s.perimeterTargetAbs = 0.5*(0.125*pi);
             s.subDomainHandle = @(x) max(abs(x1(x)-0.75),abs(x2(x)-0.25))/0.5 - 0.5;
             P         = LocalPerimeterConstraint(s);
             obj.locPer4 = P;
@@ -200,14 +200,14 @@ classdef TopOptTestLocalPerimeterTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','EQUALITY','EQUALITY','EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizerGP = opt;
