@@ -4,16 +4,16 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(10,4,200,100); % MESH
+m = QuadMesh(10,4,100,100); % MESH
 s.type='Given';
 
 % NACA 4
-M=6/100;
+M=4/100;
 p=4/10;
 t=12/100;
 
-AOAd = 20; %deg
-x_centr = 3;
+AOAd = 10; %deg
+x_centr = 3.5;
 y_centr = 2;
 
 %% Airfoil creation
@@ -163,7 +163,9 @@ nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
 scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 % Pressure bc
-dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
+isHorizontal = @(coor) (abs(coor(:,2) - 2) < 1e-12); % La pressió es fixa a 
+
+dir_pre{1}.domain    = @(coor) isRight(coor) & isHorizontal(coor);
 dir_pre{1}.direction = 1;
 dir_pre{1}.value     = 0;
 

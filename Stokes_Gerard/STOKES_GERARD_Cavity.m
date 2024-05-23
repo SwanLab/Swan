@@ -89,14 +89,13 @@ d.pressureFun   = pressureFun;
 d.forcesFormula = forcesFormula;
 RHSint = RHSintegrator.create(d);
 F = RHSint.integrate();
-% F(end+1) = 0;
 uD = dirichlet(:,3);
 R  = -LHS(:,dir_dofs)*uD;
 RHS = F + R;
 
 % SOLVE PROBLEM
 free_dofs_plus = setdiff(1:n_dofs,dir_dofs);
-LHSr = LHS(free_dofs_plus,free_dofs_plus); %Li treiem els nodes restringits per deixar la LHS només amb lliures i la RHS de la mateixa mida
+LHSr = LHS(free_dofs_plus,free_dofs_plus); 
 RHSr = RHS(free_dofs_plus);
 x = solver.solve(LHSr, RHSr);
 
@@ -136,9 +135,12 @@ hold on
 
 x_target = 0.2;
 y_target = 0.2;
+x_line = 0.5;
 tol = 1e-12;
 
 isNode = @(coor) (sqrt((coor(:,1) - x_target).^2 + (coor(:,2) - y_target).^2) < tol);
+isVerticalLine = @(coor) (abs(coor(:,1) - x_line) < tol);
+
 dirDofs_vel = velocityFun.getDofsFromCondition(isNode);
 dirDofs_pre = pressureFun.getDofsFromCondition(isNode);
 node_vel = 1 + (dirDofs_vel(2:2:end)-2)/velocityFun.ndimf;
