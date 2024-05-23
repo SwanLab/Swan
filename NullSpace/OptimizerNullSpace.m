@@ -103,7 +103,7 @@ classdef OptimizerNullSpace < Optimizer
             if obj.nIter == 0
                 data = [data;0;0;0;obj.etaMax;0;0;0];
             else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);obj.magicRatio];
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);norm(obj.magicRatio)];
             end
             switch class(obj.designVariable)
                 case 'LevelSet'
@@ -206,6 +206,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
+                obj.magicRatio     = (1-gk1/gk)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew = obj.mOld;
                 obj.designVariable.update(x0);

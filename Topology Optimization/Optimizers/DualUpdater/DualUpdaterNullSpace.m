@@ -120,7 +120,7 @@ classdef DualUpdaterNullSpace < handle
         function isActive = checkComplementaryKKT(obj,g)
             isActive = true(obj.nConstr,1);
             for i = 1:obj.nConstr
-                if obj.isInequality(i) && g(i)<-1e-6
+                if obj.isInequality(i) && g(i)<-1e-2
                     isActive(i) = false;
                 end
             end

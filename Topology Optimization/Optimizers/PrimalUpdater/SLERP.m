@@ -21,7 +21,6 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)   
-            y = obj.computeRegularizedDensity(phi);
             phiF   = phi.fun;
             gF     = obj.createP1Function(g);
             gN     = gF.normalize('L2');
@@ -30,8 +29,7 @@ classdef SLERP < handle
             obj.Theta = theta;
             phiNew = obj.computeNewLevelSet(phiN,gN,theta);
             phi.update(phiNew);
-            x = obj.computeRegularizedDensity(phi);
-            obj.updateBoundsMultipliers(x,y,g,phiNew);
+            obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
@@ -142,25 +140,11 @@ classdef SLERP < handle
             obj.Beta  = b;
         end
 
-        function rhoe = computeRegularizedDensity(obj,phi)
-            charFun = phi.obtainDomainFunction();
-            rhoe    = obj.filter.compute(charFun,'QUADRATIC');
-        end
-
-        function updateBoundsMultipliers(obj,xF,yF,g,phi)
-            x       = xF.fValues;
-            y       = yF.fValues;
-            t       = sum(abs(y-x))/sum(abs(g));
-            isUBAct = phi<0 & g<0;
-            isLBAct = phi>0 & g>0;
-            lUB     = y-t*g-x;
-            lLB     = x+t*g-y;
-
-            lUB(~isUBAct | lUB<0)     = 0;
-            lLB(~isLBAct | lLB<0)     = 0;
-            obj.boxConstraints.lUB    = 0; % lUB
-            obj.boxConstraints.lLB    = 0; % lLB
-            obj.boxConstraints.refTau = t;
+        function updateBoundsMultipliers(obj,xF)
+            x                         = xF.fValues;
+            obj.boxConstraints.lUB    = zeros(size(x));
+            obj.boxConstraints.lLB    = zeros(size(x));
+            obj.boxConstraints.refTau = 1;
         end
 
     end
