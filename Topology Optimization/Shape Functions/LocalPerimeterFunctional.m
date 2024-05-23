@@ -5,26 +5,22 @@ classdef LocalPerimeterFunctional < handle
         filter
         epsilon
         value0
-        subDomain
-        old2new
     end
 
     methods (Access = public)
         function obj = LocalPerimeterFunctional(cParams)
             obj.init(cParams);
             obj.filter.updateEpsilon(obj.epsilon);
-            obj.createSubDomainMesh(cParams);
+            obj.createUnfittedMesh(cParams);
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
             xD = obj.uMesh.obtainFunctionAtUnfittedMesh(xD);
-            xRei = obj.uMesh.obtainFunctionAtUnfittedMesh(xR);
-            xD = xD.innerMeshFunction;
-            xR = xRei.innerMeshFunction;
+            xR = obj.uMesh.obtainFunctionAtUnfittedMesh(xR);
             J  = obj.computeFunction(xD,xR);
-            dJ = obj.computeGradient(xRei);
+            dJ = obj.computeGradient(xR);
             J  = obj.computeNonDimensionalValue(J);
             dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
         end
@@ -42,7 +38,7 @@ classdef LocalPerimeterFunctional < handle
             obj.value0    = cParams.value0;
         end
 
-        function createSubDomainMesh(obj,cParams)
+        function createUnfittedMesh(obj,cParams)
             fH                 = cParams.subDomainHandle;
             sLS.type           = 'Given';
             sLS.fHandle        = fH;
@@ -53,7 +49,6 @@ classdef LocalPerimeterFunctional < handle
             sUm.boundaryMesh   = cParams.mesh.createBoundaryMesh();
             obj.uMesh          = UnfittedMesh(sUm);
             obj.uMesh.compute(levelSet);
-            [obj.subDomain,obj.old2new] = obj.uMesh.createInnerMesh();
         end
 
         function xR = filterDesignVariable(obj,x)
@@ -61,15 +56,21 @@ classdef LocalPerimeterFunctional < handle
         end
 
         function J = computeFunction(obj,xD,xR)
-            f   = xD.*(1-xR);
-            int = Integrator.compute(f,obj.uMesh.innerMesh.mesh,2);
-            J   = 2/(obj.epsilon)*int;
+            fI    = xD.innerMeshFunction.*(1-xR.innerMeshFunction);
+            fIC   = xD.innerCutMeshFunction.*(1-xR.innerCutMeshFunction);
+            intI  = Integrator.compute(fI,obj.uMesh.innerMesh.mesh,2);
+            intIC = Integrator.compute(fIC,obj.uMesh.innerCutMesh.mesh,2);
+            J     = 2/(obj.epsilon)*(intI+intIC);
         end
 
-        function dJ = computeGradient(obj,xRei)
-%             dj         = 2/(obj.epsilon)*(1-2*xR.fValues);
-%             dJ         = LagrangianFunction.create(obj.subDomain,1,'P1');
-%             dJ.fValues = dj;
+        function dJ = computeGradient(obj,xR)
+            djIVals = 2/(obj.epsilon)*(1-2*xR.innerMeshFunction.fValues);
+            djI = LagrangianFunction.create(obj.uMesh.innerMesh.mesh,1,'P1');
+            djI.fValues = djIVals;
+
+            djICVals = 2/(obj.epsilon)*(1-2*xR.innerCutMeshFunction.fValues);
+            djIC = LagrangianFunction.create(obj.uMesh.innerCutMesh.mesh,1,'P1');
+            djIC.fValues = djICVals;
 
             M = obj.createMassMatrix();
 
@@ -78,14 +79,14 @@ classdef LocalPerimeterFunctional < handle
             s.quadType = 2;
             int        = RHSintegrator.create(s);
             test       = LagrangianFunction.create(s.mesh,1,'P1');
-            rhsI        = int.compute(xRei.innerMeshFunction,test); % dJ
+            rhsI        = int.compute(djI,test); % dJ
 
             s.mesh = obj.uMesh.innerCutMesh.mesh;
             s.type = 'ShapeFunction';
             s.quadType = 2;
             int        = RHSintegrator.create(s);
             test       = LagrangianFunction.create(s.mesh,1,'P1');
-            rhsIC        = int.compute(xRei.innerCutMeshFunction,test); % dJ
+            rhsIC        = int.compute(djIC,test); % dJ
 
             rhs = [rhsI;rhsIC];
             newRHS = M'*rhs;
@@ -95,8 +96,8 @@ classdef LocalPerimeterFunctional < handle
             fValuesfree=newRHS(~isZero)./sum(LHSfree,2);
             newfValues = zeros(size(newRHS));
             newfValues(~isZero) = fValuesfree;
-            xR2=LagrangianFunction.create(obj.uMesh.backgroundMesh,1,'P1');
-            xR2.fValues = newfValues;
+            dJ=LagrangianFunction.create(obj.uMesh.backgroundMesh,1,'P1');
+            dJ.fValues = newfValues;
         end
 
         function M = createMassMatrix(obj)
