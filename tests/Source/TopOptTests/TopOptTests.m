@@ -152,6 +152,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
             M = LHS.compute;
+            M = eye(size(M));
         end
 
         function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s)
