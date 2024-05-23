@@ -180,13 +180,13 @@ classdef UnsteadyConvectionProblem < handle
             end
         end
 
-        function plot(obj,u,i)
+        function plot(obj,u,i,tit)
             x_lo=-1/2; x_up=1/2; y_lo=-1/2; y_up=1/2;
             X     = obj.coord;
             nx    = obj.nElemX;
             ny    = obj.nElemY;
             % Solution at time t=t_end
-            figure(1); clf;
+            figure(); clf;
             set(gca,'FontSize',12,...
                 'XTick', [-0.5,0,0.5],'YTick', [-0.5,0,0.5],'ZTick', 0:0.25:1);
             [xx,yy,sol] = MatSol(X,nx,ny,u(:,i));
@@ -194,15 +194,18 @@ classdef UnsteadyConvectionProblem < handle
             view([40,30])
             axis([x_lo,x_up,y_lo,y_up,0,1])
             grid on;
+            title(tit);
 
             % Contour plot of the solution at time t = t_end
-            figure(2); clf;
+            figure(); clf;
+            hold on
             set(gca,'FontSize',12);
             [C,h]=contour(xx,yy,sol,[-0.1,-0.01,0.1:0.1:1.0]);
             clabel(C,h);
             axis equal; axis([x_lo,x_up,y_lo,y_up]);
             set(gca,'XTick',[x_lo,(x_up+x_lo)/2,x_up]);
             set(gca,'YTick',[y_lo,(y_up+y_lo)/2,y_up]);
+            title(tit);
         end
     end
 
