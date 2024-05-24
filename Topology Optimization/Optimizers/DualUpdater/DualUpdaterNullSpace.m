@@ -92,19 +92,19 @@ classdef DualUpdaterNullSpace < handle
         end
 
         function computeQuadraticProblem(obj,s)
-            eta             = s.eta;
-            lUB             = s.lUB;
-            lLB             = s.lLB;
-            problem         = s.prob;
-            g               = obj.constraint.value;
-            Dg              = obj.constraint.gradient;
-            isActive        = obj.checkComplementaryKKT(g);
+            eta      = s.eta;
+            lUB      = s.lUB;
+            lLB      = s.lLB;
+            problem  = s.prob;
+            g        = obj.constraint.value;
+            Dg       = obj.constraint.gradient;
+            isActive = obj.checkComplementaryKKT(g);
             problem.lb(~isActive) = [];
             problem.ub(~isActive) = [];
-            g               = g(isActive);
-            Dg              = Dg(:,isActive);
-            DJ              = obj.cost.gradient;
-            l               = zeros(obj.nConstr,1);
+            g  = g(isActive);
+            Dg = Dg(:,isActive);
+            DJ = obj.cost.gradient;
+            l  = zeros(obj.nConstr,1);
             if ~isempty(g)
                 problem.H       = Dg'*Dg;
                 problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
@@ -194,9 +194,9 @@ classdef DualUpdaterNullSpace < handle
         end
 
         function createPrimalUpdater(obj)
-            s                     = obj.computeDualBounds();
-            p                     = ProjectedGradient(s);
-            obj.primalUpdater     = p;
+            s                 = obj.computeDualBounds();
+            p                 = ProjectedGradient(s);
+            obj.primalUpdater = p;
         end
     end
 end

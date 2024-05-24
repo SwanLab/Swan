@@ -11,23 +11,21 @@ classdef SLERP < handle
     properties (Access = private)
         mesh
         volume
-        filter
     end
 
     methods (Access = public)
         function obj = SLERP(cParams)
             obj.init(cParams);
-            obj.createFilter();
         end
 
         function phi = update(obj,g,phi)   
-            phiF   = phi.fun;
-            gF     = obj.createP1Function(g);
-            gN     = gF.normalize('L2');
-            phiN   = phiF.normalize('L2');
-            theta  = obj.computeTheta(phiN,gN);
+            phiF      = phi.fun;
+            gF        = obj.createP1Function(g);
+            gN        = gF.normalize('L2');
+            phiN      = phiF.normalize('L2');
+            theta     = obj.computeTheta(phiN,gN);
             obj.Theta = theta;
-            phiNew = obj.computeNewLevelSet(phiN,gN,theta);
+            phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
@@ -100,13 +98,6 @@ classdef SLERP < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.createVolumeFunctional();
-        end
-
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter   = Filter.create(s);
         end
 
         function createVolumeFunctional(obj)
