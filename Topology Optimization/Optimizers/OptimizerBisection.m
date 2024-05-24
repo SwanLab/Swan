@@ -100,7 +100,7 @@ classdef OptimizerBisection < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.dualVariable.value];
+            data = [data;obj.dualVariable.fun.fValues];
             data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
             if obj.nIter == 0
                 data = [data;0;0];
@@ -115,7 +115,7 @@ classdef OptimizerBisection < Optimizer
             obj.cost.computeFunctionAndGradient(x);
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = 0;
+            obj.dualVariable.fun.fValues = 0;
         end
 
         function obj = update(obj)
@@ -134,7 +134,7 @@ classdef OptimizerBisection < Optimizer
             x = obj.designVariable;
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
-            l       = obj.dualVariable.value;
+            l       = obj.dualVariable.fun.fValues;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             DmF     = DJ + l*Dg;
@@ -229,7 +229,7 @@ classdef OptimizerBisection < Optimizer
             obj.globalConstraint(i)   = obj.constraint.value;
             obj.globalCostGradient(i) = norm(obj.cost.gradient);
             obj.globalMerit(i)        = obj.cost.value;
-            obj.globalDual(i)         = obj.dualVariable.value;
+            obj.globalDual(i)         = obj.dualVariable.fun.fValues;
         end
 
     end

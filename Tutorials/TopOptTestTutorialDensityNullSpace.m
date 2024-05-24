@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialLevelSetNullSpace < handle
+classdef TopOptTestTutorialDensityNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetNullSpace()
+        function obj = TopOptTestTutorialDensityNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -52,15 +52,16 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            s.fun     = aFun.project('P1');
+            s.mesh    = obj.mesh;
+            s.type = 'Density';
             s.plotting = true;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            dens    = DesignVariable.create(s);
+            obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -72,19 +73,18 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
-
+            E0 = 1e-3;
+            nu0 = 1/3;
+            ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
+
+            E1 = 1;
+            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = matA;
@@ -92,6 +92,17 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
+        end
+
+        function m = createMaterial(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f.project('P1');            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '2D';
+            m = Material.create(s);
         end
 
         function createElasticProblem(obj)
@@ -114,10 +125,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createCompliance(obj)
-            s.mesh                       = obj.mesh;
-            s.filter                     = obj.filter;
-            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filter;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+            s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -144,10 +155,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
-            M = LHS.compute;
-
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = LHS.compute;     
         end
 
         function createConstraint(obj)
@@ -171,25 +179,14 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.primal         = 'PROJECTED GRADIENT';
+            s.ub             = 1;
+            s.lb             = 0;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filter.compute(f,1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
@@ -221,7 +218,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
-            s.mesh = obj.mesh;
+            s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
     end
