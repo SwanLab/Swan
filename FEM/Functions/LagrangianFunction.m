@@ -125,7 +125,8 @@ classdef LagrangianFunction < FeFunction
                         shading interp
                         a.EdgeColor = [0 0 0];
                         a.EdgeAlpha = 0;
-                        title(['dim = ', num2str(idim)]);
+%                         title(['dim = ', num2str(idim)]);
+                        axis equal
                     end
                 case 'LINE'
                     x = obj.mesh.coord(:,1);

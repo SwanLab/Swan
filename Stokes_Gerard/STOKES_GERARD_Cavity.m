@@ -4,7 +4,8 @@ close all
 %Input data
 H=1;
 
-for S = 50:50:1000
+% for S = 50:50:1000
+S=54
 mesh = QuadMesh(1,1,S,S); 
 
 e.type  = 'STOKES';
@@ -33,7 +34,7 @@ dir_vel{1}.domain    = @(coor) (isLeft(coor) | isRight(coor) | isBottom(coor)) &
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [0,0];
 
-dir_pre{1}.domain    = @(coor) isLeft(coor) & isTop(coor);
+dir_pre{1}.domain    = @(coor) isBottom(coor) & isLeft(coor);
 dir_pre{1}.direction = 1;
 dir_pre{1}.value     = 0;
 
@@ -131,27 +132,62 @@ pressureFun.fValues = vars.p(:,end);
 %% PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
-hold on
+% caxis([-3 3]);
 
 x_target = 0.2;
 y_target = 0.2;
 x_line = 0.5;
 tol = 1e-12;
 
+
 isNode = @(coor) (sqrt((coor(:,1) - x_target).^2 + (coor(:,2) - y_target).^2) < tol);
 isVerticalLine = @(coor) (abs(coor(:,1) - x_line) < tol);
 
-dirDofs_vel = velocityFun.getDofsFromCondition(isNode);
-dirDofs_pre = pressureFun.getDofsFromCondition(isNode);
+dirDofs_vel = velocityFun.getDofsFromCondition(isVerticalLine);
+dirDofs_pre = pressureFun.getDofsFromCondition(isVerticalLine);
 node_vel = 1 + (dirDofs_vel(2:2:end)-2)/velocityFun.ndimf;
 
-vel(H,:) = velocityFun.fValues(node_vel,:);
-press(H) = pressureFun.fValues(dirDofs_pre);
+figure
+xnod        = mesh.coord(dirDofs_pre,1);
+ynod        = mesh.coord(dirDofs_pre,2);
+scatter(xnod,ynod)
+vels = velocityFun.fValues(dirDofs_pre,:); %Busquem la velocitat només en els nodes que comparteix amb la pressió
+press = pressureFun.fValues(dirDofs_pre);
 
-H=H+1;
-clearvars('-except', 'vel', 'press','H');
-end
-% scatter3(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),1000,'r','x');
+plot(vels(:,1),ynod,'LineWidth',1.1)
+load('153x153_codiweb.mat')
+hold on
+plot(vel(:,1),xynodv(:,2),'r','LineWidth',1.1)
+% legend('Swan code','LaCàN code','FontSize', 15)
+% set(gca, 'FontSize', 15)
+% ylabel('y position','FontSize', 15)
+% xlabel('Velocity in x direction','FontSize', 15)
+grid on
+
+% figure
+% plot(vels(:,2),ynod)
+% hold on
+% plot(vel(:,2),xynodv(:,2),'r')
+% legend('Swan code','LaCàN code','FontSize', 16)
+% set(gca, 'FontSize', 16)
+% ylabel('y position','FontSize', 16)
+% xlabel('Velocity in y direction','FontSize', 16)
+
+figure
+plot(press,ynod,'LineWidth',1.1)
+hold on
+plot(pre(:,1),xynodp(:,2),'r','LineWidth',1.1)
+% legend('Swan code','LaCàN code','FontSize', 15)
+% set(gca, 'FontSize', 15)
+% ylabel('y position','FontSize', 15)
+% xlabel('Pressure','FontSize', 15)
+axis([0.3 0.4 0 1])
+grid on
+
+% H=H+1;
+% clearvars('-except', 'vel', 'press','H');
+% end
+% % scatter3(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),1000,'r','x');
 
 
 

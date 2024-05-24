@@ -124,7 +124,10 @@ dir_vel{1}.value     = [1,0]; %Velocity on the inlet
 
 %Nodesnormals = uMesh.boundaryCutMesh.mesh
 
-%Trobem els nodes de pressió al voltant de l'el·lipse
+%Trobem els nodes de "pressió" al voltant de l'el·lipse (nodes que no són
+%intermitjos). Recordar que estem buscant els GDL de la velocitat per
+%imposar les condicions de contorn, no els de la pressió (els noms de les
+%variables poden confondre)
 size_cutmesh = size(uMesh.boundaryCutMesh.mesh.coord,1);
 dirDofspresscyl=zeros(2,size_cutmesh);
 for i = 1:1:size_cutmesh
