@@ -232,11 +232,13 @@ classdef OptimizerNullSpace < Optimizer
                     %                     k  = obj.primalUpdater.tau;
                     %                     t  = obj.primalUpdater.Theta;
                     %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
-                    theta      = obj.primalUpdater.Theta;
-                    k          = obj.primalUpdater.tau;
-                    b          = obj.primalUpdater.Beta;
-                    a          = obj.primalUpdater.Alpha;
-                    obj.etaMax = theta;
+%                     theta      = obj.primalUpdater.Theta;
+%                     k          = obj.primalUpdater.tau;
+%                     b          = obj.primalUpdater.Beta;
+%                     a          = obj.primalUpdater.Alpha;
+                    obj.etaMax = Inf;
+                case 'HAMILTON-JACOBI'
+                    obj.etaMax = Inf; % Not verified
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;
