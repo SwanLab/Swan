@@ -4,87 +4,20 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-m = QuadMesh(10,4,150,150*0.8); % MESH
+dim_a = 0.2; % Semi-major axis 0.2
+dim_b = 0.08; % Semi-minor axis 0.02
+center_posx = 0.7; % x position of the ellipse center
+center_posy = 0.5; % y position of the ellipse center
+AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
+
+
+m = QuadMesh(2,1,100,100); % MESH
 s.type='Given';
-
-% NACA 4
-M=6/100;
-p=9/10;
-t=12/100;
-
-AOAd = 0; %deg
-x_centr = 3.5;
-y_centr = 2;
-
-%% Airfoil creation
-pas=0.001;
-
-x_p=[pas:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
-
-yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
-
-for j=1:1:size(x_p,2)
-    if x_p(j)<=p
-        y_c(j)=(M/(p^2))*(2*p*x_p(j)-x_p(j)^2);
-    elseif x_p(j)>p
-        y_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
-    end
-end
-
-%Plot chamber line:
-% plot(x_p,y_c)
-% axis equal
-% grid on
-
-% %Plot airfoil with circles:
-% figure
-% for ii=1:1:size(x_p,2)
-%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
-%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
-% 
-% 
-%     plot(x_c,y+y_c(ii));
-%     hold on
-%     plot(x_c,-y+y_c(ii));
-%     hold on
-% 
-% end
-% 
-% axis equal
-
-x_le = x_centr-0.5;
-AOA = -deg2rad(AOAd);
-
-rn  = yt;
-x_cnr = x_p+x_le;
-y_cnr = y_c+y_centr;
-
-x_cn = (x_cnr-x_centr).*cos(AOA)-(y_cnr-y_centr).*sin(AOA)+x_centr;
-y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
-
-terms = cell(1, length(rn));
-
-for jj = 1:length(rn)
-    terms{jj} = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
-end
-
-while length(terms) > 1
-    new_terms = {};
-    for jj = 1:2:length(terms)-1
-        new_terms{end+1} = sprintf('min(%s, %s)', terms{jj}, terms{jj+1});
-    end
-    if mod(length(terms), 2) == 1
-        new_terms{end+1} = terms{end};
-    end
-    terms = new_terms;
-end
-
-func_str = ['@(x) -', terms{1}];
-fH = str2func(func_str);
+AOAr = deg2rad(AOAd);
 
 
 %% Create mesh and boundary conditions
-s.fHandle = fH; 
+s.fHandle = @(x) -((((cos(AOAr)*(x(1,:,:)-center_posx)-(x(2,:,:)-center_posy)*sin(AOAr)).^2)/(dim_a^2)) + ((((x(2,:,:)-center_posy)*cos(AOAr)+(x(1,:,:)-center_posx)*sin(AOAr)).^2)/(dim_b^2)) - 1);
 g = GeometricalFunction(s);
 lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
 sUm.backgroundMesh = m;
@@ -92,10 +25,7 @@ sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de 
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
-figure
-plot(uMesh)
-figure
-plot(lsFun)
+
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
 material = Material.create(e);
@@ -120,14 +50,11 @@ dir_vel{2}.value     = [0,0];
 
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [1,0]; %Velocity on the inlet
+dir_vel{1}.value     = [1,0];
 
 %Nodesnormals = uMesh.boundaryCutMesh.mesh
 
-%Trobem els nodes de "pressió" al voltant de l'el·lipse (nodes que no són
-%intermitjos). Recordar que estem buscant els GDL de la velocitat per
-%imposar les condicions de contorn, no els de la pressió (els noms de les
-%variables poden confondre)
+%Trobem els nodes de pressió al voltant de l'el·lipse
 size_cutmesh = size(uMesh.boundaryCutMesh.mesh.coord,1);
 dirDofspresscyl=zeros(2,size_cutmesh);
 for i = 1:1:size_cutmesh
@@ -166,9 +93,7 @@ nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
 scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 % Pressure bc
-isHorizontal = @(coor) (abs(coor(:,2) - 2) < 1e-12); % La pressió es fixa a 
-
-dir_pre{1}.domain    = @(coor) isRight(coor) & isHorizontal(coor);
+dir_pre{1}.domain    = @(coor) isRight(coor) & isBottom(coor);
 dir_pre{1}.direction = 1;
 dir_pre{1}.value     = 0;
 
@@ -202,6 +127,7 @@ for i = 1:length(dir_pre)
     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(dirDofs),:) = [dirDofs+velocityFun.nDofs mat12 valmat];
     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(dirDofs),1) = dirDofs+velocityFun.nDofs;
 end
+
 
 % DEFINE APPLIED FORCES
 sAF.fHandle = @(coor) [0.*coor,0.*coor];
@@ -276,8 +202,13 @@ pressureFun.fValues = vars.p(:,end);
 %% PLOT RESULTS
 velocityFun.plot()
 pressureFun.plot()
-caxis([-50 50]);
-%caxis([-115 80]);
+
+% isEsquerra   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-2);
+% 
+% nodes_elim = pressureFun.getDofsFromCondition(isEsquerra);
+% pressureFun_cut = pressureFun;
+
+
 
 %% Lift and drag
 
@@ -307,25 +238,27 @@ centroid = mean(bMesh.coord);
 central_points = (bMesh.coord(bMesh.connec(:,1),:)+bMesh.coord(bMesh.connec(:,2),:))/2;
 ref_vect = central_points - centroid;
 
-cont =1;
-
 for iE = 1:bMesh.nelem
     node1 = bMesh.coord(bMesh.connec(iE,1),:);
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
-
-    if node1(1)<= 5
     nvect = (node2-node1)/(abs(norm(node2-node1)));
     nvect = -nvect * [0 -1;1 0];
-%     if dot(ref_vect(iE,:),nvect)<0 %No cal
+%     if (tan(AOAr)*(central_points(iE,1) - centroid(1))+centroid(2)-central_points(iE,2))>0 && nvect(2)>0 || (tan(AOAr)*(central_points(iE,1) - centroid(1))+centroid(2)-central_points(iE,2))<0 && nvect(2)<0
 %         nvect = -nvect;
 %     end
-    normal_vectors(cont,:) = nvect;
-    length_element(cont) = abs(norm(node1-node2));
-
-    cont = cont +1;
-    end
-
+%     if dot(ref_vect(iE,:),nvect)<0 %NO CAL ARREGLAR LA DIRECCIÓ, JA SURT SOL
+%         nvect = -nvect;
+%     end
+    normal_vectors(iE,:) = nvect;
+    length_element(iE) = abs(norm(node1-node2));
 end
+
+x_plot = [0:1:4];
+y_plot = tan(-AOAr)*(x_plot - centroid(1))+centroid(2);
+
+hold on
+plot(x_plot,y_plot);
+
 
 nx = LagrangianFunction.create(bMesh,1,'P0');%Vectors normals
 ny = LagrangianFunction.create(bMesh,1,'P0');
@@ -338,11 +271,15 @@ sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
 L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
+hold on
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on
+% quiver(central_points(:,1),central_points(:,2),ref_vect(:,1),ref_vect(:,2),'g') %Plot the vectors
+% hold on
 quiver(centroid(1,1),centroid(1,2),D,0);
 hold on
 quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
 
+disp(L/D);
