@@ -9,7 +9,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         lineSearchTrials
         lineSearch
         costOld
-        tol = 1e-8
+        tol = 1e-4
         nX
         nConstr
         hasConverged

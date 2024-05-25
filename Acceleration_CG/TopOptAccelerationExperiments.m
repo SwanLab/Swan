@@ -1,6 +1,6 @@
 classdef TopOptAccelerationExperiments < handle
 
-    properties (Access = private)
+    properties (Access = public)
         mesh
         filter
         designVariable
@@ -46,6 +46,16 @@ classdef TopOptAccelerationExperiments < handle
 
         function createMesh(obj)
             %UnitMesh better
+            % 2D cantilever
+            % x1      = linspace(0,2,100);
+            % x2      = linspace(0,1,50);
+            % [xv,yv] = meshgrid(x1,x2);
+            % [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            % s.coord  = V(:,1:2);
+            % s.connec = F;
+            % obj.mesh = Mesh.create(s);
+
+            % 2D arch
             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
@@ -125,8 +135,9 @@ classdef TopOptAccelerationExperiments < handle
             s.interpolationType  = 'LINEAR';
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
-            s.solverCase         = 'CONJUGATE GRADIENT';
+            s.solverCase         = 'DIRECT';%'CONJUGATE GRADIENT';%
             s.solverTol          = obj.solverTol;
+            s.matrixFree         = false;
             p.maxIters           = 5e3;
             p.displayInfo        = true;
             s.solverParams       = p;
@@ -187,9 +198,9 @@ classdef TopOptAccelerationExperiments < handle
         end
 
         function createMomentum(obj)
-            s.momentumCase = 'Nesterov';
-            s.betaStrategy = 'Adaptative';
-            % s.momentumVal  = 0.5;
+            s.momentumCase = 'Polyak';
+            s.betaStrategy = 'Constant';
+            s.momentumVal  = 0;
             s.x0           = obj.designVariable.fun.fValues;
             obj.momentum   = Momentum(s);
         end
@@ -201,27 +212,39 @@ classdef TopOptAccelerationExperiments < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
+            s.tolerance      = 1e-2;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
-            s.constantTau    = true;
+            s.constantTau    = false;
             s.tauValue       = 5e-2;%1e-2;%
             s.momentum       = obj.momentum;
-            opt = OptimizerAugmentedLagrangian(s);
-            % opt = OptimizerNullSpace(s);
+            % opt = OptimizerAugmentedLagrangian(s);
+            opt = OptimizerNullSpace(s);
+            % opt = OptimizerMMA(s);
+            tStart = tic;
             opt.solveProblem();
+            toc(tStart)
             obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+
+            % cantilever
             isDir   = @(coor)  abs(coor(:,1))==0;
             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+            
+            % arch
+            
+
+            % bridge
+            
+
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];

@@ -132,6 +132,7 @@ classdef TopOptAccelerationExperiments3D < handle
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
             s.solverCase         = 'CONJUGATE GRADIENT';
+            s.matrixFree         = false;
             s.solverTol          = obj.solverTol;
             p.maxIters           = 5e3;
             p.displayInfo        = true;

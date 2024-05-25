@@ -16,7 +16,8 @@ classdef ElasticProblem < handle
         scale
         
         strain, stress
-
+        
+        matrixFree
         solverTol, solverParams, solverCase
         internalForcesComputer, testFunction
     end
@@ -39,7 +40,7 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
+            if ~obj.matrixFree; obj.computeStiffnessMatrix(); end           
             obj.computeForces();
             obj.computeDisplacement();
             % obj.computeStrain();
@@ -82,6 +83,7 @@ classdef ElasticProblem < handle
             obj.solverTol    = cParams.solverTol;
             obj.solverParams = cParams.solverParams;
             obj.solverCase   = cParams.solverCase;
+            obj.matrixFree   = cParams.matrixFree;
             obj.boundaryConditions = cParams.boundaryConditions;
         end
 

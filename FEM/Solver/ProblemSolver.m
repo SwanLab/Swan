@@ -21,11 +21,13 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             RHS = obj.assembleRHS();
-            LHS = obj.assembleLHS();
-            sol = obj.solver.solve(obj.internalForces, RHS);
-            % sol = obj.solver.solve(LHS, RHS);
-            % sol        = obj.solveSystem(LHS,RHS);
-            [u, L]     = obj.cleanupSolution(sol);
+            if isempty(obj.stiffness)
+                sol = obj.solver.solve(obj.internalForces, RHS);
+            else
+                LHS = obj.assembleLHS();
+                sol = obj.solver.solve(LHS, RHS);
+            end
+            [u, L] = obj.cleanupSolution(sol);
         end
         
     end
