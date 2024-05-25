@@ -21,6 +21,7 @@ classdef ProblemSolver < handle
 
         function [u,L] = solve(obj)
             RHS = obj.assembleRHS();
+            LHS = obj.assembleLHS();
             sol = obj.solver.solve(obj.internalForces, RHS);
             % sol = obj.solver.solve(LHS, RHS);
             % sol        = obj.solveSystem(LHS,RHS);
@@ -34,7 +35,7 @@ classdef ProblemSolver < handle
         function init(obj,cParams)
             obj.type               = cParams.solverType;
             obj.mode               = cParams.solverMode;
-            % obj.stiffness          = cParams.stiffness;
+            obj.stiffness          = cParams.stiffness;
             obj.forces             = cParams.forces;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;

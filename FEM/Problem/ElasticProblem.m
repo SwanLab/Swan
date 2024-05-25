@@ -151,7 +151,7 @@ classdef ElasticProblem < handle
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
             s.solver     = obj.solver;
-            s.stiffness = obj.stiffness;
+            s.stiffness  = obj.stiffness;
             s.forces = obj.forces;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.BCApplier;
@@ -169,18 +169,19 @@ classdef ElasticProblem < handle
         end
 
         function [u, L] = cleanupSolution(obj,sol)
+            ndofs = obj.mesh.nnodes*obj.mesh.ndim;
             % bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             % hasPeriodic = ~isequal(bcs.periodic_leader, []);
             switch true
                 case strcmp(obj.solverType, 'MONOLITHIC')
-                    nDisp = size(obj.stiffness,1);
+                    nDisp = numel(obj.displacementFun.fun.fvalues);
                     u = sol(1:nDisp, :);
                     L = -sol( (nDisp+1):end, : );
                 case strcmp(obj.solverType, 'REDUCED') && strcmp(obj.solverMode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:ndofs;
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    u = zeros(size(obj.stiffness,1), 1);
+                    u = zeros(ndofs,1);
                     u(free_dofs) = sol;
                     u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                     L = [];
@@ -188,7 +189,7 @@ classdef ElasticProblem < handle
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
                     drch = bcs.dirichlet_dofs;
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:ndofs;
                     free = setdiff(dofs, [lead; fllw; drch]);
                     u = zeros(length(dofs),1);
                     u(free) = sol(1:1:size(free,2));
