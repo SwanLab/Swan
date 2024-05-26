@@ -23,7 +23,7 @@ classdef OptimizerNullSpace < Optimizer
         aGmax
         aJ
         aG
-        eta
+        eta, gJFlowRatio, etaNorm, etaMax
         Vtar
         update   % We might move it to Optimizer class
         momentum % Idem
@@ -70,6 +70,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasConverged   = false;
             obj.nIter          = 0;
             obj.Vtar           = cParams.volumeTarget;
+            obj.etaMax         = cParams.etaMax;
+            obj.etaNorm        = cParams.etaNorm;
+            obj.gJFlowRatio    = cParams.gJFlowRatio;
             if cParams.constantTau
                 obj.momentum = cParams.momentum;
                 obj.update   = @obj.updateWithConstantTau;
@@ -115,7 +118,7 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.dualVariable.value];
+            data = [data;obj.dualVariable.fun.fValues];
             data = [data;obj.computeVolume(obj.constraint.value)]; % millorar
             if obj.nIter == 0
                 data = [data;0;0];
@@ -127,6 +130,14 @@ classdef OptimizerNullSpace < Optimizer
             end
             % merit?
             obj.monitoring.update(obj.nIter,data);
+        end
+
+        function updateEtaParameter(obj)
+            vgJ     = obj.gJFlowRatio;
+            DxJ     = obj.computeNullSpaceFlow();
+            Dxg     = obj.computeRangeSpaceFlow();
+            obj.eta = min(vgJ*DxJ/Dxg,obj.etaMax);
+            % obj.updateMonitoringMultipliers();
         end
 
         function aJmax = nullSpaceParameterEstimation(obj,cParams)
@@ -146,6 +157,18 @@ classdef OptimizerNullSpace < Optimizer
                 Dg = obj.constraint.gradient;
                 aGmax = 150/(inv(Dg'*Dg));
             end
+        end
+
+        function DxJ = computeNullSpaceFlow(obj)
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
+        end
+
+        function Dxg = computeRangeSpaceFlow(obj)
+            g   = obj.constraint.value;
+            Dg  = obj.constraint.gradient;
+            Dxg = norm(Dg*((Dg'*Dg)\g));
         end
 
         function checkParameters(obj)
@@ -168,7 +191,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint.computeFunctionAndGradient(d);
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(size(obj.dualVariable.value));
+            obj.dualVariable.fun.fValues = zeros(size(obj.dualVariable.fun.fValues));
         end
 
         function updateNullSpaceCoefficient(obj)
@@ -203,18 +226,20 @@ classdef OptimizerNullSpace < Optimizer
                 end
             end
         end
+        
 
         function updateWithVariableTau(obj)
-            obj.updateNullSpaceCoefficient();
-            obj.updateRangeSpaceCoefficient();
-            obj.updateMaximumVolumeRemoved();
+            % obj.updateNullSpaceCoefficient();
+            % obj.updateRangeSpaceCoefficient();
+            % obj.updateMaximumVolumeRemoved();
+            obj.updateEtaParameter();
             x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
             obj.acceptableStep      = false;
             obj.lineSearchTrials    = 0;
-            d.nullSpaceCoefficient  = obj.aJ;
-            d.rangeSpaceCoefficient = obj.aG;
-            obj.dualUpdater.update(d);
+            % d.nullSpaceCoefficient  = obj.aJ;
+            % d.rangeSpaceCoefficient = obj.aG;
+            obj.dualUpdater.update(obj.eta, obj.primalUpdater);
             obj.mOld = obj.computeMeritFunction(x0);
             obj.computeMeritGradient();
             obj.calculateInitialStep();
@@ -230,20 +255,23 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateWithConstantTau(obj)
-            obj.updateNullSpaceCoefficient();
-            obj.updateRangeSpaceCoefficient();
-            obj.updateMaximumVolumeRemoved();
+            % obj.updateNullSpaceCoefficient();
+            % obj.updateRangeSpaceCoefficient();
+            obj.updateEtaParameter();
+            % obj.updateMaximumVolumeRemoved();
             dV = obj.designVariable;
             dV.updateOld();
+            
             obj.mOld = obj.meritNew;
             % - Momentum
             x0 = obj.designVariable.fun.fValues;
             [y,xF] = obj.momentum.apply(x0);
             dV.update(xF);
             % - Dual
-            d.nullSpaceCoefficient  = obj.aJ;
-            d.rangeSpaceCoefficient = obj.aG;
-            obj.dualUpdater.update(d);
+            obj.dualUpdater.update(obj.eta, obj.primalUpdater);
+            % d.nullSpaceCoefficient  = obj.aJ;
+            % d.rangeSpaceCoefficient = obj.aG;
+            % obj.dualUpdater.update(d);
             % - 
             obj.cost.computeFunctionAndGradient(dV);
             obj.constraint.computeFunctionAndGradient(dV);
@@ -255,6 +283,7 @@ classdef OptimizerNullSpace < Optimizer
             iNorm = 5*dV.computeNonScaledL2normIncrement();
             obj.solverTol.compute(iNorm);
             obj.meritNew = obj.computeMeritFunction(x);
+            obj.updateEtaMax();
         end
 
         function calculateInitialStep(obj)
@@ -270,15 +299,16 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x       = obj.designVariable.fun.fValues;
+            x       = obj.designVariable;
             g       = obj.meritGradient;
-            x       = obj.primalUpdater.update(g,x);
+            xN      = obj.primalUpdater.update(g,x);
+            x = xN.fun.fValues;
         end
 
         function computeMeritGradient(obj)
             DJ   = obj.cost.gradient;
             Dg   = obj.constraint.gradient;
-            l   = obj.dualVariable.value;
+            l   = obj.dualVariable.fun.fValues;
             DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
@@ -291,10 +321,11 @@ classdef OptimizerNullSpace < Optimizer
             g    = obj.constraint.value;
             v0   = obj.computeVolume(g0);
             v    = obj.computeVolume(g);
-            if mNew < obj.mOld && norm(v-v0) < obj.eta
+            if mNew < obj.mOld && norm(v-v0) < obj.etaNorm
                 obj.acceptableStep = true;
                 obj.meritNew = mNew;
                 obj.dualUpdater.updateOld();
+                obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
@@ -308,6 +339,33 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
+        function updateEtaMax(obj)
+            switch class(obj.primalUpdater)
+                case 'SLERP'
+                    %                     phi = obj.designVariable.fun;
+                    %                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
+                    %                     dV = phi.mesh.computeDvolume(quad);
+                    %                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
+                    %                     intBall = sum(dV.*chiBall,"all");
+                    %                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
+                    %                     gk.fValues = obj.meritGradient;
+                    %                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
+                    %                     k  = obj.primalUpdater.tau;
+                    %                     t  = obj.primalUpdater.Theta;
+                    %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
+%                     theta      = obj.primalUpdater.Theta;
+%                     k          = obj.primalUpdater.tau;
+%                     b          = obj.primalUpdater.Beta;
+%                     a          = obj.primalUpdater.Alpha;
+                    obj.etaMax = Inf;
+                case 'HAMILTON-JACOBI'
+                    obj.etaMax = Inf; % Not verified
+                otherwise
+                    t          = obj.primalUpdater.tau;
+                    obj.etaMax = 1/t;
+            end
+        end
+
         function v = computeVolume(obj,g)
             targetVolume = obj.Vtar;
             v            = targetVolume*(1+g);
@@ -318,7 +376,7 @@ classdef OptimizerNullSpace < Optimizer
             x.update(xVal);
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
-            l  = obj.dualVariable.value;
+            l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;

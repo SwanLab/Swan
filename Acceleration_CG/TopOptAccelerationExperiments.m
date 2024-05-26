@@ -47,15 +47,6 @@ classdef TopOptAccelerationExperiments < handle
         function createMesh(obj)
             %UnitMesh better
             % 2D cantilever
-            % x1      = linspace(0,2,100);
-            % x2      = linspace(0,1,50);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % s.coord  = V(:,1:2);
-            % s.connec = F;
-            % obj.mesh = Mesh.create(s);
-
-            % 2D arch
             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
@@ -63,6 +54,9 @@ classdef TopOptAccelerationExperiments < handle
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh.create(s);
+
+            % 2D arch
+
         end
 
         function createDesignVariable(obj)
@@ -220,8 +214,11 @@ classdef TopOptAccelerationExperiments < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
             s.constantTau    = false;
-            s.tauValue       = 5e-2;%1e-2;%
+            s.tauValue       = 1;%5e-2;%1e-2;%
             s.momentum       = obj.momentum;
+            s.etaNorm        = 100;
+            s.gJFlowRatio    = 100;
+            s.etaMax         = 1.5e3;
             % opt = OptimizerAugmentedLagrangian(s);
             opt = OptimizerNullSpace(s);
             % opt = OptimizerMMA(s);
@@ -240,10 +237,13 @@ classdef TopOptAccelerationExperiments < handle
             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
             
             % arch
-            
+            % isDir   = @(coor) abs(coor(:,2)) == 0 & (abs(coor(:,1))<=0.2*xMax | abs(coor(:,1))>=0.8*xMax);
+            % isForce = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax; 
 
             % bridge
-            
+            % isDir   = @(coor) abs(coor(:,2)) == 0;
+            % isForce = @(coor) abs(coor(:,2)) == yMax;
+
 
 
             sDir{1}.domain    = @(coor) isDir(coor);

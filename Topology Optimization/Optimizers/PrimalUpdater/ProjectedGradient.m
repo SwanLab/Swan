@@ -2,26 +2,28 @@ classdef ProjectedGradient < handle
 
     properties (Access = public)
         tau
+        boxConstraints
     end
 
     properties (Access = private)
         upperBound
         lowerBound
-        % tau0
     end
     
     methods (Access = public)
-
         function obj = ProjectedGradient(cParams)
             obj.init(cParams);
         end
 
-        function x = update(obj,g,x)
+        function rho = update(obj,g,rho)
+            y  = rho.fun.fValues;
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
-            x  = x - t*g;
-            x  = min(ub,max(x,lb));
+            y  = y - t*g;
+            x  = min(ub,max(y,lb));
+            obj.updateBoundsMultipliers(x,y);
+            rho.update(x);
         end
 
         function computeFirstStepLength(obj,g,x,f)
@@ -29,11 +31,6 @@ classdef ProjectedGradient < handle
             obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         
-        function setConstantStepLength(obj,val)
-            obj.tau  = val;
-            % obj.tau0 = val;
-        end
-
         function increaseStepLength(obj,f)
             obj.tau = f*obj.tau;
         end
@@ -45,20 +42,34 @@ classdef ProjectedGradient < handle
         function is = isTooSmall(obj)
             is = obj.tau < 1e-10;
         end
-
-        % function restart(obj)
-        %     obj.tau = obj.tau0;
-        % end
+        
+        function setConstantStepLength(obj,val)
+            obj.tau = val;
+            obj.boxConstraints.refTau = val;
+            obj.boxConstraints.lUB = 1;
+            obj.boxConstraints.lLB = 0;
+        end
 
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.upperBound     = cParams.ub;
-            obj.lowerBound     = cParams.lb;
+            obj.upperBound = cParams.ub;
+            obj.lowerBound = cParams.lb;
         end
 
+        function updateBoundsMultipliers(obj,x,y)
+            t          = obj.tau;
+            dyx        = y-x;
+            dxy        = x-y;
+            lUB        = zeros(size(x));
+            lLB        = zeros(size(x));
+            lUB(dyx>0) = dyx(dyx>0);
+            lLB(dxy>0) = dxy(dxy>0);
+            obj.boxConstraints.lUB    = lUB;
+            obj.boxConstraints.lLB    = lLB;
+            obj.boxConstraints.refTau = t;
+        end
     end
 
 end
