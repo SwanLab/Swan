@@ -122,7 +122,7 @@ classdef OptimizerInteriorPoint < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.dualVariable.value];
+            data = [data;obj.dualVariable.fun.fValues];
             data = [data;obj.computeVolume(obj.constraint.value)];
             if obj.nIter == 0
                 data = [data;0;0];
@@ -137,7 +137,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.cost.computeFunctionAndGradient(x);
             % obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            % obj.dualVariable.value = zeros(obj.nConstr,1);
+            % obj.dualVariable.fun.fValues = zeros(obj.nConstr,1);
         end
 
         function computeLinearBounds(obj)
@@ -314,10 +314,11 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hessianUpdated = dirs.updatedHessian;
         end
 
-        function x = updatePrimal(obj)
-            x = obj.designVariable.fun.fValues;
+        function xVals = updatePrimal(obj)
+            x = obj.designVariable;
             g = -obj.dx;
             x = obj.primalUpdater.update(g,x);
+            xVals = x.fun.fValues;
         end
 
         function updatePrimalVariables(obj)

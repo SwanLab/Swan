@@ -11,27 +11,23 @@ classdef SLERP < handle
     properties (Access = private)
         mesh
         volume
-        filter
     end
 
     methods (Access = public)
         function obj = SLERP(cParams)
             obj.init(cParams);
-            obj.createFilter();
         end
 
         function phi = update(obj,g,phi)   
-            y = obj.computeRegularizedDensity(phi);
-            phiF   = phi.fun;
-            gF     = obj.createP1Function(g);
-            gN     = gF.normalize('L2');
-            phiN   = phiF.normalize('L2');
-            theta  = obj.computeTheta(phiN,gN);
+            phiF      = phi.fun;
+            gF        = obj.createP1Function(g);
+            gN        = gF.normalize('L2');
+            phiN      = phiF.normalize('L2');
+            theta     = obj.computeTheta(phiN,gN);
             obj.Theta = theta;
-            phiNew = obj.computeNewLevelSet(phiN,gN,theta);
+            phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
             phi.update(phiNew);
-            x = obj.computeRegularizedDensity(phi);
-            obj.updateBoundsMultipliers(x,y,g,phiNew);
+            obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
@@ -104,13 +100,6 @@ classdef SLERP < handle
             obj.createVolumeFunctional();
         end
 
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter   = Filter.create(s);
-        end
-
         function createVolumeFunctional(obj)
             s.mesh         = obj.mesh;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -142,25 +131,11 @@ classdef SLERP < handle
             obj.Beta  = b;
         end
 
-        function rhoe = computeRegularizedDensity(obj,phi)
-            charFun = phi.obtainDomainFunction();
-            rhoe    = obj.filter.compute(charFun,2);
-        end
-
-        function updateBoundsMultipliers(obj,xF,yF,g,phi)
-            x       = xF.fValues;
-            y       = yF.fValues;
-            t       = sum(abs(y-x))/sum(abs(g));
-            isUBAct = phi<0 & g<0;
-            isLBAct = phi>0 & g>0;
-            lUB     = y-t*g-x;
-            lLB     = x+t*g-y;
-
-            lUB(~isUBAct | lUB<0)     = 0;
-            lLB(~isLBAct | lLB<0)     = 0;
-            obj.boxConstraints.lUB    = 0; % lUB
-            obj.boxConstraints.lLB    = 0; % lLB
-            obj.boxConstraints.refTau = t;
+        function updateBoundsMultipliers(obj,xF)
+            x                         = xF.fValues;
+            obj.boxConstraints.lUB    = zeros(size(x));
+            obj.boxConstraints.lLB    = zeros(size(x));
+            obj.boxConstraints.refTau = 1;
         end
 
     end

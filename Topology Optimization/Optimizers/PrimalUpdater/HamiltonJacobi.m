@@ -17,9 +17,11 @@ classdef HamiltonJacobi < handle
             obj.setupFilter();
         end
 
-        function x = update(obj,g,~)
+        function ls = update(obj,g,~)
             obj.computeVelocity(g);
             x = obj.computeNewLevelSet();
+            obj.phi.update(x);
+            ls = obj.phi;
         end
 
         function computeFirstStepLength(obj,g,x,f)

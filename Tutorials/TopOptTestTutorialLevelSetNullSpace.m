@@ -171,7 +171,6 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;

@@ -17,7 +17,7 @@ classdef AcademicProblemPathComputer < handle
         end
 
         function compute(obj,values)
-            if obj.printingPath && size(values,1) == 2
+            if obj.printingPath && size(values,1) == 2 % Just f(x,y) problems
                 x     = values(1,:);
                 y     = values(2,:);
                 [X,Y] = obj.setMeshGrid(x,y);
