@@ -27,7 +27,7 @@ classdef Density < DesignVariable
 
         function plot(obj)
             if obj.plotting
-                obj.plotter.plot();
+                obj.plotter.plot(obj.fun{1});
             end
         end
     
@@ -38,7 +38,9 @@ classdef Density < DesignVariable
         function createPlotter(obj,cParams)
             obj.plotting = cParams.plotting;
             if obj.plotting
-                obj.plotter  = Plotter.create(obj);
+                s.type    = 'Density';
+                s.mesh    = obj.fun{1}.mesh;
+                obj.plotter  = Plotter.create(s);
             end
         end
 

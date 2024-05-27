@@ -1,7 +1,7 @@
 classdef TopOptViaHomogenizationTutorial < handle
 
     properties (Access = private)
-        vademecum                
+        vademecum
         mesh
         designVariable        
         filter
@@ -18,8 +18,8 @@ classdef TopOptViaHomogenizationTutorial < handle
     methods (Access = public)
 
         function obj = TopOptViaHomogenizationTutorial()
-            obj.init()
-            obj.loadVademecum();                                    
+            obj.init();
+            obj.loadVademecum();
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -38,6 +38,12 @@ classdef TopOptViaHomogenizationTutorial < handle
 
         function init(obj)
 
+        end
+
+        function loadVademecum(obj)
+             s.fileName = 'Rectangle';
+             v = VademecumHomogenizedVariablesLoader(s);
+             obj.vademecum = v;
         end
 
         function createMesh(obj)
@@ -66,9 +72,10 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.fun{1}  = aFun.project('P1');
             s.fun{2}  = aFun.project('P1');
             s.mesh    = obj.mesh;
+            s.density        = obj.vademecum.createDensity();
+            s.structuredMesh = obj.vademecum.getStructuredMesh();            
             s.type    = 'MicroParams';
-            s.density = obj.vademecum.density;
-            s.structuredMesh = obj.vademecum.structuredMesh;
+            s.plotting = true;            
             desVar    = DesignVariable.create(s);
             obj.designVariable = desVar;
         end
@@ -83,6 +90,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function m = createMaterial(obj)
 
 
+        function m = createMaterial(obj,m)
              ndim = 2;            
              E0 = 1e-3; 
              nu0 = 1/3;
@@ -94,10 +102,11 @@ classdef TopOptViaHomogenizationTutorial < handle
              matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
              matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            v = obj.vademecum;
-            s.type           = 'HomogenizedMicrostructure';
-            s.Ctensor        = v.Ctensor;
-            s.structuredMesh = v.structuredMesh;    
+            s.type  = 'HomogenizedMicrostructure';
+
+            s.microParams = m;
+            s.structuredMesh = obj.vademecum.getStructuredMesh();
+            s.Ctensor        = obj.vademecum.createCtensor();
             m = Material.create(s);
         end
 

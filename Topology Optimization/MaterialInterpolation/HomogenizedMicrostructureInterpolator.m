@@ -10,6 +10,8 @@ classdef HomogenizedMicrostructureInterpolator < Material
         
         function obj = HomogenizedMicrostructureInterpolator(cParams)
             obj.init(cParams);
+            obj.Ctensor        = cParams.Ctensor;
+            obj.structuredMesh = cParams.structuredMesh; 
         end
 
         function C = obtainTensor(obj)
@@ -36,10 +38,12 @@ classdef HomogenizedMicrostructureInterpolator < Material
     methods (Access = private)
         
         function init(obj,cParams)
-           obj.Ctensor        = cParams.Ctensor;
+           obj.microParams = cParams.microParams;
+           obj.Ctensor     = cParams.Ctensor;
            obj.structuredMesh = cParams.structuredMesh;
         end
 
+        
         function C = evaluate(obj,xV)
             [mL,cells] = obj.obtainLocalCoord(xV);
             nGaus = size(xV,2);

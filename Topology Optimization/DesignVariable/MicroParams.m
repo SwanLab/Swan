@@ -6,13 +6,22 @@ classdef MicroParams < DesignVariable
         patchHandle
     end
     
+    properties (Access = private)
+        density
+        plotting
+        plotter
+        structuredMesh
+    end
+    
     methods (Access = public)
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
             obj.init(cParams);
-            obj.density = cParams.density;
+            obj.density        = cParams.density;
             obj.structuredMesh = cParams.structuredMesh;
+            obj.createPlotter(cParams)
+
         end
         
         function update(obj,x)
@@ -33,13 +42,13 @@ classdef MicroParams < DesignVariable
             rho = obj.computeDensity();
         end
 
-        function plot(obj)            
-            rho   = obj.computeDensity();
-
-            rhoP1D = rho.project('P1D',obj.mesh);
-            rhoP1D.plot();    
-            colormap(gray)
-        end
+        function plot(obj)
+            rho = obj.computeDensity();
+            rho1 = rho.project('P1',obj.mesh);
+            if obj.plotting
+                obj.plotter.plot(rho1);
+            end            
+        end        
 
         
     end
@@ -63,9 +72,27 @@ classdef MicroParams < DesignVariable
         end
 
         function rho = computeDensity(obj)
-          s.operation = @(xV) obj.evaluateDensity(xV);
-          rho = DomainFunction(s);
-        end
+          s.operation = @(xV) obj.evaluate(xV);
+          rho = DomainFunction(s);  
+        end        
+        
+        function rho = evaluate(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV);
+            nGaus = size(xV,2);
+            rhoV = obj.density.sampleFunction(mL,cells);
+            rho(1,:,:) = reshape(rhoV,nGaus,[]);
+        end        
+
+        function [mL,cells] = obtainLocalCoord(obj,xV)
+            mx = obj.fun{1};
+            my = obj.fun{2};
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
+            mG(:,1) = mxG(:);
+            mG(:,2) = myG(:);
+            [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
+        end        
+
         
         function rhoV = evaluateDensity(obj,xV)
             [mL,cells] = obj.obtainLocalCoord(xV);
@@ -112,6 +139,16 @@ classdef MicroParams < DesignVariable
                xVn{iVar} = xI;
             end
         end
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            if obj.plotting
+                s.type    = 'Density';
+                s.mesh    = obj.fun{1}.mesh;
+                obj.plotter  = Plotter.create(s);
+            end
+        end
+        
     end
     
 end

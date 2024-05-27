@@ -2,16 +2,12 @@ classdef PlotterFactory < handle
 
     methods (Access = public, Static)
 
-        function plotter = create(designVariable)
-            d = designVariable;
-            switch d.type
+        function plotter = create(cParams)
+            switch cParams.type
                 case 'Density'
-                    s.mesh           = d.fun{1}.mesh;
-                    s.designVariable = d;
-                    plotter          = PlotterDensity(s);
+                    plotter   = PlotterDensity(cParams);
                 case 'LevelSet'
-                    s.designVariable = d;
-                    plotter          = PlotterLevelSet(s);   
+                    plotter   = PlotterLevelSet(cParams);   
             end
         end
 

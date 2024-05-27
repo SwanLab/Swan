@@ -5,19 +5,16 @@ classdef PlotterDensity < handle
     end
 
     properties (Access = private)
-        mesh
-        designVariable
+        density
     end
 
     methods (Access = public)
         
         function obj = PlotterDensity(cParams)
-            obj.init(cParams);
-            obj.createFigure();
+            obj.createFigure(cParams.mesh);
         end
         
-        function plot(obj)
-            rho     = obj.designVariable.fun{1};
+        function plot(obj,rho)
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
@@ -27,19 +24,18 @@ classdef PlotterDensity < handle
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.mesh           = cParams.mesh;
-            obj.designVariable = cParams.designVariable;
+        function init(obj)
         end
         
-        function createFigure(obj)
+        function createFigure(obj,mesh)
+            m = mesh;
             figure;
             set(gcf,'Pointer','arrow','NumberTitle','off');
             hold on
             axis off
             axis equal
             axes = gcf().Children;
-            obj.patchHandle = patch(axes,'Faces',obj.mesh.connec,'Vertices',obj.mesh.coord,...
+            obj.patchHandle = patch(axes,'Faces',m.connec,'Vertices',m.coord,...
                 'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
         end
             

@@ -1,6 +1,7 @@
-classdef TopOptTestTutorial < handle
+classdef TopOptTestTutorialGiD < handle
 
     properties (Access = private)
+        filename
         mesh
         filter
         designVariable
@@ -16,7 +17,7 @@ classdef TopOptTestTutorial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial()
+        function obj = TopOptTestTutorialGiD()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -41,14 +42,11 @@ classdef TopOptTestTutorial < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            file = 'anisoCantilever';
+            obj.filename = file;
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
         end
 
         function createDesignVariable(obj)
@@ -56,7 +54,7 @@ classdef TopOptTestTutorial < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
-            s.fun{1}  = aFun.project('P1');
+            s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = true;
@@ -114,7 +112,6 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -138,7 +135,7 @@ classdef TopOptTestTutorial < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.4;                       %VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -177,32 +174,22 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 250;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            %opt              = OptimizerInteriorPoint(s);
+            s.volumeTarget   = 0.4;                   %VOLUM FINAL
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            femReader = FemInputReader_GiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -221,6 +208,26 @@ classdef TopOptTestTutorial < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+    end
+
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
         end
     end
 end
