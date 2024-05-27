@@ -15,15 +15,15 @@ classdef ProjectedGradient < handle
             obj.init(cParams);
         end
 
-        function x = update(obj,g,x)
-            y  = x.getValue();
+        function xF = update(obj,g,xF)
+            y  = xF.getValue();
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
             y  = y - t*g;
             x  = min(ub,max(y,lb));
             obj.updateBoundsMultipliers(x,y);
-            x.update(x);
+            xF.update(x);
         end
 
         function computeFirstStepLength(obj,g,x,f)

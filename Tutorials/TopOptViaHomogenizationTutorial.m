@@ -58,7 +58,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.1*ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) 0.7*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -134,7 +134,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createVolume(obj)
             s.mesh         = obj.mesh;
             s.filter       = obj.filter;
-            s.volumeTarget = 0.4;            
+            s.volumeTarget = 0.5;            
             s.fileName     = 'Rectangle';
             s.type         = 'volumeConstraintFromMicroParams';
             v = ShapeFunctional.create(s);
@@ -182,7 +182,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.ub             = 0.95;
             s.lb             = 0.05;
          %   opt = OptimizerMMA(s);
-            s.volumeTarget   = 0.4;            
+       %     s.volumeTarget   = 0.4;            
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;            
