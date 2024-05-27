@@ -182,8 +182,10 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.ub             = 0.95;
             s.lb             = 0.05;
          %   opt = OptimizerMMA(s);
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.4;            
             s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.2;            
             opt = OptimizerNullSpace(s);
 
             opt.solveProblem();

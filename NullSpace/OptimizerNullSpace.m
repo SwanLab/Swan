@@ -153,7 +153,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function update(obj)
             g0 = obj.constraint.value;
-            x0 = obj.designVariable.fun.fValues;
+            x0 = obj.designVariable.getValue();
             obj.updateEtaParameter();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
@@ -196,7 +196,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function checkStep(obj,x0,g0)
             mNew = obj.computeMeritFunction();
-            x    = obj.designVariable.fun.fValues;
+            x    = obj.designVariable.getValue();
             g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
             if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
