@@ -3,12 +3,12 @@ classdef StructuredMesh < handle
     properties (Access = public)
         nx
         ny
-        x
-        y
         mesh
+        x
+        y            
     end
     
-    properties (Access = private)
+    properties (Access = private)    
        xv
        yv
     end

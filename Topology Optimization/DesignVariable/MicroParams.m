@@ -1,10 +1,18 @@
 classdef MicroParams < DesignVariable
+
+    properties (Access = private)
+        density
+        structuredMesh
+        patchHandle
+    end
     
     methods (Access = public)
         
         function obj = MicroParams(cParams)
             obj.nVariables = 2;
             obj.init(cParams);
+            obj.density = cParams.density;
+            obj.structuredMesh = cParams.structuredMesh;
         end
         
         function update(obj,x)
@@ -21,13 +29,18 @@ classdef MicroParams < DesignVariable
             xf{3} = obj.computeDensity();
         end
         
-        function v = obtainDomainFunction(obj)
-            v = obj.computeDensity();
+        function rho = obtainDomainFunction(obj)
+            rho = obj.computeDensity();
         end
 
-        function plot(obj)
+        function plot(obj)            
+            rho   = obj.computeDensity();
 
-        end        
+            rhoP1D = rho.project('P1D',obj.mesh);
+            rhoP1D.plot();    
+            colormap(gray)
+        end
+
         
     end
     
@@ -48,21 +61,29 @@ classdef MicroParams < DesignVariable
                 end
             end
         end
-        
+
         function rho = computeDensity(obj)
-            xf = obj.fun;
-            obj.homogenizedVariablesComputer.computeDensity(xf);
-            rho = obj.homogenizedVariablesComputer.rho;
-        end        
-        
-        function createHomogenziedVariableComputer(obj,cParams)
-            s.fileName = cParams.homogSettings.fileName;
-            s.type = cParams.homogSettings.type;
-            s.designVariable = obj;
-            h = HomogenizedVarComputer.create(s);
-            obj.homogenizedVariablesComputer = h;
+          s.operation = @(xV) obj.evaluateDensity(xV);
+          rho = DomainFunction(s);
         end
         
+        function rhoV = evaluateDensity(obj,xV)
+            [mL,cells] = obj.obtainLocalCoord(xV);
+            nGaus = size(xV,2);
+            rho = obj.density.sampleFunction(mL,cells);
+            rhoV(1,:,:) = reshape(rho,nGaus,[]);
+        end      
+
+        function [mL,cells] = obtainLocalCoord(obj,xV)
+            mx = obj.fun{1};
+            my = obj.fun{2};
+            mxG = mx.evaluate(xV);
+            myG = my.evaluate(xV);
+            mG(:,1) = mxG(:);
+            mG(:,2) = myG(:);
+            [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
+        end        
+
         function xS = splitDesignVariable(obj,x)
             nVar = obj.nVariables;
             nx = length(x)/nVar;

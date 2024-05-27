@@ -1,9 +1,10 @@
 classdef TopOptViaHomogenizationTutorial < handle
 
     properties (Access = private)
+        vademecum                
         mesh
+        designVariable        
         filter
-        designVariable
         materialInterpolator
         physicalProblem
         compliance
@@ -18,6 +19,7 @@ classdef TopOptViaHomogenizationTutorial < handle
 
         function obj = TopOptViaHomogenizationTutorial()
             obj.init()
+            obj.loadVademecum();                                    
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -49,6 +51,13 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.mesh = Mesh.create(s);
         end
 
+        function loadVademecum(obj)
+            s.fileName = 'Rectangle';
+            v = VademecumVariablesLoader(s);
+            obj.vademecum = v;
+        end        
+     
+
         function createDesignVariable(obj)
             s.fHandle = @(x) 0.1*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
@@ -58,6 +67,8 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.fun{2}  = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type    = 'MicroParams';
+            s.density = obj.vademecum.density;
+            s.structuredMesh = obj.vademecum.structuredMesh;
             desVar    = DesignVariable.create(s);
             obj.designVariable = desVar;
         end
@@ -69,8 +80,9 @@ classdef TopOptViaHomogenizationTutorial < handle
             f = Filter.create(s);
             obj.filter = f;
         end
+        function m = createMaterial(obj)
 
-        function m = createMaterial(obj,m)
+
              ndim = 2;            
              E0 = 1e-3; 
              nu0 = 1/3;
@@ -82,17 +94,17 @@ classdef TopOptViaHomogenizationTutorial < handle
              matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
              matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-
-            s.type  = 'HomogenizedMicrostructure';
-            s.fileName = 'Rectangle';
-            s.microParams = m;
+            v = obj.vademecum;
+            s.type           = 'HomogenizedMicrostructure';
+            s.Ctensor        = v.Ctensor;
+            s.structuredMesh = v.structuredMesh;    
             m = Material.create(s);
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial(obj.designVariable.fun);
+            s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
@@ -112,7 +124,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial(obj.designVariable.fun);
+            s.material                    = obj.createMaterial();
             s.type                        = 'complianceFromVademecum';
             c = ShapeFunctional.create(s);            
             c.computeFunctionAndGradient(obj.designVariable);
