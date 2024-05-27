@@ -7,10 +7,8 @@ classdef MicroParams < DesignVariable
     end
     
     properties (Access = private)
-        density
         plotting
         plotter
-        structuredMesh
     end
     
     methods (Access = public)
@@ -100,16 +98,6 @@ classdef MicroParams < DesignVariable
             rho = obj.density.sampleFunction(mL,cells);
             rhoV(1,:,:) = reshape(rho,nGaus,[]);
         end      
-
-        function [mL,cells] = obtainLocalCoord(obj,xV)
-            mx = obj.fun{1};
-            my = obj.fun{2};
-            mxG = mx.evaluate(xV);
-            myG = my.evaluate(xV);
-            mG(:,1) = mxG(:);
-            mG(:,2) = myG(:);
-            [mL,cells] = obj.structuredMesh.obtainLocalFromGlobalCoord(mG);
-        end        
 
         function xS = splitDesignVariable(obj,x)
             nVar = obj.nVariables;

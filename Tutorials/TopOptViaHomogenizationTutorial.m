@@ -57,13 +57,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.mesh = Mesh.create(s);
         end
 
-        function loadVademecum(obj)
-            s.fileName = 'Rectangle';
-            v = VademecumVariablesLoader(s);
-            obj.vademecum = v;
-        end        
-     
-
         function createDesignVariable(obj)
             s.fHandle = @(x) 0.1*ones(size(squeezeParticular(x(1,:,:),1)));
             s.ndimf   = 1;
@@ -87,8 +80,6 @@ classdef TopOptViaHomogenizationTutorial < handle
             f = Filter.create(s);
             obj.filter = f;
         end
-        function m = createMaterial(obj)
-
 
         function m = createMaterial(obj,m)
              ndim = 2;            
@@ -113,7 +104,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = obj.createMaterial(obj.designVariable);
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
@@ -133,7 +124,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
+            s.material                    = obj.createMaterial(obj.designVariable);
             s.type                        = 'complianceFromVademecum';
             c = ShapeFunctional.create(s);            
             c.computeFunctionAndGradient(obj.designVariable);
