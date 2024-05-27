@@ -169,6 +169,29 @@ classdef TopOptViaHomogenizationTutorial < handle
             obj.dualVariable = l;
         end
 
+       %  function createOptimizer(obj)
+       %      s.monitoring     = true;
+       %      s.plotting       = true;
+       %      s.cost           = obj.cost;
+       %      s.constraint     = obj.constraint;
+       %      s.designVariable = obj.designVariable;
+       %      s.dualVariable   = obj.dualVariable;
+       %      s.maxIter        = 1000;
+       %      s.tolerance      = 1e-8;
+       %      s.constraintCase = {'EQUALITY'};
+       %      s.ub             = 0.95;
+       %      s.lb             = 0.05;
+       %   %   opt = OptimizerMMA(s);
+       % %     s.volumeTarget   = 0.4;            
+       %      s.primal         = 'PROJECTED GRADIENT';
+       %      s.etaNorm        = 0.02;
+       %      s.gJFlowRatio    = 0.2;            
+       %      opt = OptimizerNullSpace(s);
+       % 
+       %      opt.solveProblem();
+       %      obj.optimizer = opt;
+       %  end
+
         function createOptimizer(obj)
             s.monitoring     = true;
             s.plotting       = true;
@@ -181,16 +204,15 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.constraintCase = {'EQUALITY'};
             s.ub             = 0.95;
             s.lb             = 0.05;
-         %   opt = OptimizerMMA(s);
-       %     s.volumeTarget   = 0.4;            
+           % opt = OptimizerMMA(s);            
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;            
-            opt = OptimizerNullSpace(s);
+            opt = OptimizerDualNestedInPrimal(s);
 
             opt.solveProblem();
             obj.optimizer = opt;
-        end
+        end        
+
+
 
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));

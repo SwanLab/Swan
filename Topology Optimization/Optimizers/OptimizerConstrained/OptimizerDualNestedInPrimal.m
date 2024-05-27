@@ -8,6 +8,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         desVarChangedValue
         costIncrease
         constraintProjector
+        hasFinished
     end
 
     methods (Access = public)
@@ -15,20 +16,21 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function obj = OptimizerDualNestedInPrimal(cParams)
             obj.initOptimizer(cParams);
             obj.createLagrangian();
-            obj.createOptimizerUnconstrained(cParams.uncOptimizerSettings)
+            obj.createPrimalUpdater(cParams);
             obj.createConstraintProjector();
         end
 
         function solveProblem(obj)
             obj.hasFinished = false;
-            
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            
+
+            x = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(x);
+            obj.constraint.computeFunctionAndGradient(x);
             
             obj.updateOldValues();
-            obj.unconstrainedOptimizer.startLineSearch();
-            obj.unconstrainedOptimizer.updateConvergenceParams();
+
+            obj.primalUpdater.startLineSearch();
+            obj.primalUpdater.updateConvergenceParams();
             obj.refreshMonitoring();
             obj.printOptimizerVariable();
        %     obj.printHistory();
@@ -38,12 +40,13 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             obj.designVariable.updateOld();
             obj.computeFeasibleDesignVariable();
 
-            obj.cost.computeFunctionAndGradient();
+            x = obj.designVariable;           
+            obj.cost.computeFunctionAndGradient(x);
 
             obj.updateOldValues();
 
-            obj.unconstrainedOptimizer.updateConvergenceParams();   
-            obj.unconstrainedOptimizer.updateLineSearch();
+            obj.primalUpdater.updateConvergenceParams();   
+            obj.primalUpdater.updateLineSearch();
             obj.refreshMonitoring();
             obj.printHistory();
             obj.saveDesignVariable();
@@ -58,18 +61,19 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             while ~obj.hasFinished
              
 
-                obj.unconstrainedOptimizer.tryLineSearch();
+                obj.primalUpdater.tryLineSearch();
                 while ~obj.hasUnconstraintedOptimizerConverged()
                     obj.restartValues();
                     obj.computeValue();
                     if ~obj.hasUnconstraintedOptimizerConverged()
-                        obj.unconstrainedOptimizer.updateLineSearch();
+                        obj.primalUpdater.updateLineSearch();
                     end
                 end
 
-                obj.cost.computeFunctionAndGradient();
+                x = obj.designVariable;                          
+                obj.cost.computeFunctionAndGradient(x);
 
-                obj.unconstrainedOptimizer.updateConvergenceParams();
+                obj.primalUpdater.updateConvergenceParams();
 
                 obj.updateConvergenceStatus();
                 obj.updateStatus();
@@ -111,9 +115,9 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
                 obj.updateLagrangian();
                 obj.lagrangian.updateOld();
 
-                obj.unconstrainedOptimizer.tryLineSearch();
-                %kappa = obj.unconstrainedOptimizer.lineSearch.kappa;
-                %obj.unconstrainedOptimizer.lineSearch.kappa = kappa;
+                obj.primalUpdater.tryLineSearch();
+                %kappa = obj.primalUpdater.lineSearch.kappa;
+                %obj.primalUpdater.lineSearch.kappa = kappa;
 
                 obj.constraintProjector.project();
             end
@@ -127,7 +131,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function update(obj)
             while ~obj.hasUnconstraintedOptimizerConverged()
                 obj.computeValue();
-                obj.unconstrainedOptimizer.updateLineSearch();
+                obj.primalUpdater.updateLineSearch();
             end
         end
 
@@ -151,10 +155,10 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         function updateOldValues(obj)
             obj.designVariable.updateOld();
             obj.dualVariable.updateOld();
-            obj.cost.updateOld();
-            obj.constraint.updateOld();
-            obj.updateLagrangian();
-            obj.lagrangian.updateOld();
+           % obj.cost.updateOld();
+           % obj.constraint.updateOld();
+           % obj.updateLagrangian();
+           % obj.lagrangian.updateOld();
         end
 
     end
@@ -167,8 +171,7 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
             cParams.designVariable = obj.designVariable;
             cParams.dualVariable   = obj.dualVariable;
             cParams.lagrangian     = obj.lagrangian;
-            cParams.targetParameters = obj.targetParameters;
-            cParams.unconstrainedOptimizer = obj.unconstrainedOptimizer;
+            cParams.primalUpdater  = obj.primalUpdater;
             obj.constraintProjector = ConstraintProjector(cParams);
         end
 
@@ -189,10 +192,8 @@ classdef OptimizerDualNestedInPrimal < Optimizer_PrimalDual
         end
 
         function itIs = isLineSeachTooSmall(obj)
-            itIs = obj.unconstrainedOptimizer.isLineSearchTooSmall();
+            itIs = obj.primalUpdater.isLineSearchTooSmall();
         end
-             
-
-
+ 
     end
 end

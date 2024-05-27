@@ -14,8 +14,8 @@ classdef ConstraintProjector < handle
 
     methods (Access = public)
 
-        function obj = ConstraintProjector(cParams,s)
-            obj.init(cParams,s);
+        function obj = ConstraintProjector(cParams)
+            obj.init(cParams);
             obj.defineProblem();
         end
 
@@ -39,12 +39,12 @@ classdef ConstraintProjector < handle
 
     methods (Access = private)
 
-        function init(obj,cParams,s)
+        function init(obj,cParams)
             obj.cost             = cParams.cost;
             obj.constraint       = cParams.constraint;
             obj.designVariable   = cParams.designVariable;
             obj.dualVariable     = cParams.dualVariable;
-            obj.primalUpdater    = s.primalUpdater;
+            obj.primalUpdater    = cParams.primalUpdater;
         end
 
         function defineProblem(obj)
