@@ -31,6 +31,9 @@ classdef ComplianceFunctional < handle
             obj.filter     = cParams.filter;
             obj.material   = cParams.material;
             obj.compliance = cParams.complainceFromConstitutive;
+            if isfield(cParams,'value0')
+                obj.value0 = cParams.value0;
+            end
         end
 
         function xR = filterDesignVariable(obj,x)

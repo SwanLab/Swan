@@ -38,7 +38,9 @@ classdef Constraint < handle
                 djV(:,iS) = dJv;
             end
             obj.value    = jV;
-            obj.gradient = djV;
+            obj.gradient = obj.Msmooth*djV;
+%           obj.gradient = djV;
+
         end
 
         function nG = computeGradientLength(obj,dJ)
