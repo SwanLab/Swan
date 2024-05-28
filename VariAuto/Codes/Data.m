@@ -118,16 +118,43 @@ classdef Data < handle
         function Xful = buildModel(obj)
             x  = obj.X;
             d  = obj.polyGrade;
-            x1 = x(:,1);
-            x2 = x(:,2);
-            cont = 1;
-            for g = 1:d
-                for a = 0:g
-                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
-                    cont = cont+1;
+            [numSamples, numFeatures] = size(x);
+            
+            % Generation of all the possible exponent combinations
+            exponents = obj.generateExponents(numFeatures, d);
+            
+            % Initialization of the output matrix
+            Xful = zeros(numSamples, size(exponents,1));
+            
+            % Double loop to cover all the possible polynomials
+            for i = 1:size(exponents,1)
+                auxTerm = ones(numSamples,1);
+                for j = 1:numFeatures
+                    auxTerm = auxTerm.*(x(:,j).^exponents(i,j));
                 end
+                Xful(:,i) = auxTerm;
             end
             obj.X = Xful;
+        end
+        
+        function exponents = generateExponents(obj,numFeatures, d)
+            currentExponents = zeros(1, numFeatures);
+            exponents = currentExponents;
+            while true
+                for i = numFeatures:-1:1
+                    if currentExponents(i) < d
+                        currentExponents(i) = currentExponents(i) + 1;
+                        if i < numFeatures
+                            currentExponents(i+1:end) = 0;
+                        end
+                        break;
+                    end
+                end
+                if sum(currentExponents) > d
+                    break;
+                end
+                exponents = [exponents; currentExponents];
+            end
         end
 
         function splitdata(obj)

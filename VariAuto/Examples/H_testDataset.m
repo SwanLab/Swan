@@ -3,7 +3,7 @@ clc;
 clear;
 close all;
 %% Initialization of hyperparameters
-pol_deg         = 3;
+pol_deg         = 2;
 testratio       = 0;
 lambda          = 0.01;
 learningRate    = 0.05;
