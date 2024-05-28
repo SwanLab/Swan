@@ -21,8 +21,8 @@ p=5/10;
 t=12/100;
 
 % Biga (posada en el centre de màx t):
-alt = 0.12;
-ampl = 0.008;
+alt = 0.1;
+ampl = 0.2;
 
 AOAd = 30; %deg
 x_centr = 3.5;
@@ -43,26 +43,26 @@ for j=1:1:size(x_p,2)
     end
 end
 
-% % Plot chamber line:
-% plot(x_p,y_c)
-% axis equal
-% grid on
-% 
-% %Plot airfoil with circles:
-% figure
-% for ii=1:1:size(x_p,2)
-%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
-%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
-% 
-% 
-%     plot(x_c,y+y_c(ii));
-%     hold on
-%     plot(x_c,-y+y_c(ii));
-%     hold on
-% 
-% end
-% 
-% axis equal
+% Plot chamber line:
+plot(x_p,y_c)
+axis equal
+grid on
+
+%Plot airfoil with circles:
+figure
+for ii=1:1:size(x_p,2)
+    x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
+    y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+
+
+    plot(x_c,y+y_c(ii));
+    hold on
+    plot(x_c,-y+y_c(ii));
+    hold on
+
+end
+
+axis equal
 
 x_le = x_centr-0.5;
 AOA = -deg2rad(AOAd);
@@ -130,7 +130,7 @@ punts_rot(2,:,1) = (punts(1,:,1)-x_centr).*sin(AOA)+(punts(2,:,1)-y_centr).*cos(
 % scatter(punts(1,:,1),punts(2,:,1))
 dins = fH(punts_rot);
 
-if dins(1)>=0 && dins(2)>=0 && dins(3)>=0 && dins(4)>=0
+% if dins(1)>=0 && dins(2)>=0 && dins(3)>=0 && dins(4)>=0
 
 %% Create mesh and boundary conditions
 s.fHandle = fH; 
@@ -397,9 +397,9 @@ quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
 
-else
-disp('The beam does not fit in the airfoil')
-end
+% else
+% disp('The beam does not fit in the airfoil')
+% end
 clearvars('-except', 'time','H','D','L','O','M','p','MM','pp');
 H=H+1;
 

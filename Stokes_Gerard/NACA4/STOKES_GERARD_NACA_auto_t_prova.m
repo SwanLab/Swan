@@ -16,13 +16,13 @@ m = QuadMesh(10,4,150,150*0.8); % MESH
 s.type='Given';
 
 % NACA 4
-M=0/100;
+M=5/100;
 p=5/10;
 t=12/100;
 
 % Biga (posada en el centre de màx t):
 alt = 0.10;
-ampl = 0.05;
+ampl = 0.2;
 x_pos = 0.3; %Centre de la biga respecte el LE
 
 AOAd = 30; %deg
@@ -43,31 +43,15 @@ for j=1:1:2
     if Q(j,1)<=p
         Q(j,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) + (alt/2));
         f = @(X) ((((M/(p^2))*(2*p*X-X^2)) - Q(j,2))/(X-Q(j,1))) + 1/((2*M/(p^2))*(p-X));
-        A = 0;
-        B = 0.49;
-        fB = f(B);
-        fA = f(A);
-
-%         if fA * fB > 0
-%             error('La funció no canvia de signe en l''interval [A, B].');
-%         end
-        while (abs(A-B)>0.00001)
-
-            C = (A+B)/2;
-            fC=f(C);
-
-            if fA*fC > 0
-                A = C;
-                fA = fC;
-
-            else
-                B = C;
-                fB = fC;
-            end
-
+        
+        I=1;
+        for i=0:0.00001:p
+            Ces(I,:)=[i,f(i)];
+            I=I+1;
         end
 
-%         C=0.31244;
+
+
         theta=atan((2*M/(p^2))*(p-C)); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
 
         y_t = (C - Q(j,1))/sin(theta);

@@ -16,42 +16,56 @@ m = QuadMesh(10,4,150,150*0.8); % MESH
 s.type='Given';
 
 % NACA 4
-M=0/100;
+M=5/100;
 p=5/10;
 t=12/100;
 
 % Biga (posada en el centre de màx t):
-alt = 0.10;
-ampl = 0.05;
-x_pos = 0.3; %Centre de la biga respecte el LE
+alt = 0.08;
+ampl = 0.1;
+x_pos = 0.1; %Centre de la biga respecte el LE
 
 AOAd = 30; %deg
 x_centr = 3.5;
 y_centr = 2;
 
 %% Airfoil creation
+% Trobar t
 %Primera posició indica quin node del rectangle és i la segona si és x o y
 Q(1,1)=x_pos-ampl/2;
 Q(2,1)=x_pos+ampl/2;
 Q(3,1)=x_pos+ampl/2;
 Q(4,1)=x_pos-ampl/2;
 
-% Trobar t
+if x_pos<=p
+    Q(1,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) + (alt/2));
+    Q(2,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) + (alt/2));
+    Q(3,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) - (alt/2));
+    Q(4,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) - (alt/2));
+
+else
+    Q(1,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) + (alt/2);
+    Q(2,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) + (alt/2);
+    Q(3,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) - (alt/2);
+    Q(4,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) - (alt/2);
+end
+
+err = 1*10^(-6);
 
 %Extradós:
 for j=1:1:2
     if Q(j,1)<=p
-        Q(j,2) = ((M/(p^2))*(2*p*x_pos-x_pos^2) + (alt/2));
-        f = @(X) ((((M/(p^2))*(2*p*X-X^2)) - Q(j,2))/(X-Q(j,1))) + 1/((2*M/(p^2))*(p-X));
+     
+        f = @(X) X - Q(j,1) - ((Q(j,2)-((M/(p^2))*(2*p*X-X^2)))/cos(atan((2*M/(p^2))*(p-X))))*sin(atan((2*M/(p^2))*(p-X)));
         A = 0;
-        B = 0.49;
+        B = p;
         fB = f(B);
         fA = f(A);
 
-%         if fA * fB > 0
-%             error('La funció no canvia de signe en l''interval [A, B].');
-%         end
-        while (abs(A-B)>0.00001)
+        if fA * fB > 0
+            error('La funció no canvia de signe en l''interval [A, B].');
+        end
+        while (abs(A-B)>err)
 
             C = (A+B)/2;
             fC=f(C);
@@ -67,23 +81,25 @@ for j=1:1:2
 
         end
 
-%         C=0.31244;
         theta=atan((2*M/(p^2))*(p-C)); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
 
-        y_t = (C - Q(j,1))/sin(theta);
+        y_t = (Q(j,2)-((M/(p^2))*(2*p*C-C^2)))/cos(theta);
         
-        t = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
+        T(j) = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
 
 
     elseif Q(j,1)>p
-        Q(j,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) + (alt/2);
-        f = @(X) ((((M/(1-p)^2)*((1-2*p)+2*p*X-X^2)) - Q(j,2))/(X-Q(j,1))) + 1/((2*M/(p^2))*(p-X));
+        
+        f = @(X) X - Q(j,1) - ((Q(j,2)-((M/(1-p)^2)*((1-2*p)+2*p*X-X^2)))/cos(atan((2*M/((1-p)^2))*(p-X))))*sin(atan((2*M/((1-p)^2))*(p-X)));
         A = p;
         B = 1;
         fB = f(B);
         fA = f(A);
 
-        while (abs(A-B)>0.00001)
+        if fA * fB > 0
+            error('La funció no canvia de signe en l''interval [A, B].');
+        end
+        while (abs(A-B)>err)
 
             C = (A+B)/2;
             fC=f(C);
@@ -99,14 +115,11 @@ for j=1:1:2
 
         end
 
+        theta=atan(((2*M/((1-p)^2))*(p-C))); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
 
-        theta=atan((2*M/((1-p)^2))*(p-C)); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
-
-        y_t = (C - Q(j,1))/sin(theta);
+        y_t = (Q(j,2)-((M/(1-p)^2)*((1-2*p)+2*p*C-C^2)))/cos(theta);
         
-        t = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
-
-
+        T(j) = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
     end
 
 end
@@ -116,14 +129,17 @@ end
 
 for j=3:1:4
     if Q(j,1)<=p
-        Q(j,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) - (alt/2);
-        f = @(X) ((((M/(p^2))*(2*p*X-X^2)) - Q(j,2))/(X-Q(j,1))) + 1/((2*M/(p^2))*(p-X));
+             
+        f = @(X) X - Q(j,1) - ((Q(j,2)-((M/(p^2))*(2*p*X-X^2)))/cos(atan((2*M/(p^2))*(p-X))))*sin(atan((2*M/(p^2))*(p-X)));
         A = 0;
         B = p;
         fB = f(B);
         fA = f(A);
 
-        while (abs(A-B)>0.00001)
+        if fA * fB > 0
+            error('La funció no canvia de signe en l''interval [A, B].');
+        end
+        while (abs(A-B)>err)
 
             C = (A+B)/2;
             fC=f(C);
@@ -139,23 +155,24 @@ for j=3:1:4
 
         end
 
-
         theta=atan((2*M/(p^2))*(p-C)); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
 
-        y_t = (Q(j,1)-C)/sin(theta);
+        y_t = (-Q(j,2)+((M/(p^2))*(2*p*C-C^2)))/cos(theta);
         
-        t = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
+        T(j) = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
 
 
     elseif Q(j,1)>p
-        Q(j,2) = ((M/(1-p)^2)*((1-2*p)+2*p*x_pos-x_pos^2)) - (alt/2);
-        f = @(X) ((((M/(1-p)^2)*((1-2*p)+2*p*X-X^2)) - Q(j,2))/(X-Q(j,1))) + 1/((2*M/(p^2))*(p-X));
+        f = @(X) X - Q(j,1) - ((Q(j,2)-((M/(1-p)^2)*((1-2*p)+2*p*X-X^2)))/cos(atan((2*M/((1-p)^2))*(p-X))))*sin(atan((2*M/((1-p)^2))*(p-X)));
         A = p;
         B = 1;
         fB = f(B);
         fA = f(A);
 
-        while (abs(A-B)>0.00001)
+        if fA * fB > 0
+            error('La funció no canvia de signe en l''interval [A, B].');
+        end
+        while (abs(A-B)>err)
 
             C = (A+B)/2;
             fC=f(C);
@@ -171,12 +188,11 @@ for j=3:1:4
 
         end
 
+        theta=atan(((2*M/((1-p)^2))*(p-C))); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
 
-        theta=atan((2*M/((1-p)^2))*(p-C)); %C serà la x que és l'origen de la circumferència que defineix el punt que considerem del quadrat
-
-        y_t = (Q(j,1)-C)/sin(theta);
+        y_t = (-Q(j,2)+((M/(1-p)^2)*((1-2*p)+2*p*C-C^2)))/cos(theta);
         
-        t = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
+        T(j) = y_t/(5*(0.2969*sqrt(C)-0.1260*C-0.3516*C^2+0.2843*C^3-0.1015*C^4));
 
 
     end
@@ -184,9 +200,8 @@ for j=3:1:4
 end
 
 
+[t, maxIndex_t] = max(T);
 
-
-t=12/100
 pas=0.001;
 
 x_p=[pas:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
@@ -224,9 +239,6 @@ axis equal
 
 hold on
 scatter(Q(:,1),Q(:,2))
-
-
-
 
 
 x_le = x_centr-0.5;
