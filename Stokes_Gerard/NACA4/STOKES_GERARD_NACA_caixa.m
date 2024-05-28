@@ -4,15 +4,27 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
+O = 1;
+
+for MM = 0.5:1:9.5
+    H = 1;
+    M = MM/100;
+    for pp = 2.5:1:7.5
+        p = pp/10;
+
 m = QuadMesh(10,4,150,150*0.8); % MESH
 s.type='Given';
 
 % NACA 4
-M=9/100;
-p=4/10;
+M=15/100;
+p=6/10;
 t=12/100;
 
-AOAd = 0; %deg
+% Biga (posada en el centre de màx t):
+alt = 0.12;
+ampl = 0.008;
+
+AOAd = 20; %deg
 x_centr = 3.5;
 y_centr = 2;
 
@@ -31,11 +43,11 @@ for j=1:1:size(x_p,2)
     end
 end
 
-%Plot chamber line:
+% % Plot chamber line:
 % plot(x_p,y_c)
 % axis equal
 % grid on
-
+% 
 % %Plot airfoil with circles:
 % figure
 % for ii=1:1:size(x_p,2)
@@ -82,6 +94,80 @@ end
 func_str = ['@(x) -', terms{1}];
 fH = str2func(func_str);
 
+% % Mirar si la caixa entra al perfil:
+% punts(1,1,1)=(x_centr-0.2)+ampl/2; %El màx. gruix està al 30% de la punta. Dreta a dalt
+% if (punts(1,1,1)-x_centr+0.5)<=p
+%    punts(2,1,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+% elseif (punts(1,1,1)-x_centr+0.5)>p
+%    punts(2,1,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+% end
+% 
+% punts(1,2,1)=(x_centr-0.2)+ampl/2; %Dreta a baix
+% if (punts(1,2,1)-x_centr+0.5)<=p
+%    punts(2,2,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+% elseif (punts(1,2,1)-x_centr+0.5)>p
+%    punts(2,2,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+% end
+% 
+% punts(1,3,1)=(x_centr-0.2)-ampl/2; %Esquerra a baix
+% if (punts(1,3,1)-x_centr+0.5)<=p
+%    punts(2,3,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+% elseif (punts(1,3,1)-x_centr+0.5)>p
+%    punts(2,3,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+% end
+% 
+% punts(1,4,1)=(x_centr-0.2)-ampl/2; %Esquerra a dalt
+% if (punts(1,4,1)-x_centr+0.5)<=p
+%    punts(2,4,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+% elseif (punts(1,3,1)-x_centr+0.5)>p
+%    punts(2,4,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+% end
+
+
+
+% Mirar si la caixa entra al perfil:
+punts(1,1,1)=0.3+ampl/2; %El màx. gruix està al 30% de la punta. Dreta a dalt. Respecte el perfil colocat a 0.5,0.5
+if punts(1,1,1)<=p
+   punts(2,1,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + alt/2;
+elseif punts(1,1,1)>p
+   punts(2,1,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + alt/2;
+end
+
+punts(1,2,1)=0.3+ampl/2; %Dreta a baix
+if punts(1,2,1)<=p
+   punts(2,2,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) - alt/2;
+elseif punts(1,2,1)>p
+   punts(2,2,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) - alt/2;
+end
+
+punts(1,3,1)=0.3-ampl/2; %Esquerra a baix
+if punts(1,3,1)<=p
+   punts(2,3,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) - alt/2;
+elseif punts(1,3,1)>p
+   punts(2,3,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) - alt/2;
+end
+
+punts(1,4,1)=0.3-ampl/2; %Esquerra a dalt
+if punts(1,4,1)<=p
+   punts(2,4,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + alt/2;
+elseif punts(1,3,1)>p
+   punts(2,4,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + alt/2;
+end
+
+punts_rot(1,:,1) = punts(1,:,1)+x_centr-0.5;
+punts_rot(2,:,1) = punts(2,:,1)+y_centr;
+
+
+
+
+
+% punts_rot(1,:,1) = (punts(1,:,1)-x_centr).*cos(AOA)-(punts(2,:,1)-y_centr).*sin(AOA)+x_centr;
+% punts_rot(2,:,1) = (punts(1,:,1)-x_centr).*sin(AOA)+(punts(2,:,1)-y_centr).*cos(AOA)+y_centr;
+
+% scatter(punts(1,:,1),punts(2,:,1))
+dins = fH(punts);
+
+% if dins(1)>=0 && dins(2)>=0 && dins(3)>=0 && dins(4)>=0
 
 %% Create mesh and boundary conditions
 s.fHandle = fH; 
@@ -94,8 +180,10 @@ uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
 figure
 plot(uMesh)
-figure
-plot(lsFun)
+hold on 
+scatter(punts_rot(1,:,1),punts_rot(2,:,1))
+%figure
+%plot(lsFun)
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
 material = Material.create(e);
@@ -333,10 +421,10 @@ nx.fValues = normal_vectors(:,1);
 ny.fValues = normal_vectors(:,2);
 sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
 pNx           = DomainFunction(sss);
-D             = Integrator.compute(pNx,bMesh,'QUADRATIC');
+D(H,O)             = Integrator.compute(pNx,bMesh,'QUADRATIC');
 sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
-L             = Integrator.compute(pNy,bMesh,'QUADRATIC');
+L(H,O)             = Integrator.compute(pNy,bMesh,'QUADRATIC');
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on
@@ -346,3 +434,13 @@ quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
 
+% else
+% disp('The beam does not fit in the airfoil')
+% end
+clearvars('-except', 'time','H','D','L','O','M','p','MM','pp');
+H=H+1;
+
+    end
+    O=O+1;
+    disp(O);
+end
