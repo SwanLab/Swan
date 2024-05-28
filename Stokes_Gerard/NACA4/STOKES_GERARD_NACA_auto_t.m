@@ -23,12 +23,68 @@ t=12/100;
 % Biga (posada en el centre de màx t):
 alt = 0.12;
 ampl = 0.008;
+x_pos = 0.3; %Centre de la biga respecte el LE
 
 AOAd = 30; %deg
 x_centr = 3.5;
 y_centr = 2;
 
 %% Airfoil creation
+%Primera posició indica quin node del rectangle és i la segona si és x o y
+Q(4,1)=x_pos-ampl/2;
+
+% Trobar t
+
+    if Q(j,1)<=p
+        f = @(X) ((((M/(p^2))*(2*p*X-X^2)) - (M/(p^2))*(2*p*x_pos-x_pos^2) - (alt/2))/(X-x_pos)) + 1/((2*M/(p^2))*(p-X));
+        A = 0;
+        B = p;
+        fB = f(B);
+        fA = f(A);
+
+        while (abs(A-B)>0.00001)
+
+            C = (A+B)/2;
+            fC=f(C);
+
+            if fA*fC > 0
+                A = C;
+                fA = fC;
+
+            else
+                B = C;
+                fB = fC;
+            end
+
+        end
+
+
+        theta=atan((2*M/(p^2))*(p-C));
+
+        y_t = (C - Q(j,1))/sin(theta);
+        
+        t = 5;
+
+
+    elseif x_p(j)>p
+
+
+
+
+        dy_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
+
+
+    end
+
+
+
+
+
+
+
+
+
+
 pas=0.001;
 
 x_p=[pas:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
@@ -43,26 +99,26 @@ for j=1:1:size(x_p,2)
     end
 end
 
-% % Plot chamber line:
-% plot(x_p,y_c)
-% axis equal
-% grid on
-% 
-% %Plot airfoil with circles:
-% figure
-% for ii=1:1:size(x_p,2)
-%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
-%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
-% 
-% 
-%     plot(x_c,y+y_c(ii));
-%     hold on
-%     plot(x_c,-y+y_c(ii));
-%     hold on
-% 
-% end
-% 
-% axis equal
+% Plot chamber line:
+plot(x_p,y_c)
+axis equal
+grid on
+
+%Plot airfoil with circles:
+figure
+for ii=1:1:size(x_p,2)
+    x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
+    y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+
+
+    plot(x_c,y+y_c(ii));
+    hold on
+    plot(x_c,-y+y_c(ii));
+    hold on
+
+end
+
+axis equal
 
 x_le = x_centr-0.5;
 AOA = -deg2rad(AOAd);
@@ -77,18 +133,18 @@ y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
 terms = cell(1, length(rn));
 
 for jj = 1:length(rn)
-    terms{jj} = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj));
+    terms{jj} = sprintf('((x(1,:,:)-%f).^2 + (x(2,:,:)-%f).^2 - %f.^2)', x_cn(jj), y_cn(jj), rn(jj)); %Crea els termes per cada cercle (per després ajuntar-ho)
 end
 
 while length(terms) > 1
     new_terms = {};
     for jj = 1:2:length(terms)-1
-        new_terms{end+1} = sprintf('min(%s, %s)', terms{jj}, terms{jj+1});
+        new_terms{end+1} = sprintf('min(%s, %s)', terms{jj}, terms{jj+1}); %Anem creant parelles de termes a dins del min()
     end
     if mod(length(terms), 2) == 1
-        new_terms{end+1} = terms{end};
+        new_terms{end+1} = terms{end}; %Si queda algun terme sol, el posem al final
     end
-    terms = new_terms;
+    terms = new_terms; %Assignem els termes i tornem a mirar si n'hi ha més d'un. Al final, tots s'hauran anat ajuntat fins només quedar 1.
 end
 
 func_str = ['@(x) -', terms{1}];
