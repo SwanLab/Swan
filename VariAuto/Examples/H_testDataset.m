@@ -5,7 +5,7 @@ close all;
 %% Initialization of hyperparameters
 pol_deg         = 2;
 testratio       = 0;
-lambda          = 0.01;
+lambda          = 0.001;
 learningRate    = 0.05;
 momentum        = 0.9;
 batch           = 200;
@@ -26,7 +26,7 @@ data  = Data(s);
 % data.Ntest = size(data.Ytest,1);
 
 %% Create Network and trainer Objects
-structure = [data.nFeatures,hiddenlayers,data.nLabels];
+structure = [size(data.Xtrain,2),hiddenlayers,data.nLabels];
 
 %% Run Optimization Problem
 p.data            = data;
@@ -35,7 +35,7 @@ p.optimizerParams.learningRate = learningRate;
 p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
 p.networkParams.costType     = 'L2';
-p.networkParams.HUtype       = 'None';
+p.networkParams.HUtype       = 'tanh';
 p.networkParams.OUtype       = 'None';
 optProblem   = OptimizationProblem(p);
 

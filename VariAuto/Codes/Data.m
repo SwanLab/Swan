@@ -2,6 +2,7 @@ classdef Data < handle
 
     properties (Access = public)
         nFeatures
+        nSamples
         nLabels
         polyGrade
         Xtrain
@@ -27,8 +28,6 @@ classdef Data < handle
             obj.loadData();
             obj.buildModel();
             obj.splitdata();
-            obj.nLabels   = size(obj.Ytrain,2);                        
-            obj.nFeatures = size(obj.Xtrain,2);
         end
 
         function plotdata(self,i,j)
@@ -93,6 +92,9 @@ classdef Data < handle
             y = obj.data(:, yfeat);
             obj.X = x;
             obj.Y = y;
+            obj.nLabels   = size(obj.Y,2);                        
+            obj.nFeatures = size(obj.X,2);
+            obj.nSamples  = size(obj.X,1);
 
             % IDENTIFIER
             % ydata = obj.data(:, end);
@@ -116,44 +118,50 @@ classdef Data < handle
         end
 
         function Xful = buildModel(obj)
-            x  = obj.X;
-            d  = obj.polyGrade;
-            [numSamples, numFeatures] = size(x);
-            
             % Generation of all the possible exponent combinations
-            exponents = obj.generateExponents(numFeatures, d);
+            exponents = [];
+            for tD = obj.polyGrade:-1:1
+                newDeg    = obj.generateExponents(tD);
+                exponents = [exponents; newDeg];
+            end
+            exponents = flip(exponents,1);
             
             % Initialization of the output matrix
-            Xful = zeros(numSamples, size(exponents,1));
+            Xful = zeros(obj.nSamples, size(exponents,1));
             
             % Double loop to cover all the possible polynomials
             for i = 1:size(exponents,1)
-                auxTerm = ones(numSamples,1);
-                for j = 1:numFeatures
-                    auxTerm = auxTerm.*(x(:,j).^exponents(i,j));
+                auxTerm = ones(obj.nSamples,1);
+                for j = 1:obj.nFeatures
+                    auxTerm = auxTerm.*(obj.X(:,j).^exponents(i,j));
                 end
                 Xful(:,i) = auxTerm;
             end
             obj.X = Xful;
         end
         
-        function exponents = generateExponents(obj,numFeatures, d)
-            currentExponents = zeros(1, numFeatures);
-            exponents = currentExponents;
-            while true
-                for i = numFeatures:-1:1
-                    if currentExponents(i) < d
-                        currentExponents(i) = currentExponents(i) + 1;
-                        if i < numFeatures
-                            currentExponents(i+1:end) = 0;
-                        end
-                        break;
-                    end
-                end
-                if sum(currentExponents) > d
-                    break;
-                end
+        function exponents = generateExponents(obj,targetDeg)
+            % Initialization of parameters
+            exponents = [];
+            currentExponents = zeros(1, obj.nFeatures);
+            initialIndex = 1;
+            
+            % Calculation of the possible exponents for the target degree
+            exponents = obj.generateExponentsRecursive(targetDeg,initialIndex,currentExponents,exponents);
+        end
+        
+        function exponents = generateExponentsRecursive(obj,targetDeg,currentIndex,currentExponents,exponents)
+            % Assignation of exponents for the base case
+            if currentIndex == obj.nFeatures
+                currentExponents(currentIndex) = targetDeg;
                 exponents = [exponents; currentExponents];
+            else
+                % Recursion to search for the possibile combinations which
+                % sum the polynomial degree target
+                for i = 0:targetDeg
+                    currentExponents(currentIndex) = i;
+                    exponents = obj.generateExponentsRecursive(targetDeg - i, currentIndex + 1, currentExponents, exponents);
+                end
             end
         end
 

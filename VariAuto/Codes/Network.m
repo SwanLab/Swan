@@ -15,6 +15,7 @@ classdef Network < handle
         learnableVariables
         nFeatures
         nLabels
+        nPolyFeatures
     end
 
     methods (Access = public)
@@ -105,6 +106,7 @@ classdef Network < handle
         function init(obj,cParams)
             obj.hiddenLayers = cParams.hiddenLayers;
             obj.nFeatures    = cParams.data.nFeatures;
+            obj.nPolyFeatures= size(cParams.data.Xtrain,2);
             obj.nLabels      = cParams.data.nLabels;
             obj.createNeuronsPerLayer();
             obj.createNumberOfLayers();
@@ -125,7 +127,7 @@ classdef Network < handle
         end
         
         function createNeuronsPerLayer(obj)
-            nF = obj.nFeatures;
+            nF = obj.nPolyFeatures;
             hL = obj.hiddenLayers;
             nL = obj.nLabels;
             obj.neuronsPerLayer = [nF,hL,nL];
@@ -148,9 +150,9 @@ classdef Network < handle
                     gc = (yp-y)./(yp.*(1-yp));
                 case 'L2'
                     c = ((yp-y).^2);
-                    % J = sum(mean(c,1)); % Erroneo
+                    J = sum(mean(c,1));
                     % J = sqrt(sum(c)); % Propuesta 1
-                    J = norm(yp-y,2); % Propuesta 2
+                    % J = norm(yp-y,2); % Propuesta 2
                     gc = (yp-y);
                 otherwise
                     msg = [type,' is not a valid cost function'];
