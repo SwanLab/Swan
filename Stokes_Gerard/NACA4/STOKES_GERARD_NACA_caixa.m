@@ -16,15 +16,15 @@ m = QuadMesh(10,4,150,150*0.8); % MESH
 s.type='Given';
 
 % NACA 4
-M=15/100;
-p=6/10;
+M=5/100;
+p=5/10;
 t=12/100;
 
 % Biga (posada en el centre de màx t):
 alt = 0.12;
 ampl = 0.008;
 
-AOAd = 20; %deg
+AOAd = 30; %deg
 x_centr = 3.5;
 y_centr = 2;
 
@@ -95,79 +95,42 @@ func_str = ['@(x) -', terms{1}];
 fH = str2func(func_str);
 
 % % Mirar si la caixa entra al perfil:
-% punts(1,1,1)=(x_centr-0.2)+ampl/2; %El màx. gruix està al 30% de la punta. Dreta a dalt
-% if (punts(1,1,1)-x_centr+0.5)<=p
-%    punts(2,1,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
-% elseif (punts(1,1,1)-x_centr+0.5)>p
-%    punts(2,1,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
-% end
-% 
-% punts(1,2,1)=(x_centr-0.2)+ampl/2; %Dreta a baix
-% if (punts(1,2,1)-x_centr+0.5)<=p
-%    punts(2,2,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
-% elseif (punts(1,2,1)-x_centr+0.5)>p
-%    punts(2,2,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
-% end
-% 
-% punts(1,3,1)=(x_centr-0.2)-ampl/2; %Esquerra a baix
-% if (punts(1,3,1)-x_centr+0.5)<=p
-%    punts(2,3,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
-% elseif (punts(1,3,1)-x_centr+0.5)>p
-%    punts(2,3,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
-% end
-% 
-% punts(1,4,1)=(x_centr-0.2)-ampl/2; %Esquerra a dalt
-% if (punts(1,4,1)-x_centr+0.5)<=p
-%    punts(2,4,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
-% elseif (punts(1,3,1)-x_centr+0.5)>p
-%    punts(2,4,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
-% end
-
-
-
-% Mirar si la caixa entra al perfil:
-punts(1,1,1)=0.3+ampl/2; %El màx. gruix està al 30% de la punta. Dreta a dalt. Respecte el perfil colocat a 0.5,0.5
-if punts(1,1,1)<=p
-   punts(2,1,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + alt/2;
-elseif punts(1,1,1)>p
-   punts(2,1,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + alt/2;
+punts(1,1,1)=(x_centr-0.2)+ampl/2; %El màx. gruix està al 30% de la punta. Dreta a dalt
+if (punts(1,1,1)-x_centr+0.5)<=p
+   punts(2,1,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+elseif (punts(1,1,1)-x_centr+0.5)>p
+   punts(2,1,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
 end
 
-punts(1,2,1)=0.3+ampl/2; %Dreta a baix
-if punts(1,2,1)<=p
-   punts(2,2,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) - alt/2;
-elseif punts(1,2,1)>p
-   punts(2,2,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) - alt/2;
+punts(1,2,1)=(x_centr-0.2)+ampl/2; %Dreta a baix
+if (punts(1,2,1)-x_centr+0.5)<=p
+   punts(2,2,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+elseif (punts(1,2,1)-x_centr+0.5)>p
+   punts(2,2,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
 end
 
-punts(1,3,1)=0.3-ampl/2; %Esquerra a baix
-if punts(1,3,1)<=p
-   punts(2,3,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) - alt/2;
-elseif punts(1,3,1)>p
-   punts(2,3,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) - alt/2;
+punts(1,3,1)=(x_centr-0.2)-ampl/2; %Esquerra a baix
+if (punts(1,3,1)-x_centr+0.5)<=p
+   punts(2,3,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
+elseif (punts(1,3,1)-x_centr+0.5)>p
+   punts(2,3,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr - alt/2;
 end
 
-punts(1,4,1)=0.3-ampl/2; %Esquerra a dalt
-if punts(1,4,1)<=p
-   punts(2,4,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + alt/2;
-elseif punts(1,3,1)>p
-   punts(2,4,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + alt/2;
+punts(1,4,1)=(x_centr-0.2)-ampl/2; %Esquerra a dalt
+if (punts(1,4,1)-x_centr+0.5)<=p
+   punts(2,4,1)=(M/(p^2))*(2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
+elseif (punts(1,3,1)-x_centr+0.5)>p
+   punts(2,4,1)=(M/(1-p)^2)*((1-2*p)+2*p*(0.3)-(0.3)^2) + y_centr + alt/2;
 end
 
-punts_rot(1,:,1) = punts(1,:,1)+x_centr-0.5;
-punts_rot(2,:,1) = punts(2,:,1)+y_centr;
 
-
-
-
-
-% punts_rot(1,:,1) = (punts(1,:,1)-x_centr).*cos(AOA)-(punts(2,:,1)-y_centr).*sin(AOA)+x_centr;
-% punts_rot(2,:,1) = (punts(1,:,1)-x_centr).*sin(AOA)+(punts(2,:,1)-y_centr).*cos(AOA)+y_centr;
+punts_rot(1,:,1) = (punts(1,:,1)-x_centr).*cos(AOA)-(punts(2,:,1)-y_centr).*sin(AOA)+x_centr;
+punts_rot(2,:,1) = (punts(1,:,1)-x_centr).*sin(AOA)+(punts(2,:,1)-y_centr).*cos(AOA)+y_centr;
 
 % scatter(punts(1,:,1),punts(2,:,1))
 dins = fH(punts);
 
-% if dins(1)>=0 && dins(2)>=0 && dins(3)>=0 && dins(4)>=0
+if dins(1)>=0 && dins(2)>=0 && dins(3)>=0 && dins(4)>=0
 
 %% Create mesh and boundary conditions
 s.fHandle = fH; 
@@ -434,9 +397,9 @@ quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
 
-% else
-% disp('The beam does not fit in the airfoil')
-% end
+else
+disp('The beam does not fit in the airfoil')
+end
 clearvars('-except', 'time','H','D','L','O','M','p','MM','pp');
 H=H+1;
 
