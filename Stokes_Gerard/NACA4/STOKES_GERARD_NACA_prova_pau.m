@@ -3,7 +3,7 @@ close all
 
 % % INPUT DATA
 
-m = QuadMesh(1.5,0.5,300,300); % MESH
+m = QuadMesh(6,4,200,100); % MESH
 s.type='Given';
 
 % NACA 4
@@ -11,9 +11,9 @@ M=9/100;
 p=4/10;
 t=12/100;
 
-AOAd = 0; %deg
-x_centr = 0.75;
-y_centr = 0.25;
+AOAd = 30; %deg
+x_centr = 2;
+y_centr = 2;
 
 %% Airfoil creation
 
@@ -48,8 +48,14 @@ axis equal
 
 
 x_LE=x_centr-0.5;
+AOA = -deg2rad(AOAd);
+x_cnr = x_p+x_LE;
+y_cnr = y_c+y_centr;
 
-fH = @(x)  double(inpolygon(x(1,:,:),x(2,:,:),x_coord+x_LE,y_coord+y_centr))-0.5; %@(x)
+x_cn = (x_cnr-x_centr).*cos(AOA)-(y_cnr-y_centr).*sin(AOA)+x_centr;
+y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
+
+fH = @(x)  double(inpolygon(x(1,:,:),x(2,:,:),x_cn,y_cn))-0.5; %@(x)
 
 
 
