@@ -90,7 +90,7 @@ classdef HyperelasticProblem < handle
                     R = Fint - Fext - react;
 
                     residual = norm(R)/norm(Fext)
-                    sigma = obj.computeCauchyStress();
+%                     sigma = obj.computeCauchyStress();
 %                     lambdas = obj.computeStretches();
 
                     % Plot
@@ -183,7 +183,7 @@ classdef HyperelasticProblem < handle
             obj.material.mu = 1;
             obj.material.lambda = 1*1.8;
 
-            k = obj.material.lambda + 2/obj.mesh.ndim * obj.material.mu;
+            k = obj.material.lambda + 2/obj.mesh.ndim * obj.material.mu; % canviar
             m = obj.material.mu;
 
             N = obj.mesh.ndim;
@@ -415,7 +415,7 @@ classdef HyperelasticProblem < handle
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
             sPL.value     = 1;
-            s.pointloadFun = [];DistributedLoad(obj.mesh, sPL);
+            s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
 

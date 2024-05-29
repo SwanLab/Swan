@@ -2,6 +2,11 @@
     % In this commit: first iteration seems okay, the following iterations
     % become increasingly crap.
 
+    % exemple malla forat ester
+    % canviar E nu
+    % exemple deal ii 3d, xafar cub al centre
+    % budget + environmental impact
+
 
 
     % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
