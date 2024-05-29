@@ -267,7 +267,24 @@ classdef Mesh < handle
                     m = Mesh.create(s);
                     l2g(newNodes(:)) = l2gBound(validNodes);
                 otherwise
-                    error('Cannot yet get boundary submesh for 3D')
+                    validNodes = find(domain(obj.coord));
+                    validElems = find(sum(ismember(obj.connec, validNodes),2) == obj.nnodeElem); % == 2 because line
+                    coord_valid  = obj.coord(validNodes, :);
+                    connec_valid = obj.connec(validElems,:);
+                    % connecGlobal = l2gBound(connec_valid);
+                    
+                    newNodes = (1:size(coord_valid,1))';
+                    boundary2local(validNodes) = newNodes;
+                    newConnec = boundary2local(connec_valid);
+                    
+                    s.connec = newConnec;
+                    s.coord = coord_valid;
+                    s.kFace = -1;
+                    
+                    m = Mesh.create(s);
+                    l2g(newNodes(:)) = validNodes;
+
+%                     error('Cannot yet get boundary submesh for 3D')
             end
         end
 

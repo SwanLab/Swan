@@ -477,10 +477,13 @@ classdef HyperelasticProblem < handle
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             topFace = obj.mesh.createBoundaryMesh{6};
-            bM = topFace.mesh;
+            bMtop = topFace.mesh;
             originalNodes = topFace.globalConnec(:);
-            newNodes      = bM.connec(:);
-            l2g(newNodes(:)) = originalNodes(:);
+            newNodes      = bMtop.connec(:);
+            l2gTop(newNodes(:)) = originalNodes(:);
+
+            [bM,l2g] = bMtop.getBoundarySubmesh(sPL.domain);
+
 %             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
 
             sAF.fHandle = @(x) [0*x(1,:,:);sPL.value*ones(size(x(1,:,:)));0*x(3,:,:)];
