@@ -18,11 +18,16 @@ classdef VolumeComputer < handle
             vol = surf*charfunc'; %calculate volume assigned to each material including void -- mixed formulation aproach
           % vol  = area*tchi';  %calculate volume assigned to each material including void -- P1 projection aproach
         end
+
+        % function grad = computeGradient(obj)
+        %     grad = ;
+        % end
     end
 
     methods (Access = public)
         
         function init(obj,cParams)
+            %obj.area = cParams.mesh.area;
             obj.area = cParams.area;
             obj.tfi = cParams.tfi; 
         end

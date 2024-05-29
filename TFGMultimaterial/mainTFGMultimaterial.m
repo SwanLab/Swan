@@ -3,12 +3,18 @@ classdef mainTFGMultimaterial < handle
     properties (Access = public)
         psi
         displacements
+        displFun
         forces
         designVariable
         tensor
+        strain
     end
 
     properties (Access = private)
+        dC
+        compliance
+        dJVolume
+        dJCompliance
         mesh
         meshSwan
         mat
@@ -80,37 +86,20 @@ classdef mainTFGMultimaterial < handle
 
             fem         = ElasticProblem(s);
             fem.solve();
-            displ      = fem.uFun.fValues; 
-            %Beam
-            % U          = reshape(displ, [size(displ,1)*2, 1]);
-            % force      = fem.forces; 
-            % Fx         = force(1:2:end); % Fx values are at odd indices
-            % Fy         = force(2:2:end); % Fy values are at even indices
-            % forcesVect = [Fx Fy];
-            % F          = reshape(forcesVect, [size(displ,1)*2, 1]);
-
-            % %Bridge 
+            displ    = fem.uFun.fValues; 
+            obj.displFun = fem.uFun;
             U          = reshape(displ, [size(displ,1)*2, 1]);
             force      = fem.forces; 
             Fx         = force(1:2:end); % Fx values are at odd indices
             Fy         = force(2:2:end); % Fy values are at even indices
             forcesVect = [Fx Fy];
             F          = reshape(forcesVect, [size(displ,1)*2, 1]);
-
-            % Arch
-            % U          = reshape(displ, [size(displ,1)*2, 1]);
-            % force      = fem.forces; 
-            % Fx         = force(1:2:end); % Fx values are at odd indices
-            % Fy         = force(2:2:end); % Fy values are at even indices
-            % forcesVect = [Fx Fy];
-            % F          = reshape(forcesVect, [size(displ,1)*2, 1]);
-
-
         end
 
         function volume = computeVolume(obj)
             [~,tfi] = computeCharacteristicFunction(obj);  
             s.tfi   = tfi;
+            s.mesh = obj.mesh;
             s.area  = obj.area;
             vol     = VolumeComputer(s);
             volume  = vol.computeVolume();     
@@ -135,36 +124,27 @@ classdef mainTFGMultimaterial < handle
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
-        function [dt] = computeTopologicalDerivative(obj)
-            %s.meshSeba   = obj.mesh;
+        function dt = computeTopologicalDerivative(obj)
             s.U          = obj.displacements;
             s.volume     = obj.volume;
             s.mat    = obj.mat;
             s.psi         = obj.psi;
             s.designVariable    = obj.designVariable;
             s.mesh          = obj.meshSwan;
-            s.penalization = obj.params.penalization;
-            s.penalty = obj.params.penalty;
-            s.volfrac = obj.params.volfrac;
-            s.auglag = obj.params.auglag;
-            s.max_vol = obj.optParams.max_vol; 
-            s.energy0 = obj.optParams.energy0;
             s.nMat = obj.nMat;
             s.mat = obj.mat;
-            s.psi = obj.psi;     
-            s.designVariable = obj.designVariable;
+
+            topder = TopologicalDerivativeComputer(s);
+            obj.dC = topder.dC;
+            obj.strain = topder.strain;
+            %obj.computeStrain();
+            obj.computeComplianceAndGradient();
+            TD = obj.computeVolumeConstraintinDT();
+            dt = obj.smoothTopologicalDerivative(TD);
             
-            [dC,dt2] = obj.computedC()
+            dt = dt/normL2(obj.unitM,dt);           
 
-            ...
-            ...
 
-            dt = dt/normL2(obj.unitM,dt);            ...
-            dt
-
-            norm(dt(:)- dt2(:)) 
-
-            %dC = Topder.dC;
         end
 
     end
@@ -176,15 +156,30 @@ classdef mainTFGMultimaterial < handle
             obj.nMat = 4;
         end
 
-        function [dC,dt2] = computedC(obj)
-            t =  TopologicalDerivativeComputer()
-            dC = t.dC;
-            dt2 = t.dt2;
+        function computeStrain(obj)
+            quadrature = obj.createQuadrature();
+            xV = quadrature.posgp;
+            strainFun = SymGrad(obj.displFun);
+            strainFun.project('P0',obj.meshSwan)  % NO VAAAA!!!
+            %obj.strain = strainFun.evaluate(xV);
+            
         end
 
-        function computeStrain(obj)
-            strainFun = SymGrad(obj.displacementFun);
-            strainFun.project('P0')
+        function x = createQuadrature(obj)
+            quad = Quadrature.set(obj.meshSwan.type);
+            quad.computeQuadrature('LINEAR');
+            x = quad;
+        end
+
+        function TD = computeDT(obj,dC,e)
+            for i = 1:obj.nMat
+                for j = 1:obj.nMat
+                    for z=1:size(dC,3)
+                        derTop(z) = e(:,z)'*dC(:,:,z,i,j)*e(:,z);
+                    end
+                    TD{i,j} = derTop;
+                end
+            end
         end
 
         function compute(obj)
@@ -209,7 +204,7 @@ classdef mainTFGMultimaterial < handle
             obj.Epot = energyPot;
 
             % Compute topological derivative
-            [obj.DT, dC] = obj.computeTopologicalDerivative();
+            obj.DT = obj.computeTopologicalDerivative();
             obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
             % Compute cosinus and theta
@@ -220,7 +215,7 @@ classdef mainTFGMultimaterial < handle
             difvol = obj.volume(1:end-1)-obj.optParams.voltarget; 
             ic = (abs(difvol) > obj.optParams.volstop); %index control
              
-           % UPDATE MONITORING ITER 0
+            % UPDATE MONITORING ITER 0
             obj.createMonitoring();
 
             % We start the loop    
@@ -249,7 +244,7 @@ classdef mainTFGMultimaterial < handle
                 obj.Epot = energyPot;
 
                 % Update topological derivative
-                [obj.DT,dC] = obj.computeTopologicalDerivative();
+                obj.DT = obj.computeTopologicalDerivative();
                 obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
                 % Update cosinus and theta
@@ -311,27 +306,10 @@ classdef mainTFGMultimaterial < handle
 
                 % Plot the evolution of iterations
                 obj.updatePlotAndDisplay();
-
                 
                 %Update augmented lagrangian parameters
-                difvol = obj.volume(1:end-1)-obj.optParams.voltarget;
-                ic = (abs(difvol) > obj.optParams.volstop); %index control
+                obj.increaseLagrangianMultiplier();
                 
-
-                %%% In a function
-                if any(ic==1) 
-                    if obj.params.penalization == 2 % increase the penalization parameter
-                        obj.params.penalty = 2.0 * obj.params.penalty;
-                        obj.k = 1;
-                    elseif obj.params.penalization == 3 % increase the lagrangian multiplier
-                        coef = obj.volume(1:end-1)./obj.optParams.voltarget; coef = coef(ic); tau = obj.params.auglag;
-                        penalty = obj.params.penalty(ic);
-                        penalty = penalty + (tau(ic)./obj.params.auglag(ic)) .* (max(0,penalty - obj.params.auglag(ic).*(1.0-coef))-penalty);
-                        obj.params.penalty(ic) = penalty;
-                        obj.k = 1;
-                    end
-                end
-
                 % UPDATE MONITORING CURRENT ITERATION
                 obj.updateMonitoring();
 
@@ -349,14 +327,14 @@ classdef mainTFGMultimaterial < handle
 
         function createMesh(obj) 
             % Per passar test:
-             % obj.mesh     = MeshComputer();
-             % s.connec     = obj.mesh.t';
-             % s.connec     = s.connec(:,1:3);
-             % s.coord      = obj.mesh.p';
-             % obj.meshSwan = Mesh.create(s);
+             obj.mesh     = MeshComputer();
+             s.connec     = obj.mesh.t';
+             s.connec     = s.connec(:,1:3);
+             s.coord      = obj.mesh.p';
+             obj.meshSwan = Mesh.create(s);
 
             % Per fer altres exemples:
-            obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
+            % obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
             %obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
             %obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
             p = obj.meshSwan.coord';
@@ -376,11 +354,11 @@ classdef mainTFGMultimaterial < handle
             % Per passar test:
             s.mesh = obj.meshSwan;
             BoundCond  = BoundaryConditionsSwan(s);
-            %obj.bcSwan = BoundCond.createBoundaryConditionsTest();
+            obj.bcSwan = BoundCond.createBoundaryConditionsTest();
 
             % Per fer altres exemples:
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBeam();
-            obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
         end
 
@@ -468,8 +446,8 @@ classdef mainTFGMultimaterial < handle
             F                       = obj.forces;
             U                       = obj.displacements;
             obj.optParams.energy0   = 0.5 * dot(F,U); % initial energy 
-            %max_vol                 = 2; % Beam and arch
-            max_vol                  = 6; % Bridge
+            max_vol                 = 2; % Beam and arch
+            %max_vol                  = 6; % Bridge
             obj.optParams.max_vol   = max_vol; 
             obj.optParams.voltarget = max_vol.*obj.params.volfrac; 
             obj.optParams.volstop   = obj.params.voleps.*max_vol;
@@ -548,7 +526,7 @@ classdef mainTFGMultimaterial < handle
         end
 
         function createMonitoring(obj)
-            titles  = {'Vol_Constraint 1'; 'Vol_Constraint 2'; 'Vol_Constraint Mat 3'; 'Vol_Constraint void'; 'Line Search';'Compliance';'Theta'};
+            titles  = {'Vol Constraint 1'; 'Vol Constraint 2'; 'Vol Constraint 3'; 'Vol Constraint void'; 'Line Search';'Compliance';'Theta'};
             chartTypes = {'plot'; 'plot'; 'plot'; 'plot'; 'bar'; 'plot'; 'plot'};
             
             s.shallDisplay = true;
@@ -565,11 +543,11 @@ classdef mainTFGMultimaterial < handle
                 vol_constraint(i) = (obj.volume(i)/obj.optParams.voltarget(i))-1;
             end
 
-            %voltarget_void = 0.8; % Beam
-            voltarget_void = 2.4; % Bridge
+            voltarget_void = 0.8; % Beam
+            %voltarget_void = 2.4; % Bridge
 
-            %volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
-            volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
+            volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
+            %volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
             void_constraint = (volume_void/voltarget_void)-1;
 
             data = [vol_constraint(1); vol_constraint(2); vol_constraint(3); void_constraint];
@@ -578,6 +556,104 @@ classdef mainTFGMultimaterial < handle
             data = [data;obj.thetaAngle];
             
             obj.monitoring.update(obj.iter,data);
+        end
+
+        function increaseLagrangianMultiplier(obj)
+
+            difvol = obj.volume(1:end-1)-obj.optParams.voltarget;
+            ic = (abs(difvol) > obj.optParams.volstop); %index control
+           
+            if any(ic==1) 
+                if obj.params.penalization == 2 % increase the penalization parameter
+                    obj.params.penalty = 2.0 * obj.params.penalty;
+                    obj.k = 1;
+                elseif obj.params.penalization == 3 % increase the lagrangian multiplier
+                    coef = obj.volume(1:end-1)./obj.optParams.voltarget; coef = coef(ic); tau = obj.params.auglag;
+                    penalty = obj.params.penalty(ic);
+                    penalty = penalty + (tau(ic)./obj.params.auglag(ic)) .* (max(0,penalty - obj.params.auglag(ic).*(1.0-coef))-penalty);
+                    obj.params.penalty(ic) = penalty;
+                    obj.k = 1;
+                end
+            end
+
+        end
+
+        function computeComplianceAndGradient(obj)
+            s.designVariable = obj.designVariable; 
+            s.forces = obj.forces;
+            s.displacements = obj.displacements;
+            s.energy0 = obj.optParams.energy0;
+            s.nMat = obj.nMat;
+            s.dC = obj.dC;
+            s.strain = obj.strain;
+
+            complianceDT = ComplianceFunctionalComputer(s);
+            obj.compliance = complianceDT.J;
+            obj.dJCompliance = complianceDT.dJ;
+        end
+
+
+        function TD = computeVolumeConstraintinDT(obj)
+            pen = obj.params.penalty;
+            maxVol = obj.optParams.max_vol;
+            volt = maxVol*obj.params.volfrac;
+            coef = obj.volume(1:end-1) ./ volt;
+            augmentedLagr = obj.params.auglag;
+            nmat = obj.nMat;
+            TD = obj.dJCompliance;
+
+            for i = 1:obj.nMat
+                for j = 1:obj.nMat
+                    if obj.params.penalization == 1
+                        if i==j
+                            TD{i,j} = 0;
+                        elseif j == nmat
+                            TD{i,j} = TD{i,j}- pen(i)/maxVol;
+                        elseif i == nmat
+                            TD{i,j} = TD{i,j} + pen(j)/maxVol;
+                        else
+                            TD{i,j} = TD{i,j} + (pen(j) - pen(i))/maxVol;
+                        end
+                    elseif obj.params.penalization == 3
+                        if i==j
+                            TD{i,j} = 0;
+                        elseif j == nmat
+                            TD{i,j} = TD{i,j} - ( (pen(i) + augmentedLagr(i)*(coef(i)-1))/volt(i) );
+                        elseif i == nmat
+                            TD{i,j} = TD{i,j} + ( (pen(j) + augmentedLagr(j)*(coef(j)-1))/volt(j) );
+                        else
+                            TD{i,j} = TD{i,j} + ( (pen(j) + augmentedLagr(j)*(coef(j)-1))/volt(j) )...
+                                                      - ( (pen(i) + augmentedLagr(i)*(coef(i)-1))/volt(i) );
+                        end
+                    end
+                end
+            end
+ 
+        end
+
+        function dt = smoothTopologicalDerivative(obj,TD)
+
+            s.psi = obj.psi;
+            s.designVariable = obj.designVariable;
+            s.m = obj.meshSwan;
+  
+            charfun = CharacteristicFunctionComputer(s); 
+            [~,tfi] = charfun.computeFiandTfi();
+
+            t = obj.meshSwan.connec';
+            p = obj.meshSwan.coord';
+            [tXi2,~] = integ_exact(t,p,obj.psi(:,2)); chi2 = (1 - tXi2); %- Mixed formulation method
+            [tXi3,~] = integ_exact(t,p,obj.psi(:,3)); chi3 = (1 - tXi3); %- Mixed formulation method
+            %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method
+            %     chi2 = (pdeintrp(p,t,(psi(:,2)<0))).'; %- P1 projection method
+    
+            dt = [];
+            dt(1,:) = - tfi(1,:).*TD{1,end} - tfi(2,:).*TD{2,end} - tfi(3,:).*TD{3,end} ...
+                + tfi(4,:).*( (1-chi2).*TD{end,1} + (1-chi3).*chi2.*TD{end,2} + chi2.*chi3.*TD{end,3} );
+            dt(2,:) = - tfi(2,:).*TD{2,1} - tfi(3,:).*TD{3,1} + tfi(1,:).*( (1-chi3).*TD{1,2} + chi3.*TD{1,3} );
+            dt(3,:) = tfi(2,:).*TD{2,3} - tfi(3,:).*TD{3,2};
+
+            dt = pdeprtni(p,t,dt);
         end
 
        
