@@ -1,6 +1,6 @@
 classdef TopOptAccelerationExperiments3D < handle
 
-    properties (Access = private)
+    properties (Access = public)
         mesh
         filter
         designVariable
@@ -53,11 +53,11 @@ classdef TopOptAccelerationExperiments3D < handle
             % s.coord  = V(:,1:2);
             % s.connec = F;
             x1 = 2;
-            x2 = 1;
-            x3 = 1;
-            d1 = 50;
-            d2 = 25;
-            d3 = 25;
+            x2 = 1.5;
+            x3 = 1.5;
+            d1 = 40;%60;
+            d2 = 20;%30;
+            d3 = 20;%30;
             obj.mesh = TetraMesh(x1,x3,x2,d1,d3,d2);
         end
 
@@ -117,7 +117,7 @@ classdef TopOptAccelerationExperiments3D < handle
 
         function createSolverTolerance(obj)
             s.solver      = 'CONJUGATE GRADIENT';
-            s.tolMax      = 2e-1;
+            s.tolMax      = 1e-2;%8e-2;
             s.tolMin      = 1e-5;
             obj.solverTol = ConjugateGradientToleranceCalculator(s);
         end
@@ -131,8 +131,8 @@ classdef TopOptAccelerationExperiments3D < handle
             s.interpolationType  = 'LINEAR';
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
-            s.solverCase         = 'CONJUGATE GRADIENT';
-            s.matrixFree         = false;
+            s.solverCase         = 'CONJUGATE GRADIENT';%'DIRECT';%'CONJUGATE GRADIENT'
+            s.matrixFree         = true;
             s.solverTol          = obj.solverTol;
             p.maxIters           = 5e3;
             p.displayInfo        = true;
@@ -160,7 +160,7 @@ classdef TopOptAccelerationExperiments3D < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            s.volumeTarget = 0.15;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -195,8 +195,8 @@ classdef TopOptAccelerationExperiments3D < handle
 
         function createMomentum(obj)
             s.momentumCase = 'Nesterov';
-            s.betaStrategy = 'Adaptative';
-            % s.momentumVal  = 0.5;
+            s.betaStrategy = 'Constant';
+            s.momentumVal  = 0;
             s.x0           = obj.designVariable.fun.fValues;
             obj.momentum   = Momentum(s);
         end
@@ -208,18 +208,24 @@ classdef TopOptAccelerationExperiments3D < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
+            s.tolerance      = 5e-1;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.3;
+            s.volumeTarget   = 0.15;
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
             s.constantTau    = true;
-            s.tauValue       = 5e-2;
+            s.tauValue       = 1e-2;%e-2;
             s.momentum       = obj.momentum;
+            s.etaNorm        = 2;
+            s.gJFlowRatio    = 2;
+            s.etaMax         = 10;
             opt = OptimizerAugmentedLagrangian(s);
+            % opt = OptimizerNullSpace(s);
+            tStart = tic;
             opt.solveProblem();
+            toc(tStart)
             obj.optimizer = opt;
         end
 
@@ -227,9 +233,14 @@ classdef TopOptAccelerationExperiments3D < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
+
+            % cantilever
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & (abs(coor(:,2))<=0.7*yMax) ...
-                & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.45*yMax & (abs(coor(:,2))<=0.55*yMax) ...
+                & abs(coor(:,3))>=0.45*zMax & abs(coor(:,3))<=0.55*zMax);
+            % bridge
+            % isDir   = @(coor)  abs(coor(:,3)) == 0;
+            % isForce = @(coor)  abs(coor(:,3)) == zMax;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];

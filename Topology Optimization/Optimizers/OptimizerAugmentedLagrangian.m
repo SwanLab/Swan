@@ -9,7 +9,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         lineSearchTrials
         lineSearch
         costOld
-        tol = 1e-4
+        tol = 1e-2
         nX
         nConstr
         hasConverged
@@ -79,13 +79,13 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             if cParams.constantTau
                 obj.update = @obj.updateWithConstantTau;
                 obj.primalUpdater.setConstantStepLength(cParams.tauValue);
-                obj.penalty  = cParams.tauValue*10;
+                obj.penalty  = cParams.tauValue*10;%10;
                 obj.meritNew = 0;
                 obj.lineSearchTrials = 0;
                 obj.momentum = cParams.momentum;
             else
                 obj.update  = @obj.updateWithVariableTau;
-                obj.penalty = 3;
+                obj.penalty = 0.5; %3
             end
             obj.createMonitoring(cParams);
         end

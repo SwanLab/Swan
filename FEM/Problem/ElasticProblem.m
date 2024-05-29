@@ -17,7 +17,7 @@ classdef ElasticProblem < handle
         
         strain, stress
         
-        matrixFree
+        matrixFree, isFirstIter
         solverTol, solverParams, solverCase
         internalForcesComputer, testFunction
     end
@@ -40,7 +40,7 @@ classdef ElasticProblem < handle
         end
 
         function solve(obj)
-            if ~obj.matrixFree; obj.computeStiffnessMatrix(); end           
+            if ~obj.matrixFree || obj.isFirstIter; obj.computeStiffnessMatrix(); obj.isFirstIter = false; end           
             obj.computeForces();
             obj.computeDisplacement();
             % obj.computeStrain();
@@ -85,6 +85,7 @@ classdef ElasticProblem < handle
             obj.solverCase   = cParams.solverCase;
             obj.matrixFree   = cParams.matrixFree;
             obj.boundaryConditions = cParams.boundaryConditions;
+            obj.isFirstIter = true;
         end
 
         function createQuadrature(obj)
@@ -161,6 +162,7 @@ classdef ElasticProblem < handle
             pb = ProblemSolver(s);
             % - TO RECOVER
             [u,L] = pb.solve();
+            obj.stiffness = [];
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';

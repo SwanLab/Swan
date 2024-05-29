@@ -23,7 +23,10 @@ classdef InternalForceIntegrator < RHSintegrator
         end
         
         function Fi_el = computeElementalInternalForce(obj, stress, testFunc)
+            % tic
             sig    = stress.evaluate(obj.quadrature.posgp);
+            % disp('Sig time: ' + string(toc))
+            % tic
             dV     = obj.mesh.computeDvolume(obj.quadrature);
             dNdx   = testFunc.evaluateCartesianDerivatives(obj.quadrature.posgp);
 
@@ -39,6 +42,7 @@ classdef InternalForceIntegrator < RHSintegrator
                 fi_int     = pagemtimes(squeeze(dNdx(:,:,iGaus,:)),sig_scaled);
                 Fi_el      = Fi_el + squeeze(fi_int(:,1,:));
             end
+            % disp('Rest time: ' + string(toc))
         end
     end
 

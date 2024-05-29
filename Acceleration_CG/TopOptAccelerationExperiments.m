@@ -129,7 +129,7 @@ classdef TopOptAccelerationExperiments < handle
             s.interpolationType  = 'LINEAR';
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
-            s.solverCase         = 'DIRECT';%'CONJUGATE GRADIENT';%
+            s.solverCase         = 'CONJUGATE GRADIENT';%'DIRECT';%
             s.solverTol          = obj.solverTol;
             s.matrixFree         = false;
             p.maxIters           = 5e3;
@@ -158,7 +158,7 @@ classdef TopOptAccelerationExperiments < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.2;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -192,7 +192,7 @@ classdef TopOptAccelerationExperiments < handle
         end
 
         function createMomentum(obj)
-            s.momentumCase = 'Polyak';
+            s.momentumCase = 'Nesterov';
             s.betaStrategy = 'Constant';
             s.momentumVal  = 0;
             s.x0           = obj.designVariable.fun.fValues;
@@ -206,15 +206,15 @@ classdef TopOptAccelerationExperiments < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
-            s.tolerance      = 1e-2;
+            s.tolerance      = 5e-2;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.1;
             s.primal         = 'PROJECTED GRADIENT';
             s.solverTol      = obj.solverTol;
-            s.constantTau    = false;
-            s.tauValue       = 1;%5e-2;%1e-2;%
+            s.constantTau    = true;
+            s.tauValue       = 5e-3;%5e-2;%1e-2;%
             s.momentum       = obj.momentum;
             s.etaNorm        = 100;
             s.gJFlowRatio    = 100;
@@ -233,12 +233,12 @@ classdef TopOptAccelerationExperiments < handle
             yMax    = max(obj.mesh.coord(:,2));
 
             % cantilever
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
-            
+            % isDir   = @(coor)  abs(coor(:,1))==0;
+            % isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+
             % arch
-            % isDir   = @(coor) abs(coor(:,2)) == 0 & (abs(coor(:,1))<=0.2*xMax | abs(coor(:,1))>=0.8*xMax);
-            % isForce = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax; 
+            isDir   = @(coor) abs(coor(:,2)) == 0 & (abs(coor(:,1))<=0.2*xMax | abs(coor(:,1))>=0.8*xMax);
+            isForce = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax; 
 
             % bridge
             % isDir   = @(coor) abs(coor(:,2)) == 0;
