@@ -131,8 +131,8 @@ classdef TopOptAccelerationExperiments3D < handle
             s.interpolationType  = 'LINEAR';
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
-            s.solverCase         = 'CONJUGATE GRADIENT';%'DIRECT';%'CONJUGATE GRADIENT'
-            s.matrixFree         = true;
+            s.solverCase         = 'DIRECT';%'CONJUGATE GRADIENT';%
+            s.matrixFree         = false;
             s.solverTol          = obj.solverTol;
             p.maxIters           = 5e3;
             p.displayInfo        = true;
