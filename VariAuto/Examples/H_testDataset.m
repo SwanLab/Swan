@@ -6,10 +6,11 @@ close all;
 pol_deg         = 2;
 testratio       = 0;
 lambda          = 0.001;
-learningRate    = 0.05;
-momentum        = 0.9;
-batch           = 200;
+learningRate    = 0.08;
+momentum        = 0.9; % Not used
+batch           = 200; % Not used
 hiddenlayers    = [9 8 7];
+
 
 %% Loading of files/datasets
 fileN = 'testDatasetExtended.csv';
