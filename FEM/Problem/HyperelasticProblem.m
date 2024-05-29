@@ -100,7 +100,7 @@ classdef HyperelasticProblem < handle
 %                     drawnow
                     
                 end
-                obj.uFun.print(['AAShapeFine_paraview',int2str(iStep)])
+                obj.uFun.print(['SIM_Bending_',int2str(iStep)])
 
                 xMax    = max(obj.mesh.coord(:,1));
 
@@ -217,11 +217,8 @@ classdef HyperelasticProblem < handle
         end
 
         function createBoundaryConditions(obj)
-%             obj.createBC2D_oneelem();
-%             obj.createBC2D_knownexample();
-%             obj.createBCflexio();
-            obj.createBC2D_nelem();
-%             obj.createBC3D_oneelem();
+            obj.createBC_2DTraction();
+%             obj.createBC_2DBending();
 %             obj.createBC3D_nelem();
         end
 
@@ -274,139 +271,7 @@ classdef HyperelasticProblem < handle
             sigma.ndimf = [2 2];
         end
 
-%         function bc = createBC2D_oneelem(obj)
-%             xMax    = max(obj.mesh.coord(:,1));
-%             yMax    = max(obj.mesh.coord(:,2));
-%             isLeft   = @(coor)  abs(coor(:,1))==0;
-%             isRight  = @(coor)  abs(coor(:,1))==xMax;
-%             isTop    = @(coor)  abs(coor(:,2))==yMax;
-%             isBottom = @(coor)  abs(coor(:,2))==0;
-%             isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
-% 
-%             % 2D ONE ELEMENT
-%             sDir1.domain    = @(coor) isLeft(coor) & isTop(coor);
-%             sDir1.direction = [1];
-%             sDir1.value     = 0;
-%             dir1 =  DirichletCondition(obj.mesh, sDir1);
-% 
-%             sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
-%             sDir2.direction = [1,2];
-%             sDir2.value     = 0;
-%             dir2 =  DirichletCondition(obj.mesh, sDir2);
-%             s.dirichletFun = [dir1, dir2];
-% 
-%             sPL.domain    = @(coor) isRight(coor);
-%             sPL.direction = 1;
-%             sPL.value     = 0.1;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-%             
-%             s.periodicFun  = [];
-%             s.mesh         = obj.mesh;
-% 
-%             bc = BoundaryConditions(s);
-%             obj.boundaryConditions = bc;
-%         end
-
-%         function bc = createBC2D_knownexample(obj)
-%             xMax    = max(obj.mesh.coord(:,1));
-%             yMax    = max(obj.mesh.coord(:,2));
-%             isLeft   = @(coor)  abs(coor(:,1))==0;
-%             isRight  = @(coor)  abs(coor(:,1))==xMax;
-%             isTop    = @(coor)  abs(coor(:,2))==yMax;
-%             isBottom = @(coor)  abs(coor(:,2))==0;
-%             isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
-% 
-%             constant = 1.08*obj.material.lambda*0.5;
-% 
-%             % Node 1
-%             sDir1xy.domain    = @(coor) isLeft(coor) & isBottom(coor);
-%             sDir1xy.direction = [1,2];
-%             sDir1xy.value     = 0;
-%             dir1 =  DirichletCondition(obj.mesh, sDir1xy);
-% 
-%             % Right, x
-%             sDir2x.domain    = @(coor) isRight(coor);
-%             sDir2x.direction = [1];
-%             sDir2x.value     = 1.2;
-%             dir2x =  DirichletCondition(obj.mesh, sDir2x);
-% 
-%             % Bottom right, y
-%             sDir2a.domain    = @(coor) isBottom(coor);
-%             sDir2a.direction = [2];
-%             sDir2a.value     = 0;
-%             dir2aa =  DirichletCondition(obj.mesh, sDir2a);
-% 
-%             % Top, y
-%             sDir2y.domain    = @(coor) isTop(coor);
-%             sDir2y.direction = [2];
-%             sDir2y.value     = 0.9;
-%             dir2y =  DirichletCondition(obj.mesh, sDir2y);
-% 
-%             % Top left, x
-%             sDir2z.domain    = @(coor) isTop(coor) & isLeft(coor);
-%             sDir2z.direction = [1];
-%             sDir2z.value     = 0;
-%             dir2z =  DirichletCondition(obj.mesh, sDir2z);
-% 
-%             s.dirichletFun = [dir1, dir2x, dir2aa, dir2y, dir2z];
-% 
-%             sPL.domain    = @(coor) isRight(coor);
-%             sPL.direction = 1;
-%             sPL.value     = 0;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-%             
-%             s.periodicFun  = [];
-%             s.mesh         = obj.mesh;
-% 
-%             bc = BoundaryConditions(s);
-%             obj.boundaryConditions = bc;
-%         end
-
-%         function bc = createBCflexio(obj)
-%             xMax    = max(obj.mesh.coord(:,1));
-%             yMax    = max(obj.mesh.coord(:,2));
-%             isLeft   = @(coor)  abs(coor(:,1))==0;
-%             isRight  = @(coor)  abs(coor(:,1))==xMax;
-%             isHalf   = @(coor)  abs(coor(:,1))==xMax/2;
-%             isTop    = @(coor)  abs(coor(:,2))==yMax;
-%             isBottom = @(coor)  abs(coor(:,2))==0;
-%             isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
-% 
-%             % 2D BENDING
-%             sDir1.domain    = @(coor) isLeft(coor) & ~isBottom(coor);
-%             sDir1.direction = [1];
-%             sDir1.value     = 0;
-%             dir1 =  DirichletCondition(obj.mesh, sDir1);
-% 
-%             sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
-%             sDir2.direction = [1,2];
-%             sDir2.value     = 0;
-%             dir2 =  DirichletCondition(obj.mesh, sDir2);
-% 
-%             sDir3.domain    = @(coor) isRight(coor) & ~isBottom(coor);
-%             sDir3.direction = [1];
-%             sDir3.value     = 0;
-%             dir3 =  DirichletCondition(obj.mesh, sDir3);
-% 
-%             sDir4.domain    = @(coor) isRight(coor) & isBottom(coor);
-%             sDir4.direction = [1,2];
-%             sDir4.value     = 0;
-%             dir4 =  DirichletCondition(obj.mesh, sDir4);
-%             s.dirichletFun = [dir1, dir2, dir3, dir4];
-% 
-%             sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
-%             sPL.direction = 2;
-%             sPL.value     = -0.1;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-%             
-%             s.periodicFun  = [];
-%             s.mesh         = obj.mesh;
-% 
-%             bc = BoundaryConditions(s);
-%             obj.boundaryConditions = bc;
-%         end
-
-        function bc = createBC2D_nelem(obj)
+        function bc = createBC_2DTraction(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isLeft   = @(coor)  abs(coor(:,1))==0;
@@ -460,76 +325,87 @@ classdef HyperelasticProblem < handle
             obj.boundaryConditions = bc;
         end
 
-%         function bc = createBC3D_oneelem(obj)
-%             xMax    = max(obj.mesh.coord(:,1));
-%             zMax    = max(obj.mesh.coord(:,3));
-%             isLeft   = @(coor)  abs(coor(:,1))==0;
-%             isRight  = @(coor)  abs(coor(:,1))==xMax;
-%             isTop    = @(coor)  abs(coor(:,3))==zMax;
-%             isBottom = @(coor)  abs(coor(:,3))==0;
-%             isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
-% 
-%             % 2D ONE ELEMENT
-%             sDir1.domain    = @(coor) isLeft(coor) & isTop(coor);
+        function bc = createBC_2DBending(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft   = @(coor)  abs(coor(:,1))==0;
+            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            isHalf   = @(coor)  abs(coor(:,1))==xMax/2;
+            isTop    = @(coor)  abs(coor(:,2))==yMax;
+            isBottom = @(coor)  abs(coor(:,2))==0;
+            isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
+
+            % 2D BENDING
+            sDir1.domain    = @(coor) isLeft(coor) & ~isBottom(coor);
+            sDir1.direction = [1];
+            sDir1.value     = 0;
+            dir1 =  DirichletCondition(obj.mesh, sDir1);
+
+            sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
+            sDir2.direction = [1,2];
+            sDir2.value     = 0;
+            dir2 =  DirichletCondition(obj.mesh, sDir2);
+
+            sDir3.domain    = @(coor) isRight(coor) & ~isBottom(coor);
+            sDir3.direction = [1];
+            sDir3.value     = 0;
+            dir3 =  DirichletCondition(obj.mesh, sDir3);
+
+            sDir4.domain    = @(coor) isRight(coor) & isBottom(coor);
+            sDir4.direction = [1,2];
+            sDir4.value     = 0;
+            dir4 =  DirichletCondition(obj.mesh, sDir4);
+            s.dirichletFun = [dir1, dir2, dir3, dir4];
+
+            sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
+            sPL.direction = 2;
+            sPL.value     = -0.1;
+            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+
+            bc = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
+
+        function bc = createBC3D_nelem(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            zMax    = max(obj.mesh.coord(:,3));
+            isLeft   = @(coor)  abs(coor(:,1))==0;
+            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            isTop    = @(coor)  abs(coor(:,3))==zMax;
+            isBottom = @(coor)  abs(coor(:,3))==0;
+            isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
+            
+            % 3D N ELEMENTS
+%             sDir1.domain    = @(coor) isLeft(coor) & ~isMiddle(coor);
 %             sDir1.direction = [1];
 %             sDir1.value     = 0;
 %             dir1 =  DirichletCondition(obj.mesh, sDir1);
 % 
-%             sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
+%             sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
 %             sDir2.direction = [1,2,3];
 %             sDir2.value     = 0;
 %             dir2 =  DirichletCondition(obj.mesh, sDir2);
 %             s.dirichletFun = [dir1, dir2];
-% 
-%             sPL.domain    = @(coor) isRight(coor);
-%             sPL.direction = 1;
-%             sPL.value     = 0.1;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-%             
-%             s.periodicFun  = [];
-%             s.mesh         = obj.mesh;
-% 
-%             bc = BoundaryConditions(s);
-%             obj.boundaryConditions = bc;
-%         end
-% 
-%         function bc = createBC3D_nelem(obj)
-%             xMax    = max(obj.mesh.coord(:,1));
-%             zMax    = max(obj.mesh.coord(:,3));
-%             isLeft   = @(coor)  abs(coor(:,1))==0;
-%             isRight  = @(coor)  abs(coor(:,1))==xMax;
-%             isTop    = @(coor)  abs(coor(:,3))==zMax;
-%             isBottom = @(coor)  abs(coor(:,3))==0;
-%             isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
-%             
-%             % 3D N ELEMENTS
-% %             sDir1.domain    = @(coor) isLeft(coor) & ~isMiddle(coor);
-% %             sDir1.direction = [1];
-% %             sDir1.value     = 0;
-% %             dir1 =  DirichletCondition(obj.mesh, sDir1);
-% % 
-% %             sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
-% %             sDir2.direction = [1,2,3];
-% %             sDir2.value     = 0;
-% %             dir2 =  DirichletCondition(obj.mesh, sDir2);
-% %             s.dirichletFun = [dir1, dir2];
-% 
-%             sDir2.domain    = @(coor) isLeft(coor);
-%             sDir2.direction = [1,2,3];
-%             sDir2.value     = 0;
-%             s.dirichletFun =  DirichletCondition(obj.mesh, sDir2);
-% 
-%             sPL.domain    = @(coor) isRight(coor);
-%             sPL.direction = 1;
-%             sPL.value     = 10;
-%             s.pointloadFun = PointLoad(obj.mesh, sPL);
-%             
-%             s.periodicFun  = [];
-%             s.mesh         = obj.mesh;
-% 
-%             bc = BoundaryConditions(s);
-%             obj.boundaryConditions = bc;
-%         end
+
+            sDir2.domain    = @(coor) isLeft(coor);
+            sDir2.direction = [1,2,3];
+            sDir2.value     = 0;
+            s.dirichletFun =  DirichletCondition(obj.mesh, sDir2);
+
+            sPL.domain    = @(coor) isRight(coor);
+            sPL.direction = 1;
+            sPL.value     = 10;
+            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+
+            bc = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
 
     end
 
