@@ -217,8 +217,8 @@ classdef HyperelasticProblem < handle
         end
 
         function createBoundaryConditions(obj)
-            obj.createBC_2DTraction();
-%             obj.createBC_2DBending();
+%             obj.createBC_2DTraction();
+            obj.createBC_2DBending();
 %             obj.createBC3D_nelem();
         end
 
@@ -330,37 +330,48 @@ classdef HyperelasticProblem < handle
             yMax    = max(obj.mesh.coord(:,2));
             isLeft   = @(coor)  abs(coor(:,1))==0;
             isRight  = @(coor)  abs(coor(:,1))==xMax;
-            isHalf   = @(coor)  abs(coor(:,1))==xMax/2;
+            isHalf   = @(coor)  abs(abs(coor(:,1)) - xMax/2) <=10e-2;
             isTop    = @(coor)  abs(coor(:,2))==yMax;
             isBottom = @(coor)  abs(coor(:,2))==0;
-            isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
-
-            % 2D BENDING
-            sDir1.domain    = @(coor) isLeft(coor) & ~isBottom(coor);
-            sDir1.direction = [1];
-            sDir1.value     = 0;
-            dir1 =  DirichletCondition(obj.mesh, sDir1);
-
-            sDir2.domain    = @(coor) isLeft(coor) & isBottom(coor);
+            isMiddle = @(coor)  abs(abs(coor(:,2))-yMax/2) <= 10e-2;
+            
+            % 2D N ELEMENTS
+            sDir2.domain    = @(coor) isLeft(coor);
             sDir2.direction = [1,2];
             sDir2.value     = 0;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
 
-            sDir3.domain    = @(coor) isRight(coor) & ~isBottom(coor);
-            sDir3.direction = [1];
-            sDir3.value     = 0;
-            dir3 =  DirichletCondition(obj.mesh, sDir3);
-
-            sDir4.domain    = @(coor) isRight(coor) & isBottom(coor);
+            sDir4.domain    = @(coor) isRight(coor);
             sDir4.direction = [1,2];
             sDir4.value     = 0;
             dir4 =  DirichletCondition(obj.mesh, sDir4);
-            s.dirichletFun = [dir1, dir2, dir3, dir4];
-
+            s.dirichletFun = [dir2, dir4];
+% 
             sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
             sPL.direction = 2;
             sPL.value     = -0.1;
-            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
+
+            [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
+
+            sAF.fHandle = @(x) [0*x(1,:,:);sPL.value*ones(size(x(1,:,:)))];
+            sAF.ndimf   = 2;
+            sAF.mesh    = bM;
+            xFun = AnalyticalFunction(sAF);
+            xFunP1  =xFun.project('P1');
+
+            s.mesh = bM;
+            s.type = 'ShapeFunction';
+            s.quadType = 2;
+            rhsI       = RHSintegrator.create(s);
+            test = LagrangianFunction.create(bM,xFun.ndimf,'P1');
+            Fext2 = rhsI.compute(xFunP1,test);   
+            Fext3 = reshape(Fext2,[bM.ndim,bM.nnodes])';
+
+            Fext = zeros(obj.mesh.nnodes,2);
+            Fext(l2g,:) = Fext3;
+
+            obj.FextInitial = Fext; 
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
