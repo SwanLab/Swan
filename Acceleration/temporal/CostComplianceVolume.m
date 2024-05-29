@@ -1,0 +1,72 @@
+classdef CostComplianceVolume < handle
+
+    properties (Access = private)
+        lambda
+        compliance
+        volume
+    end
+
+    properties (Access = public)
+        value
+        gradient
+    end
+
+    properties (Access = private)
+        designVariable
+        topOpt
+    end
+
+    methods (Access = public)
+
+        function obj = CostComplianceVolume(cParams)
+            obj.init(cParams);
+            obj.createCost();
+        end
+
+        function [J,dJ] = computeValueAndGradient(obj,x)
+            obj.designVariable.update(x);
+            obj.compliance.computeFunctionAndGradient();
+            obj.volume.computeFunctionAndGradient();
+            J  = obj.computeCost;
+            dJ = obj.computeGradient;
+        end
+
+        function computeFunctionAndGradient(obj)
+            obj.compliance.computeFunctionAndGradient();
+            obj.volume.computeFunctionAndGradient();
+            obj.value = obj.computeCost;
+            obj.gradient = obj.computeGradient;
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.topOpt         = cParams.topOpt;
+            obj.designVariable = cParams.designVariable;
+            obj.lambda = 10;
+        end
+
+        function J = computeCost(obj)
+            c = obj.compliance.value;
+            v = obj.volume.value;
+            l = obj.lambda;
+            J = c + l*v;
+        end
+
+        function dJ = computeGradient(obj)
+            dc = obj.compliance.gradient;
+            dv = obj.volume.gradient;
+            l = obj.lambda;
+            dJ = dc + l*dv;
+        end
+
+        function createCost(obj)
+            obj.compliance = obj.topOpt.cost.shapeFunctions{1};
+            obj.volume = obj.topOpt.constraint.shapeFunctions{1};
+        end
+
+    end
+
+end
