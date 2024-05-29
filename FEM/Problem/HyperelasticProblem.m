@@ -173,34 +173,49 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function init(obj)
+            obj.createMesh();
+            obj.createMaterial();
+        end
+
+        function createMesh(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
 %             obj.mesh = UnitHexaMesh(5,5,5);
-            obj.mesh = UnitQuadMesh(50,50);
-
-%             obj.material.mu = 3/8;
-%             obj.material.lambda = 3/4;
-
-            obj.material.mu = 1;
-            obj.material.lambda = 1*1.8;
-
-            k = obj.material.lambda + 2/obj.mesh.ndim * obj.material.mu; % canviar
-            m = obj.material.mu;
-
-            N = obj.mesh.ndim;
-            E = ((N*N*k).*(2*m))./(2*m + N*(N-1)*k);
-            nu = ((N*k)-(2*m))./(2*m + N*(N-1)*k);
-
-%             E = 10.0;
-%             nu = 0.3;
-% 
-            mu = E/(2*(1 + nu));
-            k = E./(N*(1-(N-1)*nu));
-            lambda = k - 2/N*mu;
-
-            obj.material.lambda = lambda;
-            obj.material.mu = mu;
+            obj.mesh = UnitQuadMesh(10,10);
         end
         
+        function createMaterial(obj)
+            % Only 3D
+            obj.material.mu = 1;        % kPa
+            obj.material.lambda = 1*10; % kPa
+
+            k = obj.material.lambda + 2/3 * obj.material.mu; % canviar
+            G = obj.material.mu;
+            L = obj.material.lambda;
+
+            k = L + 2*G/3;
+            E = G*(3*L+2*G)/(L+G);
+            NU = L / (2*(L+G));
+
+            % Using both 2D and 3D formulae
+%             gg = E/(2*(1+NU));
+%             kk = E/(3*(1-2*NU));
+%             ll = E*NU/( (1+NU)*(1-2*NU));
+% 
+%             N = obj.mesh.ndim;
+%             E = G*(3*obj.material.lambda+2*G)/(obj.material.lambda+G);
+%             nu = obj.material.lambda/(2*(obj.material.lambda + k));
+% 
+% %             E = 10.0;
+% %             nu = 0.3;
+% % 
+%             mu = E/(2*(1 + nu));
+%             k = E./(N*(1-(N-1)*nu));
+%             lambda = k - 2/N*mu;
+% 
+%             obj.material.lambda = lambda;
+%             obj.material.mu = mu;
+        end
+
         function createBoundaryConditions(obj)
 %             obj.createBC2D_oneelem();
 %             obj.createBC2D_knownexample();
