@@ -1,10 +1,22 @@
 % Checking double contraction
-clc; clear
+clc; clear; close all;
 
-A = reshape(9:-1:1, 3,3);
-B = reshape(1:81, 3,3,3,3);
-C = reshape(1:9, 3,3);
+mesh = UnitQuadMesh(20,20);
+gPar.type          = 'Circle';
+gPar.radius        = 0.25;
+gPar.xCoorCenter   = 0.5;
+gPar.yCoorCenter   = 0.5;
+g                  = GeometricalFunction(gPar);
+phiFun             = g.computeLevelSetFunction(mesh);
+lsCircle           = phiFun.fValues;
+lsCircleInclusion  = -lsCircle;
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(lsCircleInclusion);
 
-parc1 = einsum(A,B, 'ab,abkl->kl');
-% parc2 = einsum(parc1, C,'kl,kl')
-parc2 = einsum(A,B,C,'ab,abkl,kl')
+
+%% Create Inner Mesh
+% ONLY using MATLAB (GiD improves conditioning)
+IM = uMesh.createInnerMesh();
+IM.plot
