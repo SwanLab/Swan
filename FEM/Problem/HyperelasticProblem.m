@@ -461,7 +461,7 @@ classdef HyperelasticProblem < handle
             isBack   = @(coor)  abs(coor(:,2))==0;
             isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
 
-            isInSquare = @(coor) (coor(:,1) >= 0.4 & coor(:,1) <= 0.6) & (coor(:,2) >= 0.4 & coor(:,2) <= 0.6);
+            isInSquare = @(coor) (coor(:,1) >= 0.25 & coor(:,1) <= 0.75) & (coor(:,2) >= 0.25 & coor(:,2) <= 0.75);
             
             % Dirichlet
 
@@ -473,7 +473,7 @@ classdef HyperelasticProblem < handle
             % Neumann
             sPL.domain    = @(coor) isInSquare(coor);
             sPL.direction = 3;
-            sPL.value     = -0.1;
+            sPL.value     = -0.5;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             topFace = obj.mesh.createBoundaryMesh{6};
