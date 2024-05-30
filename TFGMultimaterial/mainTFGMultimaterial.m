@@ -34,6 +34,7 @@ classdef mainTFGMultimaterial < handle
         iter
         area
         unitMSeba
+        displFun
     end
 
 
@@ -80,12 +81,13 @@ classdef mainTFGMultimaterial < handle
             fem         = ElasticProblem(s);
             fem.solve();
             displ      = fem.uFun.fValues; 
-            U          = reshape(displ, [26082, 1]);
+            obj.displFun = fem.uFun;
+            U          = reshape(displ, [size(displ,1)*2, 1]);
             force      = fem.forces; 
             Fx         = force(1:2:end); % Fx values are at odd indices
             Fy         = force(2:2:end); % Fy values are at even indices
             forcesVect = [Fx Fy];
-            F          = reshape(forcesVect, [26082, 1]);
+            F          = reshape(forcesVect, [size(displ,1)*2, 1]);
         end
 
         function volume = computeVolume(obj)

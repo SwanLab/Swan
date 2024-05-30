@@ -2,11 +2,14 @@ classdef TopologicalDerivativeComputer < handle
 
     properties (Access = public)
         dt
+        dC
+        strain
+        TD
     end
 
     properties (Access = private)
-        TD
         p
+        tensor
         t
         mesh
         psi
@@ -120,13 +123,22 @@ classdef TopologicalDerivativeComputer < handle
 
         function computeStressAndStrain(obj)
             [ux,uy]=pdegrad(obj.p,obj.t,obj.U); % solution gradient
-            e=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain
-            id=[1 0 1]';
             
-            s=obj.la0*id*(e(1,:)+e(3,:))+2*obj.mu0*e; % stress
+
+            % Seba
+            % e=[ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)]; % strain
+            % id=[1 0 1]';
+            % s=obj.la0*id*(e(1,:)+e(3,:))+2*obj.mu0*e; % stress
+
+            % Swan
+            obj.strain = [ux(1,:);(ux(2,:)+uy(1,:))/2;uy(2,:)];
+            e = obj.strain;
+            obj.tensor = [obj.la0+2*obj.mu0 0 obj.la0; 0 2*obj.mu0 0; obj.la0 0 obj.la0+2*obj.mu0];
+            sSwan = obj.tensor*e;
+            
             % effective stress
             tgamma3 = [obj.tgamma;obj.tgamma;obj.tgamma]; 
-            obj.stress = s.*tgamma3;
+            obj.stress = sSwan.*tgamma3;
         end
 
         function computeTopologicalDerivative(obj)
