@@ -473,7 +473,7 @@ classdef HyperelasticProblem < handle
             % Neumann
             sPL.domain    = @(coor) isInSquare(coor);
             sPL.direction = 3;
-            sPL.value     = -0.5;
+            sPL.value     = -1;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             topFace = obj.mesh.createBoundaryMesh{6};
