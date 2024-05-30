@@ -14,7 +14,7 @@ classdef HyperelasticProblem < handle
         neohookeanFun
 
         stiffness
-        Fext
+        %Fext
         solver, solverType, solverMode, solverCase
         scale
         
@@ -461,7 +461,7 @@ classdef HyperelasticProblem < handle
             isBack   = @(coor)  abs(coor(:,2))==0;
             isMiddle = @(coor)  abs(coor(:,3))==zMax/2;
 
-            isInSquare = @(coor) (coor(:,1) >= 0.4 & coor(:,1) <= 0.6) & (coor(:,2) >= 0.4 & coor(:,1) <= 0.6);
+            isInSquare = @(coor) (coor(:,1) >= 0.4 & coor(:,1) <= 0.6) & (coor(:,2) >= 0.4 & coor(:,2) <= 0.6);
             
             % Dirichlet
 
@@ -473,7 +473,7 @@ classdef HyperelasticProblem < handle
             % Neumann
             sPL.domain    = @(coor) isInSquare(coor);
             sPL.direction = 3;
-            sPL.value     = -0.5;
+            sPL.value     = -0.1;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             topFace = obj.mesh.createBoundaryMesh{6};
@@ -486,7 +486,7 @@ classdef HyperelasticProblem < handle
 
 %             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
 
-            sAF.fHandle = @(x) [0*x(1,:,:);sPL.value*ones(size(x(1,:,:)));0*x(3,:,:)];
+            sAF.fHandle = @(x) [0*x(1,:,:);0*x(3,:,:);sPL.value*ones(size(x(1,:,:)))];
             sAF.ndimf   = 3;
             sAF.mesh    = bM;
             xFun = AnalyticalFunction(sAF);
@@ -500,10 +500,17 @@ classdef HyperelasticProblem < handle
             Fext2 = rhsI.compute(xFunP1,test);   
             Fext3 = reshape(Fext2,[bM.ndim,bM.nnodes])';
 
-            Fext = zeros(obj.mesh.nnodes,3);
+            Fext = zeros(bMtop.nnodes,3);
             Fext(l2g,:) = Fext3;
 
-            obj.FextInitial = Fext; 
+            FextFi = zeros(obj.mesh.nnodes,3);
+            FextFi(l2gTop,:) = Fext;
+%             aa.fValues = FextFi;
+%             aa.mesh = obj.mesh;
+%             aa.order = 'P1';
+%             p1 = LagrangianFunction(aa);
+% %             p1.print('forces3d')
+            obj.FextInitial = FextFi; 
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
