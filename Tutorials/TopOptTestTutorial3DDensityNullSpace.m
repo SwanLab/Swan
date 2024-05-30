@@ -62,6 +62,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = false;
+            s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type);
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
             %%%%DENSITY^%%%%
@@ -75,6 +76,19 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % s.plotting = false;
             % ls     = DesignVariable.create(s);
             % obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond,type)
+            coor  = obj.mesh.coord;
+            nodes = find(cond(coor));
+            isFixed.nodes = nodes;
+            switch type
+                case 'Density'
+                    values = ones(size(nodes));
+                case 'LevelSet'
+                    values = -ones(size(nodes));
+            end
+            isFixed.values = values;
         end
 
         function createFilter(obj)
