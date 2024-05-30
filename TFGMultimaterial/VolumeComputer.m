@@ -23,7 +23,8 @@ classdef VolumeComputer < handle
     methods (Access = public)
         
         function init(obj,cParams)
-            obj.area = cParams.mesh.area;
+            %obj.area = cParams.mesh.area;
+            obj.area = cParams.area;
             obj.tfi = cParams.tfi; 
         end
     end

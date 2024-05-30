@@ -39,7 +39,7 @@ classdef ElasticTensorComputer < handle
             obj.E(3) = mat.C.young;
             obj.E(4) = mat.D.young;
 
-            obj.mesh     = cParams.mesh;
+            %obj.mesh     = cParams.mesh;
             obj.pdeCoeff = cParams.pdeCoeff;
             obj.bc       = cParams.bc;
             obj.designVariable = cParams.designVariable;
@@ -47,8 +47,8 @@ classdef ElasticTensorComputer < handle
         end
 
         function computeCharacteristicFunction(obj)
-            s.p = obj.mesh.p;
-            s.t = obj.mesh.t;
+            s.p = obj.m.coord';
+            s.t = obj.m.connec';
             s.pdeCoeff = obj.pdeCoeff; 
             s.designVariable = obj.designVariable;
             s.m = obj.m;

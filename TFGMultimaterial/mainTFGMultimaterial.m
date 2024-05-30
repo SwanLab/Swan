@@ -32,6 +32,8 @@ classdef mainTFGMultimaterial < handle
         fiFunction
         phold
         iter
+        area
+        unitMSeba
     end
 
 
@@ -49,15 +51,16 @@ classdef mainTFGMultimaterial < handle
             obj.solveInitialElasticProblem();
             obj.createOptimizationParameters();
             obj.createMassMatrix();
+            %obj.createMassMatrixSwan();
             obj.compute();
         end
 
         function C = computeElasticTensor(obj)
             s.psi               = obj.psi;
-            s.mesh              = obj.mesh;
+           % s.mesh              = obj.mesh;
             s.matProp           = obj.mat;
             s.pdeCoeff          = obj.pdeCoeff;
-            s.bc                = obj.bc;
+            s.bc                = obj.bcSwan;
             s.m                 = obj.meshSwan;
             s.designVariable    = obj.designVariable;
             
@@ -88,7 +91,8 @@ classdef mainTFGMultimaterial < handle
         function volume = computeVolume(obj)
             [~,tfi] = computeCharacteristicFunction(obj);  
             s.tfi   = tfi;
-            s.mesh  = obj.mesh;
+            s.mesh  = obj.meshSwan;
+            s.area = obj.area;
             vol     = VolumeComputer(s);
             volume  = vol.computeVolume();     
         end
@@ -144,6 +148,7 @@ classdef mainTFGMultimaterial < handle
 
         function init(obj)
             close all;
+            obj.nMat = 4;
         end
 
         function compute(obj)
@@ -301,18 +306,34 @@ classdef mainTFGMultimaterial < handle
             s.coord      = obj.mesh.p';
             
             obj.meshSwan = Mesh.create(s);
+            
+            % Per fer altres exemples:
+            % obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
+            % obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
+            % obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
+
+            p = obj.meshSwan.coord';
+            t = obj.meshSwan.connec';
+            obj.area = pdetrg(p,t);
+
         end
 
         function createBoundaryConditions(obj)
-            s.m        = obj.meshSwan; 
-            s.mesh     = obj.mesh;
-            s.g        = obj.mesh.g;
-            bounCon    = BoundaryConditionsComputer(s);
-            obj.bc     = bounCon.bc;
-            s.mesh     = obj.meshSwan; 
-            
+            % s.m        = obj.meshSwan; 
+            % s.mesh     = obj.mesh;
+            % s.g        = obj.mesh.g;
+            % bounCon    = BoundaryConditionsComputer(s);
+            % obj.bc     = bounCon.bc;
+            % s.mesh     = obj.meshSwan; 
+
+            s.mesh = obj.meshSwan;
             BoundCond  = BoundaryConditionsSwan(s);
             obj.bcSwan = BoundCond.createBoundaryConditions();
+
+             % Per fer altres exemples:
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBeam();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
         end
 
         function createMaterial(obj)
@@ -409,6 +430,15 @@ classdef mainTFGMultimaterial < handle
 
             [~,obj.unitM,~] = assema(p,t,0,1,0); % mass matrix of unity density
         end
+
+        % function createMassMatrixSwan(obj)
+        %     s.test  = LagrangianFunction.create(obj.meshSwan,1,'P1');
+        %     s.trial = LagrangianFunction.create(obj.meshSwan,1,'P1');
+        %     s.mesh  = obj.meshSwan;
+        %     s.type  = 'MassMatrix';
+        %     LHS = LHSintegrator.create(s);
+        %     obj.unitM = LHS.compute;     
+        % end
 
         function updateDesignVariable(obj)
             
