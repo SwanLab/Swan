@@ -65,7 +65,7 @@ y_u = y_c + yt.*cos(theta);
 x_l = x_p + yt.*sin(theta);
 y_l = y_c - yt.*cos(theta);
 
-for i=2:1:lenght(x_u)
+% for i=2:1:lenght(x_u)
 %Plot chamber line:
 plot(x_p,y_c)
 axis equal

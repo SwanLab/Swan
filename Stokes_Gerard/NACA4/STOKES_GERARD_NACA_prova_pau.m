@@ -49,8 +49,8 @@ axis equal
 
 x_LE=x_centr-0.5;
 AOA = -deg2rad(AOAd);
-x_cnr = x_p+x_LE;
-y_cnr = y_c+y_centr;
+x_cnr = x_coord+x_LE;
+y_cnr = y_coord+y_centr;
 
 x_cn = (x_cnr-x_centr).*cos(AOA)-(y_cnr-y_centr).*sin(AOA)+x_centr;
 y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
