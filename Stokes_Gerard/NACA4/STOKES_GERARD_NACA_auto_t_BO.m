@@ -284,7 +284,7 @@ mesh = uMesh.createInnerMesh();
 figure
 plot(uMesh)
 hold on 
-scatter(punts_rot(1,:,1),punts_rot(2,:,1))
+% scatter(punts_rot(1,:,1),punts_rot(2,:,1))
 %figure
 %plot(lsFun)
 e.type  = 'STOKES';

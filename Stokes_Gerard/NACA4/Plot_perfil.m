@@ -1,10 +1,10 @@
 clear
 close all
 
-M=0/100;
+M=9/100;
 p=4/10;
 t=12/100;
-pas=0.01;
+pas=0.001;
 x_p=[0:pas:1]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
@@ -22,7 +22,7 @@ plot(x_p,y_c)
 axis equal
 grid on
 hold on
-scatter(x_p,y_c);
+% scatter(x_p,y_c);
 hold on
 %Plot airfoil with circles:
 for ii=1:1:size(x_p,2)
@@ -30,68 +30,68 @@ for ii=1:1:size(x_p,2)
     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
 
 
-    plot(x_c,y+y_c(ii));
+    plot(x_c,y+y_c(ii),'b');
     hold on
-    plot(x_c,-y+y_c(ii));
-    hold on
-
-end
-
-axis equal
-
-%% Nou mètode
-M=0/100;
-p=4/10;
-t=12/100;
-
-pas=0.00001;
-
-x_p=[0:pas:1];
-
-yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4); % el valor que hi ha ara és per tenir la punta tancada-0.1036
-
-for j=1:1:size(x_p,2)
-    if x_p(j)<=p
-        y_c(j)=(M/(p^2))*(2*p*x_p(j)-x_p(j)^2);
-        theta(j)=atan((2*M/(p^2))*(p-x_p(j)));
-    elseif x_p(j)>p
-        y_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
-        theta(j)=atan(((2*M/((1-p)^2))*(p-x_p(j))));
-    end
-end
-
-x_u = x_p - yt.*sin(theta);
-y_u = y_c + yt.*cos(theta);
-x_l = x_p + yt.*sin(theta);
-y_l = y_c - yt.*cos(theta);
-
-% for i=2:1:lenght(x_u)
-%Plot chamber line:
-plot(x_p,y_c)
-axis equal
-grid on
-hold on
-scatter(x_p,y_c);
-hold on
-%Plot airfoil with circles:
-for ii=1:1:size(x_p,2)
-    x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
-    y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
-
-
-    plot(x_c,y+y_c(ii));
-    hold on
-    plot(x_c,-y+y_c(ii));
+    plot(x_c,-y+y_c(ii),'b');
     hold on
 
 end
 
 axis equal
+
+% %% Nou mètode
+% M=0/100;
+% p=4/10;
+% t=12/100;
+% 
+% pas=0.00001;
+% 
+% x_p=[0:pas:1];
+% 
+% yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4); % el valor que hi ha ara és per tenir la punta tancada-0.1036
+% 
+% for j=1:1:size(x_p,2)
+%     if x_p(j)<=p
+%         y_c(j)=(M/(p^2))*(2*p*x_p(j)-x_p(j)^2);
+%         theta(j)=atan((2*M/(p^2))*(p-x_p(j)));
+%     elseif x_p(j)>p
+%         y_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
+%         theta(j)=atan(((2*M/((1-p)^2))*(p-x_p(j))));
+%     end
+% end
+% 
+% x_u = x_p - yt.*sin(theta);
+% y_u = y_c + yt.*cos(theta);
+% x_l = x_p + yt.*sin(theta);
+% y_l = y_c - yt.*cos(theta);
+% 
+% % for i=2:1:lenght(x_u)
+% %Plot chamber line:
+% plot(x_p,y_c)
+% axis equal
+% grid on
+% hold on
+% scatter(x_p,y_c);
+% hold on
+% %Plot airfoil with circles:
+% for ii=1:1:size(x_p,2)
+%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
+%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+% 
+% 
+%     plot(x_c,y+y_c(ii));
+%     hold on
+%     plot(x_c,-y+y_c(ii));
+%     hold on
+% 
+% end
+% 
+% axis equal
 
 %% Mètode de les circumf
 clear
 
-M=0/100;
+M=9/100;
 p=4/10;
 t=12/100;
 

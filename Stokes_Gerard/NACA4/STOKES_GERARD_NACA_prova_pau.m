@@ -55,7 +55,7 @@ y_cnr = y_coord+y_centr;
 x_cn = (x_cnr-x_centr).*cos(AOA)-(y_cnr-y_centr).*sin(AOA)+x_centr;
 y_cn = (x_cnr-x_centr).*sin(AOA)+(y_cnr-y_centr).*cos(AOA)+y_centr;
 
-fH = @(x)  double(inpolygon(x(1,:,:),x(2,:,:),x_cn,y_cn))-0.5; %@(x)
+fH = @(x)  double(inpolygon(x(1,:,:),x(2,:,:),x_cn,y_cn))-0.5; 
 
 
 
