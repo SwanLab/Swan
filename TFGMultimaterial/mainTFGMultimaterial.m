@@ -237,8 +237,8 @@ classdef mainTFGMultimaterial < handle
                     primalUpdater = SLERP(s);
                     obj.psi = primalUpdater.update(dt,psiold);
 
-                    %obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
-                            %+  sin(obj.k*theta)*dt(free,:))./sin(theta);
+                    % obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
+                    %         +  sin(obj.k*theta)*dt(free,:))./sin(theta);
                         
                     % Solve elastic problem again    
                     obj.updateDesignVariable();

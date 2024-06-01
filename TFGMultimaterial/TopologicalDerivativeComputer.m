@@ -148,17 +148,34 @@ classdef TopologicalDerivativeComputer < handle
             a = obj.alpha;
             b = obj.beta;
             s = obj.stress;
+            C = obj.tensor;
+            tgamma3 = [obj.tgamma;obj.tgamma;obj.tgamma];
+            e = obj.strain.*tgamma3;
 
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
                     g  = E(j)/E(i);
-                    coef1 = 0.5*((1-g)./(1+a*g))./obj.tE;
-                    coef2 = coef1.*((g.*(a-2*b)-1)./(1+b*g));
-                    obj.TD{i,j} = coef1.*(4*(s(1,:).*s(1,:)+2*s(2,:).*s(2,:)+s(3,:).*s(3,:))) ...
-                    + coef2.*((s(1,:)+s(3,:)).*(s(1,:)+s(3,:))) ;
-                end
+                    % Seba
+                    % coef1 = 0.5*((1-g)./(1+a*g))./obj.tE;
+                    % coef2 = coef1.*((g.*(a-2*b)-1)./(1+b*g));
+                    % obj.TD{i,j} = coef1.*(4*(s(1,:).*s(1,:)+2*s(2,:).*s(2,:)+s(3,:).*s(3,:))) ...
+                    % + coef2.*((s(1,:)+s(3,:)).*(s(1,:)+s(3,:))) ;
+                    
+                    % Swan
+                    c1 = 0.5*((1-g)./(1+a*g))./obj.tE;
+                    c2 = c1.*((g.*(a-2*b)-1)./(1+b*g));
+                    
+                    for k=1:size(s,2)
+                        coefMatrix = [4*c1(k)+c2(k) 0 c2(k); 0 8*c1(k) 0; c2(k) 0 4*c1(k)+c2(k)]; 
+                        obj.dC(:,:,k,i,j) = C*coefMatrix*C; %(:,:,k,i,j)%
+                        derTop(k) = e(:,k)'*obj.dC(:,:,k,i,j)*e(:,k);
+                    end
+                    
+                    obj.TD{i,j} = derTop;   
+                end      
             end
         end
+        
 
         function computeVolumeConstraintinDT(obj)
             coef = obj.volume(1:end-1) ./ obj.voltarget;
