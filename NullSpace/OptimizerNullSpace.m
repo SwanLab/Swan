@@ -41,7 +41,9 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.designVariable.fun.print(['ConceptualDesign/Density_NullSpaceBO/MallaPOCEXTENSA4_',char(string(obj.nIter))]);
+                if obj.nIter/10 == round (obj.nIter/10)
+                obj.designVariable.fun.print(['ConceptualDesign/Malla_CARTESIANA/Iter_',char(string(obj.nIter))]);
+                end
                 obj.designVariable.updateOld();
             end
         end

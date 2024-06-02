@@ -62,7 +62,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = false;
-            s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type);
+            s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type);  %Volum no tocable
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
             %%%%DENSITY^%%%%
@@ -141,17 +141,19 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         % 
         %     m = MaterialInterpolator.create(s);
         %     obj.materialInterpolator = m;
-        % end
-        % 
-        % function m = createMaterial(obj)
-        %     x = obj.designVariable;
-        %     f = x.obtainDomainFunction();
-        %     f = f.project('P1');
-        %     s.type                 = 'DensityBased';
-        %     s.density              = f;
-        %     s.materialInterpolator = obj.materialInterpolator;
-        %     s.dim                  = '3D';
-        %     m = Material.create(s);
+        
+        
+        end
+         
+         function m = createMaterial(obj)
+             x = obj.designVariable;
+             f = x.obtainDomainFunction();
+             f = f.project('P1');
+             s.type                 = 'DensityBased';
+             s.density              = f;
+             s.materialInterpolator = obj.materialInterpolator;
+             s.dim                  = '3D';
+             m = Material.create(s);
         end
 
         function createElasticProblem(obj)
@@ -231,7 +233,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;                       %Iteracions
+            s.maxIter        = 3000;                       %Iteracions
             s.tolerance      = 1e-8;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT'; 
