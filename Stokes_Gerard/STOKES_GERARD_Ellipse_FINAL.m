@@ -4,14 +4,14 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-dim_a = 0.2; % Semi-major axis 0.2
-dim_b = 0.08; % Semi-minor axis 0.02
-center_posx = 0.7; % x position of the ellipse center
-center_posy = 0.5; % y position of the ellipse center
+dim_a = 0.5; % Semi-major axis 0.2
+dim_b = 0.2; % Semi-minor axis 0.02
+center_posx = 3.5; % x position of the ellipse center
+center_posy = 2; % y position of the ellipse center
 AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(2,1,100,100); % MESH
+m = QuadMesh(10,4,450,450*0.8); % MESH
 s.type='Given';
 AOAr = deg2rad(AOAd);
 
@@ -25,6 +25,13 @@ sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de 
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
 mesh = uMesh.createInnerMesh();
+
+
+% plot(lsFun);
+% hold on
+% plot(uMesh);
+% colorbar off;
+% set(gca, 'DataAspectRatio', [1 1 3]);
 
 e.type  = 'STOKES';
 e.nelem = mesh.nelem;
@@ -66,10 +73,10 @@ for i = 1:1:size_cutmesh
 
 end
 
-plot(uMesh);
+% plot(uMesh);
 dirDofspresscyl_bo = sort(reshape(dirDofspresscyl,size(dirDofspresscyl,2)*2,1));
 nodespresscyl = 1 + (dirDofspresscyl_bo(2:2:end)-2)/velocityFun.ndimf;
-scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
+% scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
 
 %Trobem les coordenades dels nodes intermitjos
 coor_occult=zeros(size_cutmesh,2);
@@ -90,7 +97,7 @@ end
 
 dirDofsoccucyl_bo = sort(reshape(dirDofsoccucyl,size(dirDofsoccucyl,2)*2,1));
 nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
-scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
+% scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 % Pressure bc
 dir_pre{1}.domain    = @(coor) isRight(coor) & isBottom(coor);
