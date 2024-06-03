@@ -4,6 +4,7 @@ classdef AcceleratedGradientDescent < handle
         xFinal
         incJ
         J
+        costFields
     end
 
     properties (Access = private)
@@ -16,15 +17,29 @@ classdef AcceleratedGradientDescent < handle
         nIter
         oldCost
         designVariable
+        solverTol
+        monitoring
+        eta
+        matrixFree
     end
 
     methods (Access = public)
 
         function obj = AcceleratedGradientDescent(cParams)
             obj.init(cParams);
+            obj.createMonitoring();
         end
 
         function solve(obj)
+            if obj.matrixFree
+                obj.solveWithMatrixFree();
+            else
+                obj.solveStandard();
+            end
+            % obj.solveStandard();
+        end
+
+        function solveStandard(obj)
             d = obj.designVariable;
             obj.restartDesignVariable();
             x    = obj.designVariable.fun.fValues;
@@ -42,14 +57,79 @@ classdef AcceleratedGradientDescent < handle
                 xNew = obj.computeGradientStep(y,DJ,t);
                 xNew = obj.computeProjection(xNew);
                 xOld = x;
+                d.updateOld();
                 x    = xNew;
                 d.update(x);
+                iNorm = obj.eta*d.computeNonScaledL2normIncrement();
+                obj.solverTol.compute(iNorm);
                 obj.cost.computeFunctionAndGradient(d);
                 obj.storeIterationData();
                 obj.oldCost = obj.cost.value;
                 obj.nIter   = obj.nIter + 1;
+                obj.updateMonitoring();
+                d.plot();
             end
             obj.xFinal = x;
+        end
+
+        function solveWithMatrixFree(obj)
+            d = obj.designVariable;
+            obj.restartDesignVariable();
+            x    = obj.designVariable.fun.fValues;
+            xOld = x;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.oldCost = 0;
+            obj.nIter   = 1;
+            obj.storeIterationData();
+            t  = obj.tau;
+            t0 = obj.tau;
+            while ~obj.hasConverged()
+                beta = obj.computeBeta();
+                y    = obj.addMomentumTerm(xOld,x,beta);
+                obj.gradientComputer(x,y);
+                DJ   = obj.cost.gradient;
+                xNew = obj.computeGradientStep(y,DJ,t);
+                xNew = obj.computeProjection(xNew);
+                xOld = x;
+                d.updateOld();
+                x    = xNew;
+                d.update(x);
+                % while d.computeNonScaledL2normIncrement() > 1e-4
+                %     % d.update(xOld);
+                %     t = t/1.5;
+                %     xNew = obj.computeGradientStep(y,DJ,t);
+                %     xNew = obj.computeProjection(xNew);
+                %     d.update(xNew);
+                % end
+                % t = t0;
+                iNorm = obj.eta*d.computeNonScaledL2normIncrement();
+                obj.solverTol.compute(iNorm);
+                obj.cost.computeFunctionAndGradient(d);
+                obj.storeIterationData();
+                obj.oldCost = obj.cost.value;
+                obj.nIter   = obj.nIter + 1;
+                obj.updateMonitoring();
+                d.plot();
+            end
+            obj.xFinal = x;
+        end
+
+    end
+
+    methods (Access = private)
+        function createMonitoring(obj)
+            titles = {'Cost';'Compliance';'Volume';'Norm L2 x'};
+            chartTypes = {'plot','plot','plot','log'};
+            s.shallDisplay = true;
+            s.maxNColumns  = 2;
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
+            obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = [obj.cost.value;obj.cost.getFields(1);obj.cost.getFields(2);obj.designVariable.computeNonScaledL2normIncrement()];
+            obj.monitoring.update(obj.nIter,data);
         end
 
     end
@@ -88,13 +168,17 @@ classdef AcceleratedGradientDescent < handle
             obj.TOL               = cParams.TOL;
             obj.maxIter           = cParams.maxIter;
             obj.tau               = cParams.tau;
+            obj.solverTol         = cParams.solverTol;
+            obj.eta               = cParams.eta;
             obj.momentumParameter = MomentumParameter.create(cParams.momentumParameter);
             obj.gradientComputer  = obj.createGradient(cParams.gDescentType);
+            obj.matrixFree        = cParams.matrixFree;
         end
 
         function storeIterationData(obj)
             obj.incJ(obj.nIter) = abs(obj.cost.value - obj.oldCost);
             obj.J(obj.nIter)    = obj.cost.value;
+            obj.costFields(:,obj.nIter) = [obj.cost.getFields(1);obj.cost.getFields(2)];
         end
 
         function f = createGradient(obj,type)

@@ -69,6 +69,14 @@ classdef ElasticProblem < handle
             funNames = {'displacement', 'strain', 'stress'};
         end
 
+        function tols = getSolverTols(obj)
+            tols = obj.solver.nTols;
+        end
+
+        function it = getSolverIters(obj)
+            it = obj.solver.nIters;
+        end
+
     end
 
     methods (Access = private)

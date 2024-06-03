@@ -219,8 +219,8 @@ classdef TopOptAccelerationExperiments < handle
             s.etaNorm        = 100;
             s.gJFlowRatio    = 100;
             s.etaMax         = 1.5e3;
-            % opt = OptimizerAugmentedLagrangian(s);
-            opt = OptimizerNullSpace(s);
+            opt = OptimizerAugmentedLagrangian(s);
+            % opt = OptimizerNullSpace(s);
             % opt = OptimizerMMA(s);
             tStart = tic;
             opt.solveProblem();

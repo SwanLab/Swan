@@ -9,6 +9,7 @@ classdef AccelerationProblem < handle
         designVariable
         settings
         tau
+        solverTol
     end
 
     methods (Access = public)
@@ -20,6 +21,8 @@ classdef AccelerationProblem < handle
         function createProblemAndCompute(obj)
             s = obj.settings;
             switch s.problemType
+                case 'SOLVER'
+                    obj.createSolverProblemAndCompute();
                 case 'GENERAL'
                     obj.createGeneralProblemAndCompute();
                 case 'TAU_BETA'
@@ -37,6 +40,23 @@ classdef AccelerationProblem < handle
             obj.cost           = cParams.cost;
             obj.designVariable = cParams.designVariable;
             obj.settings       = cParams.settings;
+            obj.solverTol      = cParams.solverTol;
+        end
+
+        function createSolverProblemAndCompute(obj)
+            s.tau = obj.settings.tau;
+            s.TOL = obj.settings.TOL;
+            s.maxIter = obj.settings.maxIter;
+            s.cost = obj.cost;
+            s.eta = obj.settings.eta;
+            s.matrixFree = obj.settings.matrixFree;
+            s.solverTol = obj.solverTol;
+            s.designVariable = obj.designVariable;
+            s.momentumParameter.type = 'CONSTANT';
+            s.momentumParameter.value = 0;
+            s.gDescentType            = 'Polyak';
+            obj.problem = AcceleratedGradientDescent(s);
+            obj.problem.solve();
         end
 
         function createGeneralProblemAndCompute(obj)

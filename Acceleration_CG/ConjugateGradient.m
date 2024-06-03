@@ -1,5 +1,10 @@
 classdef ConjugateGradient < handle
 
+    properties (Access = public)
+        nIters
+        nTols
+    end
+
     properties (Access = private)
         xOld
         tol
@@ -16,10 +21,8 @@ classdef ConjugateGradient < handle
         function x = solve(obj,A,b)
             tic
             if isempty(obj.xOld) % - Might be replaced in the future by an stored initial guess
-                %x  = A\b;
-                %it = -1;
                  t = obj.tol.val;  
-                 [x,~,~,it] = pcg(A,b,t,obj.maxIters);
+                 [x,~,~,it] = pcg(A,b,t,5e3);
             else
                 x = obj.xOld;
                 t = obj.tol.val;                
@@ -27,6 +30,8 @@ classdef ConjugateGradient < handle
             end
             obj.xOld = x;            
             obj.displayInfo(it);
+            obj.nIters = [obj.nIters, it];
+            obj.nTols  = [obj.nTols, t];
         end
 
     end
@@ -34,6 +39,8 @@ classdef ConjugateGradient < handle
     methods (Access = private)
 
         function init(obj,cParams)
+            obj.nIters   = [];
+            obj.nTols    = [];
             obj.tol      = cParams.tol;
             obj.maxIters = cParams.solverParams.maxIters;
             if cParams.solverParams.displayInfo

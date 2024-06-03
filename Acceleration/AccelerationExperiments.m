@@ -4,7 +4,7 @@ classdef AccelerationExperiments < handle
         experiment
     end
 
-    properties (Access = private)
+    properties (Access = public)
         settings
         %
         mesh
@@ -18,6 +18,7 @@ classdef AccelerationExperiments < handle
         constraint
         dualVariable
         optimizer
+        solverTol
     end
 
     methods (Access = public)
@@ -43,6 +44,7 @@ classdef AccelerationExperiments < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
+            obj.createSolverTolerance();
             obj.createElasticProblem();
             obj.createCompliance();
             obj.createVolume();
@@ -53,38 +55,74 @@ classdef AccelerationExperiments < handle
             s.settings       = obj.settings;
             s.cost           = obj.cost;
             s.designVariable = obj.designVariable;
+            s.solverTol      = obj.solverTol;
             obj.experiment   = AccelerationProblem(s);
+            tInit = tic;
             obj.experiment.createProblemAndCompute();
+            toc(tInit)
         end
 
         function createMesh(obj)
-            [x1,x2] = obj.returnMeshCoordinates();
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh(s);            
+            switch obj.settings.geometryType
+                case '2D'
+                    [x1,x2] = obj.returnMeshCoordinates();
+                    [xv,yv] = meshgrid(x1,x2);
+                    [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+                    s.coord  = V(:,1:2);
+                    s.connec = F;
+                    obj.mesh = Mesh.create(s);
+                case '3D'
+                    [x1,x2,x3] = obj.returnMesh3DCoordinates();
+                    d1 = 60;%40;%
+                    d2 = 30;%20;%
+                    d3 = 30;%20;%
+                    obj.mesh = TetraMesh(x1,x2,x3,d1,d2,d3);
+            end
+                        
+        end
+
+        function createSolverTolerance(obj)
+            s.solver      = obj.settings.solverType;
+            s.tolMax      = obj.settings.maxTol;
+            s.tolMin      = obj.settings.minTol;
+            obj.solverTol = ConjugateGradientToleranceCalculator(s);
         end
 
         function [x1,x2] = returnMeshCoordinates(obj)
             switch obj.settings.geometryCase
                 case {'CANTILEVER','ARCH','BRIDGE'}
-                    x1 = linspace(0,2,50);
-                    x2 = linspace(0,1.5,34);
+                    x1 = linspace(0,2,80);
+                    x2 = linspace(0,1.5,60);
+                    % x1 = linspace(0,2,40);
+                    % x2 = linspace(0,1.5,20);
                 otherwise
                     error('Case not implemented yet')
             end
         end
 
+        function [x1,x2,x3] = returnMesh3DCoordinates(obj)
+            switch obj.settings.geometryCase
+                case {'CANTILEVER3D','ARCH3D','CANTILEVER_2'}
+                    x1 = 2;
+                    x2 = 0.75;
+                    x3 = 1.5;
+                case 'BRIDGE3D'
+                    x1 = 2;
+                    x2 = 1.2;
+                    x3 = 1.5;
+            end
+        end
+
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(squeezeParticular(x(1,:,:),1)));
+            s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);            
+            aFun      = AnalyticalFunction(s);
             s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;                        
-            s.type    = 'Density';
-            dens      = DesignVariable.create(s);   
+            s.mesh    = obj.mesh;
+            s.type = 'Density';
+            s.plotting = true;
+            dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
 
@@ -118,23 +156,39 @@ classdef AccelerationExperiments < handle
             obj.materialInterpolator = m;
         end
 
-        function createElasticProblem(obj)
+        function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createInterpolatedMaterial(f);
-            s.dim = '2D';
+            f = f.project('P1');            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = obj.settings.geometryType;
+            m = Material.create(s);
+        end
+
+        function createElasticProblem(obj)
+            s.mesh     = obj.mesh;
+            s.scale    = 'MACRO';
+            s.material = obj.createMaterial();
+            s.dim      = obj.settings.geometryType;
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
+            s.interpolationType  = 'LINEAR';
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'DISP';
+            s.solverCase         = obj.settings.solverType;
+            s.matrixFree         = obj.settings.matrixFree;
+            s.solverTol          = obj.solverTol;
+            p.maxIters = 5e3;
+            % if obj.settings.matrixFree p.maxIters = 5e3; 
+            % else p.maxIters = 5e3; end       
+            p.displayInfo        = true;
+            s.solverParams       = p;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
+        function c = createComplianceFromConstitutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstiutiveTensor(s);
@@ -143,21 +197,32 @@ classdef AccelerationExperiments < handle
         function createCompliance(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.materialInterpolator        = obj.materialInterpolator;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstitutive();
+            s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
 
         function createVolume(obj)
             s.mesh     = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.volume = VolumeFunctional(s);
         end
 
         function createCost(obj)
             s.shapeFunctions = {obj.compliance,obj.volume};
             s.weights        = [1,obj.settings.lambda];
+            s.Msmooth        = obj.createMassMatrix();
             obj.cost         = Cost(s);
+        end
+
+        function M = createMassMatrix(obj)
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;     
         end
 
         function mat = createInterpolatedMaterial(obj,dens)
@@ -168,22 +233,60 @@ classdef AccelerationExperiments < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-
-            sDir.direction = [1,2];
-            sDir.value     = 0;
-            sPL.direction  = 2;
-            sPL.value      = -1;
            
             switch obj.settings.geometryCase
                 case 'CANTILEVER'
                     isDir = @(coor) abs(coor(:,1)) == 0;
                     isPL  = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    sPL.direction  = 2;
+                    sPL.value      = -1;
                 case 'ARCH'
                     isDir = @(coor) abs(coor(:,2)) == 0 & (abs(coor(:,1))<=0.2*xMax | abs(coor(:,1))>=0.8*xMax);
                     isPL  = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    sPL.direction  = 2;
+                    sPL.value      = -1;
                 case 'BRIDGE'
                     isDir = @(coor) abs(coor(:,2)) == 0;
                     isPL  = @(coor) abs(coor(:,2)) == yMax;
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    sPL.direction  = 2;
+                    sPL.value      = -1;
+                case 'CANTILEVER3D'
+                    zMax  = max(obj.mesh.coord(:,3));
+                    isDir = @(coor)  abs(coor(:,1))==0;
+                    isPL  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.45*yMax & (abs(coor(:,2))<=0.55*yMax) ...
+                        & abs(coor(:,3))>=0.45*zMax & abs(coor(:,3))<=0.55*zMax);
+                    sDir.direction = [1,2,3];
+                    sDir.value     = 0;
+                    sPL.direction  = 3;
+                    sPL.value      = -1;
+                case 'CANTILEVER_2'
+                    isDir = @(coor)  abs(coor(:,1))==0;
+                    isPL  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,3))==0);
+                    sDir.direction = [1,2,3];
+                    sDir.value     = 0;
+                    sPL.direction  = 3;
+                    sPL.value      = -1;
+                case 'BRIDGE3D'
+                    zMax  = max(obj.mesh.coord(:,3));
+                    isDir = @(coor)  abs(coor(:,3))==0;
+                    isPL  = @(coor)  abs(coor(:,3))==zMax & abs(coor(:,2))>=0.15*yMax & abs(coor(:,2))<=0.85*yMax;
+                    sDir.direction = [1,2,3];
+                    sDir.value     = 0;
+                    sPL.direction  = 3;
+                    sPL.value      = -1;
+                case 'ARCH3D'
+                    isDir = @(coor) abs(coor(:,3)) == 0 & (abs(coor(:,1))<=0.2*xMax | abs(coor(:,1))>=0.8*xMax);
+                    isPL  = @(coor) abs(coor(:,3)) == 0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;
+                    sDir.direction = [1,2,3];
+                    sDir.value     = 0;
+                    sPL.direction  = 3;
+                    sPL.value      = -1;
             end
             sDir.domain    = isDir;
             sPL.domain     = isPL;
@@ -199,12 +302,63 @@ classdef AccelerationExperiments < handle
 
         function postprocessCase(obj)
             switch obj.settings.problemType
+                case 'SOLVER'
+                    obj.computeSolverPlots();
                 case 'GENERAL'
                     obj.computeGeneralPlots();
                 case 'TAU_BETA'
                     obj.computeTauBetaPlots();
                 otherwise 
             end
+        end
+
+        function computeSolverPlots(obj)
+            p = obj.experiment.problem;
+            if obj.settings.solverType == "CONJUGATE GRADIENT"
+                nTols = obj.physicalProblem.getSolverTols();
+                nIters = obj.physicalProblem.getSolverIters();
+
+                t  = nTols(1:2:end);
+                it = nIters(1:2:end);
+                disp('Total CG iterations = ' + string(sum(it)));
+
+                figure()
+                plot(1:numel(t),t,'k')
+                xlabel('TO iteration','interpreter','latex')
+                ylabel('CG tolerance $\epsilon$','interpreter','latex')
+                set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+                set(gca, 'YScale', 'log')
+                grid minor
+                xlim([1 numel(t)])
+                ylim([min(t) max(t)*1.2])
+                box on
+
+                figure()
+                bar(1:numel(it),it)
+                xlabel('TO iteration','interpreter','latex')
+                ylabel('CG iterations to converge','interpreter','latex')
+                set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+                xlim([1 numel(it)])
+                box on
+            end
+
+            figure()
+            plot(p.costFields(1,:),'k')
+            xlabel('TO iteration','interpreter','latex')
+            ylabel('Compliance','interpreter','latex')
+            set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+            grid minor
+            xlim([1 numel(p.costFields(1,:))])
+            box on
+
+            figure()
+            plot(p.costFields(2,:),'k')
+            xlabel('TO iteration','interpreter','latex')
+            ylabel('Volume','interpreter','latex')
+            set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+            grid minor
+            xlim([1 numel(p.costFields(1,:))])
+            box on
         end
 
         function computeGeneralPlots(obj)
@@ -272,7 +426,7 @@ classdef AccelerationExperiments < handle
                 d = obj.designVariable;
                 for i = 1:numel(prob)
                     d.update(prob{i}.xFinal);
-                    d.getFunsToPlot{1}.
+                    d.fun.print('x')
                 end
             end
         end
