@@ -6,9 +6,14 @@ classdef mainTFGMultimaterial < handle
         forces
         designVariable
         tensor
+        strain
     end
 
     properties (Access = private)
+        dC
+        compliance
+        dJCompliance
+        tgamma
         mesh
         meshSwan
         mat
@@ -120,7 +125,7 @@ classdef mainTFGMultimaterial < handle
             [sf,energyPot] = shfunc(F,U,V,parameters,TOParams);
         end
 
-        function x = computeTopologicalDerivative(obj)
+        function dt = computeTopologicalDerivative(obj)
             s.meshSeba   = obj.mesh;
             s.U          = obj.displacements;
             s.volume     = obj.volume;
@@ -139,9 +144,16 @@ classdef mainTFGMultimaterial < handle
             s.psi = obj.psi;     
             s.designVariable = obj.designVariable;
 
-            Topder = TopologicalDerivativeComputer(s);
-            dt = Topder.dt;
-            x = dt/normL2(obj.unitM,dt);
+            topder = TopologicalDerivativeComputer(s);
+            obj.dC = topder.dC;
+            obj.strain = topder.strain;
+            obj.tgamma = topder.tgamma;
+            %obj.computeStrain();
+            obj.computeComplianceAndGradient();
+            TD = obj.computeVolumeConstraintinDT();
+            dt = obj.smoothTopologicalDerivative(TD);
+            
+            dt = dt/normL2(obj.unitM,dt);               
         end
 
     end
@@ -487,7 +499,86 @@ classdef mainTFGMultimaterial < handle
             multimat_plot( p,t,fi );
             drawnow
         end
+
+        function computeComplianceAndGradient(obj)
+            s.designVariable = obj.designVariable; 
+            s.forces = obj.forces;
+            s.displacements = obj.displacements;
+            s.energy0 = obj.optParams.energy0;
+            s.nMat = obj.nMat;
+            s.dC = obj.dC;
+            s.strain = obj.strain;
+            s.tgamma = obj.tgamma;
+
+            complianceDT = ComplianceFunctionalComputer(s);
+            obj.compliance = complianceDT.J;
+            obj.dJCompliance = complianceDT.dJ;
+        end
         
+        function TD = computeVolumeConstraintinDT(obj)
+            pen = obj.params.penalty;
+            maxVol = obj.optParams.max_vol;
+            volt = maxVol*obj.params.volfrac;
+            coef = obj.volume(1:end-1) ./ volt;
+            augmentedLagr = obj.params.auglag;
+            nmat = obj.nMat;
+            TD = obj.dJCompliance;
+
+            for i = 1:obj.nMat
+                for j = 1:obj.nMat
+                    if obj.params.penalization == 1
+                        if i==j
+                            TD{i,j} = 0;
+                        elseif j == nmat
+                            TD{i,j} = TD{i,j}- pen(i)/maxVol;
+                        elseif i == nmat
+                            TD{i,j} = TD{i,j} + pen(j)/maxVol;
+                        else
+                            TD{i,j} = TD{i,j} + (pen(j) - pen(i))/maxVol;
+                        end
+                    elseif obj.params.penalization == 3
+                        if i==j
+                            TD{i,j} = 0;
+                        elseif j == nmat
+                            TD{i,j} = TD{i,j} - ( (pen(i) + augmentedLagr(i)*(coef(i)-1))/volt(i) );
+                        elseif i == nmat
+                            TD{i,j} = TD{i,j} + ( (pen(j) + augmentedLagr(j)*(coef(j)-1))/volt(j) );
+                        else
+                            TD{i,j} = TD{i,j} + ( (pen(j) + augmentedLagr(j)*(coef(j)-1))/volt(j) )...
+                                                      - ( (pen(i) + augmentedLagr(i)*(coef(i)-1))/volt(i) );
+                        end
+                    end
+                end
+            end
+ 
+        end
+
+        function dt = smoothTopologicalDerivative(obj,TD)
+
+            s.psi = obj.psi;
+            s.designVariable = obj.designVariable;
+            s.m = obj.meshSwan;
+            s.p = obj.mesh.p;
+            s.t = obj.mesh.t;
+  
+            charfun = CharacteristicFunctionComputer(s); 
+            [~,tfi] = charfun.computeFiandTfi();
+
+            t = obj.mesh.t;
+            p = obj.mesh.p;
+            [tXi2,~] = integ_exact(t,p,obj.psi(:,2)); chi2 = (1 - tXi2); %- Mixed formulation method
+            [tXi3,~] = integ_exact(t,p,obj.psi(:,3)); chi3 = (1 - tXi3); %- Mixed formulation method
+            %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method
+            %     chi2 = (pdeintrp(p,t,(psi(:,2)<0))).'; %- P1 projection method
+    
+            dt = [];
+            dt(1,:) = - tfi(1,:).*TD{1,end} - tfi(2,:).*TD{2,end} - tfi(3,:).*TD{3,end} ...
+                + tfi(4,:).*( (1-chi2).*TD{end,1} + (1-chi3).*chi2.*TD{end,2} + chi2.*chi3.*TD{end,3} );
+            dt(2,:) = - tfi(2,:).*TD{2,1} - tfi(3,:).*TD{3,1} + tfi(1,:).*( (1-chi3).*TD{1,2} + chi3.*TD{1,3} );
+            dt(3,:) = tfi(2,:).*TD{2,3} - tfi(3,:).*TD{3,2};
+
+            dt = pdeprtni(p,t,dt);
+        end
 
 
     end
