@@ -41,6 +41,7 @@ classdef mainTFGMultimaterial < handle
         area
         unfittedMesh
         monitoring
+        tgamma
     end
 
 
@@ -137,6 +138,7 @@ classdef mainTFGMultimaterial < handle
             topder = TopologicalDerivativeComputer(s);
             obj.dC = topder.dC;
             obj.strain = topder.strain;
+            obj.tgamma = topder.tgamma;
             %obj.computeStrain();
             obj.computeComplianceAndGradient();
             TD = obj.computeVolumeConstraintinDT();
@@ -327,14 +329,14 @@ classdef mainTFGMultimaterial < handle
 
         function createMesh(obj) 
             % Per passar test:
-             obj.mesh     = MeshComputer();
-             s.connec     = obj.mesh.t';
-             s.connec     = s.connec(:,1:3);
-             s.coord      = obj.mesh.p';
-             obj.meshSwan = Mesh.create(s);
-
+             % obj.mesh     = MeshComputer();
+             % s.connec     = obj.mesh.t';
+             % s.connec     = s.connec(:,1:3);
+             % s.coord      = obj.mesh.p';
+             % obj.meshSwan = Mesh.create(s);
+             % 
             % Per fer altres exemples:
-            % obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
+            obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
             %obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
             %obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
             p = obj.meshSwan.coord';
@@ -354,11 +356,11 @@ classdef mainTFGMultimaterial < handle
             % Per passar test:
             s.mesh = obj.meshSwan;
             BoundCond  = BoundaryConditionsSwan(s);
-            obj.bcSwan = BoundCond.createBoundaryConditionsTest();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTest();
 
             % Per fer altres exemples:
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBeam();
-            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
+            obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
         end
 
@@ -446,8 +448,8 @@ classdef mainTFGMultimaterial < handle
             F                       = obj.forces;
             U                       = obj.displacements;
             obj.optParams.energy0   = 0.5 * dot(F,U); % initial energy 
-            max_vol                 = 2; % Beam and arch
-            %max_vol                  = 6; % Bridge
+            %max_vol                 = 2; % Beam and arch
+            max_vol                  = 6; % Bridge
             obj.optParams.max_vol   = max_vol; 
             obj.optParams.voltarget = max_vol.*obj.params.volfrac; 
             obj.optParams.volstop   = obj.params.voleps.*max_vol;
@@ -543,11 +545,11 @@ classdef mainTFGMultimaterial < handle
                 vol_constraint(i) = (obj.volume(i)/obj.optParams.voltarget(i))-1;
             end
 
-            voltarget_void = 0.8; % Beam
-            %voltarget_void = 2.4; % Bridge
+           % voltarget_void = 0.8; % Beam
+            voltarget_void = 2.4; % Bridge
 
-            volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
-            %volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
+            %volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
+            volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
             void_constraint = (volume_void/voltarget_void)-1;
 
             data = [vol_constraint(1); vol_constraint(2); vol_constraint(3); void_constraint];
@@ -586,6 +588,7 @@ classdef mainTFGMultimaterial < handle
             s.nMat = obj.nMat;
             s.dC = obj.dC;
             s.strain = obj.strain;
+            s.tgamma = obj.tgamma;
 
             complianceDT = ComplianceFunctionalComputer(s);
             obj.compliance = complianceDT.J;

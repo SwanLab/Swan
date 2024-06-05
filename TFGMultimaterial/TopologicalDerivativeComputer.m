@@ -5,6 +5,7 @@ classdef TopologicalDerivativeComputer < handle
         dC
         strain
         TD
+        tgamma
     end
 
     properties (Access = private)
@@ -26,7 +27,7 @@ classdef TopologicalDerivativeComputer < handle
         nMat
         mat
         gamma
-        tgamma
+        
         tE
         beta
         alpha
@@ -132,7 +133,6 @@ classdef TopologicalDerivativeComputer < handle
             E = obj.young;
             a = obj.alpha;
             b = obj.beta;
-
 
             for i = 1:obj.nMat
                 for j = 1:obj.nMat

@@ -13,6 +13,7 @@ classdef ComplianceFunctionalComputer < handle
         nMat
         dC
         strain
+        tgamma
     end
 
     methods (Access = public)
@@ -34,6 +35,7 @@ classdef ComplianceFunctionalComputer < handle
             obj.nMat = cParams.nMat;
             obj.dC = cParams.dC;
             obj.strain = cParams.strain;
+            obj.tgamma = cParams.tgamma;
         end
 
         function computeFunction(obj)
@@ -44,7 +46,10 @@ classdef ComplianceFunctionalComputer < handle
         end
 
         function computeGradient(obj)
-            e = obj.strain;
+            
+            tgamma3 = [obj.tgamma;obj.tgamma;obj.tgamma]; 
+            e = obj.strain.*tgamma3;
+
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
                     for z=1:size(obj.dC,3)
