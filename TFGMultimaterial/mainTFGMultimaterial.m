@@ -40,6 +40,7 @@ classdef mainTFGMultimaterial < handle
         area
         unitMSeba
         displFun
+        monitoring
     end
 
 
@@ -201,9 +202,11 @@ classdef mainTFGMultimaterial < handle
             difvol = obj.volume(1:end-1)-obj.optParams.voltarget; 
             ic = (abs(difvol) > obj.optParams.volstop); %index control
              
-           
+           % UPDATE MONITORING ITER 0
+            obj.createMonitoring();
+
             % We start the loop    
-            while and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4) % remove iter<=4
+            while obj.hasNotFinished(theta,ic)    
             % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
                 
                 obj.iter = obj.iter + 1;
@@ -285,27 +288,22 @@ classdef mainTFGMultimaterial < handle
                 [fi, ~] = computeCharacteristicFunction(obj);
                 obj.fiFunction = fi';
 
+                
+
                 % Plot the evolution of iterations
                 obj.updatePlotAndDisplay();
-
                 
                 %Update augmented lagrangian parameters
-                difvol = obj.volume(1:end-1)-obj.optParams.voltarget;
-                ic = (abs(difvol) > obj.optParams.volstop); %index control
+                obj.increaseLagrangianMultiplier();
                 
-                if any(ic==1) 
-                    if obj.params.penalization == 2 % increase the penalization parameter
-                        obj.params.penalty = 2.0 * obj.params.penalty;
-                        obj.k = 1;
-                    elseif obj.params.penalization == 3 % increase the lagrangian multiplier
-                        coef = obj.volume(1:end-1)./obj.optParams.voltarget; coef = coef(ic); tau = obj.params.auglag;
-                        penalty = obj.params.penalty(ic);
-                        penalty = penalty + (tau(ic)./obj.params.auglag(ic)) .* (max(0,penalty - obj.params.auglag(ic).*(1.0-coef))-penalty);
-                        obj.params.penalty(ic) = penalty;
-                        obj.k = 1;
-                    end
-                end
+                % UPDATE MONITORING CURRENT ITERATION
+                obj.updateMonitoring();
+
             end
+        end
+
+        function isNotFinished = hasNotFinished(obj,theta,ic)
+            isNotFinished = and(and( or(any(ic),theta > obj.params.stop) , obj.k/2 > obj.params.kmin), obj.iter<=4); % remove iter<=4
         end
 
         function uploadParameters(obj)
@@ -390,12 +388,14 @@ classdef mainTFGMultimaterial < handle
 
         function plotMesh(obj)
             figure(1); clf;
-            m = obj.mesh;
-            pdeplot(m.p,m.e,m.t,'xydata',m.t(4,:),'xystyle','flat','colormap','gray',...
-                          'xygrid','off','colorbar','off','title','Geometry'); 
-            axis image; axis off;
-            
-            pdemesh(m.p,m.e,m.t); axis image; axis off;
+            obj.meshSwan.plot;
+            % figure(1); clf;
+            % m = obj.mesh;
+            % pdeplot(m.p,m.e,m.t,'xydata',m.t(4,:),'xystyle','flat','colormap','gray',...
+            %               'xygrid','off','colorbar','off','title','Geometry'); 
+            % axis image; axis off;
+            % 
+            % pdemesh(m.p,m.e,m.t); axis image; axis off;
                 
         end
 
@@ -495,9 +495,63 @@ classdef mainTFGMultimaterial < handle
             p          = obj.mesh.p;
             t          = obj.mesh.t;
             fi         = obj.fiFunction;
-                     
+
+            figure(3)       
             multimat_plot( p,t,fi );
             drawnow
+        end
+
+        function createMonitoring(obj)
+            titles  = {'Vol Constraint 1'; 'Vol Constraint 2'; 'Vol Constraint 3'; 'Vol Constraint void'; 'Line Search';'Compliance';'Theta'};
+            chartTypes = {'plot'; 'plot'; 'plot'; 'plot'; 'bar'; 'plot'; 'plot'};
+            
+            s.shallDisplay = true;
+            s.maxNColumns = 7;
+            s.titles = titles;
+            s.chartTypes = chartTypes;
+
+            obj.monitoring = Monitoring(s);
+
+        end
+
+        function obj = updateMonitoring(obj)
+            for i=1:3
+                vol_constraint(i) = (obj.volume(i)/obj.optParams.voltarget(i))-1;
+            end
+
+            voltarget_void = 0.8; % Beam
+            %voltarget_void = 2.4; % Bridge
+
+            volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
+            %volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
+            void_constraint = (volume_void/voltarget_void)-1;
+
+            data = [vol_constraint(1); vol_constraint(2); vol_constraint(3); void_constraint];
+            data = [data;obj.k];
+            data = [data;obj.Epot];
+            data = [data;obj.thetaAngle];
+            
+            obj.monitoring.update(obj.iter,data);
+        end
+
+        function increaseLagrangianMultiplier(obj)
+
+            difvol = obj.volume(1:end-1)-obj.optParams.voltarget;
+            ic = (abs(difvol) > obj.optParams.volstop); %index control
+           
+            if any(ic==1) 
+                if obj.params.penalization == 2 % increase the penalization parameter
+                    obj.params.penalty = 2.0 * obj.params.penalty;
+                    obj.k = 1;
+                elseif obj.params.penalization == 3 % increase the lagrangian multiplier
+                    coef = obj.volume(1:end-1)./obj.optParams.voltarget; coef = coef(ic); tau = obj.params.auglag;
+                    penalty = obj.params.penalty(ic);
+                    penalty = penalty + (tau(ic)./obj.params.auglag(ic)) .* (max(0,penalty - obj.params.auglag(ic).*(1.0-coef))-penalty);
+                    obj.params.penalty(ic) = penalty;
+                    obj.k = 1;
+                end
+            end
+
         end
 
         function computeComplianceAndGradient(obj)
@@ -579,6 +633,8 @@ classdef mainTFGMultimaterial < handle
 
             dt = pdeprtni(p,t,dt);
         end
+        
+        
 
 
     end
