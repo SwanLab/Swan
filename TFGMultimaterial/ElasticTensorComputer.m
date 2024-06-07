@@ -43,7 +43,7 @@ classdef ElasticTensorComputer < handle
             obj.pdeCoeff = cParams.pdeCoeff;
             obj.bc       = cParams.bc;
             obj.designVariable = cParams.designVariable;
-            obj.m = cParams.m;
+            obj.m = cParams.mesh;
         end
 
         function computeCharacteristicFunction(obj)

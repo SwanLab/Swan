@@ -65,7 +65,7 @@ classdef TopologicalDerivativeComputer < handle
             obj.mat{2} = cParams.mat.B;
             obj.mat{3} = cParams.mat.C;
             obj.mat{4} = cParams.mat.D;
-            obj.psi = cParams.psi;   
+            %obj.psi = cParams.psi;   
             obj.designVariable = cParams.designVariable;
             obj.U = cParams.U;
             obj.volume = cParams.volume;
@@ -87,7 +87,7 @@ classdef TopologicalDerivativeComputer < handle
         end
 
         function computeTgamma(obj)
-            s.psi = obj.psi;
+            %s.psi = obj.psi;
             s.designVariable = obj.designVariable;
             s.m = obj.mesh;
             

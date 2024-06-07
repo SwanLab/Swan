@@ -23,7 +23,7 @@ classdef Constraint < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;
+                dJc{iF} = dJ; %fValues;
             end
             jV  = zeros(nF,1);
             djV = zeros(length(dJc{1}),nF);

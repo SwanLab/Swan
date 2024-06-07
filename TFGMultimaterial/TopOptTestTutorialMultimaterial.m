@@ -16,6 +16,7 @@ classdef TopOptTestTutorialMultimaterial < handle
         pdeCoeff
         mat
         bc
+        energy0
     end
 
     methods (Access = public)
@@ -24,11 +25,10 @@ classdef TopOptTestTutorialMultimaterial < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
-            obj.createFilter();
             obj.createInterpolators();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
+            obj.computeEnergy0();
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -61,34 +61,14 @@ classdef TopOptTestTutorialMultimaterial < handle
             lsFun{1}               = -ones(size(s.mesh.coord,1),1);
             lsFun{2}               = ones(size(s.mesh.coord,1),1);
             lsFun{3}               = ones(size(s.mesh.coord,1),1);
-
-            s.type                 = 'LevelSet';
-            s.plotting             = false;
-            s.fValues              = lsFun{1};
-            s.order                = 'P1';
-            s.fun                  = LagrangianFunction(s);
-            ls1                    = DesignVariable.create(s);
-            obj.designVariable{1} = ls1;
-
-            s.fValues              = lsFun{2};
-            s.fun                  = LagrangianFunction(s);
-            ls1                    = DesignVariable.create(s);
-            obj.designVariable{2} = ls1;
-
-            s.fValues              = lsFun{3};
-            s.fun                  = LagrangianFunction(s);
-            ls1                    = DesignVariable.create(s);
-            obj.designVariable{3} = ls1;
+            
+            s.type                 = 'MultiLevelSet';
+            s.plotting             = true;
+            s.lsFun                = lsFun;
+            s.mesh                 = obj.mesh;
+            s.unitM                = obj.createMassMatrix();
+            obj.designVariable     = DesignVariable.create(s);
         end
-
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
-        end
-
 
         function createInterpolators(obj)
             matProp      = MaterialPropertiesComputer(); 
@@ -124,27 +104,32 @@ classdef TopOptTestTutorialMultimaterial < handle
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
-            s.mesh         = obj.mesh;
-            s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+        function computeEnergy0(obj)
+            s.C = obj.createMaterial();
+            s.mesh = obj.mesh;
+            s.bc = obj.bc;  
+            energy = ComputeInitialEnergy(s);
+            obj.energy0 = energy.e0;
         end
 
+
         function createCompliance(obj)
-            s.mesh                       = obj.mesh;
-            s.filter                     = obj.filter;
-            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
-            c = ComplianceFunctional(s);
+            s.energy0 = obj.energy0; % s ha de resoldre un initial elastic problem
+            s.nMat = 4;
+            s.mat = obj.mat;
+            s.mesh = obj.mesh;
+            s.pdeCoeff = obj.pdeCoeff;
+            s.bc = obj.bc;
+            c = ComplianceFunctionalComputer(s);
             obj.compliance = c;
+            %obj.compliance = c.computeFunctionAndGradient(obj.designVariable);
         end
 
          function createVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = [0.2 0.2 0.2 1.2]; % prova
-            v = VolumeConstraint(s);
+            s.volumeTarget = [0.2 0.2 0.2 1.2]; 
+            s.mesh = obj.mesh;
+            s.area  = obj.area;
+            v = VolumeConstraintComputer(s);
             obj.volume = v;
          end
 
@@ -174,9 +159,9 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 100;
+            s.volumeTarget = [0.2 0.2 0.2 1.2]; % afegit
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = [0.2 0.2 0.2 1.2]; %prova
             s.primal         = 'SLERP';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -189,6 +174,7 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.bc                = obj.bc;
             s.m                 = obj.mesh;
             s.designVariable    = obj.designVariable;
+            s.mesh              = obj.mesh;
             
             constituitiveTensor = ElasticTensorComputer(s);
             m = constituitiveTensor.C;

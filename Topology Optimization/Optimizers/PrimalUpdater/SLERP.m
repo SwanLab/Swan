@@ -93,8 +93,8 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.tau = cParams.tau;
-            %obj.createVolumeFunctional();
+            %obj.tau = cParams.tau;
+            obj.createVolumeFunctional();
         end
 
         function createVolumeFunctional(obj)

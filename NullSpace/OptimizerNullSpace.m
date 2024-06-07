@@ -63,7 +63,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.constraint     = cParams.constraint;
             obj.designVariable = cParams.designVariable;
             obj.dualVariable   = cParams.dualVariable;
-            obj.nX             = obj.designVariable{1,1}.fun.nDofs;
+            obj.nX             = obj.designVariable.designVariable{1,1}.fun.nDofs;
             obj.maxIter        = cParams.maxIter;
             obj.hasConverged   = false;
             obj.nIter          = 0;
