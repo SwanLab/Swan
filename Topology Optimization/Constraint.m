@@ -25,15 +25,16 @@ classdef Constraint < handle
                 Jc{iF}  = j;
                 dJc{iF} = dJ; %fValues;
             end
-            jV  = zeros(nF,1);
+            jV = zeros(length(dJc{1}),nF);
+            %jV  = zeros(nF,1);
             djV = zeros(length(dJc{1}),nF);
             for iF = 1:nF
-                jV(iF)    = Jc{iF};
+                jV(:,iF)    = Jc{iF};
                 djV(:,iF) = dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = obj.Msmooth*djV;
-%             obj.gradient = djV;
+           % obj.gradient = obj.Msmooth.*djV;
+            obj.gradient = djV;
         end
 
         function nF = obtainNumberFields(obj)

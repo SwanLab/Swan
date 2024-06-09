@@ -46,7 +46,10 @@ classdef VolumeConstraintComputer < handle
             charfunc = obj.tfi;
 
             V = surf*charfunc';
-            J = (V/obj.vTar)-1;
+            for i=1:size(obj.vTar,2)
+                J(i) = (V(i)/obj.vTar(i))-1;
+            end
+            
         end
 
         function dJ = computeGradient(obj)

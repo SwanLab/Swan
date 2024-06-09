@@ -58,6 +58,7 @@ classdef PDECoefficientsComputer < handle
             c(13,:)= c(4,:); c(14,:) = c(3,:); c(15,:) = c(2,:); c(16,:) = c(1,:); 
             
             obj.tensor = c;
+            order = 2;
 
             % Mat 1
             s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(1)*ones(size(x(1,:,:))), 2, obj.mesh);
@@ -65,8 +66,8 @@ classdef PDECoefficientsComputer < handle
             s.type        = 'Given';
             tensor1       = Material.create(s);
             
-            quad          = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad          = Quadrature.create(obj.mesh,order);
+            quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{1}    = tensor1.evaluate(xV);
@@ -77,8 +78,8 @@ classdef PDECoefficientsComputer < handle
             s.type        = 'Given';
             tensor2       = Material.create(s);
             
-            quad          = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad          = Quadrature.create(obj.mesh,order);
+            quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{2}    = tensor2.evaluate(xV);
@@ -89,8 +90,8 @@ classdef PDECoefficientsComputer < handle
             s.type        = 'Given';
             tensor3       = Material.create(s);
             
-            quad          = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad          = Quadrature.create(obj.mesh,order);
+            quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{3}    = tensor3.evaluate(xV);
@@ -101,8 +102,8 @@ classdef PDECoefficientsComputer < handle
             s.type        = 'Given';
             tensor4       = Material.create(s);
             
-            quad          = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad          = Quadrature.create(obj.mesh,order);
+            quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{4}    = tensor4.evaluate(xV);

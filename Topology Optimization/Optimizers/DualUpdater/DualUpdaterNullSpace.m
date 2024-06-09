@@ -98,16 +98,33 @@ classdef DualUpdaterNullSpace < handle
             problem  = s.prob;
             g        = obj.constraint.value;
             Dg       = obj.constraint.gradient;
+
+            % for i=1:size(DJ,1)
+            %     Dg = Dg(1:3);
+            % end
+            
             isActive = obj.checkComplementaryKKT(g);
             problem.lb(~isActive) = [];
             problem.ub(~isActive) = [];
-            g  = g(isActive);
-            Dg = Dg(:,isActive);
+            %g  = g(isActive);
+            %Dg = Dg(:,isActive);
             DJ = obj.cost.gradient;
             l  = zeros(obj.nConstr,1);
+            problem.f = zeros(size(DJ));
             if ~isempty(g)
-                problem.H       = Dg'*Dg;
-                problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
+                problem.H      = Dg(1)'*Dg(1);
+                for i=1:3
+                    
+                    problem.f(:,i)      = Dg(i)'*(DJ(:,i)+lUB-lLB)-eta(i)*g(i);
+                end
+                total_elements = size(DJ,1)*size(DJ,2);
+
+                % Determine the size of the square matrix
+                n = ceil(sqrt(total_elements));
+                
+                % Create the square matrix filled with the value of H
+                problem.H = problem.H *ones(n, n);
+                
                 problem.solver  = 'quadprog';
                 problem.options = obj.options;
                 l(isActive)     = quadprog(problem);

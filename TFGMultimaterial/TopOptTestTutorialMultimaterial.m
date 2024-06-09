@@ -126,7 +126,7 @@ classdef TopOptTestTutorialMultimaterial < handle
         end
 
          function createVolumeConstraint(obj)
-            s.volumeTarget = [0.2 0.2 0.2 1.2]; 
+            s.volumeTarget = [4/3 4/3 4/3 1.2]; 
             s.mesh = obj.mesh;
             s.area  = obj.area;
             v = VolumeConstraintComputer(s);
@@ -163,6 +163,10 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
