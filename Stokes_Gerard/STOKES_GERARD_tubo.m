@@ -11,20 +11,13 @@ center_posy = 2; % y position of the ellipse center
 AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(10,4,50,50*0.8); % MESH
+mesh = QuadMesh(10,8,150,300*0.8); % MESH
 s.type='Given';
 AOAr = deg2rad(AOAd);
 
 
 %% Create mesh and boundary conditions
-s.fHandle = @(x) -((((cos(AOAr)*(x(1,:,:)-center_posx)-(x(2,:,:)-center_posy)*sin(AOAr)).^2)/(dim_a^2)) + ((((x(2,:,:)-center_posy)*cos(AOAr)+(x(1,:,:)-center_posx)*sin(AOAr)).^2)/(dim_b^2)) - 1);
-g = GeometricalFunction(s);
-lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
-sUm.backgroundMesh = m;
-sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
-uMesh = UnfittedMesh(sUm);
-uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
-mesh = uMesh.createInnerMesh();
+
 
 
 % plot(lsFun);
@@ -59,45 +52,6 @@ dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0];
 
-%Nodesnormals = uMesh.boundaryCutMesh.mesh
-
-%Trobem els nodes de pressió al voltant de l'el·lipse
-size_cutmesh = size(uMesh.boundaryCutMesh.mesh.coord,1);
-dirDofspresscyl=zeros(2,size_cutmesh);
-for i = 1:1:size_cutmesh
-    isxcoord    = @(coor) coor(:,1) == uMesh.boundaryCutMesh.mesh.coord(i,1);
-    isycoord    = @(coor) coor(:,2) == uMesh.boundaryCutMesh.mesh.coord(i,2);
-    dircyl      = @(coor) isxcoord(coor) & isycoord(coor);
-
-    dirDofspresscyl(:,i) = velocityFun.getDofsFromCondition(dircyl);
-
-end
-
-% plot(uMesh);
-dirDofspresscyl_bo = sort(reshape(dirDofspresscyl,size(dirDofspresscyl,2)*2,1));
-nodespresscyl = 1 + (dirDofspresscyl_bo(2:2:end)-2)/velocityFun.ndimf;
-% scatter(velocityFun.coord(nodespresscyl(:),1),velocityFun.coord(nodespresscyl(:),2),'X','b');
-
-%Trobem les coordenades dels nodes intermitjos
-coor_occult=zeros(size_cutmesh,2);
-for i = 1:1:size_cutmesh
-    coor_occult(i,1)=(uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,1),1)+uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,2),1))/2;
-    coor_occult(i,2)=(uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,1),2)+uMesh.boundaryCutMesh.mesh.coord(uMesh.boundaryCutMesh.mesh.connec(i,2),2))/2;
-end
-
-dirDofsoccucyl=zeros(2,size_cutmesh);
-for i = 1:1:size_cutmesh
-    isxcoord    = @(coor) coor(:,1) == coor_occult(i,1);
-    isycoord    = @(coor) coor(:,2) == coor_occult(i,2);
-    dircyloccu  = @(coor) isxcoord(coor) & isycoord(coor);
-
-    dirDofsoccucyl(:,i) = velocityFun.getDofsFromCondition(dircyloccu);
-
-end
-
-dirDofsoccucyl_bo = sort(reshape(dirDofsoccucyl,size(dirDofsoccucyl,2)*2,1));
-nodesoccucyl = 1 + (dirDofsoccucyl_bo(2:2:end)-2)/velocityFun.ndimf;
-% scatter(velocityFun.coord(nodesoccucyl(:),1),velocityFun.coord(nodesoccucyl(:),2),'o','g');
 
 % Pressure bc
 dir_pre{1}.domain    = @(coor) isRight(coor) & isBottom(coor);
@@ -107,7 +61,7 @@ dir_pre{1}.value     = 0;
 
 dirichlet = [];
 dir_dofs = [];
-for i = 1:1:4
+for i = 1:1:2
     if i == 1 || i == 2
         dirDofs = velocityFun.getDofsFromCondition(dir_vel{i}.domain);
     elseif i == 3
@@ -119,7 +73,7 @@ for i = 1:1:4
     end
     
     nodes = 1 + (dirDofs(2:2:end)-2)/velocityFun.ndimf;
-    scatter(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),'y','g');
+    % scatter(velocityFun.coord(nodes(:),1),velocityFun.coord(nodes(:),2),'y','g');
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
     mat12 = repmat([1;2], [length(iNod)/2 1]);
