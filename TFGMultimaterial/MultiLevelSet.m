@@ -24,7 +24,6 @@ classdef MultiLevelSet < handle
         end
 
         function update(obj,value)
-            value(abs(value)<=1e-6) = 0;
             for i = 1:size(value,2)
                 obj.designVariable{1,i}.update(value(:,i));
             end
@@ -42,7 +41,6 @@ classdef MultiLevelSet < handle
 
                 charfun = CharacteristicFunctionComputer(s);
                 [fi,~]  = charfun.computeFiandTfi();
-                fi(abs(fi)<=1e-6) = 0;
                 p          = obj.mesh.coord';
                 t          = obj.mesh.connec';
                 t(4,:)     = 1;
