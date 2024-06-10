@@ -17,6 +17,7 @@ classdef TopOptTestTutorialMultimaterial < handle
         mat
         bc
         energy0
+        nLevelSet
     end
 
     methods (Access = public)
@@ -44,11 +45,12 @@ classdef TopOptTestTutorialMultimaterial < handle
         function init(obj)
             close all;
             obj.nMat = 4;
+            obj.nLevelSet = 3;
         end
 
         function createMesh(obj)
             %obj.mesh = TriangleMesh(6,1,150,25); % Bridge
-            obj.mesh = TriangleMesh(2,1,100,50); % Beam
+            obj.mesh = TriangleMesh(2,1,20,10); % Beam
             %obj.mesh = TriangleMesh(2,1,100,50); % Arch
             p = obj.mesh.coord';
             t = obj.mesh.connec';
@@ -115,7 +117,7 @@ classdef TopOptTestTutorialMultimaterial < handle
 
         function createCompliance(obj)
             s.energy0 = obj.energy0; % s ha de resoldre un initial elastic problem
-            s.nMat = 4;
+            s.nMat = obj.nMat;
             s.mat = obj.mat;
             s.mesh = obj.mesh;
             s.pdeCoeff = obj.pdeCoeff;
@@ -147,7 +149,7 @@ classdef TopOptTestTutorialMultimaterial < handle
          end
 
          function createDualVariable(obj)
-            s.nConstraints   = 1;
+            s.nConstraints   = obj.nMat;
             l                = DualVariable(s);
             obj.dualVariable = l;
          end
@@ -161,12 +163,12 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.maxIter        = 100;
             s.volumeTarget = [0.2 0.2 0.2 1.2]; % afegit
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = repmat({'EQUALITY'},[obj.nMat,1]);
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.etaNorm        = 0.2;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -185,12 +187,11 @@ classdef TopOptTestTutorialMultimaterial < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;
+            nnodes  = obj.mesh.nnodes*obj.nLevelSet;
+            indices = transpose(1:nnodes);
+            vals    = ones(size(indices));
+            h       = obj.mesh.computeMeanCellSize();
+            M       = h^2*sparse(indices,indices,vals,nnodes,nnodes);
         end
 
 

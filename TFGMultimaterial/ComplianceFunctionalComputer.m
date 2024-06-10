@@ -71,6 +71,8 @@ classdef ComplianceFunctionalComputer < handle
             end
 
             dJ = obj.smoothGradient(DJ,x);
+
+            dJ = reshape(dJ,[],1);
         end
 
         function C = computeElasticTensor(obj,x)

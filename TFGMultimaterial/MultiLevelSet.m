@@ -2,6 +2,7 @@ classdef MultiLevelSet < handle
     
     properties (Access = public)
         designVariable
+        fun
     end
 
     properties (Access = private)
@@ -22,10 +23,14 @@ classdef MultiLevelSet < handle
             obj.create();
         end
 
-        function update(obj)
-            levelSet = obj.designVariable.value; 
-            levelSet = levelSet./normL2(obj.unitM,levelSet ); % level-set function nomalization  
-            obj.designVariable.update(levelSet)
+        function update(obj,value)
+            for i = 1:size(value,2)
+                obj.designVariable{1,i}.update(value(:,i));
+            end
+            obj.fun.fValues = [];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{2}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{3}.fun.fValues];
         end
 
         function updateOld(obj)
@@ -72,6 +77,11 @@ classdef MultiLevelSet < handle
             s.fun                  = LagrangianFunction(s);
             ls1                    = DesignVariable.create(s);
             obj.designVariable{3} = ls1;
+
+            obj.fun.fValues = [];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{2}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{3}.fun.fValues];
         end
 
         function createUnfittedMesh(obj)
