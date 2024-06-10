@@ -69,6 +69,7 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.lsFun                = lsFun;
             s.mesh                 = obj.mesh;
             s.unitM                = obj.createMassMatrix();
+            s.plotting             = true;
             obj.designVariable     = DesignVariable.create(s);
         end
 

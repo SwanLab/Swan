@@ -19,11 +19,12 @@ classdef MultiLevelSet < handle
 
         function obj = MultiLevelSet(cParams)
             obj.init(cParams);
-           % obj.createUnfittedMesh();
             obj.create();
+            obj.plotting = cParams.plotting;
         end
 
         function update(obj,value)
+            value(abs(value)<=1e-6) = 0;
             for i = 1:size(value,2)
                 obj.designVariable{1,i}.update(value(:,i));
             end
@@ -31,6 +32,25 @@ classdef MultiLevelSet < handle
             obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
             obj.fun.fValues = [obj.fun.fValues;obj.designVariable{2}.fun.fValues];
             obj.fun.fValues = [obj.fun.fValues;obj.designVariable{3}.fun.fValues];
+        end
+
+        function plot(obj)
+            if obj.plotting
+                s.psi            = reshape(obj.fun.fValues,[],length(obj.designVariable));
+                s.designVariable = obj;
+                s.m              = obj.mesh;
+
+                charfun = CharacteristicFunctionComputer(s);
+                [fi,~]  = charfun.computeFiandTfi();
+                fi(abs(fi)<=1e-6) = 0;
+                p          = obj.mesh.coord';
+                t          = obj.mesh.connec';
+                t(4,:)     = 1;
+
+                figure(2)
+                multimat_plot(p,t,fi');
+                drawnow
+            end
         end
 
         function updateOld(obj)
