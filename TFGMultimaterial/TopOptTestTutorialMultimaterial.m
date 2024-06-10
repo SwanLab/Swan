@@ -50,7 +50,7 @@ classdef TopOptTestTutorialMultimaterial < handle
 
         function createMesh(obj)
             %obj.mesh = TriangleMesh(6,1,150,25); % Bridge
-            obj.mesh = TriangleMesh(2,1,20,10); % Beam
+            obj.mesh = TriangleMesh(2,1,100,50); % Beam
             %obj.mesh = TriangleMesh(2,1,100,50); % Arch
             p = obj.mesh.coord';
             t = obj.mesh.connec';
@@ -167,8 +167,8 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
-            s.etaNorm        = 0.2;
-            s.gJFlowRatio    = 1;
+            s.etaNorm        = 1;
+            s.gJFlowRatio    = 0.5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

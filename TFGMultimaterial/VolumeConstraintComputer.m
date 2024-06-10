@@ -55,17 +55,20 @@ classdef VolumeConstraintComputer < handle
         function dJ = computeGradient(obj,x)
             n = 3; % size psi
             nnode = obj.mesh.nnodes;
+            ls1 = x.designVariable{1,1}.fun.fValues;
+            ls2 = x.designVariable{1,2}.fun.fValues;
+            ls3 = x.designVariable{1,3}.fun.fValues;
 
             dJ = zeros(nnode*n,4); % 4 volumes
-            dJ(1:nnode,1) = 1;
-            dJ(nnode+1:nnode*2,1) = 1;
-            dJ(1:nnode,2) = 1;
-            dJ(nnode+1:nnode*2,2) = 1;
-            dJ(nnode*2+1:nnode*3,2) = 1;
-            dJ(1:nnode,3) = 1;
-            dJ(nnode+1:nnode*2,3) = 1;
-            dJ(nnode*2+1:nnode*3,3) = 1;
-            dJ(1:nnode,4) = 1;
+            dJ(1:nnode,1) = ls2>0;
+            dJ(nnode+1:nnode*2,1) = -ls1<=0;
+            dJ(1:nnode,2) = ls2<=0 & ls3>0;
+            dJ(nnode+1:nnode*2,2) = ls1<=0 & ls3>0;
+            dJ(nnode*2+1:nnode*3,2) = -ls1<=0 & ls2>0;
+            dJ(1:nnode,3) = ls2<=0 & ls3<=0;
+            dJ(nnode+1:nnode*2,3) = ls1<=0 & ls3<=0;
+            dJ(nnode*2+1:nnode*3,3) = ls1<=0 & ls2<=0;
+            dJ(1:nnode,4) = -1;
 
             dJ(:,1) = dJ(:,1)/obj.vTar(1);
             dJ(:,2) = dJ(:,2)/obj.vTar(2);

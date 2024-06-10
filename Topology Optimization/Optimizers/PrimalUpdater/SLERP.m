@@ -42,13 +42,23 @@ classdef SLERP < handle
             obj.updateBoundsMultipliers(phi.fun);
         end
 
+        function phi = updateFirstIter(obj,g,phi)
+            phiF      = phi.fun;
+            gF        = obj.createP1Function(g);
+            gN        = gF.normalize('L2');
+            phiN      = phiF.normalize('L2');
+            theta     = obj.computeTheta(phiN,gN);
+            phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
+            phi.update(phiNew);
+        end
+
         function computeFirstStepLength(obj,g,ls,~)
-%             V0 = obj.volume.computeFunctionAndGradient(ls.designVariable{1,1});
-%             if abs(V0-1) <= 1e-10
-%                 obj.computeLineSearchInBounds(g(1:obj.mesh.nnodes),ls.designVariable{1,1});
-%             else
+            V0 = obj.volume.computeFunctionAndGradient(ls.designVariable{1,1});
+            if abs(V0-1) <= 1e-10
+                obj.computeLineSearchInBounds(g(1:obj.mesh.nnodes),ls.designVariable{1,1});
+            else
                 obj.tau = 1;
-%             end
+            end
         end
 
         function computeLineSearchInBounds(obj,g,ls)
@@ -88,7 +98,7 @@ classdef SLERP < handle
 
         function V = computeVolumeFromTau(obj,g,ls)
             lsAux = ls.copy();
-            lsAux = obj.update(g,lsAux);
+            lsAux = obj.updateFirstIter(g,lsAux);
             V     = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
@@ -101,7 +111,7 @@ classdef SLERP < handle
         end
 
         function decreaseStepLength(obj)
-            obj.tau = obj.tau/1.01;
+            obj.tau = obj.tau/2;
         end
     end
 
