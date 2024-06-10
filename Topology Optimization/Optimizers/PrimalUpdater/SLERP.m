@@ -32,9 +32,9 @@ classdef SLERP < handle
             phiN3     = phiF{1,3}.fun.normalize('L2');
             gN        = obj.createP1Function([gN1.fValues,gN2.fValues,gN3.fValues]);
             phiN      = obj.createP1Function([phiN1.fValues,phiN2.fValues,phiN3.fValues]);
-            theta1     = obj.computeTheta(phiN1,gN1);
-            theta2     = obj.computeTheta(phiN2,gN2);
-            theta3     = obj.computeTheta(phiN3,gN3);
+            theta1     = real(obj.computeTheta(phiN1,gN1));
+            theta2     = real(obj.computeTheta(phiN2,gN2));
+            theta3     = real(obj.computeTheta(phiN3,gN3));
             theta      = norm(norm(theta1,theta2),theta3);
             obj.Theta = theta;
             phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
