@@ -11,7 +11,7 @@ center_posy = 2; % y position of the ellipse center
 AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-mesh = QuadMesh(10,8,150,300*0.8); % MESH
+mesh = QuadMesh(10,8,450,450*0.8); % MESH
 s.type='Given';
 AOAr = deg2rad(AOAd);
 

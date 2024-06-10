@@ -11,7 +11,7 @@ center_posy = 2; % y position of the ellipse center
 AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(10,4,50,50*0.8); % MESH
+m = QuadMesh(10,4,450,450*0.8); % MESH
 s.type='Given';
 AOAr = deg2rad(AOAd);
 
@@ -131,10 +131,7 @@ for i = 1:1:4
         ycoord=velocityFun.coord(iNod(j),2);
         valmat([j,j+1],1)=[(4-(ycoord-2)^2)/4;0];
         
-
     end
-
-
 
     else
     
