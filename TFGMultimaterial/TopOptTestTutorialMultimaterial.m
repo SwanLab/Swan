@@ -44,7 +44,7 @@ classdef TopOptTestTutorialMultimaterial < handle
 
         function init(obj)
             close all;
-            obj.nMat = 4;
+            obj.nMat = 4; % including weakest mat
             obj.nLevelSet = 3;
         end
 
@@ -150,7 +150,7 @@ classdef TopOptTestTutorialMultimaterial < handle
          end
 
          function createDualVariable(obj)
-            s.nConstraints   = obj.nMat;
+            s.nConstraints   = obj.nMat-1;
             l                = DualVariable(s);
             obj.dualVariable = l;
          end
@@ -168,8 +168,8 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
-            s.etaNorm        = 1;
-            s.gJFlowRatio    = 0.5;
+            s.etaNorm        = 100;
+            s.gJFlowRatio    = 0.6;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
