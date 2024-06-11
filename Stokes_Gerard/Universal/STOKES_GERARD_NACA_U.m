@@ -17,7 +17,7 @@ p=5/10;
 
 % Beam (inside the airfoil):
 alt = 0.11;
-ampl = 0.15;
+ampl = 0.095;
 x_pos = 0.3; %Centre de la biga respecte el LE
 
 % General parameters

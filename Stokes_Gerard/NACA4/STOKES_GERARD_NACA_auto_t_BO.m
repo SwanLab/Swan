@@ -6,11 +6,11 @@ close all
 
 O = 1;
 
-for MM = 0.5:1:9.5
+% for MM = 0.5:1:9.5
     H = 1;
-    M = MM/100;
-    for pp = 2.5:1:7.5
-        p = pp/10;
+%     M = MM/100;
+%     for pp = 2.5:1:7.5
+%         p = pp/10;
 
 m = QuadMesh(10,4,150,150*0.8); % MESH
 s.type='Given';
@@ -18,7 +18,7 @@ s.type='Given';
 % NACA 4
 M=5/100;
 p=5/10;
-t=12/100;
+% t=12/100;
 
 % Biga (posada en el centre de màx t):
 alt = 0.11;
@@ -204,7 +204,7 @@ end
 
 pas=0.001;
 
-x_p=[pas:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
+x_p=[0:pas:0.985]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
 
@@ -537,10 +537,10 @@ quiver(centroid(1,1),centroid(1,2),0,L);
 hold on
 bMesh.plot() %Plot mesh points
 
-clearvars('-except', 'time','H','D','L','O','M','p','MM','pp');
-H=H+1;
-
-    end
-    O=O+1;
-    disp(O);
-end
+% clearvars('-except', 'time','H','D','L','O','M','p','MM','pp');
+% H=H+1;
+% 
+%     end
+%     O=O+1;
+%     disp(O);
+% end

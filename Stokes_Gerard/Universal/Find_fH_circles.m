@@ -2,7 +2,7 @@ function fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd)
 
 pas=0.001;
 
-x_p=[0:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida 
+x_p=[0:pas:0.985]; %S'ha de retallar una mica la punta perquè sinó queden els munts malament cap al caire de sortida pas*15
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
 
