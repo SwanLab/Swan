@@ -10,7 +10,7 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 % Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
 dir_vel{2}.direction = [1,2];
-dir_vel{2}.value     = [0,0]; 
+dir_vel{2}.value     = [1,0]; 
 
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];

@@ -64,8 +64,8 @@ O = 1;
         
         %% Boudary conditions
 
-        % [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions(mesh,uMesh,velocityFun,pressureFun);
-        [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions_parab(mesh,uMesh,velocityFun,pressureFun);
+        [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions(mesh,uMesh,velocityFun,pressureFun);
+        %[forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions_parab(mesh,uMesh,velocityFun,pressureFun);
 
 
         %% Solver

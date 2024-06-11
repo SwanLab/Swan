@@ -4,14 +4,14 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-dim_a = 0.1; % Semi-major axis 0.2
-dim_b = 0.5; % Semi-minor axis 0.02
-center_posx = 2; % x position of the ellipse center
+dim_a = 0.5; % Semi-major axis 0.2
+dim_b = 0.2; % Semi-minor axis 0.02
+center_posx = 3.5; % x position of the ellipse center
 center_posy = 2; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
-m = QuadMesh(5,4,50,50); % MESH
+m = QuadMesh(10,4,50,50); % MESH
 s.type='Given';
 AOAr = deg2rad(AOAd);
 
@@ -199,11 +199,13 @@ vars.p = fullx(ndofsV+1:end,:);
 nu = velocityFun.ndimf;
 nnode = round(length(vars.u)/nu);
 nodes = 1:nnode;
-velfval = zeros(nnode,nu);
+velfval = zeros(nnode,nu+1);
 for idim = 1:nu
     dofs = nu*(nodes-1)+idim;
     velfval(:,idim) = vars.u(dofs, end);
 end
+velfval(:,3)=sqrt((velfval(:,1).^2)+(velfval(:,2).^2));
+velfval(:,2)=velfval(:,3);
 velocityFun.fValues = velfval;
 pressureFun.fValues = vars.p(:,end);
 
