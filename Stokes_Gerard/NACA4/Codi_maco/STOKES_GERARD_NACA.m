@@ -3,33 +3,33 @@ close all
 
 O = 1;
 
-for MM = 0.5:1:9.5
+% for MM = 0.5:1:9.5
     H = 1;
-    M = MM/100;
-    for pp = 2.5:1:7.5
-        p = pp/10;
+%     M = MM/100;
+%     for pp = 2.5:1:7.5
+%         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,150,150*0.8); % MESH
+        m = QuadMesh(10,4,650*0.6,650); % MESH
         s.type='Given';
 
         % % NACA 4
-        %M=5/100;
-        %p=5/10;
-        %t=12/100;
+        M=4/100;
+        p=4/10;
+        t=12/100;
 
         % Biga (posada en el centre de màx t):
         alt = 0.11;
         ampl = 0.095;
         x_pos = 0.3; %Centre de la biga respecte el LE
 
-        AOAd = 7; %deg
+        AOAd = 0; %deg
         x_centr = 3.5;
         y_centr = 2;
 
         %% Airfoil creation
 
-        [t,Q] = findthickness(x_pos,ampl,alt,M,p);
+        % [t,Q] = findthickness(x_pos,ampl,alt,M,p);
 
 
         fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd);
@@ -46,8 +46,8 @@ for MM = 0.5:1:9.5
         uMesh = UnfittedMesh(sUm);
         uMesh.compute(lsFun.fValues); % uMesh.boundaryCutMesh.mesh  és el forat
         mesh = uMesh.createInnerMesh();
-        figure
-        plot(uMesh)
+        % figure
+        % plot(uMesh)
         % hold on
         % scatter(punts_rot(1,:,1),punts_rot(2,:,1))
         %figure
@@ -64,7 +64,8 @@ for MM = 0.5:1:9.5
         
         %% Boudary conditions
 
-        [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions(mesh,uMesh,velocityFun,pressureFun);
+        % [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions(mesh,uMesh,velocityFun,pressureFun);
+        [forcesFormula,dirichlet,dir_dofs,nodespresscyl] = boundary_conditions_parab(mesh,uMesh,velocityFun,pressureFun);
 
 
         %% Solver
@@ -86,10 +87,10 @@ for MM = 0.5:1:9.5
         D(H,O) = Di;
         tt(H,O) = t;
 
-        clearvars('-except', 'time','H','D','L','O','M','p','MM','pp','tt');
-        H=H+1;
-
-    end
-    O=O+1;
-    disp(O);
-end
+%         clearvars('-except', 'time','H','D','L','O','M','p','MM','pp','tt');
+%         H=H+1;
+% 
+%     end
+%     O=O+1;
+%     disp(O);
+% end

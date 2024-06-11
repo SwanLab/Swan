@@ -123,9 +123,25 @@ for i = 1:1:4
     nodes2 = repmat(nodes, [1 2]);
     iNod = sort(nodes2(:));
     mat12 = repmat([1;2], [length(iNod)/2 1]);
+
+    if i==1
+    
+    for j=1:2:length(iNod)
+       
+        ycoord=velocityFun.coord(iNod(j),2);
+        valmat([j,j+1],1)=[(4-(ycoord-2)^2)/4;0];
+        
+    end
+
+    else
+    
     valmat = repmat(dir_vel{i}.value', [length(iNod)/2 1]);
+
+    end
+
     dirichlet(size(dirichlet,1)+1:size(dirichlet,1)+length(iNod),:) = [iNod mat12 valmat];
     dir_dofs(size(dir_dofs,1)+1:size(dir_dofs,1)+length(iNod),1) = dirDofs;
+
 end
 
 for i = 1:length(dir_pre)
