@@ -18,8 +18,7 @@ classdef P2Function < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            obj.interpolation.computeShapeDeriv(xV);
-            shapes = obj.interpolation.shape;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
@@ -37,22 +36,20 @@ classdef P2Function < FeFunction
 
         end
 
-        function N = computeShapeFunctions(obj, quad)
-%             obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
         
-        function dNdx  = computeCartesianDerivatives(obj,quad)
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNode = obj.interpolation.nnode;
             nDime = obj.interpolation.ndime;
-            nGaus = quad.ngaus;
-            invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
+            nGaus = size(xV,2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.interpolation.computeShapeDerivatives(xV);
             dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
             for igaus = 1:nGaus
-                dShapes = obj.interpolation.deriv(:,:,igaus);
+                dShapes = deriv(:,:,igaus);
                 for jDime = 1:nDime
                     invJ_JI   = invJ(:,jDime,:,igaus);
                     dShape_KJ = dShapes(jDime,:);
@@ -63,8 +60,8 @@ classdef P2Function < FeFunction
             dNdx = dShapeDx;
         end
 
-        function gradFun = computeGradient(obj, quad)
-            dNdx = obj.computeCartesianDerivatives(quad);
+        function gradFun = computeGradient(obj, xV)
+            dNdx = obj.evaluateCartesianDerivatives(xV);
             nDimf = obj.ndimf;
             nDims = size(dNdx, 1); % derivX, derivY (mesh-related?)
             nNode = size(dNdx, 2);
@@ -88,7 +85,7 @@ classdef P2Function < FeFunction
             fVR = reshape(grad, [nDims*nDimf,nElem, nGaus]);
             s.fValues = permute(fVR, [1 3 2]);
 %             s.ndimf      = nDimf;
-            s.quadrature = quad;
+            s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
@@ -108,8 +105,8 @@ classdef P2Function < FeFunction
             symGradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function plot(obj, m) % 2D domains only
-            s.mesh          = m;
+        function plot(obj) % 2D domains only
+            s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
             c = ConnecCoordFromInterpAndMesh(s);
             c.compute();
@@ -155,14 +152,22 @@ classdef P2Function < FeFunction
             dof = sort(dofMat(:));
         end
 
+        function nod = getNodesFromCondition(obj, condition)
+            nodes = condition(obj.coord);
+            iNode = find(nodes==1);
+%             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+%             dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            nod = sort(iNode(:));
+        end
+
     end
 
     methods (Access = public, Static)
 
-        function p1 = create(mesh, ndimf)
+        function p2 = create(mesh, ndimf)
             s.fValues = zeros(mesh.nnodes, ndimf); % wrong
             s.mesh    = mesh;
-            p1 = P2Function(s);
+            p2 = P2Function(s);
         end
 
     end
@@ -173,12 +178,12 @@ classdef P2Function < FeFunction
             obj.mesh = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = 'QUADRATIC';
+            obj.order   = 'ORDER4';
         end
 
         function createInterpolation(obj)
-            m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,'QUADRATIC');
+            type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(type,'QUADRATIC');
         end
 
         function createDOFCoordConnec(obj)
@@ -189,6 +194,11 @@ classdef P2Function < FeFunction
             obj.coord  = c.coord;
             obj.connec = c.connec;
             nDimf = size(obj.fValues,2);
+            
+            if all(obj.fValues == 0)
+                obj.fValues = zeros(size(c.coord,1),nDimf);
+            end
+            
             if isequal(size(obj.mesh.coord,1), size(obj.fValues,1))
                 obj.fValues = zeros(size(obj.coord,1),nDimf);
             end

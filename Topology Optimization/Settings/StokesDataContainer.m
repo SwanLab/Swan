@@ -56,10 +56,12 @@ classdef StokesDataContainer < AbstractSettings
             obj.bc.pressure = s.pressure;
             obj.bc.forcesFormula = s.forcesFormula;
             obj.bc.velocityBC    = s.velocityBC;
+            obj.bc.dirichletFun = s.dirichletFun;
+            obj.bc.pointloadFun = s.pointloadFun;
         end
 
         function createMaterial(obj)
-            s.ptype = obj.type;
+            s.type = 'STOKES';
             s.nelem = obj.nelem;
             mat = Material.create(s);
             mat.compute();

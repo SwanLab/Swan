@@ -611,6 +611,25 @@ pointload_complete = [
 *endif
 ];
 
+pointload_adjoint = [
+*if(strcmp(GenData(3),"2D")==0)
+*Set Cond Point_AdjointLoad *nodes
+*Add Cond Line_AdjointLoad *nodes
+*loop nodes *OnlyInCond
+*NodesNum 1 *Cond(Fx) 
+*NodesNum 2 *Cond(Fy) 
+*end nodes
+*elseif(strcmp(GenData(3),"3D")==0)
+*Set Cond Point_AdjointLoad *nodes
+*Add Cond Line_AdjointLoad *nodes
+*loop nodes *OnlyInCond
+*NodesNum 1 *Cond(Fx) 
+*NodesNum 2 *Cond(Fy)
+*NodesNum 3 *Cond(Fz)
+*end nodes
+*endif
+];
+
 %% Volumetric Force
 % Element	Dim		Force_Dim
 
@@ -739,7 +758,9 @@ Micro_slave = [
 % Nodes that must remain 
 % Nodes
 
-nodesolid = unique(pointload_complete(:,1));
+if ~isempty(pointload_complete)
+    nodesolid = unique(pointload_complete(:,1));
+end
 
 %% External border Elements
 % Detect the elements that define the edge of the domain

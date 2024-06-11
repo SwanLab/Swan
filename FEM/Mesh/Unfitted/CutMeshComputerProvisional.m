@@ -32,13 +32,9 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.computeSubCellCases();
             obj.computeCutEdges();
             obj.computeCutCoordinateComputer();
-            obj.coord = obj.cutCoordComputer.coord;
-           % obj.computeCutPointsInElemComputer();
-           % obj.computeConnec();
+            obj.coord = obj.cutCoordComputer.allValues;
             obj.computeConnecNew();
             obj.computeMesh();
-           % obj.computeBoundaryXCoordsIso();
-          %  obj.computeBoundaryCellContainingSubCell();
             obj.computeBoundaryMesh();
             obj.computeInnerCutMesh();
             obj.computeBoundaryCutMesh();
@@ -54,7 +50,7 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.cutEdgesParams.nodesInEdges = e.nodesInEdges;
             obj.cutEdgesParams.levelSet     = obj.levelSet;
            
-            obj.cutCoordParams.coord = obj.backgroundMesh.coord;
+            obj.cutCoordParams.fValues = obj.backgroundMesh.coord;
             obj.cutCoordParams.nodesInEdges = e.nodesInEdges;
             
             cEparams = obj.cutEdgesComputerParams;
@@ -89,23 +85,13 @@ classdef CutMeshComputerProvisional < CutMesh
             s.levelSet = obj.levelSet;
             obj.subCellCases = SubCellsCasesComputer(s);
             obj.subCellCases.compute();
-%             
-%            switch numel(subCells.caseInfo)
-%                case 1
-%                     caseInfo = subCells.caseInfo{1};
-%                 case 2
-%                     caseInfo = subCells.caseInfo{2};
-%             end
-%             
-%             obj.subCellCases      = caseInfo.subCellCases;
-%             obj.isSubCellInterior = caseInfo.isSubCellsInterior;
         end
      
         function computeCutCoordinateComputer(obj)
             s = obj.cutCoordParams;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            cComputer = CutCoordinatesComputer(s);
+            cComputer = CutFunctionValuesComputer(s);
             cComputer.compute();
             obj.cutCoordComputer = cComputer;
         end
@@ -160,26 +146,12 @@ classdef CutMeshComputerProvisional < CutMesh
             obj.xCoordsIso            = subCell.xCoordsIso;
             obj.cellContainingSubcell = subCell.cellContainingSubcell;
         end
-        
-        function computeConnecNew(obj)
-            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();
+
+        function cE = computeCutPointInElem(obj,isEdgeCutInElemCase,t)
+                e = obj.backgroundMesh.edges;
             
-            e = obj.backgroundMesh.edges;
-            nEdgesCutCase   = [2 3 4];
-            nSubCellsByElem = [3 4 6];
-            
-            subCell = cell(length(nEdgesCutCase),1);
-            cN = cell(length(nEdgesCutCase),1);
-            tP = cell(length(nEdgesCutCase),1);
-            
-            nCutEdges = sum(isEdgeCutInElem,1);
-            for icases = 1:length(nEdgesCutCase)
-                t = nCutEdges == nEdgesCutCase(icases);
-                isEdgeCutInElemCase = isEdgeCutInElem(:,t);
-                
                 s.isEdgeCutInElem = isEdgeCutInElemCase;
-                all2Cut = AllEdges2CutEdgesComputer(s);
-                
+                all2Cut = AllEdges2CutEdgesComputer(s);            
                 cEp.all2Cut = all2Cut;
                 cEp.allNodesinElemParams.finalNodeNumber = size(obj.backgroundMesh.coord,1);
                 cEp.allNodesinElemParams.connec = obj.backgroundMesh.connec(t,:);
@@ -191,7 +163,25 @@ classdef CutMeshComputerProvisional < CutMesh
                 cEp.isEdgeCutInElem = isEdgeCutInElemCase;
                 cE = CutPointsInElemComputer(cEp);
                 cE.compute();
-                
+        end
+        
+        function computeConnecNew(obj)
+            isEdgeCutInElem =  obj.computeIsEdgeCutInElem();
+            
+            nEdgesCutCase   = [2 3 4];
+            nSubCellsByElem = [3 4 6];
+            
+            subCell = cell(length(nEdgesCutCase),1);
+            cN = cell(length(nEdgesCutCase),1);
+            tP = cell(length(nEdgesCutCase),1);
+            
+            nCutEdges = sum(isEdgeCutInElem,1);
+            for icases = 1:length(nEdgesCutCase)
+                t = nCutEdges == nEdgesCutCase(icases);
+                isEdgeCutInElemCase = isEdgeCutInElem(:,t);
+                         
+                cE = obj.computeCutPointInElem(isEdgeCutInElemCase,t);
+
                 tP{icases} = t;
                 
                 if sum(t) ~= 0
@@ -214,7 +204,7 @@ classdef CutMeshComputerProvisional < CutMesh
                     
                     sI.allSubCellsConnecParams = sA;
                     sI.isSubCellInterior = caseInfo.isSubCellsInterior(:,t);
-                    sI.cutElems = obj.cutCells;
+                    sI.cutElems = obj.cutCells(t);
                     
                     sI.nSubCellsByElem = nSubCellsByElem(icases);
                     
@@ -340,14 +330,14 @@ classdef CutMeshComputerProvisional < CutMesh
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh(sM);
+            obj.mesh = Mesh.create(sM);
         end
         
         function computeBoundaryMesh(obj)
-            s.coord  = obj.cutCoordComputer.coord;
+            s.coord  = obj.cutCoordComputer.allValues;
             s.connec = obj.connecB;%obj.cutPointsInElemComputer.edgeCutPointInElem;
             s.kFace  = obj.backgroundMesh.kFace -1;
-            obj.boundaryMesh = Mesh(s);
+            obj.boundaryMesh = Mesh.create(s);
         end
         
 %         function computeBoundaryXCoordsIso(obj)

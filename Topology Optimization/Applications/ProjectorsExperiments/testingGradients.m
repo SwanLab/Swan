@@ -15,7 +15,8 @@ femU  = reshape(fem.variables.d_u,[s.mesh.ndim,s.mesh.nnodes])';
 % P1 Function
 z.mesh    = s.mesh.type;
 z.fValues = femU;
-uP1 = P1Function(z);
+z.order = 'P1';
+uP1 = LagrangianFunction(z);
 
 % Quadrature
 quad = Quadrature.set(s.mesh.type);
@@ -23,8 +24,8 @@ quad.computeQuadrature('LINEAR');
 
 % Calculate gradient
 grad = uP1.computeGradient(quad,s.mesh);
-symGrad1 = uP1.computeSymmetricGradient(quad);
-symGrad2 = uP1.computeSymmetricGradient2(quad);
+symGrad1 = uP1.evaluateSymmetricGradient(quad.posgp);
+symGrad2 = uP1.evaluateSymmetricGradient(quad.posgp);
 
 % Plot
 grad.plot(s.mesh);
@@ -69,8 +70,8 @@ gradAF.plot(mesh);
 %% Testing gradients via AnalyticalFunction
 clear; % close all;
 
-% file = 'test2d_triangle';
-file = 'test2d_micro';
+file = 'test2d_triangle';
+% file = 'test2d_micro';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh = s.mesh;

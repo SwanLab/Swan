@@ -56,7 +56,8 @@ classdef CannonicalMeshComputer < handle
         function m = createCanonicalMesh(obj)
             s.connec = obj.newConnec;
             s.coord  = obj.newCoord;
-            m = Mesh(s);
+            s.kFace  = obj.mesh.kFace;
+            m = Mesh.create(s);
         end
         
     end

@@ -1,6 +1,6 @@
 classdef BoundaryCutMesh < handle
     
-    properties (SetAccess = private, GetAccess = public)
+    properties (Access = public)
         mesh
         xCoordsIso
         cellContainingSubcell

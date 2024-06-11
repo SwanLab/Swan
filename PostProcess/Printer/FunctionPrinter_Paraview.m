@@ -104,15 +104,22 @@ classdef FunctionPrinter_Paraview < handle
             % functions
             % Create Displacement DataArray
             for iFun = 1:numel(obj.fun)
-                switch class(obj.fun{iFun})
-                    case 'P0Function'
-                        n = obj.createFValuesCell(docNode, iFun);
-                        obj.cellDataN.appendChild(n);
+                f  = obj.fun{iFun};
+                type = class(f);
+                switch type
+                    case 'LagrangianFunction'
+                        switch f.order
+                            case 'P0'
+                                n = obj.createFValuesCell(docNode, iFun);
+                                obj.cellDataN.appendChild(n);
+                            otherwise
+                                n = obj.createFValuesNode(docNode, iFun);
+                                obj.pointDataN.appendChild(n);
+                        end
                     otherwise
                         n = obj.createFValuesNode(docNode, iFun);
                         obj.pointDataN.appendChild(n);
                 end
-
             end
 
             text = xmlwrite(docNode);
@@ -186,14 +193,17 @@ classdef FunctionPrinter_Paraview < handle
         end
 
         function n = createFValuesNode(obj, docNode, iFun)
-            % projector
-            ppar.mesh   = obj.mesh;
-            projP1 = Projector_toP1(ppar);
-            % fvalues
-            func = projP1.project(obj.fun{iFun});
-            nDimf = func.ndimf;
+            func = obj.fun{iFun}.project('P1');
+            if func.ndimf == 2
+                nExtr = 3-func.ndimf;
+                nDimf = 3;
+                fVals = [func.fValues, repmat(zeros(size(func.fValues, 1),1), [1 nExtr])];
+            else
+                nDimf = func.ndimf;
+                fVals = func.fValues;
+            end
             formatStr = ['\n', repmat('%12.5d ', 1,nDimf)];
-            dispStr = sprintf(formatStr, squeeze(func.fValues)');
+            dispStr = sprintf(formatStr, squeeze(fVals)');
             nameStr = obj.funNames{iFun};
             n = docNode.createElement('DataArray');
             n.setAttribute('type', 'Float64');

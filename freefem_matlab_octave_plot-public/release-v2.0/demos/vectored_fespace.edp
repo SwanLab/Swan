@@ -1,0 +1,18 @@
+include "ffmatlib.idp"
+
+mesh Th = square(10, 10, [2*x*pi,2*y*pi]);
+
+fespace Vh(Th, [P2,P2,P1]);
+Vh [u,v,w]=[x*y,y,x];
+
+savemesh(Th,"vectored_mesh.msh");
+ffSaveVh(Th,Vh,"vectored_vh.txt");
+//Need only to save one component
+ffSaveData(u,"vectored_data.txt");
+//u,v,w are all the same (three identical columns)
+ffSaveData3(u,v,w,"vectored_data3.txt");
+
+plot(u,wait=true,fill=true);
+plot(v,wait=true,fill=true);
+plot([u,v],wait=true);
+plot(w,wait=true,fill=true);

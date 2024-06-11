@@ -41,7 +41,7 @@ classdef test_InnerMeshExporter < handle
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            obj.bgMesh = Mesh(s);
+            obj.bgMesh = Mesh.create(s);
         end
 
         function createBoundaryMesh(obj)

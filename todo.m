@@ -1,5 +1,7 @@
 %% To-do
 
+    % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
+    
 % WEBSITE
     % STEP 1
     % - Readme: tot fora, portar cap a la web + documentation

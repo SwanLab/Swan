@@ -1,24 +1,16 @@
-classdef RHSintegrator_ShapeDerivative < handle
-
-    properties (Access = private)
-        mesh
-        quadratureOrder
-        quadrature
-    end
+classdef RHSintegrator_ShapeDerivative < RHSintegrator
 
     methods (Access = public)
 
         function obj = RHSintegrator_ShapeDerivative(cParams)
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
         end
 
-        function rhsFun = compute(obj, fun)
-            rhsElem = obj.computeElementalRHS(fun);
-            rhs = obj.assembleIntegrand(rhsElem);
-            s.fValues = rhs;
-            s.mesh    = obj.mesh;
-            rhsFun = P1Function(s);
+        function rhs = compute(obj, fun, test)
+            rhsElem = obj.computeElementalRHS(fun,test);
+            rhs = obj.assembleIntegrand(rhsElem,test);
         end
 
     end
@@ -29,27 +21,23 @@ classdef RHSintegrator_ShapeDerivative < handle
             obj.mesh         = cParams.mesh;
             obj.quadratureOrder = cParams.quadratureOrder;
         end
-
-        function createQuadrature(obj)
-            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
-            obj.quadrature = q;
-        end
         
-        function rhsC = computeElementalRHS(obj, fun)
-            fG    = fun.evaluate(obj.quadrature.posgp);
+        function rhsC = computeElementalRHS(obj, fun, test)
+            xV = obj.quadrature.posgp;
+            fG    = fun.evaluate(xV);
+            dNdx  = test.evaluateCartesianDerivatives(xV);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx  = fun.computeCartesianDerivatives(obj.quadrature);
             nDim  = size(dNdx,1);
             nNode = size(dNdx,2);
-            nElem = size(dNdx,3);
-            nGaus = size(dNdx,4);
+            nGaus = size(dNdx,3);
+            nElem = size(dNdx,4);
             int = zeros(nNode,nElem);
             for igaus = 1:nGaus
                 for idime = 1:nDim
                     for inode = 1:nNode
                         fI     = squeezeParticular(fG(idime,igaus,:),1);
                         fdV    = fI.*dV(igaus,:);
-                        dShape = squeeze(dNdx(idime,inode,:,igaus))';
+                        dShape = squeeze(dNdx(idime,inode,igaus,:))';
                         intI = dShape.*fdV;
                         int(inode,:) = int(inode,:) + intI;
                     end
@@ -58,9 +46,10 @@ classdef RHSintegrator_ShapeDerivative < handle
             rhsC = transpose(int);
         end
 
-        function f = assembleIntegrand(obj,rhsElem)
+        function f = assembleIntegrand(obj,rhsElem,test)
             integrand = rhsElem;
-            connec = obj.mesh.connec;
+            %connec = obj.mesh.connec;
+            connec = test.computeDofConnectivity()';
             nDofs = max(max(connec));
             nNode  = size(connec,2);
             f = zeros(nDofs,1);
@@ -68,7 +57,7 @@ classdef RHSintegrator_ShapeDerivative < handle
                 int = integrand(:,inode);
                 con = connec(:,inode);
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
-            end
+            end         
         end
 
     end

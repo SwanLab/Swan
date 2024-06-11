@@ -29,10 +29,17 @@ classdef Dehomogenizer < handle
         function plot(obj)
             ls = obj.levelSet;
             for i = 1:numel(ls)
+                fh = figure(1);
+                clf
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
-                %    uM.plotComponents();
-                obj.saveImage()
+                drawnow
+                %uM.plotComponents();
+             %   obj.saveImage()
+           %     fh.WindowState = 'maximized';
+           %     axis off
+           %    saveas(gcf,['/home/alex/Desktop/CantileverDehomog/Example',num2str(i),'.png'])
+
             end
         end
 
@@ -49,34 +56,26 @@ classdef Dehomogenizer < handle
 
         function createEpsilons(obj)
             L = obj.mesh.computeCharacteristicLength();
-            obj.epsilons = L./obj.nCells;
+            e = L./obj.nCells;
+            obj.epsilons = (1 + 0.01*linspace(0,100,1))*e;
         end            
 
-        function orientation = computeOrientationVector(obj)
-            b1(:,1) = cos(obj.theta);
-            b1(:,2) = sin(obj.theta);
-            b2(:,1) = -sin(obj.theta);
-            b2(:,2) = cos(obj.theta);
-            b(:,:,1) = b1;
-            b(:,:,2) = b2;
-            nDim = obj.mesh.ndim;
-            orientation = cell(nDim,1);
-            for iDim = 1:nDim
-                s.fValues = b(:,:,iDim);
-                s.mesh   = obj.mesh;
-                bf = P1Function(s);
-                orientation{iDim} = bf;
-            end
+        function o = computeOrientedMappingComputer(obj)
+            s.orientationP1 = obj.theta;
+            s.mesh  = obj.mesh;
+            o = OrientedMappingComputer(s);
         end
 
         function computeLevelSet(obj)
-            s.type               = 'periodicAndOriented';
+            s.type               = 'PeriodicAndOriented';
             s.mesh               = obj.mesh;
-            s.orientationVector  = obj.computeOrientationVector();
+            s.orientationVectors = obj.computeOrientedMappingComputer();
             s.cellLevelSetParams = obj.cellLevelSetParams;
-            lSet = LevelSetCreator.create(s);
-            ls = lSet.computeLS(obj.epsilons);
-            obj.levelSet = ls;  
+            g                    = GeometricalFunction(s);
+            %lSet = LevelSetCreator.create(s);
+            %ls = lSet.computeLS(obj.epsilons);
+            lsFun = g.computeLevelSetFunction(obj.mesh);
+            obj.levelSet = lsFun.fValues;  
             obj.fineMesh = lSet.getFineMesh();
         end
 

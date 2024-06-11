@@ -748,8 +748,44 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
+dirichlet_data = [
+    1 1 0
+    1 2 0
+    204 1 0
+    204 2 0
+    205 1 0
+    205 2 0
+    265 1 0
+    265 2 0
 ];
+
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+
+% Dirichlet
+
+sDir{1}.domain    = @(coor) isTop(coor) & isLeft(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = 0;
+
+sDir{2}.domain    = @(coor) isTop(coor) & isRight(coor);
+sDir{2}.direction = [1,2];
+sDir{2}.value     = 0;
+
+sDir{3}.domain    = @(coor) isBottom(coor) & isLeft(coor);
+sDir{3}.direction = [1,2];
+sDir{3}.value     = 0;
+
+sDir{4}.domain    = @(coor) isBottom(coor) & isRight(coor);
+sDir{4}.direction = [1,2];
+sDir{4}.value     = 0;
+
+% Periodic
+
+sPer{1}.leader = @(coor) isLeft(coor);
+sPer{1}.follower = @(coor) isRight(coor);
 
 %% Force Prescribed
 % Node                Dimension                Value
@@ -795,8 +831,32 @@ Micro_gauss_post = [
 % Nodes that are Slaves
 % Nodes             Value (1-Slave,0-Master)
 
-Micro_slave = [
-];
+% Micro_slave = [3	207
+%             6	212
+%             11	215
+%             18	217
+%             26	224
+%             36	231
+%             50	236
+%             68	242
+%             89	247
+%             107	253
+%             129	257
+%             157	261
+%             182	263
+%             2	208
+%             5	213
+%             10	216
+%             17	218
+%             25	225
+%             35	232
+%             49	237
+%             67	243
+%             88	248
+%             106	254
+%             128	258
+%             156	262
+%             181	264];
 
 %% Nodes solid
 % Nodes that must remain 

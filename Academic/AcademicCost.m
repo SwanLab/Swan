@@ -3,12 +3,6 @@ classdef AcademicCost < handle
     properties (Access = private)
         costFunction
         gradientFunction
-        designVariable
-    end
-    
-    properties (Access = public)
-        value
-        gradient
     end
     
     methods (Access = public)
@@ -17,10 +11,9 @@ classdef AcademicCost < handle
             obj.init(cParams)
         end
         
-        function computeFunctionAndGradient(obj)
-            x            = obj.designVariable.value;
-            obj.value    = obj.costFunction(x);
-            obj.gradient = obj.gradientFunction(x);
+        function [J,dJ] = computeFunctionAndGradient(obj,x)
+            J          = obj.costFunction(x.fun.fValues);
+            dJ.fValues = obj.gradientFunction(x.fun.fValues);
         end
         
     end
@@ -30,9 +23,14 @@ classdef AcademicCost < handle
         function init(obj,cParams)
             obj.costFunction     = cParams.cF;
             obj.gradientFunction = cParams.gF;
-            obj.designVariable   = cParams.dV;
         end
         
     end
-    
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'AcademicCost';
+        end
+    end
+
 end

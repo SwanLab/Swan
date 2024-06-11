@@ -20,7 +20,7 @@ classdef CutMeshProvisionalLine < CutMesh
         
         function compute(obj)
             obj.computeCutCoordinate();
-            obj.coord = obj.cutCoordComputer.coord;
+            obj.coord = obj.cutCoordComputer.allValues;
             obj.computeConnec();
             obj.computeXcoordIso();
             obj.cellContainingSubcell = obj.cutCells;
@@ -38,11 +38,11 @@ classdef CutMeshProvisionalLine < CutMesh
             obj.cutEdgesComputer = CutEdgesComputer(s);
             obj.cutEdgesComputer.compute();
             
-            s.coord            = obj.backgroundMesh.coord;
+            s.fValues       = obj.backgroundMesh.coord;
             s.nodesInEdges     = obj.backgroundMesh.connec;
             s.xCutEdgePoint    = obj.cutEdgesComputer.xCutEdgePoint;
             s.isEdgeCut        = obj.cutEdgesComputer.isEdgeCut;
-            cComputer = CutCoordinatesComputer(s);
+            cComputer = CutFunctionValuesComputer(s);
             cComputer.compute();
             obj.cutCoordComputer = cComputer;
         end
@@ -80,7 +80,7 @@ classdef CutMeshProvisionalLine < CutMesh
             s.connec = obj.connec;
             s.coord  = obj.coord;
             s.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
         
     end

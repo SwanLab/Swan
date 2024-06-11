@@ -2,6 +2,7 @@ classdef ProjectedGradient < handle
 
     properties (Access = public)
         tau
+        boxConstraints
     end
 
     properties (Access = private)
@@ -10,21 +11,24 @@ classdef ProjectedGradient < handle
     end
     
     methods (Access = public)
-
         function obj = ProjectedGradient(cParams)
             obj.init(cParams);
         end
 
-        function x = update(obj,g,x)
+        function rho = update(obj,g,rho)
+            y  = rho.fun.fValues;
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
-            x  = x - t*g;
-            x  = min(ub,max(x,lb));
+            y  = y - t*g;
+            x  = min(ub,max(y,lb));
+            obj.updateBoundsMultipliers(x,y);
+            rho.update(x);
         end
 
         function computeFirstStepLength(obj,g,x,f)
-            obj.tau = f*sqrt(norm(g)/norm(x));
+            xVal    = x.fun.fValues;
+            obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         
         function increaseStepLength(obj,f)
@@ -38,16 +42,26 @@ classdef ProjectedGradient < handle
         function is = isTooSmall(obj)
             is = obj.tau < 1e-10;
         end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.upperBound     = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound     = cParams.uncOptimizerSettings.lb;
+            obj.upperBound = cParams.ub;
+            obj.lowerBound = cParams.lb;
         end
 
+        function updateBoundsMultipliers(obj,x,y)
+            t          = obj.tau;
+            dyx        = y-x;
+            dxy        = x-y;
+            lUB        = zeros(size(x));
+            lLB        = zeros(size(x));
+            lUB(dyx>0) = dyx(dyx>0);
+            lLB(dxy>0) = dxy(dxy>0);
+            obj.boxConstraints.lUB    = lUB;
+            obj.boxConstraints.lLB    = lLB;
+            obj.boxConstraints.refTau = t;
+        end
     end
 
 end
