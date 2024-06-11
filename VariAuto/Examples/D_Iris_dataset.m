@@ -37,6 +37,9 @@ p.structure       = structure;
 p.optimizerParams.learningRate = learningRate;
 p.costParams.lambda = lambda;
 p.networkParams.hiddenLayers = hiddenlayers;
+p.networkParams.costType     = '-loglikelihood';
+p.networkParams.HUtype       = 'ReLU';
+p.networkParams.OUtype       = 'tanh';
 
 optProblem   = OptimizationProblem(p);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;

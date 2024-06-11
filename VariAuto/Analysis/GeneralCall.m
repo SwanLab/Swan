@@ -20,7 +20,7 @@ for i = 1:length(datasets)
 end
 fileN = 'Iris.csv';%datasets(input('Choose: '));
 
-s.features = 1:4;
+s.features = 1:2;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;

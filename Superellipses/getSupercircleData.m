@@ -1,3 +1,3 @@
 function lhs = getSupercircleData(a,b,p,X,Y)
-    lhs = abs(X ./ a).^p + abs(Y ./ b).^p;
+    lhs = abs((X-0.5) ./ a).^p + abs((Y-0.5) ./ b).^p;
 end

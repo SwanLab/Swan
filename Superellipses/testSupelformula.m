@@ -3,10 +3,10 @@ n = 2;
 theta = 0:0.01:n*2*pi;
 a = 10;
 b = 10;
-p1 = 1;
+p1 = 2;
 p2 = 4.6;
 p3 = 5.9;
-m = 5;
+m = 4;
 
 % t = tiledlayout(1,5);
 % t.TileSpacing = 'compact';

@@ -58,7 +58,7 @@ classdef SGD < Trainer
             % epoch = 1:obj.MaxEpochs;
             epoch = 1:length(obj.fplot);
             % plot(epoch,obj.fplot,'-o');
-            plot(epoch,obj.fplot);
+            plot(epoch,obj.fplot,'LineWidth',1.8);
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
@@ -130,6 +130,7 @@ classdef SGD < Trainer
                 fprintf('The operation terminated excepcionally\n')
             end
             F(th,Xb,Yb);
+            th
         end
 
         function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,Xb,Yb)

@@ -51,8 +51,8 @@ classdef SurfaceMesh < Mesh
         end
         
         function plot(obj) 
-            faceColor = "black"; %red
-            faceAlpha = 1; %0.3
+            faceColor = "red"; %red
+            faceAlpha = 0.3; %0.3
             edgeAlpha = 0.5;
             if size(obj.connec,2) == 3 && size(obj.coord,2) == 3
                 x = obj.coord(:,1);
