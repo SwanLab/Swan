@@ -57,12 +57,12 @@ for i=1:3
         % legType = 1;
 
         %%%%%%%%%%%%% PLOT TENSOR ALL TYPES %%%%%%%%%%%%%%%
-        % plot(matType{1}.phi,squeeze(matType{1}.mat(i,j,:)),'Color','#0072BD');
-        % plot(matType{2}.phi,squeeze(matType{2}.mat(i,j,:)),'--','Color','#0072BD');
-        % plot(matType{3}.phi,squeeze(matType{3}.mat(i,j,:)),'Color','#D95319');
-        % plot(matType{4}.phi,squeeze(matType{4}.mat(i,j,:)),'--','Color','#D95319');
-        % plot(matType{5}.phi,squeeze(matType{5}.mat(i,j,:)),'Color','#EDB120');
-        % plot(sqrt(matType{5}.phi),squeeze(matType{5}.mat(i,j,:)),'--','Color','#EDB120');
+        % plot((matType{1}.phi),squeeze(matType{1}.mat(i,j,:)),'Color','#0072BD');
+        % plot((matType{2}.phi),squeeze(matType{2}.mat(i,j,:)),'--','Color','#0072BD');
+        % plot((matType{3}.phi),squeeze(matType{3}.mat(i,j,:)),'Color','#D95319');
+        % plot((matType{4}.phi),squeeze(matType{4}.mat(i,j,:)),'--','Color','#D95319');
+        % plot((matType{5}.phi),squeeze(matType{5}.mat(i,j,:)),'Color','#EDB120');
+        % %plot((matType{5}.phi).^2,squeeze(matType{5}.mat(i,j,:)),'--','Color','#EDB120');
         % ylabel(['C',num2str(i),num2str(j)]);
         % xlabel("$\phi$",'Interpreter','latex');
         % title(t,'Homogenized constitutive tensors')
@@ -116,10 +116,10 @@ for i=1:3
         % legType = 2;
 
         %%%%%%%%%%%%%%%%%%%% PLOT DERIVATIVES ALL TYPES %%%%%%%%%%%%%%%%%
-        % fplot(dfunMat(i,j,1),[0 1],'--','Color','#0072BD');
-        % fplot(dfunMat(i,j,2),[0 1],'Color','#0072BD');
-        % fplot(dfunMat(i,j,3),[0 1],'--','Color','#D95319');
-        % fplot(dfunMat(i,j,4),[0 1],'Color','#D95319');
+        % fplot(dfunMat(i,j,1),[0 1],'Color','#0072BD');
+        % fplot(dfunMat(i,j,2),[0 1],'--','Color','#0072BD');
+        % fplot(dfunMat(i,j,3),[0 1],'Color','#D95319');
+        % fplot(dfunMat(i,j,4),[0 1],'--','Color','#D95319');
         % fplot(dfunMat(i,j,5),[0 1],'Color','#EDB120');
         % ylabel(['C',num2str(i),num2str(j)]);
         % xlabel("$\phi$",'Interpreter','latex');
@@ -127,15 +127,15 @@ for i=1:3
         % legType = 2;
 
         %%%%%%%%%%%%%%%%%%% PLOT SECOND DERIVATIVES ALL TYPES %%%%%%%%%%%%%
-        % fplot(ddfunMat(i,j,1),[0 1],'--','Color','#0072BD');
-        % fplot(ddfunMat(i,j,2),[0 1],'Color','#0072BD');
-        % fplot(ddfunMat(i,j,3),[0 1],'--','Color','#D95319');
-        % fplot(ddfunMat(i,j,4),[0 1],'Color','#D95319');
-        % fplot(ddfunMat(i,j,5),[0 1],'Color','#EDB120');
-        % ylabel(['C',num2str(i),num2str(j)]);
-        % xlabel("$\phi$",'Interpreter','latex');
-        % title(t,'ANALYTICAL homogenized constitutive tensor SECOND DERIVATIVE')
-        % legType = 2;
+        fplot(ddfunMat(i,j,1),[0 1],'Color','#0072BD');
+        fplot(ddfunMat(i,j,2),[0 1],'--','Color','#0072BD');
+        fplot(ddfunMat(i,j,3),[0 1],'Color','#D95319');
+        fplot(ddfunMat(i,j,4),[0 1],'--','Color','#D95319');
+        fplot(ddfunMat(i,j,5),[0 1],'Color','#EDB120');
+        ylabel(['C',num2str(i),num2str(j)]);
+        xlabel("$\phi$",'Interpreter','latex');
+        title(t,'ANALYTICAL homogenized constitutive tensor SECOND DERIVATIVE')
+        legType = 2;
 
         %%%%%%%%%%%%% DERIVATIVES COEFFICIENT ALL TYPES %%%%%%%%%%%%%%%
         % for k=1:length(matType)
@@ -157,7 +157,7 @@ switch legType
     case 1
         leg = legend('C','dC','d2C');
     case 2
-        leg =legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','AT1','AT2');
+        leg =legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','AT1');
     case 3
         leg = legend('Circle (Perimeter)','Square (Perimeter)','Isotropic');
 end

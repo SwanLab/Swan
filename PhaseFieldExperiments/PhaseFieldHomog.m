@@ -13,19 +13,17 @@ classdef PhaseFieldHomog < handle
             obj.init(cParams);
         end
         
-        function [mat,alpha] = computeHomogMaterial(obj,holeType,aType,steps)
+        function [mat,phi] = computeHomogMaterial(obj,holeType,aType,steps)
             holeMax = obj.computeHoleMax(holeType);
-            holeLength = linspace(1e-16,holeMax,steps);
+            holeLength = linspace(1e-10,holeMax,steps);
             mat = zeros(3,3,length(holeLength));
-            alpha = zeros(length(holeLength),1);
-            steps = 1;
+            phi = zeros(length(holeLength),1);
             for i=1:steps
                 l = holeLength(i);
-                l = holeLength(end);
                 mat(:,:,i) = obj.computeHomogenisation(l,holeType);
-                alpha(i) = obj.computeDissipationMetric(l,holeType,aType);
+                phi(i) = obj.computeDissipationMetric(l,holeType,aType);
             end
-            Chomog = obj.createMaterialFun(mat,alpha);
+            %Chomog = obj.createMaterialFun(mat,alpha);
         end
         
         function [mat,holeLength] = computeIsotropicMaterial(obj,aType,steps)
@@ -55,7 +53,6 @@ classdef PhaseFieldHomog < handle
                 end
             end
             holeLength = linspace(0,1,steps);
-            phi = sqrt(holeLength);
             mat = zeros(3,3,length(phi));
             mat(1,1,:) = constant*(1-phi).^2 ;
             mat(1,2,:) = constant*obj.nu*(1-phi).^2;
