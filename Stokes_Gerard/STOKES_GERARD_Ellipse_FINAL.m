@@ -4,11 +4,11 @@ close all
 % Prova per veure si es pot trobar els nodes de la frontera de manera diferent.
 % % INPUT DATA
 
-dim_a = 0.1; % Semi-major axis 0.2
-dim_b = 0.5; % Semi-minor axis 0.02
+dim_a = 0.5; % Semi-major axis 0.2
+dim_b = 0.1; % Semi-minor axis 0.02
 center_posx = 2; % x position of the ellipse center
 center_posy = 2; % y position of the ellipse center
-AOAd = 0; % Angle of attack of the semi-major axis (in degrees)
+AOAd = 20; % Angle of attack of the semi-major axis (in degrees)
 
 
 m = QuadMesh(5,4,50,50); % MESH

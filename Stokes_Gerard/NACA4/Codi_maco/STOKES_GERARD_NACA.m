@@ -10,12 +10,12 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,650*0.6,650); % MESH
+        m = QuadMesh(10,4,450*0.8,450); % MESH
         s.type='Given';
 
         % % NACA 4
-        M=4/100;
-        p=4/10;
+        M=9/100;
+        p=8/10;
         t=12/100;
 
         % Biga (posada en el centre de màx t):
@@ -23,7 +23,7 @@ O = 1;
         ampl = 0.095;
         x_pos = 0.3; %Centre de la biga respecte el LE
 
-        AOAd = 0; %deg
+        AOAd = 10; %deg
         x_centr = 3.5;
         y_centr = 2;
 
