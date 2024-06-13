@@ -8,6 +8,7 @@ classdef ProblemSolver < handle
         type, mode
         stiffness
         forces
+        uOld
         boundaryConditions
         BCApplier
         solver
@@ -38,6 +39,7 @@ classdef ProblemSolver < handle
             obj.mode               = cParams.solverMode;
             obj.stiffness          = cParams.stiffness;
             obj.forces             = cParams.forces;
+            obj.uOld               = cParams.uOld;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
             obj.solver             = cParams.solver;
@@ -153,7 +155,9 @@ classdef ProblemSolver < handle
                         % lambda = zeros(size(obj.lhs,1) - size(obj.forces,1), 1);
                         lambda = bcs.dirichlet_vals;
                         Ct = repmat(lambda, [1 nCases]);
-                        RHS = [obj.forces; Ct];
+                        isDir = bcs.dirichlet_dofs;
+                        uOldD = obj.uOld(isDir);
+                        RHS = [obj.forces; Ct-uOldD];
                     else
                         iV = obj.boundaryConditions.iVoigt;
                         nV = obj.boundaryConditions.nVoigt;

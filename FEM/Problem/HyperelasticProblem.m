@@ -75,13 +75,13 @@ classdef HyperelasticProblem < handle
                 resi = 0;
                 i = 0;
                 while residual > 10e-8
-%                     nrg = neo.compute(obj.uFun)
+                     nrg = neo.compute(obj.uFun)
 
                     % Update U
-                    [deltaUk,react_k] = obj.solveProblem(hess,-R);
+                    [deltaUk,deltaReactk] = obj.solveProblem(hess,-R,u_k);
                     
                     u_next = u_k + deltaUk;
-                    react = react + react_k;
+                    react = react + deltaReactk;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     obj.applyDirichletToUFun();
                     u_k = obj.reshapeToVector(obj.uFun.fValues);
@@ -164,7 +164,7 @@ classdef HyperelasticProblem < handle
             obj.BCApplier = bc;
         end
 
-        function [u,reactions] = solveProblem(obj, lhs, rhs)
+        function [incU,incR] = solveProblem(obj, lhs, rhs,uOld)
             obj.createBCApplier();
             a.type = 'DIRECT';
             solv = Solver.create(a);
@@ -172,15 +172,16 @@ classdef HyperelasticProblem < handle
             s.solverMode = 'DISP';
             s.stiffness  = lhs;
             s.forces     = rhs;
+            s.uOld       = uOld;
             s.solver     = solv;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.BCApplier;
             pb = ProblemSolver(s);
-            [u,L] = pb.solve();
+            [incU,incL] = pb.solve();
 
-            reactions = zeros(obj.uFun.nDofs, 1);
-            reactions(obj.boundaryConditions.dirichlet_dofs) = L;
-            reac_rshp = reshape(reactions,[obj.mesh.ndim,obj.mesh.nnodes])';
+            incR = zeros(obj.uFun.nDofs, 1);
+            incR(obj.boundaryConditions.dirichlet_dofs) =  incL;
+            reac_rshp = reshape(incR,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
     end
