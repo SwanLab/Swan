@@ -1,4 +1,7 @@
 %% To-do
+% lambda tres ordres de magnitud mes grans
+% grafic nu - lambda i tal per comprovar com afecta
+% https://sci-hub.usualwant.com/10.1016/S0045-7949(99)00137-6 pag 11
     % In this commit: first iteration seems okay, the following iterations
     % become increasingly crap.
 

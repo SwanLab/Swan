@@ -35,7 +35,7 @@ classdef HyperelasticProblem < handle
             close all;
             obj.init();
             obj.createDisplacementFun();
-            obj.createBoundaryConditions();
+            obj.createBoundaryConditions(1);
 
             % Create Neohookean Functional
             s.material = obj.material;
@@ -63,7 +63,9 @@ classdef HyperelasticProblem < handle
                 disp('NEW LOAD STEP')
 
                 loadPercent = iStep/nsteps;
-                obj.createBoundaryConditions();
+                obj.createBoundaryConditions(loadPercent);
+                obj.applyDirichletToUFun();
+                u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
                 Fext = obj.computeExternalForces(loadPercent);
                 Fint = obj.computeInternalForces();
                 hess = neo.computeHessian(obj.uFun);
@@ -73,7 +75,7 @@ classdef HyperelasticProblem < handle
                 resi = 0;
                 i = 0;
                 while residual > 10e-8
-                    nrg = neo.compute(obj.uFun)
+%                     nrg = neo.compute(obj.uFun)
 
                     % Update U
                     [deltaUk,react_k] = obj.solveProblem(hess,-R);
@@ -81,7 +83,9 @@ classdef HyperelasticProblem < handle
                     u_next = u_k + deltaUk;
                     react = react + react_k;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
-                    u_k = u_next;
+                    obj.applyDirichletToUFun();
+                    u_k = obj.reshapeToVector(obj.uFun.fValues);
+%                     u_k = u_next;
                     obj.uFun.fValues
 
                     % Calculate residual
@@ -89,7 +93,7 @@ classdef HyperelasticProblem < handle
                     hess = neo.computeHessian(obj.uFun);
                     R = Fint - Fext - react;
 
-                    residual = norm(R)/norm(Fext)
+                    residual = norm(R)%/norm(Fext)
 %                     sigma = obj.computeCauchyStress();
 %                     lambdas = obj.computeStretches();
 
@@ -103,12 +107,17 @@ classdef HyperelasticProblem < handle
                 obj.uFun.print(['SIM_Bending_',int2str(iStep)])
 
                 xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
 
                 isRight  = @(coor)  abs(coor(:,1))==xMax;
                 isBottom = @(coor)  abs(coor(:,2))==0;
-                bot_right = @(coor) isBottom(coor) & isRight(coor);
+                isLeft  = @(coor)  abs(coor(:,1))==0;
+                isTop = @(coor)  abs(coor(:,2))==yMax;
+                isMiddle  = @(coor)  abs(coor(:,1))==xMax/2;
+%                 bot_right = @(coor) isBottom(coor) & isRight(coor);
+                bot_right = @(coor) isMiddle(coor) & isTop(coor);
                 dof = obj.uFun.getDofsFromCondition(bot_right);
-                dof = dof(1);
+                dof = dof(2);
                 nDimf = obj.uFun.ndimf;
                 nNode = obj.mesh.nnodes;
                 dofToDim = repmat(1:nDimf,[1,nNode]);
@@ -126,12 +135,18 @@ classdef HyperelasticProblem < handle
                 num_is(iStep) = i;
                 f = figure(1);
                 clf(f)
-                subplot(1,3,1)
+                subplot(1,2,1)
                 plot(displ_grafic, fext_grafic,'-x')
-                subplot(1,3,2)
-                plot(1:iStep, nrg_grafic,'-x')
-                subplot(1,3,3)
+                title('Displacement of central top node')
+                xlabel('displacement (m)')
+                ylabel('force (N)')
+%                 subplot(1,3,2)
+%                 plot(1:iStep, nrg_grafic,'-x')
+                subplot(1,2,2)
                 bar(1:iStep, num_is)
+                title('Number of iterations to converge \DeltaF')
+                xlabel('step')
+                ylabel('num. iterations')
                 hold on
                 drawnow
 %                 addpoints(fig2, obj.uFun.fValues(3,1), Fext(5))
@@ -179,32 +194,32 @@ classdef HyperelasticProblem < handle
 
         function createMesh(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(15,15,15);
-%             obj.mesh = UnitQuadMesh(10,10);
+%             obj.mesh = UnitHexaMesh(15,15,15);
+%             obj.mesh = UnitQuadMesh(14,14);
 
-%             % Hole mesh
-%             mesh = UnitQuadMesh(20,20);
-%             gPar.type          = 'Circle';
-%             gPar.radius        = 0.25;
-%             gPar.xCoorCenter   = 0.5;
-%             gPar.yCoorCenter   = 0.5;
-%             g                  = GeometricalFunction(gPar);
-%             phiFun             = g.computeLevelSetFunction(mesh);
-%             lsCircle           = phiFun.fValues;
-%             lsCircleInclusion  = -lsCircle;
-%             sUm.backgroundMesh = mesh;
-%             sUm.boundaryMesh   = mesh.createBoundaryMesh;
-%             uMesh              = UnfittedMesh(sUm);
-%             uMesh.compute(lsCircleInclusion);
-%             
-%             IM = uMesh.createInnerMesh();
-%             obj.mesh = IM;
+            % Hole mesh
+            mesh = UnitQuadMesh(20,20);
+            gPar.type          = 'Circle';
+            gPar.radius        = 0.25;
+            gPar.xCoorCenter   = 0.5;
+            gPar.yCoorCenter   = 0.5;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsCircle           = phiFun.fValues;
+            lsCircleInclusion  = -lsCircle;
+            sUm.backgroundMesh = mesh;
+            sUm.boundaryMesh   = mesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(lsCircleInclusion);
+            
+            IM = uMesh.createInnerMesh();
+            obj.mesh = IM;
         end
         
         function createMaterial(obj)
             % Only 3D
-            obj.material.mu = 1;        % kPa
-            obj.material.lambda = 1*10; % kPa
+            obj.material.mu = 1*1000;        % kPa
+            obj.material.lambda = 1*10*1000; % kPa
 
             k = obj.material.lambda + 2/3 * obj.material.mu; % canviar
             G = obj.material.mu;
@@ -234,11 +249,12 @@ classdef HyperelasticProblem < handle
 %             obj.material.mu = mu;
         end
 
-        function createBoundaryConditions(obj)
+        function createBoundaryConditions(obj,perc)
 %             obj.createBC_2DTraction();
 %             obj.createBC_2DBending();
 %             obj.createBC_2DHole();
-            obj.createBC_3DCube();
+              obj.createBC_2DHoleDirich(perc);
+%             obj.createBC_3DCube();
         end
 
         function createDisplacementFun(obj)
@@ -368,7 +384,7 @@ classdef HyperelasticProblem < handle
 % 
             sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
             sPL.direction = 2;
-            sPL.value     = -1;
+            sPL.value     = -1000;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
@@ -389,6 +405,47 @@ classdef HyperelasticProblem < handle
 
             Fext = zeros(obj.mesh.nnodes,2);
             Fext(l2g,:) = Fext3;
+
+            obj.FextInitial = Fext; 
+            
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+
+            bc = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
+
+        function bc = createBC_2DHoleDirich(obj, perc)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft   = @(coor)  abs(coor(:,1))==0;
+            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            isHalf   = @(coor)  abs(abs(coor(:,1)) - xMax/2) <=10e-2;
+            isTop    = @(coor)  abs(coor(:,2))==yMax;
+            isBottom = @(coor)  abs(coor(:,2))==0;
+            isMiddle = @(coor)  abs(abs(coor(:,2))-yMax/2) <= 10e-2;
+            
+            % 2D N ELEMENTS
+            sDir.domain    = @(coor) isBottom(coor);
+            sDir.direction = [1,2];
+            sDir.value     = 0;
+            dir =  DirichletCondition(obj.mesh, sDir);
+
+            sDir2.domain    = @(coor) isTop(coor);
+            sDir2.direction = [2];
+            sDir2.value     = perc*1;
+            dir2 =  DirichletCondition(obj.mesh, sDir2);
+
+            sDir3.domain    = @(coor) isTop(coor);
+            sDir3.direction = [1];
+            sDir3.value     = 0;
+            dir3 =  DirichletCondition(obj.mesh, sDir3);
+
+            s.dirichletFun = [dir, dir2, dir3];
+%             s.dirichletFun = [dir, dir2];
+            s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
+
+            Fext = zeros(obj.mesh.nnodes,2);
 
             obj.FextInitial = Fext; 
             
