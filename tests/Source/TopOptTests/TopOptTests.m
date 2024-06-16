@@ -42,7 +42,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             mat    = obj.createMaterial(x,mI);
             fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
             Msmooth = obj.createMassMatrix(m);
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename);
+            if exist('micro')
+                s = micro;
+            else
+                s = [];
+            end
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s);
             sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
@@ -130,8 +135,14 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.boundaryConditions = bc;
             s.interpolationType  = 'LINEAR';
             s.solverType         = 'REDUCED';
-            s.solverMode         = 'DISP';
-            fem                  = ElasticProblem(s);
+            switch s.scale
+                case 'MACRO'
+                    s.solverMode = 'DISP';
+                case 'MICRO'
+                    s.solverMode = 'FLUC';
+            end
+            s.type               = 'ELASTIC';
+            fem                  = PhysicalProblem.create(s);
         end
 
         function M = createMassMatrix(mesh)
@@ -143,7 +154,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             M = LHS.compute;
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename)
+        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s)
             for i = 1:length(cost)
                 s.type            = cost{i};
                 s.mesh            = mesh;
