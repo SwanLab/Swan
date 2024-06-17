@@ -97,8 +97,7 @@ classdef FunctionPrinter_GiD < handle
         end
         
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
+            q = Quadrature.create(obj.mesh, 1);
             obj.quadrature = q;
         end
         

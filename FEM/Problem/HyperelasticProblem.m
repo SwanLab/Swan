@@ -213,7 +213,8 @@ classdef HyperelasticProblem < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(lsCircleInclusion);
             
-            IM = uMesh.createInnerMesh();
+%             IM = uMesh.createInnerMesh();
+            IM = uMesh.createInnerMeshGoodConditioning();
             obj.mesh = IM;
         end
         
