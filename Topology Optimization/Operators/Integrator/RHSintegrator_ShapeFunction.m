@@ -9,11 +9,11 @@ classdef RHSintegrator_ShapeFunction < handle
     methods (Access = public)
         function obj = RHSintegrator_ShapeFunction(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
 
         function rhs = compute(obj,fun,test)
-            obj.createQuadrature(fun,test);
             rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(test,rhsElem);
         end
@@ -67,15 +67,9 @@ classdef RHSintegrator_ShapeFunction < handle
             end
         end
 
-        function createQuadrature(obj,fun,test)
-            if isempty(obj.quadType)
-                orderTr = fun.getOrderNum();
-                orderTe = test.getOrderNum();
-                order = orderTr + orderTe;
-            else
-                order = obj.quadType;
-            end
-            q = Quadrature.create(obj.mesh,order);
+        function createQuadrature(obj)
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadType);
             obj.quadrature = q;
         end
 

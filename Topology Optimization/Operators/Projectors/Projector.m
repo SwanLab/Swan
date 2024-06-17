@@ -19,14 +19,14 @@ classdef Projector < handle
         function ord = determineQuadratureOrder(fun)
             switch class(fun)
                 case 'L2Function'
-                    ord = 2;
+                    ord = 'QUADRATIC';
                 case 'FEFunction'
 %                     ord = 'LINEAR';
-                    ord = 2; % needed to project P1 to P1D
+                    ord = 'QUADRATIC'; % needed to project P1 to P1D
                 case 'FGaussDiscontinuousFunction'
                     ord = fun.getQuadratureOrder;
                 otherwise
-                    ord = 2;
+                    ord = 'QUADRATIC';
             end
         end
 

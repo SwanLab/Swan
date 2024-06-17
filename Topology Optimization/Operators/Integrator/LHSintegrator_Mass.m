@@ -1,9 +1,17 @@
-classdef LHSintegrator_Mass < LHSintegrator
+classdef LHSintegrator_Mass < handle
+
+    properties (Access = private)
+        mesh
+        test, trial
+        quadrature
+        quadratureOrder
+    end
 
     methods (Access = public)
 
         function obj = LHSintegrator_Mass(cParams)
-            obj@LHSintegrator(cParams)
+            obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function LHS = compute(obj)
@@ -14,7 +22,28 @@ classdef LHSintegrator_Mass < LHSintegrator
     end
 
     methods (Access = private)
+
+        function init(obj, cParams)
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
+            obj.mesh  = cParams.mesh;
+            obj.setQuadratureOrder(cParams);
+        end
+
+        function setQuadratureOrder(obj, cParams)
+            if isfield(cParams, 'quadratureOrder')
+                obj.quadratureOrder = cParams.quadratureOrder;
+            else
+                obj.quadratureOrder = obj.trial.orderTextual();
+            end
+        end
         
+        function createQuadrature(obj)
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
+            obj.quadrature = quad;
+        end
+
         function lhs = computeElementalLHS(obj)
             quad = obj.quadrature;
             xV   = quad.posgp;
@@ -58,6 +87,12 @@ classdef LHSintegrator_Mass < LHSintegrator
             end
             lhs = M;
 
+        end
+
+        function LHS = assembleMatrix(obj, lhs)
+            s.fun    = []; % !!!
+            assembler = AssemblerFun(s);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

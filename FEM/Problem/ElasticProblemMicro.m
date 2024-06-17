@@ -18,7 +18,7 @@ classdef ElasticProblemMicro < handle
         strain, stress
         stiffness, forces
 
-        solverType, solverMode, solverCase = 'DIRECT'
+        solverType, solverMode
         lagrangeMultipliers
     end
 
@@ -47,13 +47,10 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStiffnessMatrix(obj)
-            ndimf = obj.displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.displacementFun;
+            s.fun      = obj.displacementFun;
             s.material = obj.material;
-            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
@@ -83,8 +80,8 @@ classdef ElasticProblemMicro < handle
             quad = obj.quadrature;
         end
 
-        function updateMaterial(obj, mat)
-            obj.material = mat;
+        function setC(obj, C)
+            obj.material.C = C;
         end
 
         function dim = getDimensions(obj)
@@ -128,7 +125,8 @@ classdef ElasticProblemMicro < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.create(obj.mesh, 1);
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
         end
 
@@ -155,7 +153,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function createSolver(obj)
-            s.type =  obj.solverCase;
+            s.type =  'DIRECT';
             obj.solver = Solver.create(s);
         end
 
@@ -177,7 +175,6 @@ classdef ElasticProblemMicro < handle
         function u = computeDisplacement(obj, iVoigt)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.solver     = obj.solver;
             s.stiffness = obj.stiffness;
             s.forces = obj.forces(:, iVoigt);
             s.boundaryConditions = obj.boundaryConditions;
@@ -199,14 +196,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStrain(obj, iVoigt)
-            nCases    = size(obj.Chomog,1);
-            e         = zeros(nCases,1,1);
-            e(iVoigt) = 1;
-            strn      = SymGrad(obj.uFun{iVoigt});
-
-            obj.strainFluctFun{iVoigt} = strn;
-            s.operation                = @(xV) e+strn.evaluate(xV);
-            obj.strainFun{iVoigt}      = DomainFunction(s);
+            obj.strainFluctFun{iVoigt} = SymGrad(obj.uFun{iVoigt});
         end
 
         function computeStress(obj, iVoigt)
@@ -278,7 +268,18 @@ classdef ElasticProblemMicro < handle
                 end
     
                 obj.Chomog(:,iVoigt) = stressHomog;
-                
+    
+%                 a.mesh       = obj.mesh;
+%                 a.fValues    = permute(stress, [2 1 3]);
+%                 a.quadrature = obj.quadrature;
+%                 obj.stressFun{iVoigt} = FGaussDiscontinuousFunction(a);
+%     
+%                 a.mesh       = obj.mesh;
+%                 a.fValues    = permute(strain, [2 1 3]);
+%                 a.quadrature = obj.quadrature;
+%                 obj.strainFun{iVoigt} = FGaussDiscontinuousFunction(a);
+    
+    
                 vars.stress_fluct = stressFluct;
                 vars.strain_fluct = strainFluct;
     

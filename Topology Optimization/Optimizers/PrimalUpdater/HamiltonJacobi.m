@@ -53,7 +53,7 @@ classdef HamiltonJacobi < handle
             ss.fun       = LagrangianFunction(s);
             ss.uMesh     = obj.phi.getUnfittedMesh();
             unfFun       = UnfittedBoundaryFunction(ss);
-            gFilter      = obj.filter.compute(unfFun,2);
+            gFilter      = obj.filter.compute(unfFun,'QUADRATIC');
             V            = -gFilter.fValues;
             Vnorm        = max(abs(V(:)));
             obj.velocity = V/Vnorm;
@@ -83,7 +83,7 @@ classdef HamiltonJacobi < handle
             s.designVarType     = designVar.type;
             s.scale             = 'MACRO';
             s.filterType        = 'PDE';
-            s.quadType          = 2;
+            s.quadType          = 'LINEAR';
             s.designVariable    = designVar;
             s.trial             = LagrangianFunction.create(s.mesh,1, 'P1');
             obj.filter          = Filter.create(s);

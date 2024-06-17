@@ -1,15 +1,20 @@
 classdef RHSintegrator_Stokes < RHSintegrator
 
     properties (Access = private)
+%         mesh
         velocityFun
         pressureFun
         forcesFormula
+%         quadrature
     end
 
     methods (Access = public)
 
         function obj = RHSintegrator_Stokes(cParams)
+            cParams.quadratureOrder = 'QUADRATIC';
             obj.init(cParams);
+            obj.setQuadratureOrder(cParams);
+            obj.createQuadrature();
         end
 
         function rhs = integrate(obj)
@@ -36,7 +41,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
         function Fext = computeVolumetricFext(obj)
             a.type = 'ShapeFunction';
             a.mesh = obj.mesh;
-            a.quadType = 3;
+            a.quadType = 'QUADRATIC';
             rhsI       = RHSintegrator.create(a);
             test = LagrangianFunction.create(obj.mesh, 2, obj.velocityFun.order);
             Fext = rhsI.compute(obj.forcesFormula,test);

@@ -2,7 +2,7 @@ classdef LHSintegrator < handle
 
     properties (Access = protected)
         mesh
-        test, trial
+        fun
         quadrature
         quadratureOrder
     end
@@ -28,9 +28,8 @@ classdef LHSintegrator < handle
     methods (Access = protected)
 
         function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
-            obj.mesh  = cParams.mesh;
+            obj.fun      = cParams.fun;
+            obj.mesh     = cParams.mesh;
             obj.setQuadratureOrder(cParams);
         end
 
@@ -38,23 +37,15 @@ classdef LHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                % warning('Assuming quadrature order')
-                quadOrderTe = obj.test.getOrderNum();
-                quadOrderTr = obj.trial.getOrderNum();
-                obj.quadratureOrder = quadOrderTe + quadOrderTr;
+                obj.quadratureOrder = 'QUADRATIC';%obj.fun.order;
             end
         end
         
         function createQuadrature(obj)
-%             quadOrder = obj.fun.getOrderNum();
-            quad = Quadrature.create(obj.mesh, obj.quadratureOrder);
+            quad = Quadrature.set(obj.mesh.type);
+            quadOrder = obj.fun.orderTextual();
+            quad.computeQuadrature(quadOrder);
             obj.quadrature = quad;
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

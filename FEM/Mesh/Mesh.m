@@ -57,7 +57,8 @@ classdef Mesh < handle
         end
 
         function xV = computeBaricenter(obj)
-            q = Quadrature.create(obj, 0);
+            q = Quadrature.set(obj.type);
+            q.computeQuadrature('CONSTANT');
             xV = q.posgp;
             xV = squeeze(obj.xFE.evaluate(xV));
         end
@@ -97,14 +98,16 @@ classdef Mesh < handle
         end
 
         function q = computeElementQuality(obj) % check for 3d
-            quad = Quadrature.create(obj, 1);
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('LINEAR');
             volume = obj.computeDvolume(quad)';
             L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 
         function v = computeVolume(obj) % computeMeasure
-            quad = Quadrature.create(obj,2);
+            quad = Quadrature.set(obj.type);
+            quad.computeQuadrature('LINEAR');
             v = obj.computeDvolume(quad);
             v = sum(v(:));
         end

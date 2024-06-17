@@ -31,7 +31,8 @@ classdef VolumeFunctional < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.create(obj.mesh,2);
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature('LINEAR');
             obj.quadrature = quad;
         end
 

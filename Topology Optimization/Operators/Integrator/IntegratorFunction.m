@@ -43,7 +43,8 @@ classdef IntegratorFunction < handle
         end
 
         function createQuadrature(obj)
-            q = Quadrature.create(obj.mesh,obj.quadType);
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature(obj.quadType);
             obj.quadrature = q;
         end
 

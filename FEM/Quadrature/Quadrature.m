@@ -1,5 +1,4 @@
 classdef Quadrature < handle
-
     properties (GetAccess = public, SetAccess = protected)
         posgp
         weigp
@@ -7,29 +6,39 @@ classdef Quadrature < handle
         order
     end
     
+    methods (Access = public)
+        
+        function computeQuadrature(obj,order)
+            obj.posgp = [];
+            obj.weigp = [];
+            obj.order = order;
+        end
+        
+    end
+    
     methods (Static, Access = public)
 
         function q = create(mesh, order)
-            switch mesh.type
+            q = Quadrature.set(mesh.type);
+            q.computeQuadrature(order);
+        end
+
+        function quadrature = set(type)
+            switch type
                 case 'LINE'
-                    q = Quadrature_Line();
+                    quadrature = Quadrature_Line;
                 case 'TRIANGLE'
-                    q = Quadrature_Triangle();
+                    quadrature = Quadrature_Triangle;
                 case 'QUAD'
-                    q = Quadrature_Quadrilateral();
+                    quadrature = Quadrature_Quadrilateral;
                 case 'TETRAHEDRA'
-                    q = Quadrature_Tetrahedra();
+                    quadrature = Quadrature_Tetrahedra;
                 case 'HEXAHEDRA'
-                    q = Quadrature_Hexahedra();
+                    quadrature = Quadrature_Hexahedra;
                 otherwise
                     error('Invalid quadrature type.')
             end
-            q.computeQuadrature(order);
         end
     end
-
-    methods (Abstract, Access = protected)
-        computeQuadrature(obj,order)
-    end
-
 end
+

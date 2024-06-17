@@ -73,7 +73,8 @@ classdef UnfittedMeshFunction < handle
 
         function computeSubMeshQuadrature(obj)
             mesh = obj.unfittedMesh.backgroundMesh;
-            q    = Quadrature.create(mesh,0);
+            q    = Quadrature.set(mesh.type);
+            q.computeQuadrature('CONSTANT');
             obj.subMeshQuad = q;
         end
 
