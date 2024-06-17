@@ -214,7 +214,8 @@ classdef HyperelasticProblem < handle
             uMesh.compute(lsCircleInclusion);
             
 %             IM = uMesh.createInnerMesh();
-            IM = uMesh.createInnerMeshGoodConditioning();
+%             IM = uMesh.createInnerMeshGoodConditioning();
+            IM = Mesh.createFromGiD('hole_mesh.m');
             obj.mesh = IM;
         end
         
