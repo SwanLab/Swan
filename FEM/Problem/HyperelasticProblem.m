@@ -73,7 +73,7 @@ classdef HyperelasticProblem < handle
                 resi = 0;
                 i = 0;
                 while residual > 10e-8
-                    nrg = neo.compute(obj.uFun)
+%                     nrg = neo.compute(obj.uFun)
 
                     % Update U
                     [deltaUk,react_k] = obj.solveProblem(hess,-R);
@@ -106,9 +106,11 @@ classdef HyperelasticProblem < handle
 
                 isRight  = @(coor)  abs(coor(:,1))==xMax;
                 isBottom = @(coor)  abs(coor(:,2))==0;
-                bot_right = @(coor) isBottom(coor) & isRight(coor);
+                isTop = @(coor)  abs(coor(:,2))==1;
+                isMid  = @(coor)  abs(coor(:,1))==xMax/2;
+                bot_right = @(coor) isTop(coor) & isMid(coor);
                 dof = obj.uFun.getDofsFromCondition(bot_right);
-                dof = dof(1);
+                dof = dof(2);
                 nDimf = obj.uFun.ndimf;
                 nNode = obj.mesh.nnodes;
                 dofToDim = repmat(1:nDimf,[1,nNode]);
@@ -118,7 +120,7 @@ classdef HyperelasticProblem < handle
                 nod = dofToNode(dof);
                 dof_dir = dofToDim(dof); 
 
-                nrg_grafic  = [nrg_grafic, nrg];
+%                 nrg_grafic  = [nrg_grafic, nrg];
                 displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
                 fext_grafic  = [fext_grafic, sum(Fext)];
                 posgp = Quadrature.create(obj.mesh,1).posgp;
@@ -126,12 +128,18 @@ classdef HyperelasticProblem < handle
                 num_is(iStep) = i;
                 f = figure(1);
                 clf(f)
-                subplot(1,3,1)
+                subplot(1,2,1)
                 plot(displ_grafic, fext_grafic,'-x')
-                subplot(1,3,2)
-                plot(1:iStep, nrg_grafic,'-x')
-                subplot(1,3,3)
+                title('Displacement of central top node')
+                xlabel('displacement (m)')
+                ylabel('force (N)')
+%                 subplot(1,3,2)
+%                 plot(1:iStep, nrg_grafic,'-x')
+                subplot(1,2,2)
                 bar(1:iStep, num_is)
+                title('Number of iterations to converge \DeltaF')
+                xlabel('step')
+                ylabel('num. iterations')
                 hold on
                 drawnow
 %                 addpoints(fig2, obj.uFun.fValues(3,1), Fext(5))
@@ -179,8 +187,8 @@ classdef HyperelasticProblem < handle
 
         function createMesh(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(15,15,15);
-%             obj.mesh = UnitQuadMesh(10,10);
+%             obj.mesh = UnitHexaMesh(15,15,15);
+            obj.mesh = UnitQuadMesh(10,10);
 
 %             % Hole mesh
 %             mesh = UnitQuadMesh(20,20);
@@ -203,8 +211,8 @@ classdef HyperelasticProblem < handle
         
         function createMaterial(obj)
             % Only 3D
-            obj.material.mu = 1;        % kPa
-            obj.material.lambda = 1*10; % kPa
+            obj.material.mu = 1*1000;        % Pa
+            obj.material.lambda = 1*10*1000; % Pa
 
             k = obj.material.lambda + 2/3 * obj.material.mu; % canviar
             G = obj.material.mu;
@@ -236,9 +244,9 @@ classdef HyperelasticProblem < handle
 
         function createBoundaryConditions(obj)
 %             obj.createBC_2DTraction();
-%             obj.createBC_2DBending();
+            obj.createBC_2DBending();
 %             obj.createBC_2DHole();
-            obj.createBC_3DCube();
+%             obj.createBC_3DCube();
         end
 
         function createDisplacementFun(obj)
@@ -368,7 +376,7 @@ classdef HyperelasticProblem < handle
 % 
             sPL.domain    = @(coor) isTop(coor) & isHalf(coor);
             sPL.direction = 2;
-            sPL.value     = -1;
+            sPL.value     = -1000;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
