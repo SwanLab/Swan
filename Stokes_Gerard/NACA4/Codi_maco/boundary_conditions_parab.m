@@ -6,7 +6,6 @@ isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
 isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
 isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 
-
 % Original (no-slip condition)
 dir_vel{2}.domain    = @(coor) isTop(coor) | isBottom(coor);
 dir_vel{2}.direction = [1,2];
@@ -15,8 +14,6 @@ dir_vel{2}.value     = [0,0];
 dir_vel{1}.domain    = @(coor) isLeft(coor) & not(isTop(coor) | isBottom(coor));
 dir_vel{1}.direction = [1,2];
 dir_vel{1}.value     = [1,0]; %Velocity on the inlet
-
-%Nodesnormals = uMesh.boundaryCutMesh.mesh
 
 %Trobem els nodes de "pressió" al voltant de l'el·lipse (nodes que no són
 %intermitjos). Recordar que estem buscant els GDL de la velocitat per
@@ -88,15 +85,12 @@ for i = 1:1:4
     if i==1
     
     for j=1:2:length(iNod)
-       
         ycoord=velocityFun.coord(iNod(j),2);
-        valmat([j,j+1],1)=[(4-(ycoord-2)^2)/4;0];
-        
+        valmat([j,j+1],1)=[(4-(ycoord-2)^2)/4;0]; 
     end
 
     else
-    
-    valmat = repmat(dir_vel{i}.value', [length(iNod)/2 1]);
+        valmat = repmat(dir_vel{i}.value', [length(iNod)/2 1]);
 
     end
 
@@ -118,9 +112,6 @@ sAF.fHandle = @(coor) [0.*coor,0.*coor];
 sAF.ndimf   = 2;
 sAF.mesh    = mesh;
 forcesFormula = AnalyticalFunction(sAF);
-
-
-
 
 end
 
