@@ -168,6 +168,7 @@ classdef ElasticProblem < handle
             s.solver     = obj.solver;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.BCApplier;
+            s.uOld = zeros(size(obj.forces));
             pb = ProblemSolver(s);
             [u,L] = pb.solve();
             

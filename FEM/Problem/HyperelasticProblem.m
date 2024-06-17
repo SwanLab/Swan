@@ -115,7 +115,7 @@ classdef HyperelasticProblem < handle
                 isTop = @(coor)  abs(coor(:,2))==yMax;
                 isMiddle  = @(coor)  abs(coor(:,1))==xMax/2;
 %                 bot_right = @(coor) isBottom(coor) & isRight(coor);
-                bot_right = @(coor) isMiddle(coor) & isTop(coor);
+                bot_right = @(coor) isRight(coor) & isTop(coor);
                 dof = obj.uFun.getDofsFromCondition(bot_right);
                 dof = dof(2);
                 nDimf = obj.uFun.ndimf;
@@ -215,7 +215,7 @@ classdef HyperelasticProblem < handle
             
 %             IM = uMesh.createInnerMesh();
 %             IM = uMesh.createInnerMeshGoodConditioning();
-            IM = Mesh.createFromGiD('hole_mesh.m');
+            IM = Mesh.createFromGiD('hole_mesh_quad.m');
             obj.mesh = IM;
         end
         

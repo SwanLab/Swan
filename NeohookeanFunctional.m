@@ -91,15 +91,6 @@ classdef NeohookeanFunctional < handle
             end
         end
 
-        function hess = computeHessian2(obj,uFun)
-            trial = uFun;
-            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
-            quad = Quadrature.create(obj.mesh,2);
-
-            xG = quad.posgp;
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-        end
-
         function hess = computeHessian(obj, uFun)
             % This is the LINEALIZED hessian (Holzapfel, 401)
             % See  Holzapfel, 396
