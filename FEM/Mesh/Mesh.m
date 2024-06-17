@@ -38,6 +38,12 @@ classdef Mesh < handle
                     obj = VolumeMesh(s);
             end
         end
+        
+        function obj = createFromGiD(filename)
+            reader = FemInputReader_GiD();
+            a = reader.read(filename);
+            obj = a.mesh;
+        end
 
     end
 
