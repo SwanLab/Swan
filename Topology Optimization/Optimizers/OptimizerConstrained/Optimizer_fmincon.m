@@ -45,7 +45,7 @@ classdef Optimizer_fmincon < Optimizer
             cParams.optimizerNames.alg = obj.algorithm;
             obj.upperBound             = cParams.ub;
             obj.lowerBound             = cParams.lb;
-            obj.nX                     = length(obj.designVariable.value);
+            obj.nX                     = length(obj.designVariable.fun.fValues);
             obj.hasConverged           = false;
             obj.createMonitoring(cParams);
         end
@@ -89,7 +89,7 @@ classdef Optimizer_fmincon < Optimizer
 
         function createProblem(obj)
             prob.objective         = @(x) obj.objectiveAndGradient(x);
-            prob.x0                = obj.designVariable.value;
+            prob.x0                = obj.designVariable.fun.fValues;
             prob.A                 = [];
             prob.b                 = [];
             prob.Aeq               = [];

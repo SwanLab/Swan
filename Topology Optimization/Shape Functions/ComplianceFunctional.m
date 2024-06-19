@@ -31,17 +31,20 @@ classdef ComplianceFunctional < handle
             obj.filter     = cParams.filter;
             obj.material   = cParams.material;
             obj.compliance = cParams.complainceFromConstitutive;
+            if isfield(cParams,'value0')
+                obj.value0 = cParams.value0;
+            end
         end
 
         function xR = filterDesignVariable(obj,x)
-            xR = obj.filter.compute(x,'LINEAR');
+            xR = obj.filter.compute(x,2);
         end
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj)
             C   = obj.material.obtainTensor();
             dC  = obj.material.obtainTensorDerivative();
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filter.compute(dJ,'LINEAR');
+            dJ     = obj.filter.compute(dJ,2);
             if isempty(obj.value0)
                 obj.value0 = J;
             end
