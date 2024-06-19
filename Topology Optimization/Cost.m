@@ -3,6 +3,7 @@ classdef Cost < handle
     properties (Access = public)
         value
         gradient
+        bulkValue
     end
 
     properties (Access = private)
@@ -29,6 +30,9 @@ classdef Cost < handle
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
                 dJc{iF} = dJ.fValues;   
+                if isprop(shI,'bulkValue')
+                    obj.bulkValue = shI.bulkValue;
+                end
             end
             obj.shapeValues = Jc;
             jV  = 0;

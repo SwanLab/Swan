@@ -1,5 +1,9 @@
 classdef ComplianceFunctional < handle
 
+    properties (Access = public)
+        bulkValue
+    end
+
     properties (Access = private)
         value0
     end
@@ -43,13 +47,21 @@ classdef ComplianceFunctional < handle
         function [J,dJ] = computeComplianceFunctionAndGradient(obj)
             C   = obj.material.obtainTensor();
             dC  = obj.material.obtainTensorDerivative();
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
+            [u,J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
             dJ     = obj.filter.compute(dJ,'LINEAR');
             if isempty(obj.value0)
                 obj.value0 = J;
             end
             J          = obj.computeNonDimensionalValue(J);
             dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+
+            % Bulk compliance:
+            kappa = obj.material.obtainBulk();
+            divu  = Divergence(u);
+            dbC   = DDP(kappa,DDP(divu,divu));
+            bC    = 0.5*Integrator.compute(dbC,obj.mesh,'QUADRATIC');
+            bC    = obj.computeNonDimensionalValue(bC);
+            obj.bulkValue = bC;
         end
 
         function x = computeNonDimensionalValue(obj,x)

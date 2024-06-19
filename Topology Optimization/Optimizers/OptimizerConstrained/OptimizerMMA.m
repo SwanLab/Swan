@@ -99,6 +99,7 @@ classdef OptimizerMMA < Optimizer
         function updateMonitoring(obj)
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
+            data = [data;obj.cost.bulkValue];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             obj.monitoring.update(obj.nIter,data);
@@ -117,7 +118,7 @@ classdef OptimizerMMA < Optimizer
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            titles        = [{'Cost'};titlesF;{'bulkCompliance'};titlesConst;{'Norm L2 x'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 chConstr{i}   = 'plot';
@@ -126,7 +127,7 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
+            chartTypes = [{'plot'},chCost,{'plot'},chConstr,{'log'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;

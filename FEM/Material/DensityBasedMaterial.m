@@ -29,6 +29,12 @@ classdef DensityBasedMaterial < handle
         function setDesignVariable(obj,x)
             obj.density = x;
         end
+
+        function kappa = obtainBulk(obj)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [~,kappa] = mI.computeConsitutiveTensor(rho);
+        end
         
     end
     
