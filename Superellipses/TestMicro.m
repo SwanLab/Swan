@@ -17,7 +17,7 @@ classdef TestMicro < handle
         function obj = TestMicro(cParams)
             obj.init(cParams);
             obj.createMesh();
-            % obj.mesh.plot();
+            obj.mesh.plot();
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();

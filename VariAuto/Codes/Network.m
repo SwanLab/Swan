@@ -27,7 +27,7 @@ classdef Network < handle
 
         function c = forwardprop(obj,Xb,Yb)
             obj.computeAvalues(Xb);
-            yOut  = obj.aValues{end}            
+            yOut  = obj.aValues{end}; 
             [c,~] = obj.lossFunction(Yb,yOut);
         end
 

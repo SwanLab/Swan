@@ -39,7 +39,7 @@ classdef SGD < Trainer
             else
                 obj.batchSize    = size(obj.Xtrain,1);
             end
-            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
+            obj.MaxEpochs   = 1000; %obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
