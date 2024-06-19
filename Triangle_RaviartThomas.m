@@ -19,30 +19,40 @@ classdef Triangle_RaviartThomas < Interpolation
         function shape = evaluateShapeFunctions(obj, xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
-            shape = zeros(obj.nnode,ngaus,nelem);
+            shape = zeros(obj.nnode,ngaus,nelem,2);
             s = xV(1,:,:);
             t = xV(2,:,:);
+            I = ones(size(s));
 
-            % CAL AFEGIR MAPPING
-
-            % shape(1,:,:) = I-s-t;
-            % shape(2,:,:) = s;
-            % shape(3,:,:) = t;
+            shape(1,:,:,1) = s;
+            shape(1,:,:,2) = t;
+            shape(2,:,:,1) = s-I;
+            shape(2,:,:,2) = t;
+            shape(3,:,:,1) = s;
+            shape(3,:,:,2) = t-I;
         end
 
         function deriv = evaluateShapeDerivatives(obj, xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            s = xV(1,:,:);
+            I = ones(size(s));
+            O = zeros(size(s));
 
-            % CAL AFEGIR MAPPING
+            deriv(1,1,:,:,1) = I;
+            deriv(1,1,:,:,2) = O;
+            deriv(1,2,:,:,1) = I;
+            deriv(1,2,:,:,2) = O;
+            deriv(1,3,:,:,1) = I;
+            deriv(1,3,:,:,2) = O;
 
-            % deriv(1,1,:,:) = -1;
-            % deriv(1,2,:,:) = 1;
-            % deriv(1,3,:,:) = 0;
-            % deriv(2,1,:,:) = -1;
-            % deriv(2,2,:,:) = 0;
-            % deriv(2,3,:,:) = 1;
+            deriv(2,1,:,:,1) = O;
+            deriv(2,1,:,:,1) = I;
+            deriv(2,2,:,:,1) = O;
+            deriv(2,2,:,:,1) = I;
+            deriv(2,3,:,:,1) = O;
+            deriv(2,3,:,:,1) = I;
         end
 
     end

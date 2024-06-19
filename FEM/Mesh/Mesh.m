@@ -273,7 +273,7 @@ classdef Mesh < handle
 
     end
 
-    methods (Access = protected)
+    methods (Access = public) % ?????????
 
         function J = computeJacobian(obj,xV)
             nDimGlo  = size(obj.coordElem,1);

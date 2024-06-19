@@ -325,6 +325,18 @@ classdef RaviartThomasFunction < FeFunction
             res.fValues = f.fValues ./ b;
             s = res;
         end
+
+        function ord = getOrderNum(obj)
+            ord = 1; % NO
+        end
+
+        function sides = computeSidesOrientation(obj)
+            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+            sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
+            for ielem=1:obj.mesh.nelem
+                sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+            end
+        end
         
     end
 
@@ -334,7 +346,7 @@ classdef RaviartThomasFunction < FeFunction
             s.mesh    = mesh;
             s.order   = ord;
             s.ndimf   = ndimf;
-            c = DOFsComputer(s);
+            c = DOFsComputerRaviartThomas(s);
             c.computeDofs();
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
             pL = RaviartThomasFunction(s);
@@ -368,26 +380,11 @@ classdef RaviartThomasFunction < FeFunction
             obj.connecOri = c.getDofsOrientation();
         end
 
-        function f = computeFunctionInEdges(obj,m,fNodes)
+        function f = computeFunctionInEdges(~,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
-        end
-        function fM = getFormattedP0FValues(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            fV = obj.evaluate(q.posgp);
-            nGaus   = q.ngaus;
-            nComp   = obj.ndimf;
-            nElem   = size(obj.mesh.connec, 1);
-            fM  = zeros(nGaus*nElem,nComp);
-            for iStre = 1:nComp
-                for iGaus = 1:nGaus
-                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
-                    fM(rows,iStre) = fV(iStre,iGaus,:);
-                end
-            end
         end
 
     end
