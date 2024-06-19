@@ -27,12 +27,16 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = UnitQuadMesh(2,2);
+%             obj.mesh = UnitQuadMesh(10,10);
+            load('NegPoissMesh.mat')
+            obj.mesh = NegPoissMesh;
         end
 
         function computeElasticProperties(obj)
-            E1  = 2.9474;
-            nu1 = 0.4737;
+%             E1  = 2.9474;
+%             nu1 = 0.4737;
+            E1  = 2.909090909090909e+03;
+            nu1 = 0.454545454545455;
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
             obj.young   = E;
@@ -104,21 +108,21 @@ classdef Tutorial02FEMElasticity < handle
             isMiddle = @(coor)  abs(coor(:,2))==yMax/2;
             
             % 2D N ELEMENTS
-            sDir1.domain    = @(coor) isLeft(coor) & ~isMiddle(coor);
-            sDir1.direction = [1];
+            sDir1.domain    = @(coor) isLeft(coor);
+            sDir1.direction = [1,2];
             sDir1.value     = 0;
             dir1 =  DirichletCondition(obj.mesh, sDir1);
 
-            sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
-            sDir2.direction = [1,2];
-            sDir2.value     = 0;
-            dir2 =  DirichletCondition(obj.mesh, sDir2);
-            s.dirichletFun = [dir1, dir2];
+%             sDir2.domain    = @(coor) isLeft(coor) & isMiddle(coor);
+%             sDir2.direction = [1,2];
+%             sDir2.value     = 0;
+%             dir2 =  DirichletCondition(obj.mesh, sDir2);
+            s.dirichletFun = [dir1];
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 0.01;
-            s.pointloadFun = PointLoad(obj.mesh, sPL);
+            sPL.value     = 5;
+            s.pointloadFun = DistributedLoad(obj.mesh, sPL);
             
             s.periodicFun  = [];
             s.mesh         = obj.mesh;

@@ -104,38 +104,38 @@ classdef HyperelasticProblem < handle
 
                 xMax    = max(obj.mesh.coord(:,1));
 
-                isRight  = @(coor)  abs(coor(:,1))==xMax;
-                isBottom = @(coor)  abs(coor(:,2))==0;
-                isTop = @(coor)  abs(coor(:,2))==1;
-                isMid  = @(coor)  abs(coor(:,1))==xMax/2;
-                bot_right = @(coor) isTop(coor) & isMid(coor);
-                dof = obj.uFun.getDofsFromCondition(bot_right);
-                dof = dof(2);
-                nDimf = obj.uFun.ndimf;
-                nNode = obj.mesh.nnodes;
-                dofToDim = repmat(1:nDimf,[1,nNode]);
-                dofToNode = repmat(1:nNode, nDimf, 1);
-                dofToNode = dofToNode(:);
+%                 isRight  = @(coor)  abs(coor(:,1))==xMax;
+%                 isBottom = @(coor)  abs(coor(:,2))==0;
+%                 isTop = @(coor)  abs(coor(:,2))==1;
+%                 isMid  = @(coor)  abs(coor(:,1))==xMax/2;
+%                 bot_right = @(coor) isTop(coor) & isMid(coor);
+%                 dof = obj.uFun.getDofsFromCondition(bot_right);
+%                 dof = dof(2);
+%                 nDimf = obj.uFun.ndimf;
+%                 nNode = obj.mesh.nnodes;
+%                 dofToDim = repmat(1:nDimf,[1,nNode]);
+%                 dofToNode = repmat(1:nNode, nDimf, 1);
+%                 dofToNode = dofToNode(:);
 
-                nod = dofToNode(dof);
-                dof_dir = dofToDim(dof); 
+%                 nod = dofToNode(dof);
+%                 dof_dir = dofToDim(dof); 
 
 %                 nrg_grafic  = [nrg_grafic, nrg];
-                displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
-                fext_grafic  = [fext_grafic, sum(Fext)];
-                posgp = Quadrature.create(obj.mesh,1).posgp;
+%                 displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
+%                 fext_grafic  = [fext_grafic, sum(Fext)];
+%                 posgp = Quadrature.create(obj.mesh,1).posgp;
 
                 num_is(iStep) = i;
                 f = figure(1);
                 clf(f)
-                subplot(1,2,1)
-                plot(displ_grafic, fext_grafic,'-x')
-                title('Displacement of central top node')
-                xlabel('displacement (m)')
-                ylabel('force (N)')
+%                 subplot(1,2,1)
+%                 plot(displ_grafic, fext_grafic,'-x')
+%                 title('Displacement of central top node')
+%                 xlabel('displacement (m)')
+%                 ylabel('force (N)')
 %                 subplot(1,3,2)
 %                 plot(1:iStep, nrg_grafic,'-x')
-                subplot(1,2,2)
+%                 subplot(1,2,2)
                 bar(1:iStep, num_is)
                 title('Number of iterations to converge \DeltaF')
                 xlabel('step')
@@ -187,8 +187,8 @@ classdef HyperelasticProblem < handle
 
         function createMesh(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-%             obj.mesh = UnitHexaMesh(15,15,15);
-            obj.mesh = UnitQuadMesh(10,10);
+            obj.mesh = UnitHexaMesh(15,15,15);
+%             obj.mesh = UnitQuadMesh(10,10);
 
 %             % Hole mesh
 %             mesh = UnitQuadMesh(20,20);
@@ -207,12 +207,13 @@ classdef HyperelasticProblem < handle
 %             
 %             IM = uMesh.createInnerMesh();
 %             obj.mesh = IM;
+%             obj.mesh = Mesh.createFromGiD('hole_mesh_quad.m');
         end
         
         function createMaterial(obj)
             % Only 3D
-            obj.material.mu = 1*1000;        % Pa
-            obj.material.lambda = 1*10*1000; % Pa
+            obj.material.mu = 1;        % Pa
+            obj.material.lambda = 1*10; % Pa
 
             k = obj.material.lambda + 2/3 * obj.material.mu; % canviar
             G = obj.material.mu;
@@ -244,9 +245,9 @@ classdef HyperelasticProblem < handle
 
         function createBoundaryConditions(obj)
 %             obj.createBC_2DTraction();
-            obj.createBC_2DBending();
+%             obj.createBC_2DBending();
 %             obj.createBC_2DHole();
-%             obj.createBC_3DCube();
+            obj.createBC_3DCube();
         end
 
         function createDisplacementFun(obj)
