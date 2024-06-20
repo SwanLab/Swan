@@ -16,7 +16,7 @@ classdef Projector_toRaviartThomas < Projector
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
-            s.fValues = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
+            s.fValues = reshape(xProj,[x.ndimf/2,numel(xProj)/x.ndimf*2])'; % no
             s.order = obj.order;
             xFun = RaviartThomasFunction(s);
         end
@@ -30,7 +30,7 @@ classdef Projector_toRaviartThomas < Projector
             s.test  = RaviartThomasFunction.create(obj.mesh, fun.ndimf/2, obj.order);
             s.trial = RaviartThomasFunction.create(obj.mesh, fun.ndimf/2, obj.order);
             % s.quadratureOrder = 'QUADRATIC'; % no
-            s.type  = 'MassMatrix';
+            s.type  = 'MassMatrixRT';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end

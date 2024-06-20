@@ -25,11 +25,11 @@ classdef Triangle_RaviartThomas < Interpolation
             I = ones(size(s));
 
             shape(1,:,:,1) = s;
-            shape(1,:,:,2) = t;
-            shape(2,:,:,1) = s-I;
+            shape(1,:,:,2) = t-I;
+            shape(2,:,:,1) = s;
             shape(2,:,:,2) = t;
-            shape(3,:,:,1) = s;
-            shape(3,:,:,2) = t-I;
+            shape(3,:,:,1) = s-I;
+            shape(3,:,:,2) = t;
         end
 
         function deriv = evaluateShapeDerivatives(obj, xV)

@@ -5,6 +5,8 @@ classdef LHSintegratorFactory < handle
        function obj = create(cParams)
            switch cParams.type
                case 'MassMatrix'
+                   obj = LHSintegrator_Mass(cParams);
+               case 'MassMatrixRT'
                    obj = LHSintegrator_Mass_RT(cParams); % NO
                case 'BoundaryMassMatrix'
                    obj = LHSintegrator_MassBoundary(cParams);

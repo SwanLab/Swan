@@ -37,7 +37,7 @@ classdef LHSintegrator_Mass_RT < LHSintegrator
             for igauss = 1 :nGaus
                 for inode= 1:nNodeTest
                     for jnode= 1:nNodeTrial
-                        for iunkn= 1:obj.test.ndimf/2
+                        for iunkn= 1:obj.test.ndimf
                             idof = obj.test.ndimf*(inode-1)+iunkn;
                             jdof = obj.trial.ndimf*(jnode-1)+iunkn;
                             dvol = dVolu(igauss,:)';
