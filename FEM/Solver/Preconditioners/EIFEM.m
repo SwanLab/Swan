@@ -19,6 +19,7 @@ classdef EIFEM < handle
         dispFun
         iter
         Kmodal
+        reactions
     end
 
     methods (Access = public)
@@ -31,12 +32,14 @@ classdef EIFEM < handle
             ss.mesh                 = obj.mesh;
             ss.boundaryConditions   = obj.boundaryConditions;
             obj.bcApplier           = BCApplier(ss);
+            obj.reactions           = obj.computeReactions();
             obj.iter=1;
         end
 
         function u = apply(obj,r)
             Fcoarse = obj.projectExternalForce(r);            
             RHS     = obj.assembleRHSvector(Fcoarse);
+%             RHS     = RHS + obj.reactions;
             LHSred = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
 %             RHSred(1:2:end) = 0;
@@ -111,11 +114,27 @@ classdef EIFEM < handle
 %             Fcoarse = permute(reshape(Fcoarse',));
         end
 
+        function R = computeReactions(obj)
+            bc      = obj.boundaryConditions;
+            dirich  = bc.dirichlet_dofs;
+            dirichV = bc.dirichlet_vals;
+            if ~isempty(dirich)
+                R = -obj.LHS(:,dirich)*dirichV;
+            else
+                R = zeros(sum(obj.dim.ndofs(:)),1);
+            end
+        end
+
         function createBoundaryConditions(obj)
-            dirichlet = DirichletCondition(obj.mesh,obj.DirCond);
+            dirichletFun = [];
+             for i = 1:numel(obj.DirCond)
+                dir = DirichletCondition(obj.mesh, obj.DirCond{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+%             dirichletFun = DirichletCondition(obj.mesh, obj.DirCond{1});
 
             s.pointloadFun = [];
-            s.dirichletFun = dirichlet;
+            s.dirichletFun = dirichletFun;
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc             = BoundaryConditions(s);

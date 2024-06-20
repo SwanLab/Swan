@@ -32,6 +32,10 @@ classdef EIFEMtesting < handle
         interfaceDof
         interfaceDom
         weight
+        Lchol
+        L
+        U
+        D
 
         displacementFun
         LHS
@@ -86,9 +90,42 @@ classdef EIFEMtesting < handle
             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(obj.RHS);
             Usol = LHS\RHS;
+            obj.Lchol=ichol(LHS);
+            obj.L = tril(LHS);
+            obj.U = triu(LHS);
+            obj.D = diag(diag(LHS));
 
-%             [uCG,residualCG]  = obj.conjugateGradient(LHS,RHS);
-            [uPCG,residualPCG,err,errAnorm] = obj.preconditionedConjugateGradient(LHS,RHS,Usol);
+            [uCG,residualCG,errCG,errAnormCG]  = obj.conjugateGradient(LHS,RHS,Usol);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol);
+
+            figure
+            plot(residualPCG,'linewidth',2)
+            hold on
+            plot(residualCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend({'CG + EIFEM','CG'},'FontSize',12)
+            xlabel('Iteration')
+            ylabel('Residual')
+
+             figure
+            plot(errPCG,'linewidth',2)
+            hold on
+            plot(errCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend('CG + EIFEM','CG')
+            xlabel('Iteration')
+            ylabel('||error||_{L2}')
+
+            figure
+            plot(errAnormPCG,'linewidth',2)
+            hold on
+            plot(errAnormCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend('CG + EIFEM','CG')
+            xlabel('Iteration')
+            ylabel('Energy norm')
+
+
 
             u = obj.solver2(LHS,RHS,refLHS);
 
@@ -214,9 +251,13 @@ classdef EIFEMtesting < handle
             isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
             isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir.domain    = @(coor) isLeft(coor) | isRight(coor) ;
-            Dir.direction = [1,2];
-            Dir.value     = 0;
+            Dir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) ;
+            Dir{1}.direction = [1,2];
+            Dir{1}.value     = 0;
+
+%             Dir{2}.domain    = @(coor) isRight(coor) ;
+%             Dir{2}.direction = [2];
+%             Dir{2}.value     = -0.1;
 
             PL.domain    = @(coor) isTop(coor);
             PL.direction = 2;
@@ -225,7 +266,12 @@ classdef EIFEMtesting < handle
 
          function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
             [Dir,PL]  = obj.createRawBoundaryConditions();
-            dirichlet = DirichletCondition(mesh,Dir);
+            dirichletFun = [];
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.meshDomain, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+
             pointload = PointLoad(mesh,PL);
              % need this because force applied in the face not in a point
             pointload.values        = pointload.values/size(pointload.dofs,1);
@@ -235,7 +281,7 @@ classdef EIFEMtesting < handle
             pointload.fun.fValues   = fvalues;
 
             s.pointloadFun = pointload;
-            s.dirichletFun = dirichlet;
+            s.dirichletFun = dirichletFun;
             s.periodicFun  =[];
             s.mesh         = mesh;
             bc             = BoundaryConditions(s);
@@ -516,6 +562,28 @@ classdef EIFEMtesting < handle
             fc    = obj.bcApplier.fullToReducedVectorDirichlet(fc);
         end
 
+        function z = applyILU(obj,r)
+            Lchol=obj.Lchol;
+            z = Lchol\r;
+            z = (Lchol')\z;
+        end
+
+%          function z = applyGaussSeidel(obj,r)
+%             L=obj.L;
+%             z = L\r;
+%              z = (L')\z;
+%         end
+
+        function z = applyGaussSeidel(obj,r)
+            L=obj.L;
+            U=obj.U;
+            D=obj.D;
+            z = U*r;
+            z = D\z;
+            z = L*z;
+%              z = (L')\z;
+        end
+
         function u = solver(obj,LHS,RHS)
             tol=1e-8;
             iter=1;
@@ -649,14 +717,17 @@ classdef EIFEMtesting < handle
 
 
         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol)
-            tol = 1e-6;
+            tol = 1e-8;
             iter = 0;
             n = length(B);
             x = zeros(n,1);
             r = B - A * x;
+%             r = obj.applyILU(r);
+%             r = obj.applyGaussSeidel(r);
+%             r = B - A * (x+0.2*z1);
             %             z = ModalTesting.applyPreconditioner(M,r);
             RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
-            obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
+%             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
             RGsbd = obj.global2local(RG);
             RGsbd = obj.scaleInterfaceValues(RGsbd);
             uSbd =  obj.EIFEM.apply(RGsbd);
@@ -664,6 +735,10 @@ classdef EIFEMtesting < handle
             u     = obj.smoothDisplacement(uSbd,uInt);
             z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
             z=r-z;
+            z = z-A*obj.applyGaussSeidel(z);
+%             z = obj.applyILU(z);
+%             zILU = obj.applyILU(z);
+%             z=z-zILU;
             %             z=r-z;
             p = z;
             rzold = r' * z;
@@ -673,19 +748,27 @@ classdef EIFEMtesting < handle
                 Ap = A * p;
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-                uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
+%                 uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
 %               obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
                 r = r - alpha * Ap;
-                %                 z = ModalTesting.applyPreconditioner(M,r);
-                RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
-%                  obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
-                RGsbd = obj.global2local(RG);
-                RGsbd = obj.scaleInterfaceValues(RGsbd);
+%                 r = obj.applyILU(r);
+%                 r = obj.applyGaussSeidel(r);
+%                 r = B - A * (x+0.2*z1);
+%                 RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
+% %                  obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
+%                 RGsbd = obj.global2local(RG);
+%                 RGsbd = obj.scaleInterfaceValues(RGsbd);
+                RGsbd = obj.computeSubdomainResidual(r,iter);
                 uSbd =  obj.EIFEM.apply(RGsbd);
-                uInt  = obj.computeInterfaceDisp(uSbd);
-                u     = obj.smoothDisplacement(uSbd,uInt);
-                z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
-                z=r-z;
+%                 uInt  = obj.computeInterfaceDisp(uSbd);
+%                 u     = obj.smoothDisplacement(uSbd,uInt);
+%                 z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
+                z = obj.computeContinousField(uSbd);
+                z = r-z;
+                z = z-A*obj.applyGaussSeidel(z);
+%                 z = obj.applyILU(z);
+%                 zILU = obj.applyILU(z);
+%                 z=z-zILU;
                 %                 z = obj.applyPreconditioner(r);
                 rznew = r' * z;
                 %hasNotConverged = sqrt(rsnew) > tol;
@@ -704,7 +787,7 @@ classdef EIFEMtesting < handle
 
        
 
-        function [x,residu] = conjugateGradient(obj,LHS,RHS)
+        function [x,residu,err,errAnorm] = conjugateGradient(obj,LHS,RHS,xsol)
             tol = 1e-8;
             iter = 1;
             x = zeros(size(RHS));
@@ -742,6 +825,8 @@ classdef EIFEMtesting < handle
                 rsold = rsnew;
                 iter = iter + 1;
                  residu(iter) = norm(LHS*x - RHS); %Ax - b
+                 err(iter)=norm(x-xsol);
+                errAnorm(iter)=((x-xsol)')*LHS*(x-xsol);
 %                 res = LHS*x - RHS;
                 
                 %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
