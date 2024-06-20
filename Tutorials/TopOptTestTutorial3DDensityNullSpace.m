@@ -42,15 +42,15 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            %obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
+            obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
 
             %INTRODUIM COM GENERA LA MALLA EL GiD
 
-            file = 'Malla_ultimasetmana';
-            obj.filename = file;
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;  %faltava ficar el obj
+            % file = 'Malla_POCEXTENSA_6';
+            % obj.filename = file;
+            % a.fileName = file;
+            % s = FemDataContainer(a);
+            % obj.mesh = s.mesh;  %faltava ficar el obj
         end
 
         function createDesignVariable(obj)
@@ -161,7 +161,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createNewBoundaryConditionsWithGiD() ; %obj.createNewBoundaryConditionsWithGiD(); %obj.createBoundaryConditions();   %CANVI JOSE (new=GiD. altre=matlab)
+            s.boundaryConditions = obj.createBoundaryConditions(); %obj.createNewBoundaryConditionsWithGiD(); %obj.createBoundaryConditions();   %CANVI JOSE (new=GiD. altre=matlab)
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -188,7 +188,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.7;                               %VOLUM FINAL
+            s.volumeTarget = 0.4;                               %VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -233,14 +233,14 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 4500;                       %Iteracions
+            s.maxIter        = 250;                       %Iteracions
             s.tolerance      = 1e-8;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT'; 
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.001; %HI HAVIA 0.05 (A menor valor menor oscilació del resultat?)
-            s.gJFlowRatio    = 2;   %hi havia ....   %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+            s.etaNorm        = 1; %HI HAVIA 0.001 (A menor valor menor oscilació del resultat?)
+            s.gJFlowRatio    = inf;   %hi havia 2   %major=complirconstraintrapid    menor=prioritzarminimitzarcost
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -290,22 +290,22 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             %---------------------------------------------------%
             %-------------BOUNDARY CONDITIONS MATLAB------------%
 
-%             %---------------3D CANTIELEVER CASE-------------%
-%           xMax    = max(obj.mesh.coord(:,1));
-%           yMax    = max(obj.mesh.coord(:,2));
-%           zMax    = max(obj.mesh.coord(:,3));
-% 
-%           isDir  = @(coor)  abs(coor(:,1))==0;
-%           isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
-% 
-%           sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
-%           sDir{1}.direction = [1,2,3]; %restricció vertical, horitzontal i 3r eix
-%           sDir{1}.value     = 0;  %desplaçament =0
-% 
-%           sPL{1}.domain    = @(coor) isForce(coor);
-%           sPL{1}.direction = 2;
-%           sPL{1}.value     = -1;
-% %---------------3D CANTIELEVER CASE-------------%
+            %---------------3D CANTIELEVER CASE-------------%
+          xMax    = max(obj.mesh.coord(:,1));
+          yMax    = max(obj.mesh.coord(:,2));
+          zMax    = max(obj.mesh.coord(:,3));
+
+          isDir  = @(coor)  abs(coor(:,1))==0;
+          isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
+
+          sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
+          sDir{1}.direction = [1,2,3]; %restricció vertical, horitzontal i 3r eix
+          sDir{1}.value     = 0;  %desplaçament =0
+
+          sPL{1}.domain    = @(coor) isForce(coor);
+          sPL{1}.direction = 2;
+          sPL{1}.value     = -1;
+%---------------3D CANTIELEVER CASE-------------%
 
 
 
@@ -330,30 +330,30 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             bc = BoundaryConditions(s);
         end
 
-        function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
-            femReader = FemInputReader_GiD();
-            s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
-            newbcGiD = BoundaryConditions(s);
-        end
+        %function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
+        % %     femReader = FemInputReader_GiD();
+        % %     s         = femReader.read(obj.filename);
+        % %     sPL       = obj.computeCondition(s.pointload);
+        % %     sDir      = obj.computeCondition(s.dirichlet);
+        % % 
+        % %     dirichletFun = [];
+        % %     for i = 1:numel(sDir)
+        % %         dir = DirichletCondition(obj.mesh, sDir{i});
+        % %         dirichletFun = [dirichletFun, dir];
+        % %     end
+        % %     s.dirichletFun = dirichletFun;
+        % % 
+        % %     pointloadFun = [];
+        % %     for i = 1:numel(sPL)
+        % %         pl = PointLoad(obj.mesh, sPL{i});
+        % %         pointloadFun = [pointloadFun, pl];
+        % %     end
+        % %     s.pointloadFun = pointloadFun;
+        % % 
+        % %     s.periodicFun  = [];
+        % %     s.mesh         = obj.mesh;
+        % %     newbcGiD = BoundaryConditions(s);
+        % % end
 
     end
 

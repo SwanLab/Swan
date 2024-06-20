@@ -41,8 +41,8 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                if obj.nIter/10 == round (obj.nIter/10)
-                obj.designVariable.fun.print(['ConceptualDesign/Density_70PC_BO/Iter_',char(string(obj.nIter))]);
+                if obj.nIter/2 == round (obj.nIter/2)
+                obj.designVariable.fun.print(['TFGBenchmark/3DCantielever_Density_NullSpace_2/Iter_',char(string(obj.nIter))]);
                 end
                 obj.designVariable.updateOld();
             end
@@ -59,7 +59,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = inf;   %CANVIAT DE 0 A INF
+            obj.etaMax         = 0;   %CANVIAT DE 0 A INF
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;

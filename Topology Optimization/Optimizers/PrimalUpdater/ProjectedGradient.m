@@ -33,6 +33,7 @@ classdef ProjectedGradient < handle
         
         function increaseStepLength(obj,f)
             obj.tau = f*obj.tau;
+            %obj.tau = min(100,f*obj.tau);   %CANVI PROPOSAT PER ÀLEX
         end
 
         function decreaseStepLength(obj)
