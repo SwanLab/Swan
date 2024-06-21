@@ -1,4 +1,4 @@
-function  f = CreOutVect (X,T,Conv,elem_out,side);
+function  f = CreOutVect(X,T,Conv,elem_out,side,type,t)
 % f = CreOutVect (X,T,Conv,elem_out,side);
 % Computation of vector f obtained by discretizing 
 % the term an·(w,s) over the outflow boundary
@@ -54,7 +54,7 @@ for ielem = 1:numel
         an = a*vnorm';
         % Contribution to element vector
         aux = Isopar(Xe,N_igaus);
-        f_igaus = SourceTerm(aux);
+        f_igaus = SourceTerm(aux,type,t);
         fe = fe + an*N_igaus'*f_igaus*dvolu;
     end
     % Assembly of the element vector

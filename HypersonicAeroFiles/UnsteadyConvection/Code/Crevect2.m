@@ -1,4 +1,4 @@
-function f = Crevect2 (X,T,Conv,pospg,wpg,N,Nxi,Neta);
+function f = Crevect2 (X,T,Conv,pospg,wpg,N,Nxi,Neta,type,t)
 % f = Crevect2 (X,T,Conv,pospg,wpg,N,Nxi,Neta);
 % Computation of vector f ohbtained by discretizing (a·grad(w),s) 
 % where s is defined in SourceTerm
@@ -42,7 +42,7 @@ for ielem = 1:numel
         % Contribution at the element vector
         a = Isopar(Conve,N_igaus); 
         aux = Isopar(Xe,N_igaus);
-        f_igaus = SourceTerm(aux); 
+        f_igaus = SourceTerm(aux, type, t); 
         fe = fe + (a(1)*Nx + a(2)*Ny)'*f_igaus*dvolu; 
     end   
     % Assembly of the element vector

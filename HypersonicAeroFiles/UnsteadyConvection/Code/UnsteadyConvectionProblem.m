@@ -4,6 +4,8 @@ classdef UnsteadyConvectionProblem < handle
         method
         revolutions
         timeSteps
+        aType
+        stType
     end
 
     properties (Access = private)
@@ -11,12 +13,14 @@ classdef UnsteadyConvectionProblem < handle
         nElemY
         coord
         connec
+        aFH
         a
     end
 
     methods (Access = public)
         function obj = UnsteadyConvectionProblem(cParams)
             obj.init(cParams);
+            obj.setAFunctionHandle();
             obj.setHardCodedProperties();
         end
 
@@ -36,6 +40,11 @@ classdef UnsteadyConvectionProblem < handle
             [pospg,wpg] = QuadratureP2(ngaus);
             % Shape Functions
             [N,Nxi,Neta] = ShapeFunc(pospg);
+            
+            % DATA FOR THE TRANSIENT ANALYSIS
+            t_end = 2*pi*n_end;
+            dt = t_end/nstep;
+            t_vec = 0:dt:t_end;
 
             % COMPUTATION OF THE MATRICES
             % Matrices obtained by discretizing the Galerkin weak-form
@@ -43,8 +52,10 @@ classdef UnsteadyConvectionProblem < handle
             C = CreConvMat(X,T,Conv,pospg,wpg,N,Nxi,Neta);
             K = CreStiffMat(X,T,Conv,pospg,wpg,N,Nxi,Neta);
             % Vectors related to source term
-            v1 = Crevect1(X,T,pospg,wpg,N,Nxi,Neta);          % (w,s)
-            v2 = Crevect2(X,T,Conv,pospg,wpg,N,Nxi,Neta);     % (a·grad(w),s)
+            for i = 1:length(t_vec)
+                v1(:,i) = Crevect1(X,T,pospg,wpg,N,Nxi,Neta,obj.stType,t_vec(i));          % (w,s)
+                v2(:,i) = Crevect2(X,T,Conv,pospg,wpg,N,Nxi,Neta,obj.stType,t_vec(i));     % (a·grad(w),s)
+            end
             % Matrices obtained by discretizing the terms on the outflow boundary
             % Elements on the outflow boundary
             midx = round(nx/2);
@@ -64,21 +75,19 @@ classdef UnsteadyConvectionProblem < handle
             Co = Co + CreOutMat2 (X,T,Conv,elemy1_out,[3,4]);
             Co = Co + CreOutMat2 (X,T,Conv,elemx0_out,[4,1]);
             %
-            vo = CreOutVect (X,T,Conv,elemy0_out,[1,2]);
-            vo = vo + CreOutVect (X,T,Conv,elemx1_out,[2,3]);
-            vo = vo + CreOutVect (X,T,Conv,elemy1_out,[3,4]);
-            vo = vo + CreOutVect (X,T,Conv,elemx0_out,[4,1]);
-
-            % DATA FOR THE TRANSIENT ANALYSIS
-            t_end = 2*pi*n_end;
-            dt = t_end/nstep;
-
+            for i = 1:length(t_vec)
+                vo(:,i) = CreOutVect(X,T,Conv,elemy0_out,[1,2],obj.stType,t_vec(i));
+                vo(:,i) = vo(:,i) + CreOutVect (X,T,Conv,elemx1_out,[2,3],obj.stType,t_vec(i));
+                vo(:,i) = vo(:,i) + CreOutVect (X,T,Conv,elemy1_out,[3,4],obj.stType,t_vec(i));
+                vo(:,i) = vo(:,i) + CreOutVect (X,T,Conv,elemx0_out,[4,1],obj.stType,t_vec(i));
+            end
+            
             % INITIAL CONDITION: COSINE HILL
             u = zeros(numnp,nstep+1);
-            sigma = 0.2; xref=1/6;
+            sigma = 0.2; xref=1/6; yref=1/6;
             for i=1:numnp
                 xdim = (X(i,1)-xref)/sigma;
-                ydim = (X(i,2)-xref)/sigma;
+                ydim = (X(i,2)-yref)/sigma;
                 test = xdim^2 + ydim^2;
                 if test>1
                     u(i,1) = 0.0;
@@ -101,7 +110,9 @@ classdef UnsteadyConvectionProblem < handle
             elseif meth == 3
                 A = M +(dt^2/6)*(K - Co);
                 B = dt*(C - (dt/2)*K - Mo + (dt/2)*Co);
-                f = dt*((dt/2)*(v2 - vo) +v1);
+                for i = 1:size(v1,2)
+                    f(:,i) = dt*((dt/2)*(v2(:,i) - vo(:,i)) +v1(:,i));
+                end
             elseif meth == 4
                 A = M - (dt/2)*C + (dt/2)*Mo;
                 B = dt*C - dt*Mo;
@@ -170,14 +181,14 @@ classdef UnsteadyConvectionProblem < handle
                     aux  = U2\(L2\btot);
                     u(:,n+1) = u(:,n) + aux(1:numnp);
                 else
-                    btot = [B*u(:,n)+f; bccd];
+                    btot = [B*u(:,n)+f(:,n); bccd];
                     aux  = U\(L\btot);
                     u(:,n+1) = u(:,n) + aux(1:numnp);
                 end
             end
-            if not(max(u(:,nstep+1))<100 &&  min(u(:,nstep+1))>-100)
-                error('Time step too large');
-            end
+%             if not(max(u(:,nstep+1))<100 &&  min(u(:,nstep+1))>-100)
+%                 error('Time step too large');
+%             end
         end
 
         function plot(obj,u,i)
@@ -188,21 +199,22 @@ classdef UnsteadyConvectionProblem < handle
             % Solution at time t=t_end
             figure; clf;
             set(gca,'FontSize',12,...
-                'XTick', [-0.5,0,0.5],'YTick', [-0.5,0,0.5],'ZTick', 0:0.25:1);
+                'XTick', [-0.5,0,0.5],'YTick', [-0.5,0,0.5],'ZTick', 0:1:3);
             [xx,yy,sol] = MatSol(X,nx,ny,u(:,i));
             surface(xx,yy,sol);
             view([40,30])
-            axis([x_lo,x_up,y_lo,y_up,0,1])
+            axis auto;
+            axis([x_lo,x_up,y_lo,y_up,0,3])
             grid on;
 
             % Contour plot of the solution at time t = t_end
-            figure; clf;
-            set(gca,'FontSize',12);
-            [C,h]=contour(xx,yy,sol,[-0.1,-0.01,0.1:0.1:1.0]);
-            clabel(C,h);
-            axis equal; axis([x_lo,x_up,y_lo,y_up]);
-            set(gca,'XTick',[x_lo,(x_up+x_lo)/2,x_up]);
-            set(gca,'YTick',[y_lo,(y_up+y_lo)/2,y_up]);
+%             figure; clf;
+%             set(gca,'FontSize',12);
+%             [C,h]=contour(xx,yy,sol,[-0.1,-0.01,0.1:0.1:1.0]);
+%             clabel(C,h);
+%             axis equal; axis([x_lo,x_up,y_lo,y_up]);
+%             set(gca,'XTick',[x_lo,(x_up+x_lo)/2,x_up]);
+%             set(gca,'YTick',[y_lo,(y_up+y_lo)/2,y_up]);
         end
     end
 
@@ -211,6 +223,27 @@ classdef UnsteadyConvectionProblem < handle
             obj.method      = cParams.method;
             obj.revolutions = cParams.revolutions;
             obj.timeSteps   = cParams.timeSteps;
+            obj.aType       = cParams.aType;
+            obj.stType      = cParams.stType;
+        end
+        
+        function setAFunctionHandle(obj)
+            switch obj.aType
+                case 'basic'
+                    obj.aFH = @(x,y) deal(-y, x);
+                case 'vortex'
+                    obj.aFH = @(x, y) deal(-y ./ (x.^2 + y.^2), x ./ (x.^2 + y.^2));
+                case 'spiral'
+                    alpha = 0.5;
+                    obj.aFH = @(x,y) deal(-y+alpha.*x, x+alpha.*y);
+                case 'stagnation'
+                    alpha = 2;
+                    obj.aFH = @(x,y) deal(alpha.*x, -alpha.*y);
+                case 'sinusoidal'
+                    obj.aFH = @(x,y) deal(-sin(x).*sin(y), cos(x).*cos(y));
+                case 'star'
+                    obj.aFH = @(x,y) deal(x.^2-y.^2, -2.*x.*y);
+            end
         end
 
         function setHardCodedProperties(obj)
@@ -218,10 +251,12 @@ classdef UnsteadyConvectionProblem < handle
             obj.nElemX = 20;
             obj.nElemY = 20;
             [obj.coord,obj.connec] = CreateMesh(x_lo,x_up,y_lo,y_up,obj.nElemX,obj.nElemY);
-            C      = zeros(size(obj.coord));
-            C(:,1) = -obj.coord(:,2);
-            C(:,2) = obj.coord(:,1);
-            obj.a  = C;
+%             C      = zeros(size(obj.coord));
+            x = obj.coord(:,1);
+            y = obj.coord(:,2);
+            [u, v]  = obj.aFH(x, y);
+            obj.a  = [u, v];
+            quiver(x,y,u,v)
         end
     end
 end
