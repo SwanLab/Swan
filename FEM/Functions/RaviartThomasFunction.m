@@ -27,13 +27,16 @@ classdef RaviartThomasFunction < FeFunction
             nElem  = size(obj.connec,1);
             fxV = zeros(nF*2,nGaus,nElem);
             sides = obj.computeSidesOrientation();
+            JGlob = obj.mesh.computeJacobian(0);
+            Jdet = obj.mesh.computeJacobianDeterminant(xV);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
+                    Jd = Jdet(iGaus,:);
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    Ni = squeeze(shapes(iNode,iGaus,:,:));
+                    Ni = pagemtimes(squeeze(shapes(iNode,iGaus,:,:))',JGlob);
                     fi = obj.fValues(node,:).*sides(:,iNode);
-                    f(:,1,:) = Ni*fi';
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+                    f(:,1,:) = Ni*fi'./Jd;
+                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f(:);
                 end
             end
 

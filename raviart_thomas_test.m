@@ -2,7 +2,7 @@ addpath(genpath(pwd))
 
 s.geometryType = "Surface";
 s.coord = [0,0;1,0;0,1];
-s.connec = [1 2 3];
+s.connec = [2 3 1];
 m = Mesh.create(s);
 
 rt = RaviartThomasFunction.create(m,1,1);
