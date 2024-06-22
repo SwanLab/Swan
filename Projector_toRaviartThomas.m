@@ -43,7 +43,7 @@ classdef Projector_toRaviartThomas < Projector
                     s.type = 'Unfitted';
                 otherwise
                     s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
+                    s.type = 'ShapeFunctionRT';
             end
             s.quadType = ord;
             int        = RHSintegrator.create(s);

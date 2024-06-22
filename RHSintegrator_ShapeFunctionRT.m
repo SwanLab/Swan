@@ -1,4 +1,4 @@
-classdef RHSintegrator_ShapeFunction < handle
+classdef RHSintegrator_ShapeFunctionRT < handle
 
     properties (Access = private)
         quadType
@@ -7,7 +7,7 @@ classdef RHSintegrator_ShapeFunction < handle
     end
 
     methods (Access = public)
-        function obj = RHSintegrator_ShapeFunction(cParams)
+        function obj = RHSintegrator_ShapeFunctionRT(cParams)
             obj.init(cParams);
         end
 
@@ -37,22 +37,22 @@ classdef RHSintegrator_ShapeFunction < handle
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
             nFlds     = size(fG,1);
-            nDofElem = nNodeElem*nFlds;
+            nDofElem = nNodeElem*nFlds/2;
             int = zeros(nDofElem,nElem);
 
-            sides = obj.test.computeSidesOrientation();
+            sides = test.computeSidesOrientation();
             JGlob = obj.mesh.computeJacobian(0);
             Jdet = obj.mesh.computeJacobianDeterminant(xV);
 
-            for iField = 1:nFlds
+            for iField = 1:nFlds/2
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
-                        Jd = Jdet(igauss,:)';
+                        Jd = Jdet(iGaus,:)';
                         dVg(:,1) = dV(iGaus, :);
-                        fV   = squeeze(fG(iField,iGaus,:));
-                        Ni   = squeeze(N(iNode,iGaus,:,iField)); % no
-                        fNdV(1,:) = Ni.*fV.*dVg/Jd*sides(:,iNode);
-                        iDof = nFlds*(iNode-1) + iField;
+                        fV   = squeeze(fG(:,iGaus,:));
+                        Ni   = squeeze(pagemtimes(JGlob,squeeze(N(iNode,iGaus,:))));
+                        fNdV(:,1) = Ni'*fV.*dVg/Jd*sides(:,iNode);
+                        iDof = iNode;
                         int(iDof,:) = int(iDof,:) + fNdV;
                     end
                 end

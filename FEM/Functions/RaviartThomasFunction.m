@@ -25,12 +25,13 @@ classdef RaviartThomasFunction < FeFunction
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF,nGaus,nElem);
+            fxV = zeros(nF*2,nGaus,nElem);
+            sides = obj.computeSidesOrientation();
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    Ni = shapes(iNode,iGaus);
-                    fi = obj.fValues(node,:);
+                    Ni = squeeze(shapes(iNode,iGaus,:,:));
+                    fi = obj.fValues(node,:).*sides(:,iNode);
                     f(:,1,:) = Ni*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
@@ -117,7 +118,7 @@ classdef RaviartThomasFunction < FeFunction
                     plot(x,y)
                 end
             else
-                pl = LagrangianPlotter();
+                pl = RaviartThomasPlotter();
                 s.func = obj;
                 s.mesh = obj.mesh;
                 s.interpolation = obj.interpolation;
