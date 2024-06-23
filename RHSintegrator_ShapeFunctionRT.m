@@ -51,9 +51,9 @@ classdef RHSintegrator_ShapeFunctionRT < handle
                         dVg(:,1) = dV(iGaus, :);
                         fV   = squeeze(fG(:,iGaus,:));
                         Ni   = squeeze(pagemtimes(squeeze(N(iNode,iGaus,:))',JGlob));
-                        fNdV(:,1) = Ni*fV.*dVg/Jd*sides(:,iNode);
+                        fNdV(:,1) = sum(Ni.*fV,1)'.*dVg./Jd.*sides(:,iNode);
                         iDof = iNode;
-                        int(iDof,:) = int(iDof,:) + fNdV;
+                        int(iDof,:) = int(iDof,:) + fNdV';
                     end
                 end
             end

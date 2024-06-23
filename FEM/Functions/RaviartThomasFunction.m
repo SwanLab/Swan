@@ -31,12 +31,12 @@ classdef RaviartThomasFunction < FeFunction
             Jdet = obj.mesh.computeJacobianDeterminant(xV);
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
-                    Jd = Jdet(iGaus,:);
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    Ni = pagemtimes(squeeze(shapes(iNode,iGaus,:,:))',JGlob);
+                    N = squeeze(shapes(iNode,iGaus,:,:));
+                    Ni = squeeze(pagemtimes(N',JGlob))';
                     fi = obj.fValues(node,:).*sides(:,iNode);
-                    f(:,1,:) = Ni*fi'./Jd;
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f(:);
+                    f(:,1,:) = sum(Ni.*fi,2)'./Jdet(iGaus,:);
+                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end
 
