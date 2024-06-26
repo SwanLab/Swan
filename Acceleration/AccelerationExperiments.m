@@ -73,9 +73,9 @@ classdef AccelerationExperiments < handle
                     obj.mesh = Mesh.create(s);
                 case '3D'
                     [x1,x2,x3] = obj.returnMesh3DCoordinates();
-                    d1 = 60;%40;%
-                    d2 = 30;%20;%
-                    d3 = 30;%20;%
+                    d1 = 40;%40;%
+                    d2 = 20;%20;%
+                    d3 = 20;%20;%
                     obj.mesh = TetraMesh(x1,x2,x3,d1,d2,d3);
             end
                         
@@ -182,7 +182,7 @@ classdef AccelerationExperiments < handle
             p.maxIters = 5e3;
             % if obj.settings.matrixFree p.maxIters = 5e3; 
             % else p.maxIters = 5e3; end       
-            p.displayInfo        = true;
+            p.displayInfo        = false;
             s.solverParams       = p;
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
@@ -315,50 +315,51 @@ classdef AccelerationExperiments < handle
         function computeSolverPlots(obj)
             p = obj.experiment.problem;
             if obj.settings.solverType == "CONJUGATE GRADIENT"
-                nTols = obj.physicalProblem.getSolverTols();
-                nIters = obj.physicalProblem.getSolverIters();
-
-                t  = nTols(1:2:end);
-                it = nIters(1:2:end);
-                disp('Total CG iterations = ' + string(sum(it)));
-
-                figure()
-                plot(1:numel(t),t,'k')
-                xlabel('TO iteration','interpreter','latex')
-                ylabel('CG tolerance $\epsilon$','interpreter','latex')
-                set(gca,'FontSize',14,'TickLabelInterpreter','latex')
-                set(gca, 'YScale', 'log')
-                grid minor
-                xlim([1 numel(t)])
-                ylim([min(t) max(t)*1.2])
-                box on
-
-                figure()
-                bar(1:numel(it),it)
-                xlabel('TO iteration','interpreter','latex')
-                ylabel('CG iterations to converge','interpreter','latex')
-                set(gca,'FontSize',14,'TickLabelInterpreter','latex')
-                xlim([1 numel(it)])
-                box on
+                
+                % nTols = obj.physicalProblem.getSolverTols();
+                % nIters = obj.physicalProblem.getSolverIters();
+                % 
+                % t  = nTols(1:2:end);
+                % it = nIters(1:2:end);
+                % disp('Total CG iterations = ' + string(sum(it)));
+                % 
+                % figure()
+                % plot(1:numel(t),t,'k')
+                % xlabel('TO iteration','interpreter','latex')
+                % ylabel('CG tolerance $\epsilon$','interpreter','latex')
+                % set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+                % set(gca, 'YScale', 'log')
+                % grid minor
+                % xlim([1 numel(t)])
+                % ylim([min(t) max(t)*1.2])
+                % box on
+                % 
+                % figure()
+                % bar(1:numel(it),it)
+                % xlabel('TO iteration','interpreter','latex')
+                % ylabel('CG iterations to converge','interpreter','latex')
+                % set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+                % xlim([1 numel(it)])
+                % box on
             end
 
-            figure()
-            plot(p.costFields(1,:),'k')
-            xlabel('TO iteration','interpreter','latex')
-            ylabel('Compliance','interpreter','latex')
-            set(gca,'FontSize',14,'TickLabelInterpreter','latex')
-            grid minor
-            xlim([1 numel(p.costFields(1,:))])
-            box on
-
-            figure()
-            plot(p.costFields(2,:),'k')
-            xlabel('TO iteration','interpreter','latex')
-            ylabel('Volume','interpreter','latex')
-            set(gca,'FontSize',14,'TickLabelInterpreter','latex')
-            grid minor
-            xlim([1 numel(p.costFields(1,:))])
-            box on
+            % figure()
+            % plot(p.costFields(1,:),'k')
+            % xlabel('TO iteration','interpreter','latex')
+            % ylabel('Compliance','interpreter','latex')
+            % set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+            % grid minor
+            % xlim([1 numel(p.costFields(1,:))])
+            % box on
+            % 
+            % figure()
+            % plot(p.costFields(2,:),'k')
+            % xlabel('TO iteration','interpreter','latex')
+            % ylabel('Volume','interpreter','latex')
+            % set(gca,'FontSize',14,'TickLabelInterpreter','latex')
+            % grid minor
+            % xlim([1 numel(p.costFields(1,:))])
+            % box on
         end
 
         function computeGeneralPlots(obj)

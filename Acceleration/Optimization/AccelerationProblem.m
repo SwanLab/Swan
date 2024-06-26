@@ -52,11 +52,25 @@ classdef AccelerationProblem < handle
             s.matrixFree = obj.settings.matrixFree;
             s.solverTol = obj.solverTol;
             s.designVariable = obj.designVariable;
-            s.momentumParameter.type = 'CONSTANT';
-            s.momentumParameter.value = 0;
-            s.gDescentType            = 'Polyak';
-            obj.problem = AcceleratedGradientDescent(s);
-            obj.problem.solve();
+            s.momentumParameter.type = obj.settings.momentumParameter.type;%'CONSTANT';
+            s.momentumParameter.value = obj.settings.momentumParameter.value;
+            s.gDescentType            = obj.settings.gDescentType;%'Nesterov';
+            
+
+            t1 = tic;
+            p = AcceleratedGradientDescent(s);
+            p.solve();
+            toc(t1)
+            obj.problem = p;
+
+            % s.momentumParameter.type = 'CONVEX';
+            % s.momentumParameter.value = 0.3;
+            % s.tau = 0.5*s.tau;
+            % t2 = tic;
+            % p2 = AcceleratedGradientDescent(s);
+            % p2.solve();
+            % toc(t2)
+            % obj.problem{2} = p2;
         end
 
         function createGeneralProblemAndCompute(obj)
