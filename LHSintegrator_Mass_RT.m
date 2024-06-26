@@ -40,13 +40,13 @@ classdef LHSintegrator_Mass_RT < LHSintegrator
                         for iunkn= 1:obj.test.ndimf
                             idof = obj.test.ndimf*(inode-1)+iunkn;
                             jdof = obj.trial.ndimf*(jnode-1)+iunkn;
-                            dvol = dVolu(igauss,:)';
-                            Jd = Jdet(igauss,:)';
-                            Ni = pagemtimes(squeeze(shapesTest(inode,igauss,:,:))',JGlob);
-                            Nj = pagemtimes(squeeze(shapesTrial(jnode,igauss,:,:))',JGlob);
+                            dvol = abs(dVolu(igauss,:))';
+                            Jd(1,1,1,:) = 1./Jdet(igauss,:);
+                            Ni = pagemtimes(squeeze(shapesTest(inode,igauss,:,:))',JGlob).*Jd;
+                            Nj = pagemtimes(squeeze(shapesTrial(jnode,igauss,:,:))',JGlob).*Jd;
                             v = squeeze(pagemtimes(Ni,pagetranspose(Nj)));
                             M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
-                                + v(:).*(dvol./Jd).*(sides(:,inode).*sides(:,jnode));
+                                + v(:).*dvol.*sides(:,inode).*sides(:,jnode);
                         end
                     end
                 end

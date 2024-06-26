@@ -33,9 +33,13 @@ classdef RaviartThomasFunction < FeFunction
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
                     N = squeeze(shapes(iNode,iGaus,:,:));
-                    Ni = squeeze(pagemtimes(N',JGlob))';
+                    Ni = squeeze(pagemtimes(N',JGlob))./Jdet(iGaus,:);
                     fi = obj.fValues(node,:).*sides(:,iNode);
-                    f(:,1,:) = sum(Ni.*fi,2)'./Jdet(iGaus,:);
+                    if nElem ~= 1
+                        f(1:2,1,:) = Ni.*fi';
+                    else
+                        f = Ni'.*fi;
+                    end
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end

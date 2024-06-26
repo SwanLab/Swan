@@ -47,11 +47,14 @@ classdef RHSintegrator_ShapeFunctionRT < handle
             for iField = 1:nFlds/2
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
-                        Jd = Jdet(iGaus,:)';
-                        dVg(:,1) = dV(iGaus, :);
+                        Jd = 1./Jdet(iGaus,:);
+                        dVg(:,1) = abs(dV(iGaus, :));
                         fV   = squeeze(fG(:,iGaus,:));
-                        Ni   = squeeze(pagemtimes(squeeze(N(iNode,iGaus,:))',JGlob));
-                        fNdV(:,1) = sum(Ni.*fV,1)'.*dVg./Jd.*sides(:,iNode);
+                        Ni   = squeeze(pagemtimes(squeeze(N(iNode,iGaus,:))',JGlob)).*Jd;
+                        if nElem == 1
+                            Ni = Ni';
+                        end
+                        fNdV(:,1) = sum(Ni.*fV,1)'.*dVg.*sides(:,iNode);
                         iDof = iNode;
                         int(iDof,:) = int(iDof,:) + fNdV';
                     end
