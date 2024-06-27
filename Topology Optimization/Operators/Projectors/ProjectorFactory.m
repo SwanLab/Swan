@@ -12,6 +12,8 @@ classdef ProjectorFactory < handle
                     obj = Projector_toP1Discontinuous(cParams);
                 case 'RT'
                     obj = Projector_toRaviartThomas(cParams);
+                case 'N'
+                    obj = Projector_toNedelec(cParams);
             end
         end
 

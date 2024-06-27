@@ -33,6 +33,8 @@ classdef InterpolationFactory < handle
                             obj = Triangle_Cubic(cParams);
                         case 'RaviartThomas'
                             obj = Triangle_RaviartThomas(cParams);
+                        case 'Nedelec'
+                            obj = Triangle_Nedelec(cParams);
                         otherwise
                             error('Invalid order for element TRIANGLE.');
                     end

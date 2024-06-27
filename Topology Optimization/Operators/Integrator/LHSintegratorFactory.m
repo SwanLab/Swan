@@ -8,6 +8,8 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegrator_Mass(cParams);
                case 'MassMatrixRT'
                    obj = LHSintegrator_Mass_RT(cParams); % NO
+               case 'MassMatrixN'
+                   obj = LHSintegrator_Mass_N(cParams); % NO
                case 'BoundaryMassMatrix'
                    obj = LHSintegrator_MassBoundary(cParams);
                case 'StiffnessMatrix'
