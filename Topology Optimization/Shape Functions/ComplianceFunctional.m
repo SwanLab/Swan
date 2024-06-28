@@ -55,13 +55,21 @@ classdef ComplianceFunctional < handle
             J          = obj.computeNonDimensionalValue(J);
             dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
 
+            [mu,kappa] = obj.material.obtainShearBulk();
             % Bulk compliance:
-            kappa = obj.material.obtainBulk();
             divu  = Divergence(u);
             dbC   = DDP(kappa,DDP(divu,divu));
-            bC    = 0.5*Integrator.compute(dbC,obj.mesh,'QUADRATIC');
+            bC    = Integrator.compute(dbC,obj.mesh,'QUADRATIC');
             bC    = obj.computeNonDimensionalValue(bC);
             obj.bulkValue = bC;
+
+            % Shear compliance
+            e   = AntiVoigt(SymGrad(u));
+            D   = Voigt(Deviatoric(e));
+            dsC = DDP(mu,DDP(D,D));
+            sC  = 2*Integrator.compute(dsC,obj.mesh,'QUADRATIC');
+            sC  = obj.computeNonDimensionalValue(sC);
+            disp(['J:',num2str(J),' bC+sC:',num2str(bC+sC)]);
         end
 
         function x = computeNonDimensionalValue(obj,x)
