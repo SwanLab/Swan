@@ -54,25 +54,53 @@ classdef VolumeConstraintComputer < handle
 
         function dJ = computeGradient(obj,x)
             n = 3; % size psi
-
+            dC = cell(n+1,n+1,n);
+            for k=1:n
             for i=1:(n+1)
                 for j=1:(n+1)
                     if i==j
-                        TD{i,j} = 0;
-                    elseif j == n+1
-                        TD{i,j} = -1/obj.vTar(i);
-                    elseif i == n+1
-                        TD{i,j} = 1/obj.vTar(j);
-                    else
-                        TD{i,j} = 1/obj.vTar(j)-1/obj.vTar(i);
+                        dC{i,j,k} = zeros(1,obj.mesh.nelem);
+                    elseif i == k
+                        dC{i,j,k} = -1/obj.vTar(k)*ones(1,obj.mesh.nelem);
+                    elseif j == k
+                        dC{i,j,k} = 1/obj.vTar(k)*ones(1,obj.mesh.nelem);
+                  %  else
+                  %      dC{i,j,k} = 1/obj.vTar(j)-1/obj.vTar(i);
                     end
                 end
             end
+            dt = obj.smoothingAndChainRuleComputing(dC{:,:,k},x);
 
+            end
+
+
+
+
+
+            % intent
+            % dt1 = dt.*Tfi(1,:);
+            % dt2 = dt.*Tfi(2,:);
+            % dt3 = dt.*Tfi(3,:);
+            % 
+            % dJ1 = pdeprtni(p,t,dt1);
+            % dJ2 = pdeprtni(p,t,dt2);
+            % dJ3 = pdeprtni(p,t,dt3);
+            % 
+            % dJ1 = reshape(dJ1,[],1);
+            % dJ2 = reshape(dJ2,[],1);
+            % dJ3 = reshape(dJ3,[],1);
+
+            dJ = pdeprtni(p,t,dt);
+            %dJ = reshape(dJ,[],1);
+            %dJ = [dJ1, dJ2, dJ3];
+
+        end
+
+        function dt = smoothingAndChainRuleComputing(obj,TD,x)
             s.designVariable = x;
             s.m = obj.mesh;
-  
-            charfun = CharacteristicFunctionComputer(s); 
+
+            charfun = CharacteristicFunctionComputer(s);
             [~,Tfi] = charfun.computeFiandTfi();
             psi2 = x.designVariable{1,2}.fun.fValues;
             psi3 = x.designVariable{1,3}.fun.fValues;
@@ -83,31 +111,14 @@ classdef VolumeConstraintComputer < handle
             [tXi3,~] = integ_exact(t,p,psi3); chi3 = (1 - tXi3); %- Mixed formulation method
             %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method
             %     chi2 = (pdeintrp(p,t,(psi(:,2)<0))).'; %- P1 projection method
-    
+
             dt = [];
             dt(1,:) = - Tfi(1,:).*TD{1,end} - Tfi(2,:).*TD{2,end} - Tfi(3,:).*TD{3,end} ...
                 + Tfi(4,:).*( (1-chi2).*TD{end,1} + (1-chi3).*chi2.*TD{end,2} + chi2.*chi3.*TD{end,3} );
-            
+
             dt(2,:) = - Tfi(2,:).*TD{2,1} - Tfi(3,:).*TD{3,1} + Tfi(1,:).*( (1-chi3).*TD{1,2} + chi3.*TD{1,3} );
-            
+
             dt(3,:) = Tfi(2,:).*TD{2,3} - Tfi(3,:).*TD{3,2};
-
-            % intent
-            dt1 = dt.*Tfi(1,:);
-            dt2 = dt.*Tfi(2,:);
-            dt3 = dt.*Tfi(3,:);
-
-            dJ1 = pdeprtni(p,t,dt1);
-            dJ2 = pdeprtni(p,t,dt2);
-            dJ3 = pdeprtni(p,t,dt3);
-
-            dJ1 = reshape(dJ1,[],1);
-            dJ2 = reshape(dJ2,[],1);
-            dJ3 = reshape(dJ3,[],1);
-
-            %dJ = pdeprtni(p,t,dt);
-            dJ = [dJ1, dJ2, dJ3];
-
         end
     end
 

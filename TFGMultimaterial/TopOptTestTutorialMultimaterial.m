@@ -189,6 +189,7 @@ classdef TopOptTestTutorialMultimaterial < handle
 
         function M = createMassMatrix(obj)
             nnodes  = obj.mesh.nnodes*obj.nLevelSet;
+            %nnodes  = obj.mesh.nnodes;
             indices = transpose(1:nnodes);
             vals    = ones(size(indices));
             h       = obj.mesh.computeMeanCellSize();
