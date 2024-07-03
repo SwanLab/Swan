@@ -62,9 +62,18 @@ classdef ComplianceFunctionalComputer < handle
 
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
-                    for z=1:size(dC,3)
-                        derTop(z) = e(:,z)'*dC(:,:,z,i,j)*e(:,z);
-                    end
+                    % for z=1:size(dC,3)
+                    %     derTop(z) = e(:,z)'*dC(:,:,z,i,j)*e(:,z);
+                    % end
+                    
+                    dCij = dC(:,:,:,i,j);
+                    ev(:,1,:) = e;
+                    s = pagemtimes(dCij,ev);
+                    derTop = squeezeParticular(sum(ev.*s,1),1);
+                    %derTop2 = e(:,z)'*dC(:,:,z,i,j)*e(:,z)
+                    
+                    
+                    
                     TD{i,j} = derTop; % lo que abans era TD
                     DJ{i,j} = TD{i,j}/obj.energy0; % adimensionat
                 end
@@ -104,12 +113,29 @@ classdef ComplianceFunctionalComputer < handle
                     c1 = 0.5*((1-g)./(1+a*g))./obj.tE;
                     c2 = c1.*((g.*(a-2*b)-1)./(1+b*g));
 
-                    for k=1:size(e,2)
-                        coefMatrix = [4*c1(k)+c2(k) 0 c2(k); 0 8*c1(k) 0; c2(k) 0 4*c1(k)+c2(k)]; 
-                        dC(:,:,k,i,j) = C*coefMatrix*C;
-                    end
+
+                    coefMatrix2(1,1,:) = 4*c1+c2;
+                    coefMatrix2(1,2,:) = 0;
+                    coefMatrix2(1,3,:) = c2;
+                    coefMatrix2(2,1,:) = 0;
+                    coefMatrix2(2,2,:) = 8*c1;
+                    coefMatrix2(2,3,:) = 0;
+                    coefMatrix2(3,1,:) = c2;
+                    coefMatrix2(3,2,:) = 0;
+                    coefMatrix2(3,3,:) = 4*c1+c2;
+
+                    Cv = repmat(C,[1 1 obj.mesh.nelem]);
+                    CvDC = pagemtimes(Cv,coefMatrix2);
+                    CvDC2 = pagemtimes(CvDC,C);
+                    dC(:,:,:,i,j) = CvDC2;
+
+                    % for k=1:size(e,2)
+                    %     coefMatrix = [4*c1(k)+c2(k) 0 c2(k); 0 8*c1(k) 0; c2(k) 0 4*c1(k)+c2(k)]; 
+                    %     dC(:,:,k,i,j) = C*coefMatrix*C;
+                    % end
                 end
             end
+           % norm(dC2(:)-dC(:))
         end
 
         function solveFEM(obj,C)
