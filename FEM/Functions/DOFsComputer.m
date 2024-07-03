@@ -103,6 +103,11 @@ classdef DOFsComputer < handle
                 for ielem = 1:nelem
                     coor((obj.dofs(ielem,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1,:) = c(:,:,ielem);
                 end
+
+                coor2 = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
+                c2 = squeezeParticular(c,1);
+                coor2((obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1,:) = c2';
+                norm(coor(:)-coor2(:))
                 
                 obj.coord = coor;
             else
