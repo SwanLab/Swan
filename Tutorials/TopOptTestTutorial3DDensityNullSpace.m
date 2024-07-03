@@ -42,15 +42,15 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
+          %  obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB
 
             %INTRODUIM COM GENERA LA MALLA EL GiD
 
-            % file = 'Malla_POCEXTENSA_6';
-            % obj.filename = file;
-            % a.fileName = file;
-            % s = FemDataContainer(a);
-            % obj.mesh = s.mesh;  %faltava ficar el obj
+            file = 'Malla_CARTESIANA';
+            obj.filename = file;
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;  %faltava ficar el obj
         end
 
         function createDesignVariable(obj)
@@ -161,7 +161,8 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditions(); %obj.createNewBoundaryConditionsWithGiD(); %obj.createBoundaryConditions();   %CANVI JOSE (new=GiD. altre=matlab)
+            %s.boundaryConditions = obj.createBoundaryConditions(); 
+            s.boundaryConditions = obj.createNewBoundaryConditionsWithGiD(); %obj.createBoundaryConditions();   %CANVI JOSE (new=GiD. altre=matlab)
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -330,30 +331,30 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             bc = BoundaryConditions(s);
         end
 
-        %function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
-        % %     femReader = FemInputReader_GiD();
-        % %     s         = femReader.read(obj.filename);
-        % %     sPL       = obj.computeCondition(s.pointload);
-        % %     sDir      = obj.computeCondition(s.dirichlet);
-        % % 
-        % %     dirichletFun = [];
-        % %     for i = 1:numel(sDir)
-        % %         dir = DirichletCondition(obj.mesh, sDir{i});
-        % %         dirichletFun = [dirichletFun, dir];
-        % %     end
-        % %     s.dirichletFun = dirichletFun;
-        % % 
-        % %     pointloadFun = [];
-        % %     for i = 1:numel(sPL)
-        % %         pl = PointLoad(obj.mesh, sPL{i});
-        % %         pointloadFun = [pointloadFun, pl];
-        % %     end
-        % %     s.pointloadFun = pointloadFun;
-        % % 
-        % %     s.periodicFun  = [];
-        % %     s.mesh         = obj.mesh;
-        % %     newbcGiD = BoundaryConditions(s);
-        % % end
+        function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
+            femReader = FemInputReader_GiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            newbcGiD = BoundaryConditions(s);
+        end
 
     end
 
