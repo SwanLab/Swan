@@ -54,22 +54,31 @@ classdef VolumeConstraintComputer < handle
 
         function dJ = computeGradient(obj,x)
             n = 3; % size psi
-            dC = cell(n+1,n+1,n);
             for k=1:n
+            dC = cell(n+1,n+1);
+
+
             for i=1:(n+1)
                 for j=1:(n+1)
                     if i==j
-                        dC{i,j,k} = zeros(1,obj.mesh.nelem);
+                        dC{i,j} = zeros(1,obj.mesh.nelem);
                     elseif i == k
-                        dC{i,j,k} = -1/obj.vTar(k)*ones(1,obj.mesh.nelem);
+                        dC{i,j} = -1/obj.vTar(k)*ones(1,obj.mesh.nelem);
                     elseif j == k
-                        dC{i,j,k} = 1/obj.vTar(k)*ones(1,obj.mesh.nelem);
-                  %  else
+                        dC{i,j} = 1/obj.vTar(k)*ones(1,obj.mesh.nelem);
+                    else
+                       dC{i,j} = zeros(1,obj.mesh.nelem);
                   %      dC{i,j,k} = 1/obj.vTar(j)-1/obj.vTar(i);
                     end
                 end
             end
-            dt = obj.smoothingAndChainRuleComputing(dC{:,:,k},x);
+            dt = obj.smoothingAndChainRuleComputing(dC,x);
+            t = obj.mesh.connec';
+            p = obj.mesh.coord';
+            dJk = pdeprtni(p,t,dt);
+            dJk = reshape(dJk,[],1);
+            dJ(:,k) = dJk;
+
 
             end
 
@@ -90,7 +99,6 @@ classdef VolumeConstraintComputer < handle
             % dJ2 = reshape(dJ2,[],1);
             % dJ3 = reshape(dJ3,[],1);
 
-            dJ = pdeprtni(p,t,dt);
             %dJ = reshape(dJ,[],1);
             %dJ = [dJ1, dJ2, dJ3];
 
