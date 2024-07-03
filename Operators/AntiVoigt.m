@@ -3,8 +3,8 @@ function dom = AntiVoigt(A)
     switch A.ndimf
         case 3
             s.ndimf = 4;
-        case 9
-            s.ndimf = 6;
+        case 6
+            s.ndimf = 9;
     end
     dom = DomainFunction(s);
 end
@@ -21,8 +21,8 @@ function AntiVoigt = evaluate(A,xV)
 end
 
 function AntiVoigtA = applyAntiVoigt2D(vecA)
-    nPoints = size(vecA,3);
-    nElem = size(vecA,4);
+    nPoints = size(vecA,2);
+    nElem = size(vecA,3);
     AntiVoigtA = zeros(2,2,nPoints,nElem);
 
     AntiVoigtA(1,1,:,:) = vecA(1,:,:,:);

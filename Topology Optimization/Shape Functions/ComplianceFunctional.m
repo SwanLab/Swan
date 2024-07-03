@@ -2,6 +2,7 @@ classdef ComplianceFunctional < handle
 
     properties (Access = public)
         bulkValue
+        shearValue
     end
 
     properties (Access = private)
@@ -66,10 +67,11 @@ classdef ComplianceFunctional < handle
             % Shear compliance
             e   = AntiVoigt(SymGrad(u));
             D   = Voigt(Deviatoric(e));
-            dsC = DDP(mu,DDP(D,D));
-            sC  = 2*Integrator.compute(dsC,obj.mesh,'QUADRATIC');
+            A   = VoigtDeviatorNormMaterial(obj.mesh);
+            dsC = DDP(mu,DDP(D,DDP(A,D)));
+            sC  = Integrator.compute(dsC,obj.mesh,'QUADRATIC');
             sC  = obj.computeNonDimensionalValue(sC);
-            disp(['J:',num2str(J),' bC+sC:',num2str(bC+sC)]);
+            obj.shearValue = sC;
         end
 
         function x = computeNonDimensionalValue(obj,x)

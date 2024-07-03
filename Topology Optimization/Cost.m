@@ -4,6 +4,7 @@ classdef Cost < handle
         value
         gradient
         bulkValue
+        shearValue
     end
 
     properties (Access = private)
@@ -31,7 +32,8 @@ classdef Cost < handle
                 Jc{iF}  = j;
                 dJc{iF} = dJ.fValues;   
                 if isprop(shI,'bulkValue')
-                    obj.bulkValue = shI.bulkValue;
+                    obj.bulkValue  = shI.bulkValue;
+                    obj.shearValue = shI.shearValue;
                 end
             end
             obj.shapeValues = Jc;

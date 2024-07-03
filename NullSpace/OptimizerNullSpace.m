@@ -70,7 +70,7 @@ classdef OptimizerNullSpace < Optimizer
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;{'bulkCompliance'};titlesConst;{'Norm L2 x'}];
+            titles        = [{'Cost'};titlesF;{'bulkEnergy';'shearEnergy'};titlesConst;{'Norm L2 x'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
@@ -81,7 +81,7 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,{'plot'},chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,{'plot','plot'},chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta'}];
@@ -98,6 +98,7 @@ classdef OptimizerNullSpace < Optimizer
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.cost.bulkValue];
+            data = [data;obj.cost.shearValue];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
