@@ -101,6 +101,7 @@ classdef VolumeConstraintComputer < handle
 
             %dJ = reshape(dJ,[],1);
             %dJ = [dJ1, dJ2, dJ3];
+            dJ(dJ==0) = 1e-6;
 
         end
 
