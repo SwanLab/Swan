@@ -107,31 +107,27 @@ classdef ShapeFunctional_Factory < handle
                     cParams.filterParams.femSettings.typee = 'AnisotropicStiffnessMatrix';
                     sF = ShFunc_Perimeter(cParams);
                 case 'ComplianceConstraintThreeFieldRhoE'
-                    load('scaleParameters.mat');
-                    cParams.filterParams.femSettings.eta  = 0.5+scaleParameters.eta;
-                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
+                    cParams.filterParams.femSettings.eta  = 0.5+0;
+                    cParams.filterParams.femSettings.beta = 1.5;
                     %cParams.filterParams.femSettings.shFunType = 'compliance';
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
+                    cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoI'
-                    load('scaleParameters.mat');
                     cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
+                    cParams.filterParams.femSettings.beta = 1.5;
                %     cParams.filterParams.femSettings.shFunType = 'compliance';
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
+                    cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     %nonadjoint_compliance
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoD'
-                    load('scaleParameters.mat');
-                    cParams.filterParams.femSettings.eta  = 0.5-scaleParameters.eta;
-                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
+                    cParams.filterParams.femSettings.eta  = 0.5-0;
+                    cParams.filterParams.femSettings.beta = 1.5;
                   %  cParams.filterParams.femSettings.shFunType = 'compliance';
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
+                    cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'VolumeConstraintRhoD'
-                    load('scaleParameters.mat');
                     cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = scaleParameters.beta;
+                    cParams.filterParams.femSettings.beta = 1.5;
                     sF = Volume_constraintWithBound(cParams);
                 case 'LinearBoundFunction'
                     sF = LinearBoundFunction(cParams);

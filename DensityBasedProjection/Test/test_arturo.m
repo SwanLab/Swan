@@ -1,4 +1,4 @@
-filename = 'puenteInclinado';
+filename = 'grippingTrialFine';
 %Gripping
 ptype = 'MACRO';
 method = 'SIMPALL';
@@ -21,7 +21,7 @@ designVariable = 'Density&Bound';
 filterType = 'Filter&Project';
 %filterType = 'PDE';
 nsteps = 1;
-Vfrac_final = 0.5;
+Vfrac_final = 0.35;
 optimality_final =1e-3;
 constr_final =1e-3;
 
@@ -42,4 +42,4 @@ printing = false;
 printing_physics = false;
 monitoring = true;
 monitoring_interval = 1;
-maxiter = 150;
+maxiter = 1500;

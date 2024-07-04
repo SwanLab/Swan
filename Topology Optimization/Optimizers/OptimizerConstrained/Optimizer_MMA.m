@@ -59,6 +59,11 @@ classdef Optimizer_MMA < Optimizer
                 obj.updateMonitoring();
                 obj.printOptimizerVariable();
             end
+            rho=obj.designVariable;
+            s.fValues = rho.density.value;
+            s.coord   = rho.density.mesh.coord;
+            s.connec  = rho.density.mesh.connec;
+            save('BoundIJNMERes','s');
 %             obj.printOptimizerVariable();
 %             obj.printHistory();
             obj.hasConverged = 0;
@@ -167,7 +172,7 @@ classdef Optimizer_MMA < Optimizer
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
                 obj.c = 1*ones(obj.m,1); % VAR 1
-                obj.d = 100*ones(obj.m,1); % VAR 2
+                obj.d = 0*ones(obj.m,1); % VAR 2
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
