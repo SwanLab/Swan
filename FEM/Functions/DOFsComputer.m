@@ -105,8 +105,11 @@ classdef DOFsComputer < handle
                 end
 
                 coor2 = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
-                c2 = squeezeParticular(c,1);
-                coor2((obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1,:) = c2';
+                c2 = permute(c,[3,1,2]);
+                c2 = reshape(c2,[],obj.mesh.ndim);
+                newDofs = (obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
+                newDofs = reshape(newDofs,[],1);
+                coor2(newDofs,:) = c2;
                 norm(coor(:)-coor2(:))
                 
                 obj.coord = coor;
