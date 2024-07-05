@@ -136,8 +136,8 @@ s.ub             = inf;
 s.lb             = -inf;
 s.maxIter        = 400;
 s.constraintCase = {'INEQUALITY'};
-s.etaNorm        = 0.02;
-s.gJFlowRatio    = 2.5;
+s.etaNorm        = 0.01;
+s.gJFlowRatio    = 1;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;

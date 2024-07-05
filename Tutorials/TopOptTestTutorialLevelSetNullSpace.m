@@ -170,8 +170,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};   %{'EQUALITY'};
             s.primal         = 'SLERP';
-            s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 1;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -180,7 +180,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filter.compute(f,'LINEAR');            
+            f = obj.filter.compute(f,1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -189,25 +189,19 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function bc = createBoundaryConditions(obj)
-           
-         %---------------3D CANTIELEVER CASE-------------%
-          xMax    = max(obj.mesh.coord(:,1));
-          yMax    = max(obj.mesh.coord(:,2));
-          zMax    = max(obj.mesh.coord(:,3));
-          
-          isDir  = @(coor)  abs(coor(:,1))==0;
-          isForce = @(coor) abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,3))>=0.4*zMax & abs(coor(:,3))<=0.6*zMax;
-          
-          sDir{1}.domain    = @(coor) isDir(coor); %punt esquerre
-          sDir{1}.direction = [1,2,3]; %restricció vertical, horitzontal i 3r eix
-          sDir{1}.value     = 0;  %desplaçament =0
-          
-          sPL{1}.domain    = @(coor) isForce(coor);
-          sPL{1}.direction = 2;
-          sPL{1}.value     = -1;
-%---------------3D CANTIELEVER CASE-------------%
 
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)

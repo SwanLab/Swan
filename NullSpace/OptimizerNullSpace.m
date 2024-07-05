@@ -19,6 +19,7 @@ classdef OptimizerNullSpace < Optimizer
         lJ
         etaNorm 
         gJFlowRatio
+        predictedTau
     end
 
     methods (Access = public) 
@@ -32,7 +33,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            obj.hasFinished = false;
+            obj.hasFinished  = false;
             obj.printOptimizerVariable();
             obj.updateMonitoring();
             while ~obj.hasFinished
@@ -78,16 +79,16 @@ classdef OptimizerNullSpace < Optimizer
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'lG';'lJ'}];
+            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ';'1/\eta (1-gk1/gk)';'Merit'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    titles = [titles;{'Theta'}];
-                    chartTypes = [chartTypes,{'plot'}];
+                    titles = [titles;{'Theta';'Alpha';'Beta'}];
+                    chartTypes = [chartTypes,{'plot','plot','plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -103,40 +104,41 @@ classdef OptimizerNullSpace < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
-                data = [data;0;0;0;0;0];
+                data = [data;0;0;0;obj.etaMax;0;0;0;NaN];
             else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;norm(obj.lG);norm(obj.lJ)];
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);norm(obj.predictedTau);obj.meritNew];
             end
             switch class(obj.designVariable)
                 case 'LevelSet'
                     if obj.nIter == 0
-                        data = [data;0];
+                        data = [data;0;0;0];
                     else
-                        data = [data;obj.primalUpdater.Theta];
+                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
                     end
             end
-            % merit?
             obj.monitoring.update(obj.nIter,data);
         end
 
         function updateEtaParameter(obj)
-            g          = obj.constraint.value;
-            Dg         = obj.constraint.gradient;
-            DJ         = obj.cost.gradient;
-            vgJ        = obj.gJFlowRatio;
-            DxJ        = obj.computeNullSpaceFlow();
-            Dxg        = obj.computeRangeSpaceFlow();
-            obj.eta    = min(vgJ*DxJ/Dxg,obj.etaMax);
-            obj.lG     = obj.eta*((Dg'*Dg)\g);
-            obj.lJ     = -1*((Dg'*Dg)\Dg')*DJ;
+            vgJ     = obj.gJFlowRatio;
+            DxJ     = obj.computeNullSpaceFlow();
+            Dxg     = obj.computeRangeSpaceFlow();
+            obj.eta = min(vgJ*DxJ/Dxg,obj.etaMax);
+            obj.updateMonitoringMultipliers();
+        end
+
+        function updateMonitoringMultipliers(obj) % Used just to monitor
+            g      = obj.constraint.value;
+            Dg     = obj.constraint.gradient;
+            DJ     = obj.cost.gradient;
+            obj.lG = obj.eta*((Dg'*Dg)\g);
+            obj.lJ = -1*((Dg'*Dg)\Dg')*DJ;
         end
 
         function DxJ = computeNullSpaceFlow(obj)
-            DJ     = obj.cost.gradient;
-            Dg     = obj.constraint.gradient;
-            %Prange = Dg*((Dg'*Dg)\Dg');
-            %DxJ    = norm((eye(size(Prange))-Prange)*DJ);
-            DxJ    = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
         end
 
         function Dxg = computeRangeSpaceFlow(obj)
@@ -150,10 +152,10 @@ classdef OptimizerNullSpace < Optimizer
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.designVariable.updateOld();
-            obj.dualVariable.fun.fValues = zeros(size(obj.dualVariable.fun.fValues));
         end
 
         function update(obj)
+            g0 = obj.constraint.value;
             x0 = obj.designVariable.fun.fValues;
             obj.updateEtaParameter();
             obj.acceptableStep   = false;
@@ -164,7 +166,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.calculateInitialStep();
             while ~obj.acceptableStep
                 obj.updatePrimal();
-                obj.checkStep(x0);
+                obj.checkStep(x0,g0);
             end
         end
 
@@ -195,19 +197,22 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x0)
-            x    = obj.designVariable.fun.fValues;
+        function checkStep(obj,x0,g0)
             mNew = obj.computeMeritFunction();
+            x    = obj.designVariable.fun.fValues;
+            g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
             if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
+                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
-                obj.meritNew = mNew;
+                obj.meritNew       = mNew;
                 obj.dualUpdater.updateOld();
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
+                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
-                obj.meritNew = obj.mOld;
+                obj.meritNew       = obj.mOld;
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
             else
@@ -231,9 +236,13 @@ classdef OptimizerNullSpace < Optimizer
                     %                     k  = obj.primalUpdater.tau;
                     %                     t  = obj.primalUpdater.Theta;
                     %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
-                    theta      = obj.primalUpdater.Theta;
-                    k          = obj.primalUpdater.tau;
-                    obj.etaMax = k*sin(theta);
+%                     theta      = obj.primalUpdater.Theta;
+%                     k          = obj.primalUpdater.tau;
+%                     b          = obj.primalUpdater.Beta;
+%                     a          = obj.primalUpdater.Alpha;
+                    obj.etaMax = Inf;
+                case 'HAMILTON-JACOBI'
+                    obj.etaMax = Inf; % Not verified
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;

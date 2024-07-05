@@ -179,7 +179,6 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
@@ -194,7 +193,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
