@@ -80,6 +80,20 @@ classdef NedelecFunction < FeFunction
         function dN = computeShapeDerivatives(obj, xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
+
+        function mapF = mapFunction(obj, F, xV)
+            mapF = zeros([size(F),obj.mesh.nelem]);
+            J = obj.mesh.computeJacobian(0);
+            R = [0 -1; 1 0];
+            JGlob = pagemtimes(pagemtimes(R,J),R');
+            Jdet(:,1,1,:)  = 1./obj.mesh.computeJacobianDeterminant(xV);
+            sides = obj.computeSidesOrientation();
+
+            for idof= 1:obj.nDofsElem
+                s(1,1,1,:) = sides(:,idof);
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*Jdet.*s;
+            end
+        end
         
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);

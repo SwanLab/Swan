@@ -35,7 +35,7 @@ classdef Triangle_RaviartThomas < Interpolation
         function deriv = evaluateShapeDerivatives(obj, xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
-            deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem,2);
             s = xV(1,:,:);
             I = ones(size(s));
             O = zeros(size(s));

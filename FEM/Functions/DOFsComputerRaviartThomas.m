@@ -54,8 +54,16 @@ classdef DOFsComputerRaviartThomas < handle
         
         
         function computeDofsPriv(obj)
-            dofsEdges = obj.computeDofsEdges();
-            obj.dofs = dofsEdges;
+            dofsFacelets = obj.computeDofsFacelets();
+            obj.dofs = dofsFacelets;
+        end
+
+        function dofsFacelets = computeDofsFacelets(obj)
+            if obj.mesh.ndim == 2
+                dofsFacelets = obj.computeDofsEdges();
+            elseif obj.mesh.ndim == 3
+                dofsFacelets = obj.computeDofsFaces();
+            end
         end
         
         function dofsEdges = computeDofsEdges(obj)
@@ -78,6 +86,13 @@ classdef DOFsComputerRaviartThomas < handle
                     dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
                 end
             end
+        end
+
+
+        function dofsFaces = computeDofsFaces(obj,ndofsEdges)
+            m = obj.mesh;
+            m.computeFaces();
+            dofsFaces = m.faces.facesInElem;
         end
 
 

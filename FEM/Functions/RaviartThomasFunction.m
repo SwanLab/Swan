@@ -43,7 +43,6 @@ classdef RaviartThomasFunction < FeFunction
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end
-
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -77,6 +76,18 @@ classdef RaviartThomasFunction < FeFunction
 
         function dN = computeShapeDerivatives(obj, xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
+        end
+
+        function mapF = mapFunction(obj, F, xV)
+            mapF = zeros([size(F),obj.mesh.nelem]);
+            JGlob = obj.mesh.computeJacobian(0);
+            Jdet(:,1,1,:)  = 1./obj.mesh.computeJacobianDeterminant(xV);
+            sides = obj.computeSidesOrientation();
+
+            for idof= 1:obj.nDofsElem
+                s(1,1,1,:) = sides(:,idof);
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*Jdet.*s;
+            end
         end
         
         function dNdx  = evaluateCartesianDerivatives(obj,xV)

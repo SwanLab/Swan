@@ -6,13 +6,20 @@ classdef RaviartThomasPlotter < handle
         end
         
         function plot(obj,s)
+            if s.mesh.ndim == 2
+                obj.plot2D(s);
+            elseif s.mesh.ndim == 3
+                obj.plot3D(s)
+            end
+        end
+        
+    end
+    
+    methods (Access = private)
+
+        function plot2D(obj,s)
             figure()
             hold on
-
-            sx = [0 1 0 0.5 0 0.5];
-            sy = [0 0 1 0 0.5 0.5];
-            % sx = [0 1 0 0.5 0 0.5 0.25 0 0.75 0.75 0 0.25 0.25 0.5 0.25];
-            % sy = [0 0 1 0 0.5 0.5 0 0.25 0 0.25 0.75 0.75 0.25 0.25 0.5];
 
             sx = [0, 1, 0, 0.5, 0, 0.5, 0.25, 0, 0.75, 0.75, 0, 0.25, ...
                   0.25, 0.5, 0.25, 0.125, 0, 0.875, 0.875, 0, 0.125, ...
@@ -36,10 +43,6 @@ classdef RaviartThomasPlotter < handle
             view(0,90)
             grid on
         end
-        
-    end
-    
-    methods (Access = private)
         
     end
     

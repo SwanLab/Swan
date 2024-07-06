@@ -24,14 +24,14 @@ classdef LHSintegrator_Mass_RT < LHSintegrator
 
             nGaus  = obj.quadrature.ngaus;
             nElem  = size(dVolu,2);
+            nDim   = obj.mesh.ndim;
             nNodeTest  = size(shapesTest,1);
             nNodeTrial = size(shapesTrial,1);
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
             
-            sides = obj.test.computeSidesOrientation();
-            JGlob = obj.mesh.computeJacobian(0);
-            Jdet = obj.mesh.computeJacobianDeterminant(xV);
+            shapesTestMapped  = obj.test.mapFunction(shapesTest, xV);
+            shapesTrialMapped = obj.trial.mapFunction(shapesTrial, xV);
 
             M = zeros(nDofTest, nDofTrial, nElem);
             for igauss = 1 :nGaus
@@ -41,12 +41,10 @@ classdef LHSintegrator_Mass_RT < LHSintegrator
                             idof = obj.test.ndimf*(inode-1)+iunkn;
                             jdof = obj.trial.ndimf*(jnode-1)+iunkn;
                             dvol = abs(dVolu(igauss,:))';
-                            Jd(1,1,1,:) = 1./Jdet(igauss,:);
-                            Ni = pagemtimes(squeeze(shapesTest(inode,igauss,:,:))',JGlob).*Jd;
-                            Nj = pagemtimes(squeeze(shapesTrial(jnode,igauss,:,:))',JGlob).*Jd;
-                            v = squeeze(pagemtimes(Ni,pagetranspose(Nj)));
-                            M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
-                                + v(:).*dvol.*sides(:,inode).*sides(:,jnode);
+                            Ni = reshape(squeeze(shapesTestMapped(inode,igauss,:,:))',nDim,[])';
+                            Nj = reshape(squeeze(shapesTrialMapped(jnode,igauss,:,:))',nDim,[])';
+                            v  = sum(Ni.*Nj,2);
+                            M(idof, jdof, :)= squeeze(M(idof,jdof,:)) + v(:).*dvol;
                         end
                     end
                 end
