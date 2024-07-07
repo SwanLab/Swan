@@ -23,25 +23,19 @@ classdef NedelecFunction < FeFunction
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
+            nDim   = obj.mesh.ndim;
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF*2,nGaus,nElem);
-            sides = obj.computeSidesOrientation();
-            J = obj.mesh.computeJacobian(0);
-            R = [0 -1; 1 0];
-            JGlob = pagemtimes(pagemtimes(R,J),R');
-            Jdet = obj.mesh.computeJacobianDeterminant(xV);
+            fxV = zeros(nDim,nGaus,nElem);
+
+            shapesTestMapped  = obj.mapFunction(shapes, xV);
+
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    N = squeeze(shapes(iNode,iGaus,:,:));
-                    Ni = squeeze(pagemtimes(N',JGlob))./Jdet(iGaus,:);
-                    fi = obj.fValues(node,:).*sides(:,iNode);
-                    if nElem ~= 1
-                        f(1:2,1,:) = Ni.*fi';
-                    else
-                        f = Ni'.*fi;
-                    end
+                    Ni   = reshape(squeeze(shapesTestMapped(iNode,iGaus,:,:))',nDim,[])';
+                    fi   = obj.fValues(node,:);
+                    f(1:nDim,1,:) = Ni'.*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end
@@ -81,17 +75,16 @@ classdef NedelecFunction < FeFunction
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
 
-        function mapF = mapFunction(obj, F, xV)
+        function mapF = mapFunction(obj, F, ~)
             mapF = zeros([size(F),obj.mesh.nelem]);
             J = obj.mesh.computeJacobian(0);
-            R = [0 -1; 1 0];
-            JGlob = pagemtimes(pagemtimes(R,J),R');
-            Jdet(:,1,1,:)  = 1./obj.mesh.computeJacobianDeterminant(xV);
+
+            JGlob = pagetranspose(pageinv(J));
             sides = obj.computeSidesOrientation();
 
             for idof= 1:obj.nDofsElem
                 s(1,1,1,:) = sides(:,idof);
-                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*Jdet.*s;
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*s;
             end
         end
         
@@ -357,8 +350,15 @@ classdef NedelecFunction < FeFunction
         function sides = computeSidesOrientation(obj)
             locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
             sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
-            for ielem=1:obj.mesh.nelem
-                sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+
+            if obj.mesh.ndim == 2
+                for ielem=1:obj.mesh.nelem
+                    sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+                end
+            elseif obj.mesh.ndim == 3
+                for ielem=1:obj.mesh.nelem
+                    sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=[1 1 1 3 4 4]);
+                end
             end
         end
         

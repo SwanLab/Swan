@@ -43,6 +43,26 @@ classdef RaviartThomasPlotter < handle
             view(0,90)
             grid on
         end
+
+
+        function plot3D(obj,s)
+            figure()
+            hold on
+
+            sx = [0, 1, 0, 0];
+            sy = [0, 0, 1, 0];
+            sz = [0, 0, 0, 1];
+
+            coord = s.mesh.computeXgauss([sx;sy;sz]);
+
+            z = s.func.evaluate([sx;sy;sz]);
+            % s.mesh.plot();
+            a = quiver3(coord(1,:,:),coord(2,:,:),coord(3,:,:),z(1,:,:),z(2,:,:),z(3,:,:),1);
+            a.Color = [0 0 0];
+            
+            view(0,90)
+            grid on
+        end
         
     end
     

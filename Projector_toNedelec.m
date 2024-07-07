@@ -16,7 +16,7 @@ classdef Projector_toNedelec < Projector
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
             s.mesh    = obj.mesh;
-            s.fValues = reshape(xProj,[x.ndimf/2,numel(xProj)/x.ndimf*2])'; % no
+            s.fValues = reshape(xProj,[1,numel(xProj)])'; % no
             s.order = obj.order;
             xFun = NedelecFunction(s);
         end
@@ -27,8 +27,8 @@ classdef Projector_toNedelec < Projector
         
         function LHS = computeLHS(obj,fun)
             s.mesh  = obj.mesh;
-            s.test  = NedelecFunction.create(obj.mesh, fun.ndimf/2, obj.order);
-            s.trial = NedelecFunction.create(obj.mesh, fun.ndimf/2, obj.order);
+            s.test  = NedelecFunction.create(obj.mesh, 1, obj.order);
+            s.trial = NedelecFunction.create(obj.mesh, 1, obj.order);
             % s.quadratureOrder = 'QUADRATIC'; % no
             s.type  = 'MassMatrixN';
             lhs = LHSintegrator.create(s);
@@ -47,7 +47,7 @@ classdef Projector_toNedelec < Projector
             end
             s.quadType = ord;
             int        = RHSintegrator.create(s);
-            test       = NedelecFunction.create(obj.mesh,fun.ndimf/2,obj.order);
+            test       = NedelecFunction.create(obj.mesh,1,obj.order);
             RHS        = int.compute(fun,test);
         end
 

@@ -36,25 +36,20 @@ classdef RHSintegrator_ShapeFunctionRT < handle
             nNodeElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
+            nDim      = obj.mesh.ndim;
             nFlds     = size(fG,1);
             nDofElem = nNodeElem*nFlds/2;
             int = zeros(nDofElem,nElem);
 
-            sides = test.computeSidesOrientation();
-            JGlob = obj.mesh.computeJacobian(0);
-            Jdet = obj.mesh.computeJacobianDeterminant(xV);
+            shapesTestMapped  = test.mapFunction(N, xV);
 
             for iField = 1:nFlds/2
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
-                        Jd = 1./Jdet(iGaus,:);
                         dVg(:,1) = abs(dV(iGaus, :));
                         fV   = squeeze(fG(:,iGaus,:));
-                        Ni   = squeeze(pagemtimes(squeeze(N(iNode,iGaus,:))',JGlob)).*Jd;
-                        if nElem == 1
-                            Ni = Ni';
-                        end
-                        fNdV(:,1) = sum(Ni.*fV,1)'.*dVg.*sides(:,iNode);
+                        Ni   = reshape(squeeze(shapesTestMapped(iNode,iGaus,:,:))',nDim,[])';
+                        fNdV(:,1) = sum(Ni'.*fV,1)'.*dVg;
                         iDof = iNode;
                         int(iDof,:) = int(iDof,:) + fNdV';
                     end

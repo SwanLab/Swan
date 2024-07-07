@@ -64,6 +64,8 @@ classdef InterpolationFactory < handle
                             obj = Tetrahedra_Cubic(cParams);
                         case 'RaviartThomas'
                             obj = Tetrahedra_RaviartThomas(cParams);
+                        case 'Nedelec'
+                            obj = Tetrahedra_Nedelec(cParams);
                         otherwise
                             error('Invalid order for element TETRAHEDRA.');
                     end

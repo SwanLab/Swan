@@ -25,8 +25,8 @@ classdef RaviartThomasFunction < FeFunction
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF*2,nGaus,nElem);
-            sides = obj.computeSidesOrientation();
+            fxV = zeros(obj.mesh.ndim,nGaus,nElem);
+            sides = obj.computeFaceletsOrientation();
             JGlob = obj.mesh.computeJacobian(0);
             Jdet = obj.mesh.computeJacobianDeterminant(xV);
             for iGaus = 1:nGaus
@@ -36,7 +36,7 @@ classdef RaviartThomasFunction < FeFunction
                     Ni = squeeze(pagemtimes(N',JGlob))./Jdet(iGaus,:);
                     fi = obj.fValues(node,:).*sides(:,iNode);
                     if nElem ~= 1
-                        f(1:2,1,:) = Ni.*fi';
+                        f(1:obj.mesh.ndim,1,:) = Ni.*fi';
                     else
                         f = Ni'.*fi;
                     end
@@ -82,7 +82,8 @@ classdef RaviartThomasFunction < FeFunction
             mapF = zeros([size(F),obj.mesh.nelem]);
             JGlob = obj.mesh.computeJacobian(0);
             Jdet(:,1,1,:)  = 1./obj.mesh.computeJacobianDeterminant(xV);
-            sides = obj.computeSidesOrientation();
+
+            sides = obj.computeFaceletsOrientation();
 
             for idof= 1:obj.nDofsElem
                 s(1,1,1,:) = sides(:,idof);
@@ -349,11 +350,19 @@ classdef RaviartThomasFunction < FeFunction
             ord = 1; % NO
         end
 
-        function sides = computeSidesOrientation(obj)
-            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
-            sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
-            for ielem=1:obj.mesh.nelem
-                sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+        function sides = computeFaceletsOrientation(obj)
+            if obj.mesh.ndim == 2
+                locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+                sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
+                for ielem=1:obj.mesh.nelem
+                    sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
+                end
+            elseif obj.mesh.ndim == 3
+                sides = -ones(size(obj.mesh.faces.facesInElem));
+                for value = 1:size(obj.mesh.faces.nodesInFaces,1)
+                    first = find(obj.mesh.faces.facesInElem == value, 1, 'first');
+                    sides(first) = 1;
+                end
             end
         end
         
