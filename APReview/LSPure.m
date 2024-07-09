@@ -3,7 +3,7 @@ weights = [1];
 optimizerUnconstrained = 'SLERP';
 designVariable = 'LevelSet';
 nsteps = 1;
-maxiter = 100;
+maxiter = 400;
 
 
 
