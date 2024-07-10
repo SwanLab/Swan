@@ -37,26 +37,32 @@ classdef EIFEMtesting < handle
         U
         D
 
+        eigenModes
+        Kmodal
+        PmodalPrecond
         displacementFun
         LHS
         RHS
         scale
         ndimf    
         functionType
-        EIFEM
+        EIFEMsolver
     end
 
     methods (Access = public)
+
+        function createFineMesh(obj)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = obj.meshReference;         
+            m = MeshCreatorFromRVE(s);
+            [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
+        end
 
         function obj = EIFEMtesting()
             close all
             obj.init();
             obj.createReferenceMesh();
-           
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.meshReference;         
-            m = MeshCreatorFromRVE(s);
-            [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
+            obj.createFineMesh();
 
             obj.displacementFun      = LagrangianFunction.create(obj.meshDomain, obj.ndimf,obj.functionType);
             [obj.boundaryConditions,Dir,PL] = obj.createBoundaryConditions(obj.meshDomain);
@@ -75,7 +81,7 @@ classdef EIFEMtesting < handle
             obj.LHS      = obj.computeStiffnessMatrix(obj.meshDomain,obj.displacementFun,obj.material);
             obj.RHS      = obj.computeForces(obj.LHS);
            
-            cMesh           = createCoarseMesh(obj);
+            cMesh           = obj.createCoarseMesh();
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = cMesh;         
             mRVECoarse      = MeshCreatorFromRVE(s);
@@ -85,7 +91,7 @@ classdef EIFEMtesting < handle
             refMat      = obj.createMaterial(obj.meshReference);
             refLHS      = obj.computeStiffnessMatrix(obj.meshReference,refDisp,refMat);
 
-            obj.EIFEM = obj.createEIFEM(meshDomainCoarse,Dir,refLHS);
+            obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,Dir,refLHS);
 
             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(obj.RHS);
@@ -95,10 +101,23 @@ classdef EIFEMtesting < handle
             obj.U = triu(LHS);
             obj.D = diag(diag(LHS));
 
+            obj.computeEigenModes();
+            obj.computeModalStiffnessMatrix();
+            obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
 
-            [uCG,residualCG,errCG,errAnormCG]  = obj.conjugateGradient(LHS,RHS,Usol);
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol);
+            Pid = @(r) r;
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,Pid);
+           
+            
+            Peifem = @(r) obj.solveEIFEM(r);
+            Pilu = @(r) obj.applyILU(r);
+            Pm = @(r) obj.solveModalProblem(r);               
+            Pilu_m = @(r) Pilu(Pm(r));
+            
+            P = Pm;%Pilu_m;%Peifem; %Pilu %Pm
+          
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,P);
 
             figure
             plot(residualPCG,'linewidth',2)
@@ -145,6 +164,10 @@ classdef EIFEMtesting < handle
 %             preconditioner = obj.createPreconditioner(mC.submeshes);
 
         end
+
+        function z = solveViaJacobi(obj,r)
+            
+        end
         
         function solveDomainProblem(obj)
             s.mesh     = obj.meshDomain;
@@ -173,7 +196,7 @@ classdef EIFEMtesting < handle
             obj.functionType = 'P1';
             obj.solverCase   = 'REDUCED';
 %             obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-          obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_8_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_1.mat';
+          obj.EIFEMfilename = 'DEF_Q4porL_1.mat';
             obj.weight       = 0.5;
         end
 
@@ -498,7 +521,7 @@ classdef EIFEMtesting < handle
             s.mesh     = meshDomainCoarse;
             s.DirCond  = Dir;
             s.Kfine    = Kfine;
-            eifem       = EIFEM(s);
+            eifem      = EIFEM(s);
         end
 
         function uInt = computeInterfaceDisp(obj,u)
@@ -551,7 +574,7 @@ classdef EIFEMtesting < handle
             end
         end
 
-        function Rsbd = computeSubdomainResidual(obj,R,iter)
+        function Rsbd = computeSubdomainResidual(obj,R)
             RG    = obj.bcApplier.reducedToFullVectorDirichlet(R);
 %             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
             RGsbd = obj.global2local(RG);
@@ -592,7 +615,7 @@ classdef EIFEMtesting < handle
             uN = zeros(length(RHS),1);
             R  = RHS - LHS*uN;
             Rsbd = obj.computeSubdomainResidual(R,iter);
-            uSbd  = obj.EIFEM.apply(Rsbd);
+            uSbd  = obj.EIFEMsolver.apply(Rsbd);
 %             for jdom = 1:obj.nSubdomains(2)
 %                 for idom =1:obj.nSubdomains(1)
 %                     mesh = obj.meshSubDomain{jdom,idom};
@@ -609,9 +632,9 @@ classdef EIFEMtesting < handle
             uN    = u;
             R  = RHS - LHS*uN;
             Rsbd = obj.computeSubdomainResidual(R,iter);
-            uDefSbd  = obj.EIFEM.applySubdomainNeumannDeformational(Rsbd);
+            uDefSbd  = obj.EIFEMsolver.applySubdomainNeumannDeformational(Rsbd);
             uDef = obj.computeContinousField(uDefSbd);
-            uRBsbd = obj.EIFEM.applySubdomainNeumannRigidBody(Rsbd);
+            uRBsbd = obj.EIFEMsolver.applySubdomainNeumannRigidBody(Rsbd);
             uRB = obj.computeContinousField(uRBsbd);
             uplot = obj.bcApplier.reducedToFullVectorDirichlet(uDef);
 %             obj.plotSolution(uplot,obj.meshDomain,0,11,iter+1,0)
@@ -627,7 +650,7 @@ classdef EIFEMtesting < handle
                 obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
                 RGsbd = obj.global2local(RG);
                 RGsbd = obj.scaleInterfaceValues(RGsbd);
-                uSbd  = obj.EIFEM.apply(RGsbd);
+                uSbd  = obj.EIFEMsolver.apply(RGsbd);
                 %                 for jdom = 1:obj.nSubdomains(2)
                 %                     for idom =1:obj.nSubdomains(1)
                 %                         mesh = obj.meshSubDomain{jdom,idom};
@@ -694,7 +717,7 @@ classdef EIFEMtesting < handle
 %                  obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
 %                 R     = RHS - LHS*uN;
                 Rsbd = obj.computeSubdomainResidual(R,iter);
-                uSbd  = obj.EIFEM.apply(Rsbd);
+                uSbd  = obj.EIFEMsolver.apply(Rsbd);
                 u = obj.computeContinousField(uSbd);
                 
 %                 Rsbd = obj.computeSubdomainResidual(R,iter);
@@ -721,129 +744,73 @@ classdef EIFEMtesting < handle
          end
 
 
-        function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol)
+         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P)
             tol = 1e-8;
             iter = 0;
             n = length(B);
             x = zeros(n,1);
-            r = B - A * x;
-%             r = obj.applyILU(r);
-%             r = obj.applyGaussSeidel(r);
-%             r = B - A * (x+0.2*z1);
-            %             z = ModalTesting.applyPreconditioner(M,r);
-            RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
-%             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
-            RGsbd = obj.global2local(RG);
-            RGsbd = obj.scaleInterfaceValues(RGsbd);
-            uSbd =  obj.EIFEM.apply(RGsbd);
-            uInt  = obj.computeInterfaceDisp(uSbd);
-            u     = obj.smoothDisplacement(uSbd,uInt);
-            z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
-%             z=r-z;
-%             z = z-A*obj.applyGaussSeidel(z);
-            zilu = obj.applyILU(r);
-            z=r-z-zilu;
-%             zILU = obj.applyILU(z);
-%             z=z-zILU;
-            %             z=r-z;
+            r = B - A * x;      
+            z = P(r);
             p = z;
-            rzold = r' * z;
-            
-
+            rzold = r' * z;           
             while norm(r) > tol
                 Ap = A * p;
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-%                 uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
-%               obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
                 r = r - alpha * Ap;
-%                 r = obj.applyILU(r);
-%                 r = obj.applyGaussSeidel(r);
-%                 r = B - A * (x+0.2*z1);
-%                 RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
-% %                  obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
-%                 RGsbd = obj.global2local(RG);
-%                 RGsbd = obj.scaleInterfaceValues(RGsbd);
-                RGsbd = obj.computeSubdomainResidual(r,iter);
-                uSbd =  obj.EIFEM.apply(RGsbd);
-%                 uInt  = obj.computeInterfaceDisp(uSbd);
-%                 u     = obj.smoothDisplacement(uSbd,uInt);
-%                 z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
-                z = obj.computeContinousField(uSbd);
-                test(iter+1) = norm(z);
-                test2(iter+1) = max(z(2:2:end));
-                z = r-z;
-%                 z = z-A*obj.applyGaussSeidel(z);
-                zilu = obj.applyILU(r);
-                z=r-z-zilu;
-%                 zILU = obj.applyILU(z);
-%                 z=z-zILU;
-                %                 z = obj.applyPreconditioner(r);
+                z = P(r);
                 rznew = r' * z;
-                %hasNotConverged = sqrt(rsnew) > tol;
-
-
                 p = z + (rznew / rzold) * p;
                 rzold = rznew;
-
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
                 err(iter)=norm(x-xsol);
-                errAnorm(iter)=((x-xsol)')*A*(x-xsol);
-                
+                errAnorm(iter)=((x-xsol)')*A*(x-xsol);                
             end
+         end
+
+         function computeEigenModes(obj)
+            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
+            nbasis = 60;
+            [phi,D]=eigs(LHS,nbasis,'smallestabs');
+            obj.eigenModes = phi;
+         end
+
+         function computeModalStiffnessMatrix(obj)
+            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);             
+            phi = obj.eigenModes;
+            lhs = phi'*LHS*phi;
+            obj.Kmodal = lhs;
+         end
+
+         function createModelPreconditioning(obj)
+            phi=obj.eigenModes;
+            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);             
+            I = eye(size(LHS,1));
+            P = I-phi*((phi'*LHS*phi)\(phi'));
+            obj.PmodalPrecond = P;
+         end
+
+        function z = solveModalProblem(obj,r)
+             lhs=obj.Kmodal;
+             phi=obj.eigenModes;
+             r1=phi'*r;
+             zP=lhs\r1;
+             z =phi*zP;
+             z = r-z;
+          
+            %P = obj.PmodalPrecond;
+            %z = P*r;
+        end         
+    
+        function z = solveEIFEM(obj,r)
+            RGsbd = obj.computeSubdomainResidual(r);
+            uSbd =  obj.EIFEMsolver.apply(RGsbd);
+            z = obj.computeContinousField(uSbd);
+            z = r - z;
         end
 
        
-
-        function [x,residu,err,errAnorm] = conjugateGradient(obj,LHS,RHS,xsol)
-            tol = 1e-8;
-            iter = 1;
-            x = zeros(size(RHS));
-            r = RHS - LHS * x; 
-%             RG  = obj.bcApplier.reducedToFullVectorDirichlet(r);
-% %             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
-%             RGsbd = obj.global2local(RG);
-%             RGsbd = obj.scaleInterfaceValues(RGsbd);
-%             uSbd =  obj.EIFEM.apply(RGsbd);
-%             uInt  = obj.computeInterfaceDisp(uSbd);
-%             u     = obj.smoothDisplacement(uSbd,uInt);
-%             u     = obj.bcApplier.fullToReducedVectorDirichlet(u);
-%             uplot = obj.bcApplier.reducedToFullVectorDirichlet(u);
-%             obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
-%             x = u;
-%             r = RHS - LHS * x;
-            p = r; 
-            rsold = r' * r;
-            
-
-            hasNotConverged = true;
-
-            while hasNotConverged
-                Ap = LHS * p;
-                alpha = rsold / (p' * Ap);
-                x = x + alpha * p;
-                uplot = obj.bcApplier.reducedToFullVectorDirichlet(x);
-%                 obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
-                r = r - alpha * Ap;
-                rsnew = r' * r;
-
-                hasNotConverged = norm(LHS*x - RHS) > tol;
-
-                p = r + (rsnew / rsold) * p;
-                rsold = rsnew;
-                iter = iter + 1;
-                 residu(iter) = norm(LHS*x - RHS); %Ax - b
-                 err(iter)=norm(x-xsol);
-                errAnorm(iter)=((x-xsol)')*LHS*(x-xsol);
-%                 res = LHS*x - RHS;
-                
-                %conjugateGradient_Solver.plotSolution(x,mesh,bc,iter)
-                
-                %conjugateGradient_Solver.plotRes(res,mesh,bc,iter)
-            end
-            %save('residuConjugateZeros.mat', 'residu')
-        end
 
         function plotSolution(obj,x,mesh,row,col,iter,flag)
             if nargin <7
