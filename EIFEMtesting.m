@@ -95,6 +95,8 @@ classdef EIFEMtesting < handle
             obj.U = triu(LHS);
             obj.D = diag(diag(LHS));
 
+%             u = obj.solver2(LHS,RHS,refLHS);
+
             [uCG,residualCG,errCG,errAnormCG]  = obj.conjugateGradient(LHS,RHS,Usol);
             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol);
 
@@ -165,7 +167,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
+            obj.nSubdomains  = [20 1]; %nx ny
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
@@ -683,13 +685,13 @@ classdef EIFEMtesting < handle
             theta = 0.8;
             while e(iter)>tol
                 RG    = obj.bcApplier.reducedToFullVectorDirichlet(R);
-                obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
+%                 obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
 %                 Rsbd = obj.computeSubdomainResidual(R,iter);
 %                 upinv = pinvLHSref*Rsbd;
 %                 upinv = obj.computeContinousField(upinv);
 %                 uN    = uN+upinv;
                 uplot = obj.bcApplier.reducedToFullVectorDirichlet(uN);
-                 obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
+%                  obj.plotSolution(uplot,obj.meshDomain,0,1,iter,0)
 %                 R     = RHS - LHS*uN;
                 Rsbd = obj.computeSubdomainResidual(R,iter);
                 uSbd  = obj.EIFEM.apply(Rsbd);
@@ -704,6 +706,9 @@ classdef EIFEMtesting < handle
 %                 uN    = uN + (1-theta)*(u+uDef+uRB);
                 uN1    = uN + (u);
                 R     = RHS - U*uN1;
+%                 z = obj.applyILU(R);
+%                 uN1    = uN1 + z;
+%                 R     = RHS - U*uN1;
                 uN    = L\(R);
 %                 uN    = theta*uN + (1-theta)*L\(R);
 %                 uplot = obj.bcApplier.reducedToFullVectorDirichlet(uN);
@@ -734,9 +739,10 @@ classdef EIFEMtesting < handle
             uInt  = obj.computeInterfaceDisp(uSbd);
             u     = obj.smoothDisplacement(uSbd,uInt);
             z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
-            z=r-z;
-            z = z-A*obj.applyGaussSeidel(z);
-%             z = obj.applyILU(z);
+%             z=r-z;
+%             z = z-A*obj.applyGaussSeidel(z);
+            zilu = obj.applyILU(r);
+            z=r-z-zilu;
 %             zILU = obj.applyILU(z);
 %             z=z-zILU;
             %             z=r-z;
@@ -764,9 +770,12 @@ classdef EIFEMtesting < handle
 %                 u     = obj.smoothDisplacement(uSbd,uInt);
 %                 z     = obj.bcApplier.fullToReducedVectorDirichlet(u);
                 z = obj.computeContinousField(uSbd);
+                test(iter+1) = norm(z);
+                test2(iter+1) = max(z(2:2:end));
                 z = r-z;
-                z = z-A*obj.applyGaussSeidel(z);
-%                 z = obj.applyILU(z);
+%                 z = z-A*obj.applyGaussSeidel(z);
+                zilu = obj.applyILU(r);
+                z=r-z-zilu;
 %                 zILU = obj.applyILU(z);
 %                 z=z-zILU;
                 %                 z = obj.applyPreconditioner(r);
