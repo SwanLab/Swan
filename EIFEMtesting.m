@@ -39,7 +39,7 @@ classdef EIFEMtesting < handle
 
         eigenModes
         Kmodal
-        PmodalPrecond
+        MmodalPrecond
         displacementFun
         LHS
         RHS
@@ -106,18 +106,21 @@ classdef EIFEMtesting < handle
             obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
 
-            Pid = @(r) r;
-            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,Pid);
-           
+            Mid = @(r) r;
+         %   [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,Mid);
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHS,RHS,Usol,Mid);
+
             
-            Peifem = @(r) obj.solveEIFEM(r);
-            Pilu = @(r) obj.applyILU(r);
-            Pm = @(r) obj.solveModalProblem(r);               
-            Pilu_m = @(r) Pilu(Pm(r));
+            Meifem = @(r) obj.solveEIFEM(r);
+            Milu = @(r) obj.applyILU(r);
+            Mmodal = @(r) obj.solveModalProblem(r);               
+            Milu_m = @(r) Milu(Mmodal(r));
             
-            P = Pm;%Pilu_m;%Peifem; %Pilu %Pm
+            M = Mmodal;%Milu_m;%Meifem; %Milu %Pm
           
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,P);
+            %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,M);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHS,RHS,Usol,M);
+
 
             figure
             plot(residualPCG,'linewidth',2)
@@ -743,6 +746,27 @@ classdef EIFEMtesting < handle
             end
          end
 
+         function [x,residual,err,errAnorm] = preconditionedRichardson(obj,A,B,xsol,P)
+            tol = 1e-8;
+            iter = 0;
+            n = length(B);
+            x = zeros(n,1);
+            r = A * x - B;      
+            z = P(r);
+            theta = 0.999;
+            tau = 1e-4;
+            while norm(r) > tol
+                x = x - tau * z;
+                r = A * x - B;      
+                z = P(r);
+                iter = iter + 1;
+                residual(iter) = norm(r); %Ax - b
+                err(iter)=norm(x-xsol);
+                errAnorm(iter)=((x-xsol)')*A*(x-xsol);                
+            end
+         end            
+         
+
 
          function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P)
             tol = 1e-8;
@@ -787,9 +811,11 @@ classdef EIFEMtesting < handle
             phi=obj.eigenModes;
             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);             
             I = eye(size(LHS,1));
-            P = I-phi*((phi'*LHS*phi)\(phi'));
-            obj.PmodalPrecond = P;
+            M = I-phi*((phi'*LHS*phi)\(phi'));
+            obj.MmodalPrecond = M;
          end
+
+
 
         function z = solveModalProblem(obj,r)
              lhs=obj.Kmodal;
@@ -797,10 +823,12 @@ classdef EIFEMtesting < handle
              r1=phi'*r;
              zP=lhs\r1;
              z =phi*zP;
+
+             
              z = r-z;
-          
-            %P = obj.PmodalPrecond;
-            %z = P*r;
+             
+            %M = obj.MmodalPrecond;
+            %z = M*r;
         end         
     
         function z = solveEIFEM(obj,r)
