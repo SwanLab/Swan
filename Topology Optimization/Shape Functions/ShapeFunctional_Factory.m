@@ -108,26 +108,26 @@ classdef ShapeFunctional_Factory < handle
                     sF = ShFunc_Perimeter(cParams);
                 case 'ComplianceConstraintThreeFieldRhoE'
                     cParams.filterParams.femSettings.eta  = 0.5+0.49;
-                    cParams.filterParams.femSettings.beta = 1.5;
+                    cParams.filterParams.femSettings.beta = 5;
                     %cParams.filterParams.femSettings.shFunType = 'compliance';
                     cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoI'
                     cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = 1.5;
+                    cParams.filterParams.femSettings.beta = 5;
                %     cParams.filterParams.femSettings.shFunType = 'compliance';
                     cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     %nonadjoint_compliance
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'ComplianceConstraintThreeFieldRhoD'
                     cParams.filterParams.femSettings.eta  = 0.5-0.49;
-                    cParams.filterParams.femSettings.beta = 1.5;
+                    cParams.filterParams.femSettings.beta = 5;
                   %  cParams.filterParams.femSettings.shFunType = 'compliance';
                     cParams.filterParams.femSettings.shFunType = 'nonadjoint_compliance';
                     sF = ShFunc_ComplianceTarget(cParams);
                 case 'VolumeConstraintRhoD'
                     cParams.filterParams.femSettings.eta  = 0.5-0.49;
-                    cParams.filterParams.femSettings.beta = 1.5;
+                    cParams.filterParams.femSettings.beta = 5;
                     sF = Volume_constraintWithBound(cParams);
                 case 'LinearBoundFunction'
                     sF = LinearBoundFunction(cParams);
