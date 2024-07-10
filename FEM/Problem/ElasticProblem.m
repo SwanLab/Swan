@@ -6,6 +6,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        nPDE
     end
 
     properties (Access = private)
@@ -101,6 +102,7 @@ classdef ElasticProblem < handle
                 obj.interpolationType = 'LINEAR';
             end
             obj.createQuadrature();
+            obj.nPDE = 0;
         end
 
         function createQuadrature(obj)
@@ -186,6 +188,7 @@ classdef ElasticProblem < handle
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.displacementFun.fValues = uSplit;
+            obj.nPDE = obj.nPDE + 1;
         end
 
         function computeStrain(obj)

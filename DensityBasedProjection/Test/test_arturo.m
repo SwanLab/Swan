@@ -1,4 +1,4 @@
-filename = 'grippingTrialFine';
+filename = 'Gripping25K';
 %Gripping
 ptype = 'MACRO';
 method = 'SIMPALL';

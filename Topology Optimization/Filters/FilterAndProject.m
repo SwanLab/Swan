@@ -31,7 +31,7 @@ classdef FilterAndProject < Filter
     methods (Access = private)
 
         function createFilter(obj,s)
-            s.filterType = 'PDE';
+            s.filterType = 'P1';
             obj.filter   = Filter.create(s);
         end
 

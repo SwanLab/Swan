@@ -7,10 +7,10 @@ classdef ShFunc_ComplianceTarget < handle
         dvolu
         value0
         shFunTargettedType
+        shapeFunctionTargetted
     end
 
     properties (Access = protected)
-        shapeFunctionTargetted
         designVariable
     end
 

@@ -2,7 +2,6 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     
     properties (Access = protected)
         interpolation
-        physicalProblem
     end
     
     properties (Access = private)
@@ -12,6 +11,7 @@ classdef ShFunWithElasticPdes < ShapeFunctional
     
     properties (Access = public)
         regDesignVariable
+        physicalProblem
     end
     
     methods (Access = public)

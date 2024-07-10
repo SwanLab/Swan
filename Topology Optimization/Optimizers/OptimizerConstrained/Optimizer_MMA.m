@@ -63,6 +63,7 @@ classdef Optimizer_MMA < Optimizer
             s.fValues = rho.density.value;
             s.coord   = rho.density.mesh.coord;
             s.connec  = rho.density.mesh.connec;
+            s.nPDE    = obj.constraint.shapeFunctions{1}.shapeFunctionTargetted.physicalProblem.nPDE;
             save('BoundIJNMERes','s');
 %             obj.printOptimizerVariable();
 %             obj.printHistory();
