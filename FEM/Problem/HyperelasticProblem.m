@@ -168,7 +168,7 @@ classdef HyperelasticProblem < handle
             obj.createBCApplier();
             a.type = 'DIRECT';
             solv = Solver.create(a);
-            s.solverType = 'MONOLITHIC';
+            s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.stiffness  = lhs;
             s.forces     = rhs;
@@ -178,6 +178,19 @@ classdef HyperelasticProblem < handle
             s.BCApplier          = obj.BCApplier;
             pb = ProblemSolver(s);
             [incU,incL] = pb.solve();
+
+%             a.type = 'DIRECT';
+%             solv = Solver.create(a);
+%             s.solverType = 'MONOLITHIC';
+%             s.solverMode = 'DISP';
+%             s.stiffness  = lhs;
+%             s.forces     = rhs;
+%             s.uOld       = uOld;
+%             s.solver     = solv;
+%             s.boundaryConditions = obj.boundaryConditions;
+%             s.BCApplier          = obj.BCApplier;
+%             pb = ProblemSolver(s);
+%             [incU2,incL2] = pb.solve();
 
             incR = zeros(obj.uFun.nDofs, 1);
             incR(obj.boundaryConditions.dirichlet_dofs) =  incL;
