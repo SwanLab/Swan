@@ -1,12 +1,10 @@
 %% To-do
-    % In this commit: first iteration seems okay, the following iterations
-    % become increasingly crap.
-
-    % exemple malla forat ester
-    % canviar E nu
-    % exemple deal ii 3d, xafar cub al centre
-    % budget + environmental impact
-
+    % Fisic: open hole // grans vs petites. trobar llibre document
+    % referencia
+    % Convergenece: monolithic -> reduced
+    % No voigt: matrius geometrica i no lineal (mathcha + implementar)
+    % Stretches
+    % Open hole: buscar exemple deformada sencera, no nomes un quart
 
 
     % Speed-up: pass ndofs to BCApplier, calculate free dofs just once
