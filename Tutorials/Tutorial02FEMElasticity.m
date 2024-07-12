@@ -75,14 +75,27 @@ classdef Tutorial02FEMElasticity < handle
             % 2D N ELEMENTS
             sDir2.domain    = @(coor) isBottom(coor);
             sDir2.direction = [1,2];
-            sDir2.value     = 1;
+            sDir2.value     = 0;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
-            s.dirichletFun = [dir2];
+%             s.dirichletFun = [dir2];
+
+            sDir3.domain    = @(coor) isTop(coor);
+            sDir3.direction = [1];
+            sDir3.value     = 0;
+            dir3 =  DirichletCondition(obj.mesh, sDir3);
+
+            sDir4.domain    = @(coor) isTop(coor);
+            sDir4.direction = [2];
+            sDir4.value     = 0.5;
+            dir4 =  DirichletCondition(obj.mesh, sDir4);
+
+            s.dirichletFun = [dir2,dir3,dir4];
+            s.pointloadFun = [];
 % 
-            sPL.domain    = @(coor) isTop(coor);
-            sPL.direction = 2;
-            sPL.value     = 200;
-            s.pointloadFun = DistributedLoad(obj.mesh, sPL);%DistributedLoad(obj.mesh, sPL);
+%             sPL.domain    = @(coor) isTop(coor);
+%             sPL.direction = 2;
+%             sPL.value     = 200;
+%             s.pointloadFun = DistributedLoad(obj.mesh, sPL);%DistributedLoad(obj.mesh, sPL);
 
 %             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
 % 
