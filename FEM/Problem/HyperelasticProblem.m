@@ -45,6 +45,8 @@ classdef HyperelasticProblem < handle
 
             % Apply boundary conditions
             bc = obj.boundaryConditions;
+            nDofs = obj.uFun.nDofs;
+            free = setdiff(1:nDofs,bc.dirichlet_dofs)
             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
 
@@ -57,6 +59,7 @@ classdef HyperelasticProblem < handle
             displ_grafic = [];
             fext_grafic = [];
             nrg_grafic = [];
+            energies = [];
             react = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
@@ -70,18 +73,21 @@ classdef HyperelasticProblem < handle
                 Fint = obj.computeInternalForces();
                 hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext - react;
+                nrg0 = neo.compute(obj.uFun);
+                old_nrg = nrg0;
 
-                residual = norm(R);
+                residual = norm(R(free));
                 resi = 0;
                 i = 0;
-                while residual > 10e-8
-                     nrg = neo.compute(obj.uFun)
+                prenorm = 100;
+                hasNotConverged = 1;
+                while hasNotConverged %residual > 10e-8
 
                     % Update U
-                    [deltaUk,deltaReactk] = obj.solveProblem(hess,-R,u_k);
+                    [deltaUk,~] = obj.solveProblem(hess,-R,u_k);
                     
                     u_next = u_k + deltaUk;
-                    react = react + deltaReactk;
+%                     react = react + deltaReactk;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     obj.applyDirichletToUFun();
                     u_k = obj.reshapeToVector(obj.uFun.fValues);
@@ -91,15 +97,21 @@ classdef HyperelasticProblem < handle
                     % Calculate residual
                     Fint = obj.computeInternalForces();
                     hess = neo.computeHessian(obj.uFun);
-                    R = Fint - Fext - react;
+                    R = Fint - Fext ;
+                    nrg = neo.compute(obj.uFun);
 
-                    residual = norm(R)%/norm(Fext)
+%                     residual = norm(R(free));%/norm(Fext)
+                    hasNotConverged = abs(nrg-old_nrg)/nrg0 > 10e-12;
+                    old_nrg = nrg;
 %                     sigma = obj.computeCauchyStress();
 %                     lambdas = obj.computeStretches();
 
                     % Plot
                     i = i+1;
+                    abs(prenorm-residual)
                     resi(i) = residual;
+                    energies(i) = nrg;
+                    prenorm = residual;
 %                     addpoints(f,i,log10(residual));
 %                     drawnow
                     
@@ -127,7 +139,7 @@ classdef HyperelasticProblem < handle
                 nod = dofToNode(dof);
                 dof_dir = dofToDim(dof); 
 
-                nrg_grafic  = [nrg_grafic, nrg];
+%                 nrg_grafic  = [nrg_grafic, nrg];
                 displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
                 fext_grafic  = [fext_grafic, sum(Fext)];
                 posgp = Quadrature.create(obj.mesh,1).posgp;
@@ -136,8 +148,8 @@ classdef HyperelasticProblem < handle
                 f = figure(1);
                 clf(f)
                 subplot(1,2,1)
-                plot(displ_grafic, fext_grafic,'-x')
-                title('Displacement of central top node')
+                plot(energies)
+                title('Energies')
                 xlabel('displacement (m)')
                 ylabel('force (N)')
 %                 subplot(1,3,2)
@@ -345,7 +357,7 @@ classdef HyperelasticProblem < handle
 
             sPL.domain    = @(coor) isRight(coor);
             sPL.direction = 1;
-            sPL.value     = 1;
+            sPL.value     = 0.2;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
