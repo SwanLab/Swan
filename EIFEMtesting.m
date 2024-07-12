@@ -107,8 +107,14 @@ classdef EIFEMtesting < handle
 %             u = obj.solver2(LHS,RHS,refLHS);
 
             Mid = @(r) r;
-         %   [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,Mid);
-            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHS,RHS,Usol,Mid);
+            LHSf = @(x) LHS*x;
+            RHSf = RHS;
+          
+            %  LHSf = @(x) P*LHS*x;            
+            %  RHSf = P*RHS;
+          
+            %   [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,Mid);
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,Mid);
 
             
             Meifem = @(r) obj.solveEIFEM(r);
@@ -119,7 +125,7 @@ classdef EIFEMtesting < handle
             M = Mmodal;%Milu_m;%Meifem; %Milu %Pm
           
             %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHS,RHS,Usol,M);
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHS,RHS,Usol,M);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,M);
 
 
             figure
@@ -757,7 +763,7 @@ classdef EIFEMtesting < handle
             tau = 1e-4;
             while norm(r) > tol
                 x = x - tau * z;
-                r = A * x - B;      
+                r = A(x) - B;      
                 z = P(r);
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
