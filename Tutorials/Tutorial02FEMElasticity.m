@@ -55,7 +55,7 @@ classdef Tutorial02FEMElasticity < handle
             s.material = obj.material;
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.solverType = 'MONOLITHIC';
+            s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             fem = ElasticProblem(s);
             fem.solve();
@@ -75,7 +75,7 @@ classdef Tutorial02FEMElasticity < handle
             % 2D N ELEMENTS
             sDir2.domain    = @(coor) isBottom(coor);
             sDir2.direction = [1,2];
-            sDir2.value     = 0;
+            sDir2.value     = 1;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
             s.dirichletFun = [dir2];
 % 

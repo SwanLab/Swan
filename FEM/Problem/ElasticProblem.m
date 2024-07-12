@@ -175,10 +175,17 @@ classdef ElasticProblem < handle
             bc = obj.boundaryConditions;
             dofs = 1:obj.displacementFun.nDofs;
             free = setdiff(dofs, bc.dirichlet_dofs);
+            cstr = bc.dirichlet_dofs;
             reactions = zeros(obj.displacementFun.nDofs, 1);
             reactions(bc.dirichlet_dofs) = L;
             reac_rshp = reshape(reactions,[obj.mesh.ndim,obj.mesh.nnodes])';
 
+
+            a.mesh    = obj.mesh;
+            a.fValues = reac_rshp;
+            a.order   = 'P1';
+            reacFun = LagrangianFunction(a);
+            
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';
