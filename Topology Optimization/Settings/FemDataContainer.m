@@ -13,7 +13,6 @@ classdef FemDataContainer < AbstractSettings
         bc
         mesh
         material
-        ngaus
         interpolationType
         solverType = 'REDUCED';
         solverMode = 'DISP';
@@ -37,7 +36,6 @@ classdef FemDataContainer < AbstractSettings
         function init(obj,cParams)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
-                obj.getNgaus();
                 obj.createMaterial(cParams);
                 if strcmp(obj.scale, 'MICRO')
                     obj.solverMode = 'FLUC';
@@ -81,12 +79,6 @@ classdef FemDataContainer < AbstractSettings
             s.ndim = obj.mesh.ndim;
             mat = Material.create(s);
             obj.material = mat;
-        end
-
-        function getNgaus(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.ngaus = quad.ngaus;
         end
 
     end

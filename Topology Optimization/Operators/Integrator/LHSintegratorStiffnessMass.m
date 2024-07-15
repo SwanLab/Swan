@@ -37,6 +37,7 @@ classdef LHSintegratorStiffnessMass < handle
             s.mesh  = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.trial;
+            s.quadratureOrder = 2;
             LHS     = LHSintegrator.create(s);
             obj.K   = LHS.compute();
         end
@@ -46,7 +47,7 @@ classdef LHSintegratorStiffnessMass < handle
             s.mesh  = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end

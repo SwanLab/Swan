@@ -17,7 +17,7 @@ classdef DualUpdater_IPM < handle
             Dg = obj.constraint.gradient';
             DJ = obj.cost.gradient;
             l  = (Dg*Dg')\(Dg*(lz' - uz' - DJ'));
-            obj.dualVariable.value = l';
+            obj.dualVariable.fun.fValues = l';
         end
 
         function updateAlpha(obj,a)
@@ -26,7 +26,7 @@ classdef DualUpdater_IPM < handle
 
         function obj = update(obj,g)
             tau                    = obj.alpha;
-            obj.dualVariable.value = obj.dualVariable.value + tau*g';
+            obj.dualVariable.fun.fValues = obj.dualVariable.fun.fValues + tau*g';
         end
 
         function zLB = updateLowerBound(obj,bounds)
