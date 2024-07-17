@@ -1,9 +1,9 @@
 cost = {'nonadjoint_compliance','anisotropicPerimeterInterior2D'};
-weights = [1,0.05];
+weights = [1,0.08];
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 designVariable = 'Density';
 nsteps = 100;
-maxiter = 1000;
+maxiter = 3000;
 
 
 
