@@ -26,7 +26,7 @@ classdef NonLinearFilter < handle
             % solve non-linear filter...
             % let's start by creating a factory and define circle case (validation)
             obj.createRHSFirstDirection(fun,quadOrder);
-            obj.createStiffnessWithFunFirstDirection();
+            obj.createKqFirstDirection(fun,quadOrder);
             obj.solveFirstDirection();
 
             %xF.fValues  = ;
@@ -68,20 +68,21 @@ classdef NonLinearFilter < handle
             obj.RHS1   = rhs;
         end
 
-        function createStiffnessWithFunFirstDirection(obj)
-            s.type = 'StiffnessMatrixWithFunction';
-            s.mesh  = obj.mesh;
-            s.test  = obj.trial;
-            s.trial = obj.trial;
-            s.quadratureOrder = 2;
-            s.function = obj.q;
-            LHS     = LHSintegrator.create(s);
-            obj.Kq  = LHS.compute();
+
+function createKqFirstDirection(obj,fun, quadOrder)
+            s.mesh = obj.mesh;
+            s.type     = 'ShapeDerivative';
+            s.quadratureOrder = quadOrder;
+            int        = RHSintegrator.create(s);
+            test = obj.q;
+            rhs        = int.compute(fun,test);
+            obj.Kq = rhs;
         end
 
+
         function solveFirstDirection(obj)
-            LHS = obj.M + obj.Kq;
-            RHS = obj.RHS1;
+            LHS = obj.M;
+            RHS = obj.RHS1 + obj.Kq;
             rhoi = LHS\RHS; % hard coded direct solver
             obj.trial.fValues = rhoi;
         end
