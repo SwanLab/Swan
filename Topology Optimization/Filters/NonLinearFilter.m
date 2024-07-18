@@ -12,6 +12,9 @@ classdef NonLinearFilter < handle
         M
         RHS1
         Kq
+        RHOi
+        RHS2
+        qi
     end
 
     methods (Access = public)
@@ -79,13 +82,34 @@ function createKqFirstDirection(obj,fun, quadOrder)
             obj.Kq = rhs;
         end
 
+        function creatRhoiSecondDirection(obj,quadOrder)
+            s.mesh = obj.mesh;
+            s.type = 'ShapeFunction';
+            s.quadType = quadOrder;
+            int        = RHSintegrator.create(s);
+            nablaRho = Grad(obj.trial);
+            test = obj.trial;
+            rhs        = int.compute(nablaRho,test);
+            obj.RHS2 = rhs;
+        end
+
+
 
         function solveFirstDirection(obj)
             LHS = obj.M;
             RHS = obj.RHS1 + obj.Kq;
             rhoi = LHS\RHS; % hard coded direct solver
+            obj.RHOi = rhoi;
             obj.trial.fValues = rhoi;
         end
+
+        function solveSecondDirection(obj)
+            LHS = obj.M .* (1/obj.epsilon);
+            RHS = obj.RHS2;
+            qsol = LHS \ RHS;
+            obj.qi = qsol;
+        end
+
 
         function itHas = hasEpsilonChanged(obj,eps)
             var   = abs(eps - obj.epsilon)/eps;
