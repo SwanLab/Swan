@@ -32,15 +32,7 @@ classdef Density < DesignVariable
                 obj.plotter.plot();
             end
         end
-        % %-----------S'ha afegit tot això------------------------
-        function ls = copy(obj)
-            s.fun      = obj.fun;
-            s.mesh     = obj.mesh;
-            s.type     = 'Density';
-            s.plotting = false;
-            ls         = DesignVariable.create(s);
-        end
-        % %----------S'ha afegit tot això------------------
+    
     end
 
     methods (Access = private)

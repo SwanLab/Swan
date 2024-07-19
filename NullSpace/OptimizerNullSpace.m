@@ -17,7 +17,7 @@ classdef OptimizerNullSpace < Optimizer
         etaMax
         lG
         lJ
-        etaNorm 
+        etaNorm
         gJFlowRatio
         predictedTau
     end
@@ -42,9 +42,6 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                if obj.nIter/2 == round (obj.nIter/2)
-                obj.designVariable.fun.print(['TFGBenchmark/3DCantielever_Density_NullSpace_2/Iter_',char(string(obj.nIter))]);
-                end
                 obj.designVariable.updateOld();
             end
         end
@@ -60,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;   %CANVIAT DE 0 A INF
+            obj.etaMax         = 0;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -177,7 +174,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.01;
+                factor = 3;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
