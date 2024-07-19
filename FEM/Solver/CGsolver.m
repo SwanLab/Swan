@@ -9,12 +9,11 @@ classdef CGsolver < handle
 
         function obj = CGsolver()
             obj.init()
-
         end
 
         function x = solve(obj,A,b)
             obj.prepareProblem(A);
-            tol = 1e-4;
+            tol = 1e-5;
             maxit = 15000;            
             x = pcg(A,b,tol,maxit,[],[],obj.x0); 
             obj.x0 = x;
@@ -33,7 +32,5 @@ classdef CGsolver < handle
                 obj.x0 = zeros(n, 1);
             end        
         end        
-
     end
-
 end

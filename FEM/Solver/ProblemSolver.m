@@ -8,7 +8,7 @@ classdef ProblemSolver < handle
         type, mode
         boundaryConditions
         BCApplier
-        systemSolver
+        solver
     end
     
     properties (Access = private)
@@ -19,12 +19,11 @@ classdef ProblemSolver < handle
         
         function obj = ProblemSolver(cParams)
             obj.init(cParams);
-            obj.createSystemSolver();
         end
 
         function [u,L] = solve(obj,stiffness,forces)
             [LHS, RHS] = obj.computeMatrices(stiffness,forces);
-            sol        = obj.systemSolver.solve(LHS, RHS);
+            sol        = obj.solver.solve(LHS, RHS);
             [u, L]     = obj.cleanupSolution(sol,stiffness);
         end
         
@@ -37,11 +36,7 @@ classdef ProblemSolver < handle
             obj.mode               = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
-        end
-
-        function createSystemSolver(obj)
-            s.type           = 'rMINRES'; % DIRECT
-            obj.systemSolver = Solver.create(s);
+            obj.solver             = cParams.solver;
         end
 
         function [LHS, RHS] = computeMatrices(obj,stiffness,forces)
@@ -49,14 +44,10 @@ classdef ProblemSolver < handle
             RHS = obj.assembleRHS(stiffness,forces);
         end
 
-        function sol = solveSystem(obj, LHS, RHS)
-            sol = obj.systemSolver.solve(LHS,RHS);
-        end
-
         function [u, L] = cleanupSolution(obj,sol,stiffness)
-            bcapp = obj.BCApplier;
+            %bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
-            hasPeriodic = ~isequal(bcs.periodic_leader, []);
+            %hasPeriodic = ~isequal(bcs.periodic_leader, []);
             switch true
                 case strcmp(obj.type, 'MONOLITHIC')
                     nDisp = size(stiffness,1);

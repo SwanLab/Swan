@@ -42,14 +42,13 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,4,210);
+            x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh.create(s);
-            %obj.mesh = HexaMesh(2,1,1,40,20,20); %MALLA GENERADA PEL MATLAB 3D
         end
 
         function createDesignVariable(obj)
@@ -58,7 +57,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
-            s.type = 'LevelSet';  %Density %LevelSet
+            s.type = 'LevelSet';
             s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
@@ -87,7 +86,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';  %Provo 3D aquí??
+            s.dim            = '2D';
             s.matA = matA;
             s.matB = matB;
 
@@ -99,7 +98,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';            %Provo 3D aquí??
+            s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -127,7 +126,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;                  %VOLUM FINAL
+            s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -146,6 +145,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
             M = LHS.compute;
+
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*eye(size(M));
         end
 
         function createConstraint(obj)
@@ -166,10 +168,12 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 250;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};   %{'EQUALITY'};
+            s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
             opt = OptimizerNullSpace(s);
@@ -184,12 +188,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';  %Provo aquí 3D?????
+            s.dim                  = '2D';
             m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
-
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;

@@ -8,11 +8,11 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions, BCApplier
+        boundaryConditions, bcApplier
 
         stiffness
         forces
-        solver, solverType, solverMode, solverCase
+        solverType, solverMode, solverCase
         scale
         
         strain, stress
@@ -77,11 +77,7 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'solverCase')
-                obj.solverCase  = cParams.solverCase;
-            else
-                obj.solverCase = 'DIRECT';
-            end
+            obj.solverCase  = cParams.solverCase;
         end
 
         function createDisplacementFun(obj)
@@ -101,15 +97,17 @@ classdef ElasticProblem < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
-            obj.BCApplier = bc;
+            obj.bcApplier = bc;
         end
 
         function createSolver(obj)
+            sS.type      = obj.solverCase;
+            solver       = Solver.create(sS);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.solver     = obj.solver;
+            s.solver     = solver;
             s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.BCApplier;
+            s.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(s);
         end
 
@@ -147,8 +145,7 @@ classdef ElasticProblem < handle
         function u = computeDisplacement(obj)
             stiff = obj.stiffness;
             forc  = obj.forces;
-            pb    = obj.problemSolver;
-            [u,L] = pb.solve(stiff,forc);
+            [u,~] = obj.problemSolver.solve(stiff,forc);
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             z.order   = 'P1';

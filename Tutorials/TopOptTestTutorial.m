@@ -42,7 +42,7 @@ classdef TopOptTestTutorial < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,4,210);
+            x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -85,8 +85,8 @@ classdef TopOptTestTutorial < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMP_P3';
-            %s.dim            = '2D';
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
             s.matA = matA;
             s.matB = matB;
 
@@ -114,6 +114,7 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -137,7 +138,7 @@ classdef TopOptTestTutorial < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;                       %VOLUM FINAL
+            s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -171,59 +172,37 @@ classdef TopOptTestTutorial < handle
         end
 
         function createOptimizer(obj)
-            % s.monitoring     = true;
-            % s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
-            % s.designVariable = obj.designVariable;       %MMA OPTIMIZER
-            % s.dualVariable   = obj.dualVariable;
-            % s.maxIter        = 250;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = 'EQUALITY';
-            % s.ub             = 1;
-            % s.lb             = 0;
-            % s.volumeTarget   = 0.4;                   %VOLUM FINAL
-            % opt = OptimizerMMA(s);
-            % opt.solveProblem();
-            % obj.optimizer = opt;
-             s.monitoring     = true;
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;          %NULLSPACE OPTIMIZER
-            s.maxIter        = 250;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.volumeTarget   = 0.4;              %VOLUM FINAL
-            s.primal         = 'SLERP';
-            opt = OptimizerNullSpace(s);
+            s.ub             = 1;
+            s.lb             = 0;
+            s.volumeTarget   = 0.4;
+            s.primal         = 'PROJECTED GRADIENT';
+            opt              = OptimizerInteriorPoint(s);
+            % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
-          %---------------2D MBB CASE-------------%
- 
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-    
-           
-            isDir1   = @(coor) abs(coor(:,1))>=0 & abs(coor(:,1))<=0.005*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
-            isDir2   = @(coor) abs(coor(:,1))>=0.995*xMax & abs(coor(:,1))<=xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<=0.02*yMax;
-            isForce  = @(coor) abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax & abs(coor(:,2))==yMax;
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
 
-            sDir{1}.domain    = @(coor) isDir1(coor); %punt esquerre
-            sDir{1}.direction = [1,2]; %restricció vertical i horitzontal
-            sDir{1}.value     = 0;  %desplaçament =0
-
-            sDir{2}.domain    = @(coor) isDir2(coor);   %punt dreta
-            sDir{2}.direction = [2]; %restricció vertical
-            sDir{2}.value     = 0; %desplaçament =0
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
-
-%---------------2D MBB CASE-------------%
 
             dirichletFun = [];
             for i = 1:numel(sDir)

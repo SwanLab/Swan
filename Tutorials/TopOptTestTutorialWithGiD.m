@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialDensityMMAGiD < handle
+classdef TopOptTestTutorialWithGiD < handle
 
     properties (Access = private)
         filename
@@ -17,7 +17,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityMMAGiD()
+        function obj = TopOptTestTutorialWithGiD()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -39,14 +39,14 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
 
         function init(obj)
             close all;
-            obj.filename = 'ChairAlvaro';
         end
 
         function createMesh(obj)
-            file       = obj.filename;
+            file = 'test2d_triangle';
+            obj.filename = file;
             a.fileName = file;
-            s          = FemDataContainer(a);
-            obj.mesh   = s.mesh;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
         end
 
         function createDesignVariable(obj)
@@ -57,7 +57,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
-            s.plotting = false;
+            s.plotting = true;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -84,7 +84,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '3D';
+            s.dim            = '2D';
             s.matA = matA;
             s.matB = matB;
 
@@ -99,7 +99,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '3D';
+            s.dim                  = '2D';
             m = Material.create(s);
         end
 
@@ -107,7 +107,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '3D';
+            s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -135,7 +135,7 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.4;                       %VOLUM FINAL
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -174,21 +174,22 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 5;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
-        function bc = createBoundaryConditions(obj)
-            sDir = obj.computeConstrainedNodes();
-            sPL  = obj.computeExternalForces();
- 
+        function newbcGiD = createBoundaryConditions(obj)
+            femReader = FemInputReader_GiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -205,43 +206,29 @@ classdef TopOptTestTutorialDensityMMAGiD < handle
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);
+            newbcGiD = BoundaryConditions(s);
         end
 
-        function sDir = computeConstrainedNodes(obj)
-            t      = 0.2;
-            xMax   = max(obj.mesh.coord(:,1));
-            yMax   = max(obj.mesh.coord(:,2));
-            isDirx = @(coor) coor(:,1)<=t*xMax | coor(:,1)>=(1-t)*xMax;
-            isDiry = @(coor) coor(:,2)<=t*yMax | coor(:,2)>=(1-t)*yMax;
-            isDir  = @(coor) coor(:,3)==0 & isDirx(coor) & isDiry(coor);
+    end
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
         end
 
-        function sPL = computeExternalForces(obj)
-            xMax = max(obj.mesh.coord(:,1));
-            zMax = max(obj.mesh.coord(:,3));
-            zHS  = 0.5*zMax;
-            xVS  = xMax-8;
-
-            % Horizontal surface
-            fHS      = 3;
-            isForceH = @(coor) coor(:,3)==zHS & coor(:,1)<=xVS;
-
-            % Vertical surface
-            fVS      = 1;
-            isForceV = @(coor) coor(:,1)==xVS & coor(:,3)>=zHS;
-
-            sPL{1}.domain    = @(coor) isForceH(coor);
-            sPL{1}.direction = 3;
-            sPL{1}.value     = -fHS;
-
-            sPL{2}.domain    = @(coor) isForceV(coor);
-            sPL{2}.direction = 1;
-            sPL{2}.value     = fVS;
-        end
     end
 end
