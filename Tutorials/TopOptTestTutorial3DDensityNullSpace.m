@@ -134,7 +134,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditionsCube(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -216,7 +216,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             obj.optimizer = opt;
         end
 
-        function bc = createBoundaryConditions(obj)
+        function bc = createBoundaryConditionsCube(obj)
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
@@ -250,6 +250,49 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             sPL{5}.domain    = @(coor) isForceZd(coor);
             sPL{5}.direction = 3; % direccio x +
             sPL{5}.value     = 1; % sentit -
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
+        end
+
+
+        function bc = createBoundaryConditionsCylinder(obj)
+            xMax = max(obj.mesh.coord(:,1));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax = max(obj.mesh.coord(:,3));
+            isDir   = @(coor)  sqrt((abs(coor(:,1))-0.5).^2+(abs(coor(:,2))-0.5).^2)>=0.148; % 0.148 ??
+%             isForceXu = @(coor)  abs(coor(:,1))==xMax;
+%             isForceYu = @(coor)  abs(coor(:,2))==yMax;
+%             isForceYd = @(coor)  abs(coor(:,2))==0;
+%             isForceZu = @(coor)  abs(coor(:,3))==zMax;
+%             isForceZd = @(coor)  abs(coor(:,3))==0;
+% 
+%             sDir{1}.domain    = @(coor) isDir(coor);
+%             sDir{1}.direction = [1,2,3];
+%             sDir{1}.value     = 0;
+% 
+%             sPL{1}.domain    = 
+%             sPL{1}.direction = 
+%             sPL{1}.value     = 
+% 
+%             sPL{2}.domain    = 
+%             sPL{2}.direction = 
+%             sPL{2}.value     = 
 
             dirichletFun = [];
             for i = 1:numel(sDir)
