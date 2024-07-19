@@ -176,7 +176,8 @@ classdef HyperelasticProblem < handle
             obj.BCApplier = bc;
         end
 
-        function [incU,incR] = solveProblem(obj, lhs, rhs,uOld)
+        
+        function [incU,incR] = solveProblemOld(obj, lhs, rhs,uOld)
             obj.createBCApplier();
             a.type = 'DIRECT';
             solv = Solver.create(a);

@@ -1,4 +1,4 @@
-classdef NeohookeanFunctional < handle
+classdef LinearElasticityFunctional < handle
     
     properties (Access = public)
         
@@ -8,6 +8,7 @@ classdef NeohookeanFunctional < handle
         mesh
         lambda
         mu
+        material
     end
     
     properties (Access = private)
@@ -16,7 +17,7 @@ classdef NeohookeanFunctional < handle
     
     methods (Access = public)
         
-        function obj = NeohookeanFunctional(cParams)
+        function obj = LinearElasticityFunctional (cParams)
             obj.init(cParams)
 %             obj.mu = 10 / (2*(1 + 0.3));
 %             obj.lambda = (10*0.3) / ((1 + 0.3) * (1 - 2*0.3));
@@ -43,115 +44,29 @@ classdef NeohookeanFunctional < handle
         end
         
 
-        function Fint = computeGradient(obj, uFun)
-            nDimf = uFun.ndimf;
-            test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            quad = Quadrature.create(obj.mesh,3);
+        function Ju = computeGradient(obj, uFun)
+%             quad = Quadrature.create(obj.mesh, 2);
+%             xV = quad.posgp;
+%             C = obj.material.obtainTensor();
+            sigma = DDP(obj.material,Voigt(SymGrad(uFun)));
+            test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
 
-            xG = quad.posgp;
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-            dNdxTest  = test.evaluateCartesianDerivatives(xG);
-
-            nNode = size(dNdxTest,2);
-            nGaus = size(dNdxTest,3);
-            nElem = size(dNdxTest,4);
-            nDof = nDimf*nNode;
-
-            piola = obj.computeFirstPiola(uFun,xG);
-            dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode, nDimf, 1);
-            dofToNode = dofToNode(:);
-
-            fint = zeros(nDof,1,nGaus,nElem);
-            % GradDeltaV is not always compatible (see BCs), but we dont
-            % worry about it since we reduce the matrix later on    
-            for iDof = 1:nDof
-                iNode = dofToNode(iDof);
-                iDim  = dofToDim(iDof);
-                deltav = zeros(nNode,nDimf, nGaus, nElem);
-                deltav(iNode,iDim,:,:) = 1;
-                GradDeltaV = pagemtimes(dNdxTest,deltav);
-                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
-            end
-            fint = fint.*dV;
-            fint = squeeze(sum(fint,3));
-            Fint = obj.assembleIntegrand(fint,test);
+            s.mesh = obj.mesh;
+            s.quadratureOrder = 1;
+            s.type = 'ShapeSymmetricDerivative';
+            RHS = RHSintegrator.create(s);
+            Ju = RHS.compute(sigma,test);
         end
 
-        function f = assembleIntegrand(obj, rhsElem, test)
-            integrand = pagetranspose(rhsElem);
-            connec = test.getConnec();
-            nDofs = max(max(connec));
-            nDofElem  = size(connec,2);
-            f = zeros(nDofs,1);
-            for idof = 1:nDofElem
-                int = integrand(:,idof);
-                con = connec(:,idof);
-                f = f + accumarray(con,int,[nDofs,1],@sum,0);
-            end
-        end
-
-        function hess = computeHessian(obj, uFun)
-            % This is the LINEALIZED hessian (Holzapfel, 401)
-            % See  Holzapfel, 396
-            nDimf = uFun.ndimf;
-            trial = uFun;
-            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
-            quad = Quadrature.create(obj.mesh,2);
-
-            xG = quad.posgp;
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-
-            [F,~] = obj.computeDeformationGradient(uFun, xG);
-            Ft = permute(F,[2 1 3 4]);
-            Aneo = obj.computeTangentConstitutive(uFun,xG);
-            dNdxTest  = test.evaluateCartesianDerivatives(xG);
-            dNdxTrial = trial.evaluateCartesianDerivatives(xG);
-            nNode = size(dNdxTrial,2);
-            nGaus = size(dNdxTrial,3);
-            nElem = size(dNdxTrial,4);
-            nDof = nDimf*nNode;
-            
-            dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode, nDimf, 1);
-            dofToNode = dofToNode(:);
-
-            K = zeros(nDof,nDof,nGaus,nElem);
-            for iDof = 1:nDof % test dof
-                iNode = dofToNode(iDof);
-                iDim  = dofToDim(iDof);
-                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-%                 GradDeltaV = pagemtimes(F,GradDeltaV);
-                res = zeros(nDimf,nDimf,nGaus,nElem);
-                for a = 1:nDimf
-                    for b = 1:nDimf
-                        C = squeezeParticular(Aneo(:,:,a,b,:,:),[3 4]);
-                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
-                    end
-                end
-
-                for jDof = 1:nDof % trial dof
-                    jNode = dofToNode(jDof);
-                    jDim  = dofToDim(jDof);
-
-                    GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
-                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
-%                     GradDeltaU = pagemtimes(GradDeltaU,Ft);
-
-%                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
-
-                   Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
-                    K(iDof,jDof,:,:) = Ktan;
-                end
-            end
-            K = K.*dV;
-            K = squeeze(sum(K,3));
-
-            % Assembly
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            hess = assembler.assemble(K, test, trial);
+        function Huu = computeHessian(obj, uFun) 
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.material = obj.material;
+            s.quadratureOrder = 2;
+            s.test     = LagrangianFunction.create(obj.mesh,uFun.ndimf, 'P1');
+            s.trial    = uFun;
+            LHS = LHSintegrator.create(s);
+            Huu = LHS.compute();
         end
 
 
@@ -160,9 +75,10 @@ classdef NeohookeanFunctional < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.lambda = cParams.material.lambda;
-            obj.mu     = cParams.material.mu;
+            obj.lambda = cParams.lambda;
+            obj.mu     = cParams.mu;
             obj.mesh   = cParams.mesh;
+            obj.material = cParams.material;
         end
 
         function piola = computeFirstPiola(obj,uFun,xG)
