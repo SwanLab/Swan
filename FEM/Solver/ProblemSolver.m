@@ -21,10 +21,10 @@ classdef ProblemSolver < handle
             obj.init(cParams);
         end
 
-        function [u,L] = solve(obj,stiffness,forces)
-            [LHS, RHS] = obj.computeMatrices(stiffness,forces);
+        function [u,L] = solve(obj,cParams)
+            [LHS, RHS] = obj.computeMatrices(cParams);
             sol        = obj.solver.solve(LHS, RHS);
-            [u, L]     = obj.cleanupSolution(sol,stiffness);
+            [u, L]     = obj.cleanupSolution(sol,cParams.stiffness);
         end
         
     end
@@ -39,9 +39,9 @@ classdef ProblemSolver < handle
             obj.solver             = cParams.solver;
         end
 
-        function [LHS, RHS] = computeMatrices(obj,stiffness,forces)
-            LHS = obj.assembleLHS(stiffness);
-            RHS = obj.assembleRHS(stiffness,forces);
+        function [LHS, RHS] = computeMatrices(obj,cParams)
+            LHS = obj.assembleLHS(cParams);
+            RHS = obj.assembleRHS(cParams);
         end
 
         function [u, L] = cleanupSolution(obj,sol,stiffness)
@@ -80,7 +80,8 @@ classdef ProblemSolver < handle
             % maybe return a p1function or whatever
         end
 
-        function LHS = assembleLHS(obj,stiffness)
+        function LHS = assembleLHS(obj,cParams)
+            stiffness = cParams.stiffness;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             hasPeriodic = ~isequal(bcs.periodic_leader, []);
@@ -97,8 +98,8 @@ classdef ProblemSolver < handle
                         LHS = [Km C; C' Z];
                     else
                         % Micro
-                        iV = bcs.iVoigt;
-                        nV = bcs.nVoigt;
+                        iV = cParams.iVoigt;
+                        nV = cParams.nVoigt;
                         % CtDir = bcapp.computeLinearConditionsMatrix();
                         % CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
                         Ct = bcapp.computeSingleDirichletPeriodicCondition(iV, nV);
@@ -137,7 +138,9 @@ classdef ProblemSolver < handle
 
         end
 
-        function RHS = assembleRHS(obj,stiffness,forces)
+        function RHS = assembleRHS(obj,cParams)
+            stiffness = cParams.stiffness;
+            forces    = cParams.forces;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             hasPeriodic = ~isequal(bcs.periodic_leader, []);
@@ -151,8 +154,8 @@ classdef ProblemSolver < handle
                         Ct = repmat(lambda, [1 nCases]);
                         RHS = [forces; Ct];
                     else
-                        iV = obj.boundaryConditions.iVoigt;
-                        nV = obj.boundaryConditions.nVoigt;
+                        iV = cParams.iVoigt;
+                        nV = cParams.nVoigt;
                         RHS = bcapp.computeMicroDisplMonolithicRHS(iV, nV);
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')

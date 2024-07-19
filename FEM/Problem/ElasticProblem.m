@@ -143,12 +143,12 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacement(obj)
-            stiff = obj.stiffness;
-            forc  = obj.forces;
-            [u,~] = obj.problemSolver.solve(stiff,forc);
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
+            s.stiffness = obj.stiffness;
+            s.forces    = obj.forces;
+            [u,~]       = obj.problemSolver.solve(s);
+            z.mesh      = obj.mesh;
+            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            z.order     = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
