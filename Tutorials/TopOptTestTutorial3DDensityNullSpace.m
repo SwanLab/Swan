@@ -41,7 +41,28 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(1,1,1,20,20,20);
+
+            % Per cub:
+            %obj.mesh = HexaMesh(1,1,1,20,20,20);
+
+            % Cas cilindre linux:
+%             m2D = QuadMesh(1,1,20,20);
+%             s.type        = 'Circle';
+%             s.radius      = 0.15;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
+%             gFun          = GeometricalFunction(s);
+%             ls            = gFun.computeLevelSetFunction(m2D);
+%             sUm.backgroundMesh = m2D;
+%             sUm.boundaryMesh   = m2D.createBoundaryMesh();
+%             uMesh = UnfittedMesh(sUm);
+%             uMesh.compute(ls.fValues);
+%             IM = uMesh.createInnerMesh();
+%             meshCylinder = IM.provideExtrudedMesh(1);
+
+            % Cas cilindre windows:
+            load('meshCylinder.mat','meshCylinder');
+            obj.mesh = meshCylinder;
         end
 
         function createDesignVariable(obj)
@@ -58,20 +79,21 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createFilter(obj)
-%             s.filterType = 'LUMP';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             obj.filter = f;
+            s.filterType = 'P1';
+            s.mesh  = obj.mesh;
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P0');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
 
-            s.filterType   = 'PDE';
-            s.mesh         = obj.mesh;
-            s.boundaryType = 'Robin';
-            s.metric       = 'Isotropy';
-            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter     = Filter.create(s);
-            epsilon        = 1*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
-            obj.filter.updateEpsilon(epsilon);
+%             s.filterType   = 'PDE';
+%             s.mesh         = obj.mesh;
+%             s.boundaryType = 'Robin';
+%             s.metric       = 'Isotropy';
+%             s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+%             obj.filter     = Filter.create(s);
+%             epsilon        = 1*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
+%             obj.filter.updateEpsilon(epsilon);
         end
 
         function createMaterialInterpolator(obj)
@@ -199,15 +221,35 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
-            isForce = @(coor)  abs(coor(:,1))==xMax;
+            isForceXu = @(coor)  abs(coor(:,1))==xMax;
+            isForceYu = @(coor)  abs(coor(:,2))==yMax;
+            isForceYd = @(coor)  abs(coor(:,2))==0;
+            isForceZu = @(coor)  abs(coor(:,3))==zMax;
+            isForceZd = @(coor)  abs(coor(:,3))==0;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.domain    = @(coor) isForceXu(coor);
             sPL{1}.direction = 1; % direccio x +
             sPL{1}.value     = -1; % sentit -
+
+            sPL{2}.domain    = @(coor) isForceYu(coor);
+            sPL{2}.direction = 2; % direccio x +
+            sPL{2}.value     = -1; % sentit -
+
+            sPL{3}.domain    = @(coor) isForceYd(coor);
+            sPL{3}.direction = 2; % direccio x +
+            sPL{3}.value     = 1; % sentit -
+
+            sPL{4}.domain    = @(coor) isForceZu(coor);
+            sPL{4}.direction = 3; % direccio x +
+            sPL{4}.value     = -1; % sentit -
+
+            sPL{5}.domain    = @(coor) isForceZd(coor);
+            sPL{5}.direction = 3; % direccio x +
+            sPL{5}.value     = 1; % sentit -
 
             dirichletFun = [];
             for i = 1:numel(sDir)
