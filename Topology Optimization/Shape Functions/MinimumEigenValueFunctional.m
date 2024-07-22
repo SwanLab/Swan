@@ -51,9 +51,12 @@ classdef MinimumEigenValueFunctional < handle
         end
         
         function computeDensity(obj)
+          %  dens.fValues = obj.designVariable.fun.fValues;
             dens  = obj.designVariable.fun.project('P0');            
+            
             dens.fValues = 1 - dens.fValues; 
-            dens.fValues = round(dens.fValues);   
+            dens.fValues = round(dens.fValues);  
+           % dens.fValues = max(0,min(1,dens.fValues));
             obj.density = dens;
         end
         

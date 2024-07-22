@@ -49,7 +49,7 @@ classdef ConnectivityComputer < handle
         end
 
         function createMesh(obj)
-            x1 = linspace(0,2,100);
+            x1 = linspace(0,1,100);
             x2 = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -60,8 +60,8 @@ classdef ConnectivityComputer < handle
         end        
 
        function createLevelSet(obj)
-            s.type        = 'Circle';
-            s.radius      = 0.3;
+            s.type        = 'CircleInclusion';
+            s.radius      = 0.4;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
@@ -72,7 +72,7 @@ classdef ConnectivityComputer < handle
         function createCharacteristicFunction(obj)
             s.backgroundMesh = obj.mesh;
             s.boundaryMesh   = obj.mesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(s);
+            uMesh            = UnfittedMesh(s);
             uMesh.compute(obj.levelSet.fValues);
 
             sC.uMesh = uMesh;
@@ -81,6 +81,8 @@ classdef ConnectivityComputer < handle
 
         function createFilter(obj)
             s.filterType = 'LUMP';
+          %  s.filterType = 'P1';
+            s.test = P1Function.create(obj.mesh,1);
             s.mesh  = obj.mesh;
             s.trial = P1Function.create(obj.mesh,1);
             f = Filter.create(s);
@@ -88,7 +90,7 @@ classdef ConnectivityComputer < handle
         end
  
         function createDesignVariable(obj)
-            sD.fun  = obj.filter.compute(obj.characteristicFunction,'QUADRATIC');
+            sD.fun  = obj.filter.compute(obj.characteristicFunction,'CUBIC');
             sD.mesh = obj.mesh;                        
             sD.type = 'Density';
             dens    = DesignVariable.create(sD);   

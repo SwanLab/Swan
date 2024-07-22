@@ -123,9 +123,10 @@ classdef StiffnessEigenModesComputer < handle
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M)
-            [eigF,eigV] = eigs(K,M,2,'smallestabs');
+
+            [eigF,eigV] = eigs(K,M,4,'smallestabs');
             eigV1 = eigV(1);
-            eigF1 = eigF(1);
+            eigF1 = eigF(:,1);
             
 
         %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');
