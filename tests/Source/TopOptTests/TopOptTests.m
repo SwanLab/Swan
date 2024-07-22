@@ -141,6 +141,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 case 'MICRO'
                     s.solverMode = 'FLUC';
             end
+            s.solverCase         = 'DIRECT';
             s.type               = 'ELASTIC';
             fem                  = PhysicalProblem.create(s);
         end

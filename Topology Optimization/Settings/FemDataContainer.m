@@ -16,6 +16,7 @@ classdef FemDataContainer < AbstractSettings
         interpolationType
         solverType = 'REDUCED';
         solverMode = 'DISP';
+        solverCase = 'DIRECT';
         newBC
         boundaryConditions
     end

@@ -35,7 +35,12 @@ classdef DirichletCondition < BoundaryCondition
 
         function dofs = getDofs(obj)
             ndimf = obj.fun.ndimf;
-            nodes = find(obj.domain(obj.mesh.coord));
+            nodesLog = obj.domain(obj.mesh.coord);
+            if islogical(nodesLog)
+                nodes = find(nodesLog);
+            else
+                nodes = nodesLog;
+            end            
             dofs = ndimf*(nodes - 1) + obj.direction;
             dofs = dofs(:);
         end
