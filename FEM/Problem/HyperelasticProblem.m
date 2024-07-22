@@ -46,7 +46,7 @@ classdef HyperelasticProblem < handle
             % Apply boundary conditions
             bc = obj.boundaryConditions;
             nDofs = obj.uFun.nDofs;
-            free = setdiff(1:nDofs,bc.dirichlet_dofs)
+            freeDofs = setdiff(1:nDofs,bc.dirichlet_dofs);
             u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
 
@@ -60,6 +60,7 @@ classdef HyperelasticProblem < handle
             fext_grafic = [];
             nrg_grafic = [];
             energies = [];
+            alpha = 1e-3;
             react = zeros(obj.uFun.nDofs,1);
             for iStep = 1:nsteps
                 disp('------')
@@ -71,12 +72,14 @@ classdef HyperelasticProblem < handle
                 u_k = reshape(obj.uFun.fValues',[obj.uFun.nDofs,1]);
                 Fext = obj.computeExternalForces(loadPercent);
                 Fint = obj.computeInternalForces();
-                hess = neo.computeHessian(obj.uFun);
+                % hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext - react;
+
+                u_k = -alpha*R(freeDofs);
                 nrg0 = neo.compute(obj.uFun);
                 old_nrg = nrg0;
 
-                residual = norm(R(free));
+                residual = norm(R(freeDofs));
                 resi = 0;
                 i = 0;
                 prenorm = 100;
@@ -84,9 +87,9 @@ classdef HyperelasticProblem < handle
                 while hasNotConverged %residual > 10e-8
 
                     % Update U
-                    [deltaUk,~] = obj.solveProblem(hess,-R,u_k);
+                    % [deltaUk,~] = obj.solveProblem(hess,-R,u_k);
                     
-                    u_next = u_k + deltaUk;
+                    u_next = u_k + alpha*deltaUk;
 %                     react = react + deltaReactk;
                     obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
                     obj.applyDirichletToUFun();
@@ -304,7 +307,7 @@ classdef HyperelasticProblem < handle
         end
 
         function intfor = computeInternalForces(obj)
-            intfor = obj.neohookeanFun.computeInternalForces(obj.uFun,obj.boundaryConditions);
+            intfor = obj.neohookeanFun.computeGradient(obj.uFun);
         end
 
         function lambdas = computeStretches(obj)
