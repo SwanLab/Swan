@@ -34,11 +34,11 @@ classdef DualUpdater_AugmentedLagrangian < handle
         end
 
         function compute(obj,i)
-            l   = obj.dualVariable.value(i);
+            l   = obj.dualVariable.fun.fValues(i);
             rho = obj.penalty;
             c   = obj.constraint.value(i);
             l   = l + rho.*c;
-            obj.dualVariable.value(i) = l;
+            obj.dualVariable.fun.fValues(i) = l;
         end
 
         function updateDual(obj)

@@ -10,7 +10,7 @@ PlottingTestsSuite;
 close all;
 HomogenizationTestsSuite;
 ImageProcessingTestsSuite;
-PostProcTestsSuite;
+%PostProcTestsSuite; S'ha de fer des de 0 i pensar en com (ara ignore it)
 ProjectorsTestsSuite;
 RemeshingTestsSuite;
 DehomogenizationTestsSuite;

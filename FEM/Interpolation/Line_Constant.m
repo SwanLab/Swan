@@ -6,10 +6,24 @@ classdef Line_Constant < Interpolation
             obj.init(cParams);
             obj.computeParams();
         end
+        
+        function shape = computeShapeFunctions(obj,posgp)
+            ngaus = length(posgp);
+            nelem = size(posgp,3);
+            N = ones(obj.nnode,ngaus, nelem);
+            shape = N;
+        end
+        
+        function deriv = computeShapeDerivatives(obj,posgp)
+            ngaus = length(posgp);
+            nelem = size(posgp,3);
+            dN = zeros(obj.ndime,ngaus, nelem);
+            deriv = dN;
+        end
 
     end
 
-    methods (Access = protected)
+    methods (Access = private)
 
         function computeParams(obj)
             obj.type = 'LINE';
@@ -17,21 +31,7 @@ classdef Line_Constant < Interpolation
             obj.nnode = 1;
             obj.pos_nodes = [0 0];
         end
-
-        function shape = evaluateShapeFunctions(obj,posgp)
-            ngaus = length(posgp);
-            nelem = size(posgp,3);
-            N = ones(obj.nnode,ngaus, nelem);
-            shape = N;
-        end
         
-        function deriv = evaluateShapeDerivatives(obj,posgp)
-            ngaus = length(posgp);
-            nelem = size(posgp,3);
-            dN = zeros(obj.ndime,ngaus, nelem);
-            deriv = dN;
-        end
-
     end
     
 end

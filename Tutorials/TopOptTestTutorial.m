@@ -114,6 +114,7 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -178,11 +179,13 @@ classdef TopOptTestTutorial < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
-            opt = OptimizerMMA(s);
+            s.primal         = 'PROJECTED GRADIENT';
+            opt              = OptimizerInteriorPoint(s);
+            % opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
