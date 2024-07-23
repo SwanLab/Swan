@@ -34,7 +34,7 @@ classdef NonLinearFilter < handle
             obj.solveSecondDirection();
             iter = 0;
             tolerance = 1;
-            while tolerance <= 1e-5 || iter>100
+            while tolerance >= 1e-5 || iter <= 100
                 oldRho = obj.trial.fValues;
                 obj.createRHSFirstDirection(fun,quadOrder);
                 obj.createKqFirstDirection(fun,quadOrder);
