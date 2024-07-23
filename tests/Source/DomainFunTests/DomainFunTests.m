@@ -8,9 +8,13 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
         function test2D(testCase, cases)
             filename = ['testDomainFun',cases,'2D'];
             m        = testCase.obtain2DTestMesh();
-            C        = testCase.computeMaterial(m);
+            E        = 1;
+            nu       = 1/3;
+            C        = testCase.computeMaterial(m,E,nu);
             bc       = testCase.createBC(m,'2D');
             fem      = testCase.solveElasticProblem(m,C,'2D',bc);
+            kappa    = C.computeKappaFromYoungAndPoisson(E,nu,2);
+            kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -22,8 +26,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = SymGrad(fem.uFun);
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
-                case 'VolumetricEnergy'
-                case 'DeviatoricEnergy'
+                case 'VolumetricStrain'
+                    domainFun = VolumetricStrain(fem.uFun,kappaFun);
+                case 'DeviatoricStrain'
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -37,9 +42,13 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
         function test3D(testCase, cases)
             filename = ['testDomainFun',cases,'3D'];
             m        = testCase.obtain3DTestMesh();
-            C        = testCase.computeMaterial(m);
+            E        = 1;
+            nu       = 1/3;
+            C        = testCase.computeMaterial(m,E,nu);
             bc       = testCase.createBC(m,'3D');
             fem      = testCase.solveElasticProblem(m,C,'3D',bc);
+            kappa    = C.computeKappaFromYoungAndPoisson(E,nu,3);
+            kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -51,8 +60,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = SymGrad(fem.uFun);
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
-                case 'VolumetricEnergy'
-                case 'DeviatoricEnergy'
+                case 'VolumetricStrain'
+                    domainFun = VolumetricStrain(fem.uFun,kappaFun);
+                case 'DeviatoricStrain'
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -73,9 +83,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             m = HexaMesh(2,1,1,10,5,5);
         end
 
-        function mat = computeMaterial(m)
-            E1  = 1;
-            nu1 = 1/3;
+        function mat = computeMaterial(m,E1,nu1)
             E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,m);
             nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,m);
             s.type    = 'ISOTROPIC';
