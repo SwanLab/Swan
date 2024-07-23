@@ -103,7 +103,7 @@ classdef StiffnessEigenModesComputer < handle
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-            K = obj.boundaryConditions.fullToReducedMatrix(K);
+            K = obj.fullToReduced(K);
         end
 
         function f = createCompositeFunction(obj,fun)
@@ -113,16 +113,34 @@ classdef StiffnessEigenModesComputer < handle
             f = CompositionFunction(s);
         end
 
-        function M = computeMassMatrixWithFunction(obj)
+        function K = fullToReduced(obj,K)
+            sS.type      = 'DIRECT';
+            solver       = Solver.create(sS);
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier      = obj.createBCApplier();
+            ps    = ProblemSolver(s);  
+            K = ps.full2Reduced(K);
+        end
+
+        function bc = createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);            
+        end
+
+        function M = computeMassMatrixWithFunction(obj,fun)
             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.function = fun;
+            s.function = obj.createCompositeFunction(fun);
             s.quadratureOrder = 2;
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();   
-            M = obj.boundaryConditions.fullToReducedMatrix(M);
+            M = obj.fullToReduced(M);
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M)

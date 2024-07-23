@@ -92,6 +92,7 @@ classdef ConnectivityComputer < handle
             s.type = 'Density';
             s.plotting = true;
             dens    = DesignVariable.create(s);
+            dens.plot();
             obj.designVariable = dens;
         end
 
