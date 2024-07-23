@@ -5,6 +5,6 @@ end
 
 function fVR = evaluate(u,kappa, xV)
     divu = Divergence(u);
-    dbS  = DDP(kappa,DDP(divu,divu));
-    fVR  = 0.5*dbS.evaluate(xV);
+    dbE  = DDP(kappa,DDP(divu,divu));
+    fVR  = 0.5*dbE.evaluate(xV);
 end

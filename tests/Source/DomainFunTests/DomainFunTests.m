@@ -15,6 +15,8 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             fem      = testCase.solveElasticProblem(m,C,'2D',bc);
             kappa    = C.computeKappaFromYoungAndPoisson(E,nu,2);
             kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
+            mu       = C.computeMuFromYoungAndPoisson(E,nu);
+            muFun    = AnalyticalFunction.create(@(x) mu*ones(size(x(1,:,:))),1,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -29,6 +31,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                 case 'VolumetricElas'
                     domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
                 case 'DeviatoricElas'
+                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,muFun);
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -49,6 +52,8 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             fem      = testCase.solveElasticProblem(m,C,'3D',bc);
             kappa    = C.computeKappaFromYoungAndPoisson(E,nu,3);
             kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
+            mu       = C.computeMuFromYoungAndPoisson(E,nu);
+            muFun    = AnalyticalFunction.create(@(x) mu*ones(size(x(1,:,:))),1,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -63,6 +68,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                 case 'VolumetricElas'
                     domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
                 case 'DeviatoricElas'
+                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,muFun);
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
