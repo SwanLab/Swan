@@ -48,54 +48,57 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function createBoundaryConditions(obj)
-            bMesh  = obj.mesh.createBoundaryMesh();
-            allNodes = [];
-            for i = 1:4
-                nodes = bMesh{i}.globalConnec;
-                allNodes = [nodes;allNodes];
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDown  = @(coor) abs(coor(:,2))==yMin;
+            isUp    = @(coor) abs(coor(:,2))==yMax;
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,2))==xMax;
+
+            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor);
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1];
+            sDir{1}.value     = 0;
+
+             dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
             end
-            uNodes = unique(allNodes(:));
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
 
-            bc{1}.ndimf = 1;
-            bc{1}.ndofs = obj.mesh.nnodes;
-            bc{1}.pointload = [];
-            bc{1}.dirichlet(:,1) = uNodes;
-            bc{1}.dirichlet(:,2) = 1;
-            bc{1}.dirichlet(:,3) = 0;
-
-            s.scale   = 'MACRO';
-            s.ndofs  = obj.mesh.nnodes;
-            s.ndimf  = bc{1}.ndimf;
-            s.bc     = bc;
-            bC = BoundaryConditions(s);
-            obj.boundaryConditions = bC;
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
+            obj.boundaryConditions = bc;
         end        
         
         function createConductivityInterpolator(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPThermal';
             s.f0   = 1e-5;
             s.f1   = 1;
             s.pExp = 8;
-            a = MaterialInterpolation.create(s);
+            a = MaterialInterpolator.create(s);
             obj.conductivity = a;            
         end            
 
         function createMassInterpolator(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPThermal';
             s.f0   = 1e-5;
             s.f1   = 1;
             s.pExp = 1;
-            a = MaterialInterpolation.create(s);
+            a = MaterialInterpolator.create(s);
             obj.massInterpolator = a;            
         end            
 
         function K = createStiffnessMatrixWithFunction(obj,fun)
-            s.test  = P1Function.create(obj.mesh,1); 
-            s.trial = P1Function.create(obj.mesh,1); 
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.quadratureOrder = 'QUADRATIC';
+            s.quadratureOrder = 2;
             s.function        = obj.createCompositeFunction(fun);
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
@@ -110,12 +113,12 @@ classdef StiffnessEigenModesComputer < handle
             f = CompositionFunction(s);
         end
 
-        function M = computeMassMatrixWithFunction(obj,fun)
-            s.test  = P1Function.create(obj.mesh,1); 
-            s.trial = P1Function.create(obj.mesh,1); 
+        function M = computeMassMatrixWithFunction(obj)
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.function = obj.density;
-            s.quadratureOrder = 'QUADRATIC';
+            s.function = fun;
+            s.quadratureOrder = 2;
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();   

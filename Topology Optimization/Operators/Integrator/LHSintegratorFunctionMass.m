@@ -92,8 +92,7 @@ classdef LHSintegratorFunctionMass < handle
         end
         
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
+            quad = Quadrature.create(obj.mesh, obj.quadratureOrder);                        
             obj.quadrature = quad;
         end
 

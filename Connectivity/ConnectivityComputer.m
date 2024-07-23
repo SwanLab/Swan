@@ -36,7 +36,7 @@ classdef ConnectivityComputer < handle
             % colorbar
             % figure
 
-            obj.computeComplianceFunctional();
+            obj.createCompliance();
             obj.computeEigenValueFunctional()
         end
 
@@ -45,7 +45,7 @@ classdef ConnectivityComputer < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all
         end
 
         function createMesh(obj)
@@ -59,7 +59,7 @@ classdef ConnectivityComputer < handle
             obj.mesh = m;
         end
 
-       function createLevelSet(obj)
+        function createLevelSet(obj)
             s.type        = 'CircleInclusion';
             s.radius      = 0.4;
             s.xCoorCenter = 0.5;
@@ -69,135 +69,123 @@ classdef ConnectivityComputer < handle
             obj.levelSet = phi;
         end
 
+        function createFilter(obj)
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
+        end        
+
         function createCharacteristicFunction(obj)
             s.backgroundMesh = obj.mesh;
             s.boundaryMesh   = obj.mesh.createBoundaryMesh;
             uMesh            = UnfittedMesh(s);
             uMesh.compute(obj.levelSet.fValues);
 
-            sC.uMesh = uMesh;
-            obj.characteristicFunction  = CharacteristicFunction.create(sC);
-        end
-
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-          %  s.filterType = 'P1';
-            s.test = P1Function.create(obj.mesh,1);
-            s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
-            f = Filter.create(s);
-            obj.filter = f;
+            obj.characteristicFunction  = CharacteristicFunction.create(uMesh);
         end
 
         function createDesignVariable(obj)
-            sD.fun  = obj.filter.compute(obj.characteristicFunction,'CUBIC');
-            sD.mesh = obj.mesh;                        
-            sD.type = 'Density';
-            dens    = DesignVariable.create(sD);
+            s.fun  = obj.filter.compute(obj.characteristicFunction,3);
+            s.mesh = obj.mesh;
+            s.type = 'Density';
+            s.plotting = true;
+            dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
 
-        function computeComplianceFunctional(obj)
-            obj.materialInterpolation = obj.computeMaterialInterpolation();
+        function createCompliance(obj)
+            s.mesh                       = obj.mesh;
+            s.filter                      = obj.filter;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+            s.material                    = obj.createMaterial();
+            c = ComplianceFunctional(s);
+            c.computeFunctionAndGradient(obj.designVariable);
+        end
+
+        function c = createComplianceFromConstiutive(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.createElasticProblem();
+            c = ComplianceFromConstiutiveTensor(s);
+        end
+
+        function elas = createElasticProblem(obj)
             s.mesh = obj.mesh;
-            s.type    = 'ELASTIC';
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '2D';
-            s.bc = obj.createBoundaryConditionsForElasticity();
+            s.boundaryConditions = obj.createBoundaryConditions();
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';            
             s.interpolationType = 'LINEAR';
-            fem = FEM.create(s);
-            fem.solve();
-
-
-
-
-            sH.type = 'ByInterpolation';
-            sH.material = obj.createMaterial();
-            sH.interpolationSettings.interpolation = obj.materialInterpolation;
-
-
-            homogVarComp = HomogenizedVarComputer.create(sH);
-
-
-            s.type = 'compliance';
-            s.designVariable = obj.designVariable;
-            s.femSettings.physicalProblem      = fem;
-            s.femSettings.designVariableFilter = obj.filter;
-            s.femSettings.gradientFilter       = obj.filter;
-            s.homogVarComputer = homogVarComp;
-            s.targetParameters = [];
-            sh = ShapeFunctional.create(s);
-
-
-            sh.computeFunctionAndGradient();
+            elas = ElasticProblem(s);
         end
 
+        function m = createMaterial(obj)
+            dens = obj.designVariable.fun;
+          %  f = x.obtainDomainFunction();
+          %  f = f.project('P1');
+            s.type                 = 'DensityBased';
+            s.density              = dens;
+            s.materialInterpolator = obj.createMaterialInterpolation();
+            s.dim                  = '2D';
+            m = Material.create(s);
+        end        
 
-        function matInt = computeMaterialInterpolation(obj)
-            c.typeOfMaterial = 'ISOTROPIC';
-            c.interpolation = 'SIMPALL';
-            c.nElem = obj.mesh.nelem;
-            c.dim = '2D';
-            c.constitutiveProperties.rho_plus = 1;
-            c.constitutiveProperties.rho_minus = 0;
-            c.constitutiveProperties.E_plus = 1;
-            c.constitutiveProperties.E_minus = 1e-3;
-            c.constitutiveProperties.nu_plus = 1/3;
-            c.constitutiveProperties.nu_minus = 1/3;
+        function m = createMaterialInterpolation(obj)
+            E0 = 1e-3;
+            nu0 = 1/3;
+            ndim = obj.mesh.ndim;
+            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-            matInt = MaterialInterpolation.create(c);
+
+            E1 = 1;
+            nu1 = 1/3;
+            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
+            s.matA = matA;
+            s.matB = matB;
+
+            m = MaterialInterpolator.create(s);
         end
 
-        function mat = createMaterial(obj)
-            d = obj.designVariable.fun.project('P0');
-            %  d.fValues = round(d.fValues);
+        function bc = createBoundaryConditions(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
-            dens  = d.fValues;
-            mat  = obj.materialInterpolation.computeMatProp(dens);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.nelem = obj.mesh.nelem;
-            s.mesh  = obj.mesh;
-            s.kappa = mat.kappa;
-            s.mu    = mat.mu;
-            mat = Material.create(s);
-            mat.compute(s);
-        end
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
 
-        function bc = createBoundaryConditionsForElasticity(obj)
-            bM = obj.mesh.createBoundaryMesh();
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
 
-            dirichletBc.boundaryId=1;
-            dirichletBc.dof=[1,2];
-            dirichletBc.value=[0,0];
-            newmanBc.boundaryId=2;
-            newmanBc.dof=[2];
-            newmanBc.value=[-1];
-
-            [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
-            bc.dirichlet=dirichlet;
-            bc.pointload=pointload;
-        end
-
-        function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-            dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
-            pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
-        end
-
-        function cond = createBondaryCondition(obj,bM,condition)
-            nbound = length(condition.boundaryId);
-            cond = zeros(1,3);
-            for ibound=1:nbound
-                ncond  = length(condition.dof(nbound,:));
-                nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
-                nbd   = length(nodeId);
-                for icond=1:ncond
-                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-                    cond=[cond;bdcond];
-                end
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
             end
-            cond = cond(2:end,:);
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
         end
 
         function computeEigenValueFunctional(obj)
