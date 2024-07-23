@@ -1,7 +1,7 @@
 classdef DomainFunTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        cases = {'DDP','Grad','Partial','SymGrad','InternalEnergy','VolumetricEnergy','DeviatoricEnergy'}
+        cases = {'DDP','Grad','Partial','SymGrad','VolumetricStrain','DeviatoricStrain'}
     end
 
     methods (Test, TestTags = {'DomainFun'})
@@ -20,7 +20,6 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = Partial(fem.uFun,1);
                 case 'SymGrad'
                     domainFun = SymGrad(fem.uFun);
-                case 'InternalEnergy'
                 case 'VolumetricEnergy'
                 case 'DeviatoricEnergy'
             end
@@ -48,7 +47,6 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = Partial(fem.uFun,1);
                 case 'SymGrad'
                     domainFun = SymGrad(fem.uFun);
-                case 'InternalEnergy'
                 case 'VolumetricEnergy'
                 case 'DeviatoricEnergy'
             end
