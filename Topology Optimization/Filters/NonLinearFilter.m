@@ -14,7 +14,6 @@ classdef NonLinearFilter < handle
         Kq
         RHOi
         RHS2
-        qi
     end
 
     methods (Access = public)
@@ -31,8 +30,24 @@ classdef NonLinearFilter < handle
             obj.createRHSFirstDirection(fun,quadOrder);
             obj.createKqFirstDirection(fun,quadOrder);
             obj.solveFirstDirection();
+            obj.createRhoiSecondDirection(quadOrder);
+            obj.solveSecondDirection();
+            iter = 0;
+            tolerance = 1;
+            while tolerance <= 1e-5 || iter>100
+                oldRho = obj.trial.fValues;
+                obj.createRHSFirstDirection(fun,quadOrder);
+                obj.createKqFirstDirection(fun,quadOrder);
+                obj.solveFirstDirection();
+                obj.creatRhoiSecondDirection(obj,quadOrder);
+                obj.solveSecondDirection();
+                tolerance = obj.trial.fValues - oldRho;
+                iter = iter + 1;
 
-            %xF.fValues  = ;
+            end
+
+
+            xF.fValues  = obj.trial.fValues;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -82,7 +97,7 @@ function createKqFirstDirection(obj,fun, quadOrder)
             obj.Kq = rhs;
         end
 
-        function creatRhoiSecondDirection(obj,quadOrder)
+        function createRhoiSecondDirection(obj,quadOrder)
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
@@ -106,8 +121,8 @@ function createKqFirstDirection(obj,fun, quadOrder)
         function solveSecondDirection(obj)
             LHS = obj.M .* (1/obj.epsilon);
             RHS = obj.RHS2;
-            qsol = LHS \ RHS;
-            obj.qi = qsol;
+            qi = LHS \ RHS;
+            obj.q.fValues = qi;
         end
 
 
