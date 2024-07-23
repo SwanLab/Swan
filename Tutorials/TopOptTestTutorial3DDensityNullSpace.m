@@ -134,7 +134,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditionsCube(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
+            s.boundaryConditions = obj.createBoundaryConditionsCylinder(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -272,27 +272,22 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
 
         function bc = createBoundaryConditionsCylinder(obj)
-            xMax = max(obj.mesh.coord(:,1));
-            yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  sqrt((abs(coor(:,1))-0.5).^2+(abs(coor(:,2))-0.5).^2)>=0.148; % 0.148 ??
-%             isForceXu = @(coor)  abs(coor(:,1))==xMax;
-%             isForceYu = @(coor)  abs(coor(:,2))==yMax;
-%             isForceYd = @(coor)  abs(coor(:,2))==0;
-%             isForceZu = @(coor)  abs(coor(:,3))==zMax;
-%             isForceZd = @(coor)  abs(coor(:,3))==0;
+            isDir     = @(coor)  sqrt((abs(coor(:,1))-0.5).^2+(abs(coor(:,2))-0.5).^2)>=0.148; % 0.148 ??
+            isForceZu = @(coor)  abs(coor(:,3))==zMax;
+            isForceZd = @(coor)  abs(coor(:,3))==0;
 % 
-%             sDir{1}.domain    = @(coor) isDir(coor);
-%             sDir{1}.direction = [1,2,3];
-%             sDir{1}.value     = 0;
-% 
-%             sPL{1}.domain    = 
-%             sPL{1}.direction = 
-%             sPL{1}.value     = 
-% 
-%             sPL{2}.domain    = 
-%             sPL{2}.direction = 
-%             sPL{2}.value     = 
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2,3];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForceZu(coor);
+            sPL{1}.direction = 3;
+            sPL{1}.value     = -1;
+
+            sPL{2}.domain    = @(coor) isForceZd(coor);
+            sPL{2}.direction = 3;
+            sPL{2}.value     = 1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
