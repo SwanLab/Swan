@@ -14,29 +14,50 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
+                case 'Grad'
+                    domainFun = Grad(fem.uFun);
+                case 'Partial'
+                    domainFun = Partial(fem.uFun,1);
+                case 'SymGrad'
+                    domainFun = SymGrad(fem.uFun);
+                case 'InternalEnergy'
+                case 'VolumetricEnergy'
+                case 'DeviatoricEnergy'
             end
-
-
-
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
             xNew = domainFun.evaluate(xV);
             load(filename,'xRef');
-            err      = norm(xNew(:)-xRef(:))/norm(xRef(:));
-            tol      = 1e-6;
+            err  = norm(xNew(:)-xRef(:))/norm(xRef(:));
+            tol  = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-        function testLevelSet3D(testCase, cases)
+        function test3D(testCase, cases)
             filename = ['testDomainFun',cases,'3D'];
             m        = testCase.obtain3DTestMesh();
-            s.type   = cases;
-            g        = GeometricalFunction(s);
-            lsFun    = g.computeLevelSetFunction(m);
-            xNew     = lsFun.fValues;
+            C        = testCase.computeMaterial(m);
+            bc       = testCase.createBC(m,'3D');
+            fem      = testCase.solveElasticProblem(m,C,'3D',bc);
+            switch cases
+                case 'DDP'
+                    domainFun = DDP(C,SymGrad(fem.uFun));
+                case 'Grad'
+                    domainFun = Grad(fem.uFun);
+                case 'Partial'
+                    domainFun = Partial(fem.uFun,1);
+                case 'SymGrad'
+                    domainFun = SymGrad(fem.uFun);
+                case 'InternalEnergy'
+                case 'VolumetricEnergy'
+                case 'DeviatoricEnergy'
+            end
+            quad = Quadrature.create(m, 5);
+            xV   = quad.posgp;
+            xNew = domainFun.evaluate(xV);
             load(filename,'xRef');
-            err      = norm(xNew-xRef)/norm(xRef);
-            tol      = 1e-6;
+            err  = norm(xNew(:)-xRef(:))/norm(xRef(:));
+            tol  = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
     end
