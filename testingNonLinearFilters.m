@@ -44,5 +44,6 @@ end
 function nLFilter = createNonLinearFilter(m)
 s.trial  = LagrangianFunction.create(m,1,'P1');
 s.mesh   = m;
-nLFilter = NonLinearFilter(s);
+s.type   = 'Circle';
+nLFilter = NonLinearFilter.create(s);
 end
