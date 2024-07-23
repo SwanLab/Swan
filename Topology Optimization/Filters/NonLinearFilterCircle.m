@@ -9,7 +9,8 @@ classdef NonLinearFilterCircle < handle
 
     properties (Access = private)
         % Define new properties here
-        M
+        M1
+        M2
         RHS1
         Kq
         RHOi
@@ -20,7 +21,8 @@ classdef NonLinearFilterCircle < handle
         function obj = NonLinearFilterCircle(cParams)
             obj.init(cParams);
             % Construct non-linear stuff...
-            obj.createMassMatrix();
+            obj.createMassMatrixFirstDirection();
+            obj.createMassMatrixSecondDirection();
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -61,19 +63,29 @@ classdef NonLinearFilterCircle < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order); % rho_eps
-            obj.q       = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
+            obj.q       = LagrangianFunction.create(cParams.mesh, 2, cParams.trial.order); % 2 = geom dim
             obj.mesh    = cParams.mesh;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
-        function createMassMatrix(obj)
+        function createMassMatrixFirstDirection(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
             s.test  = obj.trial;
             s.trial = obj.trial;
             s.quadratureOrder = 2;
             LHS     = LHSintegrator.create(s);
-            obj.M   = LHS.compute();
+            obj.M1   = LHS.compute();
+        end
+
+        function createMassMatrixSecondDirection(obj)
+            s.type  = 'MassMatrix';
+            s.mesh  = obj.mesh;
+            s.test  = obj.q;
+            s.trial = obj.q;
+            s.quadratureOrder = 2;
+            LHS     = LHSintegrator.create(s);
+            obj.M2   = LHS.compute();
         end
 
         function createRHSFirstDirection(obj,fun,quadOrder)
@@ -87,7 +99,7 @@ classdef NonLinearFilterCircle < handle
         end
 
 
-function createKqFirstDirection(obj, quadOrder)
+        function createKqFirstDirection(obj, quadOrder)
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
@@ -103,7 +115,7 @@ function createKqFirstDirection(obj, quadOrder)
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
             nablaRho   = Grad(obj.trial);
-            test       = obj.trial;
+            test       = obj.q;
             rhs        = int.compute(nablaRho,test);
             obj.RHS2   = rhs;
         end
@@ -111,17 +123,17 @@ function createKqFirstDirection(obj, quadOrder)
 
 
         function solveFirstDirection(obj)
-            LHS = obj.M;
+            LHS = obj.M1;
             RHS = obj.RHS1 + obj.Kq;
             rhoi = LHS\RHS; % hard coded direct solver
             obj.trial.fValues = rhoi;
         end
 
         function solveSecondDirection(obj)
-            LHS = obj.M .* (1/obj.epsilon^2);
+            LHS = obj.M2 .* (1/obj.epsilon^2);
             RHS = obj.RHS2;
             qi = LHS \ RHS;
-            obj.q.fValues = qi;
+            obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])'; % 2 = geo dim
         end
 
 
