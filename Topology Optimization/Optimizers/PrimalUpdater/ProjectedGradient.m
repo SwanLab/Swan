@@ -8,11 +8,13 @@ classdef ProjectedGradient < handle
     properties (Access = private)
         upperBound
         lowerBound
+        L
     end
     
     methods (Access = public)
         function obj = ProjectedGradient(cParams)
             obj.init(cParams);
+            obj.L = 0;
         end
 
         function rho = update(obj,g,rho)
@@ -31,8 +33,12 @@ classdef ProjectedGradient < handle
             obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         
-        function increaseStepLength(obj,f)
-            obj.tau = f*obj.tau;
+        function increaseStepLength(obj,f,g)
+            Lnew = norm(g(:));
+            if Lnew>obj.L
+                obj.L = Lnew;
+            end
+            obj.tau = min(f*obj.tau,2/obj.L);
         end
 
         function decreaseStepLength(obj)

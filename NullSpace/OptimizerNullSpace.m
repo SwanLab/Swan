@@ -175,7 +175,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 3;
-                obj.primalUpdater.increaseStepLength(factor);
+                obj.primalUpdater.increaseStepLength(factor,DmF);
             end
         end
 
