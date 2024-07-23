@@ -1,7 +1,7 @@
 classdef DomainFunTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        cases = {'DDP','Grad','Partial','SymGrad','Divergence','VolumetricStrain','DeviatoricStrain'}
+        cases = {'DDP','Grad','Partial','SymGrad','Divergence','VolumetricElas','DeviatoricElas'}
     end
 
     methods (Test, TestTags = {'DomainFun'})
@@ -26,9 +26,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = SymGrad(fem.uFun);
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
-                case 'VolumetricStrain'
-                    domainFun = VolumetricStrain(fem.uFun,kappaFun);
-                case 'DeviatoricStrain'
+                case 'VolumetricElas'
+                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
+                case 'DeviatoricElas'
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -60,9 +60,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                     domainFun = SymGrad(fem.uFun);
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
-                case 'VolumetricStrain'
-                    domainFun = VolumetricStrain(fem.uFun,kappaFun);
-                case 'DeviatoricStrain'
+                case 'VolumetricElas'
+                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
+                case 'DeviatoricElas'
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;

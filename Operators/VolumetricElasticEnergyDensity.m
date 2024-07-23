@@ -1,4 +1,4 @@
-function dom = VolumetricStrain(u,kappa)
+function dom = VolumetricElasticEnergyDensity(u,kappa)
     s.operation = @(xV) evaluate(u,kappa, xV);
     dom = DomainFunction(s);
 end
@@ -6,5 +6,5 @@ end
 function fVR = evaluate(u,kappa, xV)
     divu = Divergence(u);
     dbS  = DDP(kappa,DDP(divu,divu));
-    fVR  = dbS.evaluate(xV);
+    fVR  = 0.5*dbS.evaluate(xV);
 end
