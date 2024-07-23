@@ -3,12 +3,13 @@
 clear;
 clc;
 
-mesh      = createMesh();
-fun       = createReferenceField(mesh);
-filterPDE = createPDEFilter(mesh);
-fPDE      = filterPDE.compute(fun,2);
-nLFilter  = createNonLinearFilter(mesh);
-fNL       = nLFilter.compute(fun,2);
+mesh        = createMesh();
+fun         = createReferenceField(mesh);
+filterPDE   = createPDEFilter(mesh);
+fPDE        = filterPDE.compute(fun,2);
+nLFilter    = createNonLinearFilter(mesh);
+fNL         = nLFilter.compute(fun,2);
+errorCircle = 0.5*Integrator.compute((fPDE-fNL).^2,mesh,2);
 
 
 

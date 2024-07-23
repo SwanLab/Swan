@@ -28,20 +28,20 @@ classdef NonLinearFilter < handle
             % solve non-linear filter...
             % let's start by creating a factory and define circle case (validation)
             obj.createRHSFirstDirection(fun,quadOrder);
-            obj.createKqFirstDirection(fun,quadOrder);
+            obj.createKqFirstDirection(quadOrder);
             obj.solveFirstDirection();
             obj.createRhoiSecondDirection(quadOrder);
             obj.solveSecondDirection();
             iter = 0;
             tolerance = 1;
-            while tolerance >= 1e-5 || iter <= 100
+            while tolerance >= 1e-5 && iter <= 100
                 oldRho = obj.trial.fValues;
                 obj.createRHSFirstDirection(fun,quadOrder);
-                obj.createKqFirstDirection(fun,quadOrder);
+                obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection();
-                obj.creatRhoiSecondDirection(obj,quadOrder);
+                obj.createRhoiSecondDirection(quadOrder);
                 obj.solveSecondDirection();
-                tolerance = obj.trial.fValues - oldRho;
+                tolerance = norm(obj.trial.fValues - oldRho);
                 iter = iter + 1;
 
             end
@@ -87,13 +87,13 @@ classdef NonLinearFilter < handle
         end
 
 
-function createKqFirstDirection(obj,fun, quadOrder)
+function createKqFirstDirection(obj, quadOrder)
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
-            test = obj.q;
-            rhs        = int.compute(fun,test);
+            test       = obj.trial;
+            rhs        = int.compute(obj.q,test);
             obj.Kq = rhs;
         end
 
@@ -102,10 +102,10 @@ function createKqFirstDirection(obj,fun, quadOrder)
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
-            nablaRho = Grad(obj.trial);
-            test = obj.trial;
+            nablaRho   = Grad(obj.trial);
+            test       = obj.trial;
             rhs        = int.compute(nablaRho,test);
-            obj.RHS2 = rhs;
+            obj.RHS2   = rhs;
         end
 
 
@@ -114,12 +114,11 @@ function createKqFirstDirection(obj,fun, quadOrder)
             LHS = obj.M;
             RHS = obj.RHS1 + obj.Kq;
             rhoi = LHS\RHS; % hard coded direct solver
-            obj.RHOi = rhoi;
             obj.trial.fValues = rhoi;
         end
 
         function solveSecondDirection(obj)
-            LHS = obj.M .* (1/obj.epsilon);
+            LHS = obj.M .* (1/obj.epsilon^2);
             RHS = obj.RHS2;
             qi = LHS \ RHS;
             obj.q.fValues = qi;
