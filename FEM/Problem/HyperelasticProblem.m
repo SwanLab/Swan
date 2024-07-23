@@ -75,7 +75,7 @@ classdef HyperelasticProblem < handle
                 % hess = neo.computeHessian(obj.uFun);
                 R = Fint - Fext - react;
 
-                u_k = -alpha*R(freeDofs);
+                u_k(freeDofs) = u_k(freeDofs) - alpha*R(freeDofs);
                 nrg0 = neo.compute(obj.uFun);
                 old_nrg = nrg0;
 
@@ -89,17 +89,19 @@ classdef HyperelasticProblem < handle
                     % Update U
                     % [deltaUk,~] = obj.solveProblem(hess,-R,u_k);
                     
-                    u_next = u_k + alpha*deltaUk;
+                    u_next = u_k + alpha*R;
 %                     react = react + deltaReactk;
-                    obj.uFun.fValues = reshape(u_next,[obj.mesh.ndim,obj.mesh.nnodes])';
+                    obj.uFun.fValues = obj.reshapeToMatrix(u_next);
                     obj.applyDirichletToUFun();
                     u_k = obj.reshapeToVector(obj.uFun.fValues);
 %                     u_k = u_next;
-                    obj.uFun.fValues
+                    if ~isreal(obj.uFun.fValues)
+                        warning('Complex numbers')
+                    end
 
                     % Calculate residual
                     Fint = obj.computeInternalForces();
-                    hess = neo.computeHessian(obj.uFun);
+%                     hess = neo.computeHessian(obj.uFun);
                     R = Fint - Fext ;
                     nrg = neo.compute(obj.uFun);
 
@@ -115,8 +117,6 @@ classdef HyperelasticProblem < handle
                     resi(i) = residual;
                     energies(i) = nrg;
                     prenorm = residual;
-%                     addpoints(f,i,log10(residual));
-%                     drawnow
                     
                 end
                 obj.uFun.print(['SIM_Bending_',int2str(iStep)])
@@ -326,6 +326,13 @@ classdef HyperelasticProblem < handle
             rshp = reshape(A,[obj.mesh.ndim,obj.mesh.nnodes])';
         end
 
+        function plotVector(obj, vect)
+            s.fValues = obj.reshapeToMatrix(vect);
+            s.mesh = obj.mesh;
+            s.order = 'P1';
+            a = LagrangianFunction(s);
+            a.plot;
+        end
         function sigma = computeCauchyStress(obj)
             mu = obj.material.mu;
             lambda = obj.material.lambda;

@@ -47,7 +47,7 @@ classdef NewHyperelasticProblem < handle
                 while hasNotConverged
                     LHS = obj.computeLHS(u);
                     RHS = obj.computeResidual(u);
-                    u = obj.computeDisplacements();
+                    u = obj.computeDisplacements(LHS,RHS, uIn);
 %                     F = obj.computeForces();
 %                     Fint = obj.computeInternalForces();
                 end
@@ -133,7 +133,7 @@ classdef NewHyperelasticProblem < handle
         function RHS = computeResidual(obj,uFun)
             Fint = obj.neohookeanFun.computeGradient(uFun);
 
-            Fint2 = obj.linearFun.computeGradient(uFun);
+%             Fint2 = obj.linearFun.computeGradient(uFun);
             RHS = Fint;
         end
 
