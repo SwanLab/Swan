@@ -24,16 +24,17 @@ classdef LHSintegrator_WeakDivergence < handle
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxV = obj.test.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxV = obj.test.evaluateCartesianDerivatives(xV);
             dvolV = obj.mesh.computeDvolume(obj.quadrature)';
-            shpeP = obj.trial.computeShapeFunctions(obj.quadrature);
+            shpeP = obj.trial.computeShapeFunctions(xV);
 
             nElem = obj.mesh.nelem;
             nDimfV = size(dNdxV,1);
             nNodeV = size(dNdxV,2);
             nNodeP = size(shpeP,1);
             
-            nGaus = size(dNdxV,4);
+            nGaus = size(dNdxV,3);
 
             D = zeros(nDimfV*nNodeV,nNodeP,nElem);
             for igaus = 1:nGaus
@@ -41,7 +42,7 @@ classdef LHSintegrator_WeakDivergence < handle
                     for inode_test = 1:nNodeV
                         for idime = 1:nDimfV
                             dof_test = inode_test*nDimfV - nDimfV + idime;
-                            v = squeeze(dNdxV(idime,inode_test,:,igaus));
+                            v = squeeze(dNdxV(idime,inode_test,igaus,:));
                             D(dof_test,inode_var,:)= squeeze(D(dof_test,inode_var,:)) - v(:).*shpeP(inode_var,igaus)...
                                 .*dvolV(:,igaus);
                         end
@@ -63,9 +64,11 @@ classdef LHSintegrator_WeakDivergence < handle
         end
 
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC'); % ehhh
-            obj.quadrature = q;
+            orderTr = obj.trial.getOrderNum();
+            orderTe = obj.test.getOrderNum();
+            order = orderTr + orderTe;
+            quad = Quadrature.create(obj.mesh,order);
+            obj.quadrature = quad;
         end
 
         function LHS = assembleMatrix(obj, lhs)

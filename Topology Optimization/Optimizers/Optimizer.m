@@ -5,18 +5,14 @@ classdef Optimizer < handle
         dualVariable
         cost
         constraint
-        outputFunction
+        monitoring
         maxIter
         nIter = 0
-        targetParameters
+        tolerance
         dualUpdater
         primalUpdater
         constraintCase
         postProcess
-    end
-
-    properties (GetAccess = public, SetAccess = protected, Abstract)
-        type
     end
 
     properties (Access = public)
@@ -41,16 +37,15 @@ classdef Optimizer < handle
     methods (Access = protected)
 
         function initOptimizer(obj,cParams)
-            obj.nIter             = 0;
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.maxIter           = cParams.maxIter;
-            obj.targetParameters  = cParams.targetParameters;
-            obj.constraintCase    = cParams.constraintCase;
-            obj.outputFunction    = cParams.outputFunction.monitoring;
-            obj.createPostProcess(cParams.postProcessSettings);
+            obj.nIter          = 0;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.maxIter        = cParams.maxIter;
+            obj.tolerance      = cParams.tolerance;
+            obj.constraintCase = cParams.constraintCase;
+            %obj.createPostProcess(cParams.postProcessSettings);
         end
 
         function createPrimalUpdater(obj,cParams)
@@ -59,6 +54,7 @@ classdef Optimizer < handle
         end
 
         function createDualUpdater(obj,cParams)
+            cParams.type    = obj.type;
             f               = DualUpdaterFactory();
             obj.dualUpdater = f.create(cParams);
         end
@@ -75,6 +71,7 @@ classdef Optimizer < handle
                     isAcceptable = true;
                 else
                     isAcceptable = false;
+                    break;
                 end
             end
         end
@@ -104,6 +101,9 @@ classdef Optimizer < handle
                 obj.simulationPrinter.appendStep(file);
             end
             %obj.obtainGIF();
+            if ismethod(obj.designVariable,'plot')
+                obj.designVariable.plot();
+            end
         end
 
         function obtainGIF(obj)
@@ -128,7 +128,8 @@ classdef Optimizer < handle
                 case 'Density'
                     p1.mesh    = m;
                     p1.fValues = f;
-                    RhoNodal   = P1Function(p1);
+                    p1.order   = 'P1';
+                    RhoNodal   = LagrangianFunction(p1);
                     q = Quadrature.set(m.type);
                     q.computeQuadrature('CONSTANT');
                     xV = q.posgp;
@@ -165,7 +166,6 @@ classdef Optimizer < handle
     end
 
     methods (Access = private)
-
         function createPostProcess(obj,cParams)
             if cParams.shallPrint
                 d = obj.createPostProcessDataBase(cParams);
@@ -201,7 +201,7 @@ classdef Optimizer < handle
 
         function c = checkEqualityConstraint(obj,i)
             g = obj.constraint.value(i);
-            c = abs(g) < obj.targetParameters.constr_tol;
+            c = abs(g) < obj.tolerance;
         end
 
     end

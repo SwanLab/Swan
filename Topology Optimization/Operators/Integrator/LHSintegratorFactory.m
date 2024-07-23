@@ -20,6 +20,8 @@ classdef LHSintegratorFactory < handle
                case 'StiffnessMass'
                    cParams.stiffType = 'StiffnessMatrix';
                    obj = LHSintegratorStiffnessMass(cParams);
+               case 'MassBoundaryMass'
+                   obj = LHSintegratorMassBoundaryMass(cParams);
                case 'AnisotropicStiffnessMassBoundaryMass'
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegratorStiffnessMassBoundaryMass(cParams);
@@ -39,6 +41,14 @@ classdef LHSintegratorFactory < handle
                    obj = LHSintegratorFunctionStiffness(cParams);
                case 'MassMatrixWithFunction'
                    obj = LHSintegratorFunctionMass(cParams);
+               case 'MassMatrixWithFunctionDerivative'
+                   obj = LHSintegratorFunctionDerivativeMass(cParams);                   
+               case 'AdvectionMatrixWithFunctionDerivative'
+                   obj = LHSintegratorFunctionDerivativeAdvection(cParams);  
+               case 'AdvectionMatrixWithFunction'
+                   obj = LHSintegratorFunctionAdvection(cParams); 
+               case 'DivergenceMatrix'
+                   obj = LHSintegratorDivergenceMatrix(cParams); 
            end
        end
    end

@@ -12,8 +12,6 @@ classdef VectorizedTriangulationTest < handle
         connec
         boundaryConnec
         levelSet
-        determinant
-        determinant2
         connecBcutMesh
     end
     
@@ -21,8 +19,6 @@ classdef VectorizedTriangulationTest < handle
         
         function obj = VectorizedTriangulationTest(cParams)
             obj.init(cParams);
-            obj.computeDeterminant();
-            obj.computeDeterminant2();
             obj.createBackgroundMesh();
             obj.createBoundaryMesh();
             obj.createUnfittedMesh();
@@ -52,7 +48,7 @@ classdef VectorizedTriangulationTest < handle
         function createBackgroundMesh(obj)
             s.connec = obj.connec;
             s.coord  = obj.coord;
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.backgroundMesh = m;
         end
 
@@ -121,49 +117,6 @@ classdef VectorizedTriangulationTest < handle
             m.plotNormals();
         end
         
-        function computeDeterminant2(obj)
-            s.coord  = obj.coord;
-            s.connec = obj.connec;
-            mesh = Mesh(s);
-            nDime   = mesh.ndim;
-            nNode   = mesh.nnodeElem;
-            nElem   = mesh.nelem;
-            q = Quadrature.set(mesh.type);
-            q.computeQuadrature('LINEAR');
-            mesh.interpolation.computeShapeDeriv(q.posgp)
-            jacobian = zeros(nDime,nDime,nElem,q.ngaus);
-            coordElem = permute(mesh.coordElem,[2 1 3]);
-            for igaus = 1:q.ngaus
-                dShapes = mesh.interpolation.deriv(:,:,igaus);
-                jac = zeros(nDime,nDime,nElem);
-                for kNode = 1:nNode
-                    dShapeIK = dShapes(:,kNode);
-                    xKJ      = coordElem(kNode,:,:);
-                    jacIJ    = bsxfun(@times, dShapeIK, xKJ);
-                    jac = jac + jacIJ;
-                end
-                jacobian(:,:,:,igaus) = jac;
-            end
-            executor = MatrixVectorizedInverterFactory().create(jacobian);
-            obj.determinant2 = executor.computeDeterminant(jacobian);
-        end
-        
-        function computeDeterminant(obj)
-            xyz   = obj.coord;
-            nodes = obj.connec;
-            node1 = xyz(nodes(:,1),:);
-            node2 = xyz(nodes(:,2),:);
-            node3 = xyz(nodes(:,3),:);
-            node4 = xyz(nodes(:,4),:);
-            nelem = size(nodes,1);
-            detA = zeros(nelem,1);
-            for ielem = 1:nelem
-                A = [node3(ielem,:) 1 ;node2(ielem,:) 1 ;node1(ielem,:) 1;node4(ielem,:) 1];
-                detA(ielem) = det(A);
-            end
-            obj.determinant = detA;
-        end
-        
         function error = computeConnecInnerCutMeshError(obj)
             cV = obj.validInnerCutMesh.mesh.connec;
             cU = obj.uMesh.innerCutMesh.mesh.connec;
@@ -194,8 +147,7 @@ classdef VectorizedTriangulationTest < handle
     methods (Access = private, Static)
         
         function v = computeVolumes(mesh)
-            quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature('CONSTANT');
+            quad = Quadrature.create(mesh,0);
             v = mesh.computeDvolume(quad);
         end
         

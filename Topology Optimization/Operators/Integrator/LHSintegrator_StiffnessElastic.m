@@ -21,20 +21,22 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdx  = obj.fun.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdx  = obj.test.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
-            nElem = size(obj.material.C,3);
+            nElem = obj.mesh.nelem;
             nNodE = size(dNdx,2);
-            nDofE = nNodE*obj.fun.ndimf;
+            nDofE = nNodE*obj.test.ndimf;
             lhs = zeros(nDofE,nDofE,nElem);
             Bcomp = obj.createBComputer(dNdx);
+            Cmat  = obj.material.evaluate(xV);
             for igaus = 1:nGaus
                 Bmat = Bcomp.compute(igaus);
-                Cmat = obj.material.C(:,:,:,igaus);
+                C    = squeeze(Cmat(:,:,igaus,:));
                 dV(1,1,:) = dVolu(igaus,:)';
                 Bt   = permute(Bmat,[2 1 3]);
-                BtC  = pagemtimes(Bt,Cmat);
+                BtC  = pagemtimes(Bt,C);
                 BtCB = pagemtimes(BtC, Bmat);
                 lhs = lhs + bsxfun(@times, BtCB, dV);
             end
@@ -45,16 +47,11 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
     methods (Access = private)
 
         function Bcomp = createBComputer(obj, dNdx)
-            s.fun  = obj.fun;
+            s.fun  = obj.test;
             s.dNdx = dNdx;
             Bcomp = BMatrixComputer(s);
         end
 
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.fun, obj.fun);
-        end
     end
 
 end

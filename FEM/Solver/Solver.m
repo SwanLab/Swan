@@ -15,6 +15,9 @@ classdef Solver < handle
                 case {'ITERATIVE'}
                     error('Not implemented yet')
 
+                case 'rMINRES'
+                    stype = CGsolver();
+
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
 

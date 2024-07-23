@@ -44,21 +44,21 @@ classdef DehomogenizingExample < handle
         
         function init(obj)
            % filePath = 
-            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
-            obj.fileName = 'CantileverSymmetricWithoutFixing';
-            obj.iteration = 216;
-% 
-%            obj.filePath = '/home/ferrer/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-%            obj.fileName = 'ExperimentingPlotSuperEllipse';
-%            obj.iteration = 64;
+          %   obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/Example/';
+          %   obj.fileName = 'CantileverSymmetricWithoutFixing';
+          %   obj.iteration = 216;
+
+          obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+          obj.fileName = 'ExperimentingPlotSuperEllipse';
+          obj.iteration = 64;
             
-%            obj.filePath = '/home/alex/git-repos/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-%            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-%            obj.iteration = 665;         
+            % obj.filePath = '/home/alex/Documents/GitHub/Swan/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            % obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            % obj.iteration = 665;         
         
-            obj.nx1    = 22;
-            obj.nx2    = 22;
-            obj.nCells = 42;
+            obj.nx1    = 32;
+            obj.nx2    = 32;
+            obj.nCells = 32;
         end
         
         function loadDataExperiment(obj)
@@ -67,7 +67,7 @@ classdef DehomogenizingExample < handle
             s.folderPath = fullfile(obj.filePath );
             w = WrapperMshResFiles(s);
             w.compute();
-            %w = obj.symmetrizeData(w);
+          %  w = obj.symmetrizeData(w);
             w = obj.arrangeData(w);
             obj.m1M    = w.m1;
             obj.m2M    = w.m2;
@@ -87,7 +87,7 @@ classdef DehomogenizingExample < handle
             wC.m1 = w.dataRes.DesignVar1;
             wC.m2 = w.dataRes.DesignVar2;
             wC.q = w.dataRes.SuperEllipseExponent;
-          	wC.alpha = obj.interpolateAlpha(w.dataRes.AlphaGauss',w.mesh);
+          	wC.alpha = w.dataRes.AlphaGauss;%obj.interpolateAlpha(w.dataRes.AlphaGauss',w.mesh);
             wC.mesh  = w.mesh;
        end
        
@@ -101,7 +101,7 @@ classdef DehomogenizingExample < handle
             
             sR.coord = coordT;
             sR.connec  = w.mesh.connec;
-            w.mesh = Mesh(sR);
+            w.mesh = Mesh.create(sR);
             
             m = w.mesh;
             sM = obj.createMeshSymetrizer(m);
@@ -113,19 +113,7 @@ classdef DehomogenizingExample < handle
             wC.m2 = sM.symmetrizeScalarField(w.dataRes.DesignVar2);
             wC.q  = sM.symmetrizeScalarField(w.dataRes.SuperEllipseExponent);
             wC.alpha = sM.symmetrizeVectorField(alpha);
-            
-           % sQ.mesh = w.mesh;
-           % sQ.symmetricLine.vector = [1;0];
-            %sQ.symmetricLine.point = [0;2];
-            %sM2 = Symmetrizer(sQ);
-            %sM2.compute();
-            
-%             wC.m1 = w.dataRes.DesignVar1;
-%             wC.m2 = w.dataRes.DesignVar2;
-%             wC.q  = w.dataRes.SuperEllipseExponent;
-%             wC.alpha = alpha;
-%             wC.mesh = w.mesh;
-            
+  
         end
         
  
@@ -158,13 +146,13 @@ classdef DehomogenizingExample < handle
             FV.faces    = obj.mesh.connec;
             FV2 = refinepatch(FV);
             FV2 = refinepatch(FV2);
-        %    FV2 = refinepatch(FV2);
-            %FV2 = refinepatch(FV2);
+          %  FV2 = refinepatch(FV2);
+          %  FV2 = refinepatch(FV2);
 % 
 %             
             s.coord = FV2.vertices(:,1:2);
             s.connec = FV2.faces;
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.backgroundMesh = m;
             
             %x1T = repmat(x1,obj.nx2,1);
@@ -201,7 +189,12 @@ classdef DehomogenizingExample < handle
         function createOrientation(obj)
             x1 = (obj.alphaM(:,1));
             x2 = (obj.alphaM(:,2));
-            obj.theta = atan2(x2,x1);
+            tV = atan2(x2,x1);
+            s.mesh = obj.mesh;
+            s.fValues = tV;
+            s.order = 'P0';
+            tF = LagrangianFunction(s);
+            obj.theta = tF;
         end
         
         function createSuperEllipseParams(obj)
@@ -222,17 +215,35 @@ classdef DehomogenizingExample < handle
         
         function createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
-            s.widthH = obj.superEllipse.m1;
-            s.widthV = obj.superEllipse.m2;
+            %s.widthH = obj.superEllipse.m1;
+            %s.widthV = obj.superEllipse.m2;
+            s.widthH = 0.95*ones(size(obj.superEllipse.m1));
+            s.widthV = 0.95*ones(size(obj.superEllipse.m2));            
             s.pnorm  = obj.superEllipse.q;
             s.ndim   = 2;
             obj.cellLevelSetParams = s;
         end
         
         function dehomogenize(obj)
-            s.backgroundMesh     = obj.backgroundMesh;
+            s.fValues = obj.alphaM;
+            s.mesh    = obj.mesh;
+            s.order   = 'P0';
+            a0{1} = LagrangianFunction(s);
+            a1{1} = a0{1}.project('P1');
+
+
+            s.fValues(:,1) = -obj.alphaM(:,2);
+            s.fValues(:,2) = obj.alphaM(:,1);
+            s.mesh    = obj.mesh;
+            s.order   = 'P0';
+            a0{2} = LagrangianFunction(s);
+            a1{2} = a0{2}.project('P1');
+
+          %  a0.plotArrowVector()
+
+          %  s.backgroundMesh     = obj.backgroundMesh;
             s.nCells             = obj.nCells;
-            s.theta              = obj.theta;
+            s.theta              = a1;
             s.cellLevelSetParams = obj.cellLevelSetParams;
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);

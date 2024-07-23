@@ -1,39 +1,72 @@
-classdef Cost < CC
+classdef Cost < handle 
     
+    properties (Access = public)
+        value
+        gradient
+    end
+
     properties (Access = private)
+        shapeFunctions
         weights
+        Msmooth
     end
-    
-    properties (GetAccess = public, SetAccess = private)
-        value0
+
+    properties (Access = private)
+        shapeValues
     end
-    
+
     methods (Access = public)
-        
         function obj = Cost(cParams)
-            obj.weights = cParams.weights;
             obj.init(cParams);
         end
-        
-        function c = computeNonNormalizedValue(obj)
-            c = 0;
-            for iSF = 1:length(obj.shapeFunctions)
-                s0 = obj.shapeFunctions{iSF}.value0;
-                s  = obj.shapeFunctions{iSF}.value;
-                sR = s*s0;
-                c = c + obj.weights(iSF)*sR;
+
+        function computeFunctionAndGradient(obj,x)
+            nF  = length(obj.shapeFunctions);
+            Jc  = cell(nF,1);
+            dJc = cell(nF,1);
+            for iF = 1:nF
+                shI     = obj.shapeFunctions{iF};
+                [j,dJ]  = shI.computeFunctionAndGradient(x);
+                Jc{iF}  = j;
+                dJc{iF} = dJ.fValues;   
+            end
+            obj.shapeValues = Jc;
+            jV  = 0;
+            djV = zeros(size(dJc{1}));
+            for iF = 1:nF
+                wI  = obj.weights(iF);
+                jV  = jV  + wI*Jc{iF};
+                djV = djV + wI*dJc{iF};
+            end
+            obj.value    = jV;
+            obj.gradient = obj.Msmooth*djV;
+%             obj.gradient = djV;
+        end
+
+        function nF = obtainNumberFields(obj)
+            nF = length(obj.shapeFunctions);
+        end
+
+        function titles = getTitleFields(obj)
+            nF = length(obj.shapeFunctions);
+            titles = cell(nF,1);
+            for iF = 1:nF
+                wI         = obj.weights(iF);
+                titleF     = obj.shapeFunctions{iF}.getTitleToPlot();
+                titles{iF} = [titleF,' (w=',int2str(wI),')'];
             end
         end
-        
-    end
-    
-    methods (Access = protected)
-        
-        function updateFields(obj,iSF)
-            obj.value = obj.value + obj.weights(iSF)*obj.shapeFunctions{iSF}.value;
-            obj.gradient = obj.gradient + obj.weights(iSF)*obj.shapeFunctions{iSF}.gradient;
+
+        function j = getFields(obj,i)
+            j = obj.shapeValues{i};
         end
-   
     end
     
+    methods (Access = private)
+        function obj = init(obj,cParams)
+            obj.shapeFunctions = cParams.shapeFunctions;
+            obj.weights        = cParams.weights;   
+            obj.Msmooth        = cParams.Msmooth;
+        end
+    end
 end

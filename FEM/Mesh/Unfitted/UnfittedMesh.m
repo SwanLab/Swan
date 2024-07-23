@@ -94,7 +94,8 @@ classdef UnfittedMesh < handle
         function printNew(obj,filename)
             sF.fValues = obj.levelSet;
             sF.mesh    = obj.backgroundMesh;
-            ls = P1Function(sF);
+            sF.order   = 'P1';
+            ls = LagrangianFunction(sF);
             ls.print(filename, 'GiD');
         end
 
@@ -128,6 +129,7 @@ classdef UnfittedMesh < handle
         function uMeshFun = obtainFunctionAtUnfittedMesh(obj,f)
             sUmf.uMesh    = obj;
             sUmf.levelSet = obj.levelSet;
+            sUmf.cutCells = obj.cutCells;
             uMeshFun      = UnfittedMeshFunction(sUmf);
             uMeshFun.compute(f);
         end
@@ -239,24 +241,22 @@ classdef UnfittedMesh < handle
     methods (Access = public)
         
         function mass = computeMass(obj)
-            fPar.uMesh = obj;
-            f = CharacteristicFunction.create(fPar);
+            f = CharacteristicFunction.create(obj);
             s.mesh = obj;
-            s.type = 'ShapeFunction';
-            s.quadType = 'LINEAR';
-            test     = P1Function.create(obj.backgroundMesh,1);
+            s.type = 'Unfitted';
+            s.quadType = 2;
+            test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
             integrator = RHSintegrator.create(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
-            fPar.uMesh = obj;
-            f = CharacteristicFunction.createAtBoundary(fPar);
+            f = CharacteristicFunction.createAtBoundary(obj);
             s.mesh = obj;
-            s.type = 'ShapeFunction';
-            s.quadType = 'LINEAR';
-            test     = P1Function.create(obj.backgroundMesh,1);
+            s.type = 'Unfitted';
+            s.quadType = 2;
+            test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
             integrator = RHSintegrator.create(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);

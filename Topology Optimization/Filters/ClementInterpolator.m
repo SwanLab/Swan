@@ -36,13 +36,13 @@ classdef ClementInterpolator < handle
 
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
-            obj.trial = P1Function.create(obj.mesh,1);
-            obj.test  = P1Function.create(obj.mesh,1);
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
         end
 
         function createSupportMatrix(obj)
             connecTrial = obj.trial.computeDofConnectivity();
-            p0          = P0Function.create(obj.mesh,1);
+            p0          = LagrangianFunction.create(obj.mesh,1,'P0');
             connecElem  = p0.computeDofConnectivity;
             nDofsP0     = obj.mesh.nelem;
             nDofsField  = max(connecTrial, [], 'all');
@@ -79,7 +79,7 @@ classdef ClementInterpolator < handle
                 lC       = reshape(lC,[nnodeElem,locnElem])';
                 s.connec = lC;
                 s.coord  = obj.mesh.coord;
-                msh      = Mesh(s);
+                msh      = Mesh.create(s);
                 msh      = msh.computeCanonicalMesh();
                 locCoord = msh.coord;
                 globNode = obj.mesh.coord(i,:);
@@ -94,8 +94,8 @@ classdef ClementInterpolator < handle
             s.quadratureOrder = 'QUADRATICMASS';
             for i = 1:obj.mesh.nnodes
                 msh               = obj.localMeshes{i};
-                s.test            = P1Function.create(msh,1);
-                s.trial           = P1Function.create(msh,1);
+                s.test            = LagrangianFunction.create(msh,1,'P1');
+                s.trial           = LagrangianFunction.create(msh,1,'P1');
                 s.mesh            = msh;
                 LHS               = LHSintegrator.create(s);
                 obj.massMatrix{i} = LHS.compute();
@@ -113,13 +113,10 @@ classdef ClementInterpolator < handle
             for i = 1:obj.mesh.nnodes
                 msh = obj.localMeshes{i};
                 s.mesh  = msh;
-                ss.mesh = msh;
-                ss.feFunType = class(f);
-                ss.ndimf     = f.ndimf;
-                funLoc          = FeFunction.createEmpty(ss);
+                funLoc          = LagrangianFunction.create(msh, f.ndimf, f.order);
                 funLoc.fValues = f.fValues(ismember(obj.mesh.coord,msh.coord,'rows'),:);
                 rhsI       = RHSintegrator.create(s);
-                obj.RHS{i} = rhsI.compute(funLoc,P1Function.create(msh,1));
+                obj.RHS{i} = rhsI.compute(funLoc,LagrangianFunction.create(msh,1,'P1'));
             end
         end
 

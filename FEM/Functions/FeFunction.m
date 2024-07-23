@@ -9,13 +9,16 @@ classdef FeFunction < handle
     end
 
     properties (Access = public)
+       fValues        
+    end
+
+    properties (GetAccess = public, SetAccess = protected)
        ndimf
        order
-       fValues
+       mesh       
     end
     
     properties (Access = protected)
-        mesh
     end
 
     properties (Access = private)
@@ -30,19 +33,18 @@ classdef FeFunction < handle
             fun = proj.project(obj);
         end
 
-        function totVal = computeScalarProduct(obj,f,order)
-            q.mesh     = obj.mesh;
-            q.quadType = order;
-            q.type     = 'ScalarProduct';
-            int        = Integrator.create(q);
-            totVal     = int.compute(obj,f);
+        function n = computeL2norm(obj)
+            l2Norm = L2Norm(obj.mesh);
+            n = l2Norm.compute(obj);
         end
     end
 
     methods (Static, Access = public)
-        function obj = create(cParams)
-            fun = FunctionFactory();
-            obj = fun.create(cParams);
+        function obj = create(type,fValues,mesh)
+            s.order   = type;
+            s.fValues = fValues;
+            s.mesh    = mesh;
+            obj       = LagrangianFunction(s);
         end
 
         function obj = createEmpty(cParams)

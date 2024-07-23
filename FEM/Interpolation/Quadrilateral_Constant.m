@@ -1,25 +1,14 @@
 classdef Quadrilateral_Constant < Interpolation
 
-    properties (Access = private)
-        ngaus
-    end
-
     methods (Access = public)
 
         function obj = Quadrilateral_Constant(cParams)
             obj.init(cParams);
-            obj.computeParams();
-        end
-
-        function computeShapeDeriv(obj,posgp)
-            obj.ngaus = size(posgp,2);
-            obj.computeShapes()
-            obj.computeShapeDerivatives();
         end
 
     end
 
-    methods (Access = private)
+    methods (Access = protected)
 
         function computeParams(obj)
             obj.type      = 'QUAD';
@@ -27,15 +16,19 @@ classdef Quadrilateral_Constant < Interpolation
             obj.nnode     = 1;
             obj.pos_nodes = [0 0];
         end
-
-        function computeShapes(obj)
-            N = ones(obj.nnode,obj.ngaus);
-            obj.shape = N;
+        
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            N = ones(obj.nnode,ngaus,nelem);
+            shape = N;
         end
-
-        function computeShapeDerivatives(obj)
-            dN = zeros(obj.ndime,obj.nnode,obj.ngaus);
-            obj.deriv = dN;
+        
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            dN = zeros(obj.ndime,obj.nnode,ngaus,nelem);
+            deriv = dN;
         end
 
     end

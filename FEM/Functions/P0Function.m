@@ -24,10 +24,18 @@ classdef P0Function < FeFunction
             nFlds = size(obj.fValues,2);
             nElem = size(obj.fValues,1);
             fxV = zeros(nFlds,nGaus,nElem);
-            fVals = reshape(obj.fValues,[nFlds, 1, nElem]);
+            fVals = reshape(obj.fValues',[nFlds, 1, nElem]);
             for iGaus = 1:nGaus
                 fxV(:,iGaus,:) = squeeze(fVals);
             end
+        end
+
+        function [p0sub, mesh_sub, l2g] = restrictTo(obj, domain)
+            [mesh_sub, l2g] = obj.mesh.getBoundarySubmesh(domain);
+            dofs = sum(ismember(obj.mesh.connec, l2g(mesh_sub.connec)), 2) == 2;
+            s.fValues = obj.fValues(dofs, :);
+            s.mesh    = mesh_sub;
+            p0sub = P0Function(s);
         end
 
         function dofConnec = computeDofConnectivity(obj)
@@ -44,16 +52,27 @@ classdef P0Function < FeFunction
             dofConnec = dofsElem;
         end
         
-        function N = computeShapeFunctions(obj, quad)
-            xV = quad.posgp;
-            obj.interpolation.computeShapeDeriv(xV);
-            N = obj.interpolation.shape;
+        function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
         end
 
         function plot(obj)
-            p1DiscFun = obj.project('P1D');
-            p1DiscFun.plot();
+            p1Fun = obj.project('P1');
+            p1Fun.plot();
+            % p1Fun.plotLine();
         end
+
+        function plotArrowVector(obj)
+            %figure()
+            a = obj.fValues;
+            xy = obj.mesh.computeBaricenter();
+            x = xy(1,:)';
+            y = xy(2,:)';
+            ax = squeeze(a(1,:,:));
+            ay = squeeze(a(2,:,:));
+            q = quiver(x,y,ax,ay);
+            q.ShowArrowHead = 'off';
+        end        
 
         function print(obj, filename, software)
             if nargin == 2; software = 'GiD'; end
@@ -100,8 +119,8 @@ classdef P0Function < FeFunction
         end
 
         function createInterpolation(obj)
-            m.type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(m,'CONSTANT');
+            type = obj.mesh.type;
+            obj.interpolation = Interpolation.create(type,'CONSTANT');
         end
 
         function computeNDofs(obj)

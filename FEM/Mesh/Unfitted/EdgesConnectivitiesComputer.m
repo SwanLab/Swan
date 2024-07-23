@@ -19,6 +19,7 @@ classdef EdgesConnectivitiesComputer < handle
         nElem
         nAllEdges
         localEdgesInElem
+        type
     end
     
     methods (Access = public)
@@ -46,20 +47,24 @@ classdef EdgesConnectivitiesComputer < handle
         
         function init(obj,cParams)
             obj.nodesByElem = cParams.nodesByElem;
+            obj.type = cParams.type;
             nNodes = size(cParams.nodesByElem,2);
-            switch nNodes
-                case 3
+            switch obj.type
+                case 'TRIANGLE'
                     obj.localEdgesInElem = [1 2; 2 3; 3 1];
-                case 8
-                    edges = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; 3 7; 4 8; 5 6;...
-                        8 5; 6 7; 7 8;];
+                    
+                case 'QUAD'
+                    obj.localEdgesInElem = [1 2; 2 3; 3 4; 4 1];
 
-                    % Coarse subcell:
-                    newConnections = [2 4; 2 5; 2 8; 4 5; 6 8; 3 7; 3 8; 3 6;];
-
-                    obj.localEdgesInElem =  [edges;newConnections];
-                otherwise
+                case 'TETRAHEDRA'
+                    obj.localEdgesInElem = [1 2; 1 3; 1 4; 3 2; 4 2; 4 3];
+                    
+                case 'LINE'
                     obj.localEdgesInElem =  nchoosek(1:nNodes,2);
+                    
+                case 'HEXAHEDRA'
+                    obj.localEdgesInElem  = [1 2; 4 1; 1 5; 2 3; 2 6; 3 4; ...
+                        3 7; 4 8; 5 6; 8 5; 6 7; 7 8];
             end
             obj.nElem = size(obj.nodesByElem,1);
             obj.nEdgeByElem = size(obj.localEdgesInElem,1);

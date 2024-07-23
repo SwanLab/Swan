@@ -1,44 +1,73 @@
-classdef IsotropicElasticMaterial < ElasticMaterial
+classdef IsotropicElasticMaterial < Material
+    
+    properties (SetAccess = private, GetAccess = private)
+        young
+        poisson
+        bulk
+        shear
+    end
 
-    properties (GetAccess = public, SetAccess = protected)
-        nstre
-    end
-    
     properties (Access = protected)
-        kappa
-        mu
-        lambda
-    end
-    
-    methods (Access = public)
-        
-        function compute(obj,s)
-            obj.kappa = s.kappa;
-            obj.mu    = s.mu;
-            obj.nElem = size(obj.mu,1);
-            obj.nGaus = size(obj.mu,2);
-            obj.computeC();
-        end
-        
+        ndim
     end
     
     methods (Access = protected)
-        
+
         function init(obj,cParams)
-            obj.nstre = cParams.nstre;
+            obj.ndim    = cParams.ndim;
+            if isfield(cParams,'young')
+                obj.young = cParams.young;
+            end
+            if isfield(cParams,'poisson')
+                obj.poisson = cParams.poisson;
+            end            
+            if isfield(cParams,'bulk')
+                obj.bulk  = cParams.bulk;
+            end
+            if isfield(cParams,'shear')
+                obj.shear = cParams.shear;
+            end
         end
-        
+
+        function [mu,k] = computeShearAndBulk(obj,xV)
+            if isempty(obj.shear) && isempty(obj.bulk)
+                E  = obj.young.evaluate(xV);
+                nu = obj.poisson.evaluate(xV);
+                mu = obj.computeMuFromYoungAndPoisson(E,nu);
+                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+            else
+                mu = obj.shear.evaluate(xV);
+                k  = obj.bulk.evaluate(xV); 
+                mu = squeezeParticular(mu,1);
+                k  = squeezeParticular(k,1);
+            end
+        end
+
+
     end
-    
-    methods (Access = protected, Abstract)
-        computeC(obj)
-    end
-    
+
     methods (Access = public, Static)
        
-        function mu = computeMuFromYoungAndNu(E,nu)
+        function mu = computeMuFromYoungAndPoisson(E,nu)
             mu = E./(2*(1+nu));
         end
+
+        function k = computeKappaFromYoungAndPoisson(E,nu,N)
+            k = E./(N*(1-(N-1)*nu));
+        end
+
+        function E = computeYoungFromShearAndBulk(m,k,N)
+            E = ((N*N*k).*(2*m))./(2*m + N*(N-1)*k);
+        end
+        
+        function nu = computePoissonFromFromShearAndBulk(m,k,N)
+            nu = ((N*k)-(2*m))./(2*m + N*(N-1)*k);
+        end
+
+        function lambda = computeLambdaFromShearAndBulk(m,k,N)
+            lambda = k - 2/N*m;
+        end
+        
     end
     
 end

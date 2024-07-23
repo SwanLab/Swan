@@ -5,230 +5,211 @@ classdef OptimizerNullSpace < Optimizer
     end
 
     properties (Access = private)
-        tau
         lineSearchTrials
-        lineSearch
-        costOld
-        upperBound
-        lowerBound
         tol = 1e-5
-        nX
         hasConverged
         acceptableStep
-        oldDesignVariable
-        oldCost
-        incrementalScheme
         hasFinished
         mOld
         meritNew
-        nConstr
         meritGradient
-        aJmax
-        aGmax
-        aJ
-        aG
         eta
-
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalMerit
-        globalLineSearch
-        globalDual
-        globalDesignVar
+        etaMax
+        lG
+        lJ
+        etaNorm
+        gJFlowRatio
+        predictedTau
     end
 
     methods (Access = public) 
-        
         function obj = OptimizerNullSpace(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.outputFunction.monitoring.create(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
             obj.prepareFirstIter();
-            obj.aJmax = obj.nullSpaceParameterEstimation(cParams);
-            obj.aGmax = obj.rangeSpaceParameterEstimation(cParams);
         end
 
         function solveProblem(obj)
             obj.hasConverged = false;
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            obj.hasFinished = false;
+            obj.hasFinished  = false;
             obj.printOptimizerVariable();
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
+                obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.printOptimizerVariable();
-                obj.checkParameters();
+                obj.designVariable.updateOld();
             end
         end
-
     end
 
     methods(Access = private)
-
         function init(obj,cParams)
-            obj.upperBound        = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound        = cParams.uncOptimizerSettings.lb;
-            obj.cost              = cParams.cost;
-            obj.constraint        = cParams.constraint;
-            obj.designVariable    = cParams.designVar;
-            obj.dualVariable      = cParams.dualVariable;
-            obj.incrementalScheme = cParams.incrementalScheme;
-            obj.nConstr           = cParams.constraint.nSF;
-            obj.nX                = obj.designVariable.fun.nDofs;
-            obj.maxIter           = cParams.maxIter;
-            obj.hasConverged      = false;
-            obj.nIter             = 0;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.maxIter        = cParams.maxIter;
+            obj.eta            = 0;
+            obj.lG             = 0;
+            obj.lJ             = 0;
+            obj.etaMax         = 0;
+            obj.etaNorm        = cParams.etaNorm;
+            obj.gJFlowRatio    = cParams.gJFlowRatio;
+            obj.hasConverged   = false;
+            obj.nIter          = 0;
+            obj.createMonitoring(cParams);
         end
 
-        function aJmax = nullSpaceParameterEstimation(obj,cParams)
-            if isfield (cParams.optimizerNames,'aJmax')
-                aJmax = cParams.optimizerNames.aJmax;
+        function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
+                chConstr{i}   = 'plot';
+            end
+            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ';'1/\eta (1-gk1/gk)';'Merit'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    titles = [titles;{'Theta';'Alpha';'Beta'}];
+                    chartTypes = [chartTypes,{'plot','plot','plot'}];
+            end
+            s.shallDisplay = cParams.monitoring;
+            s.maxNColumns  = 6;
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
+            obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.dualVariable.fun.fValues];
+            if obj.nIter == 0
+                data = [data;0;0;0;obj.etaMax;0;0;0;NaN];
             else
-                DJ = obj.cost.gradient;
-                Dg = obj.constraint.gradient;
-                aJmax = -1/((Dg'*Dg)\Dg'*DJ);
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);norm(obj.predictedTau);obj.meritNew];
             end
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    if obj.nIter == 0
+                        data = [data;0;0;0];
+                    else
+                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
+                    end
+            end
+            obj.monitoring.update(obj.nIter,data);
         end
 
-        function aGmax = rangeSpaceParameterEstimation(obj,cParams)
-            if isfield (cParams.optimizerNames,'aGmax')
-                aGmax = cParams.optimizerNames.aGmax;
-            else
-                Dg = obj.constraint.gradient;
-                aGmax = 150/(inv(Dg'*Dg));
-            end
+        function updateEtaParameter(obj)
+            vgJ     = obj.gJFlowRatio;
+            DxJ     = obj.computeNullSpaceFlow();
+            Dxg     = obj.computeRangeSpaceFlow();
+            obj.eta = min(vgJ*DxJ/Dxg,obj.etaMax);
+            obj.updateMonitoringMultipliers();
         end
 
-        function checkParameters(obj)
-            if abs(obj.meritNew - obj.mOld) < 10*obj.tol
-                g  = obj.constraint.value;
-                DJ = obj.cost.gradient;
-                if obj.aG <= 0.5*obj.aGmax
-                    exponent = -sign(g)*sign(sum(DJ));
-                    obj.aJmax = obj.aJmax*2^exponent;
-                else
-                    exponent  = 1-sign(obj.checkConstraint());
-                    obj.aGmax = obj.aGmax*2^exponent;
-                end
-            end
+        function updateMonitoringMultipliers(obj) % Used just to monitor
+            g      = obj.constraint.value;
+            Dg     = obj.constraint.gradient;
+            DJ     = obj.cost.gradient;
+            obj.lG = obj.eta*((Dg'*Dg)\g);
+            obj.lJ = -1*((Dg'*Dg)\Dg')*DJ;
+        end
+
+        function DxJ = computeNullSpaceFlow(obj)
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
+        end
+
+        function Dxg = computeRangeSpaceFlow(obj)
+            g   = obj.constraint.value;
+            Dg  = obj.constraint.gradient;
+            Dxg = norm(Dg*((Dg'*Dg)\g));
         end
 
         function prepareFirstIter(obj)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            obj.costOld = obj.cost.value;
+            d = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(d);
+            obj.constraint.computeFunctionAndGradient(d);
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(obj.nConstr,1);
-        end
-
-        function updateNullSpaceCoefficient(obj)
-            targetVolume = obj.targetParameters.Vfrac;
-            obj.aJ       = obj.aJmax*(1-targetVolume);
-        end
-
-        function updateRangeSpaceCoefficient(obj)
-            if obj.cost.value == 0
-                obj.aG = obj.aGmax;
-            else
-                targetVolume = obj.targetParameters.Vfrac;
-                g            = obj.constraint.value;
-                v            = obj.computeVolume(g); % class(obj.constraint.shapeFunctions{1,1})=='Volume_constraint'
-                if v>targetVolume
-                    r = 1-targetVolume;
-                else
-                    r = targetVolume;
-                end
-                obj.aG       = obj.aGmax*(1-abs(v-targetVolume)/r)^10;
-            end
-        end
-
-        function updateMaximumVolumeRemoved(obj)
-            if obj.nIter==0
-                obj.eta = inf;
-            else
-                if obj.aG <= 0.5*obj.aGmax
-                    obj.eta = 0.01;
-                else
-                    obj.eta = 0.001;
-                end
-            end
         end
 
         function update(obj)
-            obj.updateNullSpaceCoefficient();
-            obj.updateRangeSpaceCoefficient();
-            obj.updateMaximumVolumeRemoved();
-            x0 = obj.designVariable.fun.fValues;
             g0 = obj.constraint.value;
-            obj.saveOldValues(x0);
-            obj.calculateInitialStep();
-            obj.acceptableStep      = false;
-            obj.lineSearchTrials    = 0;
-            d.nullSpaceCoefficient  = obj.aJ;
-            d.rangeSpaceCoefficient = obj.aG;
-            obj.dualUpdater.update(d);
-            obj.mOld = obj.computeMeritFunction(x0);
+            x0 = obj.designVariable.fun.fValues;
+            obj.updateEtaParameter();
+            obj.acceptableStep   = false;
+            obj.lineSearchTrials = 0;
+            obj.dualUpdater.update(obj.eta,obj.primalUpdater);
+            obj.mOld = obj.computeMeritFunction();
             obj.computeMeritGradient();
-
+            obj.calculateInitialStep();
             while ~obj.acceptableStep
-                x = obj.updatePrimal();
-                obj.designVariable.update(x);
-                s.x  = x;
-                s.x0 = x0;
-                s.g0 = g0;
-                obj.checkStep(s);
+                obj.updatePrimal();
+                obj.checkStep(x0,g0);
             end
-            obj.updateOldValues(x);
         end
 
         function calculateInitialStep(obj)
-            x  = obj.designVariable.fun.fValues;
-            DJ = obj.cost.gradient;
+            x   = obj.designVariable;
+            DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 1;
-                obj.primalUpdater.computeFirstStepLength(DJ,x,factor);
+                factor = 1000;
+                obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.2;
+                factor = 3;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
 
-        function x = updatePrimal(obj)
-            x       = obj.designVariable.fun.fValues;
-            g       = obj.meritGradient;
-            x       = obj.primalUpdater.update(g,x);
+        function updatePrimal(obj)
+            x = obj.designVariable;
+            g = obj.meritGradient;
+            x = obj.primalUpdater.update(g,x);
+            obj.designVariable = x;
         end
 
         function computeMeritGradient(obj)
-            DJ   = obj.cost.gradient;
-            Dg   = obj.constraint.gradient;
-            l   = obj.dualVariable.value;
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            l   = obj.dualVariable.fun.fValues;
             DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,s)
-            x    = s.x;
-            x0   = s.x0;
-            g0   = s.g0;
-            mNew = obj.computeMeritFunction(x);
+        function checkStep(obj,x0,g0)
+            mNew = obj.computeMeritFunction();
+            x    = obj.designVariable.fun.fValues;
             g    = obj.constraint.value;
-            v0   = obj.computeVolume(g0);
-            v    = obj.computeVolume(g);
-            if mNew < obj.mOld && norm(v-v0) < obj.eta
+            etaN = obj.obtainTrustRegion();
+            if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
+                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
-                obj.meritNew = mNew;
+                obj.meritNew       = mNew;
                 obj.dualUpdater.updateOld();
+                obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
+                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
-                obj.meritNew = obj.mOld;
+                obj.meritNew       = obj.mOld;
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
             else
@@ -238,53 +219,63 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function v = computeVolume(obj,g)
-            targetVolume = obj.targetParameters.Vfrac;
-            v            = targetVolume*(1+g);
+        function updateEtaMax(obj)
+            switch class(obj.primalUpdater)
+                case 'SLERP'
+                    %                     phi = obj.designVariable.fun;
+                    %                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
+                    %                     dV = phi.mesh.computeDvolume(quad);
+                    %                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
+                    %                     intBall = sum(dV.*chiBall,"all");
+                    %                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
+                    %                     gk.fValues = obj.meritGradient;
+                    %                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
+                    %                     k  = obj.primalUpdater.tau;
+                    %                     t  = obj.primalUpdater.Theta;
+                    %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
+%                     theta      = obj.primalUpdater.Theta;
+%                     k          = obj.primalUpdater.tau;
+%                     b          = obj.primalUpdater.Beta;
+%                     a          = obj.primalUpdater.Alpha;
+                    obj.etaMax = Inf;
+                case 'HAMILTON-JACOBI'
+                    obj.etaMax = Inf; % Not verified
+                otherwise
+                    t          = obj.primalUpdater.tau;
+                    obj.etaMax = 1/t;
+            end
         end
 
-        function mF = computeMeritFunction(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            l  = obj.dualVariable.value;
+        function etaN = obtainTrustRegion(obj)
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    if obj.nIter == 0
+                        etaN = inf;
+                    else
+                        etaN = obj.etaNorm;
+                    end
+                otherwise
+                    etaN = obj.etaNorm;
+            end
+        end
+
+        function mF = computeMeritFunction(obj)
+            x = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(x);
+            obj.constraint.computeFunctionAndGradient(x);
+            l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;
         end
 
-        function obj = saveOldValues(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            obj.oldCost            = obj.cost.value;
-            obj.oldDesignVariable  = x;
-        end
-
-        function obj = updateOldValues(obj,x)
-            obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-        end
-
         function obj = checkConvergence(obj)
-           if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
-               obj.hasConverged = true;
-               if obj.primalUpdater.isTooSmall()
-                   obj.primalUpdater.tau = 1;
-               end
-           end
-        end
-
-        function obj = updateMonitoring(obj)
-            s.nIter            = obj.nIter;
-            s.tau              = obj.primalUpdater.tau;
-            s.lineSearch       = obj.lineSearch;
-            s.lineSearchTrials = obj.lineSearchTrials;
-            s.oldCost          = obj.oldCost;
-            s.hasFinished      = obj.hasFinished;
-            s.meritNew         = obj.meritNew;
-            obj.outputFunction.monitoring.compute(s);
+            if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
+                obj.hasConverged = true;
+                if obj.primalUpdater.isTooSmall()
+                    obj.primalUpdater.tau = 1;
+                end
+            end
         end
 
         function updateIterInfo(obj)
@@ -301,11 +292,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            itHas = obj.nIter >= obj.maxIter;
         end
-
     end
-
 end
