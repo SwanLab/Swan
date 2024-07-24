@@ -40,37 +40,37 @@ classdef MaterialPhaseField < Material
 
 
 
-        function kFun = getBulkFun(obj,u,phi,interpType)
-            obj.setDesignVariable(u,phi,interpType,'');
-            [g,~] = obj.computeDegradationFun();
-
-            E  = obj.baseMaterial.young.fValues;
-            nu = obj.baseMaterial.poisson.fValues;
-            kV = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
-
-            s.mesh = obj.mesh;
-            s.order = obj.young.order;
-            s.fValues = kV;
-            k = LagrangianFunction(s);
-
-            kFun = times(g,k);
-        end
-
-        function muFun = getShearFun(obj,u,phi,interpType)
-            obj.setDesignVariable(u,phi,interpType,'');
-            [~,g0] = obj.computeDegradationFun();
-
-            E  = obj.baseMaterial.young.fValues;
-            nu = obj.poisson.fValues;
-            muV = obj.computeMuFromYoungAndPoisson(E,nu);
-            
-            s.mesh = obj.mesh;
-            s.order = 'P1';
-            s.fValues = muV;
-            mu = LagrangianFunction(s);
-
-            muFun = g0.*mu;
-        end
+        % function kFun = getBulkFun(obj,u,phi,interpType)
+        %     obj.setDesignVariable(u,phi,interpType,'');
+        %     [g,~] = obj.computeDegradationFun();
+        % 
+        %     E  = obj.baseMaterial.young.fValues;
+        %     nu = obj.baseMaterial.poisson.fValues;
+        %     kV = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+        % 
+        %     s.mesh = obj.mesh;
+        %     s.order = obj.young.order;
+        %     s.fValues = kV;
+        %     k = LagrangianFunction(s);
+        % 
+        %     kFun = times(g,k);
+        % end
+        % 
+        % function muFun = getShearFun(obj,u,phi,interpType)
+        %     obj.setDesignVariable(u,phi,interpType,'');
+        %     [~,g0] = obj.computeDegradationFun();
+        % 
+        %     E  = obj.baseMaterial.young.fValues;
+        %     nu = obj.poisson.fValues;
+        %     muV = obj.computeMuFromYoungAndPoisson(E,nu);
+        % 
+        %     s.mesh = obj.mesh;
+        %     s.order = 'P1';
+        %     s.fValues = muV;
+        %     mu = LagrangianFunction(s);
+        % 
+        %     muFun = g0.*mu;
+        % end
 
         function obj = setDesignVariable(obj,u,phi,tensorType)
             obj.u = u;
