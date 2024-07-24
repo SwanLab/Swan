@@ -28,6 +28,7 @@ classdef ConnectivityComputer < handle
             obj.createCharacteristicFunction();
             obj.createDesignVariable();
 
+            
             % obj.levelSet.getUnfittedMesh().plot()
             % obj.density.plot()
             % shading flat
