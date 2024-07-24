@@ -81,22 +81,20 @@ classdef TestingPhaseField < handle
              s.young = LagrangianFunction(sParam);
              sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
              s.poisson = LagrangianFunction(sParam);
+             
              sIso.ndim = obj.mesh.ndim;
+             sIso.young = s.young ;
+             sIso.poisson = s.poisson;
 
-             s.isoMat = Isotropic2dElasticMaterial(sIso);
-             s.ndim = obj.mesh.ndim;
-             s.mesh = obj.mesh;
-             s.materialInterpolation = obj.createMaterialInterpolation();
+             
+             s.mesh         = obj.mesh;
+             s.baseMaterial = Isotropic2dElasticMaterial(sIso);  
+             s.degradation  = obj.createMaterialInterpolation();
              s.Gc = obj.Gc;
+             
+             obj.materialPhaseField = MaterialPhaseField(s);
 
-            obj.materialPhaseField = MaterialPhaseField(s);
-
-            % s.type = 'MicroDamage';
-            % s.fun  = obj.initialPhaseField;
-            % s.mesh = obj.mesh;
-            % mp     = MicroDamageParams(s);
             % sH.fileName    = 'IsoMicroDamage';
-            % sH.microParams = mp;
             % obj.materialPhaseField = HomogenizedPhaseField(sH);
         end
 

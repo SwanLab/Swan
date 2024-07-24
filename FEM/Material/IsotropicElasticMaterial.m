@@ -10,6 +10,22 @@ classdef IsotropicElasticMaterial < Material
     properties (Access = protected)
         ndim
     end
+
+    methods (Access = public)
+
+        function mu = createShear(obj)
+            s.operation = @(xV) obj.computeShear(xV);
+            s.ndimf = 1;
+            mu = DomainFunction(s);
+        end
+
+        function k = createBulk(obj)
+            s.operation = @(xV) obj.computeBulk(xV);
+            s.ndimf = 1;
+            k = DomainFunction(s);
+        end    
+
+    end
     
     methods (Access = protected)
 
@@ -29,23 +45,42 @@ classdef IsotropicElasticMaterial < Material
             end            
         end
 
-        function [mu,k] = computeShearAndBulk(obj,xV)
+           
+
+        function [muV,kV] = computeShearAndBulk(obj,xV)
             if isempty(obj.shear) && isempty(obj.bulk)
-                E  = obj.young.evaluate(xV);
-                nu = obj.poisson.evaluate(xV);  
-                mu = obj.computeMuFromYoungAndPoisson(E,nu);               
-                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+                mu = obj.createShear();
+                k  = obj.createBulk();
             else
-                mu = obj.shear.evaluate(xV);
-                k  = obj.bulk.evaluate(xV); 
+                mu = obj.shear;
+                k  = obj.bulk;
             end
+            muV = mu.evaluate(xV);
+            kV  = k.evaluate(xV);
         end
 
 
     end
 
+    methods (Access = private)
+
+        function mu = computeShear(obj,xV)
+            E  = obj.young.evaluate(xV);
+            nu = obj.poisson.evaluate(xV);
+            mu = obj.computeMuFromYoungAndPoisson(E,nu);
+        end
+
+        function k = computeBulk(obj,xV)
+            E  = obj.young.evaluate(xV);
+            nu = obj.poisson.evaluate(xV);
+            N  = obj.ndim;
+            k  = obj.computeKappaFromYoungAndPoisson(E,nu,N);
+        end        
+
+    end
+
     methods (Access = public, Static)   
-       
+
         function mu = computeMuFromYoungAndPoisson(E,nu)
             mu = E./(2*(1+nu));
         end

@@ -7,23 +7,30 @@ end
 function fVR = evaluate(A,B,xV)
     aEval = computeLeftSideEvaluation(A,xV);
     bEval = computeRightSideEvaluation(B,xV);
-    fVR = pagemtimes(aEval,bEval);
+    AddB  = pagemtimes(aEval,bEval);
+    fVR   = squeezeParticular(AddB, 2);
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
     res      = A.evaluate(xV);
-    if size(res,2) == 1
-        aEval = pagetranspose(res);
-    else
-        aEval = res;
+    n        = ndims(res);
+    isTensor = n>=4;
+    switch isTensor
+        case true
+            aEval = res;
+        otherwise
+            aEval(1,:,:,:) = res;
     end
 end
 
 function bEval = computeRightSideEvaluation(B,xV)
     res      = B.evaluate(xV);
-    if size(res,1) == 1
-        bEval = pagetranspose(res);
-    else
-        bEval = res;
+    n        = ndims(res);
+    isTensor = n>=4;
+    switch isTensor
+        case true
+            bEval = res;
+        otherwise
+            bEval(:,1,:,:) = res;
     end
 end

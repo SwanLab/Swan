@@ -57,7 +57,6 @@ classdef HomogenizedPhaseField < handle
 
         function init(obj,cParams)
             obj.fileName       = cParams.fileName;
-            obj.microParams{1} = cParams.microParams;
         end
 
         function [mxV, C] = loadVademecum(obj)

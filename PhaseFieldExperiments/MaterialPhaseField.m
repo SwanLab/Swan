@@ -1,11 +1,10 @@
-classdef MaterialPhaseField < IsotropicElasticMaterial
+classdef MaterialPhaseField < Material
     
     properties (Access = public)
         ndimf
     end
 
     properties (Access = private)
-        fun
         phi
         u
         tensorType
@@ -13,7 +12,8 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     properties (Access = private)
         mesh
-        matInterpolation
+        degradation
+        baseMaterial
         Gc
     end
 
@@ -21,37 +21,31 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
         function obj = MaterialPhaseField(cParams)
             obj.init(cParams)
-            obj.initPhaseField(cParams)
         end
 
         function C = obtainTensor(obj)
-            obj.fun = obj.matInterpolation.fun;
-            s.operation = @(xV) obj.evaluate(xV);
-            s.ndimf = 9;
-            C{1} = DomainFunction(s);
+            f    = obj.degradation.fun;
+            C{1} = obj.createDegradedMaterial(f);
         end
 
         function dC = obtainTensorDerivative(obj)
-            obj.fun = obj.matInterpolation.dfun;
-            s.operation = @(xV) obj.evaluate(xV);
-            s.ndimf = 9;
-            dC{1} =  DomainFunction(s);
-
+            df    = obj.degradation.dfun;
+            dC{1} = obj.createDegradedConstitutiveTensor(df);
         end
 
         function ddC = obtainTensorSecondDerivative(obj)
-            obj.fun = obj.matInterpolation.ddfun;
-            s.operation = @(xV) obj.evaluate(xV);
-            s.ndimf = 9;
-            ddC{1} =  DomainFunction(s);
+            ddf    = obj.degradation.ddfun;
+            ddC{1} = obj.createDegradedConstitutiveTensor(ddf);
         end
 
+
+
         function kFun = getBulkFun(obj,u,phi,interpType)
-            obj.setMaterial(u,phi,interpType,'');
+            obj.setDesignVariable(u,phi,interpType,'');
             [g,~] = obj.computeDegradationFun();
 
-            E = obj.young.fValues;
-            nu = obj.poisson.fValues;
+            E  = obj.baseMaterial.young.fValues;
+            nu = obj.baseMaterial.poisson.fValues;
             kV = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
 
             s.mesh = obj.mesh;
@@ -63,10 +57,10 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
         end
 
         function muFun = getShearFun(obj,u,phi,interpType)
-            obj.setMaterial(u,phi,interpType,'');
+            obj.setDesignVariable(u,phi,interpType,'');
             [~,g0] = obj.computeDegradationFun();
 
-            E = obj.young.fValues;
+            E  = obj.baseMaterial.young.fValues;
             nu = obj.poisson.fValues;
             muV = obj.computeMuFromYoungAndPoisson(E,nu);
             
@@ -88,55 +82,81 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
     methods (Access = private)
 
-        function initPhaseField(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.matInterpolation = cParams.materialInterpolation;
-            obj.Gc = cParams.Gc;
-            obj.ndimf = 9;
+        function init(obj,cParams)
+            obj.mesh         = cParams.mesh;
+            obj.degradation  = cParams.degradation;
+            obj.baseMaterial = cParams.baseMaterial;
+            obj.Gc           = cParams.Gc;
+            obj.ndimf        = 9;
         end
 
     end
 
     methods (Access = private)
 
-        function C = evaluate(obj,xV)
-            [mu,l] = obj.computeMatTensorParams(xV);
-            nPoints = size(mu,3);
-            nElem = size(mu,4);
-            nStre = 3;
-            C = zeros(nStre,nStre,nPoints,nElem);
-            C(1,1,:,:)= 2*mu+l;
-            C(1,2,:,:)= l;
-            C(2,1,:,:)= l;
-            C(2,2,:,:)= 2*mu+l;
-            C(3,3,:,:)= mu;
+        function C = createDegradedConstitutiveTensor(obj,f)
+            s.operation = @(xV) obj.evaluateConstiutiveTensor(xV,f);
+            s.ndimf = 9;
+            C =  DomainFunction(s);
         end
 
-        function [mu,l] = computeMatTensorParams(obj,xV)
-            [g, g0] = obj.computeDegradationFun();
-            [mu, k] = obj.computeMuAndKappa(g,g0,xV);
-            l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
+        function C = evaluateConstiutiveTensor(obj,xV,fun)
+            dMat = obj.createDegradedMaterial(fun);
+            C = dMat.evaluate(xV);
         end
 
-        function [g, g0] = computeDegradationFun(obj)
-            s.operation = @(xV) obj.fun(obj.phi.evaluate(xV));
-            s.ndimf = obj.phi.ndimf;
-            g0 = DomainFunction(s);
-
-            trcSign = Heaviside(trace(SymGrad(obj.u)));
-            g = g0.*trcSign + (1-trcSign);
+        function m = createDegradedMaterial(obj,degFun)
+            df    = degFun;
+            mu    = obj.baseMaterial.createShear();
+            kappa = obj.baseMaterial.createBulk();
+            degM  = obj.createDegradedLameParameterFunction(mu,df);
+            degK  = obj.createDegradedLameParameterFunction(kappa,df);
+            s.shear = degM;
+            s.bulk  = degK;
+            s.ndim  = obj.mesh.ndim;
+            m = Isotropic2dElasticMaterial(s);
         end
 
-        function [mu, k] = computeMuAndKappa(obj,g,g0,xV)
-            [muV,kV] = obj.computeShearAndBulk(xV);
-            if obj.tensorType == "Deviatoric"
-                kV = 0.*kV;
-            elseif obj.tensorType == "Volumetric"
-                muV = 0.*muV; 
-            end
-            mu = g0.evaluate(xV).*muV;
-            k  = g.evaluate(xV).*kV;
-        end
+        % function [mu,l] = computeMatTensorParams(obj,xV,fun)
+        %     [g, g0] = obj.computeDegradationFun(fun);
+        %     [mu, k] = obj.computeMuAndKappa(g,g0,xV);
+        %     l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
+        % end
+        % 
+        % function [g, g0] = computeDegradationFun(obj,fun)
+        %     s.operation = @(xV) fun(obj.phi.evaluate(xV));
+        %     s.ndimf = obj.phi.ndimf;
+        %     g0 = DomainFunction(s);
+        % 
+        %     trcSign = Heaviside(trace(SymGrad(obj.u)));
+        %     g = g0.*trcSign + (1-trcSign);
+        % end
+        % 
+        % function [mu, k] = computeMuAndKappa(obj,g,g0,xV)
+        %     [muV,kV] = obj.baseMaterial.computeShearAndBulk(xV);
+        %     if obj.tensorType == "Deviatoric"
+        %         kV = 0.*kV;
+        %     elseif obj.tensorType == "Volumetric"
+        %         muV = 0.*muV; 
+        %     end
+        %     mu = g0.evaluate(xV).*muV;
+        %     k  = g.evaluate(xV).*kV;
+        % end        
+    
+        function xf = createDegradedLameParameterFunction(obj,x,f)
+            s.operation = @(xV) x.evaluate(xV).*obj.evaluateDegradation(f,xV);
+            s.ndimf = 1;
+            xf =  DomainFunction(s);
+        end      
+
+        function fV = evaluateDegradation(obj,f,xV)
+            phiV = obj.phi.evaluate(xV);
+            fV = f(phiV);
+        end            
+
+
     end
+
+
 
 end

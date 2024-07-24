@@ -26,7 +26,7 @@ classdef LagrangianFunction < FeFunction
             nPoints = size(shapes,2);
             nDimf      = size(obj.fValues,2);
             nElem   = size(obj.connec,1);
-            fxV = zeros(nDimf,1,nPoints,nElem);
+            fxV = zeros(nDimf,nPoints,nElem);
             for iDimf = 1:nDimf
                 for iNodeE = 1:nNodesE
                     dofE = (iNodeE-1)*nDimf + iDimf;
@@ -34,8 +34,8 @@ classdef LagrangianFunction < FeFunction
                     nodes = (dofs - iDimf)/nDimf + 1;
                     Ni = shapes(iNodeE,:);
                     fi = obj.fValues(nodes,iDimf);
-                    f(1,1,:,:) = (fi*Ni)';
-                    fxV(iDimf,:,:,:) = fxV(iDimf,:,:,:)  + f;
+                    f(1,:,:) = (fi*Ni)';
+                    fxV(iDimf,:,:) = fxV(iDimf,:,:)  + f;
                 end
             end
         end

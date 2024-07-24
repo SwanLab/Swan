@@ -34,8 +34,8 @@ classdef LHSintegratorFunctionMass < LHSintegrator
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            fG = pagetranspose(squeezeParticular(obj.fun.evaluate(quad.posgp),2));
-
+            fG = obj.fun.evaluate(quad.posgp);
+            fG = squeezeParticular(fG,1);
             M = zeros(nDofTest, nDofTrial, nElem);
             % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);
             % for igaus = 1:nGaus
