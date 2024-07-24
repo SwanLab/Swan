@@ -27,14 +27,11 @@ classdef PhaseFieldDissipationInterpolator < handle
 
         function computeDissipationFunctionAndDerivatives(obj)
             p = obj.pExp;
-            
+            e = 1e-12;
+
             obj.fun      = @(phi) abs(phi).^p;
             obj.dfun     = @(phi) p*(abs(phi)).^(p-1);
-            if p == 1
-                obj.ddfun  = @(phi) 0*(abs(phi));
-            else
-                obj.ddfun  = @(phi) p*(p-1)*(abs(phi)).^(p-2);
-            end
+            obj.ddfun    = @(phi) p*(p-1)*(abs(phi+e)).^(p-2);
         end
 
     end

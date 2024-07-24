@@ -143,7 +143,6 @@ classdef PhaseFieldComputer < handle
             obj.steps = length(cParams.bcVal);
 
             obj.mesh                     = cParams.mesh;
-            obj.phi               = cParams.initialPhaseField;
             obj.materialPhaseField       = cParams.materialPhaseField;
             obj.dissipationInterpolation = cParams.dissipationPhaseField;
             obj.l0 = cParams.l0;
@@ -192,13 +191,13 @@ classdef PhaseFieldComputer < handle
 
         function RHS = computeElasticResidual(obj,u,phi)
             fExt = obj.BC.pointloadFun;
-            [Fint,~] = obj.functional.energy.computeGradient(u,phi,'LINEAR');
-            Fext = obj.functional.extWork.computeGradient(u,fExt,'LINEAR');
+            [Fint,~] = obj.functional.energy.computeGradient(u,phi,2);
+            Fext = obj.functional.extWork.computeGradient(u,fExt,1);
             RHS = Fint + Fext;
         end
 
         function LHS = computeElasticLHS(obj,u,phi)
-            [LHS,~] = obj.functional.energy.computeHessian(u,phi,'LINEAR');
+            [LHS,~] = obj.functional.energy.computeHessian(u,phi,2);
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn)
@@ -251,53 +250,53 @@ classdef PhaseFieldComputer < handle
         %%% LHS %%%
         % Internal energy mass matrix
         function Mi = createInternalEnergyMassMatrix(obj,u,phi)
-            [~,Hphiphi] = obj.functional.energy.computeHessian(u,phi,'QUADRATIC');
+            [~,Hphiphi] = obj.functional.energy.computeHessian(u,phi,2);
             Mi = Hphiphi;
         end
 
         % Dissipation mass matrix
         function Md = createDissipationMassMatrix(obj,phi)
-            Md = obj.functional.localDamage.computeHessian(phi,'LINEAR');
+            Md = obj.functional.localDamage.computeHessian(phi,2);
         end
 
         % Stiffness matrix
         function K = createStiffnessMatrix(obj,phi)
-            K = obj.functional.nonLocalDamage.computeHessian(phi,'QUADRATIC');
+            K = obj.functional.nonLocalDamage.computeHessian(phi,2);
         end
 
         %%% RHS %%%
         % Internal energy force vector
         function Fi = createInternalEnergyForceVector(obj,u,phi)
-            [~,Jphi] = obj.functional.energy.computeGradient(u,phi,'QUADRATIC');
+            [~,Jphi] = obj.functional.energy.computeGradient(u,phi,2);
             Fi = Jphi;
         end
         
         % Dissipation force vector
         function Fd = createDissipationForceVector(obj,phi)
-            Fd = obj.functional.localDamage.computeGradient(phi,'LINEAR');     
+            Fd = obj.functional.localDamage.computeGradient(phi,2);     
         end
        
         % Force derivative vector
         function DF = createForceDerivativeVector(obj,phi)
-            DF = obj.functional.nonLocalDamage.computeGradient(phi,'LINEAR');
+            DF = obj.functional.nonLocalDamage.computeGradient(phi,2);
         end
 
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalInternalEnergy(obj,u,phi)
-            totVal = obj.functional.energy.computeFunction(u,phi,'QUADRATIC');
+            totVal = obj.functional.energy.computeFunction(u,phi,2);
         end
 
         function totVal = computeTotalDissipationLocal(obj,phi)
-            totVal = obj.functional.localDamage.computeFunction(phi,'QUADRATIC');
+            totVal = obj.functional.localDamage.computeFunction(phi,2);
         end
 
         function totVal = computeTotalRegularizationTerm(obj,phi)
-            totVal = obj.functional.nonLocalDamage.computeFunction(phi,'CONSTANT');
+            totVal = obj.functional.nonLocalDamage.computeFunction(phi,2);
         end
 
         function totVal = computeTotalExternalWork(obj,u)
             fExt = obj.BC.pointloadFun;
-            totVal = obj.functional.extWork.computeFunction(u,fExt,'LINEAR');
+            totVal = obj.functional.extWork.computeFunction(u,fExt,2);
         end
 
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%

@@ -43,7 +43,7 @@ classdef ShFunc_LocalDamage < handle
             
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
             s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.function = ddAlphaFun;
+            s.fun = ddAlphaFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;

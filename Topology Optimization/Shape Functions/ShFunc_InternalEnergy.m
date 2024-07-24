@@ -68,7 +68,8 @@ classdef ShFunc_InternalEnergy < handle
             C = obj.materialPhaseField.obtainTensor(); 
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = u;
+            s.trial     = u;
+            s.test      = u;
             s.material = C{1};
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
@@ -79,7 +80,7 @@ classdef ShFunc_InternalEnergy < handle
             ddC = obj.materialPhaseField.obtainTensorSecondDerivative();
             ddEnergyFun = DDP(Voigt(SymGrad(u)),DDP(ddC{1},Voigt(SymGrad(u))));
             
-            s.function = ddEnergyFun;
+            s.fun = ddEnergyFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.mesh = obj.mesh;
