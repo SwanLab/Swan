@@ -1,72 +1,70 @@
 classdef TestingPhaseField < handle
 
-    properties (Access = public)
-        E  = 210;
-        nu = 0.3;
-        Gc = 5e-3;
-        l0 = 0.1;
-        pExp = 2;
-        % bcVal = [linspace(0,8.5e-3,100), ...
-        %         linspace(8.5e-3,0,100), ...
-        %         linspace(0,-1e-2,100), ...
-        %         ];
-        bcVal = linspace(1e-4,1e-1,100);
-        % bcVal = 1;
-        % bcVal = [0.001];
-
-        % 1) CHANGE MESH
-        % 2) CHANGE BC (TYPE AND DIRECTION)
-        % 3) CHANGE REACTIONS (TYPE AND DIRECTION)
-    end
-
     properties (Access = private)
+        benchmark;
+        matInfo;
+        pExp;
+        l0;
     end
 
     properties (Access = private)
         mesh
+        boundaryConditions
         initialPhaseField
         materialPhaseField
         dissipationPhaseField
         constant
+
+        outputData
     end
 
     methods (Access = public)
 
-        function obj = TestingPhaseField()
-            obj.init()
-            obj.createMesh();
+        function obj = TestingPhaseField() %cParams
+            obj.init() %cParams
+            obj.defineCase();
             obj.createInitialPhaseField();
             obj.createMaterialPhaseField();
             obj.createDissipationInterpolation();
-            obj.solveProblem();
+            obj.outputData = obj.solveProblem();
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj, ~)
+            obj.benchmark.type.mesh = '1Elem';
+            obj.benchmark.type.case = 'traction'; %'shear'
+            obj.benchmark.type.bc = 'displacementTraction';
+            obj.benchmark.bcValues = linspace(1e-4,1e-1,100);
+            obj.matInfo.E  = 210;
+            obj.matInfo.nu = 0.3;
+            obj.matInfo.Gc = 5e-3;
+            obj.matInfo.matType = 'PhaseFieldAnalytic'; %'PhaseFieldHomog'
+            obj.l0 = 0.1;
+            obj.pExp = 2;
+
             close all
+            % obj.matInfo = cParams.matInfo;
+            % obj.benchmark = cParams.benchmark;
+            % obj.l0 = cParams.l0;
+            % obj.pExp = cParams.pExp;
         end
 
-        function solveProblem(obj)
+        function outputData = solveProblem(obj)
             s.mesh = obj.mesh;
             s.initialPhaseField = obj.initialPhaseField;
             s.materialPhaseField = obj.materialPhaseField;
             s.dissipationPhaseField = obj.dissipationPhaseField;
+            s.boundaryConditions = obj.boundaryConditions;
             s.l0 = obj.l0;
             s.constant = obj.constant;
-            s.bcVal = obj.bcVal;
-            PhaseFieldComputer(s);
+            outputData = PhaseFieldComputer(s);
         end
 
-        function createMesh(obj)
-            %obj.createOneElementMesh();
-            %obj.createTwoElementMesh();
-            obj.createArbitraryElementMesh(1,1,10,10);
-            %obj.createFiberMatrixMesh();
-            %obj.createSingleEdgeNotchedMesh();
-            %obj.createLshapeMesh();
+        function defineCase(obj)
+            [obj.mesh, obj.boundaryConditions] = benchmarkManager.create(obj.benchmark);
         end
 
         function createInitialPhaseField(obj)
@@ -75,27 +73,16 @@ classdef TestingPhaseField < handle
         end
 
         function createMaterialPhaseField(obj)
-             sParam.mesh = obj.mesh;
-             sParam.order = 'P1';
-             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.E;
-             s.young = LagrangianFunction(sParam);
-             sParam.fValues = ones(obj.mesh.nnodes,1)*obj.nu;
-             s.poisson = LagrangianFunction(sParam);
-             
-             sIso.ndim = obj.mesh.ndim;
-             sIso.young = s.young ;
-             sIso.poisson = s.poisson;
-
-             
-             s.mesh         = obj.mesh;
-             s.baseMaterial = Isotropic2dElasticMaterial(sIso);  
-             s.degradation  = obj.createMaterialInterpolation();
-             s.Gc = obj.Gc;
-             
-             obj.materialPhaseField = MaterialPhaseField(s);
+            s.mesh = obj.mesh;
+            s.baseMaterial = obj.createBaseMaterial();
+            s.degradation  = obj.createMaterialInterpolation();
+            s.Gc = obj.matInfo.Gc;
+            s.type = obj.matInfo.matType;
+            obj.materialPhaseField = MaterialPhaseField(s);
 
             % sH.fileName    = 'IsoMicroDamage';
             % obj.materialPhaseField = HomogenizedPhaseField(sH);
+            obj.materialPhaseField = Material.create(s);
         end
 
         function createDissipationInterpolation(obj)
@@ -105,9 +92,9 @@ classdef TestingPhaseField < handle
             obj.dissipationPhaseField = MaterialInterpolator.create(s);
 
             if s.pExp == 1
-                obj.constant = obj.Gc/(4*(2/3));
+                obj.constant = obj.matInfo.Gc/(4*(2/3));
             else%if s.pExp == 2
-                obj.constant = obj.Gc/(4*(1/2));
+                obj.constant = obj.matInfo.Gc/(4*(1/2));
             end
         end
 
@@ -121,82 +108,18 @@ classdef TestingPhaseField < handle
 
     methods (Access = private)
 
-        function createOneElementMesh(obj)
-            sM.coord = [0,0;
-                1,0;
-                1,1;
-                0,1];
-            sM.connec = [1 2 3 4];
+        function mat = createBaseMaterial(obj)
+            sParam.mesh = obj.mesh;
+            sParam.order = 'P1';
+            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.matInfo.E;
+            young = LagrangianFunction(sParam);
+            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.matInfo.nu;
+            poisson = LagrangianFunction(sParam);
 
-            m = Mesh.create(sM);
-            m.plot();
-            obj.mesh = m;
-        end
-
-        function createTwoElementMesh(obj)
-            sM.coord = [0,0;
-                        1,0;
-                        2,0;
-                        0,1;
-                        1,1;
-                        2,1];
-            sM.connec = [1 2 5 4
-                2 3 6 5];
-
-            m = Mesh.create(sM);
-            m.plot();
-            obj.mesh = m;
-        end
-
-        function createArbitraryElementMesh(obj,lx, ly, nx,ny)
-            m = QuadMesh(lx, ly, nx, ny);
-            m.plot();
-            obj.mesh = m;
-        end
-
-        function createFiberMatrixMesh(obj) %%%%%% REVIEW LEVEL SETS %%%%%%%%%%%%%%%
-            % Generate coordinates
-            x1 = linspace(0,1,20);
-            x2 = linspace(1,2,20);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            sBg.coord  = V(:,1:2);
-            sBg.connec = F;
-            bgMesh = Mesh.create(sBg);
-            bdMesh  = bgMesh.createBoundaryMesh();
-            
-            % Level set creation
-            sLS.type       = 'circleInclusion';
-            sLS.mesh       = bgMesh;
-            sLS.ndim       = 2;
-            sLS.fracRadius = 0.4;
-            sLS.coord      = bgMesh.coord;
-            ls = LevelSetCreator.create(sLS);
-            levelSet = ls.getValue();
-
-            sUm.backgroundMesh = bgMesh;
-            sUm.boundaryMesh   = bdMesh;
-            uMesh = UnfittedMesh(sUm);
-            uMesh.compute(levelSet);
-            
-            obj.mesh = uMesh.createInnerMeshGoodConditioning();
-            obj.mesh.plot;
-        end
-
-        function createSingleEdgeNotchedMesh(obj)
-            file = 'PF_SENmesh';
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;
-        end
-
-        function createLshapeMesh(obj)
-            file = 'PF_Lmesh';
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;
+            sIso.ndim = obj.mesh.ndim;
+            sIso.young = young;
+            sIso.poisson = poisson;
+            mat = Isotropic2dElasticMaterial(sIso);
         end
     end
 

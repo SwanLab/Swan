@@ -8,12 +8,10 @@ classdef PhaseFieldComputer < handle
     end
 
     properties (Access = private)
-        steps
-        bcVal 
 
         mesh
-        BC
-        
+        boundaryConditions
+        initialPhaseField
         materialPhaseField
         dissipationInterpolation
 
@@ -139,22 +137,21 @@ classdef PhaseFieldComputer < handle
     methods (Access = private)
         %% %%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function init(obj,cParams)
-            obj.bcVal = cParams.bcVal;
-            obj.steps = length(cParams.bcVal);
-
             obj.mesh                     = cParams.mesh;
+            obj.initialPhaseField        = cParams.initialPhaseField;
             obj.materialPhaseField       = cParams.materialPhaseField;
             obj.dissipationInterpolation = cParams.dissipationPhaseField;
+            obj.boundaryConditions       = cParams.boundaryConditions;
             obj.l0 = cParams.l0;
             obj.constant = cParams.constant;
-
-            obj.data.mat.reaction = zeros(1,obj.steps);
-            obj.data.mat.displacementTip = zeros(1,obj.steps);
-            obj.data.mat.maxDamage = zeros(1,obj.steps);
-            obj.data.mat.stress = zeros(1,obj.steps);
-            obj.data.mat.strain = zeros(1,obj.steps);
-            obj.data.mat.energies = zeros(4,obj.steps);
-            obj.data.mat.iterations = zeros(3,obj.steps);
+            
+            % obj.data.mat.reaction = zeros(1,obj.steps);
+            % obj.data.mat.displacementTip = zeros(1,obj.steps);
+            % obj.data.mat.maxDamage = zeros(1,obj.steps);
+            % obj.data.mat.stress = zeros(1,obj.steps);
+            % obj.data.mat.strain = zeros(1,obj.steps);
+            % obj.data.mat.energies = zeros(4,obj.steps);
+            % obj.data.mat.iterations = zeros(3,obj.steps);
         end
 
         function createBoundaryConditions(obj,prescribedVal)
