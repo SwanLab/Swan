@@ -6,7 +6,7 @@ classdef HyperelasticProblem < handle
 
     properties (Access = private)
         mesh
-        neohookeanFun
+        neohookeanFun, linearElasticityFun
         material, materialElastic
         bc_case = 'HoleDirich'
     end
@@ -30,9 +30,6 @@ classdef HyperelasticProblem < handle
             obj.applyDirichletToUFun(bc);
 
             nsteps = 100;
-            displ_grafic = [];
-            fext_grafic = [];
-            nrg_grafic = [];
             energies = [];
             alpha = 1e-3;
             react = zeros(obj.uFun.nDofs,1);
@@ -59,7 +56,6 @@ classdef HyperelasticProblem < handle
                 prenorm = 100;
                 hasNotConverged = 1;
                 while hasNotConverged %residual > 10e-8
-
                     % Update U
                     % [deltaUk,~] = obj.solveProblem(hess,-R,u_k);
                     
@@ -78,12 +74,8 @@ classdef HyperelasticProblem < handle
 %                     hess = obj.neohookeanFun.computeHessian(obj.uFun);
                     R = Fint - Fext ;
                     nrg = obj.neohookeanFun.compute(obj.uFun);
-
-%                     residual = norm(R(free));%/norm(Fext)
                     hasNotConverged = abs(nrg-old_nrg)/nrg0 > 10e-12;
                     old_nrg = nrg;
-%                     sigma = obj.computeCauchyStress();
-%                     lambdas = obj.computeStretches();
 
                     % Plot
                     i = i+1;
@@ -95,32 +87,6 @@ classdef HyperelasticProblem < handle
                 end
                 obj.uFun.print(['SIM_Bending_',int2str(iStep)])
 
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-
-                isRight  = @(coor)  abs(coor(:,1))==xMax;
-                isBottom = @(coor)  abs(coor(:,2))==0;
-                isLeft  = @(coor)  abs(coor(:,1))==0;
-                isTop = @(coor)  abs(coor(:,2))==yMax;
-                isMiddle  = @(coor)  abs(coor(:,1))==xMax/2;
-%                 bot_right = @(coor) isBottom(coor) & isRight(coor);
-                bot_right = @(coor) isRight(coor) & isTop(coor);
-                dof = obj.uFun.getDofsFromCondition(bot_right);
-                dof = dof(2);
-                nDimf = obj.uFun.ndimf;
-                nNode = obj.mesh.nnodes;
-                dofToDim = repmat(1:nDimf,[1,nNode]);
-                dofToNode = repmat(1:nNode, nDimf, 1);
-                dofToNode = dofToNode(:);
-
-                nod = dofToNode(dof);
-                dof_dir = dofToDim(dof); 
-
-%                 nrg_grafic  = [nrg_grafic, nrg];
-                displ_grafic = [displ_grafic, obj.uFun.fValues(nod, dof_dir)];
-                fext_grafic  = [fext_grafic, sum(Fext)];
-                posgp = Quadrature.create(obj.mesh,1).posgp;
-
                 num_is(iStep) = i;
                 f = figure(1);
                 clf(f)
@@ -129,8 +95,6 @@ classdef HyperelasticProblem < handle
                 title('Energies')
                 xlabel('displacement (m)')
                 ylabel('force (N)')
-%                 subplot(1,3,2)
-%                 plot(1:iStep, nrg_grafic,'-x')
                 subplot(1,2,2)
                 bar(1:iStep, num_is)
                 title('Number of iterations to converge \DeltaF')
@@ -138,10 +102,6 @@ classdef HyperelasticProblem < handle
                 ylabel('num. iterations')
                 hold on
                 drawnow
-%                 addpoints(fig2, obj.uFun.fValues(3,1), Fext(5))
-%                 drawnow
-%                 num_is(iStep) = i;
-
             end
 
         end
@@ -154,7 +114,7 @@ classdef HyperelasticProblem < handle
             obj.createMesh();
             obj.createMaterial();
             obj.createDisplacementFun();
-            obj.createNeohookeanFunctional();
+            obj.createFunctionals();
         end
 
         function fem = solveElasticProblem(obj, perc)
@@ -169,8 +129,19 @@ classdef HyperelasticProblem < handle
             fem.solve();
         end
 
+        function createFunctionals(obj)
+            obj.createLinearElasticityFunctional();
+            obj.createNeohookeanFunctional();
+        end
+
+        function createLinearElasticityFunctional(obj)
+            s.material = obj.materialElastic;
+            s.mesh     = obj.mesh;
+            elas = LinearElasticityFunctional(s);
+            obj.linearElasticityFun = elas;
+        end
+
         function createNeohookeanFunctional(obj)
-            % Create Neohookean Functional
             s.material = obj.material;
             s.mesh     = obj.mesh;
             neo = NeohookeanFunctional(s);
@@ -187,7 +158,6 @@ classdef HyperelasticProblem < handle
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
 %                     obj.mesh = UnitHexaMesh(15,15,15);
-
             end
         end
         
@@ -238,6 +208,7 @@ classdef HyperelasticProblem < handle
 
         function intfor = computeInternalForces(obj)
             intfor = obj.neohookeanFun.computeGradient(obj.uFun);
+            intforel = obj.linearElasticityFun.computeGradient(obj.uFun);
         end
 
         function rshp = reshapeToVector(obj, A)
