@@ -4,7 +4,8 @@ function dom = VolumetricElasticEnergyDensity(u,kappa)
 end
 
 function fVR = evaluate(u,kappa, xV)
-    divu = Divergence(u);
-    dbE  = DDP(kappa,DDP(divu,divu));
-    fVR  = 0.5*dbE.evaluate(xV);
+    N   = u.ndimf;
+    ev  = VolumetricStrain(u);
+    dbE = DDP(ev,ev).*kappa;
+    fVR = 0.5*N*dbE.evaluate(xV);
 end
