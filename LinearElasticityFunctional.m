@@ -32,7 +32,7 @@ classdef LinearElasticityFunctional < handle
             test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
 
             s.mesh = obj.mesh;
-            s.quadratureOrder = 1;
+            s.quadratureOrder = 3;
             s.type = 'ShapeSymmetricDerivative';
             RHS = RHSintegrator.create(s);
             Ju = RHS.compute(sigma,test);
@@ -42,7 +42,7 @@ classdef LinearElasticityFunctional < handle
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.material = obj.material;
-            s.quadratureOrder = 2;
+            s.quadratureOrder = 3;
             s.test     = LagrangianFunction.create(obj.mesh,uFun.ndimf, 'P1');
             s.trial    = uFun;
             LHS = LHSintegrator.create(s);

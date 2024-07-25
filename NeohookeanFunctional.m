@@ -97,7 +97,7 @@ classdef NeohookeanFunctional < handle
             nDimf = uFun.ndimf;
             trial = uFun;
             test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
-            quad = Quadrature.create(obj.mesh,2);
+            quad = Quadrature.create(obj.mesh,3);
 
             xG = quad.posgp;
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
