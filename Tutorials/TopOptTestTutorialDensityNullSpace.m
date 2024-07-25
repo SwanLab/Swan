@@ -56,11 +56,12 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
-            s.plotting = true;
-            dens    = DesignVariable.create(s);
+            
+            sD.fun      = aFun.project('P1');
+            sD.mesh     = obj.mesh;
+            sD.type     = 'Density';
+            sD.plotting = true;
+            dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
 
@@ -95,9 +96,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
