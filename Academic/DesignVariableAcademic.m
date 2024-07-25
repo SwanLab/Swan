@@ -24,6 +24,11 @@ classdef DesignVariableAcademic < handle
             nX0    = norm(obj.valuesOld(:,end));
             res    = nIncX/nX0;
         end
+
+        function f = copy(obj)
+            s.x0 = obj.fun.fValues;
+            f    = DesignVariableAcademic(s);
+        end
     end
 
     methods (Access = private)

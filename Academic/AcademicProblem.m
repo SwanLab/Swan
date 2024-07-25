@@ -31,6 +31,19 @@ classdef AcademicProblem < handle
             obj.createAcademicConstraint(cParams);
             obj.createOptimizer(cParams);
             obj.createPathPlotter(cParams);
+
+
+            s.cost = obj.cost;
+            s.designVariable = obj.designVariable;
+            s.constraint = obj.constraint;
+            Lip = LipschitzConstantComputer(s);
+            x = obj.designVariable.fun.fValues;
+            sampleX(:,1) = x-2*x;
+            sampleX(:,2) = x-x;
+            sampleX(:,3) = x;
+            sampleX(:,4) = x+x;
+            sampleX(:,5) = x+2*x;
+            L = Lip.compute(sampleX);
         end
 
         function createDesignVariable(obj,cParams)
