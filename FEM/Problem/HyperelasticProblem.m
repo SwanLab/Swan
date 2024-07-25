@@ -187,7 +187,7 @@ classdef HyperelasticProblem < handle
 
         function createMesh(obj)
 %             obj.mesh = HexaMesh(2,1,1,20,5,5);
-            obj.mesh = UnitHexaMesh(15,15,15);
+%             obj.mesh = UnitHexaMesh(15,15,15);
 %             obj.mesh = UnitQuadMesh(10,10);
 
 %             % Hole mesh
@@ -207,13 +207,13 @@ classdef HyperelasticProblem < handle
 %             
 %             IM = uMesh.createInnerMesh();
 %             obj.mesh = IM;
-%             obj.mesh = Mesh.createFromGiD('hole_mesh_quad.m');
+            obj.mesh = Mesh.createFromGiD('hole_mesh_quad.m');
         end
         
         function createMaterial(obj)
             % Only 3D
             obj.material.mu = 1;        % Pa
-            obj.material.lambda = 1*10; % Pa
+            obj.material.lambda = 1; % Pa
 
             k = obj.material.lambda + 2/3 * obj.material.mu; % canviar
             G = obj.material.mu;
@@ -246,8 +246,8 @@ classdef HyperelasticProblem < handle
         function createBoundaryConditions(obj)
 %             obj.createBC_2DTraction();
 %             obj.createBC_2DBending();
-%             obj.createBC_2DHole();
-            obj.createBC_3DCube();
+            obj.createBC_2DHole();
+%             obj.createBC_3DCube();
         end
 
         function createDisplacementFun(obj)
@@ -427,7 +427,7 @@ classdef HyperelasticProblem < handle
 % 
             sPL.domain    = @(coor) isTop(coor);
             sPL.direction = 2;
-            sPL.value     = 1;
+            sPL.value     = 0.1;
             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
 
             [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
