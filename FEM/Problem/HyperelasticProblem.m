@@ -192,8 +192,8 @@ classdef HyperelasticProblem < handle
         end
         
         function createMaterial(obj)
-            obj.material.mu = 1*1000;
-            obj.material.lambda = 1*10*1000;
+            obj.material.mu = 1;
+            obj.material.lambda = 1*1;
             obj.materialElastic = obj.createElasticMaterial();
         end
 
