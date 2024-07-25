@@ -44,8 +44,16 @@ classdef DomainFunction < handle
         end
 
         function r = times(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
+            if not(isfloat(a))
+                aOp = DomainFunction.computeOperation(a);
+            else
+                aOp = @(xV) a;
+            end
+            if not(isfloat(b))
+                bOp = DomainFunction.computeOperation(b);
+            else
+                bOp = @(xV) b;
+            end
             s.operation = @(xV) aOp(xV).*bOp(xV);
             r = DomainFunction(s);
         end
