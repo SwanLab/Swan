@@ -21,7 +21,7 @@ classdef HyperelasticProblem < handle
             close all;
             obj.init();
             obj.computeFreeDofs();
-         
+
             u  = obj.uFun;
             f = animatedline;
 
@@ -35,18 +35,20 @@ classdef HyperelasticProblem < handle
 
                 loadPercent = iStep/nsteps;
                 bc = obj.createBoundaryConditions(loadPercent);
+                u  = obj.computeInitialElasticGuess(bc);
                 u  = obj.applyDirichletToUFun(u,bc);
 
-                intEnergy(iter) = obj.neohookeanFun.compute(obj.uFun);
+%                 intEnergy(iter) = obj.neohookeanFun.compute(obj.uFun);
+                intEnergy(iter) = obj.linearElasticityFun.compute(obj.uFun);
                 Res = obj.computeResidual(u);
                 resi(iter) = norm(Res);
-                
+
 
 
                 hasNotConverged = 1;
-                while hasNotConverged 
+                while hasNotConverged
                     % Update U
-    
+
                     uVal = obj.reshapeToVector(u.fValues);
                     hess = obj.computeHessian(u);
                     Res  = obj.computeResidual(u);
@@ -57,14 +59,14 @@ classdef HyperelasticProblem < handle
 
                     iter = iter+1;
                     intEnergy(iter) = obj.neohookeanFun.compute(u);
-                    Res        = obj.computeResidual(u);    
+                    Res        = obj.computeResidual(u);
                     resi(iter) = norm(Res);
 
                     hasNotConverged = obj.hasNotConverged(intEnergy);
-                    
+
 
                 end
-                obj.uFun.print(['SIM_Bending_',int2str(iStep)])                
+                obj.uFun.print(['SIM_Bending_',int2str(iStep)])
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep);
             end
@@ -97,7 +99,7 @@ classdef HyperelasticProblem < handle
             TOL = 10e-12;
             energyOld = energy(end-1);
             energy    = energy(end);
-            hasNot = abs(energy-energyOld)/energy > TOL;        
+            hasNot = abs(energy-energyOld)/energy > TOL;
         end
 
         function init(obj)
@@ -107,17 +109,19 @@ classdef HyperelasticProblem < handle
             obj.createFunctionals();
         end
 
-        function fem = solveElasticProblem(obj, perc)
+        function u = computeInitialElasticGuess(obj, bc)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.materialElastic;
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions(perc);
+            s.boundaryConditions = bc;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             fem.solve();
-
+            %             u = obj.reshapeToVector(fem.uFun.fValues);
+            u = fem.uFun;
         end
 
         function createFunctionals(obj)
@@ -140,17 +144,17 @@ classdef HyperelasticProblem < handle
         end
 
         function Hf = computeHessian(obj,u)
-             H = obj.neohookeanFun.computeHessian(u);
-             f = obj.freeDofs;
-             Hf = H(f,f);
+            H = obj.neohookeanFun.computeHessian(u);
+            f = obj.freeDofs;
+            Hf = H(f,f);
         end
 
         function Rf = computeResidual(obj,u)
-             Fext          = obj.computeExternalForces();
-             [Fint,FintEl] = obj.computeInternalForces(u);
-             R = Fint - Fext;% - react;
-             f = obj.freeDofs;
-             Rf = R(f);
+            Fext          = obj.computeExternalForces();
+            [Fint,FintEl] = obj.computeInternalForces(u);
+            R = Fint - Fext;% - react;
+            f = obj.freeDofs;
+            Rf = R(f);
         end
 
         function nIter = computeNumberOfIterations(obj,iter,iterOld,iStep)
@@ -159,13 +163,13 @@ classdef HyperelasticProblem < handle
             else
                 nIter = iter-1-sum(iterOld(1:iStep-1));
             end
-        end            
+        end
 
         function computeFreeDofs(obj)
             bc = obj.createBoundaryConditions(1);
             nDofs = obj.uFun.nDofs;
             obj.freeDofs = setdiff(1:nDofs,bc.dirichlet_dofs);
-        end        
+        end
 
         function createMesh(obj)
             switch obj.bc_case
@@ -187,7 +191,7 @@ classdef HyperelasticProblem < handle
         end
 
         function mat = createElasticMaterial(obj)
-            
+
             G = obj.material.mu;
             L = obj.material.lambda;
             N = obj.mesh.ndim;
@@ -299,7 +303,7 @@ classdef HyperelasticProblem < handle
             bc = BCApplier(s);
             obj.bcApplier = bc;
         end
-        
+
 
     end
 
