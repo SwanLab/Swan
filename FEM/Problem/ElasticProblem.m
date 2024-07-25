@@ -9,13 +9,15 @@ classdef ElasticProblem < handle
 
     properties (Access = private)
         quadrature
-        boundaryConditions, BCApplier
+        boundaryConditions, bcApplier
 
         stiffness
-        solver, solverType, solverMode, solverCase
+        solverType, solverMode, solverCase
         scale
         
         strain, stress
+
+        problemSolver
     end
 
     properties (Access = protected)
@@ -96,11 +98,7 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'solverCase')
-                obj.solverCase  = cParams.solverCase;
-            else
-                obj.solverCase = 'DIRECT';
-            end
+            obj.solverCase  = cParams.solverCase;
         end
 
         function createDisplacementFun(obj)
@@ -120,12 +118,18 @@ classdef ElasticProblem < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
-            obj.BCApplier = bc;
+            obj.bcApplier = bc;
         end
 
         function createSolver(obj)
-            s.type     = obj.solverCase;
-            obj.solver = Solver.create(s);
+            sS.type      = obj.solverCase;
+            solver       = Solver.create(sS);
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.bcApplier;
+            obj.problemSolver    = ProblemSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -161,34 +165,12 @@ classdef ElasticProblem < handle
 
 
         function u = computeDisplacement(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.stiffness  = obj.stiffness;
-            s.forces     = obj.forces;
-            s.solver     = obj.solver;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.BCApplier;
-            s.uOld = zeros(size(obj.forces));
-            pb = ProblemSolver(s);
-            [u,L] = pb.solve();
-            
-            bc = obj.boundaryConditions;
-            dofs = 1:obj.displacementFun.nDofs;
-            free = setdiff(dofs, bc.dirichlet_dofs);
-            cstr = bc.dirichlet_dofs;
-            reactions = zeros(obj.displacementFun.nDofs, 1);
-            reactions(bc.dirichlet_dofs) = L;
-            reac_rshp = reshape(reactions,[obj.mesh.ndim,obj.mesh.nnodes])';
-
-
-            a.mesh    = obj.mesh;
-            a.fValues = reac_rshp;
-            a.order   = 'P1';
-            reacFun = LagrangianFunction(a);
-            
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
+            s.stiffness = obj.stiffness;
+            s.forces    = obj.forces;
+            [u,~]       = obj.problemSolver.solve(s);
+            z.mesh      = obj.mesh;
+            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            z.order     = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';

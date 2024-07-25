@@ -6,9 +6,6 @@ classdef ProblemSolver < handle
     
     properties (Access = private)
         type, mode
-        stiffness
-        forces
-        uOld
         boundaryConditions
         BCApplier
         solver
@@ -21,13 +18,13 @@ classdef ProblemSolver < handle
     methods (Access = public)
         
         function obj = ProblemSolver(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
         end
 
-        function [u,L] = solve(obj)
-            [LHS, RHS] = obj.computeMatrices();
+        function [u,L] = solve(obj,cParams)
+            [LHS, RHS] = obj.computeMatrices(cParams);
             sol        = obj.solver.solve(LHS, RHS);
-            [u, L]     = obj.cleanupSolution(sol);
+            [u, L]     = obj.cleanupSolution(sol,cParams.stiffness);
         end
         
     end
@@ -37,32 +34,29 @@ classdef ProblemSolver < handle
         function init(obj,cParams)
             obj.type               = cParams.solverType;
             obj.mode               = cParams.solverMode;
-            obj.stiffness          = cParams.stiffness;
-            obj.forces             = cParams.forces;
-            obj.uOld               = cParams.uOld;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
             obj.solver             = cParams.solver;
         end
 
-        function [LHS, RHS] = computeMatrices(obj)
-            LHS = obj.assembleLHS();
-            RHS = obj.assembleRHS();
+        function [LHS, RHS] = computeMatrices(obj,cParams)
+            LHS = obj.assembleLHS(cParams);
+            RHS = obj.assembleRHS(cParams);
         end
 
-        function [u, L] = cleanupSolution(obj,sol)
-            bcapp = obj.BCApplier;
+        function [u, L] = cleanupSolution(obj,sol,stiffness)
+            %bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
-            hasPeriodic = ~isequal(bcs.periodic_leader, []);
+            %hasPeriodic = ~isequal(bcs.periodic_leader, []);
             switch true
                 case strcmp(obj.type, 'MONOLITHIC')
-                    nDisp = size(obj.stiffness,1);
+                    nDisp = size(stiffness,1);
                     u = sol(1:nDisp, :);
                     L = -sol( (nDisp+1):end, : );
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    u = zeros(size(obj.stiffness,1), 1);
+                    u = zeros(size(stiffness,1), 1);
                     u(free_dofs) = sol;
                     u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                     L = [];
@@ -73,7 +67,7 @@ classdef ProblemSolver < handle
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
                     drch = bcs.dirichlet_dofs;
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free = setdiff(dofs, [lead; fllw; drch]);
                     u = zeros(length(dofs),1);
                     u(free) = sol(1:1:size(free,2));
@@ -89,7 +83,8 @@ classdef ProblemSolver < handle
             % maybe return a p1function or whatever
         end
 
-        function LHS = assembleLHS(obj)
+        function LHS = assembleLHS(obj,cParams)
+            stiffness = cParams.stiffness;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             hasPeriodic = ~isequal(bcs.periodic_leader, []);
@@ -102,25 +97,25 @@ classdef ProblemSolver < handle
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);
-                        Km  = obj.stiffness;
+                        Km  = stiffness;
                         LHS = [Km C; C' Z];
                     else
                         % Micro
-                        iV = bcs.iVoigt;
-                        nV = bcs.nVoigt;
+                        iV = cParams.iVoigt;
+                        nV = cParams.nVoigt;
                         % CtDir = bcapp.computeLinearConditionsMatrix();
                         % CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
                         Ct = bcapp.computeSingleDirichletPeriodicCondition(iV, nV);
                         C   = Ct';
                         nC  = size(Ct,1);
                         Z   = zeros(nC);
-                        Km  = obj.stiffness;
+                        Km  = stiffness;
                         LHS = [Km C; C' Z];
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    LHS = obj.stiffness(free_dofs, free_dofs);
+                    LHS = stiffness(free_dofs, free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
@@ -128,15 +123,15 @@ classdef ProblemSolver < handle
                     C   = Ct';
                     nC  = size(Ct,1);
                     Z   = zeros(nC);
-                    Km  = obj.stiffness;
+                    Km  = stiffness;
                     LHS = [Km C; C' Z];
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
                     drch = bcs.dirichlet_dofs;
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free = setdiff(dofs, [lead; fllw; drch]);
-                    A = obj.stiffness;
+                    A = stiffness;
                     A_II = A(free,free);
                     A_IP = A(free,lead) + A(free,fllw); %Grouping P and Q nodal values
                     A_PI = A(lead,free) + A(fllw,free); % Adding P  and Q equation
@@ -146,7 +141,9 @@ classdef ProblemSolver < handle
 
         end
 
-        function RHS = assembleRHS(obj)
+        function RHS = assembleRHS(obj,cParams)
+            stiffness = cParams.stiffness;
+            forces    = cParams.forces;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             hasPeriodic = ~isequal(bcs.periodic_leader, []);
@@ -154,32 +151,30 @@ classdef ProblemSolver < handle
             switch true
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'DISP')
                     if ~hasPeriodic
-                        nCases = size(obj.forces,2);
-                        % lambda = zeros(size(obj.lhs,1) - size(obj.forces,1), 1);
+                        nCases = size(forces,2);
+                        % lambda = zeros(size(obj.lhs,1) - size(forces,1), 1);
                         lambda = bcs.dirichlet_vals;
                         Ct = repmat(lambda, [1 nCases]);
-                        isDir = bcs.dirichlet_dofs;
-                        uOldD = obj.uOld(isDir);
-                        RHS = [obj.forces; Ct-uOldD];
+                        RHS = [forces; Ct];
                     else
-                        iV = obj.boundaryConditions.iVoigt;
-                        nV = obj.boundaryConditions.nVoigt;
+                        iV = cParams.iVoigt;
+                        nV = cParams.nVoigt;
                         RHS = bcapp.computeMicroDisplMonolithicRHS(iV, nV);
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    RHS = obj.forces(free_dofs);
+                    RHS = forces(free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
-                    RHS = [obj.forces; zeros(nPer,1); bcs.dirichlet_vals];
+                    RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals];
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
                     drch = bcs.dirichlet_dofs;
-                    dofs = 1:size(obj.stiffness);
+                    dofs = 1:size(stiffness);
                     free = setdiff(dofs, [lead; fllw; drch]);
-                    b = obj.forces;
+                    b = forces;
                     b_I = b(free);
                     b_P = b(lead) + b(fllw);
                     RHS = [b_I; b_P];
