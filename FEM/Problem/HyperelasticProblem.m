@@ -8,7 +8,7 @@ classdef HyperelasticProblem < handle
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'HoleDirich'
+        bc_case = 'Traction'
     end
 
     methods (Access = public)
