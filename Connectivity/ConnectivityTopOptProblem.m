@@ -1,4 +1,4 @@
-classdef ConnectivityComputer < handle
+classdef ConnectivityTopOptProblem < handle
 
     properties (Access = public)
 
@@ -12,33 +12,38 @@ classdef ConnectivityComputer < handle
 
         materialInterpolation
         filter
+
+        volume
+        compliance
+        constraint
+        cost
+        dualVariable
+        optimizer
+
+        minimumEigenValue
     end
 
     properties (Access = private)
-        
+        xSize = 1;
+        ySize = 1;
     end
 
     methods (Access = public)
 
-        function obj = ConnectivityComputer()
+        function obj = ConnectivityTopOptProblem()
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
             obj.createFilter();
             obj.createCharacteristicFunction();
             obj.createDesignVariable();
-
-            
-            % obj.levelSet.getUnfittedMesh().plot()
-            % obj.density.plot()
-            % shading flat
-            % colormap('gray');
-            % colormap(flipud(gray));
-            % colorbar
-            % figure
-
             obj.createCompliance();
-            obj.computeEigenValueFunctional()
+            % obj.createEigenValueConstraint();
+            obj.createVolumeConstraint();
+            obj.createCost();
+            obj.createConstraint();
+            obj.createDualVariable();
+            obj.createOptimizer();
         end
 
     end
@@ -50,8 +55,8 @@ classdef ConnectivityComputer < handle
         end
 
         function createMesh(obj)
-            x1 = linspace(0,1,100);
-            x2 = linspace(0,1,100);
+            x1 = linspace(0,obj.xSize,50);
+            x2 = linspace(0,obj.ySize,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -61,10 +66,11 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type        = 'CircleInclusion';
-            s.radius      = 0.4;
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;
+            s.type        = 'Rectangle';
+            s.xSide       = obj.xSize;
+            s.ySide       = 0.5*obj.ySize;
+            s.xCoorCenter = 0.5*obj.xSize;
+            s.yCoorCenter = 0.5*obj.ySize;
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
@@ -102,8 +108,8 @@ classdef ConnectivityComputer < handle
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
-            c.computeFunctionAndGradient(obj.designVariable);
+            obj.compliance = ComplianceFunctional(s);
+            % c.computeFunctionAndGradient(obj.designVariable);
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -127,8 +133,6 @@ classdef ConnectivityComputer < handle
 
         function m = createMaterial(obj)
             dens = obj.designVariable.fun;
-          %  f = x.obtainDomainFunction();
-          %  f = f.project('P1');
             s.type                 = 'DensityBased';
             s.density              = dens;
             s.materialInterpolator = obj.createMaterialInterpolation();
@@ -190,17 +194,81 @@ classdef ConnectivityComputer < handle
             bc = BoundaryConditions(s);
         end
 
-        function computeEigenValueFunctional(obj)
-            eigen = obj.computeEigenValueProblem();
-            s.eigenModes = eigen;
-            s.designVariable = obj.designVariable;
-            mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient()
-        end
+        % function computeEigenValueFunctional(obj)
+        %     eigen = obj.computeEigenValueProblem();
+        %     s.eigenModes = eigen;
+        %     s.designVariable = obj.designVariable;
+        %     obj.minimumEigenValue = MinimumEigenValueFunctional(s);
+        %     % mE.computeFunctionAndGradient()
+        % end
 
         function eigen = computeEigenValueProblem(obj)
             s.mesh = obj.mesh;
             eigen  = StiffnessEigenModesComputer(s);
+        end
+
+        function createVolumeConstraint(obj)
+            s.mesh   = obj.mesh;
+            s.filter = obj.filter;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.volumeTarget = 0.4;
+            v = VolumeConstraint(s);
+            obj.volume = v;
+        end
+
+        function createEigenValueConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.designVariable    = obj.designVariable;
+            s.minimumEigenValue = 10;
+
+            obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
+        end
+
+        function createCost(obj)
+            s.shapeFunctions{1} = obj.compliance;
+            s.weights           = 1;
+            s.Msmooth           = obj.createMassMatrix();
+            obj.cost            = Cost(s);
+        end
+
+        function createConstraint(obj)
+            s.shapeFunctions{1} = obj.volume;
+            % s.shapeFunctions{2} = obj.minimumEigenValue;
+            s.Msmooth           = obj.createMassMatrix();
+            obj.constraint      = Constraint(s);
+        end
+
+        function M = createMassMatrix(obj)
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;     
+        end
+
+        function createDualVariable(obj)
+            s.nConstraints   = 1;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
+        end
+
+        function createOptimizer(obj)
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 1000;
+            s.tolerance      = 1e-8;
+            s.constraintCase{1} = 'EQUALITY';
+            s.ub             = 1;
+            s.lb             = 0;
+            s.volumeTarget   = 0.4;
+            % s.constraintCase{2} = 'INEQUALITY';
+            opt = OptimizerMMA(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
         end
 
 

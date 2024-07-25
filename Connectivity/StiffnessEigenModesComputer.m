@@ -33,11 +33,16 @@ classdef StiffnessEigenModesComputer < handle
             m      = obj.massInterpolator.fun;
             dm     = obj.massInterpolator.dfun;            
             K  = obj.createStiffnessMatrixWithFunction(alpha);
+            Kreduced = obj.fullToReduced(K);
             M  = obj.computeMassMatrixWithFunction(m);
+            Mreduced = obj.fullToReduced(M);
             dK = obj.createStiffnessMatrixWithFunction(dalpha);
             dM = obj.computeMassMatrixWithFunction(dm);            
-            [lambda,phi] = obj.obtainLowestEigenValuesAndFunction(K,M);
-            dlambda = phi'*dK*phi - lambda*phi'*dM*phi;
+            [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
+            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,3);
+            
+            dlambda = dK*phiN - lambdaD*dM*phiN;%phi'*dK*phi - lambda*phi'*dM*phi;
+            lambda  = lambdaD;
         end
     end
 
@@ -103,7 +108,7 @@ classdef StiffnessEigenModesComputer < handle
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-            K = obj.fullToReduced(K);
+            % K = obj.fullToReduced(K);
         end
 
         function f = createCompositeFunction(obj,fun)
@@ -140,14 +145,14 @@ classdef StiffnessEigenModesComputer < handle
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();   
-            M = obj.fullToReduced(M);
+            % M = obj.fullToReduced(M);
         end       
                 
-        function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M)
+        function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
 
             [eigF,eigV] = eigs(K,M,4,'smallestabs');
-            eigV1 = eigV(1);
-            eigF1 = eigF(:,1);
+            eigV1 = eigV(n);
+            eigF1 = eigF(:,n);
             
 
         %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');

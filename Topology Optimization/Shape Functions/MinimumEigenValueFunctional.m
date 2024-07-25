@@ -20,7 +20,8 @@ classdef MinimumEigenValueFunctional < handle
             obj.init(cParams)
         end
         
-        function computeFunctionAndGradient(obj)            
+        function [f, dfdx] = computeFunctionAndGradient(obj,x) 
+            % obj.designVariable.update(x);
             obj.computeDensity();
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);
             obj.value = f;  
