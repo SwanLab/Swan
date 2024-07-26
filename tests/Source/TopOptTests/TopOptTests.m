@@ -11,7 +11,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_interiorPerimeter',...
             'test_anisotropy','test_anisotropy_interior','test_nullspace',...
             'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
-            'test_dirichletProjection','test_gripping','test_micro', 'test_micro2'
+            'test_dirichletProjection','test_gripping','test_micro', 'test_micro2',...
+            'test_boundFormFilterAndProject'
             }
     end
 
@@ -41,7 +42,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
             mat    = obj.createMaterial(x,mI);
             fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
-            Msmooth = obj.createMassMatrix(m);
+            Msmooth = obj.createMassMatrix(m,x);
             if exist('micro')
                 s = micro;
             else
@@ -65,7 +66,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             g      = GeometricalFunction(gSet);
             lsFun  = g.computeLevelSetFunction(mesh);
             switch type
-                case 'Density'
+                case {'Density','DensityAndBound'}
                     ss.fValues = 1 - heaviside(lsFun.fValues);
                     ss.mesh    = mesh;
                     ss.order   = 'P1';
@@ -118,7 +119,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         end
 
         function m = createMaterial(x,mI)
-            f = x.obtainDomainFunction();
+            switch class(x)
+                case 'DensityAndBound'
+                    f = x.density.obtainDomainFunction();
+                otherwise
+                    f = x.obtainDomainFunction();
+            end
             f = f.project('P1');
             s.type                 = 'DensityBased';
             s.density              = f;
@@ -146,7 +152,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             fem                  = PhysicalProblem.create(s);
         end
 
-        function M = createMassMatrix(mesh)
+        function M = createMassMatrix(mesh,x)
             s.test  = LagrangianFunction.create(mesh,1,'P1');
             s.trial = LagrangianFunction.create(mesh,1,'P1');
             s.mesh  = mesh;
@@ -154,6 +160,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             LHS = LHSintegrator.create(s);
             M = LHS.compute;
             M = eye(size(M));
+
+            switch class(x)
+                case 'DensityAndBound'
+                    n = mesh.nnodes;
+                    M(n+1,n+1) = 1;
+            end
         end
 
         function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s)
@@ -173,12 +185,21 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         end
 
         function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth)
+            k = 1;
             for i = 1:length(constraint)
+                switch class(filter{k})
+                    case 'FilterAndProject'
+                        s.filterDesignVariable = filter{k};
+                        s.filterGradient       = filter{k+1};
+                        k = k+2;
+                    otherwise
+                        s.filter = filter{k};
+                        k = k+1;
+                end
                 s.type            = constraint{i};
                 s.target          = target;
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
-                s.filter          = filter{i};
                 s.material        = mat;
                 s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
                 sF{i}             = ShapeFunctional.create(s);
@@ -206,6 +227,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 case 'Density'
                     s.ub = 1;
                     s.lb = 0;
+                case 'DensityAndBound'
+                    s.ub = [ones(x.density.fun.mesh.nnodes,1);1000];
+                    s.lb = [zeros(x.density.fun.mesh.nnodes,1);-1000];
             end
             opt = Optimizer.create(s);
             opt.solveProblem();
