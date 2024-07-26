@@ -6,9 +6,9 @@ classdef HomogenizedPhaseField < handle
         Ctensor
         microParams
 
-        fun
-        dfun
-        ddfun
+        degradation
+
+        Gc
     end
 
     methods (Access = public)
@@ -23,7 +23,7 @@ classdef HomogenizedPhaseField < handle
 
         function C = obtainTensor(obj)
             s.operation = @(xV) obj.evaluate(xV);
-            s.ndimf = 9;
+            s.ndimf = 6;
             C{1} = DomainFunction(s);
         end
 
@@ -32,7 +32,7 @@ classdef HomogenizedPhaseField < handle
             dC   = cell(nVar,1);
             for iVar = 1:nVar
                 s.operation = @(xV) obj.evaluateGradient(xV,iVar);
-                s.ndimf = 9;
+                s.ndimf = 6;
                 dC{iVar} =  DomainFunction(s);
             end
         end
@@ -42,12 +42,12 @@ classdef HomogenizedPhaseField < handle
             d2C   = cell(nVar,1);
             for iVar = 1:nVar
                 s.operation = @(xV) obj.evaluateHessian(xV,iVar);
-                s.ndimf = 9;
+                s.ndimf = 6;
                 d2C{iVar} =  DomainFunction(s);
             end
         end
 
-        function obj = setDesignVariable(obj,u,phi,t)
+        function obj = setDesignVariable(obj,u,phi)
             obj.microParams{1} = phi;
         end             
 
@@ -106,7 +106,7 @@ classdef HomogenizedPhaseField < handle
                     % C(i,j,:,:)   = Cij(1,1,:,:);
                     
                     %C(i,j,:,:) = double(subs(obj.fun{i,j},phiV));
-                    C(i,j,:,:) = obj.fun{i,j}(phiV);
+                    C(i,j,:,:) = obj.degradation.fun{i,j}(phiV);
                 end
             end
         end
@@ -138,7 +138,7 @@ classdef HomogenizedPhaseField < handle
 
                     %dCt(i,j,:,:) = double(subs(obj.dfun{i,j},phiV)); WITH
                     %SYM
-                    dCt(i,j,:,:) = obj.dfun{i,j}(phiV);
+                    dCt(i,j,:,:) = obj.degradation.dfun{i,j}(phiV);
                     
                 end
             end
@@ -172,7 +172,7 @@ classdef HomogenizedPhaseField < handle
                     % d2Ct(i,j,:,:)   = d2Cij(1,1,:,:);
 
                     %d2Ct(i,j,:,:) = double(subs(obj.ddfun{i,j},phiV)); 
-                    d2Ct(i,j,:,:) = obj.ddfun{i,j}(phiV);
+                    d2Ct(i,j,:,:) = obj.degradation.ddfun{i,j}(phiV);
                 end
             end
         end
@@ -189,23 +189,23 @@ classdef HomogenizedPhaseField < handle
             x = reshape(mxV,length(mxV),[]);
             y = C;
 
-            obj.fun   = cell(3,3);
-            obj.dfun  = cell(3,3);
-            obj.ddfun = cell(3,3);
+            fun   = cell(3,3);
+            dfun  = cell(3,3);
+            ddfun = cell(3,3);
             for i=1:3
                 for j=1:3
                     f = fit(x,squeeze(y(i,j,:)),'poly9');
-                    obj.fun{i,j} = poly2sym(coeffvalues(f));
-                    obj.dfun{i,j} = diff(obj.fun{i,j});
-                    obj.ddfun{i,j} = diff(obj.dfun{i,j});
+                    fun{i,j} = poly2sym(coeffvalues(f));
+                    dfun{i,j} = diff(fun{i,j});
+                    ddfun{i,j} = diff(dfun{i,j});
                     if all(coeffvalues(f))
-                        obj.fun{i,j} = matlabFunction(obj.fun{i,j});
-                        obj.dfun{i,j} = matlabFunction(obj.dfun{i,j});
-                        obj.ddfun{i,j} = matlabFunction(obj.ddfun{i,j});
+                        obj.degradation.fun{i,j} = matlabFunction(fun{i,j});
+                        obj.degradation.dfun{i,j} = matlabFunction(dfun{i,j});
+                        obj.degradation.ddfun{i,j} = matlabFunction(ddfun{i,j});
                     else
-                        obj.fun{i,j} = @(x) x-x;
-                        obj.dfun{i,j} = @(x) x-x;
-                        obj.ddfun{i,j} = @(x) x-x;
+                        obj.degradation.fun{i,j} = @(x) x-x;
+                        obj.degradation.dfun{i,j} = @(x) x-x;
+                        obj.degradation.ddfun{i,j} = @(x) x-x;
                     end
 
                 end

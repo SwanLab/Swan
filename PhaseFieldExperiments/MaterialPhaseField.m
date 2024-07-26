@@ -1,13 +1,8 @@
 classdef MaterialPhaseField < Material
-    
-    properties (Access = public)
-        ndimf
-    end
 
     properties (Access = private)
         phi
         u
-        tensorType
     end
 
     properties (Access = private)
@@ -30,12 +25,12 @@ classdef MaterialPhaseField < Material
 
         function dC = obtainTensorDerivative(obj)
             df    = obj.degradation.dfun;
-            dC{1} = obj.createDegradedConstitutiveTensor(df);
+            dC{1} = obj.createDegradedMaterial(df);
         end
 
         function ddC = obtainTensorSecondDerivative(obj)
             ddf    = obj.degradation.ddfun;
-            ddC{1} = obj.createDegradedConstitutiveTensor(ddf);
+            ddC{1} = obj.createDegradedMaterial(ddf);
         end
 
 
@@ -72,10 +67,9 @@ classdef MaterialPhaseField < Material
         %     muFun = g0.*mu;
         % end
 
-        function obj = setDesignVariable(obj,u,phi,tensorType)
+        function obj = setDesignVariable(obj,u,phi)
             obj.u = u;
             obj.phi = phi;
-            obj.tensorType = tensorType;
         end
 
     end
@@ -84,28 +78,30 @@ classdef MaterialPhaseField < Material
 
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
-            obj.degradation  = cParams.degradation;
-            obj.baseMaterial = cParams.baseMaterial;
+            obj.degradation  = MaterialInterpolator.create(cParams);
+            obj.baseMaterial = obj.createBaseMaterial(cParams);
             obj.Gc           = cParams.Gc;
-            obj.ndimf        = 9;
         end
 
     end
 
     methods (Access = private)
 
-        function C = createDegradedConstitutiveTensor(obj,f)
-            s.operation = @(xV) obj.evaluateConstiutiveTensor(xV,f);
-            s.ndimf = 9;
-            C =  DomainFunction(s);
+        function mat = createBaseMaterial(obj,cParams)
+            sParam.mesh = obj.mesh;
+            sParam.order = 'P1';
+            sParam.fValues = ones(obj.mesh.nnodes,1)*cParams.matInfo.E;
+            young = LagrangianFunction(sParam);
+            sParam.fValues = ones(obj.mesh.nnodes,1)*cParams.matInfo.nu;
+            poisson = LagrangianFunction(sParam);
+
+            sIso.ndim = obj.mesh.ndim;
+            sIso.young = young;
+            sIso.poisson = poisson;
+            mat = Isotropic2dElasticMaterial(sIso);
         end
 
-        function C = evaluateConstiutiveTensor(obj,xV,fun)
-            dMat = obj.createDegradedMaterial(fun);
-            C = dMat.evaluate(xV);
-        end
-
-        function m = createDegradedMaterial(obj,degFun)
+        function mat = createDegradedMaterial(obj,degFun)
             df    = degFun;
             mu    = obj.baseMaterial.createShear();
             kappa = obj.baseMaterial.createBulk();
@@ -114,7 +110,7 @@ classdef MaterialPhaseField < Material
             s.shear = degM;
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
-            m = Isotropic2dElasticMaterial(s);
+            mat = Isotropic2dElasticMaterial(s);
         end
 
         % function [mu,l] = computeMatTensorParams(obj,xV,fun)
@@ -143,8 +139,8 @@ classdef MaterialPhaseField < Material
         %     k  = g.evaluate(xV).*kV;
         % end        
     
-        function xf = createDegradedLameParameterFunction(obj,x,f)
-            s.operation = @(xV) x.evaluate(xV).*obj.evaluateDegradation(f,xV);
+        function xf = createDegradedLameParameterFunction(obj,param,f)
+            s.operation = @(xV) param.evaluate(xV).*obj.evaluateDegradation(f,xV);
             s.ndimf = 1;
             xf =  DomainFunction(s);
         end      

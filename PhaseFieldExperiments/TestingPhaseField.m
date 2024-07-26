@@ -1,21 +1,24 @@
 classdef TestingPhaseField < handle
 
+    properties (Access = public)
+        outputData
+    end
+
     properties (Access = private)
-        benchmark;
-        matInfo;
-        pExp;
-        l0;
+        monitoring
+        benchmark
+        matInfo
+        dissipInfo
+        l0
     end
 
     properties (Access = private)
         mesh
         boundaryConditions
         initialPhaseField
-        materialPhaseField
-        dissipationPhaseField
+        material
+        dissipation
         constant
-
-        outputData
     end
 
     methods (Access = public)
@@ -34,16 +37,22 @@ classdef TestingPhaseField < handle
     methods (Access = private)
 
         function init(obj, ~)
+            obj.monitoring.set = true;
+            obj.monitoring.type = 'Reduced'; %'Full'
             obj.benchmark.type.mesh = '1Elem';
+            obj.benchmark.N = 10;
             obj.benchmark.type.case = 'traction'; %'shear'
             obj.benchmark.type.bc = 'displacementTraction';
-            obj.benchmark.bcValues = linspace(1e-4,1e-1,100);
+            obj.benchmark.bcValues = linspace(1e-4,1e-1,10);
             obj.matInfo.E  = 210;
             obj.matInfo.nu = 0.3;
             obj.matInfo.Gc = 5e-3;
             obj.matInfo.matType = 'PhaseFieldAnalytic'; %'PhaseFieldHomog'
+            %obj.matInfo.fileName = 'IsoMicroDamage';
+            obj.matInfo.degradation = 'PhaseFieldDegradation';
+            obj.dissipInfo.type = 'PhaseFieldDissipationAT'; 
+            obj.dissipInfo.pExp = 2;
             obj.l0 = 0.1;
-            obj.pExp = 2;
 
             close all
             % obj.matInfo = cParams.matInfo;
@@ -54,13 +63,15 @@ classdef TestingPhaseField < handle
 
         function outputData = solveProblem(obj)
             s.mesh = obj.mesh;
-            s.initialPhaseField = obj.initialPhaseField;
-            s.materialPhaseField = obj.materialPhaseField;
-            s.dissipationPhaseField = obj.dissipationPhaseField;
+            s.initPhi = obj.initialPhaseField;
+            s.material = obj.material;
+            s.dissipation = obj.dissipation;
             s.boundaryConditions = obj.boundaryConditions;
+            s.monitoring = obj.monitoring;
             s.l0 = obj.l0;
-            s.constant = obj.constant;
-            outputData = PhaseFieldComputer(s);
+            PFComp = PhaseFieldComputer(s);
+
+            outputData = PFComp.compute();
         end
 
         function defineCase(obj)
@@ -74,53 +85,25 @@ classdef TestingPhaseField < handle
 
         function createMaterialPhaseField(obj)
             s.mesh = obj.mesh;
-            s.baseMaterial = obj.createBaseMaterial();
-            s.degradation  = obj.createMaterialInterpolation();
+            s.matInfo = obj.matInfo;
             s.Gc = obj.matInfo.Gc;
             s.type = obj.matInfo.matType;
-            obj.materialPhaseField = MaterialPhaseField(s);
-
-            % sH.fileName    = 'IsoMicroDamage';
-            % obj.materialPhaseField = HomogenizedPhaseField(sH);
-            obj.materialPhaseField = Material.create(s);
+            %s.fileName = obj.matInfo.fileName;
+            s.interpolation = obj.matInfo.degradation;
+            obj.material = Material.create(s);
         end
 
         function createDissipationInterpolation(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation = 'PhaseFieldD';
-            s.pExp = obj.pExp;
-            obj.dissipationPhaseField = MaterialInterpolator.create(s);
+            s.pExp = obj.dissipInfo.pExp;
+            obj.dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                obj.constant = obj.matInfo.Gc/(4*(2/3));
+                obj.dissipation.constant = obj.matInfo.Gc/(4*(2/3));
             else%if s.pExp == 2
-                obj.constant = obj.matInfo.Gc/(4*(1/2));
+                obj.dissipation.constant = obj.matInfo.Gc/(4*(1/2));
             end
         end
 
-        function matInt = createMaterialInterpolation(obj)
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation = 'PhaseFieldI';
-            matInt = MaterialInterpolator.create(s);
-        end
-
-    end
-
-    methods (Access = private)
-
-        function mat = createBaseMaterial(obj)
-            sParam.mesh = obj.mesh;
-            sParam.order = 'P1';
-            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.matInfo.E;
-            young = LagrangianFunction(sParam);
-            sParam.fValues = ones(obj.mesh.nnodes,1)*obj.matInfo.nu;
-            poisson = LagrangianFunction(sParam);
-
-            sIso.ndim = obj.mesh.ndim;
-            sIso.young = young;
-            sIso.poisson = poisson;
-            mat = Isotropic2dElasticMaterial(sIso);
-        end
     end
 
 end

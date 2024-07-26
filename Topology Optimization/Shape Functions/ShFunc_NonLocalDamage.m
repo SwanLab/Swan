@@ -50,7 +50,7 @@ classdef ShFunc_NonLocalDamage < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.constant = cParams.constant;
+            obj.constant = cParams.dissipation.constant;
             obj.l0 = cParams.l0;
         end
         

@@ -8,39 +8,20 @@ classdef PhaseFieldComputer < handle
     end
 
     properties (Access = private)
-
         mesh
         boundaryConditions
-        initialPhaseField
-        materialPhaseField
-        dissipationInterpolation
+        initPhi
+        material
+        dissipation
 
-        fem
-        phi
-        u
-        forceVector
     end
 
     properties (Access = private)
+        monitor
         functional
-        data
-
-        constant
         l0
 
-        forceMat
-        reactionMat
-        displacementMat
-        damageMat
-        damageTheory
-        stressStrainMat
-        energyMat
-        iterMat
         costFun
-
-        IntegralCost
-        IntegralEnergy
-        IntegralDissipation
     end
 
     methods (Access = public)
@@ -48,20 +29,23 @@ classdef PhaseFieldComputer < handle
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
             obj.createFunctionals()
-            
+            obj.setMonitoring(cParams)
+        end
+
+        function output = compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
-            phi = LagrangianFunction.create(obj.mesh,1,'P1');
+            phi = obj.initPhi;
             uOld = u;
             phiOld = phi;
 
             obj.costFun = null(2,1);
-
-            for i = 1:obj.steps
+            maxSteps = length(obj.boundaryConditions.bcValues);
+            for i = 1:maxSteps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
-                obj.createBoundaryConditions(obj.bcVal(i));
-                u.fValues = obj.updateInitialDisplacement(uOld);
+                bc = obj.boundaryConditions.nextStep();
+                u.fValues = obj.updateInitialDisplacement(bc,uOld);
 
-                obj.costFun(1,end+1) = obj.computeCostFunction(u,phi);
+                obj.costFun(1,end+1) = obj.computeCostFunction(u,phi,bc);
                 obj.costFun(2,end) = 2;
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
@@ -71,11 +55,11 @@ classdef PhaseFieldComputer < handle
                     eU = 1; iterU = 1; costOldU = 0;
                     while (eU > obj.tolErrU) && (iterU < 100)
                         LHS = obj.computeElasticLHS(u,phi);
-                        RHS = obj.computeElasticResidual(u,phi);
-                        u.fValues = obj.computeDisplacement(LHS,RHS,u);
-                        F = obj.computeForces(LHS,u);
+                        RHS = obj.computeElasticResidual(u,phi,bc);
+                        u.fValues = obj.computeDisplacement(LHS,RHS,u,bc);
+                        F = obj.computeForceVector(LHS,u);
 
-                        [eU, costU] = obj.computeErrorCostFunction(u,phi,costOldU);
+                        [eU, costU] = obj.computeErrorCostFunction(u,phi,bc,costOldU);
                         costOldU = costU;
                         disp(['iterU: ',num2str(iterU),' res: ',num2str(eU)])
 
@@ -92,7 +76,7 @@ classdef PhaseFieldComputer < handle
                         phiNew = obj.updateWithNewton(LHS, RHS, phi.fValues);
                         phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
 
-                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,costOldPhi);
+                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
                         costOldPhi = costPhi;
                         disp(['iterPhi: ',num2str(iterPhi),' res: ',num2str(ePhi)])
 
@@ -102,7 +86,7 @@ classdef PhaseFieldComputer < handle
                         iterPhiMax = iterPhi;
                     end
 
-                    [eStag, costStag] = obj.computeErrorCostFunction(u,phi,costOldStag);
+                    [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
                     costOldStag = costStag;
                     disp(['iterStag: ',num2str(iterStag),' res: ',num2str(eStag)])
 
@@ -111,24 +95,22 @@ classdef PhaseFieldComputer < handle
                 uOld = u;
                 phiOld = phi;
 
+
+
+%%% SAVE DATA + MONITORING %%%%%
                 s.step = i;
                 s.numIterU = iterUMax-1;
                 s.numIterP = iterPhiMax-1;
                 s.numIterStag = iterStag-1;
                 s.u = u; s.phi = phi; s.F = F;
-                obj.saveData(s);
+                s.bc = bc;
+                output = obj.saveData(s);
 
-                figure(400)
-                hold on
-                phi.plot;
-                title(['Damage at step ',num2str(i)])
-                colorbar
-                clim([0 1])
+                obj.monitor.update(i,{phi.fValues});
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-                %obj.printPlots(phi,i);
-                %exportgraphics(gcf,'Lshape.gif','Append',true);
             end
-            obj.printPlots(phi,i);
+            % obj.printPlots(phi,i);
         end
 
     end
@@ -137,35 +119,18 @@ classdef PhaseFieldComputer < handle
     methods (Access = private)
         %% %%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function init(obj,cParams)
-            obj.mesh                     = cParams.mesh;
-            obj.initialPhaseField        = cParams.initialPhaseField;
-            obj.materialPhaseField       = cParams.materialPhaseField;
-            obj.dissipationInterpolation = cParams.dissipationPhaseField;
-            obj.boundaryConditions       = cParams.boundaryConditions;
-            obj.l0 = cParams.l0;
-            obj.constant = cParams.constant;
-            
-            % obj.data.mat.reaction = zeros(1,obj.steps);
-            % obj.data.mat.displacementTip = zeros(1,obj.steps);
-            % obj.data.mat.maxDamage = zeros(1,obj.steps);
-            % obj.data.mat.stress = zeros(1,obj.steps);
-            % obj.data.mat.strain = zeros(1,obj.steps);
-            % obj.data.mat.energies = zeros(4,obj.steps);
-            % obj.data.mat.iterations = zeros(3,obj.steps);
-        end
-
-        function createBoundaryConditions(obj,prescribedVal)
-            s.mesh = obj.mesh;
-            bc = BoundaryContionsForPhaseFieldCreator(s);
-            bcSet = bc.create(prescribedVal);
-            obj.BC = bcSet;
+            obj.mesh                = cParams.mesh;
+            obj.initPhi             = cParams.initPhi;
+            obj.material            = cParams.material;
+            obj.dissipation         = cParams.dissipation;
+            obj.boundaryConditions  = cParams.boundaryConditions;
+            obj.l0                  = cParams.l0;
         end
 
         function createFunctionals(obj)
             s.mesh = obj.mesh;
-            s.materialPhaseField = obj.materialPhaseField;
-            s.dissipationInterpolation = obj.dissipationInterpolation;
-            s.constant = obj.constant;
+            s.material = obj.material;
+            s.dissipation = obj.dissipation;
             s.l0 = obj.l0;
 
             obj.functional.energy         = ShFunc_InternalEnergy(s);
@@ -174,22 +139,33 @@ classdef PhaseFieldComputer < handle
             obj.functional.extWork        = ShFunc_ExternalWork(s);
         end
 
-        function u = updateInitialDisplacement(obj,u)
-            restrictedDofs = obj.BC.dirichlet_dofs;
-            dirich = obj.BC.dirichletFun;
-            uVec = reshape(u.fValues',[u.nDofs 1]);
-            dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
+        function setMonitoring(obj,cParams)
+            s.shallDisplay = cParams.monitoring.set;
+            s.type = cParams.monitoring.type;
+            s.mesh = obj.mesh;
+            obj.monitor = PhaseFieldMonitoring.initialize(s);
+        end
 
-            uVec(restrictedDofs) = dirichVec(restrictedDofs);
-            u = reshape(uVec,[flip(size(u.fValues))])';
+        function u = updateInitialDisplacement(obj,bc,uOld)
+            restrictedDofs = bc.dirichlet_dofs;
+            if isempty(restrictedDofs)
+                u = uOld;
+            else
+                dirich = bc.dirichletFun;
+                uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
+                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
+
+                uVec(restrictedDofs) = dirichVec(restrictedDofs);
+                u = reshape(uVec,[flip(size(uOld.fValues))])';
+            end
         end
 
         %% %%%%%%%%%%%%%%%%%%%%%% ELASTIC EQUATION %%%%%%%%%%%%%%%%%%%%%%%% %%
 
-        function RHS = computeElasticResidual(obj,u,phi)
-            fExt = obj.BC.pointloadFun;
+        function RHS = computeElasticResidual(obj,u,phi,bc)
+            fExt     = bc.pointloadFun;
             [Fint,~] = obj.functional.energy.computeGradient(u,phi,2);
-            Fext = obj.functional.extWork.computeGradient(u,fExt,1);
+            Fext     = obj.functional.extWork.computeGradient(u,fExt,1);
             RHS = Fint + Fext;
         end
 
@@ -197,28 +173,28 @@ classdef PhaseFieldComputer < handle
             [LHS,~] = obj.functional.energy.computeHessian(u,phi,2);
         end
 
-        function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn)
-            [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull);
+        function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
+            [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull,bc);
             if ~isempty(LHS)
                 uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
                 uOutVec = uInVec;
 
-                uInFree = uInVec(obj.BC.free_dofs);
+                uInFree = uInVec(bc.free_dofs);
                 uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-                uOutVec(obj.BC.free_dofs) = uOutFree;
+                uOutVec(bc.free_dofs) = uOutFree;
                 uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
             else
                 uOut = uIn.fValues;
             end
         end
 
-        function [LHS,RHS] = fullToReduced(obj,LHS,RHS)
-            free_dofs = obj.BC.free_dofs;
+        function [LHS,RHS] = fullToReduced(obj,LHS,RHS,bc)
+            free_dofs = bc.free_dofs;
             LHS = LHS(free_dofs, free_dofs);
             RHS = RHS(free_dofs);
         end
 
-        function F = computeForces(obj,LHS,u)
+        function F = computeForceVector(obj,LHS,u)
             uVec = reshape(u.fValues',[u.nDofs 1]);
             F = LHS*uVec;
         end
@@ -291,8 +267,8 @@ classdef PhaseFieldComputer < handle
             totVal = obj.functional.nonLocalDamage.computeFunction(phi,2);
         end
 
-        function totVal = computeTotalExternalWork(obj,u)
-            fExt = obj.BC.pointloadFun;
+        function totVal = computeTotalExternalWork(obj,u,bc)
+            fExt = bc.pointloadFun;
             totVal = obj.functional.extWork.computeFunction(u,fExt,2);
         end
 
@@ -315,38 +291,29 @@ classdef PhaseFieldComputer < handle
             totReact = sum(F(2*nodes(isInDown)));
         end
 
-        function [e, cost] = computeErrorCostFunction(obj,u,phi,costOld)
-            cost = computeCostFunction(obj,u,phi);
+        function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
+            cost = computeCostFunction(obj,u,phi,bc);
             e = abs(cost - costOld);
         end
 
-        function Etot = computeCostFunction(obj,u,phi)
-            Wext = obj.computeTotalExternalWork(u);
+        function Etot = computeCostFunction(obj,u,phi,bc)
+            Wext = obj.computeTotalExternalWork(u,bc);
             Eint = obj.computeTotalInternalEnergy(u,phi);
             Edis = obj.computeTotalDissipationLocal(phi);
             Ereg = obj.computeTotalRegularizationTerm(phi);
             Etot = Eint+Edis+Ereg-Wext;
         end
 
-        function computeEnergyIntegrals(obj,step)
-            fMat = [0 obj.reactionMat];
-            dMat = [0 obj.displacementMat];
-
-            obj.IntegralCost(step) = trapz(dMat(1:step+1),fMat(1:step+1));
-            obj.IntegralEnergy(step) = 0.5*(dMat(step+1)*fMat(step+1));
-            obj.IntegralDissipation = obj.IntegralCost - obj.IntegralEnergy;
-        end
-
         %% %%%%%%%%%%%%%%%%%% PLOTS %%%%%%%%%%%%%%% %%
 
-        function saveData(obj,cParams)
+        function data = saveData(obj,cParams)
             step = cParams.step;
 
             %obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
-            obj.reactionMat(step) = -obj.computeTotalReaction(cParams.F);
+            data.reactionMat(step) = -obj.computeTotalReaction(cParams.F);
             
-            obj.displacementMat(step) = obj.bcVal(step);
-            obj.damageMat(step) = max(cParams.phi.fValues);
+            data.displacementMat(step) = obj.boundaryConditions.bcValues(step);
+            data.damageMat(step) = max(cParams.phi.fValues);
          
             % quad = Quadrature.set(obj.mesh.type);
             % quad.computeQuadrature('QUADRATIC');
@@ -356,17 +323,16 @@ classdef PhaseFieldComputer < handle
             % e = obj.displacementMat(step);
             % obj.damageTheory(step) = (C*e^2)/((Gc/obj.l0)+(C*e^2));
 
-            obj.energyMat(1,step) = -obj.computeTotalExternalWork(cParams.u);
-            obj.energyMat(2,step) = obj.computeTotalInternalEnergy(cParams.u,cParams.phi);
-            obj.energyMat(3,step) = obj.computeTotalDissipationLocal(cParams.phi);
-            obj.energyMat(4,step) = obj.computeTotalRegularizationTerm(cParams.phi);
-            obj.energyMat(5,step) = sum(obj.energyMat(2,step) + obj.energyMat(1,step));
+            data.energyMat(1,step) = -obj.computeTotalExternalWork(cParams.u,cParams.bc);
+            data.energyMat(2,step) = obj.computeTotalInternalEnergy(cParams.u,cParams.phi);
+            data.energyMat(3,step) = obj.computeTotalDissipationLocal(cParams.phi);
+            data.energyMat(4,step) = obj.computeTotalRegularizationTerm(cParams.phi);
+            data.energyMat(5,step) = sum(data.energyMat(2,step) + data.energyMat(1,step));
 
-            obj.iterMat(1,step) = cParams.numIterU;              
-            obj.iterMat(2,step) = cParams.numIterP;
-            obj.iterMat(3,step) = cParams.numIterStag;
-
-            obj.computeEnergyIntegrals(step)
+            data.iterMat(1,step) = cParams.numIterU;              
+            data.iterMat(2,step) = cParams.numIterP;
+            data.iterMat(3,step) = cParams.numIterStag;
+            
         end
 
         function printPlots(obj,phi,step)
@@ -444,18 +410,6 @@ classdef PhaseFieldComputer < handle
             % title('Cost Function')
             % xlabel('Iteration [-]')
             % ylabel('Energy [J]')
-
-            figure(600)
-            hold on
-            plot(obj.IntegralCost(1:step))
-            plot(obj.IntegralEnergy(1:step))
-            plot(obj.IntegralDissipation(1:step))
-            title('Energy values at each step (Force-displacement)')
-            legend('Total energy', ...
-                   'Internal energy', ...
-                   'Dissipated energy')
-            xlabel('Step [-]')
-            ylabel('Energy [J]')
 
         end
 
