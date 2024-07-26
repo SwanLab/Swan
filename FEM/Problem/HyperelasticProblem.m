@@ -8,7 +8,7 @@ classdef HyperelasticProblem < handle
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'HoleDirich'
+        bc_case = 'Metamaterial'
         bcApplier
         freeDofs
     end
@@ -25,7 +25,7 @@ classdef HyperelasticProblem < handle
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 50;
+            nsteps = 200;
             iter = 1;
             nIterPerStep = [];
 
@@ -35,11 +35,11 @@ classdef HyperelasticProblem < handle
 
                 loadPercent = iStep/nsteps;
                 bc = obj.createBoundaryConditions(loadPercent);
-                u  = obj.computeInitialElasticGuess(bc);
+                % u  = obj.computeInitialElasticGuess(bc);
                 u  = obj.applyDirichletToUFun(u,bc);
 
-%                 intEnergy(iter) = obj.neohookeanFun.compute(obj.uFun);
-                intEnergy(iter) = obj.linearElasticityFun.compute(obj.uFun);
+                intEnergy(iter) = obj.neohookeanFun.compute(u);
+                % intEnergy(iter) = obj.linearElasticityFun.compute(u);
                 Res = obj.computeResidual(u);
                 resi(iter) = norm(Res);
 
@@ -66,7 +66,7 @@ classdef HyperelasticProblem < handle
 
 
                 end
-                obj.uFun.print(['SIM_',obj.bc_case,'_',int2str(iStep)])                
+                u.print(['SIM_',obj.bc_case,'_',int2str(iStep)])                
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep);
             end
@@ -161,7 +161,7 @@ classdef HyperelasticProblem < handle
             if iStep == 1
                 nIter = iter-1;
             else
-                nIter = iter-1-sum(iterOld(1:iStep-1));
+                nIter = iter-1-sum(iterOld(1:(iStep-1)));
             end
         end
 
@@ -178,6 +178,9 @@ classdef HyperelasticProblem < handle
                     obj.mesh = IM;
                 case {'Bending', 'Traction'}
                     obj.mesh = UnitQuadMesh(20,20);
+                case {'Metamaterial'}
+                    load('NegPoissMesh.mat')
+                    obj.mesh = NegPoissMesh;
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
                     %                     obj.mesh = UnitHexaMesh(15,15,15);
