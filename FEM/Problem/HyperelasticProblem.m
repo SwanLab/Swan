@@ -10,12 +10,10 @@ classdef HyperelasticProblem < handle
         material, materialElastic
         bc_case = 'Metamaterial'
         bcApplier
-        freeDofs
+        freeDofs, constrainedDofs
     end
 
     methods (Access = public)
-
-
 
         function obj = HyperelasticProblem()
             close all;
@@ -29,10 +27,8 @@ classdef HyperelasticProblem < handle
             iter = 1;
             nIterPerStep = [];
 
+            reactions = zeros(u.nDofs,1);
             for iStep = 1:nsteps
-                disp('------')
-                disp('NEW LOAD STEP')
-
                 loadPercent = iStep/nsteps;
                 bc = obj.createBoundaryConditions(loadPercent);
                 % u  = obj.computeInitialElasticGuess(bc);
@@ -43,19 +39,15 @@ classdef HyperelasticProblem < handle
                 Res = obj.computeResidual(u);
                 resi(iter) = norm(Res);
 
-
-
                 hasNotConverged = 1;
                 while hasNotConverged
-                    % Update U
-
                     uVal = obj.reshapeToVector(u.fValues);
-                    hess = obj.computeHessian(u);
+                    [hess, KR] = obj.computeHessian(u);
                     Res  = obj.computeResidual(u);
                     incU = hess\(-Res);
                     uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
                     u.fValues = obj.reshapeToMatrix(uVal);
-
+                    reacFun = obj.computeReactions(KR,u);
 
                     iter = iter+1;
                     intEnergy(iter) = obj.neohookeanFun.compute(u);
@@ -63,12 +55,12 @@ classdef HyperelasticProblem < handle
                     resi(iter) = norm(Res);
 
                     hasNotConverged = obj.hasNotConverged(intEnergy);
-
-
                 end
-                u.print(['SIM_',obj.bc_case,'_',int2str(iStep)])                
+                normDisp(iStep) = Norm.computeL2(obj.mesh, u);
+                normReac(iStep) = Norm.computeL2(obj.mesh, reacFun);
+                obj.printFile(iStep, u, reacFun);              
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
-                obj.plotStep(intEnergy,nIterPerStep,iStep);
+                obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
             end
 
         end
@@ -77,16 +69,44 @@ classdef HyperelasticProblem < handle
 
     methods (Access = private)
 
-        function plotStep(obj,intEnergy,nIterPerStep,iStep)
+        function printFile(obj,iStep, u, reac)
+            fun = {u, reac};
+            funNames = {'Displacement', 'Reactions'};
+            a.mesh     = obj.mesh;
+            a.filename = ['SIM_',obj.bc_case,'_',int2str(iStep)];
+            a.fun      = fun;
+            a.funNames = funNames;
+            a.type     = 'Paraview';
+            pst = FunctionPrinter.create(a);
+            pst.print();
+        end
+        
+        function reacFun = computeReactions(obj,KR,u)
+            uVal = obj.reshapeToVector(u.fValues);
+            reactions = zeros(size(uVal));
+            reactions(obj.constrainedDofs,1) = -KR*uVal;
+            s.fValues = obj.reshapeToMatrix(reactions);
+            s.order = 'P1';
+            s.mesh  = obj.mesh;
+            reacFun = LagrangianFunction(s);
+        end
+
+        function plotStep(obj,intEnergy,nIterPerStep,iStep, normDisp, normReac)
 
             f = figure(1);
             clf(f)
-            subplot(1,2,1)
+            subplot(1,3,1)
             plot(intEnergy)
             title('Energies')
-            xlabel('iteration (m)')
-            ylabel('Energy (N)')
-            subplot(1,2,2)
+            xlabel('iteration')
+            ylabel('Energy')
+            subplot(1,3,2)
+            plot(normDisp, normReac)
+            title('Displacement-reaction')
+            xlabel('displacement')
+            ylabel('reactions')
+            hold on
+            subplot(1,3,3)
             bar(1:iStep, nIterPerStep)
             title('Number of iterations to converge \DeltaF')
             xlabel('step')
@@ -143,10 +163,12 @@ classdef HyperelasticProblem < handle
             obj.neohookeanFun = neo;
         end
 
-        function Hf = computeHessian(obj,u)
+        function [Hff,Hr] = computeHessian(obj,u)
             H = obj.neohookeanFun.computeHessian(u);
             f = obj.freeDofs;
-            Hf = H(f,f);
+            r = obj.constrainedDofs;
+            Hff = H(f,f);
+            Hr  = H(r,:);
         end
 
         function Rf = computeResidual(obj,u)
@@ -169,6 +191,7 @@ classdef HyperelasticProblem < handle
             bc = obj.createBoundaryConditions(1);
             nDofs = obj.uFun.nDofs;
             obj.freeDofs = setdiff(1:nDofs,bc.dirichlet_dofs);
+            obj.constrainedDofs = bc.dirichlet_dofs;
         end
 
         function createMesh(obj)
@@ -194,7 +217,6 @@ classdef HyperelasticProblem < handle
         end
 
         function mat = createElasticMaterial(obj)
-
             G = obj.material.mu;
             L = obj.material.lambda;
             N = obj.mesh.ndim;
