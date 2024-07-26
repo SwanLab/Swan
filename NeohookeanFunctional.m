@@ -56,6 +56,7 @@ classdef NeohookeanFunctional < handle
             nGaus = size(dNdxTest,3);
             nElem = size(dNdxTest,4);
             nDof = nDimf*nNode;
+            nDim = obj.mesh.ndim;
 
             piola = obj.computeFirstPiola(uFun,xG);
             dofToDim = repmat(1:nDimf,[1,nNode]);
@@ -63,6 +64,20 @@ classdef NeohookeanFunctional < handle
             dofToNode = dofToNode(:);
 
             fint = zeros(nDof,1,nGaus,nElem);
+            fint2 = zeros(nDof,1,nGaus,nElem);
+
+
+            for iNode = 1:nNode
+                for iDim = 1:nDim
+                    for iField = 1:nDimf
+                        dNdx_ij = dNdxTest(iDim, iNode, :, :);
+                        iDof = iField + nDimf*(iNode-1);
+                        Pik = piola(iField,iDim,:,:);
+                        fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
+                    end
+                end
+            end
+
             % GradDeltaV is not always compatible (see BCs), but we dont
             % worry about it since we reduce the matrix later on    
             for iDof = 1:nDof
@@ -71,8 +86,10 @@ classdef NeohookeanFunctional < handle
                 deltav = zeros(nNode,nDimf, nGaus, nElem);
                 deltav(iNode,iDim,:,:) = 1;
                 GradDeltaV = pagemtimes(dNdxTest,deltav);
-                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), piola,GradDeltaV));
+                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(piola),GradDeltaV));
             end
+            err = norm(fint(:)-fint2(:))/norm(fint(:))
+            fint = fint2;
             fint = fint.*dV;
             fint = squeeze(sum(fint,3));
             Fint = obj.assembleIntegrand(fint,test);
@@ -127,7 +144,7 @@ classdef NeohookeanFunctional < handle
                 for a = 1:nDimf
                     for b = 1:nDimf
                         C = squeezeParticular(Aneo(:,:,a,b,:,:),[3 4]);
-                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,C);
+                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,pagetranspose(C));
                     end
                 end
 
@@ -141,7 +158,7 @@ classdef NeohookeanFunctional < handle
 
 %                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
 
-                   Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), res, GradDeltaU);
+                   Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(res), GradDeltaU);
                     K(iDof,jDof,:,:) = Ktan;
                 end
             end
