@@ -97,13 +97,6 @@ classdef DomainFunction < handle
             r = DomainFunction(s);
         end
 
-        function r = trace(a)
-            aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) trace(aOp(xV));
-            s.ndimf = a.ndimf;
-            r = DomainFunction(s);
-        end
-
         function fun = project(obj,target,mesh)
             s.mesh          = mesh;
             s.projectorType = target;
