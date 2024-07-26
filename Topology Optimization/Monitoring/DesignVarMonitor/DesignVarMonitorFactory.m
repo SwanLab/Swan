@@ -48,7 +48,7 @@ classdef DesignVarMonitorFactory < handle
         function createMonitor(obj)
             mS = obj.getMonitorSettings();
             switch obj.designVariable.type
-                case {'Density','MicroParams','Density&Bound'}
+                case {'Density','MicroParams'}
                     obj.monitor = DesignVarMonitor_Density(mS);
                 case 'LevelSet'
                     switch obj.dim

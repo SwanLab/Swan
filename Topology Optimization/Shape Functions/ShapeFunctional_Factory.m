@@ -98,33 +98,12 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
-                case 'ComplianceConstraintThreeFieldRhoE'
-                    cParams.filterParams.femSettings.eta  = 0.5+0.25;
-                    cParams.filterParams.femSettings.beta = 1;
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
-                case 'ComplianceConstraintThreeFieldRhoI'
-                    cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = 1;
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
-                case 'ComplianceConstraintThreeFieldRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.5-0.25;
-                    cParams.filterParams.femSettings.beta = 1;
-                    cParams.filterParams.femSettings.shFunType = 'compliance';
-                    sF = ShFunc_ComplianceWithBoundTarget(cParams);
-                case 'VolumeConstraintRhoD'
-                    cParams.filterParams.femSettings.eta  = 0.5;
-                    cParams.filterParams.femSettings.beta = 1;
-                    sF = Volume_constraintWithBound(cParams);
-                case 'LinearBoundFunction'
-                    sF = LinearBoundFunction(cParams);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
         end
-
+        
     end
-
+    
 end
 
