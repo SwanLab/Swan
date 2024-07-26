@@ -84,7 +84,7 @@ classdef MeshMerger < handle
        function computeMergedMesh(obj)
             s.connec = obj.computeMergedConnec();
             s.coord  = obj.computeMergedCoord();
-            m = Mesh(s);
+            m = Mesh.create(s);
             obj.mergedMesh = m;
         end
 

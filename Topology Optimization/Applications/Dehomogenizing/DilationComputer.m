@@ -24,7 +24,8 @@ classdef DilationComputer < handle
             r = obj.solveSystem();
             s.mesh = obj.mesh;
             s.fValues = r;
-            rF = P1Function(s);
+            s.order = 'P1';
+            rF = LagrangianFunction(s);
         end
         
     end
@@ -52,18 +53,17 @@ classdef DilationComputer < handle
         end
 
         function createDilationFun(obj)
-            obj.dilation = P1Function.create(obj.mesh, 1);
+            obj.dilation = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
         
         function computeRHS(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('CUBIC');
+            q = Quadrature.create(obj.mesh,3);
             gradT = obj.computeFieldTimesDivField(q);
 
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = q.order;
-            test = P1Function.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh,1,'P1');
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute(gradT,test);
             obj.RHS = [rhsV;0];
@@ -72,8 +72,8 @@ classdef DilationComputer < handle
         function gradT = computeFieldTimesDivField(obj,q)
             a1    = obj.orientationVector{1};
             a2    = obj.orientationVector{2};
-            aDa1  = a1.computeFieldTimesDivergence(q);
-            aDa2  = a2.computeFieldTimesDivergence(q);        
+            aDa1  = a1.computeFieldTimesDivergence(q.posgp);
+            aDa2  = a2.computeFieldTimesDivergence(q.posgp);        
             s.quadrature = q;
             s.mesh       = obj.mesh;
             s.fValues    = -aDa1.fValues - aDa2.fValues;

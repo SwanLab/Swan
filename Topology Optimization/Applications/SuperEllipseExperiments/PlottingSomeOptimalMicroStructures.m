@@ -50,7 +50,7 @@ classdef PlottingSomeOptimalMicroStructures < handle
             reader    = femReader.read(fileName);
             s.coord   = reader.coord;
             s.connec  = reader.connec;
-            obj.mesh  = Mesh().create(s);
+            obj.mesh  = Mesh.create(s);
         end
         
         function createLevelSet(obj,icase)

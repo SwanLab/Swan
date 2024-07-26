@@ -65,7 +65,7 @@ classdef AbstractMesh < handle
     methods (Access = protected)
         
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj,'LINEAR');
+            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
         end
         
         function computeElementCoordinates(obj)
@@ -80,7 +80,8 @@ classdef AbstractMesh < handle
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
             s.fValues = obj.coord;
-            obj.xFE = P1Function(s);
+            s.order   = 'P1';
+            obj.xFE = LagrangianFunction(s);
         end
         
         function L = computeSquarePerimeter(obj)

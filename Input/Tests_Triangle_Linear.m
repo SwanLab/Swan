@@ -1356,6 +1356,7 @@ dirichlet_data = [
 18 2 0 
 ];
 
+
 %% Force Prescribed
 % Node                Dimension                Value
 
@@ -1389,6 +1390,57 @@ pointload_complete = [
 68 1 0 
 68 2 -10 
 ];
+
+isDir1 = @(coor)  (abs(coor(:,1)) == 0.1000 & abs(coor(:,2)) ==  0.5000);
+isDir2 = @(coor)  (abs(coor(:,1)) == 1 & abs(coor(:,2)) ==  0.5000);
+
+isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.85 & coor(:,2) == 0 );
+isPLBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.85 & coor(:,2) == -1 );
+isPLTopGripper    = @(coor)  (abs(coor(:,1)) <= 0.1  & coor(:,2) == -0.4 );
+isPLBottomGripper = @(coor)  (abs(coor(:,1)) <= 0.1  & coor(:,2) == -0.6 );
+
+% Dirichlet
+sDir{1}.domain    = @(coor) isDir1(coor);
+sDir{1}.direction = 2;
+sDir{1}.value     = 0;
+
+sDir{2}.domain    = @(coor) isDir2(coor);
+sDir{2}.direction = [1,2];
+sDir{2}.value     = 0;
+
+% Point load
+sPL{1}.domain    = @(coor) isPLTopRight(coor);
+sPL{1}.direction = 2;
+sPL{1}.value     = -10;
+
+sPL{2}.domain    = @(coor) isPLBottomRight(coor);
+sPL{2}.direction = 2;
+sPL{2}.value     = +10;
+
+sPL{3}.domain    = @(coor) isPLTopGripper(coor);
+sPL{3}.direction = 2;
+sPL{3}.value     = +1;
+
+sPL{4}.domain    = @(coor) isPLBottomGripper(coor);
+sPL{4}.direction = 2;
+sPL{4}.value     = -1;
+
+% Point load adjoint
+sPLAdj{1}.domain    = @(coor) isPLTopRight(coor);
+sPLAdj{1}.direction = 2;
+sPLAdj{1}.value     = -1;
+
+sPLAdj{2}.domain    = @(coor) isPLBottomRight(coor);
+sPLAdj{2}.direction = 2;
+sPLAdj{2}.value     = +1;
+
+sPLAdj{3}.domain    = @(coor) isPLTopGripper(coor);
+sPLAdj{3}.direction = 1;
+sPLAdj{3}.value     = +2;
+
+sPLAdj{4}.domain    = @(coor) isPLBottomGripper(coor);
+sPLAdj{4}.direction = 2;
+sPLAdj{4}.value     = -2;
 
 pointload_adjoint = [
 2 1 0 

@@ -131,10 +131,13 @@ classdef StressNormSuperEllipseComputer < handle
         end
         
         function createBackgroundMesh(obj)
+            run('RVE_Square_Triangle_FineFine')
+            a.connec = connec(:, 2:end);
+            a.coord  = coord(:, 2:3);
+            m = Mesh.create(a);
             obj.testName = 'RVE_Square_Triangle_FineFine';
             %obj.testName = 'RVE_Square_Triangle_Fine';
-            s.testName = obj.testName;
-            obj.meshBackground = Mesh().createFromFile(s); 
+            obj.meshBackground = m; 
         end
         
         function createMesh(obj)

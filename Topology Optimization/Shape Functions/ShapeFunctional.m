@@ -111,8 +111,8 @@ classdef ShapeFunctional < handle
         function M = computeMassMatrix(obj)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.test  = P1Function.create(obj.mesh, 1);
-            s.trial = P1Function.create(obj.mesh, 1);
+            s.test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            s.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
             s.quadratureOrder = 'QUADRATICMASS';
             LHS = LHSintegrator.create(s);
             M = LHS.compute();

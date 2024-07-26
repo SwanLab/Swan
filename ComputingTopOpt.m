@@ -1,8 +1,5 @@
 function ComputingTopOpt
 
-close all
-clear
-
 % Note: You can use FEMInputWriter to create benchmarking tests!
 % Note: Use gid to create harder tests!
 
@@ -15,8 +12,10 @@ t.compute();
 % (example: design variable with GiD. Test other results and also ParaView!)
 p1Params.fValues = t.computation.designVariable.value;
 p1Params.mesh    = t.computation.designVariable.mesh;
-Result           = P1Function(p1Params);
-filename = [s.testName,'_LastIter'];
-Result.print(filename,'GiD');
+p1Params.order   = 'P1';
+Result           = LagrangianFunction(p1Params);
+c.type = 'GiD';
+c.filename = [s.testName,'_LastIter'];
+Result.print(c);
 
 end

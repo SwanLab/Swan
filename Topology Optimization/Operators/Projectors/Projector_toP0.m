@@ -17,7 +17,8 @@ classdef Projector_toP0 < Projector
             RHS = obj.createRHS(x);
             s.fValues = obj.M\RHS;
             s.mesh    = obj.mesh;
-            xFun = P0Function(s);
+            s.order   = 'P0';
+            xFun = LagrangianFunction(s);
         end
 
     end
@@ -25,8 +26,7 @@ classdef Projector_toP0 < Projector
     methods (Access = private)
 
         function createMassMatrix(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('CONSTANT');
+            quad = Quadrature.create(obj.mesh,1);
             dv = obj.mesh.computeDvolume(quad);
             a = sum(dv(1,:),1);
             obj.M = spdiags(a',0,length(a),length(a));
@@ -36,11 +36,11 @@ classdef Projector_toP0 < Projector
         function rhs = createRHS(obj, fun)
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
+            fGaus = fun.evaluate(xV);
             nGaus  = obj.quadrature.ngaus;
-            nF     = fun.ndimf;
+            nF     = size(fGaus,1);
             nElem  = size(obj.mesh.connec,1);
             rhs = zeros(nElem,nF);
-            fGaus = fun.evaluate(xV);
 
             for iGaus = 1:nGaus
                 dVg(:,1) = dV(iGaus,:);
@@ -54,8 +54,7 @@ classdef Projector_toP0 < Projector
         end
 
         function computeQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj.mesh,2);
             obj.quadrature = quad;
         end
     end

@@ -72,7 +72,7 @@ classdef SuperEllipseExponentTriSurfPlotter < handle
         function connec = obtainQualityElements(connec,x,y)            
             s.coord = [x,y];
             s.connec = connec;
-            m = Mesh().create(s);
+            m = Mesh.create(s);
             qua = m.computeElementQuality';
             isQ = qua > 0.02;    
             connec = connec(isQ,:);

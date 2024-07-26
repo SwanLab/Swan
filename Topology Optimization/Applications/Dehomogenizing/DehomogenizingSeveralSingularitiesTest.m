@@ -70,7 +70,7 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
            s.coord(:,1) = X(:);
            s.coord(:,2) = Y(:);
            s.connec = delaunay(s.coord);
-           m = Mesh(s);
+           m = Mesh.create(s);
            obj.mesh = m;
         end
 
@@ -88,12 +88,13 @@ classdef DehomogenizingSeveralSingularitiesTest < handle
             a = [cos(al), sin(al)];
             s.fValues = a;
             s.mesh    = obj.mesh;
-            aF = P1Function(s);            
+            s.order   = 'P1';
+            aF = LagrangianFunction(s);            
             obj.orientation{1} = aF;%.project('P0');
             a = [-sin(al), cos(al)];
             s.fValues = a;
             s.mesh    = obj.mesh;
-            aF = P1Function(s);            
+            aF = LagrangianFunction(s);            
             obj.orientation{2} = aF;%.project('P0');
            % obj.orientation = a;
         end

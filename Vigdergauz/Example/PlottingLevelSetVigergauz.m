@@ -25,7 +25,7 @@ classdef PlottingLevelSetVigergauz < handle
         
         function createMesh(obj)
             meshBackground = obj.topOpt.designVariable.mesh;
-            interpolation = Interpolation.create(meshBackground,'LINEAR');
+            interpolation = Interpolation.create(meshBackground.type,'LINEAR');
             s.unfittedType = 'INTERIOR';
             s.meshBackground = meshBackground;
             s.interpolationBackground = interpolation;

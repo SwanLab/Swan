@@ -1,17 +1,9 @@
-classdef LHSintegrator_Mass < handle
-
-    properties (Access = private)
-        mesh
-        test, trial
-        quadrature
-        quadratureOrder
-    end
+classdef LHSintegrator_Mass < LHSintegrator
 
     methods (Access = public)
 
         function obj = LHSintegrator_Mass(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
         end
 
         function LHS = compute(obj)
@@ -22,32 +14,12 @@ classdef LHSintegrator_Mass < handle
     end
 
     methods (Access = private)
-
-        function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
-            obj.mesh  = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.trial.order;
-            end
-        end
         
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
         function lhs = computeElementalLHS(obj)
             quad = obj.quadrature;
-            shapesTest  = obj.test.computeShapeFunctions(quad);
-            shapesTrial = obj.trial.computeShapeFunctions(quad);
+            xV   = quad.posgp;
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            shapesTrial = obj.trial.computeShapeFunctions(xV);
             dVolu  = obj.mesh.computeDvolume(quad);
 
             nGaus  = obj.quadrature.ngaus;
@@ -86,12 +58,6 @@ classdef LHSintegrator_Mass < handle
             end
             lhs = M;
 
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

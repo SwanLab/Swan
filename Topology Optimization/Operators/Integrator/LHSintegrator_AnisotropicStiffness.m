@@ -1,11 +1,6 @@
-classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
+classdef LHSintegrator_AnisotropicStiffness < LHSintegrator
 
     properties (Access = private)
-        mesh
-        test, trial
-        quadrature
-        quadratureOrder
-
         CAnisotropic
         Celas
         alphaDeg
@@ -14,8 +9,7 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegrator_AnisotropicStiffness(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
             obj.initAnisotropicTensor(cParams);
         end
 
@@ -30,8 +24,9 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
     methods (Access = protected)
 
         function lhs = computeElementalLHS(obj)
-            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -60,37 +55,10 @@ classdef LHSintegrator_AnisotropicStiffness < handle %LHSintegrator
 
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
-            obj.mesh  = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.trial.order;
-            end
-        end
-        
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
         function Bcomp = createBComputer(obj, fun, dNdx)
             s.fun  = fun;
             s.dNdx = dNdx;
             Bcomp = BMatrixComputer(s);
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
         function initAnisotropicTensor(obj,cParams)

@@ -74,7 +74,7 @@ classdef Dehomogenizing < handle
             s.coord(:,1) = coordinates(:,1)+x1min;
             s.coord(:,2) = coordinates(:,2)+x2min;
             s.connec = nodes;
-            obj.backgroundMesh = Mesh(s);  
+            obj.backgroundMesh = Mesh.create(s);  
             obj.backgroundMesh.plot()
             obj.coord = s.coord;
             

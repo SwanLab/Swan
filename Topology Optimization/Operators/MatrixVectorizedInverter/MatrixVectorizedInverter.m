@@ -4,16 +4,16 @@ classdef MatrixVectorizedInverter < MatrixVectorizedInverter_Interface
         executor
     end
     
-    methods (Access = public)
+    methods (Static, Access = public)
         
-        function inv = computeInverse(obj,A)
-            obj.createExecutor(A);
-            inv = obj.executor.computeInverse(A);
+        function inv = computeInverse(A)
+            exec = MatrixVectorizedInverterFactory.create(A);
+            inv = exec.computeInverse(A);
         end
         
-        function det = computeDeterminant(obj,A)
-            obj.createExecutor(A);
-            det = obj.executor.computeDeterminant(A);
+        function det = computeDeterminant(A)
+            exec = MatrixVectorizedInverterFactory.create(A);
+            det = exec.computeDeterminant(A);
         end
         
     end
@@ -21,7 +21,7 @@ classdef MatrixVectorizedInverter < MatrixVectorizedInverter_Interface
     methods (Access = private)
         
         function createExecutor(obj,A)
-            obj.executor = MatrixVectorizedInverterFactory().create(A);
+            obj.executor = MatrixVectorizedInverterFactory.create(A);
         end
         
     end

@@ -99,6 +99,22 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
+isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
+isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
+
+% Dirichlet
+
+% Velocity...
+sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBottom(coor);
+sDir{1}.direction = [1,2];
+sDir{1}.value     = 0;
+% Pressure...
+sDir{2}.domain    = @(coor) isRight(coor) & isTop(coor);
+sDir{2}.direction = 1;
+sDir{2}.value     = 0;
+
 velocityBC.domain = 'Border';
 velocityBC.value  = 0;
 
@@ -126,10 +142,19 @@ pressure = [
 ];
 
 nu=1;
-Vol_force = @(x,y){nu*4*(x^3*((6 - 12*y)) + x^4*((-3 + 6*y)) + y*(1 - 3*y + 2*y^2)-6*x*y*(1 - 3*y + 2*y^2)...
-+ 3*x^2*((-1 + 4*y - 6*y^2 + 4*y^3)))+(2*x-1)*(y-1);
--4*nu*(-3*((-1 + y)^2)*y^2 - 3*x^2*((1 - 6*y + 6*y^2))+2*x^3*((1 - 6*y + 6*y^2)) +...
-x*(1 - 6*y + 12*y^2 - 12*y^3 + 6*y^4))+x*(x-1)};
+
+sMesh.coord = coord(:,2:3);
+sMesh.connec = connec(:,2:4);
+mesh = Mesh.create(sMesh);
+
+sAF.fHandle = @(coor) [nu*4*(coor(1,:,:).^3.*((6 - 12*coor(2,:,:))) + coor(1,:,:).^4.*((-3 + 6*coor(2,:,:))) + coor(2,:,:).*(1 - 3*coor(2,:,:) + ...
+    2*coor(2,:,:).^2)-6*coor(1,:,:).*coor(2,:,:).*(1 - 3*coor(2,:,:) + 2*coor(2,:,:).^2)...
++ 3*coor(1,:,:).^2.*((-1 + 4*coor(2,:,:) - 6*coor(2,:,:).^2 + 4*coor(2,:,:).^3)))+(2*coor(1,:,:)-1).*(coor(2,:,:)-1);
+-4*nu*(-3*((-1 + coor(2,:,:)).^2).*coor(2,:,:).^2 - 3*coor(1,:,:).^2.*((1 - 6*coor(2,:,:) + 6*coor(2,:,:).^2))+2*coor(1,:,:).^3.*((1 - 6*coor(2,:,:) + 6*coor(2,:,:).^2)) +...
+coor(1,:,:).*(1 - 6*coor(2,:,:) + 12*coor(2,:,:).^2 - 12*coor(2,:,:).^3 + 6*coor(2,:,:).^4))+coor(1,:,:).*(coor(1,:,:)-1)];
+sAF.ndimf   = 2;
+sAF.mesh    = mesh;
+Vol_force = AnalyticalFunction(sAF);
 
 % nu=1;
 % Vol_force = @(x,y){nu*4*(x^3*((6 - 12*y)) + x^4*((-3 + 6*y)) + y*(1 - 3*y + 2*y^2)-6*x*y*(1 - 3*y + 2*y^2)...

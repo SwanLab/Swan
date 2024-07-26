@@ -2,7 +2,6 @@ classdef MappingComputer < handle
 
 
     properties (Access = private)
-        meshDisc
         mesh
         interpolator
         dilatedOrientation
@@ -36,7 +35,6 @@ classdef MappingComputer < handle
             obj.mesh               = cParams.mesh;
             obj.dilatedOrientation = cParams.dilatedOrientation;
             obj.interpolator       = cParams.interpolator;
-            obj.meshDisc           = obj.mesh.createDiscontinuousMesh();
         end
 
         function K = computeStiffnessMatrix(obj)

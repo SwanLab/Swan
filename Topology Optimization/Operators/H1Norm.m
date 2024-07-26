@@ -12,7 +12,7 @@ classdef H1Norm < handle
         end
 
         function sp = compute(obj,f,epsilon)
-            Df  = f.computeGradient(obj.quadrature);
+            Df  = f.evaluateGradient(obj.quadrature.posgp);
             spM = obj.integrator.compute(f,f);
             spK = obj.integrator.compute(Df,Df);
             sp  = spM+epsilon^2*spK;

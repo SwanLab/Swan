@@ -30,15 +30,15 @@ classdef DualUpdater_AugmentedLagrangian < handle
             obj.constraint     = cParams.constraint;
             obj.constraintCase = cParams.constraintCase;
             obj.dualVariable   = cParams.dualVariable;
-            obj.nConstr        = cParams.constraint.nSF;
+            obj.nConstr        = length(cParams.constraintCase);
         end
 
         function compute(obj,i)
-            l   = obj.dualVariable.value(i);
+            l   = obj.dualVariable.fun.fValues(i);
             rho = obj.penalty;
             c   = obj.constraint.value(i);
             l   = l + rho.*c;
-            obj.dualVariable.value(i) = l;
+            obj.dualVariable.fun.fValues(i) = l;
         end
 
         function updateDual(obj)

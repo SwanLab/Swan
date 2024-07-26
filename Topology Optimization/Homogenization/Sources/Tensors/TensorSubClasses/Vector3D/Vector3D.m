@@ -11,12 +11,11 @@ classdef Vector3D < AbstractTensor ...
         end
         
     end
-                
-                
+
     methods (Access = protected)
         
         function loadOrderVariable(obj)
-            obj.order = 'first';            
+            obj.order = 'first';
         end
         
         function loadTensorSize(obj)

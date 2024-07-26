@@ -1,52 +1,71 @@
 classdef Quadrilateral_Quadratic < Interpolation
-    
+
     methods (Access = public)
-        function obj = Quadrilateral_Quadratic
-            obj = obj@Interpolation;
-            obj.type = 'QUAD';
-            obj.ndime = 2;
-            obj.nnode = 8;
-            obj.pos_nodes = [-1 -1; 1 -1; 1 1; -1 1];
-            
-            shape = @(s,t) {(1.-t-s+s*t)*0.25;
-                            (1.-t+s-s*t)*0.25;
-                            (1.+t+s+s*t)*0.25;
-                            (1.+t-s-s*t)*0.25};
-            obj.shape = shape;
-            
-            deriv = @(s,t) {(-1.+t)*0.25 (+1.-t)*0.25 (+1.+t)*0.25 (-1.-t)*0.25;
-                            (-1.+s)*0.25 (-1.-s)*0.25 (+1.+s)*0.25 (+1.-s)*0.25};
-            obj.deriv = deriv;
-            % Compute WEIGP and POSGP
-%             a =  0.577350269189626;
-%             obj.posgp(1,:) = [-a,-a];
-%             obj.posgp(2,:) = [+a,-a];
-%             obj.posgp(3,:) = [-a,+a];
-%             obj.posgp(4,:) = [+a,+a];
-%             obj.weigp = 0.25*ones(1,ngaus);
-%             
-%             for igaus = 1:obj.ngaus
-%                 s = obj.posgp(1,igaus);
-%                 t = obj.posgp(2,igaus);
-%                 st = s*t;
-%                 
-%                 % Shape Functions
-%                 obj.shape(1,igaus) = (1.-t-s+st)*0.25;
-%                 obj.shape(2,igaus) = (1.-t+s-st)*0.25;
-%                 obj.shape(3,igaus) = (1.+t+s+st)*0.25;
-%                 obj.shape(4,igaus) = (1.+t-s-st)*0.25;
-%                 
-%                 % SF Derivatives
-%                 obj.deriv(1,1,igaus) = (-1.+t)*0.25;
-%                 obj.deriv(1,2,igaus) = (+1.-t)*0.25;
-%                 obj.deriv(1,3,igaus) = (+1.+t)*0.25;
-%                 obj.deriv(1,4,igaus) = (-1.-t)*0.25;
-%                 obj.deriv(2,1,igaus) = (-1.+s)*0.25;
-%                 obj.deriv(2,2,igaus) = (-1.-s)*0.25;
-%                 obj.deriv(2,3,igaus) = (+1.+s)*0.25;
-%                 obj.deriv(2,4,igaus) = (+1.-s)*0.25;
-%             end
+
+        function obj = Quadrilateral_Quadratic(cParams)
+            obj.init(cParams);
         end
+
     end
-    
+
+    methods (Access = protected)
+
+        function computeParams(obj)
+            obj.type = 'QUADRILATERAL_QUADRATIC';
+            obj.ndime = 2;
+            obj.nnode = 9;
+            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; 0,-1 ; 1,0 ; 0,1 ; -1,0 ; 0,0];
+        end
+
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            shape = zeros(obj.nnode, ngaus, nelem);
+            for igaus=1:ngaus
+                s = xV(1,igaus);
+                t = xV(2,igaus);
+                shape(:,igaus,:) = [(s^2*t^2)/4 - (s^2*t)/4 - (s*t^2)/4 + (s*t)/4;
+                    (s^2*t^2)/4 - (s^2*t)/4 + (s*t^2)/4 - (s*t)/4;
+                    (s^2*t^2)/4 + (s^2*t)/4 + (s*t^2)/4 + (s*t)/4;
+                    (s^2*t^2)/4 + (s^2*t)/4 - (s*t^2)/4 - (s*t)/4;
+                    - (s^2*t^2)/2 + (s^2*t)/2 + t^2/2 - t/2;
+                    s/2 - (s^2*t^2)/2 - (s*t^2)/2 + s^2/2;
+                    t/2 - (s^2*t^2)/2 - (s^2*t)/2 + t^2/2;
+                    - (s^2*t^2)/2 + s^2/2 + (s*t^2)/2 - s/2;
+                    s^2*t^2 - s^2 - t^2 + 1];
+            end
+        end
+
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
+            for igaus=1:ngaus
+                s = xV(1,igaus);
+                t = xV(2,igaus);
+                deriv(:,:,igaus,:) = [
+                    t/4 - (s*t)/2 + (s*t^2)/2 - t^2/4,
+                    (s*t^2)/2 - (s*t)/2 - t/4 + t^2/4,
+                    t/4 + (s*t)/2 + (s*t^2)/2 + t^2/4,
+                    (s*t)/2 - t/4 + (s*t^2)/2 - t^2/4,
+                    - s*t^2 + s*t,
+                    s - s*t^2 - t^2/2 + 1/2,
+                    - s*t^2 - s*t,
+                    s - s*t^2 + t^2/2 - 1/2,
+                    2*s*t^2 - 2*s;
+
+                    s/4 - (s*t)/2 + (s^2*t)/2 - s^2/4,
+                    (s*t)/2 - s/4 + (s^2*t)/2 - s^2/4,
+                    s/4 + (s*t)/2 + (s^2*t)/2 + s^2/4,
+                    (s^2*t)/2 - (s*t)/2 - s/4 + s^2/4,
+                    t - s^2*t + s^2/2 - 1/2,
+                    - t*s^2 - t*s,
+                    t - s^2*t - s^2/2 + 1/2,
+                    - t*s^2 + t*s,
+                    2*t*s^2 - 2*t];
+            end
+        end
+
+    end
+
 end

@@ -64,9 +64,27 @@ classdef StokesProblem < handle
                     end
                     x = x_n;
             end
-            vars = obj.separateVariables(x);
+            fullx = obj.boundaryConditions.reducedToFullVector(x);
+            vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
+        end
+       
+        function print(obj, filename, software)
+            if nargin == 2; software = 'Paraview'; end
+            [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = obj.mesh;
+            a.filename = filename;
+            a.fun      = fun;
+            a.funNames = funNames;
+            a.type     = software;
+            pst = FunctionPrinter.create(a);
+            pst.print();
+        end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.velocityFun, obj.pressureFun};
+            funNames = {'velocity', 'pressure'};
         end
 
     end
@@ -88,11 +106,11 @@ classdef StokesProblem < handle
         end
 
         function createVelocity(obj)
-            obj.velocityFun = P2Function.create(obj.mesh, 2);
+            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
         end
 
         function createPressure(obj)
-            obj.pressureFun = P1Function.create(obj.mesh, 1);
+            obj.pressureFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
         function createBoundaryConditions(obj)
@@ -106,17 +124,17 @@ classdef StokesProblem < handle
             bcV.dirichlet = dirich;
             bcV.pointload = [];
             bcV.ndimf     = vel.ndimf;
-            bcV.ndofs     = numel(vel.fValues);
+            bcV.ndofs     = obj.velocityFun.nDofs;
             bcP.dirichlet = obj.inputBC.pressure;
             bcP.pointload = [];
             bcP.ndimf     = prs.ndimf;
-            bcP.ndofs     = numel(prs.fValues);
-            ndofs = numel(vel.fValues) + numel(prs.fValues);
+            bcP.ndofs     = obj.pressureFun.nDofs;
+            ndofs = obj.velocityFun.nDofs + obj.pressureFun.nDofs;
             s.dim   = [];
             s.scale = 'MACRO';
             s.bc    = {bcV, bcP};
             s.ndofs = ndofs; % Stokes
-            bc = BoundaryConditions(s);
+            bc = BoundaryConditionsStokes(s);
             obj.boundaryConditions = bc;
         end
 
@@ -163,9 +181,8 @@ classdef StokesProblem < handle
             obj.RHS = RHS;
         end
         
-        function variable = separateVariables(obj,x_free)
-            x = obj.boundaryConditions.reducedToFullVector(x_free);
-            ndofsV = numel(obj.velocityFun.fValues);
+        function variable = separateVariables(obj,x)
+            ndofsV = obj.velocityFun.nDofs;
             variable.u = x(1:ndofsV,:);
             variable.p = x(ndofsV+1:end,:);
         end

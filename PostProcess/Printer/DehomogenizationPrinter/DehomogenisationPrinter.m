@@ -59,9 +59,10 @@ classdef DehomogenisationPrinter < handle
         end
         
         function alpha = projectInNodesScalarPieceWiseFunction(obj,fValues)
-            s.mesh   = obj.mesh;
+            s.mesh    = obj.mesh;
             s.fValues = fValues;
-            f = P0Function(s);
+            s.order   = 'P0';
+            f = P0FunctiLagrangianFunctionon(s);
             alpha = f.projectToLinearNodalFunction();
         end
         

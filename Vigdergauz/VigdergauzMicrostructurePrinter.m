@@ -102,7 +102,7 @@ classdef VigdergauzMicrostructurePrinter < handle
             connecCutInner = connecCutInner + ncoord;
             coord = [coordInner;coordCutInner];
             connec = [connecInner;connecCutInner];
-            obj.jointMesh = Mesh();
+            obj.jointMesh = Mesh.create();
             obj.jointMesh.create(coord,connec);
         end
         

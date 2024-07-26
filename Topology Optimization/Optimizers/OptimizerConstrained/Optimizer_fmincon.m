@@ -6,22 +6,13 @@ classdef Optimizer_fmincon < Optimizer
 
     properties (Access = private)
         problem
-        iterDisplay
         upperBound
         lowerBound
         nX
         options
         algorithm
-        incrementalScheme
         hasConverged
         hasFinished
-        
-        globalCost
-        globalConstraint
-        globalCostGradient
-        globalLineSearch
-        globalDual
-        globalDesignVar
     end
 
 
@@ -30,17 +21,20 @@ classdef Optimizer_fmincon < Optimizer
         function obj = Optimizer_fmincon(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.outputFunction.monitoring.create(cParams);
             obj.createProblem();
             obj.createOptions();
         end
 
-         function solveProblem(obj)
-            obj.cost.computeFunctionAndGradient();
+        function solveProblem(obj)
+            f = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(f);
+            obj.constraint.computeFunctionAndGradient(f);
             obj.designVariable.updateOld();
+            obj.printOptimizerVariable();
+            obj.updateMonitoring();
             x = obj.callfmincon();
             obj.designVariable.update(x);
-         end
+        end
 
     end
 
@@ -49,13 +43,42 @@ classdef Optimizer_fmincon < Optimizer
         function init(obj,cParams)
             obj.algorithm              = 'interior-point';
             cParams.optimizerNames.alg = obj.algorithm;
-            obj.upperBound             = cParams.uncOptimizerSettings.ub;
-            obj.lowerBound             = cParams.uncOptimizerSettings.lb;
-            obj.iterDisplay            = cParams.outputFunction.iterDisplay;
-            obj.incrementalScheme      = cParams.incrementalScheme;
-            obj.nX                     = length(obj.designVariable.value);
+            obj.upperBound             = cParams.ub;
+            obj.lowerBound             = cParams.lb;
+            obj.nX                     = length(obj.designVariable.fun.fValues);
             obj.hasConverged           = false;
-            cParams.monitoringDockerSettings.optimizerNames.alg = obj.algorithm;
+            obj.createMonitoring(cParams);
+        end
+
+        function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                chConstr{i}   = 'plot';
+            end
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
+
+            s.shallDisplay = cParams.monitoring;
+            s.maxNColumns  = 5;
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
+            obj.monitoring = Monitoring(s);
+        end
+
+        function updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            obj.monitoring.update(obj.nIter,data);
         end
 
         function x = callfmincon(obj)
@@ -66,7 +89,7 @@ classdef Optimizer_fmincon < Optimizer
 
         function createProblem(obj)
             prob.objective         = @(x) obj.objectiveAndGradient(x);
-            prob.x0                = obj.designVariable.value;
+            prob.x0                = obj.designVariable.fun.fValues;
             prob.A                 = [];
             prob.b                 = [];
             prob.Aeq               = [];
@@ -85,13 +108,15 @@ classdef Optimizer_fmincon < Optimizer
 
         function f = objective(obj,x)
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient();
+            f = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(f);
             f = obj.cost.value;
         end
         
         function g = gradient(obj,x)
             obj.designVariable.update(x);
-            obj.cost.computeFunctionAndGradient()
+            f = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(f);
             g = obj.cost.gradient;
         end
 
@@ -104,13 +129,15 @@ classdef Optimizer_fmincon < Optimizer
 
         function f = constraintFunction(obj,x)
             obj.designVariable.update(x);
-            obj.constraint.computeFunctionAndGradient()
+            f = obj.designVariable;
+            obj.constraint.computeFunctionAndGradient(f)
             f = obj.constraint.value;
         end
         
         function g = constraint_gradient(obj,x)
             obj.designVariable.update(x);
-            obj.constraint.computeFunctionAndGradient()
+            f = obj.designVariable;
+            obj.constraint.computeFunctionAndGradient(f)
             g = obj.constraint.gradient;
         end
 
@@ -123,7 +150,6 @@ classdef Optimizer_fmincon < Optimizer
             opts.SpecifyConstraintGradient = true;
             opts.CheckGradients            = false;
             opts.ConstraintTolerance       = 1e-4;
-            opts.Display                   = obj.iterDisplay;
             opts.EnableFeasibilityMode     = false;
             opts.HessianApproximation      = 'bfgs';
             opts.HessianFcn                = [];
@@ -150,9 +176,7 @@ classdef Optimizer_fmincon < Optimizer
         end
 
         function itHas = hasExceededStepIterations(obj)
-            iStep = obj.incrementalScheme.iStep;
-            nStep = obj.incrementalScheme.nSteps;
-            itHas = obj.nIter >= obj.maxIter*(iStep/nStep);
+            itHas = obj.nIter >= obj.maxIter;
         end
 
     end
@@ -166,11 +190,12 @@ classdef Optimizer_fmincon < Optimizer
 
                 case "iter"
                     obj.updateIterInfo();
-                    obj.designVariable.update(x);
                     params.algorithm   = obj.algorithm;
                     params.nIter       = obj.nIter;
                     params.hasFinished = obj.hasFinished; 
-                    obj.outputFunction.monitoring.compute(params);
+                    obj.printOptimizerVariable();
+                    obj.updateMonitoring();
+                    obj.designVariable.updateOld();
             end
         end
 

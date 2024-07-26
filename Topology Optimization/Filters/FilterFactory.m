@@ -28,6 +28,8 @@ classdef FilterFactory < handle
                                 case 'Anisotropy'
                                     cParams.LHStype = 'AnisotropicStiffnessMassBoundaryMass';
                             end
+                        case 'DirichletProjection'
+                            cParams.LHStype = 'MassBoundaryMass';
                     end
                     filter = FilterPDE(cParams);
                 case 'LUMP'

@@ -1,56 +1,34 @@
 classdef UnfittedBoundaryFunction < handle
 
     properties (Access = public)
+        ndimf
         unfittedMesh
+        boundaryCutMeshFunction
+        unfittedBoundaryMeshFunction
     end
 
     properties (Access = private)
-        ndimf
         fun
     end
 
-    properties (Access = private)
-        unfittedMeshFunction
-    end
-
     methods (Access = public)
-
         function obj = UnfittedBoundaryFunction(cParams)
             obj.init(cParams);
             obj.computeUnfittedMeshFunction();
         end
-
-        function f = obtainFunctionAtExternalBoundary(obj,iBoundary)
-            uMesh      = obj.unfittedMesh;
-            meshes     = uMesh.unfittedBoundaryMesh.getActiveMesh();
-            uMeshFun   = obj.unfittedMeshFunction;
-            uBMeshFuns = uMeshFun.unfittedBoundaryMeshFunction;
-            s.uMesh    = meshes{iBoundary};
-            s.fun      = uBMeshFuns.activeFuns{iBoundary}.backgroundFunction;
-            f          = UnfittedFunction(s);
-        end
-
-        function fxV = evaluateCutElements(obj,q)
-            uMeshFun = obj.unfittedMeshFunction;
-            fNew     = uMeshFun.boundaryCutMeshFunction;
-            xV       = q.posgp;
-            fxV      = fNew.evaluate(xV);
-        end
-
     end
 
     methods (Access = private)
-
         function init(obj,cParams)
-            obj.unfittedMesh   = cParams.uMesh;
-            obj.fun            = cParams.fun;
-            obj.ndimf          = cParams.fun.ndimf;
+            obj.unfittedMesh = cParams.uMesh;
+            obj.fun          = cParams.fun;
+            obj.ndimf        = cParams.fun.ndimf;
         end
 
         function computeUnfittedMeshFunction(obj)
             uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(obj.fun);
-            obj.unfittedMeshFunction = uMeshFun;
+            obj.boundaryCutMeshFunction = uMeshFun.boundaryCutMeshFunction;
+            obj.unfittedBoundaryMeshFunction = uMeshFun.unfittedBoundaryMeshFunction;
         end
-
     end
 end

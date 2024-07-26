@@ -1,8 +1,8 @@
 classdef LHSintegrator_Advection < handle
-    
+
     properties (Access = private)
         mesh
-        test, trial        
+        test, trial
         b
         rho
         quadrature
@@ -10,10 +10,10 @@ classdef LHSintegrator_Advection < handle
     end
 
     methods (Access = public)
-        
+
         function obj = LHSintegrator_Advection(cParams)
             obj.init(cParams);
-            obj.createQuadrature();            
+            obj.createQuadrature();
         end
 
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = compute(obj)
@@ -32,14 +32,15 @@ classdef LHSintegrator_Advection < handle
             Myy = obj.assembleMatrix(Myy);
             Mrho = obj.assembleMatrix(Mrho);
         end
-        
+
     end
-    
-   methods (Access = protected)
-        
+
+    methods (Access = protected)
+
         function [CX,CY,DX,DY,EX,EY,Kxx,Kxy,Kyy,Mxx,Mxy,Myy,Mrho] = computeElementalLHS(obj)
-            dNdxTs = obj.test.computeCartesianDerivatives(obj.quadrature);
-            dNdxTr = obj.trial.computeCartesianDerivatives(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
@@ -49,10 +50,10 @@ classdef LHSintegrator_Advection < handle
             nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
-            shapesTest  = obj.test.computeShapeFunctions(obj.quadrature);
-            shapesTrial = obj.trial.computeShapeFunctions(obj.quadrature);          
+            shapesTest  = obj.test.computeShapeFunctions(xV);
+            shapesTrial = obj.trial.computeShapeFunctions(xV);
 
-           % N  = obj.interpolation.shape;
+            % N  = obj.interpolation.shape;
 
 
             bD   = obj.b.project('P1D');
@@ -66,35 +67,35 @@ classdef LHSintegrator_Advection < handle
             cX = zeros(nDofETs,nDofETr,nElem);
             cY = zeros(nDofETs,nDofETr,nElem);
             dX = zeros(nDofETs,nDofETr,nElem);
-            dY = zeros(nDofETs,nDofETr,nElem);    
+            dY = zeros(nDofETs,nDofETr,nElem);
             eX = zeros(nDofETs,nDofETr,nElem);
-            eY = zeros(nDofETs,nDofETr,nElem);  
-            Kxx = zeros(nDofETs,nDofETr,nElem);  
-            Kyy = zeros(nDofETs,nDofETr,nElem);  
-            Kxy = zeros(nDofETs,nDofETr,nElem);  
-            Mxx = zeros(nDofETs,nDofETr,nElem);  
-            Myy = zeros(nDofETs,nDofETr,nElem);  
-            Mxy = zeros(nDofETs,nDofETr,nElem);  
-            Mrho = zeros(nDofETs,nDofETr,nElem);  
+            eY = zeros(nDofETs,nDofETr,nElem);
+            Kxx = zeros(nDofETs,nDofETr,nElem);
+            Kyy = zeros(nDofETs,nDofETr,nElem);
+            Kxy = zeros(nDofETs,nDofETr,nElem);
+            Mxx = zeros(nDofETs,nDofETr,nElem);
+            Myy = zeros(nDofETs,nDofETr,nElem);
+            Mxy = zeros(nDofETs,nDofETr,nElem);
+            Mrho = zeros(nDofETs,nDofETr,nElem);
 
             for igaus = 1:nGaus
                 dNg     = dNdxTs(:,:,:,igaus);
                 Ng      = shapesTest(:,igaus);
-                dV(:,1) = dVolu(igaus, :);                
+                dV(:,1) = dVolu(igaus, :);
                 for iNode = 1:nNodETs
                     dNi = squeezeParticular(dNg(:,iNode,:),2);
                     Ni  = Ng(iNode);
                     for jNode = 1:nNodETs
-                        dNj = squeezeParticular(dNg(:,jNode,:),2);   
+                        dNj = squeezeParticular(dNg(:,jNode,:),2);
                         Nj  = Ng(jNode);
                         for kNode = 1:nNodETs
                             bXk = squeeze(bElem(1,kNode,:));
                             bYk = squeeze(bElem(2,kNode,:));
                             rhok = squeeze(rhoElem(1,kNode,:));
-                            
+
                             Nk  = Ng(kNode);
-                            dNk = squeezeParticular(dNg(:,kNode,:),2);   
-                            
+                            dNk = squeezeParticular(dNg(:,kNode,:),2);
+
 
                             dNidx(:,1) = squeeze(dNi(1,:));
                             dNidy(:,1) = squeeze(dNi(2,:));
@@ -103,7 +104,7 @@ classdef LHSintegrator_Advection < handle
                             dNkdx(:,1) = squeeze(dNk(1,:));
                             dNkdy(:,1) = squeeze(dNk(2,:));
 
-                         % version 1   
+                            % version 1
                             ck = Ni.*(dNjdx.*dNkdx + dNjdy.*dNkdy);
                             dk = Nk.*(dNjdx.*dNidx + dNjdy.*dNidy);
 
@@ -122,9 +123,9 @@ classdef LHSintegrator_Advection < handle
 
 
                             %%% RegularizationTerms
-                    
+
                             for lNode = 1:nNodETs
-                              
+
 
                                 Nl = Ng(lNode);
                                 dNl = squeezeParticular(dNg(:,lNode,:),2);
@@ -134,8 +135,8 @@ classdef LHSintegrator_Advection < handle
                                 rhol = squeeze(rhoElem(1,lNode,:));
                                 mr(1,1,:) = 4*Ni.*Nj.*(rhok.*Nk).*(1-rhol).*Nl.*dV;
                                 Mrho(iNode,jNode,:) = Mrho(iNode,jNode,:) + mr;
-                                
-                             
+
+
                                 bXl = squeeze(bElem(1,lNode,:));
                                 bYl = squeeze(bElem(2,lNode,:));
 
@@ -151,37 +152,37 @@ classdef LHSintegrator_Advection < handle
 
 
 
-                             Kxx(iNode,jNode,:) = Kxx(iNode,jNode,:) + kxx;
-                             Kxy(iNode,jNode,:) = Kxy(iNode,jNode,:) + kxy;
-                             Kyy(iNode,jNode,:) = Kyy(iNode,jNode,:) + kyy;
+                                Kxx(iNode,jNode,:) = Kxx(iNode,jNode,:) + kxx;
+                                Kxy(iNode,jNode,:) = Kxy(iNode,jNode,:) + kxy;
+                                Kyy(iNode,jNode,:) = Kyy(iNode,jNode,:) + kyy;
 
-                             Mxx(iNode,jNode,:) = Mxx(iNode,jNode,:) + mxx;
-                             Mxy(iNode,jNode,:) = Mxy(iNode,jNode,:) + mxy;
-                             Myy(iNode,jNode,:) = Myy(iNode,jNode,:) + myy;
+                                Mxx(iNode,jNode,:) = Mxx(iNode,jNode,:) + mxx;
+                                Mxy(iNode,jNode,:) = Mxy(iNode,jNode,:) + mxy;
+                                Myy(iNode,jNode,:) = Myy(iNode,jNode,:) + myy;
                             end
- 
-                         % version 2
-% 
-%                             cxk = Ni.*dNkdy.*(dNjdx.*bXk + dNjdx.*bYk);
-%                             cyk = Ni.*dNkdx.*(dNjdx.*bXk + dNjdx.*bYk);
-% 
-%                             dxk = Nk.*dNjdx.*(-dNidy.*bXk  + dNidx.*bYk);
-%                             dyk = Nk.*dNjdy.*( dNidy.*bXk  - dNidx.*bYk);
-% 
-%                             cXv(1,1,:) = cxk.*dV;
-%                             dXv(1,1,:) = dxk.*dV;
-% 
-%                             cX(iNode,jNode,:) = cX(iNode,jNode,:) + cXv;
-%                             dX(iNode,jNode,:) = dX(iNode,jNode,:) + dXv;
-% 
-%                             cYv(1,1,:) = cyk.*dV;
-%                             dYv(1,1,:) = dyk.*dV;
-% 
-%                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
-%                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
-                    %%%%
 
-                            
+                            % version 2
+                            %
+                            %                             cxk = Ni.*dNkdy.*(dNjdx.*bXk + dNjdx.*bYk);
+                            %                             cyk = Ni.*dNkdx.*(dNjdx.*bXk + dNjdx.*bYk);
+                            %
+                            %                             dxk = Nk.*dNjdx.*(-dNidy.*bXk  + dNidx.*bYk);
+                            %                             dyk = Nk.*dNjdy.*( dNidy.*bXk  - dNidx.*bYk);
+                            %
+                            %                             cXv(1,1,:) = cxk.*dV;
+                            %                             dXv(1,1,:) = dxk.*dV;
+                            %
+                            %                             cX(iNode,jNode,:) = cX(iNode,jNode,:) + cXv;
+                            %                             dX(iNode,jNode,:) = dX(iNode,jNode,:) + dXv;
+                            %
+                            %                             cYv(1,1,:) = cyk.*dV;
+                            %                             dYv(1,1,:) = dyk.*dV;
+                            %
+                            %                             cY(iNode,jNode,:) = cY(iNode,jNode,:) + cYv;
+                            %                             dY(iNode,jNode,:) = dY(iNode,jNode,:) + dYv;
+                            %%%%
+
+
 
                             e = Ni.*Nj.*Nk;
                             eXV(1,1,:) = e.*bXk.*dV;
@@ -190,7 +191,7 @@ classdef LHSintegrator_Advection < handle
                             eX(iNode,jNode,:) = eX(iNode,jNode,:) + eXV;
                             eY(iNode,jNode,:) = eY(iNode,jNode,:) + eYV;
 
-                        end                   
+                        end
                     end
                 end
             end
@@ -201,16 +202,16 @@ classdef LHSintegrator_Advection < handle
             EX = eX;
             EY = eY;
         end
-   end
-    
-   methods (Access = private)
+    end
 
-       function init(obj, cParams)
+    methods (Access = private)
+
+        function init(obj, cParams)
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
             obj.b            = cParams.b;
-            obj.rho          = cParams.rho;            
+            obj.rho          = cParams.rho;
             obj.setQuadratureOrder(cParams);
         end
 
@@ -226,14 +227,14 @@ classdef LHSintegrator_Advection < handle
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
-        end        
+        end
 
         function LHS = assembleMatrix(obj, lhs)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
             LHS = assembler.assembleFunctions(lhs, obj.test, obj.trial);
-        end        
-       
-   end
-    
+        end
+
+    end
+
 end

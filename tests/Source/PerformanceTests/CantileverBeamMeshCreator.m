@@ -112,7 +112,7 @@ classdef CantileverBeamMeshCreator < handle
         function mesh = createMesh(obj)
             m.coord  = obj.coords;
             m.connec = obj.connec;
-            mesh = Mesh(m);
+            mesh = Mesh.create(m);
         end
         
     end

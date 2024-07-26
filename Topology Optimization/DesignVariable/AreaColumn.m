@@ -31,12 +31,12 @@ classdef AreaColumn < DesignVariable
         function gamma = getFirstEigenMode(obj)
            x = obj.value;
            N = obj.mesh.nelem;
-           gamma = x(N+1);  
+           gamma = x(N+1);
         end
 
         function v = getVariablesToPlot(obj)
             v{1} = obj.value;
-        end      
+        end
 
         function norm = computeL2normIncrement(obj)
             norm = 0;

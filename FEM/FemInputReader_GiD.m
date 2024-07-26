@@ -4,6 +4,11 @@ classdef FemInputReader_GiD < handle
         pdim
         dirichlet
         pointload
+        mesh
+
+        dirichletFun
+        pointloadFun
+        periodicFun
         ptype
         scale
         problemID
@@ -41,7 +46,7 @@ classdef FemInputReader_GiD < handle
         end
         
         function s = getData(obj)
-            s.mesh = obj.createMesh();
+            s.mesh = obj.mesh;
             s.pdim = obj.pdim;
             s.geometryType = obj.geometryType;
             s.ptype = obj.ptype;
@@ -49,6 +54,9 @@ classdef FemInputReader_GiD < handle
             s.problemID = obj.problemID;
             s.dirichlet = obj.dirichlet;
             s.pointload = obj.pointload;
+            s.dirichletFun = obj.dirichletFun;
+            s.pointloadFun = obj.pointloadFun;
+            s.periodicFun  = obj.periodicFun;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
             end
@@ -73,13 +81,13 @@ classdef FemInputReader_GiD < handle
             s.masterSlaveNodes = obj.masterSlave;
             s.boundaryNodes    = obj.boundaryNodes;
             s.boundaryElements = obj.boundaryElements;
-            m = Mesh(s);
+            m = Mesh.create(s);
         end
         
         function readFile(obj,fileName)
             data = Preprocess.readFromGiD(fileName);
             if isequal(data.problem_type,'Stokes')
-                [state, vel, prs, forces, velBC, dtime, fTime] = Preprocess.getBCFluidsNew(fileName);
+                [state, vel, prs, forces, velBC, dtime, fTime,sDir] = Preprocess.getBCFluids(fileName);
                 obj.state = state;
                 obj.velocity = vel;
                 obj.pressure = prs;
@@ -87,9 +95,12 @@ classdef FemInputReader_GiD < handle
                 obj.forcesFormula = forces;
                 obj.dtime = dtime;
                 obj.finalTime = fTime;
+                % sDir = [];
+                sPL = [];
+                sPer = [];
             end
             if ~isequal(data.problem_type,'Stokes')
-                [~,~,bNodes,bElem,mSlave] = Preprocess.getBC_mechanics(fileName);
+                [~,~,bNodes,bElem,mSlave, sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
                 obj.boundaryElements = bElem;
                 obj.masterSlave = mSlave;
@@ -104,8 +115,32 @@ classdef FemInputReader_GiD < handle
             ndim = obj.getDimension();
             obj.coord  = obj.coord(:,2:ndim+1);
             obj.connec = data.connectivities(:,2:end);
-
+            obj.mesh = obj.createMesh();
             
+            obj.dirichletFun = [];
+            obj.pointloadFun = [];
+            obj.periodicFun  = [];
+            if ~isequal(sDir,[])
+                for i = 1:numel(sDir)
+                    dir = DirichletCondition(obj.mesh, sDir{i});
+                    obj.dirichletFun = [obj.dirichletFun, dir];
+                end
+            end
+
+            if ~isequal(sPL,[])
+                for i = 1:numel(sPL)
+                    pl = PointLoad(obj.mesh, sPL{i});
+                    obj.pointloadFun = [obj.pointloadFun, pl];
+                end
+            end
+
+            if ~isequal(sPer,[])
+                for i = 1:numel(sPer)
+                    per = PeriodicCondition(obj.mesh, sPer{i});
+                    obj.periodicFun = [obj.periodicFun, per];
+                end
+            end
+
             if strcmpi(data.problem_type,'elastic') ...
             || strcmpi(data.problem_type,'hyperelastic') ...
             || strcmpi(data.problem_type,'thermal')

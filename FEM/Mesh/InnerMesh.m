@@ -62,7 +62,7 @@ classdef InnerMesh < handle
             s.coord  = obj.coord;
             s.connec = obj.connec;
             s.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh(s);
+            obj.mesh = Mesh.create(s);
         end
         
         function computeGlobalConnec(obj)

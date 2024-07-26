@@ -11,22 +11,19 @@ classdef FilterPDE < handle
         problemLHS
         LHS
         RHS
-        bc
+        % bc
     end
 
     methods (Access = public)
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            obj.computeBoundaryConditions(cParams);
+            % obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
 
         function xF = compute(obj,fun,quadType)
-            s.feFunType = class(obj.trial);
-            s.mesh      = obj.mesh;
-            s.ndimf     = 1;
-            xF          = FeFunction.createEmpty(s);
+            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
             xF.fValues  = obj.trial.fValues;
@@ -42,9 +39,7 @@ classdef FilterPDE < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            cParams.feFunType = class(cParams.trial);
-            cParams.ndimf     = 1;
-            obj.trial         = FeFunction.createEmpty(cParams);
+            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
             obj.LHStype       = cParams.LHStype;
             obj.mesh          = cParams.mesh;
             obj.epsilon       = cParams.mesh.computeMeanCellSize();
@@ -70,7 +65,7 @@ classdef FilterPDE < handle
 
         function computeLHS(obj)
             lhs     = obj.problemLHS.compute(obj.epsilon);
-            lhs     = obj.bc.fullToReducedMatrix(lhs);
+            % lhs     = obj.bc.fullToReducedMatrix(lhs); % its the same
             obj.LHS = decomposition(lhs);
         end
 
@@ -78,15 +73,17 @@ classdef FilterPDE < handle
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
                 otherwise
                     s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
             end
-            s.type     = 'ShapeFunction';
             s.quadType = quadType;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
-            rhsR       = obj.bc.fullToReducedVector(rhs);
+            % rhsR       = obj.bc.fullToReducedVector(rhs);
+            rhsR       = rhs; % its the same
             obj.RHS    = rhsR;
         end
 
@@ -94,7 +91,8 @@ classdef FilterPDE < handle
             s.type = 'DIRECT';
             solver = Solver.create(s);
             x      = solver.solve(obj.LHS,obj.RHS);
-            xR     = obj.bc.reducedToFullVector(x);
+            % xR     = obj.bc.reducedToFullVector(x);
+            xR = x; % its the same
             obj.trial.fValues = xR;
         end
 

@@ -102,7 +102,8 @@ classdef HarmonicVectorProjectionExample < handle
         function sigma0 = getSigma0FromData(obj)
             s.mesh    = obj.experimentData.mesh;
             s.fValues = obj.experimentData.dataRes.StressPrimal;
-            sigma0 = P0Function(s);
+            s.order   = 'P0';
+            sigma0 = LagrangianFunction(s);
         end
 
         function [a1,a2] = obtainPrincipalDirections(obj,sigma)
@@ -118,13 +119,15 @@ classdef HarmonicVectorProjectionExample < handle
         function aF = createFunctionP0(obj,a)
             s.mesh = obj.mesh;
             s.fValues = squeeze(a)';
-            aF = P0Function(s);
+            s.order   = 'P0';
+            aF = LagrangianFunction(s);
         end                     
 
         function aF = createFunctionP1(obj,a)
             s.fValues = squeeze(a);
             s.mesh    = obj.mesh;
-            aF = P1Function(s);
+            s.order   = 'P1';
+            aF = LagrangianFunction(s);
         end
 
         function h = createHarmonicProjectionWithPenalizedHarmonizity(obj,epsilon)
@@ -151,8 +154,8 @@ classdef HarmonicVectorProjectionExample < handle
             d = obj.experimentData;
             aBar  = d.dataRes.AlphaGauss;
             s.mesh    = obj.mesh;
-            s.fValues = aBar;
-            aF = P0Function(s);
+            s.order   = 'P0';
+            aF = LagrangianFunction(s);
         end        
 
         function plotOrientationVector(obj,b)
@@ -202,7 +205,8 @@ classdef HarmonicVectorProjectionExample < handle
             bV(:,2) = sin(beta);       
             s.fValues = bV;
             s.mesh    = obj.mesh;
-            b = P1Function(s);
+            s.order   = 'P1';
+            b = LagrangianFunction(s);
         end
 
         function b0 = createDoubleOrientationVectorP0(obj,a0)
@@ -214,7 +218,8 @@ classdef HarmonicVectorProjectionExample < handle
             b(:,2) = sin(beta);                        
             s.fValues = b;
             s.mesh    = obj.mesh;
-            b0 = P0Function(s);
+            s.order   = 'P0';
+            b0 = LagrangianFunction(s);
         end
 
         function a = createHalfOrientationVectorP0(obj,b)
@@ -226,7 +231,8 @@ classdef HarmonicVectorProjectionExample < handle
             aV(:,2) = sin(alpha);
             s.fValues = aV;
             s.mesh    = obj.mesh;
-            a = P0Function(s);
+            s.order   = 'P0';
+            a = LagrangianFunction(s);
         end    
 
         function rho = computeRho(obj)            
@@ -236,7 +242,8 @@ classdef HarmonicVectorProjectionExample < handle
             rhoV(:) = 0.5;
             s.fValues = rhoV;
             s.mesh    = obj.mesh;
-            rho = P1Function(s);
+            s.order   = 'P1';
+            rho = LagrangianFunction(s);
         end
 
         function bBar = projectViaPicard(obj,rho,bBar,bInitial)  
@@ -253,7 +260,8 @@ classdef HarmonicVectorProjectionExample < handle
             aV(:,2) = sin(alpha);
             s.fValues = aV;
             s.mesh    = obj.mesh;
-            a1 = P1Function(s);
+            s.order   = 'P0';
+            a1 = LagrangianFunction(s);
         end
 
         function resHNorm = plotAll(obj,h,bBar,b)
@@ -338,7 +346,8 @@ classdef HarmonicVectorProjectionExample < handle
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
-            a{2}           = P1Function(s);
+            s.order        = 'P1';
+            a{2}           = LagrangianFunction(s);
 
             obj.harmonicVector = a;
             
@@ -388,7 +397,8 @@ classdef HarmonicVectorProjectionExample < handle
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
-            a{2}           = P1Function(s);
+            s.order        = 'P1';
+            a{2}           = LagrangianFunction(s);
 
             obj.harmonicVector = a;
             
@@ -435,7 +445,8 @@ classdef HarmonicVectorProjectionExample < handle
             s.fValues(:,2) = a1.fValues(:,1);
             s.fValues(:,1) = -a1.fValues(:,2);
             s.mesh         = obj.mesh;
-            a{2}           = P1Function(s);
+            s.order        = 'P1';
+            a{2}           = LagrangianFunction(s);
 
             obj.harmonicVector = a;
 

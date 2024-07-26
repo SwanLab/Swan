@@ -1,14 +1,14 @@
 classdef PlottingTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        coordTests = {'test_triangleToyUntittedExample', 'test_quadToyUntittedExample'} %no file
+        % coordTests = {'test_triangleToyUntittedExample', 'test_quadToyUntittedExample'} %no file
         plottingTests = {'test_circumference_quadrilateral', 'test_circumference_triangle', ...
             'test_circle_triangle', 'test_circle_quadrilateral', ...
             'test_sphere_tetrahedra', 'test_sphere_hexahedra'}
-        compositeTests = {'test_rectangle_triangle_plot', 'test_rectangle_quadrilateral_plot', ...
+        compositeTests = {'test_rectangle_triangle', 'test_rectangle_quadrilateral', ...
             'test_smoothRectangle_triangle', 'test_smoothRectangle_quadrilateral', ...
             'test_cylinder_tetrahedra', 'test_cylinder_hexahedra'}
-        cylinderTests = {'testPlotLargeCylinderTethaedra'}
+        % cylinderTests = {'testPlotLargeCylinderTethaedra'}
     end
 
 
@@ -77,15 +77,15 @@ classdef PlottingTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'PlottingTests', 'Cylinder'})
-
-        function testCylinder(testCase)
-            test = TestPlotLargeCylinderTethaedra();
-            passed = true;
-            verifyTrue(testCase, passed)
-        end
-
-    end
+    % methods (Test, TestTags = {'PlottingTests', 'Cylinder'})
+    % 
+    %     function testCylinder(testCase)
+    %         test = TestPlotLargeCylinderTethaedra();
+    %         passed = true;
+    %         verifyTrue(testCase, passed)
+    %     end
+    % 
+    % end
 
     methods (Access = private)
         

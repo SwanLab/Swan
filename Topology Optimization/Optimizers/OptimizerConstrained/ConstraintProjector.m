@@ -6,7 +6,6 @@ classdef ConstraintProjector < handle
         constraint
         dualVariable
         designVariable
-        targetParameters
         primalUpdater
         lambdaUB
         lambdaLB
@@ -21,14 +20,17 @@ classdef ConstraintProjector < handle
         end
 
         function project(obj)
+            x0      = obj.designVariable.fun.fValues;
+            tolCons = 1e-5;
             obj.tau = obj.primalUpdater.tau;
-            tolCons = 1e-2*obj.targetParameters.constr_tol;
-            lambda  = obj.dualVariable.value;
-            fref    = obj.computeFeasibleDesignVariable(lambda);
+            tolCons = 1e-2*tolCons;
+            lambda  = obj.dualVariable.fun.fValues;
+            fref    = obj.computeFeasibleDesignVariable(x0,lambda);
             if abs(fref) > tolCons
-                obj.computeBounds();
+                obj.computeBounds(x0);
                 obj.problem.x0 = [obj.lambdaLB obj.lambdaUB];
                 obj.problem.options = optimset(obj.problem.options,'TolX',tolCons);
+                obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(x0,lambda);
                 fzero(obj.problem);
             end
         end
@@ -40,30 +42,28 @@ classdef ConstraintProjector < handle
         function init(obj,cParams,s)
             obj.cost             = cParams.cost;
             obj.constraint       = cParams.constraint;
-            obj.designVariable   = cParams.designVar;
+            obj.designVariable   = cParams.designVariable;
             obj.dualVariable     = cParams.dualVariable;
-            obj.targetParameters = cParams.targetParameters;
             obj.primalUpdater    = s.primalUpdater;
         end
 
         function defineProblem(obj)
             obj.problem.solver    = 'fzero';
             obj.problem.options   = optimset(@fzero);
-            obj.problem.objective = @(lambda) obj.computeFeasibleDesignVariable(lambda);
         end
 
-        function computeBounds(obj)
-            lambda = obj.dualVariable.value;
-            fref   = obj.computeFeasibleDesignVariable(lambda);
+        function computeBounds(obj,x0)
+            lambda = obj.dualVariable.fun.fValues;
+            fref   = obj.computeFeasibleDesignVariable(x0,lambda);
             isLB   = false;
             isUB   = false;
             i      = -15;
             pow    = 3;
             while ~isLB && ~isUB && i < 1000
                 lLB  = lambda - pow^(i);
-                fLB  = obj.computeFeasibleDesignVariable(lLB);
+                fLB  = obj.computeFeasibleDesignVariable(x0,lLB);
                 lUB  = lambda + pow^(i);
-                fUB  = obj.computeFeasibleDesignVariable(lUB);
+                fUB  = obj.computeFeasibleDesignVariable(x0,lUB);
                 isLB = fLB*fref < 0;
                 isUB = fUB*fref < 0;
                 i    = i + 1;
@@ -77,22 +77,23 @@ classdef ConstraintProjector < handle
             obj.lambdaUB = lUB;
         end
 
-        function fval = computeFeasibleDesignVariable(obj,lambda)
-            obj.designVariable.restart();
-            obj.dualVariable.value = lambda;
+        function fval = computeFeasibleDesignVariable(obj,x0,lambda)
+            obj.designVariable.update(x0);
+            d = obj.designVariable;
+            obj.dualVariable.fun.fValues = lambda;
             obj.updatePrimal();
-            obj.constraint.computeFunctionAndGradient();
+            obj.constraint.computeFunctionAndGradient(d);
             fval = obj.constraint.value;
         end
 
         function x = updatePrimal(obj)
             Dg = obj.constraint.gradient;
             DJ = obj.cost.gradient;
-            l  = obj.dualVariable.value;
-            x  = obj.designVariable.fun.fValues;
+            l  = obj.dualVariable.fun.fValues;
+            x  = obj.designVariable;
             g  = DJ + l*Dg;
             x  = obj.primalUpdater.update(g,x);
-            obj.designVariable.update(x);
+            obj.designVariable = x;
         end
 
     end

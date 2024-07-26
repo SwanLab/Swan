@@ -5,12 +5,14 @@ classdef DualUpdaterFactory < handle
     
         function d = create(cParams)
             switch cParams.type
-                case 'AlternatingPrimalDual'
+                case 'Augmented Lagrangian'
                     d = DualUpdater_AugmentedLagrangian(cParams);
                 case 'LagrangeMultiplierEstimation'
                     
                 case 'NullSpace'
-                    d = DualUpdater_NullSpace(cParams);
+                    d = DualUpdaterNullSpace(cParams);
+                case 'IPM'
+                    d = DualUpdater_IPM(cParams);
             end
         end
     

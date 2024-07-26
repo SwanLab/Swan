@@ -17,7 +17,7 @@ xFun = AnalyticalFunction(sAF);
 
 p1trial = xFun.project('P1');
 %p1trial = P1Function.create(mesh, 2);
-p0test  = P0Function.create(mesh, 2);
+p0test  = LagrangianFunction.create(mesh, 2, 'P0');
 
 % LHS integrator
 
@@ -47,5 +47,6 @@ gj = reshape(gj,2,[])';
 % Plot
 z.fValues = gj;
 z.mesh = mesh;
-p0_result = P0Function(z);
+z.order = 'P0';
+p0_result = LagrangianFunction(z);
 p0_result.plot();

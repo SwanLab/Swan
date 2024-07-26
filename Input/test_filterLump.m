@@ -2,35 +2,20 @@ filename='Tests_Triangle_Linear';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+geomFunSettings.type = 'Full';
 cost = {'compliance'};
 weights = [1];
 constraint = {'volumeConstraint'};
-optimizer = 'NullSpace';
-
+constraint_case = {'EQUALITY'};
+target = 0.3;
 optimizerUnconstrained = 'PROJECTED GRADIENT'; 
-incrementFactor = 1;
+optimizer = 'NullSpace';
 designVariable = 'Density';
-filterType = 'LUMP';
-
-nsteps = 1;
-Vfrac_final = 0.3;
-optimality_final =1e-3;
-constr_final =1e-3;
-
-Vfrac_initial = 1;
-optimality_initial = 1e-2;
-constr_initial = 1e-3;
-
-TOL.rho_plus = 1;
-TOL.rho_minus = 0;
-TOL.E_plus = 1;
-TOL.E_minus = 1e-3;
-TOL.nu_plus = 1/3;
-TOL.nu_minus = 1/3;
-
+filterCostType = {'LUMP'};
+filterConstraintType = {[]};
+filterCostSettings = {[]};
+filterConstraintSettings = {[]};
 plotting = false;
 printing = false;
 monitoring = false;
-
-maxiter = 4;
+maxiter = 15;

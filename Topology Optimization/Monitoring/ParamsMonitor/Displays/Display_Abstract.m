@@ -30,22 +30,23 @@ classdef Display_Abstract < handle
             grid on
         end
         
-        function updateParams(obj,it,value,monitor)
+        function updateParams(obj,it,value)
             obj.iterationArray(end+1) = it;
             if ~isempty(value)
                 obj.valueArray(end+1,:) = value;
             end
-            monitor.increaseRefreshIterator();
         end
-        
+
         function refresh(obj)
             if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
                 set(obj.handle,'XData',obj.iterationArray,'YData',obj.valueArray);
-                set(obj.style,'XLim',[0 obj.iterationArray(end)])
+                if obj.iterationArray(end)>0
+                    set(obj.style,'XLim',[0 obj.iterationArray(end)])
+                end
                 drawnow
             end
         end
-        
+
     end
     
     methods (Access = private)

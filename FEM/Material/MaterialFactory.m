@@ -1,35 +1,31 @@
 classdef MaterialFactory < handle
-    
-    
+
     methods (Access = public, Static)
-        
+
         function material = create(cParams)
-            switch cParams.ptype
-                case {'ELASTIC','DIFF-REACT'}
-                    switch cParams.pdim
-                        case '2D'
-                            cParams.nstre = 3;    
+
+            switch cParams.type
+                case 'ISOTROPIC'
+                    switch cParams.ndim
+                        case 2
                             material = Isotropic2dElasticMaterial(cParams);
-                        case '3D'
-                            cParams.nstre = 6;
+                        case 3
                             material = Isotropic3dElasticMaterial(cParams);
                     end
                     
-                case 'HYPERELASTIC'
-                    error('Still not implemented.')
+                case 'HomogenizedMicrostructure'
+                    material = HomogenizedMicrostructureInterpolator(cParams);
                     
-                case 'THERMAL'
-                    error('Still not implemented.')
-
-                case 'Stokes'
+                case 'DensityBased'
+                    material = DensityBasedMaterial(cParams);
+                
+                case 'STOKES'
                     material = Material_Stokes(cParams);
-                    
-                otherwise
-                    error('Invalid ptype.')
             end
-            
+
         end
-        
-        
+
     end
+    
 end
+

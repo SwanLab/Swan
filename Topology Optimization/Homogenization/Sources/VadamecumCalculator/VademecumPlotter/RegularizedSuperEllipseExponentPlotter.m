@@ -122,7 +122,7 @@ classdef RegularizedSuperEllipseExponentPlotter < handle
         function m = obtainMesh(obj,x,y)
             s.coord = [x,y];
             s.connec = obj.obtainConnec(x,y);
-            m = Mesh().create(s);
+            m = Mesh.create(s);
         end
         
         function connec = obtainConnec(obj,x,y)
@@ -137,7 +137,7 @@ classdef RegularizedSuperEllipseExponentPlotter < handle
         function connec = obtainQualityElements(connec,x,y)
             s.coord = [x,y];
             s.connec = connec;
-            m = Mesh().create(s);
+            m = Mesh.create(s);
             qua = m.computeElementQuality';
             isQ = qua > 0.02;
             connec = connec(isQ,:);

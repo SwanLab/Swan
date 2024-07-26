@@ -1,28 +1,49 @@
 classdef Density < DesignVariable
-    
+
+    properties (Access = private)
+        plotting
+        plotter
+    end
+
     methods (Access = public)
-        
+
         function obj = Density(cParams)
             obj.nVariables = 1;
             obj.init(cParams);
+            obj.createPlotter(cParams);
         end
 
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.fun.fValues;
+        function fun = obtainDomainFunction(obj)
+            fun = obj.fun;
         end
-        
-        function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.fun};
-            funNames = {'Density'};
+
+        function update(obj,value)
+            if ~isempty(obj.isFixed)
+                value(obj.isFixed.nodes) = obj.isFixed.values;
+            end
+            s.mesh    = obj.mesh;
+            s.fValues = value;
+            s.order   = 'P1';
+            obj.fun   = LagrangianFunction(s);
         end
-        
-        function rho = computeVolumeFraction(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('CONSTANT');
-            xV = q.posgp;
-            rho = obj.fun.evaluate(xV);
+
+        function plot(obj)
+            if obj.plotting
+                obj.plotter.plot();
+            end
         end
-        
+    
+    end
+
+    methods (Access = private)
+
+        function createPlotter(obj,cParams)
+            obj.plotting = cParams.plotting;
+            if obj.plotting
+                obj.plotter  = Plotter.create(obj);
+            end
+        end
+
     end
     
 end

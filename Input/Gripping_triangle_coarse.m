@@ -7543,6 +7543,57 @@ pointload_complete = [
 2556 2 -10 
 ];
 
+isDir1 = @(coor)  (abs(coor(:,1)) == 0.1000 & abs(coor(:,2)) ==  0.5000);
+isDir2 = @(coor)  (abs(coor(:,1)) == 1 & abs(coor(:,2)) ==  0.5000);
+
+isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
+isPLBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.92 & abs(coor(:,2)) <= 1e-8 ); % not exactly 0 in the mesh
+isPLTopGripper    = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.6 );
+isPLBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 );
+
+% Dirichlet
+sDir{1}.domain    = @(coor) isDir1(coor);
+sDir{1}.direction = 2;
+sDir{1}.value     = 0;
+
+sDir{2}.domain    = @(coor) isDir2(coor);
+sDir{2}.direction = [1,2];
+sDir{2}.value     = 0;
+
+% Point load
+sPL{1}.domain    = @(coor) isPLTopRight(coor);
+sPL{1}.direction = 2;
+sPL{1}.value     = -10;
+
+sPL{2}.domain    = @(coor) isPLBottomRight(coor);
+sPL{2}.direction = 2;
+sPL{2}.value     = +10;
+
+sPL{3}.domain    = @(coor) isPLTopGripper(coor);
+sPL{3}.direction = 2;
+sPL{3}.value     = +1;
+
+sPL{4}.domain    = @(coor) isPLBottomGripper(coor);
+sPL{4}.direction = 2;
+sPL{4}.value     = -1;
+
+% Point load adjoint
+sPLAdj{1}.domain    = @(coor) isPLTopRight(coor);
+sPLAdj{1}.direction = 2;
+sPLAdj{1}.value     = -1;
+
+sPLAdj{2}.domain    = @(coor) isPLBottomRight(coor);
+sPLAdj{2}.direction = 2;
+sPLAdj{2}.value     = +1;
+
+sPLAdj{3}.domain    = @(coor) isPLTopGripper(coor);
+sPLAdj{3}.direction = 2;
+sPLAdj{3}.value     = +2;
+
+sPLAdj{4}.domain    = @(coor) isPLBottomGripper(coor);
+sPLAdj{4}.direction = 2;
+sPLAdj{4}.value     = -2;
+
 pointload_adjoint = [
 332 1 0 
 336 1 0 
@@ -7564,22 +7615,22 @@ pointload_adjoint = [
 2553 1 0 
 2555 1 0 
 2556 1 0 
-332 2 -2 
+332 2 -2 % lower part, gripper
 336 2 -2 
 338 2 -2 
 342 2 -2 
 348 2 -2 
-688 2 2 
+688 2 2  % top part, gripper
 692 2 2 
 696 2 2 
 702 2 2 
 707 2 2 
-1657 2 1 
+1657 2 1 % bottom right part, piece
 1733 2 1 
 1807 2 1 
 1886 2 1 
 1964 2 1 
-2546 2 -1 
+2546 2 -1 % top right part, piece
 2549 2 -1 
 2553 2 -1 
 2555 2 -1 

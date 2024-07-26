@@ -7,7 +7,7 @@ classdef OptimizerFactory < handle
                 case 'AlternatingPrimalDual'
                     op = OptimizerAugmentedLagrangian(cParams);
                 case 'MMA'
-                    op = Optimizer_MMA(cParams);
+                    op = OptimizerMMA(cParams);
                 case 'IPOPT'
                     op = Optimizer_IPOPT(cParams);
                 case 'DualNestedInPrimal'
@@ -18,6 +18,8 @@ classdef OptimizerFactory < handle
 %                     cParams.optimizerNames.aJmax = 2;
 %                     cParams.optimizerNames.aGmax = 0.05;
                     op = OptimizerNullSpace(cParams);
+                case 'IPM'
+                    op = OptimizerInteriorPoint(cParams);
                 otherwise
                     error('Invalid optimizer.')
             end

@@ -1,7 +1,7 @@
 classdef Interpolator < handle
 
     properties (Access = private)
-        sMesh
+        mesh
         interpolation
         cellFinder
         zGrid
@@ -18,18 +18,18 @@ classdef Interpolator < handle
             obj.createInterpolation();
         end
 
-        function setValues(obj,x,y)
-            s.mesh     = obj.sMesh;
-            s.points.x = x;
-            s.points.y = y;
-            obj.cellFinder = CellFinderInStructuredMesh(s);
-            obj.evaluateShapeFunctions();
+        function v = evaluate(obj,x)
+            zI     = obj.computeZvalues(x);
+            shapes = obj.interpolation.shape;
+            v = bsxfun(@times,shapes',zI);
+            v = permute(v,[3 1 2]);
+            v = sum(v,3);
         end
 
-        function [z,dz] = interpolate(obj,z)
+        function [z,dz] = evaluateDerivative(obj,z)
             obj.nComponents = size(z,3);
             obj.zValues  = obj.computeZvalues(z);
-            obj.obtainInterpolationValues();
+           % obj.obtainInterpolationValues();
             obj.obtainInterpolationDerivativesValues();
             z = obj.zInterp;
             dz = obj.zInterpDeriv;
@@ -41,40 +41,31 @@ classdef Interpolator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.sMesh = cParams.mesh;
+            obj.mesh = cParams.mesh;
         end
 
         function createInterpolation(obj)
-            m = obj.sMesh.mesh;
+            m = obj.mesh;
             int = Interpolation.create(m,'LINEAR');
             obj.interpolation = int;
         end
 
-        function evaluateShapeFunctions(obj)
-            nC = obj.cellFinder.naturalCoord;
+        function evaluateShapeFunctions(obj,nC)            
             obj.interpolation.computeShapeDeriv(nC);
         end
 
-        function obtainInterpolationValues(obj)
-            shapes = obj.interpolation.shape;
-            v = obj.interpolateValues(shapes,obj.zValues);
-            obj.zInterp = v;
-        end
-
         function v = interpolateValues(obj,shapes,f)
-            shapesT = shapes';
-            v = bsxfun(@times,shapesT,f);
-            v = permute(v,[3 1 2]);
-            v = sum(v,3);
+
         end
 
-        function zT = computeZvalues(obj,z)
-            z = permute(z,[2 1 3]);
-            z = reshape(z,[],obj.nComponents);
+        function xN = computeZvalues(obj,x)
+            nC = size(x,3);            
+            x = permute(x,[2 1 3]);
+            x = reshape(x,[],nC);
             nodes = obj.cellFinder.cells;
             [nelem,nnode] = size(nodes);
-            znode = z(nodes(:),:);
-            zT = reshape(znode,nelem,nnode,obj.nComponents);
+            xNode = x(nodes(:),:);
+            xN = reshape(xNode,nelem,nnode,nC);
         end
 
         function obtainInterpolationDerivativesValues(obj)

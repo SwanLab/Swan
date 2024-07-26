@@ -69,7 +69,7 @@ classdef DehomogenizingRadialExample < handle
              [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
              s.coord  = V(:,1:2);
              s.connec = F;
-             obj.backgroundMesh = Mesh(s);
+             obj.backgroundMesh = Mesh.create(s);
         %     obj.backgroundMesh.plot()
 %             obj.coord = s.coord;
             
@@ -111,14 +111,16 @@ classdef DehomogenizingRadialExample < handle
 
             s.fValues = alphaM;
             s.mesh    = obj.backgroundMesh;
-            a1{1} = P1Function(s);
+            s.order   = 'P1';
+            a1{1} = LagrangianFunction(s);
             %a1{1} = a0{1}.project('P1');
 
 
             s.fValues(:,1) = -alphaM(:,2);
             s.fValues(:,2) = alphaM(:,1);
             s.mesh    = obj.backgroundMesh;
-            a1{2} = P1Function(s);
+            s.order   = 'P1';
+            a1{2} = LagrangianFunction(s);
             %a1{2} = a0{2}.project('P1');
 
 

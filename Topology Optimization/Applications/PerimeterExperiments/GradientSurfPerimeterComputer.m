@@ -88,7 +88,7 @@ classdef GradientSurfPerimeterComputer < handle
             %s.coord = m.coord;
             s.connec = m.connec;
             s.kFace = -2;
-            mB = Mesh(s);
+            mB = Mesh.create(s);
             hold on
             mB.plot
             % axes(axes_h)

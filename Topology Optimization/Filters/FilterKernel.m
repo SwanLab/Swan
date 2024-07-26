@@ -23,10 +23,7 @@ classdef FilterKernel < handle
         end
 
         function xReg = compute(obj,fun,quadType)
-            s.feFunType = class(obj.trial);
-            s.mesh      = obj.mesh;
-            s.ndimf     = 1;
-            xReg        = FeFunction.createEmpty(s);
+            xReg = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
             xReg.fValues = obj.trial.fValues;
@@ -39,7 +36,7 @@ classdef FilterKernel < handle
         function init(obj,cParams)
             cParams.feFunType = class(cParams.trial);
             cParams.ndimf     = 1;
-            obj.trial         = FeFunction.createEmpty(cParams);
+            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
             obj.test          = cParams.test;
             obj.mesh          = cParams.mesh;
             obj.nLevels       = 1; % Must be defined before entering the class
@@ -50,7 +47,7 @@ classdef FilterKernel < handle
             s.mesh            = obj.mesh;
             s.test            = obj.test;
             s.trial           = obj.trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS               = LHSintegrator.create(s);
             obj.massMatrix    = LHS.compute();
         end 
@@ -78,10 +75,10 @@ classdef FilterKernel < handle
         end
 
         function locSM = createLocalSupportMatrix(obj,elems)
-            connecTrial  = obj.trial.computeDofConnectivity();
-            connecTest   = obj.test.computeDofConnectivity();
-            nDofsTest    = obj.test.nDofs;
-            nDofsField   = obj.trial.nDofs;
+            connecTrial  = obj.trial.getConnec()';
+            connecTest   = obj.test.getConnec()';
+            nDofsTest    = max(max(connecTest));%obj.test.nDofs;
+            nDofsField   = max(max(connecTrial));%obj.trial.nDofs;
             nDofElemTest = size(connecTest,1);
             nDofElemF    = size(connecTrial,1);
             T            = sparse(nDofsField,nDofsTest);
@@ -101,10 +98,11 @@ classdef FilterKernel < handle
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
                 otherwise
                     s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
             end
-            s.type     = 'ShapeFunction';
             s.quadType = quadType;
             rhsI       = RHSintegrator.create(s);
             obj.RHS    = rhsI.compute(fun,obj.test);

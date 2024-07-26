@@ -1,30 +1,24 @@
 classdef ScalarProduct < handle
 
- methods (Access = public, Static)
+    methods (Access = public, Static)
 
-     function sp = computeL2(m,f,g)
-         s.mesh         = m;
-         s.quadType     = 'QUADRATIC';
-         s.type         = 'ScalarProduct';
-         int            = Integrator.create(s);
-         sp = int.compute(f,g);
-     end
+        function sp = computeL2(m,f,g)
+            fg = DDP(f,g);
+            sp = Integrator.compute(fg,m,2);
+        end
 
-     function sp = computeH1(m,f,g,eps)
-         quadOrder = 'QUADRATIC';
-         q = Quadrature.set(m.type);
-         q.computeQuadrature(quadOrder);
-         Df  = f.computeGradient(q);
-         Dg  = g.computeGradient(q);         
-         s.mesh         = m;
-         s.quadType     = quadOrder;
-         s.type         = 'ScalarProduct';
-         int            = Integrator.create(s);
-         spM = int.compute(f,g);
-         spK = int.compute(Df,Dg);
-         sp  = spM + eps^2*spK;
-     end
-   
- end
-    
+        function sp = computeH1(m,f,g,eps)
+            quadOrder = 2;
+            q = Quadrature.create(m,quadOrder);
+            Df   = Grad(f);
+            Dg   = Grad(g);
+            fg   = DDP(f,g);
+            DfDg = DDP(Df,Dg);
+            spM = Integrator.compute(fg,m,quadOrder);
+            spK = Integrator.compute(DfDg,m,quadOrder);
+            sp  = spM + eps^2*spK;
+        end
+
+    end
+
 end

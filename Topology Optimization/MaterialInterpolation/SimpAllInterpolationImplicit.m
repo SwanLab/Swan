@@ -1,4 +1,4 @@
-classdef SimpAllInterpolationImplicit < MaterialInterpolation
+classdef SimpAllInterpolationImplicit < MaterialInterpolator
     
     properties (Access = protected)
        dmu0

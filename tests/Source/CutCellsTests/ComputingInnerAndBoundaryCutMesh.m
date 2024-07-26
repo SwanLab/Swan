@@ -165,7 +165,7 @@ classdef ComputingInnerAndBoundaryCutMesh < handle
             sM.connec = connec;
             sM.coord  = obj.coord;
             
-            m = Mesh(sM);
+            m = Mesh.create(sM);
             s.mesh                  = m;
             s.xCoordsIso            = xCoordsIso;
             s.cellContainingSubcell = cellContainingSubcell;

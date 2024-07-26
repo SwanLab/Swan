@@ -53,13 +53,10 @@ classdef CutFunctionValuesComputer < handle
         end
         
         function shapes = computeShapes(obj)
-            m.type = 'LINE';
-            m.coord  = [];
-            m.connec = [];
-            int = Interpolation.create(m,'LINEAR');
+            type = 'LINE';
+            int = Interpolation.create(type,'LINEAR');
             xCutIso = obj.xCutEdgePoint';
-            int.computeShapeDeriv(xCutIso);
-            shapes = int.shape';
+            shapes = int.computeShapeFunctions(xCutIso)';
         end
         
         function computeCutMeshCoordinates(obj)

@@ -62,9 +62,9 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             ls = obj.levelSet;
             s.mesh   = obj.backgroundMesh;
             s.fValues = ls;
-            f = P1Function(s);
-            q = Quadrature.set(obj.backgroundMesh.type);
-            q.computeQuadrature('CONSTANT');
+            s.order = 'P1';
+            f = LagrangianFunction(s);
+            q = Quadrature.create(obj.backgroundMesh, 0);
             xV = q.posgp;
             lsSubMesh = squeeze(f.evaluate(xV));
             obj.levelSetSubMesh = [ls;lsSubMesh];
@@ -148,7 +148,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             sM.connec = obj.connec;
             sM.coord  = obj.coord;
             sM.kFace  = obj.backgroundMesh.kFace;
-            obj.mesh = Mesh(sM);
+            obj.mesh = Mesh.create(sM);
         end
         
        function computeBoundaryMesh(obj)

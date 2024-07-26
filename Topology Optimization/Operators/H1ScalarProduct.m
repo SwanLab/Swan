@@ -12,8 +12,8 @@ classdef H1ScalarProduct < handle
         end
 
         function sp = compute(obj,f,g,epsilon)
-            Df  = f.computeGradient(obj.quadrature);
-            Dg  = g.computeGradient(obj.quadrature);
+            Df  = f.evaluateGradient(obj.quadrature.posgp);
+            Dg  = g.evaluateGradient(obj.quadrature.posgp);
             spM = obj.integrator.compute(f,g);
             spK = obj.integrator.compute(Df,Dg);
             sp  = spM+epsilon^2*spK;

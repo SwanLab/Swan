@@ -54,7 +54,7 @@ classdef NumericalHomogenizerDataBase < handle
             dF = FemInputReader_GiD().read(fileName);
             cParams.coord  = dF.mesh.coord;
             cParams.connec = dF.mesh.connec;
-            meshT = Mesh(cParams);
+            meshT = Mesh.create(cParams);
             
             s.mesh = meshT;
 
@@ -78,7 +78,8 @@ classdef NumericalHomogenizerDataBase < handle
             end
             ss.fValues = value;
             ss.mesh    = s.mesh;
-            s.fun      = P1Function(ss);
+            ss.order   = 'P1';
+            s.fun      = LagrangianFunction(ss);
 
             designVar = DesignVariable.create(s);% Density(s);
             d.femSettings.fileName = obj.femFileName;

@@ -99,7 +99,7 @@ classdef MeshCreator < handle
         function plotCoordinates(obj)
             s.coord = obj.coord;
             s.connec = obj.connec;
-            a = Mesh(s);
+            a = Mesh.create(s);
             a.plot();
         end
         

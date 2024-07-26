@@ -57,7 +57,7 @@ classdef PlottingToyUnfittedExample < handle
         function computeBackgroundMesh(obj)
             s.coord  = obj.coord;
             s.connec = obj.connec;
-            obj.backgroundMesh = Mesh(s);
+            obj.backgroundMesh = Mesh.create(s);
         end
         
         function computeBoundaryMeshes(obj)
@@ -89,7 +89,7 @@ classdef PlottingToyUnfittedExample < handle
              if ~isempty(innerMesh)
                 mesh = innerMesh.mesh;
                 color = [0.8500    0.3250    0.0980];
-                obj.plotGaussPoints(mesh,'LINEAR',color)
+                obj.plotGaussPoints(mesh,2,color)
              end
         end
         
@@ -97,7 +97,7 @@ classdef PlottingToyUnfittedExample < handle
             if ~isempty(innerCutMesh)
                 mesh = innerCutMesh.mesh;
                 color = [0.4940    0.1840    0.5560];
-                obj.plotGaussPoints(mesh,'QUADRATIC',color)
+                obj.plotGaussPoints(mesh,2,color)
             end
         end
         
@@ -105,7 +105,7 @@ classdef PlottingToyUnfittedExample < handle
             if ~isempty(boundaryCutMesh)
                 mesh = boundaryCutMesh.mesh;
                 color = [0.9290    0.6940    0.1250];
-                obj.plotGaussPoints(mesh,'QUADRATIC',color);
+                obj.plotGaussPoints(mesh,2,color);
             end            
         end
         
@@ -123,8 +123,7 @@ classdef PlottingToyUnfittedExample < handle
     methods (Access = private, Static)
 
         function plotGaussPoints(mesh,quadType,color)
-            quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature(quadType);
+            quad = Quadrature.create(mesh,quadType);
             xCutB = mesh.computeXgauss(quad.posgp);
             p = plot(xCutB(1,:),xCutB(2,:),'s','MarkerSize',5);
             p.MarkerEdgeColor = color;
