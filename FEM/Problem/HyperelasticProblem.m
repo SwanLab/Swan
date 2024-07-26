@@ -8,7 +8,7 @@ classdef HyperelasticProblem < handle
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'Traction'
+        bc_case = 'HoleDirich'
         bcApplier
         freeDofs
     end
@@ -25,7 +25,7 @@ classdef HyperelasticProblem < handle
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 100;
+            nsteps = 50;
             iter = 1;
             nIterPerStep = [];
 
@@ -64,7 +64,7 @@ classdef HyperelasticProblem < handle
                     
 
                 end
-                obj.uFun.print(['SIM_Bending_',int2str(iStep)])                
+                obj.uFun.print(['SIM_',obj.bc_case,'_',int2str(iStep)])                
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep);
             end
