@@ -5,24 +5,28 @@ classdef Display_Abstract < handle
         iterationArray
         valueArray
         style
-    end
-    
-    properties (Access = private)
+
         figTitle
     end
-    
+
     methods (Access = protected, Abstract)
-        
         setChartType(obj)
-        
     end
-    
-    methods (Access = public)
+
+    methods (Access = public , Static)
         
+        function obj = create(s)
+            d = DisplayFactory();
+            obj = d.create(s);
+        end
+    end
+
+    methods (Access = public)
+
         function obj = Display_Abstract(figTitle)
             obj.figTitle = figTitle;
         end
-        
+
         function show(obj,nRows,nCols,i,margins)
             obj.setStyle(nRows,nCols,i,margins);
             obj.setChartType();

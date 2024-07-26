@@ -294,7 +294,7 @@ classdef LagrangianFunction < FeFunction
                         z = obj.fValues(:,idim);
                         a = trisurf(obj.connec,x,y,z);
                         view(0,90)
-                        %             colorbar
+                        % colorbar
                         shading interp
                         a.EdgeColor = [0 0 0];
                         title(['dim = ', num2str(idim)]);
