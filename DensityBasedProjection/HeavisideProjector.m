@@ -1,10 +1,5 @@
 classdef HeavisideProjector < handle
 
-    properties (Access = public)
-        projectedField
-        derivatedProjectedField
-    end
-
     properties (Access = private)
         beta
         eta
@@ -16,16 +11,16 @@ classdef HeavisideProjector < handle
             obj.init(cParams);
         end
 
-        function project(obj,xF)
-            a = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
-            b = obj.computeExpressionInDen();
-            obj.projectedField = a/b;
+        function projF = project(obj,xF)
+            a     = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
+            b     = obj.computeExpressionInDen();
+            projF = a/b;
         end
 
-        function derive(obj,xF)
-            a = 1 - obj.computeExpressionInNum(xF).^2;
-            b = obj.computeExpressionInDen();
-            obj.derivatedProjectedField = obj.beta*a/b;
+        function derProjF = derive(obj,xF)
+            a        = 1 - obj.computeExpressionInNum(xF).^2;
+            b        = obj.computeExpressionInDen();
+            derProjF = obj.beta*a/b;
         end
 
     end

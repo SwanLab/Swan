@@ -17,10 +17,9 @@ classdef FilterAndProject < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xFiltered = obj.filter.compute(fun,quadOrder);
-            obj.projector.project(xFiltered);
-            xFVal = obj.projector.projectedField;
-            xF    = LagrangianFunction.create(obj.mesh,fun.ndimf,fun.order);
+            xFiltered  = obj.filter.compute(fun,quadOrder);
+            xFVal      = obj.projector.project(xFiltered);
+            xF         = LagrangianFunction.create(obj.mesh,fun.ndimf,fun.order);
             xF.fValues = xFVal;
         end
     end
