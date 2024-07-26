@@ -19,6 +19,10 @@ classdef DensityAndBound < DesignVariable
             obj.computeValue();
         end
 
+        function plot(obj)
+            obj.density.plot();
+        end
+
         function updateOld(obj)
             obj.density.updateOld();
         end

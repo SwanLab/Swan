@@ -276,8 +276,8 @@ classdef TopOptTestTutorialBoundFormulation < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
+            s.ub             = [ones(obj.mesh.nnodes,1);1000];
+            s.lb             = [zeros(obj.mesh.nnodes,1);-1000];
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
