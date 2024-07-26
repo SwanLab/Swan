@@ -64,19 +64,19 @@ classdef NeohookeanFunctional < handle
             dofToNode = dofToNode(:);
 
             fint = zeros(nDof,1,nGaus,nElem);
-            fint2 = zeros(nDof,1,nGaus,nElem);
+            % fint2 = zeros(nDof,1,nGaus,nElem);
 
 
-            for iNode = 1:nNode
-                for iDim = 1:nDim
-                    for iField = 1:nDimf
-                        dNdx_ij = dNdxTest(iDim, iNode, :, :);
-                        iDof = iField + nDimf*(iNode-1);
-                        Pik = piola(iField,iDim,:,:);
-                        fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
-                    end
-                end
-            end
+            % for iNode = 1:nNode
+            %     for iDim = 1:nDim
+            %         for iField = 1:nDimf
+            %             dNdx_ij = dNdxTest(iDim, iNode, :, :);
+            %             iDof = iField + nDimf*(iNode-1);
+            %             Pik = piola(iField,iDim,:,:);
+            %             fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
+            %         end
+            %     end
+            % end
 
             % GradDeltaV is not always compatible (see BCs), but we dont
             % worry about it since we reduce the matrix later on    
@@ -88,8 +88,8 @@ classdef NeohookeanFunctional < handle
                 GradDeltaV = pagemtimes(dNdxTest,deltav);
                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(piola),GradDeltaV));
             end
-            err = norm(fint(:)-fint2(:))/norm(fint(:))
-            fint = fint2;
+            % err = norm(fint(:)-fint2(:))/norm(fint(:))
+            % fint = fint2;
             fint = fint.*dV;
             fint = squeeze(sum(fint,3));
             Fint = obj.assembleIntegrand(fint,test);
