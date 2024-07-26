@@ -1,39 +1,33 @@
-filename = 'MeshHalfBridge';
+filename = 'anisoCantilever';
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
-initial_case = 'full';
+geomFunSettings.type = 'Full';
 cost = {'LinearBoundFunction'};
-widthSquare = 0.01;
 weights = [1];
-constraint = {'ComplianceConstraintThreeFieldRhoE','ComplianceConstraintThreeFieldRhoI',...
-    'ComplianceConstraintThreeFieldRhoD','VolumeConstraintRhoD'};
+constraint = {'ComplianceConstraintBound','ComplianceConstraintBound',...
+    'ComplianceConstraintBound','VolumeConstraintBound'};
 constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
+target = 0.5;
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
-incrementFactor = 1.2;
-designVariable = 'Density&Bound';
-filterType = 'Filter&Project';
-nsteps = 1;
-Vfrac_final = 0.5;
-optimality_final =1e-3;
-constr_final =1e-3;
-
-Vfrac_initial = 1;
-optimality_initial = 1e-3;
-constr_initial = 1e-3;
-
-TOL.rho_plus = 1;
-TOL.rho_minus = 0;
-TOL.E_plus = 1;
-TOL.E_minus = 1e-3;
-TOL.nu_plus = 1/3;
-TOL.nu_minus = 1/3;
-
-% For all tests
+designVariable = 'DensityAndBound';
+filterCostType = {[]};
+filterConstraintType = {'FilterAndProject','FilterAdjointAndProject',...
+    'FilterAndProject','FilterAdjointAndProject','FilterAndProject',...
+    'FilterAdjointAndProject',[]};
+filterCostSettings = {[]};
+f1.filterStep = 'PDE';
+f1.eta = 0.75;
+f1.beta = 1;
+f2.filterStep = 'PDE';
+f2.eta = 0.5;
+f2.beta = 1;
+f3.filterStep = 'PDE';
+f3.eta = 0.25;
+f3.beta = 1;
+filterConstraintSettings = {f1,f1,f2,f2,f3,f3,[]};
 plotting = false;
 printing = false;
-printing_physics = false;
 monitoring = false;
-monitoring_interval = 1;
-maxiter = 5;
+maxiter = 20;
