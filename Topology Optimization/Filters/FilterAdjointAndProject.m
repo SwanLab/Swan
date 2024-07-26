@@ -1,8 +1,9 @@
-classdef FilterAndProject < handle
+classdef FilterAdjointAndProject < handle
 
     properties (Access = private)
         filter
         projector
+        filteredField
     end
 
     properties (Access = private)
@@ -10,18 +11,23 @@ classdef FilterAndProject < handle
     end
     
     methods (Access = public)
-        function obj = FilterAndProject(cParams)
+        function obj = FilterAdjointAndProject(cParams)
             obj.init(cParams);
             obj.createFilter(cParams);
             obj.createProjector(cParams);
         end
 
+        function updateFilteredField(obj,xF)
+            obj.filteredField = xF;
+        end
+
         function xF = compute(obj,fun,quadOrder)
-            xFiltered = obj.filter.compute(fun,quadOrder);
-            obj.projector.project(xFiltered);
-            xFVal = obj.projector.projectedField;
-            xF    = LagrangianFunction.create(obj.mesh,fun.ndimf,fun.order);
-            xF.fValues = xFVal;
+            obj.projector.derive(obj.filteredField);
+            sensitVals         = obj.projector.derivatedProjectedField;
+            projSensit         = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.filteredField.order);
+            projSensit.fValues = sensitVals;
+            regFun             = fun.*projSensit;
+            xF                 = obj.filter.compute(regFun,quadOrder);
         end
     end
 

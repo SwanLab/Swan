@@ -1,25 +1,15 @@
-classdef LinearBoundFunction < ShapeFunctional
+classdef LinearBoundFunction < handle
 
-    methods (Access = public)
-
-        function obj = LinearBoundFunction(cParams)
-            obj.designVariable = cParams.designVariable;
+    methods (Static, Access = public)
+        function [J,dJ] = computeFunctionAndGradient(x)
+            J               = x.bound;
+            dJ.fValues      = zeros(length(x.fun.fValues),1);
+            dJ.fValues(end) = 1;
         end
 
-        function computeFunctionAndGradient(obj)
-            obj.value         = obj.designVariable.bound;
-            obj.gradient      = zeros(length(obj.designVariable.value),1);
-            obj.gradient(end) = 1;
+        function title = getTitleToPlot()
+            title = 'LinearBoundFun';
         end
-
-        function t = getTitlesToPlot(obj)
-            t{1} = 'Bound variable';
-        end
-
-        function v = getVariablesToPlot(obj)
-            v{1} = obj.value;
-        end
-
     end
 
 end
