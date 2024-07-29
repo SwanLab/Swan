@@ -42,8 +42,8 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
         function createMesh(obj)
 
-            % Per cub:
-            %obj.mesh = HexaMesh(1,1,1,20,20,20);
+            %Per cub:
+            obj.mesh = HexaMesh(1,1,1,20,20,20);
 
             % Cas cilindre linux:
 %             m2D = QuadMesh(1,1,20,20);
@@ -61,8 +61,8 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 %             meshCylinder = IM.provideExtrudedMesh(1);
 
             % Cas cilindre windows:
-            load('meshCylinder.mat','meshCylinder');
-            obj.mesh = meshCylinder;
+%             load('meshCylinder.mat','meshCylinder');
+%             obj.mesh = meshCylinder;
         end
 
         function createDesignVariable(obj)
@@ -134,7 +134,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditionsCylinder(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
+            s.boundaryConditions = obj.createBoundaryConditionsCube(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -161,7 +161,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            s.volumeTarget = 0.7;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -210,7 +210,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.6;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -227,7 +227,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             isForceZu = @(coor)  abs(coor(:,3))==zMax;
             isForceZd = @(coor)  abs(coor(:,3))==0;
 
-            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.domain    = @(coor) isDir(coor) | isForceYu(coor) | isForceYd(coor) | isForceZu(coor) | isForceZd(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
@@ -235,21 +235,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             sPL{1}.direction = 1; % direccio x +
             sPL{1}.value     = -1; % sentit -
 
-            sPL{2}.domain    = @(coor) isForceYu(coor);
-            sPL{2}.direction = 2; % direccio x +
-            sPL{2}.value     = -1; % sentit -
-
-            sPL{3}.domain    = @(coor) isForceYd(coor);
-            sPL{3}.direction = 2; % direccio x +
-            sPL{3}.value     = 1; % sentit -
-
-            sPL{4}.domain    = @(coor) isForceZu(coor);
-            sPL{4}.direction = 3; % direccio x +
-            sPL{4}.value     = -1; % sentit -
-
-            sPL{5}.domain    = @(coor) isForceZd(coor);
-            sPL{5}.direction = 3; % direccio x +
-            sPL{5}.value     = 1; % sentit -
+  
 
             dirichletFun = [];
             for i = 1:numel(sDir)
