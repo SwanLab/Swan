@@ -60,9 +60,6 @@ classdef ProblemSolver < handle
                     u(free_dofs) = sol;
                     u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                     L = [];
-%                     free = free_dofs;
-%                     cstr = bcs.dirichlet_dofs;
-%                     L = obj.stiffness(cstr,cstr)*u(cstr) + obj.stiffness(cstr,free)*u(free)-obj.forces(cstr);
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;

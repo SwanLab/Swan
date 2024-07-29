@@ -18,8 +18,6 @@ classdef NeohookeanFunctional < handle
         
         function obj = NeohookeanFunctional(cParams)
             obj.init(cParams)
-%             obj.mu = 10 / (2*(1 + 0.3));
-%             obj.lambda = (10*0.3) / ((1 + 0.3) * (1 - 2*0.3));
         end
 
         function val = compute(obj, uFun)
@@ -213,31 +211,6 @@ classdef NeohookeanFunctional < handle
             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
                 obj.mu*obj.kron_topF(I33,I33) + ...
                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
-%             quad = Quadrature.create(obj.mesh,3);
-%             xG = quad.posgp;
-
-%             [F,~] = obj.computeDeformationGradient(uFun, xG);
-%             Ft = permute(F, [2 1 3 4]);
-%             nF    = size(F,1);
-%             nGaus = size(F,3);
-%             nElem = size(F,4);
-%             A = zeros(nF,nF,nF,nF,nGaus,nElem);
-%                 for i = 1:nF
-%                 for j = 1:nF
-%                 for k = 1:nF
-%                 for l = 1:nF
-%                     first_term(1,1,1,1,:,:) = squeeze(obj.lambda*invF(j,i,:,:).*invF(l,k,:,:));
-%                     secnd_term(1,1,1,1,:,:) = squeeze(obj.mu*I33(i,k,:,:).*I33(j,l,:,:));
-%                     trd(1,1,:,:,:,:) = invF(l,i,:,:).*invF(j,k,:,:);
-%                     third_term(1,1,1,1,:,:) = squeeze((obj.mu - obj.lambda*log(jac)).*trd);
-%                     A(i,j,k,l,:,:) = first_term + secnd_term + third_term;
-% %                     A(i,j,k,l,:,:) = first_term;
-%                 end
-%                 end
-%                 end
-%                 end
-%             norm(Aneo(:)-A(:))
-%             Aneo = A;
         end
 
         function [F,I33] = computeDeformationGradient(obj, uFun, xG)
@@ -248,7 +221,6 @@ classdef NeohookeanFunctional < handle
 
             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
             GradU = permute(GradU, [2 1 3 4]);
-%             GradU = [0.0 0.0 0.0; -3.415063509461096 -0.24999999999999956 -0.4330127018922192; 0.9150635094610968 0.43301270189221924 -0.24999999999999994];
 
             I33 = obj.createIdentityMatrix(size(GradU));
 
