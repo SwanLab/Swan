@@ -8,7 +8,8 @@ classdef HyperelasticProblem < handle
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'Metamaterial'
+        bc_case = 'HoleDirich'
+        printing = 1
         bcApplier
         freeDofs, constrainedDofs
     end
@@ -23,7 +24,7 @@ classdef HyperelasticProblem < handle
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 200;
+            nsteps = 20;
             iter = 1;
             nIterPerStep = [];
 
@@ -70,15 +71,17 @@ classdef HyperelasticProblem < handle
     methods (Access = private)
 
         function printFile(obj,iStep, u, reac)
-            fun = {u, reac};
-            funNames = {'Displacement', 'Reactions'};
-            a.mesh     = obj.mesh;
-            a.filename = ['SIM_',obj.bc_case,'_',int2str(iStep)];
-            a.fun      = fun;
-            a.funNames = funNames;
-            a.type     = 'Paraview';
-            pst = FunctionPrinter.create(a);
-            pst.print();
+            if obj.printing
+                fun = {u, reac};
+                funNames = {'Displacement', 'Reactions'};
+                a.mesh     = obj.mesh;
+                a.filename = ['SIM_',obj.bc_case,'_',int2str(iStep)];
+                a.fun      = fun;
+                a.funNames = funNames;
+                a.type     = 'Paraview';
+                pst = FunctionPrinter.create(a);
+                pst.print();
+            end
         end
         
         function reacFun = computeReactions(obj,KR,u)
@@ -300,33 +303,6 @@ classdef HyperelasticProblem < handle
             jac = Det(F);
             sigma = mu.*(b-Id)./jac + lambda.*(log(jac)).*Id./jac;
             sigma.ndimf = [2 2];
-        end
-
-        function [incU,incR] = solveProblem(obj, lhs, rhs,uOld,bc)
-            obj.createBCApplier();
-            a.type = 'DIRECT';
-            solv = Solver.create(a);
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.stiffness  = lhs;
-            s.forces     = rhs;
-            s.uOld       = uOld;
-            s.solver     = solv;
-            s.boundaryConditions = bc;
-            s.BCApplier          = obj.bcApplier;
-            pb = ProblemSolver(s);
-            [incU,incL] = pb.solve();
-
-            incR = zeros(obj.uFun.nDofs, 1);
-            incR(bc.dirichlet_dofs) =  incL;
-            reac_rshp = reshape(incR,[obj.mesh.ndim,obj.mesh.nnodes])';
-        end
-
-        function createBCApplier(obj,bc)
-            s.mesh = obj.mesh;
-            s.boundaryConditions = bc;
-            bc = BCApplier(s);
-            obj.bcApplier = bc;
         end
 
 
