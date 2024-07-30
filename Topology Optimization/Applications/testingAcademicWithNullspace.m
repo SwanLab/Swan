@@ -184,3 +184,43 @@ problem              = AcademicProblem(cParams);
 
 problem.compute();
 xStar = problem.result;
+
+
+%% Test case 3 Paper NullSpaceSLERP
+
+close all;
+clear;
+
+% Min problem
+cost.cF = @(x) x(1)^2+(x(2)+3)^2;
+cost.gF = @(x) [2*x(1); 2*(x(2)+3)];
+
+constraint.cF{1} = @(x) -x(1)^2+x(2);
+constraint.gF{1} = @(x) [-2*x(1); 1];
+
+constraint.cF{2} = @(x) -x(1)-x(2)-2;
+constraint.gF{2} = @(x) [-1; -1];
+
+% Solution
+
+
+
+% Setting up
+x0               = [3;3];
+s.type           = "NullSpace";
+s.ub             = [inf;inf];
+s.lb             = [-inf;-inf];
+s.maxIter        = 400;
+s.constraintCase = {'INEQUALITY','INEQUALITY'};
+s.etaNorm        = 0.02;
+s.gJFlowRatio    = 0;
+
+cParams.cost         = cost;
+cParams.constraint   = constraint;
+cParams.initialGuess = x0;
+cParams.settings     = s;
+cParams.printingPath = true;
+problem              = AcademicProblem(cParams);
+
+problem.compute();
+xStar = problem.result;
