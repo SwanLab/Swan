@@ -25,7 +25,7 @@ classdef DomainFunction < handle
         
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) pagetranspose(aOp(xV));
+            s.operation = @(xV) nOrderTranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -55,6 +55,20 @@ classdef DomainFunction < handle
                 bOp = @(xV) b;
             end
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            r = DomainFunction(s);
+        end
+
+        function r = mtimes(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = rdivide(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
         
@@ -116,6 +130,8 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
+            elseif isnumeric(a)
+                op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);
             end
