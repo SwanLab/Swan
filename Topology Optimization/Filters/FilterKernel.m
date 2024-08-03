@@ -112,7 +112,7 @@ classdef FilterKernel < handle
             rhs = obj.RHS;
             Iki = obj.supportMatrix;
             M   = obj.massMatrix;
-            LHS = Iki*M;
+            LHS = Iki*M';
             LHS = obj.lumpMatrix(LHS);
             xRk = (Iki*rhs)./LHS;
             obj.trial.fValues = xRk;
