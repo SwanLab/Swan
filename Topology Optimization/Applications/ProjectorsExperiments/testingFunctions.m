@@ -12,7 +12,7 @@ mesh = s.mesh;
 
 sAF.fHandle = @(x) x(1,:,:);
 sAF.ndimf   = 1;
-sAF.mesh    = UnitTriangleMesh(5,5);
+sAF.mesh    = UnitQuadMesh(5,5);
 xFun = AnalyticalFunction(sAF);
 
 p0 = xFun.project('P0');

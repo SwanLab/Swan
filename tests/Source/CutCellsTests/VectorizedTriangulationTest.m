@@ -147,8 +147,7 @@ classdef VectorizedTriangulationTest < handle
     methods (Access = private, Static)
         
         function v = computeVolumes(mesh)
-            quad = Quadrature.set(mesh.type);
-            quad.computeQuadrature('CONSTANT');
+            quad = Quadrature.create(mesh,0);
             v = mesh.computeDvolume(quad);
         end
         

@@ -4,15 +4,44 @@ classdef Tetrahedra_Cubic < Interpolation
         
         function obj = Tetrahedra_Cubic(cParams)
             obj.init(cParams);
-            obj.computeParams();
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeParams(obj)
+            obj.ndime = 3;
+            obj.nnode = 20;
+            obj.pos_nodes = [0   0   0;
+                1   0   0;
+                0   1   0;
+                0   0   1;
+                1/3 0   0;
+                2/3 0   0;
+                0   1/3 0;
+                0   2/3 0;
+                0   0   1/3;
+                0   0   2/3;
+                2/3 1/3 0;
+                1/3 2/3 0;
+                2/3 0   1/3;
+                1/3 0   2/3;
+                0   2/3 1/3;
+                0   1/3 2/3;
+                0   1/3 1/3;
+                1/3 0   1/3;
+                1/3 1/3 0;
+                1/3 1/3 1/3];
+            % obj.isoDv = 1/6;
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             shape = zeros(obj.nnode,ngaus,nelem);
             shape(1,:,:)  = s.*(-1.1e+1./2.0)-t.*(1.1e+1./2.0)-u.*(1.1e+1./2.0)+s.*t.*1.8e+1+s.*u.*1.8e+1+t.*u.*1.8e+1-s.*t.^2.*(2.7e+1./2.0)-s.^2.*t.*(2.7e+1./2.0)-s.*u.^2.*(2.7e+1./2.0)-s.^2.*u.*(2.7e+1./2.0)-t.*u.^2.*(2.7e+1./2.0)-t.^2.*u.*(2.7e+1./2.0)+s.^2.*9.0-s.^3.*(9.0./2.0)+t.^2.*9.0-t.^3.*(9.0./2.0)+u.^2.*9.0-u.^3.*(9.0./2.0)-s.*t.*u.*2.7e+1+1.0;
             shape(2,:,:)  = s-s.^2.*(9.0./2.0)+s.^3.*(9.0./2.0);
@@ -39,12 +68,12 @@ classdef Tetrahedra_Cubic < Interpolation
             shape(20,:,:) = s.*t.*u.*2.7e+1;
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             deriv(1,1,:,:)  = s.*1.8e+1+t.*1.8e+1+u.*1.8e+1-s.*t.*2.7e+1-s.*u.*2.7e+1-t.*u.*2.7e+1-s.^2.*(2.7e+1./2.0)-t.^2.*(2.7e+1./2.0)-u.^2.*(2.7e+1./2.0)-1.1e+1./2.0;
             deriv(1,2,:,:)  = s.*-9.0+s.^2.*(2.7e+1./2.0)+1.0;
@@ -108,36 +137,6 @@ classdef Tetrahedra_Cubic < Interpolation
             deriv(3,18,:,:) = s.*2.7e+1-s.*t.*2.7e+1-s.*u.*5.4e+1-s.^2.*2.7e+1;
             deriv(3,19,:,:) = s.*t.*-2.7e+1;
             deriv(3,20,:,:) = s.*t.*2.7e+1;
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeParams(obj)
-            obj.ndime = 3;
-            obj.nnode = 20;
-            obj.pos_nodes = [0   0   0;
-                1   0   0;
-                0   1   0;
-                0   0   1;
-                1/3 0   0;
-                2/3 0   0;
-                0   1/3 0;
-                0   2/3 0;
-                0   0   1/3;
-                0   0   2/3;
-                2/3 1/3 0;
-                1/3 2/3 0;
-                2/3 0   1/3;
-                1/3 0   2/3;
-                0   2/3 1/3;
-                0   1/3 2/3;
-                0   1/3 1/3;
-                1/3 0   1/3;
-                1/3 1/3 0;
-                1/3 1/3 1/3];
-            % obj.isoDv = 1/6;
         end
         
     end

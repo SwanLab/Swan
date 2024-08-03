@@ -4,16 +4,27 @@ classdef Triangle_Cubic < Interpolation
 
         function obj = Triangle_Cubic(cParams)
             obj.init(cParams);
-            obj.computeParams();
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+    end
+
+    methods (Access = protected)
+
+        function computeParams(obj)
+            obj.type = 'TRIANGLE_CUBIC';
+            obj.ndime = 2;
+            obj.nnode = 10;
+            obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 1/3,0 ; 2/3,0 ; 2/3,1/3 ;...
+                1/3,2/3 ; 0,2/3 ; 0,1/3 ; 1/3,1/3];
+        end
+
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             shape = zeros(obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
-                s = posgp(1,igaus);
-                t = posgp(2,igaus);
+                s = xV(1,igaus);
+                t = xV(2,igaus);
                 shape(:,igaus,:) = [-(9*s^3)/2-(27*s^2*t)/2+9*s^2-(27*s*t^2)/2+18*s*t-(11*s)/2-(9*t^3)/2+9*t^2-(11*t)/2+1;...
                     (9*s^3)/2 - (9*s^2)/2 + s;...
                     (9*t^3)/2 - (9*t^2)/2 + t;...
@@ -27,13 +38,13 @@ classdef Triangle_Cubic < Interpolation
             end
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             deriv = zeros(obj.ndime, obj.nnode, ngaus, nelem);
             for igaus=1:ngaus
-                s = posgp(1,igaus);
-                t = posgp(2,igaus);
+                s = xV(1,igaus);
+                t = xV(2,igaus);
                 deriv(:,:,igaus,:) = [18*s + 18*t - 27*s*t - (27*s^2)/2 - (27*t^2)/2 - 11/2,...
                     (27*s^2)/2 - 9*s + 1,...
                     0,...
@@ -56,18 +67,6 @@ classdef Triangle_Cubic < Interpolation
                     (27*s^2)/2 + 54*s*t - (45*s)/2 + (81*t^2)/2 - 45*t + 9,...
                     27*s - 54*s*t - 27*s^2];
             end
-        end
-
-    end
-
-    methods (Access = private)
-
-        function computeParams(obj)
-            obj.type = 'TRIANGLE_CUBIC';
-            obj.ndime = 2;
-            obj.nnode = 10;
-            obj.pos_nodes = [0,0 ; 1 0; 0,1 ; 1/3,0 ; 2/3,0 ; 2/3,1/3 ;...
-                1/3,2/3 ; 0,2/3 ; 0,1/3 ; 1/3,1/3];
         end
 
     end

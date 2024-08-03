@@ -38,6 +38,12 @@ classdef Mesh < handle
                     obj = VolumeMesh(s);
             end
         end
+        
+        function obj = createFromGiD(filename)
+            reader = FemInputReader_GiD();
+            a = reader.read(filename);
+            obj = a.mesh;
+        end
 
     end
 
@@ -57,8 +63,7 @@ classdef Mesh < handle
         end
 
         function xV = computeBaricenter(obj)
-            q = Quadrature.set(obj.type);
-            q.computeQuadrature('CONSTANT');
+            q = Quadrature.create(obj, 0);
             xV = q.posgp;
             xV = squeeze(obj.xFE.evaluate(xV));
         end
@@ -98,16 +103,14 @@ classdef Mesh < handle
         end
 
         function q = computeElementQuality(obj) % check for 3d
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj, 1);
             volume = obj.computeDvolume(quad)';
             L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 
         function v = computeVolume(obj) % computeMeasure
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj,2);
             v = obj.computeDvolume(quad);
             v = sum(v(:));
         end
@@ -270,7 +273,24 @@ classdef Mesh < handle
                     m = Mesh.create(s);
                     l2g(newNodes(:)) = l2gBound(validNodes);
                 otherwise
-                    error('Cannot yet get boundary submesh for 3D')
+                    validNodes = find(domain(obj.coord));
+                    validElems = find(sum(ismember(obj.connec, validNodes),2) == obj.nnodeElem); % == 2 because line
+                    coord_valid  = obj.coord(validNodes, :);
+                    connec_valid = obj.connec(validElems,:);
+                    % connecGlobal = l2gBound(connec_valid);
+                    
+                    newNodes = (1:size(coord_valid,1))';
+                    boundary2local(validNodes) = newNodes;
+                    newConnec = boundary2local(connec_valid);
+                    
+                    s.connec = newConnec;
+                    s.coord = coord_valid;
+                    s.kFace = -1;
+                    
+                    m = Mesh.create(s);
+                    l2g(newNodes(:)) = validNodes;
+
+%                     error('Cannot yet get boundary submesh for 3D')
             end
         end
 
@@ -287,10 +307,10 @@ classdef Mesh < handle
             J = zeros(nDimElem,nDimGlo,nPoints,nElem);
             for iDimGlo = 1:nDimGlo
                 for iDimElem = 1:nDimElem
-                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
-                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
-                        jacIJ    = dShapeIK*xKJ;
-                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                    jacIJ    = dShapeIK*xKJ;
+                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
                 end
             end
         end

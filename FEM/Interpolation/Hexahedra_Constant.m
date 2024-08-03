@@ -4,24 +4,11 @@ classdef Hexahedra_Constant < Interpolation
 
         function obj = Hexahedra_Constant(cParams)
             obj.init(cParams);
-            obj.computeParams();
-        end
-
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            N = ones(obj.nnode,ngaus, nelem);
-            shape = N;
-        end
-
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            dN = zeros(obj.ndime,obj.nnode,ngaus, nelem);
-            deriv = dN;
         end
 
     end
 
-    methods (Access = private)
+    methods (Access = protected)
 
         function computeParams(obj)
             obj.type = 'HEXAHEDRA';
@@ -29,5 +16,18 @@ classdef Hexahedra_Constant < Interpolation
             obj.nnode = 1;
             obj.pos_nodes = [0 0 0];
         end
+
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            N = ones(obj.nnode,ngaus, nelem);
+            shape = N;
+        end
+
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            dN = zeros(obj.ndime,obj.nnode,ngaus, nelem);
+            deriv = dN;
+        end
+
     end
 end

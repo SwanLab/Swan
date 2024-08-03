@@ -57,8 +57,7 @@ classdef DilationComputer < handle
         end
         
         function computeRHS(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('CUBIC');
+            q = Quadrature.create(obj.mesh,3);
             gradT = obj.computeFieldTimesDivField(q);
 
             s.mesh = obj.mesh;

@@ -30,14 +30,17 @@ classdef OptimizerInteriorPoint < Optimizer
         mOld
         meritNew
         acceptableStep
+        Vtar
     end
 
     methods (Access = public)
+
         function obj = OptimizerInteriorPoint(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.createPrimalUpdater(cParams);
             obj.createDualUpdater(cParams);
+            obj.prepareFirstIter();
         end
 
         function solveProblem(obj)
@@ -45,12 +48,14 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hasFinished = false;
             obj.previousComputations();
             obj.printOptimizerVariable();
-            obj.monitoring.update(obj.nIter);
+            % obj.monitoring.update(obj.nIter);
+            obj.updateMonitoring();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
                 obj.printOptimizerVariable();
-                obj.monitoring.update(obj.nIter);
+                % obj.monitoring.update(obj.nIter);
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.checkNewBarrierProblem();
             end
@@ -69,6 +74,7 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.maxIter           = cParams.maxIter;
             obj.nIter             = 0;
             obj.constraintCase    = cParams.constraintCase;
+            obj.Vtar              = cParams.volumeTarget;
             obj.cost.computeFunctionAndGradient(x);
             obj.hessian = eye(obj.designVariable.fun.mesh.nnodes);
             obj.constraint.computeFunctionAndGradient(x);
@@ -88,11 +94,50 @@ classdef OptimizerInteriorPoint < Optimizer
         end
 
         function createMonitoring(obj,cParams)
+            titlesF       = obj.cost.getTitleFields();
+            titlesConst   = obj.constraint.getTitleFields();
+            nSFCost       = length(titlesF);
+            nSFConstraint = length(titlesConst);
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            chConstr      = cell(1,nSFConstraint);
+            for i = 1:nSFConstraint
+                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
+                chConstr{i}   = 'plot';
+            end
+            titles  = [titles;{'Volume';'Line Search';'Line Search trials'}];
+            chCost = cell(1,nSFCost);
+            for i = 1:nSFCost
+                chCost{i} = 'plot';
+            end
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'plot','bar','bar'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
-            s.titles       = [];
-            s.chartTypes   = [];
+            s.titles       = titles;
+            s.chartTypes   = chartTypes;
             obj.monitoring = Monitoring(s);
+        end
+
+        function obj = updateMonitoring(obj)
+            data = obj.cost.value;
+            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.dualVariable.fun.fValues];
+            data = [data;obj.computeVolume(obj.constraint.value)];
+            if obj.nIter == 0
+                data = [data;0;0];
+            else
+                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
+            end
+            obj.monitoring.update(obj.nIter,data);
+        end
+
+        function prepareFirstIter(obj)
+            x = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(x);
+            % obj.costOld = obj.cost.value;
+            obj.designVariable.updateOld();
+            % obj.dualVariable.fun.fValues = zeros(obj.nConstr,1);
         end
 
         function computeLinearBounds(obj)
@@ -269,10 +314,11 @@ classdef OptimizerInteriorPoint < Optimizer
             obj.hessianUpdated = dirs.updatedHessian;
         end
 
-        function x = updatePrimal(obj)
-            x = obj.designVariable.fun.fValues;
+        function xVals = updatePrimal(obj)
+            x = obj.designVariable;
             g = -obj.dx;
             x = obj.primalUpdater.update(g,x);
+            xVals = x.fun.fValues;
         end
 
         function updatePrimalVariables(obj)
@@ -403,17 +449,9 @@ classdef OptimizerInteriorPoint < Optimizer
             end
         end
 
-        function obj = updateMonitoring(obj)
-            obj.cost.computeFunctionAndGradient();
-            obj.constraint.computeFunctionAndGradient();
-            s.nIter            = obj.nIter;
-            s.tau              = obj.primalUpdater.tau;
-            s.lineSearch       = obj.lineSearch;
-            s.lineSearchTrials = obj.lineSearchTrials;
-            s.oldCost          = obj.oldCost;
-            s.hasFinished      = obj.hasFinished;
-            s.meritNew         = obj.meritNew;
-            s.lambda           = obj.dualVariable.value;
+        function v = computeVolume(obj,g)
+            targetVolume = obj.Vtar;
+            v            = targetVolume*(1+g);
         end
 
         function updateIterInfo(obj)
@@ -435,11 +473,13 @@ classdef OptimizerInteriorPoint < Optimizer
     end
 
     methods (Access = private,Static)
+
         function penalty = computeLogPenaltyTerm(s)
             x       = s.field;
             lb      = s.lowerBound;
             ub      = s.upperBound;
             penalty = sum(log(x-lb) + log(ub-x));
         end
+
     end
 end

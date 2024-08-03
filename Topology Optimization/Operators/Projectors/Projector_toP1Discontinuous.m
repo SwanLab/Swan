@@ -43,7 +43,7 @@ classdef Projector_toP1Discontinuous < Projector
             s.mesh  = obj.mesh;
             s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
             s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
-            s.quadratureOrder = 'QUADRATIC';
+            s.quadratureOrder = 2; % ?
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
@@ -92,8 +92,7 @@ classdef Projector_toP1Discontinuous < Projector
 
         function q = createRHSQuadrature(obj, fun)
             ord = obj.determineQuadratureOrder(fun);
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(ord);
+            q = Quadrature.create(obj.mesh,ord);
         end
 
         function fVals = reshapeFValues(obj, x, nFlds)

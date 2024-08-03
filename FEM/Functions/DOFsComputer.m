@@ -87,23 +87,19 @@ classdef DOFsComputer < handle
         
         
         function computeCoordPriv(obj)
-            nelem = size(obj.dofs,1);
             ndofsE = size(obj.dofs,2);
-
-            coor = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
-            
+            coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
             if obj.order~=1
-                
-                sAF = obj.computefHandlePosition();
-                sAF.mesh    = obj.mesh;
-                func = AnalyticalFunction(sAF);
+                sAF      = obj.computefHandlePosition();
+                sAF.mesh = obj.mesh;
+                func     = AnalyticalFunction(sAF);
                 c = func.evaluate(obj.interp.pos_nodes');
                 c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
-                
-                for ielem = 1:nelem
-                    coor((obj.dofs(ielem,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1,:) = c(:,:,ielem);
-                end
-                
+                c = permute(c,[3,1,2]);
+                c = reshape(c,[],obj.mesh.ndim);
+                newDofs = (obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
+                newDofs = reshape(newDofs,[],1);
+                coor(newDofs,:) = c;                
                 obj.coord = coor;
             else
                 obj.coord = obj.mesh.coord;

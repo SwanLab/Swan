@@ -6,9 +6,7 @@ classdef RHSintegrator_ElasticMicro < handle
         boundaryConditions
         vstrain
         material
-        dvolume
         globalConnec
-        quadrature
 
         fun
     end
@@ -17,8 +15,6 @@ classdef RHSintegrator_ElasticMicro < handle
 
         function obj = RHSintegrator_ElasticMicro(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
-            obj.computeDvolume();
         end
 
         function Fext = compute(obj)
@@ -59,17 +55,6 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.globalConnec       = cParams.globalConnec;
             obj.fun                = cParams.fun;
         end
-       
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            obj.quadrature = q;
-        end
-
-        function computeDvolume(obj)
-            q = obj.quadrature;
-            obj.dvolume = obj.mesh.computeDvolume(q)';
-        end
 
         function b = assembleVector(obj, forces)
             s.dim          = obj.dim;
@@ -93,13 +78,15 @@ classdef RHSintegrator_ElasticMicro < handle
         
         
         function F = computeStrainRHS(obj,vstrain)
-            xV    = obj.quadrature.posgp;
+            quad = Quadrature.create(obj.mesh, 1);
+            xV    = quad.posgp;
+            dVol  = obj.mesh.computeDvolume(quad)';
             Cmat  = obj.material.evaluate(xV);
             nunkn = obj.dim.ndimf;
             nstre = size(Cmat,1);
             nelem = size(Cmat,4);
             nnode = obj.dim.nnodeElem;
-            ngaus = obj.quadrature.ngaus;
+            ngaus = quad.ngaus;
 
             eforce = zeros(nunkn*nnode,ngaus,nelem);
             sigma = zeros(nstre,ngaus,nelem);
@@ -111,7 +98,7 @@ classdef RHSintegrator_ElasticMicro < handle
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
                 Bmat    = Bcomp.compute(igaus);
-                dV(:,1) = obj.dvolume(:,igaus);
+                dV(:,1) = dVol(:,igaus);
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij = squeeze(Cmat(istre,jstre,igaus,:));

@@ -10,7 +10,7 @@ classdef DualUpdaterFactory < handle
                 case 'LagrangeMultiplierEstimation'
                     
                 case 'NullSpace'
-                    d = DualUpdater_NullSpace(cParams);
+                    d = DualUpdaterNullSpace(cParams);
                 case 'IPM'
                     d = DualUpdater_IPM(cParams);
             end

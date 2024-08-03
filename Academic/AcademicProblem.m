@@ -9,6 +9,7 @@ classdef AcademicProblem < handle
         cost
         constraint
         optimizer
+        pathPlotter
     end
 
     methods (Access = public)
@@ -18,6 +19,7 @@ classdef AcademicProblem < handle
 
         function compute(obj)
             obj.solve();
+            obj.printPath();
         end
     end
 
@@ -28,6 +30,7 @@ classdef AcademicProblem < handle
             obj.createAcademicCost(cParams);
             obj.createAcademicConstraint(cParams);
             obj.createOptimizer(cParams);
+            obj.createPathPlotter(cParams);
         end
 
         function createDesignVariable(obj,cParams)
@@ -77,9 +80,18 @@ classdef AcademicProblem < handle
             obj.optimizer    = Optimizer.create(s);
         end
 
+        function createPathPlotter(obj,cParams)
+            obj.pathPlotter = AcademicProblemPathComputer(cParams);
+        end
+
         function solve(obj)
             obj.optimizer.solveProblem();
-            obj.result = obj.designVariable.value;
+            obj.result = obj.designVariable;
+        end
+
+        function printPath(obj)
+            values = obj.designVariable.valuesOld;
+            obj.pathPlotter.compute(values);
         end
 
     end

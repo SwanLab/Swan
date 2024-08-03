@@ -42,9 +42,21 @@ classdef ShapeFunctional_Factory < handle
                 case 'perimeterConstraint'
                     sF = Perimeter_constraint(cParams);
                 case 'chomog_alphabeta'
-                    sF = ShFunc_Chomog_alphabeta(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.alpha        = cParams.alpha;
+                    s.beta         = cParams.beta;
+                    sF             = MicroAlphaBetaFunctional(s);
                 case 'chomog_fraction'
-                    sF = ShFunc_Chomog_fraction(cParams);
+                    s.mesh         = cParams.mesh;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.alpha        = cParams.alpha;
+                    s.beta         = cParams.beta;
+                    sF             = MicroFractionFunctional(s);
                 case 'chomog_CC'
                     sF = ShFunc_Chomog_CC();
                 case 'enforceCh_CCstar_inf'
@@ -63,8 +75,13 @@ classdef ShapeFunctional_Factory < handle
                     end
                 case 'enforceCh_CCstar_L2'
                     sF = ShFunc_Chomog_EnforceCh_CCstar_L2(cParams);
-                case 'nonadjoint_compliance'
-                    sF = ShFunc_NonSelfAdjoint_Compliance(cParams);
+                case 'nonadjointCompliance'
+                    s.mesh         = cParams.mesh;
+                    s.stateProblem = cParams.physicalProblem;
+                    s.filter       = cParams.filter;
+                    s.material     = cParams.material;
+                    s.filename     = cParams.filename;
+                    sF             = NonSelfAdjointComplianceFunctional(s);
                 case 'volume'
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'
@@ -81,6 +98,22 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
+                case 'LinearBoundFunction'
+                    sF = LinearBoundFunction();
+                case 'ComplianceConstraintBound'
+                    s.mesh         = cParams.mesh;
+                    s.stateProblem = cParams.physicalProblem;
+                    c              = ComplianceFromConstiutiveTensor(s);
+                    s.filterDesignVariable = cParams.filterDesignVariable;
+                    s.filterGradient = cParams.filterGradient;
+                    s.complainceFromConstitutive = c;
+                    s.material                   = cParams.material;
+                    sF = ComplianceWithBoundConstraint(s);
+                case 'VolumeConstraintBound'
+                    s.mesh         = cParams.mesh;
+                    s.volumeTarget = cParams.target;
+                    s.gradientTest = cParams.gradientTest;
+                    sF = VolumeConstraintWithBound(s);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

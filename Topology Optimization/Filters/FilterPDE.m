@@ -39,10 +39,10 @@ classdef FilterPDE < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
-            obj.LHStype       = cParams.LHStype;
-            obj.mesh          = cParams.mesh;
-            obj.epsilon       = cParams.mesh.computeMeanCellSize();
+            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
+            obj.LHStype = cParams.LHStype;
+            obj.mesh    = cParams.mesh;
+            obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
         function computeBoundaryConditions(obj,cParams)

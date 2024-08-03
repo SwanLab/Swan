@@ -1,8 +1,8 @@
 classdef DesignVariableAcademic < handle
     
     properties (Access = public)
-        value
-        valueOld
+        fun
+        valuesOld
     end
     
     methods (Access = public)
@@ -11,17 +11,17 @@ classdef DesignVariableAcademic < handle
         end
 
         function update(obj,x)
-            obj.value = x;
+            obj.fun.fValues = x;
         end
 
         function updateOld(obj)
-            obj.valueOld = obj.value;
+            obj.valuesOld = [obj.valuesOld,obj.fun.fValues];
         end
 
         function res = computeL2normIncrement(obj)
-            incFun = obj.value-obj.valueOld;
+            incFun = obj.fun.fValues - obj.valuesOld(:,end);
             nIncX  = norm(incFun);
-            nX0    = norm(obj.valueOld);
+            nX0    = norm(obj.valuesOld(:,end));
             res    = nIncX/nX0;
         end
     end
@@ -29,7 +29,7 @@ classdef DesignVariableAcademic < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.value = cParams.x0;
+            obj.fun.fValues = cParams.x0;
         end
        
     end

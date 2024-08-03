@@ -6,7 +6,7 @@ classdef VolumeConstraint < handle
         volume
     end
     
-    methods (Access = public)        
+    methods (Access = public)
         function obj = VolumeConstraint(cParams)
             obj.init(cParams);
         end

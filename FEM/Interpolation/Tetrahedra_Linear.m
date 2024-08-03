@@ -4,15 +4,28 @@ classdef Tetrahedra_Linear < Interpolation
         
         function obj = Tetrahedra_Linear(cParams)
             obj.init(cParams);
-            obj.computeParams();
+        end
+        
+    end
+    
+    methods (Access = protected)
+        
+        function computeParams(obj)
+            obj.ndime = 3;
+            obj.nnode = 4;
+            obj.pos_nodes = [0 0 0;
+                1 0 0;
+                0 1 0;
+                0 0 1];
+            % obj.isoDv = 1/6;
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             shape = zeros(obj.nnode,ngaus,nelem);
             shape(1,:,:) = 1-t-s-u;
             shape(2,:,:) = s;
@@ -20,9 +33,9 @@ classdef Tetrahedra_Linear < Interpolation
             shape(4,:,:) = u;
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
             deriv(1,1,:,:) = -1;
             deriv(1,2,:,:) = 1;
@@ -37,20 +50,7 @@ classdef Tetrahedra_Linear < Interpolation
             deriv(3,3,:,:) = 0;
             deriv(3,4,:,:) = 1;
         end
-        
-    end
-    
-    methods (Access = private)
-        
-        function computeParams(obj)
-            obj.ndime = 3;
-            obj.nnode = 4;
-            obj.pos_nodes = [0 0 0;
-                1 0 0;
-                0 1 0;
-                0 0 1];
-            % obj.isoDv = 1/6;
-        end
+
     end
     
 end

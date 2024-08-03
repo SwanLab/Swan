@@ -13,18 +13,18 @@ classdef DensityBasedMaterial < handle
     methods (Access = public)
         
         function obj = DensityBasedMaterial(cParams)
-            obj.init(cParams)            
+            obj.init(cParams)
         end
         
         function C = obtainTensor(obj)
           s.operation = @(xV) obj.evaluate(xV);
-          C = DomainFunction(s);            
+          C = DomainFunction(s);
         end
         
         function dC = obtainTensorDerivative(obj)
           s.operation = @(xV) obj.evaluateGradient(xV);
-          dC = DomainFunction(s);            
-        end        
+          dC = DomainFunction(s);
+        end
         
         function setDesignVariable(obj,x)
             obj.density = x;
@@ -38,16 +38,16 @@ classdef DensityBasedMaterial < handle
             obj.density              = cParams.density;
             obj.materialInterpolator = cParams.materialInterpolator;
             obj.dim                  = cParams.dim;
-        end        
+        end
         
         function m = createMaterial(obj,mu,kappa)
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.computeNdim();
-            s.shear   = mu;            
+            s.shear   = mu;
             s.bulk    = kappa;
-            m = Material.create(s);   
-        end    
+            m = Material.create(s);
+        end
         
         function C = evaluate(obj,xV)
             mI  = obj.materialInterpolator;
@@ -72,8 +72,7 @@ classdef DensityBasedMaterial < handle
                 case '3D'
                   ndim = 3;
             end
-        end          
-        
+        end
         
     end
     

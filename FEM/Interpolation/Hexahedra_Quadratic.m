@@ -4,17 +4,53 @@ classdef Hexahedra_Quadratic < Interpolation
 
         function obj = Hexahedra_Quadratic(cParams)
             obj.init(cParams);
-            obj.computeParams();
         end
 
-        function shape = computeShapeFunctions(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+    end
+
+    methods (Access = protected)
+
+        function computeParams(obj)
+            obj.ndime = 3;
+            obj.nnode = 27;
+            % obj.isoDv = 8;
+            obj.pos_nodes=[-1 -1 -1;
+                +1   -1   -1;
+                +1   +1   -1;
+                -1   +1   -1;
+                -1   -1   +1;
+                +1   -1   +1;
+                +1   +1   +1;
+                -1   +1   +1;
+                +0   -1   -1;
+                -1   +0   -1;
+                -1   -1   +0;
+                +1   +0   -1;
+                +1   -1   +0;
+                +0   +1   -1;
+                +1   +1   +0;
+                -1   +1   +0;
+                +0   -1   +1;
+                -1   +0   +1;
+                +1   +0   +1;
+                +0   +1   +1;
+                +0   +0   -1;
+                +0   -1   +0;
+                -1   +0   +0;
+                +1   +0   +0;
+                +0   +1   +0;
+                +0   +0   +1;
+                +0   +0   +0];
+        end
+
+        function shape = evaluateShapeFunctions(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             shape = zeros(obj.nnode,ngaus,nelem);
 
-            s = posgp(1,:,:);
-            t = posgp(2,:,:);
-            u = posgp(3,:,:);
+            s = xV(1,:,:);
+            t = xV(2,:,:);
+            u = xV(3,:,:);
             shape(1,:,:) = (s.*t.*u.^2)./8.0+(s.*t.^2.*u)./8.0+(s.^2.*t.*u)./8.0-(s.*t.^2.*u.^2)./8.0-(s.^2.*t.*u.^2)./8.0-(s.^2.*t.^2.*u)./8.0-(s.*t.*u)./8.0+(s.^2.*t.^2.*u.^2)./8.0;
             shape(2,:,:) = s.*t.*u.^2.*(-1.0./8.0)-(s.*t.^2.*u)./8.0+(s.^2.*t.*u)./8.0+(s.*t.^2.*u.^2)./8.0-(s.^2.*t.*u.^2)./8.0-(s.^2.*t.^2.*u)./8.0+(s.*t.*u)./8.0+(s.^2.*t.^2.*u.^2)./8.0;
             shape(3,:,:) = (s.*t.*u.^2)./8.0-(s.*t.^2.*u)./8.0-(s.^2.*t.*u)./8.0+(s.*t.^2.*u.^2)./8.0+(s.^2.*t.*u.^2)./8.0-(s.^2.*t.^2.*u)./8.0-(s.*t.*u)./8.0+(s.^2.*t.^2.*u.^2)./8.0;
@@ -44,14 +80,14 @@ classdef Hexahedra_Quadratic < Interpolation
             shape(27,:,:) = s.^2.*t.^2+s.^2.*u.^2+t.^2.*u.^2-s.^2-t.^2-u.^2-s.^2.*t.^2.*u.^2+1.0;
         end
 
-        function deriv = computeShapeDerivatives(obj,posgp)
-            ngaus = size(posgp,2);
-            nelem = size(posgp,3);
+        function deriv = evaluateShapeDerivatives(obj,xV)
+            ngaus = size(xV,2);
+            nelem = size(xV,3);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);
 
-            s=posgp(1,:,:);
-            t=posgp(2,:,:);
-            u=posgp(3,:,:);
+            s=xV(1,:,:);
+            t=xV(2,:,:);
+            u=xV(3,:,:);
             deriv(1,1,:,:) = t.^2.*u.^2.*(-1.0./8.0)-(t.*u)./8.0+(t.*u.^2)./8.0+(t.^2.*u)./8.0-(s.*t.*u.^2)./4.0-(s.*t.^2.*u)./4.0+(s.*t.^2.*u.^2)./4.0+(s.*t.*u)./4.0;
             deriv(1,2,:,:) = (s.*t.*u.^2)./2.0+(s.*t.^2.*u)./2.0-(s.*t.^2.*u.^2)./2.0-(s.*t.*u)./2.0;
             deriv(1,3,:,:) = (t.^2.*u.^2)./8.0+(t.*u)./8.0-(t.*u.^2)./8.0-(t.^2.*u)./8.0-(s.*t.*u.^2)./4.0-(s.*t.^2.*u)./4.0+(s.*t.^2.*u.^2)./4.0+(s.*t.*u)./4.0;
@@ -135,43 +171,6 @@ classdef Hexahedra_Quadratic < Interpolation
             deriv(3,25,:,:) = (s.^2.*t.^2)./8.0-(s.*t)./8.0-(s.*t.^2)./8.0+(s.^2.*t)./8.0-(s.*t.^2.*u)./4.0+(s.^2.*t.*u)./4.0+(s.^2.*t.^2.*u)./4.0-(s.*t.*u)./4.0;
             deriv(3,26,:,:) = t./4.0-(s.^2.*t.^2)./4.0+(t.*u)./2.0-(s.^2.*t)./4.0+(t.^2.*u)./2.0+t.^2./4.0-(s.^2.*t.*u)./2.0-(s.^2.*t.^2.*u)./2.0;
             deriv(3,27,:,:) = (s.^2.*t.^2)./8.0+(s.*t)./8.0+(s.*t.^2)./8.0+(s.^2.*t)./8.0+(s.*t.^2.*u)./4.0+(s.^2.*t.*u)./4.0+(s.^2.*t.^2.*u)./4.0+(s.*t.*u)./4.0;
-        end
-
-    end
-
-    methods (Access = private)
-
-        function computeParams(obj)
-            obj.ndime = 3;
-            obj.nnode = 27;
-            % obj.isoDv = 8;
-            obj.pos_nodes=[-1 -1 -1;
-                +1   -1   -1;
-                +1   +1   -1;
-                -1   +1   -1;
-                -1   -1   +1;
-                +1   -1   +1;
-                +1   +1   +1;
-                -1   +1   +1;
-                +0   -1   -1;
-                -1   +0   -1;
-                -1   -1   +0;
-                +1   +0   -1;
-                +1   -1   +0;
-                +0   +1   -1;
-                +1   +1   +0;
-                -1   +1   +0;
-                +0   -1   +1;
-                -1   +0   +1;
-                +1   +0   +1;
-                +0   +1   +1;
-                +0   +0   -1;
-                +0   -1   +0;
-                -1   +0   +0;
-                +1   +0   +0;
-                +0   +1   +0;
-                +0   +0   +1;
-                +0   +0   +0];
         end
 
     end
