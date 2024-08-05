@@ -22,6 +22,10 @@ classdef AnalyticalFunction < L2Function
         function fxV = evaluate(obj, xGLoc)
             xV = obj.mesh.computeXgauss(xGLoc);
             fxV = obj.fHandle(xV);
+            if size(fxV,2) == 1
+                % fxV = fxV';
+                fxV  = pagetranspose(fxV);
+            end
         end
 
         function plot(obj)
