@@ -1,4 +1,4 @@
-classdef LinearSystemSolver < handle
+classdef QuadraticOptimizationSolver < handle
     
     properties (Access = public)
         
@@ -14,7 +14,7 @@ classdef LinearSystemSolver < handle
     
     methods (Access = public)
         
-        function obj = LinearSystemSolver(cParams)
+        function obj = QuadraticOptimizationSolver(cParams)
             obj.init(cParams)
             
         end
@@ -28,6 +28,8 @@ classdef LinearSystemSolver < handle
             obj.LHS    = cParams.LHS;
             obj.RHS    = cParams.RHS;
             obj.boundaryConditions = cParams.boundaryConditions;
+            obj.useSchur   = cParams.useSchur;
+            obj.solverType = cParams.solverType;
         end
         
     end

@@ -4,8 +4,6 @@ classdef BoundaryConditions < handle
         dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
         pointloadFun, pointload_dofs, pointload_vals, pointload_domain
         periodic_leader, periodic_follower
-
-        iVoigt, nVoigt
     end
     
     properties (Access = private)
