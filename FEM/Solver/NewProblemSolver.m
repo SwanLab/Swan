@@ -14,9 +14,9 @@ classdef NewProblemSolver < handle
     methods (Static, Access = public)
 
         function obj = create(s)
-            s.problemType = 'QuadraticOptimization';
-            s.solverType = 'Direct';
-            s.useSchur = true;
+            s.problemType    = 'QuadraticOptimization';
+            s.solverType     = 'Direct';
+            s.solverStrategy = 'Schur';
             obj = QuadraticOptimizationSolver(s);
         end
 
@@ -25,7 +25,7 @@ classdef NewProblemSolver < handle
     methods (Access = public)
         
         function obj = NewProblemSolver(cParams)
-            obj.init(cParams);
+%             obj.init(cParams);
         end
 
         function [u,L] = solve(obj)
@@ -34,14 +34,6 @@ classdef NewProblemSolver < handle
     end
     
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.type               = cParams.solverType;
-            obj.mode               = cParams.solverMode;
-            obj.boundaryConditions = cParams.boundaryConditions;
-            obj.BCApplier          = cParams.BCApplier;
-            obj.solver             = cParams.solver;
-        end
         
     end
     
