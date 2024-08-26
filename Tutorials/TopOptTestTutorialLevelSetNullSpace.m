@@ -58,7 +58,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = true;
+            s.plotting = false;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -169,14 +169,14 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 400;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 2.5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
