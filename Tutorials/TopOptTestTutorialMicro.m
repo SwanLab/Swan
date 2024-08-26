@@ -178,12 +178,11 @@ classdef TopOptTestTutorialMicro < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.5;
             s.primal         = 'PROJECTED GRADIENT';
-            s.aJmax          = 2;
-            s.aGmax          = 1e6;
+            s.ub             = inf;
+            s.lb             = -inf;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
