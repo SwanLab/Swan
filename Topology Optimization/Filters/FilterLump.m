@@ -41,7 +41,7 @@ classdef FilterLump < handle
             s.mesh            = obj.mesh;
             s.test            = obj.trial;
             s.trial           = obj.trial;
-            s.quadratureOrder = 'QUADRATIC';
+            s.quadratureOrder = 2;
             s.type            = 'MassMatrix';
             int               = LHSintegrator.create(s);
             lhs               = int.compute();

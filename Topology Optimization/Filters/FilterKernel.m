@@ -47,7 +47,7 @@ classdef FilterKernel < handle
             s.mesh            = obj.mesh;
             s.test            = obj.test;
             s.trial           = obj.trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS               = LHSintegrator.create(s);
             obj.massMatrix    = LHS.compute();
         end 

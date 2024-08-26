@@ -33,12 +33,12 @@ classdef PerimeterFunctional < handle
         end
 
         function xR = filterDesignVariable(obj,x)
-            xR = obj.filter.compute(x,'LINEAR');
+            xR = obj.filter.compute(x,2);
         end
 
         function J = computeFunction(obj,xD,xR)
             f   = xD.*(1-xR);
-            int = Integrator.compute(f,obj.mesh,'QUADRATIC');
+            int = Integrator.compute(f,obj.mesh,2);
             J   = 2/(obj.epsilon)*int;
         end
 

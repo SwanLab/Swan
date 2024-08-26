@@ -32,8 +32,7 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATIC');
+            quad = Quadrature.create(obj.mesh,2);
             obj.quadrature = quad;
         end
 
@@ -44,9 +43,7 @@ classdef ComplianceFromConstiutiveTensor < handle
         end
 
         function J = computeFunction(obj,C,u)
-            strain      = SymGrad(u);
-            stress      = DDP(C,strain);
-            dCompliance = DDP(strain,stress);
+            dCompliance = ElasticEnergyDensity(C,u);
             J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
         end
 
@@ -57,7 +54,7 @@ classdef ComplianceFromConstiutiveTensor < handle
         function dj = computeGradient(dC,u)
             strain  = SymGrad(u);
             dStress = DDP(dC,strain);
-            dj      = -DDP(strain, dStress);
+            dj      = -0.5.*DDP(strain, dStress);
         end
 
     end
