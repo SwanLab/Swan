@@ -100,7 +100,7 @@ classdef Optimizer < handle
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            %obj.obtainGIF();
+            obj.obtainGIF();
             if ismethod(obj.designVariable,'plot')
                 obj.designVariable.plot();
             end
@@ -109,15 +109,27 @@ classdef Optimizer < handle
         function obtainGIF(obj)
             %set(0,'DefaultFigureVisible','off');
 
-            gifName = 'testingGIF';
+
+
+
+
+
+            gifName = 'NullSLERPResults/TopOpt/testingGIF';
+
+
+
+
+
+
+
             deltaTime = 0.01;
-            m = obj.designVariable.mesh;
+            m = obj.designVariable.fun.mesh;
             xmin = min(m.coord(:,1));
             xmax = max(m.coord(:,1));
             ymin = min(m.coord(:,2));
             ymax = max(m.coord(:,2));
 
-            f = obj.designVariable.value;
+            f = obj.designVariable.fun.fValues;
             switch obj.designVariable.type
                 case 'LevelSet'
                     uMesh = obj.designVariable.getUnfittedMesh();
