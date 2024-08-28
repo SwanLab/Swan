@@ -30,15 +30,10 @@ classdef NonLinearFilterCircle < handle
             % solve non-linear filter...
             % let's start by creating a factory and define circle case (validation)
             obj.createRHSFirstDirection(fun,quadOrder);
-            obj.createKqFirstDirection(quadOrder);
-            obj.solveFirstDirection();
-            obj.createRhoiSecondDirection(quadOrder);
-            obj.solveSecondDirection();
             iter = 0;
             tolerance = 1;
             while tolerance >= 1e-5 && iter <= 100
                 oldRho = obj.trial.fValues;
-                obj.createRHSFirstDirection(fun,quadOrder);
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection();
                 obj.createRhoiSecondDirection(quadOrder);
@@ -99,7 +94,7 @@ classdef NonLinearFilterCircle < handle
         end
 
 
-        function createKqFirstDirection(obj, quadOrder)
+        function createKqFirstDirection(obj, quadOrder) % MISTAKE IS HERE
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
@@ -117,7 +112,7 @@ classdef NonLinearFilterCircle < handle
             nablaRho   = Grad(obj.trial);
             test       = obj.q;
             rhs        = int.compute(nablaRho,test);
-            obj.RHS2   = rhs;
+            obj.RHS2   = -rhs;
         end
 
 
