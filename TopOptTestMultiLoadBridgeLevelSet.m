@@ -6,11 +6,23 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
         designVariable
         materialInterpolator
         physicalProblemLeft
+        physicalProblem12
+        physicalProblem23
+        physicalProblem34
         physicalProblemCenter
+        physicalProblem56
+        physicalProblem67
+        physicalProblem78
         physicalProblemRight
         targetCompliance
         complianceLeft
+        compliance12
+        compliance23
+        compliance34
         complianceCenter
+        compliance56
+        compliance67
+        compliance78
         complianceRight
         volume
         cost
@@ -28,11 +40,23 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblemLeft();
+            obj.createElasticProblem12();
+            obj.createElasticProblem23();
+            obj.createElasticProblem34();
             obj.createElasticProblemCenter();
+            obj.createElasticProblem56();
+            obj.createElasticProblem67();
+            obj.createElasticProblem78();
             obj.createElasticProblemRight();
             obj.computeTargetCompliance();
             obj.createComplianceLeft();
+            obj.createCompliance12();
+            obj.createCompliance23();
+            obj.createCompliance34();
             obj.createComplianceCenter();
+            obj.createCompliance56();
+            obj.createCompliance67();
+            obj.createCompliance78();
             obj.createComplianceRight();
             obj.createVolumeFunctional();
             obj.createCost();
@@ -122,6 +146,51 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             obj.physicalProblemLeft = fem;
         end
 
+        function createElasticProblem12(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(1/9,2/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem12 = fem;
+        end
+
+        function createElasticProblem23(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(2/9,3/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem23 = fem;
+        end
+
+        function createElasticProblem34(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(3/9,4/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem34 = fem;
+        end
+
         function createElasticProblemCenter(obj)
             x                         = obj.designVariable;
             s.mesh                    = obj.mesh;
@@ -135,6 +204,51 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.solverCase = 'rMINRES';
             fem                       = ElasticProblem(s);
             obj.physicalProblemCenter = fem;
+        end
+
+        function createElasticProblem56(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(5/9,6/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem56 = fem;
+        end
+
+        function createElasticProblem67(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(6/9,7/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem67 = fem;
+        end
+
+        function createElasticProblem78(obj)
+            x                       = obj.designVariable;
+            s.mesh                  = obj.mesh;
+            s.scale                 = 'MACRO';
+            s.material              = obj.createMaterial(x);
+            s.dim                   = '2D';
+            s.boundaryConditions    = obj.createBoundaryConditions(7/9,8/9);
+            s.interpolationType     = 'LINEAR';
+            s.solverType            = 'REDUCED';
+            s.solverMode            = 'DISP';
+            s.solverCase = 'rMINRES';
+            fem                     = ElasticProblem(s);
+            obj.physicalProblem78 = fem;
         end
 
         function createElasticProblemRight(obj)
@@ -185,6 +299,42 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             obj.complianceLeft           = c;
         end
 
+        function createCompliance12(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem12);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance12           = c;
+        end
+
+        function createCompliance23(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem23);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance23           = c;
+        end
+
+        function createCompliance34(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem34);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance34           = c;
+        end
+
         function createComplianceCenter(obj)
             x                            = obj.designVariable;
             s.mesh                       = obj.mesh;
@@ -195,6 +345,42 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.complianceTarget           = 1;
             c                            = ComplianceConstraint(s);
             obj.complianceCenter         = c;
+        end
+
+        function createCompliance56(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem56);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance56           = c;
+        end
+
+        function createCompliance67(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem67);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance67           = c;
+        end
+
+        function createCompliance78(obj)
+            x                            = obj.designVariable;
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive(obj.physicalProblem78);
+            s.material                   = obj.createMaterial(x);
+            s.value0                     = obj.targetCompliance;
+            s.complianceTarget           = 1;
+            c                            = ComplianceConstraint(s);
+            obj.compliance78           = c;
         end
 
         function createComplianceRight(obj)
@@ -232,14 +418,20 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.complianceLeft;
-            s.shapeFunctions{2} = obj.complianceCenter;
-            s.shapeFunctions{3} = obj.complianceRight;
+            s.shapeFunctions{2} = obj.compliance12;
+            s.shapeFunctions{3} = obj.compliance23;
+            s.shapeFunctions{4} = obj.compliance34;
+            s.shapeFunctions{5} = obj.complianceCenter;
+            s.shapeFunctions{6} = obj.compliance56;
+            s.shapeFunctions{7} = obj.compliance67;
+            s.shapeFunctions{8} = obj.compliance78;
+            s.shapeFunctions{9} = obj.complianceRight;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 3;
+            s.nConstraints   = 9;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -252,7 +444,7 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
