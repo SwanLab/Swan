@@ -114,7 +114,7 @@ classdef Optimizer < handle
 
 
 
-            gifName = 'NullSLERPResults/TopOpt/2DCantileverBeam/gJ2d5';
+            gifName = 'NullSLERPResults/TopOpt/MultiLoadBridge/gJ5_3Loads';
 
 
 
