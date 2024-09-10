@@ -8,39 +8,40 @@ classdef NonLinearFilterCircle < handle
     end
 
     properties (Access = private)
-        % Define new properties here
         M1
         M2
-        RHS1
+        RHSChi
         Kq
-        RHOi
         RHS2
     end
 
     methods (Access = public)
         function obj = NonLinearFilterCircle(cParams)
             obj.init(cParams);
-            % Construct non-linear stuff...
             obj.createMassMatrixFirstDirection();
             obj.createMassMatrixSecondDirection();
         end
 
         function xF = compute(obj,fun,quadOrder)
             xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
-            % solve non-linear filter...
-            % let's start by creating a factory and define circle case (validation)
-            obj.createRHSFirstDirection(fun,quadOrder);
-            iter = 0;
+            obj.createRHSChiFirstDirection(fun,quadOrder);
+            iter = 1;
             tolerance = 1;
-            while tolerance >= 1e-5 && iter <= 100
+            while tolerance >= 1e-5 && iter <= 5
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection();
-                obj.createRhoiSecondDirection(quadOrder);
+                obj.createRHSSecondDirection(quadOrder);
                 obj.solveSecondDirection();
                 tolerance = norm(obj.trial.fValues - oldRho);
                 iter = iter + 1;
 
+                % Monitoring
+%                 obj.trial.plot
+%                 obj.q.plot
+%                 gRho = Grad(obj.trial);
+%                 energy_qDRho = gRho.*obj.q;
+%                 E = Integrator.compute(energy_qDRho,obj.mesh,2);
             end
 
 
@@ -57,8 +58,8 @@ classdef NonLinearFilterCircle < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order); % rho_eps
-            obj.q       = LagrangianFunction.create(cParams.mesh, 2, cParams.trial.order); % 2 = geom dim
+            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
+            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P0'); % 2 = geom dim
             obj.mesh    = cParams.mesh;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
@@ -83,18 +84,18 @@ classdef NonLinearFilterCircle < handle
             obj.M2   = LHS.compute();
         end
 
-        function createRHSFirstDirection(obj,fun,quadOrder)
+        function createRHSChiFirstDirection(obj,fun,quadOrder)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeFunction';
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
-            obj.RHS1   = rhs;
+            obj.RHSChi   = rhs;
         end
 
 
-        function createKqFirstDirection(obj, quadOrder) % MISTAKE IS HERE
+        function createKqFirstDirection(obj, quadOrder) % MISTAKE MAY BE HERE
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
@@ -104,7 +105,7 @@ classdef NonLinearFilterCircle < handle
             obj.Kq = rhs;
         end
 
-        function createRhoiSecondDirection(obj,quadOrder)
+        function createRHSSecondDirection(obj,quadOrder)
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
@@ -112,23 +113,23 @@ classdef NonLinearFilterCircle < handle
             nablaRho   = Grad(obj.trial);
             test       = obj.q;
             rhs        = int.compute(nablaRho,test);
-            obj.RHS2   = -rhs;
+            obj.RHS2   = -obj.epsilon^2*rhs;
         end
 
 
 
         function solveFirstDirection(obj)
             LHS = obj.M1;
-            RHS = obj.RHS1 + obj.Kq;
+            RHS = obj.RHSChi + obj.Kq;
             rhoi = LHS\RHS; % hard coded direct solver
             obj.trial.fValues = rhoi;
         end
 
         function solveSecondDirection(obj)
-            LHS = obj.M2 .* (1/obj.epsilon^2);
+            LHS = obj.M2;
             RHS = obj.RHS2;
             qi = LHS \ RHS;
-            obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])'; % 2 = geo dim
+            obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])'; % 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
         end
 
 
