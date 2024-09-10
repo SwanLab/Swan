@@ -100,7 +100,7 @@ classdef NonLinearFilterCircle < handle
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
-            rhs        = int.compute(obj.q,test);
+            rhs        = int.compute(obj.q,test); %Mass Matrix??
             obj.Kq = rhs;
         end
 
@@ -127,7 +127,7 @@ classdef NonLinearFilterCircle < handle
         function solveSecondDirection(obj)
             LHS = obj.M2 .* (1/obj.epsilon^2);
             RHS = obj.RHS2;
-            qi = LHS \ RHS;
+            qi = LHS \ RHS; % hard coded direct solver
             obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])'; % 2 = geo dim
         end
 
