@@ -63,6 +63,12 @@ classdef EIFEM < handle
             u      = obj.RVE.PhiRb*uRb;
         end
 
+         function U = getProjectionMatrix(obj)
+            Udef    = obj.RVE.Udef;
+            Urb     = obj.RVE.Urb;
+            U      = (Udef + Urb);
+        end
+
     end
 
     methods (Access = private)
@@ -187,6 +193,8 @@ classdef EIFEM < handle
             Ut      = (Udef + Urb)';
             Fcoarse = Ut*Ffine;
         end
+
+       
 
         function u = reconstruct3Dsolution(obj,uCoarse)
             nelem = obj.mesh.nelem;
