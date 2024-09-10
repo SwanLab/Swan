@@ -108,19 +108,20 @@ classdef EIFEMtesting < handle
 %             obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
 
+   
+
+
+
+
+       
+          
+   
+            LHSf = @(x) LHS*x;
+            RHSf = RHS;            
+
             Mid = @(r) r;
             MidOrth = @(r,A,z) z+0.3*(r-A(z));
-            LHSf = @(x) LHS*x;
-            RHSf = RHS;
-          
-            %  LHSf = @(x) P*LHS*x;            
-            %  RHSf = P*RHS;
-            tol = 1e-8;
-            P = @(r) Mid(r); %obj.multiplePrec(r,Mid,Mid,LHSf);
-            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
-%             [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,Mid);
 
-            
             Meifem = @(r) obj.solveEIFEM(r);
             MeifemCG = @(r) obj.solveEIFEMCG(r);
             MeifemContinuous = @(r) obj.solveMEIFEMcontinuous(r);
@@ -130,14 +131,22 @@ classdef EIFEMtesting < handle
             Milu_m = @(r) Milu(Mmodal(r));
             MgaussSeidel = @(r) obj.applyGaussSeidel(r);
             MfixOrth   = @(r,A,z) obj.fixPointOrthogonal(r,A,z);
+
+         %  LHSf = @(x) P*LHS*x;            
+            %  RHSf = P*RHS;
+            tol = 1e-8;
+            P = @(r) Mid(r); %obj.multiplePrec(r,Mid,Mid,LHSf);
+            %[uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
+            
             
             M = Meifem;%Milu_m;%Meifem; %Milu %Pm
             M2 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
             P = @(r) obj.multiplePrec(r,M,M2,LHSf);            
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
-%             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson2(LHSf,RHSf,Usol,M,M2);
+            %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
 
 
             figure
@@ -774,8 +783,7 @@ classdef EIFEMtesting < handle
             end
          end
 
-         function [x,residual,err,errAnorm] = preconditionedRichardson(obj,A,B,xsol,P)
-            tol = 1e-8;
+         function [x,residual,err,errAnorm] = preconditionedRichardson(obj,A,B,xsol,P,tol)
             iter = 0;
             n = length(B);
             x = zeros(n,1);
@@ -797,8 +805,7 @@ classdef EIFEMtesting < handle
             end
          end   
 
-         function [x,residual,err,errAnorm] = preconditionedRichardson2(obj,A,B,xsol,P)
-            tol = 1e-8;
+         function [x,residual,err,errAnorm] = preconditionedRichardson2(obj,A,B,xsol,P,tol)
             iter = 0;
             n = length(B);
             x = zeros(n,1);
@@ -823,7 +830,7 @@ classdef EIFEMtesting < handle
             iter = 0;
             n = length(B);
             x = zeros(n,1);
-            r = B - A(x);               
+            r = B - A(x);
             z = P(r);
             p = z;
             rzold = r' * z; 
@@ -834,13 +841,18 @@ classdef EIFEMtesting < handle
                 r = r - alpha * Ap;
                 z = P(r);
                 rznew = r' * z;
-                p = z + (rznew / rzold) * p;
+                beta  = (rznew / rzold); 
+                p = z + beta * p;
                 rzold = rznew;
                 iter = iter + 1;
                 residual(iter) = norm(r); 
                 err(iter)=norm(x-xsol);
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);                
             end
+         end
+
+         function r = residual(obj,A,b,x)
+            
          end
 
 
@@ -1067,11 +1079,11 @@ classdef EIFEMtesting < handle
             %z = M*r;
         end  
 
-         function z = multiplePrec(obj,r,P,P2,A)
-             z = P(r);
-             r=r-A(z);                
-             x = P2(r,A);
-            z=z+x;                         
+         function z = multiplePrec(obj,r,P1,P2,A)
+            z1 = P1(r);
+            r  = r-A(z1);                
+            z2 = P2(r,A);
+            z  = z1+z2;                         
          end        
 
          function x = ILUCG(obj,r,A)
