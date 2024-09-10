@@ -85,11 +85,8 @@ classdef EIFEMtesting < handle
             obj.LHS      = obj.computeStiffnessMatrix(obj.meshDomain,obj.displacementFun,obj.material);
             obj.RHS      = obj.computeForces(obj.LHS);
            
-            cMesh           = obj.createReferenceCoarseMesh();
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = cMesh;         
-            mRVECoarse      = MeshCreatorFromRVE(s);
-            [meshDomainCoarse,meshSubDomainCoarse,interfaceConnecCoarse] = mRVECoarse.create();
+
+            meshDomainCoarse = obj.createCoarseMesh();
 
             refDisp     = LagrangianFunction.create(obj.meshReference, obj.ndimf,obj.functionType);
             refMat      = obj.createMaterial(obj.meshReference);
@@ -118,8 +115,9 @@ classdef EIFEMtesting < handle
           
             %  LHSf = @(x) P*LHS*x;            
             %  RHSf = P*RHS;
-          
-              [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,Mid,Mid);
+            tol = 1e-8;
+            P = @(r) obj.multiplePrec(r,Mid,Mid,LHSf);
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
 %             [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,Mid);
 
             
@@ -136,7 +134,9 @@ classdef EIFEMtesting < handle
             M = Meifem;%Milu_m;%Meifem; %Milu %Pm
             M2 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,M,M2);
+            tol = 1e-8;
+            P = @(r) obj.multiplePrec(r,M,M2,LHSf);            
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson2(LHSf,RHSf,Usol,M,M2);
 
 
@@ -249,7 +249,16 @@ classdef EIFEMtesting < handle
             obj.ninterfaces = length(bS);
         end
 
-        function cMesh = createReferenceCoarseMesh(obj)
+         function mCoarse = createCoarseMesh(obj)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = obj.createReferenceCoarseMesh();
+            mRVECoarse      = MeshCreatorFromRVE(s);
+            [mCoarse,meshSubDomainCoarse,interfaceConnecCoarse] = mRVECoarse.create();
+        end
+
+
+
+        function cMesh = createReferenceCoarseMesh(obj)            
             xmax = max(obj.meshReference.coord(:,1));
             xmin = min(obj.meshReference.coord(:,1));
             ymax = max(obj.meshReference.coord(:,2));
@@ -276,6 +285,7 @@ classdef EIFEMtesting < handle
             s.connec = connec;
             cMesh = Mesh.create(s);
         end
+
 
         function createDomainMaterial(obj)
 %             ngaus = 1;        
@@ -820,51 +830,34 @@ classdef EIFEMtesting < handle
             end
          end   
          
-
-
-         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P,P2)
-            tic
-             tol = 1e-8;
+         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P,tol)
             iter = 0;
             n = length(B);
             x = zeros(n,1);
-%             load("xEifem.mat");
-            r = B - A(x);      
+            r = B - A(x);               
             z = P(r);
-%             r2 = r-A(z);
-            z= P2(r,A,z);
-%             z=z+z2;
-%             z=r-z;
-%             z=z + 0.8*(r-A(z));
             p = z;
             rzold = r' * z; 
-%             figure
-%             hold on
             while norm(r) > tol
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-                
                 r = r - alpha * Ap;
-%                 plot(r)
                 z = P(r);
-%                  r2 = r-A(z);
-                z= P2(r,A,z);
-%                 plot(x-xsol)
-%                 z=z + 0.3*(r-A(z));
-%                 z = P2(r,A,z);
-%                 z=z + z2;
-%                 z=r-z;
-%                 test(iter+1) = norm(z);
                 rznew = r' * z;
                 p = z + (rznew / rzold) * p;
                 rzold = rznew;
                 iter = iter + 1;
-                residual(iter) = norm(r); %Ax - b
+                residual(iter) = norm(r); 
                 err(iter)=norm(x-xsol);
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);                
             end
-            toc
+         end
+
+         function z = multiplePrec(obj,r,P,P2,A)
+             z = P(r);
+             %  r2 = r-A(z);
+             z= P2(r,A,z);
          end
 
          function [x,residual,err,errAnorm] = solverTestEifem(obj,A,B,xsol,P)
@@ -1089,38 +1082,18 @@ classdef EIFEMtesting < handle
             %z = M*r;
         end  
 
-         function z = ILUCG(obj,r,A,zP1)
-            r=r-A(zP1);   
-            maxiter = 6;
-            tol = 1e-6;
+         function z = ILUCG(obj,r,A,z)
+            r=r-A(z);                
+            P = @(r) obj.applyILU(r);
+            xsol = zeros(size(r));
             factor = 0.1;
-            iter = 0;
-            rplot = obj.bcApplier.reducedToFullVectorDirichlet(r);
-%             obj.plotSolution(rplot,obj.meshDomain,11,11,iter,1)
-            n = length(r);
-            x = zeros(n,1);  
-            z = obj.applyILU(r);
-            p = z;
-            rzold = r' * z; 
-            norm0 = norm(r);
-            norm0= 1/norm0;
-            a1 = max(abs(r));
-%             while iter <= maxiter
-            while norm0*norm(r)>factor
-                Ap = A(p);
-                alpha = rzold / (p' * Ap);
-                x = x + alpha * p;
-                r = r - alpha * Ap;
-                z = obj.applyILU(r);
-                rznew = r' * z;
-                p = z + (rznew / rzold) * p;
-                rzold = rznew;
-                iter = iter + 1;     
-                rplot = obj.bcApplier.reducedToFullVectorDirichlet(r);
-%                 obj.plotSolution(rplot,obj.meshDomain,11,11,iter,1)
-            end
-            z=zP1+x;
+            tol = factor*norm(r);
+            [x,residual,err,errAnorm] = obj.preconditionedConjugateGradient(A,r,xsol,P,tol);
+            z=z+x;            
          end
+
+        %    P = @(r) obj.multiplePrec(r,Mid,Mid,LHSf);
+
 
          function z = fixPointOrthogonal(obj,r,A,zP1)
             r=r-A(zP1);   
