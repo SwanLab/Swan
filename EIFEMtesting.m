@@ -136,8 +136,8 @@ classdef EIFEMtesting < handle
             %  RHSf = P*RHS;
             tol = 1e-8;
             P = @(r) Mid(r); %obj.multiplePrec(r,Mid,Mid,LHSf);
-            %[uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
-            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
+            [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            %[uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
             
             
             M = Meifem;%Milu_m;%Meifem; %Milu %Pm
@@ -145,8 +145,8 @@ classdef EIFEMtesting < handle
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
             P = @(r) obj.multiplePrec(r,M,M2,LHSf);            
-            %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
-            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
 
 
             figure
