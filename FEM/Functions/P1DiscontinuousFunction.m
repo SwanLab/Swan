@@ -5,7 +5,6 @@ classdef P1DiscontinuousFunction < FeFunction
     end
     
     properties (Access = private)
-
     end
     
     properties (Access = private)
@@ -15,6 +14,7 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
+            obj.order = '1';
             obj.createInterpolation();
         end
 
@@ -33,6 +33,14 @@ classdef P1DiscontinuousFunction < FeFunction
                 fxV = fxV + f;
             end
         end
+
+        function ord = getOrderNum(obj)
+            ord = str2double(obj.order(end));
+        end  
+
+        function c = getConnec(obj)
+            c = obj.computeDiscontinuousConnectivities();
+        end        
 
         function N = computeShapeFunctions(obj, xV)
             N = obj.interpolation.computeShapeFunctions(xV);
@@ -107,10 +115,6 @@ classdef P1DiscontinuousFunction < FeFunction
             s.order   = 'P1';
             p1fun = LagrangianFunction(s);
             fFine = p1fun.project('P1D');
-        end
-
-        function dofConnec = getConnec(obj)
-            dofConnec = obj.computeDofConnectivity()';
         end
 
         function dofConnec = computeDofConnectivity(obj)
