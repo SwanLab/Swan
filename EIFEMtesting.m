@@ -108,7 +108,7 @@ classdef EIFEMtesting < handle
 %             obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
 
-            Mid = @(r,A,z) r;
+            Mid = @(r) r;
             MidOrth = @(r,A,z) z+0.3*(r-A(z));
             LHSf = @(x) LHS*x;
             RHSf = RHS;
@@ -116,7 +116,7 @@ classdef EIFEMtesting < handle
             %  LHSf = @(x) P*LHS*x;            
             %  RHSf = P*RHS;
             tol = 1e-8;
-            P = @(r) obj.multiplePrec(r,Mid,Mid,LHSf);
+            P = @(r) Mid(r); %obj.multiplePrec(r,Mid,Mid,LHSf);
             [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
 %             [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,Mid);
 
@@ -125,7 +125,7 @@ classdef EIFEMtesting < handle
             MeifemCG = @(r) obj.solveEIFEMCG(r);
             MeifemContinuous = @(r) obj.solveMEIFEMcontinuous(r);
             Milu = @(r) obj.applyILU(r);
-            MiluCG = @(r,A,z) obj.ILUCG(r,A,z);
+            MiluCG = @(r,A) obj.ILUCG(r,A);
             Mmodal = @(r) obj.solveModalProblem(r);    
             Milu_m = @(r) Milu(Mmodal(r));
             MgaussSeidel = @(r) obj.applyGaussSeidel(r);
@@ -797,16 +797,13 @@ classdef EIFEMtesting < handle
             end
          end   
 
-         function [x,residual,err,errAnorm] = preconditionedRichardson2(obj,A,B,xsol,P,P2)
+         function [x,residual,err,errAnorm] = preconditionedRichardson2(obj,A,B,xsol,P)
             tol = 1e-8;
             iter = 0;
             n = length(B);
             x = zeros(n,1);
             r = B - A(x);      
-            z = P(r); 
-%             r2 = r-A(z);
-            z= P2(r,A,z);
-%             z=z+r2;
+            z = P(r);
             theta = 0.1;
 %             tau =(r'*z)/(z'*A(z));
             tau=0.2;
@@ -814,14 +811,6 @@ classdef EIFEMtesting < handle
                 x = x + tau * z;
                 r = B - A(x); 
                 z = P(r); 
-%                 r2 = r-A(z);
-                z= P2(r,A,z);
-%                 z=z+r2;
-%                 x=x+z;
-%                 r = r-A(z);
-%                 z=r;
-%                 tau =(r'*z)/(z'*A(z));
-%                  tau=0.01;
                 test(iter+1)=norm(z);
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
@@ -854,11 +843,7 @@ classdef EIFEMtesting < handle
             end
          end
 
-         function z = multiplePrec(obj,r,P,P2,A)
-             z = P(r);
-             %  r2 = r-A(z);
-             z= P2(r,A,z);
-         end
+
 
          function [x,residual,err,errAnorm] = solverTestEifem(obj,A,B,xsol,P)
             tol = 1e-8;
@@ -1082,14 +1067,19 @@ classdef EIFEMtesting < handle
             %z = M*r;
         end  
 
-         function z = ILUCG(obj,r,A,z)
-            r=r-A(z);                
+         function z = multiplePrec(obj,r,P,P2,A)
+             z = P(r);
+             r=r-A(z);                
+             x = P2(r,A);
+            z=z+x;                         
+         end        
+
+         function x = ILUCG(obj,r,A)
             P = @(r) obj.applyILU(r);
             xsol = zeros(size(r));
             factor = 0.1;
             tol = factor*norm(r);
             [x,residual,err,errAnorm] = obj.preconditionedConjugateGradient(A,r,xsol,P,tol);
-            z=z+x;            
          end
 
         %    P = @(r) obj.multiplePrec(r,Mid,Mid,LHSf);
