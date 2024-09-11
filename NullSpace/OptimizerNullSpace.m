@@ -222,8 +222,12 @@ classdef OptimizerNullSpace < Optimizer
         function updateEtaMax(obj,g,g0)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    if g'*g0<-obj.tolerance^2
-                        obj.etaMax = obj.etaMax/2;
+                    % FOR INEQUALITIES WE SHOULD IDENTIFY THE WORKING SET
+                    if g'*g0<-1e-10
+                        obj.etaMax  = obj.etaMax/2;
+                        obj.etaNorm = max(obj.etaNorm/1.02,0.001);
+                    elseif g'*g0>1e-10
+                        obj.etaMax = obj.etaMax*1.2;
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
