@@ -57,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
+            obj.etaMax         = 1e6;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -204,7 +204,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
                 obj.dualUpdater.updateOld();
-                obj.updateEtaMax();
+                obj.updateEtaMax(g,g0);
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.predictedTau   = (1-g/g0)/obj.eta;
@@ -219,25 +219,12 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function updateEtaMax(obj)
+        function updateEtaMax(obj,g,g0)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    %                     phi = obj.designVariable.fun;
-                    %                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
-                    %                     dV = phi.mesh.computeDvolume(quad);
-                    %                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
-                    %                     intBall = sum(dV.*chiBall,"all");
-                    %                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
-                    %                     gk.fValues = obj.meritGradient;
-                    %                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
-                    %                     k  = obj.primalUpdater.tau;
-                    %                     t  = obj.primalUpdater.Theta;
-                    %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
-%                     theta      = obj.primalUpdater.Theta;
-%                     k          = obj.primalUpdater.tau;
-%                     b          = obj.primalUpdater.Beta;
-%                     a          = obj.primalUpdater.Alpha;
-                    obj.etaMax = Inf;
+                    if g'*g0<-obj.tolerance^2
+                        obj.etaMax = obj.etaMax/2;
+                    end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
