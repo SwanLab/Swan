@@ -81,7 +81,7 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','log','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
@@ -222,7 +222,8 @@ classdef OptimizerNullSpace < Optimizer
         function updateEtaMax(obj,g,g0)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    % FOR INEQUALITIES WE SHOULD IDENTIFY THE WORKING SET
+                    active = not(obj.checkIndividualConstraint());
+                    g = g.*active;
                     if g'*g0<-1e-10
                         obj.etaMax  = obj.etaMax/2;
                         obj.etaNorm = max(obj.etaNorm/1.02,0.001);
@@ -234,6 +235,17 @@ classdef OptimizerNullSpace < Optimizer
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;
+            end
+        end
+
+        function areAcceptable = checkIndividualConstraint(obj)
+            for i = 1:length(obj.constraint.value)
+                switch obj.constraintCase{i}
+                    case {'EQUALITY'}
+                        areAcceptable(i,1) = abs(obj.constraint.value(i)) < obj.tol;
+                    case {'INEQUALITY'}
+                        areAcceptable(i,1) = obj.constraint.value(i) < -1e-2;
+                end
             end
         end
 
