@@ -33,14 +33,14 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.01;
-            obj.nCells   = 30;
+            obj.meshSize = 0.05;
+            obj.nCells   = 5;
             obj.xmin = 0;
             obj.xmax = 1;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.89;
-            obj.widthW = 0.89;
+            obj.widthH = 0.5;
+            obj.widthW = 0.5;
         end
 
         function createMesh(obj)
@@ -90,9 +90,9 @@ classdef ExplainingPeriodicFunction2D < handle
             figure()
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
-            t  = obj.orientation.fValues;
-            ct = cos(t(:,1));
-            st = sin(t(:,1));
+            t  = obj.orientation{1}.fValues;
+            ct = (t(:,1));
+            st = (t(:,2));
             quiver(x,y,ct,st)
         end
 

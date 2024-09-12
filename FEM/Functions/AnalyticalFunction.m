@@ -2,7 +2,6 @@ classdef AnalyticalFunction < L2Function
     
     properties (Access = public)
         ndimf
-        order = 2
     end
     
     properties (Access = private)

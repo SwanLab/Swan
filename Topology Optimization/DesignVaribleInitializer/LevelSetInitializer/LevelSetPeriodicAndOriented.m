@@ -74,7 +74,7 @@ classdef LevelSetPeriodicAndOriented < handle
 
         function createRemesher(obj)
             s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels =  3;
+            s.nLevels =  2;
             r  = Remesher(s);
             r.remesh();
             obj.remesher = r;
@@ -83,21 +83,34 @@ classdef LevelSetPeriodicAndOriented < handle
         function createCellCoord(obj)
             nDim = obj.mesh.ndim;
             for iDim = 1:nDim
-                x = obj.deformedCoord.fValues(:,iDim);
+                x = obj.deformedCoord.fValues(iDim,:,:);
                 y = obj.computeMicroCoordinate(x);
                 y = obj.periodicFunction(y);
-                yT(:,iDim) = y;
+                yT(iDim,:,:) = y;
             end
-            obj.cellCoord = yT;
+            s.fValues = yT;
+            s.mesh    = obj.deformedCoord.mesh;
+            yF        = P1DiscontinuousFunction(s);   
+            obj.cellCoord = yF;
         end
 
         function ls = createCellLevelSet(obj)
-            s       = obj.cellLevelSetParams;
-            s.xCoorCenter = 0;%obj.cellCoord(:,1);
-            s.yCoorCenter = 0;%obj.cellCoord(:,2);
-            m = obj.getFineMesh();
-            g = GeometricalFunction(s);
-            ls = g.computeLevelSetFunction(m);
+            s.mesh     = obj.getFineMesh();
+            s.evaluate = @(xV) obj.rectangle(xV);
+            s.ndimf    = 1;
+            f  = AbstractL2Function(s);
+            ls = f.project('P1');
+        end
+
+        function fH = rectangle(obj,xV)
+            sx = obj.cellLevelSetParams.xSide.evaluate(xV);
+            sy = obj.cellLevelSetParams.ySide.evaluate(xV);
+            x0 = 0;
+            y0 = 0;
+            x = obj.cellCoord.evaluate(xV);
+            x1 = x(1,:,:);
+            x2 = x(2,:,:);
+            fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
         end
 
         function interpolateDeformedCoord(obj)
@@ -123,8 +136,8 @@ classdef LevelSetPeriodicAndOriented < handle
             t = MparameterThresholder(s);
             obj.m1.fValues = t.thresh(obj.m1.fValues);
             obj.m2.fValues = t.thresh(obj.m2.fValues);
-            obj.cellLevelSetParams.xSide = @(x) obj.m1.evaluate(x);
-            obj.cellLevelSetParams.ySide = @(x) obj.m2.evaluate(x);
+            obj.cellLevelSetParams.xSide = obj.m1;
+            obj.cellLevelSetParams.ySide = obj.m2;
         end
 
  
