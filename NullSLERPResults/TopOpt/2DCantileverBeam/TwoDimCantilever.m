@@ -42,8 +42,8 @@ classdef TwoDimCantilever < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,2,200);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -103,7 +103,7 @@ classdef TwoDimCantilever < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT'; % rMINRES
+            s.solverCase = 'rMINRES'; % rMINRES
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -169,7 +169,7 @@ classdef TwoDimCantilever < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';

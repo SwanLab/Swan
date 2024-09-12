@@ -100,7 +100,7 @@ classdef Optimizer < handle
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            %obj.obtainGIF();
+            obj.obtainGIF();
             if ismethod(obj.designVariable,'plot')
                 obj.designVariable.plot();
             end
@@ -114,7 +114,7 @@ classdef Optimizer < handle
 
 
 
-            gifName = 'NullSLERPResults/TopOpt/MultiLoadBridge/gJ5_9Loads';
+            gifName = 'NullSLERPResults/TopOpt/2DCantileverBeam/NoOscillations/gJ1_V0d4';
 
 
 
@@ -134,7 +134,7 @@ classdef Optimizer < handle
                 case 'LevelSet'
                     uMesh = obj.designVariable.getUnfittedMesh();
                     uMesh.compute(f);
-                    figure
+                    gifFig = figure;
                     uMesh.plotStructureInColor('black');
                     hold on
                 case 'Density'
@@ -156,7 +156,7 @@ classdef Optimizer < handle
                     set(axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
                     set(patchHandle,'FaceVertexAlphaData',RhoElem,'FaceAlpha','flat');
             end
-            fig = gcf;
+            fig = gifFig;
             fig.CurrentAxes.XLim = [xmin xmax];
             fig.CurrentAxes.YLim = [ymin ymax];
             axis([xmin xmax ymin ymax])
@@ -170,7 +170,7 @@ classdef Optimizer < handle
             else
                 imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
             end
-            close gcf
+            close(gifFig);
 
             %set(0,'DefaultFigureVisible','on');
         end
