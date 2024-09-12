@@ -40,7 +40,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.update();
                 obj.updateIterInfo();
                 obj.printOptimizerVariable();
-                obj.updateMonitoring();
+                %obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end

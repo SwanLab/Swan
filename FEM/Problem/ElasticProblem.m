@@ -12,7 +12,7 @@ classdef ElasticProblem < handle
         boundaryConditions, bcApplier
 
         stiffness
-        solverType, solverMode, solverCase
+        solver, solverType, solverMode, solverCase
         scale
         
         strain, stress
