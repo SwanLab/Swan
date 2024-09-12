@@ -146,6 +146,7 @@ classdef ComplianceFunctionalComputer < handle
             s.boundaryConditions = obj.bc;
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
+            s.solverCase         = 'DIRECT';
 
             fem         = ElasticProblem(s);
             fem.solve();
