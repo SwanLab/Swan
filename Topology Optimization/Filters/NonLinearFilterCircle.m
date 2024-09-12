@@ -132,13 +132,11 @@ classdef NonLinearFilterCircle < handle
             obj.trial.fValues = rhoi;
         end
 
-        function solveSecondDirection(obj)
+        function solveSecondDirection(obj,fr)
             LHS = obj.M2;
             RHS = obj.RHS2;
             obj.q.fValues = reshape(obj.q.fValues,1,[])';
-            %disp(size(obj.q.fValues));
-            qi = (1-0.01).*obj.q.fValues +0.01.* (LHS \ RHS);
-            %qi =(LHS \ RHS);
+            qi = (1-fr).*obj.q.fValues +fr.* (LHS \ RHS);
             %obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
             obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
         end
