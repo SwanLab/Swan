@@ -27,25 +27,26 @@ classdef NonLinearFilterCircle < handle
             obj.createRHSChiFirstDirection(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            while tolerance >= 1e-5 && iter <= 5
+            fr = 0.05;
+            while tolerance >= 1e-5 
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
-                obj.solveFirstDirection();
+                obj.solveFirstDirection(fr);
                 obj.createRHSSecondDirection(quadOrder);
-                obj.solveSecondDirection();
-                tolerance = norm(obj.trial.fValues - oldRho);
+                obj.solveSecondDirection(fr);
+                tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
                 iter = iter + 1;
-
-                % Monitoring
-%                 obj.trial.plot
-%                 obj.q.plot
-%                 gRho = Grad(obj.trial);
-%                 energy_qDRho = gRho.*obj.q;
-%                 E = Integrator.compute(energy_qDRho,obj.mesh,2);
-            end
-
-
+                   
+             end
+           
+           obj.trial.plot
+           obj.q.plot
+%            obj.differentPlots( chiValues, E1Values, E2Values, rhoValues, ...
+%             qValues,iterations);
             xF.fValues  = obj.trial.fValues;
+            disp(iter);
+            
+
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -59,9 +60,15 @@ classdef NonLinearFilterCircle < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
-            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P0'); % 2 = geom dim
+            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P1'); % 2 = geom dim
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.epsilon =cParams.mesh.computeMeanCellSize();
+        end
+        function e = updateE1(obj)
+                 gRho = Grad(obj.trial);
+                 energy_qDRho = gRho.*obj.q;
+                 e = Integrator.compute(energy_qDRho,obj.mesh,2);
+
         end
 
         function createMassMatrixFirstDirection(obj)
@@ -101,7 +108,7 @@ classdef NonLinearFilterCircle < handle
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
-            rhs        = int.compute(obj.q,test);
+            rhs        = int.compute(obj.q, test);
             obj.Kq = rhs;
         end
 
@@ -118,18 +125,22 @@ classdef NonLinearFilterCircle < handle
 
 
 
-        function solveFirstDirection(obj)
+        function solveFirstDirection(obj,fr)
             LHS = obj.M1;
             RHS = obj.RHSChi + obj.Kq;
-            rhoi = LHS\RHS; % hard coded direct solver
+            rhoi = (1-fr).*obj.trial.fValues + fr.*(LHS\RHS); % hard coded direct solver
             obj.trial.fValues = rhoi;
         end
 
         function solveSecondDirection(obj)
             LHS = obj.M2;
             RHS = obj.RHS2;
-            qi = LHS \ RHS;
-            obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])'; % 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
+            obj.q.fValues = reshape(obj.q.fValues,1,[])';
+            %disp(size(obj.q.fValues));
+            qi = (1-0.01).*obj.q.fValues +0.01.* (LHS \ RHS);
+            %qi =(LHS \ RHS);
+            %obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
+            obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
         end
 
 
@@ -137,5 +148,58 @@ classdef NonLinearFilterCircle < handle
             var   = abs(eps - obj.epsilon)/eps;
             itHas = var > 1e-15;
         end
+
+        function differentPlots(obj,chi, E1,E2,rho,q,iter)
+            tiledlayout(3, 2); 
+            nexttile;
+            plot(iter, E1, 'DisplayName', 'q grad(rho)');
+            xlabel('Iteration');
+            ylabel('Energy');
+            title('Energy Values Over Iterations');
+            legend('show'); % Display legend based on 'DisplayName'
+            set(gca, 'YScale', 'log')
+            grid on;
+
+            % Second subplot (for E2values)
+            %subplot(2, 1, 2);  % 2 rows, 1 column, plot 2
+            nexttile;
+            plot(iter, E2, 'DisplayName', 'q^2');
+            xlabel('Iteration');
+            ylabel('Energy');
+            title('Energy Values Over Iterations');
+            legend('show'); % Display legend based on 'DisplayName'
+            set(gca, 'YScale', 'log')
+            grid on;
+
+             nexttile;
+             plot(iter, chi, 'DisplayName', 'Chi');
+             xlabel('Iteration');
+             ylabel('Energy');
+             title('Energy Values Over Iterations');
+             legend('show'); % Display legend based on 'DisplayName'
+             set(gca, 'YScale', 'log')
+             grid on;
+
+            nexttile;
+            plot(iter, rho, 'DisplayName', 'rho');
+            xlabel('Iteration');
+            ylabel('rho');
+            title('Rho Values Over Iterations');
+            legend('show'); % Display legend based on 'DisplayName'
+            set(gca, 'YScale', 'log')
+            grid on;
+
+            nexttile;
+            plot(iter, q, 'DisplayName', 'q');
+            xlabel('Iteration');
+            ylabel('q');
+            title('q Values Over Iterations');
+            legend('show'); % Display legend based on 'DisplayName'
+            set(gca, 'YScale', 'log')
+            grid on;
+
+        end
+
+
     end
 end

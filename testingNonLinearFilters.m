@@ -14,6 +14,7 @@ errorCircle = 0.5*Integrator.compute((fPDE-fNL).^2,mesh,2);
 
 
 
+
 % Functions
 function m = createMesh()
 x1       = linspace(0,1,100);
