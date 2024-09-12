@@ -28,7 +28,7 @@ classdef Quadrature < handle
         end
     end
 
-    methods (Abstract, Access = protected)
+    methods (Abstract, Access = public)
         computeQuadrature(obj,order)
     end
 

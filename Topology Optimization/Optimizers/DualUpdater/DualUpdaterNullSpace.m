@@ -98,11 +98,16 @@ classdef DualUpdaterNullSpace < handle
             problem  = s.prob;
             g        = obj.constraint.value;
             Dg       = obj.constraint.gradient;
+
+            % for i=1:size(DJ,1)
+            %     Dg = Dg(1:3);
+            % end
+            
             isActive = obj.checkComplementaryKKT(g);
             problem.lb(~isActive) = [];
             problem.ub(~isActive) = [];
-            g  = g(isActive);
-            Dg = Dg(:,isActive);
+            %g  = g(isActive);
+            %Dg = Dg(:,isActive);
             DJ = obj.cost.gradient;
             l  = zeros(obj.nConstr,1);
             if ~isempty(g)

@@ -23,13 +23,14 @@ classdef Constraint < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;
+                dJc{iF} = dJ;
             end
             jV  = zeros(nF,1);
             djV = zeros(length(dJc{1}),nF);
+            nF = size(Jc{1,1},2);
             for iF = 1:nF
-                jV(iF)    = Jc{iF};
-                djV(:,iF) = dJc{iF};
+                jV(iF,1)    = Jc{1,1}(iF);
+                djV(:,iF) = dJc{1,1}(:,iF);
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;

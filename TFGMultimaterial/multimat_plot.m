@@ -17,5 +17,5 @@ end
 axis image; axis off;
 view(2)
 h(end).FaceColor = [1 1 1];
-zlim([1e-1 1])
+zlim([1e-1 1.01])
 

@@ -3,6 +3,7 @@ classdef mainTFGMultimaterial < handle
     properties (Access = public)
         psi
         displacements
+        displFun
         forces
         designVariable
         tensor
@@ -12,8 +13,8 @@ classdef mainTFGMultimaterial < handle
     properties (Access = private)
         dC
         compliance
+        dJVolume
         dJCompliance
-        tgamma
         mesh
         meshSwan
         mat
@@ -38,9 +39,9 @@ classdef mainTFGMultimaterial < handle
         phold
         iter
         area
-        unitMSeba
-        displFun
+        unfittedMesh
         monitoring
+        tgamma
     end
 
 
@@ -57,14 +58,14 @@ classdef mainTFGMultimaterial < handle
             obj.computeFreeNodes();
             obj.solveInitialElasticProblem();
             obj.createOptimizationParameters();
-            obj.createMassMatrix();
-            %obj.createMassMatrixSwan();
+            %obj.createMassMatrix();
+            obj.createMassMatrixSwan();
             obj.compute();
         end
 
         function C = computeElasticTensor(obj)
             s.psi               = obj.psi;
-           % s.mesh              = obj.mesh;
+            %s.mesh              = obj.mesh;
             s.matProp           = obj.mat;
             s.pdeCoeff          = obj.pdeCoeff;
             s.bc                = obj.bcSwan;
@@ -86,7 +87,7 @@ classdef mainTFGMultimaterial < handle
 
             fem         = ElasticProblem(s);
             fem.solve();
-            displ      = fem.uFun.fValues; 
+            displ    = fem.uFun.fValues; 
             obj.displFun = fem.uFun;
             U          = reshape(displ, [size(displ,1)*2, 1]);
             force      = fem.forces; 
@@ -99,16 +100,14 @@ classdef mainTFGMultimaterial < handle
         function volume = computeVolume(obj)
             [~,tfi] = computeCharacteristicFunction(obj);  
             s.tfi   = tfi;
-            s.mesh  = obj.meshSwan;
-            s.area = obj.area;
+            s.mesh = obj.mesh;
+            s.area  = obj.area;
             vol     = VolumeComputer(s);
             volume  = vol.computeVolume();     
         end
 
         function [fi, tfi] = computeCharacteristicFunction(obj)
             s.psi            = obj.psi;
-            s.p              = obj.mesh.p;
-            s.t              = obj.mesh.t;
             s.designVariable = obj.designVariable;
             s.m              = obj.meshSwan;
     
@@ -127,23 +126,14 @@ classdef mainTFGMultimaterial < handle
         end
 
         function dt = computeTopologicalDerivative(obj)
-            s.meshSeba   = obj.mesh;
             s.U          = obj.displacements;
             s.volume     = obj.volume;
             s.mat    = obj.mat;
             s.psi         = obj.psi;
             s.designVariable    = obj.designVariable;
             s.mesh          = obj.meshSwan;
-            s.penalization = obj.params.penalization;
-            s.penalty = obj.params.penalty;
-            s.volfrac = obj.params.volfrac;
-            s.auglag = obj.params.auglag;
-            s.max_vol = obj.optParams.max_vol; 
-            s.energy0 = obj.optParams.energy0;
             s.nMat = obj.nMat;
             s.mat = obj.mat;
-            s.psi = obj.psi;     
-            s.designVariable = obj.designVariable;
 
             topder = TopologicalDerivativeComputer(s);
             obj.dC = topder.dC;
@@ -154,7 +144,9 @@ classdef mainTFGMultimaterial < handle
             TD = obj.computeVolumeConstraintinDT();
             dt = obj.smoothTopologicalDerivative(TD);
             
-            dt = dt/normL2(obj.unitM,dt);               
+            dt = dt/normL2(obj.unitM,dt);           
+
+
         end
 
     end
@@ -166,10 +158,35 @@ classdef mainTFGMultimaterial < handle
             obj.nMat = 4;
         end
 
+        function computeStrain(obj)
+            quadrature = obj.createQuadrature();
+            xV = quadrature.posgp;
+            strainFun = SymGrad(obj.displFun);
+            strainFun.project('P0',obj.meshSwan)  % NO VAAAA!!!
+            %obj.strain = strainFun.evaluate(xV);
+            
+        end
+
+        function x = createQuadrature(obj)
+            quad = Quadrature.set(obj.meshSwan.type);
+            quad.computeQuadrature('LINEAR');
+            x = quad;
+        end
+
+        function TD = computeDT(obj,dC,e)
+            for i = 1:obj.nMat
+                for j = 1:obj.nMat
+                    for z=1:size(dC,3)
+                        derTop(z) = e(:,z)'*dC(:,:,z,i,j)*e(:,z);
+                    end
+                    TD{i,j} = derTop;
+                end
+            end
+        end
+
         function compute(obj)
             
-            obj.nMat = 4;
-            p = obj.mesh.p;
+            p = obj.meshSwan.coord';
 
             ls = ones(size(p,2),(obj.nMat-1)); 
             ls(:,1) = -1;
@@ -177,8 +194,6 @@ classdef mainTFGMultimaterial < handle
             obj.psi = ls;
             
             obj.updateDesignVariable();
-            %designVar = ls.designVariable;
-            
             vol = computeVolume(obj);
             obj.volume = vol;
 
@@ -186,12 +201,12 @@ classdef mainTFGMultimaterial < handle
             gsf = []; gEpot = []; gth = []; gvol = [];
             
             % Shape functional and potential energy
-            [sf, energyPot] = updateShapeFunctions(obj);
+            [sf, energyPot] = obj.updateShapeFunctions();
             obj.shapeFunc = sf;
             obj.Epot = energyPot;
 
             % Compute topological derivative
-            obj.DT = computeTopologicalDerivative(obj);
+            obj.DT = obj.computeTopologicalDerivative();
             obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
             % Compute cosinus and theta
@@ -202,20 +217,21 @@ classdef mainTFGMultimaterial < handle
             difvol = obj.volume(1:end-1)-obj.optParams.voltarget; 
             ic = (abs(difvol) > obj.optParams.volstop); %index control
              
-           % UPDATE MONITORING ITER 0
+            % UPDATE MONITORING ITER 0
             obj.createMonitoring();
 
             % We start the loop    
-            while obj.hasNotFinished(theta,ic)    
+            while obj.hasNotFinished(theta,ic) 
             % while and( or(any(ic),theta > params.stop) , k/2 > params.kmin)           
                 
                 obj.iter = obj.iter + 1;
 
                 % First update psi    
                 obj.updateDesignVariable();
+                %obj.updateUnfittedMesh();
             
                 % Then compute again the elastic tensor 
-                obj.tensor = computeElasticTensor(obj);
+                obj.tensor = obj.computeElasticTensor();
 
                 % Solve elastic problem
                 [U,F] = solveFEM(obj);
@@ -225,12 +241,12 @@ classdef mainTFGMultimaterial < handle
                 % Update volume, energy and shape functionals
                 vol = computeVolume(obj);
                 obj.volume = vol;
-                [sf, energyPot] = updateShapeFunctions(obj);
+                [sf, energyPot] = obj.updateShapeFunctions();
                 obj.shapeFunc = sf;
                 obj.Epot = energyPot;
 
                 % Update topological derivative
-                obj.DT = computeTopologicalDerivative(obj);
+                obj.DT = obj.computeTopologicalDerivative();
                 obj.DT(obj.phold,:) = obj.psi(obj.phold,:); % freeze dt function
 
                 % Update cosinus and theta
@@ -244,7 +260,7 @@ classdef mainTFGMultimaterial < handle
 
                     % Update level set using slerp
                     theta = obj.thetaAngle;
-                    free = obj.pfree;
+                    %free = obj.pfree;
                     dt = obj.DT;
                     s.mesh = obj.meshSwan;
                     s.tau = obj.k;
@@ -252,11 +268,12 @@ classdef mainTFGMultimaterial < handle
                     primalUpdater = SLERP(s);
                     obj.psi = primalUpdater.update(dt,psiold);
 
-                    % obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
-                    %         +  sin(obj.k*theta)*dt(free,:))./sin(theta);
+                    %obj.psi(free,:)  = (sin((1-obj.k)*theta)*psiold(free,:)...
+                            %+  sin(obj.k*theta)*dt(free,:))./sin(theta);
                         
                     % Solve elastic problem again    
                     obj.updateDesignVariable();
+                   
                 
                     obj.tensor = computeElasticTensor(obj);
     
@@ -265,9 +282,9 @@ classdef mainTFGMultimaterial < handle
                     obj.forces = F;
 
                      % Update volume, energy and shape functionals
-                    vol = computeVolume(obj);
+                    vol = obj.computeVolume();
                     obj.volume = vol;
-                    [sf, energyPot] = updateShapeFunctions(obj);
+                    [sf, energyPot] = obj.updateShapeFunctions();
                     obj.shapeFunc = sf;
                     obj.Epot = energyPot;
 
@@ -284,11 +301,10 @@ classdef mainTFGMultimaterial < handle
 
                 % Compute characteristic function for plot
                 obj.updateDesignVariable();
-
-                [fi, ~] = computeCharacteristicFunction(obj);
-                obj.fiFunction = fi';
-
                 
+
+                [fi, ~] = obj.computeCharacteristicFunction();
+                obj.fiFunction = fi';
 
                 % Plot the evolution of iterations
                 obj.updatePlotAndDisplay();
@@ -312,22 +328,22 @@ classdef mainTFGMultimaterial < handle
         end
 
         function createMesh(obj) 
-            obj.mesh     = MeshComputer();
-            s.connec     = obj.mesh.t';
-            s.connec     = s.connec(:,1:3);
-            s.coord      = obj.mesh.p';
-            
-            obj.meshSwan = Mesh.create(s);
-            
+            % Per passar test:
+             % obj.mesh     = MeshComputer();
+             % s.connec     = obj.mesh.t';
+             % s.connec     = s.connec(:,1:3);
+             % s.coord      = obj.mesh.p';
+             % obj.meshSwan = Mesh.create(s);
+             % 
             % Per fer altres exemples:
-            % obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
-            % obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
-            % obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
-
+            obj.meshSwan = TriangleMesh(6,1,150,25); % Bridge
+            %obj.meshSwan = TriangleMesh(2,1,100,50); % Beam
+            %obj.meshSwan = TriangleMesh(2,1,100,50); % Arch
             p = obj.meshSwan.coord';
             t = obj.meshSwan.connec';
             obj.area = pdetrg(p,t);
-
+            
+            %obj.meshSwan = QuadMesh(2,1,100,50);
         end
 
         function createBoundaryConditions(obj)
@@ -336,15 +352,15 @@ classdef mainTFGMultimaterial < handle
             % s.g        = obj.mesh.g;
             % bounCon    = BoundaryConditionsComputer(s);
             % obj.bc     = bounCon.bc;
-            % s.mesh     = obj.meshSwan; 
 
+            % Per passar test:
             s.mesh = obj.meshSwan;
             BoundCond  = BoundaryConditionsSwan(s);
-            obj.bcSwan = BoundCond.createBoundaryConditions();
+            %obj.bcSwan = BoundCond.createBoundaryConditionsTest();
 
-             % Per fer altres exemples:
+            % Per fer altres exemples:
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBeam();
-            %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
+            obj.bcSwan = BoundCond.createBoundaryConditionsTutorialBridge();
             %obj.bcSwan = BoundCond.createBoundaryConditionsTutorialArch();
         end
 
@@ -389,30 +405,34 @@ classdef mainTFGMultimaterial < handle
         function plotMesh(obj)
             figure(1); clf;
             obj.meshSwan.plot;
-            % figure(1); clf;
-            % m = obj.mesh;
-            % pdeplot(m.p,m.e,m.t,'xydata',m.t(4,:),'xystyle','flat','colormap','gray',...
+            % m = obj.meshSwan;
+            % p = m.coord';
+            % t = m.connec';
+            % e = obj.mesh.e;
+            % pdeplot(p,e,t,'xydata',t(4,:),'xystyle','flat','colormap','gray',...
             %               'xygrid','off','colorbar','off','title','Geometry'); 
             % axis image; axis off;
             % 
-            % pdemesh(m.p,m.e,m.t); axis image; axis off;
+            % pdemesh(p,e,t); axis image; axis off;
                 
         end
 
         function computeFreeNodes(obj)
             m         = obj.mesh;
+            p = obj.meshSwan.coord';
+            t = obj.meshSwan.connec';
             obj.phold = []; % freeze nodes
-            
-            for i = 1:size(m.ghold,1)
-                obj.phold = cat(1,obj.phold,unique(m.t(1:3,m.t(4,:)==m.ghold(i))));
+
+            for i = 1:1 %size(m.ghold,1)
+                obj.phold = cat(1,obj.phold,unique(t(1:3))); %,t(4,:)==0)));
             end
-            
-            obj.pfree = setdiff(1:size(m.p,2),obj.phold); % free nodes
+
+            obj.pfree = setdiff(1:size(p,2),obj.phold); % free nodes
         end
 
         function solveInitialElasticProblem(obj)
-            m                  = obj.mesh;
-            psi_hold_all       = ones(length(m.p),obj.nMat-1);
+            m                  = obj.meshSwan;
+            psi_hold_all       = ones(length(m.coord'),obj.nMat-1);
             psi_hold_all(:,1)  = -1;
             
             obj.psi            = psi_hold_all;
@@ -428,7 +448,8 @@ classdef mainTFGMultimaterial < handle
             F                       = obj.forces;
             U                       = obj.displacements;
             obj.optParams.energy0   = 0.5 * dot(F,U); % initial energy 
-            max_vol                 = 2;
+            %max_vol                 = 2; % Beam and arch
+            max_vol                  = 6; % Bridge
             obj.optParams.max_vol   = max_vol; 
             obj.optParams.voltarget = max_vol.*obj.params.volfrac; 
             obj.optParams.volstop   = obj.params.voleps.*max_vol;
@@ -438,21 +459,21 @@ classdef mainTFGMultimaterial < handle
             end
         end
 
-        function createMassMatrix(obj)
-            p = obj.mesh.p;
-            t = obj.mesh.t;
-
-            [~,obj.unitM,~] = assema(p,t,0,1,0); % mass matrix of unity density
-        end
-
-        % function createMassMatrixSwan(obj)
-        %     s.test  = LagrangianFunction.create(obj.meshSwan,1,'P1');
-        %     s.trial = LagrangianFunction.create(obj.meshSwan,1,'P1');
-        %     s.mesh  = obj.meshSwan;
-        %     s.type  = 'MassMatrix';
-        %     LHS = LHSintegrator.create(s);
-        %     obj.unitM = LHS.compute;     
+        % function createMassMatrix(obj)
+        %     p = obj.meshSwan.coord';
+        %     t = obj.meshSwan.connec';
+        % 
+        %     [~,obj.unitM,~] = assema(p,t,0,1,0); % mass matrix of unity density
         % end
+
+        function createMassMatrixSwan(obj)
+            s.test  = LagrangianFunction.create(obj.meshSwan,1,'P1');
+            s.trial = LagrangianFunction.create(obj.meshSwan,1,'P1');
+            s.mesh  = obj.meshSwan;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            obj.unitM = LHS.compute;     
+        end
 
         function updateDesignVariable(obj)
             
@@ -466,6 +487,8 @@ classdef mainTFGMultimaterial < handle
             obj.designVariable{1}.update(lsFun{1});
             obj.designVariable{2}.update(lsFun{2});
             obj.designVariable{3}.update(lsFun{3});
+
+            %obj.designVariable.plot();
             
         end
 
@@ -492,11 +515,14 @@ classdef mainTFGMultimaterial < handle
             facecolor = [186 212 244]/255;
             linecolor = [0 62 102]/255;
 
-            p          = obj.mesh.p;
-            t          = obj.mesh.t;
+            p          = obj.meshSwan.coord';
+            t          = obj.meshSwan.connec';
+            t(4,:)     = 1;
             fi         = obj.fiFunction;
 
-            figure(3)       
+            %obj.updatePlot();
+            
+            figure(3)
             multimat_plot( p,t,fi );
             drawnow
         end
@@ -519,11 +545,11 @@ classdef mainTFGMultimaterial < handle
                 vol_constraint(i) = (obj.volume(i)/obj.optParams.voltarget(i))-1;
             end
 
-            voltarget_void = 0.8; % Beam
-            %voltarget_void = 2.4; % Bridge
+           % voltarget_void = 0.8; % Beam
+            voltarget_void = 2.4; % Bridge
 
-            volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
-            %volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
+            %volume_void = 2-(obj.volume(1)+obj.volume(2)+obj.volume(3)); % Beam
+            volume_void = 6-(obj.volume(1)+obj.volume(2)+obj.volume(3)); %Bridge
             void_constraint = (volume_void/voltarget_void)-1;
 
             data = [vol_constraint(1); vol_constraint(2); vol_constraint(3); void_constraint];
@@ -568,7 +594,8 @@ classdef mainTFGMultimaterial < handle
             obj.compliance = complianceDT.J;
             obj.dJCompliance = complianceDT.dJ;
         end
-        
+
+
         function TD = computeVolumeConstraintinDT(obj)
             pen = obj.params.penalty;
             maxVol = obj.optParams.max_vol;
@@ -612,14 +639,12 @@ classdef mainTFGMultimaterial < handle
             s.psi = obj.psi;
             s.designVariable = obj.designVariable;
             s.m = obj.meshSwan;
-            s.p = obj.mesh.p;
-            s.t = obj.mesh.t;
   
             charfun = CharacteristicFunctionComputer(s); 
             [~,tfi] = charfun.computeFiandTfi();
 
-            t = obj.mesh.t;
-            p = obj.mesh.p;
+            t = obj.meshSwan.connec';
+            p = obj.meshSwan.coord';
             [tXi2,~] = integ_exact(t,p,obj.psi(:,2)); chi2 = (1 - tXi2); %- Mixed formulation method
             [tXi3,~] = integ_exact(t,p,obj.psi(:,3)); chi3 = (1 - tXi3); %- Mixed formulation method
             %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method
@@ -633,10 +658,8 @@ classdef mainTFGMultimaterial < handle
 
             dt = pdeprtni(p,t,dt);
         end
-        
-        
 
-
+       
     end
 
         

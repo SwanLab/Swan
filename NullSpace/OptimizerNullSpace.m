@@ -40,7 +40,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.update();
                 obj.updateIterInfo();
                 obj.printOptimizerVariable();
-                %obj.updateMonitoring();
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
@@ -57,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
+            obj.etaMax         = Inf;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -68,9 +68,10 @@ classdef OptimizerNullSpace < Optimizer
         function createMonitoring(obj,cParams)
             titlesF       = obj.cost.getTitleFields();
             titlesConst   = obj.constraint.getTitleFields();
+            titlesConst   = titlesConst{1,1};
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+            titles        = [{'Cost'};titlesF;titlesConst];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
@@ -81,7 +82,7 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
@@ -98,7 +99,6 @@ classdef OptimizerNullSpace < Optimizer
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
-            data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
                 data = [data;0;0;0;obj.etaMax;0;0;0;NaN];
@@ -210,10 +210,12 @@ classdef OptimizerNullSpace < Optimizer
                 obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = obj.mOld;
+                x0 = reshape(x0,obj.designVariable.designVariable{1,1}.fun.mesh.nnodes,[]);
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
             else
                 obj.primalUpdater.decreaseStepLength();
+                x0 = reshape(x0,obj.designVariable.designVariable{1,1}.fun.mesh.nnodes,[]);
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
@@ -248,7 +250,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function etaN = obtainTrustRegion(obj)
             switch class(obj.designVariable)
-                case 'LevelSet'
+                case {'LevelSet','MultiLevelSet'}
                     if obj.nIter == 0
                         etaN = inf;
                     else

@@ -3,7 +3,7 @@ classdef ScalarProduct < handle
     methods (Access = public, Static)
 
         function sp = computeL2(m,f,g)
-            fg = DDP(f,g);
+            fg = f.*g;
             sp = Integrator.compute(fg,m,2);
         end
 

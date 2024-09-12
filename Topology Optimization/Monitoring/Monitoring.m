@@ -26,10 +26,10 @@ classdef Monitoring < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.shallDisplay = cParams.shallDisplay;
-            obj.maxNColumns  = cParams.maxNColumns;
-            obj.titles       = cParams.titles;
-            obj.chartTypes   = cParams.chartTypes;
+            obj.shallDisplay = cParams.shallDisplay; % true/false
+            obj.maxNColumns  = cParams.maxNColumns; % integer
+            obj.titles       = cParams.titles; % cell array
+            obj.chartTypes   = cParams.chartTypes; % plot/log/bar
         end
 
         function [nRow,nColumn] = computeNumberRowsColumns(obj)

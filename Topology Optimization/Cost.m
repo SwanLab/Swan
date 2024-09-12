@@ -28,7 +28,7 @@ classdef Cost < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;   
+                dJc{iF} = dJ;   
             end
             obj.shapeValues = Jc;
             jV  = 0;

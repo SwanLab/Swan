@@ -32,8 +32,6 @@ classdef CharacteristicFunctionComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.p = cParams.p;
-            obj.t = cParams.t;
             obj.mesh = cParams.m;
             obj.designVariable = cParams.designVariable;
         end
@@ -63,15 +61,15 @@ classdef CharacteristicFunctionComputer < handle
         end
 
         function computeDomainFunctionTfi(obj)
-            x1 = obj.designVariable{1};
+            x1 = obj.designVariable.designVariable{1};
             chi1 = x1.obtainDomainFunction();
             chi1 = chi1.project('P0');
 
-            x2 = obj.designVariable{2};
+            x2 = obj.designVariable.designVariable{2};
             chi2 = x2.obtainDomainFunction();
             chi2 = chi2.project('P0');
 
-            x3 = obj.designVariable{3};
+            x3 = obj.designVariable.designVariable{3};
             chi3 = x3.obtainDomainFunction();
             chi3 = chi3.project('P0');
 
@@ -81,15 +79,15 @@ classdef CharacteristicFunctionComputer < handle
         end
 
         function computeDomainFunctionFi(obj)
-            x1 = obj.designVariable{1};
+            x1 = obj.designVariable.designVariable{1};
             chi1 = x1.obtainDomainFunction();
             chi1 = chi1.project('P1');
 
-            x2 = obj.designVariable{2};
+            x2 = obj.designVariable.designVariable{2};
             chi2 = x2.obtainDomainFunction();
             chi2 = chi2.project('P1');
 
-            x3 = obj.designVariable{3};
+            x3 = obj.designVariable.designVariable{3};
             chi3 = x3.obtainDomainFunction();
             chi3 = chi3.project('P1');
 
