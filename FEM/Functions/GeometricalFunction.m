@@ -5,6 +5,7 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = public)
+
         function obj = GeometricalFunction(cParams)
             obj.selectHandle(cParams);
         end
@@ -19,6 +20,7 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = private)
+
         function selectHandle(obj,cParams)
             x1 = @(x) x(1,:,:);
             x2 = @(x) x(2,:,:);
@@ -49,7 +51,7 @@ classdef GeometricalFunction < handle
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
+                    fH = @(x) max(abs(x1(x)-x0)./sx(x),abs(x2(x)-y0)./sy(x)) - 0.5;
                     obj.fHandle = fH;
 
                 case 'RectangleInclusion'
@@ -166,12 +168,12 @@ classdef GeometricalFunction < handle
                     obj.fHandle = fH;
 
                 case 'Vigdergauz'
-                    vig         = LevelSetVigdergauz(cParams);
-                    obj.fHandle = vig.getFunctionHandle();
+                    fH          = LevelSetVigdergauz(cParams);
+                    obj.fHandle = fH.getFunctionHandle();
 
                 case 'PeriodicAndOriented'
-                    perOr       = LevelSetPeriodicAndOriented(cParams);
-                    obj.fHandle = perOr.getFunctionHandle();
+                    fH          = LevelSetPeriodicAndOriented(cParams);
+                    obj.fHandle = fH.getFunctionHandle();
             end
         end
 

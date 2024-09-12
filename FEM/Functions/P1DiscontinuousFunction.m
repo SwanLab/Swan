@@ -8,6 +8,7 @@ classdef P1DiscontinuousFunction < FeFunction
     end
     
     properties (Access = private)
+        connec
     end
     
     methods (Access = public)
@@ -16,6 +17,7 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.init(cParams)
             obj.order = '1';
             obj.createInterpolation();
+            obj.connec = obj.computeDiscontinuousConnectivities();
         end
 
         function fxV = evaluate(obj, xV)
@@ -50,24 +52,27 @@ classdef P1DiscontinuousFunction < FeFunction
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
         
-        function dNdx  = evaluateCartesianDerivatives(obj,quad)
-           nElem = size(obj.mesh.connec,1);
-           nNode = obj.interpolation.nnode;
-           nDime = obj.interpolation.ndime;
-           nGaus = quad.ngaus;
-           invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-           dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-           for igaus = 1:nGaus
-               dShapes = obj.interpolation.deriv(:,:,igaus);
-               for jDime = 1:nDime
-                   invJ_JI   = invJ(:,jDime,:,igaus);
-                   dShape_KJ = dShapes(jDime,:);
-                   dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                   dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-               end
-           end
-           dNdx = dShapeDx;
-        end   
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            nElem = size(obj.connec,1);
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.computeShapeDerivatives(xV);
+            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                    end
+                end
+            end
+            dNdx = dShapes;
+        end
 
         function gradFun = evaluateGradient(obj, xV)
             dNdx = obj.evaluateCartesianDerivatives(xV);

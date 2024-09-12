@@ -384,7 +384,7 @@ classdef LagrangianFunction < FeFunction
             c.computeCoord();
             obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
-            obj.nDofs = c.getNumberDofs();
+            obj.nDofs  = c.getNumberDofs();
         end
 
         function f = computeFunctionInEdges(obj,m,fNodes)

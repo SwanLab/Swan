@@ -21,6 +21,7 @@ classdef LevelSetPeriodicAndOriented < handle
     end
 
     methods (Access = public)
+        
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
@@ -34,8 +35,8 @@ classdef LevelSetPeriodicAndOriented < handle
             ls = cell(nEps,1);
             for iEps = 1:nEps
                 obj.epsilon = epsilons(iEps);
-                obj.computeLevelSet();
-                ls{iEps} = obj.getValue();
+                lsF = obj.computeLevelSet();
+                ls{iEps} = lsF;
             end
         end
 
@@ -48,10 +49,10 @@ classdef LevelSetPeriodicAndOriented < handle
 
     methods (Access = protected)
 
-        function computeLevelSet(obj)
+        function ls = computeLevelSet(obj)
             obj.createCellCoord();
             obj.thresholdParameters();
-            obj.createCellLevelSet();
+            ls = obj.createCellLevelSet();
         end
 
     end
@@ -90,18 +91,20 @@ classdef LevelSetPeriodicAndOriented < handle
             obj.cellCoord = yT;
         end
 
-        function createCellLevelSet(obj)
+        function ls = createCellLevelSet(obj)
             s       = obj.cellLevelSetParams;
-            s.coord = obj.cellCoord;
-            ls = LevelSetCreator.create(s);
-            obj.levelSet = ls.getValue();
+            s.xCoorCenter = 0;%obj.cellCoord(:,1);
+            s.yCoorCenter = 0;%obj.cellCoord(:,2);
+            m = obj.getFineMesh();
+            g = GeometricalFunction(s);
+            ls = g.computeLevelSetFunction(m);
         end
 
         function interpolateDeformedCoord(obj)
             y = obj.deformedCoord;
             y = obj.interpolateDiscontinousFunction(y);
-            y = abs(y);
-            obj.deformedCoord.fValues = y;
+            y.fValues = abs(y.fValues);
+            obj.deformedCoord = y;
         end
 
         function interpolateM1M2(obj)
@@ -118,10 +121,10 @@ classdef LevelSetPeriodicAndOriented < handle
             mL = obj.computeMinLengthInUnitCell();
             s.minLengthInUnitCell = mL;
             t = MparameterThresholder(s);
-            m1 = t.thresh(obj.m1);
-            m2 = t.thresh(obj.m2);
-            obj.cellLevelSetParams.xSide = m1;
-            obj.cellLevelSetParams.ySide = m2;
+            obj.m1.fValues = t.thresh(obj.m1.fValues);
+            obj.m2.fValues = t.thresh(obj.m2.fValues);
+            obj.cellLevelSetParams.xSide = @(x) obj.m1.evaluate(x);
+            obj.cellLevelSetParams.ySide = @(x) obj.m2.evaluate(x);
         end
 
  
@@ -157,11 +160,11 @@ classdef LevelSetPeriodicAndOriented < handle
             fV = fD;
         end
 
-        function vq = interpolateDiscontinousFunction(obj,v)
+        function f = interpolateDiscontinousFunction(obj,v)
             f = v;
             r = obj.remesher;
             f = r.interpolate(f);
-            vq = f.getFvaluesAsVector();
+         %   vq = f.getFvaluesAsVector();
         end        
 
         function [y1,y2] = transformToFastCoord(obj,x1,x2)

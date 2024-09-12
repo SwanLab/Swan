@@ -97,10 +97,10 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function s = createLevelSetCellParams(obj)
-            I        = ones(size(obj.mesh.coord,1),1);
-            s.type   = 'rectangleInclusion';
-            s.widthH = obj.widthH*I;
-            s.widthV = obj.widthW*I;
+            I       = ones(size(obj.mesh.coord,1),1);
+            s.type  = 'RectangleInclusion';
+            s.xSide = obj.widthH*I;
+            s.ySide = obj.widthW*I;
             s.ndim   = 2;
         end
 
