@@ -192,10 +192,10 @@ close all;
 clear;
 
 % Min problem
-cost.cF = @(x) x(1)^2+(x(2)+3)^2;
-cost.gF = @(x) [2*x(1); 2*(x(2)+3)];
+cost.cF = @(x) (x(1)+3).^2+x(2).^2;
+cost.gF = @(x) [2*(x(1)+3); 2*(x(2))];
 
-constraint.cF{1} = @(x) -x(1)^2+x(2);
+constraint.cF{1} = @(x) -x(1).^2+x(2);
 constraint.gF{1} = @(x) [-2*x(1); 1];
 
 constraint.cF{2} = @(x) -x(1)-x(2)-2;
@@ -208,12 +208,12 @@ constraint.gF{2} = @(x) [-1; -1];
 % Setting up
 x0               = [3;3];
 s.type           = "NullSpace";
-s.ub             = [inf;inf];
-s.lb             = [-inf;-inf];
+s.ub             = [4;4];
+s.lb             = [-4;1];
 s.maxIter        = 400;
 s.constraintCase = {'INEQUALITY','INEQUALITY'};
-s.etaNorm        = 0.02;
-s.gJFlowRatio    = 0;
+s.etaNorm        = 0.2;
+s.gJFlowRatio    = 1;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
