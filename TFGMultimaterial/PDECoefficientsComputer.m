@@ -67,7 +67,7 @@ classdef PDECoefficientsComputer < handle
             tensor1       = Material.create(s);
             
             quad          = Quadrature.create(obj.mesh,order);
-            quad.computeQuadrature(order);
+            %quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{1}    = tensor1.evaluate(xV);
@@ -79,7 +79,7 @@ classdef PDECoefficientsComputer < handle
             tensor2       = Material.create(s);
             
             quad          = Quadrature.create(obj.mesh,order);
-            quad.computeQuadrature(order);
+            %quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{2}    = tensor2.evaluate(xV);
@@ -91,7 +91,7 @@ classdef PDECoefficientsComputer < handle
             tensor3       = Material.create(s);
             
             quad          = Quadrature.create(obj.mesh,order);
-            quad.computeQuadrature(order);
+            %quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{3}    = tensor3.evaluate(xV);
@@ -103,7 +103,7 @@ classdef PDECoefficientsComputer < handle
             tensor4       = Material.create(s);
             
             quad          = Quadrature.create(obj.mesh,order);
-            quad.computeQuadrature(order);
+            %quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{4}    = tensor4.evaluate(xV);

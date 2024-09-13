@@ -70,7 +70,6 @@ classdef MultimaterialTesting < handle
             lsFun{3}               = @(x) sin(x(1,:,:))-0.5;
             
             s.type                 = 'MultiLevelSet';
-            s.plotting             = false;
             s.lsFun                = lsFun;
             s.mesh                 = obj.mesh;
             s.unitM                = obj.createMassMatrix();
@@ -162,7 +161,7 @@ classdef MultimaterialTesting < handle
          end
 
          function createOptimizer(obj)
-            s.monitoring     = false;
+            s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;

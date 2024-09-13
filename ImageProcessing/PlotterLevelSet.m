@@ -2,7 +2,6 @@ classdef PlotterLevelSet < handle
 
     properties (Access = private)
         designVariable
-        unfittedMesh
     end
 
     properties (Access = private)
@@ -28,7 +27,6 @@ classdef PlotterLevelSet < handle
         
         function init(obj,cParams)
             obj.designVariable = cParams.designVariable;
-            %obj.unfittedMesh = cParams.unfittedMesh;
         end
         
         function createFigure(obj)
@@ -40,7 +38,6 @@ classdef PlotterLevelSet < handle
         function plotUnfittedMesh(obj)
             hold on
             uMesh = obj.designVariable.getUnfittedMesh();
-            %uMesh = obj.unfittedMesh;
             uMesh.plot();
         end
             

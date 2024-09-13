@@ -1,6 +1,6 @@
 classdef Quadrature_Line < Quadrature
 
-    methods (Access = public)
+    methods (Access = protected)
 
         function computeQuadrature(obj,order)
             obj.order = order;
