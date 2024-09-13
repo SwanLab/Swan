@@ -1,10 +1,10 @@
-classdef TopOptTestTutorialMultimaterial < handle
+classdef MultimaterialTesting < handle
 
     properties (Access = private)
         mesh
+        designVariable
         area
         filter
-        designVariable
         physicalProblem
         compliance
         volume
@@ -22,7 +22,7 @@ classdef TopOptTestTutorialMultimaterial < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialMultimaterial()
+        function obj = MultimaterialTesting()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -36,6 +36,11 @@ classdef TopOptTestTutorialMultimaterial < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+        end
+
+        function lsVals = solve(obj)
+            obj.optimizer.solveProblem();
+            lsVals = obj.designVariable.fun.fValues;
         end
 
     end
@@ -65,7 +70,7 @@ classdef TopOptTestTutorialMultimaterial < handle
             lsFun{3}               = @(x) sin(x(1,:,:))-0.5;
             
             s.type                 = 'MultiLevelSet';
-            s.plotting             = true;
+            s.plotting             = false;
             s.lsFun                = lsFun;
             s.mesh                 = obj.mesh;
             s.unitM                = obj.createMassMatrix();
@@ -157,7 +162,7 @@ classdef TopOptTestTutorialMultimaterial < handle
          end
 
          function createOptimizer(obj)
-            s.monitoring     = true;
+            s.monitoring     = false;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
@@ -169,10 +174,8 @@ classdef TopOptTestTutorialMultimaterial < handle
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = inf;
-            s.gJFlowRatio    = 10;
-            opt = OptimizerNullSpace(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
+            s.gJFlowRatio    = 2;
+            obj.optimizer    = OptimizerNullSpace(s);
         end
 
         function m = createMaterial(obj)

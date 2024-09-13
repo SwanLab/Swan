@@ -80,21 +80,25 @@ classdef MultiLevelSet < handle
             s.type                 = 'LevelSet';
             s.plotting             = false;
             s.fValues              = obj.lsFun{1};
-            s.order                = 'P1';
             s.mesh                 = obj.mesh;
-            s.fun                  = LagrangianFunction(s);
+            s.ndimf                = 1;
+            s.fHandle              = obj.lsFun{1};
+            s.fun                  = AnalyticalFunction(s);
+            s.fun                  = s.fun.project('P1');
             ls1                    = DesignVariable.create(s);
             obj.designVariable{1} = ls1;
 
-            s.fValues              = obj.lsFun{2};
-            s.fun                  = LagrangianFunction(s);
-            ls1                    = DesignVariable.create(s);
-            obj.designVariable{2} = ls1;
+            s.fHandle              = obj.lsFun{2};
+            s.fun                  = AnalyticalFunction(s);
+            s.fun                  = s.fun.project('P1');
+            ls2                    = DesignVariable.create(s);
+            obj.designVariable{2} = ls2;
 
-            s.fValues              = obj.lsFun{3};
-            s.fun                  = LagrangianFunction(s);
-            ls1                    = DesignVariable.create(s);
-            obj.designVariable{3} = ls1;
+            s.fHandle              = obj.lsFun{3};
+            s.fun                  = AnalyticalFunction(s);
+            s.fun                  = s.fun.project('P1');
+            ls3                    = DesignVariable.create(s);
+            obj.designVariable{3} = ls3;
 
             obj.fun.fValues = [];
             obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
