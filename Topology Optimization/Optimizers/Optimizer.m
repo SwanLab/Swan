@@ -100,7 +100,7 @@ classdef Optimizer < handle
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            %obj.obtainGIF();
+            obj.obtainGIF();
             if ismethod(obj.designVariable,'plot')
                 obj.designVariable.plot();
             end
@@ -114,7 +114,7 @@ classdef Optimizer < handle
 
 
 
-            gifName = 'NullSLERPResults/TopOpt/2DCantileverBeam/NoOscillations/gJ2d5_V0d4';
+            gifName = 'NullSLERPResults/TopOpt/MultiLoadBridge/NoOscillations/gJ7_9Loads';
 
 
 

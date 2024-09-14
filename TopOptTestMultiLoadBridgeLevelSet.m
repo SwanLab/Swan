@@ -74,8 +74,8 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
         end
 
         function createMesh(obj)
-            x1       = linspace(0,10,200);
-            x2       = linspace(0,2,40);
+            x1       = linspace(0,10,400);
+            x2       = linspace(0,2,80);
             [xv,yv]  = meshgrid(x1,x2);
             [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -449,7 +449,7 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 5;
+            s.gJFlowRatio    = 7;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
