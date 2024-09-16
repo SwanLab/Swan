@@ -14,3 +14,7 @@ assignees: ''
 **Outline of the solution**
 - [ ] Step 1
 - [ ] ...
+
+----
+*Assigned to:*
+*Wingman:*
