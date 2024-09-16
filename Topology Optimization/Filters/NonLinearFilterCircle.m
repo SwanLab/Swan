@@ -27,7 +27,7 @@ classdef NonLinearFilterCircle < handle
             obj.createRHSChiFirstDirection(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            fr = 0.05;
+            fr = 0.01;
             while tolerance >= 1e-5 
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
@@ -36,7 +36,8 @@ classdef NonLinearFilterCircle < handle
                 obj.solveSecondDirection(fr);
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
                 iter = iter + 1;
-                   
+                disp(iter);  
+                disp(tolerance);
              end
            
            obj.trial.plot
@@ -45,6 +46,7 @@ classdef NonLinearFilterCircle < handle
 %             qValues,iterations);
             xF.fValues  = obj.trial.fValues;
             disp(iter);
+            disp(tolerance);
             
 
         end
@@ -60,7 +62,7 @@ classdef NonLinearFilterCircle < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
-            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P1'); % 2 = geom dim
+            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P0'); % 2 = geom dim
             obj.mesh    = cParams.mesh;
             obj.epsilon =cParams.mesh.computeMeanCellSize();
         end
@@ -102,7 +104,7 @@ classdef NonLinearFilterCircle < handle
         end
 
 
-        function createKqFirstDirection(obj, quadOrder) % MISTAKE MAY BE HERE
+        function createKqFirstDirection(obj, quadOrder) 
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
@@ -137,8 +139,8 @@ classdef NonLinearFilterCircle < handle
             RHS = obj.RHS2;
             obj.q.fValues = reshape(obj.q.fValues,1,[])';
             qi = (1-fr).*obj.q.fValues +fr.* (LHS \ RHS);
-            %obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
-            obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
+            obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
+            %obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
         end
 
 

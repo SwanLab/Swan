@@ -10,6 +10,7 @@ fPDE        = filterPDE.compute(fun,2);
 nLFilter    = createNonLinearFilter(mesh);
 fNL         = nLFilter.compute(fun,2);
 errorCircle = 0.5*Integrator.compute((fPDE-fNL).^2,mesh,2);
+disp(errorCircle);
 
 
 
