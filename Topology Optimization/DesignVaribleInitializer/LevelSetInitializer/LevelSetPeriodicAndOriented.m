@@ -41,8 +41,9 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function mF = getFineMesh(obj)
-            fMesh = obj.remesher.fineMesh;
-            mF = fMesh.createDiscontinuousMesh();
+            fMesh = obj.remesher.fineContMesh;
+            %mF = fMesh.createDiscontinuousMesh();
+            mF = fMesh;
         end
 
     end
@@ -90,7 +91,8 @@ classdef LevelSetPeriodicAndOriented < handle
             end
             s.fValues = yT;
             s.mesh    = obj.deformedCoord.mesh;
-            yF        = P1DiscontinuousFunction(s);   
+            yF        = P1DiscontinuousFunction(s);
+            yF        = yF.project('P1');
             obj.cellCoord = yF;
         end
 
@@ -99,24 +101,28 @@ classdef LevelSetPeriodicAndOriented < handle
             s.evaluate = @(xV) obj.rectangle(xV);
             s.ndimf    = 1;
             f  = AbstractL2Function(s);
+            ls = f;
             ls = f.project('P1');
         end
 
         function fH = rectangle(obj,xV)
             sx = obj.cellLevelSetParams.xSide.evaluate(xV);
             sy = obj.cellLevelSetParams.ySide.evaluate(xV);
-            x0 = 0;
-            y0 = 0;
+            x0 = obj.epsilon;
+            y0 = obj.epsilon;
             x = obj.cellCoord.evaluate(xV);
             x1 = x(1,:,:);
             x2 = x(2,:,:);
+            p = 32;
+           % fH = ((abs(x1-x0)./sx).^p+(abs(x2-y0)./sy).^p).^(1/p) - 0.5;
             fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
+            fH = -fH;
         end
 
         function interpolateDeformedCoord(obj)
             y = obj.deformedCoord;
             y = obj.interpolateDiscontinousFunction(y);
-            y.fValues = abs(y.fValues);
+        %    y.fValues = abs(y.fValues);
             obj.deformedCoord = y;
         end
 
@@ -187,7 +193,7 @@ classdef LevelSetPeriodicAndOriented < handle
 
         function y = computeMicroCoordinate(obj,x)
             eps = obj.epsilon;
-            y = (x-min(x))/eps;
+            y = (x-min(x(:)))/eps;
         end
 
         function  [y1,y2] = makeCoordPeriodic(obj,y1,y2)
@@ -200,8 +206,8 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = abs(cos(pi/2*(y))).^2;
-            %  f = y - floor(y);
+            f = abs(cos(pi*(y))).^2;
+          %  f = (y - floor(y));
         end
 
     end

@@ -55,7 +55,7 @@ classdef SurfaceMesh < Mesh
             obj.plotSpecific(faceColor,faceAlpha,edgeAlpha)
         end    
 
-        function plot(obj) %Black
+        function plot(obj) 
             faceColor = "red";
             faceAlpha = 0.3;
             edgeAlpha = 0.5;

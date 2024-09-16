@@ -4,6 +4,7 @@ classdef Remesher < handle
         %    coord
         %    connec
         fineMesh
+        fineContMesh
     end
 
     properties (Access = private)
@@ -32,12 +33,13 @@ classdef Remesher < handle
             for iLevel = 1:obj.nLevels
                 s.coord  = obj.computeCoords();
                 s.connec = obj.computeConnectivities();
-                m = Mesh.create(s);
-                m = m.createDiscontinuousMesh();
+                mC = Mesh.create(s);
+                m = mC.createDiscontinuousMesh();
                 obj.mesh = m;
                 obj.cellsToRemesh = 1:obj.mesh.nelem;
             end
-            obj.fineMesh = obj.mesh;
+            obj.fineMesh     = obj.mesh;
+            obj.fineContMesh = mC;
             obj.mesh     = m0;
             obj.cellsToRemesh = 1:obj.mesh.nelem;
         end

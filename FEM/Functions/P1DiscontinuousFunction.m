@@ -108,7 +108,7 @@ classdef P1DiscontinuousFunction < FeFunction
         
         function fFine = refine(obj, m, mFine)
          %   mFineD = mFine.createDiscontinuousMesh();
-            f = (obj.fValues);
+            f = obj.fValues;
             for iDim = 1:obj.ndimf
             fI = f(iDim,:,:);
             fI = fI(:);
