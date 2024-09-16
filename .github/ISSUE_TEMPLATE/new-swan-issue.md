@@ -1,5 +1,5 @@
 ---
-name: Custom issue template
+name: New Swan issue
 about: Template for Swan issues
 title: ''
 labels: ''
