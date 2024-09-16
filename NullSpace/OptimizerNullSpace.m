@@ -224,10 +224,10 @@ classdef OptimizerNullSpace < Optimizer
                 case 'SLERP'
                     active = not(obj.checkIndividualConstraint());
                     g = g.*active;
-                    if g'*g0<-1e-10
+                    if min(g.*g0)<-1e-10
                         obj.etaMax  = obj.etaMax/2;
                         obj.etaNorm = max(obj.etaNorm/1.02,0.001);
-                    elseif g'*g0>1e-10
+                    elseif min(g.*g0)>1e-10
                         obj.etaMax = obj.etaMax*1.2;
                     end
                 case 'HAMILTON-JACOBI'
