@@ -12,7 +12,7 @@ classdef ElasticProblem < handle
         boundaryConditions, bcApplier
 
         stiffness
-        solverType, solverMode, solverCase
+        problemType, problemMode, solverCase
         scale
         
         strain, stress
@@ -74,8 +74,8 @@ classdef ElasticProblem < handle
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
             obj.mesh        = cParams.mesh;
-            obj.solverType  = cParams.solverType;
-            obj.solverMode  = cParams.solverMode;
+            obj.problemType  = cParams.solverType;
+            obj.problemMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
         end
@@ -103,12 +103,12 @@ classdef ElasticProblem < handle
         function createSolver(obj)
             sS.type      = obj.solverCase;
             solver       = Solver.create(sS);
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
+            s.problemType = obj.problemType;
+            s.problemMode = obj.problemMode;
             s.solver     = solver;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.bcApplier;
-            obj.problemSolver    = ProblemSolver(s);
+            obj.problemSolver    = ProblemSolver.create(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -134,7 +134,7 @@ classdef ElasticProblem < handle
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
             % Perhaps move it inside RHSint?
-            if strcmp(obj.solverType,'REDUCED')
+            if strcmp(obj.problemType,'REDUCED')
                 R = RHSint.computeReactions(obj.stiffness);
                 obj.forces = rhs+R;
             else

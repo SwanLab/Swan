@@ -17,7 +17,7 @@ classdef ElasticProblemMicro < handle
         strain, stress
         stiffness, forces
 
-        solverType, solverMode, solverCase
+        problemType, problemMode, solverCase
         lagrangeMultipliers
 
         problemSolver
@@ -123,8 +123,8 @@ classdef ElasticProblemMicro < handle
             obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
             obj.pdim     = cParams.dim;
-            obj.solverType = cParams.solverType;
-            obj.solverMode = cParams.solverMode;
+            obj.problemType = cParams.solverType;
+            obj.problemMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
         end
@@ -159,12 +159,12 @@ classdef ElasticProblemMicro < handle
         function createSolver(obj)
             sS.type =  obj.solverCase;
             solver = Solver.create(sS);
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
+            s.problemType = obj.problemType;
+            s.problemMode = obj.problemMode;
             s.solver     = solver;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.bcApplier;
-            obj.problemSolver = ProblemSolver(s);
+            obj.problemSolver = ProblemSolver.create(s);
         end
 
         function computeForces(obj)
@@ -226,7 +226,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function vars = computeChomogContribution(obj, iVoigt)
-            if strcmp(obj.solverMode, 'DISP')
+            if strcmp(obj.problemMode, 'DISP')
                 L = obj.lagrangeMultipliers;
                 nPeriodic = length(obj.boundaryConditions.periodic_leader);
                 nBorderNod = nPeriodic/4; % cause 2D

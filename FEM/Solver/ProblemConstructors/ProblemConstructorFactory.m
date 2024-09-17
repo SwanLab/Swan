@@ -3,20 +3,20 @@ classdef ProblemConstructorFactory < handle
   methods (Access = public, Static)
 
         function obj = create(cParams)
-            switch cParams.type
-                case 'Monolithic'
-                    switch cParams.mode
-                        case 'Disp'
-                            obj = solverMonolithicDisp(cParams);
-                        case 'Fluc'
-                            obj = solverMonolithicFluc(cParams);
+            switch cParams.problemType
+                case 'MONOLITHIC'
+                    switch cParams.problemMode
+                        case 'DISP'
+                            obj = ProblemConstructorMonolithicDisp(cParams);
+                        case 'FLUC'
+                            obj = ProblemConstructorMonolithicFluc(cParams);
                     end
-                case 'Reduced'
-                    switch cParams.mode
-                        case 'Disp'
-                            obj = solverReducedDisp(cParams);
-                        case 'Fluc'
-                            obj = solverReducedFluc(cParams);
+                case 'REDUCED'
+                    switch cParams.problemMode
+                        case 'DISP'
+                            obj = ProblemConstructorReducedDisp(cParams);
+                        case 'FLUC'
+                            obj = ProblemConstructorReducedFluc(cParams);
                     end
             end
         end
