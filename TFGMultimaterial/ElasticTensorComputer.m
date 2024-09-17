@@ -17,6 +17,7 @@ classdef ElasticTensorComputer < handle
         bc
         bounCon
         E
+        nu
     end
 
     methods (Access = public)
@@ -80,14 +81,17 @@ classdef ElasticTensorComputer < handle
             s.order = 'P0';
             s.fValues = muVals';
             s.mesh = obj.m;
-            muField = LagrangianFunction(s); 
+            muField = LagrangianFunction(s);
+
+            N = obj.m.ndim;
+            kField = lambdaField + 2.*muField/N;
 
             % Material Given
-            s.type    = 'Given';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = 2;
-            s.lambdaField = lambdaField;
-            s.muField = muField; 
+            s.type  = 'ISOTROPIC';
+            s.ptype = 'ELASTIC';
+            s.ndim  = N;
+            s.shear = muField;
+            s.bulk  = kField;
             obj.C    = Material.create(s);
         end
 

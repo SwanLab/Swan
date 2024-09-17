@@ -21,9 +21,6 @@ classdef MaterialFactory < handle
                 
                 case 'STOKES'
                     material = Material_Stokes(cParams);
-
-                case 'Given'
-                    material = MaterialGiven(cParams);
             end
 
         end

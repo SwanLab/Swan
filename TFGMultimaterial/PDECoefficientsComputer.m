@@ -11,6 +11,7 @@ classdef PDECoefficientsComputer < handle
     properties (Access = private)
       mu
       lambda
+      nu
       E
       mesh
     end
@@ -42,6 +43,11 @@ classdef PDECoefficientsComputer < handle
             obj.E(2) = mat.B.young;
             obj.E(3) = mat.C.young;
             obj.E(4) = mat.D.young;
+
+            obj.nu(1) = mat.A.nu;
+            obj.nu(2) = mat.B.nu;
+            obj.nu(3) = mat.C.nu;
+            obj.nu(4) = mat.D.nu;
             
             obj.a = zeros(4,1);
             obj.f = zeros(2,1);
@@ -61,51 +67,43 @@ classdef PDECoefficientsComputer < handle
             order = 2;
 
             % Mat 1
-            s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(1)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.muField     = AnalyticalFunction.create(@(x) obj.mu(1)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.type        = 'Given';
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = AnalyticalFunction.create(@(x) obj.E(1)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
+            s.poisson = AnalyticalFunction.create(@(x) obj.nu(1)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
             tensor1       = Material.create(s);
             
             quad          = Quadrature.create(obj.mesh,order);
-            %quad.computeQuadrature(order);
             quadrature    = quad;
             xV            = quadrature.posgp;
             obj.C{1}    = tensor1.evaluate(xV);
             
             % Mat 2
-            s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(2)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.muField     = AnalyticalFunction.create(@(x) obj.mu(2)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.type        = 'Given';
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = AnalyticalFunction.create(@(x) obj.E(2)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
+            s.poisson = AnalyticalFunction.create(@(x) obj.nu(2)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
             tensor2       = Material.create(s);
-            
-            quad          = Quadrature.create(obj.mesh,order);
-            %quad.computeQuadrature(order);
-            quadrature    = quad;
-            xV            = quadrature.posgp;
             obj.C{2}    = tensor2.evaluate(xV);
 
             % Mat 3
-            s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(3)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.muField     = AnalyticalFunction.create(@(x) obj.mu(3)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.type        = 'Given';
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = AnalyticalFunction.create(@(x) obj.E(3)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
+            s.poisson = AnalyticalFunction.create(@(x) obj.nu(3)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
             tensor3       = Material.create(s);
-            
-            quad          = Quadrature.create(obj.mesh,order);
-            %quad.computeQuadrature(order);
-            quadrature    = quad;
-            xV            = quadrature.posgp;
             obj.C{3}    = tensor3.evaluate(xV);
 
             % Mat 4
-            s.lambdaField = AnalyticalFunction.create(@(x) obj.lambda(4)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.muField     = AnalyticalFunction.create(@(x) obj.mu(4)*ones(size(x(1,:,:))), 2, obj.mesh);
-            s.type        = 'Given';
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = AnalyticalFunction.create(@(x) obj.E(4)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
+            s.poisson = AnalyticalFunction.create(@(x) obj.nu(4)*ones(size(squeeze(x(1,:,:)))), 2, obj.mesh);
             tensor4       = Material.create(s);
-            
-            quad          = Quadrature.create(obj.mesh,order);
-            %quad.computeQuadrature(order);
-            quadrature    = quad;
-            xV            = quadrature.posgp;
             obj.C{4}    = tensor4.evaluate(xV);
 
             
