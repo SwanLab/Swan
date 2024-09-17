@@ -43,7 +43,8 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         function createMesh(obj)
 
             %Per cub:
-            obj.mesh = HexaMesh(1,1,1,20,20,20);
+            %obj.mesh = HexaMesh(1,1,1,20,20,20);
+            
 
             % Cas cilindre linux:
 %             m2D = QuadMesh(1,1,20,20);
@@ -63,6 +64,14 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             % Cas cilindre windows:
 %             load('meshCylinder.mat','meshCylinder');
 %             obj.mesh = meshCylinder;
+
+
+
+            % GiD
+            file       = 'HexaFine';
+            a.fileName = file;
+            s          = FemDataContainer(a);
+            obj.mesh   = s.mesh;
         end
 
         function createDesignVariable(obj)
@@ -79,21 +88,21 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'P1';
-            s.mesh  = obj.mesh;
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P0');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+%             s.filterType = 'P1';
+%             s.mesh  = obj.mesh;
+%             s.test  = LagrangianFunction.create(obj.mesh,1,'P0');
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             f = Filter.create(s);
+%             obj.filter = f;
 
-%             s.filterType   = 'PDE';
-%             s.mesh         = obj.mesh;
-%             s.boundaryType = 'Robin';
-%             s.metric       = 'Isotropy';
-%             s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
-%             obj.filter     = Filter.create(s);
-%             epsilon        = 1*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
-%             obj.filter.updateEpsilon(epsilon);
+            s.filterType   = 'PDE';
+            s.mesh         = obj.mesh;
+            s.boundaryType = 'Neumann';
+            s.metric       = 'Isotropy';
+            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.filter     = Filter.create(s);
+            epsilon        = 4*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
+            obj.filter.updateEpsilon(epsilon);
         end
 
         function createMaterialInterpolator(obj)
@@ -119,9 +128,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = obj.designVariable.fun;
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -161,7 +168,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.7;
+            s.volumeTarget = 0.5;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -174,15 +181,9 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -203,14 +204,14 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 700;%1000
+            s.maxIter        = 1000;%1000
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 0.6;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.7;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -227,7 +228,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             isForceZu = @(coor)  abs(coor(:,3))==zMax;
             isForceZd = @(coor)  abs(coor(:,3))==0;
 
-            sDir{1}.domain    = @(coor) isDir(coor) | isForceYu(coor) | isForceYd(coor) | isForceZu(coor) | isForceZd(coor);
+            sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
