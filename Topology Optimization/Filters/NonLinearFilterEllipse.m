@@ -1,10 +1,12 @@
-classdef NonLinearFilterCircle < handle
+classdef NonLinearFilterEllipse < handle
     
     properties (Access = private)
         mesh
         trial
         q
         epsilon
+        alpha
+        theta % A = [cos(obj.theta).^2 0; 0 ((sin(obj.theta).^2)/obj.alpha)]
     end
 
     properties (Access = private)
@@ -16,10 +18,12 @@ classdef NonLinearFilterCircle < handle
     end
 
     methods (Access = public)
-        function obj = NonLinearFilterCircle(cParams)
+        function obj = NonLinearFilterEllipse(cParams)
             obj.init(cParams);
             obj.createMassMatrixFirstDirection();
             obj.createMassMatrixSecondDirection();
+            obj.theta = cParams.theta;
+            obj.alpha = cParams.alpha;
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -28,7 +32,7 @@ classdef NonLinearFilterCircle < handle
             iter = 1;
             tolerance = 1;
             fr = 0.1;
-            while tolerance >= 1e-5 
+            while tolerance >= 1e-5 && iter<=100
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection(fr);
@@ -137,7 +141,8 @@ classdef NonLinearFilterCircle < handle
         function solveSecondDirection(obj,fr)
             LHS = obj.M2;
             RHS = obj.RHS2;
-            
+            A = [cosd(obj.theta).^2 0; 0 ((sind(obj.theta).^2)/obj.alpha)];
+            obj.q.fValues = obj.q.fValues * A;
             obj.q.fValues = reshape(obj.q.fValues',1,[])';
             qi = (1-fr).*obj.q.fValues +fr.* (LHS \ RHS);
             obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';

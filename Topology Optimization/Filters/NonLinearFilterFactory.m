@@ -6,7 +6,8 @@ classdef NonLinearFilterFactory < handle
             switch cParams.type
                 case 'Circle'
                     filter = NonLinearFilterCircle(cParams);
-                    % case Rectangle...
+                case 'Ellipse'
+                    filter = NonLinearFilterEllipse(cParams);
             end
         end
 
