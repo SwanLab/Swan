@@ -279,37 +279,13 @@ classdef LagrangianFunction < FeFunction
         % Operator overload
 
         function s = plus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
-            else
-                val1 = obj1;
-            end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
-            else
-                val2 = obj2;
-            end
-
+            [res,val1,val2] = computeOperatorMembers(obj1,obj2);
             res.fValues = val1 + val2;
             s = res;
         end
 
         function s = minus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
-            else
-                val1 = obj1;
-            end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
-            else
-                val2 = obj2;
-            end
-
+            [res,val1,val2] = computeOperatorMembers(obj1,obj2);
             res.fValues = val1 - val2;
             s = res;
         end
@@ -320,18 +296,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function s = times(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
-            else
-                val1 = obj1;
-            end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
-            else
-                val2 = obj2;
-            end
+            [res,val1,val2] = computeOperatorMembers(obj1,obj2);
             res.fValues = val1 .* val2;
             s = res;
         end
@@ -420,6 +385,19 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
+        function [res,val1,val2] = computeOperatorMembers(obj1,obj2)
+            if isa(obj1, 'LagrangianFunction')
+                res = copy(obj1);
+                val1 = obj1.fValues;
+            else
+                val1 = obj1;
+            end
+            if isa(obj2, 'LagrangianFunction')
+                res = copy(obj2);
+                val2 = obj2.fValues;
+            else
+                val2 = obj2;
+            end
+        end
     end
-
 end
