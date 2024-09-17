@@ -52,10 +52,10 @@ classdef ElasticTensorComputer < handle
             % s.t = obj.mesh.t;
             s.pdeCoeff = obj.pdeCoeff; 
             s.designVariable = obj.designVariable;
-            s.m = obj.m;
+            s.mesh = obj.m;
 
-            charfun = CharacteristicFunctionComputer(s); 
-            [~,tfi] = charfun.computeFiandTfi();
+            charfun = MultiMaterialCharacteristicFunction(s); 
+            [~,tfi] = charfun.computeAtNodesAndElements();
             obj.charFunc = tfi;
         end
 
@@ -64,7 +64,8 @@ classdef ElasticTensorComputer < handle
         end
 
         function computeElasticTensor(obj)
-            tgamma = obj.gamma*obj.charFunc; % for mixed formulation approach
+            chi = obj.charFunc.fValues';
+            tgamma = obj.gamma*chi; % for mixed formulation approach
             c0 =  obj.pdeCoeff.tensor(:,1);
             obj.effectiveTensor = c0*tgamma; % effective elasticity tensor
             

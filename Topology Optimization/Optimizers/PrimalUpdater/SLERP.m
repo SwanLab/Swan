@@ -20,7 +20,7 @@ classdef SLERP < handle
 
         function phi = update(obj,g,phi)  
             n         = obj.mesh.nnodes;
-            phiF      = phi.designVariable;
+            phiF      = phi.levelSets;
             gF1       = obj.createP1Function(g(1:n));
             gF2       = obj.createP1Function(g(n+1:n*2));
             gF3       = obj.createP1Function(g(n*2+1:n*3));
@@ -53,9 +53,9 @@ classdef SLERP < handle
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-            V0 = obj.volume.computeFunctionAndGradient(ls.designVariable{1,1});
+            V0 = obj.volume.computeFunctionAndGradient(ls.levelSets{1,1});
             if abs(V0-1) <= 1e-10
-                obj.computeLineSearchInBounds(g(1:obj.mesh.nnodes),ls.designVariable{1,1});
+                obj.computeLineSearchInBounds(g(1:obj.mesh.nnodes),ls.levelSets{1,1});
             else
                 obj.tau = 1;
             end

@@ -1,7 +1,7 @@
 classdef MultiLevelSet < handle
     
     properties (Access = public)
-        designVariable
+        levelSets
         fun
     end
 
@@ -25,28 +25,28 @@ classdef MultiLevelSet < handle
 
         function update(obj,value)
             for i = 1:size(value,2)
-                obj.designVariable{1,i}.update(value(:,i));
+                obj.levelSets{1,i}.update(value(:,i));
             end
             obj.fun.fValues = [];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{2}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{3}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{1}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{2}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{3}.fun.fValues];
         end
 
         function plot(obj)
             if obj.plotting
-                s.psi            = reshape(obj.fun.fValues,[],length(obj.designVariable));
+                s.psi            = reshape(obj.fun.fValues,[],length(obj.levelSets));
                 s.designVariable = obj;
-                s.m              = obj.mesh;
+                s.mesh           = obj.mesh;
 
-                charfun = CharacteristicFunctionComputer(s);
-                [fi,~]  = charfun.computeFiandTfi();
+                charfun = MultiMaterialCharacteristicFunction(s);
+                [fi,~]  = charfun.computeAtNodesAndElements();
                 p          = obj.mesh.coord';
                 t          = obj.mesh.connec';
                 t(4,:)     = 1;
 
                 figure(2)
-                multimat_plot(p,t,fi');
+                multimat_plot(p,t,fi.fValues);
                 drawnow
             end
         end
@@ -86,24 +86,24 @@ classdef MultiLevelSet < handle
             s.fun                  = AnalyticalFunction(s);
             s.fun                  = s.fun.project('P1');
             ls1                    = DesignVariable.create(s);
-            obj.designVariable{1} = ls1;
+            obj.levelSets{1} = ls1;
 
             s.fHandle              = obj.lsFun{2};
             s.fun                  = AnalyticalFunction(s);
             s.fun                  = s.fun.project('P1');
             ls2                    = DesignVariable.create(s);
-            obj.designVariable{2} = ls2;
+            obj.levelSets{2} = ls2;
 
             s.fHandle              = obj.lsFun{3};
             s.fun                  = AnalyticalFunction(s);
             s.fun                  = s.fun.project('P1');
             ls3                    = DesignVariable.create(s);
-            obj.designVariable{3} = ls3;
+            obj.levelSets{3} = ls3;
 
             obj.fun.fValues = [];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{1}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{2}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.designVariable{3}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{1}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{2}.fun.fValues];
+            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{3}.fun.fValues];
         end
 
         function createUnfittedMesh(obj)

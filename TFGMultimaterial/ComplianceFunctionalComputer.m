@@ -176,12 +176,12 @@ classdef ComplianceFunctionalComputer < handle
 
         function computeTgamma(obj,x)
             s.designVariable = x;
-            s.m = obj.mesh;
+            s.mesh = obj.mesh;
             
-            charfun = CharacteristicFunctionComputer(s); 
-            [~,tfi] = charfun.computeFiandTfi();
+            charfun = MultiMaterialCharacteristicFunction(s); 
+            [~,tfi] = charfun.computeAtNodesAndElements();
 
-            obj.tgamma = obj.gamma*tfi; %Mixed formulation method
+            obj.tgamma = obj.gamma*tfi.fValues'; %Mixed formulation method
             E1 = obj.mat.A.young;
             obj.tE = E1*obj.tgamma; 
         end
@@ -211,12 +211,13 @@ classdef ComplianceFunctionalComputer < handle
         function dJ = smoothGradient(obj,TD,x)
 
             s.designVariable = x;
-            s.m = obj.mesh;
+            s.mesh = obj.mesh;
   
-            charfun = CharacteristicFunctionComputer(s); 
-            [~,tfi] = charfun.computeFiandTfi();
-            psi2 = x.designVariable{1,2}.fun.fValues;
-            psi3 = x.designVariable{1,3}.fun.fValues;
+            charfun = MultiMaterialCharacteristicFunction(s); 
+            [~,tfiFun] = charfun.computeAtNodesAndElements();
+            tfi = tfiFun.fValues';
+            psi2 = x.levelSets{1,2}.fun.fValues;
+            psi3 = x.levelSets{1,3}.fun.fValues;
 
             t = obj.mesh.connec';
             p = obj.mesh.coord';
