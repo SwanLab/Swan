@@ -51,14 +51,14 @@ classdef MeshCreatorFromRVE < handle
         function createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            figure(2)
+%             figure(2)
             for jDom = 1:nY
                 for iDom = 1:nX
                     coordIJ = obj.computeSubdomainCoords(jDom,iDom);
                     mIJ     = obj.createSubdomainMesh(coordIJ);
-                    mIJ.plot();
+%                     mIJ.plot();
                     mD{jDom,iDom} = mIJ;
-                    hold on
+%                     hold on
                 end
             end
             obj.meshSubDomain = mD;
@@ -90,15 +90,15 @@ classdef MeshCreatorFromRVE < handle
         function createInterfaceSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            figure
+%             figure
             for jDom = 1:nY
                 for iDom = 1:nX
                     bIJ = obj.meshSubDomain{jDom,iDom}.createBoundaryMesh();
                     bD{jDom,iDom} = bIJ;
-                    hold on
-                    for iline=1:length(bIJ)
-                        bIJ{iline}.mesh.plot();
-                    end
+%                     hold on
+%                     for iline=1:length(bIJ)
+%                         bIJ{iline}.mesh.plot();
+%                     end
                 end
             end
             obj.interfaceMeshSubDomain = bD;

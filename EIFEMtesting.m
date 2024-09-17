@@ -136,16 +136,21 @@ classdef EIFEMtesting < handle
             %  RHSf = P*RHS;
             tol = 1e-8;
             P = @(r) Mid(r); %obj.multiplePrec(r,Mid,Mid,LHSf);
+            tic
             [uCG,residualCG,errCG,errAnormCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            toc
             %[uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
             
             
-            M = Meifem;%Milu_m;%Meifem; %Milu %Pm
-            M2 = MiluCG;
+            M = MiluCG;%Milu_m;%Meifem; %Milu %Pm
+            M2 = Meifem;
+            M3 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
-            P = @(r) obj.multiplePrec(r,M,M2,LHSf);            
+            P = @(r) obj.multiplePrec(r,M,M2,M3,LHSf);  
+            tic
             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
+            toc
             %[uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
 
 
@@ -217,7 +222,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
+            obj.nSubdomains  = [60 10]; %nx ny
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
@@ -1079,17 +1084,20 @@ classdef EIFEMtesting < handle
             %z = M*r;
         end  
 
-         function z = multiplePrec(obj,r,P1,P2,A)
-            z1 = P1(r);
+         function z = multiplePrec(obj,r,P1,P2,P3,A)
+            z1 = P1(r,A);
             r  = r-A(z1);                
-            z2 = P2(r,A);
-            z  = z1+z2;                         
+            z2 = P2(r);              
+            r  = r-A(z2);
+            z3 = P3(r,A);
+            z  = z1+z2+z3; 
+
          end        
 
          function x = ILUCG(obj,r,A)
             P = @(r) obj.applyILU(r);
             xsol = zeros(size(r));
-            factor = 0.1;
+            factor = 0.99;
             tol = factor*norm(r);
             [x,residual,err,errAnorm] = obj.preconditionedConjugateGradient(A,r,xsol,P,tol);
          end

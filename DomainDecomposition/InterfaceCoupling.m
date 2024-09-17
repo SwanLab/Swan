@@ -82,7 +82,9 @@ classdef InterfaceCoupling < handle
             end
             for iBdNode = 1:nBdNode
                 NodeCoord = coordAux(iBdNode,:);
+%                 aux       = ((abs(coordAux(:,1)-NodeCoord(1))<=1e-14) & (abs(coordAux(:,2)-NodeCoord(2))<=1e-14) & (abs(coordAux(:,3)-NodeCoord(3))<=1e-14));
                 aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
+%                 [~,ind]   = ismember(NodeCoord,coordAux,'Rows');
                 ind       = find(aux == 1);
                 if length(ind)>1                   
                         sameNode_aux = GlNodeAux(ind);
