@@ -1,5 +1,20 @@
 classdef ComplianceFunctionalComputer < handle
 
+% Comentaris per Alex:
+% - Aquest compliance functional és diferent a l'habitual: el càlcul de dC
+% es fa per cada combinació entre materials i el que teníem és només amb un
+% esquema d'interpolació. S'hauria de fer alguna abstracció?
+% - Lo mateix passa amb el volume functional
+% - Vull crear un filtre de multimat que fa el smooth gradient i
+% generalitzar-ho per la design variable si fos possible. En cas contrari,
+% a l'abstracció de la compliance s'hauria de diferenciar entre filtre
+% design variable i filtre adjoint? De fet la chi ni es filtra, simplement
+% es projecta i amb el resultat s'interpola les propietats
+% - He creat un material interpolator i el voldré utilitzar com a propietat
+% d'un DensityBased Material. Tornarà mu,kappa,dmu,dkappa i li enviaria a
+% un isotropic 2d material... però clar.. el dC necessita diferents
+% materials, aleshores ???
+
     properties (Access = public)
         J
         dJ
