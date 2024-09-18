@@ -126,7 +126,7 @@ classdef EIFEMtesting < handle
             MeifemCG = @(r) obj.solveEIFEMCG(r);
             MeifemContinuous = @(r) obj.solveMEIFEMcontinuous(r);
             Milu = @(r) obj.applyILU(r);
-            MiluCG = @(r,A) obj.ILUCG(r,A);
+            MiluCG = @(r) obj.ILUCG(r,LHSf);
             Mmodal = @(r) obj.solveModalProblem(r);    
             Milu_m = @(r) Milu(Mmodal(r));
             MgaussSeidel = @(r) obj.applyGaussSeidel(r);
@@ -142,13 +142,14 @@ classdef EIFEMtesting < handle
             %[uCG,residualCG,errCG,errAnormCG] = obj.preconditionedRichardson(LHSf,RHSf,Usol,P,tol);
             
             
-            M = Mmodal;%Milu_m;%Meifem; %Milu %Pm
-            M2 = MiluCG;
+            M = MiluCG;%Milu_m;%Meifem; %Milu %Pm
+            M2 = Meifem;
             M3 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
-            P = @(r) obj.multiplePrec(r,M,M2,M3,LHSf);  
-%             P = @(r) obj.additivePrec(r,M,M2,LHSf);  
+            %P = @(r) obj.multiplePrec(r,M,M2,M3,LHSf);  
+%            P = Mmodal;
+             P = @(r) obj.additivePrec(r,Mid,Mmodal,LHSf);  
             tic
             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
             toc
@@ -223,7 +224,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
+            obj.nSubdomains  = [7 2]; %nx ny
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
@@ -832,7 +833,7 @@ classdef EIFEMtesting < handle
             end
          end   
          
-         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P,tol)
+         function [x,residual,err,errAnorm] = preconditionedConjugateGradient(obj,A,B,xsol,P,tol,x0)
             iter = 0;
             n = length(B);
             x = zeros(n,1);
@@ -1088,11 +1089,11 @@ classdef EIFEMtesting < handle
          function z = multiplePrec(obj,r,P1,P2,P3,A)
             z1 = P1(r);
             r  = r-A(z1);                
-            z2 = P2(r,A);              
-%             r  = r-A(z2);
-%             z3 = P3(r,A);
-%             z  = z1+z2+z3; 
-            z  = z1+z2;
+            z2 = P2(r);              
+            r  = r-A(z2);
+            z3 = P3(r);
+            z  = z1+z2+z3; 
+
          end        
 
         function z = additivePrec(obj,r,P1,P2,A)
