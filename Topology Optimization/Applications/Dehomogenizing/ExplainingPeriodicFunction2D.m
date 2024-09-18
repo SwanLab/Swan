@@ -33,8 +33,8 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.2;
-            obj.nCells   = 4;
+            obj.meshSize = 1;
+            obj.nCells   = 2;
             obj.xmin = 0;
             obj.xmax = 1;
             obj.ymin = 0;

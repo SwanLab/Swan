@@ -40,12 +40,6 @@ classdef LevelSetPeriodicAndOriented < handle
             end
         end
 
-        function mF = getFineMesh(obj)
-            fMesh = obj.remesher.fineContMesh;
-            %mF = fMesh.createDiscontinuousMesh();
-            mF = fMesh;
-        end
-
     end
 
     methods (Access = protected)
@@ -75,7 +69,7 @@ classdef LevelSetPeriodicAndOriented < handle
 
         function createRemesher(obj)
             s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels =  2;
+            s.nLevels =  1;
             r  = Remesher(s);
             r.remesh();
             obj.remesher = r;
@@ -97,7 +91,7 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = createCellLevelSet(obj)
-            s.mesh     = obj.getFineMesh();
+            s.mesh     = obj.remesher.fineContMesh;
             s.evaluate = @(xV) obj.rectangle(xV);
             s.ndimf    = 1;
             f  = AbstractL2Function(s);
@@ -206,7 +200,7 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = abs(cos(pi*(y))).^2;
+            f = abs(cos(pi*(y)));%.^2;
           %  f = (y - floor(y));
         end
 
