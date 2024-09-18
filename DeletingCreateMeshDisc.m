@@ -20,6 +20,7 @@ classdef DeletingCreateMeshDisc < handle
             m = obj.mesh.createDiscontinuousMesh();
             fC = obj.createP1Function();
             fD = fC.project('P2');
+            fD.plot()
         end
         
     end

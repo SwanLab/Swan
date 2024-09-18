@@ -112,7 +112,6 @@ classdef P1DiscontinuousFunction < FeFunction
         end
         
         function fFine = refine(obj, m, mFine)
-         %   mFineD = mFine.createDiscontinuousMesh();
             f = obj.fValues;
             for iDim = 1:obj.ndimf
             fI = f(iDim,:,:);
@@ -172,10 +171,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            %fD = obj.getFvaluesAsVector();
-            fD = obj.reshapeAsVector(obj.fValues);            
-            coordD = obj.getCoord();
-            coordD = obj.reshapeAsVector(coordD);            
+            fD     = obj.reshapeAsVector(obj.fValues);            
+            coordD = obj.reshapeAsVector(obj.coord);            
             x = coordD(:,1);
             y = coordD(:,2);
             figure()
@@ -246,22 +243,27 @@ classdef P1DiscontinuousFunction < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function createDOFCoordConnec(obj)
+        function createDOFConnec(obj)
             nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
             nodes  = 1:nNodes;
             c      = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-            ndims = size(obj.mesh.coord, 2);
-
-            conn = obj.mesh.connec;
-            f = obj.mesh.coord;
-            nNode  = size(conn,2);
-            nDime  = size(f,2);
-            nodes = reshape(conn',1,[]);
-            fe = f(nodes,:)';
-            fVals = reshape(fe,nDime,nNode,[]);
-
-            obj.coord = fVals;
             obj.connec = c;
+        end
+
+        function createDOFCoord(obj)
+            conn   = obj.mesh.connec;
+            coordC = obj.mesh.coord;
+            nNode = size(conn,2);
+            nDime = size(coordC,2);
+            nodes = reshape(conn',1,[]);
+            fe    = coordC(nodes,:)';
+            coorD = reshape(fe,nDime,nNode,[]);
+            obj.coord = coorD;
+        end
+    
+        function createDOFCoordConnec(obj)
+          obj.createDOFCoord();
+          obj.createDOFConnec()                      
         end
 
         function ord = orderTextual(obj)
