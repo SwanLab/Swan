@@ -9,6 +9,7 @@ classdef P1DiscontinuousFunction < FeFunction
     
     properties (Access = private)
         connec
+        coord
     end
     
     methods (Access = public)
@@ -17,7 +18,7 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.init(cParams)
             obj.order = '1';
             obj.createInterpolation();
-            obj.connec = obj.computeDiscontinuousConnectivities();
+            obj.createDOFCoordConnec();            
         end
 
         function fxV = evaluate(obj, xV)
@@ -41,8 +42,12 @@ classdef P1DiscontinuousFunction < FeFunction
         end  
 
         function c = getConnec(obj)
-            c = obj.computeDiscontinuousConnectivities();
+            c = obj.connec;
         end        
+
+        function c = getCoord(obj)
+            c = obj.coord;
+        end
 
         function N = computeShapeFunctions(obj, xV)
             N = obj.interpolation.computeShapeFunctions(xV);
@@ -141,11 +146,16 @@ classdef P1DiscontinuousFunction < FeFunction
             dofConnec = dofsElem;
         end
 
-        function fV = getFvaluesAsVector(obj)
-            ndims   = size(obj.fValues, 1);
+        function fR = getFvaluesAsVector(obj)
+            f  = obj.fValues;
+            fR = obj.reshapeAsVector(f);
+        end
+
+        function fR = reshapeAsVector(obj,fValues)
+            ndims   = size(fValues, 1);
             nelem   = size(obj.mesh.connec, 1);
             nnodeEl = size(obj.mesh.connec, 2);
-            fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
+            fR = reshape(fValues, [ndims, nelem*nnodeEl])';
         end
 
         function isDofCont = isDofContinous(obj,iElem,idof)
@@ -162,15 +172,17 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            fD = obj.getFvaluesAsVector();
-            mD = obj.mesh.createDiscontinuousMesh();
-            x = mD.coord(:,1);
-            y = mD.coord(:,2);
+            %fD = obj.getFvaluesAsVector();
+            fD = obj.reshapeAsVector(obj.fValues);            
+            coordD = obj.getCoord();
+            coordD = obj.reshapeAsVector(coordD);            
+            x = coordD(:,1);
+            y = coordD(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                a = trisurf(mD.connec,x,y,double(z));
+                a = trisurf(obj.connec,x,y,double(z));
                 view(0,90)
                 colorbar
                 shading interp
@@ -234,10 +246,22 @@ classdef P1DiscontinuousFunction < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function connec = computeDiscontinuousConnectivities(obj)
+        function createDOFCoordConnec(obj)
             nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
             nodes  = 1:nNodes;
-            connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+            c      = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+            ndims = size(obj.mesh.coord, 2);
+
+            conn = obj.mesh.connec;
+            f = obj.mesh.coord;
+            nNode  = size(conn,2);
+            nDime  = size(f,2);
+            nodes = reshape(conn',1,[]);
+            fe = f(nodes,:)';
+            fVals = reshape(fe,nDime,nNode,[]);
+
+            obj.coord = fVals;
+            obj.connec = c;
         end
 
         function ord = orderTextual(obj)

@@ -35,8 +35,7 @@ classdef LagrangianPlotter < handle
                 x = c(:,1);
                 y = c(:,2);
                 z = s.func.fValues(:,idim);
-                T = delaunay(x,y);
-                T2 = s.mesh.connec;
+                T = s.mesh.connec;
                 a = trisurf(T,x,y,z);
                 
                 view(0,90)
