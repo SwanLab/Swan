@@ -34,13 +34,13 @@ classdef Remesher < handle
                 s.coord  = obj.computeCoords();
                 s.connec = obj.computeConnectivities();
                 mC = Mesh.create(s);
-                m = mC.createDiscontinuousMesh();
-                obj.mesh = m;
+                mD = mC.createDiscontinuousMesh();
+                obj.mesh = mD;
                 obj.cellsToRemesh = 1:obj.mesh.nelem;
             end
             obj.fineMesh     = obj.mesh;
             obj.fineContMesh = mC;
-            obj.mesh     = m0;
+            obj.mesh         = m0;
             obj.cellsToRemesh = 1:obj.mesh.nelem;
         end
 

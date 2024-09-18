@@ -40,6 +40,10 @@ classdef LevelSetPeriodicAndOriented < handle
             end
         end
 
+        function fM = getFineMesh(obj)
+           fM = obj.remesher.fineContMesh;
+        end
+
     end
 
     methods (Access = protected)
@@ -86,7 +90,7 @@ classdef LevelSetPeriodicAndOriented < handle
             s.fValues = yT;
             s.mesh    = obj.deformedCoord.mesh;
             yF        = P1DiscontinuousFunction(s);
-            yF        = yF.project('P1');
+            %yF        = yF.project('P1');
             obj.cellCoord = yF;
         end
 
@@ -200,8 +204,8 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = abs(cos(pi*(y)));%.^2;
-          %  f = (y - floor(y));
+          %  f = abs(cos(pi*(y)));%.^2;
+            f = (y - floor(y));
         end
 
     end
