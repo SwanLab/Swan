@@ -116,7 +116,6 @@ classdef ComplianceFunctionalComputer < handle
             obj.computeBetaAndAlpha();
             obj.computeLameParameters();
 
-            e = obj.computeStrain();
             C = [obj.la0+2*obj.mu0 0 obj.la0; 0 2*obj.mu0 0; obj.la0 0 obj.la0+2*obj.mu0];
             E = obj.young;
             a = obj.alpha;
