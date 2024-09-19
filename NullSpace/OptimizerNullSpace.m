@@ -171,10 +171,10 @@ classdef OptimizerNullSpace < Optimizer
             x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 1000;
+                factor = 50;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 3;
+                factor = 1.01;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
