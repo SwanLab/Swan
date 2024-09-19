@@ -15,6 +15,13 @@ classdef ComplianceFunctionalComputer < handle
 % un isotropic 2d material... però clar.. el dC necessita diferents
 % materials, aleshores ???
 
+% ToDo:
+% - Nova classe ComplianceFunctionalMultiMat per composició amb ComplianceFunctional (smoothgradient és realment el nou computeGradient de la nova classe)
+% - Per compliance i volume podem fer classe a part per la regla de la cadena
+% - 128-140 ComplianceFunctional computer, alpha, beta --> interpolador i surt dmu i dkappa
+% - Strain com ho fem nosaltres
+% - Eliminar 119
+
     properties (Access = public)
         J
         dJ
