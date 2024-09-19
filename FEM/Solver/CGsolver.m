@@ -21,9 +21,11 @@ classdef CGsolver < handle
             obj.prepareProblem(A);
             tol = 1e-5;
             maxit = 15000;
-            M = obj.computePreConditionerMatrix(A,'ILU0');
             tic;
-            x = pcg(A,b,tol,maxit,M,M',obj.x0); 
+            %P = obj.computePreConditionerMatrix(A,'JACOBI');
+            P = obj.computePreConditionerMatrix(A,'ILU0');
+            Af = @(x) A*x;            
+            x = obj.computeConjugateGradient(Af,b,P,tol,obj.x0,maxit);
             toc;
             obj.x0 = x;
         end
@@ -41,21 +43,64 @@ classdef CGsolver < handle
                 obj.x0 = zeros(n, 1);
             end
         end
+
+        function P = computePreConditionerMatrix(obj,A,type)
+            switch type
+                case 'IDENTITY'
+                    P = @(r) r;
+                case 'ILU0'
+                    Lchol = ichol(A);
+                    P = @(r) obj.applyILU(r,Lchol);
+                case 'GAUSS-SEIDEL'
+                    P = tril(A);
+                case 'JACOBI'
+                    Ad = diag(A);
+                    P = @(r) r./Ad;
+            end
+        end        
+
+         function x = computeConjugateGradient(obj,A,b,P,tol,x0,maxit)
+            %x = pcg(A,b,tol,maxit,M,M',obj.x0); 
+            x = pcg(A,b,tol,maxit,P,[],x0); 
+           % x = obj.preconditionedConjugateGradient(A,b,P,tol,x0);
+        end
+
+
+        
+
     end
 
     methods (Static, Access = private)
-        function M = computePreConditionerMatrix(A,type)
-            switch type
-                case 'IDENTITY'
-                    n = size(A,1);
-                    M = sparse(1:n,1:n,ones(1,n),n,n);
-                case 'ILU0'
-                    M = ichol(A);
-                case 'GAUSS-SEIDEL'
-                    M = tril(A);
-                case 'JACOBI'
-                    M = sparse(diag(diag(A)));
+
+
+        function [x,residual] = preconditionedConjugateGradient(A,B,P,tol,x0)
+            iter = 0;
+            n = length(B);
+            x = x0;
+            r = B - A(x);
+            z = P(r);
+            p = z;
+            rzold = r' * z;
+            while norm(r) > tol
+                Ap = A(p);
+                alpha = rzold / (p' * Ap);
+                x = x + alpha * p;
+                r = r - alpha * Ap;
+                z = P(r);
+                rznew = r' * z;
+                beta  = (rznew / rzold);
+                p = z + beta * p;
+                rzold = rznew;
+                iter = iter + 1;
+                residual(iter) = norm(r);
             end
         end
+
+       function z = applyILU(r,Lchol)
+            z = Lchol\r;
+            z = (Lchol')\z;
+        end        
+
+
     end
 end
