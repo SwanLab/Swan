@@ -118,7 +118,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL';
+            s.interpolation  = 'SIMP_P3'; % SIMPALL, SIMP_P3
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
@@ -210,11 +210,12 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.7;
+            s.etaNorm        = 0.05;
+            s.gJFlowRatio    = 2;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            obj.designVariable.fun.print('densityNullSpaceLastIter','Paraview');
         end
 
         function bc = createBoundaryConditionsCube(obj)
@@ -233,10 +234,26 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForceXu(coor);
-            sPL{1}.direction = 1; % direccio x +
-            sPL{1}.value     = -1; % sentit -
+            sPL{1}.direction = 1;
+            sPL{1}.value     = -1;
 
-  
+            sPL{2}.domain    = @(coor) isForceYu(coor);
+            sPL{2}.direction = 2;
+            sPL{2}.value     = -1;
+
+            sPL{3}.domain    = @(coor) isForceYd(coor);
+            sPL{3}.direction = 2;
+            sPL{3}.value     = 1;
+
+            sPL{4}.domain    = @(coor) isForceZu(coor);
+            sPL{4}.direction = 3;
+            sPL{4}.value     = -1;
+
+            sPL{5}.domain    = @(coor) isForceZd(coor);
+            sPL{5}.direction = 3;
+            sPL{5}.value     = 1;
+
+
 
             dirichletFun = [];
             for i = 1:numel(sDir)

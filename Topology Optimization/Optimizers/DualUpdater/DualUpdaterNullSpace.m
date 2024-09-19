@@ -105,10 +105,9 @@ classdef DualUpdaterNullSpace < handle
             Dg              = Dg(:,isActive);
             DJ              = obj.cost.gradient;
             l               = zeros(obj.nConstr,1);
-            f = 1e-2; % Parameter multiplying lJ ADDED!!
             if ~isempty(g)
                 problem.H       = Dg'*Dg;
-                problem.f       = Dg'*(f*DJ+lUB-lLB)-eta*g;
+                problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
                 problem.solver  = 'quadprog';
                 problem.options = obj.options;
                 l(isActive)     = quadprog(problem);

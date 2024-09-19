@@ -41,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                obj.designVariable.fun.print(['densityNullSpaceIter',num2str(obj.nIter)],'Paraview');
+                %obj.designVariable.fun.print(['densityNullSpaceIter',num2str(obj.nIter)],'Paraview');
                 obj.designVariable.updateOld();
             end
         end
@@ -57,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
+            obj.etaMax         = Inf;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -132,10 +132,9 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function DxJ = computeNullSpaceFlow(obj)
-            DJ     = obj.cost.gradient;
-            Dg     = obj.constraint.gradient;
-            Prange = Dg*((Dg'*Dg)\Dg');
-            DxJ    = norm((eye(size(Prange))-Prange)*DJ);
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
         end
 
         function Dxg = computeRangeSpaceFlow(obj)
@@ -171,10 +170,10 @@ classdef OptimizerNullSpace < Optimizer
             x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 10;
+                factor = 25;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.2;
+                factor = 1.01;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
