@@ -51,6 +51,10 @@ classdef CGsolver < handle
                     M = sparse(1:n,1:n,ones(1,n),n,n);
                 case 'ILU0'
                     M = ichol(A);
+                case 'GAUSS-SEIDEL'
+                    M = tril(A);
+                case 'JACOBI'
+                    M = sparse(diag(diag(A)));
             end
         end
     end
