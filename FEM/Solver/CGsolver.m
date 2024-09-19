@@ -21,7 +21,7 @@ classdef CGsolver < handle
             obj.prepareProblem(A);
             tol = 1e-5;
             maxit = 15000;
-            M = obj.computePreConditionerMatrix(A,'IDENTITY');
+            M = obj.computePreConditionerMatrix(A,'ILU0');
             tic;
             x = pcg(A,b,tol,maxit,M,M',obj.x0); 
             toc;
@@ -49,6 +49,8 @@ classdef CGsolver < handle
                 case 'IDENTITY'
                     n = size(A,1);
                     M = sparse(1:n,1:n,ones(1,n),n,n);
+                case 'ILU0'
+                    M = ichol(A);
             end
         end
     end
