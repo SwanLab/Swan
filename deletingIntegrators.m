@@ -4,8 +4,7 @@ clc; clear; close all;
 
 % Test and trial
 mesh = UnitTriangleMesh(10,10);
-quad = Quadrature.set(mesh.type);
-quad.computeQuadrature('QUADRATIC');
+quad = Quadrature.create(mesh,2);
 xV = quad.posgp;
 
 ndimf = 2;
@@ -31,7 +30,7 @@ integ2 = squeezeParticular(sum(integ2,3),3);
 integ = openprod(integ,eye(ndimf));
 
 M = massmatrix(quad,mesh,test,trial);
-norm(integ(:)-M(:))
+% norm(integ(:)-M(:))
 
 %% Fake stiffness matrix
 clear dVolu
@@ -55,7 +54,7 @@ integ = Integral(operation, [test, trial], mesh, quad);
 s.test = test;
 s.trial = trial;
 s.mesh = mesh;
-s.quadratureOrder='QUADRATIC';
+s.quadratureOrder=2;
 s.type = 'StiffnessMatrix';
 K = LHSintegrator.create(s);
 K = K.compute();

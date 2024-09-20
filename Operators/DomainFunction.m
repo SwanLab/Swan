@@ -71,13 +71,6 @@ classdef DomainFunction < handle
             s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
-
-        function r = mtimes(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
-            r = DomainFunction(s);
-        end
         
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
