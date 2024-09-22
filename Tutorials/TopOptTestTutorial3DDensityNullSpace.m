@@ -168,7 +168,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.6;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
