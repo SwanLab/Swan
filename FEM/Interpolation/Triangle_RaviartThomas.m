@@ -48,11 +48,11 @@ classdef Triangle_RaviartThomas < Interpolation
             deriv(1,3,:,:,2) = O;
 
             deriv(2,1,:,:,1) = O;
-            deriv(2,1,:,:,1) = I;
+            deriv(2,1,:,:,2) = I;
             deriv(2,2,:,:,1) = O;
-            deriv(2,2,:,:,1) = I;
+            deriv(2,2,:,:,2) = I;
             deriv(2,3,:,:,1) = O;
-            deriv(2,3,:,:,1) = I;
+            deriv(2,3,:,:,2) = I;
         end
 
     end

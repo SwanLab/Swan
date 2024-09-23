@@ -30,7 +30,7 @@ classdef Projector_toNedelec < Projector
             s.test  = NedelecFunction.create(obj.mesh, 1, obj.order);
             s.trial = NedelecFunction.create(obj.mesh, 1, obj.order);
             % s.quadratureOrder = 'QUADRATIC'; % no
-            s.type  = 'MassMatrixN';
+            s.type  = 'MassMatrixVect';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end

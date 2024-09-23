@@ -30,7 +30,7 @@ classdef Projector_toRaviartThomas < Projector
             s.test  = RaviartThomasFunction.create(obj.mesh, 1, obj.order);
             s.trial = RaviartThomasFunction.create(obj.mesh, 1, obj.order);
             % s.quadratureOrder = 'QUADRATIC'; % no
-            s.type  = 'MassMatrixRT';
+            s.type  = 'MassMatrixVect';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end

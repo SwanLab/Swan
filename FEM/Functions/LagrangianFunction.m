@@ -16,7 +16,13 @@ classdef LagrangianFunction < FeFunction
         function obj = LagrangianFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-            obj.createDOFCoordConnec();
+
+            if not(contains(fieldnames(cParams),'dofs'))
+                obj.createDOFCoordConnec();
+            else
+                obj.connec = cParams.dofs.getDofs();
+                obj.nDofs = cParams.dofs.getNumberDofs();
+            end
         end
 
         function fxV = evaluate(obj, xV)
@@ -354,6 +360,7 @@ classdef LagrangianFunction < FeFunction
             c = DOFsComputer(s);
             c.computeDofs();
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
+            s.dofs = c;
             pL = LagrangianFunction(s);
         end
 

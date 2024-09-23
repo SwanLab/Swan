@@ -16,7 +16,14 @@ classdef RaviartThomasFunction < FeFunction
         function obj = RaviartThomasFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-            obj.createDOFCoordConnec();
+
+            if not(contains(fieldnames(cParams),'dofs'))
+                obj.createDOFCoordConnec();
+            else
+                obj.connec = cParams.dofs.getDofs();
+                obj.nDofs = cParams.dofs.getNumberDofs();
+            end
+            
         end
 
         function fxV = evaluate(obj, xV)
@@ -90,6 +97,19 @@ classdef RaviartThomasFunction < FeFunction
                 mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*Jdet.*s;
             end
         end
+
+        function mapF = mapDerivFunction(obj, F, ~)
+            mapF = zeros([size(F),obj.mesh.nelem]);
+            J = obj.mesh.computeJacobian(0);
+
+            JGlob = pagetranspose(pageinv(J));
+            sides = obj.computeSidesOrientation();
+
+            for idof= 1:obj.nDofsElem
+                s(1,1,1,:) = sides(:,idof);
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*s;
+            end
+        end
         
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
@@ -99,14 +119,14 @@ classdef RaviartThomasFunction < FeFunction
             nPoints = size(xV, 2);
             invJ  = obj.mesh.computeInverseJacobian(xV);
             deriv = obj.computeShapeDerivatives(xV);
-            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem,nDimE);
             for iDimG = 1:nDimG
                 for kNodeE = 1:nNodeE
                     for jDimE = 1:nDimE
                         invJ_IJ   = invJ(iDimG,jDimE,:,:);
-                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:,:,:);
                         dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
-                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                        dShapes(iDimG,kNodeE,:,:,:) = dShapes(iDimG,kNodeE,:,:,:) + dShapes_KI;
                     end
                 end
             end
@@ -350,20 +370,86 @@ classdef RaviartThomasFunction < FeFunction
             ord = 1; % NO
         end
 
+
+        function loc = computeLocPointEdgeRef(obj)
+            type = obj.mesh.type;
+            switch type
+                case 'LINE'
+                    loc = [1 2];
+                case 'TRIANGLE'
+                    loc = [1 2 3];
+                case 'QUAD'
+                    loc = [1 2 3 4];
+                case 'TETRAHEDRA'
+                    loc = [1 1 1 2 2 3];
+                case 'HEXAHEDRA'
+                    loc = [1 4 1 2 2 3 3 4 5 8 6 7];
+            end
+        end
+
+
+        function sides = computeSidesOrientation(obj)
+            obj.mesh.computeEdges;
+            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+            sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
+            locPointEdgeRef = obj.computeLocPointEdgeRef();
+
+            for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                sides(:,iEdge) = (locPointEdge(:,iEdge)==locPointEdgeRef(iEdge)).*2-1;
+            end
+        end
+
+
         function sides = computeFaceletsOrientation(obj)
             if obj.mesh.ndim == 2
-                locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
-                sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
-                for ielem=1:obj.mesh.nelem
-                    sides(ielem,:) = ones(1,obj.mesh.edges.nEdgeByElem)-2.*(locPointEdge(ielem,:)~=1:obj.mesh.edges.nEdgeByElem);
-                end
+                sides = obj.computeSidesOrientation();
+
             elseif obj.mesh.ndim == 3
+                % coord = obj.mesh.coord;
+                % nodesInFaces = obj.mesh.faces.nodesInFaces;
+                % vecA = coord(nodesInFaces(:,2),:) - coord(nodesInFaces(:,1),:);
+                % vecB = coord(nodesInFaces(:,3),:) - coord(nodesInFaces(:,2),:);
+                % normGlob = cross(vecA,vecB);
+                % 
+                % normLoc = zeros([obj.mesh.nelem 3 4]);
+                % locNbFbE = obj.mesh.faces.localFacesInElem;
+                % xA = zeros([obj.mesh.nelem 3 3]);
+                % for i = 1:4
+                %     for j = 1:3
+                %         a = locNbFbE(i,j);
+                %         xA(:,:,j) = obj.mesh.coord(obj.mesh.connec(:,a),:);
+                %     end
+                %     vecAA = xA(:,:,2) - xA(:,:,1);
+                %     vecBB = xA(:,:,3) - xA(:,:,2);
+                %     normLoc(:,:,i) = cross(vecAA,vecBB);
+                % end
+                % 
+                % for i = 1:4
+                %     sides(:,i) = dot(normLoc(:,:,i),normGlob(obj.mesh.faces.facesInElem(:,i),:),2) > 0;
+                % end
+                % sides = sides*2 - 1;
+
                 sides = -ones(size(obj.mesh.faces.facesInElem));
-                for value = 1:size(obj.mesh.faces.nodesInFaces,1)
-                    first = find(obj.mesh.faces.facesInElem == value, 1, 'first');
-                    sides(first) = 1;
-                end
+                [~, firstOccurrences] = ismember(1:size(obj.mesh.faces.nodesInFaces, 1), obj.mesh.faces.facesInElem);
+                sides(firstOccurrences(firstOccurrences > 0)) = 1;
             end
+        end
+
+        function edgesByFace = computeEdgesByFace(obj)
+            face_connectivities = obj.mesh.faces.nodesInFaces;
+            edge_connectivities = obj.mesh.edges.nodesInEdges;
+
+            n_faces = size(face_connectivities, 1);
+            n_edges_by_face = 3;
+            face_edges_combinations = [
+                face_connectivities(:, [1 2]);
+                face_connectivities(:, [2 3]);
+                face_connectivities(:, [1 3])
+            ];
+            sorted_face_edges_combinations = sort(face_edges_combinations, 2);
+            sorted_edge_connectivities = sort(edge_connectivities, 2);
+            [~, face_edge_indices] = ismember(sorted_face_edges_combinations, sorted_edge_connectivities, 'rows');
+            edgesByFace = reshape(face_edge_indices, n_faces, n_edges_by_face);
         end
         
     end
@@ -377,6 +463,7 @@ classdef RaviartThomasFunction < FeFunction
             c = DOFsComputerRaviartThomas(s);
             c.computeDofs();
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
+            s.dofs = c;
             pL = RaviartThomasFunction(s);
         end
 
@@ -405,7 +492,6 @@ classdef RaviartThomasFunction < FeFunction
             c.computeDofs();
             obj.connec = c.getDofs();
             obj.nDofs = c.getNumberDofs();
-            obj.connecOri = c.getDofsOrientation();
         end
 
         function f = computeFunctionInEdges(~,m,fNodes)

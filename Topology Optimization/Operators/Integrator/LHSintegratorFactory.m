@@ -6,14 +6,14 @@ classdef LHSintegratorFactory < handle
            switch cParams.type
                case 'MassMatrix'
                    obj = LHSintegrator_Mass(cParams);
-               case 'MassMatrixRT'
-                   obj = LHSintegrator_Mass_RT(cParams); % NO
-               case 'MassMatrixN'
-                   obj = LHSintegrator_Mass_N(cParams); % NO
+               case 'MassMatrixVect'
+                   obj = LHSintegrator_Mass_Vect(cParams);
                case 'BoundaryMassMatrix'
                    obj = LHSintegrator_MassBoundary(cParams);
                case 'StiffnessMatrix'
                    obj = LHSintegrator_Stiffness(cParams);
+               case 'StiffnessMatrixVect'
+                   obj = LHSintegrator_Stiffness_Vect(cParams);
                case 'ElasticStiffnessMatrix'
                    obj = LHSintegrator_StiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'

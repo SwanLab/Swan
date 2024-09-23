@@ -9,7 +9,6 @@ classdef DOFsComputerNedelec < handle
         ndimf
         mesh
         interp
-        dofsOrientation
     end
     
     methods (Access = public)
@@ -21,8 +20,6 @@ classdef DOFsComputerNedelec < handle
         
         function computeDofs(obj)
             obj.computeDofsPriv();
-            obj.refineDofs();
-            obj.computeDofsOrientation();
         end
         
         
@@ -33,10 +30,6 @@ classdef DOFsComputerNedelec < handle
         
         function dofs = getDofs(obj)
             dofs = obj.dofs;
-        end
-
-        function dofsOri = getDofsOrientation(obj)
-            dofsOri = obj.dofsOrientation;
         end
         
     end
@@ -56,7 +49,14 @@ classdef DOFsComputerNedelec < handle
         function computeDofsPriv(obj)
             dofsEdges = obj.computeDofsEdges();
             obj.dofs = dofsEdges;
+            obj.ndofs = max(max(dofsEdges));
         end
+        
+        function result = vectorUnion(~, v, n, fl)
+            result = v + (0:n-1);
+            result(fl,:) = flip(result(fl,:),2);
+        end
+
         
         function dofsEdges = computeDofsEdges(obj)
             m = obj.mesh;
@@ -65,62 +65,18 @@ classdef DOFsComputerNedelec < handle
             ndofEdge = 1;
             ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
             
-            dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
+            dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem*ndofEdge);
             locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
             locPointEdgeRef = obj.computeLocPointEdgeRef();
 
-            for iElem = 1:obj.mesh.nelem
-                for iEdge = 1:obj.mesh.edges.nEdgeByElem
-                    ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
-                    if locPointEdge(iElem,iEdge)~=locPointEdgeRef(iEdge)
-                        ind = flip(ind);
-                    end
-                    dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
-                end
+            for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
+                fl = locPointEdge(:,iEdge)~=locPointEdgeRef(iEdge);
+                v = edges(:,iEdge)*ndofEdge-(ndofEdge-1);
+                dofsEdges(:,ind) = obj.vectorUnion(v, length(ind), fl);
             end
         end
 
-
-        function computeDofsOrientation(obj)
-
-            m = obj.mesh;
-            m.computeEdges();
-            ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
-
-            dofsOri = ones(obj.mesh.nelem,ndofsEdgeElem);
-            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
-            locPointEdgeRef = obj.computeLocPointEdgeRef();
-
-            for iElem = 1:obj.mesh.nelem
-                for iEdge = 1:obj.mesh.edges.nEdgeByElem
-                    if locPointEdge(iElem,iEdge)~=locPointEdgeRef(iEdge)
-                        dofsOri(iElem,iEdge) = -1;
-                    end
-                end
-            end
-
-            obj.dofsOrientation = dofsOri;
-
-        end
-
-
-        function refineDofs(obj)
-            dofsDim =  obj.dofs;
-            nDimf  = obj.ndimf;
-            nNode  = size(dofsDim, 2);
-            nDofsE = nNode*nDimf;
-            dofsElem  = zeros(nDofsE,size(dofsDim,1));
-            for iNode = 1:nNode
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = dofsDim(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            obj.dofs = dofsElem';
-            obj.ndofs = max(max(obj.dofs));
-        end
         
         function loc = computeLocPointEdgeRef(obj)
             type = obj.mesh.type;
