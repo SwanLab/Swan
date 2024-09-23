@@ -154,7 +154,6 @@ classdef MultimaterialTesting < handle
             s.bc = obj.bc;
             c = ComplianceFunctionalComputer(s);
             obj.compliance = c;
-            %obj.compliance = c.computeFunctionAndGradient(obj.designVariable);
         end
 
          function createVolumeConstraint(obj)
