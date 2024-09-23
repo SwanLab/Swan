@@ -16,6 +16,7 @@ classdef FemDataContainer < AbstractSettings
         interpolationType
         solverType = 'REDUCED';
         solverMode = 'DISP';
+        solverCase = 'DIRECT';
         newBC
         boundaryConditions
     end
@@ -64,8 +65,8 @@ classdef FemDataContainer < AbstractSettings
         function createMaterial(obj,cParams)
             E1        = 1;
             nu1       = 1/3;
-            E         = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            E         = AnalyticalFunction.create(@(x) E1*ones(size(x,[2,3])),1,obj.mesh);
+            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(x,[2,3])),1,obj.mesh);
             s.ptype   = obj.type;
             s.pdim    = obj.dim;
             s.nelem   = obj.nelem;

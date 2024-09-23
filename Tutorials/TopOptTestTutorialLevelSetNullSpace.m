@@ -103,6 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'rMINRES';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end

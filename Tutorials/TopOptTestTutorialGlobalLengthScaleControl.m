@@ -116,6 +116,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -204,7 +205,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filterCompliance.compute(f,'LINEAR');            
+            f = obj.filterCompliance.compute(f,1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
