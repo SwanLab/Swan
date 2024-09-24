@@ -128,13 +128,17 @@ classdef ComplianceFunctionalComputer < handle
                     CvDC2 = pagemtimes(CvDC,C);
                     dC(:,:,:,i,j) = CvDC2;
 
-                    % for k=1:size(e,2)
-                    %     coefMatrix = [4*c1(k)+c2(k) 0 c2(k); 0 8*c1(k) 0; c2(k) 0 4*c1(k)+c2(k)]; 
-                    %     dC(:,:,k,i,j) = C*coefMatrix*C;
-                    % end
                 end
             end
-           % norm(dC2(:)-dC(:))
+
+            sC.E = E;
+            sC.C0 = [];
+            sC.nu1 = obj.mat.A.nu;
+            intMat = MultiMaterialInterpolation(sC);
+            [dmu,dkappa] = intMat.computeConsitutiveTensorDerivative(x);
+
+            % Pending to double check with a double for and creating an
+            % isotorpic 2d mat
         end
 
         function solveFEM(obj,C)
@@ -192,7 +196,8 @@ classdef ComplianceFunctionalComputer < handle
             nu = obj.mat.A.nu;
             E1 = obj.mat.B.young;
         
-            obj.la0 = nu.*E1./((1+nu).*(1-2.*nu)); obj.mu0 = E1./(2.*(1+nu)); % plane strain
+            obj.la0 = nu.*E1./((1+nu).*(1-2.*nu));
+            obj.mu0 = E1./(2.*(1+nu)); % plane strain
             obj.la0 = 2.*obj.mu0.*obj.la0./(obj.la0+2.*obj.mu0); % plane stress 
 
         end
