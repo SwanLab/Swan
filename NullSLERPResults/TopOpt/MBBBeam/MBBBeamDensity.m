@@ -170,7 +170,7 @@ classdef MBBBeamDensity < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.005;
             s.gJFlowRatio    = 0.5;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
