@@ -35,11 +35,7 @@ classdef MultiLevelSet < handle
 
         function plot(obj)
             if obj.plotting
-                s.psi            = reshape(obj.fun.fValues,[],length(obj.levelSets));
-                s.designVariable = obj;
-                s.mesh           = obj.mesh;
-
-                charfun = MultiMaterialCharacteristicFunction(s);
+                charfun = obj.obtainDomainFunction();
                 [fi,~]  = charfun.computeAtNodesAndElements();
                 p          = obj.mesh.coord';
                 t          = obj.mesh.connec';
@@ -56,9 +52,9 @@ classdef MultiLevelSet < handle
         end
 
         function charFun = obtainDomainFunction(obj)
-            uMesh = obj.getUnfittedMesh();
-            m = obj.mesh;
-            charFun = CharacteristicFunction.create(m);
+            s.designVariable = obj;
+            s.mesh           = obj.mesh; 
+            charFun          = MultiMaterialCharacteristicFunction(s);
         end
 
         function m = getUnfittedMesh(obj)

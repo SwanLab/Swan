@@ -48,13 +48,7 @@ classdef ElasticTensorComputer < handle
         end
 
         function computeCharacteristicFunction(obj)
-            % s.p = obj.mesh.p;
-            % s.t = obj.mesh.t;
-            s.pdeCoeff = obj.pdeCoeff; 
-            s.designVariable = obj.designVariable;
-            s.mesh = obj.m;
-
-            charfun = MultiMaterialCharacteristicFunction(s); 
+            charfun = obj.designVariable.obtainDomainFunction();
             [~,tfi] = charfun.computeAtNodesAndElements();
             obj.charFunc = tfi;
         end

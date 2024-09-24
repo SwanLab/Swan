@@ -34,10 +34,7 @@ classdef VolumeConstraintComputer < handle
         end
 
         function computeCharacteristicFunction(obj,x)
-            s.designVariable = x;
-            s.mesh           = obj.mesh;
-    
-            charfun          = MultiMaterialCharacteristicFunction(s); 
+            charfun          = x.obtainDomainFunction(); 
             [~,obj.tfi]         = charfun.computeAtNodesAndElements();
         end
 
@@ -106,10 +103,7 @@ classdef VolumeConstraintComputer < handle
         end
 
         function dt = smoothingAndChainRuleComputing(obj,TD,x)
-            s.designVariable = x;
-            s.mesh           = obj.mesh;
-
-            charfun = MultiMaterialCharacteristicFunction(s);
+            charfun = x.obtainDomainFunction();
             [~,tfiFun] = charfun.computeAtNodesAndElements();
             tfi = tfiFun.fValues';
             psi2 = x.levelSets{1,2}.fun.fValues;
