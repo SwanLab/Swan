@@ -114,7 +114,7 @@ classdef Optimizer < handle
 
 
 
-            gifName = 'NullSLERPResults/TopOpt/MBBBeam/DensityComparison/gJ1_V0d2';
+            gifName = 'NullSLERPResults/TopOpt/MBBBeam/DensityComparison/gJ2_V0d2';
 
 
 
