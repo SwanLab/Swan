@@ -114,7 +114,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
 
             E1 = 1;
-            nu1 = 0.499;
+            nu1 = 0.49;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
