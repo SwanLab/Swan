@@ -56,7 +56,9 @@ classdef TestingContinuumDamage < handle
         end
         
         function results = compute(obj)
-            %%%%%%%%% POSAR TOT EL QUE NECESSITES
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.bc;
+            s.material = obj.material;
             comp = ContinuumDamageComputer(s);
             results = comp.compute();
         end
