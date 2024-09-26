@@ -1,9 +1,0 @@
-{
-    "nSteps": 5,
-    "VfracInitial": 0.4,
-    "VfracFinal": 0.2,
-    "constrInitial": 1e-2,
-    "constrFinal": 1e-3,
-    "optimalityInitial": 1e-2,
-    "optimalityFinal": 1e-3
-}

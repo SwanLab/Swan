@@ -1,7 +1,0 @@
-{
-    "constraintCase": "INEQUALITY",
-    "nConstr": 1,
-    "maxIter": 1e3,
-"shallPrint": false,
-"printMode": "DesignAndShape"
-}

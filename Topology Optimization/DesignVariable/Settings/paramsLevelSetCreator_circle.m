@@ -1,1 +1,0 @@
-levelSetType = 'circle';

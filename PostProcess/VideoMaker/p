@@ -1,6 +1,0 @@
-Mescape Files ReadMultiple -rebuildIndex:0 " /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest0.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest1.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest2.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest3.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest4.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest5.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest6.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest7.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest8.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest9.flavia.res /home/alex/git-repos/Swan/Output/PerimeterVolumeTest/PerimeterVolumeTest10.flavia.res"
-
-'Zoom Frame Mescape
-'AnimationFile Format GIF 
-'AnimationFile FramesPerStep 5 Mescape 
-'AnimationFile Start $arg2 Yes Mescape

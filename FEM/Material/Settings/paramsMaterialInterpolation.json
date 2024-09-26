@@ -1,7 +1,0 @@
-{
-    "typeOfMaterial": "ISOTROPIC",
-    "interpolation": "SIMPALL",
-    "dim": "2D",
-    "type": "ByInterpolation",
-    "simpAllType": "EXPLICIT"
-}

@@ -1,9 +1,0 @@
-interpParams = SettingsInterpolation();
-levelSetCreatorParams = SettingsLevelSetCreator();
-volumeShFuncParams = SettingsShapeFunctional();
-elementDensityCreatorType = 'ElementalDensityCreatorByLevelSetCreator';
-outFileName = 'RVE_Square_Triangle_Fine';
-testName = 'RVE_Square_Triangle_Fine.m';
-print = false;
-iter = 0;
-pdim = '2D';
