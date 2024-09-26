@@ -93,7 +93,7 @@ classdef LagrangianFunction < FeFunction
             dNdx = dShapes;
         end
 
-        function ord = orderTextual(obj)
+        function ord = getOrderInText(obj)
             switch obj.order
                 case 'P0'
                     ord = 'CONSTANT';
@@ -111,55 +111,18 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            switch obj.order
-                case 'CONSTANT'
-                    f = obj.project('P1D');
-                    f.plot()
-
+            s.coord   = obj.getCoord();
+            s.order   = obj.getOrderInText();
+            s.fValues = obj.fValues;
+            switch obj.getOrderInText()
                 case 'LINEAR'
-                    switch obj.mesh.type
-                        case {'TRIANGLE','QUAD'}
-                            x = obj.coord(:,1);
-                            y = obj.coord(:,2);
-                            figure()
-                            for idim = 1:obj.ndimf
-                                subplot(1,obj.ndimf,idim);
-                                z = obj.fValues(:,idim);
-                                a = trisurf(obj.connec,x,y,z);
-                                view(0,90)
-                                %             colorbar
-                                shading interp
-                                a.EdgeColor = [0 0 0];
-                                title(['dim = ', num2str(idim)]);
-                            end
-                        case 'LINE'
-                            x = obj.mesh.coord(:,1);
-                            y = obj.fValues;
-                            figure()
-                            plot(x,y)
-                    end
-
+                    s.connec  = obj.getConnec();
                 otherwise
-                    figure()
-                    for idim = 1:obj.ndimf
-                        subplot(1,obj.ndimf,idim);
-                        hold on
-                        c = obj.getCoord();
-                        x = c(:,1);
-                        y = c(:,2);
-                        z = obj.fValues(:,idim);
-                        %better to remesh (now only plotting the linear part)
-                        T = obj.mesh.connec; 
-                        a = trisurf(T,x,y,z);
-                        view(0,90)
-                        colorbar
-                        shading interp
-                        grid on
-                        title(['dim = ', num2str(idim)]);
-                        a.EdgeColor = [0 0 0];
-                        a.EdgeColor = [0 0 0];
-                    end
+                    %better to remesh (now only plotting the linear part)                    
+                    s.connec = obj.mesh.connec;                         
             end
+          lP = LagrangianPlotter(s);
+          lP.plot();
         end
 
         function dofConnec = computeDofConnectivity(obj)
@@ -390,7 +353,7 @@ classdef LagrangianFunction < FeFunction
 
         function createInterpolation(obj)
             type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,obj.orderTextual());
+            obj.interpolation = Interpolation.create(type,obj.getOrderInText());
             obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
         end
 
