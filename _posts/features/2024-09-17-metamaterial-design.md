@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Metamaterial design
-subtitle: Swan is geared for the design of novel materials
+subtitle: Swan is geared for the design of novel materials with advanced properties
 author: Ton Creus Costa
 categories: feature
 ---

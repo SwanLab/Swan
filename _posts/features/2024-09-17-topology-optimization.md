@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Topology optimization
-subtitle: TO allows the design of optimal structures bla bla 
+subtitle: TO allows the design of optimal lightweight structures with various constraints 
 author: Ton Creus Costa
 categories: feature
 ---

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Lattice structures
-subtitle: Swan can design manufacturable lightweight solutions
+subtitle: Swan can design manufacturable lightweight solutions using dehomogenization techniques
 author: Ton Creus Costa
 categories: feature
 ---
