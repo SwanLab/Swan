@@ -2,7 +2,7 @@
 clc;
 clear;
 close all;
-addpath ../Codes;
+%addpath ../Codes;
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
@@ -13,7 +13,7 @@ hiddenLayers    = [3,2,1,2,3];
 
 %% INITIALIZATION 
 % try different feature combination, pairs of features enable the possibility of plotting boundaries
-s.fileName = '../Datasets/Iris.csv';
+s.fileName = 'Iris.csv';
 s.polynomialOrder = 1;
 s.testRatio       = 30;
 data = Data(s);

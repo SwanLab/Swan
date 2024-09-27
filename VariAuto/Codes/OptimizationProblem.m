@@ -18,7 +18,7 @@ classdef OptimizationProblem < handle
            obj.init(cParams);
            obj.createNetwork();
            obj.createCost();
-           obj.createPlotter();
+     %      obj.createPlotter();
            obj.createOptimizer();           
        end
 
@@ -94,7 +94,7 @@ classdef OptimizationProblem < handle
            s.network   = obj.network;
            s.data      = obj.data;
            s.costfunc  = obj.costFunc;
-           obj.plotter = Plotter(s);
+           obj.plotter = PlotterNetwork(s);
        end
          
    end
