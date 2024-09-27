@@ -4,6 +4,12 @@ classdef ContinuumDamageComputer < handle
         mesh
         boundaryConditions
         material
+
+        type
+        scale
+        solverType
+        solverMode
+        solverCase
     end
 
     methods (Access = public)
@@ -15,7 +21,7 @@ classdef ContinuumDamageComputer < handle
         function results = compute(obj)
             displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             K = obj.computeK(displacementFun);
-            F = obj.computeF(displacementFun);
+            F = obj.computeF(displacementFun,K);
             results = obj.computeU(K,F);
         end
     end
@@ -26,6 +32,11 @@ classdef ContinuumDamageComputer < handle
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material = cParams.material;
+            obj.type      = cParams.type;
+            obj.solverType = cParams.solverType; %MIRAR COM INFLUEIX!!!
+            obj.solverMode = cParams.solverMode;
+            obj.solverCase = cParams.solverCase;
+            obj.scale = cParams.scale;
         end
 
         function K = computeK(obj,dispFun)
@@ -41,10 +52,10 @@ classdef ContinuumDamageComputer < handle
             K = lhs.compute();
 
         end
-        function F = computeF(obj,displacementFun)
+        function F = computeF(obj,displacementFun,K)
 
-            s.type     = 'Elastic';
-            s.scale    = 'MACRO';
+            s.type     = obj.type;
+            s.scale    = obj.scale;
             s.dim      = obj.getFunDims(displacementFun);
             s.BC       = obj.boundaryConditions;
             s.mesh     = obj.mesh;
@@ -52,8 +63,14 @@ classdef ContinuumDamageComputer < handle
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            % NO Reactions where considered in this case
-            F = rhs;
+          
+            if strcmp(obj.solverType,'REDUCED')
+                R = RHSint.computeReactions(K);
+                F = rhs+R;
+            else
+                F = rhs;
+            end
+
         end
 
         function dim = getFunDims(obj,displacementFun)
@@ -66,10 +83,10 @@ classdef ContinuumDamageComputer < handle
         end
 
         function results = computeU(obj,K,F)
-            s.type      = 'DIRECT';
-            s.solverType = 'REDUCED'; %MIRAR COM INFLUEIX!!!
-            s.solverMode = 'DISP';
-            problemSolver = obj.createSolver(s);
+
+            s.solverType = obj.solverType; %MIRAR COM INFLUEIX!!!
+            s.solverMode = obj.solverMode;
+            problemSolver = obj.createSolver();
 
             t.stiffness = K;
             t.forces = F;
@@ -83,11 +100,11 @@ classdef ContinuumDamageComputer < handle
         %
         % end
 
-        function problemSolver = createSolver(obj,dataIn)
-            sS.type      = dataIn.type;
+        function problemSolver = createSolver(obj)
+            sS.type      = obj.solverCase;
             solver       = Solver.create(sS);
-            s.solverType = dataIn.solverType;
-            s.solverMode = dataIn.solverMode;
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
             s.solver     = solver;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.createBCApplier();

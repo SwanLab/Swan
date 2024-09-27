@@ -7,4 +7,11 @@ s.meshM = 10;
 s.bcVal = 1;
 s.E = 10;
 s.nu = 10;
-TestingContinuumDamage(s)
+s.type      = 'Elastic';
+s.solverType = 'REDUCED'; %MIRAR COM INFLUEIX!!!
+s.solverMode = 'DISP';
+s.solverCase = 'DIRECT';
+s.scale = 'MACRO';
+
+TEST = TestingContinuumDamage(s);
+TEST.compareWithElasticProblem(s);

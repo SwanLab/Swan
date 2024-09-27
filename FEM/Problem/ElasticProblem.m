@@ -43,6 +43,11 @@ classdef ElasticProblem < handle
             obj.computeStress();
         end
 
+        function u = outputDisplacement(obj)
+            obj.solve;
+            u = obj.computeDisplacement;
+        end
+
         function updateMaterial(obj, mat)
             obj.material = mat;
         end
@@ -73,7 +78,6 @@ classdef ElasticProblem < handle
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
             obj.scale       = cParams.scale;
-            obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;

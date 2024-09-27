@@ -13,10 +13,33 @@ classdef TestingContinuumDamage < handle
             obj.mesh     = obj.createMesh(cParams);
             obj.bc       = obj.createBoundaryConditions(cParams);
             obj.material = obj.createMaterial(cParams);
-            obj.results  = obj.compute();
+            obj.results  = obj.compute(cParams);
         end
-        
+
+    function compareWithElasticProblem(obj,dataIn)
+            s.mesh = obj.mesh;
+            s.material = obj.material;
+            s.boundaryConditions = obj.bc;
+            s.type = dataIn.type;
+            s.scale = dataIn.scale;
+            s.solverType = dataIn.solverType;
+            s.solverMode = dataIn.solverMode;
+            s.solverCase = dataIn.solverCase;
+
+            EP = ElasticProblem(s);
+            Ref = EP.outputDisplacement();
+            if (Ref == obj.results)
+                result = true;
+                fprintf ("Continuum Damage TEST: \nPASSED\n") %Optional message
+                disp ("-------------------")
+            else
+                disp ("Continuum Damage TEST:")
+                fprintf (2,'FAILED\n')
+                disp ("-------------------")
+            end
+
     end
+end
     
     methods (Access = private)
         
@@ -55,14 +78,18 @@ classdef TestingContinuumDamage < handle
             mat = Isotropic2dElasticMaterial(sMat);
         end
         
-        function results = compute(obj)
+        function results = compute(obj,dataIn)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.bc;
             s.material = obj.material;
+            s.type = dataIn.type;
+            s.scale = dataIn.scale;
+            s.solverType = dataIn.solverType;
+            s.solverMode = dataIn.solverMode;
+            s.solverCase = dataIn.solverCase;
+
             comp = ContinuumDamageComputer(s);
             results = comp.compute();
         end
-        
     end
-    
 end
