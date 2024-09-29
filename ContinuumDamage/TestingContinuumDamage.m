@@ -27,9 +27,10 @@ classdef TestingContinuumDamage < handle
             s.solverCase = dataIn.solverCase;
 
             EP = ElasticProblem(s);
-            Ref = EP.outputDisplacement();
+            Ref = EP.solve();
+           
             if (Ref == obj.results)
-                result = true;
+
                 fprintf ("Continuum Damage TEST: \nPASSED\n") %Optional message
                 disp ("-------------------")
             else
@@ -37,7 +38,6 @@ classdef TestingContinuumDamage < handle
                 fprintf (2,'FAILED\n')
                 disp ("-------------------")
             end
-
     end
 end
     
@@ -72,21 +72,21 @@ end
         end
         
         function mat = createMaterial(obj,s)
-            sMat.ndim    = 1;
+            sMat.ndim    = s.ndim;
             sMat.young   = AnalyticalFunction.create(@(x) s.E*ones(size(x,[2,3])),1,obj.mesh);
             sMat.poisson = AnalyticalFunction.create(@(x) s.nu*ones(size(x,[2,3])),1,obj.mesh);
             mat = Isotropic2dElasticMaterial(sMat);
         end
         
-        function results = compute(obj,dataIn)
+        function results = compute(obj,sSolver)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.bc;
             s.material = obj.material;
-            s.type = dataIn.type;
-            s.scale = dataIn.scale;
-            s.solverType = dataIn.solverType;
-            s.solverMode = dataIn.solverMode;
-            s.solverCase = dataIn.solverCase;
+            s.type = sSolver.type;
+            s.scale = sSolver.scale;
+            s.solverType = sSolver.solverType;
+            s.solverMode = sSolver.solverMode;
+            s.solverCase = sSolver.solverCase;
 
             comp = ContinuumDamageComputer(s);
             results = comp.compute();

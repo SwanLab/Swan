@@ -10,6 +10,9 @@ classdef ContinuumDamageComputer < handle
         solverType
         solverMode
         solverCase
+        quadOrder
+
+        ElasticFun
     end
 
     methods (Access = public)
@@ -19,58 +22,72 @@ classdef ContinuumDamageComputer < handle
         end
 
         function results = compute(obj)
-            displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            K = obj.computeK(displacementFun);
-            F = obj.computeF(displacementFun,K);
+            displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.quadOrder);
+            s.material = obj.material;
+            
+            s.u        = displacementFun;
+            s.mesh     = obj.mesh;
+            
+            obj.ElasticFun = shFunc_Elastic(s);
+            %aa = obj.ElasticFun.computeFunction(1)
+
+            K = obj.computeK();
+            F = obj.computeF();
+            
+            
             results = obj.computeU(K,F);
+
         end
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
+            obj.quadOrder = 'P1';
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material = cParams.material;
             obj.type      = cParams.type;
-            obj.solverType = cParams.solverType; %MIRAR COM INFLUEIX!!!
+            obj.solverType = cParams.solverType;
             obj.solverMode = cParams.solverMode;
             obj.solverCase = cParams.solverCase;
             obj.scale = cParams.scale;
         end
 
-        function K = computeK(obj,dispFun)
+        function K = computeK(obj)%,dispFun)
 
-            ndimf = dispFun.ndimf;
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = dispFun;
-            s.material = obj.material;
-            s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
-            K = lhs.compute();
-
+            % ndimf = dispFun.ndimf;
+            % s.type     = 'ElasticStiffnessMatrix';
+            % s.mesh     = obj.mesh;
+            % s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+            % s.trial    = dispFun;
+            % s.material = obj.material;
+            % s.quadratureOrder = 2;
+            % lhs = LHSintegrator.create(s);
+            % K = lhs.compute();
+            ord = obj.convertOrder();
+            K = obj.ElasticFun.computeJacobian(ord);
         end
-        function F = computeF(obj,displacementFun,K)
+        function F = computeF(obj)%,displacementFun,K)
 
-            s.type     = obj.type;
-            s.scale    = obj.scale;
-            s.dim      = obj.getFunDims(displacementFun);
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-          
-            if strcmp(obj.solverType,'REDUCED')
-                R = RHSint.computeReactions(K);
-                F = rhs+R;
-            else
-                F = rhs;
-            end
-
+            % s.type     = obj.type;
+            % s.scale    = obj.scale;
+            % s.dim      = obj.getFunDims(displacementFun);
+            % s.BC       = obj.boundaryConditions;
+            % s.mesh     = obj.mesh;
+            % s.material = obj.material;
+            % s.globalConnec = obj.mesh.connec;
+            % RHSint = RHSintegrator.create(s);
+            % rhs = RHSint.compute();
+            %
+            % if strcmp(obj.solverType,'REDUCED')
+            %     R = RHSint.computeReactions(K);
+            %     F = rhs+R;
+            % else
+            %     F = rhs;
+            % end
+            ord = obj.convertOrder();
+            F = obj.ElasticFun.computeHessian(ord);
         end
 
         function dim = getFunDims(obj,displacementFun)
@@ -82,15 +99,15 @@ classdef ContinuumDamageComputer < handle
             dim = d;
         end
 
-        function results = computeU(obj,K,F)
+        function u = computeU(obj,K,F)
 
             s.solverType = obj.solverType; %MIRAR COM INFLUEIX!!!
             s.solverMode = obj.solverMode;
-            problemSolver = obj.createSolver();
+            problemSolver = obj.createSolver(s);
 
             t.stiffness = K;
             t.forces = F;
-            results = problemSolver.solve(t);
+            u = problemSolver.solve(t);
 
         end
         % FOR INTERNAL MATERIA CREATION
@@ -117,6 +134,22 @@ classdef ContinuumDamageComputer < handle
             BC = BCApplier(s);
         end
 
-    end
+        function ord = convertOrder(obj,order)
+            if ischar(obj.quadOrder)
+                switch obj.quadOrder
+                    case 'P0'
+                        ord = 0;
+                    case 'P1'
+                        ord = 1;
+                    case 'P2'
+                        ord = 2;
+                    case 'P3'
+                        ord = 3;
+                end
+            else
+                ord = order;
+            end
+        end
 
+    end
 end

@@ -35,17 +35,12 @@ classdef ElasticProblem < handle
             obj.createSolver();
         end
 
-        function solve(obj)
+        function u = solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-            obj.computeDisplacement();
+            u=obj.computeDisplacement();
             obj.computeStrain();
             obj.computeStress();
-        end
-
-        function u = outputDisplacement(obj)
-            obj.solve;
-            u = obj.computeDisplacement;
         end
 
         function updateMaterial(obj, mat)
