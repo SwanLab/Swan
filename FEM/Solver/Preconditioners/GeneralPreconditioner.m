@@ -4,20 +4,15 @@ classdef GeneralPreconditioner < handle
 
     end
 
-    properties (Access = private)
-
-    end
+   
 
     properties (Access = private)
         EIFEMfilename
-        meshDomain
         boundaryConditions
         bcApplier
-        material
         meshReference
         interfaceMeshReference
         meshSubDomain
-        ninterfaces
         interfaceMeshSubDomain
         globalMeshConnecSubDomain
         interfaceMeshConnecSubDomain
@@ -44,8 +39,6 @@ classdef GeneralPreconditioner < handle
         solverCase
         
         displacementFun
-        LHS
-        RHS
         EIFEMsolver
         eigenModes
         Kmodal
@@ -53,11 +46,17 @@ classdef GeneralPreconditioner < handle
        
     end
 
+    properties (Access = private)
+        meshDomain
+        LHS
+        RHS
+        material
+    end    
+
     methods (Access = public)
 
-        function obj = GeneralPreconditioner()
-            close all
-            obj.init();
+        function obj = GeneralPreconditioner(cParams)
+            obj.init(cParams);
             obj.constructionObject()
         end
 
@@ -79,10 +78,6 @@ classdef GeneralPreconditioner < handle
             RGsbd = obj.computeSubdomainResidual(r);
             uSbd =  obj.EIFEMsolver.apply(RGsbd);
             z = obj.computeContinousField(uSbd);
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            %             z = r - LHS*z;
-            %             alpha =    0.659336578745820;% rN'*rN/(rN'*LHS*rN);
-            %             z= r + z;
         end
         
         function z = applyILU(obj,r)
@@ -117,7 +112,8 @@ classdef GeneralPreconditioner < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [5 1]; %nx ny
+
+
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
@@ -128,22 +124,10 @@ classdef GeneralPreconditioner < handle
             obj.weight       = 0.5;
         end
 
-         function createFineMesh(obj)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.meshReference;         
-            m = MeshCreatorFromRVE(s);
-            [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
-         end
-
         function constructionObject(obj)
-            obj.createReferenceMesh();
-            obj.createFineMesh();
 
-            obj.displacementFun      = LagrangianFunction.create(obj.meshDomain, obj.ndimf,obj.functionType);
-            [obj.boundaryConditions,Dir,PL] = obj.createBoundaryConditions(obj.meshDomain);
-            ss.mesh                  = obj.meshDomain;
-            ss.boundaryConditions    = obj.boundaryConditions;
-            obj.bcApplier            = BCApplier(ss);
+           % obj.displacementFun      = LagrangianFunction.create(obj.meshDomain, obj.ndimf,obj.functionType);
+
             obj.localGlobalDofConnec = obj.createlocalGlobalDofConnec();
             [obj.interfaceDof,obj.interfaceDom] = obj.computeLocalInterfaceDof();
 
@@ -152,10 +136,7 @@ classdef GeneralPreconditioner < handle
             %             obj.createDomainMaterial();
             %               obj.computeForces();
 
-            obj.material = obj.createMaterial(obj.meshDomain);
-            obj.LHS      = obj.computeStiffnessMatrix(obj.meshDomain,obj.displacementFun,obj.material);
-            obj.RHS      = obj.computeForces(obj.LHS);
-
+           
 
             meshDomainCoarse = obj.createCoarseMesh();
 % 
@@ -166,8 +147,7 @@ classdef GeneralPreconditioner < handle
             obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,Dir);
             %             obj.computeKEIFEMglobal();
 
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(obj.RHS);
+            
             Usol = LHS\RHS;
             obj.Lchol=ichol(LHS);
             obj.L = tril(LHS);
@@ -180,36 +160,7 @@ classdef GeneralPreconditioner < handle
 
         end
 
-        function createReferenceMesh(obj)
-            %             filename   = 'lattice_ex1';
-            %             a.fileName = obj.EIFEMfilename;
-            %             femD       = FemDataContainer(a);
-            %             mS         = femD.mesh;
-            %             bS         = mS.createBoundaryMesh();
-            %              % Generate coordinates
-            %             x1 = linspace(0,1,5);
-            %             x2 = linspace(0,1,5);
-            %             % Create the grid
-            %             [xv,yv] = meshgrid(x1,x2);
-            %             % Triangulate the mesh to obtain coordinates and connectivities
-            %             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            %
-            %             s.coord    = coord(:,1:2);
-            %             s.connec   = F;
-            %             mS         = Mesh.create(s);
-            %             bS         = mS.createBoundaryMesh();
-            load(obj.EIFEMfilename);
-            s.coord    = EIFEoper.MESH.COOR;
-            s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
-            s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
-            s.connec   = EIFEoper.MESH.CN;
-            mS         = Mesh.create(s);
-            bS         = mS.createBoundaryMesh();
-
-            obj.meshReference = mS;
-            obj.interfaceMeshReference = bS;
-            obj.ninterfaces = length(bS);
-        end
+ 
 
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
@@ -249,12 +200,6 @@ classdef GeneralPreconditioner < handle
         end
 
 
-        function createDomainMaterial(obj)
-            %             ngaus = 1;
-            m = obj.meshDomain;
-            obj.material = obj.createMaterial(m);
-        end
-
         function L = computeReferenceMeshLength(obj)
             coord = obj.meshReference.coord;
             Lx = max(coord(:,1));
@@ -262,68 +207,9 @@ classdef GeneralPreconditioner < handle
             L = [Lx Ly];
         end
 
-        function [Dir,PL] = createRawBoundaryConditions(obj)
-            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
-            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-            isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
-            isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
-            %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
-            Dir{1}.direction = [1,2];
-            Dir{1}.value     = 0;
+      
 
-            %             Dir{2}.domain    = @(coor) isRight(coor) ;
-            %             Dir{2}.direction = [2];
-            %             Dir{2}.value     = 0;
-
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = 2;
-            PL.value     = -0.1;
-        end
-
-        function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
-            [Dir,PL]  = obj.createRawBoundaryConditions();
-            dirichletFun = [];
-            for i = 1:numel(Dir)
-                dir = DirichletCondition(obj.meshDomain, Dir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-
-            pointload = PointLoad(mesh,PL);
-            % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*obj.ndimf,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,obj.ndimf,[])';
-            pointload.fun.fValues   = fvalues;
-
-            s.pointloadFun = pointload;
-            s.dirichletFun = dirichletFun;
-            s.periodicFun  =[];
-            s.mesh         = mesh;
-            bc             = BoundaryConditions(s);
-        end
-
-
-        function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            young   = E;
-            poisson = nu;
-        end
-
-        function material = createMaterial(obj,mesh)
-            [young,poisson] = obj.computeElasticProperties(mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
-            tensor    = Material.create(s);
-            material  = tensor;
-        end
+      
 
         function dim = getFunDims(obj)
             d.ndimf  = obj.displacementFun.ndimf;
@@ -335,48 +221,7 @@ classdef GeneralPreconditioner < handle
         end
 
 
-        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = LagrangianFunction.create(s.mesh,obj.ndimf, obj.functionType);
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
-        end
-
-
-        function forces = computeForces(obj,stiffness)
-            s.type      = 'Elastic';
-            s.scale     = 'MACRO';
-            %             s.dim       = obj.getFunDims();
-            s.dim.ndofs = obj.displacementFun.nDofs;
-            s.BC        = obj.boundaryConditions;
-            s.mesh      = obj.meshDomain;
-            s.material  = obj.material;
-            %             s.globalConnec = mesh.connec;
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            if strcmp(obj.solverCase,'REDUCED')
-                R = RHSint.computeReactions(stiffness);
-                forces = rhs+R;
-            else
-                forces = rhs;
-            end
-            F = obj.assembleVec();
-            %             forces = forces+F;
-        end
-
-        function rhs = assembleVec(obj)
-            f = -0.01*ones(obj.displacementFun.nDofsElem,1);
-            f(1:2:end) = 0;
-            F = repmat(f,[1,1,obj.meshDomain.nelem]);
-            s.fun  = obj.displacementFun; % !!!
-            assembler = AssemblerFun(s);
-            rhs = assembler.assembleV(F, s.fun);
-        end
+     
 
         function  localGlobalDofConnec = createlocalGlobalDofConnec(obj)
             ndimf = obj.displacementFun.ndimf;
@@ -451,12 +296,12 @@ classdef GeneralPreconditioner < handle
             end
         end
 
-        function eifem = createEIFEM(obj,meshDomainCoarse,Dir,Kfine)
-            RVE         = TrainedRVE(obj.EIFEMfilename);
+        function eifem = createEIFEM(obj,meshDomainCoarse,Dir)
+            filename   = 'DEF_Q4porL_1.mat';
+            RVE        = TrainedRVE(filename);
             s.RVE      = RVE;
             s.mesh     = meshDomainCoarse;
             s.DirCond  = Dir;
-%             s.Kfine    = Kfine;
             eifem      = EIFEM(s);
         end
 

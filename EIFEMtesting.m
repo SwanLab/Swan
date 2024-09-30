@@ -3,60 +3,39 @@ classdef EIFEMtesting < handle
     properties (Access = public)
 
     end
-
     properties (Access = private)
-
-    end
-
-    properties (Access = private)
-        EIFEMfilename
         meshDomain
         boundaryConditions
         bcApplier
-        material
-        meshReference
-        interfaceMeshReference
-        meshSubDomain
-        ninterfaces
-        interfaceMeshSubDomain
-        globalMeshConnecSubDomain
-        interfaceMeshConnecSubDomain
-        subDomainContact
-        cornerNodes
-        quad
-        interfaceConnec
-        locGlobConnec
-        localGlobalDofConnec
-        interfaceDof
-        interfaceDom
-        weight
-
-
-        eigenModes
-        Kmodal
-        MmodalPrecond
-        displacementFun
         LHS
         RHS
 
-        EIFEMsolver
-        refLHS
-        KeifemContinuous
-        EIFEMprojection
     end
+
+
+    properties (Access = private)
+        nSubdomains
+    end    
 
     methods (Access = public)
 
-       
 
 
         function obj = EIFEMtesting()
+            obj.init()
+
+            close all            
+            obj.createMeshDomain();
+            obj.createBoundaryConditions(obj.meshDomain);
+            obj.createBCapplier()
      
 %             obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
- 
-   
-            gP = GeneralPreconditioner();
+            [LHS,RHS] = obj.createElasticProblem();
+            s.LHS = LHS;
+            s.RHS = RHS;
+            s.mesh = obj.meshDomain;
+            gP = GeneralPreconditioner(s);
 
 
             LHSf = @(x) LHS*x;
@@ -122,13 +101,173 @@ classdef EIFEMtesting < handle
             xlabel('Iteration')
             ylabel('Energy norm')
 
+        end
+ 
+    end
+
+    methods (Access = private)
+
+        function init(obj)
+            obj.nSubdomains  = [5 1]; %nx ny
+        end        
+
+        function mD = createMeshDomain(obj)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = obj.createReferenceMesh();         
+            m = MeshCreatorFromRVE(s);
+            [mD,~,interfaceConnec,~,locGlobConnec] = m.create();
+            obj.meshDomain = mD;
+       end
 
 
+       function [mS,bS] = createReferenceMesh(obj)
+            [mS,bS] = obj.createStructuredMesh();
+        %    [mS,bS] = obj.createMeshFromGid();
+        %    [mS,bS] = obj.createEIFEMreferenceMesh();
+       end       
+       
 
+       function [mS,bS] = createMeshFromGid(obj)
+           filename   = 'lattice_ex1';
+           a.fileName = filename;
+           femD       = FemDataContainer(a);
+           mS         = femD.mesh;
+           bS         = mS.createBoundaryMesh();
+       end
 
+       function [mS,bS] = createStructuredMesh(obj)
+
+           % Generate coordinates
+           x1 = linspace(0,1,5);
+           x2 = linspace(0,1,5);
+           % Create the grid
+           [xv,yv] = meshgrid(x1,x2);
+           % Triangulate the mesh to obtain coordinates and connectivities
+           [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+
+           s.coord    = coord(:,1:2);
+           s.connec   = F;
+           mS         = Mesh.create(s);
+           bS         = mS.createBoundaryMesh();
+       end
+
+       function [mS,bS] = createEIFEMreferenceMesh(obj)
+            filename = 'DEF_Q4porL_1.mat';
+            load(filename);
+            s.coord    = EIFEoper.MESH.COOR;
+            s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
+            s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
+            s.connec   = EIFEoper.MESH.CN;
+            mS         = Mesh.create(s);
+            bS         = mS.createBoundaryMesh();
+       end
+
+        function createBCapplier(obj)
+            s.mesh                  = obj.meshDomain;
+            s.boundaryConditions    = obj.boundaryConditions;
+            obj.bcApplier           = BCApplier(s);
+        end
+       
+
+        function material = createMaterial(obj,mesh)
+            [young,poisson] = obj.computeElasticProperties(mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = mesh.ndim;
+            s.young   = young;
+            s.poisson = poisson;
+            tensor    = Material.create(s);
+            material  = tensor;
         end
 
- 
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E1  = 1;
+            nu1 = 1/3;
+            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
+            young   = E;
+            poisson = nu;
+        end        
+
+        function [Dir,PL] = createRawBoundaryConditions(obj)
+            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
+            isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
+            %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
+            Dir{1}.direction = [1,2];
+            Dir{1}.value     = 0;
+
+            %             Dir{2}.domain    = @(coor) isRight(coor) ;
+            %             Dir{2}.direction = [2];
+            %             Dir{2}.value     = 0;
+
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = 2;
+            PL.value     = -0.1;
+        end
+
+        function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
+            [Dir,PL]  = obj.createRawBoundaryConditions();
+            dirichletFun = [];
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.meshDomain, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+
+            pointload = PointLoad(mesh,PL);
+            % need this because force applied in the face not in a point
+            pointload.values        = pointload.values/size(pointload.dofs,1);
+            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+            fvalues(pointload.dofs) = pointload.values;
+            fvalues                 = reshape(fvalues,mesh.ndim,[])';
+            pointload.fun.fValues   = fvalues;
+
+            s.pointloadFun = pointload;
+            s.dirichletFun = dirichletFun;
+            s.periodicFun  =[];
+            s.mesh         = mesh;
+            bc             = BoundaryConditions(s);
+            obj.boundaryConditions = bc;
+        end
+
+
+        function [LHSr,RHSr] = createElasticProblem(obj)
+            u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            material = obj.createMaterial(obj.meshDomain);
+            [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
+            RHSr       = obj.computeForces(lhs,u);
+        end
+
+
+        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = mesh;
+            s.test     = dispFun;
+            s.trial    = dispFun;
+            s.material = mat;
+            s.quadratureOrder = 2;
+            lhs = LHSintegrator.create(s);
+            LHS = lhs.compute();
+            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);            
+        end
+
+        function RHS = computeForces(obj,stiffness,u)
+            s.type      = 'Elastic';
+            s.scale     = 'MACRO';
+            s.dim.ndofs = u.nDofs;
+            s.BC        = obj.boundaryConditions;
+            s.mesh      = obj.meshDomain;
+            RHSint      = RHSintegrator.create(s);
+            rhs         = RHSint.compute();
+            % Perhaps move it inside RHSint?
+            R           = RHSint.computeReactions(stiffness);
+            RHS = rhs+R;
+            RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);            
+        end        
+
+
     end
 
 end
