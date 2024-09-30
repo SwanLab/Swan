@@ -9,7 +9,6 @@ classdef GeneralPreconditioner < handle
     properties (Access = private)
         EIFEMfilename
         boundaryConditions
-        bcApplier
         meshReference
         interfaceMeshReference
         meshSubDomain
@@ -18,8 +17,7 @@ classdef GeneralPreconditioner < handle
         interfaceMeshConnecSubDomain
         subDomainContact
         quad
-        interfaceConnec
-        locGlobConnec
+
         localGlobalDofConnec
         interfaceDof
         interfaceDom
@@ -48,9 +46,16 @@ classdef GeneralPreconditioner < handle
 
     properties (Access = private)
         meshDomain
+        coarseMesh
         LHS
         RHS
         material
+        bcApplier
+        interfaceConnec
+        locGlobConnec        
+        nBoundaryNodes
+        nReferenceNodes
+        dir
     end    
 
     methods (Access = public)
@@ -72,6 +77,23 @@ classdef GeneralPreconditioner < handle
             %M = obj.MmodalPrecond;
             %z = M*r;
         end
+
+        function z = multiplePrec(obj,r,P1,P2,P3,A)
+            z1 = P1(r);
+            r  = r-A(z1);
+            z2 = P2(r);
+            r  = r-A(z2);
+            z3 = P3(r);
+            z  = z1+z2+z3;
+
+        end
+
+        function z = additivePrec(obj,r,P1,P2,A)
+            z1 = P1(r);
+            z2 = P2(r);
+            z  = z1+z2;
+
+        end        
 
 
         function z = solveEIFEM(obj,r)
@@ -111,9 +133,19 @@ classdef GeneralPreconditioner < handle
 
     methods (Access = private)
 
-        function init(obj)
-
-
+        function init(obj,cParams)
+            obj.LHS = cParams.LHS;
+            obj.RHS = cParams.RHS;
+            obj.nSubdomains = cParams.nSubdomains;
+            obj.meshDomain  = cParams.meshDomain;
+            obj.coarseMesh = cParams.coarseMesh;
+            obj.interfaceConnec = cParams.interfaceConnec;
+            obj.locGlobConnec = cParams.locGlobConnec;
+            obj.nBoundaryNodes = cParams.nBoundaryNodes;
+            obj.nReferenceNodes = cParams.nReferenceNodes;
+            obj.bcApplier = cParams.bcApplier;
+            obj.dir = cParams.dir;
+            obj.displacementFun = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');            
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
@@ -138,21 +170,20 @@ classdef GeneralPreconditioner < handle
 
            
 
-            meshDomainCoarse = obj.createCoarseMesh();
+            meshDomainCoarse = obj.coarseMesh;
 % 
 %             refDisp        = LagrangianFunction.create(obj.meshReference, obj.ndimf,obj.functionType);
 %             refMat          = obj.createMaterial(obj.meshReference);
 %             obj.refLHS      = obj.computeStiffnessMatrix(obj.meshReference,refDisp,refMat);
 
-            obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,Dir);
+            obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,obj.dir);
             %             obj.computeKEIFEMglobal();
 
             
-            Usol = LHS\RHS;
-            obj.Lchol=ichol(LHS);
-            obj.L = tril(LHS);
-            obj.U = triu(LHS);
-            obj.D = diag(diag(LHS));
+            obj.Lchol=ichol(obj.LHS);
+            obj.L = tril(obj.LHS);
+            obj.U = triu(obj.LHS);
+            obj.D = diag(diag(obj.LHS));
 
             obj.computeEigenModes();
             obj.computeModalStiffnessMatrix();
@@ -162,54 +193,8 @@ classdef GeneralPreconditioner < handle
 
  
 
-        function mCoarse = createCoarseMesh(obj)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.createReferenceCoarseMesh();
-            mRVECoarse      = MeshCreatorFromRVE(s);
-            [mCoarse,meshSubDomainCoarse,interfaceConnecCoarse] = mRVECoarse.create();
-        end
-
-
-
-        function cMesh = createReferenceCoarseMesh(obj)
-            xmax = max(obj.meshReference.coord(:,1));
-            xmin = min(obj.meshReference.coord(:,1));
-            ymax = max(obj.meshReference.coord(:,2));
-            ymin = min(obj.meshReference.coord(:,2));
-            coord(1,1) = xmin;
-            coord(1,2) = ymin;
-            coord(2,1) = xmax;
-            coord(2,2) = ymin;
-            coord(3,1) = xmax;
-            coord(3,2) = ymax;
-            coord(4,1) = xmin;
-            coord(4,2) = ymax;
-            %             coord(1,1) = xmax;
-            %             coord(1,2) = ymin;
-            %             coord(2,1) = xmax;
-            %             coord(2,2) = ymax;
-            %             coord(3,1) = xmin;
-            %             coord(3,2) = ymax;
-            %             coord(4,1) = xmin;
-            %             coord(4,2) = ymin;
-            connec = [1 2 3 4];
-            connec = [2 3 4 1];
-            s.coord = coord;
-            s.connec = connec;
-            cMesh = Mesh.create(s);
-        end
-
-
-        function L = computeReferenceMeshLength(obj)
-            coord = obj.meshReference.coord;
-            Lx = max(coord(:,1));
-            Ly = max(coord(:,2));
-            L = [Lx Ly];
-        end
-
-      
-
-      
+     
+  
 
         function dim = getFunDims(obj)
             d.ndimf  = obj.displacementFun.ndimf;
@@ -219,9 +204,6 @@ classdef GeneralPreconditioner < handle
             d.ndofsElem = d.nnodeElem*d.ndimf;
             dim = d;
         end
-
-
-     
 
         function  localGlobalDofConnec = createlocalGlobalDofConnec(obj)
             ndimf = obj.displacementFun.ndimf;
@@ -241,19 +223,19 @@ classdef GeneralPreconditioner < handle
         end
 
         function [interfaceDof,interfaceDom] = computeLocalInterfaceDof(obj)
-            intConec = reshape(obj.interfaceConnec',2,obj.interfaceMeshReference{1}.mesh.nnodes,[]);
+            intConec = reshape(obj.interfaceConnec',2,obj.nBoundaryNodes,[]);
             intConec = permute(intConec,[2 1 3]);
             nint = size(intConec,3);
             globaldof=0;
             ndimf = obj.ndimf;
-            ndofs = obj.meshReference.nnodes*ndimf;
+            ndofs = obj.nReferenceNodes*ndimf;
 
             for iint=1:nint
                 ndom = size(intConec,2); %length(intConec(1,:,iint));
                 for idom = 1:ndom
                     dofaux=0;
                     nodesI = intConec(:,idom,iint);
-                    dom = ceil(intConec(1,idom,iint)/obj.meshReference.nnodes);
+                    dom = ceil(intConec(1,idom,iint)/obj.nReferenceNodes);
                     globaldof = (dom-1)*ndofs;
                     for iunkn=1:ndimf
                         DOF = ndimf*(nodesI - 1) + iunkn;
@@ -285,7 +267,7 @@ classdef GeneralPreconditioner < handle
 
         function Lvec = global2local(obj,Gvec)
             ndimf  = obj.displacementFun.ndimf;
-            Lvec   = zeros(obj.meshReference.nnodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            Lvec   = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
             ind    = 1;
             for jdom = 1: obj.nSubdomains(2)
                 for idom = 1: obj.nSubdomains(1)
@@ -380,30 +362,23 @@ classdef GeneralPreconditioner < handle
 
 
         function computeEigenModes(obj)
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             nbasis = 8;
-            [phi,D]=eigs(LHS,nbasis,'smallestabs');
+            [phi,D]=eigs(obj.LHS,nbasis,'smallestabs');
             obj.eigenModes = phi;
         end
 
         function computeModalStiffnessMatrix(obj)
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             phi = obj.eigenModes;
-            lhs = phi'*LHS*phi;
+            lhs = phi'*obj.LHS*phi;
             obj.Kmodal = lhs;
         end
 
         function createModelPreconditioning(obj)
             phi=obj.eigenModes;
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            I = speye(size(LHS,1));
-            M = I-phi*((phi'*LHS*phi)\(phi'));
+            I = speye(size(obj.LHS,1));
+            M = I-phi*((phi'*obj.LHS*phi)\(phi'));
             obj.MmodalPrecond = M;
         end
-
-
-
-
 
 
 
@@ -465,22 +440,7 @@ classdef GeneralPreconditioner < handle
             %z = M*r;
         end
 
-        function z = multiplePrec(obj,r,P1,P2,P3,A)
-            z1 = P1(r);
-            r  = r-A(z1);
-            z2 = P2(r);
-            r  = r-A(z2);
-            z3 = P3(r);
-            z  = z1+z2+z3;
 
-        end
-
-        function z = additivePrec(obj,r,P1,P2,A)
-            z1 = P1(r);
-            z2 = P2(r);
-            z  = z1+z2;
-
-        end
 
 
 

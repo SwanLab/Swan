@@ -25,8 +25,12 @@ classdef EIFEMtesting < handle
             obj.init()
 
             close all            
-            obj.createMeshDomain();
-            obj.createBoundaryConditions(obj.meshDomain);
+            mR = obj.createReferenceMesh(); 
+            bS  = mR.createBoundaryMesh();            
+            [mD,iC,lG] = obj.createMeshDomain(mR);
+            obj.meshDomain = mD;            
+            [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
+            obj.boundaryConditions = bC;
             obj.createBCapplier()
      
 %             obj.createModelPreconditioning();
@@ -34,12 +38,22 @@ classdef EIFEMtesting < handle
             [LHS,RHS] = obj.createElasticProblem();
             s.LHS = LHS;
             s.RHS = RHS;
-            s.mesh = obj.meshDomain;
+            s.meshDomain = obj.meshDomain;
+            s.nSubdomains = obj.nSubdomains;
+            s.interfaceConnec = iC;
+            s.locGlobConnec   = lG;     
+            s.nBoundaryNodes = bS{1}.mesh.nnodes;
+            s.nReferenceNodes = mR.nnodes;
+            s.coarseMesh      = obj.createCoarseMesh(mR);
+            s.dir = dir;
+            s.bcApplier = obj.bcApplier;
             gP = GeneralPreconditioner(s);
 
 
             LHSf = @(x) LHS*x;
-            RHSf = RHS;            
+            RHSf = RHS;      
+
+            Usol = LHS\RHS;
 
             Mid = @(r) r;
             MidOrth = @(r,A,z) z+0.3*(r-A(z));
@@ -111,31 +125,29 @@ classdef EIFEMtesting < handle
             obj.nSubdomains  = [5 1]; %nx ny
         end        
 
-        function mD = createMeshDomain(obj)
+        function [mD,iC,lG] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.createReferenceMesh();         
+            s.meshReference = mR;        
             m = MeshCreatorFromRVE(s);
-            [mD,~,interfaceConnec,~,locGlobConnec] = m.create();
-            obj.meshDomain = mD;
+            [mD,~,iC,~,lG] = m.create();
        end
 
 
-       function [mS,bS] = createReferenceMesh(obj)
-            [mS,bS] = obj.createStructuredMesh();
-        %    [mS,bS] = obj.createMeshFromGid();
-        %    [mS,bS] = obj.createEIFEMreferenceMesh();
+       function mS = createReferenceMesh(obj)
+        %    mS = obj.createStructuredMesh();
+        %   mS = obj.createMeshFromGid();
+           mS = obj.createEIFEMreferenceMesh();
        end       
        
 
-       function [mS,bS] = createMeshFromGid(obj)
+       function mS = createMeshFromGid(obj)
            filename   = 'lattice_ex1';
            a.fileName = filename;
            femD       = FemDataContainer(a);
            mS         = femD.mesh;
-           bS         = mS.createBoundaryMesh();
        end
 
-       function [mS,bS] = createStructuredMesh(obj)
+       function mS = createStructuredMesh(obj)
 
            % Generate coordinates
            x1 = linspace(0,1,5);
@@ -148,10 +160,9 @@ classdef EIFEMtesting < handle
            s.coord    = coord(:,1:2);
            s.connec   = F;
            mS         = Mesh.create(s);
-           bS         = mS.createBoundaryMesh();
        end
 
-       function [mS,bS] = createEIFEMreferenceMesh(obj)
+       function mS = createEIFEMreferenceMesh(obj)
             filename = 'DEF_Q4porL_1.mat';
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
@@ -159,7 +170,43 @@ classdef EIFEMtesting < handle
             s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
             s.connec   = EIFEoper.MESH.CN;
             mS         = Mesh.create(s);
-            bS         = mS.createBoundaryMesh();
+       end
+
+       function mCoarse = createCoarseMesh(obj,mR)
+           s.nsubdomains   = obj.nSubdomains; %nx ny
+           s.meshReference = obj.createReferenceCoarseMesh(mR);
+           mRVECoarse      = MeshCreatorFromRVE(s);
+           [mCoarse,~,~] = mRVECoarse.create();
+       end
+
+
+
+       function cMesh = createReferenceCoarseMesh(obj,mR)
+           xmax = max(mR.coord(:,1));
+           xmin = min(mR.coord(:,1));
+           ymax = max(mR.coord(:,2));
+           ymin = min(mR.coord(:,2));
+           coord(1,1) = xmin;
+           coord(1,2) = ymin;
+           coord(2,1) = xmax;
+           coord(2,2) = ymin;
+           coord(3,1) = xmax;
+           coord(3,2) = ymax;
+           coord(4,1) = xmin;
+           coord(4,2) = ymax;
+           %             coord(1,1) = xmax;
+           %             coord(1,2) = ymin;
+           %             coord(2,1) = xmax;
+           %             coord(2,2) = ymax;
+           %             coord(3,1) = xmin;
+           %             coord(3,2) = ymax;
+           %             coord(4,1) = xmin;
+           %             coord(4,2) = ymin;
+           connec = [1 2 3 4];
+           connec = [2 3 4 1];
+           s.coord = coord;
+           s.connec = connec;
+           cMesh = Mesh.create(s);
        end
 
         function createBCapplier(obj)
@@ -229,7 +276,6 @@ classdef EIFEMtesting < handle
             s.periodicFun  =[];
             s.mesh         = mesh;
             bc             = BoundaryConditions(s);
-            obj.boundaryConditions = bc;
         end
 
 
