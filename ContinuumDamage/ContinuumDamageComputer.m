@@ -22,10 +22,12 @@ classdef ContinuumDamageComputer < handle
         end
 
         function results = compute(obj)
-            displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.quadOrder);
+            bc = obj.boundaryConditions;
+            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.quadOrder);
+            uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
             s.material = obj.material;
             
-            s.u        = displacementFun;
+            s.u        = uFun;
             s.mesh     = obj.mesh;
             
             obj.ElasticFun = shFunc_Elastic(s);
@@ -148,6 +150,20 @@ classdef ContinuumDamageComputer < handle
                 end
             else
                 ord = order;
+            end
+        end
+
+        function u = updateInitialDisplacement(obj,bc,uOld)
+            restrictedDofs = bc.dirichlet_dofs;
+            if isempty(restrictedDofs)
+                u = uOld;
+            else
+                dirich = bc.dirichletFun;
+                uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
+                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
+
+                uVec(restrictedDofs) = dirichVec(restrictedDofs);
+                u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
         end
 
