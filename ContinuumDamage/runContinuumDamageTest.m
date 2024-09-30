@@ -1,8 +1,8 @@
 clc;clear;
 
-s.meshLength = 1;
+s.meshLength = 10;
 s.meshWidth = 1;
-s.meshN =10;
+s.meshN = 10;
 s.meshM = 10;
 s.bcVal = 1;
 s.ndim =2;
