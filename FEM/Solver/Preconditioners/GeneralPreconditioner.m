@@ -158,23 +158,13 @@ classdef GeneralPreconditioner < handle
 
         function constructionObject(obj)
 
-           % obj.displacementFun      = LagrangianFunction.create(obj.meshDomain, obj.ndimf,obj.functionType);
-
+          
             obj.localGlobalDofConnec = obj.createlocalGlobalDofConnec();
             [obj.interfaceDof,obj.interfaceDom] = obj.computeLocalInterfaceDof();
 
-            %             obj.quad               = Quadrature.set(obj.meshDomain.type);
-            %             obj.quad.computeQuadrature('QUADRATIC');
-            %             obj.createDomainMaterial();
-            %               obj.computeForces();
-
-           
+          
 
             meshDomainCoarse = obj.coarseMesh;
-% 
-%             refDisp        = LagrangianFunction.create(obj.meshReference, obj.ndimf,obj.functionType);
-%             refMat          = obj.createMaterial(obj.meshReference);
-%             obj.refLHS      = obj.computeStiffnessMatrix(obj.meshReference,refDisp,refMat);
 
             obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,obj.dir);
             %             obj.computeKEIFEMglobal();
@@ -191,12 +181,7 @@ classdef GeneralPreconditioner < handle
 
         end
 
- 
-
-     
-  
-
-        function dim = getFunDims(obj)
+         function dim = getFunDims(obj)
             d.ndimf  = obj.displacementFun.ndimf;
             d.nnodes = size(obj.displacementFun.fValues, 1);
             d.ndofs  = d.nnodes*d.ndimf;
