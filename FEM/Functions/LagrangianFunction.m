@@ -114,10 +114,13 @@ classdef LagrangianFunction < FeFunction
             s.coord   = obj.getCoord();
             s.order   = obj.getOrderInText();
             s.fValues = obj.fValues;
+            s.ndimf   = obj.ndimf;
             switch obj.getOrderInText()
                 case 'LINEAR'
                     s.connec  = obj.getConnec();
                 otherwise
+                    f = obj.project('P1D');
+                    f.plot()
                     %better to remesh (now only plotting the linear part)                    
                     s.connec = obj.mesh.connec;                         
             end

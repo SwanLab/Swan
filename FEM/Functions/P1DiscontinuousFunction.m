@@ -172,7 +172,13 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plot(obj)
             fD     = obj.reshapeAsVector(obj.fValues);            
-            coordD = obj.reshapeAsVector(obj.coord);            
+            coordD = obj.reshapeAsVector(obj.coord);      
+
+            s.coord   = obj.coordD;
+            s.order   = obj.getOrderInText();
+            s.fValues = obj.fValues;
+            s.ndimf   = obj.ndimf;
+
             x = coordD(:,1);
             y = coordD(:,2);
             figure()

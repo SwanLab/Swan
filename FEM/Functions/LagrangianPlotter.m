@@ -1,7 +1,10 @@
 classdef LagrangianPlotter < handle
 
     properties (Access = private)
-        lagrangianFunction
+        coord
+        connec
+        fValues
+        ndimf
     end
 
     methods (Access = public)
@@ -11,11 +14,7 @@ classdef LagrangianPlotter < handle
         end
 
         function plot(obj)
-            lf = obj.lagrangianFunction;
-            coord  = lf.getCoord();
-            connec = lf.getConnec();
-            zv     = lf.fValues;
-            ndimf  = lf.ndimf;
+            zv     = obj.fValues;
             
             switch lf.getOrderInText()
                 case 'CONSTANT'
@@ -25,13 +24,13 @@ classdef LagrangianPlotter < handle
                 case 'LINEAR'
                     switch lf.mesh.type
                         case {'TRIANGLE','QUAD'}
-                            x = coord(:,1);
-                            y = coord(:,2);
+                            x = obj.coord(:,1);
+                            y = obj.coord(:,2);
                             figure()
-                            for idim = 1:ndimf
-                                subplot(1,ndimf,idim);
+                            for idim = 1:obj.ndimf
+                                subplot(1,obj.ndimf,idim);
                                 z = zv(:,idim);
-                                a = trisurf(connec,x,y,z);
+                                a = trisurf(obj.connec,x,y,z);
                                 view(0,90)
                                 %             colorbar
                                 shading interp
@@ -39,22 +38,22 @@ classdef LagrangianPlotter < handle
                                 title(['dim = ', num2str(idim)]);
                             end
                         case 'LINE'
-                            coord = coord(:,1);
+                            x = obj.coord(:,1);
                             z = zv;
                             figure()
-                            plot(coord,z)
+                            plot(x,z)
                     end
 
                 otherwise
                     figure()
-                    for idim = 1:ndimf
-                        subplot(1,ndimf,idim);
+                    for idim = 1:obj.ndimf
+                        subplot(1,obj.ndimf,idim);
                         hold on
-                        x = coord(:,1);
-                        y = coord(:,2);
+                        x = obj.coord(:,1);
+                        y = obj.coord(:,2);
                         z = zv(:,idim);
                         %better to remesh (now only plotting the linear part)
-                        T = lf.mesh.connec;
+                        T = obj.connec;
                         a = trisurf(T,x,y,z);
                         view(0,90)
                         colorbar
@@ -72,7 +71,10 @@ classdef LagrangianPlotter < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.lagrangianFunction = cParams.function;
+            obj.coord   = cParams.coord;
+            obj.connec  = cParams.connec;
+            obj.fValues = cParams.fValues;
+            obj.ndimf   = cParams.ndimf;
         end
 
     end
