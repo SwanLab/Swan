@@ -1,24 +1,24 @@
 classdef P1DiscontinuousFunction < FeFunction
-    
+
     properties (Access = public)
-        interpolation      
+        interpolation
     end
-    
+
     properties (Access = private)
     end
-    
+
     properties (Access = private)
         connec
         coord
     end
-    
+
     methods (Access = public)
-        
+
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
             obj.order = '1';
             obj.createInterpolation();
-            obj.createDOFCoordConnec();            
+            obj.createDOFCoordConnec();
         end
 
         function fxV = evaluate(obj, xV)
@@ -39,11 +39,11 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function ord = getOrderNum(obj)
             ord = str2double(obj.order(end));
-        end  
+        end
 
         function c = getConnec(obj)
             c = obj.connec;
-        end        
+        end
 
         function c = getCoord(obj)
             c = obj.coord;
@@ -56,7 +56,7 @@ classdef P1DiscontinuousFunction < FeFunction
         function dN = computeShapeDerivatives(obj,xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
-        
+
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
             nNodeE = obj.interpolation.nnode;
@@ -86,7 +86,7 @@ classdef P1DiscontinuousFunction < FeFunction
             nNode = size(dNdx, 2);
             nElem = size(dNdx, 3);
             nGaus = size(dNdx, 4);
-            
+
 
             cV = squeeze(obj.fValues);
             grad = zeros(nDims,nDimf, nElem, nGaus);
@@ -110,14 +110,14 @@ classdef P1DiscontinuousFunction < FeFunction
             s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
-        
+
         function fFine = refine(obj, m, mFine)
             f = obj.fValues;
             for iDim = 1:obj.ndimf
-            fI = f(iDim,:,:);
-            fI = fI(:);
-            fEdges = obj.computeFunctionInEdges(m,fI);
-            fAll(:,iDim)  = [fI;fEdges];
+                fI = f(iDim,:,:);
+                fI = fI(:);
+                fEdges = obj.computeFunctionInEdges(m,fI);
+                fAll(:,iDim)  = [fI;fEdges];
             end
             s.mesh    = mFine;
             s.fValues = fAll;
@@ -171,27 +171,12 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            fD     = obj.reshapeAsVector(obj.fValues);            
-            coordD = obj.reshapeAsVector(obj.coord);      
-
-            s.coord   = obj.coordD;
-            s.order   = obj.getOrderInText();
-            s.fValues = obj.fValues;
+            s.coord   = obj.reshapeAsVector(obj.coord);
+            s.connec  = obj.connec;
+            s.fValues = obj.reshapeAsVector(obj.fValues);
             s.ndimf   = obj.ndimf;
-
-            x = coordD(:,1);
-            y = coordD(:,2);
-            figure()
-            for idim = 1:obj.ndimf
-                subplot(1,obj.ndimf,idim);
-                z = fD(:,idim);
-                a = trisurf(obj.connec,x,y,double(z));
-                view(0,90)
-                colorbar
-                shading interp
-                a.EdgeColor = [0 0 0];
-                title(['dim = ', num2str(idim)]);
-            end
+            lP = LagrangianPlotter(s);
+            lP.plot();       
         end
 
         function plotLine(obj)
@@ -266,10 +251,10 @@ classdef P1DiscontinuousFunction < FeFunction
             coorD = reshape(fe,nDime,nNode,[]);
             obj.coord = coorD;
         end
-    
+
         function createDOFCoordConnec(obj)
-          obj.createDOFCoord();
-          obj.createDOFConnec()                      
+            obj.createDOFCoord();
+            obj.createDOFConnec()
         end
 
         function ord = orderTextual(obj)
@@ -297,7 +282,7 @@ classdef P1DiscontinuousFunction < FeFunction
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.fValues = cParams.fValues;
             obj.mesh    = cParams.mesh;
@@ -318,15 +303,15 @@ classdef P1DiscontinuousFunction < FeFunction
             nVals = nNodE*nElem;
             fM = reshape(obj.fValues, [nComp, nVals])';
         end
-        
+
         function f = computeFunctionInEdges(obj,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end
-        
+
     end
 
-    
+
 end

@@ -14,56 +14,20 @@ classdef LagrangianPlotter < handle
         end
 
         function plot(obj)
-            zv     = obj.fValues;
-            
-            switch lf.getOrderInText()
-                case 'CONSTANT'
-                    f = lf.project('P1D');
-                    f.plot()
-
-                case 'LINEAR'
-                    switch lf.mesh.type
-                        case {'TRIANGLE','QUAD'}
-                            x = obj.coord(:,1);
-                            y = obj.coord(:,2);
-                            figure()
-                            for idim = 1:obj.ndimf
-                                subplot(1,obj.ndimf,idim);
-                                z = zv(:,idim);
-                                a = trisurf(obj.connec,x,y,z);
-                                view(0,90)
-                                %             colorbar
-                                shading interp
-                                a.EdgeColor = [0 0 0];
-                                title(['dim = ', num2str(idim)]);
-                            end
-                        case 'LINE'
-                            x = obj.coord(:,1);
-                            z = zv;
-                            figure()
-                            plot(x,z)
-                    end
-
-                otherwise
-                    figure()
-                    for idim = 1:obj.ndimf
-                        subplot(1,obj.ndimf,idim);
-                        hold on
-                        x = obj.coord(:,1);
-                        y = obj.coord(:,2);
-                        z = zv(:,idim);
-                        %better to remesh (now only plotting the linear part)
-                        T = obj.connec;
-                        a = trisurf(T,x,y,z);
-                        view(0,90)
-                        colorbar
-                        shading interp
-                        grid on
-                        title(['dim = ', num2str(idim)]);
-                        a.EdgeColor = [0 0 0];
-                        a.EdgeColor = [0 0 0];
-                    end
-            end
+            x  = obj.coord(:,1);
+            y  = obj.coord(:,2);
+            z  = obj.fValues;            
+            figure()
+            for idim = 1:obj.ndimf
+                subplot(1,obj.ndimf,idim);
+                zi = z(:,idim);
+                a = trisurf(obj.connec,x,y,zi);
+                view(0,90)
+                %colorbar
+                shading interp
+                a.EdgeColor = [0 0 0];
+                title(['dim = ', num2str(idim)]);
+            end       
         end
 
     end

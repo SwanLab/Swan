@@ -112,7 +112,6 @@ classdef LagrangianFunction < FeFunction
 
         function plot(obj) % 2D domains only
             s.coord   = obj.getCoord();
-            s.order   = obj.getOrderInText();
             s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
             switch obj.getOrderInText()
