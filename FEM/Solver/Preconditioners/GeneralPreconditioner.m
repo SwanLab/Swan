@@ -9,21 +9,48 @@ classdef GeneralPreconditioner < handle
     end
 
     properties (Access = private)
-             nSubdomains
+        EIFEMfilename
+        meshDomain
+        boundaryConditions
+        bcApplier
+        material
+        meshReference
+        interfaceMeshReference
+        meshSubDomain
+        ninterfaces
+        interfaceMeshSubDomain
+        globalMeshConnecSubDomain
+        interfaceMeshConnecSubDomain
+        subDomainContact
+        quad
+        interfaceConnec
+        locGlobConnec
+        localGlobalDofConnec
+        interfaceDof
+        interfaceDom
+        weight
 
-             Lchol
+        nSubdomains
+
+        Lchol
 
         L
         U
         D
 
         scale
-                ndimf    
-                        functionType
+        ndimf
+        functionType
         solverCase
-
-
-
+        
+        displacementFun
+        LHS
+        RHS
+        EIFEMsolver
+        eigenModes
+        Kmodal
+        MmodalPrecond
+       
     end
 
     methods (Access = public)
@@ -31,7 +58,7 @@ classdef GeneralPreconditioner < handle
         function obj = GeneralPreconditioner()
             close all
             obj.init();
-            obj.contructionObject()
+            obj.constructionObject()
         end
 
         function z = solveModalProblem(obj,r)
@@ -101,7 +128,14 @@ classdef GeneralPreconditioner < handle
             obj.weight       = 0.5;
         end
 
-        function constractionObject(obj)
+         function createFineMesh(obj)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = obj.meshReference;         
+            m = MeshCreatorFromRVE(s);
+            [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
+         end
+
+        function constructionObject(obj)
             obj.createReferenceMesh();
             obj.createFineMesh();
 
@@ -124,12 +158,12 @@ classdef GeneralPreconditioner < handle
 
 
             meshDomainCoarse = obj.createCoarseMesh();
+% 
+%             refDisp        = LagrangianFunction.create(obj.meshReference, obj.ndimf,obj.functionType);
+%             refMat          = obj.createMaterial(obj.meshReference);
+%             obj.refLHS      = obj.computeStiffnessMatrix(obj.meshReference,refDisp,refMat);
 
-            refDisp        = LagrangianFunction.create(obj.meshReference, obj.ndimf,obj.functionType);
-            refMat          = obj.createMaterial(obj.meshReference);
-            obj.refLHS      = obj.computeStiffnessMatrix(obj.meshReference,refDisp,refMat);
-
-            obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,Dir,obj.refLHS);
+            obj.EIFEMsolver = obj.createEIFEM(meshDomainCoarse,Dir);
             %             obj.computeKEIFEMglobal();
 
             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
@@ -422,7 +456,7 @@ classdef GeneralPreconditioner < handle
             s.RVE      = RVE;
             s.mesh     = meshDomainCoarse;
             s.DirCond  = Dir;
-            s.Kfine    = Kfine;
+%             s.Kfine    = Kfine;
             eifem      = EIFEM(s);
         end
 
@@ -530,7 +564,6 @@ classdef GeneralPreconditioner < handle
 
         function Ug = computeAssembledProjectionMatrix(obj)
             Ueifem = obj.EIFEMsolver.getProjectionMatrix();
-            sizeU = size(Ueifem);
             Ueifem = repmat(Ueifem,1,obj.nSubdomains(1)*obj.nSubdomains(2));
             Ueifem = obj.scaleProjectionMatrix(Ueifem);
             Ug = obj.assembleProjectionMatrix(Ueifem);

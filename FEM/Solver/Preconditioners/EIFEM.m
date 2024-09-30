@@ -79,8 +79,8 @@ classdef EIFEM < handle
             obj.Kel  = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
-            Kfine  = cParams.Kfine;
-            obj.Kmodal = obj.RVE.PhiDef'*Kfine*obj.RVE.PhiDef;
+%             Kfine  = cParams.Kfine;
+%             obj.Kmodal = obj.RVE.PhiDef'*Kfine*obj.RVE.PhiDef;
         end
 
         function dim = getDims(obj)

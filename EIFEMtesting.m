@@ -47,12 +47,7 @@ classdef EIFEMtesting < handle
 
     methods (Access = public)
 
-        function createFineMesh(obj)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.meshReference;         
-            m = MeshCreatorFromRVE(s);
-            [obj.meshDomain,obj.meshSubDomain,obj.interfaceConnec,~,obj.locGlobConnec] = m.create();
-        end
+       
 
 
         function obj = EIFEMtesting()
