@@ -107,14 +107,7 @@ classdef EIFEMtesting < handle
             obj.computeModalStiffnessMatrix();
 %             obj.createModelPreconditioning();
 %             u = obj.solver2(LHS,RHS,refLHS);
-
-   
-
-
-
-
-       
-          
+ 
    
             LHSf = @(x) LHS*x;
             RHSf = RHS;            
@@ -147,9 +140,9 @@ classdef EIFEMtesting < handle
             M3 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
-            %P = @(r) obj.multiplePrec(r,M,M2,M3,LHSf);  
-%            P = Mmodal;
-             P = @(r) obj.additivePrec(r,Mid,Mmodal,LHSf);  
+            P = @(r) obj.multiplePrec(r,M,M2,M3,LHSf);  
+%            P = Milu;
+%              P = @(r) obj.additivePrec(r,Mid,Mmodal,LHSf);  
             tic
             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.preconditionedConjugateGradient(LHSf,RHSf,Usol,P,tol);
             toc
@@ -161,7 +154,7 @@ classdef EIFEMtesting < handle
             hold on
             plot(residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend({'CG + EIFEM+ ILU(CG-90%-L2)','CG'},'FontSize',12)
+            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
 
@@ -185,7 +178,7 @@ classdef EIFEMtesting < handle
 
 
 
-            u = obj.solver2(LHS,RHS,refLHS);
+%             u = obj.solver2(LHS,RHS,refLHS);
 
 % %             obj.obtainCornerNodes();
 % %             fineMesh = MeshFromRVE
@@ -224,13 +217,14 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [7 2]; %nx ny
+            obj.nSubdomains  = [45 5]; %nx ny
             obj.scale        = 'MACRO';
             obj.ndimf        = 2;
             obj.functionType = 'P1';
             obj.solverCase   = 'REDUCED';
 %             obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
           obj.EIFEMfilename = 'DEF_Q4porL_1.mat';
+%           obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             obj.weight       = 0.5;
         end
 
@@ -322,13 +316,13 @@ classdef EIFEMtesting < handle
             isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
             isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) ;
+            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
 %             Dir{2}.domain    = @(coor) isRight(coor) ;
 %             Dir{2}.direction = [2];
-%             Dir{2}.value     = -0.1;
+%             Dir{2}.value     = 0;
 
             PL.domain    = @(coor) isTop(coor);
             PL.direction = 2;
@@ -358,39 +352,6 @@ classdef EIFEMtesting < handle
             bc             = BoundaryConditions(s);
         end
 
-%         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-%             dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
-%             pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
-%         end
-% 
-%         function cond = createBondaryCondition(obj,bM,condition)
-%             nbound = length(condition.boundaryId);
-%             cond = zeros(1,3);
-%             for ibound=1:nbound
-%                 ncond  = length(condition.dof(nbound,:));
-%                 nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
-%                 nbd   = length(nodeId);
-%                 condition.value{ibound} = condition.value{ibound}/nbd;
-%                 for icond=1:ncond
-%                     bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-%                     cond=[cond;bdcond];
-%                 end
-%             end
-%             cond = cond(2:end,:);
-%         end
-
-%         function material = createMaterial(obj,mesh)
-%             I = ones(mesh.nelem,obj.quad.ngaus);
-%             s.ptype = 'ELASTIC';
-%             s.pdim  = '2D';
-%             s.nelem = mesh.nelem;
-%             s.mesh  = mesh;
-%             s.kappa = .9107*I;
-%             s.mu    = .3446*I;
-%             mat = Material.create(s);
-%             mat.compute(s);
-%             material = mat;
-%         end
         
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E1  = 1;
@@ -421,14 +382,6 @@ classdef EIFEMtesting < handle
             dim = d;
         end
 
-%         function computeStiffnessMatrix(obj)
-%             s.type     = 'ElasticStiffnessMatrix';
-%             s.mesh     = obj.meshDomain;
-%             s.fun      = obj.displacementFun;
-%             s.material = obj.material;
-%             lhs = LHSintegrator.create(s);
-%             obj.LHS = lhs.compute();
-%         end
 
         function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
             s.type     = 'ElasticStiffnessMatrix';
@@ -441,21 +394,6 @@ classdef EIFEMtesting < handle
             LHS = lhs.compute();
         end
 
-%         function computeForces(obj)
-%             s.type = 'Elastic';
-%             s.scale    = obj.scale;
-%             s.dim      = obj.getFunDims();
-%             s.BC       = obj.boundaryConditions;
-%             s.mesh     = obj.meshDomain;
-%             s.material = obj.material;
-% %             s.globalConnec = obj.displacementField.connec;
-%             s.globalConnec = obj.meshDomain.connec;
-%             RHSint = RHSintegrator.create(s);
-%             rhs = RHSint.compute();
-%             R = RHSint.computeReactions(obj.LHS);
-% %             obj.variables.fext = rhs + R;
-%             obj.RHS = rhs;
-%         end
 
         function forces = computeForces(obj,stiffness)
             s.type      = 'Elastic';
@@ -857,12 +795,6 @@ classdef EIFEMtesting < handle
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);                
             end
          end
-
-         function r = residual(obj,A,b,x)
-            
-         end
-
-
 
          function [x,residual,err,errAnorm] = solverTestEifem(obj,A,B,xsol,P)
             tol = 1e-8;
