@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial3DLevelSetNullSpace < handle
+classdef ThreeDimCantileverDensity < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial3DLevelSetNullSpace < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial3DLevelSetNullSpace()
+        function obj = ThreeDimCantileverDensity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -45,15 +45,16 @@ classdef TopOptTestTutorial3DLevelSetNullSpace < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            s.fun     = aFun.project('P1');
+            s.mesh    = obj.mesh;
+            s.type = 'Density';
             s.plotting = false;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            dens    = DesignVariable.create(s);
+            obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -169,9 +170,9 @@ classdef TopOptTestTutorial3DLevelSetNullSpace < handle
             s.maxIter        = 350;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
+            s.primal         = 'PROJECTED GRADIENT'; % tauMax = 30
+            s.ub             = 1;
+            s.lb             = 0;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.7;
             opt = OptimizerNullSpace(s);
