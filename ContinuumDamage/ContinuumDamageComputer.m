@@ -34,7 +34,7 @@ classdef ContinuumDamageComputer < handle
             %aa = obj.ElasticFun.computeFunction(1)
 
             K = obj.computeK();
-            F = obj.computeF();
+            F = obj.computeF(K);
             
             
             results = obj.computeU(K,F);
@@ -68,9 +68,9 @@ classdef ContinuumDamageComputer < handle
             % lhs = LHSintegrator.create(s);
             % K = lhs.compute();
             ord = obj.convertOrder();
-            K = obj.ElasticFun.computeJacobian(ord);
+            K = obj.ElasticFun.computeHessian(ord);
         end
-        function F = computeF(obj)%,displacementFun,K)
+        function F = computeF(obj,K)%,displacementFun,K)
 
             % s.type     = obj.type;
             % s.scale    = obj.scale;
@@ -89,7 +89,10 @@ classdef ContinuumDamageComputer < handle
             %     F = rhs;
             % end
             ord = obj.convertOrder();
-            F = obj.ElasticFun.computeHessian(ord);
+            Ftry = obj.ElasticFun.computeJacobian(ord);
+            offset = k(1:size(K,1),1);
+
+            F = Ftry - offset.*g; %--
         end
 
         function dim = getFunDims(obj,displacementFun)
@@ -103,9 +106,8 @@ classdef ContinuumDamageComputer < handle
 
         function u = computeU(obj,K,F)
 
-            s.solverType = obj.solverType; %MIRAR COM INFLUEIX!!!
-            s.solverMode = obj.solverMode;
-            problemSolver = obj.createSolver(s);
+            
+            problemSolver = obj.createSolver();
 
             t.stiffness = K;
             t.forces = F;
