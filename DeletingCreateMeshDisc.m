@@ -15,13 +15,23 @@ classdef DeletingCreateMeshDisc < handle
     methods (Access = public)
         
         function obj = DeletingCreateMeshDisc()
+            close all
             obj.createMesh();
             obj.mesh.plot(); 
             m = obj.mesh.createDiscontinuousMesh();
-            fC = obj.createP1Function();
-            d = Grad(fC);
-            d.plot(obj.mesh);
-            fD = fC.project('P1D');
+            f = obj.createAnalyticalFunction();
+            fC = f.project('P1');
+            fC.plot
+            %d = Grad(fC);
+            %d.plot(obj.mesh);
+            fD = f.project('P1D');
+            
+            s.mesh = obj.mesh;
+            s.nLevels = 1;
+            r = Remesher(s);
+            mF = r.compute();
+            figure
+            mF.plot()
             fD.plot()
         end
         
@@ -47,16 +57,28 @@ classdef DeletingCreateMeshDisc < handle
             obj.mesh = m;
         end
 
-        function f = createP1Function(obj)
-            %s.fHandle = @(x) sin(10*x(1,:,:));
-            s.fHandle = @(x) x.^(x-1);
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;            
-            f = AnalyticalFunction(s);
+        function f = createAnalyticalFunction(obj)
 
+            s.fHandle = @(x) x(1,:,:);%obj.circle(x);
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            f       = AnalyticalFunction(s);
             
-            f = f.project('P2');
-            f.plot()
+            % %s.fHandle = @(x) sin(10*x(1,:,:));
+            % s.fHandle = @(x) x.^(x-1);
+            % s.ndimf   = 1;
+            % s.mesh    = obj.mesh;            
+            % f = AnalyticalFunction(s);
+
+
+        end
+    end
+
+    methods (Static, Access = private)
+        function f = circle(x)
+            x1 = x(1,:,:);
+            x2 = x(2,:,:);
+            f = 1-heaviside((x1-0.5).^2+(x2-0.5).^2-0.3.^2);
         end
         
     end

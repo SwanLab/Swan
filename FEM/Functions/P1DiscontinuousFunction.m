@@ -195,14 +195,14 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plotContour(obj)
             fD = obj.getFvaluesAsVector();
-            mD = obj.mesh.createDiscontinuousMesh();
-            x = mD.coord(:,1);
-            y = mD.coord(:,2);
+            xy = obj.reshapeAsVector(obj.coord);            
+            x = xy(:,1);
+            y = xy(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                [~,a] = tricontour(mD.connec,x,y,z,30);
+                [~,a] = tricontour(obj.connec,x,y,z,30);
                 set(a,'LineWidth',5);
                 view(0,90)
                 colorbar
@@ -211,8 +211,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
-            s.mesh = obj.mesh.createDiscontinuousMesh();
+            if nargin == 2; software = 'Paraview'; end
+            s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
             s.filename = filename;

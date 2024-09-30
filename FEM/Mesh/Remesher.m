@@ -29,11 +29,13 @@ classdef Remesher < handle
             %  s.nodesByElem = obj.connec;
             %  edge = EdgesConnectivitiesComputer(s);
             %  edge.compute();
+
+
+
+
             m0 = obj.mesh;
             for iLevel = 1:obj.nLevels
-                s.coord  = obj.computeCoords();
-                s.connec = obj.computeConnectivities();
-                mC = Mesh.create(s);
+                mC = obj.compute();
                 mD = mC.createDiscontinuousMesh();
                 obj.mesh = mD;
                 obj.cellsToRemesh = 1:obj.mesh.nelem;
@@ -74,14 +76,15 @@ classdef Remesher < handle
 
         function coord = computeCoords(obj)
             oldCoord = obj.mesh.coord;
-            newCoord = obj.computeNewCoord();
+            newCoord = obj.computeNewCoord(obj.mesh,obj.mesh.coord);
             coord = [oldCoord;newCoord];
         end
 
-        function nC = computeNewCoord(obj)
-            me           = obj.mesh.computeEdgeMesh();
-            coordInEdges = me.computeBaricenter()';
-            nC           = coordInEdges;
+        function f = computeNewCoord(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
+            f = eF.compute()';
         end
 
         function allConnec = computeConnectivities(obj)

@@ -382,6 +382,7 @@ classdef LagrangianFunction < FeFunction
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end
+        
         function fM = getFormattedP0FValues(obj)
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('LINEAR');
