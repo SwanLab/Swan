@@ -26,7 +26,7 @@ classdef Projector < handle
                 case 'FGaussDiscontinuousFunction'
                     ord = fun.getQuadratureOrder;
                 otherwise
-                    ord = 2;
+                    ord = 3;
             end
         end
 

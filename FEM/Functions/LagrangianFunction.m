@@ -117,14 +117,18 @@ classdef LagrangianFunction < FeFunction
             switch obj.getOrderInText()
                 case 'LINEAR'
                     s.connec  = obj.getConnec();
+                    lP = LagrangianPlotter(s);
+                    lP.plot();                    
+                case {'QUADRATIC','CUBIC'}
+                    %better to remesh (now only plotting the linear part)                    
+                    s.connec = obj.mesh.connec;                         
+                    lP = LagrangianPlotter(s);
+                    lP.plot();                    
                 otherwise
                     f = obj.project('P1D');
                     f.plot()
-                    %better to remesh (now only plotting the linear part)                    
-                    s.connec = obj.mesh.connec;                         
             end
-          lP = LagrangianPlotter(s);
-          lP.plot();
+
         end
 
         function dofConnec = computeDofConnectivity(obj)

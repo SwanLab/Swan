@@ -19,6 +19,8 @@ classdef DeletingCreateMeshDisc < handle
             obj.mesh.plot(); 
             m = obj.mesh.createDiscontinuousMesh();
             fC = obj.createP1Function();
+            d = Grad(fC);
+            d.plot(obj.mesh);
             fD = fC.project('P1D');
             fD.plot()
         end
@@ -47,11 +49,13 @@ classdef DeletingCreateMeshDisc < handle
 
         function f = createP1Function(obj)
             %s.fHandle = @(x) sin(10*x(1,:,:));
-            s.fHandle = @(x) x;
+            s.fHandle = @(x) x.^(x-1);
             s.ndimf   = 1;
             s.mesh    = obj.mesh;            
             f = AnalyticalFunction(s);
-            f = f.project('P1');
+
+            
+            f = f.project('P2');
             f.plot()
         end
         

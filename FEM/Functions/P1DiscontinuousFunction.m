@@ -127,9 +127,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function dofConnec = computeDofConnectivity(obj)
-            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes  = 1:nNodes;
-            conne = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+            conne  = obj.connec;
             nDimf  = obj.ndimf;
             nNodeE = size(conne, 2);
             nDofsE = nNodeE*nDimf;
