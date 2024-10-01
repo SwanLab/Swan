@@ -176,17 +176,18 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.etaNorm        = 0.05; % Percentatge de màxim canvi design variable
+            s.gJFlowRatio    = 0.5; % 2=constraint té el doble de prioritat que min. cost; 0.5=cost té el doble d'importancia q constraint
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            obj.designVariable.print('finalIteration');
         end
 
         function bc = createBoundaryConditions(obj)
