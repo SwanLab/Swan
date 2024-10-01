@@ -41,7 +41,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.printOptimizerVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
-                %obj.designVariable.fun.print(['densityNullSpaceIter',num2str(obj.nIter)],'Paraview');
+                %obj.designVariable.fun.print(['ToDelete/densityNullSpaceIter',num2str(obj.nIter)],'Paraview');
                 obj.designVariable.updateOld();
             end
         end
@@ -173,7 +173,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 25;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.01;
+                factor = 1.02;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end

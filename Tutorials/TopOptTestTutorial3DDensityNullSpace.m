@@ -72,18 +72,21 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             a.fileName = file;
             s          = FemDataContainer(a);
             obj.mesh   = s.mesh;
+
+            %obj.mesh = HexaMesh(1,1,1,10,10,10);
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
-            s.plotting = false;
-            dens    = DesignVariable.create(s);
+            s.type             = 'Full'; % Custom
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            s.mesh             = obj.mesh;
+            s.order            = 'P1';
+            s.fValues          = 1-heaviside(lsFun.fValues);
+            s.fun              = LagrangianFunction(s);
+            s.type             = 'Density';
+            s.plotting         = false;
+            dens               = DesignVariable.create(s);
             obj.designVariable = dens;
         end
 
@@ -114,7 +117,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
 
             E1 = 1;
-            nu1 = 0.49;
+            nu1 = 0.45;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -210,48 +213,55 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 2;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.7;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.fun.print('densityNullSpaceLastIter','Paraview');
+            %obj.designVariable.fun.print('densityNullSpaceLastIter','Paraview');
         end
 
         function bc = createBoundaryConditionsCube(obj)
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
+            loadXY  = @(coor) coor(:,1)>=0.1*xMax & coor(:,1)<=0.9*xMax & coor(:,2)>=0.1*yMax & coor(:,2)<=0.9*yMax;
+            loadYZ  = @(coor) coor(:,3)>=0.1*zMax & coor(:,3)<=0.9*zMax & coor(:,2)>=0.1*yMax & coor(:,2)<=0.9*yMax;
+            loadXZ  = @(coor) coor(:,1)>=0.1*xMax & coor(:,1)<=0.9*xMax & coor(:,3)>=0.1*zMax & coor(:,3)<=0.9*zMax;
             isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
             isForceXu = @(coor)  abs(coor(:,1))==xMax;
-            isForceYu = @(coor)  abs(coor(:,2))==yMax;
-            isForceYd = @(coor)  abs(coor(:,2))==0;
-            isForceZu = @(coor)  abs(coor(:,3))==zMax;
-            isForceZd = @(coor)  abs(coor(:,3))==0;
+            isForceYu = @(coor)  abs(coor(:,2))==yMax & loadXZ(coor);
+            isForceYd = @(coor)  abs(coor(:,2))==0 & loadXZ(coor);
+            isForceZu = @(coor)  abs(coor(:,3))==zMax & loadXY(coor);
+            isForceZd = @(coor)  abs(coor(:,3))==0 & loadXY(coor);
 
-            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.domain    = @(coor) isForceYu(coor) | isForceYd(coor) | isForceZu(coor) | isForceZd(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForceXu(coor);
+            sPL{1}.domain    = @(coor) isForceXu(coor) & loadYZ(coor);
             sPL{1}.direction = 1;
             sPL{1}.value     = -1;
 
-            sPL{2}.domain    = @(coor) isForceYu(coor);
-            sPL{2}.direction = 2;
-            sPL{2}.value     = -1;
-
-            sPL{3}.domain    = @(coor) isForceYd(coor);
-            sPL{3}.direction = 2;
-            sPL{3}.value     = 1;
-
-            sPL{4}.domain    = @(coor) isForceZu(coor);
-            sPL{4}.direction = 3;
-            sPL{4}.value     = -1;
-
-            sPL{5}.domain    = @(coor) isForceZd(coor);
-            sPL{5}.direction = 3;
-            sPL{5}.value     = 1;
+            sPL{2}.domain    = @(coor) isDir(coor) & loadYZ(coor);
+            sPL{2}.direction = 1;
+            sPL{2}.value     = 1;
+% 
+%             sPL{2}.domain    = @(coor) isForceYu(coor);
+%             sPL{2}.direction = 2;
+%             sPL{2}.value     = -1;
+% 
+%             sPL{3}.domain    = @(coor) isForceYd(coor);
+%             sPL{3}.direction = 2;
+%             sPL{3}.value     = 1;
+% 
+%             sPL{4}.domain    = @(coor) isForceZu(coor);
+%             sPL{4}.direction = 3;
+%             sPL{4}.value     = -1;
+% 
+%             sPL{5}.domain    = @(coor) isForceZd(coor);
+%             sPL{5}.direction = 3;
+%             sPL{5}.value     = 1;
 
 
 
