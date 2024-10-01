@@ -217,17 +217,6 @@ classdef Mesh < handle
 
         %% Remove
 
-        function mD = createDiscontinuousMesh(obj) % P1D
-            ndims = size(obj.coord, 2);
-            nNodesDisc = obj.nnodeElem*obj.nelem;
-            nodesDisc  = 1:nNodesDisc;
-            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
-            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
-            s.connec = connecDisc;
-            s.coord  = coordD;
-            mD = Mesh.create(s);
-        end
-
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
             x = obj.coord(:,1);

@@ -111,12 +111,12 @@ classdef P1DiscontinuousFunction < FeFunction
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function fFine = refine(obj, m, mFine)
+        function fFine = refine(obj, mFine)
             f = obj.fValues;
             for iDim = 1:obj.ndimf
                 fI = f(iDim,:,:);
                 fI = fI(:);
-                fEdges = obj.computeFunctionInEdges(m,fI);
+                fEdges = obj.computeFunctionInEdges(obj.mesh,fI);
                 fAll(:,iDim)  = [fI;fEdges];
             end
             s.mesh    = mFine;

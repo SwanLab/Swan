@@ -18,9 +18,9 @@ classdef DeletingCreateMeshDisc < handle
             close all
             obj.createMesh();
             obj.mesh.plot(); 
-            m = obj.mesh.createDiscontinuousMesh();
+      %      m = obj.mesh.createDiscontinuousMesh();
             f = obj.createAnalyticalFunction();
-            fC = f.project('P2');
+            fC = f.project('P1');
             fC.plot
             %d = Grad(fC);
             %d.plot(obj.mesh);
@@ -29,14 +29,17 @@ classdef DeletingCreateMeshDisc < handle
 
             
             m = obj.mesh;
-            for i = 1:5
+            for i = 1:1
                 m  = m.remesh();
-                fC = fC.refine(m);            
+                fC = fC.refine(m);      
+                fD = fD.refine(m);
             end
             figure
             m.plot()
             figure()
             fC.plot()
+            figure()
+            fD.plot()
         end
         
     end

@@ -57,7 +57,7 @@ classdef Remesher < handle
         end
 
         function allConnec = computeConnectivities(obj)
-            oldConnec = obj.mesh.connec;
+            oldConnec = [];%obj.mesh.connec;
             newConnec = obj.computeNewConnectivities();
             allConnec = [oldConnec;newConnec];
         end
