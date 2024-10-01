@@ -191,12 +191,10 @@ classdef Mesh < handle
             cV  = obj.edges.computeConnectedVertex(vertex);
         end
 
-        function m = remesh(obj,nLevels) % only tri mesh
+        function mF = remesh(obj) % only tri mesh
             % for quad, QuadToTriMeshConverter
-            s.mesh = obj;
-            s.nLevels = nLevels;
-            r = Remesher(s);
-            m = r.compute();
+            mC = obj;
+            mF = Remesher.compute(mC);
         end
 
         function exportSTL(obj)

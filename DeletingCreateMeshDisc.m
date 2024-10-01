@@ -25,14 +25,19 @@ classdef DeletingCreateMeshDisc < handle
             %d = Grad(fC);
             %d.plot(obj.mesh);
             fD = f.project('P1D');
-            
-            s.mesh = obj.mesh;
-            s.nLevels = 1;
-            r = Remesher(s);
-            mF = r.compute();
-            figure
-            mF.plot()
             fD.plot()
+
+            
+            m = obj.mesh;
+            for i = 1:5
+                m  = m.remesh();
+                fC = fC.refine(m);
+            
+            end
+            figure
+            m.plot()
+            figure()
+            fC.plot()
         end
         
     end

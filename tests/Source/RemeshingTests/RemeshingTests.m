@@ -18,7 +18,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             f = obj.createP1ContinousFunction(m);
             for i = 1:2
                 mF = m.remesh(1);
-                f = f.refine(m,mF);
+                f = f.refine(mF);
                 m    = mF;
             end
             s = load('test_RemeshP1Function');
@@ -32,7 +32,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             f = obj.createP1DiscontinousFunction(m);
             for i = 1:2
                 mF = m.remesh(1); % mF is CONTINUOUS, m is DISCONTINUOUS
-                f = f.refine(m,mF); %fNew = fOld.refine(mF); -> fOld has m, fNew has mF
+                f = f.refine(m); %fNew = fOld.refine(mF); -> fOld has m, fNew has mF
                 m = mF.createDiscontinuousMesh(); % care: discont/cont -> interpolation through continuous
                 % ideally: work only with discontinuous meshes
             end

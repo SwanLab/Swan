@@ -239,9 +239,9 @@ classdef LagrangianFunction < FeFunction
             divF = FGaussDiscontinuousFunction(s);
         end
 
-        function fFine = refine(obj,m,mFine)
+        function fFine = refine(obj,mFine)
             fNodes  = obj.fValues;
-            fEdges  = obj.computeFunctionInEdges(m, fNodes);
+            fEdges  = obj.computeFunctionInEdges(obj.mesh, fNodes);
             fAll    = [fNodes;fEdges];
             s.mesh    = mFine;
             s.fValues = fAll;
