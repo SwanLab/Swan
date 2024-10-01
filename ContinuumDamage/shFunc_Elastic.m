@@ -68,8 +68,7 @@ classdef shFunc_Elastic < handle
             
             hessian = lhs.compute();
         
-        end
-        
+        end     
         
     end
     

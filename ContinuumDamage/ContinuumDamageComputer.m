@@ -25,16 +25,16 @@ classdef ContinuumDamageComputer < handle
             bc = obj.boundaryConditions;
             uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.quadOrder);
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
-            s.material = obj.material;
             
+            s.material = obj.material;
             s.u        = uFun;
             s.mesh     = obj.mesh;
             
             obj.ElasticFun = shFunc_Elastic(s);
             %aa = obj.ElasticFun.computeFunction(1)
-
+            
             K = obj.computeK();
-            F = obj.computeF(K);
+            F = obj.computeF(K,uFun);
             
             
             results = obj.computeU(K,F);
@@ -70,7 +70,7 @@ classdef ContinuumDamageComputer < handle
             ord = obj.convertOrder();
             K = obj.ElasticFun.computeHessian(ord);
         end
-        function F = computeF(obj,K)%,displacementFun,K)
+        function F = computeF(obj,K,uFun)%,displacementFun,K)
 
             % s.type     = obj.type;
             % s.scale    = obj.scale;
@@ -90,9 +90,12 @@ classdef ContinuumDamageComputer < handle
             % end
             ord = obj.convertOrder();
             Ftry = obj.ElasticFun.computeJacobian(ord);
-            offset = k(1:size(K,1),1);
+            % offset = K(1:size(K,1),1);
+            % xV = zeros(uFun.nDofs,1);
 
-            F = Ftry - offset.*g; %--
+            % g = uFun.evaluate(xV);
+            % g = eye(uFun.nDofs,1);
+            F = Ftry;% - offset.*g; 
         end
 
         function dim = getFunDims(obj,displacementFun)
