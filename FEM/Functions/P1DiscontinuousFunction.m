@@ -8,8 +8,8 @@ classdef P1DiscontinuousFunction < FeFunction
     end
 
     properties (Access = private)
-        connec
-        coord
+        dofConnec
+        dofCoord
     end
 
     methods (Access = public)
@@ -41,12 +41,12 @@ classdef P1DiscontinuousFunction < FeFunction
             ord = str2double(obj.order(end));
         end
 
-        function c = getConnec(obj)
-            c = obj.connec;
+        function c = getDofConnec(obj)
+            c = obj.dofConnec;
         end
 
-        function c = getCoord(obj)
-            c = obj.coord;
+        function c = getDofCoord(obj)
+            c = obj.dofCoord;
         end
 
         function N = computeShapeFunctions(obj, xV)
@@ -58,7 +58,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            nElem = size(obj.connec,1);
+            nElem = size(obj.dofConnec,1);
             nNodeE = obj.interpolation.nnode;
             nDimE = obj.interpolation.ndime;
             nDimG = obj.mesh.ndim;
@@ -127,7 +127,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function dofConnec = computeDofConnectivity(obj)
-            conne  = obj.connec;
+            conne  = obj.dofConnec;
             nDimf  = obj.ndimf;
             nNodeE = size(conne, 2);
             nDofsE = nNodeE*nDimf;
@@ -169,8 +169,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            s.coord   = obj.reshapeAsVector(obj.coord);
-            s.connec  = obj.connec;
+            s.coord   = obj.reshapeAsVector(obj.dofCoord);
+            s.connec  = obj.dofConnec;
             s.fValues = obj.reshapeAsVector(obj.fValues);
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
@@ -195,14 +195,14 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plotContour(obj)
             fD = obj.getFvaluesAsVector();
-            xy = obj.reshapeAsVector(obj.coord);            
+            xy = obj.reshapeAsVector(obj.dofCoord);            
             x = xy(:,1);
             y = xy(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                [~,a] = tricontour(obj.connec,x,y,z,30);
+                [~,a] = tricontour(obj.dofConnec,x,y,z,30);
                 set(a,'LineWidth',5);
                 view(0,90)
                 colorbar
@@ -236,7 +236,7 @@ classdef P1DiscontinuousFunction < FeFunction
             nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
             nodes  = 1:nNodes;
             c      = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-            obj.connec = c;
+            obj.dofConnec = c;
         end
 
         function createDOFCoord(obj)
@@ -247,7 +247,7 @@ classdef P1DiscontinuousFunction < FeFunction
             nodes = reshape(conn',1,[]);
             fe    = coordC(nodes,:)';
             coorD = reshape(fe,nDime,nNode,[]);
-            obj.coord = coorD;
+            obj.dofCoord = coorD;
         end
 
         function createDOFCoordConnec(obj)
