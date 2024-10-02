@@ -84,11 +84,12 @@ classdef NonLinearFilterEllipsev2 < handle
         end
 
         function createMassMatrixSecondDirection(obj)
-            s.type  = 'MassMatrix'; % AnisotropicMassMatrix
+            s.type  = 'AnisotropicMassMatrix';
             s.mesh  = obj.mesh;
             s.test  = obj.q;
             s.trial = obj.q;
             s.quadratureOrder = 2;
+            s.A     = [1 0; 0 1]; % A from cParams
             LHS     = LHSintegrator.create(s);
             obj.M2   = LHS.compute();
         end
@@ -110,7 +111,8 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
-            % qRotated = RotatedVector(invA,obj.q);
+            invA     = [1 0; 0 1]; % !!!
+            qRotated = RotatedVector(invA,obj.q);
             rhs        = int.compute(qRotated, test);
             obj.Kq = rhs;
         end
@@ -121,7 +123,8 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
             nablaRho   = Grad(obj.trial);
-            %rotatedNablaRho = RotatedVector(invA,nablaRho);
+            invA     = [1 0; 0 1]; % !!!
+            rotatedNablaRho = RotatedVector(invA,nablaRho);
             test       = obj.q;
             rhs        = int.compute(rotatedNablaRho,test);
             obj.RHS2   = -obj.epsilon^2*rhs;

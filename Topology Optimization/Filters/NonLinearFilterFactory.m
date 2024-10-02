@@ -7,8 +7,8 @@ classdef NonLinearFilterFactory < handle
                 case 'Circle'
                     filter = NonLinearFilterCircle(cParams);
                 case 'Ellipse'
-                    filter = NonLinearFilterEllipse(cParams);
-                    filter = NonLinearFilterEllipsev2(cParams)
+                    %filter = NonLinearFilterEllipse(cParams);
+                    filter = NonLinearFilterEllipsev2(cParams);
             end
         end
 
