@@ -112,6 +112,9 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function fFine = refine(obj, mFine)
+            fFine = P1Refiner(obj);
+
+
             f = obj.fValues;
             for iDim = 1:obj.ndimf
                 fI = f(iDim,:,:);
