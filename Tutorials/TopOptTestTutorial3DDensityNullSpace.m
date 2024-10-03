@@ -41,43 +41,18 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createMesh(obj)
-
-            %Per cub:
-            %obj.mesh = HexaMesh(1,1,1,20,20,20);
-            
-
-            % Cas cilindre linux:
-%             m2D = QuadMesh(1,1,20,20);
-%             s.type        = 'Circle';
-%             s.radius      = 0.15;
-%             s.xCoorCenter = 0.5;
-%             s.yCoorCenter = 0.5;
-%             gFun          = GeometricalFunction(s);
-%             ls            = gFun.computeLevelSetFunction(m2D);
-%             sUm.backgroundMesh = m2D;
-%             sUm.boundaryMesh   = m2D.createBoundaryMesh();
-%             uMesh = UnfittedMesh(sUm);
-%             uMesh.compute(ls.fValues);
-%             IM = uMesh.createInnerMesh();
-%             meshCylinder = IM.provideExtrudedMesh(1);
-
-            % Cas cilindre windows:
-%             load('meshCylinder.mat','meshCylinder');
-%             obj.mesh = meshCylinder;
-
-
-
             % GiD
-            file       = 'HexaFine';
-            a.fileName = file;
-            s          = FemDataContainer(a);
-            obj.mesh   = s.mesh;
+%             file       = 'HexaFine';
+%             a.fileName = file;
+%             s          = FemDataContainer(a);
+%             obj.mesh   = s.mesh;
 
-            %obj.mesh = HexaMesh(1,1,1,10,10,10);
+            % Custom
+            obj.mesh = HexaMesh(1,1,1,30,30,30);
         end
 
         function createDesignVariable(obj)
-            s.type             = 'Full'; % Custom
+            s.type             = 'Custom';
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             s.mesh             = obj.mesh;
@@ -91,21 +66,11 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
         end
 
         function createFilter(obj)
-%             s.filterType = 'P1';
-%             s.mesh  = obj.mesh;
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P0');
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             obj.filter = f;
-
-            s.filterType   = 'PDE';
-            s.mesh         = obj.mesh;
-            s.boundaryType = 'Neumann';
-            s.metric       = 'Isotropy';
-            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter     = Filter.create(s);
-            epsilon        = 4*obj.mesh.computeMeanCellSize(); % aquest 1 potser el toquem; és el radi del filtre que penalitza tant a l'interior com a la boundary
-            obj.filter.updateEpsilon(epsilon);
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -144,7 +109,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            s.boundaryConditions = obj.createBoundaryConditionsCube(); % obj.createBoundaryConditionsCube      //  obj.createBoundaryConditionsCylinder
+            s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -221,87 +186,67 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             %obj.designVariable.fun.print('densityNullSpaceLastIter','Paraview');
         end
 
-        function bc = createBoundaryConditionsCube(obj)
+        function bc = createBoundaryConditions(obj)
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            loadXY  = @(coor) coor(:,1)>=0.1*xMax & coor(:,1)<=0.9*xMax & coor(:,2)>=0.1*yMax & coor(:,2)<=0.9*yMax;
-            loadYZ  = @(coor) coor(:,3)>=0.1*zMax & coor(:,3)<=0.9*zMax & coor(:,2)>=0.1*yMax & coor(:,2)<=0.9*yMax;
-            loadXZ  = @(coor) coor(:,1)>=0.1*xMax & coor(:,1)<=0.9*xMax & coor(:,3)>=0.1*zMax & coor(:,3)<=0.9*zMax;
-            isDir   = @(coor)  abs(coor(:,1))==0; % 4 potes
-            isForceXu = @(coor)  abs(coor(:,1))==xMax;
-            isForceYu = @(coor)  abs(coor(:,2))==yMax & loadXZ(coor);
-            isForceYd = @(coor)  abs(coor(:,2))==0 & loadXZ(coor);
-            isForceZu = @(coor)  abs(coor(:,3))==zMax & loadXY(coor);
-            isForceZd = @(coor)  abs(coor(:,3))==0 & loadXY(coor);
 
-            sDir{1}.domain    = @(coor) isForceYu(coor) | isForceYd(coor) | isForceZu(coor) | isForceZd(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
+            % Edges of face z=0
+            edge1 = @(coor) coor(:,3)==0 & coor(:,2)==0;
+            edge2 = @(coor) coor(:,3)==0 & coor(:,1)==xMax;
+            edge3 = @(coor) coor(:,3)==0 & coor(:,2)==yMax;
+            edge4 = @(coor) coor(:,3)==0 & coor(:,1)==0;
 
-            sPL{1}.domain    = @(coor) isForceXu(coor) & loadYZ(coor);
-            sPL{1}.direction = 1;
-            sPL{1}.value     = -1;
+            % Edges of face z=zMax
+            edge5 = @(coor) coor(:,3)==zMax & coor(:,2)==0;
+            edge6 = @(coor) coor(:,3)==zMax & coor(:,1)==xMax;
+            edge7 = @(coor) coor(:,3)==zMax & coor(:,2)==yMax;
+            edge8 = @(coor) coor(:,3)==zMax & coor(:,1)==0;
 
-            sPL{2}.domain    = @(coor) isDir(coor) & loadYZ(coor);
-            sPL{2}.direction = 1;
-            sPL{2}.value     = 1;
-% 
-%             sPL{2}.domain    = @(coor) isForceYu(coor);
-%             sPL{2}.direction = 2;
-%             sPL{2}.value     = -1;
-% 
-%             sPL{3}.domain    = @(coor) isForceYd(coor);
-%             sPL{3}.direction = 2;
-%             sPL{3}.value     = 1;
-% 
-%             sPL{4}.domain    = @(coor) isForceZu(coor);
-%             sPL{4}.direction = 3;
-%             sPL{4}.value     = -1;
-% 
-%             sPL{5}.domain    = @(coor) isForceZd(coor);
-%             sPL{5}.direction = 3;
-%             sPL{5}.value     = 1;
+            % Edges connecting faces z=0 with z=zMax
+            edge9  = @(coor) coor(:,2)==0 & coor(:,1)==0;
+            edge10 = @(coor) coor(:,2)==0 & coor(:,1)==xMax;
+            edge11 = @(coor) coor(:,2)==yMax & coor(:,1)==xMax;
+            edge12 = @(coor) coor(:,2)==yMax & coor(:,1)==0;
 
+            isDir   = @(coor)  edge1(coor) | edge2(coor) | edge3(coor) | edge4(coor) ...
+                | edge5(coor) | edge6(coor) | edge7(coor) | edge8(coor) | edge9(coor)...
+                | edge10(coor) | edge11(coor) | edge12(coor);
 
+            isForceXu = @(coor) coor(:,1)==xMax;
+            isForceXd = @(coor) coor(:,1)==0;
+            isForceYu = @(coor) coor(:,2)==yMax;
+            isForceYd = @(coor) coor(:,2)==0;
+            isForceZu = @(coor) coor(:,3)==zMax;
+            isForceZd = @(coor) coor(:,3)==0;
 
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);
-        end
-
-
-        function bc = createBoundaryConditionsCylinder(obj)
-            zMax = max(obj.mesh.coord(:,3));
-            isDir     = @(coor)  sqrt((abs(coor(:,1))-0.5).^2+(abs(coor(:,2))-0.5).^2)>=0.148; % 0.148 ??
-            isForceZu = @(coor)  abs(coor(:,3))==zMax;
-            isForceZd = @(coor)  abs(coor(:,3))==0;
-% 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForceZu(coor);
-            sPL{1}.direction = 3;
-            sPL{1}.value     = -1;
+            sPL{1}.domain    = @(coor) isForceXu(coor);
+            sPL{1}.direction = 1;
+            sPL{1}.value     = 1;
 
-            sPL{2}.domain    = @(coor) isForceZd(coor);
-            sPL{2}.direction = 3;
-            sPL{2}.value     = 1;
+            sPL{2}.domain    = @(coor) isForceXd(coor);
+            sPL{2}.direction = 1;
+            sPL{2}.value     = -1;
+
+            sPL{3}.domain    = @(coor) isForceYu(coor);
+            sPL{3}.direction = 2;
+            sPL{3}.value     = 1;
+
+            sPL{4}.domain    = @(coor) isForceYd(coor);
+            sPL{4}.direction = 2;
+            sPL{4}.value     = -1;
+
+            sPL{5}.domain    = @(coor) isForceZu(coor);
+            sPL{5}.direction = 3;
+            sPL{5}.value     = 1;
+
+            sPL{6}.domain    = @(coor) isForceZd(coor);
+            sPL{6}.direction = 3;
+            sPL{6}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -321,5 +266,6 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
     end
 end
