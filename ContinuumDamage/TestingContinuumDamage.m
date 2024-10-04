@@ -26,8 +26,9 @@ classdef TestingContinuumDamage < handle
             s.solverMode = dataIn.solverMode;
             s.solverCase = dataIn.solverCase;
 
-            EP = ElasticProblem(s);
-            Ref = EP.solve();
+            % EP = ElasticProblem(s);
+            % Ref = EP.solve();
+            load ('ContinuumDamageTestOutput.mat');
 
             if (Ref == obj.results)
 

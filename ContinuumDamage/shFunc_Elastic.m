@@ -10,10 +10,6 @@ classdef shFunc_Elastic < handle
         mesh
     end
     
-    properties (Access = private)
-        
-    end
-    
     methods (Access = public)
         
         function obj = shFunc_Elastic(cParams)
