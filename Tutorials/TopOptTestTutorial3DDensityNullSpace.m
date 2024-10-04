@@ -48,7 +48,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 %             obj.mesh   = s.mesh;
 
             % Custom
-            obj.mesh = HexaMesh(1,1,1,30,30,30);
+            obj.mesh = TetraMesh(1,1,1,20,20,20);
         end
 
         function createDesignVariable(obj)
