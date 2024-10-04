@@ -224,13 +224,15 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
+            delta = 0.15;
+
             sPL{1}.domain    = @(coor) isForceXu(coor);
             sPL{1}.direction = 1;
             sPL{1}.value     = 1;
 
             sPL{2}.domain    = @(coor) isForceXd(coor);
             sPL{2}.direction = 1;
-            sPL{2}.value     = -1;
+            sPL{2}.value     = -(1+delta);
 
             sPL{3}.domain    = @(coor) isForceYu(coor);
             sPL{3}.direction = 2;
@@ -238,7 +240,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
             sPL{4}.domain    = @(coor) isForceYd(coor);
             sPL{4}.direction = 2;
-            sPL{4}.value     = -1;
+            sPL{4}.value     = -(1+delta);
 
             sPL{5}.domain    = @(coor) isForceZu(coor);
             sPL{5}.direction = 3;
@@ -246,7 +248,7 @@ classdef TopOptTestTutorial3DDensityNullSpace < handle
 
             sPL{6}.domain    = @(coor) isForceZd(coor);
             sPL{6}.direction = 3;
-            sPL{6}.value     = -1;
+            sPL{6}.value     = -(1+delta);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
