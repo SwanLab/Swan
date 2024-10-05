@@ -5,15 +5,19 @@ classdef TestingContinuumDamage < handle
         bc
         material
         results
+        tolerance
     end
+    
 
     methods (Access = public)
 
-        function obj = TestingContinuumDamage(cParams)
+        function obj = TestingContinuumDamage(cParams,tolerance)
+            obj.tolerance = tolerance;
             obj.mesh     = obj.createMesh(cParams);
             obj.bc       = obj.createBoundaryConditions(cParams);
             obj.material = obj.createMaterial(cParams);
             obj.results  = obj.compute(cParams);
+            
         end
 
         function compareWithElasticProblem(obj,dataIn)
@@ -25,12 +29,13 @@ classdef TestingContinuumDamage < handle
             s.solverType = dataIn.solverType;
             s.solverMode = dataIn.solverMode;
             s.solverCase = dataIn.solverCase;
+            
 
-            % EP = ElasticProblem(s);
-            % Ref = EP.solve();
-            load ('ContinuumDamageTestOutput.mat');
+             EP = ElasticProblem(s);
+             Ref = EP.solve();
+           % load ('ContinuumDamageTestOutput.mat');
 
-            if (Ref == obj.results)
+            if  ismembertol(Ref , obj.results, obj.tolerance)
 
                 fprintf ("Continuum Damage TEST: \nPASSED\n") %Optional message
                 disp ("-------------------")

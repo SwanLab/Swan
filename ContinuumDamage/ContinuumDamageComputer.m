@@ -95,7 +95,7 @@ classdef ContinuumDamageComputer < handle
 
             % g = uFun.evaluate(xV);
             % g = eye(uFun.nDofs,1);
-            F = Ftry;% - offset.*g; 
+            F = -Ftry;% - offset.*g; 
         end
 
         function dim = getFunDims(obj,displacementFun)
