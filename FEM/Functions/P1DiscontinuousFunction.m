@@ -5,9 +5,10 @@ classdef P1DiscontinuousFunction < FeFunction
     end
 
     properties (Access = private)
+        fValuesDisc
     end
 
-    properties (Access = private)
+    properties (Access = public)
         dofConnec
         dofCoord
     end
@@ -18,11 +19,12 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.init(cParams)
             obj.order = '1';
             obj.createInterpolation();
-            obj.createDOFCoordConnec();
+          %  obj.createDOFCoordConnec();
+           obj.createValuesByElement();
         end
 
         function fxV = evaluate(obj, xV)
-            func = obj.fValues;
+            func = obj.fValuesDisc;
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
@@ -47,6 +49,10 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function c = getDofCoord(obj)
             c = obj.dofCoord;
+        end
+
+        function fD = getFvaluesDisc(obj)
+            fD = obj.fValuesDisc;
         end
 
         function N = computeShapeFunctions(obj, xV)
@@ -172,9 +178,9 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            s.coord   = obj.reshapeAsVector(obj.dofCoord);
+            s.coord   = obj.dofCoord; %obj.reshapeAsVector(obj.dofCoord);
             s.connec  = obj.dofConnec;
-            s.fValues = obj.reshapeAsVector(obj.fValues);
+            s.fValues = obj.fValues; %obj.reshapeAsVector(obj.fValues);
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
             lP.plot();       
@@ -285,10 +291,19 @@ classdef P1DiscontinuousFunction < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.fValues = cParams.fValues;
-            obj.mesh    = cParams.mesh;
-            obj.ndimf   = size(cParams.fValues,1);
-            obj.order   = 'LINEAR';
+            obj.fValues   = cParams.fValues;
+            obj.dofConnec = cParams.dofConnec;
+            obj.dofCoord  = cParams.dofCoord;
+            obj.mesh      = cParams.mesh;
+            obj.ndimf     = size(cParams.fValues,2);
+            obj.order     = 'LINEAR';
+        end
+
+        function createValuesByElement(obj)
+            nNode  = size(obj.dofConnec,2);
+            nDimF  = size(obj.fValues,2);            
+            fVals = reshape(obj.fValues,nDimF,nNode,[]);
+            obj.fValuesDisc = fVals;
         end
 
         function createInterpolation(obj)

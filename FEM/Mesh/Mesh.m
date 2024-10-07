@@ -326,7 +326,7 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fValues;
+            obj.coordElem = obj.xFE.getFvaluesDisc();
         end
 
         function computeCoordFEfunction(obj)
@@ -334,7 +334,7 @@ classdef Mesh < handle
             s.order   = 'P1';
             s.fValues = obj.coord;
             coordP1 = LagrangianFunction(s);
-            obj.xFE = coordP1.project('P1D');
+            obj.xFE = coordP1.project('P1D');             
         end
 
         function L = computeSquarePerimeter(obj)

@@ -20,17 +20,29 @@ classdef Projector_toP1Discontinuous < Projector
                 f = x.fValues;
                 nNode  = size(connec,2);
                 nDime  = size(f,2);
-                nodes = reshape(connec',1,[]);
-                fe = f(nodes,:)';
-                fVals = reshape(fe,nDime,nNode,[]);
+                connec = reshape(connec',1,[]);
+                
+                nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
+                nodes  = 1:nNodes;
+                newConnec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+           
+                fe = f(connec,:);
+              %  fVals = reshape(fe,nDime,nNode,[]);
+                coord = obj.mesh.coord;
+                coordD(:,1) = coord(connec,1);
+                coordD(:,2) = coord(connec,2);
+                fVals = fe;
+                
             else
                 LHS = obj.computeLHS();
                 RHS = obj.computeRHS(x);
                 f = LHS\RHS;
                 fVals = obj.reshapeFValues(f, size(f,2));
             end
-            s.mesh    = obj.mesh;
-            s.fValues = fVals;
+            s.mesh     = obj.mesh;
+            s.fValues  = fVals;
+            s.dofCoord = coordD;
+            s.dofConnec = newConnec;
             xProj = P1DiscontinuousFunction(s);
         end
 

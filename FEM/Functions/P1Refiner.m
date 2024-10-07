@@ -16,7 +16,11 @@ classdef P1Refiner < handle
         
         function obj = P1Refiner(fP1)
             connec = obj.computeDofConnec(fP1);
-            coord  = obj.computeCoord(fP1);
+            coord  = obj.computeCoord(fP1.mesh.coord,fP1.mesh.connec,fp1.mesh);
+            fp1D = P1DiscontinuousFunction.create(fP1.mesh,1);
+            fp1D.dofConnec = connec;
+            fp1D.dofCoord  = coord;
+            fp1D.fValues = coord(:,1);
         end
         
     end
@@ -48,23 +52,16 @@ classdef P1Refiner < handle
             e3d2 = edgeInCell3(2,:);
             e3d3 = edgeInCell3(3,:);
 
-            connec(:,1,:) = [nV1 ; e1d1 ;e3d3];
-            connec(:,2,:) = [e1d3; nV2 ;e2d1];
-            connec(:,3,:) = [e1d2; e2d2; e3d2];
-            connec(:,4,:) = [e2d3;  nV3; e3d1];
+            connec(:,1,:) = [nV1 ; e1d1 ;e2d3];
+            connec(:,2,:) = [e1d3; nV2 ;e3d1];
+            connec(:,3,:) = [e1d2; e3d2; e2d2];
+            connec(:,4,:) = [e2d1; e3d3; nV3];
 
             connec = reshape(connec,size(connec,1),[])';
 
         end
 
-        function allCoord = computeCoord(obj,fP1)
-
-          
-         
-            coordVertices = fP1.mesh.coord;
-            oldDofs = fP1.getDofConnec();
-
-            connec = fP1.mesh.connec;
+        function allCoord = computeCoord(obj,coordVertices,connec,mesh)
 
             fCont = coordVertices;
             nNode  = size(connec,2);
@@ -77,22 +74,28 @@ classdef P1Refiner < handle
 
 
             s.nodesByElem = reshape(nodesDisc',nNode,nElem)';
-            s.type = fP1.mesh.type;
+            s.type = mesh.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
             
             s.coord  = fDisc;
             s.connec = edge.nodesInEdges;
-            s.kFace  = fP1.mesh.kFace -1;
+            s.kFace  = mesh.kFace -1;
             eM = Mesh.create(s); 
 
 
             s.edgeMesh = eM;
             s.fNodes   = fDisc;
             eF         = EdgeFunctionInterpolator(s);
-            newCoord = eF.compute()';               
+            newEdgeCoord = eF.compute()';           
 
-            allCoord = [coordVertices;newCoord];
+            for iCoord = 1:size(newEdgeCoord,2)
+                xc = newEdgeCoord(:,iCoord);
+                xc = repmat(xc',3,1); 
+                newCoord(:,iCoord) = reshape(xc,[],1);
+            end
+
+            allCoord = [fDisc;newCoord];
         end
 
             
