@@ -101,16 +101,7 @@ classdef LagrangianFunction < FeFunction
         end
         
         function ord = orderTextual(obj)
-            switch obj.order
-                case 'P0'
-                    ord = 'CONSTANT';
-                case 'P1'
-                    ord = 'LINEAR';
-                case 'P2'
-                    ord = 'QUADRATIC';
-                case 'P3'
-                    ord = 'CUBIC';
-            end
+            ord = obj.getOrderTextual(obj.order);
         end
 
         function ord = getOrderNum(obj)
@@ -358,12 +349,26 @@ classdef LagrangianFunction < FeFunction
             s.mesh    = mesh;
             s.order   = ord;
             s.ndimf   = ndimf;
+            s.interpolation = Interpolation.create(mesh.type,LagrangianFunction.getOrderTextual(ord));
             c = DOFsComputer(s);
             c.computeDofs();
             c.computeCoord();            
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
             s.dofs = c;
             pL = LagrangianFunction(s);
+        end
+        
+        function ord = getOrderTextual(order)
+            switch order
+                case 'P0'
+                    ord = 'CONSTANT';
+                case 'P1'
+                    ord = 'LINEAR';
+                case 'P2'
+                    ord = 'QUADRATIC';
+                case 'P3'
+                    ord = 'CUBIC';
+            end        
         end
 
     end
