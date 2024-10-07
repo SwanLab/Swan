@@ -1,4 +1,4 @@
-classdef LagrangianFunction < FeFunction
+classdef NedelecFunction < FeFunction
 
     properties (GetAccess = public, SetAccess = private)
         nDofs
@@ -7,13 +7,12 @@ classdef LagrangianFunction < FeFunction
 
     properties (Access = private)
         interpolation
-        coord
         connec
     end
 
     methods (Access = public)
 
-        function obj = LagrangianFunction(cParams)
+        function obj = NedelecFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
 
@@ -21,7 +20,6 @@ classdef LagrangianFunction < FeFunction
                 obj.createDOFCoordConnec();
             else
                 obj.connec = cParams.dofs.getDofs();
-                obj.coord  = cParams.dofs.getCoord();
                 obj.nDofs = cParams.dofs.getNumberDofs();
             end
         end
@@ -30,15 +28,19 @@ classdef LagrangianFunction < FeFunction
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
+            nDim   = obj.mesh.ndim;
             nF     = size(obj.fValues,2);
             nElem  = size(obj.connec,1);
-            fxV = zeros(nF,nGaus,nElem);
+            fxV = zeros(nDim,nGaus,nElem);
+
+            shapesTestMapped  = obj.mapFunction(shapes, xV);
+
             for iGaus = 1:nGaus
                 for iNode = 1:nNode
                     node = (obj.connec(:,(iNode-1)*obj.ndimf+1)-1)/obj.ndimf+1;
-                    Ni = shapes(iNode,iGaus);
-                    fi = obj.fValues(node,:);
-                    f(:,1,:) = Ni*fi';
+                    Ni   = reshape(squeeze(shapesTestMapped(iNode,iGaus,:,:))',nDim,[])';
+                    fi   = obj.fValues(node,:);
+                    f(1:nDim,1,:) = Ni'.*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end
@@ -77,6 +79,32 @@ classdef LagrangianFunction < FeFunction
         function dN = computeShapeDerivatives(obj, xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
+
+        function mapF = mapFunction(obj, F, ~)
+            mapF = zeros([size(F),obj.mesh.nelem]);
+            J = obj.mesh.computeJacobian(0);
+
+            JGlob = pagetranspose(pageinv(J));
+            sides = obj.computeSidesOrientation();
+
+            for idof= 1:obj.nDofsElem
+                s(1,1,1,:) = sides(:,idof);
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*s;
+            end
+        end
+
+        function mapF = mapDerivFunction(obj, F, ~)
+            mapF = zeros([size(F),obj.mesh.nelem]);
+            J = obj.mesh.computeJacobian(0);
+
+            JGlob = pagetranspose(pageinv(J));
+            sides = obj.computeSidesOrientation();
+
+            for idof= 1:obj.nDofsElem
+                s(1,1,1,:) = sides(:,idof);
+                mapF(idof,:,:,:,:) = pagemtimes(squeeze(F(idof,:,:,:)),JGlob).*s;
+            end
+        end
         
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             nElem = size(obj.connec,1);
@@ -100,14 +128,6 @@ classdef LagrangianFunction < FeFunction
             dNdx = dShapes;
         end
         
-        function ord = orderTextual(obj)
-            ord = obj.getOrderTextual(obj.order);
-        end
-
-        function ord = getOrderNum(obj)
-            ord = str2double(obj.order(end));
-        end
-
         function plot(obj) % 2D domains only
             if  strcmp(obj.order,'LINEAR')
                 switch obj.mesh.type
@@ -132,7 +152,7 @@ classdef LagrangianFunction < FeFunction
                     plot(x,y)
                 end
             else
-                pl = LagrangianPlotter();
+                pl = NedelecPlotter();
                 s.func = obj;
                 s.mesh = obj.mesh;
                 s.interpolation = obj.interpolation;
@@ -255,7 +275,7 @@ classdef LagrangianFunction < FeFunction
             s.mesh    = mFine;
             s.fValues = fAll;
             s.order   = 'P1';
-            fFine = LagrangianFunction(s);
+            fFine = NedelecFunction(s);
         end
 
         function f = copy(obj)
@@ -340,6 +360,38 @@ classdef LagrangianFunction < FeFunction
             res.fValues = f.fValues ./ b;
             s = res;
         end
+
+        function ord = getOrderNum(obj)
+            ord = 1; % NO
+        end
+
+
+        function loc = computeLocPointEdgeRef(obj)
+            type = obj.mesh.type;
+            switch type
+                case 'LINE'
+                    loc = [1 2];
+                case 'TRIANGLE'
+                    loc = [1 2 3];
+                case 'QUAD'
+                    loc = [1 2 3 4];
+                case 'TETRAHEDRA'
+                    loc = [1 1 1 2 2 3];
+                case 'HEXAHEDRA'
+                    loc = [1 4 1 2 2 3 3 4 5 8 6 7];
+            end
+        end
+
+
+        function sides = computeSidesOrientation(obj)
+            locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
+            sides = zeros(obj.mesh.nelem,obj.mesh.edges.nEdgeByElem);
+            locPointEdgeRef = obj.computeLocPointEdgeRef();
+
+            for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                sides(:,iEdge) = (locPointEdge(:,iEdge)==locPointEdgeRef(iEdge)).*2-1;
+            end
+        end
         
     end
 
@@ -349,26 +401,11 @@ classdef LagrangianFunction < FeFunction
             s.mesh    = mesh;
             s.order   = ord;
             s.ndimf   = ndimf;
-            s.interpolation = Interpolation.create(mesh.type,LagrangianFunction.getOrderTextual(ord));
-            c = DOFsComputer(s);
+            c = DOFsComputerNedelec(s);
             c.computeDofs();
-            c.computeCoord();            
             s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
             s.dofs = c;
-            pL = LagrangianFunction(s);
-        end
-        
-        function ord = getOrderTextual(order)
-            switch order
-                case 'P0'
-                    ord = 'CONSTANT';
-                case 'P1'
-                    ord = 'LINEAR';
-                case 'P2'
-                    ord = 'QUADRATIC';
-                case 'P3'
-                    ord = 'CUBIC';
-            end        
+            pL = NedelecFunction(s);
         end
 
     end
@@ -379,48 +416,30 @@ classdef LagrangianFunction < FeFunction
             obj.mesh    = cParams.mesh;
             obj.fValues = cParams.fValues;
             obj.ndimf   = size(cParams.fValues,2);
-            obj.order   = cParams.order;
+            % obj.order   = cParams.order;
         end
 
         function createInterpolation(obj)
             type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,obj.orderTextual());
+            obj.interpolation = Interpolation.create(type,'Nedelec');
             obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
         end
 
         function createDOFCoordConnec(obj)
             s.mesh          = obj.mesh;
             s.interpolation = obj.interpolation;
-            s.order         = obj.order;
             s.ndimf         = obj.ndimf;
-            c = DOFsComputer(s);
+            c = DOFsComputerNedelec(s);
             c.computeDofs();
-            c.computeCoord();
-            obj.coord  = c.getCoord();
             obj.connec = c.getDofs();
             obj.nDofs = c.getNumberDofs();
         end
 
-        function f = computeFunctionInEdges(obj,m,fNodes)
+        function f = computeFunctionInEdges(~,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
-        end
-        function fM = getFormattedP0FValues(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('LINEAR');
-            fV = obj.evaluate(q.posgp);
-            nGaus   = q.ngaus;
-            nComp   = obj.ndimf;
-            nElem   = size(obj.mesh.connec, 1);
-            fM  = zeros(nGaus*nElem,nComp);
-            for iStre = 1:nComp
-                for iGaus = 1:nGaus
-                    rows = linspace(iGaus,(nElem - 1)*nGaus + iGaus,nElem);
-                    fM(rows,iStre) = fV(iStre,iGaus,:);
-                end
-            end
         end
 
     end

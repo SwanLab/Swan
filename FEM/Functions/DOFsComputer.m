@@ -115,7 +115,14 @@ classdef DOFsComputer < handle
                 dofsVertices = m.connec;
             end
         end
-        
+
+
+        function result = vectorUnion(~, v, n, fl)
+
+            result = v + (0:n-1);
+            result(fl,:) = flip(result(fl,:),2);
+        end
+
         
         function dofsEdges = computeDofsEdges(obj)
             if obj.order <= 1
@@ -127,19 +134,17 @@ classdef DOFsComputer < handle
                 ndofEdge = obj.order-1;
                 ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
                 
-                dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
+                dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem*ndofEdge);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
                 locPointEdgeRef = obj.computeLocPointEdgeRef();
 
-                for iElem = 1:obj.mesh.nelem
-                    for iEdge = 1:obj.mesh.edges.nEdgeByElem
-                        ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
-                        if locPointEdge(iElem,iEdge)~=locPointEdgeRef(iEdge)
-                            ind = flip(ind);
-                        end
-                        dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
-                    end
+                for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                    ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
+                    fl = locPointEdge(:,iEdge)~=locPointEdgeRef(iEdge);
+                    v = edges(:,iEdge)*ndofEdge-(ndofEdge-1);
+                    dofsEdges(:,ind) = obj.vectorUnion(v, length(ind), fl);
                 end
+
                 dofsEdges = dofsEdges + m.nnodes;
             end
         end
