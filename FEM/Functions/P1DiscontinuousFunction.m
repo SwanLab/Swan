@@ -171,12 +171,36 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            s.coord   = obj.dofCoord; %obj.reshapeAsVector(obj.dofCoord);
-            s.connec  = obj.dofConnec;
-            s.fValues = obj.fValues; 
+            connecf{1} = obj.getDofConnecByVector(1);
+            connecf{2} = obj.getDofConnecByVector(2);
+            coordf{1}  = obj.getDofCoordByVector(1);
+            coordf{2}  = obj.getDofCoordByVector(2);
+            s.connec = connecf;
+            s.coord  = coordf;
+
+
+
+
+            s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
-            lP.plot();       
+            lP.plot();
+        end
+
+        function node = getDofConnecByVector(obj,iDim)
+            nNode = obj.interpolation.nnode;
+            for iNode = 1:nNode
+                iDof   = (iNode-1)*obj.ndimf+1;
+                node(:,iNode) = (obj.dofConnec(:,iDof)-1)/obj.ndimf+1;
+            end
+        end
+
+        function cT = getDofCoordByVector(obj,dimf)
+            for iDim = 1:obj.mesh.ndim
+                coordN = obj.dofCoord(:,iDim);
+                cResh  = reshape(coordN',2,[]);
+                cT(:,iDim) = cResh(dimf,:);
+            end
         end
 
         function plotLine(obj)
@@ -295,9 +319,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function createValuesByElement(obj)
-            nNode  = size(obj.dofConnec,2);
             nDimF  = size(obj.fValues,2);            
-            fVals = reshape(obj.fValues',nDimF,nNode,[]);
+            fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
             obj.fValuesDisc = fVals;
         end
 

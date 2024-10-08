@@ -14,14 +14,14 @@ classdef LagrangianPlotter < handle
         end
 
         function plot(obj)
-            x  = obj.coord(:,1);
-            y  = obj.coord(:,2);
-            z  = obj.fValues;            
+
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
-                zi = z(:,idim);
-                a = trisurf(obj.connec,x,y,zi);
+                x  = obj.coord{idim}(:,1);
+                y  = obj.coord{idim}(:,2);  
+                z  = obj.fValues(:,idim);            
+                a = trisurf(obj.connec{idim},x,y,z);
                 view(0,90)
                 %colorbar
                 shading interp

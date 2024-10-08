@@ -17,15 +17,24 @@ classdef Projector_toP1Discontinuous < Projector
             %connec = connec(:);
             connec = reshape(connec',1,[]);
 
-            nNodes    = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes     = 1:nNodes;
-            dofConnec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+
+            nDofs    = obj.mesh.nnodeElem*obj.mesh.nelem*x.ndimf;
+            nodes     = 1:nDofs;
+            dofConnec = reshape(nodes,obj.mesh.nnodeElem*x.ndimf,obj.mesh.nelem)';
 
 
             coord = obj.mesh.coord;
-            dofCoord(:,1) = coord(connec,1);
-            dofCoord(:,2) = coord(connec,2);
+            coordC(:,1) = coord(connec,1);
+            coordC(:,2) = coord(connec,2);
+
+             coor = zeros(nDofs,obj.mesh.ndim);
+                for idim = 1:obj.mesh.ndim
+                    coorI = repmat(coordC(:,idim)',x.ndimf,1);
+                    coor(:,idim) = coorI(:);
+                end
+
             ndimf = x.ndimf;
+            dofCoord = coor;
 
             xP1D = P1DiscontinuousFunction.create(obj.mesh,dofConnec,dofCoord,ndimf);            
 
@@ -65,24 +74,27 @@ classdef Projector_toP1Discontinuous < Projector
 
            % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
             conne = trial.getDofConnec();%obj.createDiscontinuousConnectivity();
-
+            
+            nDimf = fun.ndimf;
             nGaus = quad.ngaus;
             nElem = obj.mesh.nelem;
-            nNode = size(conne,2);
-            nDofs = nElem*nNode;
+            nDosByElem = obj.mesh.nnodeElem*nDimf;
+            nDofs      = nElem*nDosByElem;
+            
 
             fGaus = fun.evaluate(xV);
             nFlds = size(fGaus,1);
-            f     = zeros(nDofs,nFlds);
+            f     = zeros(nDofs,1);
             for iField = 1:nFlds
                 for igaus = 1:nGaus
                     dVg(:,1) = dV(igaus, :);
                     fG = squeeze(fGaus(iField,igaus,:));
-                    for inode = 1:nNode
-                        dofs = conne(:,inode);
-                        Ni = shapes(inode,igaus);
+                    for iNode = 1:obj.mesh.ndim
+                        idofElem = nDimf*(iNode - 1) + iField;
+                        dofs = conne(:,idofElem);
+                        Ni = shapes(iNode,igaus);
                         int = Ni.*fG.*dVg;
-                        f(dofs,iField) = f(dofs,iField) + int;
+                        f(dofs,1) = f(dofs,1) + int;
                     end
                 end
             end

@@ -28,7 +28,7 @@ classdef LagrangianFunction < FeFunction
 
         function fxV = evaluate(obj, xV)
             shapes = obj.interpolation.computeShapeFunctions(xV);
-            nNode  = size(shapes,1);
+            nNode  = obj.interpolation.nnode;
             nGaus  = size(shapes,2);
             nF     = size(obj.fValues,2);
             nElem  = size(obj.dofConnec,1);
@@ -113,8 +113,14 @@ classdef LagrangianFunction < FeFunction
             s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
             switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'
-                    s.connec  = obj.getDofConnec();
+                case 'LINEAR'                    
+                    connecf{1} = obj.getDofConnecByVector(1);
+                    connecf{2} = obj.getDofConnecByVector(2);                    
+                    coordf{1}  = obj.getDofCoordByVector(1);
+                    coordf{2}  = obj.getDofCoordByVector(2);
+                    s.connec = connecf;
+                    s.coord  = coordf;
+                    
                     lP = LagrangianPlotter(s);
                     lP.plot();                    
                 case {'QUADRATIC','CUBIC'}
@@ -128,6 +134,24 @@ classdef LagrangianFunction < FeFunction
             end
 
         end
+
+        function node = getDofConnecByVector(obj,iDim)
+          nNode = obj.interpolation.nnode;
+          for iNode = 1:nNode
+            iDof   = (iNode-1)*obj.ndimf+1;              
+            node(:,iNode) = (obj.dofConnec(:,iDof)-1)/obj.ndimf+1;
+          end
+        end
+        
+        function cT = getDofCoordByVector(obj,dimf)
+          for iDim = 1:obj.mesh.ndim
+                coordN = obj.dofCoord(:,iDim);
+                cResh  = reshape(coordN',2,[]);
+                cT(:,iDim) = cResh(dimf,:);
+          end         
+        end
+
+
 
         % function dofConnec = computeDofConnectivity(obj)
         %     conne  = obj.dofConnec;

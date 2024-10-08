@@ -22,7 +22,7 @@ classdef DOFsComputer < handle
         
         function computeDofs(obj)
             obj.computeDofsPriv();
-            obj.refineDofs();
+            obj.obtainDofsForVectorField();
         end
         
         
@@ -32,7 +32,7 @@ classdef DOFsComputer < handle
             end
 
             if  isprop(obj.mesh,'coord') 
-                obj.computeCoordPriv();
+                obj.computeCoordPriv(obj.dofs);
             end
         end
         
@@ -86,8 +86,8 @@ classdef DOFsComputer < handle
         end
         
         
-        function computeCoordPriv(obj)
-            ndofsE = size(obj.dofs,2);
+        function computeCoordPriv(obj,dofs)
+            ndofsE = size(dofs,2);
             coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
             if obj.order~=1
                 sAF      = obj.computefHandlePosition();
@@ -97,12 +97,17 @@ classdef DOFsComputer < handle
                 c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
                 c = permute(c,[3,1,2]);
                 c = reshape(c,[],obj.mesh.ndim);
-                newDofs = (obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
+                newDofs = (dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
                 newDofs = reshape(newDofs,[],1);
                 coor(newDofs,:) = c;                
                 obj.coord = coor;
             else
-                obj.coord = obj.mesh.coord;
+                coor   = zeros(obj.ndofs,obj.mesh.ndim);
+                for idim = 1:obj.mesh.ndim
+                    coorI = repmat(obj.mesh.coord(:,idim)',obj.ndimf,1);
+                    coor(:,idim) = coorI(:);
+                end
+                obj.coord = coor;
             end
         end
        
@@ -234,7 +239,7 @@ classdef DOFsComputer < handle
         end
         
         
-        function refineDofs(obj)
+        function obtainDofsForVectorField(obj)
             dofsDim =  obj.dofs;
             nDimf  = obj.ndimf;
             nNode  = size(dofsDim, 2);
