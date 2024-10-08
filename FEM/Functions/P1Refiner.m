@@ -9,20 +9,23 @@ classdef P1Refiner < handle
     end
     
     properties (Access = private)
-        
+        fp1D
     end
     
     methods (Access = public)
         
         function obj = P1Refiner(fP1)
-            connec = obj.computeDofConnec(fP1);
-            coord  = obj.computeCoord(fP1.mesh.coord,fP1.mesh.connec,fp1.mesh);
-            fp1D = P1DiscontinuousFunction.create(fP1.mesh,1);
-            fp1D.dofConnec = connec;
-            fp1D.dofCoord  = coord;
-            fp1D.fValues = coord(:,1);
+            dofConnec = obj.computeDofConnec(fP1);
+            dofCoord  = obj.computeCoord(fP1.mesh.coord,fP1.mesh.connec,fP1.mesh);
+            ndimf = fP1.ndimf;
+            obj.fp1D = P1DiscontinuousFunction.create(fP1.mesh,dofConnec,dofCoord,ndimf);            
         end
-        
+
+        function  fP1D = compute(obj)
+            fP1D = obj.fp1D;
+            fP1D.fValues = 0; %%% HEre!
+        end
+
     end
     
     methods (Access = private)

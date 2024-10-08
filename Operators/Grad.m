@@ -4,14 +4,14 @@ function dom = Grad(u)
 end
 
 function fVR = evaluate(u, xV)
-    dNdx = u.evaluateCartesianDerivatives(xV);
+    dNdx    = u.evaluateCartesianDerivatives(xV);
     nDofs   = u.nDofs;
     nDimf   = u.ndimf;
     nDimG   = size(dNdx, 1);
     nNodeE  = size(dNdx, 2);
     nPoints = size(dNdx, 3);
     nElem   = size(dNdx, 4);
-    connec = u.getConnec();
+    connec = u.getDofConnec();
     fV = reshape(u.fValues', [1 nDofs]);
     grad = zeros(nDimG,nDimf, nPoints, nElem);
     for iDimG = 1:nDimG

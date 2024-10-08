@@ -123,9 +123,9 @@ classdef P1DiscontinuousFunction < FeFunction
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function fFine = refine(obj, mFine)
-            fFine = P1Refiner(obj);
-
+        function fFine = refine(obj,fD, mFine)
+            P1Dref = P1Refiner(fD);
+            fFine  = P1Dref.compute();
 
             f = obj.fValues;
             for iDim = 1:obj.ndimf

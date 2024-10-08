@@ -20,8 +20,8 @@ classdef LagrangianFunction < FeFunction
             if not(contains(fieldnames(cParams),'dofs'))
                 obj.createDOFCoordConnec();
             else
-                obj.connec = cParams.dofs.getDofs();
-                obj.coord  = cParams.dofs.getCoord();
+                obj.dofConnec = cParams.dofConnec;
+                obj.dofCoord  = cParams.dofCoord;
                 obj.nDofs = cParams.dofs.getNumberDofs();
             end
         end
@@ -112,7 +112,7 @@ classdef LagrangianFunction < FeFunction
             s.coord   = obj.getDofCoord();
             s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
-            switch obj.getOrderInText()
+            switch obj.getOrderTextual(obj.order)
                 case 'LINEAR'
                     s.connec  = obj.getDofConnec();
                     lP = LagrangianPlotter(s);
@@ -339,11 +339,12 @@ classdef LagrangianFunction < FeFunction
             s.order   = ord;
             s.ndimf   = ndimf;
             s.interpolation = Interpolation.create(mesh.type,LagrangianFunction.getOrderTextual(ord));
-            c = DOFsComputer(s);
-            c.computeDofs();
-            c.computeCoord();            
-            s.fValues = zeros(c.getNumberDofs()/ndimf,ndimf);
-            s.dofs = c;
+            dofs = DOFsComputer(s);
+            dofs.computeDofs();
+            dofs.computeCoord();            
+            s.dofCoord  = dofs.getCoord();
+            s.dofConnec = dofs.getDofs();
+            s.fValues = zeros(dofs.getNumberDofs()/ndimf,ndimf);            
             pL = LagrangianFunction(s);
         end
         
@@ -373,7 +374,7 @@ classdef LagrangianFunction < FeFunction
 
         function createInterpolation(obj)
             type = obj.mesh.type;
-            obj.interpolation = Interpolation.create(type,obj.getOrderInText());
+            obj.interpolation = Interpolation.create(type,obj.getOrderTextual(obj.order));
             obj.nDofsElem = obj.ndimf*obj.interpolation.nnode;
         end
 

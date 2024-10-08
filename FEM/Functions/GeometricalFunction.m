@@ -38,7 +38,7 @@ classdef GeometricalFunction < handle
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0).^p+abs(x2(x)-y0).^p).^(1/p))/l - 0.5;
+                    fH = @(x) (((abs(x1(x)-x0)).^p+(abs(x2(x)-y0)).^p).^(1/p))/l - 0.5;
                     obj.fHandle = fH;
 
                 case 'SquareInclusion'
@@ -51,7 +51,7 @@ classdef GeometricalFunction < handle
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)./sx(x),abs(x2(x)-y0)./sy(x)) - 0.5;
+                    fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
                     obj.fHandle = fH;
 
                 case 'RectangleInclusion'
