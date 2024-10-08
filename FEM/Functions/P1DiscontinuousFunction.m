@@ -141,22 +141,22 @@ classdef P1DiscontinuousFunction < FeFunction
             fFine = p1fun.project('P1D');
         end
 
-        function dofConnec = computeDofConnectivity(obj)
-            conne  = obj.dofConnec;
-            nDimf  = obj.ndimf;
-            nNodeE = size(conne, 2);
-            nDofsE = nNodeE*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNodeE
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            dofConnec = dofsElem;
-        end
+        % function dofConnec = computeDofConnectivity(obj)
+        %     conne  = obj.dofConnec;
+        %     nDimf  = obj.ndimf;
+        %     nNodeE = size(conne, 2);
+        %     nDofsE = nNodeE*nDimf;
+        %     dofsElem  = zeros(nDofsE,size(conne,1));
+        %     for iNode = 1:nNodeE
+        %         for iUnkn = 1:nDimf
+        %             idofElem   = nDimf*(iNode - 1) + iUnkn;
+        %             globalNode = conne(:,iNode);
+        %             idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+        %             dofsElem(idofElem,:) = idofGlobal;
+        %         end
+        %     end
+        %     dofConnec = dofsElem;
+        % end
 
         function fR = getFvaluesAsVector(obj)
             f  = obj.fValues;
@@ -168,19 +168,6 @@ classdef P1DiscontinuousFunction < FeFunction
             nelem   = size(obj.mesh.connec, 1);
             nnodeEl = size(obj.mesh.connec, 2);
             fR = reshape(fValues, [ndims, nelem*nnodeEl])';
-        end
-
-        function isDofCont = isDofContinous(obj,iElem,idof)
-            iLocalVertex = floor(idof/obj.ndimf);
-            iVertex = obj.mesh.connec(iElem,iLocalVertex);
-            cellsAround = obj.mesh.computeAllCellsOfVertex(iVertex);
-            isLocalVertices = obj.mesh.connec(cellsAround,:) == iVertex;
-            fCellsAround = obj.fValues(:,:,cellsAround);
-            for idim = obj.ndimf
-                fCellsA = squeeze(fCellsAround(idim,:,:))';
-                fVertex = fCellsA(isLocalVertices);
-                isDofCont(:,idim) = norm(fVertex - mean(fVertex)) < 1e-14;
-            end
         end
 
         function plot(obj)

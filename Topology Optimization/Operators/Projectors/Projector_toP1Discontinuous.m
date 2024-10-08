@@ -64,7 +64,7 @@ classdef Projector_toP1Discontinuous < Projector
             shapes = trial.computeShapeFunctions(xV);
 
            % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-            conne = trial.dofConnec;%obj.createDiscontinuousConnectivity();
+            conne = trial.getDofConnec();%obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;
             nElem = obj.mesh.nelem;
@@ -87,14 +87,6 @@ classdef Projector_toP1Discontinuous < Projector
                 end
             end
             RHS = f;
-        end
-
-        function conn = createDiscontinuousConnectivity(obj)
-            nElem   = obj.mesh.nelem;
-            nNodeEl = obj.mesh.nnodeElem;
-            nDofs   = nElem*nNodeEl;
-            dofs = 1:nDofs;
-            conn = reshape(dofs, [nNodeEl,nElem])';
         end
 
         function q = createRHSQuadrature(obj, fun)
