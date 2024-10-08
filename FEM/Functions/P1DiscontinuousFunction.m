@@ -39,6 +39,11 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
+        function f = copy(obj)
+            f = obj.create(obj.mesh, obj.dofConnec, obj.dofCoord,obj.ndimf);
+            f.fValues = obj.fValues;
+        end        
+
         function ord = getOrderNum(obj)
             ord = str2double(obj.order(end));
         end
@@ -52,6 +57,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function fD = getFvaluesDisc(obj)
+            obj.createValuesByElement();            
             fD = obj.fValuesDisc;
         end
 
@@ -180,7 +186,7 @@ classdef P1DiscontinuousFunction < FeFunction
         function plot(obj)
             s.coord   = obj.dofCoord; %obj.reshapeAsVector(obj.dofCoord);
             s.connec  = obj.dofConnec;
-            s.fValues = obj.fValues; %obj.reshapeAsVector(obj.fValues);
+            s.fValues = obj.fValues; 
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
             lP.plot();       
@@ -280,10 +286,12 @@ classdef P1DiscontinuousFunction < FeFunction
             fS = P1DiscontinuousFunction(s);
         end
 
-        function p1d = create(mesh, ndimf)
-            a.mesh    = mesh;
-            a.fValues = zeros(ndimf, mesh.nnodeElem, mesh.nelem);
-            p1d = P1DiscontinuousFunction(a);
+        function p1d = create(mesh, dofConnec, dofCoord,ndimf)
+            s.mesh      = mesh;
+            s.dofConnec = dofConnec;
+            s.dofCoord  = dofCoord;  
+            s.fValues = zeros(mesh.nnodeElem*mesh.nelem,ndimf);
+            p1d = P1DiscontinuousFunction(s);
         end
 
     end
@@ -291,10 +299,10 @@ classdef P1DiscontinuousFunction < FeFunction
     methods (Access = private)
 
         function init(obj,cParams)
+            obj.mesh      = cParams.mesh;            
             obj.fValues   = cParams.fValues;
             obj.dofConnec = cParams.dofConnec;
             obj.dofCoord  = cParams.dofCoord;
-            obj.mesh      = cParams.mesh;
             obj.ndimf     = size(cParams.fValues,2);
             obj.order     = 'LINEAR';
         end
@@ -302,7 +310,7 @@ classdef P1DiscontinuousFunction < FeFunction
         function createValuesByElement(obj)
             nNode  = size(obj.dofConnec,2);
             nDimF  = size(obj.fValues,2);            
-            fVals = reshape(obj.fValues,nDimF,nNode,[]);
+            fVals = reshape(obj.fValues',nDimF,nNode,[]);
             obj.fValuesDisc = fVals;
         end
 

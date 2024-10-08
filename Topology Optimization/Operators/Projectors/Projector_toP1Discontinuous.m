@@ -6,70 +6,65 @@ classdef Projector_toP1Discontinuous < Projector
             obj.init(cParams);
         end
 
-        function xProj = project(obj, x)
+        function xP1D = project(obj, x)
             if isprop(x,'order')
                 order = x.order;
             else
                 order = [];
             end
-            if strcmp(order, 'P1')
-                % fVals = zeros(x.nDofsElem,obj.mesh.nelem);
-                % fVals = obj.reshapeFValues(fVals,x.ndimf);
-                connec = obj.mesh.connec;
+            
+            connec = obj.mesh.connec;
+            %connec = connec(:);
+            connec = reshape(connec',1,[]);
 
+            nNodes    = obj.mesh.nnodeElem*obj.mesh.nelem;
+            nodes     = 1:nNodes;
+            dofConnec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+
+
+            coord = obj.mesh.coord;
+            dofCoord(:,1) = coord(connec,1);
+            dofCoord(:,2) = coord(connec,2);
+            ndimf = x.ndimf;
+
+            xP1D = P1DiscontinuousFunction.create(obj.mesh,dofConnec,dofCoord,ndimf);            
+
+            if strcmp(order, 'P1')
                 f = x.fValues;
-                nNode  = size(connec,2);
-                nDime  = size(f,2);
-                connec = reshape(connec',1,[]);
-                
-                nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-                nodes  = 1:nNodes;
-                newConnec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-           
-                fe = f(connec,:);
-              %  fVals = reshape(fe,nDime,nNode,[]);
-                coord = obj.mesh.coord;
-                coordD(:,1) = coord(connec,1);
-                coordD(:,2) = coord(connec,2);
-                fVals = fe;
-                
+                fVals = f(connec,:);
             else
-                LHS = obj.computeLHS();
-                RHS = obj.computeRHS(x);
-                f = LHS\RHS;
-                fVals = obj.reshapeFValues(f, size(f,2));
+                LHS  = obj.computeLHS(xP1D);
+                RHS   = obj.computeRHS(xP1D,x);
+                fVals = LHS\RHS;
+                fVals = reshape(fVals,[], xP1D.ndimf);                           
             end
-            s.mesh     = obj.mesh;
-            s.fValues  = fVals;
-            s.dofCoord = coordD;
-            s.dofConnec = newConnec;
-            xProj = P1DiscontinuousFunction(s);
+               xP1D.fValues  = fVals;
         end
 
     end
 
     methods (Access = private)
 
-        function LHS = computeLHS(obj)
+        function LHS = computeLHS(obj,xP1D)
             s.type  = 'MassMatrix';
             s.mesh  = obj.mesh;
-            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
-            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = xP1D;
+            s.trial = xP1D.copy();
             s.quadratureOrder = 2; % ?
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
         end
 
-        function RHS = computeRHS(obj,fun)
+        function RHS = computeRHS(obj,xP1D,fun)
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
             dV = obj.mesh.computeDvolume(quad);
 
-            trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            trial  = xP1D.copy();
             shapes = trial.computeShapeFunctions(xV);
 
            % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-            conne = obj.createDiscontinuousConnectivity();
+            conne = trial.dofConnec;%obj.createDiscontinuousConnectivity();
 
             nGaus = quad.ngaus;
             nElem = obj.mesh.nelem;

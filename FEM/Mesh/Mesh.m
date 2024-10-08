@@ -333,7 +333,7 @@ classdef Mesh < handle
             s.mesh    = obj;
             s.order   = 'P1';
             s.fValues = obj.coord;
-            coordP1 = LagrangianFunction(s);
+            coordP1   = LagrangianFunction(s);
             obj.xFE = coordP1.project('P1D');             
         end
 
