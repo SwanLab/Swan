@@ -32,6 +32,7 @@ classdef OptimizerMMA < Optimizer
         hasConverged
         historicalVariables
         KKTnorm
+        grayMeasure
     end
     
     methods (Access = public)
@@ -55,7 +56,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
-               obj.designVariable.fun.print(['densityIter',num2str(obj.nIter)],'Paraview');
+               %obj.designVariable.fun.print(['densityIter',num2str(obj.nIter)],'Paraview');
            end
             obj.hasConverged = 0;
        end
@@ -97,12 +98,20 @@ classdef OptimizerMMA < Optimizer
     methods (Access = private)
         
         function updateMonitoring(obj)
+            obj.computeGrayMeasure();
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
-            data = [data;obj.cost.bulkValue];
+            data = [data;obj.cost.bulkValue;obj.cost.shearValue];
             data = [data;obj.constraint.value];
-            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = [data;obj.designVariable.computeL2normIncrement();obj.grayMeasure];
             obj.monitoring.update(obj.nIter,data);
+        end
+
+        function computeGrayMeasure(obj)
+            xFun = obj.designVariable.fun;
+            dInt = xFun.*(1-xFun);
+            int  = Integrator.compute(dInt,xFun.mesh,'QUADRATIC');
+            obj.grayMeasure = int;
         end
 
         function init(obj,cParams)
@@ -118,7 +127,7 @@ classdef OptimizerMMA < Optimizer
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;{'bulkCompliance'};titlesConst;{'Norm L2 x'}];
+            titles        = [{'Cost'};titlesF;{'bulkEnergy'};{'shearEnergy'};titlesConst;{'Norm L2 x'};{'Gray measure'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 chConstr{i}   = 'plot';
@@ -127,7 +136,7 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,{'plot'},chConstr,{'log'}];
+            chartTypes = [{'plot'},chCost,{'plot'},{'plot'},chConstr,{'log'},{'plot'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
