@@ -45,7 +45,7 @@ classdef Projector_toP1Discontinuous < Projector
                 LHS  = obj.computeLHS(xP1D);
                 RHS   = obj.computeRHS(xP1D,x);
                 fVals = LHS\RHS;
-                fVals = reshape(fVals,[], xP1D.ndimf);                           
+                fVals = reshape(fVals',xP1D.ndimf,[])';                           
             end
                xP1D.fValues  = fVals;
         end
@@ -64,52 +64,13 @@ classdef Projector_toP1Discontinuous < Projector
             LHS = lhs.compute();
         end
 
-        function RHS = computeRHS(obj,xP1D,fun)
-            quad = obj.createRHSQuadrature(fun);
-            xV = quad.posgp;
-            dV = obj.mesh.computeDvolume(quad);
-
-            trial  = xP1D.copy();
-            shapes = trial.computeShapeFunctions(xV);
-
-           % shapes = permute(obj.mesh.interpolation.shape,[1 3 2]);
-            conne = trial.getDofConnec();%obj.createDiscontinuousConnectivity();
-            
-            nDimf = fun.ndimf;
-            nGaus = quad.ngaus;
-            nElem = obj.mesh.nelem;
-            nDosByElem = obj.mesh.nnodeElem*nDimf;
-            nDofs      = nElem*nDosByElem;
-            
-
-            fGaus = fun.evaluate(xV);
-            nFlds = size(fGaus,1);
-            f     = zeros(nDofs,1);
-            for iField = 1:nFlds
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    fG = squeeze(fGaus(iField,igaus,:));
-                    for iNode = 1:obj.mesh.ndim
-                        idofElem = nDimf*(iNode - 1) + iField;
-                        dofs = conne(:,idofElem);
-                        Ni = shapes(iNode,igaus);
-                        int = Ni.*fG.*dVg;
-                        f(dofs,1) = f(dofs,1) + int;
-                    end
-                end
-            end
-            RHS = f;
-        end
-
-        function q = createRHSQuadrature(obj, fun)
-            ord = obj.determineQuadratureOrder(fun);
-            q = Quadrature.create(obj.mesh,ord);
-        end
-
-        function fVals = reshapeFValues(obj, x, nFlds)
-            nElem = obj.mesh.nelem;
-            nNode = obj.mesh.nnodeElem;
-            fVals = reshape(x',nFlds, nNode, nElem);
+        function RHS = computeRHS(obj,xP1D,fun)           
+            s.quadType = 2;
+            s.type = 'ShapeFunction';            
+            s.mesh = xP1D.mesh;
+            int        = RHSintegrator.create(s);
+            test       = xP1D;
+            RHS        = int.compute(fun,test);
         end
 
     end
