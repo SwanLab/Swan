@@ -1,4 +1,4 @@
-classdef PreconditionerEIFEM < handle
+classdef PreconditionerEIFEMcontinous < handle
     
     properties (Access = public)
         
@@ -25,7 +25,7 @@ classdef PreconditionerEIFEM < handle
     
     methods (Access = public)
         
-         function obj = PreconditionerEIFEM(cParams)
+         function obj = PreconditionerEIFEMcontinous(cParams)
             obj.init(cParams);
             obj.createEIFEM();
         end
