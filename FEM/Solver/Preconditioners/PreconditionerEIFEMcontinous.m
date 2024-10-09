@@ -1,41 +1,46 @@
 classdef PreconditionerEIFEM < handle
-
+    
     properties (Access = public)
-
+        
     end
-
+    
+    properties (Access = private)
+        
+    end
+    
     properties (Access = private)
         EIFEMfilename
         weight
+        nSubdomains  
         EIFEMsolver
+        ddDofManager
     end
-
-    properties (Access = private)
+    
+     properties (Access = private)
         coarseMesh
         LHS
-        bcApplier
+        bcApplier        
         dir
-        ddDofManager
-        nSubdomains
-    end
-
+    end    
+    
     methods (Access = public)
-
-        function obj = PreconditionerEIFEM(cParams)
+        
+         function obj = PreconditionerEIFEM(cParams)
             obj.init(cParams);
             obj.createEIFEM();
         end
-
+        
+        
         function z = solveEIFEM(obj,r)
             RGsbd = obj.computeSubdomainResidual(r);
             uSbd =  obj.EIFEMsolver.apply(RGsbd);
             z = obj.computeContinousField(uSbd);
         end
-
+        
     end
-
+    
     methods (Access = private)
-
+        
         function init(obj,cParams)
             obj.LHS          = cParams.LHS;
             obj.ddDofManager = cParams.ddDofManager;
@@ -113,7 +118,7 @@ classdef PreconditionerEIFEM < handle
             RG    = obj.bcApplier.reducedToFullVectorDirichlet(R);
             %             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
             RGsbd = obj.ddDofManager.global2local(RG);
-            Rsbd  = obj.scaleInterfaceValues(RGsbd);
+            Rsbd = obj.scaleInterfaceValues(RGsbd);
         end
 
         function fc = computeContinousField(obj,f)
@@ -122,6 +127,65 @@ classdef PreconditionerEIFEM < handle
             fc    = obj.bcApplier.fullToReducedVectorDirichlet(fc);
         end
 
-    end
+        function Ug = computeAssembledProjectionMatrix(obj)
+            Ueifem = obj.EIFEMsolver.getProjectionMatrix();
+            Ueifem = repmat(Ueifem,1,obj.nSubdomains(1)*obj.nSubdomains(2));
+            Ueifem = obj.scaleProjectionMatrix(Ueifem);
+            Ug = obj.assembleProjectionMatrix(Ueifem);
+        end
 
+        function U = scaleProjectionMatrix(obj,U)
+            nDofcoarse = size(U,2)/obj.nSubdomains(1)*obj.nSubdomains(2);
+            for i=1: nDofcoarse
+                Usbd = U(:,i:nDofcoarse:end);
+                Usbd = obj.scaleInterfaceValues(Usbd);
+                U(:,i:nDofcoarse:end)= Usbd;
+            end
+        end
+
+
+        function Ug = assembleProjectionMatrix(obj,U)
+            nsbd = obj.nSubdomains(1)*obj.nSubdomains(2);
+            nDofcoarse = size(U,2)/nsbd;
+            Ug = zeros(obj.ddDofManager.nDof,nDofcoarse*nsbd);
+            for i=1: nDofcoarse
+                Usbd = U(:,i:nDofcoarse:end);
+                Uaux = obj.local2global(Usbd);
+                Ug(:,i:nDofcoarse:end)= Uaux;
+            end
+            Ug = sparse(Ug);
+        end
+
+        function computeKEIFEMglobal(obj)
+            U = obj.computeAssembledProjectionMatrix();
+            %             U = U(:,9:end);
+            obj.EIFEMprojection = obj.computeReducedProjection(U);
+            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
+            obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
+
+        end
+
+        function Ured = computeReducedProjection(obj,U)
+            ncol = size(U,2);
+            for i=1:ncol
+                Ured(:,i) = obj.bcApplier.fullToReducedVectorDirichlet(U(:,i));
+            end
+        end
+
+        function z = solveMEIFEMcontinuous(obj,r)
+            lhs=obj.KeifemContinuous;
+            phi=obj.EIFEMprojection;
+            %              phi = obj.bcApplier.fullToReducedMatrixDirichlet(phi);
+            r1=phi'*r;
+            zP=lhs\r1;
+            z =phi*zP;
+            %               z = (r-LHS*z);
+
+            %M = obj.MmodalPrecond;
+            %z = M*r;
+        end
+
+        
+    end
+    
 end

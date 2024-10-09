@@ -5,16 +5,18 @@ classdef DomainDecompositionDofManager < handle
         interfaceDof
         interfaceDom
         nDimf
+        nDof
     end
 
     properties (Access = private)
         nSubdomains
         meshDomain
-        coarseMesh
         interfaceConnec
         locGlobConnec
         nBoundaryNodes
         nReferenceNodes
+        nReferenceDof
+        nNodes
     end
 
     methods (Access = public)
@@ -29,19 +31,47 @@ classdef DomainDecompositionDofManager < handle
             interfaceDof = obj.interfaceDof;
             interfaceDom = obj.interfaceDom;
         end
+
+        function Gvec = local2global(obj,Lvec)
+            %             ndimf  = obj.displacementFun.ndimf;
+            Gvec   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
+            %             Gvec(locGlobConnec(:,1)) = Lvec(locGlobConnec(:,2));
+            ind    = 1;
+            for jdom = 1: obj.nSubdomains(2)
+                for idom = 1: obj.nSubdomains(1)
+                    locGlobConnec = obj.localGlobalDofConnec{jdom,idom};
+                    Gvec(locGlobConnec(:,1),ind) = Lvec(locGlobConnec(:,2),ind);
+                    ind=ind+1;
+                end
+            end
+        end
+
+        function Lvec = global2local(obj,Gvec)
+            ndimf  = obj.nDimf;
+            Lvec   = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            ind    = 1;
+            for jdom = 1: obj.nSubdomains(2)
+                for idom = 1: obj.nSubdomains(1)
+                    locGlobConnec = obj.localGlobalDofConnec{jdom,idom};
+                    Lvec(locGlobConnec(:,2),ind) = Gvec(locGlobConnec(:,1));
+                    ind=ind+1;
+                end
+            end
+        end
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
             obj.nSubdomains     = cParams.nSubdomains;
-            obj.meshDomain      = cParams.meshDomain;
-            obj.coarseMesh      = cParams.coarseMesh;
             obj.interfaceConnec = cParams.interfaceConnec;
             obj.locGlobConnec   = cParams.locGlobConnec;
             obj.nBoundaryNodes  = cParams.nBoundaryNodes;
             obj.nReferenceNodes = cParams.nReferenceNodes;
+            obj.nNodes          = cParams.nNodes;
             obj.nDimf           = cParams.nDimf;
+            obj.nDof            = obj.nNodes*obj.nDimf;
+            obj.nReferenceDof   = obj.nReferenceNodes*obj.nDimf;
         end
 
         function  createlocalGlobalDofConnec(obj)

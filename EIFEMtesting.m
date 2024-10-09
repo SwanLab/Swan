@@ -36,21 +36,26 @@ classdef EIFEMtesting < handle
             %             obj.createModelPreconditioning();
             %             u = obj.solver2(LHS,RHS,refLHS);
             [LHS,RHS] = obj.createElasticProblem();
-            s.LHS = LHS;
-            s.RHS = RHS;
-            s.meshDomain = obj.meshDomain;
+
             s.nSubdomains = obj.nSubdomains;
             s.interfaceConnec = iC;
             s.locGlobConnec   = lG;
             s.nBoundaryNodes = bS{1}.mesh.nnodes;
             s.nReferenceNodes = mR.nnodes;
-            s.coarseMesh      = obj.createCoarseMesh(mR);
-            s.dir = dir;
-            s.bcApplier = obj.bcApplier;
+            s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf = obj.meshDomain.ndim;
+            
+            ss.ddDofManager = DomainDecompositionDofManager(s);  
+
+            ss.LHS = LHS;
+            ss.RHS = RHS;
+            ss.meshDomain = obj.meshDomain;
+            ss.nSubdomains = obj.nSubdomains;
+            ss.coarseMesh      = obj.createCoarseMesh(mR);
+            ss.dir = dir;
+            ss.bcApplier = obj.bcApplier;
             %             gP = GeneralPreconditioner(s);
-            s.ddDofManager = DomainDecompositionDofManager(s);
-            eP = PreconditionerEIFEM(s);
+            eP = PreconditionerEIFEM(ss);
 
 
             LHSf = @(x) LHS*x;
