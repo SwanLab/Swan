@@ -6,6 +6,9 @@ classdef ComplianceFunctionalComputer < handle
     end
 
     properties (Access = private)
+        compliance
+        materialInterpolator
+        material
         designVariable
         F
         U
@@ -32,10 +35,28 @@ classdef ComplianceFunctionalComputer < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-
-            C = obj.computeElasticTensor(x);
+            obj.material.setDesignVariable(x);
+            C = obj.material.obtainTensor();
             obj.solveFEM(C);
-            dC = obj.computeTensorDerivative(x);
+            obj.computeGamma();
+            obj.computeTgamma(x);
+
+            for i = 1:obj.nMat
+                for j = 1:obj.nMat
+                    obj.materialInterpolator.computeFromTo(i,j);
+                    dCfun = obj.material.obtainTensorDerivative();
+                    dCeval =  squeezeParticular(dCfun.evaluate([0;0]),3);
+                    dC(:,:,:,i,j) = dCeval;
+                    dC(1,2,:,i,j) = 0;
+                    dC(2,1,:,i,j) = 0;
+                    dC(2,3,:,i,j) = 0;
+                    dC(3,2,:,i,j) = 0;
+                    dC(1,3,:,i,j) = dCeval(1,2,:);
+                    dC(2,2,:,i,j) = 4*dCeval(3,3,:);
+                    dC(3,1,:,i,j) = dCeval(2,1,:);
+                    dC(3,3,:,i,j) = dCeval(2,2,:);
+                end
+            end
 
             J = obj.computeFunction();
             dJ = obj.computeGradient(dC,x);
@@ -45,7 +66,9 @@ classdef ComplianceFunctionalComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.energy0 = cParams.energy0;
+            obj.compliance = cParams.complianceFromConstitutive;
+            obj.materialInterpolator = cParams.materialInterpolator;
+            obj.material = cParams.material;
             obj.nMat = cParams.nMat;
             obj.mat = cParams.mat;
             obj.mesh = cParams.mesh;
@@ -54,7 +77,11 @@ classdef ComplianceFunctionalComputer < handle
         end
 
         function J = computeFunction(obj)
-            J = 0.5*dot(obj.F,obj.U) / obj.energy0; 
+            J = 0.5*dot(obj.F,obj.U); 
+            if isempty(obj.energy0)
+                obj.energy0 = J;
+            end
+            J = J/obj.energy0;
         end
 
         function dJ = computeGradient(obj,dC,x)
@@ -93,52 +120,6 @@ classdef ComplianceFunctionalComputer < handle
             
             constituitiveTensor = ElasticTensorComputer(s);
             C = constituitiveTensor.C;
-        end
-
-        function dC = computeTensorDerivative(obj,x)
-            obj.computeGamma();
-            obj.computeTgamma(x);
-            obj.computeBetaAndAlpha();
-            obj.computeLameParameters();
-
-            C = [obj.la0+2*obj.mu0 0 obj.la0; 0 2*obj.mu0 0; obj.la0 0 obj.la0+2*obj.mu0];
-            E = obj.young;
-            a = obj.alpha;
-            b = obj.beta;
-
-            for i = 1:obj.nMat
-                for j = 1:obj.nMat
-                    g  = E(j)/E(i);
-                    c1 = 0.5*((1-g)./(1+a*g))./obj.tE;
-                    c2 = c1.*((g.*(a-2*b)-1)./(1+b*g));
-
-
-                    coefMatrix2(1,1,:) = 4*c1+c2;
-                    coefMatrix2(1,2,:) = 0;
-                    coefMatrix2(1,3,:) = c2;
-                    coefMatrix2(2,1,:) = 0;
-                    coefMatrix2(2,2,:) = 8*c1;
-                    coefMatrix2(2,3,:) = 0;
-                    coefMatrix2(3,1,:) = c2;
-                    coefMatrix2(3,2,:) = 0;
-                    coefMatrix2(3,3,:) = 4*c1+c2;
-
-                    Cv = repmat(C,[1 1 obj.mesh.nelem]);
-                    CvDC = pagemtimes(Cv,coefMatrix2);
-                    CvDC2 = pagemtimes(CvDC,C);
-                    dC(:,:,:,i,j) = CvDC2;
-
-                end
-            end
-
-            sC.E = E;
-            sC.C0 = [];
-            sC.nu1 = obj.mat.A.nu;
-            intMat = MultiMaterialInterpolation(sC);
-            [dmu,dkappa] = intMat.computeConsitutiveTensorDerivative(x);
-
-            % Pending to double check with a double for and creating an
-            % isotorpic 2d mat
         end
 
         function solveFEM(obj,C)

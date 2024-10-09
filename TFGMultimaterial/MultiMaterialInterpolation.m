@@ -6,6 +6,11 @@ classdef MultiMaterialInterpolation < handle
         nu1
    end
 
+   properties (Access = private)
+       currentMat
+       inclusionMat
+   end
+
     methods (Access = public)
         function obj = MultiMaterialInterpolation(cParams)
             obj.init(cParams)
@@ -50,44 +55,46 @@ classdef MultiMaterialInterpolation < handle
             E     = obj.multiYoung;
             tE    = E(1)*tgamma; 
             nElem = length(tE);
-            for i = 1:nMat
-                for j = 1:nMat
-                    g  = E(j)/E(i);
-                    c1 = 0.5*((1-g)./(1+alpha*g))./tE;
-                    c2 = c1.*((g.*(alpha-2*beta)-1)./(1+beta*g));
+            i = obj.currentMat;
+            j = obj.inclusionMat;
+            g  = E(j)/E(i);
+            c1 = 0.5*((1-g)./(1+alpha*g))./tE;
+            c2 = c1.*((g.*(alpha-2*beta)-1)./(1+beta*g));
 
 
-                    coefMatrix2(1,1,:) = 4*c1+c2;
-                    coefMatrix2(1,2,:) = 0;
-                    coefMatrix2(1,3,:) = c2;
-                    coefMatrix2(2,1,:) = 0;
-                    coefMatrix2(2,2,:) = 8*c1;
-                    coefMatrix2(2,3,:) = 0;
-                    coefMatrix2(3,1,:) = c2;
-                    coefMatrix2(3,2,:) = 0;
-                    coefMatrix2(3,3,:) = 4*c1+c2;
+            coefMatrix2(1,1,:) = 4*c1+c2;
+            coefMatrix2(1,2,:) = 0;
+            coefMatrix2(1,3,:) = c2;
+            coefMatrix2(2,1,:) = 0;
+            coefMatrix2(2,2,:) = 8*c1;
+            coefMatrix2(2,3,:) = 0;
+            coefMatrix2(3,1,:) = c2;
+            coefMatrix2(3,2,:) = 0;
+            coefMatrix2(3,3,:) = 4*c1+c2;
 
-                    Cv = repmat(C,[1 1 nElem]);
-                    CvDC = pagemtimes(Cv,coefMatrix2);
-                    CvDC2 = pagemtimes(CvDC,C);
-                    dC(:,:,:,i,j) = CvDC2;
+            Cv = repmat(C,[1 1 nElem]);
+            CvDC = pagemtimes(Cv,coefMatrix2);
+            dC = pagemtimes(CvDC,C);
 
-                    dmuVal  = squeeze(dC(3,3,:,i,j));
-                    dlamVal = squeeze(dC(1,2,:,i,j));
+            dmuVal  = squeeze(dC(2,2,:))/4;
+            dlamVal = squeeze(dC(1,3,:));
 
-                    s.order     = 'P0';
-                    s.fValues   = dlamVal;
-                    s.mesh      = x.levelSets{1}.fun.mesh;
-                    dlam = LagrangianFunction(s);
+            s.order     = 'P0';
+            s.fValues   = dlamVal;
+            s.mesh      = x.levelSets{1}.fun.mesh;
+            dlam = LagrangianFunction(s);
 
-                    s.order   = 'P0';
-                    s.fValues = dmuVal;
-                    s.mesh    = chi.mesh;
-                    dmu{i,j}        = LagrangianFunction(s);
-                    N     = chi.mesh.ndim;
-                    dkappa{i,j} = dlam + 2.*dmu{i,j}/N;
-                end
-            end
+            s.order   = 'P0';
+            s.fValues = dmuVal;
+            s.mesh    = chi.mesh;
+            dmu        = LagrangianFunction(s);
+            N     = chi.mesh.ndim;
+            dkappa = dlam + 2.*dmu/N;
+        end
+
+        function computeFromTo(obj,i,j)
+            obj.currentMat = i;
+            obj.inclusionMat = j;
         end
     end
 

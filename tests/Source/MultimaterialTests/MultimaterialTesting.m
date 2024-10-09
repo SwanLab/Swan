@@ -14,9 +14,9 @@ classdef MultimaterialTesting < handle
         optimizer
         nMat
         pdeCoeff
+        matInterp
         mat
         bc
-        energy0
         nLevelSet
     end
 
@@ -29,7 +29,6 @@ classdef MultimaterialTesting < handle
             obj.createInterpolators();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
-            obj.computeEnergy0();
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -87,6 +86,12 @@ classdef MultimaterialTesting < handle
             s.m          = obj.mesh;
             
             obj.pdeCoeff = PDECoefficientsComputer(s);  
+
+
+            sC.E = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
+            sC.C0 = obj.pdeCoeff.tensor(:,1);
+            sC.nu1 = obj.mat.A.nu;
+            obj.matInterp = MultiMaterialInterpolation(sC);
         end
 
         function createBoundaryConditions(obj)
@@ -136,22 +141,21 @@ classdef MultimaterialTesting < handle
             obj.physicalProblem = fem;
         end
 
-        function computeEnergy0(obj)
-            s.C = obj.createMaterial();
-            s.mesh = obj.mesh;
-            s.bc = obj.bc;  
-            energy = ComputeInitialEnergy(s);
-            obj.energy0 = energy.e0;
+        function c = createComplianceFromConstiutive(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.physicalProblem;
+            c = ComplianceFromConstiutiveTensor(s);
         end
 
-
         function createCompliance(obj)
-            s.energy0 = obj.energy0; % s ha de resoldre un initial elastic problem
             s.nMat = obj.nMat;
             s.mat = obj.mat;
             s.mesh = obj.mesh;
             s.pdeCoeff = obj.pdeCoeff;
             s.bc = obj.bc;
+            s.complianceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.material = obj.createMaterial();
+            s.materialInterpolator = obj.matInterp;
             c = ComplianceFunctionalComputer(s);
             obj.compliance = c;
         end
@@ -201,15 +205,12 @@ classdef MultimaterialTesting < handle
         end
 
         function m = createMaterial(obj)
-            s.matProp           = obj.mat;
-            s.pdeCoeff          = obj.pdeCoeff;
-            s.bc                = obj.bc;
-            s.m                 = obj.mesh;
-            s.designVariable    = obj.designVariable;
-            s.mesh              = obj.mesh;
-            
-            constituitiveTensor = ElasticTensorComputer(s);
-            m = constituitiveTensor.C;
+            x                      = obj.designVariable;
+            s.type                 = 'DensityBased';
+            s.density              = x;
+            s.materialInterpolator = obj.matInterp;
+            s.dim                  = '2D';
+            m = Material.create(s);
         end
 
         function M = createMassMatrix(obj)
