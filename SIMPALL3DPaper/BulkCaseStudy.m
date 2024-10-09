@@ -75,11 +75,11 @@ classdef BulkCaseStudy < handle
 
 
             E1 = 1;
-            nu1 = 0.45;
+            nu1 = 0.49;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMP_P3'; % SIMPALL, SIMP_P3
+            s.interpolation  = 'SIMPALL'; % SIMPALL, SIMP_P3
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
@@ -214,7 +214,7 @@ classdef BulkCaseStudy < handle
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
-            delta = 0.15;
+            delta = 0;
 
             sPL{1}.domain    = @(coor) isForceXu(coor);
             sPL{1}.direction = 1;
