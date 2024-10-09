@@ -23,9 +23,6 @@ classdef GeneralPreconditioner < handle
         
         displacementFun
         EIFEMsolver
-        eigenModes
-        Kmodal
-        MmodalPrecond
        
     end
 
@@ -49,22 +46,6 @@ classdef GeneralPreconditioner < handle
             obj.constructionObject()
         end
 
-        function z = solveModalProblem(obj,r)
-            lhs=obj.Kmodal;
-            phi=obj.eigenModes;
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            r1=phi'*r;
-            zP=lhs\r1;
-            z =phi*zP;
-            %               z = (r-LHS*z);
-
-            %M = obj.MmodalPrecond;
-            %z = M*r;
-        end
-
-     
-
-
         function z = solveEIFEM(obj,r)
             RGsbd = obj.computeSubdomainResidual(r);
             uSbd =  obj.EIFEMsolver.apply(RGsbd);
@@ -73,9 +54,15 @@ classdef GeneralPreconditioner < handle
         
         function x = InexactCG(obj,r,A,P)
             x0 = zeros(size(r));
-            factor = 0.5;
+            factor = 0.1;
             tol = factor*norm(r);
             x = PCG.solve(A,r,x0,P,tol);
+            tau = 1;
+            
+            %tau = @(r,A) 1;
+         %   tau = @(r,A) r'*r/(r'*A(r));
+         %   x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
+            
         end
         
  
@@ -120,11 +107,6 @@ classdef GeneralPreconditioner < handle
             %             obj.computeKEIFEMglobal();
 
             
-
-
-            obj.computeEigenModes();
-            obj.computeModalStiffnessMatrix();
-
 
         end
 
@@ -282,38 +264,6 @@ classdef GeneralPreconditioner < handle
             fc    = obj.bcApplier.fullToReducedVectorDirichlet(fc);
         end
 
-
-
-        %          function z = applyGaussSeidel(obj,r)
-        %             L=obj.L;
-        %             z = L\r;
-        %              z = (L')\z;
-        %         end
-
-
-
-
-        function computeEigenModes(obj)
-            nbasis = 8;
-            [phi,D]=eigs(obj.LHS,nbasis,'smallestabs');
-            obj.eigenModes = phi;
-        end
-
-        function computeModalStiffnessMatrix(obj)
-            phi = obj.eigenModes;
-            lhs = phi'*obj.LHS*phi;
-            obj.Kmodal = lhs;
-        end
-
-        function createModelPreconditioning(obj)
-            phi=obj.eigenModes;
-            I = speye(size(obj.LHS,1));
-            M = I-phi*((phi'*obj.LHS*phi)\(phi'));
-            obj.MmodalPrecond = M;
-        end
-
-
-
         function Ug = computeAssembledProjectionMatrix(obj)
             Ueifem = obj.EIFEMsolver.getProjectionMatrix();
             Ueifem = repmat(Ueifem,1,obj.nSubdomains(1)*obj.nSubdomains(2));
@@ -371,10 +321,6 @@ classdef GeneralPreconditioner < handle
             %M = obj.MmodalPrecond;
             %z = M*r;
         end
-
-
-
-
 
         function plotSolution(obj,x,mesh,row,col,iter,flag)
             if nargin <7

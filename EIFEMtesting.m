@@ -73,7 +73,7 @@ classdef EIFEMtesting < handle
             P = PreconditionerJacobi(s);              
             MJacobi = @(r) P.apply(r);            
 
-            MiluCG = @(r) gP.InexactCG(r,LHSf,MJacobi);            
+            MiluCG = @(r) gP.InexactCG(r,LHSf,MgaussSeidel);            
 
          %  LHSf = @(x) P*LHS*x;            
             %  RHSf = P*RHS;
@@ -85,9 +85,14 @@ classdef EIFEMtesting < handle
             toc
             %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
             
+
+            s.LHS = LHS;
+            s.nBasis = 8;
+            P = PreconditionerModalApproximation(s);              
+            Mmodal = @(r) P.apply(r);                  
             
             M = MiluCG;%Milu_m;%Meifem; %Milu %Pm
-            M2 = Meifem;
+            M2 = Mmodal;
             M3 = MiluCG;
 %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;

@@ -12,13 +12,10 @@ classdef RichardsonSolver < handle
         
     end
     
-    methods (Access = public)
-        
-        function obj = RichardsonSolver()
-            
-        end
+    methods (Static, Access = public)
+          
 
-        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,tau,xsol)
+        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,linesearch,xsol)
             if nargin == 6, xsol = zeros(size(B)); end            
             iter = 0;
             n = length(B);
@@ -26,6 +23,7 @@ classdef RichardsonSolver < handle
             r = B - A(x);      
             z = P(r);
             while norm(r) > tol
+                tau = linesearch(r,A);
                 x = x + tau * z;
                 r = B - A(x); 
                 z = P(r);
