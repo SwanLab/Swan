@@ -62,21 +62,7 @@ classdef GeneralPreconditioner < handle
             %z = M*r;
         end
 
-        function z = multiplePrec(obj,r,P1,P2,P3,A)
-            z1 = P1(r);
-            r  = r-A(z1);
-            z2 = P2(r);
-            r  = r-A(z2);
-            z3 = P3(r);
-            z  = z1+z2+z3;
-
-        end
-
-        function z = additivePrec(obj,r,P1,P2,A)
-            z1 = P1(r);
-            z2 = P2(r);
-            z  = z1+z2;
-        end        
+     
 
 
         function z = solveEIFEM(obj,r)
@@ -87,24 +73,12 @@ classdef GeneralPreconditioner < handle
         
         function x = InexactCG(obj,r,A,P)
             x0 = zeros(size(r));
-            factor = 0.99;
+            factor = 0.5;
             tol = factor*norm(r);
             x = PCG.solve(A,r,x0,P,tol);
         end
         
-        function z = applyGaussSeidel(obj,r)
-            L=obj.L;
-            U=obj.U;
-            D=obj.D;
-            z = U*r;
-            z = D\z;
-            z = L*z;
-            %             z = L\r;
-            %              z = (L')\z;
-        end
-        
-
-
+ 
     end
 
     methods (Access = private)
@@ -146,9 +120,7 @@ classdef GeneralPreconditioner < handle
             %             obj.computeKEIFEMglobal();
 
             
-            %obj.L = tril(obj.LHS);
-            %obj.U = triu(obj.LHS);
-            %obj.D = diag(diag(obj.LHS));
+
 
             obj.computeEigenModes();
             obj.computeModalStiffnessMatrix();
@@ -435,6 +407,32 @@ classdef GeneralPreconditioner < handle
             end
             fclose('all');
         end
+    end
+
+    methods (Access = public, Static)
+
+        function z = multiplePrec(r,P1,P2,P3,A)
+            z1 = P1(r);
+            r  = r-A(z1);
+            z2 = P2(r);
+            r  = r-A(z2);
+            z3 = P3(r);
+            z  = z1+z2+z3;
+        end
+
+        function z = multiplePrec2(r,P1,P2,A)
+            z1 = P1(r);
+            r  = r-A(z1);
+            z2 = P2(r);
+            z  = z1+z2;
+        end        
+
+        function z = additivePrec(r,P1,P2)
+            z1 = P1(r);
+            z2 = P2(r);
+            z  = z1+z2;
+        end           
+
     end
 
 end

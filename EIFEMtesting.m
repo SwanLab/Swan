@@ -62,8 +62,18 @@ classdef EIFEMtesting < handle
             s.LHS = LHS;
             P = PreconditionerILU(s);            
             Milu = @(r) P.apply(r);
-            MiluCG = @(r) gP.InexactCG(r,LHSf,Milu);
-            MgaussSeidel = @(r) gP.applyGaussSeidel(r);
+
+
+
+            s.LHS = LHS;
+            P = PreconditionerGaussSeidel(s);              
+            MgaussSeidel = @(r) P.apply(r);
+
+            s.LHS = LHS;
+            P = PreconditionerJacobi(s);              
+            MJacobi = @(r) P.apply(r);            
+
+            MiluCG = @(r) gP.InexactCG(r,LHSf,MJacobi);            
 
          %  LHSf = @(x) P*LHS*x;            
             %  RHSf = P*RHS;
