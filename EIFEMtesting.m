@@ -59,8 +59,10 @@ classdef EIFEMtesting < handle
             MidOrth = @(r,A,z) z+0.3*(r-A(z));
 
             Meifem = @(r) gP.solveEIFEM(r);
-            Milu = @(r) gP.applyILU(r);
-            MiluCG = @(r) gP.ILUCG(r,LHSf);
+            s.LHS = LHS;
+            P = PreconditionerILU(s);            
+            Milu = @(r) P.apply(r);
+            MiluCG = @(r) gP.InexactCG(r,LHSf,Milu);
             MgaussSeidel = @(r) gP.applyGaussSeidel(r);
 
          %  LHSf = @(x) P*LHS*x;            

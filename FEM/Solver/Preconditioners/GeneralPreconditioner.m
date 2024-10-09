@@ -4,19 +4,10 @@ classdef GeneralPreconditioner < handle
 
     end
 
-   
-
     properties (Access = private)
         EIFEMfilename
-        boundaryConditions
-        meshReference
-        interfaceMeshReference
-        meshSubDomain
-        interfaceMeshSubDomain
-        globalMeshConnecSubDomain
-        interfaceMeshConnecSubDomain
-        subDomainContact
-        quad
+        
+     
 
         localGlobalDofConnec
         interfaceDof
@@ -24,12 +15,6 @@ classdef GeneralPreconditioner < handle
         weight
 
         nSubdomains
-
-        Lchol
-
-        L
-        U
-        D
 
         scale
         ndimf
@@ -49,7 +34,6 @@ classdef GeneralPreconditioner < handle
         coarseMesh
         LHS
         RHS
-        material
         bcApplier
         interfaceConnec
         locGlobConnec        
@@ -92,7 +76,6 @@ classdef GeneralPreconditioner < handle
             z1 = P1(r);
             z2 = P2(r);
             z  = z1+z2;
-
         end        
 
 
@@ -102,14 +85,7 @@ classdef GeneralPreconditioner < handle
             z = obj.computeContinousField(uSbd);
         end
         
-        function z = applyILU(obj,r)
-            Lchol=obj.Lchol;
-            z = Lchol\r;
-            z = (Lchol')\z;
-        end        
-
-        function x = ILUCG(obj,r,A)
-            P = @(r) obj.applyILU(r);
+        function x = InexactCG(obj,r,A,P)
             x0 = zeros(size(r));
             factor = 0.99;
             tol = factor*norm(r);
@@ -170,10 +146,9 @@ classdef GeneralPreconditioner < handle
             %             obj.computeKEIFEMglobal();
 
             
-            obj.Lchol=ichol(obj.LHS);
-            obj.L = tril(obj.LHS);
-            obj.U = triu(obj.LHS);
-            obj.D = diag(diag(obj.LHS));
+            %obj.L = tril(obj.LHS);
+            %obj.U = triu(obj.LHS);
+            %obj.D = diag(diag(obj.LHS));
 
             obj.computeEigenModes();
             obj.computeModalStiffnessMatrix();
