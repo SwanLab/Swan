@@ -14,8 +14,8 @@ classdef Projector_toP1Discontinuous < Projector
             end
             
             connec = obj.mesh.connec;
-            %connec = connec(:);
-            connec = reshape(connec',1,[]);
+          %  connec = connec(:)';
+            dofsC = reshape(connec',1,[]);
 
 
             nDofs    = obj.mesh.nnodeElem*obj.mesh.nelem*x.ndimf;
@@ -24,8 +24,8 @@ classdef Projector_toP1Discontinuous < Projector
 
 
             coord = obj.mesh.coord;
-            coordC(:,1) = coord(connec,1);
-            coordC(:,2) = coord(connec,2);
+            coordC(:,1) = coord(dofsC,1);
+            coordC(:,2) = coord(dofsC,2);
 
              coor = zeros(nDofs,obj.mesh.ndim);
                 for idim = 1:obj.mesh.ndim
@@ -40,12 +40,12 @@ classdef Projector_toP1Discontinuous < Projector
 
             if strcmp(order, 'P1')
                 f = x.fValues;
-                fVals = f(connec,:);
+                fVals = f(dofsC,:);
             else
                 LHS  = obj.computeLHS(xP1D);
                 RHS   = obj.computeRHS(xP1D,x);
                 fVals = LHS\RHS;
-                fVals = reshape(fVals',xP1D.ndimf,[])';                           
+                fVals = reshape(fVals',xP1D.ndimf,[])';
             end
                xP1D.fValues  = fVals;
         end

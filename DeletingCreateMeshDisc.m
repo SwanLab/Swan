@@ -27,6 +27,8 @@ classdef DeletingCreateMeshDisc < handle
             fD = f.project('P1D');
             fD.plot()
 
+            fD2 = fC.project('P1');
+
             
             m = obj.mesh;
             for i = 1:1
@@ -53,7 +55,7 @@ classdef DeletingCreateMeshDisc < handle
             xmax = 1;
             ymin = 0;
             ymax = 1;
-            h = 0.1;
+            h = 1;
             xv = xmin:h:xmax;
             yv = ymin:h:ymax;
             [X,Y] = meshgrid(xv,yv);
