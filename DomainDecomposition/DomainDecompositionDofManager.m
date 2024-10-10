@@ -6,10 +6,10 @@ classdef DomainDecompositionDofManager < handle
         interfaceDom
         nDimf
         nDof
+        nSubdomains        
     end
 
     properties (Access = private)
-        nSubdomains
         meshDomain
         interfaceConnec
         locGlobConnec
@@ -25,11 +25,6 @@ classdef DomainDecompositionDofManager < handle
             obj.init(cParams)
             obj.createlocalGlobalDofConnec();
             obj.computeLocalInterfaceDof();
-        end
-
-        function [interfaceDof,interfaceDom] = getInterfaceDofDom(obj)
-            interfaceDof = obj.interfaceDof;
-            interfaceDom = obj.interfaceDom;
         end
 
         function Gvec = local2global(obj,Lvec)

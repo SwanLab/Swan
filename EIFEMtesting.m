@@ -46,12 +46,9 @@ classdef EIFEMtesting < handle
             s.nDimf = obj.meshDomain.ndim;
             
             ss.ddDofManager = DomainDecompositionDofManager(s);  
-
             ss.LHS = LHS;
             ss.RHS = RHS;
-            ss.meshDomain = obj.meshDomain;
-            ss.nSubdomains = obj.nSubdomains;
-            ss.coarseMesh      = obj.createCoarseMesh(mR);
+            ss.coarseMesh  = obj.createCoarseMesh(mR);
             ss.dir = dir;
             ss.bcApplier = obj.bcApplier;
             %             gP = GeneralPreconditioner(s);

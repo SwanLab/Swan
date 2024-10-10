@@ -29,7 +29,7 @@ classdef GeneralPreconditioner < handle
             factor = 0.99;
             tol = factor*norm(r);
             x = PCG.solve(A,r,x0,P,tol);
-            tau = 1;
+         %   tau = 1;
             
             %tau = @(r,A) 1;
          %   tau = @(r,A) r'*r/(r'*A(r));
