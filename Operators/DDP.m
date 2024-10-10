@@ -1,6 +1,5 @@
 function dom = DDP(A,B)
     s.operation = @(xV) evaluate(A,B,xV);
-    s.ndimf     = max(abs(A.ndimf - B.ndimf),1);
     dom         = DomainFunction(s);
 end
 
@@ -8,30 +7,33 @@ function fVR = evaluate(A,B,xV)
     aEval = computeLeftSideEvaluation(A,xV);
     bEval = computeRightSideEvaluation(B,xV);
     AddB  = pagemtimes(aEval,bEval);
-    fVR   = squeezeParticular(AddB, 2);
+    if size(AddB,1) == 1
+        fVR   = squeezeParticular(AddB, 1);
+    elseif size(AddB,2) == 1
+        fVR   = squeezeParticular(AddB, 2);
+    end
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
-    res      = A.evaluate(xV);
-    is4OrderTensor = A.ndimf == 6;
-    switch is4OrderTensor
+    res      = squeezeParticular(A.evaluate(xV),[1 2]);
+    n        = ndims(res);
+    isTensor = n>=4;
+    switch isTensor
         case true
             aEval = res;
         otherwise
             aEval(1,:,:,:) = res;
     end
-
 end
 
 function bEval = computeRightSideEvaluation(B,xV)
-    res      = B.evaluate(xV);
+    res      = squeezeParticular(B.evaluate(xV),[1 2]);
     n        = ndims(res);
-    is4OrderTensor = B.ndimf == 6;
-    switch is4OrderTensor
+    isTensor = n>=4;
+    switch isTensor
         case true
             bEval = res;
         otherwise
             bEval(:,1,:,:) = res;
     end
-
 end

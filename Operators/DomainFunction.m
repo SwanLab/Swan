@@ -25,8 +25,7 @@ classdef DomainFunction < handle
         
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) pagetranspose(aOp(xV));
-            s.ndimf = a.ndimf;
+            s.operation = @(xV) nOrderTranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -34,7 +33,6 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
-            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -42,7 +40,6 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
-            s.ndimf = b.ndimf;
             r = DomainFunction(s);
         end
 
@@ -58,35 +55,44 @@ classdef DomainFunction < handle
                 bOp = @(xV) b;
             end
             s.operation = @(xV) aOp(xV).*bOp(xV);
-            s.ndimf = b.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = mtimes(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = rdivide(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
         
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
-            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) aOp(xV).^b;
-            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),1);
-            s.ndimf = a.ndimf;
+            s.operation = @(xV) pagenorm(aOp(xV),b);
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
-            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -107,12 +113,16 @@ classdef DomainFunction < handle
     end
     
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.operation = cParams.operation;
-            obj.ndimf = cParams.ndimf;
+            if isfield(cParams,'ndimf')
+                obj.ndimf = cParams.ndimf;
+            else
+                obj.ndimf = 1;
+            end
         end
-        
+
     end
 
     methods (Static, Access = public)
@@ -120,7 +130,7 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
-            elseif class(a) == "double"
+            elseif isnumeric(a)
                 op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);

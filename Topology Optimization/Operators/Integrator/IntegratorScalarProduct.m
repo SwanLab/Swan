@@ -46,8 +46,7 @@ classdef IntegratorScalarProduct < handle
         end
 
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadType);
+            q = Quadrature.create(obj.mesh, obj.quadType);
             obj.quadrature = q;
         end
 

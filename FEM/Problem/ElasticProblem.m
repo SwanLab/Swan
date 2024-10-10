@@ -4,6 +4,7 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        forces
     end
 
     properties (Access = private)
@@ -11,7 +12,6 @@ classdef ElasticProblem < handle
         boundaryConditions, bcApplier
 
         stiffness
-        forces
         solverType, solverMode, solverCase
         scale
         
@@ -141,6 +141,7 @@ classdef ElasticProblem < handle
                 obj.forces = rhs;
             end
         end
+
 
         function u = computeDisplacement(obj)
             s.stiffness = obj.stiffness;

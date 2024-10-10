@@ -98,6 +98,22 @@ classdef ShapeFunctional_Factory < handle
                     sF = Sh_volumeColumn(cParams);
                 case 'firstEigTop'
                     sF = Sh_firstEigTop(cParams);
+                case 'LinearBoundFunction'
+                    sF = LinearBoundFunction();
+                case 'ComplianceConstraintBound'
+                    s.mesh         = cParams.mesh;
+                    s.stateProblem = cParams.physicalProblem;
+                    c              = ComplianceFromConstiutiveTensor(s);
+                    s.filterDesignVariable = cParams.filterDesignVariable;
+                    s.filterGradient = cParams.filterGradient;
+                    s.complainceFromConstitutive = c;
+                    s.material                   = cParams.material;
+                    sF = ComplianceWithBoundConstraint(s);
+                case 'VolumeConstraintBound'
+                    s.mesh         = cParams.mesh;
+                    s.volumeTarget = cParams.target;
+                    s.gradientTest = cParams.gradientTest;
+                    sF = VolumeConstraintWithBound(s);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end

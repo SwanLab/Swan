@@ -34,6 +34,10 @@ classdef FilterFactory < handle
                     filter = FilterPDE(cParams);
                 case 'LUMP'
                     filter = FilterLump(cParams);
+                case 'FilterAndProject'
+                    filter = FilterAndProject(cParams);
+                case 'FilterAdjointAndProject'
+                    filter = FilterAdjointAndProject(cParams);
             end
         end
 
