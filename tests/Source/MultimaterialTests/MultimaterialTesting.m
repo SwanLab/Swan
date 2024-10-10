@@ -141,22 +141,13 @@ classdef MultimaterialTesting < handle
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
-            s.mesh         = obj.mesh;
-            s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
-        end
-
         function createCompliance(obj)
             s.nMat = obj.nMat;
-            s.mat = obj.mat;
             s.mesh = obj.mesh;
-            s.pdeCoeff = obj.pdeCoeff;
-            s.bc = obj.bc;
-            s.complianceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.stateProblem = obj.physicalProblem;
             s.material = obj.createMaterial();
             s.materialInterpolator = obj.matInterp;
-            c = ComplianceFunctionalComputer(s);
+            c = MultiMaterialComplianceFunctional(s);
             obj.compliance = c;
         end
 
