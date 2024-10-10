@@ -53,6 +53,24 @@ classdef MultiMaterialComplianceFunctional < handle
         end
 
         function dJ = computeGradient(obj,u,x)
+            s.mesh           = obj.mesh;
+            s.designVariable = x;
+            multGrad         = MultimaterialGradientComputer(s);
+            TD               = obj.computeTopologicalDerivatives(u);
+            dt               = multGrad.compute(TD);
+            dJval            = pdeprtni(obj.mesh.coord',obj.mesh.connec',dt);
+            dJval            = reshape(dJval,[],1);
+            dJ.fValues       = dJval;
+        end
+
+        function dj = computeLocalGradient(obj,u)
+            dC      = obj.material.obtainTensorDerivative();
+            strain  = SymGrad(u);
+            dStress = DDP(dC,strain);
+            dj      = -0.5.*DDP(strain, dStress);
+        end
+
+        function DJ = computeTopologicalDerivatives(obj,u)
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
                     obj.materialInterpolator.computeFromTo(i,j);
@@ -62,25 +80,6 @@ classdef MultiMaterialComplianceFunctional < handle
                     DJ{i,j} = TD/obj.value0;
                 end
             end
-            dJ = obj.smoothGradient(DJ,x);
-            dJ = reshape(dJ,[],1);
-        end
-
-        function dj = computeLocalGradient(obj,u)
-            dC      = obj.material.obtainTensorDerivative();
-            strain  = SymGrad(u);
-            dStress = DDP(dC,strain);
-            dj      = -0.5.*DDP(strain, dStress);
-        end
-        
-        function dJ = smoothGradient(obj,TD,x)
-            s.mesh           = obj.mesh;
-            s.designVariable = x;
-            multGrad         = MultimaterialGradientComputer(s);
-            dt               = multGrad.compute(TD);
-            t                = obj.mesh.connec';
-            p                = obj.mesh.coord';
-            dJ               = pdeprtni(p,t,dt);
         end
     end
 

@@ -49,6 +49,18 @@ classdef MultiLevelSet < handle
 
         function updateOld(obj)
             obj.funOld = obj.lsFun; % .copy();
+            for i = 1:length(obj.levelSets)
+                obj.levelSets{i}.updateOld();
+            end
+        end
+
+        function norm = computeL2normIncrement(obj)
+            norm = 0;
+            for i = 1:length(obj.levelSets)
+                ni = obj.levelSets{i}.computeL2normIncrement();
+                norm = norm + ni^2;
+            end
+            norm = sqrt(norm);
         end
 
         function charFun = obtainDomainFunction(obj)

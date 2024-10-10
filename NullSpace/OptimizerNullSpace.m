@@ -68,10 +68,9 @@ classdef OptimizerNullSpace < Optimizer
         function createMonitoring(obj,cParams)
             titlesF       = obj.cost.getTitleFields();
             titlesConst   = obj.constraint.getTitleFields();
-            titlesConst   = titlesConst{1,1};
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst];
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
@@ -82,7 +81,7 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
@@ -99,6 +98,7 @@ classdef OptimizerNullSpace < Optimizer
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
+            data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if obj.nIter == 0
                 data = [data;0;0;0;obj.etaMax;0;0;0;NaN];

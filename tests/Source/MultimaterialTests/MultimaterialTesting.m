@@ -3,11 +3,12 @@ classdef MultimaterialTesting < handle
     properties (Access = private)
         mesh
         designVariable
-        area
         filter
         physicalProblem
         compliance
-        volume
+        volumeA
+        volumeB
+        volumeC
         cost
         constraint
         dualVariable
@@ -30,7 +31,7 @@ classdef MultimaterialTesting < handle
             obj.createBoundaryConditions();
             obj.createElasticProblem();
             obj.createCompliance();
-            obj.createVolumeConstraint();
+            obj.createVolumeConstraints();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -53,12 +54,7 @@ classdef MultimaterialTesting < handle
         end
 
         function createMesh(obj)
-            %obj.mesh = TriangleMesh(6,1,150,25); % Bridge
-            obj.mesh = TriangleMesh(2,1,20,10); % Beam
-            %obj.mesh = TriangleMesh(2,1,100,50); % Arch
-            p = obj.mesh.coord';
-            t = obj.mesh.connec';
-            obj.area = pdetrg(p,t);
+            obj.mesh = TriangleMesh(2,1,20,10);
         end
 
         function createDesignVariable(obj)
@@ -151,12 +147,18 @@ classdef MultimaterialTesting < handle
             obj.compliance = c;
         end
 
-         function createVolumeConstraint(obj)
-            s.volumeTarget = [0.2 0.2 0.2 1.4]; 
-            s.mesh = obj.mesh;
-            s.area  = obj.area;
-            v = VolumeConstraintComputer(s);
-            obj.volume = v;
+        function createVolumeConstraints(obj)
+            obj.volumeA = obj.createIndivVolumeConstraint(0.1,1);
+            obj.volumeB = obj.createIndivVolumeConstraint(0.1,2);
+            obj.volumeC = obj.createIndivVolumeConstraint(0.1,3);
+        end
+
+        function v = createIndivVolumeConstraint(obj,target,ID)
+            s.volumeTarget = target;
+            s.nMat         = 4;
+            s.matID        = ID;
+            s.mesh         = obj.mesh;
+            v              = MultiMaterialVolumeConstraint(s);
          end
 
          function createCost(obj)
@@ -167,7 +169,9 @@ classdef MultimaterialTesting < handle
          end
 
          function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{1} = obj.volumeA;
+            s.shapeFunctions{2} = obj.volumeB;
+            s.shapeFunctions{3} = obj.volumeC;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
          end
