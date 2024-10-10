@@ -58,71 +58,17 @@ classdef PreconditionerEIFEM < handle
             obj.EIFEMsolver = eifem;
         end
 
-%         function uInt = computeInterfaceDisp(obj,u)
-%             nint = size(obj.ddDofManager.interfaceDof,3);
-%             uInt = zeros(size(obj.ddDofManager.interfaceDof,1),nint);
-%             w = [obj.weight,1- obj.weight];
-%             for iint = 1:nint
-%                 ndom = size(obj.ddDofManager.interfaceDof(:,:,iint),2);
-%                 for idom = 1:ndom
-%                     dom = obj.ddDofManager.interfaceDom(iint,idom);
-%                     unodal = u(:,dom);
-%                     dof = obj.ddDofManager.interfaceDof(:,idom,iint);
-%                     uInt(:,iint) = uInt(:,iint) + w(idom)*unodal(dof);
-%                 end
-%             end
-%         end
-
-        function R = scaleInterfaceValues(obj,R)
-            nint = size(obj.ddDofManager.interfaceDof,3);
-            uInt = zeros(size(obj.ddDofManager.interfaceDof,1),nint);
-            w = [obj.weight,1-obj.weight];
-            for iint = 1:nint
-                ndom = size(obj.ddDofManager.interfaceDof(:,:,iint),2);
-                for idom = 1:ndom
-                    dom = obj.ddDofManager.interfaceDom(iint,idom);
-                    Rnodal = R(:,dom);
-                    dof = obj.ddDofManager.interfaceDof(:,idom,iint);
-                    R(dof,dom) = w(idom)* R(dof,dom);
-                end
-            end
-        end        
-
-%         function u = smoothDisplacement(obj,u,uInterface)
-%             uG = obj.ddDofManager.local2global(u);
-%             uG = sum(uG,2);
-%             u  = obj.updateInterfaceValues(uG,uInterface);
-%         end
-% 
-%         function u = updateInterfaceValues(obj,u,uInterface)
-%             nint = size(obj.ddDofManager.interfaceDof,3);
-%             nSub = obj.ddDofManager.nSubdomains(1);
-%             for iint = 1:nint
-%                 dom = obj.ddDofManager.interfaceDom(iint,1);
-%                 dof = obj.ddDofManager.interfaceDof(:,1,iint);
-%                 row = ceil(dom/nSub);
-%                 col = dom-(row-1)*nSub;
-%                 locGlobConnec = obj.ddDofManager.localGlobalDofConnec{row,col};
-%                 [~,ind]    = ismember(dof,locGlobConnec(:,2));
-%                 dofGlob    = locGlobConnec(ind,1);
-%                 u(dofGlob) = uInterface(:,iint);
-%             end
-%         end
-
-        function RGsbd = computeSubdomainResidual(obj,R)
-            RG    = obj.bcApplier.reducedToFullVectorDirichlet(R);
-            %             obj.plotSolution(RG,obj.meshDomain,0,1,iter,1)
-            RGsbd = obj.ddDofManager.global2local(RG);  %dissemble
-            RGsbd = obj.scaleInterfaceValues(RGsbd);    %scale
+        function Rd = computeSubdomainResidual(obj,Rc)
+            RG    = obj.bcApplier.reducedToFullVectorDirichlet(Rc);
+            Rd = obj.ddDofManager.global2local(RG);  %dissemble
+            Rd = obj.ddDofManager.scaleInterfaceValues(Rd,obj.weight);    %scale
         end
 
-        function fc = computeContinousField(obj,f)
-%             fInt  = obj.computeInterfaceDisp(f);
-            fS  = obj.scaleInterfaceValues(f);         %scale
+        function uC = computeContinousField(obj,uD)
+            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
             fG  = obj.ddDofManager.local2global(fS);   %assemble
-            fc  = sum(fG,2);                           %assemble
-%             fc    = obj.smoothDisplacement(f,fInt);
-            fc  = obj.bcApplier.fullToReducedVectorDirichlet(fc);
+            uC  = sum(fG,2);                           %assemble
+            uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
         end
 
     end

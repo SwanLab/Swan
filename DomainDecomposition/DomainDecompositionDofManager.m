@@ -27,6 +27,20 @@ classdef DomainDecompositionDofManager < handle
             obj.computeLocalInterfaceDof();
         end
 
+        function f = scaleInterfaceValues(obj,f,w)
+            nint = size(obj.interfaceDof,3);
+            weight = [w,1-w];
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    f(dof,dom) = weight(idom)* f(dof,dom);
+                end
+            end
+        end
+
+        
         function Gvec = local2global(obj,Lvec)
             %             ndimf  = obj.displacementFun.ndimf;
             Gvec   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
