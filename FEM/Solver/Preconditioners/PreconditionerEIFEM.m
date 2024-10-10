@@ -11,25 +11,23 @@ classdef PreconditionerEIFEM < handle
     end
 
     properties (Access = private)
-        coarseMesh
         LHS
         bcApplier
         dir
         ddDofManager
-        nSubdomains
     end
 
     methods (Access = public)
 
         function obj = PreconditionerEIFEM(cParams)
             obj.init(cParams);
-            obj.createEIFEM();
         end
 
         function z = solveEIFEM(obj,r)
-            RGsbd = obj.computeSubdomainResidual(r);
-            uSbd =  obj.EIFEMsolver.apply(RGsbd);
-            z = obj.computeContinousField(uSbd);
+            Rd = obj.computeDiscontinousField(r);
+            uD = obj.EIFEMsolver.apply(Rd);
+            uC = obj.computeContinousField(uD);
+            z  = uC; 
         end
 
     end
@@ -37,29 +35,15 @@ classdef PreconditionerEIFEM < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.LHS          = cParams.LHS;
             obj.ddDofManager = cParams.ddDofManager;
-            obj.coarseMesh   = cParams.coarseMesh;
-            obj.bcApplier     = cParams.bcApplier;
-            obj.dir = cParams.dir;
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            obj.EIFEMfilename = 'DEF_Q4porL_1.mat';
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+            obj.EIFEMsolver  = cParams.EIFEMsolver;
+            obj.bcApplier    = cParams.bcApplier;
             obj.weight       = 0.5;
         end
 
-        function createEIFEM(obj)
-            filename        = obj.EIFEMfilename;
-            RVE             = TrainedRVE(filename);
-            s.RVE           = RVE;
-            s.mesh          = obj.coarseMesh;
-            s.DirCond       = obj.dir;
-            eifem           = EIFEM(s);
-            obj.EIFEMsolver = eifem;
-        end
 
-        function Rd = computeSubdomainResidual(obj,Rc)
-            RG    = obj.bcApplier.reducedToFullVectorDirichlet(Rc);
+        function Rd = computeDiscontinousField(obj,Rc)
+            RG = obj.bcApplier.reducedToFullVectorDirichlet(Rc);
             Rd = obj.ddDofManager.global2local(RG);  %dissemble
             Rd = obj.ddDofManager.scaleInterfaceValues(Rd,obj.weight);    %scale
         end

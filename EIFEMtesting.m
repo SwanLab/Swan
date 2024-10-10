@@ -44,14 +44,27 @@ classdef EIFEMtesting < handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf = obj.meshDomain.ndim;
+
+
+           % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+            EIFEMfilename = 'DEF_Q4porL_1.mat';
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+                  
+
+            filename        = EIFEMfilename;
+            s.RVE           = TrainedRVE(filename);
+            s.mesh          = obj.createCoarseMesh(mR);
+            s.DirCond       = dir;
+            eifem           = EIFEM(s);         
+
             
             ss.ddDofManager = DomainDecompositionDofManager(s);  
             ss.LHS = LHS;
             ss.RHS = RHS;
-            ss.coarseMesh  = obj.createCoarseMesh(mR);
-            ss.dir = dir;
-            ss.bcApplier = obj.bcApplier;
-            %             gP = GeneralPreconditioner(s);
+            ss.EIFEMsolver = eifem;
+            ss.bcApplier = obj.bcApplier;            
+
+
             eP = PreconditionerEIFEM(ss);
 
 

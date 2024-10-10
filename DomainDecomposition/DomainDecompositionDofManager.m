@@ -1,25 +1,36 @@
 classdef DomainDecompositionDofManager < handle
 
-    properties (GetAccess = public, SetAccess = private)
+    properties (Access = private)
+        nDof
+        nReferenceDof
         localGlobalDofConnec
         interfaceDof
         interfaceDom
-        nDimf
-        nDof
-        nSubdomains        
     end
 
     properties (Access = private)
-        meshDomain
+        nSubdomains
         interfaceConnec
         locGlobConnec
         nBoundaryNodes
         nReferenceNodes
-        nReferenceDof
+        nDimf
         nNodes
     end
 
     methods (Access = public)
+
+        function init(obj,cParams)
+            obj.nSubdomains     = cParams.nSubdomains;
+            obj.interfaceConnec = cParams.interfaceConnec;
+            obj.locGlobConnec   = cParams.locGlobConnec;
+            obj.nBoundaryNodes  = cParams.nBoundaryNodes;
+            obj.nReferenceNodes = cParams.nReferenceNodes;
+            obj.nNodes          = cParams.nNodes;
+            obj.nDimf           = cParams.nDimf;
+            obj.nDof            = obj.nNodes*obj.nDimf;
+            obj.nReferenceDof   = obj.nReferenceNodes*obj.nDimf;
+        end        
 
         function obj = DomainDecompositionDofManager(cParams)
             obj.init(cParams)
@@ -40,11 +51,9 @@ classdef DomainDecompositionDofManager < handle
             end
         end
 
-        
+
         function Gvec = local2global(obj,Lvec)
-            %             ndimf  = obj.displacementFun.ndimf;
             Gvec   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
-            %             Gvec(locGlobConnec(:,1)) = Lvec(locGlobConnec(:,2));
             ind    = 1;
             for jdom = 1: obj.nSubdomains(2)
                 for idom = 1: obj.nSubdomains(1)
@@ -55,14 +64,14 @@ classdef DomainDecompositionDofManager < handle
             end
         end
 
-        function Lvec = global2local(obj,Gvec)
+        function fL = global2local(obj,fG)
             ndimf  = obj.nDimf;
-            Lvec   = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            fL     = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
             ind    = 1;
-            for jdom = 1: obj.nSubdomains(2)
-                for idom = 1: obj.nSubdomains(1)
-                    locGlobConnec = obj.localGlobalDofConnec{jdom,idom};
-                    Lvec(locGlobConnec(:,2),ind) = Gvec(locGlobConnec(:,1));
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    lGconnec = obj.localGlobalDofConnec{jdom,idom};
+                    fL(lGconnec(:,2),ind) = fG(lGconnec(:,1));
                     ind=ind+1;
                 end
             end
@@ -71,17 +80,7 @@ classdef DomainDecompositionDofManager < handle
 
     methods (Access = private)
 
-        function init(obj,cParams)
-            obj.nSubdomains     = cParams.nSubdomains;
-            obj.interfaceConnec = cParams.interfaceConnec;
-            obj.locGlobConnec   = cParams.locGlobConnec;
-            obj.nBoundaryNodes  = cParams.nBoundaryNodes;
-            obj.nReferenceNodes = cParams.nReferenceNodes;
-            obj.nNodes          = cParams.nNodes;
-            obj.nDimf           = cParams.nDimf;
-            obj.nDof            = obj.nNodes*obj.nDimf;
-            obj.nReferenceDof   = obj.nReferenceNodes*obj.nDimf;
-        end
+
 
         function  createlocalGlobalDofConnec(obj)
             ndimf = obj.nDimf;

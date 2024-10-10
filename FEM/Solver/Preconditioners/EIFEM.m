@@ -47,7 +47,7 @@ classdef EIFEM < handle
             uRed = LHSred\RHSred;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
-            u = obj.reconstruct3Dsolution(uCoarse);
+            u = obj.reconstructSolution(uCoarse);
             obj.iter=obj.iter+1;
         end
 
@@ -74,9 +74,9 @@ classdef EIFEM < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.RVE  = cParams.RVE;
-            obj.Kel  = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            obj.mesh    = cParams.mesh;
+            obj.RVE     = cParams.RVE;
+            obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
 %             Kfine  = cParams.Kfine;
@@ -94,11 +94,6 @@ classdef EIFEM < handle
 
         function LHS = computeLHS(obj)
             LHS = obj.assembleMatrix();
-%             s.dim          = obj.getDims();
-%             s.nnodeEl      = obj.mesh.nnodeElem;
-%             s.globalConnec = obj.mesh.connec;
-%             assembler = Assembler(s);
-%             LHS = assembler.assemble(obj.Kel);
         end
 
         function LHS = assembleMatrix(obj)
@@ -115,9 +110,6 @@ classdef EIFEM < handle
             fun     = [];
             RHS     = obj.assembler.assembleV(Fcoarse,fun);
 
-%             intConec = reshape(obj.interfaceConnec',2,obj.interfaceMeshReference{1}.mesh.nnodes,[]);
-%             intConec = permute(intConec,[2 1 3]);
-%             Fcoarse = permute(reshape(Fcoarse',));
         end
 
         function R = computeReactions(obj)
@@ -137,7 +129,6 @@ classdef EIFEM < handle
                 dir = DirichletCondition(obj.mesh, obj.DirCond{i});
                 dirichletFun = [dirichletFun, dir];
             end
-%             dirichletFun = DirichletCondition(obj.mesh, obj.DirCond{1});
 
             s.pointloadFun = [];
             s.dirichletFun = dirichletFun;
@@ -160,33 +151,6 @@ classdef EIFEM < handle
             obj.boundaryConditions = bc;
         end
 
-%         function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-%             dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
-%             pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
-%         end
-% 
-%         function cond = createBondaryCondition(obj,bM,condition)
-%             if ~isempty(condition)
-%                 nbound = length(condition.boundaryId);
-%                 cond = zeros(1,3);
-%                 for ibound=1:nbound
-%                     ncond  = length(condition.dof(nbound,:));
-%                     nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
-%                     nbd   = length(nodeId);
-%                     for icond=1:ncond
-%                         bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-%                         cond=[cond;bdcond];
-%                     end
-%                 end
-%                 cond = cond(2:end,:);
-%             else
-%                 cond= [];
-%             end
-%         end
-
-%         function 
-%         end
-
         function Fcoarse = projectExternalForce(obj,Ffine)
             Udef    = obj.RVE.Udef;
             Urb     = obj.RVE.Urb;
@@ -194,15 +158,13 @@ classdef EIFEM < handle
             Fcoarse = Ut*Ffine;
         end
 
-       
-
-        function u = reconstruct3Dsolution(obj,uCoarse)
-            nelem = obj.mesh.nelem;
-            Udef    = obj.RVE.Udef;
-            Urb     = obj.RVE.Urb;
-            U      = Udef + Urb;
+        function u = reconstructSolution(obj,uCoarse)
+            nElem = obj.mesh.nelem;
+            Udef  = obj.RVE.Udef;
+            Urb   = obj.RVE.Urb;
+            U     = Udef + Urb;
             dofConec = obj.dispFun.getConnec();
-            for ielem = 1:nelem
+            for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
                 u(:,ielem) =  U*uCelem;
             end
