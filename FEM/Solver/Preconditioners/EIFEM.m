@@ -17,7 +17,6 @@ classdef EIFEM < handle
         bcApplier
         assembler
         dispFun
-        iter
         Kmodal
         reactions
     end
@@ -33,22 +32,17 @@ classdef EIFEM < handle
             ss.boundaryConditions   = obj.boundaryConditions;
             obj.bcApplier           = BCApplier(ss);
             obj.reactions           = obj.computeReactions();
-            obj.iter=1;
         end
 
         function u = apply(obj,r)
             Fcoarse = obj.projectExternalForce(r);            
             RHS     = obj.assembleRHSvector(Fcoarse);
-%             RHS     = RHS + obj.reactions;
             LHSred = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
-%             RHSred(1:2:end) = 0;
-%             RHSred(2:2:end) = -0.2;
             uRed = LHSred\RHSred;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             u = obj.reconstructSolution(uCoarse);
-            obj.iter=obj.iter+1;
         end
 
         function u = applySubdomainNeumannDeformational(obj,r)

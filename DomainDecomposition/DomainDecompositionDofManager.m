@@ -3,7 +3,7 @@ classdef DomainDecompositionDofManager < handle
     properties (Access = private)
         nDof
         nReferenceDof
-        localGlobalDofConnec
+        localGlobalDof
         interfaceDof
         interfaceDom
     end
@@ -51,14 +51,14 @@ classdef DomainDecompositionDofManager < handle
             end
         end
 
-
-        function Gvec = local2global(obj,Lvec)
-            Gvec   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
+        function fG = local2global(obj,fL)
+            fG   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
             ind    = 1;
             for jdom = 1: obj.nSubdomains(2)
                 for idom = 1: obj.nSubdomains(1)
-                    locGlobConnec = obj.localGlobalDofConnec{jdom,idom};
-                    Gvec(locGlobConnec(:,1),ind) = Lvec(locGlobConnec(:,2),ind);
+                    lDof  = obj.localGlobalDof{jdom,idom}(:,1);
+                    gDof = obj.localGlobalDof{jdom,idom}(:,2);
+                    fG(lDof,ind) = fL(gDof,ind);
                     ind=ind+1;
                 end
             end
@@ -70,7 +70,7 @@ classdef DomainDecompositionDofManager < handle
             ind    = 1;
             for jdom = 1:obj.nSubdomains(2)
                 for idom = 1:obj.nSubdomains(1)
-                    lGconnec = obj.localGlobalDofConnec{jdom,idom};
+                    lGconnec = obj.localGlobalDof{jdom,idom};
                     fL(lGconnec(:,2),ind) = fG(lGconnec(:,1));
                     ind=ind+1;
                 end
@@ -80,9 +80,7 @@ classdef DomainDecompositionDofManager < handle
 
     methods (Access = private)
 
-
-
-        function  createlocalGlobalDofConnec(obj)
+     function  createlocalGlobalDofConnec(obj)
             ndimf = obj.nDimf;
             ndom  = obj.nSubdomains(1)*obj.nSubdomains(2);
             for dom = 1:ndom
@@ -93,18 +91,17 @@ classdef DomainDecompositionDofManager < handle
                 nodeL = obj.locGlobConnec(:,2,dom);
                 for iunkn = 1:ndimf
                     dofConec = [ndimf*(nodeG - 1) + iunkn ,  ndimf*(nodeL - 1) + iunkn] ;
-                    localGlobalDofConnecDom = [localGlobalDofConnecDom;dofConec ];
+                    localGlobalDofConnecDom = [localGlobalDofConnecDom;dofConec];
                 end
                 localGlobalDofConnec{row,col} = localGlobalDofConnecDom(2:end,:);
             end
-            obj.localGlobalDofConnec = localGlobalDofConnec;
+            obj.localGlobalDof = localGlobalDofConnec;
         end
 
         function computeLocalInterfaceDof(obj)
             intConec = reshape(obj.interfaceConnec',2,obj.nBoundaryNodes,[]);
             intConec = permute(intConec,[2 1 3]);
             nint = size(intConec,3);
-            globaldof=0;
             ndimf = obj.nDimf;
             ndofs = obj.nReferenceNodes*ndimf;
             for iint=1:nint
@@ -121,10 +118,7 @@ classdef DomainDecompositionDofManager < handle
                     end
                     interfaceDof(:,idom,iint) = dofaux(2:end);
                     interfaceDom(iint,idom) = dom;
-                    %                     globaldof = globaldof + (iint*(idom-1)+iint)*dim.ndofs;
                 end
-                %                 interfaceDof(:,iint) = dofaux(2:end);
-                %                 globaldof = globaldof + dim.ndofs;
             end
             obj.interfaceDof = interfaceDof;
             obj.interfaceDom = interfaceDom;
