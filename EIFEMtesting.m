@@ -20,9 +20,9 @@ classdef EIFEMtesting < handle
     methods (Access = public)
       
         function obj = EIFEMtesting()
-            obj.init()
-
             close all
+            obj.init()
+            
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
             [mD,iC,lG] = obj.createMeshDomain(mR);
@@ -31,8 +31,6 @@ classdef EIFEMtesting < handle
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
-            %             obj.createModelPreconditioning();
-            %             u = obj.solver2(LHS,RHS,refLHS);
             [LHS,RHS] = obj.createElasticProblem();
 
             LHSf = @(x) LHS*x;
@@ -62,7 +60,7 @@ classdef EIFEMtesting < handle
             %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
             M = @(r) Preconditioner.multiplePrec(r,M,M2,M3,LHSf);
-            
+
             tic
             x0 = zeros(size(RHSf));
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,M,tol,Usol);

@@ -1,4 +1,4 @@
-classdef EIFEM < handle
+classdef EIFEM_trying_ideas < handle
 
     properties (Access = public)
 
@@ -23,7 +23,7 @@ classdef EIFEM < handle
 
     methods (Access = public)
 
-        function obj = EIFEM(cParams)
+        function obj = EIFEM_trying_ideas(cParams)
             obj.init(cParams)
             LHS = obj.computeLHS();
             obj.LHS = LHS;
@@ -45,6 +45,24 @@ classdef EIFEM < handle
             u = obj.reconstructSolution(uCoarse);
         end
 
+        function u = applySubdomainNeumannDeformational(obj,r)
+            Fmodal = obj.RVE.PhiDef'*r;
+            uModal = obj.Kmodal\Fmodal;
+            u      = obj.RVE.PhiDef*uModal;
+        end
+
+        function u = applySubdomainNeumannRigidBody(obj,r)
+            Frb = obj.RVE.PhiRb'*r;
+            uRb = obj.RVE.Grb\Frb;
+            u      = obj.RVE.PhiRb*uRb;
+        end
+
+         function U = getProjectionMatrix(obj)
+            Udef    = obj.RVE.Udef;
+            Urb     = obj.RVE.Urb;
+            U      = (Udef + Urb);
+        end
+
     end
 
     methods (Access = private)
@@ -55,6 +73,8 @@ classdef EIFEM < handle
             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
+%             Kfine  = cParams.Kfine;
+%             obj.Kmodal = obj.RVE.PhiDef'*Kfine*obj.RVE.PhiDef;
         end
 
         function dim = getDims(obj)
