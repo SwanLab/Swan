@@ -51,22 +51,20 @@ classdef LagrangianFunction < FeFunction
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
             end
-           % fV = obj.get
-           % for igauss = 1 :nGaus
-           %     for inode= 1:nNodeTest
-           %         for iDimf = 1:obj.test.ndimf
-           %             iDof = obj.test.ndimf*(inode-1)+iDimf;
-           %             dofs = obj.dofConnec(:,iDof);
-           %             fi   = fV(dofs);
-           %             Ni   = shapes(inode,igauss,:);
-           %             fxV(iDimf,igauss,:) = fi.*Ni;
-           %         end
-           %     end
-           % end
+            % fV = obj.get
+            % for igauss = 1 :nGaus
+            %     for inode= 1:nNodeTest
+            %         for iDimf = 1:obj.test.ndimf
+            %             iDof = obj.test.ndimf*(inode-1)+iDimf;
+            %             dofs = obj.dofConnec(:,iDof);
+            %             fi   = fV(dofs);
+            %             Ni   = shapes(inode,igauss,:);
+            %             fxV(iDimf,igauss,:) = fi.*Ni;
+            %         end
+            %     end
+            % end
 
         end
-
-
 
         function fxV = sampleFunction(obj,xP,cells)
             shapes  = obj.interpolation.computeShapeFunctions(xP);
