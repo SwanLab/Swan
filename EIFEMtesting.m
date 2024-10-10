@@ -20,38 +20,9 @@ classdef EIFEMtesting < handle
     methods (Access = public)
 
 
-        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS)
-     % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = 'DEF_Q4porL_1.mat';
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
-            filename        = EIFEMfilename;
-            s.RVE           = TrainedRVE(filename);
-            s.mesh          = obj.createCoarseMesh(mR);
-            s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;            
-            eifem           = EIFEM(s);         
-
-            
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;            
-            ss.type = 'EIFEM';
-            eP = Preconditioner.create(ss);            
-            Meifem = @(r) eP.solveEIFEM(r);
-        end
-
-        function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR)
-            s.nSubdomains     = obj.nSubdomains;
-            s.interfaceConnec = iC;
-            s.locGlobConnec   = lG;
-            s.nBoundaryNodes  = bS{1}.mesh.nnodes;
-            s.nReferenceNodes = mR.nnodes;
-            s.nNodes          = obj.meshDomain.nnodes;
-            s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);  
-        end
 
 
+        
         function obj = EIFEMtesting()
             obj.init()
 
@@ -69,9 +40,6 @@ classdef EIFEMtesting < handle
             [LHS,RHS] = obj.createElasticProblem();
 
 
-
-
-
             LHSf = @(x) LHS*x;
             RHSf = RHS;
 
@@ -80,11 +48,7 @@ classdef EIFEMtesting < handle
       
          
             Meifem = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS);
-
-            s.LHS = LHS;
-            s.type = 'ILU';            
-            M = Preconditioner.create(s);
-            Milu = @(r) M.apply(r);
+            Milu   = obj.createILUpreconditioner(LHS);
 
 
             Mid = @(r) r;
@@ -251,6 +215,44 @@ classdef EIFEMtesting < handle
             s.connec = connec;
             cMesh = Mesh.create(s);
         end
+
+        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS)
+     % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+            EIFEMfilename = 'DEF_Q4porL_1.mat';
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
+            filename        = EIFEMfilename;
+            s.RVE           = TrainedRVE(filename);
+            s.mesh          = obj.createCoarseMesh(mR);
+            s.DirCond       = dir;
+            s.nSubdomains = obj.nSubdomains;            
+            eifem           = EIFEM(s);         
+
+            
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
+            ss.EIFEMsolver = eifem;
+            ss.bcApplier = obj.bcApplier;            
+            ss.type = 'EIFEM';
+            eP = Preconditioner.create(ss);            
+            Meifem = @(r) eP.solveEIFEM(r);
+        end
+
+        function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR)
+            s.nSubdomains     = obj.nSubdomains;
+            s.interfaceConnec = iC;
+            s.locGlobConnec   = lG;
+            s.nBoundaryNodes  = bS{1}.mesh.nnodes;
+            s.nReferenceNodes = mR.nnodes;
+            s.nNodes          = obj.meshDomain.nnodes;
+            s.nDimf           = obj.meshDomain.ndim;
+            d = DomainDecompositionDofManager(s);  
+        end
+
+        function Milu = createILUpreconditioner(obj,LHS)
+            s.LHS = LHS;
+            s.type = 'ILU';            
+            M = Preconditioner.create(s);
+            Milu = @(r) M.apply(r);
+        end        
 
         function createBCapplier(obj)
             s.mesh                  = obj.meshDomain;
