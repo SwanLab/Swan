@@ -22,10 +22,10 @@ classdef PreconditionerGaussSeidel < handle
         end
         
         function z = apply(obj,r)            
-            Pl = @(r) (obj.L + obj.D)\r;
-            Pu = @(r) (obj.U + obj.D)\r;
+            Pl   = @(r) (obj.L + obj.D)\r;
+            Pu   = @(r) (obj.U + obj.D)\r;
             LHSf = @(r) obj.LHS*r;
-            z  = GeneralPreconditioner.multiplePrec2(r,Pl,Pu,LHSf);            
+            z    = Preconditioner.multiplePrec2(r,Pl,Pu,LHSf);            
         end        
         
     end

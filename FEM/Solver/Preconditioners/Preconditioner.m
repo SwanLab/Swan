@@ -8,7 +8,7 @@ classdef Preconditioner < handle
                 case {'Jacobi'}
                     M = PreconditionerJacobi(cParams);
                 case {'GaussSeidel'}
-                    M = PreconditionerILU(cParams);
+                    M = PreconditionerGaussSeidel(cParams);
                 case {'ILU'}
                     M = PreconditionerILU(cParams);                
                 case {'EIFEM'}
