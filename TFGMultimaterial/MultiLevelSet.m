@@ -12,7 +12,6 @@ classdef MultiLevelSet < handle
         plotting
         mesh
         unitM
-        unfittedMesh
     end
 
     methods (Access = public)
@@ -24,13 +23,12 @@ classdef MultiLevelSet < handle
         end
 
         function update(obj,value)
+            obj.fun.fValues = value;
+            nLS             = length(obj.levelSets);
+            value           = reshape(value,[],nLS);
             for i = 1:size(value,2)
                 obj.levelSets{1,i}.update(value(:,i));
             end
-            obj.fun.fValues = [];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{1}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{2}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{3}.fun.fValues];
         end
 
         function plot(obj)
@@ -48,7 +46,7 @@ classdef MultiLevelSet < handle
         end
 
         function updateOld(obj)
-            obj.funOld = obj.lsFun; % .copy();
+            obj.funOld = obj.lsFun;
             for i = 1:length(obj.levelSets)
                 obj.levelSets{i}.updateOld();
             end
@@ -67,10 +65,6 @@ classdef MultiLevelSet < handle
             s.designVariable = obj;
             s.mesh           = obj.mesh; 
             charFun          = MultiMaterialCharacteristicFunction(s);
-        end
-
-        function m = getUnfittedMesh(obj)
-            m = obj.unfittedMesh;
         end
     end
 
@@ -112,18 +106,6 @@ classdef MultiLevelSet < handle
             obj.fun.fValues = [obj.fun.fValues;obj.levelSets{1}.fun.fValues];
             obj.fun.fValues = [obj.fun.fValues;obj.levelSets{2}.fun.fValues];
             obj.fun.fValues = [obj.fun.fValues;obj.levelSets{3}.fun.fValues];
-        end
-
-        function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            cParams = SettingsMeshUnfitted(s);
-            obj.unfittedMesh = UnfittedMesh(cParams);
-            obj.updateUnfittedMesh();
-        end
-        
-        function updateUnfittedMesh(obj)
-            obj.unfittedMesh.compute(obj.lsFun); %.fValues);
         end
     end
 

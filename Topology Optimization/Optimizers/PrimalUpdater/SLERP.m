@@ -18,47 +18,58 @@ classdef SLERP < handle
             obj.init(cParams);
         end
 
-        function phi = update(obj,g,phi)  
-            n         = obj.mesh.nnodes;
-            phiF      = phi.levelSets;
-            gF1       = obj.createP1Function(g(1:n));
-            gF2       = obj.createP1Function(g(n+1:n*2));
-            gF3       = obj.createP1Function(g(n*2+1:n*3));
-            gN1       = gF1.normalize('L2');
-            gN2       = gF2.normalize('L2');
-            gN3       = gF3.normalize('L2');
-            phiN1     = phiF{1,1}.fun.normalize('L2');
-            phiN2     = phiF{1,2}.fun.normalize('L2');
-            phiN3     = phiF{1,3}.fun.normalize('L2');
-            gN        = obj.createP1Function([gN1.fValues,gN2.fValues,gN3.fValues]);
-            phiN      = obj.createP1Function([phiN1.fValues,phiN2.fValues,phiN3.fValues]);
-            theta1     = real(obj.computeTheta(phiN1,gN1));
-            theta2     = real(obj.computeTheta(phiN2,gN2));
-            theta3     = real(obj.computeTheta(phiN3,gN3));
-            theta      = norm(norm(theta1,theta2),theta3);
-            obj.Theta = theta;
-            phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
+        function phi = update(obj,g,phi)   
+            phiN              = obj.normalizeLevelSets(phi);
+            gN                = obj.createNormalizedGradient(phi,g);
+            theta             = obj.computeThetaNorm(phi,phiN,gN);
+            obj.Theta         = theta;
+            [phiNvals,gNvals] = obj.computePhiAndGradientValues(phi,phiN,gN);
+            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
 
-        function phi = updateFirstIter(obj,g,phi)
-            phiF      = phi.fun;
-            gF        = obj.createP1Function(g);
-            gN        = gF.normalize('L2');
-            phiN      = phiF.normalize('L2');
-            theta     = obj.computeTheta(phiN,gN);
-            phiNew    = obj.computeNewLevelSet(phiN,gN,theta);
-            phi.update(phiNew);
-        end
-
         function computeFirstStepLength(obj,g,ls,~)
-            V0 = obj.volume.computeFunctionAndGradient(ls.levelSets{1,1});
+            switch class(ls)
+                case 'LevelSet'
+                    gClass  = g;
+                    lsClass = ls;
+                case 'MultiLevelSet'
+                    gClass  = g(1:obj.mesh.nnodes);
+                    lsClass = ls.levelSets{1,1};
+            end
+            V0 = obj.volume.computeFunctionAndGradient(lsClass);
             if abs(V0-1) <= 1e-10
-                obj.computeLineSearchInBounds(g(1:obj.mesh.nnodes),ls.levelSets{1,1});
+                obj.computeLineSearchInBounds(gClass,lsClass);
             else
                 obj.tau = 1;
             end
+        end
+
+        function is = isTooSmall(obj)
+            is = obj.tau < 1e-10;
+        end
+
+        function increaseStepLength(obj,f)
+            obj.tau = min(f*obj.tau,1);
+        end
+
+        function decreaseStepLength(obj)
+            obj.tau = obj.tau/2;
+        end
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.createVolumeFunctional();
+        end
+
+        function createVolumeFunctional(obj)
+            s.mesh         = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.volume     = VolumeFunctional(s);
         end
 
         function computeLineSearchInBounds(obj,g,ls)
@@ -98,55 +109,81 @@ classdef SLERP < handle
 
         function V = computeVolumeFromTau(obj,g,ls)
             lsAux = ls.copy();
-            lsAux = obj.updateFirstIter(g,lsAux);
+            lsAux = obj.update(g,lsAux);
             V     = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
-        function is = isTooSmall(obj)
-            is = obj.tau < 1e-10;
+        function phiN = normalizeLevelSets(obj,phi)
+            switch class(phi)
+                case 'LevelSet'
+                    phiF = phi.fun;
+                    phiN = phiF.normalize('L2');
+                case 'MultiLevelSet'
+                    phiF    = phi.levelSets;
+                    phiN{1} = phiF{1,1}.fun.normalize('L2');
+                    phiN{2} = phiF{1,2}.fun.normalize('L2');
+                    phiN{3} = phiF{1,3}.fun.normalize('L2');
+            end
         end
 
-        function increaseStepLength(obj,f)
-            obj.tau = min(f*obj.tau,1);
-        end
-
-        function decreaseStepLength(obj)
-            obj.tau = obj.tau/2;
-        end
-    end
-
-    methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            %obj.tau = cParams.tau;
-            obj.createVolumeFunctional();
-        end
-
-        function createVolumeFunctional(obj)
-            s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.volume     = VolumeFunctional(s);
-        end
-
-        function f = createP1Function(obj,fV)
-            s.mesh    = obj.mesh;
-            s.fValues = fV;
-            s.order   = 'P1';
-            f         = LagrangianFunction(s);
+        function fN = createNormalizedGradient(obj,ls,fV)
+            s.mesh  = obj.mesh;
+            s.order = 'P1';
+            switch class(ls)
+                case 'LevelSet'
+                    s.fValues = fV;
+                    f         = LagrangianFunction(s);
+                    fN        = f.normalize('L2');
+                case 'MultiLevelSet'
+                    nLS = length(ls.levelSets);
+                    fV  = reshape(fV,[],nLS);
+                    for i = 1:nLS
+                        s.fValues = fV(:,i);
+                        f         = LagrangianFunction(s);
+                        fN{i}     = f.normalize('L2');
+                    end
+            end
         end
 
         function t = computeTheta(obj,phi,g)
-            m = obj.mesh;
+            m    = obj.mesh;
             phiG = ScalarProduct.computeL2(m,phi,g);
-            t = max(acos(phiG),1e-14);
+            t    = max(acos(phiG),1e-14);
         end
 
-        function p = computeNewLevelSet(obj,phi,g,theta)
+        function t = computeThetaNorm(obj,phi,phiN,gN)
+            switch class(phi)
+                case 'LevelSet'
+                    t = obj.computeTheta(phiN,gN);
+                case 'MultiLevelSet'
+                    nLS = length(phi.levelSets);
+                    t   = obj.computeTheta(phiN{1},gN{1});
+                    for i = 2:nLS
+                        ti = obj.computeTheta(phiN{i},gN{i});
+                        t  = norm(t,ti);
+                    end
+            end
+        end
+
+        function [phiNv,gNv] = computePhiAndGradientValues(obj,phi,phiN,gN)
+            switch class(phi)
+                case 'LevelSet'
+                    phiNv = phiN.fValues;
+                    gNv   = gN.fValues;
+                case 'MultiLevelSet'
+                    nLS   = length(phi.levelSets);
+                    phiNv = [];
+                    gNv   = [];
+                    for i = 1:nLS
+                        phiNv = [phiNv;phiN{i}.fValues];
+                        gNv   = [gNv;gN{i}.fValues];
+                    end
+            end
+        end
+
+        function p = computeNewLevelSet(obj,pN,gN,theta)
             k  = obj.tau;
             t  = theta;
-            pN = phi.fValues;
-            gN = g.fValues;
             a  = sin((1-k)*t)/sin(t);
             b  = sin(k*t)/sin(t);
             p  = a*pN + b*gN;

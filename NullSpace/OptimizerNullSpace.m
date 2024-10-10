@@ -210,12 +210,10 @@ classdef OptimizerNullSpace < Optimizer
                 obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = obj.mOld;
-                x0 = reshape(x0,obj.designVariable.designVariable{1,1}.fun.mesh.nnodes,[]);
                 obj.designVariable.update(x0);
                 obj.dualUpdater.updateOld();
             else
                 obj.primalUpdater.decreaseStepLength();
-                x0 = reshape(x0,obj.designVariable.levelSets{1,1}.fun.mesh.nnodes,[]);
                 obj.designVariable.update(x0);
                 obj.lineSearchTrials = obj.lineSearchTrials + 1;
             end
