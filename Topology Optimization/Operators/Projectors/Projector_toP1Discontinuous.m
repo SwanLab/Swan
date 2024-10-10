@@ -36,7 +36,14 @@ classdef Projector_toP1Discontinuous < Projector
             ndimf = x.ndimf;
             dofCoord = coor;
 
-            xP1D = P1DiscontinuousFunction.create(obj.mesh,dofConnec,dofCoord,ndimf);            
+            xP1D = P1DiscontinuousFunction.create(obj.mesh,dofConnec,dofCoord,ndimf); 
+
+            % s.mesh    = obj.mesh;
+            % s.fValues = zeros(nDofs/ndimf,ndimf);   
+            % s.order = 'P1';
+            % s.dofConnec = dofConnec;
+            % s.dofCoord  = dofCoord;
+            % xP1D = LagrangianFunction(s);
 
             if strcmp(order, 'P1')
                 f = x.fValues;
