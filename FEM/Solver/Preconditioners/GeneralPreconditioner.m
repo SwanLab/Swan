@@ -1,4 +1,0 @@
-classdef Preconditioner < handle
-
-
-end
