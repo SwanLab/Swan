@@ -23,7 +23,7 @@ classdef ContinuumDamageComputer < handle
 
         function results = compute(obj)
             bc = obj.boundaryConditions;
-            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.quadOrder);
+            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
             
             s.material = obj.material;
@@ -31,10 +31,9 @@ classdef ContinuumDamageComputer < handle
             s.mesh     = obj.mesh;
             
             obj.ElasticFun = shFunc_Elastic(s);
-            %aa = obj.ElasticFun.computeFunction(1)
             
             K = obj.computeK();
-            F = obj.computeF(K,uFun);
+            F = obj.computeF();
             
             
             results = obj.computeU(K,F);
@@ -45,7 +44,7 @@ classdef ContinuumDamageComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.quadOrder = 'P1';
+            obj.quadOrder = 2;
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material = cParams.material;
@@ -58,44 +57,13 @@ classdef ContinuumDamageComputer < handle
 
         function K = computeK(obj)%,dispFun)
 
-            % ndimf = dispFun.ndimf;
-            % s.type     = 'ElasticStiffnessMatrix';
-            % s.mesh     = obj.mesh;
-            % s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            % s.trial    = dispFun;
-            % s.material = obj.material;
-            % s.quadratureOrder = 2;
-            % lhs = LHSintegrator.create(s);
-            % K = lhs.compute();
-            ord = obj.convertOrder();
-            K = obj.ElasticFun.computeHessian(ord);
+            K = obj.ElasticFun.computeHessian(obj.quadOrder);
         end
-        function F = computeF(obj,K,uFun)%,displacementFun,K)
+        function F = computeF(obj)%,displacementFun,K)
+  
+            Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder);
 
-            % s.type     = obj.type;
-            % s.scale    = obj.scale;
-            % s.dim      = obj.getFunDims(displacementFun);
-            % s.BC       = obj.boundaryConditions;
-            % s.mesh     = obj.mesh;
-            % s.material = obj.material;
-            % s.globalConnec = obj.mesh.connec;
-            % RHSint = RHSintegrator.create(s);
-            % rhs = RHSint.compute();
-            %
-            % if strcmp(obj.solverType,'REDUCED')
-            %     R = RHSint.computeReactions(K);
-            %     F = rhs+R;
-            % else
-            %     F = rhs;
-            % end
-            ord = obj.convertOrder();
-            Ftry = obj.ElasticFun.computeJacobian(ord);
-            % offset = K(1:size(K,1),1);
-            % xV = zeros(uFun.nDofs,1);
-
-            % g = uFun.evaluate(xV);
-            % g = eye(uFun.nDofs,1);
-            F = -Ftry;% - offset.*g; 
+            F = -Ftry;
         end
 
         function dim = getFunDims(obj,displacementFun)
@@ -139,23 +107,6 @@ classdef ContinuumDamageComputer < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             BC = BCApplier(s);
-        end
-
-        function ord = convertOrder(obj,order)
-            if ischar(obj.quadOrder)
-                switch obj.quadOrder
-                    case 'P0'
-                        ord = 0;
-                    case 'P1'
-                        ord = 1;
-                    case 'P2'
-                        ord = 2;
-                    case 'P3'
-                        ord = 3;
-                end
-            else
-                ord = order;
-            end
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)

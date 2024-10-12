@@ -33,7 +33,7 @@ classdef TestingContinuumDamage < handle
 
              EP = ElasticProblem(s);
              Ref = EP.solve();
-           % load ('ContinuumDamageTestOutput.mat');
+           %load ('ContinuumDamageTestOutput.mat');
 
             if  ismembertol(Ref , obj.results, obj.tolerance)
 

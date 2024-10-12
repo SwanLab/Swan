@@ -36,7 +36,7 @@ classdef shFunc_Elastic < handle
             
             
             S.type = 'ShapeSymmetricDerivative';
-            S.quadratureOrder=quadOrder;
+            S.quadratureOrder=1;
             S.mesh = obj.mesh;
             
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
@@ -53,7 +53,7 @@ classdef shFunc_Elastic < handle
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             
             S.type = 'ElasticStiffnessMatrix';
-            S.quadratureOrder = quadOrder;
+            S.quadratureOrder = 2;
             S.mesh = obj.mesh;
             S.material = obj.material;
             S.test = test;

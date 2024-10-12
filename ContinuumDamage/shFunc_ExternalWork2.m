@@ -15,16 +15,16 @@ classdef shFunc_ExternalWork2 < handle
        end
       
        function F = computeFunction(obj,u,fExt,quadOrder)
-          bMesh = obj.mesh.createBoundaryMesh{4};
-          int = Integrator.create('Function',bMesh.mesh);
+          bMesh = obj.mesh.createBoundaryMesh{2}; %CARA DRETA
+          int = Integrator.create('Function',bMesh.mesh,quadOrder);
           [u, fExt] = obj.adaptFuns(u,fExt);
-          F = int.compute(u.*F);
+          F = int.compute(u.*fExt);
      
      
        end
       
        function Ju = computeGradient(obj,u,fExt,quadOrder)
-            bMesh = obj.mesh.createBoundaryMesh{4};
+            bMesh = obj.mesh.createBoundaryMesh{2}; %CARA DRETA
             s.mesh = bMesh.mesh;
             s.quadType = quadOrder;
             s.type = 'ShapeFunction';
