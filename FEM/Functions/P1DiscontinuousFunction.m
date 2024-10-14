@@ -124,40 +124,10 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function fFine = refine(obj,fD, mFine)
-            P1Dref = P1Refiner(fD);
+            P1Dref = P1Refiner(fD,mFine);
             fFine  = P1Dref.compute();
-
-            f = obj.fValuesDisc;
-            for iDim = 1:obj.ndimf
-                fI = f(iDim,:,:);
-                fI = fI(:);
-                fEdges = obj.computeFunctionInEdges(obj.mesh,fI);
-                fAll(:,iDim)  = [fI;fEdges];
-            end
-            s.mesh    = mFine;
-            s.fValues = fAll;
-            s.order   = 'P1';
-            p1fun = LagrangianFunction(s);
-            fFine = p1fun.project('P1D');
         end
-
-        % function dofConnec = computeDofConnectivity(obj)
-        %     conne  = obj.dofConnec;
-        %     nDimf  = obj.ndimf;
-        %     nNodeE = size(conne, 2);
-        %     nDofsE = nNodeE*nDimf;
-        %     dofsElem  = zeros(nDofsE,size(conne,1));
-        %     for iNode = 1:nNodeE
-        %         for iUnkn = 1:nDimf
-        %             idofElem   = nDimf*(iNode - 1) + iUnkn;
-        %             globalNode = conne(:,iNode);
-        %             idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-        %             dofsElem(idofElem,:) = idofGlobal;
-        %         end
-        %     end
-        %     dofConnec = dofsElem;
-        % end
-
+   
         function fR = getFvaluesAsVector(obj)
             f  = obj.fValues;
             fR = obj.reshapeAsVector(f);

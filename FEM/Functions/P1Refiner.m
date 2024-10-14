@@ -5,45 +5,82 @@ classdef P1Refiner < handle
     end
     
     properties (Access = private)
-        
+        coordD
+        coordInEdges
     end
     
     properties (Access = private)
-        fp1D
-        fP1
+        fCoarse
+        meshFine
     end
     
     methods (Access = public)
         
-        function obj = P1Refiner(fP1)
-            dofConnec = obj.computeDofConnec(fP1);
-            dofCoord  = obj.computeAllDiscValues(fP1.mesh.coord,fP1.mesh.coord,fP1.mesh.connec,fP1.mesh);
-            ndimf = fP1.ndimf;
-            obj.fP1 = fP1;
-            obj.fp1D = P1DiscontinuousFunction.create(fP1.mesh,dofConnec,dofCoord,ndimf);            
+        function obj = P1Refiner(fCoarse,meshFine)
+            obj.fCoarse = fCoarse;
+            obj.meshFine = meshFine;
         end
 
-        function  fP1D = compute(obj)
-            fP1D = obj.fp1D;
-            fP1 = obj.fP1;
-            fP1D.fValues = obj.computeAllValues(fP1.fValues,fP1.getDofCoord(),fP1.mesh.connec,fP1.mesh); %%% HEre!
+        function  fFine = compute(obj)
+            obj.coordD       = obj.computeCoordDisc();
+            obj.coordInEdges = obj.computeCoordInEdges();
+
+            s.dofCoord  = obj.computeDofCoord();
+            
+
+            s.mesh      = obj.meshFine;            
+            s.dofConnec = obj.computeDofConnec();
+            s.fValues = obj.computeAllFValues(); 
+            fFine = P1DiscontinuousFunction(s);                   
         end
 
     end
     
     methods (Access = private)
 
-        function interpolateValues(obj)
+        function allF = computeDofCoord(obj)
+            coordC = obj.fCoarse.mesh.coord;            
+            connec = obj.fCoarse.mesh.connec;     
+            mesh   = obj.fCoarse.mesh;
+            coordD = obj.computeDiscontinousFunction(coordC,connec);
+            allF   = obj.computeAllValues(coordD,coordC,connec,mesh);
+        end
 
+        function cD = computeCoordDisc(obj)
+            cC     = obj.fCoarse.mesh.coord;
+            connec = obj.fCoarse.mesh.connec;
+            cD = obj.computeDiscontinousFunction(cC,connec);                                
+        end
+
+        function cEdges = computeCoordInEdges(obj)
+            cD     = obj.coordD;
+            connec = obj.fCoarse.mesh.connec;   
+            mesh   = obj.fCoarse.mesh;            
+            cEdges = obj.computeFinEdges(cD,connec,mesh);
+        end
+
+        function allFvalues = computeAllFValues(obj)
+            fDisc  = obj.fCoarse.fValues;
+            coord  = obj.fCoarse.getDofCoord();
+            connec = obj.fCoarse.mesh.connec;
+            mesh   = obj.fCoarse.mesh;
+            allFvalues = obj.computeAllValues(fDisc,coord,connec,mesh);
+        end
+
+        function allFvalues = computeAllValues(obj,fDisc,coord,connec,mesh)
+        %    coordD = obj.computeDiscontinousFunction(coord,connec);                        
+            fEdges = obj.computeFinEdges(fDisc,connec,mesh);
+            allFvalues = [fDisc;fEdges];
         end
         
-        function connec = computeDofConnec(obj,f)
-            oldDofs = f.getDofConnec();
-            newDofs = obj.computeNewDofs(f);
+        
+        function dofConnec = computeDofConnec(obj)
+            fCoarse = obj.fCoarse;
+            oldDofs = fCoarse.getDofConnec();
+            newDofs = obj.computeNewDofs(fCoarse);
 
-            vertexInCell = oldDofs;
-          
-            ndimf = f.ndimf;
+            vertexInCell = oldDofs;          
+            ndimf = fCoarse.ndimf;
             for iNode = 1:3
                 iDof  = (iNode-1)*ndimf+(1:ndimf);
                 nV(:,:,iNode) = vertexInCell(:,iDof);
@@ -68,16 +105,16 @@ classdef P1Refiner < handle
             e3d2 = edgeInCell3(2,:);
             e3d3 = edgeInCell3(3,:);
 
-            connec(:,1,:) = [nV1 ; e1d1 ;e2d3];
-            connec(:,2,:) = [e1d3; nV2 ;e3d1];
-            connec(:,3,:) = [e1d2; e3d2; e2d2];
-            connec(:,4,:) = [e2d1; e3d3; nV3];
+            dofConnec(:,1,:) = [nV1 ; e1d1 ;e2d3];
+            dofConnec(:,2,:) = [e1d3; nV2 ;e3d1];
+            dofConnec(:,3,:) = [e1d2; e3d2; e2d2];
+            dofConnec(:,4,:) = [e2d1; e3d3; nV3];
 
-            connec = reshape(connec,size(connec,1),[])';
+            dofConnec = reshape(dofConnec,size(dofConnec,1),[])';
 
         end
 
-        function fEdges = computeFinEdges(obj,fDisc,connec,coordD,mesh)
+        function fEdges = computeFinEdges(obj,fDisc,connec,mesh)
             nodesDisc = obj.createDiscConnec(connec);
             
             s.nodesByElem = reshape(nodesDisc',[],mesh.nelem)';
@@ -87,7 +124,7 @@ classdef P1Refiner < handle
                         
             
             
-            s.coord  = coordD;
+            s.coord  = obj.coordD;
             s.connec = edge.nodesInEdges;
             s.kFace  = mesh.kFace -1;
             eM = Mesh.create(s); 
@@ -116,22 +153,8 @@ classdef P1Refiner < handle
             nNode  = size(connec,2);
             nElem  = size(connec,1);
             nodesDisc = 1:nNode*nElem;            
-         %   nDime  = size(fCont,2);
-            
-
         end
 
-
-        function allF = computeAllDiscValues(obj,fCont,coord,connec,mesh)
-            fDisc  = obj.computeDiscontinousFunction(fCont,connec);
-            allF = obj.computeAllValues(fDisc,coord,connec,mesh);
-        end
-
-        function allFvalues = computeAllValues(obj,fDisc,coord,connec,mesh)
-            coordD = obj.computeDiscontinousFunction(coord,connec);                        
-            fEdges = obj.computeFinEdges(fDisc,connec,coordD,mesh);
-            allFvalues = [fDisc;fEdges];
-        end
 
             
 
