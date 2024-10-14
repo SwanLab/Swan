@@ -29,9 +29,9 @@ end
 
 function nLFilter = createNonLinearFilter(m)
 s.mesh   = m;
-s.k      = sqrt(2)*[1,1]/2;
-s.alpha  = 2;
-s.beta   = 1;
+s.theta  = 90;
+s.alpha  = 1;
+s.beta   = 0.1;
 s.type   = 'Segment';
 nLFilter = NonLinearFilter.create(s);
 end
