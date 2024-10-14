@@ -32,21 +32,19 @@ classdef NonLinearFilterSegment < handle
             iter = 1;
             tolerance = 1;
             %fr = 0.1;
-            sVec = [];
             while tolerance >= 1e-5 
                 oldRho = obj.trial.fValues;
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
-                obj.updateDotProductInitialGuess();
+                obj.updateDotProductPreviousGuess();
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
                 iter = iter + 1;
 %                 disp(iter);  
                 disp(tolerance);
-                sVec = [sVec;obj.sVar];
              end
            
            obj.trial.plot
-            plot(sVec)
+            xF.fValues = obj.trial.fValues;
 
         end
     end
@@ -134,7 +132,7 @@ classdef NonLinearFilterSegment < handle
             obj.trial.fValues = rhoi;
         end
 
-        function updateDotProductInitialGuess(obj)
+        function updateDotProductPreviousGuess(obj)
             gradRho  = Grad(obj.trial);
             k        = obj.createAnalyticalDirection();
             obj.sVar = Integrator.compute(gradRho.*k,obj.mesh,2);
