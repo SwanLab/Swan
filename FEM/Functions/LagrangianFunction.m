@@ -207,12 +207,8 @@ classdef LagrangianFunction < FeFunction
         end
         
         function v = computeL2norm(obj)
-            s.type     = 'ScalarProduct';
-            s.quadType = 'QUADRATIC';
-            s.mesh     = obj.mesh;
-            int = Integrator.create(s);
-            ff  = int.compute(obj,obj);
-            v   = sqrt(ff);
+            v  = Norm.computeL2(obj.mesh,obj);
+            %v   = sqrt(v);
         end
 
         function fdivF = computeFieldTimesDivergence(obj,xV)

@@ -230,6 +230,16 @@ classdef OptimizerNullSpace < Optimizer
                     elseif min(g.*g0)>1e-10
                         obj.etaMax = obj.etaMax*1.2;
                     end
+%                     dPsi = obj.designVariable.computeIncrement();
+%                     s.fValues = obj.meritGradient;
+%                     s.mesh = obj.designVariable.fun.mesh;
+%                     s.order = 'P1';
+%                     TD = LagrangianFunction(s);
+%                     TDn = TD.normalize('L2');
+%                     s.operation = @(xV) dPsi.evaluate(xV)./TDn.evaluate(xV);
+%                     tFun = DomainFunction(s);
+%                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
+%                     obj.etaMax = sqrt(tNorm);
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
