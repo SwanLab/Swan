@@ -33,7 +33,7 @@ end
 function voigtA = applyVoigt3D(matA)
     nPoints = size(matA,3);
     nElem = size(matA,4);
-    voigtA = zeros(6,1,nPoints,nElem);
+    voigtA = zeros(6,nPoints,nElem);
     
     voigtA(1,:,:) = matA(1,1,:,:); % xx
     voigtA(2,:,:) = matA(2,2,:,:); % yy
