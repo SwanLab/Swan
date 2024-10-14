@@ -15,7 +15,7 @@ function fVR = evaluate(A,B,xV)
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
-    res      = squeezeParticular(A.evaluate(xV),[1 2]);
+    res      = A.evaluate(xV);
     n        = ndims(res);
     isTensor = n>=4;
     switch isTensor
@@ -27,7 +27,7 @@ function aEval = computeLeftSideEvaluation(A,xV)
 end
 
 function bEval = computeRightSideEvaluation(B,xV)
-    res      = squeezeParticular(B.evaluate(xV),[1 2]);
+    res      = B.evaluate(xV);
     n        = ndims(res);
     isTensor = n>=4;
     switch isTensor
