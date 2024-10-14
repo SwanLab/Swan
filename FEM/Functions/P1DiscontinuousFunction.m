@@ -127,7 +127,7 @@ classdef P1DiscontinuousFunction < FeFunction
             P1Dref = P1Refiner(fD);
             fFine  = P1Dref.compute();
 
-            f = obj.fValues;
+            f = obj.fValuesDisc;
             for iDim = 1:obj.ndimf
                 fI = f(iDim,:,:);
                 fI = fI(:);
@@ -171,23 +171,23 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plot(obj)
-            connecf{1} = obj.getDofConnecByVector(1);
-            connecf{2} = obj.getDofConnecByVector(2);
-            coordf{1}  = obj.getDofCoordByVector(1);
-            coordf{2}  = obj.getDofCoordByVector(2);
+            for iDim = 1:obj.ndimf
+                connecf{iDim} = obj.getDofConnecByVector();
+                coordf{iDim}  = obj.getDofCoordByVector(iDim);
+            end
             s.connec = connecf;
             s.coord  = coordf;
 
 
 
-
+        
             s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
             lP.plot();
         end
 
-        function node = getDofConnecByVector(obj,iDim)
+        function node = getDofConnecByVector(obj)
             nNode = obj.interpolation.nnode;
             for iNode = 1:nNode
                 iDof   = (iNode-1)*obj.ndimf+1;
@@ -198,7 +198,7 @@ classdef P1DiscontinuousFunction < FeFunction
         function cT = getDofCoordByVector(obj,dimf)
             for iDim = 1:obj.mesh.ndim
                 coordN = obj.dofCoord(:,iDim);
-                cResh  = reshape(coordN',2,[]);
+                cResh  = reshape(coordN',obj.ndimf,[]);
                 cT(:,iDim) = cResh(dimf,:);
             end
         end

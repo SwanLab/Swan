@@ -10,25 +10,32 @@ classdef P1Refiner < handle
     
     properties (Access = private)
         fp1D
+        fP1
     end
     
     methods (Access = public)
         
         function obj = P1Refiner(fP1)
             dofConnec = obj.computeDofConnec(fP1);
-            dofCoord  = obj.computeCoord(fP1.mesh.coord,fP1.mesh.connec,fP1.mesh);
+            dofCoord  = obj.computeDiscFunction(fP1.mesh.coord,fP1.mesh.connec,fP1.mesh);
             ndimf = fP1.ndimf;
+            obj.fP1 = fP1;
             obj.fp1D = P1DiscontinuousFunction.create(fP1.mesh,dofConnec,dofCoord,ndimf);            
         end
 
         function  fP1D = compute(obj)
             fP1D = obj.fp1D;
-            fP1D.fValues = 0; %%% HEre!
+            fP1 = obj.fP1;
+            fP1D.fValues = obj.computeDiscFunction(fP1.fValues,fP1.mesh.connec,fP1.mesh); %%% HEre!
         end
 
     end
     
     methods (Access = private)
+
+        function interpolateValues(obj)
+
+        end
         
         function connec = computeDofConnec(obj,f)
             oldDofs = f.getDofConnec();
@@ -64,22 +71,14 @@ classdef P1Refiner < handle
 
         end
 
-        function allCoord = computeCoord(obj,coordVertices,connec,mesh)
-
-            fCont = coordVertices;
-            nNode  = size(connec,2);
-            nElem  = size(connec,1);
-            nDime  = size(fCont,2);
-            nodesCont = reshape(connec',1,[]);
-            nodesDisc = 1:nNode*nElem;
-            fDisc(nodesDisc,:) = fCont(nodesCont,:);
-            fVals = reshape(fDisc',nDime,nNode,[]);
-
-
-            s.nodesByElem = reshape(nodesDisc',nNode,nElem)';
+        function newCoord = createNewValues(obj,fDisc,nodesDisc,mesh)
+            
+            s.nodesByElem = reshape(nodesDisc',[],mesh.nelem)';
             s.type = mesh.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
+                        
+            
             
             s.coord  = fDisc;
             s.connec = edge.nodesInEdges;
@@ -97,6 +96,21 @@ classdef P1Refiner < handle
                 xc = repmat(xc',3,1); 
                 newCoord(:,iCoord) = reshape(xc,[],1);
             end
+
+        end
+
+        function allCoord = computeDiscFunction(obj,fCont,connec,mesh)
+
+            nNode  = size(connec,2);
+            nElem  = size(connec,1);
+         %   nDime  = size(fCont,2);
+            nodesCont = reshape(connec',1,[]);
+            nodesDisc = 1:nNode*nElem;
+            fDisc(nodesDisc,:) = fCont(nodesCont,:);
+        %    fVals = reshape(fDisc',nDime,nNode,[]);
+
+
+            newCoord = obj.createNewValues(fDisc,nodesDisc,mesh);
 
             allCoord = [fDisc;newCoord];
         end

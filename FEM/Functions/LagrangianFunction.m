@@ -141,11 +141,11 @@ classdef LagrangianFunction < FeFunction
             s.fValues = obj.fValues;
             s.ndimf   = obj.ndimf;
             switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'                    
-                    connecf{1} = obj.getDofConnecByVector();
-                    connecf{2} = obj.getDofConnecByVector();                    
-                    coordf{1}  = obj.getDofCoordByVector(1);
-                    coordf{2}  = obj.getDofCoordByVector(2);
+                case 'LINEAR'     
+                    for iDim = 1:obj.ndimf
+                        connecf{iDim} = obj.getDofConnecByVector();
+                        coordf{iDim}  = obj.getDofCoordByVector(iDim);
+                    end
                     s.connec = connecf;
                     s.coord  = coordf;
                     
@@ -169,10 +169,11 @@ classdef LagrangianFunction < FeFunction
             cV = obj.getDofFieldByVector(dimf,obj.dofCoord);
         end
 
-        function fV = getDofFieldByVector(obj,dimf,field)
-          for iDim = 1:obj.mesh.ndim
+        function fV = getDofFieldByVector(obj,dimf,field)   
+          ndimf = size(field,2);
+          for iDim = 1:ndimf
                 fieldD = field(:,iDim);
-                fResh  = reshape(fieldD',2,[]);
+                fResh  = reshape(fieldD',obj.ndimf,[]);
                 fV(:,iDim) = fResh(dimf,:);
           end         
         end        
