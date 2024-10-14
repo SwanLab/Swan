@@ -35,21 +35,25 @@ classdef LHSintegratorAnisotropicMass < LHSintegrator
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
             M = zeros(nDofTest, nDofTrial, nElem);
+            Aij  = obj.A;
 
             for igauss = 1 :nGaus
                 for inode= 1:nNodeTest
                     for jnode= 1:nNodeTrial
+                        Ni = shapesTest(inode,igauss,:);
+                        Nj = shapesTrial(jnode,igauss,:);
+                        Nveci = [Ni;Ni];
+                        Nvecj = [Nj;Nj];
                         for iunkn= 1:obj.test.ndimf
+                            for junkn= 1:obj.trial.ndimf
                                 idof = obj.test.ndimf*(inode-1)+iunkn;
-                                jdof = obj.trial.ndimf*(jnode-1)+iunkn;
+                                jdof = obj.trial.ndimf*(jnode-1)+junkn;
                                 dvol = dVolu(igauss,:);
-                                Ni = shapesTest(inode,igauss,:);
-                                Nj = shapesTrial(jnode,igauss,:);
-                                Nveci = [Ni;Ni];
-                                Nvecj = [Nj;Nj];
-                                v   = Nveci'*obj.A*Nvecj;
+                                v = Nveci(iunkn)*Aij(iunkn,junkn)*Nvecj(junkn);
+                                %v   = Nveci'*obj.A*Nvecj;
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
                                     + v(:).*dvol';
+                            end
                         end
                     end
                 end

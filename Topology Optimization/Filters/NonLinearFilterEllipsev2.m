@@ -5,6 +5,7 @@ classdef NonLinearFilterEllipsev2 < handle
         trial
         q
         epsilon
+        A
     end
 
     properties (Access = private)
@@ -18,8 +19,9 @@ classdef NonLinearFilterEllipsev2 < handle
     methods (Access = public)
         function obj = NonLinearFilterEllipsev2(cParams)
             obj.init(cParams);
+            obj.A = cParams.A;
             obj.createMassMatrixFirstDirection();
-            obj.createMassMatrixSecondDirection();
+            obj.createMassMatrixSecondDirection();  
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -27,8 +29,8 @@ classdef NonLinearFilterEllipsev2 < handle
             obj.createRHSChiFirstDirection(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            fr = 0.1;
-            while tolerance >= 1e-5 
+            fr = 0.01;
+            while tolerance >= 1e-5 && iter <= 1000
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection(fr);
@@ -39,22 +41,18 @@ classdef NonLinearFilterEllipsev2 < handle
                 disp(iter);  
                 disp(tolerance);
              end
-           
-           obj.trial.plot
-           obj.q.plot
+            
+             obj.trial.plot
+             obj.q.plot
 %            obj.differentPlots( chiValues, E1Values, E2Values, rhoValues, ...
 %             qValues,iterations);
             xF.fValues  = obj.trial.fValues;
-            %disp(iter);
-            %disp(tolerance);
-            
-
         end
 
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon = epsilon;
-                obj.computeLHS();
+                %obj.computeLHS();
             end
         end
     end
@@ -89,7 +87,7 @@ classdef NonLinearFilterEllipsev2 < handle
             s.test  = obj.q;
             s.trial = obj.q;
             s.quadratureOrder = 2;
-            s.A     = [1 0; 0 1]; % A from cParams
+            s.A     = obj.A; % A from cParams
             LHS     = LHSintegrator.create(s);
             obj.M2   = LHS.compute();
         end
@@ -111,8 +109,8 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
-            invA     = [1 0; 0 1]; % !!!
-            qRotated = RotatedVector(invA,obj.q);
+            %invA     = [1 0; 0 1]; % !!!
+            qRotated = RotatedVector(obj.A,obj.q);
             rhs        = int.compute(qRotated, test);
             obj.Kq = rhs;
         end
@@ -123,8 +121,8 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
             nablaRho   = Grad(obj.trial);
-            invA     = [1 0; 0 1]; % !!!
-            rotatedNablaRho = RotatedVector(invA,nablaRho);
+            %invA     = [1 0; 0 1]; % !!!
+            rotatedNablaRho = RotatedVector(obj.A,nablaRho);
             test       = obj.q;
             rhs        = int.compute(rotatedNablaRho,test);
             obj.RHS2   = -obj.epsilon^2*rhs;
