@@ -59,7 +59,7 @@ classdef DeletingCreateMeshDisc < handle
             xmax = 1;
             ymin = 0;
             ymax = 1;
-            h = 0.1;
+            h = 0.5;
             xv = xmin:h:xmax;
             yv = ymin:h:ymax;
             [X,Y] = meshgrid(xv,yv);
@@ -75,7 +75,7 @@ classdef DeletingCreateMeshDisc < handle
         function f = createAnalyticalFunction(obj,m)
 
             s.fHandle = @(x) obj.circle(x);%x(1,:,:);
-            s.ndimf   = 2;
+            s.ndimf   = 1;
             s.mesh    = m;
             f       = AnalyticalFunction(s);
             
@@ -95,8 +95,8 @@ classdef DeletingCreateMeshDisc < handle
             x2 = x(2,:,:);
             f1 = 1-heaviside((x1-0.5).^2+(x2-0.5).^2-0.3.^2);
             f2 = 1-heaviside((x1-0.1).^2+(x2-0.1).^2-0.7.^2);
-            f = [f1;f2];
-          %  f = f1;
+        %    f = [f1;f2];
+            f = f1;
         end
         
     end
