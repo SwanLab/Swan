@@ -9,6 +9,8 @@ classdef NonLinearFilterFactory < handle
                 case 'Ellipse'
                     %filter = NonLinearFilterEllipse(cParams);
                     filter = NonLinearFilterEllipsev2(cParams);
+                case 'Segment'
+                    filter = NonLinearFilterSegment(cParams);
             end
         end
 
