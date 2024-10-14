@@ -1,6 +1,11 @@
 classdef ThreeDimCantileverDensity < handle
 
     properties (Access = private)
+        gJFlow
+        Vf
+    end
+
+    properties (Access = private)
         mesh
         filter
         designVariable
@@ -16,8 +21,8 @@ classdef ThreeDimCantileverDensity < handle
 
     methods (Access = public)
 
-        function obj = ThreeDimCantileverDensity()
-            obj.init()
+        function obj = ThreeDimCantileverDensity(cParams)
+            obj.init(cParams)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -30,14 +35,18 @@ classdef ThreeDimCantileverDensity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+            saveas(gcf,['NullSLERPResults/TopOpt/3DCantileverBeam/DensityComparison/Monitoring_trust0d02_gJ',num2str(obj.gJFlow),'.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/3DCantileverBeam/DensityComparison/gJ',num2str(obj.gJFlow),'_V',num2str(obj.Vf),'_fValues']);
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,cParams)
             close all;
+            obj.gJFlow = cParams.gJFlow;
+            obj.Vf     = cParams.Vf;
         end
 
         function createMesh(obj)
@@ -131,7 +140,7 @@ classdef ThreeDimCantileverDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.2;
+            s.volumeTarget = obj.Vf;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -167,14 +176,15 @@ classdef ThreeDimCantileverDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT'; % tauMax = 30
+            s.primal         = 'PROJECTED GRADIENT';
+            s.tauMax         = 30;
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.7;
+            s.gJFlowRatio    = obj.gJFlow;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -9,6 +9,7 @@ classdef ProjectedGradient < handle
         upperBound
         lowerBound
         L
+        tauMax
     end
     
     methods (Access = public)
@@ -38,8 +39,7 @@ classdef ProjectedGradient < handle
 %             if Lnew>obj.L
 %                 obj.L = Lnew;
 %             end
-            tauMax  = Inf;
-            obj.tau = min(f*obj.tau,tauMax);
+            obj.tau = min(f*obj.tau,obj.tauMax);
         end
 
         function decreaseStepLength(obj)
@@ -55,6 +55,7 @@ classdef ProjectedGradient < handle
         function init(obj,cParams)
             obj.upperBound = cParams.ub;
             obj.lowerBound = cParams.lb;
+            obj.tauMax     = cParams.tauMax;
         end
 
         function updateBoundsMultipliers(obj,x,y)
