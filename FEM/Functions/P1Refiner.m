@@ -42,8 +42,10 @@ classdef P1Refiner < handle
             coordC = obj.fCoarse.mesh.coord;            
             connec = obj.fCoarse.mesh.connec;     
             mesh   = obj.fCoarse.mesh;
+            nodesDisc = obj.createDiscConnec(connec);            
+            nodesDisc = reshape(nodesDisc',[],obj.fCoarse.mesh.nelem)';            
             coordD = obj.computeDiscontinousFunction(coordC,connec);
-            allF   = obj.computeAllValues(coordD,coordC,connec,mesh);
+            allF   = obj.computeAllValues(coordD,coordC,nodesDisc,mesh);
         end
 
         function cD = computeCoordDisc(obj)
@@ -54,15 +56,18 @@ classdef P1Refiner < handle
 
         function cEdges = computeCoordInEdges(obj)
             cD     = obj.coordD;
-            connec = obj.fCoarse.mesh.connec;   
+            connec = obj.fCoarse.mesh.connec;  
+            nodesDisc = obj.createDiscConnec(connec);
+            nodesDisc = reshape(nodesDisc',[],obj.fCoarse.mesh.nelem)';
+            %connec = obj.fCoarse.dofConnec;
             mesh   = obj.fCoarse.mesh;            
-            cEdges = obj.computeFinEdges(cD,connec,mesh);
+            cEdges = obj.computeFinEdges(cD,nodesDisc,mesh);
         end
 
         function allFvalues = computeAllFValues(obj)
             fDisc  = obj.fCoarse.fValues;
             coord  = obj.fCoarse.getDofCoord();
-            connec = obj.fCoarse.mesh.connec;
+            connec = obj.fCoarse.dofConnec;
             mesh   = obj.fCoarse.mesh;
             allFvalues = obj.computeAllValues(fDisc,coord,connec,mesh);
         end
@@ -115,9 +120,10 @@ classdef P1Refiner < handle
         end
 
         function fEdges = computeFinEdges(obj,fDisc,connec,mesh)
-            nodesDisc = obj.createDiscConnec(connec);
-            
-            s.nodesByElem = reshape(nodesDisc',[],mesh.nelem)';
+
+            nodesDisc = connec;
+
+            s.nodesByElem = nodesDisc;
             s.type = mesh.type;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();
@@ -154,9 +160,6 @@ classdef P1Refiner < handle
             nElem  = size(connec,1);
             nodesDisc = 1:nNode*nElem;            
         end
-
-
-            
 
         function newDofs = computeNewDofs(obj,f)
             dofsF = f.getDofConnec();
