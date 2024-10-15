@@ -69,6 +69,7 @@ classdef Remesher < handle
             connec(:,2,:) = [nE1 nV2 nE2];
             connec(:,3,:) = [nE1 nE2 nE3];
             connec(:,4,:) = [nE3 nE2 nV3];
+            connec    = permute(connec,[2 1 3]);
             newConnec = reshape(connec,[],3);
         end
 

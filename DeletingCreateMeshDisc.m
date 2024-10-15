@@ -59,7 +59,7 @@ classdef DeletingCreateMeshDisc < handle
             xmax = 1;
             ymin = 0;
             ymax = 1;
-            h = 0.5;
+            h = 1;
             xv = xmin:h:xmax;
             yv = ymin:h:ymax;
             [X,Y] = meshgrid(xv,yv);
