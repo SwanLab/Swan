@@ -162,10 +162,10 @@ classdef P1Refiner < handle
 
              fInEdges = fInEdges2;
             %ehhh
-
+            ndimf = obj.fCoarse.ndimf;
             for iDim = 1:size(fInEdges,2)
                 xc = fInEdges(:,iDim);
-                xc = repmat(xc',3,1); 
+                xc = repmat(xc',3*ndimf,1); 
                 fEdges(:,iDim) = reshape(xc,[],1);
             end
 

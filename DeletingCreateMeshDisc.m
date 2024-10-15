@@ -88,8 +88,8 @@ classdef DeletingCreateMeshDisc < handle
             x1 = x(1,:,:);
             x2 = x(2,:,:);
             f1 = 1-heaviside((x1-0.5).^2+(x2-0.5).^2-0.3.^2);
-            f2 = 1-heaviside((x1-0.1).^2+(x2-0.1).^2-0.7.^2);
-        %    f = [f1;f2];
+         %   f2 = 1-heaviside((x1-0.1).^2+(x2-0.1).^2-0.7.^2);
+          %  f = [f1;f2];
             f = f1;
         end
         
