@@ -16,14 +16,21 @@ classdef NonLinearFilterSegment < handle
         K
         intChi
         rhsDer
+        Den
+        a2
+        b2
     end
 
     methods (Access = public)
         function obj = NonLinearFilterSegment(cParams)
             obj.init(cParams);
             obj.createDirection();
+            obj.updateDotProductPreviousGuess();
             obj.createMassMatrix();
             obj.createDirectionalStiffnessMatrix();
+            obj.Den = obj.createConstantFunction(2*obj.lineSearch);
+            obj.a2  = obj.createConstantFunction(obj.alpha^2);
+            obj.b2  = obj.createConstantFunction(obj.beta^2);
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -32,7 +39,7 @@ classdef NonLinearFilterSegment < handle
             iter = 1;
             tolerance = 1;
             %fr = 0.1;
-            while tolerance >= 1e-5 
+            while tolerance >= 1e-4 
                 oldRho = obj.trial.fValues;
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
@@ -40,10 +47,10 @@ classdef NonLinearFilterSegment < handle
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
                 iter = iter + 1;
 %                 disp(iter);  
-                disp(tolerance);
+%                 disp(tolerance);
              end
            
-           obj.trial.plot
+%             obj.trial.plot
             xF.fValues = obj.trial.fValues;
 
         end
@@ -52,12 +59,11 @@ classdef NonLinearFilterSegment < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
-            obj.sVar  = 1;
             obj.mesh  = cParams.mesh;
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = cParams.beta;
-            obj.lineSearch = 1;
+            obj.lineSearch = 10;
         end
 
         function createDirection(obj)
@@ -104,8 +110,8 @@ classdef NonLinearFilterSegment < handle
             test       = obj.trial;
             g          = obj.computeGradient();
             f          = obj.createAnalyticalDirection();
-            rhs        = int.compute(f, test);
-            obj.rhsDer = g.*rhs;
+            rhs        = int.compute(f.*g, test);
+            obj.rhsDer = rhs;
         end
 
         function aF = createAnalyticalDirection(obj)
@@ -117,11 +123,23 @@ classdef NonLinearFilterSegment < handle
         end
 
         function g = computeGradient(obj)
-            a   = obj.alpha;
-            b   = obj.beta;
             s   = obj.sVar;
-            tau = obj.lineSearch;
-            g   = s/(2*tau)-a^2*max(0,s)-b^2*min(0,s);
+%             Den = obj.createConstantFunction(2*obj.lineSearch);
+%             a2  = obj.createConstantFunction(a^2);
+%             b2  = obj.createConstantFunction(b^2);
+            maxFun = obj.CreateDomainMax(s);
+            minFun = obj.CreateDomainMin(s);
+            g   = s./obj.Den-obj.a2.*maxFun-obj.b2.*minFun;
+        end
+
+        function m = CreateDomainMax(obj,sFun)
+            s.operation = @(xV) max(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
+            m           = DomainFunction(s);
+        end
+
+        function m = CreateDomainMin(obj,sFun)
+            s.operation = @(xV) min(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
+            m           = DomainFunction(s);
         end
 
         function solveProblem(obj)
@@ -132,10 +150,18 @@ classdef NonLinearFilterSegment < handle
             obj.trial.fValues = rhoi;
         end
 
+        function aF = createConstantFunction(obj,c)
+            s.fHandle = @(x) c*ones(size(x(1,:,:)));
+            s.ndimf = 1;
+            s.mesh = obj.mesh;
+            aF = AnalyticalFunction(s);
+        end
+
         function updateDotProductPreviousGuess(obj)
             gradRho  = Grad(obj.trial);
             k        = obj.createAnalyticalDirection();
-            obj.sVar = Integrator.compute(gradRho.*k,obj.mesh,2);
+            obj.sVar = DotProduct(gradRho,k);
+%             obj.sVar = Integrator.compute(gradRho.*k,obj.mesh,2);
         end
     end
 end

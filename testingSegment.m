@@ -29,9 +29,9 @@ end
 
 function nLFilter = createNonLinearFilter(m)
 s.mesh   = m;
-s.theta  = 90;
-s.alpha  = 1;
-s.beta   = 0.1;
+s.theta  = 0;
+s.alpha  = 1*m.computeMeanCellSize();
+s.beta   = 10*m.computeMeanCellSize();
 s.type   = 'Segment';
 nLFilter = NonLinearFilter.create(s);
 end
