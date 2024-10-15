@@ -1,7 +1,7 @@
 classdef Preconditioner < handle
 
     methods (Access = public, Static)
-        
+
         function M = create(cParams)
 
             switch cParams.type
@@ -10,11 +10,13 @@ classdef Preconditioner < handle
                 case {'GaussSeidel'}
                     M = PreconditionerGaussSeidel(cParams);
                 case {'ILU'}
-                    M = PreconditionerILU(cParams);                
+                    M = PreconditionerILU(cParams);
                 case {'EIFEM'}
                     M = PreconditionerEIFEM(cParams);
                 case {'MODAL'}
-                    M = PreconditionerModalApproximation(cParams);                    
+                    M = PreconditionerModalApproximation(cParams);
+                case {'DirichletNeumann'}
+                    M = PreconditionerDirichletNeumann(cParams);
                 otherwise
                     error('Invalid preconditioner type.')
             end

@@ -25,13 +25,14 @@ classdef EIFEMtesting < handle
             
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
-            [mD,iC,lG] = obj.createMeshDomain(mR);
+            [mD,mSb,iC,lG] = obj.createMeshDomain(mR);
             obj.meshDomain = mD;
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
-            [LHS,RHS] = obj.createElasticProblem();
+            [LHS,RHS,LHSf] = obj.createElasticProblem();
+            obj.LHS = LHSf;
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
@@ -44,6 +45,7 @@ classdef EIFEMtesting < handle
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
+            MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
             MiluCG = @(r) Preconditioner.InexactCG(r,LHSf,MgaussSeidel);
 
@@ -101,21 +103,21 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [5 1]; %nx ny
+            obj.nSubdomains  = [2 1]; %nx ny
         end
 
-        function [mD,iC,lG] = createMeshDomain(obj,mR)
+        function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             m = MeshCreatorFromRVE(s);
-            [mD,~,iC,~,lG] = m.create();
+            [mD,mSb,iC,~,lG] = m.create();
         end
 
 
         function mS = createReferenceMesh(obj)
-            %    mS = obj.createStructuredMesh();
+               mS = obj.createStructuredMesh();
             %   mS = obj.createMeshFromGid();
-            mS = obj.createEIFEMreferenceMesh();
+%             mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -129,8 +131,8 @@ classdef EIFEMtesting < handle
         function mS = createStructuredMesh(obj)
 
             % Generate coordinates
-            x1 = linspace(0,1,5);
-            x2 = linspace(0,1,5);
+            x1 = linspace(0,1,2);
+            x2 = linspace(0,1,2);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -216,10 +218,14 @@ classdef EIFEMtesting < handle
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
-            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
-            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-            isBottom  = @(coor) (abs(coor(:,2) - min(coor(:,2)))   < 1e-12);
-            isTop  = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
+            minx = min(obj.meshDomain.coord(:,1));
+            maxx = max(obj.meshDomain.coord(:,1));
+            miny = min(obj.meshDomain.coord(:,2));
+            maxy = max(obj.meshDomain.coord(:,2));
+            isLeft   = @(coor) (abs(coor(:,1) - minx)   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - maxx)   < 1e-12);
+            isBottom  = @(coor) (abs(coor(:,2) - miny)   < 1e-12);
+            isTop  = @(coor) (abs(coor(:,2) - maxy)   < 1e-12);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
             Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
             Dir{1}.direction = [1,2];
@@ -258,7 +264,7 @@ classdef EIFEMtesting < handle
         end
 
 
-        function [LHSr,RHSr] = createElasticProblem(obj)
+        function [LHSr,RHSr,lhs] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             material = obj.createMaterial(obj.meshDomain);
             [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
@@ -310,6 +316,17 @@ classdef EIFEMtesting < handle
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);            
             Meifem = @(r) eP.solveEIFEM(r);
+         end
+
+         function Meifem = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb)            
+            s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
+            s.DirCond       = dir;
+            s.bcApplier     = obj.bcApplier; 
+            s.LHS           = lhs;
+            s.subdomainMesh = mSb;
+            s.type = 'DirichletNeumann';
+            M = Preconditioner.create(s);            
+            Meifem = @(r) M.solveEIFEM(r);
         end
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR)

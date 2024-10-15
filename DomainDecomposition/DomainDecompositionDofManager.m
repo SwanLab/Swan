@@ -51,6 +51,19 @@ classdef DomainDecompositionDofManager < handle
             end
         end
 
+        function m = scaleInterfaceValuesMatrix(obj,m,w)
+            nint = size(obj.interfaceDof,3);
+            weight = [w,1-w];
+            for iint = 1:nint
+                ndom = size(obj.interfaceDof(:,:,iint),2);
+                for idom = 1:ndom
+                    dom = obj.interfaceDom(iint,idom);
+                    dof = obj.interfaceDof(:,idom,iint);
+                    m(dof,dof,dom) = weight(idom)* m(dof,dof,dom);
+                end
+            end
+        end
+
         function fG = local2global(obj,fL)
             fG   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
             ind    = 1;
@@ -76,6 +89,20 @@ classdef DomainDecompositionDofManager < handle
                 end
             end
         end
+
+        function mL = global2localMatrix(obj,mG)
+            ndimf  = obj.nDimf;
+            mL     = zeros(obj.nReferenceNodes*ndimf,obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            ind    = 1;
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    lGconnec = obj.localGlobalDof{jdom,idom};
+                    mL(lGconnec(:,2),lGconnec(:,2),ind) = mG(lGconnec(:,1),lGconnec(:,1));
+                    ind=ind+1;
+                end
+            end
+        end
+        
     end
 
     methods (Access = private)
