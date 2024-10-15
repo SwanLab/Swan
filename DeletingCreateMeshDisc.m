@@ -36,18 +36,12 @@ classdef DeletingCreateMeshDisc < handle
                 %fi  = obj.createAnalyticalFunction(m);
                 %fCi = fi.project('P1'); fCi.plot
                 fC = fC.refine(m); 
-                fC.plot    
+                fC.plot();    
 
                 fD = fD.refine(fD,m);
-                fC.plot();
                 fD.plot();
             end
-            figure
-            m.plot()
-            figure()
-            fC.plot()
-            figure()
-            fD.plot()
+        
         end
         
     end
@@ -59,7 +53,7 @@ classdef DeletingCreateMeshDisc < handle
             xmax = 1;
             ymin = 0;
             ymax = 1;
-            h = 1;
+            h = 0.1;
             xv = xmin:h:xmax;
             yv = ymin:h:ymax;
             [X,Y] = meshgrid(xv,yv);
