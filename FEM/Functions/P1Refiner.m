@@ -40,10 +40,10 @@ classdef P1Refiner < handle
 
         function allF = computeDofCoord(obj)
           %  connec = obj.fCoarse.mesh.connec;                
-            mesh   = obj.fCoarse.mesh;            
-            nodesDisc = obj.fCoarse.dofConnec;
-            coordD = obj.fCoarse.dofCoord;%coordD;%obj.computeDiscontinousFunction(coordC,connec,nodesDisc);
-            allF   = obj.computeAllValues(coordD,nodesDisc,mesh);
+            mesh      =  obj.fCoarse.mesh;            
+             nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+            coordD    = obj.fCoarse.dofCoord;%coordD;%obj.computeDiscontinousFunction(coordC,connec,nodesDisc);
+            allF      = obj.computeAllValues(coordD,nodesDisc,mesh);
         end
 
         function node = getDofConnecFromVector(obj,dofConnec)
@@ -102,8 +102,13 @@ classdef P1Refiner < handle
                 nV(:,:,iNode) = vertexInCell(:,iDof);
             end
             nV1 = nV(:,:,1)';
+            nV1 = nV1(:);
+
             nV2 = nV(:,:,2)';
+            nV2 = nV2(:);
+
             nV3 = nV(:,:,3)';
+            nV3 = nV3(:);
 
             edgeInCell1 = squeeze(newDofs(:,1,:));
             edgeInCell2 = squeeze(newDofs(:,2,:));
