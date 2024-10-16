@@ -38,12 +38,12 @@ classdef TestingPhaseField < handle
 
         function init(obj, ~)
             obj.monitoring.set = true;
-            obj.monitoring.type = 'Reduced'; %'Full'
+            obj.monitoring.type = 'Full'; %'Full'
             obj.benchmark.type.mesh = '1Elem';
             obj.benchmark.N = 10;
             obj.benchmark.type.case = 'traction'; %'shear'
             obj.benchmark.type.bc = 'displacementTraction';
-            obj.benchmark.bcValues = linspace(1e-4,1e-1,10);
+            obj.benchmark.bcValues = linspace(1e-4,1e-1,100);
             obj.matInfo.E  = 210;
             obj.matInfo.nu = 0.3;
             obj.matInfo.Gc = 5e-3;
@@ -51,7 +51,7 @@ classdef TestingPhaseField < handle
             %obj.matInfo.fileName = 'IsoMicroDamage';
             obj.matInfo.degradation = 'PhaseFieldDegradation';
             obj.dissipInfo.type = 'PhaseFieldDissipationAT'; 
-            obj.dissipInfo.pExp = 2;
+            obj.dissipInfo.pExp = 1;
             obj.l0 = 0.1;
 
             close all

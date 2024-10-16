@@ -88,16 +88,9 @@ classdef MaterialPhaseField < Material
     methods (Access = private)
 
         function mat = createBaseMaterial(obj,cParams)
-            sParam.mesh = obj.mesh;
-            sParam.order = 'P1';
-            sParam.fValues = ones(obj.mesh.nnodes,1)*cParams.matInfo.E;
-            young = LagrangianFunction(sParam);
-            sParam.fValues = ones(obj.mesh.nnodes,1)*cParams.matInfo.nu;
-            poisson = LagrangianFunction(sParam);
-
             sIso.ndim = obj.mesh.ndim;
-            sIso.young = young;
-            sIso.poisson = poisson;
+            sIso.young = ConstantFunction.create(cParams.matInfo.E,1,obj.mesh);
+            sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,1,obj.mesh);
             mat = Isotropic2dElasticMaterial(sIso);
         end
 
@@ -140,7 +133,7 @@ classdef MaterialPhaseField < Material
         % end        
     
         function xf = createDegradedLameParameterFunction(obj,param,f)
-            s.operation = @(xV) param.evaluate(xV).*obj.evaluateDegradation(f,xV);
+            s.operation = @(xV) pagetranspose(param.evaluate(xV)).*obj.evaluateDegradation(f,xV);
             s.ndimf = 1;
             xf =  DomainFunction(s);
         end      

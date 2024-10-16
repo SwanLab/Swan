@@ -86,7 +86,7 @@ classdef DomainFunction < handle
 
         function r = norm(a,b)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),2);
             r = DomainFunction(s);
         end
 

@@ -43,7 +43,7 @@ classdef RHSintegrator_ShapeFunction < handle
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
                         dVg(:,1) = dV(iGaus, :);
-                        fV   = squeeze(fG(iField,:,iGaus,:));
+                        fV   = squeeze(fG(iField,iGaus,:));
                         Ni   = squeeze(N(iNode,iGaus,:));
                         fNdV(1,:) = Ni.*fV.*dVg;
                         iDof = nFlds*(iNode-1) + iField;

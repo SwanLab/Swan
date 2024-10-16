@@ -105,8 +105,10 @@ classdef PhaseFieldComputer < handle
                 s.u = u; s.phi = phi; s.F = F;
                 s.bc = bc;
                 output = obj.saveData(s);
-
-                obj.monitor.update(i,{phi.fValues});
+                
+                TotalForce = F(4)+F(8); %Do it properly
+                Displacement = obj.boundaryConditions.bcValues(i);
+                obj.monitor.update(i,{[TotalForce;Displacement],phi.fValues});
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             end
