@@ -1,17 +1,19 @@
 classdef Tutorial02p2FEMElasticityMicro < handle
+    properties (Access = public)
+        mesh
+        stateProblem
+    end
 
     properties (Access = private)
-        mesh
         young
         poisson
         material
-        stateProblem
     end
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro()
-            obj.createMesh();
+        function obj = Tutorial02p2FEMElasticityMicro(radius)
+            obj.createMesh(radius);
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
@@ -20,21 +22,25 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     end
 
     methods (Access = private)
-        
-        function createMesh(obj)
-            fullmesh = UnitTriangleMesh(20,20);
-            ls = obj.computeCircleLevelSet(fullmesh);
-            sUm.backgroundMesh = fullmesh;
-            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(ls);
-            holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
+
+        function createMesh(obj,radius)
+            fullmesh = UnitTriangleMesh(100,100);
+            if radius == 0
+                obj.mesh = fullmesh;
+            else
+                ls = obj.computeCircleLevelSet(fullmesh,radius);
+                sUm.backgroundMesh = fullmesh;
+                sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+                uMesh              = UnfittedMesh(sUm);
+                uMesh.compute(ls);
+                holeMesh = uMesh.createInnerMesh();
+                obj.mesh = holeMesh;
+            end
         end
 
-        function ls = computeCircleLevelSet(obj, mesh)
+        function ls = computeCircleLevelSet(obj, mesh,radius)
             gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
+            gPar.radius        = radius;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
