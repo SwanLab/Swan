@@ -1,20 +1,18 @@
 classdef Tutorial02p2FEMElasticityMicro < handle
-   
-    properties (SetAccess = private, GetAccess = public)
+
+    properties (Access = private)
         mesh
         young
         poisson
-        bulk
-        shear
         material
         stateProblem
     end
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro(length,type,E,v)
-            obj.createMesh(length,type);
-            obj.computeElasticProperties(E,v);
+        function obj = Tutorial02p2FEMElasticityMicro()
+            obj.createMesh();
+            obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
         end
@@ -23,68 +21,46 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = private)
         
-        function createMesh(obj,length,type)
-            fullmesh = UnitTriangleMesh(300,300);
-            ls = obj.computeCircleLevelSet(fullmesh,length,type);
-            if type ~= "Full"
-                sUm.backgroundMesh = fullmesh;
-                sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-                uMesh              = UnfittedMesh(sUm);
-                uMesh.compute(ls);
-                holeMesh = uMesh.createInnerMesh();
-                obj.mesh = holeMesh;
-            else
-                obj.mesh = fullmesh;
-            end
+        function createMesh(obj)
+            fullmesh = UnitTriangleMesh(20,20);
+            ls = obj.computeCircleLevelSet(fullmesh);
+            sUm.backgroundMesh = fullmesh;
+            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(ls);
+            holeMesh = uMesh.createInnerMesh();
+            obj.mesh = holeMesh;
         end
 
-        function ls = computeCircleLevelSet(obj, mesh,length,type)
-            if type == "Circle"
-                gPar.type          = 'Circle';
-                gPar.radius        = length;
-                gPar.xCoorCenter   = 0.5;
-                gPar.yCoorCenter   = 0.5;
-                g                  = GeometricalFunction(gPar);
-                phiFun             = g.computeLevelSetFunction(mesh);
-                lsCircle           = phiFun.fValues;
-                ls = -lsCircle;
-            elseif type == "Square"
-                gPar.type          = 'Square';
-                gPar.length        = length;
-                gPar.xCoorCenter   = 0.5;
-                gPar.yCoorCenter   = 0.5;
-                g                  = GeometricalFunction(gPar);
-                phiFun             = g.computeLevelSetFunction(mesh);
-                lsSquare           = phiFun.fValues;
-                ls = -lsSquare;
-            elseif type == "Full"
-                gPar.type          = 'Full';
-                g                  = GeometricalFunction(gPar);
-                phiFun             = g.computeLevelSetFunction(mesh);
-                lsFull             = phiFun.fValues;
-                ls = -lsFull;
-            end
+        function ls = computeCircleLevelSet(obj, mesh)
+            gPar.type          = 'Circle';
+            gPar.radius        = 0.25;
+            gPar.xCoorCenter   = 0.5;
+            gPar.yCoorCenter   = 0.5;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsCircle           = phiFun.fValues;
+            ls = -lsCircle;
         end
 
 
-        function computeElasticProperties(obj,E1,nu1)
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            obj.young   = E;
-            obj.poisson = nu;
+      function computeElasticProperties(obj)
+            E  = 1;
+            nu = 1/3;
+            obj.young   = ConstantFunction.create(E,1,obj.mesh);
+            obj.poisson = ConstantFunction.create(nu,1,obj.mesh);
         end
 
         function createMaterial(obj)
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
-            s.bulk = obj.bulk;
-            s.shear = obj.shear;
             s.young   = obj.young;
             s.poisson = obj.poisson;
             tensor    = Material.create(s);
             obj.material = tensor;
         end
+
 
         function solveElasticProblem(obj)
             s.mesh = obj.mesh;
@@ -93,6 +69,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
+            s.solverCase = 'DIRECT';
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
