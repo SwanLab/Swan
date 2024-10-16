@@ -90,17 +90,22 @@ classdef MultimaterialTesting < handle
         end
         
         function createInterpolators(obj)
-            s.mat        = obj.mat;
-            s.m          = obj.mesh;
-            
-            obj.pdeCoeff = PDECoefficientsComputer(s);  
+            E   = AnalyticalFunction.create(@(x) 200E9*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            nu  = AnalyticalFunction.create(@(x) 0.25*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = E;
+            s.poisson = nu;
+            tensor    = Material.create(s);
+            tensorEv  = tensor.evaluate([0;0]);
+            CA        = tensorEv(:,:,1,1);
 
 
             sC.E  = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
-            sC.CA = obj.pdeCoeff.tensor(:,1);
+            sC.CA = CA;
 
             E   = AnalyticalFunction.create(@(x) 100E9*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x) 0.25*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;

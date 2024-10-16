@@ -19,8 +19,8 @@ classdef MultiMaterialInterpolation < handle
         function [mu,kappa] = computeConsitutiveTensor(obj,x)
             chi                 = obj.computeElementWiseCharacteristicFunction(x);
             [muVals,lambdaVals] = obj.computeShearLambdaValues(chi);
-            mu                  = obj.computeP0Function(chi.mesh,muVals');
-            lambda              = obj.computeP0Function(chi.mesh,lambdaVals');            
+            mu                  = obj.computeP0Function(chi.mesh,muVals);
+            lambda              = obj.computeP0Function(chi.mesh,lambdaVals);            
             N                   = chi.mesh.ndim;
             kappa               = lambda + 2.*mu/N;
         end
@@ -51,10 +51,10 @@ classdef MultiMaterialInterpolation < handle
 
         function [muVals,lambdaVals] = computeShearLambdaValues(obj,chi)
             chiVal     = chi.fValues';
-            tgamma     = (obj.youngVec/obj.youngVec(1))*chiVal;
-            Ceff       = obj.elasticTensorA*tgamma;
-            lambdaVals = Ceff(6,:);
-            muVals     = Ceff(4,:);
+            tgamma(1,1,:)     = (obj.youngVec/obj.youngVec(1))*chiVal;
+            Ceff       = obj.elasticTensorA.*tgamma;
+            lambdaVals = squeeze(Ceff(1,2,:));
+            muVals     = squeeze(Ceff(3,3,:));
         end
 
         function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi)
