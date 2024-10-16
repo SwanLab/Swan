@@ -2,5 +2,7 @@ clc;clear;
 
 load('ContinuumDamageTestInput.mat')
 tolerance = 1e-12;
-TEST = TestingContinuumDamage(s,tolerance);
+type = "EXTERNAL"; %"INTERNAL OR EXTERNAL"
+%type = "INTERNAL";
+TEST = TestingContinuumDamage(s,tolerance,type);
 TEST.compareWithElasticProblem(s);

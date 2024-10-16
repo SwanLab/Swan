@@ -13,6 +13,9 @@ classdef ContinuumDamageComputer < handle
         quadOrder
 
         ElasticFun
+        ExternalWorkFun
+
+        u
     end
 
     methods (Access = public)
@@ -21,21 +24,32 @@ classdef ContinuumDamageComputer < handle
             obj.init(cParams)
         end
 
-        function results = compute(obj)
+        function results = compute(obj,type)
             bc = obj.boundaryConditions;
             uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
-            
+
             s.material = obj.material;
             s.u        = uFun;
             s.mesh     = obj.mesh;
-            
-            obj.ElasticFun = shFunc_Elastic(s);
-            
-            K = obj.computeK();
-            F = obj.computeF();
-            
-            
+
+            obj.u = uFun;
+
+            switch type
+                case 'INTERNAL'
+                    obj.ElasticFun = shFunc_Elastic(s);
+                    K = obj.computeKInternal();
+                    F = obj.computeFInternal();
+                case 'EXTERNAL'
+                    fext = LagrangianFunction.create(obj.mesh, obj.u.ndimf, 'P1');
+                   % fext = obj.updateInitialDisplacement(bc,fext);
+                    obj.ExternalWorkFun = shFunc_ExternalWork2(s);
+                    K = obj.computeKExternal(fext);
+                    F = obj.computeFExternal(fext);
+                otherwise
+                    disp("ContinuumDamageComputer.compute type arg missing or mistaken")
+            end
+
             results = obj.computeU(K,F);
 
         end
@@ -55,14 +69,21 @@ classdef ContinuumDamageComputer < handle
             obj.scale = cParams.scale;
         end
 
-        function K = computeK(obj)%,dispFun)
-
+        function K = computeKInternal(obj)%,dispFun)
             K = obj.ElasticFun.computeHessian(obj.quadOrder);
         end
-        function F = computeF(obj)%,displacementFun,K)
-  
-            Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder);
 
+        function F = computeFInternal(obj)%,displacementFun,K)
+            Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder);
+            F = -Ftry;
+        end
+
+        function K = computeKExternal(obj,fext)
+            K = obj.ExternalWorkFun.computeFunction(obj.u,fext,obj.quadOrder);
+        end
+
+        function F = computeFExternal(obj)
+            Ftry = obj.ExternalWorkFun.computeGradient(obj.u,fext,obj.quadOrder);
             F = -Ftry;
         end
 
@@ -77,7 +98,7 @@ classdef ContinuumDamageComputer < handle
 
         function u = computeU(obj,K,F)
 
-            
+
             problemSolver = obj.createSolver();
 
             t.stiffness = K;
@@ -122,6 +143,8 @@ classdef ContinuumDamageComputer < handle
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
         end
+
+        
 
     end
 end

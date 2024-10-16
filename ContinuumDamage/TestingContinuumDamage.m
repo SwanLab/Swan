@@ -11,29 +11,30 @@ classdef TestingContinuumDamage < handle
 
     methods (Access = public)
 
-        function obj = TestingContinuumDamage(cParams,tolerance)
+        function obj = TestingContinuumDamage(cParams,tolerance,type)
             obj.tolerance = tolerance;
             obj.mesh     = obj.createMesh(cParams);
             obj.bc       = obj.createBoundaryConditions(cParams);
             obj.material = obj.createMaterial(cParams);
-            obj.results  = obj.compute(cParams);
+            obj.results  = obj.compute(cParams,type);
             
         end
 
         function compareWithElasticProblem(obj,dataIn)
-            s.mesh = obj.mesh;
-            s.material = obj.material;
-            s.boundaryConditions = obj.bc;
-            s.type = dataIn.type;
-            s.scale = dataIn.scale;
-            s.solverType = dataIn.solverType;
-            s.solverMode = dataIn.solverMode;
-            s.solverCase = dataIn.solverCase;
+            % s.mesh = obj.mesh;
+            % s.material = obj.material;
+            % s.boundaryConditions = obj.bc;
+            % s.type = dataIn.type;
+            % s.scale = dataIn.scale;
+            % s.solverType = dataIn.solverType;
+            % s.solverMode = dataIn.solverMode;
+            % s.solverCase = dataIn.solverCase;
             
 
-             EP = ElasticProblem(s);
-             Ref = EP.solve();
-           %load ('ContinuumDamageTestOutput.mat');
+             % EP = ElasticProblem(s);
+             % Ref = EP.solve();
+                
+             load ('ContinuumDamageTestOutput.mat','Ref');
 
             if  ismembertol(Ref , obj.results, obj.tolerance)
 
@@ -84,7 +85,7 @@ classdef TestingContinuumDamage < handle
             mat = Isotropic2dElasticMaterial(sMat);
         end
 
-        function results = compute(obj,sSolver)
+        function results = compute(obj,sSolver,type)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.bc;
             s.material = obj.material;
@@ -95,7 +96,7 @@ classdef TestingContinuumDamage < handle
             s.solverCase = sSolver.solverCase;
 
             comp = ContinuumDamageComputer(s);
-            results = comp.compute();
+            results = comp.compute(type);
         end
     end
 end
