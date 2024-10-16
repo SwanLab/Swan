@@ -27,6 +27,7 @@ classdef MultimaterialTesting < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
+            obj.createMaterialProperties();
             obj.createInterpolators();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
@@ -72,21 +73,48 @@ classdef MultimaterialTesting < handle
             obj.designVariable     = DesignVariable.create(s);
         end
 
+        function matI = createSingleMaterialProperty(obj,E,nu)
+            mu          = E./(2.*(1+nu));
+            la          = nu.*E./((1+nu).*(1-2.*nu)); % plain strain
+            matI.young  = E;
+            matI.nu     = nu;
+            matI.shear  = mu;
+            matI.lambda = 2.*mu.*la./(la+2.*mu); % plane stress
+        end
+
+        function createMaterialProperties(obj)
+            obj.mat.A = obj.createSingleMaterialProperty(200E9,0.25);
+            obj.mat.B = obj.createSingleMaterialProperty(100E9,0.25);
+            obj.mat.C = obj.createSingleMaterialProperty(50E9,0.25);
+            obj.mat.D = obj.createSingleMaterialProperty(0.2E9,0.25);
+        end
+        
         function createInterpolators(obj)
-            matProp      = MaterialPropertiesComputer(); 
-            obj.mat.A    = matProp.matA; % MATERIAL 1
-            obj.mat.B    = matProp.matB; % MATERIAL 2
-            obj.mat.C    = matProp.matC; % MATERIAL 3
-            obj.mat.D    = matProp.matD; % VOID
             s.mat        = obj.mat;
             s.m          = obj.mesh;
             
             obj.pdeCoeff = PDECoefficientsComputer(s);  
 
 
-            sC.E = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
-            sC.C0 = obj.pdeCoeff.tensor(:,1);
-            sC.nu1 = obj.mat.A.nu;
+            sC.E  = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
+            sC.CA = obj.pdeCoeff.tensor(:,1);
+
+            E   = AnalyticalFunction.create(@(x) 100E9*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            nu  = AnalyticalFunction.create(@(x) 0.25*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = E;
+            s.poisson = nu;
+            tensor    = Material.create(s);
+            tensorEv  = tensor.evaluate([0;0]);
+            CB     = tensorEv(:,:,1,1);
+            sC.CB  = zeros(size(CB));
+            sC.CB(2,2) = 2*CB(3,3);
+            sC.CB(1,1) = CB(1,1);
+            sC.CB(3,3) = CB(2,2);
+            sC.CB(1,3) = CB(1,2);
+            sC.CB(3,1) = CB(2,1);
             obj.matInterp = MultiMaterialInterpolation(sC);
         end
 
