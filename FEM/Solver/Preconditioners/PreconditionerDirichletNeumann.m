@@ -8,6 +8,8 @@ classdef PreconditionerDirichletNeumann < handle
         subdomainLHS
         isDirichlet
         sBCApplier
+        dirList
+        neuList
     end
 
     properties (Access = private)
@@ -27,8 +29,8 @@ classdef PreconditionerDirichletNeumann < handle
         function obj = PreconditionerDirichletNeumann(cParams)
             obj.init(cParams);
             obj.createSubdomainsBCappliers();            
-            obj.computeSubdomainLHS();
-            obj.computeSubdomainLHSreduced();
+            sLHS             = obj.computeSubdomainLHS();
+            obj.subdomainLHS = obj.computeSubdomainLHSreduced(sLHS);
          %   obj.DirichletNeumannSolver();
 
             %
@@ -50,11 +52,10 @@ classdef PreconditionerDirichletNeumann < handle
 
         function z = apply(obj,r)
 
-            z = 0.3*r;
             lhsS = obj.LHS;
             rR = obj.bcApplier.reducedToFullVectorDirichlet(r);
             rS = obj.ddDofManager.global2local(rR);
-
+            
         end
 
     end
@@ -74,6 +75,8 @@ classdef PreconditionerDirichletNeumann < handle
         end
 
         function createSubdomainsBCappliers(obj)
+            obj.dirList = [];
+            obj.neuList = [];
             for iS = 1:numel(obj.subdomainMesh)
                 sMesh =  obj.subdomainMesh{iS};
 
@@ -82,9 +85,9 @@ classdef PreconditionerDirichletNeumann < handle
                     isCoord = obj.DirCond{iDir}.domain(sMesh.coord);
                     hasDirichlet = [hasDirichlet,isCoord];                    
                 end
-
                 dirichletFun = [];
                 if any(hasDirichlet(:))
+                    obj.neuList(end+1) = iS;
                     for iDir = 1:numel(obj.DirCond)
                         dir = DirichletCondition(sMesh, obj.DirCond{iDir});
                         dirichletFun = [dirichletFun, dir];
@@ -94,9 +97,10 @@ classdef PreconditionerDirichletNeumann < handle
                     s.periodicFun  =[];
                     s.mesh         = sMesh;
                     bc             = BoundaryConditions(s);
-                else                 
+                else    
+                    obj.dirList(end+1) = iS;
                     intDom    = obj.ddDofManager.interfaceDom;
-                    intConec  = obj.ddDofManager.intConec;
+                    intConec  = obj.ddDofManager.intConecLocal;
                     ic = 0;
                     Dir = {};
                     for iInt = 1:length(intDom)
@@ -105,7 +109,7 @@ classdef PreconditionerDirichletNeumann < handle
 
                         if ~isempty(isD)
                             nod = intConec(:,isD,iInt);
-                            coordInt = obj.meshDomain.coord(nod,:);
+                            coordInt = obj.subdomainMesh{iS}.coord(nod,:);
                             meanCoordIntX = mean(coordInt(:,1));
 
 
@@ -134,18 +138,28 @@ classdef PreconditionerDirichletNeumann < handle
             end
         end
 
-        function computeSubdomainLHSreduced(obj)
+        function lhsR = computeSubdomainLHSreduced(obj,subdomainLHS)
             for iS = 1:numel(obj.subdomainMesh)
-                lhs = obj.subdomainLHS(:,:,iS);
-                bc  = obj.sBCApplier{iS};
-                lhsR = bc.fullToReducedMatrix(lhs);
+                lhs          = subdomainLHS(:,:,iS);
+                bc           = obj.sBCApplier{iS};
+                lhsR{iS} = bc.fullToReducedMatrixDirichlet(lhs);
             end
         end
 
 
-        function computeSubdomainLHS(obj)
-            sLHS             = obj.ddDofManager.global2localMatrix(obj.LHS);
-            obj.subdomainLHS = obj.ddDofManager.scaleInterfaceValuesMatrix(sLHS,obj.weight);
+        function subdomainLHS = computeSubdomainLHS(obj)
+            sLHS         = obj.ddDofManager.global2localMatrix(obj.LHS);
+            subdomainLHS = obj.ddDofManager.scaleInterfaceValuesMatrix(sLHS,obj.weight);
+        end
+
+        function solve(obj,F,list)
+            for iS = 1:length(list)
+                dom = list(iS);
+                lhs = obj.subdomainLHS(:,:,dom);
+                f   = F(dom);
+                u   = lhs\f;
+                ug  = obj.sBCApplier{dom}.reducedToFullVectorDirichlet(u); 
+            end
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)

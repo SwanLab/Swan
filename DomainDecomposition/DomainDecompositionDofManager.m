@@ -3,7 +3,7 @@ classdef DomainDecompositionDofManager < handle
     properties (Access = public)
         interfaceConnec
         interfaceDom
-        intConec
+        intConecLocal
     end
 
     properties (Access = private)
@@ -132,6 +132,7 @@ classdef DomainDecompositionDofManager < handle
         function computeLocalInterfaceDof(obj)
             intConec = reshape(obj.interfaceConnec',2,obj.nBoundaryNodes,[]);
             intConec = permute(intConec,[2 1 3]);
+            intConecL = zeros(size(intConec));
             nint = size(intConec,3);
             ndimf = obj.nDimf;
             ndofs = obj.nReferenceNodes*ndimf;
@@ -149,11 +150,12 @@ classdef DomainDecompositionDofManager < handle
                     end
                     interfaceDof(:,idom,iint) = dofaux(2:end);
                     interfaceDom(iint,idom) = dom;
+                    intConecL(:,idom,iint) = nodesI - (dom-1)*obj.nReferenceNodes;
                 end
             end
             obj.interfaceDof  = interfaceDof;
             obj.interfaceDom  = interfaceDom;
-            obj.intConec = intConec;
+            obj.intConecLocal = intConecL;
 
         end
 
