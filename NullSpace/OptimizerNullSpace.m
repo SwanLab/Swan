@@ -13,6 +13,8 @@ classdef OptimizerNullSpace < Optimizer
         mOld
         meritNew
         meritGradient
+        DxJ
+        Dxg
         eta
         etaMax
         lG
@@ -36,6 +38,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasFinished  = false;
             obj.printOptimizerVariable();
             obj.updateMonitoring();
+            obj.computeNullSpaceFlow();
+            obj.computeRangeSpaceFlow();
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -118,9 +122,9 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateEtaParameter(obj)
             vgJ     = obj.gJFlowRatio;
-            DxJ     = obj.computeNullSpaceFlow();
-            Dxg     = obj.computeRangeSpaceFlow();
-            obj.eta = min(vgJ*DxJ/Dxg,obj.etaMax);
+            l2DxJ   = norm(obj.DxJ);
+            l2Dxg   = norm(obj.Dxg);
+            obj.eta = min(vgJ*l2DxJ/l2Dxg,obj.etaMax);
             obj.updateMonitoringMultipliers();
         end
 
@@ -132,16 +136,16 @@ classdef OptimizerNullSpace < Optimizer
             obj.lJ = -1*((Dg'*Dg)\Dg')*DJ;
         end
 
-        function DxJ = computeNullSpaceFlow(obj)
+        function computeNullSpaceFlow(obj)
             DJ  = obj.cost.gradient;
             Dg  = obj.constraint.gradient;
-            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
+            obj.DxJ = DJ-(Dg*(((Dg'*Dg)\Dg')*DJ));
         end
 
-        function Dxg = computeRangeSpaceFlow(obj)
+        function computeRangeSpaceFlow(obj)
             g   = obj.constraint.value;
             Dg  = obj.constraint.gradient;
-            Dxg = norm(Dg*((Dg'*Dg)\g));
+            obj.Dxg = Dg*((Dg'*Dg)\g);
         end
 
         function prepareFirstIter(obj)
@@ -159,6 +163,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.lineSearchTrials = 0;
             obj.dualUpdater.update(obj.eta,obj.primalUpdater);
             obj.mOld = obj.computeMeritFunction();
+            obj.computeNullSpaceFlow();
+            obj.computeRangeSpaceFlow();
             obj.computeMeritGradient();
             obj.calculateInitialStep();
             while ~obj.acceptableStep
@@ -187,10 +193,8 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function computeMeritGradient(obj)
-            DJ  = obj.cost.gradient;
-            Dg  = obj.constraint.gradient;
-            l   = obj.dualVariable.fun.fValues;
-            DmF = DJ+Dg*l;
+            ek  = obj.eta;
+            DmF = obj.DxJ+ek*obj.Dxg;
             obj.meritGradient = DmF;
         end
 
