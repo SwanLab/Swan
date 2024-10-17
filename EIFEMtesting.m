@@ -101,7 +101,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
+            obj.nSubdomains  = [4 1]; %nx ny
         end
 
         function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
@@ -322,6 +322,7 @@ classdef EIFEMtesting < handle
             s.bcApplier     = obj.bcApplier; 
             s.LHS           = lhs;
             s.subdomainMesh = mSb;
+            s.meshDomain = obj.meshDomain;
             s.type = 'DirichletNeumann';
             M = Preconditioner.create(s);            
             Mdn = @(r) M.apply(r);

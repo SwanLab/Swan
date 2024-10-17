@@ -1,16 +1,20 @@
 classdef DomainDecompositionDofManager < handle
 
+    properties (Access = public)
+        interfaceConnec
+        interfaceDom
+        intConec
+    end
+
     properties (Access = private)
         nDof
         nReferenceDof
         localGlobalDof
-        interfaceDof
-        interfaceDom
+        interfaceDof        
     end
 
     properties (Access = private)
         nSubdomains
-        interfaceConnec
         locGlobConnec
         nBoundaryNodes
         nReferenceNodes
@@ -147,8 +151,10 @@ classdef DomainDecompositionDofManager < handle
                     interfaceDom(iint,idom) = dom;
                 end
             end
-            obj.interfaceDof = interfaceDof;
-            obj.interfaceDom = interfaceDom;
+            obj.interfaceDof  = interfaceDof;
+            obj.interfaceDom  = interfaceDom;
+            obj.intConec = intConec;
+
         end
 
     end

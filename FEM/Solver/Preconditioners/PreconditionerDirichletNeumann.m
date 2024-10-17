@@ -7,6 +7,7 @@ classdef PreconditionerDirichletNeumann < handle
     properties (Access = private)
         subdomainLHS
         isDirichlet
+        sBCApplier
     end
 
     properties (Access = private)
@@ -18,6 +19,7 @@ classdef PreconditionerDirichletNeumann < handle
         weight
         subdomainMesh
         LHSreduced
+        meshDomain
     end
 
     methods (Access = public)
@@ -66,16 +68,77 @@ classdef PreconditionerDirichletNeumann < handle
             obj.DirCond       = cParams.DirCond;
             obj.LHS           = cParams.LHS;
             obj.subdomainMesh = cParams.subdomainMesh;
+            obj.meshDomain    = cParams.meshDomain;
             obj.isDirichlet{1} = false;
             obj.isDirichlet{2} = true;
         end
 
         function createSubdomainsBCappliers(obj)
-            for iS = 1:numel(obj.isDirichlet)
-                 s.mesh                  = obj.subdomainMesh{iS};
-                 s.boundaryConditions    = obj.boundaryConditions;
-                 obj.bcApplier           = BCApplier(s);                
+            for iS = 1:numel(obj.subdomainMesh)
+                sMesh =  obj.subdomainMesh{iS};
 
+                hasDirichlet = [];
+                for iDir = 1:numel(obj.DirCond)
+                    isCoord = obj.DirCond{iDir}.domain(sMesh.coord);
+                    hasDirichlet = [hasDirichlet,isCoord];                    
+                end
+
+                dirichletFun = [];
+                if any(hasDirichlet(:))
+                    for iDir = 1:numel(obj.DirCond)
+                        dir = DirichletCondition(sMesh, obj.DirCond{iDir});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.pointloadFun = [];
+                    s.dirichletFun = dirichletFun;
+                    s.periodicFun  =[];
+                    s.mesh         = sMesh;
+                    bc             = BoundaryConditions(s);
+                else                 
+                    intDom    = obj.ddDofManager.interfaceDom;
+                    intConec  = obj.ddDofManager.intConec;
+                    ic = 0;
+                    Dir = {};
+                    for iInt = 1:length(intDom)
+                        intDomI = intDom(iInt,:);
+                        isD = find(intDomI == iS);
+
+                        if ~isempty(isD)
+                            nod = intConec(:,isD,iInt);
+                            coordInt = obj.meshDomain.coord(nod,:);
+                            meanCoordIntX = mean(coordInt(:,1));
+
+
+                            isLeft   = @(coor) (abs(coor(:,1) - meanCoordIntX)  < 1e-12);
+                            Dir{ic+1}.domain    = @(coor) isLeft(coor) ;
+                            Dir{ic+1}.direction = [1,2];
+                            Dir{ic+1}.value     = 0;
+                            ic = ic+1;
+                        end
+                    end
+
+                    for iDir = 1:numel(Dir)
+                        dir = DirichletCondition(sMesh, Dir{iDir});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.pointloadFun = [];
+                    s.dirichletFun = dirichletFun;
+                    s.periodicFun  =[];
+                    s.mesh         = sMesh;
+                    bc             = BoundaryConditions(s);
+                end
+
+                sD.mesh                  = sMesh;
+                sD.boundaryConditions    = bc;
+                obj.sBCApplier{iS}       = BCApplier(sD);
+            end
+        end
+
+        function computeSubdomainLHSreduced(obj)
+            for iS = 1:numel(obj.subdomainMesh)
+                lhs = obj.subdomainLHS(:,:,iS);
+                bc  = obj.sBCApplier{iS};
+                lhsR = bc.fullToReducedMatrix(lhs);
             end
         end
 
