@@ -20,9 +20,11 @@ classdef StokesProblem < handle
         RHS
     end
 
+%% Mètode públics:
+
     methods (Access = public)
 
-        function obj = StokesProblem(cParams)
+        function obj = StokesProblem(cParams) % Aquí anem executant les funcions als mètodes privats de més avall
             obj.init(cParams);
             obj.createVelocity();
             obj.createPressure();
@@ -32,10 +34,10 @@ classdef StokesProblem < handle
             obj.computeRHS();
         end
         
-        function computeVariables(obj)
+        function computeVariables(obj) % Aquí venim desde l'StokesComputer per acabar de resoldre el problema
             tol = 1e-6;
             bc  = obj.boundaryConditions;
-            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})];
+            free_dof = [length(bc.freeFields{1}), length(bc.freeFields{2})]; % 9*9-64 = 98  i  25-1 = 24
             total_free_dof = sum(free_dof);
             LHSr = bc.fullToReducedMatrix(obj.LHS);
             RHSr = bc.fullToReducedVector(obj.RHS);
@@ -68,6 +70,7 @@ classdef StokesProblem < handle
             vars = obj.separateVariables(fullx);
             obj.velocityFun.fValues = obj.splitVelocity(vars.u);
             obj.pressureFun.fValues = vars.p(:,end);
+            
         end
        
         function print(obj, filename, software)
@@ -88,7 +91,9 @@ classdef StokesProblem < handle
         end
 
     end
-    
+
+%% Mètodes privats:
+
     methods (Access = private)
         
         function init(obj, cParams)
@@ -106,7 +111,7 @@ classdef StokesProblem < handle
         end
 
         function createVelocity(obj)
-            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2'); % Anem a LagrangianFunction
         end
 
         function createPressure(obj)
@@ -138,7 +143,7 @@ classdef StokesProblem < handle
             obj.boundaryConditions = bc;
         end
 
-        % Should be removed
+        % Should be removed (ningú ho fa servir)
         function dirich = adaptForDirichletConditions(obj,dirDofs)
             nodes = 1 + (dirDofs(2:2:end)-2)/obj.velocityFun.ndimf;
             nodes2 = repmat(nodes, [1 2]);
@@ -153,20 +158,20 @@ classdef StokesProblem < handle
             obj.solver = Solver.create(s);
         end
         
-        function LHS = computeLHS(obj)
+        function LHS = computeLHS(obj) % Creem la LHS
             s.type          = 'Stokes';
             s.dt            = obj.dtime;
             s.mesh          = obj.mesh;
             s.material      = obj.material;
             s.velocityFun = obj.velocityFun;
             s.pressureFun = obj.pressureFun;
-            LHS_int = LHSintegrator.create(s);
-            LHS = LHS_int.compute();
+            LHS_int = LHSintegrator.create(s); % Anem a la classe LHSintegrator, al seu mètode "create", i li donem totes les dades a LHSintegrator_Stokes
+            LHS = LHS_int.compute(); % T'envia a LHSintegrator_Stokes
             obj.LHS = LHS;
             obj.LHSintegrator = LHS_int;
         end
         
-        function RHS = computeRHS(obj)
+        function RHS = computeRHS(obj) % Creem la RHS
             s.type          = 'Stokes';
             s.mesh          = obj.mesh;
             s.velocityFun   = obj.velocityFun;

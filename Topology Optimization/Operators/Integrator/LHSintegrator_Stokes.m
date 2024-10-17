@@ -19,8 +19,8 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             obj.init(cParams);
         end
 
-        function LHS = compute(obj)
-            velLHS = obj.computeVelocityLHS();
+        function LHS = compute(obj) % Venim de StokesProblem per calcular la LHS. Anem executant les funcions privades d'aquesta classe
+            velLHS = obj.computeVelocityLHS(); %
             D      = obj.computeWeakDivergenceMatrix();
             prsLHS = obj.computePressureLHS(D);
             LHS = [velLHS, D; D',prsLHS];
@@ -28,9 +28,10 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
 
     end
 
+%% Mètodes privats:
     methods (Access = private)
     
-        function init(obj, cParams)
+        function init(obj, cParams) % Li passem els paràmetres que necessitem a l'objecte d'aquesta classe (això ho fem abans de cridar al compute)
             obj.dt          = cParams.dt;
             obj.mesh        = cParams.mesh;
             obj.material    = cParams.material;
@@ -38,7 +39,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             obj.velocityFun = cParams.velocityFun;
         end
 
-        function LHS = computeVelocityLHS(obj)
+        function LHS = computeVelocityLHS(obj) % Ens porta aquí a baix (computeVelocityLaplacian)
             K = obj.computeVelocityLaplacian();
             M = obj.computeMassMatrix();
             lhs = K + M;
@@ -63,14 +64,16 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             A = 1/2 * (B+B');
         end
 
-        function lhs = computeVelocityLaplacian(obj)
+        function lhs = computeVelocityLaplacian(obj) % Laplacià
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
             s.material = obj.material;
-            LHS = LHSintegrator.create(s);
-            lhs = LHS.compute();
+            LHS = LHSintegrator.create(s); % Tornem al LHSintegrator.create triant que ens doni el LHSintegrator_Laplacian. També, com així és la funció d'inicialització de
+            % LHSintegrator_Laplacian, calculem també la quadratura de
+            % Gauss int
+            lhs = LHS.compute(); 
             lhs = obj.symGradient(lhs);
         end
 

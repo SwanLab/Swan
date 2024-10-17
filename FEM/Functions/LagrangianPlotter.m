@@ -26,11 +26,11 @@ classdef LagrangianPlotter < handle
 
         
         function plotLagrangianFunc(~,s)
-            figure()
+
             for idim = 1:s.func.ndimf
-                subplot(1,s.func.ndimf,idim);
-                hold on
-                
+                % plot(1,s.func.ndimf,idim);
+                %hold on
+                figure()
                 c = s.func.getCoord();
                 x = c(:,1);
                 y = c(:,2);
@@ -45,7 +45,8 @@ classdef LagrangianPlotter < handle
                 grid on
                 title(['dim = ', num2str(idim)]);
                 a.EdgeColor = [0 0 0];
-                a.EdgeColor = [0 0 0];
+                a.EdgeAlpha = 0;
+    
             end
         end
         

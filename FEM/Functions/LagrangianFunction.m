@@ -3,12 +3,15 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        coord % Ho he cambiat, avans estava a privat
+        interpolation
+        connec
     end
 
     properties (Access = private)
-        interpolation
-        coord
-        connec
+        %interpolation
+        %coord
+        %connec
     end
 
     methods (Access = public)
@@ -123,7 +126,9 @@ classdef LagrangianFunction < FeFunction
                         %             colorbar
                         shading interp
                         a.EdgeColor = [0 0 0];
-                        title(['dim = ', num2str(idim)]);
+                        a.EdgeAlpha = 0;
+%                         title(['dim = ', num2str(idim)]);
+                        axis equal
                     end
                 case 'LINE'
                     x = obj.mesh.coord(:,1);
@@ -157,7 +162,7 @@ classdef LagrangianFunction < FeFunction
             dofConnec = dofsElem;
         end
 
-        function dof = getDofsFromCondition(obj, condition)
+        function dof = getDofsFromCondition(obj, condition) %l'objecte té les coordenades dels nodes de velocitat
             nodes = condition(obj.coord);
             iNode = find(nodes==1);
             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);

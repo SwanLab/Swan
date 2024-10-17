@@ -17,7 +17,7 @@ classdef (Abstract) TestComputer < handle
                 case {'MICRO'}
                     computer = MicroComputer(s);
                 case {'STOKES'}
-                    computer = StokesComputer(s);
+                    computer = StokesComputer(s); % Li passem a la classe StokesComputer s (cParams), però com no li demanem res més, només fa el primer mètode
                 case {'THERMAL'}
                     computer = ThermalComputer(s);
                 case {'TOPOPT'}

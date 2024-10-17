@@ -22,7 +22,7 @@ classdef StokesDataContainer < AbstractSettings
         
         function obj = StokesDataContainer(varargin)
             if nargin == 1
-                obj.loadParams(varargin{1});
+                obj.loadParams(varargin{1}); %Fins aquí s'ha creat l'objecte que contè els paràmetres com la malla (però buits)
             end
             obj.init();
         end

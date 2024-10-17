@@ -10,8 +10,8 @@ classdef LHSintegrator < handle
     methods (Access = public, Static)
         
         function obj = create(s)
-            f = LHSintegratorFactory();
-            obj = f.create(s);
+            f = LHSintegratorFactory(); % "Inicialitzem" la classe LHSintegratorFactory
+            obj = f.create(s); % Li passem a la classe el que estem resolent (Stokes)
         end
 
     end

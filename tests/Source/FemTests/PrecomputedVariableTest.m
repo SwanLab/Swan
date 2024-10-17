@@ -11,11 +11,12 @@ classdef PrecomputedVariableTest < handle
         computer
     end
 
+%% Mètodes pblics
     methods (Access = public)
 
-        function obj = PrecomputedVariableTest(cParams)
-            obj.init(cParams);
-            obj.computeVariable(cParams);
+        function obj = PrecomputedVariableTest(cParams) %cParams és la estructura s
+            obj.init(cParams); % Anem a la funció "init" ⬇
+            obj.computeVariable(cParams); % Anem a la resta de funcions . . .
             obj.selectComputedVar();
             obj.loadStoredVariable();
         end
@@ -48,10 +49,12 @@ classdef PrecomputedVariableTest < handle
         end
     end
 
+%% Mètodes privats
+
     methods (Access = private)
 
-        function init(obj, cParams)
-            obj.testName         = cParams.testName;
+        function init(obj, cParams) % Asignem els paràmetres:
+            obj.testName         = cParams.testName; 
             obj.variablesToStore = cParams.variablesToStore;
             obj.computerType     = cParams.computerType;
             obj.testResultsName  = cParams.testName;
@@ -62,8 +65,8 @@ classdef PrecomputedVariableTest < handle
 
         function computeVariable(obj, s)
             s.testName = obj.testName;
-            testComputer = TestComputer.create(obj.computerType, s);
-            testComputer.compute();
+            testComputer = TestComputer.create(obj.computerType, s); % Anem a "TestComputer" que ens portarà a "StokesComputer"
+            testComputer.compute(); % Ara li demanem a la classe "StokesComputer" que utilizi el seu mètode "compute"
             obj.computation = testComputer.computation;
             obj.computer = testComputer;
         end

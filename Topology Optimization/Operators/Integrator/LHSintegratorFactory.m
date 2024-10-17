@@ -33,9 +33,9 @@ classdef LHSintegratorFactory < handle
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegratorStiffnessMass(cParams);
                case 'Stokes'
-                   obj = LHSintegrator_Stokes(cParams);
+                   obj = LHSintegrator_Stokes(cParams); % Anem a aquesta classe perquè nosaltres estem amb Stokes
                case 'Laplacian'
-                   obj = LHSintegrator_Laplacian(cParams);
+                   obj = LHSintegrator_Laplacian(cParams); % Venim de LHSintegrator_Stokes, perquè volem calcular el Laplacià
                case 'WeakDivergence'
                    obj = LHSintegrator_WeakDivergence(cParams);
                case 'AdvectionMatrix'
