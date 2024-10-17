@@ -29,26 +29,20 @@ classdef ContinuumDamageComputer < handle
             uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
 
+
             s.material = obj.material;
             s.u        = uFun;
             s.mesh     = obj.mesh;
 
+
+            obj.ElasticFun = shFunc_Elastic(s);
+            obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.u = uFun;
 
-            switch type
-                case 'INTERNAL'
-                    obj.ElasticFun = shFunc_Elastic(s);
-                    K = obj.computeKInternal();
-                    F = obj.computeFInternal();
-                case 'EXTERNAL'
-                    fext = LagrangianFunction.create(obj.mesh, obj.u.ndimf, 'P1');
-                   % fext = obj.updateInitialDisplacement(bc,fext);
-                    obj.ExternalWorkFun = shFunc_ExternalWork2(s);
-                    K = obj.computeKExternal(fext);
-                    F = obj.computeFExternal(fext);
-                otherwise
-                    disp("ContinuumDamageComputer.compute type arg missing or mistaken")
-            end
+
+            K = obj.computeKInternal();
+            F = obj.computeFExternal()-obj.computeFInternal();
+
 
             results = obj.computeU(K,F);
 
@@ -75,16 +69,14 @@ classdef ContinuumDamageComputer < handle
 
         function F = computeFInternal(obj)%,displacementFun,K)
             Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder);
-            F = -Ftry;
+            F = Ftry;
         end
 
-        function K = computeKExternal(obj,fext)
-            K = obj.ExternalWorkFun.computeFunction(obj.u,fext,obj.quadOrder);
-        end
 
         function F = computeFExternal(obj)
-            Ftry = obj.ExternalWorkFun.computeGradient(obj.u,fext,obj.quadOrder);
-            F = -Ftry;
+            fExt = obj.boundaryConditions.pointloadFun;
+            Ftry = obj.ExternalWorkFun.computeGradient(obj.u,fExt,obj.quadOrder);
+            F = Ftry;
         end
 
         function dim = getFunDims(obj,displacementFun)
@@ -130,7 +122,8 @@ classdef ContinuumDamageComputer < handle
             BC = BCApplier(s);
         end
 
-        function u = updateInitialDisplacement(obj,bc,uOld)
+
+         function u = updateInitialDisplacement(obj,bc,uOld)
             restrictedDofs = bc.dirichlet_dofs;
             if isempty(restrictedDofs)
                 u = uOld;
@@ -142,8 +135,21 @@ classdef ContinuumDamageComputer < handle
                 uVec(restrictedDofs) = dirichVec(restrictedDofs);
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
-        end
+         end
 
+         function fe = updateInitialExternalForce(obj,bc,feOld)
+            restrictedDofs = bc.dirichlet_dofs;
+            if isempty(restrictedDofs)
+                fe = feOld;
+            else
+                dirich = bc.dirichletFun;
+                fvec = reshape(feOld.fValues',[feOld.nDofs 1]);
+                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
+
+                fvec(restrictedDofs) = 1-  dirichVec(restrictedDofs);
+                fe = reshape(fvec,[flip(size(feOld.fValues))])';
+            end
+        end
         
 
     end

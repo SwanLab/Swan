@@ -45,7 +45,7 @@ classdef shFunc_ExternalWork2 < handle
        end
 
         function [uFun,fExtFun] = adaptFuns(obj,u,fExt) %% ADAPTING TO TOP BOUNDARY %%
-            bMesh = obj.mesh.createBoundaryMesh{4};
+            bMesh = obj.mesh.createBoundaryMesh{2};
             nodes = unique(bMesh.globalConnec);
             if isempty(fExt)
                 uFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
@@ -65,7 +65,7 @@ classdef shFunc_ExternalWork2 < handle
             nDim = obj.mesh.ndim;
             nDofs = nNodes*obj.mesh.ndim;
             JuFull = zeros(nDofs,1);
-            nodes = uniqe(ubMesh.globalConnec);
+            nodes = unique(bMesh.globalConnec);
             nNodesB = length(nodes);
             ForceDofs = zeros(nNodesB*nDim,1);
             for iDim = 1:nDim
