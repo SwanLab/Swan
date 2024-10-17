@@ -47,7 +47,7 @@ classdef EIFEMtesting < handle
             Mmodal       = obj.createModalpreconditioner(LHS);
             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
-            MiluCG = @(r) Preconditioner.InexactCG(r,LHSf,MgaussSeidel);
+            MiluCG = @(r) Preconditioner.InexactCG(r,LHSf,Milu);
 
             tol = 1e-8;
             tic
@@ -56,19 +56,17 @@ classdef EIFEMtesting < handle
             toc
             %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);       
 
-            M  = MiluCG;%Milu_m;%Meifem; %Milu %Pm
-            M2 = Meifem;
-            M3 = MiluCG;
-            %             [uPCG,residualPCG,errPCG,errAnormPCG] = obj.solverTestEifem(LHSf,RHSf,Usol,M);
             tol = 1e-8;
-            M = @(r) Preconditioner.multiplePrec(r,M,M2,M3,LHSf);
+            Mmult = MdirNeu;
+           % Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
 
             tic
             x0 = zeros(size(RHSf));
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,M,tol,Usol);
+            tau = @(r,A) 1;
+       %     [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol);
+           [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
-            %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
-
+            
             figure
             plot(residualPCG,'linewidth',2)
             hold on
@@ -115,9 +113,9 @@ classdef EIFEMtesting < handle
 
 
         function mS = createReferenceMesh(obj)
-               mS = obj.createStructuredMesh();
+          %     mS = obj.createStructuredMesh();
             %   mS = obj.createMeshFromGid();
-%             mS = obj.createEIFEMreferenceMesh();
+             mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -315,10 +313,10 @@ classdef EIFEMtesting < handle
             ss.bcApplier = obj.bcApplier;            
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);            
-            Meifem = @(r) eP.solveEIFEM(r);
+            Meifem = @(r) eP.apply(r);
          end
 
-         function Meifem = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb)            
+         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb)            
             s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
             s.DirCond       = dir;
             s.bcApplier     = obj.bcApplier; 
@@ -326,7 +324,7 @@ classdef EIFEMtesting < handle
             s.subdomainMesh = mSb;
             s.type = 'DirichletNeumann';
             M = Preconditioner.create(s);            
-            Meifem = @(r) M.solveEIFEM(r);
+            Mdn = @(r) M.apply(r);
         end
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR)

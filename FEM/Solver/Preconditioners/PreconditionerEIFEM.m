@@ -23,7 +23,7 @@ classdef PreconditionerEIFEM < handle
             obj.init(cParams);
         end
 
-        function z = solveEIFEM(obj,r)
+        function z = apply(obj,r)
             Rd = obj.computeDiscontinousField(r);
             uD = obj.EIFEMsolver.apply(Rd);
             uC = obj.computeContinousField(uD);

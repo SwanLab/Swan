@@ -6,6 +6,7 @@ classdef PreconditionerDirichletNeumann < handle
 
     properties (Access = private)
         subdomainLHS
+        isDirichlet
     end
 
     properties (Access = private)
@@ -16,15 +17,17 @@ classdef PreconditionerDirichletNeumann < handle
         RHS       
         weight
         subdomainMesh
+        LHSreduced
     end
 
     methods (Access = public)
 
         function obj = PreconditionerDirichletNeumann(cParams)
             obj.init(cParams);
+            obj.createSubdomainsBCappliers();            
             obj.computeSubdomainLHS();
-
-            obj.DirichletNeumannSolver();
+            obj.computeSubdomainLHSreduced();
+         %   obj.DirichletNeumannSolver();
 
             %
 
@@ -43,6 +46,15 @@ classdef PreconditionerDirichletNeumann < handle
 
         end
 
+        function z = apply(obj,r)
+
+            z = 0.3*r;
+            lhsS = obj.LHS;
+            rR = obj.bcApplier.reducedToFullVectorDirichlet(r);
+            rS = obj.ddDofManager.global2local(rR);
+
+        end
+
     end
 
     methods (Access = private)
@@ -54,7 +66,19 @@ classdef PreconditionerDirichletNeumann < handle
             obj.DirCond       = cParams.DirCond;
             obj.LHS           = cParams.LHS;
             obj.subdomainMesh = cParams.subdomainMesh;
+            obj.isDirichlet{1} = false;
+            obj.isDirichlet{2} = true;
         end
+
+        function createSubdomainsBCappliers(obj)
+            for iS = 1:numel(obj.isDirichlet)
+                 s.mesh                  = obj.subdomainMesh{iS};
+                 s.boundaryConditions    = obj.boundaryConditions;
+                 obj.bcApplier           = BCApplier(s);                
+
+            end
+        end
+
 
         function computeSubdomainLHS(obj)
             sLHS             = obj.ddDofManager.global2localMatrix(obj.LHS);
