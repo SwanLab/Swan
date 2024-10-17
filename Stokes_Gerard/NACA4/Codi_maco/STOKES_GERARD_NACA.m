@@ -10,8 +10,7 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,450*0.8,450); % MESH
-        s.type='Given';
+        m = QuadMesh(10,4,100,40); % MESH
 
         % % NACA 4
         M=9/100;
@@ -39,6 +38,7 @@ O = 1;
         %% Create mesh
 
         s.fHandle = fH;
+        s.type='Given';
         g = GeometricalFunction(s);
         lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
         sUm.backgroundMesh = m;
