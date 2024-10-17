@@ -22,6 +22,7 @@ classdef OptimizerNullSpace < Optimizer
         etaNorm
         gJFlowRatio
         predictedTau
+        firstEstimation
     end
 
     methods (Access = public) 
@@ -40,6 +41,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMonitoring();
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
+            obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -66,6 +68,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
             obj.nIter          = 0;
+            obj.firstEstimation = true;
             obj.createMonitoring(cParams);
         end
 
@@ -164,7 +167,7 @@ classdef OptimizerNullSpace < Optimizer
                     case 'EQUALITY'
                         active(i) = 1;
                     case 'INEQUALITY'
-                        if l(i)>1e-6
+                        if l(i)>1e-6 || obj.firstEstimation
                             active(i) = 1;
                         end
                 end
