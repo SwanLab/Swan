@@ -1,4 +1,4 @@
-% PFH = PhaseFieldHomog();
+% PFH = PhaseFieldHomogenisator();
 % [mat,phi] = PFH.computeHomogMaterial("Circle","Perimeter",100);
 % save('CircleMicroDamagePerimeter','mat','phi')
 % [mat,phi] = PFH.computeHomogMaterial("Circle","Area",100);

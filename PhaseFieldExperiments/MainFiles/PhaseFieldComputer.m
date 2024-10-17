@@ -1,9 +1,9 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-12;
-        tolErrPhi = 1e-12;
-        tolErrStag = 1e-12;
+        tolErrU = 1e-6;
+        tolErrPhi = 1e-6;
+        tolErrStag = 1e-6;
         tau = 1e2;
     end
 
@@ -106,13 +106,11 @@ classdef PhaseFieldComputer < handle
                 s.bc = bc;
                 output = obj.saveData(s);
                 
-                TotalForce = F(4)+F(8); %Do it properly
+                TotalForce = obj.computeTotalReaction(F);
                 Displacement = obj.boundaryConditions.bcValues(i);
                 obj.monitor.update(i,{[TotalForce;Displacement],phi.fValues});
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             end
-            % obj.printPlots(phi,i);
         end
 
     end
@@ -276,21 +274,21 @@ classdef PhaseFieldComputer < handle
 
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%
 
-        function xNew = updateWithNewton(obj,LHS,RHS,x)
+        function xNew = updateWithNewton(~,LHS,RHS,x)
             deltaX = -LHS\RHS;
             xNew = x + deltaX; 
         end
 
         function totReact = computeTotalReaction(obj,F)
-            % UpSide  = max(obj.mesh.coord(:,2));
-            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = -sum(F(2*nodes(isInUp)));
-
-            DownSide  = min(obj.mesh.coord(:,2));
-            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            UpSide  = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInDown)));
+            totReact = sum(F(2*nodes(isInUp)));
+
+            % DownSide  = min(obj.mesh.coord(:,2));
+            % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            % nodes = 1:obj.mesh.nnodes;
+            % totReact = sum(F(2*nodes(isInDown)));
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
@@ -311,9 +309,7 @@ classdef PhaseFieldComputer < handle
         function data = saveData(obj,cParams)
             step = cParams.step;
 
-            %obj.forceMat(step) = obj.fem.stressFun.fValues(2,1,1);  %% ONLY ONE ELEMENT
             data.reactionMat(step) = -obj.computeTotalReaction(cParams.F);
-            
             data.displacementMat(step) = obj.boundaryConditions.bcValues(step);
             data.damageMat(step) = max(cParams.phi.fValues);
          
@@ -413,11 +409,6 @@ classdef PhaseFieldComputer < handle
             % xlabel('Iteration [-]')
             % ylabel('Energy [J]')
 
-        end
-
-        function printResults(obj,step)
-            obj.fem.print(['PhaseFieldFEM_Step',step],'GiD');
-            obj.phi.print(['PhaseFieldDamage_Step',step],'GiD');
         end
 
     end

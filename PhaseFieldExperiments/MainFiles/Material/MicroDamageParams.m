@@ -1,4 +1,4 @@
-classdef MicroDamageParams <DesignVariable
+classdef MicroDamageParams < DesignVariable
     
     methods (Access = public)
         

@@ -33,9 +33,6 @@ classdef phaseFieldBoundaryCreator < handle
             obj.createBoundaryConditions(prescribedVal)
             bC = obj.boundaryConditions;
         end
-
-        function rBC = returnReactionsBoundaryConditions()
-        end
         
     end
     

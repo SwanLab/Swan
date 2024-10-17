@@ -1,4 +1,4 @@
-classdef PhaseFieldHomog < handle
+classdef PhaseFieldHomogenisator < handle
 
     properties (Access = private)
         E
@@ -7,7 +7,7 @@ classdef PhaseFieldHomog < handle
 
     methods (Access = public)
         
-        function obj = PhaseFieldHomog(obj)
+        function obj = PhaseFieldHomogenisator(obj)
             cParams.E = 210;
             cParams.nu = 0.3;
             obj.init(cParams);

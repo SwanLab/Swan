@@ -1,9 +1,5 @@
 classdef TestingPhaseField < handle
 
-    properties (Access = public)
-        outputData
-    end
-
     properties (Access = private)
         monitoring
         benchmark
@@ -23,45 +19,16 @@ classdef TestingPhaseField < handle
 
     methods (Access = public)
 
-        function obj = TestingPhaseField() %cParams
-            obj.init() %cParams
+        function obj = TestingPhaseField(cParams)
+            obj.init(cParams) 
             obj.defineCase();
             obj.createInitialPhaseField();
             obj.createMaterialPhaseField();
             obj.createDissipationInterpolation();
-            obj.outputData = obj.solveProblem();
+
         end
 
-    end
-
-    methods (Access = private)
-
-        function init(obj, ~)
-            obj.monitoring.set = true;
-            obj.monitoring.type = 'Full'; %'Full'
-            obj.benchmark.type.mesh = '1Elem';
-            obj.benchmark.N = 10;
-            obj.benchmark.type.case = 'traction'; %'shear'
-            obj.benchmark.type.bc = 'displacementTraction';
-            obj.benchmark.bcValues = linspace(1e-4,1e-1,100);
-            obj.matInfo.E  = 210;
-            obj.matInfo.nu = 0.3;
-            obj.matInfo.Gc = 5e-3;
-            obj.matInfo.matType = 'PhaseFieldAnalytic'; %'PhaseFieldHomog'
-            %obj.matInfo.fileName = 'IsoMicroDamage';
-            obj.matInfo.degradation = 'PhaseFieldDegradation';
-            obj.dissipInfo.type = 'PhaseFieldDissipationAT'; 
-            obj.dissipInfo.pExp = 1;
-            obj.l0 = 0.1;
-
-            close all
-            % obj.matInfo = cParams.matInfo;
-            % obj.benchmark = cParams.benchmark;
-            % obj.l0 = cParams.l0;
-            % obj.pExp = cParams.pExp;
-        end
-
-        function outputData = solveProblem(obj)
+        function outputData = compute(obj)
             s.mesh = obj.mesh;
             s.initPhi = obj.initialPhaseField;
             s.material = obj.material;
@@ -72,6 +39,18 @@ classdef TestingPhaseField < handle
             PFComp = PhaseFieldComputer(s);
 
             outputData = PFComp.compute();
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj, cParams)
+            obj.monitoring = cParams.monitoring;
+            obj.benchmark = cParams.benchmark;
+            obj.matInfo = cParams.matInfo;
+            obj.dissipInfo = cParams.dissipInfo;
+            obj.l0 = cParams.l0;
         end
 
         function defineCase(obj)
@@ -88,7 +67,9 @@ classdef TestingPhaseField < handle
             s.matInfo = obj.matInfo;
             s.Gc = obj.matInfo.Gc;
             s.type = obj.matInfo.matType;
-            %s.fileName = obj.matInfo.fileName;
+            if s.type ~= "PhaseFieldAnalytic"
+                s.fileName = obj.matInfo.fileName;
+            end
             s.interpolation = obj.matInfo.degradation;
             obj.material = Material.create(s);
         end

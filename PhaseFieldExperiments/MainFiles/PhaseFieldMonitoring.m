@@ -7,12 +7,12 @@ classdef PhaseFieldMonitoring < handle
             s.mesh = cParams.mesh;
             s.barLim = [0;1];
             switch cParams.type
-                case 'Full'
+                case 'full'
                     s.maxNColumns = 1;
                     s.titles = [{'Force-displacement'},{'Damage'}]; % {'Cost'},{'Energy'}
                     s.chartTypes = [{'plot'},{'surf'}];
                     monitor = Monitoring(s);
-                case 'Reduced'
+                case 'reduced'
                     s.maxNColumns = 1;
                     s.titles = {'Damage'};
                     s.chartTypes = {'surf'};
