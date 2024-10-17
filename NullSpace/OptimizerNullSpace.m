@@ -61,7 +61,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 1e6;
+            obj.etaMax         = 100;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -137,15 +137,40 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function computeNullSpaceFlow(obj)
-            DJ  = obj.cost.gradient;
-            Dg  = obj.constraint.gradient;
-            obj.DxJ = DJ-(Dg*(((Dg'*Dg)\Dg')*DJ));
+            DJ     = obj.cost.gradient;
+            [~,Dg] = obj.computeActiveConstraintsGradient();
+            if isempty(Dg)
+                obj.DxJ = DJ;
+            else
+                obj.DxJ = DJ-(Dg*(((Dg'*Dg)\Dg')*DJ));
+            end
         end
 
         function computeRangeSpaceFlow(obj)
-            g   = obj.constraint.value;
-            Dg  = obj.constraint.gradient;
-            obj.Dxg = Dg*((Dg'*Dg)\g);
+            [g,Dg] = obj.computeActiveConstraintsGradient();
+            if isempty(Dg)
+                obj.Dxg = zeros(size(obj.DxJ));
+            else
+                obj.Dxg = Dg*((Dg'*Dg)\g);
+            end
+        end
+
+        function [actg,actDg] = computeActiveConstraintsGradient(obj)
+            l   = obj.dualVariable.fun.fValues;
+            gCases = obj.constraintCase;
+            active = false(length(gCases),1);
+            for i = 1:length(gCases)
+                switch gCases{i}
+                    case 'EQUALITY'
+                        active(i) = 1;
+                    case 'INEQUALITY'
+                        if l(i)>1e-6
+                            active(i) = 1;
+                        end
+                end
+            end
+            actg   = obj.constraint.value(active);
+            actDg  = obj.constraint.gradient(:,active);
         end
 
         function prepareFirstIter(obj)
