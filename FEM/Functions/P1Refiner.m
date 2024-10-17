@@ -30,7 +30,7 @@ classdef P1Refiner < handle
 
             s.mesh      = obj.meshFine;            
             s.dofConnec = obj.computeDofConnec();
-            s.fValues = obj.computeAllFValues(); 
+            s.fValues = obj.computeAllFValues(); %HERE!!!
             fFine = P1DiscontinuousFunction(s);                   
         end
 
@@ -43,7 +43,10 @@ classdef P1Refiner < handle
             mesh      =  obj.fCoarse.mesh;            
              nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
             coordD    = obj.fCoarse.dofCoord;%coordD;%obj.computeDiscontinousFunction(coordC,connec,nodesDisc);
-            allF      = obj.computeAllValues(coordD,nodesDisc,mesh);
+            ndim = obj.fCoarse.ndimf;
+      %      allF      = obj.computeAllValues(coordD,nodesDisc,mesh,ndim);
+            coordEdges = obj.computeFinEdges(coordD,nodesDisc,mesh,ndim);
+            allF = [coordD;coordEdges];            
         end
 
         function node = getDofConnecFromVector(obj,dofConnec)
@@ -73,19 +76,50 @@ classdef P1Refiner < handle
             
             %connec = obj.fCoarse.dofConnec;
             mesh   = obj.fCoarse.mesh;            
-            cEdges = obj.computeFinEdges(cD,nodesDisc,mesh);
+            cEdges = obj.computeFinEdges(cD,nodesDisc,mesh,1);
         end
 
         function allFvalues = computeAllFValues(obj)
             fDisc     = obj.fCoarse.fValues;
+           % fDisc = fDisc(:);
             nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+            %nodesDisc = (obj.fCoarse.dofConnec);
             mesh      = obj.fCoarse.mesh;
-            allFvalues = obj.computeAllValues(fDisc,nodesDisc,mesh);
+      %      ndim = 1;
+            fEdges = obj.computeFinEdgesWithouRep(fDisc,nodesDisc,mesh);
+            for iD = 1:obj.fCoarse.ndimf
+                fI = fEdges(:,iD);
+                fII(:,iD,:) = reshape(fI,[],obj.fCoarse.mesh.nelem);
+            end
+            fEdges = fII;
+
+            nEdge = 3;
+            nElemInEdge = 3;
+            for iEdge = 1:nEdge
+                for iDim = 1:obj.fCoarse.ndimf
+                    nod = squeeze(fII(iEdge,iDim,:));
+                    idfEl = (iEdge-1)*nElemInEdge+(1:nElemInEdge);
+                    nodR(idfEl,iDim,:) =repmat(nod',[nElemInEdge,1]);
+
+                end
+            end
+            A = nodR; A = reshape(permute(A,[1,3,2]),[],size(A,2));
+            fEdges = A;
+            %fEdges = reshape(fII,[],obj.fCoarse.ndimf,obj.fCoarse.mesh.nelem);
+            
+            %fEdges = permute(fEdges,[2  3 1]);
+            %fEdges = repmat(fEdges,[nElemInEdge 1 1]);
+            %fEdges = reshape(permute(fEdges,[1,3,2]),size(fEdges,2),[]);
+            %fEdges = fEdges';
+            allFvalues = [obj.fCoarse.fValues;fEdges];            
+%            allFvalues = obj.computeAllValues(fDisc,nodesDisc,mesh,ndim);
+%            allFvalues = reshape(reshape(allFvalues,[],ndim)',[],1);
+       %     allFvalues = reshape(allFvalues,[],2);
         end
 
-        function allFvalues = computeAllValues(obj,fDisc,nodesDisc,mesh)
+        function allFvalues = computeAllValues(obj,fDisc,nodesDisc,mesh,ndim)
         %    coordD = obj.computeDiscontinousFunction(coord,connec);                        
-            fEdges = obj.computeFinEdges(fDisc,nodesDisc,mesh);
+            fEdges = obj.computeFinEdges(fDisc,nodesDisc,mesh,ndim);
             allFvalues = [fDisc;fEdges];
         end
         
@@ -162,10 +196,7 @@ classdef P1Refiner < handle
 
         end
 
-
-        function fEdges = computeFinEdges(obj,fDisc,nodesDisc,mesh)
-
-
+        function fInEdges = computeFinEdgesWithouRep(obj,fDisc,nodesDisc,mesh)
             s.nodesByElem = nodesDisc;
             s.type = mesh.type;
             edge = EdgesConnectivitiesComputer(s);
@@ -194,12 +225,19 @@ classdef P1Refiner < handle
              fInEdges2 = fInEdges(t2(:),:);
 
              fInEdges = fInEdges2;
+        end
+
+
+        function fEdges = computeFinEdges(obj,fDisc,nodesDisc,mesh,ndim)
+
+            fInEdges = obj.computeFinEdgesWithouRep(fDisc,nodesDisc,mesh);
+      
             %ehhh
-            ndimf = obj.fCoarse.ndimf;
             for iDim = 1:size(fInEdges,2)
-                xc = fInEdges(:,iDim);
-                xc = repmat(xc',3*ndimf,1); 
+                xc0 = fInEdges(:,iDim);
+                xc = repmat(xc0',ndim*3,1);                 
                 fEdges(:,iDim) = reshape(xc,[],1);
+                %fEdges(:,iDim) = reshape(xc',1,[]);
             end
 
         end
