@@ -77,9 +77,9 @@ classdef P1Refiner < handle
         end
 
         function allFvalues = computeAllFValues(obj)
-            fDisc  = obj.fCoarse.fValues;
+            fDisc     = obj.fCoarse.fValues;
             nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
-            mesh   = obj.fCoarse.mesh;
+            mesh      = obj.fCoarse.mesh;
             allFvalues = obj.computeAllValues(fDisc,nodesDisc,mesh);
         end
 
@@ -98,33 +98,60 @@ classdef P1Refiner < handle
             vertexInCell = oldDofs;          
             ndimf = fCoarse.ndimf;
             for iNode = 1:3
-                iDof  = (iNode-1)*ndimf+(1:ndimf);
-                nV(:,:,iNode) = vertexInCell(:,iDof);
+                     iDof  = (iNode-1)*ndimf+(1:ndimf);
+                    nV(:,:,iNode) = vertexInCell(:,iDof);                
+                
+                
             end
-            nV1 = nV(:,:,1)';
-            nV1 = nV1(:);
 
-            nV2 = nV(:,:,2)';
-            nV2 = nV2(:);
+            edgeIn = newDofs;
 
-            nV3 = nV(:,:,3)';
-            nV3 = nV3(:);
+  
+            nV1(1:ndimf,:) = nV(:,:,1)';
+            %nV1 = nV1(:);
+            %nV1 = nV1';
 
-            edgeInCell1 = squeeze(newDofs(:,1,:));
-            edgeInCell2 = squeeze(newDofs(:,2,:));
-            edgeInCell3 = squeeze(newDofs(:,3,:));
+
+            nV2(1:ndimf,:) = nV(:,:,2)';
+            %nV2 = nV2(:);
+            %nV2 = nV2';
+
+            nV3(1:ndimf,:) = nV(:,:,3)';
+            %nV3 = nV3(:);
+            %nV3 = nV3';
+
+
+            % edgeInCell1 = squeeze(newDofs(:,1,:));
+            % edgeInCell2 = squeeze(newDofs(:,2,:));
+            % edgeInCell3 = squeeze(newDofs(:,3,:));            
     
-            e1d1 = edgeInCell1(1,:);
-            e1d2 = edgeInCell1(2,:);
-            e1d3 = edgeInCell1(3,:);
+            % e1d1 = edgeInCell1(1,:);
+            % e1d2 = edgeInCell1(2,:);
+            % e1d3 = edgeInCell1(3,:);
+            % 
+            % e2d1 = edgeInCell2(1,:);
+            % e2d2 = edgeInCell2(2,:);
+            % e2d3 = edgeInCell2(3,:);
+            % 
+            % e3d1 = edgeInCell3(1,:);
+            % e3d2 = edgeInCell3(2,:);
+            % e3d3 = edgeInCell3(3,:);
 
-            e2d1 = edgeInCell2(1,:);
-            e2d2 = edgeInCell2(2,:);
-            e2d3 = edgeInCell2(3,:);
+            nNewDofs = size(newDofs,4);
+            e1d1(1:ndimf,:) = (squeeze(edgeIn(:,1,1,:)));
+            %e1d1c = reshape(e1d1,[],nElem);            
+            e1d2(1:ndimf,:) = (squeeze(edgeIn(:,2,1,:)));
+            e1d3(1:ndimf,:) = (squeeze(edgeIn(:,3,1,:)));
 
-            e3d1 = edgeInCell3(1,:);
-            e3d2 = edgeInCell3(2,:);
-            e3d3 = edgeInCell3(3,:);
+            e2d1(1:ndimf,:) = (squeeze(edgeIn(:,1,2,:)));
+            e2d2(1:ndimf,:) = (squeeze(edgeIn(:,2,2,:)));
+            e2d3(1:ndimf,:) = (squeeze(edgeIn(:,3,2,:)));
+
+            e3d1(1:ndimf,:) = (squeeze(edgeIn(:,1,3,:)));
+            e3d2(1:ndimf,:) = (squeeze(edgeIn(:,2,3,:)));
+            e3d3(1:ndimf,:) = (squeeze(edgeIn(:,3,3,:)));
+
+
 
             dofConnec(:,1,:) = [nV1 ; e1d1 ;e2d3];
             dofConnec(:,2,:) = [e1d3; nV2 ;e3d1];
@@ -134,6 +161,7 @@ classdef P1Refiner < handle
             dofConnec = reshape(dofConnec,size(dofConnec,1),[])';
 
         end
+
 
         function fEdges = computeFinEdges(obj,fDisc,nodesDisc,mesh)
 
@@ -193,10 +221,12 @@ classdef P1Refiner < handle
             maxDof = max(dofsF(:));
             nElem  = f.mesh.nelem;
             nEdges = f.mesh.edges.nEdgeByElem;
-            newDofsInEdge = 3*f.ndimf;
+            nElemInEdge = 3;
+            newDofsInEdge = nElemInEdge*f.ndimf;
+            
             nNewDofs = nElem*nEdges*newDofsInEdge;
             newDofs  = maxDof + (1:nNewDofs);
-            newDofs  = reshape(newDofs,nEdges,newDofsInEdge,nElem);
+            newDofs  = reshape(newDofs,f.ndimf,nEdges,nElemInEdge,nElem);
         end
         
     end
