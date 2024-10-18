@@ -10,24 +10,16 @@ classdef MultimaterialGradientComputer < handle
             obj.init(cParams);
         end
 
-        function dt = compute(obj,topDers)
-            x = obj.designVariable;
-            TD = topDers;
-
+        function dt = compute(obj,TD)
+            x       = obj.designVariable;
+            ls2     = x.levelSets{1,2};
+            ls3     = x.levelSets{1,3};
             charfun = x.obtainDomainFunction();
             [~,tfiFun] = charfun.computeAtNodesAndElements();
-            tfi = tfiFun.fValues';
-            psi2 = x.levelSets{1,2}.fun.fValues;
-            psi3 = x.levelSets{1,3}.fun.fValues;
+            tfi  = tfiFun.fValues';
+            chi2 = obj.computeExactCharacteristicFunctionLevelSet(ls2); %- Mixed formulation method
+            chi3 = obj.computeExactCharacteristicFunctionLevelSet(ls3); %- Mixed formulation method
 
-            t = obj.mesh.connec';
-            p = obj.mesh.coord';
-            [tXi2,~] = integ_exact(t,p,psi2); chi2 = (1 - tXi2); %- Mixed formulation method
-            [tXi3,~] = integ_exact(t,p,psi3); chi3 = (1 - tXi3); %- Mixed formulation method
-            %     fi = (pdeintrp(p,t,fi)).'; % interpolation at gauss point - P1 projection method
-            %     chi2 = (pdeintrp(p,t,(psi(:,2)<0))).'; %- P1 projection method
-
-            dt = [];
             dt(1,:) = - tfi(1,:).*TD{1,end} - tfi(2,:).*TD{2,end} - tfi(3,:).*TD{3,end} ...
                 + tfi(4,:).*( (1-chi2).*TD{end,1} + (1-chi3).*chi2.*TD{end,2} + chi2.*chi3.*TD{end,3} );
 
@@ -41,6 +33,44 @@ classdef MultimaterialGradientComputer < handle
         function init(obj,cParams)
             obj.mesh           = cParams.mesh;
             obj.designVariable = cParams.designVariable;
+        end
+
+        function f = computeUnitAnalyticalFunction(obj)
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            f         = AnalyticalFunction(s);
+        end
+
+        function uFun = computeUnitUnfittedFunction(obj,chiLS)
+            s.uMesh = chiLS;
+            s.fun   = obj.computeUnitAnalyticalFunction();
+            uFun    = UnfittedFunction(s);
+        end
+
+        function dV = computeMaxElementVolume(obj)
+            q  = Quadrature.create(obj.mesh,2);
+            dV = obj.mesh.computeDvolume(q);
+            dV = max(sum(dV,1));
+        end
+
+        function chi = computeExactCharacteristicFunctionLevelSet(obj,ls)
+            chiLS = ls.getUnfittedMesh();
+            int   = obj.computeRHSCharFunIntegrator(chiLS);
+            uFun  = obj.computeUnitUnfittedFunction(chiLS);
+            test  = LagrangianFunction.create(obj.mesh,1,'P0');
+            chi   = int.compute(uFun,test);
+            dV    = obj.computeMaxElementVolume();
+            chi   = chi'/dV;
+        end
+    end
+
+    methods (Static, Access = private)
+        function int = computeRHSCharFunIntegrator(chiLS)
+            s.mesh     = chiLS;
+            s.type     = 'Unfitted';
+            s.quadType = 2;
+            int        = RHSintegrator.create(s);
         end
     end
 end
