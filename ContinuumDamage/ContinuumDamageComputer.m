@@ -24,7 +24,7 @@ classdef ContinuumDamageComputer < handle
             obj.init(cParams)
         end
 
-        function results = compute(obj,type)
+        function results = compute(obj)
             bc = obj.boundaryConditions;
             uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
@@ -39,10 +39,11 @@ classdef ContinuumDamageComputer < handle
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.u = uFun;
 
-
             K = obj.computeKInternal();
-            F = obj.computeFExternal()-obj.computeFInternal();
 
+            Fext = obj.computeFExternal();
+            Fint = obj.computeFInternal();
+            F = Fext-Fint;
 
             results = obj.computeU(K,F);
 
@@ -136,21 +137,5 @@ classdef ContinuumDamageComputer < handle
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
          end
-
-         function fe = updateInitialExternalForce(obj,bc,feOld)
-            restrictedDofs = bc.dirichlet_dofs;
-            if isempty(restrictedDofs)
-                fe = feOld;
-            else
-                dirich = bc.dirichletFun;
-                fvec = reshape(feOld.fValues',[feOld.nDofs 1]);
-                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
-
-                fvec(restrictedDofs) = 1-  dirichVec(restrictedDofs);
-                fe = reshape(fvec,[flip(size(feOld.fValues))])';
-            end
-        end
-        
-
     end
 end

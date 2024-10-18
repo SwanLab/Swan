@@ -22,11 +22,11 @@ classdef TestingContinuumDamage < handle
             end
             
             obj.material = obj.createMaterial(cParams);
-            obj.results  = obj.compute(cParams,type);
+            obj.results  = obj.compute(cParams);
 
         end
 
-        function compareWithElasticProblem(obj,dataIn)
+        function compareWithElasticProblem(obj)
             % s.mesh = obj.mesh;
             % s.material = obj.material;
             % s.boundaryConditions = obj.bc;
@@ -35,12 +35,12 @@ classdef TestingContinuumDamage < handle
             % s.solverType = dataIn.solverType;
             % s.solverMode = dataIn.solverMode;
             % s.solverCase = dataIn.solverCase;
-            
+            % 
+            % 
+            %  EP = ElasticProblem(s);
+            %  Ref = EP.solve();
 
-             % EP = ElasticProblem(s);
-             % Ref = EP.solve();
-                
-             load ('ContinuumDamageTestOutput.mat','Ref');
+            load ('ContinuumDamageTestOutput.mat','Ref');
 
             if  ismembertol(Ref , obj.results, obj.tolerance)
 
@@ -113,7 +113,7 @@ classdef TestingContinuumDamage < handle
             mat = Isotropic2dElasticMaterial(sMat);
         end
 
-        function results = compute(obj,sSolver,type)
+        function results = compute(obj,sSolver)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.bc;
             s.material = obj.material;
@@ -124,7 +124,7 @@ classdef TestingContinuumDamage < handle
             s.solverCase = sSolver.solverCase;
 
             comp = ContinuumDamageComputer(s);
-            results = comp.compute(type);
+            results = comp.compute();
         end
     end
 end
