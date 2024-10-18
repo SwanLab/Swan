@@ -65,7 +65,7 @@ classdef OrientedMappingComputer < handle
             nElem = obj.mesh.nelem;
             isCoh = false(1,nnode,nElem);
             a1D   = obj.orientationP1{1}.project('P1D'); 
-            a1    = a1D.fValues;
+            a1    = a1D.getFvaluesDisc();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
                 aNi    = squeeze(a1(:,iNode,:));
