@@ -6,12 +6,13 @@ classdef OptimizerNullSpace < Optimizer
 
     properties (Access = private)
         lineSearchTrials
-        tol = 1e-5
+        tol = 1e-8
         hasConverged
         acceptableStep
         hasFinished
         mOld
         meritNew
+        meritOld
         meritGradient
         DxJ
         Dxg
@@ -68,6 +69,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
             obj.nIter          = 0;
+            obj.meritOld       = 1e6;
             obj.firstEstimation = true;
             obj.createMonitoring(cParams);
         end
@@ -221,8 +223,10 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function computeMeritGradient(obj)
-            ek  = obj.eta;
-            DmF = obj.DxJ+ek*obj.Dxg;
+            DJ  = obj.cost.gradient;
+            Dg  = obj.constraint.gradient;
+            l   = obj.dualVariable.fun.fValues;
+            DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
 
@@ -315,12 +319,13 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-            if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
+            if abs(obj.meritNew - obj.meritOld) < obj.tol && obj.checkConstraint()
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
                 end
             end
+            obj.meritOld = obj.meritNew;
         end
 
         function updateIterInfo(obj)
