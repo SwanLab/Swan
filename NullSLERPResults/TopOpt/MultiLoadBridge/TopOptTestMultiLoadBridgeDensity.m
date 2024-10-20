@@ -4,6 +4,7 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
         mesh
         filter
         designVariable
+        designVariableTar
         materialInterpolator
         physicalProblemLeft
         physicalProblem12
@@ -37,6 +38,7 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
+            obj.createDesignVariableTargetCompliance();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblemLeft();
@@ -84,7 +86,7 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
         end
 
         function createDesignVariable(obj)
-            s.type             = 'Holes';
+            s.type             = 'Full';
             s.dim              = 2;
             s.nHoles           = [4,3];
             s.totalLengths     = [2,1];
@@ -100,6 +102,25 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
             s.plotting         = true;
             rho                = DesignVariable.create(s);
             obj.designVariable = rho;
+        end
+
+        function createDesignVariableTargetCompliance(obj)
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [4,3];
+            s.totalLengths     = [2,1];
+            s.phiZero          = 0.4;
+            s.phases           = [0,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            fP1                = LagrangianFunction.create(obj.mesh,1,'P1');
+            fP1.fValues        = 1-heaviside(lsFun.fValues);
+            s.fun              = fP1;
+            s.mesh             = obj.mesh;
+            s.type             = 'Density';
+            s.plotting         = false;
+            rho                = DesignVariable.create(s);
+            obj.designVariableTar = rho;
         end
 
         function createFilter(obj)
@@ -269,7 +290,7 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
         end
 
         function computeTargetCompliance(obj)
-            x     = obj.designVariable;
+            x     = obj.designVariableTar;
             mat   = obj.createMaterial(x);
             C     = mat.obtainTensor();
             dC    = mat.obtainTensorDerivative();
