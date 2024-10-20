@@ -274,13 +274,19 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
             C     = mat.obtainTensor();
             dC    = mat.obtainTensorDerivative();
 
-            cL     = obj.createComplianceFromConstiutive(obj.physicalProblemLeft);
+            %cL     = obj.createComplianceFromConstiutive(obj.physicalProblemLeft);
             cC     = obj.createComplianceFromConstiutive(obj.physicalProblemCenter);
-            cR     = obj.createComplianceFromConstiutive(obj.physicalProblemRight);
-            [jL,~] = cL.computeFunctionAndGradient(C,dC);
+            %c56    = obj.createComplianceFromConstiutive(obj.physicalProblem56);
+            %c67    = obj.createComplianceFromConstiutive(obj.physicalProblem67);
+            %c78    = obj.createComplianceFromConstiutive(obj.physicalProblem78);
+            %cR     = obj.createComplianceFromConstiutive(obj.physicalProblemRight);
+            %[jL,~] = cL.computeFunctionAndGradient(C,dC);
             [jC,~] = cC.computeFunctionAndGradient(C,dC);
-            [jR,~] = cR.computeFunctionAndGradient(C,dC);
-            obj.targetCompliance = 0.7*max([jL,jC,jR]);
+            %[j56,~] = c56.computeFunctionAndGradient(C,dC);
+            %[j67,~] = c67.computeFunctionAndGradient(C,dC);
+            %[j78,~] = c78.computeFunctionAndGradient(C,dC);
+            %[jR,~] = cR.computeFunctionAndGradient(C,dC);
+            obj.targetCompliance = 0.7*jC;
         end
 
         function c = createComplianceFromConstiutive(obj,physicalProblem)
@@ -419,21 +425,21 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.complianceLeft;
-            s.shapeFunctions{2} = obj.compliance12;
-            s.shapeFunctions{3} = obj.compliance23;
-            s.shapeFunctions{4} = obj.compliance34;
-            s.shapeFunctions{5} = obj.complianceCenter;
-            s.shapeFunctions{6} = obj.compliance56;
-            s.shapeFunctions{7} = obj.compliance67;
-            s.shapeFunctions{8} = obj.compliance78;
-            s.shapeFunctions{9} = obj.complianceRight;
+            %s.shapeFunctions{1} = obj.complianceLeft;
+            %s.shapeFunctions{2} = obj.compliance12;
+            %s.shapeFunctions{3} = obj.compliance23;
+            %s.shapeFunctions{4} = obj.compliance34;
+            s.shapeFunctions{1} = obj.complianceCenter;
+            %s.shapeFunctions{6} = obj.compliance56;
+            %s.shapeFunctions{7} = obj.compliance67;
+            %s.shapeFunctions{8} = obj.compliance78;
+            %s.shapeFunctions{9} = obj.complianceRight;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 9;
+            s.nConstraints   = 1;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -446,12 +452,13 @@ classdef TopOptTestMultiLoadBridgeDensity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.constraintCase = {'INEQUALITY'};%,'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
+            s.tauMax         = 1000;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 15;
+            s.gJFlowRatio    = 10;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
