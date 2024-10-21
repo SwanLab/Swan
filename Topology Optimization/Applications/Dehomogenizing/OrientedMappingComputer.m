@@ -1,8 +1,7 @@
 classdef OrientedMappingComputer < handle
 
     properties (Access = private)  
-     %   orientationP0
-        orientationP1        
+        orientation        
         isCoherent        
         singularities
         interpolator    
@@ -25,9 +24,6 @@ classdef OrientedMappingComputer < handle
         end
 
         function dCoord = computeDeformedCoordinates(obj)
-       %     obj.value = obj.theta;
-         %   obj.createOrientationVector();
-        %    obj.projectOrientationToP1();
             obj.computeIsOrientationCoherent();
             obj.computeInterpolator();
             obj.computeSingularities();
@@ -46,35 +42,24 @@ classdef OrientedMappingComputer < handle
         function init(obj,cParams)
             obj.mesh          = cParams.mesh;
             %obj.orientationP0 = cParams.orientationP0;
-            obj.orientationP1 = cParams.orientationP1; %%importnat since regul need P1
+            obj.orientation = cParams.orientationP1; %%importnat since regul need P1
         end
 
-%         function projectOrientationToP1(obj)
-%             nDim = obj.mesh.ndim;
-%             orientation = cell(nDim,1);
-%             for iDim = 1:nDim
-%                 a0 = obj.orientationP0{iDim};
-%                 a1 = a0.project('P1');
-%                 orientation{iDim} = a1;
-%             end
-%             obj.orientationP1 = orientation;
-%         end
-              
         function computeIsOrientationCoherent(obj)
             nnode = obj.mesh.nnodeElem;
             nElem = obj.mesh.nelem;
-            isCoh = false(1,nnode,nElem);
-            a1D   = obj.orientationP1{1}.project('P1D'); 
+            isCoh = false(nnode,nElem);
+            a1D   = obj.orientation{1}.project('P1D'); 
             a1    = a1D.getFvaluesDisc();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
                 aNi    = squeeze(a1(:,iNode,:));
                 aN1aNI = dot(aN1,aNi);
-                isCoh(1,iNode,:) = (aN1aNI)>0;
+                isCoh(iNode,:) = (aN1aNI)>0;
             end
             s.fValues = isCoh(:);
             s.mesh    = obj.mesh;
-            isCF       = P1DiscontinuousFunction(s);            
+            isCF      = P1DiscontinuousFunction(s);            
             obj.isCoherent = isCF;
         end
 
@@ -83,11 +68,12 @@ classdef OrientedMappingComputer < handle
             nElemD    = obj.mesh.nelem;
             nnodesC   = obj.mesh.nnodes;
             connecC   = obj.mesh.connec;
-            connecD   = obj.isCoherent.computeDiscontinuousConnectivities();
+            connecD   = obj.isCoherent.getDofConnec();
             isCo = obj.isCoherent;
             sC = sparse(nnodeD*nElemD,nnodesC);
+            fV = isCo.getFvaluesDisc();
             for iNode = 1:nnodeD
-                isC  = squeeze(isCo.fValues(1,iNode,:));
+                isC  = squeeze(fV(1,iNode,:));
                 cond = obj.computeConformalMapCondition(isC);
                 nodesC = connecC(:,iNode);
                 nodesD = connecD(:,iNode);
@@ -98,15 +84,15 @@ classdef OrientedMappingComputer < handle
 
         function computeSingularities(obj)
             s.mesh        = obj.mesh;
-            s.orientation = obj.orientationP1{1};
+            s.orientation = obj.orientation{1};
             sC = SingularitiesComputer(s);
             sC.compute();
             sC.plot();
-            obj.singularities = sC;%sCoord;
+            obj.singularities = sC;
         end          
 
         function computeDilation(obj)
-            s.orientationVector = obj.orientationP1;
+            s.orientationVector = obj.orientation;
             s.mesh              = obj.mesh;
             dC = DilationComputer(s);
             d  = dC.compute();
@@ -119,7 +105,7 @@ classdef OrientedMappingComputer < handle
             s.order   = 'P1';
             er = LagrangianFunction(s);
             for iDim = 1:obj.mesh.ndim
-                b  = obj.orientationP1{iDim};
+                b  = obj.orientation{iDim};
                 dO = er.*b;
                 obj.dilatedOrientation{iDim} = dO;
             end

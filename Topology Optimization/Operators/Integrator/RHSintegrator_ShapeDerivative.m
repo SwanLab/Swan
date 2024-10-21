@@ -48,7 +48,7 @@ classdef RHSintegrator_ShapeDerivative < RHSintegrator
 
         function f = assembleIntegrand(obj,rhsElem,test)
             integrand = rhsElem;
-            connec = test.getDofConnec()';
+            connec = test.getDofConnec();
             nDofs = max(max(connec));
             nNode  = size(connec,2);
             f = zeros(nDofs,1);

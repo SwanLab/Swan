@@ -49,9 +49,8 @@ classdef MappingComputer < handle
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
             aI = aI.project('P1D');
-            q = Quadrature.create(obj.mesh,2);
             s.mesh            = obj.mesh;
-            s.quadratureOrder = q.order;
+            s.quadratureOrder = 2;
             s.type      = 'ShapeDerivative';
             test = P1DiscontinuousFunction.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);

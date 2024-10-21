@@ -149,16 +149,12 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plot(obj)
             for iDim = 1:obj.ndimf
-                connecf{iDim} = obj.getDofConnecByVector();
-                coordf{iDim}  = obj.getDofCoordByVector(iDim);
+                connec{iDim} = obj.getDofConnecByVector();
+                coord{iDim}  = obj.getDofCoordByVector(iDim);
             end
-            s.connec = connecf;
-            s.coord  = coordf;
-
-
-
-        
-            s.fValues = obj.fValues;
+            s.connec = connec;
+            s.coord  = coord;
+            s.fValues = double(obj.fValues);
             s.ndimf   = obj.ndimf;
             lP = LagrangianPlotter(s);
             lP.plot();
