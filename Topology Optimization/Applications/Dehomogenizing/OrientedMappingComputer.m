@@ -72,7 +72,7 @@ classdef OrientedMappingComputer < handle
                 aN1aNI = dot(aN1,aNi);
                 isCoh(1,iNode,:) = (aN1aNI)>0;
             end
-            s.fValues = isCoh;
+            s.fValues = isCoh(:);
             s.mesh    = obj.mesh;
             isCF       = P1DiscontinuousFunction(s);            
             obj.isCoherent = isCF;

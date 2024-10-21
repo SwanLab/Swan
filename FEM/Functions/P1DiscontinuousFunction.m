@@ -19,8 +19,15 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.init(cParams)
             obj.order = '1';
             obj.createInterpolation();
-          %  obj.createDOFCoordConnec();
-           obj.createValuesByElement();
+
+            if not(contains(fieldnames(cParams),'dof'))
+               obj.createDOFCoordConnec();
+            else
+                obj.dofConnec = cParams.dofConnec;
+                obj.dofCoord  = cParams.dofCoord;                
+            end            
+
+            obj.createValuesByElement();
         end
 
         function fxV = evaluate(obj, xV)
@@ -40,7 +47,7 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function f = copy(obj)
-            f = obj.create(obj.mesh, obj.dofConnec, obj.dofCoord,obj.ndimf);
+            f = obj.create(obj.mesh, obj.ndimf);
             f.fValues = obj.fValues;
         end        
 
@@ -228,14 +235,13 @@ classdef P1DiscontinuousFunction < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function createDOFConnec(obj)
-            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes  = 1:nNodes;
-            c      = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-            obj.dofConnec = c;
-        end
 
-        function createDOFCoord(obj)
+        function c = createDofConnec(obj,nDofs)
+          nodes = 1:nDofs;
+          c     = reshape(nodes,obj.mesh.nnodeElem*obj.ndimf,obj.mesh.nelem)';        
+        end            
+
+        function dofCoord = createDOFCoord(obj)
             conn   = obj.mesh.connec;
             coordC = obj.mesh.coord;
             nNode = size(conn,2);
@@ -243,12 +249,25 @@ classdef P1DiscontinuousFunction < FeFunction
             nodes = reshape(conn',1,[]);
             fe    = coordC(nodes,:)';
             coorD = reshape(fe,nDime,nNode,[]);
-            obj.dofCoord = coorD;
+            dofCoord = coorD;
+        end
+
+        function dofCoord = createDofCoord(obj,nDofs)
+            coordC = obj.mesh.coord;
+            connec = obj.mesh.connec;
+            dofsC  = reshape(connec',1,[]);
+            coorD  = zeros(nDofs,obj.mesh.ndim);
+            for idim = 1:obj.mesh.ndim
+                coorI = repmat(coordC(dofsC,idim),1,obj.ndimf)';
+                coorD(1:nDofs,idim) = reshape(coorI,[],1);
+            end
+            dofCoord = coorD;
         end
 
         function createDOFCoordConnec(obj)
-            obj.createDOFCoord();
-            obj.createDOFConnec()
+            nDofs         = obj.mesh.nnodeElem*obj.mesh.nelem*obj.ndimf; 
+            obj.dofCoord  = obj.createDofCoord(nDofs);           
+            obj.dofConnec = obj.createDofConnec(nDofs);            
         end
 
         function ord = orderTextual(obj)
@@ -267,10 +286,10 @@ classdef P1DiscontinuousFunction < FeFunction
             fS = P1DiscontinuousFunction(s);
         end
 
-        function p1d = create(mesh, dofConnec, dofCoord,ndimf)
+        function p1d = create(mesh, ndimf)
             s.mesh      = mesh;
-            s.dofConnec = dofConnec;
-            s.dofCoord  = dofCoord;  
+            %s.dofConnec = dofConnec;
+            %s.dofCoord  = dofCoord;  
             s.fValues = zeros(mesh.nnodeElem*mesh.nelem,ndimf);
             p1d = P1DiscontinuousFunction(s);
         end
@@ -282,8 +301,6 @@ classdef P1DiscontinuousFunction < FeFunction
         function init(obj,cParams)
             obj.mesh      = cParams.mesh;            
             obj.fValues   = cParams.fValues;
-            obj.dofConnec = cParams.dofConnec;
-            obj.dofCoord  = cParams.dofCoord;
             obj.ndimf     = size(cParams.fValues,2);
             obj.order     = 'LINEAR';
         end
