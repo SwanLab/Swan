@@ -44,13 +44,11 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
 
-        function computeElasticProperties(obj)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            obj.young   = E;
-            obj.poisson = nu;
+      function computeElasticProperties(obj)
+            E  = 1;
+            nu = 1/3;
+            obj.young   = ConstantFunction.create(E,1,obj.mesh);
+            obj.poisson = ConstantFunction.create(nu,1,obj.mesh);
         end
 
         function createMaterial(obj)
@@ -63,6 +61,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             obj.material = tensor;
         end
 
+
         function solveElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MICRO';
@@ -70,6 +69,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
+            s.solverCase = 'DIRECT';
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);

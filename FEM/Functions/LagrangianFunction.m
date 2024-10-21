@@ -362,9 +362,8 @@ classdef LagrangianFunction < FeFunction
         end
 
         function s = times(obj1,obj2)
-            res = copy(obj1);
-            res.fValues = obj1.fValues .* obj2.fValues;
-            s = res;
+            s.operation = @(xV) obj1.evaluate(xV) .* obj2.evaluate(xV);
+            s = DomainFunction(s);
         end
 
         function s = power(f,b)
