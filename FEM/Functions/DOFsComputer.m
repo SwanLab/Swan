@@ -88,8 +88,8 @@ classdef DOFsComputer < handle
         
         function computeCoordPriv(obj,dofs)
             ndofsE = size(dofs,2);
-            coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
             if obj.order~=1
+                coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
                 sAF      = obj.computefHandlePosition();
                 sAF.mesh = obj.mesh;
                 func     = AnalyticalFunction(sAF);

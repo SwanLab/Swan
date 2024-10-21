@@ -363,6 +363,7 @@ classdef LagrangianFunction < FeFunction
 
         function s = times(obj1,obj2)
             s.operation = @(xV) obj1.evaluate(xV) .* obj2.evaluate(xV);
+            s.ndimf = max(obj1.ndimf,obj2.ndimf);
             s = DomainFunction(s);
         end
 

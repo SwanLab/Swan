@@ -75,7 +75,7 @@ classdef Dehomogenizer < handle
             s.cellLevelSetParams = obj.cellLevelSetParams;
             ls                   = LevelSetPeriodicAndOriented(s);
             obj.levelSet = ls.computeLS(obj.epsilons);  
-            obj.fineMesh = ls.getFineMesh();
+            obj.fineMesh = obj.mesh.remesh();%ls.getFineMesh();
         end
 
         function uM = createUnfittedMesh(obj,ls)

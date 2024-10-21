@@ -25,7 +25,7 @@ classdef LevelSetPeriodicAndOriented < handle
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
-            obj.createRemesher();
+         %   obj.createRemesher();
             obj.interpolateDeformedCoord();
             obj.interpolateM1M2();
         end
@@ -72,7 +72,7 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function createRemesher(obj)
-            s.mesh    = obj.mesh.createDiscontinuousMesh();
+            s.mesh    = obj.mesh;%.createDiscontinuousMesh();
             s.nLevels =  1;
             r  = Remesher(s);
             r.remesh();
@@ -82,10 +82,10 @@ classdef LevelSetPeriodicAndOriented < handle
         function createCellCoord(obj)
             nDim = obj.mesh.ndim;
             for iDim = 1:nDim
-                x = obj.deformedCoord.fValues(iDim,:,:);
+                x = obj.deformedCoord.fValues(:,iDim);
                 y = obj.computeMicroCoordinate(x);
                 y = obj.periodicFunction(y);
-                yT(iDim,:,:) = y;
+                yT(:,iDim) = y;
             end
             s.fValues = yT;
             s.mesh    = obj.deformedCoord.mesh;
@@ -95,11 +95,11 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = createCellLevelSet(obj)
-            s.mesh     = obj.remesher.fineContMesh;
+            s.mesh     = obj.mesh.remesh();
             s.evaluate = @(xV) obj.rectangle(xV);
             s.ndimf    = 1;
             f  = AbstractL2Function(s);
-            ls = f;
+            %ls = f;
             ls = f.project('P1');
         end
 
@@ -178,10 +178,14 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function f = interpolateDiscontinousFunction(obj,v)
-            f = v;
-            r = obj.remesher;
-            f = r.interpolate(f);
+         %   f = v;
+         %   r = obj.remesher;
+            
+          %  f = r.interpolate(f);
          %   vq = f.getFvaluesAsVector();
+
+            m = obj.mesh.remesh();
+            f = v.refine(v,m);
         end        
 
         function [y1,y2] = transformToFastCoord(obj,x1,x2)
