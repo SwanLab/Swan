@@ -27,7 +27,8 @@ classdef DeletingCreateMeshDisc < handle
             fD = f.project('P1D');
             fD.plot()
 
-            fD2 = fC.project('P1');
+            fD2 = fD.project('P1');
+            fD2.plot()
 
             
             m = obj.mesh;

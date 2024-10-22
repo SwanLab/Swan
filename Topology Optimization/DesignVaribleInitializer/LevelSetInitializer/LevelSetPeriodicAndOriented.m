@@ -3,7 +3,7 @@ classdef LevelSetPeriodicAndOriented < handle
     properties (Access = private)
         epsilon
         epsilons
-        cellCoord
+   %     cellCoord
         phi
         y1
         y2
@@ -49,7 +49,7 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = protected)
 
         function ls = computeLevelSet(obj)
-            obj.createCellCoord();
+         %   obj.createCellCoord();
             obj.thresholdParameters();
             ls = obj.createCellLevelSet();
         end
@@ -220,7 +220,7 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-         %   f = abs(cos(pi*(y)));%.^2;
+         %   f = abs(cos(pi*(y)));%.^2;           
             f = (y - floor(y));
         end
 

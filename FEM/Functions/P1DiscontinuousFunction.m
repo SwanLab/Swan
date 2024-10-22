@@ -26,12 +26,11 @@ classdef P1DiscontinuousFunction < FeFunction
                 obj.dofConnec = cParams.dofConnec;
                 obj.dofCoord  = cParams.dofCoord;                
             end            
-
             obj.createValuesByElement();
         end
 
         function fxV = evaluate(obj, xV)
-            func = obj.fValuesDisc;
+            func = obj.getFvaluesDisc();
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);

@@ -20,7 +20,7 @@ end
 function mOr = computeRealInclusionSize(x,N,eps,m,type)
 
 
-y = (x-min(x))/eps-eps/2;
+y = ((x-min(x))-eps*eps/2)/eps;
 fp = peridicFunction(y,type);
 r  = fp/(m) - 1;
 
