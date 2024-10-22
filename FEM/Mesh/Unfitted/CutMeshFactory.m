@@ -37,6 +37,16 @@ classdef CutMeshFactory < handle
     methods (Access = private, Static)
         
         function m = computeBackgroundCutMesh(bMesh,cutCells)
+
+            % t.connec = bMesh.connec(cutCells,:);
+            % t.coord  = bMesh.coord;
+            % t.kFace  = bMesh.kFace;
+            % 
+            % s.remainingNodes = unique(bMesh.connec(cutCells,:));
+            % s.mesh           = t;
+            % c = CannonicalMeshComputer(s);
+            % m = c.compute();
+
             s.coord  = bMesh.coord;
             s.connec = bMesh.connec(cutCells,:);
             s.kFace  = bMesh.kFace;

@@ -28,7 +28,7 @@ classdef DOFsComputer < handle
         
         function computeCoord(obj)
             if isempty(obj.dofs)
-                obj.computeDofs;
+                obj.computeDofs();
             end
 
             if  isprop(obj.mesh,'coord') 
@@ -104,13 +104,23 @@ classdef DOFsComputer < handle
             else
                 coor   = zeros(obj.ndofs,obj.mesh.ndim);
                 for idim = 1:obj.mesh.ndim
-                    coorI = repmat(obj.mesh.coord(:,idim)',obj.ndimf,1);
-                    coor(:,idim) = coorI(:);
+                    nodes    = unique(obj.mesh.connec);
+                    coorDofs = repmat(obj.mesh.coord(nodes,idim)',obj.ndimf,1);
+                    dofs     = obj.computeNodesToDofs(nodes);
+                    coor(dofs,idim) = coorDofs(:);
                 end
                 obj.coord = coor;
             end
         end
-       
+
+        function dofs = computeNodesToDofs(obj,nodes)
+            dofs = nodes;
+            for iDimf = 2:obj.ndimf
+                dofs =[dofs,nodes*iDimf];
+            end
+            dofs = dofs(:);
+        end
+
         
         function dofsVertices = computeDofsVertices(obj)
             if obj.order == 0
