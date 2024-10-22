@@ -1,16 +1,20 @@
-classdef Tutorial02p2FEMElasticityMicro < handle
+classdef EllipseDbFEMElasticityMicro < handle
+    properties (Access = public)
+        mesh
+        stateProblem
+    end
 
     properties (Access = private)
-        mesh
         young
         poisson
         material
-        stateProblem
+        gPar
     end
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro()
+        function obj = EllipseDbFEMElasticityMicro(gPar)
+            obj.gPar = gPar;
             obj.createMesh();
             obj.computeElasticProperties();
             obj.createMaterial();
@@ -20,27 +24,33 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     end
 
     methods (Access = private)
-        
+
         function createMesh(obj)
-            fullmesh = UnitTriangleMesh(20,20);
-            ls = obj.computeCircleLevelSet(fullmesh);
+            fullmesh = UnitTriangleMesh(100,100);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(ls);
-            holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
+            if obj.gPar.xSide ~= 0 && obj.gPar.ySide ~= 0
+
+                uMesh = UnfittedMesh(sUm);
+                ls = obj.computeEllipseLevelSet(fullmesh);
+                uMesh.compute(ls);
+                holeMesh = uMesh.createInnerMesh();
+                obj.mesh = holeMesh;
+            else
+                obj.mesh = fullmesh;
+            end
+            
         end
 
-        function ls = computeCircleLevelSet(obj, mesh)
-            gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
-            gPar.xCoorCenter   = 0.5;
-            gPar.yCoorCenter   = 0.5;
-            g                  = GeometricalFunction(gPar);
-            phiFun             = g.computeLevelSetFunction(mesh);
-            lsCircle           = phiFun.fValues;
-            ls = -lsCircle;
+        function ls = computeEllipseLevelSet(obj, mesh)
+            obj.gPar.type        = 'SmoothRectangle';
+            obj.gPar.xCoorCenter = 0.5;
+            obj.gPar.yCoorCenter = 0.5;
+            obj.gPar.pnorm       = 2.0;
+            g                    = GeometricalFunction(obj.gPar);
+            phiFun               = g.computeLevelSetFunction(mesh);
+            lsEllipse            = phiFun.fValues;
+            ls = -lsEllipse;
         end
 
 
