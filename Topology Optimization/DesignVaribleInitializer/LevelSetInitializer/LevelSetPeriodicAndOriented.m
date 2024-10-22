@@ -89,9 +89,22 @@ classdef LevelSetPeriodicAndOriented < handle
             end
             s.fValues = yT;
             s.mesh    = obj.deformedCoord.mesh;
-            yF        = P1DiscontinuousFunction(s);
+            %yF        = P1DiscontinuousFunction(s);
+            s.order = 'P1';
+            yF = LagrangianFunction(s);
             %yF        = yF.project('P1');
             obj.cellCoord = yF;
+        end
+
+        function yT = evaluateCellCoord(obj,xV)
+            nDim = obj.mesh.ndim;
+            xD = obj.deformedCoord.evaluate(xV);            
+            for iDim = 1:nDim
+                x = squeezeParticular(xD(iDim,:,:),1);
+                y = obj.computeMicroCoordinate(x);
+                y = obj.periodicFunction(y);
+                yT(iDim,:,:) = y;
+            end
         end
 
         function ls = createCellLevelSet(obj)
@@ -108,10 +121,10 @@ classdef LevelSetPeriodicAndOriented < handle
             sy = obj.cellLevelSetParams.ySide.evaluate(xV);
             x0 = obj.epsilon;
             y0 = obj.epsilon;
-            x = obj.cellCoord.evaluate(xV);
+            x = obj.evaluateCellCoord(xV);%obj.cellCoord.evaluate(xV);
             x1 = x(1,:,:);
             x2 = x(2,:,:);
-            p = 32;
+           % p = 32;
            % fH = ((abs(x1-x0)./sx).^p+(abs(x2-y0)./sy).^p).^(1/p) - 0.5;
             fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
             fH = -fH;
@@ -168,13 +181,12 @@ classdef LevelSetPeriodicAndOriented < handle
             fDI  = obj.interpolateDiscontinousFunction(fD);
         end        
 
-        function fV = createDiscontinousValues(obj,f)
+        function fD = createDiscontinousValues(obj,f)
             s.mesh    = obj.mesh;
             s.fValues = f;
             s.order   = 'P1';
             fC = LagrangianFunction(s);
             fD = fC.project('P1D');
-            fV = fD;
         end
 
         function f = interpolateDiscontinousFunction(obj,v)
@@ -208,7 +220,7 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-          %  f = abs(cos(pi*(y)));%.^2;
+         %   f = abs(cos(pi*(y)));%.^2;
             f = (y - floor(y));
         end
 
