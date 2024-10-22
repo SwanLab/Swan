@@ -176,10 +176,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 0.05;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            obj.designVariable.print('LevelSet_Bridge');
         end
 
         function m = createMaterial(obj)

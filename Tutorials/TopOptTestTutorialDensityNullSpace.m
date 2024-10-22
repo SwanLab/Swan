@@ -187,7 +187,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.print('finalIteration');
+            obj.designVariable.print('Density_Bridge');
         end
 
         function bc = createBoundaryConditions(obj)
