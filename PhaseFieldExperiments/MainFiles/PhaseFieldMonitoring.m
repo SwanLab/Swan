@@ -9,8 +9,8 @@ classdef PhaseFieldMonitoring < handle
             switch cParams.type
                 case 'full'
                     s.maxNColumns = 2;
-                    s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Damage'}]; % {'Cost'},{'Energy'}
-                    s.chartTypes = [{'plot'},{'plot'},{'surf'}];
+                    s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Iter Staggered'},{'Damage'}]; % {'Cost'},{'Energy'}
+                    s.chartTypes = [{'plot'},{'plot'},{'plot'},{'surf'}];
                     monitor = Monitoring(s);
                 case 'reduced'
                     s.maxNColumns = 1;

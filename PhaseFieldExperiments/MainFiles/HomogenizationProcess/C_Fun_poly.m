@@ -7,11 +7,11 @@ matType{5} = load('IsoMicroDamage.mat');
 
 filterTimes1 = 0;
 filterTimes2 = 0;
-for i=1:length(matType)
-    derivMatType{i} = computeGradient(matType{i},filterTimes1);
-    deriv2MatType{i} = computeGradient(derivMatType{i},filterTimes2);
-    [funMat(:,:,i),dfunMat(:,:,i),ddfunMat(:,:,i)] = computeFunctionsAndDerivatives(matType{i});
-end
+ for i=1:length(matType)
+%     derivMatType{i} = computeGradient(matType{i},filterTimes1);
+%     deriv2MatType{i} = computeGradient(derivMatType{i},filterTimes2);
+     [funMat(:,:,i),dfunMat(:,:,i),ddfunMat(:,:,i)] = computeFunctionsAndDerivatives(matType{i});
+ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% ONE TYPE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -23,8 +23,8 @@ switch type
         deriv2Mat = deriv2MatType{1};
     case 'Circle (Perimeter)'
         mat = matType{2};
-        derivMat = derivMatType{2};
-        deriv2Mat = deriv2MatType{2};
+%        derivMat = derivMatType{2};
+%        deriv2Mat = deriv2MatType{2};
     case 'Square (Area)'
         mat = matType{3};
         derivMat = derivMatType{3};
@@ -57,17 +57,17 @@ for i=1:3
         % legType = 1;
 
         %%%%%%%%%%%%% PLOT TENSOR ALL TYPES %%%%%%%%%%%%%%%
-        plot((matType{1}.phi),squeeze(matType{1}.mat(i,j,:)),'Color','#0072BD');
-        plot((matType{2}.phi),squeeze(matType{2}.mat(i,j,:)),'--','Color','#0072BD');
-        plot((matType{3}.phi),squeeze(matType{3}.mat(i,j,:)),'Color','#D95319');
-        plot((matType{4}.phi),squeeze(matType{4}.mat(i,j,:)),'--','Color','#D95319');
-        plot(sqrt((matType{5}.phi)),squeeze(matType{5}.mat(i,j,:)),'Color','#EDB120');
-        plot((matType{5}.phi),squeeze(matType{5}.mat(i,j,:)),'k');
-        plot((matType{5}.phi).^2,squeeze(matType{5}.mat(i,j,:)),'--','Color','#EDB120');
-        ylabel(['C',num2str(i),num2str(j)]);
-        xlabel("$\phi$",'Interpreter','latex');
-        title(t,'Homogenized constitutive tensors')
-        legType = 2;
+        % plot((matType{1}.phi),squeeze(matType{1}.mat(i,j,:)),'Color','#0072BD');
+        % plot((matType{2}.phi),squeeze(matType{2}.mat(i,j,:)),'--','Color','#0072BD');
+        % plot((matType{3}.phi),squeeze(matType{3}.mat(i,j,:)),'Color','#D95319');
+        % plot((matType{4}.phi),squeeze(matType{4}.mat(i,j,:)),'--','Color','#D95319');
+        % plot(sqrt((matType{5}.phi)),squeeze(matType{5}.mat(i,j,:)),'Color','#EDB120');
+        % plot((matType{5}.phi),squeeze(matType{5}.mat(i,j,:)),'k');
+        % plot((matType{5}.phi).^2,squeeze(matType{5}.mat(i,j,:)),'--','Color','#EDB120');
+        % ylabel(['C',num2str(i),num2str(j)]);
+        % xlabel("$\phi$",'Interpreter','latex');
+        % title(t,'Homogenized constitutive tensors')
+        % legType = 2;
 
         %%%%%%%%%%%%% PLOT DERIVATIVE TENSOR ALL TYPES %%%%%%%%%%%%%%%
         % plot(derivMatType{1}.phi,squeeze(derivMatType{1}.mat(i,j,:)),'.','Color','#0072BD');

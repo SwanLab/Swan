@@ -2,9 +2,9 @@ classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
         tolErrU = 1e-6;
-        tolErrPhi = 1e-6;
-        tolErrStag = 1e-6;
-        tau = 1e2;
+        tolErrPhi = 1e-8;
+        tolErrStag = 1e-8;
+        tau = 100*1e2;
     end
 
     properties (Access = private)
@@ -41,18 +41,19 @@ classdef PhaseFieldComputer < handle
 
             obj.costFun = null(2,1);
             output = [];
+            costStag = 0;
             maxSteps = length(obj.boundaryConditions.bcValues);
             for i = 1:maxSteps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 bc = obj.boundaryConditions.nextStep();
                 u.fValues = obj.updateInitialDisplacement(bc,uOld);
 
-                obj.costFun(1,end+1) = obj.computeCostFunction(u,phi,bc);
+                obj.costFun(1,end+1) = costStag;
                 obj.costFun(2,end) = 2;
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
-                while (eStag > obj.tolErrStag) && (iterStag < 100)
+                while (eStag > obj.tolErrStag) && (iterStag < 300)
 
                     eU = 1; iterU = 1; costOldU = 0;
                     while (eU > obj.tolErrU) && (iterU < 100)
@@ -71,12 +72,17 @@ classdef PhaseFieldComputer < handle
                         iterUMax = iterU;
                     end
 
+                  obj.costFun(1,end+1) = costU;
+                  obj.costFun(2,end) = 0;  
+                  obj.printPlots()
+
+
                     ePhi = 1;  iterPhi = 1; costOldPhi = 0;
                     while (ePhi > obj.tolErrPhi) && (iterPhi < 100)
                         LHS = obj.computePhaseFieldLHS(u,phi);
                         RHS = obj.computePhaseFieldResidual(u,phi);
-                        phiNew = obj.updateWithNewton(LHS, RHS, phi.fValues);
-                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                        phiNew = obj.updatePhi(LHS, RHS, phi.fValues);
+                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,0.99);
 
                         [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
                         costOldPhi = costPhi;
@@ -87,6 +93,11 @@ classdef PhaseFieldComputer < handle
                     if iterPhi > iterPhiMax
                         iterPhiMax = iterPhi;
                     end
+                    
+                    obj.costFun(1,end+1) = costPhi;
+                    obj.costFun(2,end) = 1; 
+                    obj.printPlots()
+
 
                     [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
                     costOldStag = costStag;
@@ -114,7 +125,7 @@ classdef PhaseFieldComputer < handle
                 
                 TotalForce = obj.computeTotalReaction(F);
                 Displacement = obj.boundaryConditions.bcValues(i);
-                obj.monitor.update(i,{[TotalForce;Displacement],[max(phi.fValues);Displacement],phi.fValues});
+             %   obj.monitor.update(i,{[TotalForce;Displacement],[max(phi.fValues);Displacement],iterStag-1,phi.fValues});
 
             end
         end
@@ -281,16 +292,23 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%
 
         function xNew = updateWithNewton(obj,LHS,RHS,x)
-            %deltaX = -LHS/RHS;
-            deltaX = -obj.tau.*RHS;
+            deltaX = -LHS\RHS;
+         %   deltaX = -obj.tau.*RHS;
             xNew = x + deltaX; 
         end
+
+        function xNew = updatePhi(obj,LHS,RHS,x)
+            deltaX = -LHS\RHS;
+          % deltaX = -obj.tau.*RHS;
+            xNew = x + deltaX; 
+        end
+        
 
         function totReact = computeTotalReaction(obj,F)
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)));
+            totReact = sum(F(2*nodes(isInUp)-1));
 
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
@@ -341,21 +359,21 @@ classdef PhaseFieldComputer < handle
         function printPlots(obj,phi,step)
 
 
-            % figure(500)
-            % hold on
-            % for n = 2:size(obj.costFun,2)
-            %     if obj.costFun(2,n) == 0
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
-            %     elseif obj.costFun(2,n) == 1
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
-            %     elseif obj.costFun(2,n) == 2
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
-            %     end
-            % end
-            % title('Cost Function')
-            % xlabel('Iteration [-]')
-            % ylabel('Energy [J]')
-
+            figure(300)
+            hold on
+            for n = 2:size(obj.costFun,2)
+                if obj.costFun(2,n) == 0
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
+                elseif obj.costFun(2,n) == 1
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
+                elseif obj.costFun(2,n) == 2
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
+                end
+            end
+            title('Cost Function')
+            xlabel('Iteration [-]')
+            ylabel('Energy [J]')
+            hold off
         end
 
     end

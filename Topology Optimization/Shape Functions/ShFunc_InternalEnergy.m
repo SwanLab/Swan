@@ -15,6 +15,7 @@ classdef ShFunc_InternalEnergy < handle
             obj.material.setDesignVariable(u,phi);
             C = obj.material.obtainTensor();
             energyFun = DDP(Voigt(SymGrad(u)),DDP(C{1},Voigt(SymGrad(u))));
+            % figure(100); energyFun.project('P1',u.mesh).plot;
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
         end

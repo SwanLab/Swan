@@ -51,7 +51,7 @@ classdef RHSintegrator_ShapeFunction < handle
                     end
                 end
             end
-            rhsC = pagetranspose(int);
+            rhsC = transpose(int);
         end
 
         function f = assembleIntegrand(obj,test,rhsElem)

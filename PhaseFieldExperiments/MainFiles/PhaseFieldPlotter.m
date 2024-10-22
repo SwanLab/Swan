@@ -13,7 +13,7 @@ classdef PhaseFieldPlotter < handle
         
         function obj = PhaseFieldPlotter(cParams)
             obj.init(cParams)
-            obj.meshDamage()
+          %  obj.meshDamage()
             obj.plotDamage()
             obj.plotForceDisplacement()
             obj.plotEnergies()
@@ -26,7 +26,7 @@ classdef PhaseFieldPlotter < handle
         
         function init(obj,cParams)
             obj.damage = cParams.damage.maxValue;
-            obj.damageField = cParams.damage.field;
+         %   obj.damageField = cParams.damage.field;
             obj.displacement = cParams.displacement;
             obj.reaction = cParams.reaction;
             obj.energy = cParams.energy;
