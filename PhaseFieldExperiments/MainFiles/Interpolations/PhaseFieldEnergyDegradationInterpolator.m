@@ -25,7 +25,7 @@ classdef PhaseFieldEnergyDegradationInterpolator < handle
 
         function createEnergyDegradationFunctionAndDerivatives(obj)
             
-            obj.fun = @(phi) ((1-phi).^2);
+            obj.fun      = @(phi) ((1-phi).^2);
             obj.dfun     = @(phi) -2.*(1-phi);
             obj.ddfun    = @(phi) 2;
 
