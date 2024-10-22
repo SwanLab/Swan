@@ -107,16 +107,15 @@ classdef DOFsComputer < handle
                     nodes    = unique(obj.mesh.connec);
                     coorDofs = repmat(obj.mesh.coord(nodes,idim)',obj.ndimf,1);
                     dofs     = obj.computeNodesToDofs(nodes);
-                    coor(dofs,idim) = coorDofs(:);
+                    coor(dofs,idim) = coorDofs(:);                   
                 end
                 obj.coord = coor;
             end
         end
 
         function dofs = computeNodesToDofs(obj,nodes)
-            dofs = nodes;
-            for iDimf = 2:obj.ndimf
-                dofs =[dofs,nodes*iDimf];
+            for iDimf = 1:obj.ndimf
+                dofs(iDimf,:) =(nodes-1)*obj.ndimf+iDimf;
             end
             dofs = dofs(:);
         end
