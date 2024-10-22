@@ -190,14 +190,8 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function f = interpolateDiscontinousFunction(obj,v)
-         %   f = v;
-         %   r = obj.remesher;
-            
-          %  f = r.interpolate(f);
-         %   vq = f.getFvaluesAsVector();
-
             m = obj.mesh.remesh();
-            f = v.refine(v,m);
+            f = v.refine(m);
         end        
 
         function [y1,y2] = transformToFastCoord(obj,x1,x2)

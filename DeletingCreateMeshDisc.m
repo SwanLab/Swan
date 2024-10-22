@@ -39,7 +39,7 @@ classdef DeletingCreateMeshDisc < handle
                 fC = fC.refine(m); 
                 fC.plot();    
 
-                fD = fD.refine(fD,m);
+                fD = fD.refine(m);
                 fD.plot();
             end
         

@@ -129,8 +129,8 @@ classdef P1DiscontinuousFunction < FeFunction
             gradFun = FGaussDiscontinuousFunction(s);
         end
 
-        function fFine = refine(obj,fD, mFine)
-            P1Dref = P1Refiner(fD,mFine);
+        function fFine = refine(obj, mFine)
+            P1Dref = P1Refiner(obj,mFine);
             fFine  = P1Dref.compute();
         end
    
@@ -302,7 +302,21 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function createValuesByElement(obj)
             nDimF  = size(obj.fValues,2);            
-            fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
+         %   fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
+            node = obj.getDofConnecByVector();
+            for iDim = 1:nDimF
+                fI = obj.fValues(:,iDim);
+                for iNode = 1:obj.mesh.nnodeElem
+                    %iDof  = (iNode-1)*obj.ndimf+iDim;
+%                    dofs  = obj.dofConnec(:,iDof);
+                    dof   = node(:,iNode);
+
+                    fVals(iDim,iNode,:) = fI(dof);
+                            
+                   % fVals(iDim,iNode,:) = fV;
+
+                end
+            end
             obj.fValuesDisc = fVals;
         end
 
