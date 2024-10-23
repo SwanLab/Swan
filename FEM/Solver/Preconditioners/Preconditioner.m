@@ -17,6 +17,8 @@ classdef Preconditioner < handle
                     M = PreconditionerModalApproximation(cParams);
                 case {'DirichletNeumann'}
                     M = PreconditionerDirichletNeumann(cParams);
+                case {'BNN'}
+                    M = 
                 otherwise
                     error('Invalid preconditioner type.')
             end
