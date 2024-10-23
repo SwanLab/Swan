@@ -237,7 +237,7 @@ classdef OptimizerNullSpace < Optimizer
 %                     k          = obj.primalUpdater.tau;
 %                     b          = obj.primalUpdater.Beta;
 %                     a          = obj.primalUpdater.Alpha;
-                    obj.etaMax = Inf;
+                    obj.etaMax = 0.05;
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise

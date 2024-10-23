@@ -30,6 +30,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+            obj.designVariable.fun.print('BiCantileverResult');
         end
 
     end
@@ -42,8 +43,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,3,90);
+            x2      = linspace(0,1,30);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -103,7 +104,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -127,7 +128,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.5;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -169,14 +170,14 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 80;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.etaNorm        = 0.05;
+            s.gJFlowRatio    = 0.7;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -196,8 +197,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isDir   = @(coor)  coor(:,1)==0 | coor(:,1)==xMax;
+            isForce = @(coor)  (coor(:,1)>=0.225*xMax & coor(:,1)<=0.275*xMax & coor(:,2)==0) | ...
+                (coor(:,1)>=0.725*xMax & coor(:,1)<=0.775*xMax & coor(:,2)==0) | ...
+                (coor(:,1)>=0.475*xMax & coor(:,1)<=0.525*xMax & coor(:,2)==yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
