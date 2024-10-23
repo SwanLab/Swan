@@ -14,7 +14,7 @@ classdef ShFunc_InternalEnergy < handle
         function F = computeFunction(obj,u,phi,quadOrder)
             obj.material.setDesignVariable(u,phi);
             C = obj.material.obtainTensor();
-            energyFun = DDP(Voigt(SymGrad(u)),DDP(C{1},Voigt(SymGrad(u))));
+            energyFun = DDP(SymGrad(u),DDP(C{1},SymGrad(u)));
             % figure(100); energyFun.project('P1',u.mesh).plot;
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
@@ -43,7 +43,7 @@ classdef ShFunc_InternalEnergy < handle
         
         function Ju = computeGradientDisplacement(obj,u,quadOrder)
             C = obj.material.obtainTensor();
-            sigma = DDP(C{1},Voigt(SymGrad(u)));
+            sigma = DDP(C{1},SymGrad(u));
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
 
             s.mesh = obj.mesh;
@@ -55,7 +55,7 @@ classdef ShFunc_InternalEnergy < handle
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             dC = obj.material.obtainTensorDerivative();
-            dEnergyFun = DDP(Voigt(SymGrad(u)),DDP(dC{1},Voigt(SymGrad(u))));
+            dEnergyFun = DDP(SymGrad(u),DDP(dC{1},SymGrad(u)));
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             
             s.mesh = obj.mesh;
@@ -79,7 +79,7 @@ classdef ShFunc_InternalEnergy < handle
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)
             ddC = obj.material.obtainTensorSecondDerivative();
-            ddEnergyFun = DDP(Voigt(SymGrad(u)),DDP(ddC{1},Voigt(SymGrad(u))));
+            ddEnergyFun = DDP(SymGrad(u),DDP(ddC{1},SymGrad(u)));
             
             s.fun = ddEnergyFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);

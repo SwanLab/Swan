@@ -37,113 +37,127 @@ classdef ShFunc_InternalEnergySplit < handle
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
             k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
-            bulkFun = k.*trace(SymGrad(u)).^2;
+            bulkFun = VolumetricElasticEnergyDensity(u,k);
             int = Integrator.create('Function',obj.mesh,quadOrder);
-            F = 0.5*int.compute(bulkFun);
+            F = int.compute(bulkFun);            
         end
 
         function F = computeEnergyShear(obj,u,phi,quadOrder)
             mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
-            strainDev = Deviatoric(SymGrad(u));
-            shearFun = mu.*DDP(Voigt(strainDev),Voigt(strainDev));
+            shearFun = DeviatoricElasticEnergyDensity(u,mu);
             int = Integrator.create('Function',obj.mesh,quadOrder);
-            F = int.compute(shearFun);
+            F = int.compute(shearFun);            
+        end
+
+        function dEu = computeGradientDisplacement(obj,u,phi,quadOrder)
+            dEvol = obj.computeVolumetricEnergyDisplacementGradient(u,phi,quadOrder);
+            dEdev = obj.computeDeviatoricEnergyDisplacementGradient(u,phi,quadOrder);
+            dEu = dEvol + dEdev;
         end
         
-        function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            %k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
-            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
-            %mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
+        function dE = computeVolumetricEnergyDisplacementGradient(obj,u,phi,quadOrder)
+            Cbulk    = obj.materialPhaseField.getBulkMaterial(u,phi);
+            sigmaVol = DDP(Cbulk,SymGrad(u));
+            dE  = obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaVol,u,quadOrder);
+        end
+
+        function dE = computeDeviatoricEnergyDisplacementGradient(obj,u,phi,quadOrder)
             Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
-            strain = SymGrad(u);
-            %sigmaBulk = 2.*k.*VoigtStress(Spherical(strain)); % 2 is from ndim = 2;
-            %sigmaShear = 2.*mu.*VoigtStress(Deviatoric(strain));
-            sigmaBulk = DDP(Cbulk,Voigt(strain));
-            sigmaShear = DDP(Cshear,Voigt(strain));
+            sigmaDev = DDP(Cshear,SymGrad(u));
+            dE =  obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaDev,u,quadOrder);
+        end        
 
-
+        function F = computeShapeSymmetricDerivativeIntegralWithField(obj,f,u,quadOrder)
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             s.mesh = obj.mesh;
             s.quadratureOrder = quadOrder;
             s.type = 'ShapeSymmetricDerivative';
             RHS = RHSintegrator.create(s);
-            JbulkU = RHS.compute(sigmaBulk,test);
-            JshearU = RHS.compute(sigmaShear,test);
+            F = RHS.compute(f,test);            
+        end 
 
-            Ju = JbulkU + JshearU;
+        function dEphi = computeGradientDamage(obj,u,phi,quadOrder)
+            dEvol = obj.computeVolumetricEnergyDamageGradient(u,phi,quadOrder);            
+            dEdev = obj.computeDeviatoricEnergyDamageGradient(u,phi,quadOrder);        
+            dEphi = dEvol + dEdev;
+        end      
+
+        function dE = computeVolumetricEnergyDamageGradient(obj,u,phi,quadOrder)
+            dk    = obj.materialPhaseField.getBulkFun(u,phi,'Jacobian');
+            deVol = VolumetricElasticEnergyDensity(u,dk);
+            dE    =  obj.computeShapeIntegralWithField(deVol,phi,quadOrder);
         end
 
-        function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
-            k = obj.materialPhaseField.getBulkFun(u,phi,'Jacobian');
-            mu = obj.materialPhaseField.getShearFun(u,phi,'Jacobian');
-            strain = SymGrad(u);
-            strainDev = Deviatoric(strain);
-            dBulkFun = k.*trace(SymGrad(u)).^2;
-            dShearFun = mu.*DDP(Voigt(strainDev),Voigt(strainDev));
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
-            
+        function dE = computeDeviatoricEnergyDamageGradient(obj,u,phi,quadOrder)
+            dmu = obj.materialPhaseField.getShearFun(u,phi,'Jacobian');
+            deDev = DeviatoricElasticEnergyDensity(u,dmu);
+            dE =  obj.computeShapeIntegralWithField(deDev,phi,quadOrder);
+        end        
+
+        function F = computeShapeIntegralWithField(obj,f,phi,quadOrder)
+            test   = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);            
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
             RHS = RHSintegrator.create(s);
-            JbulkPhi = 0.5*RHS.compute(dBulkFun,test);
-            JshearPhi = RHS.compute(dShearFun,test);
+            F   =  RHS.compute(f,test);
+        end        
 
-            Jphi = JbulkPhi + JshearPhi;
+        function ddEuu = computeHessianDisplacement(obj,u,phi,quadOrder)
+           ddEvol = obj.computeVolumetricEnergyDisplacementHessian(u,phi,quadOrder);
+           ddEdev = obj.computeDeviatoricEnergyDisplacementHessian(u,phi,quadOrder);
+           ddEuu = ddEvol + ddEdev;
         end
 
-        function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
+        function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
             Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-            s.test  = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-            s.material = Cbulk;
-            s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
-            HbulkUU = LHS.compute();
+            ddE   = obj.computeElasticStiffnesMatrix(Cbulk,u,quadOrder);
+        end
 
+        function ddE = computeDeviatoricEnergyDisplacementHessian(obj,u,phi,quadOrder)
             Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
+            ddE    = obj.computeElasticStiffnesMatrix(Cshear,u,quadOrder);
+        end        
+
+        function K = computeElasticStiffnesMatrix(obj,C,u,quadOrder)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             s.test  = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-            s.material = Cshear;
+            s.material = C;
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
-            HshearUU = LHS.compute();
+            K = LHS.compute();
+        end        
 
-            Huu = HbulkUU + HshearUU;
+        function ddEphiphi = computeHessianDamage(obj,u,phi,quadOrder)        
+            ddEvol  = obj.computeVolumetricEnergyDamageHessian(u,phi,quadOrder);
+            ddEdev   = obj.computeDeviatoricEnergyDamageHessian(u,phi,quadOrder);
+            ddEphiphi = ddEvol + ddEdev;
         end
 
-        function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)
-            strain = SymGrad(u);
-            strainDev = Deviatoric(strain);
+        function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
+            ddk    = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
+            ddeVol = VolumetricElasticEnergyDensity(u,ddk);
+            ddE    = obj.computeMassWithFunction(ddeVol,phi,quadOrder);
+        end
 
-            k = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
-            ddBulkFun = k.*trace(SymGrad(u)).^2;
-            s.fun = ddBulkFun;
+        function ddE = computeDeviatoricEnergyDamageHessian(obj,u,phi,quadOrder)
+            ddmu   = obj.materialPhaseField.getShearFun(u,phi,'Hessian');
+            ddeDev = DeviatoricElasticEnergyDensity(u,ddmu);
+            ddE    = obj.computeMassWithFunction(ddeDev,phi,quadOrder);
+        end
+
+        function Mf = computeMassWithFunction(obj,f,phi,quadOrder)
+            s.fun = f;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
-            HbulkPhiPhi = 0.5*LHS.compute();
-
-            mu = obj.materialPhaseField.getShearFun(u,phi,'Hessian');
-            ddShearFun = mu.*DDP(Voigt(strainDev),Voigt(strainDev));
-            s.function = ddShearFun;
-            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
-            s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
-            s.mesh = obj.mesh;
-            s.type = 'MassMatrixWithFunction';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
-            HshearPhiPhi = LHS.compute();
-
-            Hphiphi = HbulkPhiPhi + HshearPhiPhi;
-        end
+            Mf = LHS.compute();
+        end        
         
     end
     

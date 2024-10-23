@@ -151,6 +151,7 @@ classdef PhaseFieldComputer < handle
             s.l0 = obj.l0;
 
             obj.functional.energy         = ShFunc_InternalEnergySplit(s);
+            obj.functional.energy2        = ShFunc_InternalEnergy(s);            
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);
@@ -182,12 +183,16 @@ classdef PhaseFieldComputer < handle
         function RHS = computeElasticResidual(obj,u,phi,bc)
             fExt     = bc.pointloadFun;
             [Fint,~] = obj.functional.energy.computeGradient(u,phi,2);
+            [Fint2,~] = obj.functional.energy2.computeGradient(u,phi,2);
+            nFu = norm(Fint(:)-Fint2(:))/norm(Fint2(:))
             Fext     = obj.functional.extWork.computeGradient(u,fExt,1);
             RHS = Fint + Fext;
         end
 
         function LHS = computeElasticLHS(obj,u,phi)
             [LHS,~] = obj.functional.energy.computeHessian(u,phi,2);
+            [LHS2,~] = obj.functional.energy2.computeHessian(u,phi,2);
+            nKu = norm(LHS(:)-LHS2(:))/norm(LHS2(:))           
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -241,6 +246,8 @@ classdef PhaseFieldComputer < handle
         % Internal energy mass matrix
         function Mi = createInternalEnergyMassMatrix(obj,u,phi)
             [~,Hphiphi] = obj.functional.energy.computeHessian(u,phi,2);
+            [~,Hphiphi2] = obj.functional.energy2.computeHessian(u,phi,2);            
+            nKphi = norm(Hphiphi2(:) - Hphiphi(:))/norm(Hphiphi2(:))
             Mi = Hphiphi;
         end
 
@@ -258,6 +265,8 @@ classdef PhaseFieldComputer < handle
         % Internal energy force vector
         function Fi = createInternalEnergyForceVector(obj,u,phi)
             [~,Jphi] = obj.functional.energy.computeGradient(u,phi,2);
+            [~,Jphi2] = obj.functional.energy2.computeGradient(u,phi,2);            
+            nFphi = norm(Jphi(:)-Jphi2(:))/norm(Jphi(:))
             Fi = Jphi;
         end
         
@@ -274,6 +283,8 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalInternalEnergy(obj,u,phi)
             totVal = obj.functional.energy.computeFunction(u,phi,2);
+            totVal2 = obj.functional.energy2.computeFunction(u,phi,2);            
+            nE = norm(totVal2-totVal)/norm(totVal2)
         end
 
         function totVal = computeTotalDissipationLocal(obj,phi)
