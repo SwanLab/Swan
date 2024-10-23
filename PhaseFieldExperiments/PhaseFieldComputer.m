@@ -38,7 +38,7 @@ classdef PhaseFieldComputer < handle
             phi = obj.initPhi;
             uOld = u;
             phiOld = phi;
-
+            
             obj.costFun = null(2,1);
             output = [];
             %costStag = 0;
@@ -64,8 +64,8 @@ classdef PhaseFieldComputer < handle
 
                         [eU, costU] = obj.computeErrorCostFunction(u,phi,bc,costOldU);
                         costOldU = costU;
-                        disp(['iterU: ',num2str(iterU),' res: ',num2str(eU)])
-
+                        obj.printCost('iterU',iterU,costU);
+                        
                         iterU = iterU + 1;
                     end
                     if iterU > iterUMax
@@ -86,7 +86,7 @@ classdef PhaseFieldComputer < handle
 
                         [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
                         costOldPhi = costPhi;
-                        disp(['iterPhi: ',num2str(iterPhi),' res: ',num2str(ePhi)])
+                        obj.printCost('iterPhi',iterPhi,costPhi);
 
                         iterPhi = iterPhi + 1;
                     end
@@ -97,12 +97,12 @@ classdef PhaseFieldComputer < handle
                     % obj.costFun(1,end+1) = costPhi;
                     % obj.costFun(2,end) = 1; 
                     % obj.printPlots()
-
+                    
 
                     [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
                     costOldStag = costStag;
-                    disp(['iterStag: ',num2str(iterStag),' res: ',num2str(eStag)])
-
+                    obj.printCost('iterStag',iterStag,costStag);
+                    
                     iterStag = iterStag + 1;
                 end
                 uOld = u;
@@ -144,14 +144,19 @@ classdef PhaseFieldComputer < handle
             obj.l0                  = cParams.l0;
         end
 
+        function printCost(obj,name,iter,cost)
+            X = sprintf('%s:  %d  res:  %d',name,iter,cost);
+            disp(X);
+        end
+
         function createFunctionals(obj)
             s.mesh = obj.mesh;
             s.material = obj.material;
             s.dissipation = obj.dissipation;
             s.l0 = obj.l0;
 
-            obj.functional.energy         = ShFunc_InternalEnergySplit(s);
-            obj.functional.energy2        = ShFunc_InternalEnergy(s);            
+            obj.functional.energy         = ShFunc_InternalEnergy(s);            
+            %obj.functional.energy2         = ShFunc_InternalEnergySplit(s);            
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);
@@ -183,16 +188,12 @@ classdef PhaseFieldComputer < handle
         function RHS = computeElasticResidual(obj,u,phi,bc)
             fExt     = bc.pointloadFun;
             [Fint,~] = obj.functional.energy.computeGradient(u,phi,2);
-            [Fint2,~] = obj.functional.energy2.computeGradient(u,phi,2);
-            nFu = norm(Fint(:)-Fint2(:))/norm(Fint2(:))
             Fext     = obj.functional.extWork.computeGradient(u,fExt,1);
             RHS = Fint + Fext;
         end
 
         function LHS = computeElasticLHS(obj,u,phi)
             [LHS,~] = obj.functional.energy.computeHessian(u,phi,2);
-            [LHS2,~] = obj.functional.energy2.computeHessian(u,phi,2);
-            nKu = norm(LHS(:)-LHS2(:))/norm(LHS2(:))           
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -246,8 +247,6 @@ classdef PhaseFieldComputer < handle
         % Internal energy mass matrix
         function Mi = createInternalEnergyMassMatrix(obj,u,phi)
             [~,Hphiphi] = obj.functional.energy.computeHessian(u,phi,2);
-            [~,Hphiphi2] = obj.functional.energy2.computeHessian(u,phi,2);            
-            nKphi = norm(Hphiphi2(:) - Hphiphi(:))/norm(Hphiphi2(:))
             Mi = Hphiphi;
         end
 
@@ -265,8 +264,6 @@ classdef PhaseFieldComputer < handle
         % Internal energy force vector
         function Fi = createInternalEnergyForceVector(obj,u,phi)
             [~,Jphi] = obj.functional.energy.computeGradient(u,phi,2);
-            [~,Jphi2] = obj.functional.energy2.computeGradient(u,phi,2);            
-            nFphi = norm(Jphi(:)-Jphi2(:))/norm(Jphi(:))
             Fi = Jphi;
         end
         
@@ -283,8 +280,6 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%% COMPUTE TOTAL ENERGIES %%%%%%%%%%%%%%%%%%%%%%%% %%
         function totVal = computeTotalInternalEnergy(obj,u,phi)
             totVal = obj.functional.energy.computeFunction(u,phi,2);
-            totVal2 = obj.functional.energy2.computeFunction(u,phi,2);            
-            nE = norm(totVal2-totVal)/norm(totVal2)
         end
 
         function totVal = computeTotalDissipationLocal(obj,phi)
@@ -328,7 +323,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
-            cost = computeCostFunction(obj,u,phi,bc);
+            cost = obj.computeCostFunction(u,phi,bc);
             e = abs(cost - costOld);
         end
 
