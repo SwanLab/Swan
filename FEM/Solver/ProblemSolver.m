@@ -126,7 +126,7 @@ classdef ProblemSolver < handle
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
                     drch = bcs.dirichlet_dofs;
-                    dofs = 1:size(stiffness);
+                    dofs = 1:size(stiffness,1);
                     free = setdiff(dofs, [lead; fllw; drch]);
                     A = stiffness;
                     A_II = A(free,free);
