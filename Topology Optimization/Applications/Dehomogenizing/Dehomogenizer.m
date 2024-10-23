@@ -69,29 +69,22 @@ classdef Dehomogenizer < handle
         end
 
         function computeLevelSet(obj)
-       %     s.type               = 'PeriodicAndOriented';
             s.mesh               = obj.mesh;
             s.orientationVectors = obj.computeOrientedMappingComputer();
-            s.cellLevelSetParams = obj.cellLevelSetParams;
+            s.m1                 = obj.cellLevelSetParams.xSide;
+            s.m2                 = obj.cellLevelSetParams.ySide;
+            s.nRemeshLevels      = 2;
             ls                   = LevelSetPeriodicAndOriented(s);
             obj.levelSet = ls.computeLS(obj.epsilons);  
-            obj.fineMesh = obj.mesh.remesh();%ls.getFineMesh();
+            obj.fineMesh = ls.getFineMesh();
         end
 
         function uM = createUnfittedMesh(obj,ls)
-            s.boundaryMesh   = obj.createBoundaryMesh();
-            s.backgroundMesh = obj.fineMesh;
+            s.backgroundMesh = obj.fineMesh;            
+            s.boundaryMesh   = obj.fineMesh.createBoundaryMesh();
             uM = UnfittedMesh(s);
             uM.compute(ls.fValues);
         end
-
-        function bM = createBoundaryMesh(obj)
-            sB.backgroundMesh = obj.fineMesh;
-            sB.dimension = 1:3;
-            sB.type = 'FromReactangularBox';
-            bMc = BoundaryMeshCreator.create(sB);
-            bM  = bMc.create();
-        end        
 
         function saveImage(obj)
             xmin = min(obj.mesh.coord(:,1));

@@ -50,7 +50,7 @@ classdef ExplainingPeriodicFunction2D < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+            [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -96,12 +96,19 @@ classdef ExplainingPeriodicFunction2D < handle
             quiver(x,y,ct,st)
         end
 
-        function s = createLevelSetCellParams(obj)
-            I       = ones(size(obj.mesh.coord,1),1);
+        function s = createLevelSetCellParams(obj)            
             s.type  = 'RectangleInclusion';
-            s.xSide = obj.widthH*I;
-            s.ySide = obj.widthW*I;
+            s.xSide = obj.createConstantFunction(obj.widthH);
+            s.ySide = obj.createConstantFunction(obj.widthW);
             s.ndim   = 2;
+        end
+
+        function f = createConstantFunction(obj,value)
+            s.fHandle = @(x) value*ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            f = AnalyticalFunction(s);
+            f = f.project('P1D');
         end
 
         function dehomogenize(obj)
