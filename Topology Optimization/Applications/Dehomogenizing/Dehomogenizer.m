@@ -29,7 +29,7 @@ classdef Dehomogenizer < handle
         function plot(obj)
             ls = obj.levelSet;
             for i = 1:numel(ls)
-                fh = figure(1);
+                fh = figure(i);
                 clf
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
@@ -59,7 +59,7 @@ classdef Dehomogenizer < handle
             xmin = min(obj.mesh.coord(:,2));
             L    = xmax - xmin;
             e = L./obj.nCells;
-            obj.epsilons = (1 + 0.01*linspace(0,100,1))*e/2;
+            obj.epsilons = e;%(1 + 0.01*linspace(0,100,1))*e/2;
         end            
 
         function o = computeOrientedMappingComputer(obj)

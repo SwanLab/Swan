@@ -1,6 +1,6 @@
 function ExplainingPeriodicFunction
-x   = linspace(0,1,1000);
-N   = 10;
+x   = linspace(-10,10,1000);
+N   = 5;
 eps = (max(x)-min(x))/N;
 m   = linspace(0.01,0.99,20);
 types = {'FLOOR','COS'};
@@ -20,9 +20,9 @@ end
 function mOr = computeRealInclusionSize(x,N,eps,m,type)
 
 
-y = ((x-min(x))-eps*eps/2)/eps;
+y = (x-min(x)-eps)/eps;%-eps/4;
 fp = peridicFunction(y,type);
-r  = fp/(m) - 1;
+r  = (fp-0.5)/(m*0.5) - 1;
 
 xi = zeros(size(r));
 xi(r>0) = 1;

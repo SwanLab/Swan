@@ -82,15 +82,10 @@ classdef LevelSetPeriodicAndOriented < handle
             obj.fineMesh = m;
         end
 
-        function yT = evaluateCellCoord(obj,xV,eps)
-            nDim = obj.mesh.ndim;
-            xD = obj.deformedCoord.evaluate(xV);            
-            for iDim = 1:nDim
-                x = squeezeParticular(xD(iDim,:,:),1);
-                y = obj.computeMicroCoordinate(x,eps);
-                y = obj.periodicFunction(y);
-                yT(iDim,:,:) = y;
-            end
+        function y = evaluateCellCoord(obj,xV,eps)
+            x = obj.deformedCoord.evaluate(xV);            
+            y = obj.computeMicroCoordinate(x,eps);
+            y = obj.periodicFunction(y);
         end
 
         function ls = createCellLevelSet(obj,eps)
@@ -99,19 +94,28 @@ classdef LevelSetPeriodicAndOriented < handle
             s.ndimf    = 1;
             f  = AnalyticalFunction(s);
             ls = f.project('P1');
+
+            % mesh = obj.fineMesh;
+            % ss.filterType = 'P1';
+            % ss.mesh       = mesh;
+            % ss.test       = LagrangianFunction.create(mesh,1,'P0');
+            % ss.trial      = LagrangianFunction.create(mesh,1,'P1');
+            % filter        = Filter.create(ss);
+            % ls = filter.compute(f,2);
+
         end
 
         function fH = rectangle(obj,xV,eps)
             sx = obj.m1.evaluate(xV);
             sy = obj.m2.evaluate(xV);
-            x0 = eps;
-            y0 = eps;
+            x0 = 0.5;
+            y0 = 0.5;
             x = obj.evaluateCellCoord(xV,eps);
             x1 = x(1,:,:);
             x2 = x(2,:,:);
-            p = 32;
-         %   fH = ((abs(x1-x0)./sx).^p+(abs(x2-y0)./sy).^p).^(1/p) - 0.5;
-            fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
+            p = 2;
+            fH = ((abs(x1-x0)./(0.5*sx)).^p+(abs(x2-y0)./(0.5*sy)).^p).^(1/p) - 1;
+         %   fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
             fH = -fH;
         end
 
@@ -134,18 +138,8 @@ classdef LevelSetPeriodicAndOriented < handle
             t = 0;
         end
 
-        function [y1,y2] = transformToFastCoord(obj,x1,x2)
-            y1 = obj.computeMicroCoordinate(x1);
-            y2 = obj.computeMicroCoordinate(x2);
-        end
-
         function y = computeMicroCoordinate(obj,x,eps)
-            y = (x-min(x(:)))/eps ;
-        end
-
-        function  [y1,y2] = makeCoordPeriodic(obj,y1,y2)
-            y1 = obj.periodicFunction(y1);
-            y2 = obj.periodicFunction(y2);
+            y = (x-min(x(:))-eps)/eps;
         end
 
     end
@@ -153,8 +147,8 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = abs(cos(pi*(y)));%.^2;           
-         %   f = (y - floor(y));
+         %   f = abs(cos(1*pi*(y))).^2;           
+            f = (y - floor(y));
         end
 
     end

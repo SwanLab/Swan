@@ -24,7 +24,7 @@ classdef Projector < handle
 %                     ord = 'LINEAR';
                     ord = 2; % needed to project P1 to P1D
                 case 'FGaussDiscontinuousFunction'
-                    ord = fun.getQuadratureOrder;
+                    ord = fun.getQuadratureOrder;                    
                 otherwise
                     ord = 3;
             end

@@ -33,13 +33,13 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.01;
-            obj.nCells   = 5;
+            obj.meshSize = 0.05;
+            obj.nCells   = [2 3 10];
             obj.xmin = 0;
             obj.xmax = 1;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.9;
+            obj.widthH = 0.7;
             obj.widthW = 0.9;
         end
 
@@ -50,7 +50,7 @@ classdef ExplainingPeriodicFunction2D < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
+            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -104,7 +104,8 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function f = createConstantFunction(obj,value)
-            s.fHandle = @(x) value*ones(size(x(1,:,:)));
+          %  s.fHandle = @(x) 0.5*value*(x(1,:,:));
+            s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
