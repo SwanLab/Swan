@@ -20,28 +20,8 @@ classdef ShFunc_InternalEnergy < handle
             F = 0.5*int.compute(energyFun);
         end
 
-        function [Ju, Jphi] = computeGradient(obj,u,phi,quadOrder)
-            obj.material.setDesignVariable(u,phi);                        
-            Ju = obj.computeGradientDisplacement(u,quadOrder);
-            Jphi = obj.computeGradientDamage(u,phi,quadOrder);
-        end
-
-        function [Huu, Hphiphi] = computeHessian(obj,u,phi,quadOrder)
-            obj.material.setDesignVariable(u,phi);                        
-            Huu = obj.computeHessianDisplacement(u,quadOrder);
-            Hphiphi = obj.computeHessianDamage(u,phi,quadOrder);
-        end
-        
-    end
-    
-    methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.material = cParams.material;
-        end
-        
-        function Ju = computeGradientDisplacement(obj,u,quadOrder)
+        function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
+            obj.material.setDesignVariable(u,phi);    
             C = obj.material.obtainTensor();
             sigma = DDP(C{1},SymGrad(u));
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
@@ -54,6 +34,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
+            obj.material.setDesignVariable(u,phi);    
             dC = obj.material.obtainTensorDerivative();
             dEnergyFun = DDP(SymGrad(u),DDP(dC{1},SymGrad(u)));
             test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
@@ -65,7 +46,8 @@ classdef ShFunc_InternalEnergy < handle
             Jphi = 0.5*RHS.compute(dEnergyFun,test);
         end
 
-        function Huu = computeHessianDisplacement(obj,u,quadOrder)
+        function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
+            obj.material.setDesignVariable(u,phi);    
             C = obj.material.obtainTensor(); 
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
@@ -78,6 +60,7 @@ classdef ShFunc_InternalEnergy < handle
         end
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)
+            obj.material.setDesignVariable(u,phi);    
             ddC = obj.material.obtainTensorSecondDerivative();
             ddEnergyFun = DDP(SymGrad(u),DDP(ddC{1},SymGrad(u)));
             
@@ -90,6 +73,15 @@ classdef ShFunc_InternalEnergy < handle
             LHS = LHSintegrator.create(s);
             Hphiphi = 0.5*LHS.compute();
         end
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.material = cParams.material;
+        end
+        
 
     end
     

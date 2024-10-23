@@ -17,14 +17,28 @@ classdef ShFunc_InternalEnergySplit < handle
             F = Fbulk + Fshear;
         end
 
-        function [Ju, Jphi] = computeGradient(obj,u,phi,quadOrder)
-            Ju = obj.computeGradientDisplacement(u,phi,quadOrder);
-            Jphi = obj.computeGradientDamage(u,phi,quadOrder);
+        function dEu = computeGradientDisplacement(obj,u,phi,quadOrder)
+            dEvol = obj.computeVolumetricEnergyDisplacementGradient(u,phi,quadOrder);
+            dEdev = obj.computeDeviatoricEnergyDisplacementGradient(u,phi,quadOrder);
+            dEu = dEvol + dEdev;
         end
 
-        function [Huu, Hphiphi] = computeHessian(obj,u,phi,quadOrder)
-            Huu = obj.computeHessianDisplacement(u,phi,quadOrder);
-            Hphiphi = obj.computeHessianDamage(u,phi,quadOrder);
+        function dEphi = computeGradientDamage(obj,u,phi,quadOrder)
+            dEvol = obj.computeVolumetricEnergyDamageGradient(u,phi,quadOrder);
+            dEdev = obj.computeDeviatoricEnergyDamageGradient(u,phi,quadOrder);
+            dEphi = dEvol + dEdev;
+        end
+
+        function ddEuu = computeHessianDisplacement(obj,u,phi,quadOrder)
+           ddEvol = obj.computeVolumetricEnergyDisplacementHessian(u,phi,quadOrder);
+           ddEdev = obj.computeDeviatoricEnergyDisplacementHessian(u,phi,quadOrder);
+           ddEuu = ddEvol + ddEdev;
+        end
+
+        function ddEphiphi = computeHessianDamage(obj,u,phi,quadOrder)        
+            ddEvol  = obj.computeVolumetricEnergyDamageHessian(u,phi,quadOrder);
+            ddEdev   = obj.computeDeviatoricEnergyDamageHessian(u,phi,quadOrder);
+            ddEphiphi = ddEvol + ddEdev;
         end
     end
     
@@ -49,11 +63,6 @@ classdef ShFunc_InternalEnergySplit < handle
             F = int.compute(shearFun);            
         end
 
-        function dEu = computeGradientDisplacement(obj,u,phi,quadOrder)
-            dEvol = obj.computeVolumetricEnergyDisplacementGradient(u,phi,quadOrder);
-            dEdev = obj.computeDeviatoricEnergyDisplacementGradient(u,phi,quadOrder);
-            dEu = dEvol + dEdev;
-        end
         
         function dE = computeVolumetricEnergyDisplacementGradient(obj,u,phi,quadOrder)
             Cbulk    = obj.materialPhaseField.getBulkMaterial(u,phi);
@@ -76,12 +85,6 @@ classdef ShFunc_InternalEnergySplit < handle
             F = RHS.compute(f,test);            
         end 
 
-        function dEphi = computeGradientDamage(obj,u,phi,quadOrder)
-            dEvol = obj.computeVolumetricEnergyDamageGradient(u,phi,quadOrder);            
-            dEdev = obj.computeDeviatoricEnergyDamageGradient(u,phi,quadOrder);        
-            dEphi = dEvol + dEdev;
-        end      
-
         function dE = computeVolumetricEnergyDamageGradient(obj,u,phi,quadOrder)
             dk    = obj.materialPhaseField.getBulkFun(u,phi,'Jacobian');
             deVol = VolumetricElasticEnergyDensity(u,dk);
@@ -103,11 +106,6 @@ classdef ShFunc_InternalEnergySplit < handle
             F   =  RHS.compute(f,test);
         end        
 
-        function ddEuu = computeHessianDisplacement(obj,u,phi,quadOrder)
-           ddEvol = obj.computeVolumetricEnergyDisplacementHessian(u,phi,quadOrder);
-           ddEdev = obj.computeDeviatoricEnergyDisplacementHessian(u,phi,quadOrder);
-           ddEuu = ddEvol + ddEdev;
-        end
 
         function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
             Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
@@ -129,12 +127,6 @@ classdef ShFunc_InternalEnergySplit < handle
             LHS = LHSintegrator.create(s);
             K = LHS.compute();
         end        
-
-        function ddEphiphi = computeHessianDamage(obj,u,phi,quadOrder)        
-            ddEvol  = obj.computeVolumetricEnergyDamageHessian(u,phi,quadOrder);
-            ddEdev   = obj.computeDeviatoricEnergyDamageHessian(u,phi,quadOrder);
-            ddEphiphi = ddEvol + ddEdev;
-        end
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
             ddk    = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
