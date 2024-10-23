@@ -23,7 +23,7 @@ classdef AnalyticalFunction < L2Function
             xV = obj.mesh.computeXgauss(xGLoc);
             fxV = obj.fHandle(xV);
             fxV = reshape(fxV,[1 size(fxV)]);
-            fxV = permute(fxV,[2 1 3 4]);
+            %fxV = permute(fxV,[2 1 3 4]);
         end
 
         function plot(obj)

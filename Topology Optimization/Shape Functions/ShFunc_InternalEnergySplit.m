@@ -32,7 +32,7 @@ classdef ShFunc_InternalEnergySplit < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.materialPhaseField = cParams.materialPhaseField;
+            obj.materialPhaseField = cParams.material;
         end
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
@@ -51,11 +51,16 @@ classdef ShFunc_InternalEnergySplit < handle
         end
         
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
-            mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
+            %k = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
+            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
+            %mu = obj.materialPhaseField.getShearFun(u,phi,'Interpolated');
+            Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
             strain = SymGrad(u);
-            sigmaBulk = 2.*k.*VoigtStress(Spherical(strain)); % 2 is from ndim = 2;
-            sigmaShear = 2.*mu.*VoigtStress(Deviatoric(strain));
+            %sigmaBulk = 2.*k.*VoigtStress(Spherical(strain)); % 2 is from ndim = 2;
+            %sigmaShear = 2.*mu.*VoigtStress(Deviatoric(strain));
+            sigmaBulk = DDP(Cbulk,Voigt(strain));
+            sigmaShear = DDP(Cshear,Voigt(strain));
+
 
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             s.mesh = obj.mesh;
@@ -88,23 +93,25 @@ classdef ShFunc_InternalEnergySplit < handle
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)
-            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Deviatoric');
+            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.fun      = u;
-            s.material = C{1};
-            s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
-            HshearUU = LHS.compute();
-
-            C = obj.materialPhaseField.setMaterial(u,phi,'Interpolated','Volumetric');
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.fun      = u;
-            s.material = C{1};
+            s.trial = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            s.test  = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            s.material = Cbulk;
             s.quadratureOrder = quadOrder;
             LHS = LHSintegrator.create(s);
             HbulkUU = LHS.compute();
+
+            Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            s.test  = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            s.material = Cshear;
+            s.quadratureOrder = quadOrder;
+            LHS = LHSintegrator.create(s);
+            HshearUU = LHS.compute();
 
             Huu = HbulkUU + HshearUU;
         end
@@ -115,7 +122,7 @@ classdef ShFunc_InternalEnergySplit < handle
 
             k = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
             ddBulkFun = k.*trace(SymGrad(u)).^2;
-            s.function = ddBulkFun;
+            s.fun = ddBulkFun;
             s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
             s.mesh = obj.mesh;

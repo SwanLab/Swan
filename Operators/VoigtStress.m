@@ -23,24 +23,24 @@ end
 function voigtA = applyVoigt2D(matA)
     nPoints = size(matA,3);
     nElem = size(matA,4);
-    voigtA = zeros(3,1,nPoints,nElem);
+    voigtA = zeros(3,nPoints,nElem);
     
-    voigtA(1,1,:,:) = matA(1,1,:,:); % xx
-    voigtA(2,1,:,:) = matA(2,2,:,:); % yy
-    voigtA(3,1,:,:) = matA(1,2,:,:); % xy
+    voigtA(1,:,:) = matA(1,1,:,:); % xx
+    voigtA(2,:,:) = matA(2,2,:,:); % yy
+    voigtA(3,:,:) = matA(1,2,:,:); % xy
 end
 
 function voigtA = applyVoigt3D(matA)
     nPoints = size(matA,3);
     nElem = size(matA,4);
-    voigtA = zeros(6,1,nPoints,nElem);
+    voigtA = zeros(6,nPoints,nElem);
     
-    voigtA(1,1,:,:) = matA(1,1,:,:); % xx
-    voigtA(2,1,:,:) = matA(2,2,:,:); % yy
-    voigtA(3,1,:,:) = matA(3,3,:,:); % zz
-    voigtA(4,1,:,:) = matA(1,2,:,:); % xy
-    voigtA(5,1,:,:) = matA(1,3,:,:); % xz
-    voigtA(6,1,:,:) = matA(2,3,:,:); % yz
+    voigtA(1,:,:) = matA(1,1,:,:); % xx
+    voigtA(2,:,:) = matA(2,2,:,:); % yy
+    voigtA(3,:,:) = matA(3,3,:,:); % zz
+    voigtA(4,:,:) = matA(1,2,:,:); % xy
+    voigtA(5,:,:) = matA(1,3,:,:); % xz
+    voigtA(6,:,:) = matA(2,3,:,:); % yz
 end
 
     

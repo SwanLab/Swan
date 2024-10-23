@@ -41,15 +41,15 @@ classdef PhaseFieldComputer < handle
 
             obj.costFun = null(2,1);
             output = [];
-            costStag = 0;
+            %costStag = 0;
             maxSteps = length(obj.boundaryConditions.bcValues);
             for i = 1:maxSteps
                 disp([newline '%%%%%%%%%% STEP ',num2str(i),' %%%%%%%%%%%'])
                 bc = obj.boundaryConditions.nextStep();
                 u.fValues = obj.updateInitialDisplacement(bc,uOld);
 
-                obj.costFun(1,end+1) = costStag;
-                obj.costFun(2,end) = 2;
+                % obj.costFun(1,end+1) = costStag;
+                % obj.costFun(2,end) = 2;
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
@@ -71,10 +71,10 @@ classdef PhaseFieldComputer < handle
                     if iterU > iterUMax
                         iterUMax = iterU;
                     end
-
-                  obj.costFun(1,end+1) = costU;
-                  obj.costFun(2,end) = 0;  
-                  obj.printPlots()
+                   
+                  % obj.costFun(1,end+1) = costU;
+                  % obj.costFun(2,end) = 0;  
+                  % obj.printPlots()
 
 
                     ePhi = 1;  iterPhi = 1; costOldPhi = 0;
@@ -82,7 +82,7 @@ classdef PhaseFieldComputer < handle
                         LHS = obj.computePhaseFieldLHS(u,phi);
                         RHS = obj.computePhaseFieldResidual(u,phi);
                         phiNew = obj.updatePhi(LHS, RHS, phi.fValues);
-                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,0.99);
+                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
 
                         [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
                         costOldPhi = costPhi;
@@ -94,9 +94,9 @@ classdef PhaseFieldComputer < handle
                         iterPhiMax = iterPhi;
                     end
                     
-                    obj.costFun(1,end+1) = costPhi;
-                    obj.costFun(2,end) = 1; 
-                    obj.printPlots()
+                    % obj.costFun(1,end+1) = costPhi;
+                    % obj.costFun(2,end) = 1; 
+                    % obj.printPlots()
 
 
                     [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
@@ -110,7 +110,7 @@ classdef PhaseFieldComputer < handle
 
 
 
-%%% SAVE DATA + MONITORING %%%%%
+                %%% SAVE DATA + MONITORING %%%%%
                 s.step = i;
                 s.numIterU = iterUMax-1;
                 s.numIterP = iterPhiMax-1;
@@ -125,7 +125,7 @@ classdef PhaseFieldComputer < handle
                 
                 TotalForce = obj.computeTotalReaction(F);
                 Displacement = obj.boundaryConditions.bcValues(i);
-             %   obj.monitor.update(i,{[TotalForce;Displacement],[max(phi.fValues);Displacement],iterStag-1,phi.fValues});
+                obj.monitor.update(i,{[TotalForce;Displacement],[max(phi.fValues);Displacement],iterStag-1,phi.fValues});
 
             end
         end
@@ -150,7 +150,7 @@ classdef PhaseFieldComputer < handle
             s.dissipation = obj.dissipation;
             s.l0 = obj.l0;
 
-            obj.functional.energy         = ShFunc_InternalEnergy(s);
+            obj.functional.energy         = ShFunc_InternalEnergySplit(s);
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);

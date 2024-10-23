@@ -18,6 +18,11 @@ classdef MaterialPhaseField < Material
             obj.init(cParams)
         end
 
+        function obj = setDesignVariable(obj,u,phi)
+            obj.u = u;
+            obj.phi = phi;
+        end
+
         function C = obtainTensor(obj)
             f    = obj.degradation.fun;
             C{1} = obj.createDegradedMaterial(f);
@@ -31,45 +36,6 @@ classdef MaterialPhaseField < Material
         function ddC = obtainTensorSecondDerivative(obj)
             ddf    = obj.degradation.ddfun;
             ddC{1} = obj.createDegradedMaterial(ddf);
-        end
-
-
-
-        % function kFun = getBulkFun(obj,u,phi,interpType)
-        %     obj.setDesignVariable(u,phi,interpType,'');
-        %     [g,~] = obj.computeDegradationFun();
-        % 
-        %     E  = obj.baseMaterial.young.fValues;
-        %     nu = obj.baseMaterial.poisson.fValues;
-        %     kV = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
-        % 
-        %     s.mesh = obj.mesh;
-        %     s.order = obj.young.order;
-        %     s.fValues = kV;
-        %     k = LagrangianFunction(s);
-        % 
-        %     kFun = times(g,k);
-        % end
-        % 
-        % function muFun = getShearFun(obj,u,phi,interpType)
-        %     obj.setDesignVariable(u,phi,interpType,'');
-        %     [~,g0] = obj.computeDegradationFun();
-        % 
-        %     E  = obj.baseMaterial.young.fValues;
-        %     nu = obj.poisson.fValues;
-        %     muV = obj.computeMuFromYoungAndPoisson(E,nu);
-        % 
-        %     s.mesh = obj.mesh;
-        %     s.order = 'P1';
-        %     s.fValues = muV;
-        %     mu = LagrangianFunction(s);
-        % 
-        %     muFun = g0.*mu;
-        % end
-
-        function obj = setDesignVariable(obj,u,phi)
-            obj.u = u;
-            obj.phi = phi;
         end
 
     end
@@ -104,36 +70,10 @@ classdef MaterialPhaseField < Material
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
             mat = Isotropic2dElasticMaterial(s);
-        end
-
-        % function [mu,l] = computeMatTensorParams(obj,xV,fun)
-        %     [g, g0] = obj.computeDegradationFun(fun);
-        %     [mu, k] = obj.computeMuAndKappa(g,g0,xV);
-        %     l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
-        % end
-        % 
-        % function [g, g0] = computeDegradationFun(obj,fun)
-        %     s.operation = @(xV) fun(obj.phi.evaluate(xV));
-        %     s.ndimf = obj.phi.ndimf;
-        %     g0 = DomainFunction(s);
-        % 
-        %     trcSign = Heaviside(trace(SymGrad(obj.u)));
-        %     g = g0.*trcSign + (1-trcSign);
-        % end
-        % 
-        % function [mu, k] = computeMuAndKappa(obj,g,g0,xV)
-        %     [muV,kV] = obj.baseMaterial.computeShearAndBulk(xV);
-        %     if obj.tensorType == "Deviatoric"
-        %         kV = 0.*kV;
-        %     elseif obj.tensorType == "Volumetric"
-        %         muV = 0.*muV; 
-        %     end
-        %     mu = g0.evaluate(xV).*muV;
-        %     k  = g.evaluate(xV).*kV;
-        % end        
+        end     
     
         function xf = createDegradedLameParameterFunction(obj,param,f)
-            s.operation = @(xV) pagetranspose(param.evaluate(xV)).*obj.evaluateDegradation(f,xV);
+            s.operation = @(xV) param.evaluate(xV).*obj.evaluateDegradation(f,xV);
             s.ndimf = 1;
             xf =  DomainFunction(s);
         end      
@@ -143,6 +83,82 @@ classdef MaterialPhaseField < Material
             fV = f(phiV);
         end            
 
+
+    end
+    
+    %% Energy split mode
+    methods (Access = public)
+        
+        function kFun = getBulkFun(obj,u,phi,interpType)
+            obj.setDesignVariable(u,phi);
+            [~,g0] = obj.computeDegradationFun(interpType);
+
+            E  = obj.baseMaterial.young.constant;
+            nu = obj.baseMaterial.poisson.constant;
+            N = 2;
+            kV = E./(N*(1-(N-1)*nu));
+            k = ConstantFunction.create(kV,1,obj.mesh);
+
+            kFun = g0.*k';
+        end
+
+        function muFun = getShearFun(obj,u,phi,interpType)
+            obj.setDesignVariable(u,phi);
+            [~,g0] = obj.computeDegradationFun(interpType);
+
+            E  = obj.baseMaterial.young.constant;
+            nu = obj.baseMaterial.poisson.constant;
+            muV = E./(2*(1+nu));
+            mu = ConstantFunction.create(muV,1,obj.mesh);
+
+            muFun = g0.*mu;
+        end
+
+        function mat = getBulkMaterial(obj,u,phi)
+            obj.setDesignVariable(u,phi);
+            df    = obj.degradation.fun;
+            mu    = ConstantFunction.create(0,1,obj.mesh);
+            kappa = obj.baseMaterial.createBulk();
+            degM  = obj.createDegradedLameParameterFunction(mu,df);
+            degK  = obj.createDegradedLameParameterFunction(kappa,df);
+            s.shear = degM;
+            s.bulk  = degK;
+            s.ndim  = obj.mesh.ndim;
+            mat = Isotropic2dElasticMaterial(s);
+        end
+
+        function mat = getShearMaterial(obj,u,phi)
+            obj.setDesignVariable(u,phi);
+            df    = obj.degradation.fun;
+            mu    = obj.baseMaterial.createShear();
+            kappa = ConstantFunction.create(0,1,obj.mesh);
+            degM  = obj.createDegradedLameParameterFunction(mu,df);
+            degK  = obj.createDegradedLameParameterFunction(kappa,df);
+            s.shear = degM;
+            s.bulk  = degK;
+            s.ndim  = obj.mesh.ndim;
+            mat = Isotropic2dElasticMaterial(s);
+        end
+    end
+
+    methods (Access = private)
+
+        function [g, g0] = computeDegradationFun(obj,interpType)
+            switch interpType
+                case 'Interpolated'
+                    fun = obj.degradation.fun;
+                case 'Jacobian'
+                    fun = obj.degradation.dfun;
+                case 'Hessian'
+                    fun = obj.degradation.ddfun;
+            end
+            s.operation = @(xV) fun(obj.phi.evaluate(xV));
+            s.ndimf = obj.phi.ndimf;
+            g0 = DomainFunction(s);
+
+            trcSign = Heaviside(trace(SymGrad(obj.u)));
+            g = g0.*trcSign + (1-trcSign);
+        end
 
     end
 

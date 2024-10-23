@@ -9,7 +9,7 @@ if ismatrix(A)
 else
     t = 0;
     for i=1:size(A,1)
-        diagElem = A(i,i,:,:);
+        diagElem = squeezeParticular(A(i,i,:,:),1);
         t = t + diagElem;
     end
 end
