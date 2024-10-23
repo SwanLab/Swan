@@ -12,9 +12,7 @@ classdef TestingPhaseField < handle
         mesh
         boundaryConditions
         initialPhaseField
-        material
-        dissipation
-        constant
+        functional
     end
 
     methods (Access = public)
@@ -23,19 +21,15 @@ classdef TestingPhaseField < handle
             obj.init(cParams) 
             obj.defineCase();
             obj.createInitialPhaseField();
-            obj.createMaterialPhaseField();
-            obj.createDissipationInterpolation();
-
+            obj.createPhaseFieldFunctional()
         end
 
         function outputData = compute(obj)
             s.mesh = obj.mesh;
-            s.initPhi = obj.initialPhaseField;
-            s.material = obj.material;
-            s.dissipation = obj.dissipation;
             s.boundaryConditions = obj.boundaryConditions;
+            s.initPhi = obj.initialPhaseField;
             s.monitoring = obj.monitoring;
-            s.l0 = obj.l0;
+            s.functional = obj.functional;
             PFComp = PhaseFieldComputer(s);
 
             outputData = PFComp.compute();
@@ -57,13 +51,22 @@ classdef TestingPhaseField < handle
             [obj.mesh, obj.boundaryConditions] = benchmarkManager.create(obj.benchmark);
         end
 
+        function createPhaseFieldFunctional(obj)
+            s.mesh = obj.mesh;
+            s.material = obj.createMaterialPhaseField();
+            s.dissipation = obj.createDissipationInterpolation();
+            s.l0 = obj.l0;
+            s.quadOrder = 2;
+            obj.functional = ShFunc_BrittlePhaseField(s);
+        end
+
         function createInitialPhaseField(obj)
             phi = LagrangianFunction.create(obj.mesh,1,'P1');
             phi.fValues(:) = 1e-12;
             obj.initialPhaseField = phi;
         end
 
-        function createMaterialPhaseField(obj)
+        function material = createMaterialPhaseField(obj)
             s.mesh = obj.mesh;
             s.matInfo = obj.matInfo;
             s.Gc = obj.matInfo.Gc;
@@ -72,17 +75,17 @@ classdef TestingPhaseField < handle
                 s.fileName = obj.matInfo.fileName;
             end
             s.interpolation = obj.matInfo.degradation;
-            obj.material = Material.create(s);
+            material = Material.create(s);
         end
 
-        function createDissipationInterpolation(obj)
+        function dissipation = createDissipationInterpolation(obj)
             s.pExp = obj.dissipInfo.pExp;
-            obj.dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
+            dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                obj.dissipation.constant = obj.matInfo.Gc/(4*(2/3));
+                dissipation.constant = obj.matInfo.Gc/(4*(2/3));
             elseif s.pExp == 2
-                obj.dissipation.constant = obj.matInfo.Gc/(4*(1/2));
+                dissipation.constant = obj.matInfo.Gc/(4*(1/2));
             end
         end
 
