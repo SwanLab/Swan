@@ -2,6 +2,8 @@ classdef Display_Surf < Display_Abstract
 
     properties (Access = private)
         mesh
+        faces
+        vertices
         barLim
     end
 
@@ -24,24 +26,26 @@ classdef Display_Surf < Display_Abstract
             z = zeros(obj.mesh.nnodes,1);
             a = obj.createTrisurf(z);
             obj.handle = a;
+            obj.faces = obj.handle.Faces;
+            obj.vertices = obj.handle.Vertices;
         end
         
     end
 
     methods (Access = public)
 
-        function updateParams(obj,it,value)
-            obj.iterationArray = it;
+        function updateParams(obj,it,value) 
             if ~isempty(value)
                 obj.valueArray = value;
+                obj.iterationArray = it;
             end
         end
 
         function refresh(obj)
             if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
                 z = obj.valueArray;
-                a = obj.createTrisurf(z);
-                obj.handle = a;
+                obj.vertices(:,3) = z;
+                set(obj.handle,'ZData',z,'CData',z,'Faces',obj.faces,'Vertices',obj.vertices);
                 drawnow
             end
         end
@@ -60,6 +64,7 @@ classdef Display_Surf < Display_Abstract
             a.EdgeColor = [0 0 0];
             colorbar
             clim(obj.barLim);
+            hold off
 
             if ~isempty(obj.iterationArray)
                 iter = num2str(obj.iterationArray);

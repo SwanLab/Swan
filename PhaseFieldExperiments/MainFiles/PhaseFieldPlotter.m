@@ -41,6 +41,14 @@ classdef PhaseFieldPlotter < handle
             xlabel('Displacement [mm]')
             ylabel('Damage [-]')
             ylim([0 1]);
+            
+            % quad = Quadrature.set(obj.mesh.type);
+            % quad.computeQuadrature('QUADRATIC');
+            % obj.materialPhaseField.computeMatIso(quad);
+            % C = obj.materialPhaseField.material.C(2,2,1,5);
+            % Gc = obj.materialPhaseField.Gc;
+            % e = obj.displacementMat(step);
+            % obj.damageTheory(step) = (C*e^2)/((Gc/obj.l0)+(C*e^2));
         end
         
         function meshDamage(obj)

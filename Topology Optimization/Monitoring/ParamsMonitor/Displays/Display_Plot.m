@@ -22,11 +22,11 @@ classdef Display_Plot < Display_Abstract
         function updateParams(obj,it,value)
             
             if ~isempty(value)
-                obj.valueArray(end+1,:) = value(1);
+                obj.valueArray(end+1,:) = value(1,:);
                 if length(value) == 1
                     obj.iterationArray(end+1) = it;
-                elseif length(value) == 2
-                    obj.iterationArray(end+1) = value(2);
+                elseif size(value,1) == 2
+                    obj.iterationArray(end+1) = value(2,:);
                 else
                     error('Data input error')
                 end
