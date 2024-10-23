@@ -42,34 +42,31 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,3,90);
-            x2      = linspace(0,1,30);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            length   = 3;
+            height   = 1;
+            nx       = 90;
+            ny       = 30;
+            obj.mesh = TriangleMesh(length, height, nx, ny);
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
+            s.type     = 'Full';
+            g          = GeometricalFunction(s);
+            lsFun      = g.computeLevelSetFunction(obj.mesh);
+            s.fun      = lsFun;
+            s.mesh     = obj.mesh;
+            s.type     = 'LevelSet';
             s.plotting = true;
-            ls     = DesignVariable.create(s);
+            ls         = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 
         function createFilter(obj)
             s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filter   = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -96,17 +93,16 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.mesh               = obj.mesh;
+            s.scale              = 'MACRO';
+            s.material           = obj.createMaterial();
+            s.dim                = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
+            s.interpolationType  = 'LINEAR';
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'DISP';
+            s.solverCase         = 'DIRECT';
+            obj.physicalProblem  = ElasticProblem(s);
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -120,17 +116,15 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
             s.material                   = obj.createMaterial();
-            c = ComplianceFunctional(s);
-            obj.compliance = c;
+            obj.compliance               = ComplianceFunctional(s);
         end
 
         function createVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filter;
+            s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.5;
-            v = VolumeConstraint(s);
-            obj.volume = v;
+            obj.volume     = VolumeConstraint(s);
         end
 
         function createCost(obj)
@@ -141,15 +135,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -178,7 +166,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.lb             = -inf;
             s.etaNorm        = 0.05;
             s.gJFlowRatio    = 0.7;
-            opt = OptimizerNullSpace(s);
+            opt              = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -195,9 +183,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  coor(:,1)==0 | coor(:,1)==xMax;
+            xMax = max(obj.mesh.coord(:,1));
+            yMax = max(obj.mesh.coord(:,2));
+
+            isDir = @(coor)  coor(:,1)==0 | coor(:,1)==xMax;
+
             isForce = @(coor)  (coor(:,1)>=0.225*xMax & coor(:,1)<=0.275*xMax & coor(:,2)==0) | ...
                 (coor(:,1)>=0.725*xMax & coor(:,1)<=0.775*xMax & coor(:,2)==0) | ...
                 (coor(:,1)>=0.475*xMax & coor(:,1)<=0.525*xMax & coor(:,2)==yMax);
