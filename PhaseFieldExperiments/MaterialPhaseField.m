@@ -55,7 +55,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
 
         function kFun = getBulkFun(obj,u,phi,interpType)
             obj.setMaterial(u,phi,interpType,'');
-            [g,~] = obj.computeDegradationFun();
+            [g,g0] = obj.computeDegradationFun();
 
             E = obj.young.fValues;
             nu = obj.poisson.fValues;
@@ -66,7 +66,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             s.fValues = kV;
             k = LagrangianFunction(s);
 
-            kFun = times(g,k);
+            kFun = times(g0,k);
         end
 
         function muFun = getShearFun(obj,u,phi,interpType)
@@ -125,7 +125,7 @@ classdef MaterialPhaseField < IsotropicElasticMaterial
             end
 
             mu = g0.evaluate(xV).*muV;
-            k  = g.evaluate(xV).*kV;
+            k  = g0.evaluate(xV).*kV;
         end
     end
 

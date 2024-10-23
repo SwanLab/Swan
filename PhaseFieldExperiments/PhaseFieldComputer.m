@@ -1,9 +1,9 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-12;
-        tolErrPhi = 1e-12;
-        tolErrStag = 1e-12;
+        tolErrU = 1e-8;
+        tolErrPhi = 1e-8;
+        tolErrStag = 1e-8;
         tau = 1e2;
     end
 
@@ -119,7 +119,7 @@ classdef PhaseFieldComputer < handle
                 s.numIterStag = iterStag;
                 s.u = u; s.phi = phi; s.F = F;
                 obj.saveData(s);
-                %obj.printPlots(phi,i);
+                obj.printPlots(phi,i);
                 %exportgraphics(gcf,'Lshape.gif','Append',true);
             end
             obj.printPlots(phi,i);
@@ -164,7 +164,7 @@ classdef PhaseFieldComputer < handle
             s.constant = obj.constant;
             s.l0 = obj.l0;
 
-            obj.functional.energy         = ShFunc_InternalEnergySplit(s);
+            obj.functional.energy         = ShFunc_InternalEnergy(s);
             obj.functional.localDamage    = ShFunc_LocalDamage(s);
             obj.functional.nonLocalDamage = ShFunc_NonLocalDamage(s);
             obj.functional.extWork        = ShFunc_ExternalWork(s);
@@ -375,77 +375,77 @@ classdef PhaseFieldComputer < handle
             % xlabel('Displacement [mm]')
             % ylabel('Force [kN]')
 
-            figure(101)
-            plot(obj.displacementMat(1:step),obj.reactionMat(1:step))
-            title('Force-displacement diagram (Reaction force)')
-            grid on
-            xlabel('Displacement [mm]')
-            ylabel('Force [kN]')
-
-            figure(102)
-            hold on
-            plot(obj.displacementMat(1:step),obj.damageMat(1:step),'Color',"#0072BD")
-            %plot(obj.displacementMat(1:step),obj.damageTheory(1:step),'--','Color',"#D95319")
-            title('Damage-displacement diagram')
-            grid on
-            % legend('Algorithm result', ...
-            %        'Theoretical result')
-            xlabel('Displacement [mm]')
-            ylabel('Damage [-]')
-
-            figure(200)
-            hold on
-            plot(obj.energyMat(5,1:step),'Color',"#0072BD")
-            plot(obj.energyMat(2,1:step),'Color',"#D95319")
-            plot(obj.energyMat(3,1:step),'Color',"#EDB120")
-            plot(obj.energyMat(4,1:step),'Color',"#7E2F8E")
-            plot(obj.energyMat(1,1:step))
-            title('Energy values at each step (Equation terms)')
-            legend('Total energy', ...
-                   'Internal Energy', ...
-                   'Local surface energy', ...
-                   'Non-local surface energy', ...
-                   'External Work')
-            xlabel('Step [-]')
-            ylabel('Energy [J]')
-
-            figure(300)
-            hold on
-            plot(obj.iterMat(1,1:step),'xb')
-            plot(obj.iterMat(2,1:step),'r')
-            plot(obj.iterMat(3,1:step),'k')
-            title('Iterations needed')
-            legend('U','phi')
-            xlabel('Step [-]')
-            ylabel('Iterations')
-
-
-            % figure(500)
+            % figure(101)
+            % plot(obj.displacementMat(1:step),obj.reactionMat(1:step))
+            % title('Force-displacement diagram (Reaction force)')
+            % grid on
+            % xlabel('Displacement [mm]')
+            % ylabel('Force [kN]')
+            % 
+            % figure(102)
             % hold on
-            % for n = 2:size(obj.costFun,2)
-            %     if obj.costFun(2,n) == 0
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
-            %     elseif obj.costFun(2,n) == 1
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
-            %     elseif obj.costFun(2,n) == 2
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
-            %     end
-            % end
-            % title('Cost Function')
-            % xlabel('Iteration [-]')
+            % plot(obj.displacementMat(1:step),obj.damageMat(1:step),'Color',"#0072BD")
+            % %plot(obj.displacementMat(1:step),obj.damageTheory(1:step),'--','Color',"#D95319")
+            % title('Damage-displacement diagram')
+            % grid on
+            % % legend('Algorithm result', ...
+            % %        'Theoretical result')
+            % xlabel('Displacement [mm]')
+            % ylabel('Damage [-]')
+            % 
+            % figure(200)
+            % hold on
+            % plot(obj.energyMat(5,1:step),'Color',"#0072BD")
+            % plot(obj.energyMat(2,1:step),'Color',"#D95319")
+            % plot(obj.energyMat(3,1:step),'Color',"#EDB120")
+            % plot(obj.energyMat(4,1:step),'Color',"#7E2F8E")
+            % plot(obj.energyMat(1,1:step))
+            % title('Energy values at each step (Equation terms)')
+            % legend('Total energy', ...
+            %        'Internal Energy', ...
+            %        'Local surface energy', ...
+            %        'Non-local surface energy', ...
+            %        'External Work')
+            % xlabel('Step [-]')
             % ylabel('Energy [J]')
-
-            figure(600)
-            hold on
-            plot(obj.IntegralCost(1:step))
-            plot(obj.IntegralEnergy(1:step))
-            plot(obj.IntegralDissipation(1:step))
-            title('Energy values at each step (Force-displacement)')
-            legend('Total energy', ...
-                   'Internal energy', ...
-                   'Dissipated energy')
-            xlabel('Step [-]')
-            ylabel('Energy [J]')
+            % 
+            % figure(300)
+            % hold on
+            % plot(obj.iterMat(1,1:step),'xb')
+            % plot(obj.iterMat(2,1:step),'r')
+            % plot(obj.iterMat(3,1:step),'k')
+            % title('Iterations needed')
+            % legend('U','phi')
+            % xlabel('Step [-]')
+            % ylabel('Iterations')
+            % 
+            % 
+            % % figure(500)
+            % % hold on
+            % % for n = 2:size(obj.costFun,2)
+            % %     if obj.costFun(2,n) == 0
+            % %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
+            % %     elseif obj.costFun(2,n) == 1
+            % %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
+            % %     elseif obj.costFun(2,n) == 2
+            % %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
+            % %     end
+            % % end
+            % % title('Cost Function')
+            % % xlabel('Iteration [-]')
+            % % ylabel('Energy [J]')
+            % 
+            % figure(600)
+            % hold on
+            % plot(obj.IntegralCost(1:step))
+            % plot(obj.IntegralEnergy(1:step))
+            % plot(obj.IntegralDissipation(1:step))
+            % title('Energy values at each step (Force-displacement)')
+            % legend('Total energy', ...
+            %        'Internal energy', ...
+            %        'Dissipated energy')
+            % xlabel('Step [-]')
+            % ylabel('Energy [J]')
 
         end
 
