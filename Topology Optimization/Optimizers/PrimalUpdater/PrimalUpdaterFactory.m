@@ -6,13 +6,8 @@ classdef PrimalUpdaterFactory < handle
         function p = create(cParams)
             switch cParams.primal
                 case 'SLERP'
-                    ls = cParams.designVariable;
-                    switch class(ls)
-                        case 'LevelSet'
-                            s.mesh = ls.fun.mesh;
-                        case 'MultiLevelSet'
-                            s.mesh = ls.levelSets{1,1}.fun.mesh;
-                    end
+                    lsF = cParams.designVariable.obtainFunctionInCell();
+                    s.mesh = lsF{1}.mesh;
                     p = SLERP(s);
                 case 'PROJECTED GRADIENT'
                     p = ProjectedGradient(cParams);

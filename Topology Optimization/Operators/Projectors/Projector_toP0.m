@@ -34,27 +34,22 @@ classdef Projector_toP0 < Projector
         end
 
         function rhs = createRHS(obj, fun)
-            ord = obj.createRHSQuadrature(fun);
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = ord;
-            int        = RHSintegrator.create(s);
-            test       = LagrangianFunction.create(obj.mesh,fun.ndimf,'P0');
-            rhs        = int.compute(fun,test);
-        end
+            dV = obj.mesh.computeDvolume(obj.quadrature);
+            xV = obj.quadrature.posgp;
+            fGaus = fun.evaluate(xV);
+            nGaus  = obj.quadrature.ngaus;
+            nF     = size(fGaus,1);
+            nElem  = size(obj.mesh.connec,1);
+            rhs = zeros(nElem,nF);
 
-        function ord = createRHSQuadrature(obj, fun)
-            if isa(fun, 'FGaussDiscontinuousFunction')
-                ord = fun.getQuadratureOrder();
-            else
-                ord = obj.determineQuadratureOrder(fun);
-                ord = 'QUADRATIC'; % no
+            for iGaus = 1:nGaus
+                dVg(:,1) = dV(iGaus,:);
+                for iF = 1:nF
+                    fGausF = squeeze(fGaus(iF,iGaus,:));
+                    Ni = 1;
+                    int = Ni*fGausF.*dVg;
+                    rhs(:,iF) = rhs(:,iF) + int;
+                end
             end
         end
 
