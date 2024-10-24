@@ -55,7 +55,7 @@ classdef MultimaterialTesting < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,20,10);
+            obj.mesh = TriangleMesh(2,1,14,7);
         end
 
         function createDesignVariable(obj)
@@ -221,7 +221,7 @@ classdef MultimaterialTesting < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2;
+            s.maxIter        = 1;
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'EQUALITY'},[obj.nMat,1]);
             s.primal         = 'SLERP';

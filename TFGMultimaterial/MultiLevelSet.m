@@ -66,6 +66,14 @@ classdef MultiLevelSet < handle
             s.mesh           = obj.mesh; 
             charFun          = MultiMaterialCharacteristicFunction(s);
         end
+
+        function lsFun = obtainFunctionInCell(obj)
+            nLS   = length(obj.levelSets);
+            lsFun = cell(nLS,1);
+            for i = 1:nLS
+                lsFun{i} = obj.levelSets{i}.fun;
+            end
+        end
     end
 
    

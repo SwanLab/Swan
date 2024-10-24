@@ -18,26 +18,20 @@ classdef SLERP < handle
             obj.init(cParams);
         end
 
-        function phi = update(obj,g,phi)   
-            phiN              = obj.normalizeLevelSets(phi);
-            gN                = obj.createNormalizedGradient(phi,g);
-            theta             = obj.computeThetaNorm(phi,phiN,gN);
+        function phi = update(obj,g,phi)
+            lsFun             = phi.obtainFunctionInCell();
+            phiN              = obj.normalizeLevelSets(lsFun);
+            gN                = obj.createNormalizedGradient(lsFun,g);
+            theta             = obj.computeThetaNorm(phiN,gN);
             obj.Theta         = theta;
-            [phiNvals,gNvals] = obj.computePhiAndGradientValues(phi,phiN,gN);
+            [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
             phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-            switch class(ls)
-                case 'LevelSet'
-                    gClass  = g;
-                    lsClass = ls;
-                case 'MultiLevelSet'
-                    gClass  = g(1:obj.mesh.nnodes);
-                    lsClass = ls.levelSets{1,1};
-            end
+            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls,g);
             V0 = obj.volume.computeFunctionAndGradient(lsClass);
             if abs(V0-1) <= 1e-10
                 obj.computeLineSearchInBounds(gClass,lsClass);
@@ -70,6 +64,17 @@ classdef SLERP < handle
             s.mesh         = obj.mesh;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.volume     = VolumeFunctional(s);
+        end
+
+        function [lsClass,gClass] = getLevelSetAndGradientForVolume(obj,ls,g)
+            switch class(ls)
+                case 'LevelSet'
+                    gClass  = g;
+                    lsClass = ls;
+                case 'MultiLevelSet'
+                    gClass  = g(1:obj.mesh.nnodes);
+                    lsClass = ls.levelSets{1};
+            end
         end
 
         function computeLineSearchInBounds(obj,g,ls)
@@ -113,35 +118,16 @@ classdef SLERP < handle
             V     = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
-        function phiN = normalizeLevelSets(obj,phi)
-            switch class(phi)
-                case 'LevelSet'
-                    phiF = phi.fun;
-                    phiN = phiF.normalize('L2');
-                case 'MultiLevelSet'
-                    phiF    = phi.levelSets;
-                    phiN{1} = phiF{1,1}.fun.normalize('L2');
-                    phiN{2} = phiF{1,2}.fun.normalize('L2');
-                    phiN{3} = phiF{1,3}.fun.normalize('L2');
-            end
-        end
-
-        function fN = createNormalizedGradient(obj,ls,fV)
+        function fN = createNormalizedGradient(obj,lsFun,fV)
             s.mesh  = obj.mesh;
             s.order = 'P1';
-            switch class(ls)
-                case 'LevelSet'
-                    s.fValues = fV;
-                    f         = LagrangianFunction(s);
-                    fN        = f.normalize('L2');
-                case 'MultiLevelSet'
-                    nLS = length(ls.levelSets);
-                    fV  = reshape(fV,[],nLS);
-                    for i = 1:nLS
-                        s.fValues = fV(:,i);
-                        f         = LagrangianFunction(s);
-                        fN{i}     = f.normalize('L2');
-                    end
+            nLS     = length(lsFun);
+            fV      = reshape(fV,[],nLS);
+            fN      = cell(nLS,1);
+            for i = 1:nLS
+                s.fValues = fV(:,i);
+                f         = LagrangianFunction(s);
+                fN{i}     = f.normalize('L2');
             end
         end
 
@@ -151,33 +137,11 @@ classdef SLERP < handle
             t    = max(acos(phiG),1e-14);
         end
 
-        function t = computeThetaNorm(obj,phi,phiN,gN)
-            switch class(phi)
-                case 'LevelSet'
-                    t = obj.computeTheta(phiN,gN);
-                case 'MultiLevelSet'
-                    nLS = length(phi.levelSets);
-                    t   = obj.computeTheta(phiN{1},gN{1});
-                    for i = 2:nLS
-                        ti = obj.computeTheta(phiN{i},gN{i});
-                        t  = norm(t,ti);
-                    end
-            end
-        end
-
-        function [phiNv,gNv] = computePhiAndGradientValues(obj,phi,phiN,gN)
-            switch class(phi)
-                case 'LevelSet'
-                    phiNv = phiN.fValues;
-                    gNv   = gN.fValues;
-                case 'MultiLevelSet'
-                    nLS   = length(phi.levelSets);
-                    phiNv = [];
-                    gNv   = [];
-                    for i = 1:nLS
-                        phiNv = [phiNv;phiN{i}.fValues];
-                        gNv   = [gNv;gN{i}.fValues];
-                    end
+        function t = computeThetaNorm(obj,phiN,gN)
+            t = 0;
+            for i = 1:length(phiN)
+                ti = obj.computeTheta(phiN{i},gN{i});
+                t  = norm([t,ti]);
             end
         end
 
@@ -198,6 +162,25 @@ classdef SLERP < handle
             obj.boxConstraints.refTau = 1;
         end
 
+    end
+
+    methods (Static, Access = private)
+        function phiN = normalizeLevelSets(lsFun)
+            nLS   = length(lsFun);
+            phiN  = cell(nLS,1);
+            for i = 1:nLS
+                phiN{i} = lsFun{i}.normalize('L2');
+            end
+        end
+
+        function [phiNv,gNv] = computePhiAndGradientValues(phiN,gN)
+            phiNv = [];
+            gNv   = [];
+            for i = 1:length(phiN)
+                phiNv = [phiNv;phiN{i}.fValues];
+                gNv   = [gNv;gN{i}.fValues];
+            end
+        end
     end
 
 end
