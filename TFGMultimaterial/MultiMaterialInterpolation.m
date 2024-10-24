@@ -22,7 +22,7 @@ classdef MultiMaterialInterpolation < handle
             mu                  = obj.computeP0Function(chi.mesh,muVals);
             lambda              = obj.computeP0Function(chi.mesh,lambdaVals);            
             N                   = chi.mesh.ndim;
-            kappa               = lambda + 2.*mu/N;
+            kappa               = obj.computeBulkMagnitude(lambda,mu,N);
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x)
@@ -33,7 +33,7 @@ classdef MultiMaterialInterpolation < handle
             dmu     = obj.computeP0Function(chi.mesh,dmuVal);
             dlam    = obj.computeP0Function(chi.mesh,dlamVal);
             N       = chi.mesh.ndim;
-            dkappa  = dlam + 2.*dmu/N;
+            dkappa  = obj.computeBulkMagnitude(dlam,dmu,N);
         end
 
         function computeFromTo(obj,i,j)
@@ -105,6 +105,11 @@ classdef MultiMaterialInterpolation < handle
             s.fValues = fValues;
             s.mesh    = m;
             f         = LagrangianFunction(s);
+        end
+
+        function kappa = computeBulkMagnitude(lambda,mu,N)
+            s.operation = @(xV) lambda.evaluate(xV) + 2*mu.evaluate(xV)/N;
+            kappa       = DomainFunction(s);
         end
     end
 end
