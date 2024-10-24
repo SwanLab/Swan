@@ -1,7 +1,7 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-6;
+        tolErrU = 1e-8;
         tolErrPhi = 1e-8;
         tolErrStag = 1e-8;
         tau = 100*1e2;
@@ -15,6 +15,7 @@ classdef PhaseFieldComputer < handle
     end
 
     properties (Access = private)
+        shallPrint
         monitor
         data
     end
@@ -110,9 +111,8 @@ classdef PhaseFieldComputer < handle
                 s.numIterStag = iterStag-1;
                 s.u = u; s.phi = phi; s.F = F;
                 s.bc = bc;
-                if i==maxSteps
-                    s.damageField = phi;
-                end
+                s.damageField = phi;
+                s.cost = costFun;
                 output = obj.saveData(output,s);
                 
                 totE = obj.functional.computeCostFunction(u,phi,bc);
@@ -134,6 +134,7 @@ classdef PhaseFieldComputer < handle
             obj.initPhi             = cParams.initPhi;
             obj.boundaryConditions  = cParams.boundaryConditions;
             obj.functional          = cParams.functional;
+            obj.shallPrint          = cParams.monitoring.print;
             obj.setMonitoring(cParams)
         end
 
@@ -224,8 +225,10 @@ classdef PhaseFieldComputer < handle
         end
 
         function printCost(obj,name,iter,cost,e)
-            X = sprintf('%s:%d / cost: %.10g  (diff:%.10g) \n',name,iter,cost,e);
-            fprintf(X);
+            if obj.shallPrint == true
+                X = sprintf('%s:%d / cost: %.8e  (diff:%.8e) \n',name,iter,cost,e);
+                fprintf(X);
+            end
         end
 
         %% %%%%%%%%%%%%%%%%%% SAVE + PLOTS %%%%%%%%%%%%%%% %%
@@ -246,25 +249,7 @@ classdef PhaseFieldComputer < handle
             data.iter.u(step) = cParams.numIterU;
             data.iter.phi(step) = cParams.numIterP;
             data.iter.stag(step) = cParams.numIterStag;
-        end
-
-        function printPlots(obj,costFun)
-
-            figure(300)
-            hold on
-            for n = 2:size(costFun,2)
-                if costFun(2,n) == 0
-                    plot([n-1, n],[costFun(1,n-1), costFun(1,n)],'b')
-                elseif costFun(2,n) == 1
-                    plot([n-1, n],[costFun(1,n-1), costFun(1,n)],'r')
-                elseif costFun(2,n) == 2
-                    plot([n-1, n],[costFun(1,n-1), costFun(1,n)],'k')
-                end
-            end
-            title('Cost Function')
-            xlabel('Iteration [-]')
-            ylabel('Energy [J]')
-            hold off
+            data.cost = cParams.cost;
         end
 
     end

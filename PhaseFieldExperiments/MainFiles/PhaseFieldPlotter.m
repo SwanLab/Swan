@@ -7,6 +7,7 @@ classdef PhaseFieldPlotter < handle
         reaction
         energy
         iter
+        costFun
     end
     
     methods (Access = public)
@@ -18,6 +19,7 @@ classdef PhaseFieldPlotter < handle
             obj.plotForceDisplacement()
             obj.plotEnergies()
             obj.plotIterations()
+            obj.plotCost()
         end
         
     end
@@ -31,6 +33,7 @@ classdef PhaseFieldPlotter < handle
             obj.reaction = cParams.reaction;
             obj.energy = cParams.energy;
             obj.iter = cParams.iter;
+            obj.costFun = cParams.cost;
         end
         
         function plotDamage(obj)
@@ -105,6 +108,24 @@ classdef PhaseFieldPlotter < handle
             legend('U','phi')
             xlabel('Step [-]')
             ylabel('Iterations')
+        end
+
+        function plotCost(obj)
+            figure()
+            hold on
+            for n = 2:size(obj.costFun,2)
+                if obj.costFun(2,n) == 0
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
+                elseif obj.costFun(2,n) == 1
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
+                elseif obj.costFun(2,n) == 2
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
+                end
+            end
+            title('Cost Function')
+            xlabel('Iteration [-]')
+            ylabel('Energy [J]')
+            hold off
         end
 
     end

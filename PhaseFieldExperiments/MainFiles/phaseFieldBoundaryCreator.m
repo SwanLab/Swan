@@ -111,12 +111,12 @@ classdef phaseFieldBoundaryCreator < handle
              
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInUp(coor);
-             sDir.direction = [1];
+             sDir.direction = [2];
              sDir.value     = 0;
              Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInUp(coor);
-             sDir.direction = [2];
+             sDir.direction = [1];
              sDir.value     = uVal;       
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
