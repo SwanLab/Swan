@@ -11,9 +11,14 @@ classdef MultiMaterialCharacteristicFunction < handle
         end
 
 
-        function [fi, tfi] = computeAtNodesAndElements(obj)
-            fi  = obj.computeFunction('P1');
-            tfi = obj.computeFunction('P0');            
+        function charFun = compute(obj)
+            nLS     = length(obj.designVariable.levelSets);
+            chiLoc  = obj.computeParticularCharFunValues();
+            chi     = obj.computeCharFunValues(chiLoc);
+            for i = 1:nLS+1
+                charFun{i} = LagrangianFunction.create(obj.mesh,1,'P0');
+                charFun{i}.fValues = chi(:,i);
+            end
         end
     end
     
@@ -24,21 +29,13 @@ classdef MultiMaterialCharacteristicFunction < handle
             obj.designVariable = cParams.designVariable;
         end
 
-        function charFun = computeFunction(obj,order)
-            nLS     = length(obj.designVariable.levelSets);
-            chiLoc  = obj.computeParticularCharFunValues(order);
-            chi     = obj.computeCharFunValues(chiLoc);
-            charFun = LagrangianFunction.create(obj.mesh,nLS+1,'P1');
-            charFun.fValues = chi;
-        end
-
-        function chiProjectedVals = computeParticularCharFunValues(obj,order)
+        function chiProjectedVals = computeParticularCharFunValues(obj)
             nLS              = length(obj.designVariable.levelSets);
             chiProjectedVals = [];
             for i = 1:nLS
                 x   = obj.designVariable.levelSets{i};
                 chi = x.obtainDomainFunction();
-                chi = chi.project(order);
+                chi = chi.project('P0');
                 chiProjectedVals = [chiProjectedVals,chi.fValues];
             end
         end

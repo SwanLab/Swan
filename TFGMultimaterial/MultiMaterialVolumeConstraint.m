@@ -30,13 +30,12 @@ classdef MultiMaterialVolumeConstraint < handle
         end
 
         function chi = computeCharacteristicFunction(obj,x)
-            charfun   = x.obtainDomainFunction(); 
-            [~,tfi]   = charfun.computeAtNodesAndElements();
+            tfi       = x.obtainDomainFunction(); 
             k         = obj.matID;
-            chiVals   = tfi.fValues(:,k);
+            chiVals   = tfi{k}.fValues;
             s.fValues = chiVals;
             s.mesh    = obj.mesh;
-            s.order   = tfi.order;
+            s.order   = tfi{1}.order;
             chi       = LagrangianFunction(s);
         end
 

@@ -14,9 +14,8 @@ classdef MultimaterialGradientComputer < handle
             x       = obj.designVariable;
             ls2     = x.levelSets{1,2};
             ls3     = x.levelSets{1,3};
-            charfun = x.obtainDomainFunction();
-            [~,tfiFun] = charfun.computeAtNodesAndElements();
-            tfi  = tfiFun.fValues';
+            tfiFun  = x.obtainDomainFunction();
+            tfi  = obj.splitCellIntoValues(tfiFun);
             chi2 = obj.computeExactCharacteristicFunctionLevelSet(ls2); %- Mixed formulation method
             chi3 = obj.computeExactCharacteristicFunctionLevelSet(ls3); %- Mixed formulation method
 
@@ -66,6 +65,13 @@ classdef MultimaterialGradientComputer < handle
     end
 
     methods (Static, Access = private)
+        function chiVal = splitCellIntoValues(chi)
+            chiVal     = zeros(length(chi),length(chi{1}.fValues));
+            for i = 1:length(chi)
+                chiVal(i,:) = chi{i}.fValues;
+            end
+        end
+
         function int = computeRHSCharFunIntegrator(chiLS)
             s.mesh     = chiLS;
             s.type     = 'Unfitted';

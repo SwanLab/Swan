@@ -2,6 +2,7 @@ classdef MultiMaterialComplianceFunctional < handle
 
     properties (Access = private)
         mesh
+        filter
         stateProblem
         nMat
         materialInterpolator
@@ -19,7 +20,9 @@ classdef MultiMaterialComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            obj.material.setDesignVariable(x);
+            xD = x.obtainDomainFunction();
+            xR = obj.filterDesignVariable(xD);
+            obj.material.setDesignVariable(xR);
             C = obj.material.obtainTensor();
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
@@ -31,10 +34,18 @@ classdef MultiMaterialComplianceFunctional < handle
 
         function init(obj,cParams)
             obj.mesh                 = cParams.mesh;
+            obj.filter               = cParams.filter;
             obj.stateProblem         = cParams.stateProblem;
             obj.nMat                 = cParams.nMat;
             obj.materialInterpolator = cParams.materialInterpolator;
             obj.material             = cParams.material;
+        end
+
+        function xR = filterDesignVariable(obj,x)
+            xR = cell(size(x));
+            for i = 1:length(x)
+                xR{i} = obj.filter.compute(x{i},2);
+            end
         end
 
         function u = computeStateVariable(obj,C)
@@ -75,7 +86,8 @@ classdef MultiMaterialComplianceFunctional < handle
                 for j = 1:obj.nMat
                     obj.materialInterpolator.computeFromTo(i,j);
                     dj      = obj.computeLocalGradient(u);
-                    derTop  = squeezeParticular(dj.evaluate([0;0]),2);
+                    djR     = obj.filter.compute(dj,2);
+                    derTop  = djR.fValues';
                     TD      = derTop;
                     DJ{i,j} = TD/obj.value0;
                 end

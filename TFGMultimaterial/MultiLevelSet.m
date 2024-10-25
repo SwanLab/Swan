@@ -33,15 +33,16 @@ classdef MultiLevelSet < handle
 
         function plot(obj)
             if obj.plotting
-                charfun = obj.obtainDomainFunction();
-                [fi,~]  = charfun.computeAtNodesAndElements();
-                p          = obj.mesh.coord';
-                t          = obj.mesh.connec';
-                t(4,:)     = 1;
-
-                figure(2)
-                multimat_plot(p,t,fi.fValues);
-                drawnow
+%                 tfi     = obj.obtainDomainFunction();
+%                 fi      = tfi.project('P1');
+%                 p       = obj.mesh.coord';
+%                 t       = obj.mesh.connec';
+%                 t(4,:)  = 1;
+% 
+%                 figure(2)
+%                 multimat_plot(p,t,fi.fValues);
+%                 drawnow
+% WE HAVE TO IMPLEMENT OUR VERSION
             end
         end
 
@@ -64,7 +65,8 @@ classdef MultiLevelSet < handle
         function charFun = obtainDomainFunction(obj)
             s.designVariable = obj;
             s.mesh           = obj.mesh; 
-            charFun          = MultiMaterialCharacteristicFunction(s);
+            multiCharFun     = MultiMaterialCharacteristicFunction(s);
+            charFun          = multiCharFun.compute();
         end
 
         function ls = obtainVariableInCell(obj)

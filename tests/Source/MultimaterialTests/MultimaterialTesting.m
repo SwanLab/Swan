@@ -14,7 +14,6 @@ classdef MultimaterialTesting < handle
         dualVariable
         optimizer
         nMat
-        pdeCoeff
         matInterp
         mat
         bc
@@ -26,6 +25,7 @@ classdef MultimaterialTesting < handle
         function obj = MultimaterialTesting()
             obj.init()
             obj.createMesh();
+            obj.createFilter();
             obj.createDesignVariable();
             obj.createMaterialProperties();
             obj.createInterpolators();
@@ -56,6 +56,14 @@ classdef MultimaterialTesting < handle
 
         function createMesh(obj)
             obj.mesh = TriangleMesh(2,1,14,7);
+        end
+
+        function createFilter(obj)
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P0');
+            f = Filter.create(s);
+            obj.filter = f;
         end
 
         function createDesignVariable(obj)
@@ -173,6 +181,7 @@ classdef MultimaterialTesting < handle
         function createCompliance(obj)
             s.nMat = obj.nMat;
             s.mesh = obj.mesh;
+            s.filter = obj.filter;
             s.stateProblem = obj.physicalProblem;
             s.material = obj.createMaterial();
             s.materialInterpolator = obj.matInterp;
