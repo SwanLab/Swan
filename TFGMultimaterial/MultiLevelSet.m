@@ -67,12 +67,8 @@ classdef MultiLevelSet < handle
             charFun          = MultiMaterialCharacteristicFunction(s);
         end
 
-        function lsFun = obtainFunctionInCell(obj)
-            nLS   = length(obj.levelSets);
-            lsFun = cell(nLS,1);
-            for i = 1:nLS
-                lsFun{i} = obj.levelSets{i}.fun;
-            end
+        function ls = obtainVariableInCell(obj)
+            ls = obj.levelSets;
         end
     end
 

@@ -19,9 +19,9 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
-            lsFun             = phi.obtainFunctionInCell();
-            phiN              = obj.normalizeLevelSets(lsFun);
-            gN                = obj.createNormalizedGradient(lsFun,g);
+            ls                = phi.obtainVariableInCell();
+            phiN              = obj.normalizeLevelSets(ls);
+            gN                = obj.createNormalizedGradient(ls,g);
             theta             = obj.computeThetaNorm(phiN,gN);
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
@@ -66,17 +66,6 @@ classdef SLERP < handle
             obj.volume     = VolumeFunctional(s);
         end
 
-        function [lsClass,gClass] = getLevelSetAndGradientForVolume(obj,ls,g)
-            switch class(ls)
-                case 'LevelSet'
-                    gClass  = g;
-                    lsClass = ls;
-                case 'MultiLevelSet'
-                    gClass  = g(1:obj.mesh.nnodes);
-                    lsClass = ls.levelSets{1};
-            end
-        end
-
         function computeLineSearchInBounds(obj,g,ls)
             tLower  = 0;
             tUpper  = obj.computeInitialUpperLineSearch(g,ls);
@@ -118,10 +107,10 @@ classdef SLERP < handle
             V     = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
-        function fN = createNormalizedGradient(obj,lsFun,fV)
+        function fN = createNormalizedGradient(obj,ls,fV)
             s.mesh  = obj.mesh;
             s.order = 'P1';
-            nLS     = length(lsFun);
+            nLS     = length(ls);
             fV      = reshape(fV,[],nLS);
             fN      = cell(nLS,1);
             for i = 1:nLS
@@ -165,11 +154,18 @@ classdef SLERP < handle
     end
 
     methods (Static, Access = private)
-        function phiN = normalizeLevelSets(lsFun)
-            nLS   = length(lsFun);
+        function [lsClass,gClass] = getLevelSetAndGradientForVolume(ls,g)
+            lsC     = ls.obtainVariableInCell();
+            lsClass = lsC{1};
+            n       = length(lsClass.fun.fValues);
+            gClass  = g(1:n);
+        end
+
+        function phiN = normalizeLevelSets(ls)
+            nLS   = length(ls);
             phiN  = cell(nLS,1);
             for i = 1:nLS
-                phiN{i} = lsFun{i}.normalize('L2');
+                phiN{i} = ls{i}.fun.normalize('L2');
             end
         end
 

@@ -59,8 +59,8 @@ classdef LevelSet < DesignVariable
             ls         = DesignVariable.create(s);
         end
 
-        function lsFun = obtainFunctionInCell(obj)
-            lsFun{1} = obj.fun;
+        function ls = obtainVariableInCell(obj)
+            ls{1} = obj;
         end
     end
 
