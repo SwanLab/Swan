@@ -25,7 +25,7 @@ classdef DomainFunction < handle
         
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) pagetranspose(aOp(xV));
+            s.operation = @(xV) nOrderTranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -44,9 +44,31 @@ classdef DomainFunction < handle
         end
 
         function r = times(a,b)
+            if not(isfloat(a))
+                aOp = DomainFunction.computeOperation(a);
+            else
+                aOp = @(xV) a;
+            end
+            if not(isfloat(b))
+                bOp = DomainFunction.computeOperation(b);
+            else
+                bOp = @(xV) b;
+            end
+            s.operation = @(xV) aOp(xV).*bOp(xV);
+            r = DomainFunction(s);
+        end
+
+        function r = mtimes(a,b)
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = rdivide(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
         
@@ -71,6 +93,13 @@ classdef DomainFunction < handle
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = trace(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) trace(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -101,6 +130,8 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
+            elseif isnumeric(a)
+                op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);
             end
