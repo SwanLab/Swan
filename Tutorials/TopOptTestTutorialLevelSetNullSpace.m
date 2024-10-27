@@ -180,7 +180,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.print('LevelSet_Bridge');
+            obj.designVariable.print('LevelSet_Bridge');  %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function m = createMaterial(obj)

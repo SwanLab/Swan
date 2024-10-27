@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialDensityNullSpace < handle
+classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityNullSpace()
+        function obj = TopOptTestTutorialLevelSetNullSpace_Bridge()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -42,7 +42,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100); % (x0,xend,div X)
+            x1      = linspace(0,6,150);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -52,17 +52,15 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = true;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -74,18 +72,19 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 1e-3;
-            nu0 = 1/3;
-            ndim = obj.mesh.ndim;
+            E0   = 1e-3;
+            nu0  = 1/3;
+            E1   = 1;
+            nu1  = 1/3;
+            ndim = 2;
+
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-
-            E1 = 1;
-            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
+            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = matA;
@@ -93,15 +92,6 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
-        end
-
-        function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            m = Material.create(s);
         end
 
         function createElasticProblem(obj)
@@ -113,7 +103,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = 'rMINRES';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -125,10 +115,10 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.material                   = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -155,7 +145,10 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
             LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
+            M = LHS.compute;
+
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*eye(size(M));
         end
 
         function createConstraint(obj)
@@ -179,15 +172,26 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
-            s.etaNorm        = 0.05; % Percentatge de màxim canvi design variable
-            s.gJFlowRatio    = 0.5; % 2=constraint té el doble de prioritat que min. cost; 0.5=cost té el doble d'importancia q constraint
+            s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.05;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.print('Density_Bridge'); %Guarda la simulació automàticament per poder veure-la després a paraview
+            obj.designVariable.fun.print('LevelSet_Bridge');  %Guarda la simulació automàticament per poder veure-la després a paraview
+        end
+
+        function m = createMaterial(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = obj.filter.compute(f,1);            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '2D';
+            m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
@@ -195,20 +199,18 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
-            isDir1   = @(coor)  abs(coor(:,1))==0; % is Dirichlet1 = on els desplaçaments estan imposats
-            %isDir2   = @(coor)  abs(coor(:,1))==0; % is Dirichlet2 = on els desplaçaments estan imposats
+            isDir1   = @(coor)  (abs(coor(:,2))==0 &  abs(coor(:,1))>=0 & abs(coor(:,1))<=0.05*xMax); % is Dirichlet1 = on els desplaçaments estan imposats (banda esquerra)
+            isDir2   = @(coor)  (abs(coor(:,2))==0 & abs(coor(:,1))>=0.95*xMax & abs(coor(:,1))<=xMax); % is Dirichlet2 = on els desplaçaments estan imposats (banda dreta)
 
-            isForce1 = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax); % isForce1 = força
-            %isForce2 = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax); % isForce2 = força
-
+            isForce1 = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.475*xMax & abs(coor(:,1))<=0.525*xMax); % isForce1 = força; amunt, centrat
 
             sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = 2;
             sDir{1}.value     = 0;
 
-%             sDir{2}.domain    = @(coor) isDir2(coor);
-%             sDir{2}.direction = [1,2];
-%             sDir{2}.value     = 0;
+            sDir{2}.domain    = @(coor) isDir2(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce1(coor);
             sPL{1}.direction = 2;
@@ -231,7 +233,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
-            s.mesh         = obj.mesh;
+            s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
         end
     end
