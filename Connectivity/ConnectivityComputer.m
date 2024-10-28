@@ -65,7 +65,7 @@ classdef ConnectivityComputer < handle
             s.radius      = 0.4;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
-%             s.type = 'Full'                                                % why isn't obj.designVariable.plot() 100% black?
+             s.type = 'Full'                                                % why isn't obj.designVariable.plot() 100% black?
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;

@@ -22,9 +22,9 @@ classdef StiffnesEigenModesConstraint < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh             = cParams.mesh;
+            obj.mesh              = cParams.mesh;
             obj.minimumEigenValue = cParams.minimumEigenValue;
-            obj.designVariable   = cParams.designVariable;
+            obj.designVariable    = cParams.designVariable;
 
             eigen = StiffnessEigenModesComputer(cParams);
             s.eigenModes = eigen;

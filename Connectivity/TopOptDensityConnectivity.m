@@ -12,7 +12,7 @@ classdef TopOptDensityConnectivity < handle
         constraint
         dualVariable
         optimizer
-        MinimumEigenValue                                                  %%%%%%%%%%%%%%
+        minimumEigenValue                                                  %%%%%%%%%%%%%%
     end
 
     methods (Access = public)
@@ -26,14 +26,14 @@ classdef TopOptDensityConnectivity < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
-%             obj.computeEigenValueFunctional()                            % Minimum Eigenvalue of the initial domain
-%             obj.createEigenValueConstraint();                             %%%%%%%%%%%%%%
+            % obj.computeEigenValueFunctional()                            % Minimum Eigenvalue of the initial domain
+            obj.createEigenValueConstraint();                             %%%%%%%%%%%%%%
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-            obj.computeEigenValueFunctional()                              % Minimum Eigenvalue of the final domain
+          %  obj.computeEigenValueFunctional()                              % Minimum Eigenvalue of the final domain
         end
 
     end
@@ -144,29 +144,29 @@ classdef TopOptDensityConnectivity < handle
             obj.volume = v;
         end
     
-        function computeEigenValueFunctional(obj)
-            eigen = obj.computeEigenValueProblem();
-            s.eigenModes = eigen;
-            s.designVariable = obj.designVariable;
-            mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient()
-        end
+        % function computeEigenValueFunctional(obj)
+        %     eigen = obj.computeEigenValueProblem();
+        %     s.eigenModes = eigen;
+        %     s.designVariable = obj.designVariable;
+        %     mE = MinimumEigenValueFunctional(s);
+        %     obj.minimumEigenValue = mE;
+        % end
 
-        function eigen = computeEigenValueProblem(obj)
-            s.mesh = obj.mesh;
-            eigen  = StiffnessEigenModesComputer(s);
-        end
+        % function eigen = computeEigenValueProblem(obj)
+        %     s.mesh = obj.mesh;
+        %     eigen  = StiffnessEigenModesComputer(s);
+        % end
 
         function createEigenValueConstraint(obj)                           %%%%%%%%%%%%%%
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.minimumEigenValue = 10;                                      % 10? 0?
-            obj.MinimumEigenValue = StiffnesEigenModesConstraint(s);
+            s.minimumEigenValue = 0.1;                                      % 10? 0?
+            obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-%             s.shapeFunctions{2} = obj.MinimumEigenValue;                 %%%%%%%%%%%%%%
+            s.shapeFunctions{2} = obj.minimumEigenValue;                 %%%%%%%%%%%%%%
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -189,7 +189,7 @@ classdef TopOptDensityConnectivity < handle
 
         function createDualVariable(obj)
             s.nConstraints   = 1;                                          % 2 dual variables?
-%             s.nConstraints   = 2;                                        
+            s.nConstraints   = 2;                                        
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -202,21 +202,24 @@ classdef TopOptDensityConnectivity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-%             s.constraintCase{1} = 'EQUALITY';
-%             s.constraintCase{2} = 'INEQUALITY';                          %%%%%%%%%%%% inequality lambda1 < 0? 
-            s.primal         = 'PROJECTED GRADIENT';
+%            s.constraintCase = 'EQUALITY';
+            s.constraintCase{1} = 'EQUALITY';
+            s.constraintCase{2} = 'INEQUALITY';                          %%%%%%%%%%%% inequality lambda1 < 0?          
             s.ub             = 1;
             s.lb             = 0;
-%             s.etaNorm        = 0.01;
-%             s.gJFlowRatio    = 2;
-%             opt = OptimizerNullSpace(s);
-%             opt.solveProblem();
-%             obj.optimizer = opt;
-            s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerMMA(s);
-            opt.solveProblem();
+
+
+           % s.etaNorm        = 0.01;
+           % s.gJFlowRatio    = 2;
+           % s.volumeTarget   = 0.4;
+           % s.primal         = 'PROJECTED GRADIENT';
+           % opt = OptimizerNullSpace(s);
+
+
+
+           opt              = OptimizerMMA(s);
+           
+           opt.solveProblem();
             obj.optimizer = opt;
         end
 

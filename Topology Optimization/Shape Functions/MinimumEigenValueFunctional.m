@@ -52,15 +52,20 @@ classdef MinimumEigenValueFunctional < handle
         end
         
         function computeDensity(obj)
-            dens = obj.designVariable.fun;
-          %  dens  = obj.designVariable.fun.project('P0');            
-            
-            dens.fValues = 1 - dens.fValues; 
-          %  dens.fValues = round(dens.fValues);  
+            densDomain  = obj.designVariable.fun;
+            s.operation = @(xV) obj.computeComplementaryDensity(densDomain,xV);
+            densHole = DomainFunction(s);
+
+           %  dens.fValues = round(dens.fValues);  
            % dens.fValues = max(0,min(1,dens.fValues));
-            obj.density = dens;
+            obj.density = densHole;
         end
         
+        function rho = computeComplementaryDensity(obj,fun,xV)
+            rho = fun.evaluate(xV);
+            rho = 1 - rho;
+         end
+
     end
     
     
