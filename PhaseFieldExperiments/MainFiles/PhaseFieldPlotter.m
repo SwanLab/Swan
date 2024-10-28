@@ -107,7 +107,7 @@ classdef PhaseFieldPlotter < handle
             title('Iterations needed')
             legend('U','phi')
             xlabel('Step [-]')
-            ylabel('Iterations')
+            ylabel('Iteratioobj.costFunns')
         end
 
         function plotCost(obj)

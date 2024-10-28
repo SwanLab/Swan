@@ -10,7 +10,7 @@ classdef benchmarkManager < handle
                     N = cParams.N;
                     mesh = QuadMesh(1,10,N,N);
                 case 'SEN'
-                    file = 'PF_SENmesh';
+                    file = 'PF_SENmesh2';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;

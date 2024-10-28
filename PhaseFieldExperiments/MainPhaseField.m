@@ -6,7 +6,7 @@ s.monitoring.print = false;
 s.benchmark.type.mesh = 'SEN';%'1Elem';
 s.benchmark.N = 10;
 s.benchmark.type.bc = 'displacementShear';%'displacementTraction';
-s.benchmark.bcValues = [0:1e-3:5e-3,5e-3:1e-3:2e-2];%[5e-3:0.1*1e-3:1e-2];%;%[0:1e-4:1e-1];
+s.benchmark.bcValues = [0:1e-3:5e-3,5e-3:1e-3:1e-1];%[5e-3:0.1*1e-3:1e-2];%;%[0:1e-4:1e-1];
 s.matInfo.E  = 210;
 s.matInfo.nu = 0.3;
 s.matInfo.Gc = 2.7e-3;
@@ -22,4 +22,4 @@ outputData = tester.compute();
 
 PhaseFieldPlotter(outputData);
 
-save("SENshear1e-3.mat","outputData")
+%save("SENshear2_1e-3.mat","outputData") ACTIVATE TO SAVE DATA!
