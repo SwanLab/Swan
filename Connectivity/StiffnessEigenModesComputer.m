@@ -26,7 +26,7 @@ classdef StiffnessEigenModesComputer < handle
             obj.createMassInterpolator();                        
         end
 
-        function [lambda,dlambda]  = computeFunctionAndGradient(obj,dens)
+        function [lambda,dlambda]  = computeFunctionAndGradient(obj,dens)  
             obj.density = dens;
             alpha  = obj.conductivity.fun;
             dalpha = obj.conductivity.dfun;
@@ -38,8 +38,8 @@ classdef StiffnessEigenModesComputer < handle
             Mreduced = obj.fullToReduced(M);
             dK = obj.createStiffnessMatrixWithFunction(dalpha);
             dM = obj.computeMassMatrixWithFunction(dm);            
-            [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
-            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,3);
+            [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1); % Dirichlet?
+            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,3);                % Neumann?
             
             dlambda = dK*phiN - lambdaD*dM*phiN;%phi'*dK*phi - lambda*phi'*dM*phi;
             lambda  = lambdaD;
@@ -62,7 +62,7 @@ classdef StiffnessEigenModesComputer < handle
             isLeft  = @(coor) abs(coor(:,1))==xMin;
             isRight = @(coor) abs(coor(:,2))==xMax;
 
-            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor);
+            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor);  % Dirichlet bc on external boundary
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1];
             sDir{1}.value     = 0;
@@ -82,17 +82,18 @@ classdef StiffnessEigenModesComputer < handle
         end        
         
         function createConductivityInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';
-            s.f0   = 1e-5;
-            s.f1   = 1;
+            s.interpolation  = 'SIMPThermal';                              % LHS eigenvalue problem
+            s.f0   = 1e-5;                                                 % "weak phase"
+            s.f1   = 1;                                                    % "strong phase"
             s.pExp = 8;
             a = MaterialInterpolator.create(s);
             obj.conductivity = a;            
         end            
 
         function createMassInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';
+            s.interpolation  = 'SIMPThermal';                              % RHS eigenvalue problem?
             s.f0   = 1e-5;
+%             s.f0   = 0;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -136,7 +137,7 @@ classdef StiffnessEigenModesComputer < handle
             bc = BCApplier(s);            
         end
 
-        function M = computeMassMatrixWithFunction(obj,fun)
+        function M = computeMassMatrixWithFunction(obj,fun)                % rhs of the eigenvalue problem? depends on massInterpolator?
             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
