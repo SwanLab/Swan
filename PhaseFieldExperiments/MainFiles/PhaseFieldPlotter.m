@@ -23,7 +23,7 @@ classdef PhaseFieldPlotter < handle
         end
         
     end
-    
+        
     methods (Access = private)
         
         function init(obj,cParams)

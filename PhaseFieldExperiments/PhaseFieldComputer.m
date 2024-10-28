@@ -4,7 +4,7 @@ classdef PhaseFieldComputer < handle
         tolErrU = 1e-8;
         tolErrPhi = 1e-8;
         tolErrStag = 1e-8;
-        tau = 100*1e2;
+        tau = 0.1*1e2;
     end
 
     properties (Access = private)
@@ -200,8 +200,8 @@ classdef PhaseFieldComputer < handle
         end
 
         function xNew = updatePhi(obj,LHS,RHS,x)
-            deltaX = -LHS\RHS;
-          % deltaX = -obj.tau.*RHS;
+          %  deltaX = -LHS\RHS;
+           deltaX = -obj.tau.*RHS;
             xNew = x + deltaX; 
         end
 
