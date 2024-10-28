@@ -18,9 +18,9 @@ classdef AnalyticalFunction < L2Function
             obj.init(cParams)
         end
 
-        function fxV = evaluate(obj, xGLoc)
-            xV = obj.mesh.computeXgauss(xGLoc);
-            fxV = obj.fHandle(xV);
+        function fxV = evaluate(obj, xLoc)
+            xG = obj.mesh.computeXgauss(xLoc);
+            fxV = obj.fHandle(xG);
         end
 
         function plot(obj)

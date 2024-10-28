@@ -34,12 +34,12 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function init(obj)
             obj.meshSize = 0.05;
-            obj.nCells   = [2 3 10];
-            obj.xmin = 0;
-            obj.xmax = 1;
+            obj.nCells   = [1 3 10];
+            obj.xmin = 1;
+            obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.7;
+            obj.widthH = 0.9;
             obj.widthW = 0.9;
         end
 

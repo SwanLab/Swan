@@ -89,20 +89,10 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = createCellLevelSet(obj,eps)
-            s.mesh    = obj.fineMesh;
-            s.fHandle = @(xV) obj.rectangle(xV,eps);
-            s.ndimf    = 1;
-            f  = AnalyticalFunction(s);
-            ls = f.project('P1');
-
-            % mesh = obj.fineMesh;
-            % ss.filterType = 'P1';
-            % ss.mesh       = mesh;
-            % ss.test       = LagrangianFunction.create(mesh,1,'P0');
-            % ss.trial      = LagrangianFunction.create(mesh,1,'P1');
-            % filter        = Filter.create(ss);
-            % ls = filter.compute(f,2);
-
+            s.operation  = @(xV) obj.rectangle(xV,eps);
+            s.ndimf      = 1;
+            f  = DomainFunction(s);
+            ls = f.project('P1',obj.fineMesh);
         end
 
         function fH = rectangle(obj,xV,eps)
@@ -110,12 +100,11 @@ classdef LevelSetPeriodicAndOriented < handle
             sy = obj.m2.evaluate(xV);
             x0 = 0.5;
             y0 = 0.5;
-            x = obj.evaluateCellCoord(xV,eps);
+            x  = obj.evaluateCellCoord(xV,eps);
             x1 = x(1,:,:);
             x2 = x(2,:,:);
             p = 2;
-            fH = ((abs(x1-x0)./(0.5*sx)).^p+(abs(x2-y0)./(0.5*sy)).^p).^(1/p) - 1;
-         %   fH = max(abs(x1-x0)./sx,abs(x2-y0)./sy) - 0.5;
+            fH = ((abs(x1-x0)./(sx)).^p+(abs(x2-y0)./(sy)).^p).^(1/p) - 0.5;
             fH = -fH;
         end
 
