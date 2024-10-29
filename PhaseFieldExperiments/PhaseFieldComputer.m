@@ -4,7 +4,7 @@ classdef PhaseFieldComputer < handle
         tolErrU = 1e-8;
         tolErrPhi = 1e-8;
         tolErrStag = 1e-8;
-        tau = 150;
+        tau = 0.1*1e2;
     end
 
     properties (Access = private)
@@ -103,6 +103,7 @@ classdef PhaseFieldComputer < handle
                 uOld = u;
                 phiOld = phi;
 
+
                 %%% SAVE DATA + MONITORING %%%%%
                 s.step = i;
                 s.numIterU = iterUMax-1;
@@ -199,8 +200,8 @@ classdef PhaseFieldComputer < handle
         end
 
         function xNew = updatePhi(obj,LHS,RHS,x)
-            %deltaX = -LHS\RHS;
-            deltaX = -obj.tau.*RHS;
+          %  deltaX = -LHS\RHS;
+           deltaX = -obj.tau.*RHS;
             xNew = x + deltaX; 
         end
 
@@ -210,7 +211,7 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)));
+            totReact = sum(F(2*nodes(isInUp)-1));
 
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
