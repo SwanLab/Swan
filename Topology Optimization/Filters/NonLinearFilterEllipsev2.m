@@ -30,22 +30,43 @@ classdef NonLinearFilterEllipsev2 < handle
             iter = 1;
             tolerance = 1;
             fr = 0.01;
-            while tolerance >= 1e-5 && iter <= 1000
+%             filename = 'Ellipse90.gif'; 
+            while tolerance >= 1e-5
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection(fr);
                 obj.createRHSSecondDirection(quadOrder);
                 obj.solveSecondDirection(fr);
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
-                iter = iter + 1;
-                disp(iter);  
                 disp(tolerance);
-             end
+%                 if mod(iter, 5) == 0
+%                     % Create the plot without displaying it
+%                     figure('Visible', 'off');  % Create a figure without displaying it
+%                     obj.trial.plot;            % Call the plotting method
+%                     title(['Iteration: ', num2str(iter)]);
+%                     drawnow;                   % Update the plot immediately
+%                     % Capture the plot as an image      
+%                     frame = getframe(gcf);       % Capture the current figure frame
+%                     im = frame2im(frame);        % Convert the frame to an image
+%                     [imind, cm] = rgb2ind(im, 256); % Convert the image to an indexed image
+%             
+%                     if iter == 5  % Check if it's the first frame to create GIF
+%                         imwrite(imind, cm, filename, 'gif', 'Loopcount', inf, 'DelayTime', 0.1);
+%                     else
+%                         % Append subsequent frames to the GIF file
+%                         imwrite(imind, cm, filename, 'gif', 'WriteMode', 'append', 'DelayTime', 0.1);
+%                     end
+%             
+%                     % Close the figure after capturing
+%                     close(gcf);  % Close the figure to avoid displaying it
+%                 end
+        
+        % Increment the iteration counter
+                iter = iter + 1;
+                disp(iter);
+            end
             
-             obj.trial.plot
-             obj.q.plot
-%            obj.differentPlots( chiValues, E1Values, E2Values, rhoValues, ...
-%             qValues,iterations);
+            obj.trial.plot
             xF.fValues  = obj.trial.fValues;
         end
 
@@ -62,7 +83,7 @@ classdef NonLinearFilterEllipsev2 < handle
             obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
             obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P0'); % 2 = geom dim
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.epsilon = 5*cParams.mesh.computeMeanCellSize();
         end
         function e = updateE1(obj)
                  gRho = Grad(obj.trial);
@@ -109,7 +130,6 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadratureOrder = quadOrder;
             int        = RHSintegrator.create(s);
             test       = obj.trial;
-            %invA     = [1 0; 0 1]; % !!!
             qRotated = RotatedVector(obj.A,obj.q);
             rhs        = int.compute(qRotated, test);
             obj.Kq = rhs;
@@ -121,7 +141,6 @@ classdef NonLinearFilterEllipsev2 < handle
             s.quadType = quadOrder;
             int        = RHSintegrator.create(s);
             nablaRho   = Grad(obj.trial);
-            %invA     = [1 0; 0 1]; % !!!
             rotatedNablaRho = RotatedVector(obj.A,nablaRho);
             test       = obj.q;
             rhs        = int.compute(rotatedNablaRho,test);
@@ -152,58 +171,5 @@ classdef NonLinearFilterEllipsev2 < handle
             var   = abs(eps - obj.epsilon)/eps;
             itHas = var > 1e-15;
         end
-
-        function differentPlots(obj,chi, E1,E2,rho,q,iter)
-            tiledlayout(3, 2); 
-            nexttile;
-            plot(iter, E1, 'DisplayName', 'q grad(rho)');
-            xlabel('Iteration');
-            ylabel('Energy');
-            title('Energy Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-            % Second subplot (for E2values)
-            %subplot(2, 1, 2);  % 2 rows, 1 column, plot 2
-            nexttile;
-            plot(iter, E2, 'DisplayName', 'q^2');
-            xlabel('Iteration');
-            ylabel('Energy');
-            title('Energy Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-             nexttile;
-             plot(iter, chi, 'DisplayName', 'Chi');
-             xlabel('Iteration');
-             ylabel('Energy');
-             title('Energy Values Over Iterations');
-             legend('show'); % Display legend based on 'DisplayName'
-             set(gca, 'YScale', 'log')
-             grid on;
-
-            nexttile;
-            plot(iter, rho, 'DisplayName', 'rho');
-            xlabel('Iteration');
-            ylabel('rho');
-            title('Rho Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-            nexttile;
-            plot(iter, q, 'DisplayName', 'q');
-            xlabel('Iteration');
-            ylabel('q');
-            title('q Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-        end
-
-
     end
 end

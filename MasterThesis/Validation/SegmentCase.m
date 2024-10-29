@@ -70,7 +70,7 @@ classdef SegmentCase < handle
             s.mesh     = obj.mesh;
             s.type     = 'Segment';
             s.theta    = 0;
-            s.alpha    = 10 *obj.mesh.computeMeanCellSize();
+            s.alpha    = 8 *obj.mesh.computeMeanCellSize();
             s.beta     = 1 *obj.mesh.computeMeanCellSize();
             f          = NonLinearFilter.create(s);
             obj.filter = f;
@@ -141,8 +141,8 @@ classdef SegmentCase < handle
             s.ub             = 1;
             s.lb             = 0;
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 5;
+            s.etaNorm        = 0.005;
+            s.gJFlowRatio    = 15;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

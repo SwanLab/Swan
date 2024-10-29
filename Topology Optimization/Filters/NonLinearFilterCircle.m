@@ -28,27 +28,19 @@ classdef NonLinearFilterCircle < handle
             iter = 1;
             tolerance = 1;
             fr = 0.04;
-%             EnergyIntegral = zeros(0,1000);
-%             plotCounter = 1;
             while tolerance >= 1e-5 && iter <=1000
                 oldRho = obj.trial.fValues;
                 obj.createKqFirstDirection(quadOrder);
                 obj.solveFirstDirection(fr);
-%                 EnergyIntegral(plotCounter) = obj.getEnergyIntegral(fun);
-%                 plotCounter = plotCounter + 1;
                 obj.createRHSSecondDirection(quadOrder);
                 obj.solveSecondDirection(fr);
-%                 EnergyIntegral(plotCounter) = obj.getEnergyIntegral(fun);
-%                 plotCounter = plotCounter + 1;
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
                 iter = iter + 1;
-                disp(iter);
                 disp(tolerance);
+                disp(iter);
             end
-%             semilogy(1:length(EnergyIntegral), EnergyIntegral);
-%             grid on
+
            obj.trial.plot
-           obj.q.plot
            xF.fValues  = obj.trial.fValues;
         end
 
@@ -62,10 +54,10 @@ classdef NonLinearFilterCircle < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P2'); % rho_eps
-            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P1'); % 2 = geom dim
+            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
+            obj.q       = LagrangianFunction.create(cParams.mesh, 2, 'P0'); % 2 = geom dim
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.epsilon = 7* cParams.mesh.computeMeanCellSize();
         end
         function e = updateE1(obj)
                  gRho = Grad(obj.trial);
@@ -141,8 +133,8 @@ classdef NonLinearFilterCircle < handle
             
             obj.q.fValues = reshape(obj.q.fValues',1,[])';
             qi = (1-fr).*obj.q.fValues +fr.* (LHS \ RHS);
-            %obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
-            obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
+            obj.q.fValues = reshape(qi,[2,obj.mesh.nelem])';
+            %obj.q.fValues = reshape(qi,[2,obj.mesh.nnodes])';% 2 = geo dim; P0 q obj.mesh.nelem / P1 q obj.mesh.nnodes
         end
 
 
@@ -151,67 +143,9 @@ classdef NonLinearFilterCircle < handle
             itHas = var > 1e-15;
         end
 
-        function energyValue = getEnergyIntegral(obj, chi)
-                gRho = Grad(obj.trial);
-                energy_qDRho = gRho.*obj.q;
-                E1 = Integrator.compute(energy_qDRho,obj.mesh,2);
-                E2 = Integrator.compute(obj.q .* obj.q, obj.mesh,2);
-                s.operation = @(xV) (obj.trial.evaluate(xV) - chi.evaluate(xV)).^2;
-                minSqEnergy = DomainFunction(s);
-                chiIntegral = Integrator.compute(minSqEnergy,obj.mesh,2);
-                energyValue = E1 + (E2/2*obj.epsilon) +chiIntegral;
-        end
+        
 
-        function differentPlots(obj,chi, E1,E2,rho,q,iter)
-            tiledlayout(3, 2); 
-            nexttile;
-            plot(iter, E1, 'DisplayName', 'q grad(rho)');
-            xlabel('Iteration');
-            ylabel('Energy');
-            title('Energy Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-            % Second subplot (for E2values)
-            %subplot(2, 1, 2);  % 2 rows, 1 column, plot 2
-            nexttile;
-            plot(iter, E2, 'DisplayName', 'q^2');
-            xlabel('Iteration');
-            ylabel('Energy');
-            title('Energy Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-             nexttile;
-             plot(iter, chi, 'DisplayName', 'Chi');
-             xlabel('Iteration');
-             ylabel('Energy');
-             title('Energy Values Over Iterations');
-             legend('show'); % Display legend based on 'DisplayName'
-             set(gca, 'YScale', 'log')
-             grid on;
-
-            nexttile;
-            plot(iter, rho, 'DisplayName', 'rho');
-            xlabel('Iteration');
-            ylabel('rho');
-            title('Rho Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-            nexttile;
-            plot(iter, q, 'DisplayName', 'q');
-            xlabel('Iteration');
-            ylabel('q');
-            title('q Values Over Iterations');
-            legend('show'); % Display legend based on 'DisplayName'
-            set(gca, 'YScale', 'log')
-            grid on;
-
-        end
+       
 
 
     end

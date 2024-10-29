@@ -38,19 +38,36 @@ classdef NonLinearFilterSegment < handle
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            %fr = 0.1;
-            while tolerance >= 1e-4 
+%             filename = 'beta5alpha5theta30.gif';
+            while tolerance >= 1e-5 
                 oldRho = obj.trial.fValues;
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updateDotProductPreviousGuess();
-                tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues); 
+                tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
+%                 figure('Visible', 'off');  % Create a figure without displaying it
+%                 obj.trial.plot;            % Call the plotting method
+%                 title(['Iteration: ', num2str(iter)]);
+%                 drawnow;                   % Update the plot immediately
+%                 % Capture the plot as an image      
+%                 frame = getframe(gcf);       % Capture the current figure frame
+%                 im = frame2im(frame);        % Convert the frame to an image
+%                 [imind, cm] = rgb2ind(im, 256); % Convert the image to an indexed image
+%                 if iter == 1 % Check if it's the first frame to create GIF
+%                      imwrite(imind, cm, filename, 'gif', 'Loopcount', inf, 'DelayTime', 0.1);
+%                 else
+%                      % Append subsequent frames to the GIF file
+%                      imwrite(imind, cm, filename, 'gif', 'WriteMode', 'append', 'DelayTime', 0.1);
+%                 end
+%             
+%                  % Close the figure after capturing
+%                 close(gcf);  % Close the figure to avoid displaying it
                 iter = iter + 1;
-%                 disp(iter);  
-%                 disp(tolerance);
+                 disp(iter);  
+                 disp(tolerance);
              end
            
-%             obj.trial.plot
+            obj.trial.plot
             xF.fValues = obj.trial.fValues;
 
         end
@@ -63,7 +80,7 @@ classdef NonLinearFilterSegment < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = cParams.beta;
-            obj.lineSearch = 10;
+            obj.lineSearch = 100;
         end
 
         function createDirection(obj)
