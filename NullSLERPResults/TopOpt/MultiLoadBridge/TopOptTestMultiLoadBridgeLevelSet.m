@@ -437,21 +437,21 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
         end
 
         function createConstraint(obj)
-            %s.shapeFunctions{1} = obj.complianceLeft;
-            %s.shapeFunctions{2} = obj.compliance12;
-            %s.shapeFunctions{3} = obj.compliance23;
-            %s.shapeFunctions{4} = obj.compliance34;
-            s.shapeFunctions{1} = obj.complianceCenter;
-            %s.shapeFunctions{6} = obj.compliance56;
-            %s.shapeFunctions{7} = obj.compliance67;
-            %s.shapeFunctions{8} = obj.compliance78;
-            %s.shapeFunctions{9} = obj.complianceRight;
+            s.shapeFunctions{1} = obj.complianceLeft;
+            s.shapeFunctions{2} = obj.compliance12;
+            s.shapeFunctions{3} = obj.compliance23;
+            s.shapeFunctions{4} = obj.compliance34;
+            s.shapeFunctions{5} = obj.complianceCenter;
+            s.shapeFunctions{6} = obj.compliance56;
+            s.shapeFunctions{7} = obj.compliance67;
+            s.shapeFunctions{8} = obj.compliance78;
+            s.shapeFunctions{9} = obj.complianceRight;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;
+            s.nConstraints   = 9;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -462,9 +462,9 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 1500;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY'};%,'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;

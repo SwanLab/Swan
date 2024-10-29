@@ -276,6 +276,8 @@ classdef OptimizerNullSpace < Optimizer
 %                     tFun = DomainFunction(s);
 %                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
 %                     obj.etaMax = sqrt(tNorm);
+
+                        obj.etaMax = 0.07;
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
