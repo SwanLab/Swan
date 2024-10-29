@@ -30,6 +30,9 @@ classdef CantileverSimulations < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            d = obj.designVariable;
+            save('DVToStudyEpsilon.mat','d'); % You may change this to save('[SpecificFolder/DVToStudyEpsilon.mat]','d');
         end
 
     end
@@ -41,14 +44,11 @@ classdef CantileverSimulations < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,1,100);
-            x2      = linspace(0,2,200);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            x1       = 1;
+            x2       = 2;
+            n1       = 100;
+            n2       = 200;
+            obj.mesh = TriangleMesh(x1,x2,n1,n2);
         end
 
         function createDesignVariable(obj)
@@ -65,23 +65,23 @@ classdef CantileverSimulations < handle
         end
 
         function createFilter(obj)
-%             s.filterType = 'LUMP';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             obj.filter = f;
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
 
-            ss.filterType       = 'PDE';
-            ss.mesh            = obj.mesh;
-            ss.boundaryType    = 'Neumann';
-            ss.metric          = 'Anisotropy';
-            nu                 = 88;    % deg VARIABLE
-            ss.aniAlphaDeg     = 90;    % alpha FIXED
-            epsilon            = 5*obj.mesh.computeMeanCellSize();    % filter radius VARIABLE
-            ss.CAnisotropic    = [tand(nu), 0; 0, 1/tand(nu)];    % A matrix
-            ss.trial           = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.filter         = Filter.create(ss);
-            obj.filter.updateEpsilon(epsilon);
+%             ss.filterType       = 'PDE';
+%             ss.mesh            = obj.mesh;
+%             ss.boundaryType    = 'Neumann';
+%             ss.metric          = 'Anisotropy';
+%             nu                 = 88;    % deg VARIABLE
+%             ss.aniAlphaDeg     = 90;    % alpha FIXED
+%             epsilon            = 5*obj.mesh.computeMeanCellSize();    % filter radius VARIABLE
+%             ss.CAnisotropic    = [tand(nu), 0; 0, 1/tand(nu)];    % A matrix
+%             ss.trial           = LagrangianFunction.create(obj.mesh, 1, 'P1');
+%             obj.filter         = Filter.create(ss);
+%             obj.filter.updateEpsilon(epsilon);
         end
 
         function createMaterialInterpolator(obj)
@@ -162,12 +162,9 @@ classdef CantileverSimulations < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -194,8 +191,8 @@ classdef CantileverSimulations < handle
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

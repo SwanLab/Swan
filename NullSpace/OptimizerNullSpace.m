@@ -44,7 +44,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
-            obj.designVariable.fun.print('CantileverEps5nu88');
+            %obj.designVariable.fun.print('CantileverEps5nu88');
         end
     end
 
