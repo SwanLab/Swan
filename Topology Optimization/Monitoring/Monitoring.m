@@ -9,6 +9,8 @@ classdef Monitoring < handle
         maxNColumns
         titles
         chartTypes
+        mesh
+        barLim
     end
 
     methods (Access = public)
@@ -30,6 +32,14 @@ classdef Monitoring < handle
             obj.maxNColumns  = cParams.maxNColumns;
             obj.titles       = cParams.titles;
             obj.chartTypes   = cParams.chartTypes;
+            if isfield(cParams,'mesh')
+                obj.mesh         = cParams.mesh;
+            end
+            if isfield(cParams,'barLim')
+                obj.barLim = cParams.barLim;
+            else
+                obj.barLim = "auto";
+            end
         end
 
         function [nRow,nColumn] = computeNumberRowsColumns(obj)
@@ -45,9 +55,11 @@ classdef Monitoring < handle
                 nPlots         = length(obj.titles);
                 [nRow,nColumn] = obj.computeNumberRowsColumns();
                 for i = 1:nPlots
-                    title     = obj.titles{i};
-                    chartType = obj.chartTypes{i};
-                    newFig    = DisplayFactory.create(chartType,title);
+                    s.title     = obj.titles{i};
+                    s.chartType = obj.chartTypes{i};
+                    s.mesh      = obj.mesh;
+                    s.barLim    = obj.barLim;
+                    newFig    = Display_Abstract.create(s);
                     obj.appendFigure(newFig);
                     obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]);
                     hold on
@@ -62,7 +74,7 @@ classdef Monitoring < handle
         function plot(obj,it,data)
             nPlots = length(obj.figures);
             for i = 1:nPlots
-                obj.figures{i}.updateParams(it,data(i));
+                obj.figures{i}.updateParams(it,data{i});
                 obj.figures{i}.refresh();
             end
         end
