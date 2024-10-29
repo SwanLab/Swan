@@ -4,7 +4,7 @@ classdef PhaseFieldComputer < handle
         tolErrU = 1e-8;
         tolErrPhi = 1e-8;
         tolErrStag = 1e-8;
-        tau = 0.1*1e2;
+        tau = 150;
     end
 
     properties (Access = private)
@@ -38,7 +38,7 @@ classdef PhaseFieldComputer < handle
 
             maxSteps = length(obj.boundaryConditions.bcValues);
             for i = 1:maxSteps
-                fprintf('\n ********* STEP %i *********  \n',i)
+                fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
                 bc = obj.boundaryConditions.nextStep();
                 u.fValues = obj.updateInitialDisplacement(bc,uOld);
 
@@ -102,7 +102,6 @@ classdef PhaseFieldComputer < handle
                 end
                 uOld = u;
                 phiOld = phi;
-
 
                 %%% SAVE DATA + MONITORING %%%%%
                 s.step = i;
@@ -200,8 +199,8 @@ classdef PhaseFieldComputer < handle
         end
 
         function xNew = updatePhi(obj,LHS,RHS,x)
-          %  deltaX = -LHS\RHS;
-           deltaX = -obj.tau.*RHS;
+            deltaX = -LHS\RHS;
+            %deltaX = -obj.tau.*RHS;
             xNew = x + deltaX; 
         end
 
