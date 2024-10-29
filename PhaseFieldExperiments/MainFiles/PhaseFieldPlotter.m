@@ -38,20 +38,22 @@ classdef PhaseFieldPlotter < handle
         
         function plotDamage(obj)
             figure()
+            hold on
             plot(obj.displacement,obj.damage,'Color',"#0072BD")
+            %obj.computeTheoreticalDamage()
             title('Damage-displacement diagram')
             grid on
             xlabel('Displacement [mm]')
             ylabel('Damage [-]')
             ylim([0 1]);
-            
-            % quad = Quadrature.set(obj.mesh.type);
-            % quad.computeQuadrature('QUADRATIC');
-            % obj.materialPhaseField.computeMatIso(quad);
-            % C = obj.materialPhaseField.material.C(2,2,1,5);
-            % Gc = obj.materialPhaseField.Gc;
-            % e = obj.displacementMat(step);
-            % obj.damageTheory(step) = (C*e^2)/((Gc/obj.l0)+(C*e^2));
+        end
+
+        function computeTheoreticalDamage(obj)
+            E = 210; nu = 0.3; l0 = 0.1; Gc = 5e-3;
+            C22 = E/((1+nu)*(1-nu));
+            e = obj.displacement;
+            damageTheory = (C22.*e.^2)./((Gc/l0)+(C22.*e.^2));
+            plot(obj.displacement,damageTheory);
         end
         
         function meshDamage(obj)
@@ -64,11 +66,23 @@ classdef PhaseFieldPlotter < handle
         
         function plotForceDisplacement(obj)
             figure()
+            hold on
             plot(obj.displacement,obj.reaction)
+            %obj.computeTheoreticalForce()
             title('Force-displacement diagram (Reaction force)')
             grid on
             xlabel('Displacement [mm]')
             ylabel('Force [kN]')
+        end
+
+        function computeTheoreticalForce(obj)
+            E = 210; nu = 0.3; l0 = 0.1; Gc = 5e-3;
+            C22 = E/((1+nu)*(1-nu));
+            e = obj.displacement;
+            damageTheory = (C22.*e.^2)./((Gc/l0)+(C22.*e.^2));
+            C22phi = ((1-damageTheory).^2).*C22;
+            sigma = C22phi.*e;
+            plot(obj.displacement,sigma);
         end
         
         function plotEnergies(obj)

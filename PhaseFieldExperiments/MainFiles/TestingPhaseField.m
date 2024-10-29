@@ -62,7 +62,7 @@ classdef TestingPhaseField < handle
 
         function createInitialPhaseField(obj)
             phi = LagrangianFunction.create(obj.mesh,1,'P1');
-            phi.fValues(:) = 1e-12;
+            %phi.fValues(:) = 1e-12;
             obj.initialPhaseField = phi;
         end
 
