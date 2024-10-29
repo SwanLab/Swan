@@ -2,7 +2,7 @@ clc,clear,close all
 
 s.monitoring.set = false;
 s.monitoring.type = 'reduced'; %'reduced'
-s.monitoring.print = false;
+s.monitoring.print = true;
 s.benchmark.type.mesh = 'SEN';%'1Elem';
 s.benchmark.N = 10;
 s.benchmark.type.bc = 'displacementShear';%'displacementTraction';
