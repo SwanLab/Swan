@@ -56,7 +56,7 @@ classdef Dehomogenizer < handle
 
         function createEpsilons(obj)
             xmax = max(obj.mesh.coord(:,1));
-            xmin = min(obj.mesh.coord(:,2));
+            xmin = min(obj.mesh.coord(:,1));
             L    = xmax - xmin;
             e = L./obj.nCells;
             obj.epsilons = e;%(1 + 0.01*linspace(0,100,1))*e/2;

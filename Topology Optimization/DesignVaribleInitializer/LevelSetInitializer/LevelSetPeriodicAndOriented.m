@@ -83,7 +83,7 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = evaluateCellCoord(obj,xV,eps)
-            x = obj.deformedCoord.evaluate(xV);            
+            x = obj.deformedCoord.evaluate(xV);             
             y = obj.computeMicroCoordinate(x,eps);
             y = obj.periodicFunction(y);
         end
@@ -104,7 +104,7 @@ classdef LevelSetPeriodicAndOriented < handle
             x1 = x(1,:,:);
             x2 = x(2,:,:);
             p = 2;
-            fH = ((abs(x1-x0)./(sx)).^p+(abs(x2-y0)./(sy)).^p).^(1/p) - 0.5;
+            fH = ((abs(x1-x0)./(0.5*sx)).^p+(abs(x2-y0)./(0.5*sy)).^p).^(1/p) - 1;
             fH = -fH;
         end
 
@@ -128,7 +128,14 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = computeMicroCoordinate(obj,x,eps)
-            y = (x-min(x(:))-eps)/eps;
+            nDim = size(x,1);
+            y = zeros(size(x));
+            for iDim = 1:nDim
+                xI    = x(iDim,:,:);
+                xImin = min(xI(:));
+                y(iDim,:,:) = (xI-xImin)/(eps);
+            end
+            %y = (x-min(x(:))-eps)/eps;
         end
 
     end

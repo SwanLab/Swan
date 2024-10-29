@@ -39,7 +39,7 @@ classdef ExplainingPeriodicFunction2D < handle
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.9;
+            obj.widthH = 0.6;
             obj.widthW = 0.9;
         end
 
@@ -104,8 +104,8 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function f = createConstantFunction(obj,value)
-          %  s.fHandle = @(x) 0.5*value*(x(1,:,:));
-            s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.5*value*(x(1,:,:));
+          %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
