@@ -89,10 +89,27 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = createCellLevelSet(obj,eps)
-            s.operation  = @(xV) obj.rectangle(xV,eps);
+            s.operation  = @(xV) obj.geometricalFunction(xV,eps);
             s.ndimf      = 1;
             f  = DomainFunction(s);
-            ls = f.project('P1',obj.fineMesh);
+            ls = f.project('P1',obj.fineMesh);            
+        end
+
+        function fH = geometricalFunction(obj,xV,eps)
+            sx = obj.m1.evaluate(xV);
+            sy = obj.m2.evaluate(xV);
+            x0 = 0.5;
+            y0 = 0.5;
+            x  = obj.evaluateCellCoord(xV,eps);            
+            s.xSide = sx;
+            s.ySide = sy;
+            s.xCoorCenter = x0;
+            s.yCoorCenter = y0;
+            s.pnorm = 32;
+            s.type = 'SmoothRectangleInclusion';
+            g = GeometricalFunction(s);
+            f = g.getHandle;
+            fH = f(x);
         end
 
         function fH = rectangle(obj,xV,eps)

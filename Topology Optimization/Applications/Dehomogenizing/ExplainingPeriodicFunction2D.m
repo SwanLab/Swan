@@ -39,7 +39,7 @@ classdef ExplainingPeriodicFunction2D < handle
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.6;
+            obj.widthH = 0.4;
             obj.widthW = 0.9;
         end
 
@@ -98,18 +98,29 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function s = createLevelSetCellParams(obj)            
             s.type  = 'RectangleInclusion';
-            s.xSide = obj.createConstantFunction(obj.widthH);
-            s.ySide = obj.createConstantFunction(obj.widthW);
+            s.xSide = obj.createFunction(obj.widthH);
+            s.ySide = obj.createFunction(obj.widthW);
             s.ndim   = 2;
         end
 
-        function f = createConstantFunction(obj,value)
-            s.fHandle = @(x) 0.5*value*(x(1,:,:));
+        function f = createFunction(obj,value)
+            s.fHandle = @(x) obj.variationFunction(value,x);
           %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
             f = f.project('P1D');
+        end
+
+        function f = variationFunction(obj,value,x)
+            x1 = x(1,:,:);
+            I  = ones(size(x1));
+            xmin = min(x1(:));
+            xmax = max(x1(:));
+            incX   = (xmax+xmin);
+            difX   = (xmax-xmin);
+            xS   = (x1 -0.5*incX)/difX;
+            f = value*(I + 0.1*xS);
         end
 
         function dehomogenize(obj)
