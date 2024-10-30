@@ -40,6 +40,8 @@ classdef StiffnessEigenModesComputer < handle
             dM = obj.computeMassMatrixWithFunction(dm);
             [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
             [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,3);
+            obj.plotDirichletEigenMode(phiD)
+            obj.plotNeumannEigenMode(phiN)
             dlambda = dK*phiN - lambdaD*dM*phiN; %phi'*dK*phi - lambda*phi'*dM*phi;
             lambda  = lambdaD;
         end
@@ -59,12 +61,13 @@ classdef StiffnessEigenModesComputer < handle
             isDown  = @(coor) abs(coor(:,2))==yMin;
             isUp    = @(coor) abs(coor(:,2))==yMax;
             isLeft  = @(coor) abs(coor(:,1))==xMin;
-            isRight = @(coor) abs(coor(:,2))==xMax;
+            isRight = @(coor) abs(coor(:,1))==xMax;
 
             isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor);  
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1];
             sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
 
              dirichletFun = [];
             for i = 1:numel(sDir)
@@ -103,18 +106,22 @@ classdef StiffnessEigenModesComputer < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.quadratureOrder = 2;
-            s.function        = obj.createCompositeFunction(fun);
+            s.function        = obj.createDomainFunction(fun);
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             % K = obj.fullToReduced(K);
         end
 
-        function f = createCompositeFunction(obj,fun)
-            s.l2function     = obj.density;
-            s.handleFunction = fun;
-            s.mesh           = obj.mesh;
-            f = CompositionFunction(s);
+        function f = createDomainFunction(obj,fun)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xV);
+            s.mesh      = obj.mesh;
+            f = DomainFunction(s);
+        end
+
+        function fV = createConductivityAsDomainFunction(obj,fun,xV)
+            densV = obj.density.evaluate(xV);
+            fV = fun(densV);
         end
 
         function K = fullToReduced(obj,K)
@@ -139,7 +146,7 @@ classdef StiffnessEigenModesComputer < handle
             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.function = obj.createCompositeFunction(fun);
+            s.function = obj.createDomainFunction(fun);
             s.quadratureOrder = 2;
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
@@ -148,32 +155,34 @@ classdef StiffnessEigenModesComputer < handle
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
-
             [eigF,eigV] = eigs(K,M,4,'smallestabs');
-            eigV1 = eigV(n);
+            eigV1 = eigV(n,n);
             eigF1 = eigF(:,n);
-            
-
-        %    [V,eigLHSNewman]  = eigs(K,[],10,'smallestabs');
-         %   [Vr,eigLHSDirichlet] = eigs(Kr,[],10,'smallestabs');
-
-
-            % fV = zeros(size(V(:,1)));
-            % fV(obj.boundaryConditions.dirichlet,1) = obj.boundaryConditions.dirichlet_values;
-            % fV(obj.boundaryConditions.free,1) = Vr(:,1);
-            % s.fValues = fV;
-            % s.mesh    = obj.mesh;
-            % vV = P1Function(s);
-            % vV.plot()
-            % 
-            % 
-            % fV = V(:,2);
-            % s.fValues = fV;
-            % s.mesh    = obj.mesh;
-            % vN = P1Function(s);
-            % vN.plot()
-    
         end   
+
+        function plotNeumannEigenMode(obj,eigenF)
+            fV = eigenF;
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            vV = LagrangianFunction(s);
+            vV.plot()
+        end        
+
+        function plotDirichletEigenMode(obj,eigenF)
+            t = LagrangianFunction.create(obj.mesh,1,'P1');
+            ndofs = t.nDofs;           
+            fV = zeros(ndofs,1);
+            dofsDir = obj.boundaryConditions.dirichlet_dofs;
+            fV(dofsDir,1) = obj.boundaryConditions.dirichlet_vals;
+            free = setdiff(1:ndofs,obj.boundaryConditions.dirichlet_dofs);
+            fV(free,1) = eigenF;
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            vV = LagrangianFunction(s);
+            vV.plot()
+        end
 
 
         

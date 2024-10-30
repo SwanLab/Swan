@@ -18,7 +18,12 @@ classdef DirichletCondition < BoundaryCondition
         
         function obj = DirichletCondition(mesh, s)
             % P1
-            fun = LagrangianFunction.create(mesh, mesh.ndim,'P1'); % not necessarily mesh.ndim
+            if isfield(s,'ndim')
+                ndim = s.ndim;
+            else
+                ndim = mesh.ndim;
+            end
+            fun = LagrangianFunction.create(mesh, ndim,'P1'); % not necessarily mesh.ndim
             % pl_dofs = find(s.domain(mesh.coord));
             % eval_values = s.value(mesh.coord);
             % fun.fValues(pl_dofs,s.direction) = eval_values(pl_dofs);
