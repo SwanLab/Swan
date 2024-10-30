@@ -36,9 +36,7 @@ classdef ConnectivityComputer < handle
 %             figure
 
             obj.createCompliance();
-            obj.designVariable.fun.plot()
             obj.computeEigenValueFunctional()
-            obj.designVariable.fun.plot()    % Should it be Changing?
         end
 
     end
@@ -65,7 +63,13 @@ classdef ConnectivityComputer < handle
             s.radius      = 0.4;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
-             s.type = 'Full'                                                % why isn't obj.designVariable.plot() 100% black?
+%             s.type = 'Full'    
+%             s.type = 'Empty'    
+%             s.type        = 'RectangleInclusion';
+%             s.xSide       = 0.5;
+%             s.ySide       = 0.5;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
@@ -99,7 +103,7 @@ classdef ConnectivityComputer < handle
         end
 
         function createCompliance(obj)
-            s.mesh                       = obj.mesh;
+            s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();

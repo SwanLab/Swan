@@ -12,7 +12,7 @@ classdef TopOptDensityConnectivity < handle
         constraint
         dualVariable
         optimizer
-        minimumEigenValue                                                  %%%%%%%%%%%%%%
+        minimumEigenValue                                                  
     end
 
     methods (Access = public)
@@ -26,14 +26,12 @@ classdef TopOptDensityConnectivity < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
-            % obj.computeEigenValueFunctional()                            % Minimum Eigenvalue of the initial domain
-            obj.createEigenValueConstraint();                             %%%%%%%%%%%%%%
+            obj.createEigenValueConstraint();                             
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-          %  obj.computeEigenValueFunctional()                              % Minimum Eigenvalue of the final domain
         end
 
     end
@@ -143,30 +141,17 @@ classdef TopOptDensityConnectivity < handle
             v = VolumeConstraint(s);
             obj.volume = v;
         end
-    
-        % function computeEigenValueFunctional(obj)
-        %     eigen = obj.computeEigenValueProblem();
-        %     s.eigenModes = eigen;
-        %     s.designVariable = obj.designVariable;
-        %     mE = MinimumEigenValueFunctional(s);
-        %     obj.minimumEigenValue = mE;
-        % end
 
-        % function eigen = computeEigenValueProblem(obj)
-        %     s.mesh = obj.mesh;
-        %     eigen  = StiffnessEigenModesComputer(s);
-        % end
-
-        function createEigenValueConstraint(obj)                           %%%%%%%%%%%%%%
+        function createEigenValueConstraint(obj)                           
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.minimumEigenValue = 0.1;                                      % 10? 0?
+            s.minimumEigenValue = 0.1;                                     
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.minimumEigenValue;                 %%%%%%%%%%%%%%
+            s.shapeFunctions{2} = obj.minimumEigenValue;                   
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -188,7 +173,7 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;                                          % 2 dual variables?
+            s.nConstraints   = 1;                                          
             s.nConstraints   = 2;                                        
             l                = DualVariable(s);
             obj.dualVariable = l;
@@ -202,12 +187,10 @@ classdef TopOptDensityConnectivity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-%            s.constraintCase = 'EQUALITY';
             s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';                          %%%%%%%%%%%% inequality lambda1 < 0?          
+            s.constraintCase{2} = 'INEQUALITY';                             
             s.ub             = 1;
             s.lb             = 0;
-
 
            % s.etaNorm        = 0.01;
            % s.gJFlowRatio    = 2;
@@ -215,12 +198,10 @@ classdef TopOptDensityConnectivity < handle
            % s.primal         = 'PROJECTED GRADIENT';
            % opt = OptimizerNullSpace(s);
 
-
-
            opt              = OptimizerMMA(s);
            
            opt.solveProblem();
-            obj.optimizer = opt;
+           obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)

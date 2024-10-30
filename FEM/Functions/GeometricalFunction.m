@@ -161,6 +161,10 @@ classdef GeometricalFunction < handle
                     fH = @(x) -1*ones(size(x1(x)));
                     obj.fHandle = fH;
 
+                case 'Empty'
+                    fH = @(x) 1*ones(size(x1(x)));
+                    obj.fHandle = fH;
+
                 case 'Given'
                     fH = cParams.fHandle;
                     obj.fHandle = fH;
