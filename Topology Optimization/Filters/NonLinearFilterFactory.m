@@ -11,6 +11,8 @@ classdef NonLinearFilterFactory < handle
                     filter = NonLinearFilterEllipsev2(cParams);
                 case 'Segment'
                     filter = NonLinearFilterSegment(cParams);
+                case 'Droplet'
+                    filter = NonLinearFilterDroplet(cParams);
             end
         end
 

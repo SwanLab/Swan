@@ -1,0 +1,36 @@
+% Testing droplet
+
+clear;
+clc;
+
+mesh        = createMesh();
+fun         = createReferenceField(mesh);
+nLFilter    = createNonLinearFilter(mesh);
+fNL         = nLFilter.compute(fun,2);
+
+
+% Functions
+function m = createMesh()
+x1       = linspace(0,1,100);
+x2       = linspace(0,1,100);
+[xv,yv]  = meshgrid(x1,x2);
+[F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
+s.coord  = V(:,1:2);
+s.connec = F;
+m        = Mesh.create(s);
+end
+
+function fun = createReferenceField(m)
+s.fHandle = @(x) 1-heaviside((x(1,:,:)-0.5).^2+(x(2,:,:)-0.5).^2-0.3.^2);
+s.ndimf   = 1;
+s.mesh    = m;
+fun       = AnalyticalFunction(s);
+end
+
+function nLFilter = createNonLinearFilter(m)
+s.mesh   = m;
+s.theta  = 90;
+s.alpha  = 5;
+s.type   = 'Droplet';
+nLFilter = NonLinearFilter.create(s);
+end
