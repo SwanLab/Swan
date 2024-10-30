@@ -24,8 +24,8 @@ classdef MultiMaterialInterpolation < handle
             kappa               = obj.computeBulkMagnitude(lambda,mu,N);
         end
 
-        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x)
-            dC      = obj.computeTensorDerivativeIJ(x);
+        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
+            dC      = obj.computeTensorDerivativeIJ(x,C);
             dmuVal  = squeeze(dC(2,2,:))/4;
             dlamVal = squeeze(dC(1,3,:));
             dmu     = obj.computeP0Function(x{1}.mesh,dmuVal);
@@ -79,9 +79,11 @@ classdef MultiMaterialInterpolation < handle
             coefMatrix2(3,3,:) = 4*c1+c2;
         end
 
-        function dCij = computeTensorDerivativeIJ(obj,chi)
+        function dCij = computeTensorDerivativeIJ(obj,chi,C2)
             chiVal         = obj.splitCellIntoValues(chi);
             C              = obj.computeC(chiVal);
+            C2             = squeezeParticular(C2.evaluate([1/3; 1/3]),3);
+            
             coefMatrix2    = obj.computeGradientCoefficientsMatrix(chi);
             CDC            = pagemtimes(C,coefMatrix2);
             dC             = pagemtimes(CDC,C);

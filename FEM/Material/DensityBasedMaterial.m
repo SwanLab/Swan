@@ -60,7 +60,8 @@ classdef DensityBasedMaterial < handle
         function dC = evaluateGradient(obj,xV)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
+            C = obj.obtainTensor();
+            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho,C);
             m = obj.createMaterial(dmu,dkappa);
             dC = m.evaluate(xV);
         end
