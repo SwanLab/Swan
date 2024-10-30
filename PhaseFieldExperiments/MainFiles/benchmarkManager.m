@@ -10,7 +10,7 @@ classdef benchmarkManager < handle
                     N = cParams.N;
                     mesh = QuadMesh(1,10,N,N);
                 case 'SEN'
-                    file = 'SENmeshDisplaced';
+                    file = 'SENmeshDisplacedMeshed';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
