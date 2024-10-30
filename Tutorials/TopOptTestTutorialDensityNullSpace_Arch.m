@@ -137,7 +137,7 @@ classdef TopOptTestTutorialDensityNullSpace_Arch < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.3;       %volume target
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -176,14 +176,14 @@ classdef TopOptTestTutorialDensityNullSpace_Arch < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.05; % Percentatge de màxim canvi design variable
-            s.gJFlowRatio    = 0.1; % 2=constraint té el doble de prioritat que min. cost; 0.5=cost té el doble d'importancia q constraint
+            s.gJFlowRatio    = 0.2; % 2=constraint té el doble de prioritat que min. cost; 0.5=cost té el doble d'importancia q constraint
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
+classdef TopOptTestTutorialLevelSetNullSpace_Arch < handle
 
     properties (Access = private)
         mesh
@@ -16,20 +16,20 @@ classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetNullSpace_Bridge()
-            obj.init()
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilter();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createOptimizer();
+        function obj = TopOptTestTutorialLevelSetNullSpace_Arch()
+            obj.init()      %Inicialitza codi
+            obj.createMesh();   %Crea la malla
+            obj.createDesignVariable();  %
+            obj.createFilter();   %
+            obj.createMaterialInterpolator();  %
+            obj.createElasticProblem(); %
+            obj.createComplianceFromConstiutive();  %
+            obj.createCompliance();  %
+            obj.createVolumeConstraint();  %
+            obj.createCost();  %
+            obj.createConstraint();  %
+            obj.createDualVariable();  %
+            obj.createOptimizer();  %Comença el programa
         end
 
     end
@@ -42,7 +42,7 @@ classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,6,150);
+             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -127,7 +127,7 @@ classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;    %volume target
+            s.volumeTarget = 0.3;     %volume target: volem que el volum final sigui el 30% del volum total.
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -180,7 +180,7 @@ classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.fun.print('LevelSet_Bridge');  %Guarda la simulació automàticament per poder veure-la després a paraview
+            obj.designVariable.fun.print('LevelSet_Arch');  %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function m = createMaterial(obj)
@@ -199,13 +199,14 @@ classdef TopOptTestTutorialLevelSetNullSpace_Bridge < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
-            isDir1   = @(coor)  (abs(coor(:,2))==0 &  abs(coor(:,1))>=0 & abs(coor(:,1))<=0.05*xMax); % is Dirichlet1 = on els desplaçaments estan imposats (banda esquerra)
-            isDir2   = @(coor)  (abs(coor(:,2))==0 & abs(coor(:,1))>=0.95*xMax & abs(coor(:,1))<=xMax); % is Dirichlet2 = on els desplaçaments estan imposats (banda dreta)
+            isDir1   = @(coor)  (abs(coor(:,2))==0 &  abs(coor(:,1))>=0 & abs(coor(:,1))<=0.1*xMax); % is Dirichlet1 = on els desplaçaments estan imposats (banda esquerra)
+            isDir2   = @(coor)  (abs(coor(:,2))==0 & abs(coor(:,1))>=0.9*xMax & abs(coor(:,1))<=xMax); % is Dirichlet2 = on els desplaçaments estan imposats (banda dreta)
 
-            isForce1 = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.475*xMax & abs(coor(:,1))<=0.525*xMax); % isForce1 = força; amunt, centrat
+            isForce1 = @(coor)  (abs(coor(:,2))==0 & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax); % isForce1 = força; amunt, centrat
+
 
             sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = 2;
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
             sDir{2}.domain    = @(coor) isDir2(coor);
