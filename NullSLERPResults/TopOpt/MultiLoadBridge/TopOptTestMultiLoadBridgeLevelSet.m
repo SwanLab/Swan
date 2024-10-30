@@ -470,6 +470,7 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 10;
+            s.etaMax         = 0.07;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

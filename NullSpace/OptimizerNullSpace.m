@@ -64,7 +64,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 100;
+            obj.etaMax         = cParams.etaMax;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -258,14 +258,14 @@ classdef OptimizerNullSpace < Optimizer
         function updateEtaMax(obj,g,g0)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    active = not(obj.checkIndividualConstraint());
-                    g = g.*active;
-                    if min(g.*g0)<-1e-10
-                        obj.etaMax  = obj.etaMax/2;
-                        obj.etaNorm = max(obj.etaNorm/1.02,0.001);
-                    elseif min(g.*g0)>1e-10
-                        obj.etaMax = obj.etaMax*1.2;
-                    end
+%                     active = not(obj.checkIndividualConstraint());
+%                     g = g.*active;
+%                     if min(g.*g0)<-1e-10
+%                         obj.etaMax  = obj.etaMax/2;
+%                         obj.etaNorm = max(obj.etaNorm/1.02,0.001);
+%                     elseif min(g.*g0)>1e-10
+%                         obj.etaMax = obj.etaMax*1.2;
+%                     end
 %                     dPsi = obj.designVariable.computeIncrement();
 %                     s.fValues = obj.meritGradient;
 %                     s.mesh = obj.designVariable.fun.mesh;
@@ -277,7 +277,6 @@ classdef OptimizerNullSpace < Optimizer
 %                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
 %                     obj.etaMax = sqrt(tNorm);
 
-                        obj.etaMax = 0.07;
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
