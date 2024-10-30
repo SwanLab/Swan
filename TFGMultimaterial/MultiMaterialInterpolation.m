@@ -81,17 +81,27 @@ classdef MultiMaterialInterpolation < handle
 
         function dCij = computeTensorDerivativeIJ(obj,chi)
             chiVal         = obj.splitCellIntoValues(chi);
-            nElem          = size(chiVal,2);
-            C              = obj.elasticTensorB;
+            C              = obj.computeC(chiVal);
             coefMatrix2    = obj.computeGradientCoefficientsMatrix(chi);
+            CDC            = pagemtimes(C,coefMatrix2);
+            dC             = pagemtimes(CDC,C);
+            dCij           = dC;
+        end
+
+        function Cv = computeC(obj,chiVal)
+            C      = obj.elasticTensorB;            
+            nElem  = size(chiVal,2);            
+            tgamma = obj.computeTgamma3(chiVal);
+            Cv     = repmat(C,[1 1 nElem]);
+            Cv     = Cv.*tgamma;            
+        end
+
+        function tgamma3 = computeTgamma3(obj,chiVal)
             tgamma         = (obj.youngVec/obj.youngVec(1))*chiVal;
             tgamma3(:,1,:) = [tgamma;tgamma;tgamma];
             tgamma3        = repmat(tgamma3,[1,3,1]);
-            Cv             = repmat(C,[1 1 nElem]);
-            CvDC           = pagemtimes(Cv,coefMatrix2);
-            dC             = pagemtimes(CvDC,C);
-            dCij           = dC.*(tgamma3.^2);
-        end
+        end        
+
     end
 
     methods (Static, Access = private)
