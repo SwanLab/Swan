@@ -33,14 +33,14 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.05;
-            obj.nCells   = [1 3 10];
-            obj.xmin = 1;
+            obj.meshSize = 0.04;
+            obj.nCells   = [2 2; 20 20];
+            obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.4;
-            obj.widthW = 0.9;
+            obj.widthH = 0.8;
+            obj.widthW = 0.8;
         end
 
         function createMesh(obj)
@@ -61,8 +61,12 @@ classdef ExplainingPeriodicFunction2D < handle
         function createAngle(obj)
             m = obj.mesh;
             x1 = m.coord(:,1);
+            x10 = (max(x1)+min(x1))/2;
+            x2 = m.coord(:,2);
+            x20 = 0;
             beta = zeros(size(x1));
             alpha = beta/2;
+            alpha = atan2(x2 -x20-0.1*(max(x2)),x1-x10);
             s.fValues = alpha;
             s.mesh    = obj.mesh;
             s.order   = 'P1';
@@ -120,7 +124,7 @@ classdef ExplainingPeriodicFunction2D < handle
             incX   = (xmax+xmin);
             difX   = (xmax-xmin);
             xS   = (x1 -0.5*incX)/difX;
-            f = value*(I + 0.1*xS);
+            f = value*(I + 0*xS);
         end
 
         function dehomogenize(obj)

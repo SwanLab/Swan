@@ -111,7 +111,8 @@ classdef PathVertexesToBoundaryComputer < handle
 
         function itIs = isCellAroundCoherent(obj,vertex)
             cells = obj.mesh.computeAllCellsOfVertex(vertex);
-            isCo = squeeze(obj.isCoherent.fValues(1,:,cells));
+            isCV  = obj.isCoherent.getFvaluesDisc();
+            isCo = squeeze(isCV(1,:,cells));
             itIs = all(isCo);
         end
 
@@ -135,8 +136,9 @@ classdef PathVertexesToBoundaryComputer < handle
                 isCellCoherent = obj.isCellAroundCoherent(iVertex);
                 notCoh(idof) = sum(~isCellCoherent);
             end
-
-            if all(obj.isCoherent.fValues(1,:,isS))
+            
+            isCV = obj.isCoherent.getFvaluesDisc();
+            if all(isCV(1,:,isS))
                 iD = find(notCoh == 1);
                % [~,iD] = min(notCoh);
             else

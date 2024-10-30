@@ -30,10 +30,10 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = computeLS(obj,epsilons)
-            nEps = length(epsilons);
+            nEps = size(epsilons,1);
             ls = cell(nEps,1);
             for iEps = 1:nEps
-                eps = epsilons(iEps);
+                eps = epsilons(iEps,:);
                 lsF = obj.computeLevelSet(eps);
                 ls{iEps} = lsF;
             end
@@ -105,24 +105,11 @@ classdef LevelSetPeriodicAndOriented < handle
             s.ySide = sy;
             s.xCoorCenter = x0;
             s.yCoorCenter = y0;
-            s.pnorm = 32;
+            s.pnorm = 4;
             s.type = 'SmoothRectangleInclusion';
             g = GeometricalFunction(s);
             f = g.getHandle;
             fH = f(x);
-        end
-
-        function fH = rectangle(obj,xV,eps)
-            sx = obj.m1.evaluate(xV);
-            sy = obj.m2.evaluate(xV);
-            x0 = 0.5;
-            y0 = 0.5;
-            x  = obj.evaluateCellCoord(xV,eps);
-            x1 = x(1,:,:);
-            x2 = x(2,:,:);
-            p = 2;
-            fH = ((abs(x1-x0)./(0.5*sx)).^p+(abs(x2-y0)./(0.5*sy)).^p).^(1/p) - 1;
-            fH = -fH;
         end
 
         function thresholdParameters(obj)
@@ -150,7 +137,7 @@ classdef LevelSetPeriodicAndOriented < handle
             for iDim = 1:nDim
                 xI    = x(iDim,:,:);
                 xImin = min(xI(:));
-                y(iDim,:,:) = (xI-xImin)/(eps);
+                y(iDim,:,:) = (xI-xImin)/(eps(iDim));
             end
             %y = (x-min(x(:))-eps)/eps;
         end
