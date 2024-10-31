@@ -41,10 +41,11 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,20,20,20);
+            obj.mesh = HexaMesh(2,1,1,40,20,20);
         end
 
         function createDesignVariable(obj)
+            % Density:
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
@@ -55,6 +56,8 @@ classdef TopOptTestTutorial3DDensity < handle
             s.plotting = false;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
+
+            % LevelSet:
         end
 
         function createFilter(obj)
@@ -107,7 +110,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'rMINRES'; % DIRECT
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -144,12 +147,9 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -171,12 +171,14 @@ classdef TopOptTestTutorial3DDensity < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.tolerance      = 1e-8; 
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT'; 
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
-            opt = OptimizerMMA(s);
+            s.etaNorm        = 0.02;
+            s.gJFlowRatio    = 0.2; 
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -185,8 +187,8 @@ classdef TopOptTestTutorial3DDensity < handle
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+            isDir   = @(coor)  coor(:,1)==0;
+            isForce = @(coor)  coor(:,1)==xMax & coor(:,2)>=0.4*yMax & coor(:,2)<=0.6*yMax & coor(:,3)>=0.4*zMax & coor(:,3)<=0.6*zMax;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
