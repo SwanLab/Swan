@@ -30,7 +30,6 @@ classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
             nNode = size(dNdx,2);
             nGaus = size(dNdx,3);
             nElem = size(dNdx,4);
-
             BComp = obj.createBComputer(test,dNdx);
             rhsC = zeros(nNode*nDim,nElem);
             for igaus = 1:nGaus

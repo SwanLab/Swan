@@ -24,6 +24,10 @@ classdef TestingContinuumDamage < handle
             obj.material = obj.createMaterial(cParams);
             obj.results  = obj.compute(cParams);
 
+            u = LagrangianFunction.create(obj.mesh,2,'P1');
+            u.fValues(:,1)=obj.results(1:2:end);
+            u.fValues(:,2)=obj.results(2:2:end);
+            u.plot;
         end
 
         function compareWithElasticProblem(obj)

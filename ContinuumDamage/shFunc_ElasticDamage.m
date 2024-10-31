@@ -1,4 +1,4 @@
-classdef shFunc_Elastic < handle
+classdef shFunc_ElasticDamage < handle
     
     properties (Access = public)
 
@@ -8,6 +8,10 @@ classdef shFunc_Elastic < handle
         material
         displacement
         mesh
+        
+        r0
+        H
+
     end
     
     methods (Access = public)
@@ -17,26 +21,29 @@ classdef shFunc_Elastic < handle
             
         end
         
-        function energy = computeFunction(obj,quadOrder)
+        function energy = computeFunction(obj,quadOrder,u,r)
             
+            d = obj.computeDamage(r);
+
             C = obj.material;
-            epsi = SymGrad(obj.displacement);
-            funct = DDP(DDP(epsi,C),epsi);
+            Cdamage = C*(1-d);
+            epsi = SymGrad(u);
+            funct = DDP(DDP(epsi,Cdamage),epsi);
             energy = 0.5*(Integrator.compute(funct,obj.mesh,quadOrder));
        
         end
         
-        function jacobian = computeJacobian(obj,quadOrder)
+        function jacobian = computeJacobian(obj,quadOrder,u,r)
             
+            d = obj.computeDamage(r);
             C = obj.material;
-            u = obj.displacement;
+            Cdamage = C*(1-d);
             
             epsi = SymGrad(u);
-            b = DDP(epsi,C);
-            
+            b = DDP(epsi,Cdamage);
             
             S.type = 'ShapeSymmetricDerivative';
-            S.quadratureOrder=2;
+            S.quadratureOrder=quadOrder;
             S.mesh = obj.mesh;
             
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
@@ -64,8 +71,22 @@ classdef shFunc_Elastic < handle
             
             hessian = lhs.compute();
         
-        end     
+        end  
         
+        function rOut = newState (rIn)
+
+            C = obj.material;
+            epsi = SymGrad(u);
+            tauEpsi = sqrt(DDP(DDP(epsi,C),epsi));
+
+            if tauEpsi <= rIn
+
+                rOut = rIn;
+            else
+                rOut = tauEpsi;
+            end
+
+        end        
     end
     
     methods (Access = private)
@@ -74,8 +95,26 @@ classdef shFunc_Elastic < handle
             obj.material = cParams.material;
             obj.displacement = cParams.u;
             obj.mesh = cParams.mesh;
+            obj.r0 = cParams.r0;
+            obj.H = cParams.H;
         end
-        
+
+        function d = computeDamage(obj,r)
+            q = obj.computeHardening();
+            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/r.evaluate(xV));
+            s.ndimf = 1;
+            d = DomainFunctiotn(s);
+
+        end
+
+        function q = computeHardening(obj)
+            
+            s.operation = @(r) obj.r0 + obj.H *(r-obj.r0);
+            s.ndimf = 1;
+            q = DomainFunction(s);
+
+        end 
+      
     end
     
 end

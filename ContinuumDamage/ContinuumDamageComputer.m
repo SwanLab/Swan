@@ -4,6 +4,8 @@ classdef ContinuumDamageComputer < handle
         mesh
         boundaryConditions
         material
+        tau = 200
+        tolerance = 1e-9
 
         type
         scale
@@ -26,7 +28,7 @@ classdef ContinuumDamageComputer < handle
 
         function results = compute(obj)
             bc = obj.boundaryConditions;
-            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            uFun = LagrangianFunction.create(obj.mesh, 2, 'P1');
             uFun.fValues = obj.updateInitialDisplacement(bc,uFun);
 
 
@@ -39,14 +41,21 @@ classdef ContinuumDamageComputer < handle
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.u = uFun;
 
-            K = obj.computeKInternal();
-
-            Fext = obj.computeFExternal();
-            Fint = obj.computeFInternal();
-            F = Fext-Fint;
-
-            results = obj.computeU(K,F);
-
+            errorU = 1;
+            uOld = uFun.fValues;
+            while (errorU >= obj.tolerance)
+                %K = obj.computeKInternal();
+                obj.u.fValues = uOld;
+                Fext = obj.computeFExternal();
+                Fint = obj.computeFInternal();
+                F = Fext-Fint;
+                
+                results = obj.computeU(F,obj.u,bc);
+                
+                errorU = max(abs(uOld-results));
+                uOld = results;
+            end
+    
         end
     end
 
@@ -89,14 +98,26 @@ classdef ContinuumDamageComputer < handle
             dim = d;
         end
 
-        function u = computeU(obj,K,F)
+        function uOut = computeU(obj,RHS,uIn,bc)
 
 
-            problemSolver = obj.createSolver();
+            % problemSolver = obj.createSolver();
+            % 
+            % t.stiffness = K;
+            % t.forces = F;
+            % u = problemSolver.solve(t);
+            
+            RHS = RHS(bc.free_dofs);
 
-            t.stiffness = K;
-            t.forces = F;
-            u = problemSolver.solve(t);
+
+            uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
+            uOutVec = uInVec;
+
+            uInFree = uInVec(bc.free_dofs);
+            uOutFree = obj.updateWithGradient(RHS,uInFree);
+            uOutVec(bc.free_dofs) = uOutFree;
+            uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
+
 
         end
         % FOR INTERNAL MATERIA CREATION
@@ -137,5 +158,11 @@ classdef ContinuumDamageComputer < handle
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
          end
+
+         function xNew = updateWithGradient(obj,RHS,x)
+            deltaX = -obj.tau.*RHS;
+            xNew = x + deltaX; 
+        end
+
     end
 end
