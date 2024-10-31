@@ -44,7 +44,7 @@ classdef EdgeFunctionInterpolator < handle
             q = Quadrature.create(m,1);
             xV = q.posgp;
             f  = obj.fInEdge;
-            fE = squeeze(f.evaluate(xV));            
+            fE = squeezeParticular(f.evaluate(xV),2);            
         end
         
     end

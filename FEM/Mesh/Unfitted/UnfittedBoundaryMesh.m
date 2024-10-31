@@ -30,7 +30,29 @@ classdef UnfittedBoundaryMesh < handle
             obj.computeActiveMesh();
             obj.computeUnfittedMeshes();
         end
-        
+
+        function uF = computeBoundaryMeshFunction(obj,fP1)
+            uF = [];
+            if ~isempty(obj.meshes)
+                aMeshes = obj.getActiveMesh();
+                for i = 1:length(aMeshes)
+                    uMeshi     = aMeshes{i};
+                    connecLoc  = uMeshi.backgroundMesh.connec;
+                    if ~isempty(connecLoc)
+                        connecGlob = obj.getGlobalConnec{i};
+                        glob2loc(connecLoc(:)) = connecGlob(:);
+                        s.fValues  = fP1.fValues(glob2loc);
+                        s.mesh     = uMeshi.backgroundMesh;
+                        s.order    = 'P1';
+                        fbackMeshi = LagrangianFunction(s);
+                       % glob2loc   = [];
+                        fi         = uMeshi.obtainFunctionAtUnfittedMesh(fbackMeshi);
+                        uF.activeFuns{i} = fi;
+                    end
+                end
+            end
+        end
+
         function m = getActiveMesh(obj)
             m = obj.getActiveField(obj.meshes);
         end
