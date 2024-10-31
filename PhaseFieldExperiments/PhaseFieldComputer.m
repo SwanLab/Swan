@@ -1,10 +1,9 @@
 classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
-        tolErrU = 1e-8;
+        tolErrU = 1e-13;
         tolErrPhi = 1e-8;
-        tolErrStag = 1e-8;
-        tau = 150;
+        tolErrStag = 1e-6;
     end
 
     properties (Access = private)
@@ -33,7 +32,10 @@ classdef PhaseFieldComputer < handle
             phiOld = phi;
           
             iter = 0;
+            phiIter = 0;
             costFun = null(2,1);
+            tau = 150;
+            s.tauArray = [];
             output = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
@@ -44,10 +46,10 @@ classdef PhaseFieldComputer < handle
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
-                while (eStag > obj.tolErrStag) && (iterStag < 300)
+                while (abs(eStag) > obj.tolErrStag) && (iterStag < 300)
 
                     eU = 1; iterU = 1; costOldU = 0;
-                    while (eU > obj.tolErrU) && (iterU < 100)
+                    while (abs(eU) > obj.tolErrU) && (iterU < 100)
                         LHS = obj.functional.computeElasticLHS(u,phi);
                         RHS = obj.functional.computeElasticRHS(u,phi,bc);
                         u.fValues = obj.computeDisplacement(LHS,RHS,u,bc);
@@ -61,29 +63,42 @@ classdef PhaseFieldComputer < handle
                         costFun(1,end+1) = costU;
                         costFun(2,end) = 0;
                         iter = iter+1;
-                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[]});
+                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
 
                     end
                     if iterU > iterUMax
                         iterUMax = iterU;
                     end
                    
-                    ePhi = 1;  iterPhi = 1; costOldPhi = 0;
-                    while (ePhi > obj.tolErrPhi) && (iterPhi < 100)
-                        LHS = obj.functional.computePhaseFieldLHS(u,phi);
+                    ePhi = -1;  iterPhi = 1; costOldPhi = costOldU;
+                    while (abs(ePhi) > obj.tolErrPhi) && (iterPhi < 300)
+                        %LHS = obj.functional.computePhaseFieldLHS(u,phi);
                         RHS = obj.functional.computePhaseFieldRHS(u,phi);
-                        phiNew = obj.updatePhi(LHS, RHS, phi.fValues);
-                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                        phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
 
-                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
-                        costOldPhi = costPhi;
+                        phiProposed = phi.copy();
+                        phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
+
+                        if ePhi > 0
+                            tau = tau/2;
+                        else
+                            phiIter = phiIter + 1;
+                            obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
+                            s.tauArray(end+1) = tau;
+                            tau = 10*tau;
+                            phi = phiProposed;
+                            costOldPhi = costPhi;
+                            costFun(1,end+1) = costPhi;
+                            costFun(2,end) = 1;
+                            iter = iter+1;
+                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        end
+                        
                         obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                         iterPhi = iterPhi + 1;
 
-                        costFun(1,end+1) = costPhi;
-                        costFun(2,end) = 1;
-                        iter = iter+1;
-                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[]});
+
                     end
                     if iterPhi > iterPhiMax
                         iterPhiMax = iterPhi;
@@ -98,7 +113,7 @@ classdef PhaseFieldComputer < handle
                     costFun(1,end+1) = costStag;
                     costFun(2,end) = 2;
                     iter = iter+1;
-                    obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[]});
+                    obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
                 end
                 uOld = u;
                 phiOld = phi;
@@ -118,7 +133,7 @@ classdef PhaseFieldComputer < handle
                 totF = obj.computeTotalReaction(F);
                 displ = obj.boundaryConditions.bcValues(i);
                 obj.monitor.update(i,{[totF;displ],[max(phi.fValues);displ],[phi.fValues],...
-                                    [iterStag-1],[],[totE]});
+                                    [iterStag-1],[],[totE],[]});
 
             end
         end
@@ -183,7 +198,6 @@ classdef PhaseFieldComputer < handle
 
         function xNew = updateWithNewton(obj,LHS,RHS,x)
             deltaX = -LHS\RHS;
-         %   deltaX = -obj.tau.*RHS;
             xNew = x + deltaX; 
         end
 
@@ -198,9 +212,8 @@ classdef PhaseFieldComputer < handle
             xP = min(max(xLB, x),xUB);
         end
 
-        function xNew = updatePhi(obj,LHS,RHS,x)
-            deltaX = -LHS\RHS;
-            %deltaX = -obj.tau.*RHS;
+        function xNew = updateWithGradient(obj,RHS,x,tau)
+            deltaX = -tau.*RHS;
             xNew = x + deltaX; 
         end
 
@@ -220,7 +233,7 @@ classdef PhaseFieldComputer < handle
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
             cost = obj.functional.computeCostFunction(u,phi,bc);
-            e = abs(cost - costOld);
+            e = cost - costOld;
         end
 
         function printCost(obj,name,iter,cost,e)
@@ -249,6 +262,7 @@ classdef PhaseFieldComputer < handle
             data.iter.phi(step) = cParams.numIterP;
             data.iter.stag(step) = cParams.numIterStag;
             data.cost = cParams.cost;
+            data.tau = cParams.tauArray;
         end
 
     end
