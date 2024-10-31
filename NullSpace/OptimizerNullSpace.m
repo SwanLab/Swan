@@ -97,7 +97,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMonitoring(obj)
             data = obj.cost.value;
-            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.cost.getFields()];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];

@@ -57,8 +57,12 @@ classdef Cost < handle
             end
         end
 
-        function j = getFields(obj,i)
-            j = obj.shapeValues{i};
+        function j = getFields(obj)
+            nFlds = length(obj.shapeValues);
+            j     = zeros(nFlds,1);
+            for i = 1:nFlds
+                j(i) = obj.shapeValues{i};
+            end
         end
     end
     
