@@ -65,8 +65,8 @@ classdef FemDataContainer < AbstractSettings
         function createMaterial(obj,cParams)
             E1        = 1;
             nu1       = 1/3;
-            E         = ConstantFunction.create(E1,1,obj.mesh);
-            nu        = ConstantFunction.create(nu1,1,obj.mesh);
+            E         = ConstantFunction.create(E1,obj.mesh);
+            nu        = ConstantFunction.create(nu1,obj.mesh);
             s.ptype   = obj.type;
             s.pdim    = obj.dim;
             s.nelem   = obj.nelem;

@@ -55,8 +55,8 @@ classdef MaterialPhaseField < Material
 
         function mat = createBaseMaterial(obj,cParams)
             sIso.ndim = obj.mesh.ndim;
-            sIso.young = ConstantFunction.create(cParams.matInfo.E,1,obj.mesh);
-            sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,1,obj.mesh);
+            sIso.young = ConstantFunction.create(cParams.matInfo.E,obj.mesh);
+            sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,obj.mesh);
             mat = Isotropic2dElasticMaterial(sIso);
         end
 
@@ -97,7 +97,7 @@ classdef MaterialPhaseField < Material
             nu = obj.baseMaterial.poisson.constant;
             N = 2;
             kV = E./(N*(1-(N-1)*nu));
-            k = ConstantFunction.create(kV,1,obj.mesh);
+            k = ConstantFunction.create(kV,obj.mesh);
 
             kFun = g0.*k';
         end
@@ -109,7 +109,7 @@ classdef MaterialPhaseField < Material
             E  = obj.baseMaterial.young.constant;
             nu = obj.baseMaterial.poisson.constant;
             muV = E./(2*(1+nu));
-            mu = ConstantFunction.create(muV,1,obj.mesh);
+            mu = ConstantFunction.create(muV,obj.mesh);
 
             muFun = g0.*mu;
         end
@@ -117,7 +117,7 @@ classdef MaterialPhaseField < Material
         function mat = getBulkMaterial(obj,u,phi)
             obj.setDesignVariable(u,phi);
             df    = obj.degradation.fun;
-            mu    = ConstantFunction.create(0,1,obj.mesh);
+            mu    = ConstantFunction.create(0,obj.mesh);
             kappa = obj.baseMaterial.createBulk();
             degM  = obj.createDegradedLameParameterFunction(mu,df);
             degK  = obj.createDegradedLameParameterFunction(kappa,df);
@@ -131,7 +131,7 @@ classdef MaterialPhaseField < Material
             obj.setDesignVariable(u,phi);
             df    = obj.degradation.fun;
             mu    = obj.baseMaterial.createShear();
-            kappa = ConstantFunction.create(0,1,obj.mesh);
+            kappa = ConstantFunction.create(0,obj.mesh);
             degM  = obj.createDegradedLameParameterFunction(mu,df);
             degK  = obj.createDegradedLameParameterFunction(kappa,df);
             s.shear = degM;

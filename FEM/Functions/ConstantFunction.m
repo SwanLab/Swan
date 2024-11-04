@@ -16,10 +16,10 @@ classdef ConstantFunction < AnalyticalFunction
     
     methods (Access = public, Static)
             
-            function obj = create(constant,ndimf,mesh)
+            function obj = create(constant, mesh)
                 s.constant = constant;
+                s.ndimf = length(constant);
                 s.mesh = mesh;
-                s.ndimf = ndimf;
                 s.fHandle = @(xV) constant*ones(size(xV,[2,3])); 
                 obj = ConstantFunction(s);
             end
