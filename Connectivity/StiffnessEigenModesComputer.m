@@ -221,7 +221,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, phi, lambda)
-            dlambda = DDP(dalpha.*Grad(phi), Grad(phi)) - lambda*DDP(phi,phi); % obj.density.* on the second term?
+            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - lambda*phi*phi; % obj.density.* on the second term?
         end
         
 
