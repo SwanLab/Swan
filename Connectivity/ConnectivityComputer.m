@@ -59,17 +59,16 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type        = 'CircleInclusion';
-            s.radius      = 0.4;
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;
-%             s.type = 'Full'    
-%             s.type = 'Empty'    
-%             s.type        = 'RectangleInclusion';
-%             s.xSide       = 0.5;
-%             s.ySide       = 0.5;
+%             s.type        = 'CircleInclusion';
+%             s.radius      = 0.4;
 %             s.xCoorCenter = 0.5;
 %             s.yCoorCenter = 0.5;
+%             s.type = 'Empty'    
+            s.type        = 'RectangleInclusion';
+            s.xSide       = 0.5;
+            s.ySide       = 0.5;
+            s.xCoorCenter = 0.5;
+            s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;

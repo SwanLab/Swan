@@ -39,11 +39,28 @@ classdef StiffnessEigenModesComputer < handle
             dK = obj.createStiffnessMatrixWithFunction(dalpha);
             dM = obj.computeMassMatrixWithFunction(dm);
             [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
-            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,3);
+            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
             obj.plotDirichletEigenMode(phiD)
             obj.plotNeumannEigenMode(phiN)
             dlambda = dK*phiN - lambdaD*dM*phiN; %phi'*dK*phi - lambda*phi'*dM*phi;
             lambda  = lambdaD;
+ 
+            obj.plotEigenValueDerivative(dlambda)
+
+            % Derivative Expression with PhiD
+            phiD_filled = obj.fillVectorWithHomogeneousDirichlet(phiD);
+            dlambdaD = dK*phiD_filled - lambdaD*dM*phiD_filled;
+
+            obj.plotEigenValueDerivative(dlambdaD)
+
+            % Derivative Expression from Continuous Version
+            dalphaCont = obj.createDomainFunction(dalpha)
+            s.fValues = obj.fillVectorWithHomogeneousDirichlet(phiD);
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            phiDCont = LagrangianFunction(s);
+            dlambdaCont = obj.computeLowestEigenValueGradient(dalphaCont, phiDCont, lambdaD); 
+            dlambdaCont.project('P1',obj.mesh).plot()
         end
     end
 
@@ -170,6 +187,21 @@ classdef StiffnessEigenModesComputer < handle
         end        
 
         function plotDirichletEigenMode(obj,eigenF)
+%             t = LagrangianFunction.create(obj.mesh,1,'P1');
+%             ndofs = t.nDofs;           
+%             fV = zeros(ndofs,1);
+%             dofsDir = obj.boundaryConditions.dirichlet_dofs;
+%             fV(dofsDir,1) = obj.boundaryConditions.dirichlet_vals;
+%             free = setdiff(1:ndofs,obj.boundaryConditions.dirichlet_dofs);
+%             fV(free,1) = eigenF;
+            s.fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            vV = LagrangianFunction(s);
+            vV.plot()
+        end
+
+        function fV = fillVectorWithHomogeneousDirichlet(obj,eigenF)
             t = LagrangianFunction.create(obj.mesh,1,'P1');
             ndofs = t.nDofs;           
             fV = zeros(ndofs,1);
@@ -177,6 +209,10 @@ classdef StiffnessEigenModesComputer < handle
             fV(dofsDir,1) = obj.boundaryConditions.dirichlet_vals;
             free = setdiff(1:ndofs,obj.boundaryConditions.dirichlet_dofs);
             fV(free,1) = eigenF;
+        end
+
+        function plotEigenValueDerivative(obj,dlambda)
+            fV = dlambda;
             s.fValues = fV;
             s.mesh    = obj.mesh;
             s.order   = 'P1';
@@ -184,8 +220,12 @@ classdef StiffnessEigenModesComputer < handle
             vV.plot()
         end
 
-
+        function dlambda = computeLowestEigenValueGradient(obj, dalpha, phi, lambda)
+            dlambda = DDP(dalpha.*Grad(phi), Grad(phi)) - lambda*DDP(phi,phi); % obj.density.* on the second term?
+        end
         
+
+
     end
     
 end

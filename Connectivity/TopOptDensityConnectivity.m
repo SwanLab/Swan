@@ -32,6 +32,7 @@ classdef TopOptDensityConnectivity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+            obj.computeEigenValueFunctional();
         end
 
     end
@@ -140,6 +141,19 @@ classdef TopOptDensityConnectivity < handle
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
+        end
+
+        function computeEigenValueFunctional(obj)
+            eigen = obj.computeEigenValueProblem();
+            s.eigenModes = eigen;
+            s.designVariable = obj.designVariable;
+            mE = MinimumEigenValueFunctional(s);
+            mE.computeFunctionAndGradient()
+        end
+
+        function eigen = computeEigenValueProblem(obj)
+            s.mesh = obj.mesh;
+            eigen  = StiffnessEigenModesComputer(s);
         end
 
         function createEigenValueConstraint(obj)                           
