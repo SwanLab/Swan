@@ -9,6 +9,9 @@ classdef LagrangianFunction < FeFunction
     properties (Access = private)
         interpolation
         coord
+
+        dNdxOld
+        xVOld
     end
 
     methods (Access = public)
@@ -68,6 +71,7 @@ classdef LagrangianFunction < FeFunction
 
         %%% Jacobian %%%
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            if isempty(obj.xVOld) || norm(xV - obj.xVOld) >= 1e-14
             nElem = size(obj.connec,1);
             nNodeE = obj.interpolation.nnode;
             nDimE = obj.interpolation.ndime;
@@ -86,8 +90,22 @@ classdef LagrangianFunction < FeFunction
                     end
                 end
             end
-            dNdx = dShapes;
+            dNdx        = dShapes;
+            obj.dNdxOld = dNdx; 
+            obj.xVOld   = xV;
+            else
+                dNdx = obj.dNdxOld;
+            end
         end
+
+        function setdNdxOld(obj,dNdx)
+            obj.dNdxOld = dNdx;
+        end
+
+        function setXvOld(obj,xV)
+            obj.xVOld = xV;
+        end
+
 
         function dNdx  = sampleCartesianDerivatives(obj,xP,cells)
             nNodeE = obj.interpolation.nnode;
@@ -432,7 +450,9 @@ classdef LagrangianFunction < FeFunction
 
         function f = copy(obj)
             f = obj.create(obj.mesh,obj.ndimf,obj.order);
-            f.fValues = obj.fValues;
+            f.fValues = obj.fValues;        
+            f.setXvOld(obj.xVOld);
+            f.setdNdxOld(obj.dNdxOld);
         end
 
         function f = normalize(obj,type,epsilon)

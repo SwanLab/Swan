@@ -13,6 +13,7 @@ classdef ShFunc_LocalDamage < handle
         dissipationInterpolation
         constant
         l0
+        test
     end
     
     methods (Access = public)
@@ -29,7 +30,7 @@ classdef ShFunc_LocalDamage < handle
         
         function J = computeGradient(obj,phi,quadOrder)
             dAlphaFun =  obj.createDissipationFunction(phi,'Jacobian');
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            test = obj.test;
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
@@ -41,8 +42,8 @@ classdef ShFunc_LocalDamage < handle
         function H = computeHessian(obj,phi,quadOrder)
             ddAlphaFun =  obj.createDissipationFunction(phi,'Hessian');
             
-            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.trial = obj.test;
+            s.test = obj.test;
             s.fun = ddAlphaFun;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
@@ -56,6 +57,7 @@ classdef ShFunc_LocalDamage < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.test = LagrangianFunction.create(obj.mesh, 1, 'P1');            
             obj.dissipationInterpolation = cParams.dissipation.interpolation;
             obj.constant = cParams.dissipation.constant;
             obj.l0 = cParams.l0;

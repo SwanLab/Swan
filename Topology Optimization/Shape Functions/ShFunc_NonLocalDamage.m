@@ -5,7 +5,7 @@ classdef ShFunc_NonLocalDamage < handle
     end
     
     properties (Access = private)
-        
+        test
     end
     
     properties (Access = private)
@@ -17,9 +17,9 @@ classdef ShFunc_NonLocalDamage < handle
     methods (Access = public)
         
         function obj = ShFunc_NonLocalDamage(cParams)
-            obj.init(cParams)
-            
+            obj.init(cParams)            
         end
+        
         function F = computeFunction(obj,phi,quadOrder)        
             phiGradSquaredFun = norm(Grad(phi),2)^2;
             int = Integrator.create('Function',obj.mesh,quadOrder);
@@ -27,7 +27,7 @@ classdef ShFunc_NonLocalDamage < handle
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            test = obj.test;
             s.quadratureOrder = quadOrder;
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
@@ -36,8 +36,8 @@ classdef ShFunc_NonLocalDamage < handle
         end
         
         function H = computeHessian(obj,phi,quadOrder)
-            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
-            s.test = LagrangianFunction.create(obj.mesh, phi.ndimf, 'P1');
+            s.trial = obj.test;
+            s.test  = obj.test;
             s.quadratureOrder = quadOrder;
             s.mesh = obj.mesh;
             s.type = 'StiffnessMatrix';
@@ -49,7 +49,8 @@ classdef ShFunc_NonLocalDamage < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh = cParams.mesh;            
+            obj.test = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.constant = cParams.dissipation.constant;
             obj.l0 = cParams.l0;
         end

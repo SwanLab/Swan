@@ -3,6 +3,8 @@ classdef ShFunc_InternalEnergy < handle
     properties (Access = private)
         mesh
         material
+        testPhi
+        testU
     end
     
     methods (Access = public)
@@ -24,7 +26,7 @@ classdef ShFunc_InternalEnergy < handle
             obj.material.setDesignVariable(u,phi);    
             C = obj.material.obtainTensor();
             sigma = DDP(C{1},SymGrad(u));
-            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
+            test = obj.testU;
 
             s.mesh = obj.mesh;
             s.quadratureOrder = quadOrder;
@@ -37,7 +39,7 @@ classdef ShFunc_InternalEnergy < handle
             obj.material.setDesignVariable(u,phi);    
             dC = obj.material.obtainTensorDerivative();
             dEnergyFun = DDP(SymGrad(u),DDP(dC{1},SymGrad(u)));
-            test = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
+            test = obj.testPhi;
             
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
@@ -65,8 +67,8 @@ classdef ShFunc_InternalEnergy < handle
             ddEnergyFun = DDP(SymGrad(u),DDP(ddC{1},SymGrad(u)));
             
             s.fun = ddEnergyFun;
-            s.trial = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
-            s.test  = LagrangianFunction.create(obj.mesh, phi.ndimf, phi.order);
+            s.trial = obj.testPhi;
+            s.test  = obj.testPhi;
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
@@ -79,7 +81,9 @@ classdef ShFunc_InternalEnergy < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.material = cParams.material;
+            obj.material = cParams.material;            
+            obj.testPhi = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.testU   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
         
 
