@@ -25,6 +25,11 @@ classdef Mesh < handle
         xFE
     end
 
+    properties (Access = private)
+        xVOld
+        dVOld
+    end
+
     methods (Static, Access = public)
         
         function obj = create(cParams)
@@ -212,9 +217,16 @@ classdef Mesh < handle
         end
 
         function dV = computeDvolume(obj,quad)
+            xV = quad.posgp;
+            if isempty(obj.xVOld) || norm(xV - obj.xVOld) >= 1e-14
             w = reshape(quad.weigp,[quad.ngaus 1]);
             dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
             dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+            obj.dVOld = dV; 
+            obj.xVOld = xV;            
+            else
+                dV = obj.dVOld;
+            end
         end
 
         %% Remove
