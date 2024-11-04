@@ -47,8 +47,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
       function computeElasticProperties(obj)
             E  = 1;
             nu = 1/3;
-            obj.young   = ConstantFunction.create(E,1,obj.mesh);
-            obj.poisson = ConstantFunction.create(nu,1,obj.mesh);
+            obj.young   = ConstantFunction.create(E,obj.mesh);
+            obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end
 
         function createMaterial(obj)
