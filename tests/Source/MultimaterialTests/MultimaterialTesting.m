@@ -61,7 +61,7 @@ classdef MultimaterialTesting < handle
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P0');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end
@@ -225,7 +225,7 @@ classdef MultimaterialTesting < handle
          end
 
          function createOptimizer(obj)
-            s.monitoring     = true;
+            s.monitoring     = false;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;

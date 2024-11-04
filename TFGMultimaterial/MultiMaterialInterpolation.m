@@ -6,11 +6,6 @@ classdef MultiMaterialInterpolation < handle
         elasticTensorB
    end
 
-   properties (Access = private)
-       currentMat
-       inclusionMat
-   end
-
     methods (Access = public)
         function obj = MultiMaterialInterpolation(cParams)
             obj.init(cParams)
@@ -18,26 +13,22 @@ classdef MultiMaterialInterpolation < handle
 
         function [mu,kappa] = computeConsitutiveTensor(obj,x)
             [muVals,lambdaVals] = obj.computeShearLambdaValues(x);
-            mu                  = obj.computeP0Function(x{1}.mesh,muVals);
-            lambda              = obj.computeP0Function(x{1}.mesh,lambdaVals);            
+            mu                  = obj.computeP1Function(x{1}.mesh,muVals);
+            lambda              = obj.computeP1Function(x{1}.mesh,lambdaVals);            
             N                   = x{1}.mesh.ndim;
             kappa               = obj.computeBulkMagnitude(lambda,mu,N);
         end
 
-        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
-            dC      = obj.computeTensorDerivativeIJ(x,C);
+        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C,i,j)
+            dC      = obj.computeTensorDerivativeIJ(x,C,i,j);
             dmuVal  = squeeze(dC(2,2,:))/4;
             dlamVal = squeeze(dC(1,3,:));
-            dmu     = obj.computeP0Function(x{1}.mesh,dmuVal);
-            dlam    = obj.computeP0Function(x{1}.mesh,dlamVal);
+            dmu     = obj.computeP1Function(x{1}.mesh,dmuVal);
+            dlam    = obj.computeP1Function(x{1}.mesh,dlamVal);
             N       = x{1}.mesh.ndim;
             dkappa  = obj.computeBulkMagnitude(dlam,dmu,N);
         end
 
-        function computeFromTo(obj,i,j)
-            obj.currentMat   = i;
-            obj.inclusionMat = j;
-        end
     end
 
     methods (Access = private)
@@ -55,15 +46,15 @@ classdef MultiMaterialInterpolation < handle
             muVals     = squeeze(Ceff(3,3,:));
         end
 
-        function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi)
+        function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi,i,j)
             chiVal = obj.splitCellIntoValues(chi);
             nu    = 0.25; % !!!
             alpha = (3-nu)/(1+nu);
             beta  = (1+nu)/(1-nu);
             E     = obj.youngVec;
             E1    = E*chiVal;
-            i     = obj.currentMat;
-            j     = obj.inclusionMat;
+            %i     = obj.currentMat;
+            %j     = obj.inclusionMat;
             g     = E(j)/E(i);
             c1    = -0.5*((1-g)./(1+alpha*g))./E1;
             c2    = c1.*((g.*(alpha-2*beta)-1)./(1+beta*g));
@@ -79,12 +70,12 @@ classdef MultiMaterialInterpolation < handle
             coefMatrix2(3,3,:) = 4*c1+c2;
         end
 
-        function dCij = computeTensorDerivativeIJ(obj,chi,C2)
+        function dCij = computeTensorDerivativeIJ(obj,chi,C2,i,j)
             chiVal         = obj.splitCellIntoValues(chi);
             C              = obj.computeC(chiVal);
             C2             = squeezeParticular(C2.evaluate([1/3; 1/3]),3);
             
-            coefMatrix2    = obj.computeGradientCoefficientsMatrix(chi);
+            coefMatrix2    = obj.computeGradientCoefficientsMatrix(chi,i,j);
             CDC            = pagemtimes(C,coefMatrix2);
             dC             = pagemtimes(CDC,C);
             dCij           = dC;
@@ -114,8 +105,8 @@ classdef MultiMaterialInterpolation < handle
             end
         end
 
-        function f = computeP0Function(m,fValues)
-            s.order   = 'P0';
+        function f = computeP1Function(m,fValues)
+            s.order   = 'P1';
             s.fValues = fValues;
             s.mesh    = m;
             f         = LagrangianFunction(s);

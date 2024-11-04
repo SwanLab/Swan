@@ -21,12 +21,17 @@ classdef MultiMaterialComplianceFunctional < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
-            xR = obj.filterDesignVariable(xD);
+            xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);
             C = obj.material.obtainTensor();
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(u,x);
+            dJc = obj.computeGradient(u,x);
+            dJv = [];
+            for i = 1:length(dJc)
+                dJv = [dJv;dJc{i}.fValues];
+            end
+            dJ.fValues = dJv;
         end
     end
 
@@ -41,7 +46,7 @@ classdef MultiMaterialComplianceFunctional < handle
             obj.material             = cParams.material;
         end
 
-        function xR = filterDesignVariable(obj,x)
+        function xR = filterFields(obj,x)
             xR = cell(size(x));
             for i = 1:length(x)
                 xR{i} = obj.filter.compute(x{i},2);
@@ -69,27 +74,22 @@ classdef MultiMaterialComplianceFunctional < handle
             multGrad         = MultimaterialGradientComputer(s);
             TD               = obj.computeTopologicalDerivatives(u);
             dt               = multGrad.compute(TD);
-            dJval            = pdeprtni(obj.mesh.coord',obj.mesh.connec',dt);
-            dJval            = reshape(dJval,[],1);
-            dJ.fValues       = dJval;
+            dJ               = obj.filterFields(dt);
         end
 
-        function dj = computeLocalGradient(obj,u)
-            dC      = obj.material.obtainTensorDerivative();
+        function dj = computeLocalGradient(obj,u,i,j)
+            dC      = obj.material.obtainTensorDerivative(i,j);
             strain  = SymGrad(u);
             dStress = DDP(dC,strain);
             dj      = -0.5.*DDP(strain, dStress);
         end
 
         function DJ = computeTopologicalDerivatives(obj,u)
+            DJ = cell(obj.nMat,obj.nMat);
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
-                    obj.materialInterpolator.computeFromTo(i,j);
-                    dj      = obj.computeLocalGradient(u);
-                    djR     = obj.filter.compute(dj,2);
-                    derTop  = djR.fValues';
-                    TD      = derTop;
-                    DJ{i,j} = TD/obj.value0;
+                    dj      = obj.computeLocalGradient(u,i,j);
+                    DJ{i,j} = dj./obj.value0;
                 end
             end
         end

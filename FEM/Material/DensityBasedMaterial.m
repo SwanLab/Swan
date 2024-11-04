@@ -21,8 +21,8 @@ classdef DensityBasedMaterial < handle
           C = DomainFunction(s);
         end
         
-        function dC = obtainTensorDerivative(obj)
-          s.operation = @(xV) obj.evaluateGradient(xV);
+        function dC = obtainTensorDerivative(obj,i,j)
+          s.operation = @(xV) obj.evaluateGradient(xV,i,j);
           dC = DomainFunction(s);
         end
         
@@ -57,11 +57,11 @@ classdef DensityBasedMaterial < handle
             C = m.evaluate(xV);
         end
         
-        function dC = evaluateGradient(obj,xV)
+        function dC = evaluateGradient(obj,xV,i,j)
             mI  = obj.materialInterpolator;
             rho = obj.density;
             C = obj.obtainTensor();
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho,C);
+            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho,C,i,j);
             m = obj.createMaterial(dmu,dkappa);
             dC = m.evaluate(xV);
         end

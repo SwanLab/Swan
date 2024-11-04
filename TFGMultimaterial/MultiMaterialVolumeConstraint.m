@@ -16,7 +16,12 @@ classdef MultiMaterialVolumeConstraint < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             chi = obj.computeCharacteristicFunction(x);
             J   = obj.computeFunction(chi);
-            dJ  = obj.computeGradient(x);
+            dJc = obj.computeGradient(x);
+            dJv = [];
+            for i = 1:length(dJc)
+                dJv = [dJv;dJc{i}.fValues];
+            end
+            dJ.fValues = dJv;
         end
     end
 
@@ -54,25 +59,28 @@ classdef MultiMaterialVolumeConstraint < handle
             multGrad         = MultimaterialGradientComputer(s);
             TD               = obj.computeTopologicalDerivatives();
             dt               = multGrad.compute(TD);
-            dJval            = pdeprtni(obj.mesh.coord',obj.mesh.connec',dt);
-            dJval            = reshape(dJval,[],1);
-            dJval(dJval==0)  = 1e-6;
-            dJ.fValues       = dJval;
+            for i = 1:length(dt)
+                dJ{i} = dt{i}.project('P1',obj.mesh);
+                dJ{i}.fValues(dJ{i}.fValues>=-1e-6 & dJ{i}.fValues<=1e-6) = 1e-6;
+            end
         end
 
         function dV = computeTopologicalDerivatives(obj)
             k  = obj.matID;
             dV = cell(obj.nMat,obj.nMat);
+            Z  = LagrangianFunction.create(obj.mesh,1,'P1');
+            I  = LagrangianFunction.create(obj.mesh,1,'P1');
+            I.fValues = ones(size(I.fValues));
                 for i=1:obj.nMat
                     for j=1:obj.nMat
                         if i==j
-                            dV{i,j} = zeros(1,obj.mesh.nelem);
+                            dV{i,j} = Z;
                         elseif i == k
-                            dV{i,j} = -1/obj.vTar*ones(1,obj.mesh.nelem);
+                            dV{i,j} = -I/obj.vTar;
                         elseif j == k
-                            dV{i,j} = 1/obj.vTar*ones(1,obj.mesh.nelem);
+                            dV{i,j} = I/obj.vTar;
                         else
-                            dV{i,j} = zeros(1,obj.mesh.nelem);
+                            dV{i,j} = Z;
                         end
                     end
                 end
