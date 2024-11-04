@@ -34,11 +34,12 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function init(obj)
             obj.meshSize = 0.04;
-            obj.nCells   = [2 2; 20 20];
+            obj.nCells   = [10 10; 20 20; 40 40];
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
+            %obj.widthH = 0.4;
             obj.widthH = 0.8;
             obj.widthW = 0.8;
         end
@@ -65,8 +66,10 @@ classdef ExplainingPeriodicFunction2D < handle
             x2 = m.coord(:,2);
             x20 = 0;
             beta = zeros(size(x1));
-            alpha = beta/2;
-            alpha = atan2(x2 -x20-0.1*(max(x2)),x1-x10);
+
+         %   alpha = beta/2;
+            alpha = atan2(x2 -x20+0.1*(max(x2)),x1-x10);
+
             s.fValues = alpha;
             s.mesh    = obj.mesh;
             s.order   = 'P1';
@@ -102,13 +105,13 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function s = createLevelSetCellParams(obj)            
             s.type  = 'RectangleInclusion';
-            s.xSide = obj.createFunction(obj.widthH);
-            s.ySide = obj.createFunction(obj.widthW);
+            s.xSide = obj.createFunction(obj.widthH,1);
+            s.ySide = obj.createFunction(obj.widthW,2);
             s.ndim   = 2;
         end
 
-        function f = createFunction(obj,value)
-            s.fHandle = @(x) obj.variationFunction(value,x);
+        function f = createFunction(obj,value,dir)
+            s.fHandle = @(x) obj.variationFunction(value,x,dir);
           %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
@@ -116,15 +119,24 @@ classdef ExplainingPeriodicFunction2D < handle
             f = f.project('P1D');
         end
 
-        function f = variationFunction(obj,value,x)
-            x1 = x(1,:,:);
-            I  = ones(size(x1));
-            xmin = min(x1(:));
-            xmax = max(x1(:));
-            incX   = (xmax+xmin);
-            difX   = (xmax-xmin);
-            xS   = (x1 -0.5*incX)/difX;
-            f = value*(I + 0*xS);
+        function f = variationFunction(obj,mV,x,dir)
+            xV = x(dir,:,:);
+            I  = ones(size(xV));
+            xmin = min(xV(:));
+            xmax = max(xV(:));            
+            incX   = (xmax-xmin);
+            xM     = (xmax+xmin)/2;
+            mMin = 0.01;
+            mMax = 0.99;
+            incM = mMax - mMin;
+            tMax_min = (mV - mMin)/(2*incM)*incX/(xM - xmin);
+            tMax_max = (mMax - mV)/(2*incM)*incX/(xmax - xM);
+            
+            %t = min(tMax_min,tMax_max);     
+
+            t = 0;
+
+            f = mV + 2*t*(incM)/(incX)*(xV-xM);
         end
 
         function dehomogenize(obj)
