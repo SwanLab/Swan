@@ -48,7 +48,7 @@ classdef TestingPhaseField < handle
         end
 
         function defineCase(obj)
-            [obj.mesh, obj.boundaryConditions] = benchmarkManager.create(obj.benchmark);
+            [obj.mesh, obj.boundaryConditions] = BenchmarkManager.create(obj.benchmark);
         end
 
         function createPhaseFieldFunctional(obj)

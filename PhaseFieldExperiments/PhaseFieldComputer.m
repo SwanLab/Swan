@@ -2,8 +2,8 @@ classdef PhaseFieldComputer < handle
 
     properties (Constant, Access = public)
         tolErrU = 1e-13;
-        tolErrPhi = 1e-8;
-        tolErrStag = 1e-6;
+        tolErrPhi = 1e-12;
+        tolErrStag = 1e-12;
     end
 
     properties (Access = private)
@@ -93,10 +93,12 @@ classdef PhaseFieldComputer < handle
                             costFun(2,end) = 1;
                             iter = iter+1;
                             obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+
+                            obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
+                            iterPhi = iterPhi + 1;                            
                         end
                         
-                        obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
-                        iterPhi = iterPhi + 1;
+                        
 
 
                     end
