@@ -1,9 +1,13 @@
 classdef Display_Plot < Display_Abstract
-
+    
+    properties (Access = public)
+        legend
+    end
     methods (Access = public)
 
         function obj = Display_Plot(cParams)
             obj@Display_Abstract(cParams.title)
+            obj.legend = cParams.legend;
         end
         
     end
@@ -12,7 +16,11 @@ classdef Display_Plot < Display_Abstract
     methods (Access = protected)
         
         function setChartType(obj)
-            obj.handle = plot(0,0);
+            nLines = length(obj.legend);
+            for i=1:nLines
+                obj.handle{i} = plot(1,1);
+                hold on
+            end
         end
         
     end
@@ -20,13 +28,14 @@ classdef Display_Plot < Display_Abstract
     methods (Access = public)
 
         function updateParams(obj,it,value)
-            
+
             if ~isempty(value)
-                obj.valueArray(end+1,:) = value(1,:);
-                if length(value) == 1
+                nLines = length(obj.legend);
+                obj.valueArray(end+1,:) = value(1:nLines);
+                if length(value) == nLines
                     obj.iterationArray(end+1) = it;
-                elseif size(value,1) == 2
-                    obj.iterationArray(end+1) = value(2,:);
+                elseif length(value) == nLines+1
+                    obj.iterationArray(end+1) = value(end);
                 else
                     error('Data input error')
                 end
@@ -35,11 +44,15 @@ classdef Display_Plot < Display_Abstract
 
         function refresh(obj)
             if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
-                set(obj.handle,'XData',obj.iterationArray,'YData',obj.valueArray);
-                if obj.iterationArray(end)>0
-                    set(obj.style,'XLim',[min(0,min(obj.iterationArray)), max(obj.iterationArray)])
+                nLines = length(obj.legend);
+                for i=1:nLines
+                    set(obj.handle{i},'XData',obj.iterationArray,'YData',obj.valueArray(:,i));
+                    if obj.iterationArray(end)>0
+                        set(obj.style,'XLim',[min(0,min(obj.iterationArray)), max(obj.iterationArray)])
+                        legend(obj.legend);
+                    end
+                    drawnow
                 end
-                drawnow
             end
         end
 

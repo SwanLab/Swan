@@ -16,13 +16,21 @@ classdef Monitoring < handle
     methods (Access = public)
         function obj = Monitoring(cParams)
             obj.init(cParams);
-            obj.createMonitoring();
+            obj.createMonitoring(cParams);
         end
 
         function update(obj,it,data)
-            if (obj.shallDisplay)
-                obj.plot(it,data);
+            nPlots = length(obj.figures);
+            for i = 1:nPlots
+                obj.figures{i}.updateParams(it,data{i});
             end
+        end
+
+        function refresh(obj)
+            nPlots = length(obj.figures);
+            for i = 1:nPlots
+                obj.figures{i}.refresh();
+            end      
         end
     end
 
@@ -49,7 +57,7 @@ classdef Monitoring < handle
             nColumn = min(nPlots,maxC);
         end
 
-        function createMonitoring(obj)
+        function createMonitoring(obj,s)
             if (obj.shallDisplay)
                 figure
                 nPlots         = length(obj.titles);
@@ -71,12 +79,5 @@ classdef Monitoring < handle
             obj.figures{end+1} = fig;
         end
 
-        function plot(obj,it,data)
-            nPlots = length(obj.figures);
-            for i = 1:nPlots
-                obj.figures{i}.updateParams(it,data{i});
-                obj.figures{i}.refresh();
-            end
-        end
     end
 end

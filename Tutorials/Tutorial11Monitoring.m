@@ -36,15 +36,17 @@ classdef Tutorial11Monitoring < handle
             s.chartTypes =[{'plot'},{'surf'},{'plot'}]; %,{'multiPlot'},{'multiPlot'}
             s.mesh = obj.mesh;
             s.barLim = [0 10];
+            s.legend = ["A","B","C"];
             obj.monitoring = Monitoring(s);
         end
 
         function updateMonitoring(obj)
             for i=1:5
-                PlotData1 = i;
-                PlotData2 = [i;i*5];
+                PlotData1 = [1*i 2*i 3*i i];
+                PlotData2 = [1 2 3];
                 SurfData(:) = 2*i.*ones(size(obj.field.fValues));
                 obj.monitoring.update(i,{[PlotData1],[SurfData],[PlotData2]})
+                obj.monitoring.refresh()
                 pause(2);
             end
         end
