@@ -6,7 +6,7 @@ classdef DisplayMultiPlot < DisplayAbstract
     methods (Access = public)
 
         function obj = DisplayMultiPlot(cParams)
-            obj@DisplayAbstract(cParams.title)
+            obj@DisplayAbstract(cParams.title,cParams.position)
             obj.legend = cParams.legend;
         end
         
@@ -21,6 +21,7 @@ classdef DisplayMultiPlot < DisplayAbstract
                 obj.handle{i} = plot(1,1);
                 hold on
             end
+            legend(obj.legend);
         end
         
     end
@@ -31,11 +32,11 @@ classdef DisplayMultiPlot < DisplayAbstract
 
             if ~isempty(value)
                 nLines = length(obj.legend);
-                obj.valueArray(end+1,:) = value(1:nLines);
+                obj.ArrayDataY(end+1,:) = value(1:nLines);
                 if length(value) == nLines
-                    obj.iterationArray(end+1) = it;
+                    obj.ArrayDataX(end+1) = it;
                 elseif length(value) == nLines+1
-                    obj.iterationArray(end+1) = value(end);
+                    obj.ArrayDataX(end+1) = value(end);
                 else
                     error('Data input error')
                 end
@@ -43,13 +44,12 @@ classdef DisplayMultiPlot < DisplayAbstract
         end
 
         function refresh(obj)
-            if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
+            if ~isempty(obj.ArrayDataX) && ~isempty(obj.ArrayDataY)
                 nLines = length(obj.legend);
                 for i=1:nLines
-                    set(obj.handle{i},'XData',obj.iterationArray,'YData',obj.valueArray(:,i));
-                    if obj.iterationArray(end)>0
-                        set(obj.style,'XLim',[min(0,min(obj.iterationArray)), max(obj.iterationArray)])
-                        legend(obj.legend);
+                    set(obj.handle{i},'XData',obj.ArrayDataX,'YData',obj.ArrayDataY(:,i));
+                    if obj.ArrayDataX(end)>0
+                        set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(obj.ArrayDataX)])    
                     end
                     drawnow
                 end
