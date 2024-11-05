@@ -32,7 +32,7 @@ classdef Tutorial11Monitoring < handle
         function createMonitoring(obj)
             s.shallDisplay = true;
             s.maxNColumns = 3;
-            s.titles = [{'counting'},{'counting multiples of 5'},{'field'}];%,{'counting & doubles'},{'counting & doubles of multiples of 5'}
+            s.titles = [{'counting'},{'field'},{'counting multiples of 5'}];%,{'counting & doubles'},{'counting & doubles of multiples of 5'}
             s.chartTypes =[{'plot'},{'surf'},{'plot'}]; %,{'multiPlot'},{'multiPlot'}
             s.mesh = obj.mesh;
             s.barLim = [0 10];
@@ -42,9 +42,12 @@ classdef Tutorial11Monitoring < handle
 
         function updateMonitoring(obj)
             for i=1:5
-                PlotData1 = [1*i 2*i 3*i i];
-                PlotData2 = [1 2 3];
+                PlotData1 = i;
+                PlotData2 = [i;i*5];
+                MultiPlotData = [i;i*5];
+                MultiPlotData2 = [i;i*5;i*10];
                 SurfData(:) = 2*i.*ones(size(obj.field.fValues));
+                SurfData(1:6) = 3*i;
                 obj.monitoring.update(i,{[PlotData1],[SurfData],[PlotData2]})
                 obj.monitoring.refresh()
                 pause(2);

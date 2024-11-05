@@ -1,29 +1,34 @@
-classdef Display_Surf < Display_Abstract
+classdef DisplaySurf < DisplayAbstract
 
     properties (Access = private)
         mesh
-        faces
-        vertices
         barLim
+        faces
+
+        FieldData
+        iter
     end
 
     methods (Access = public)
 
-        function obj = Display_Surf(cParams)
-            obj@Display_Abstract(cParams.title)
+        function obj = DisplaySurf(cParams)
+            obj@DisplayAbstract(cParams.title,cParams.position)
             obj.mesh = cParams.mesh;
-            obj.barLim = cParams.barLim;
+            if isfield(cParams,"barLim")
+                obj.barLim = cParams.barLim;
+            else
+                obj.barLim = "auto";
+            end
         end
     end
 
     methods (Access = protected)
         
         function setChartType(obj)
-            z = zeros(obj.mesh.nnodes,1);
-            a = obj.createTrisurf(z);
+            obj.FieldData = zeros(obj.mesh.nnodes,1);
+            a = obj.createTrisurf(obj.FieldData);
             obj.handle = a;
             obj.faces = obj.handle.Faces;
-            obj.vertices = obj.handle.Vertices;
         end
         
     end
@@ -32,16 +37,17 @@ classdef Display_Surf < Display_Abstract
 
         function updateParams(obj,it,value) 
             if ~isempty(value)
-                obj.valueArray = value;
-                obj.iterationArray = it;
+                obj.FieldData = value;
+                obj.iter = it;
             end
         end
 
         function refresh(obj)
-            if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
-                z = obj.valueArray;
-                obj.vertices(:,3) = z;
-                set(obj.handle,'ZData',z,'CData',z,'Faces',obj.faces,'Vertices',obj.vertices);
+            if ~isempty(obj.FieldData) && ~isempty(obj.iter)
+                t = strcat(obj.figTitle,' iter:',num2str(obj.iter));
+                axis = findobj(gcf,'Type','Axes');
+                set(axis(obj.position).Title,'String',t);
+                set(obj.handle,'ZData',obj.FieldData,'CData',obj.FieldData,'Faces',obj.faces);
                 drawnow
             end
         end
@@ -61,13 +67,6 @@ classdef Display_Surf < Display_Abstract
             colorbar
             clim(obj.barLim);
             hold off
-
-            if ~isempty(obj.iterationArray)
-                iter = num2str(obj.iterationArray);
-                title(strcat(obj.figTitle,' iter:',iter));
-            else
-                title(obj.figTitle);
-            end
         end
 
     end

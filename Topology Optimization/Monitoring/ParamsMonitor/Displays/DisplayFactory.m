@@ -5,13 +5,15 @@ classdef DisplayFactory < handle
         function display = create(s)
             switch s.chartType
                 case 'plot'
-                    display = Display_Plot(s);
+                    display = DisplayPlot(s);
+                case 'multiPlot'
+                    display = DisplayMultiPlot(s);
                 case 'log'
                     display = Display_SemilogY(s);
                 case 'bar'
                     display = Display_Bar(s);
                 case 'surf'
-                    display = Display_Surf(s);
+                    display = DisplaySurf(s);
                 otherwise
                     error('Invalid Chart Type.')
             end

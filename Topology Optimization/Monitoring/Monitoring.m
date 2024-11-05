@@ -9,8 +9,6 @@ classdef Monitoring < handle
         maxNColumns
         titles
         chartTypes
-        mesh
-        barLim
     end
 
     methods (Access = public)
@@ -40,14 +38,6 @@ classdef Monitoring < handle
             obj.maxNColumns  = cParams.maxNColumns;
             obj.titles       = cParams.titles;
             obj.chartTypes   = cParams.chartTypes;
-            if isfield(cParams,'mesh')
-                obj.mesh         = cParams.mesh;
-            end
-            if isfield(cParams,'barLim')
-                obj.barLim = cParams.barLim;
-            else
-                obj.barLim = "auto";
-            end
         end
 
         function [nRow,nColumn] = computeNumberRowsColumns(obj)
@@ -65,11 +55,10 @@ classdef Monitoring < handle
                 for i = 1:nPlots
                     s.title     = obj.titles{i};
                     s.chartType = obj.chartTypes{i};
-                    s.mesh      = obj.mesh;
-                    s.barLim    = obj.barLim;
-                    newFig    = Display_Abstract.create(s);
+                    s.position  = i;
+                    newFig    = DisplayAbstract.create(s);
                     obj.appendFigure(newFig);
-                    obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]);
+                    obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]); %% AJUSTAR AIXO MES TARD
                     hold on
                 end
             end
