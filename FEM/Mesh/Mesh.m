@@ -25,11 +25,6 @@ classdef Mesh < handle
         xFE
     end
 
-    properties (Access = private)
-        xVOld
-        dVOld
-    end
-
     methods (Static, Access = public)
         
         function obj = create(cParams)
@@ -196,12 +191,10 @@ classdef Mesh < handle
             cV  = obj.edges.computeConnectedVertex(vertex);
         end
 
-        function m = remesh(obj,nLevels) % only tri mesh
+        function mF = remesh(obj) % only tri mesh
             % for quad, QuadToTriMeshConverter
-            s.mesh = obj;
-            s.nLevels = nLevels;
-            r = Remesher(s);
-            m = r.compute();
+            mC = obj;
+            mF = Remesher.compute(mC);
         end
 
         function exportSTL(obj)
@@ -217,30 +210,12 @@ classdef Mesh < handle
         end
 
         function dV = computeDvolume(obj,quad)
-            xV = quad.posgp;
-            if isempty(obj.xVOld) || norm(xV - obj.xVOld) >= 1e-14
             w = reshape(quad.weigp,[quad.ngaus 1]);
             dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
             dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
-            obj.dVOld = dV; 
-            obj.xVOld = xV;            
-            else
-                dV = obj.dVOld;
-            end
         end
 
         %% Remove
-
-        function mD = createDiscontinuousMesh(obj) % P1D
-            ndims = size(obj.coord, 2);
-            nNodesDisc = obj.nnodeElem*obj.nelem;
-            nodesDisc  = 1:nNodesDisc;
-            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
-            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
-            s.connec = connecDisc;
-            s.coord  = coordD;
-            mD = Mesh.create(s);
-        end
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
@@ -327,22 +302,6 @@ classdef Mesh < handle
             end
         end
 
-        function J = sampleJacobian(obj,xV,cells)
-            nDimGlo  = size(obj.coordElem,1);
-            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
-            nDimElem = size(dShapes,1);
-            nPoints  = size(xV,2);
-            J = zeros(nDimElem,nDimGlo,nPoints);
-            for iDimGlo = 1:nDimGlo
-                for iDimElem = 1:nDimElem
-                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1);
-                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,cells),1);
-                        jacIJ    = sum(dShapeIK.*xKJ,1)';
-                        J(iDimElem,iDimGlo,:) = squeezeParticular(J(iDimElem,iDimGlo,:),[1 2]) + jacIJ;
-                end
-            end
-        end   
-
     end
 
     methods (Access = private)
@@ -367,15 +326,15 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fValues;
+            obj.coordElem = obj.xFE.getFvaluesDisc();
         end
 
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
             s.order   = 'P1';
             s.fValues = obj.coord;
-            coordP1 = LagrangianFunction(s);
-            obj.xFE = coordP1.project('P1D');
+            coordP1   = LagrangianFunction(s);
+            obj.xFE = coordP1.project('P1D');             
         end
 
         function L = computeSquarePerimeter(obj)
