@@ -23,7 +23,7 @@ classdef MappingComputer < handle
                 uV(iDim,:,:) = uC;
             end
             s.mesh    = obj.mesh;
-            s.fValues = uV;
+            s.fValues = reshape(uV,obj.mesh.ndim,[])';
             uF = P1DiscontinuousFunction(s);
         end
 
@@ -48,16 +48,13 @@ classdef MappingComputer < handle
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
-            aI = aI.project('P1D');
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-            s.mesh      = obj.mesh;
-            s.quadratureOrder = q.order;
+            s.mesh            = obj.mesh;
+            s.quadratureOrder = 2;
             s.type      = 'ShapeDerivative';
             test = P1DiscontinuousFunction.create(obj.mesh,1);
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute(aI,test);
-            In = obj.interpolator;
+            In   = obj.interpolator;
             RHS = In'*rhsV;          
         end
 
