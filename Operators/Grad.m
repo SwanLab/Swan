@@ -4,17 +4,13 @@ function dom = Grad(u)
     dom = DomainFunction(s);
 end
 
-function fVR = evaluate(u, xV)
+function grad = evaluate(u, xV)
     dNdx    = u.evaluateCartesianDerivatives(xV);
-    nDimf   = u.ndimf;
-    nDimG   = size(dNdx, 1);
-    nPoints = size(dNdx, 3);
-    nElem   = size(dNdx, 4);
+    nPoints = size(xV, 2);
     uF = u.getValuesByElem();
     uF = repmat(uF,[1 1 1 nPoints]);
     uF = permute(uF,[1 2 4 3]);
     grad = pagemtimes(dNdx,uF);
-    fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
 end
 
 
