@@ -17,7 +17,9 @@ classdef OptimizerNullSpace < Optimizer
         DxJ
         Dxg
         eta
+        etaMin
         etaMax
+        etaMaxMin
         lG
         lJ
         etaNorm
@@ -64,9 +66,15 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = cParams.etaMax;
             obj.etaNorm        = cParams.etaNorm;
-            obj.gJFlowRatio    = cParams.gJFlowRatio;
+
+            % Important parameters %%%%
+            obj.etaMin         = 1e-6; % Just in case the null space flow is too small. May be analogous with Florian's n0 parameter in the future
+            obj.etaMax         = cParams.etaMax; % For density can be Inf; for level-set this is adjusted with the density case, but we can increase it a bit
+            obj.etaMaxMin      = cParams.etaMaxMin; % 'only TUNING' for level-set, in the end etaMax decreases until etaMaxMin; for density this 'only TUNING' is equivalent to tauMax
+            obj.gJFlowRatio    = cParams.gJFlowRatio; % Robust parameter
+            %%%%%%
+
             obj.hasConverged   = false;
             obj.nIter          = 0;
             obj.meritOld       = 1e6;
@@ -93,8 +101,8 @@ classdef OptimizerNullSpace < Optimizer
             chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','log','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    titles = [titles;{'Theta';'Alpha';'Beta'}];
-                    chartTypes = [chartTypes,{'plot','plot','plot'}];
+                    titles = [titles;{'Theta';'Alpha';'Beta';'Mean constr'}];
+                    chartTypes = [chartTypes,{'plot','plot','plot','plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -117,9 +125,9 @@ classdef OptimizerNullSpace < Optimizer
             switch class(obj.designVariable)
                 case 'LevelSet'
                     if obj.nIter == 0
-                        data = [data;0;0;0];
+                        data = [data;0;0;0;obj.constraint.gMean];
                     else
-                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
+                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta;obj.constraint.gMean];
                     end
             end
             obj.monitoring.update(obj.nIter,data);
@@ -129,7 +137,7 @@ classdef OptimizerNullSpace < Optimizer
             vgJ     = obj.gJFlowRatio;
             l2DxJ   = norm(obj.DxJ);
             l2Dxg   = norm(obj.Dxg);
-            obj.eta = min(vgJ*l2DxJ/l2Dxg,obj.etaMax);
+            obj.eta = max(min(vgJ*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
             obj.updateMonitoringMultipliers();
         end
 
@@ -276,6 +284,10 @@ classdef OptimizerNullSpace < Optimizer
 %                     tFun = DomainFunction(s);
 %                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
 %                     obj.etaMax = sqrt(tNorm);
+
+                    if obj.constraint.gMean < 1e-3
+                        obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
+                    end
 
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
