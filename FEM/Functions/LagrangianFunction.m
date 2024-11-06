@@ -9,6 +9,10 @@ classdef LagrangianFunction < FeFunction
         interpolation
         dofCoord
         dofConnec
+
+       dNdxOld
+       xVOld     
+       fxVOld
     end
 
     methods (Access = public)
@@ -35,6 +39,7 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function fxV = evaluate(obj, xV)
+            if ~isequal(xV,obj.xVOld)
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = obj.interpolation.nnode;
             nGaus  = size(shapes,2);
@@ -50,6 +55,10 @@ classdef LagrangianFunction < FeFunction
                     f(:,1,:) = Ni*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
+            end
+                obj.fxVOld = fxV;
+            else
+                fxV = obj.fxVOld;
             end
             % fV = obj.get
             % for igauss = 1 :nGaus
@@ -107,26 +116,40 @@ classdef LagrangianFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            nElem = size(obj.dofConnec,1);
-            nNodeE = obj.interpolation.nnode;
-            nDimE = obj.interpolation.ndime;
-            nDimG = obj.mesh.ndim;
-            nPoints = size(xV, 2);
-            invJ  = obj.mesh.computeInverseJacobian(xV);
-            deriv = obj.computeShapeDerivatives(xV);
-            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
-            for iDimG = 1:nDimG
-                for kNodeE = 1:nNodeE
-                    for jDimE = 1:nDimE
-                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
-                        dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
-                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+            if ~isequal(xV,obj.xVOld)
+                nElem = size(obj.dofConnec,1);
+                nNodeE = obj.interpolation.nnode;
+                nDimE = obj.interpolation.ndime;
+                nDimG = obj.mesh.ndim;
+                nPoints = size(xV, 2);
+                invJ  = obj.mesh.computeInverseJacobian(xV);
+                deriv = obj.computeShapeDerivatives(xV);
+                dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+                for iDimG = 1:nDimG
+                    for kNodeE = 1:nNodeE
+                        for jDimE = 1:nDimE
+                            invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                            dShapes_JK = deriv(jDimE,kNodeE,:);
+                            dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                            dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                        end
                     end
                 end
+                dNdx = dShapes;
+                obj.dNdxOld = dNdx;
+                obj.xVOld   = xV;
+            else
+                dNdx = obj.dNdxOld;
             end
-            dNdx = dShapes;
         end
+
+        function setdNdxOld(obj,dNdx)
+            obj.dNdxOld = dNdx;
+        end
+
+        function setXvOld(obj,xV)
+            obj.xVOld = xV;
+        end           
         
         function ord = orderTextual(obj)
             ord = obj.getOrderTextual(obj.order);
@@ -182,6 +205,22 @@ classdef LagrangianFunction < FeFunction
             f = obj.fValues;
             fV = obj.getDofFieldByVector(dimf,f);
         end        
+
+        function fV = getValuesByElem(obj)
+            connec = obj.getDofConnec();
+            nNodeE = obj.interpolation.nnode;
+            nElem  = obj.mesh.nelem;
+            nDimf  = obj.ndimf;
+            fV = zeros(nNodeE,nDimf,nElem);
+            f  = reshape(obj.fValues', [1 obj.nDofs]);
+            for iNode = 1:nNodeE
+                for iDim = 1:nDimf
+                    iDofE = nDimf*(iNode-1)+iDim;
+                    dof = connec(:,iDofE);
+                    fV(iNode,iDim,:) = f(dof);
+                end
+            end
+        end
 
 
         % function dofConnec = computeDofConnectivity(obj)
@@ -305,6 +344,8 @@ classdef LagrangianFunction < FeFunction
         function f = copy(obj)
             f = obj.create(obj.mesh,obj.ndimf,obj.order);
             f.fValues = obj.fValues;
+            f.setXvOld(obj.xVOld);
+            f.setdNdxOld(obj.dNdxOld);            
         end
 
         function f = normalize(obj,type,epsilon)

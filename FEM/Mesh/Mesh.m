@@ -21,6 +21,11 @@ classdef Mesh < handle
         boundaryElements
     end
 
+    properties (Access = private)
+        xVOld
+        dVOld
+    end    
+
     properties (Access = protected)
         xFE
     end
@@ -210,9 +215,16 @@ classdef Mesh < handle
         end
 
         function dV = computeDvolume(obj,quad)
-            w = reshape(quad.weigp,[quad.ngaus 1]);
-            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
-            dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+            xV = quad.posgp;
+            if ~isequal(xV,obj.xVOld)
+                w = reshape(quad.weigp,[quad.ngaus 1]);
+                dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+                dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+                obj.dVOld = dV;
+                obj.xVOld = xV;
+            else
+                dV = obj.dVOld;
+            end
         end
 
         %% Remove
