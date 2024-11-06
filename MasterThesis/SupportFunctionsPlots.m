@@ -64,14 +64,28 @@ epsilon = mesh.computeMeanCellSize();
 % sig2P1.print('SegmentSupportalph10beta1')
 
 
-%droplet
-alpha = 5.73;%acosd(1/45);
-h = @(x) epsilon* max(sqrt(x1(x).^2+x2(x).^2), (alpha*x1(x) * 0 + alpha*x2(x) * 1));
+%droplet 1
+%alpha = 5.73;%acosd(1/45);
+%h = @(x) epsilon* max(sqrt(x1(x).^2+x2(x).^2), (alpha*x1(x) * 0 + alpha*x2(x) * 1));
 
-sig2    = AnalyticalFunction.create(@(x) h(x),1,mesh);
-sig2P1  = sig2.project('P1D');
+%sig2    = AnalyticalFunction.create(@(x) h(x),1,mesh);
+%sig2P1  = sig2.project('P1D');
 
- sig2P1.plotContour();
+ %sig2P1.plotContour();
+%a = gcf().findobj();
+%a(4).EdgeColor = 'none';
+%sig2P1.print('dropletSupport');
+
+
+
+% droplet 2
+alpha  = sqrt(2);
+kx     = 0;
+ky     = 1;
+h1     = @(x) max(  1  ,   (alpha*x1(x) * kx + alpha*x2(x) * ky)./sqrt(x1(x).^2+x2(x).^2)  );
+s2     = @(x) sqrt(x1(x).^2+x2(x).^2)  ./  (h1(x).^2);
+sig2   = AnalyticalFunction.create(@(x) s2(x),1,mesh);
+sig2P1 = sig2.project('P1D');
+sig2P1.plotContour();
 a = gcf().findobj();
 a(4).EdgeColor = 'none';
-%sig2P1.print('dropletSupport');
