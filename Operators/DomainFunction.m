@@ -22,7 +22,12 @@ classdef DomainFunction < handle
         function r = evaluate(obj,xV)
             r = obj.operation(xV);
         end
-        
+
+        function plot(obj,m)
+            fD = obj.project('P1D',m);
+            fD.plot();
+        end
+
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) nOrderTranspose(aOp(xV));

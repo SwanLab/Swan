@@ -2,7 +2,6 @@ classdef AnalyticalFunction < L2Function
     
     properties (Access = public)
         ndimf
-        order = 2
     end
     
     properties (Access = private)
@@ -23,7 +22,6 @@ classdef AnalyticalFunction < L2Function
             xV = obj.mesh.computeXgauss(xGLoc);
             fxV = obj.fHandle(xV);
             fxV = reshape(fxV,[1 size(fxV)]);
-            %fxV = permute(fxV,[2 1 3 4]);
         end
 
         function plot(obj)

@@ -1,25 +1,36 @@
 classdef P1DiscontinuousFunction < FeFunction
-    
-    properties (Access = public)
-        interpolation      
-    end
-    
-    properties (Access = private)
 
+    properties (Access = public)
     end
-    
+
     properties (Access = private)
+        fValuesDisc
+        interpolation        
     end
-    
+
+    properties (Access = public)
+        dofConnec
+        dofCoord
+    end
+
     methods (Access = public)
-        
+
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
+            obj.order = '1';
             obj.createInterpolation();
+
+            if not(contains(fieldnames(cParams),'dof'))
+               obj.createDOFCoordConnec();
+            else
+                obj.dofConnec = cParams.dofConnec;
+                obj.dofCoord  = cParams.dofCoord;                
+            end            
+            obj.createValuesByElement();
         end
 
         function fxV = evaluate(obj, xV)
-            func = obj.fValues;
+            func = obj.getFvaluesDisc();
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
@@ -34,6 +45,28 @@ classdef P1DiscontinuousFunction < FeFunction
             end
         end
 
+        function f = copy(obj)
+            f = obj.create(obj.mesh, obj.ndimf);
+            f.fValues = obj.fValues;
+        end        
+
+        function ord = getOrderNum(obj)
+            ord = str2double(obj.order(end));
+        end
+
+        function c = getDofConnec(obj)
+            c = obj.dofConnec;
+        end
+
+        function c = getDofCoord(obj)
+            c = obj.dofCoord;
+        end
+
+        function fD = getFvaluesDisc(obj)
+            obj.createValuesByElement();            
+            fD = obj.fValuesDisc;
+        end
+
         function N = computeShapeFunctions(obj, xV)
             N = obj.interpolation.computeShapeFunctions(xV);
         end
@@ -41,25 +74,28 @@ classdef P1DiscontinuousFunction < FeFunction
         function dN = computeShapeDerivatives(obj,xV)
             dN = obj.interpolation.computeShapeDerivatives(xV);
         end
-        
-        function dNdx  = evaluateCartesianDerivatives(obj,quad)
-           nElem = size(obj.mesh.connec,1);
-           nNode = obj.interpolation.nnode;
-           nDime = obj.interpolation.ndime;
-           nGaus = quad.ngaus;
-           invJ  = obj.mesh.computeInverseJacobian(quad,obj.interpolation);
-           dShapeDx  = zeros(nDime,nNode,nElem,nGaus);
-           for igaus = 1:nGaus
-               dShapes = obj.interpolation.deriv(:,:,igaus);
-               for jDime = 1:nDime
-                   invJ_JI   = invJ(:,jDime,:,igaus);
-                   dShape_KJ = dShapes(jDime,:);
-                   dSDx_KI   = bsxfun(@times, invJ_JI,dShape_KJ);
-                   dShapeDx(:,:,:,igaus) = dShapeDx(:,:,:,igaus) + dSDx_KI;
-               end
-           end
-           dNdx = dShapeDx;
-        end   
+
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            nElem = size(obj.dofConnec,1);
+            nNodeE = obj.interpolation.nnode;
+            nDimE = obj.interpolation.ndime;
+            nDimG = obj.mesh.ndim;
+            nPoints = size(xV, 2);
+            invJ  = obj.mesh.computeInverseJacobian(xV);
+            deriv = obj.computeShapeDerivatives(xV);
+            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            for iDimG = 1:nDimG
+                for kNodeE = 1:nNodeE
+                    for jDimE = 1:nDimE
+                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                        dShapes_JK = deriv(jDimE,kNodeE,:);
+                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+                    end
+                end
+            end
+            dNdx = dShapes;
+        end
 
         function gradFun = evaluateGradient(obj, xV)
             dNdx = obj.evaluateCartesianDerivatives(xV);
@@ -68,7 +104,7 @@ classdef P1DiscontinuousFunction < FeFunction
             nNode = size(dNdx, 2);
             nElem = size(dNdx, 3);
             nGaus = size(dNdx, 4);
-            
+
 
             cV = squeeze(obj.fValues);
             grad = zeros(nDims,nDimf, nElem, nGaus);
@@ -92,95 +128,50 @@ classdef P1DiscontinuousFunction < FeFunction
             s.quadrature = xV;
             gradFun = FGaussDiscontinuousFunction(s);
         end
-        
-        function fFine = refine(obj, m, mFine)
-         %   mFineD = mFine.createDiscontinuousMesh();
-            f = (obj.fValues);
-            for iDim = 1:obj.ndimf
-            fI = f(iDim,:,:);
-            fI = fI(:);
-            fEdges = obj.computeFunctionInEdges(m,fI);
-            fAll(:,iDim)  = [fI;fEdges];
-            end
-            s.mesh    = mFine;
-            s.fValues = fAll;
-            s.order   = 'P1';
-            p1fun = LagrangianFunction(s);
-            fFine = p1fun.project('P1D');
+
+        function fFine = refine(obj, mFine)
+            P1Dref = P1Refiner(obj,mFine);
+            fFine  = P1Dref.compute();
+        end
+   
+        function fR = getFvaluesAsVector(obj)
+            f  = obj.fValues;
+            fR = obj.reshapeAsVector(f);
         end
 
-        function dofConnec = getConnec(obj)
-            dofConnec = obj.computeDofConnectivity()';
-        end
-
-        function dofConnec = computeDofConnectivity(obj)
-            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes  = 1:nNodes;
-            conne = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
-            nDimf  = obj.ndimf;
-            nNodeE = size(conne, 2);
-            nDofsE = nNodeE*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNodeE
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            dofConnec = dofsElem;
-        end
-
-        function fV = getFvaluesAsVector(obj)
-            ndims   = size(obj.fValues, 1);
+        function fR = reshapeAsVector(obj,fValues)
+            ndims   = size(fValues, 1);
             nelem   = size(obj.mesh.connec, 1);
             nnodeEl = size(obj.mesh.connec, 2);
-            fV = reshape(obj.fValues, [ndims, nelem*nnodeEl])';
-        end
-
-        function isDofCont = isDofContinous(obj,iElem,idof)
-            iLocalVertex = floor(idof/obj.ndimf);
-            iVertex = obj.mesh.connec(iElem,iLocalVertex);
-            cellsAround = obj.mesh.computeAllCellsOfVertex(iVertex);
-            isLocalVertices = obj.mesh.connec(cellsAround,:) == iVertex;
-            fCellsAround = obj.fValues(:,:,cellsAround);
-            for idim = obj.ndimf
-                fCellsA = squeeze(fCellsAround(idim,:,:))';
-                fVertex = fCellsA(isLocalVertices);
-                isDofCont(:,idim) = norm(fVertex - mean(fVertex)) < 1e-14;
-            end
+            fR = reshape(fValues, [ndims, nelem*nnodeEl])';
         end
 
         function plot(obj)
-            fD = obj.getFvaluesAsVector();
-            mD = obj.mesh.createDiscontinuousMesh();
-            ndimG = size(mD.coord);
-            if ndimG == 2
-                x = mD.coord(:,1);
-                y = mD.coord(:,2);
-                for idim = 1:obj.ndimf
-                    subplot(1,obj.ndimf,idim);
-                    z = fD(:,idim);
-                    a = trisurf(mD.connec,x,y,double(z));
-                    view(0,90)
-                    colorbar
-                    shading interp
-                    a.EdgeColor = [0 0 0];
-                    title(['dim = ', num2str(idim)]);
-                end
-            else
-                x = mD.coord(:,1);
-                for idim = 1:obj.ndimf
-                    subplot(1,obj.ndimf,idim);
-                    y = fD(:,idim);
-                    plot(x,y)
-                    view(0,90)
-                    colorbar
-                    shading interp
-                    a.EdgeColor = [0 0 0];
-                    title(['dim = ', num2str(idim)]);
-                end
+            for iDim = 1:obj.ndimf
+                connec{iDim} = obj.getDofConnecByVector();
+                coord{iDim}  = obj.getDofCoordByVector(iDim);
+            end
+            s.connec = connec;
+            s.coord  = coord;
+            s.fValues = double(obj.fValues);
+            s.ndimf   = obj.ndimf;
+            lP = LagrangianPlotter(s);
+            lP.plot();
+        end
+
+        function node = getDofConnecByVector(obj)
+            nNode = obj.interpolation.nnode;
+            for iNode = 1:nNode
+                iDof   = (iNode-1)*obj.ndimf+1;
+                node(:,iNode) = (obj.dofConnec(:,iDof)-1)/obj.ndimf+1;
+            end
+        end
+
+        function cT = getDofCoordByVector(obj,dimf)
+            for iDim = 1:obj.mesh.ndim
+                coordN = obj.dofCoord(:,iDim);
+                cResh  = reshape(coordN',obj.ndimf,[]);
+                cT(:,iDim) = cResh(dimf,:);
             end
         end
 
@@ -202,14 +193,14 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plotContour(obj)
             fD = obj.getFvaluesAsVector();
-            mD = obj.mesh.createDiscontinuousMesh();
-            x = mD.coord(:,1);
-            y = mD.coord(:,2);
+            xy = obj.reshapeAsVector(obj.dofCoord);            
+            x = xy(:,1);
+            y = xy(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = fD(:,idim);
-                [~,a] = tricontour(mD.connec,x,y,z,30);
+                [~,a] = tricontour(obj.dofConnec,x,y,z,30);
                 set(a,'LineWidth',5);
                 view(0,90)
                 colorbar
@@ -218,8 +209,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function print(obj, filename, software)
-            if nargin == 2; software = 'GiD'; end
-            s.mesh = obj.mesh.createDiscontinuousMesh();
+            if nargin == 2; software = 'Paraview'; end
+            s.mesh = obj.mesh;
             s.fun = {obj};
             s.type = software;
             s.filename = filename;
@@ -239,10 +230,39 @@ classdef P1DiscontinuousFunction < FeFunction
             [res, pformat] = fps.getDataToPrint();
         end
 
-        function connec = computeDiscontinuousConnectivities(obj)
-            nNodes = obj.mesh.nnodeElem*obj.mesh.nelem;
-            nodes  = 1:nNodes;
-            connec = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
+
+        function c = createDofConnec(obj,nDofs)
+          nodes = 1:nDofs;
+          c     = reshape(nodes,obj.mesh.nnodeElem*obj.ndimf,obj.mesh.nelem)';        
+        end            
+
+        function dofCoord = createDOFCoord(obj)
+            conn   = obj.mesh.connec;
+            coordC = obj.mesh.coord;
+            nNode = size(conn,2);
+            nDime = size(coordC,2);
+            nodes = reshape(conn',1,[]);
+            fe    = coordC(nodes,:)';
+            coorD = reshape(fe,nDime,nNode,[]);
+            dofCoord = coorD;
+        end
+
+        function dofCoord = createDofCoord(obj,nDofs)
+            coordC = obj.mesh.coord;
+            connec = obj.mesh.connec;
+            dofsC  = reshape(connec',1,[]);
+            coorD  = zeros(nDofs,obj.mesh.ndim);
+            for idim = 1:obj.mesh.ndim
+                coorI = repmat(coordC(dofsC,idim),1,obj.ndimf)';
+                coorD(1:nDofs,idim) = reshape(coorI,[],1);
+            end
+            dofCoord = coorD;
+        end
+
+        function createDOFCoordConnec(obj)
+            nDofs         = obj.mesh.nnodeElem*obj.mesh.nelem*obj.ndimf; 
+            obj.dofCoord  = obj.createDofCoord(nDofs);           
+            obj.dofConnec = obj.createDofConnec(nDofs);            
         end
 
         function ord = orderTextual(obj)
@@ -262,20 +282,42 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function p1d = create(mesh, ndimf)
-            a.mesh    = mesh;
-            a.fValues = zeros(ndimf, mesh.nnodeElem, mesh.nelem);
-            p1d = P1DiscontinuousFunction(a);
+            s.mesh      = mesh;
+            %s.dofConnec = dofConnec;
+            %s.dofCoord  = dofCoord;  
+            s.fValues = zeros(mesh.nnodeElem*mesh.nelem,ndimf);
+            p1d = P1DiscontinuousFunction(s);
         end
 
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.fValues = cParams.fValues;
-            obj.mesh    = cParams.mesh;
-            obj.ndimf   = size(cParams.fValues,1);
-            obj.order   = 'LINEAR';
+            obj.mesh      = cParams.mesh;            
+            obj.fValues   = cParams.fValues;
+            obj.ndimf     = size(cParams.fValues,2);
+            obj.order     = 'LINEAR';
+        end
+
+        function createValuesByElement(obj)
+            nDimF  = size(obj.fValues,2);            
+         %   fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
+            node = obj.getDofConnecByVector();
+            for iDim = 1:nDimF
+                fI = obj.fValues(:,iDim);
+                for iNode = 1:obj.mesh.nnodeElem
+                    %iDof  = (iNode-1)*obj.ndimf+iDim;
+%                    dofs  = obj.dofConnec(:,iDof);
+                    dof   = node(:,iNode);
+
+                    fVals(iDim,iNode,:) = fI(dof);
+                            
+                   % fVals(iDim,iNode,:) = fV;
+
+                end
+            end
+            obj.fValuesDisc = fVals;
         end
 
         function createInterpolation(obj)
@@ -291,15 +333,15 @@ classdef P1DiscontinuousFunction < FeFunction
             nVals = nNodE*nElem;
             fM = reshape(obj.fValues, [nComp, nVals])';
         end
-        
+
         function f = computeFunctionInEdges(obj,m,fNodes)
             s.edgeMesh = m.computeEdgeMesh();
             s.fNodes   = fNodes;
             eF         = EdgeFunctionInterpolator(s);
             f = eF.compute();
         end
-        
+
     end
 
-    
+
 end
