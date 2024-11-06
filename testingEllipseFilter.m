@@ -54,17 +54,13 @@ s.trial  = LagrangianFunction.create(m,1,'P1');
 s.mesh   = m;
 s.type   = 'Ellipse';
 theta    = 45;
-%alpha    = 0.9;
-R          = [cosd(theta),-sind(theta)
-                         sind(theta), cosd(theta)];
-E          = [tand(85), 0; 0, 1/tand(85)];
-A          = R * E * R';
-% A11 = cosd(theta)^2 + sind(theta)^2 / alpha^2;
-% A12 = (cosd(theta) * sind(theta) * (alpha^2 - 1)) / alpha^2;
-% A21 = (cosd(theta) * sind(theta) * (alpha^2 - 1)) / alpha^2;
-% A22 = sind(theta)^2 + cosd(theta)^2 / alpha^2;
-% A = [A11, A12; A21, A22];
-% s.A = inv(A);
+alpha    = 0.9;
+A11 = cosd(theta)^2 + sind(theta)^2 / alpha^2;
+A12 = (cosd(theta) * sind(theta) * (alpha^2 - 1)) / alpha^2;
+A21 = (cosd(theta) * sind(theta) * (alpha^2 - 1)) / alpha^2;
+A22 = sind(theta)^2 + cosd(theta)^2 / alpha^2;
+A = [A11, A12; A21, A22];
+s.A = inv(A);
 s.A = A;
 
 nLFilter = NonLinearFilter.create(s);

@@ -192,8 +192,8 @@ classdef P1DiscontinuousFunction < FeFunction
             x = mD.coord(:,1);
             y = mD.coord(:,2);
             figure()
-            for idim = 1:obj.ndimf
-                subplot(1,obj.ndimf,idim);
+            for idim = 1:1%obj.ndimf
+                subplot(1,1,1)%obj.ndimf,idim);
                 z = fD(:,idim);
                 [~,a] = tricontour(mD.connec,x,y,z,30);
                 set(a,'LineWidth',5);

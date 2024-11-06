@@ -44,10 +44,10 @@ classdef CantileverSimulations < handle
         end
 
         function createMesh(obj)
-            x1       = 1;
-            x2       = 2;
-            n1       = 100;
-            n2       = 200;
+            x1       = 2;
+            x2       = 1;
+            n1       = 200;
+            n2       = 100;
             obj.mesh = TriangleMesh(x1,x2,n1,n2);
         end
 
@@ -201,16 +201,16 @@ classdef CantileverSimulations < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,2))==0;
-            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 1;
-            sPL{1}.value     = 1;
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)

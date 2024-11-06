@@ -42,7 +42,7 @@ classdef CantileverPerimeter < handle
 
         function init(obj)
             close all;
-            obj.epsOverH = 4;
+            obj.epsOverH = 1;
         end
 
         function createMesh(obj)
@@ -85,6 +85,8 @@ classdef CantileverPerimeter < handle
             ss.trial            = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.filterPerimeter = Filter.create(ss);
             obj.filterPerimeter.updateEpsilon(epsilon);
+
+            
         end
 
         function createMaterialInterpolator(obj)
