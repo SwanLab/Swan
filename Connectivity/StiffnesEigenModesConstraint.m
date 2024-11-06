@@ -4,7 +4,7 @@ classdef StiffnesEigenModesConstraint < handle
         mesh
         minimumEigenValue
         eigenModesFunctional
-
+        filter
         designVariable
     end
     
@@ -25,6 +25,7 @@ classdef StiffnesEigenModesConstraint < handle
             obj.mesh              = cParams.mesh;
             obj.minimumEigenValue = cParams.minimumEigenValue;
             obj.designVariable    = cParams.designVariable;
+            obj.filter            = cParams.filter;
 
             eigen = StiffnessEigenModesComputer(cParams);
             s.eigenModes = eigen;
@@ -38,7 +39,8 @@ classdef StiffnesEigenModesConstraint < handle
         end
 
         function dJ = computeGradient(obj, dlambda)
-            dJ      = FeFunction.create('P1', dlambda, obj.mesh);
+%             dJ     = FeFunction.create('P1',  -dlambda, obj.mesh);
+            dJ     = obj.filter.compute(dlambda, 2);
         end
     end
 

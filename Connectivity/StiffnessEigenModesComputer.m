@@ -40,27 +40,25 @@ classdef StiffnessEigenModesComputer < handle
             dM = obj.computeMassMatrixWithFunction(dm);
             [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
             [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
-            obj.plotDirichletEigenMode(phiD)
-            obj.plotNeumannEigenMode(phiN)
-            dlambda = dK*phiN - lambdaD*dM*phiN; %phi'*dK*phi - lambda*phi'*dM*phi;
-            lambda  = lambdaD;
- 
-            obj.plotEigenValueDerivative(dlambda)
-
+%             obj.plotDirichletEigenMode(phiD)
+%             obj.plotNeumannEigenMode(phiN)
+%            
             % Derivative Expression with PhiD
-            phiD_filled = obj.fillVectorWithHomogeneousDirichlet(phiD);
-            dlambdaD = dK*phiD_filled - lambdaD*dM*phiD_filled;
-
-            obj.plotEigenValueDerivative(dlambdaD)
-
-            % Derivative Expression from Continuous Version
-            dalphaCont = obj.createDomainFunction(dalpha)
+%             phiD_filled = obj.fillVectorWithHomogeneousDirichlet(phiD);
+%             dlambda = dK*phiD_filled - lambdaD*dM*phiD_filled;
+%             obj.plotEigenValueDerivative(dlambda)
+% 
+%           % Derivative Expression from Continuous Version
+            dalphaCont = obj.createDomainFunction(dalpha);
+            dmCont     = obj.createDomainFunction(dm);
             s.fValues = obj.fillVectorWithHomogeneousDirichlet(phiD);
             s.mesh    = obj.mesh;
             s.order   = 'P1';
             phiDCont = LagrangianFunction(s);
-            dlambdaCont = obj.computeLowestEigenValueGradient(dalphaCont, phiDCont, lambdaD); 
-            dlambdaCont.project('P1',obj.mesh).plot()
+            dlambda = obj.computeLowestEigenValueGradient(dalphaCont, dmCont, phiDCont, lambdaD); 
+%             dlambdaCont.project('P1',obj.mesh).plot()
+
+            lambda  = lambdaD;
         end
     end
 
@@ -220,11 +218,10 @@ classdef StiffnessEigenModesComputer < handle
             vV.plot()
         end
 
-        function dlambda = computeLowestEigenValueGradient(obj, dalpha, phi, lambda)
-            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - lambda*phi*phi; % obj.density.* on the second term?
+        function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
+            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - lambda*dm.*DDP(phi,phi); 
         end
         
-
 
     end
     

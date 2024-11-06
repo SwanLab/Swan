@@ -65,6 +65,13 @@ classdef MinimumEigenValueFunctional < handle
             rho = max(0,min(1,rho));
          end
 
+%             s.beta = 0.5;
+%             s.eta  = 0.5;
+%             projector = HeavisideProjector(s)
+%             rho = projector.project()
+%         function createHeavisideProjector(obj, beta, eta)
+%             obj.HeavisideProjector()
+
     end
     
     

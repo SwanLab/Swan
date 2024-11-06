@@ -59,16 +59,16 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-%             s.type        = 'CircleInclusion';
-%             s.radius      = 0.4;
-%             s.xCoorCenter = 0.5;
-%             s.yCoorCenter = 0.5;
-%             s.type = 'Empty'    
-            s.type        = 'RectangleInclusion';
-            s.xSide       = 0.5;
-            s.ySide       = 0.5;
+            s.type        = 'CircleInclusion';
+            s.radius      = 0.4;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
+%             s.type = 'Empty'    
+%             s.type        = 'RectangleInclusion';
+%             s.xSide       = 0.5;
+%             s.ySide       = 0.5;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
@@ -199,7 +199,8 @@ classdef ConnectivityComputer < handle
             s.eigenModes = eigen;
             s.designVariable = obj.designVariable;
             mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient()
+            [lambda, dlambda] = mE.computeFunctionAndGradient();
+            dlambda = obj.filter.compute(dlambda,2)
         end
 
         function eigen = computeEigenValueProblem(obj)

@@ -159,7 +159,8 @@ classdef TopOptDensityConnectivity < handle
         function createEigenValueConstraint(obj)                           
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.minimumEigenValue = 0.1;                                     
+            s.filter            = obj.filter;
+            s.minimumEigenValue = 0.05;                                     
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
@@ -187,7 +188,6 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;                                          
             s.nConstraints   = 2;                                        
             l                = DualVariable(s);
             obj.dualVariable = l;
@@ -206,11 +206,11 @@ classdef TopOptDensityConnectivity < handle
             s.ub             = 1;
             s.lb             = 0;
 
-           % s.etaNorm        = 0.01;
-           % s.gJFlowRatio    = 2;
-           % s.volumeTarget   = 0.4;
-           % s.primal         = 'PROJECTED GRADIENT';
-           % opt = OptimizerNullSpace(s);
+%            s.etaNorm        = 0.01;
+%            s.gJFlowRatio    = 2;
+%            s.volumeTarget   = 0.4;
+%            s.primal         = 'PROJECTED GRADIENT';
+%            opt = OptimizerNullSpace(s);
 
            opt              = OptimizerMMA(s);
            
