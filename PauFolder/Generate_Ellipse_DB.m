@@ -6,7 +6,7 @@ clear
 clc
 
 % Set geometrical parameters
-n_variations = 20;
+n_variations = 60;
 min_semiAxis = 0.01;
 max_semiAxis = 0.49;
 
@@ -21,6 +21,7 @@ Chomog_array = zeros(length(lengths_array)^2, 9);
 Sides_array = zeros(length(lengths_array)^2, 2);
 
 % Loop through different combinations of ellipse sides
+counter = 0;
 for a = 1:length(lengths_array)
     for b = 1:length(lengths_array)
 
@@ -41,12 +42,16 @@ for a = 1:length(lengths_array)
         Chomog_array(w, :) = [Chomog_tensor(1, :), Chomog_tensor(2, :), Chomog_tensor(3, :)];
         Sides_array(w, :) = [gPar.xSide, gPar.ySide];
 
+        counter = counter + 1;
+        disp(['Progress: ', num2str(100*counter/length(lengths_array)^2), ' %']);
+
     end
 end
 
 %% Data Storage
 % Create a table with Chomog_array and Sides_array
-data_table = array2table([Sides_array, Chomog_array], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_02', 'Chomog_10', 'Chomog_11', 'Chomog_12', 'Chomog_20', 'Chomog_21', 'Chomog_22'});
+%data_table = array2table([Sides_array, Chomog_array], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_02', 'Chomog_10', 'Chomog_11', 'Chomog_12', 'Chomog_20', 'Chomog_21', 'Chomog_22'});
+data_table = array2table([Sides_array, Chomog_array(:, [1, 2, 5, 9])], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_11', 'Chomog_22'});
 
 % Save the table as a CSV file
 writetable(data_table, data_filename);

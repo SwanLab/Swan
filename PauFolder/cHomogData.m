@@ -1,28 +1,30 @@
-classdef Data < handle
+classdef cHomogData < handle
 
     properties (Access = public)
         nFeatures
         nLabels
         
         Xtrain
-        Ytrain       
+        Ytrain
         Xtest
         Ytest
         Ntest
     end
 
     properties (Access = private)
-        polynomialOrder
         X
         Y
+        polynomialOrder
         data
         fileName
         testRatio
+        xFeatures;
+        yFeatures;
     end
 
     methods (Access = public)
 
-        function obj = Data(cParams)            
+        function obj = cHomogData(cParams)            
             obj.init(cParams)
             obj.loadData();
             obj.splitdata()
@@ -78,36 +80,24 @@ classdef Data < handle
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
             obj.polynomialOrder = cParams.polynomialOrder;
+            obj.xFeatures       = cParams.xFeatures;
+            obj.yFeatures       = cParams.yFeatures;
         end
 
         function loadData(obj)
             f = fullfile('../Datasets/',obj.fileName);
-            %if obj.skipHeader == true
-            %obj.data = load(f);
+
+            % Change: use readmatrix to skip header
             obj.data = readmatrix(f);
-            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
-            x = obj.data(:, feat);
 
-            % IDENTIFIER
-            % ydata = obj.data(:, end);
-            % y = zeros(length(ydata),max(ydata));
+            % Change: incorporate features to use in cParams vs propmpting
+            % user though terminal
+            x = obj.data(:, obj.xFeatures);
+            y = obj.data(:, obj.yFeatures);
 
-            ydata = obj.data(:, feat);
-            y = zeros(length(ydata),width(ydata));
-            
-            u = unique(ydata);
-            for i=1:length(ydata)
-                for j = 1:length(u)
-                    if ydata(i) == u(j)
-                        y(i,j) = 1;
-                    end
-                end
-            end
-            
-            obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            % obj.Y = y;
-            obj.Y = obj.X;
+            obj.X = x;
+            obj.Y = y;
+
         end
         
 

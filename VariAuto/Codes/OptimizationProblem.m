@@ -50,6 +50,11 @@ classdef OptimizationProblem < handle
            obj.plotter.image(row);
        end
 
+       % Canvi Pau: added eval per avaluar forwardprop
+       function out = eval(obj, Xin)
+           out = obj.network.assess(Xin);
+       end
+
    end
 
    methods (Access = private)

@@ -24,6 +24,24 @@ classdef Network < handle
             obj.createLearnableVariables();
         end
 
+        % Change Pau: S'ha afegir assess per calcular fw_prop sense el cost
+        function out = assess(obj,Xb)
+            [W,b] = obj.learnableVariables.reshapeInLayerForm();
+            nLy = obj.nLayers;
+            a = cell(nLy,1);
+            a{1} = Xb;
+            for i = 2:nLy
+                g_prev = a{i-1};
+                Wi = W{i-1};
+                bi = b{i-1};
+                h = obj.hypothesisfunction(g_prev,Wi,bi);
+                [g,~] = obj.actFCN(h,i);
+                a{i} = g;
+            end
+            obj.a_fcn = a;
+            out = obj.a_fcn{end};
+        end
+
         function c = forwardprop(obj,Xb,Yb)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             nLy = obj.nLayers;
@@ -98,9 +116,12 @@ classdef Network < handle
             obj.createNeuronsPerLayer();
             obj.createNumberOfLayers();
             if length(cParams) <= 2
-                obj.Costtype = '-loglikelihood';
-                obj.HUtype = 'ReLU';%'sigmoid';
-                obj.OUtype = 'sigmoid';'softmax';
+                %obj.Costtype = '-loglikelihood';%'L2';
+                %obj.HUtype = 'ReLU';%'sigmoid';
+                %obj.OUtype = 'sigmoid';%'softmax';
+                obj.Costtype = 'L2';
+                obj.HUtype = 'ReLU';
+                obj.OUtype = 'ReLU';
             else
                 obj.Costtype = cParams{3};
                 obj.HUtype = cParams{4};
