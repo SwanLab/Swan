@@ -206,6 +206,22 @@ classdef LagrangianFunction < FeFunction
             fV = obj.getDofFieldByVector(dimf,f);
         end        
 
+        function fV = getValuesByElem(obj)
+            connec = obj.getDofConnec();
+            nNodeE = obj.interpolation.nnode;
+            nElem  = obj.mesh.nelem;
+            nDimf  = obj.ndimf;
+            fV = zeros(nNodeE,nDimf,nElem);
+            f  = reshape(obj.fValues', [1 obj.nDofs]);
+            for iNode = 1:nNodeE
+                for iDim = 1:nDimf
+                    iDofE = nDimf*(iNode-1)+iDim;
+                    dof = connec(:,iDofE);
+                    fV(iNode,iDim,:) = f(dof);
+                end
+            end
+        end
+
 
         % function dofConnec = computeDofConnectivity(obj)
         %     conne  = obj.dofConnec;
