@@ -43,13 +43,13 @@ Smagnit = @(x) sqrt(x1(x).^2+x2(x).^2);
 
 %Segment
 
-alpha = 10;
-beta = 2;
-h = @(x) alpha * (max(0, (x1(x)) * 1 + (x2(x)) * 1)./Smagnit(x)) ...
-              - beta * (min(0, (x1(x)) * 1 + (x2(x)) * 1)./Smagnit(x));
-s2     = @(x) Smagnit(x)  ./  (h(x));
+alpha = 2;
+beta = 1;
+h = @(x) alpha * max(0, (x1(x)) * 1 + (x2(x)) * 1)./Smagnit(x) ...
+              - beta * min(0, (x1(x)) * 1 + (x2(x)) * 1)./Smagnit(x);
+s2     = @(x) Smagnit(x)  ./  (h(x).^2);
 % sig2    = AnalyticalFunction.create(@(x) h(x),1,mesh);
-sig2   = AnalyticalFunction.create(@(x) s2(x),1,mesh);
+sig2   = AnalyticalFunction.create(@(x) s2(x).*(s2(x)<=0.1),1,mesh);
 sig2P1  = sig2.project('P1D');
 sig2P1.plotContour();
 % a = gcf().findobj();
