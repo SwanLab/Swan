@@ -39,7 +39,7 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function fxV = evaluate(obj, xV)
-            if ~isequal(xV,obj.xVOld)
+            if ~isequal(xV,obj.xVOld) || isempty(obj.fxVOld)
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = obj.interpolation.nnode;
             nGaus  = size(shapes,2);
@@ -57,6 +57,7 @@ classdef LagrangianFunction < FeFunction
                 end
             end
                 obj.fxVOld = fxV;
+                obj.xVOld   = xV;
             else
                 fxV = obj.fxVOld;
             end
@@ -116,7 +117,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            if ~isequal(xV,obj.xVOld)
+            if ~isequal(xV,obj.xVOld) || isempty(obj.dNdxOld)
                 nElem = size(obj.dofConnec,1);
                 nNodeE = obj.interpolation.nnode;
                 nDimE = obj.interpolation.ndime;
