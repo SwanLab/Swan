@@ -2,6 +2,7 @@ classdef NonLinearFilterDroplet < handle
     
     properties (Access = private)
         mesh
+        epsilon
         trial
         sVar
         theta
@@ -46,7 +47,7 @@ classdef NonLinearFilterDroplet < handle
                 obj.updatePreviousGuess(iter);
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
                 iter = iter + 1;
-                 disp(iter);  
+                 %disp(iter);  
                  disp(tolerance);
              end
            
@@ -60,10 +61,11 @@ classdef NonLinearFilterDroplet < handle
         function init(obj,cParams)
             obj.trial = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
             obj.mesh  = cParams.mesh;
+            obj.epsilon = cParams.epsilon;
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = 0;
-            obj.lambda = 100;
+            obj.lambda = 1;
         end
 
         function createDirection(obj)
@@ -138,9 +140,10 @@ classdef NonLinearFilterDroplet < handle
         end
 
         function solveProblem(obj)
+            eps = obj.epsilon;
             l   = obj.lambda;
-            LHS = obj.M + (1/l)*obj.K;
-            RHS = obj.intChi+(1/l)*obj.rhsDer;
+            LHS = obj.M + (eps^2/l)*obj.K;
+            RHS = obj.intChi+(eps^2/l)*obj.rhsDer;
             rhoi = LHS\RHS;
             obj.trial.fValues = rhoi;
         end
