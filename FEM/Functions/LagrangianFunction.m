@@ -427,6 +427,12 @@ classdef LagrangianFunction < FeFunction
             s = res;
         end
 
+        function expF = exp(f)
+            s.operation = @(xV) exp(f.evaluate(xV));
+            s.ndimf = f.ndimf;
+            expF = DomainFunction(s);
+        end
+
     end
 
     methods (Access = public, Static)
