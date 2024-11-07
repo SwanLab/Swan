@@ -169,9 +169,9 @@ classdef NonLinearFilterDroplet < handle
                 A = DomainFunction(s);
 
                 k        = obj.createAnalyticalDirection();
-                gRhoK   = DotProduct(gradRho,k);
+                gRhoK   = DP(gradRho,k);
 
-                s.operation = @(xV) (gradRho.evaluate(xV)-A.evaluate(xV).*gRhoK.evaluate(xV).*k.evaluate(xV))./(1+2*l*muEv(xV));
+                s.operation = @(xV) (squeezeParticular(gradRho.evaluate(xV),2)-A.evaluate(xV).*gRhoK.evaluate(xV).*k.evaluate(xV))./(1+2*l*muEv(xV));
                 obj.sVar = DomainFunction(s);
             end
         end
@@ -181,10 +181,10 @@ classdef NonLinearFilterDroplet < handle
             l       = obj.lambda;
             a       = obj.alpha;
             gradRho = Grad(obj.trial);
-            gRhoK   = DotProduct(gradRho,k);
+            gRhoK   = DP(gradRho,k);
 
             % Mu = 0
-            l2gRho  = L2Norm.compute(obj.mesh,gradRho);
+            l2gRho  = Norm.computeL2(obj.mesh,gradRho);
             A       = a*sqrt(1+4*l+4*l^2*a^2)/(1+2*l*a^2);
             s.operation = @(xV) gRhoK.evaluate(xV)>=l2gRho/A;
             MuZeroCond = DomainFunction(s);

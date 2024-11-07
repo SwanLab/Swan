@@ -177,7 +177,7 @@ classdef NonLinearFilterSegment < handle
         function updateDotProductPreviousGuess(obj)
             gradRho  = Grad(obj.trial);
             k        = obj.createAnalyticalDirection();
-            obj.sVar = DotProduct(gradRho,k);
+            obj.sVar = DP(gradRho,k);
 %             obj.sVar = Integrator.compute(gradRho.*k,obj.mesh,2);
         end
     end
