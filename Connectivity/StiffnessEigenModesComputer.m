@@ -9,7 +9,8 @@ classdef StiffnessEigenModesComputer < handle
         massInterpolator
         boundaryConditions
         Kmatrix
-        Mmatrix        
+        Mmatrix
+        shift
     end
     
     properties (Access = private)
@@ -36,6 +37,11 @@ classdef StiffnessEigenModesComputer < handle
             Kreduced = obj.fullToReduced(K);
             M  = obj.computeMassMatrixWithFunction(m);
             Mreduced = obj.fullToReduced(M);
+            
+            % Including the Eigenvalue Shift
+            K = K + obj.shift*M;
+            Kreduced = Kreduced + obj.shift*Mreduced;
+            
             dK = obj.createStiffnessMatrixWithFunction(dalpha);
             dM = obj.computeMassMatrixWithFunction(dm);
             [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
@@ -66,6 +72,7 @@ classdef StiffnessEigenModesComputer < handle
         
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
+            obj.shift   = cParams.shift;
         end
 
         function createBoundaryConditions(obj)
@@ -219,7 +226,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
-            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - lambda*dm.*DDP(phi,phi); 
+            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - (lambda - obj.shift)*dm.*phi.*phi; 
         end
         
 

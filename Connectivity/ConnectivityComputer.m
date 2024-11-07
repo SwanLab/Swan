@@ -9,7 +9,7 @@ classdef ConnectivityComputer < handle
         levelSet
         characteristicFunction
         designVariable
-
+        
         materialInterpolation
         filter
     end
@@ -59,16 +59,16 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type        = 'CircleInclusion';
-            s.radius      = 0.4;
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;
-%             s.type = 'Empty'    
-%             s.type        = 'RectangleInclusion';
-%             s.xSide       = 0.5;
-%             s.ySide       = 0.5;
+%             s.type        = 'CircleInclusion';
+%             s.radius      = 0.4;
 %             s.xCoorCenter = 0.5;
 %             s.yCoorCenter = 0.5;
+%             s.type = 'Empty'    
+            s.type        = 'RectangleInclusion';
+            s.xSide       = 0.5;
+            s.ySide       = 0.5;
+            s.xCoorCenter = 0.5;
+            s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
@@ -204,8 +204,9 @@ classdef ConnectivityComputer < handle
         end
 
         function eigen = computeEigenValueProblem(obj)
-            s.mesh = obj.mesh;
-            eigen  = StiffnessEigenModesComputer(s);
+            s.mesh  = obj.mesh;
+            s.shift = 1.0;
+            eigen   = StiffnessEigenModesComputer(s);
         end
 
 

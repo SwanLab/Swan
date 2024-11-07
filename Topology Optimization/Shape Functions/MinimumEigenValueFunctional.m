@@ -22,7 +22,7 @@ classdef MinimumEigenValueFunctional < handle
         
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
             % obj.designVariable.update(x);
-            obj.computeDensity();
+            obj.computeDensity(); 
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);
             obj.value = f;  
             obj.gradient = dfdx;            
@@ -58,17 +58,29 @@ classdef MinimumEigenValueFunctional < handle
             obj.density = densHole;
         end
         
-        function rho = computeComplementaryDensity(obj,fun,xV)
-            rho = fun.evaluate(xV);
-            rho = 1 - rho;
-            rho = round(rho);
-            rho = max(0,min(1,rho));
+        function rhoP = computeComplementaryDensity(obj,fun,xV)
+            rho = 1 - fun;
+            s.beta = 2.0;
+            s.eta  = 0.5;
+            projector = HeavisideProjector(s);
+            rhoPVal = projector.project(rho);
+            rhoP = LagrangianFunction.create(obj.designVariable.fun.mesh,1,fun.order);
+            rhoP.fValues = rhoPVal;
+
+            rho3 = round(rho.fValues);
+            rho3 = max(0,min(1,rho3));
+            rhoP3 = LagrangianFunction.create(obj.designVariable.fun.mesh,1,fun.order);
+            rhoP3.fValues = rho3;
+            
+            s.beta = 2.0;
+            s.eta = 0.05;
+            s.filterStep = 'LUMP';
+            s.mesh  = obj.designVariable.fun.mesh;
+            s.trial = LagrangianFunction.create(obj.designVariable.fun.mesh,1,'P1');
+            filter = FilterAndProject(s);
+            rhoP4 = filter.compute(rho, 3);
          end
 
-%             s.beta = 0.5;
-%             s.eta  = 0.5;
-%             projector = HeavisideProjector(s)
-%             rho = projector.project()
 %         function createHeavisideProjector(obj, beta, eta)
 %             obj.HeavisideProjector()
 

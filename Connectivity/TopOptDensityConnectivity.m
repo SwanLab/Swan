@@ -153,6 +153,7 @@ classdef TopOptDensityConnectivity < handle
 
         function eigen = computeEigenValueProblem(obj)
             s.mesh = obj.mesh;
+            s.shift = 1.0;
             eigen  = StiffnessEigenModesComputer(s);
         end
 
@@ -160,13 +161,14 @@ classdef TopOptDensityConnectivity < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filter;
-            s.minimumEigenValue = 0.05;                                     
+            s.minimumEigenValue = 0.05;      
+            s.shift             = 1.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.minimumEigenValue;                   
+%             s.shapeFunctions{2} = obj.minimumEigenValue;                   
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -188,7 +190,7 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 2;                                        
+            s.nConstraints   = 1;                                        
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
