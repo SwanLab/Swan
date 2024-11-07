@@ -655,19 +655,12 @@ pointload_complete = [
 207 2 -0.1
 ];
 
-isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
-isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-isMiddle = @(coor) (abs(coor(:,2) >= 0.4 & abs(coor(:,2)) <= 0.6) );
-
+% Via GiD example:
 % Dirichlet
-sDir{1}.domain    = @(coor) isLeft(coor);
-sDir{1}.direction = [1,2];
-sDir{1}.value     = 0;
+sDir = computeCondition(dirichlet_data);
 
 % Point load
-sPL{1}.domain    = @(coor) isMiddle(coor) & isRight(coor);
-sPL{1}.direction = 2;
-sPL{1}.value     = -0.1;
+sPL = computeCondition(pointload_complete);
 
 %% Volumetric Force
 % Element        Dim                Force_Dim
@@ -736,3 +729,21 @@ External_border_nodes = [
 
 Materials = [
 ];
+
+function sCond = computeCondition(conditions)
+nodes = @(coor) 1:size(coor,1);
+dirs  = unique(conditions(:,2));
+j     = 0;
+for k = 1:length(dirs)
+    rowsDirk = ismember(conditions(:,2),dirs(k));
+    u        = unique(conditions(rowsDirk,3));
+    for i = 1:length(u)
+        rows   = conditions(:,3)==u(i) & rowsDirk;
+        isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+        j      = j+1;
+        sCond{j}.domain    = @(coor) isCond(coor);
+        sCond{j}.direction = dirs(k);
+        sCond{j}.value     = u(i);
+    end
+end
+end

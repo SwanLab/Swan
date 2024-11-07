@@ -22,17 +22,17 @@ classdef DOFsComputer < handle
         
         function computeDofs(obj)
             obj.computeDofsPriv();
-            obj.refineDofs();
+            obj.obtainDofsForVectorField();
         end
         
         
         function computeCoord(obj)
             if isempty(obj.dofs)
-                obj.computeDofs;
+                obj.computeDofs();
             end
 
             if  isprop(obj.mesh,'coord') 
-                obj.computeCoordPriv();
+                obj.computeCoordPriv(obj.dofs);
             end
         end
         
@@ -86,10 +86,10 @@ classdef DOFsComputer < handle
         end
         
         
-        function computeCoordPriv(obj)
-            ndofsE = size(obj.dofs,2);
-            coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
+        function computeCoordPriv(obj,dofs)
+            ndofsE = size(dofs,2);
             if obj.order~=1
+                coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
                 sAF      = obj.computefHandlePosition();
                 sAF.mesh = obj.mesh;
                 func     = AnalyticalFunction(sAF);
@@ -97,15 +97,29 @@ classdef DOFsComputer < handle
                 c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
                 c = permute(c,[3,1,2]);
                 c = reshape(c,[],obj.mesh.ndim);
-                newDofs = (obj.dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
+                newDofs = (dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
                 newDofs = reshape(newDofs,[],1);
                 coor(newDofs,:) = c;                
                 obj.coord = coor;
             else
-                obj.coord = obj.mesh.coord;
+                coor   = zeros(obj.ndofs,obj.mesh.ndim);
+                for idim = 1:obj.mesh.ndim
+                    nodes    = unique(obj.mesh.connec);
+                    coorDofs = repmat(obj.mesh.coord(nodes,idim)',obj.ndimf,1);
+                    dofs     = obj.computeNodesToDofs(nodes);
+                    coor(dofs,idim) = coorDofs(:);                   
+                end
+                obj.coord = coor;
             end
         end
-       
+
+        function dofs = computeNodesToDofs(obj,nodes)
+            for iDimf = 1:obj.ndimf
+                dofs(iDimf,:) =(nodes-1)*obj.ndimf+iDimf;
+            end
+            dofs = dofs(:);
+        end
+
         
         function dofsVertices = computeDofsVertices(obj)
             if obj.order == 0
@@ -115,7 +129,14 @@ classdef DOFsComputer < handle
                 dofsVertices = m.connec;
             end
         end
-        
+
+
+        function result = vectorUnion(~, v, n, fl)
+
+            result = v + (0:n-1);
+            result(fl,:) = flip(result(fl,:),2);
+        end
+
         
         function dofsEdges = computeDofsEdges(obj)
             if obj.order <= 1
@@ -127,19 +148,17 @@ classdef DOFsComputer < handle
                 ndofEdge = obj.order-1;
                 ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
                 
-                dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem);
+                dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem*ndofEdge);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
                 locPointEdgeRef = obj.computeLocPointEdgeRef();
 
-                for iElem = 1:obj.mesh.nelem
-                    for iEdge = 1:obj.mesh.edges.nEdgeByElem
-                        ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
-                        if locPointEdge(iElem,iEdge)~=locPointEdgeRef(iEdge)
-                            ind = flip(ind);
-                        end
-                        dofsEdges(iElem,ind) = edges(iElem,iEdge)*ndofEdge-(ndofEdge-1):edges(iElem,iEdge)*ndofEdge;
-                    end
+                for iEdge = 1:obj.mesh.edges.nEdgeByElem
+                    ind = (iEdge-1)*ndofEdge+1:iEdge*ndofEdge;
+                    fl = locPointEdge(:,iEdge)~=locPointEdgeRef(iEdge);
+                    v = edges(:,iEdge)*ndofEdge-(ndofEdge-1);
+                    dofsEdges(:,ind) = obj.vectorUnion(v, length(ind), fl);
                 end
+
                 dofsEdges = dofsEdges + m.nnodes;
             end
         end
@@ -229,7 +248,7 @@ classdef DOFsComputer < handle
         end
         
         
-        function refineDofs(obj)
+        function obtainDofsForVectorField(obj)
             dofsDim =  obj.dofs;
             nDimf  = obj.ndimf;
             nNode  = size(dofsDim, 2);
