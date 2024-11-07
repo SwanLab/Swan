@@ -106,6 +106,7 @@ classdef OrientedMappingComputer < handle
             er = LagrangianFunction(s);
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientation{iDim};
+                Curl(b).project('P1D',obj.mesh).plot()
                 dO = er.*b;
                 obj.dilatedOrientation{iDim} = dO;
             end
