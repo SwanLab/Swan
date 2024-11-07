@@ -20,34 +20,19 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case 'FiberMatrix'
-                    % %%%%%% REVIEW LEVEL SETS %%%%%%%%%%%%%%%
-                    % % Generate coordinates
-                    % x1 = linspace(0,1,20);
-                    % x2 = linspace(1,2,20);
-                    % % Create the grid
-                    % [xv,yv] = meshgrid(x1,x2);
-                    % % Triangulate the mesh to obtain coordinates and connectivities
-                    % [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-                    % sBg.coord  = V(:,1:2);
-                    % sBg.connec = F;
-                    % bgMesh = Mesh.create(sBg);
-                    % bdMesh  = bgMesh.createBoundaryMesh();
-                    %
-                    % % Level set creation
-                    % sLS.type       = 'circleInclusion';
-                    % sLS.mesh       = bgMesh;
-                    % sLS.ndim       = 2;
-                    % sLS.fracRadius = 0.4;
-                    % sLS.coord      = bgMesh.coord;
-                    % ls = LevelSetCreator.create(sLS);
-                    % levelSet = ls.getValue();
-                    %
-                    % sUm.backgroundMesh = bgMesh;
-                    % sUm.boundaryMesh   = bdMesh;
-                    % uMesh = UnfittedMesh(sUm);
-                    % uMesh.compute(levelSet);
-                    %
-                    % mesh = uMesh.createInnerMeshGoodConditioning();
+                    bgMesh = TriangleMesh(1,1,20,20);
+                    sLS.type        = 'CircleInclusion';
+                    sLS.xCoorCenter = 0.5;
+                    sLS.yCoorCenter = 0.5;
+                    sLS.radius      = 0.2;
+                    g               = GeometricalFunction(sLS);
+                    lsFun           = g.computeLevelSetFunction(bgMesh);
+                    levelSet        = lsFun.fValues;
+                    sUm.backgroundMesh = bgMesh;
+                    sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
+                    uMesh = UnfittedMesh(sUm);
+                    uMesh.compute(levelSet);
+                    mesh = uMesh.createInnerMeshGoodConditioning();
             end
             bc = phaseFieldBoundaryCreator(mesh,cParams);
         end
