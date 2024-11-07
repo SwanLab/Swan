@@ -5,11 +5,9 @@ function dom = Grad(u)
 end
 
 function grad = evaluate(u, xV)
-    dNdx    = u.evaluateCartesianDerivatives(xV);
-    nPoints = size(xV, 2);
-    uF = u.getValuesByElem();
-    uF = repmat(uF,[1 1 1 nPoints]);
-    uF = permute(uF,[1 2 4 3]);
+    dNdx = u.evaluateCartesianDerivatives(xV);
+    uF   = u.getValuesByElem();
+    uF   = permute(uF,[1 2 4 3]);
     grad = pagemtimes(dNdx,uF);
 end
 

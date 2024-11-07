@@ -16,6 +16,6 @@ xFun = AnalyticalFunction(sAF);
 p1fun = xFun.project('P1');
 %p1fun.plot
 
-t = Grad(p1fun).project('P1',mesh);
+t = Voigt(Grad(p1fun)).project('P1',mesh);
 %t.plot()
 %shading interp
