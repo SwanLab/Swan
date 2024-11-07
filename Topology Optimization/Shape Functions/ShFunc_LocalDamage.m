@@ -63,18 +63,18 @@ classdef ShFunc_LocalDamage < handle
             obj.l0 = cParams.l0;
         end
 
-        function fun = createDissipationFunction(obj,phi,type)
+        function disFun = createDissipationFunction(obj,phi,type)
             switch type
                 case 'Function'
-                    s.handleFunction = obj.dissipationInterpolation.fun;
+                    fun = obj.dissipationInterpolation.fun;
                 case'Jacobian'
-                    s.handleFunction = obj.dissipationInterpolation.dfun;
+                     fun = obj.dissipationInterpolation.dfun;
                 case 'Hessian'
-                    s.handleFunction = obj.dissipationInterpolation.ddfun;
+                    fun = obj.dissipationInterpolation.ddfun;
             end
-            s.mesh = obj.mesh;
-            s.l2function = phi;
-            fun = CompositionFunction(s);
+            s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
+            s.ndimf = 1;
+            disFun = DomainFunction(s);
         end
 
     end

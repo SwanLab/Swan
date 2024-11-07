@@ -29,9 +29,18 @@ classdef PhaseFieldDissipationInterpolator < handle
             p = obj.pExp;
             e = 1e-12;
 
-            obj.fun      = @(phi) abs(phi).^p;
-            obj.dfun     = @(phi) p*(abs(phi)).^(p-1);
-            obj.ddfun    = @(phi) p*(p-1)*(abs(phi+e)).^(p-2);
+            s.operation = @(phi) abs(phi).^p;
+            s.ndimf = 1;
+            obj.fun = DomainFunction(s);
+
+            s.operation = @(phi) p*(abs(phi)).^(p-1);
+            s.ndimf = 1;
+            obj.dfun = DomainFunction(s);
+
+            s.operation = @(phi) p*(p-1)*(abs(phi+e)).^(p-2);
+            s.ndimf = 1;
+            obj.ddfun = DomainFunction(s);
+
         end
 
     end

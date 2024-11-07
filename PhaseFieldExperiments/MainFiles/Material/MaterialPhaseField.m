@@ -25,17 +25,20 @@ classdef MaterialPhaseField < Material
 
         function C = obtainTensor(obj)
             f    = obj.degradation.fun;
-            C{1} = obj.createDegradedMaterial(f);
+            degFun = obj.computeDegradationFun(f);
+            C{1} = obj.createDegradedMaterial(degFun);
         end
 
         function dC = obtainTensorDerivative(obj)
             df    = obj.degradation.dfun;
-            dC{1} = obj.createDegradedMaterial(df);
+            degFun = obj.computeDegradationFun(df);
+            dC{1} = obj.createDegradedMaterial(degFun);
         end
 
         function ddC = obtainTensorSecondDerivative(obj)
             ddf    = obj.degradation.ddfun;
-            ddC{1} = obj.createDegradedMaterial(ddf);
+            degFun = obj.computeDegradationFun(ddf);
+            ddC{1} = obj.createDegradedMaterial(degFun);
         end
 
     end
@@ -60,29 +63,16 @@ classdef MaterialPhaseField < Material
             mat = Isotropic2dElasticMaterial(sIso);
         end
 
-        function mat = createDegradedMaterial(obj,degFun)
-            df    = degFun;
+        function mat = createDegradedMaterial(obj,fun)
             mu    = obj.baseMaterial.createShear();
             kappa = obj.baseMaterial.createBulk();
-            degM  = obj.createDegradedLameParameterFunction(mu,df);
-            degK  = obj.createDegradedLameParameterFunction(kappa,df);
+            degM  = fun.*mu';
+            degK  = fun.*kappa';
             s.shear = degM;
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
             mat = Isotropic2dElasticMaterial(s);
         end     
-    
-        function xf = createDegradedLameParameterFunction(obj,param,f)
-            s.operation = @(xV) param.evaluate(xV).*obj.evaluateDegradation(f,xV);
-            s.ndimf = 1;
-            xf =  DomainFunction(s);
-        end      
-
-        function fV = evaluateDegradation(obj,f,xV)
-            phiV = obj.phi.evaluate(xV);
-            fV = f(phiV);
-        end            
-
 
     end
     
@@ -91,51 +81,45 @@ classdef MaterialPhaseField < Material
         
         function kFun = getBulkFun(obj,u,phi,interpType)
             obj.setDesignVariable(u,phi);
-            [~,g0] = obj.computeDegradationFun(interpType);
+            fun = obj.selectDegradationFun(interpType);
+            g = obj.computeSplitDegradationFun(fun);
 
             E  = obj.baseMaterial.young.constant;
             nu = obj.baseMaterial.poisson.constant;
-            N = 2;
+            N = obj.mesh.ndim;
             kV = E./(N*(1-(N-1)*nu));
             k = ConstantFunction.create(kV,obj.mesh);
 
-            kFun = g0.*k';
+            kFun = g.*k';
         end
 
         function muFun = getShearFun(obj,u,phi,interpType)
             obj.setDesignVariable(u,phi);
-            [~,g0] = obj.computeDegradationFun(interpType);
+            fun = obj.selectDegradationFun(interpType);
+            g = obj.computeDegradationFun(fun);
 
             E  = obj.baseMaterial.young.constant;
             nu = obj.baseMaterial.poisson.constant;
             muV = E./(2*(1+nu));
             mu = ConstantFunction.create(muV,obj.mesh);
 
-            muFun = g0.*mu;
+            muFun = g.*mu;
         end
 
-        function mat = getBulkMaterial(obj,u,phi)
-            obj.setDesignVariable(u,phi);
-            df    = obj.degradation.fun;
+        function mat = getBulkMaterial(obj,u,phi,interpType)
             mu    = ConstantFunction.create(0,obj.mesh);
-            kappa = obj.baseMaterial.createBulk();
-            degM  = obj.createDegradedLameParameterFunction(mu,df);
-            degK  = obj.createDegradedLameParameterFunction(kappa,df);
-            s.shear = degM;
-            s.bulk  = degK;
+            kappa = obj.getBulkFun(u,phi,interpType);
+            s.shear = mu;
+            s.bulk  = kappa;
             s.ndim  = obj.mesh.ndim;
             mat = Isotropic2dElasticMaterial(s);
         end
 
-        function mat = getShearMaterial(obj,u,phi)
-            obj.setDesignVariable(u,phi);
-            df    = obj.degradation.fun;
-            mu    = obj.baseMaterial.createShear();
+        function mat = getShearMaterial(obj,u,phi,interpType)
+            mu    = obj.getShearFun(u,phi,interpType);
             kappa = ConstantFunction.create(0,obj.mesh);
-            degM  = obj.createDegradedLameParameterFunction(mu,df);
-            degK  = obj.createDegradedLameParameterFunction(kappa,df);
-            s.shear = degM;
-            s.bulk  = degK;
+            s.shear = mu;
+            s.bulk  = kappa;
             s.ndim  = obj.mesh.ndim;
             mat = Isotropic2dElasticMaterial(s);
         end
@@ -143,7 +127,7 @@ classdef MaterialPhaseField < Material
 
     methods (Access = private)
 
-        function [g, g0] = computeDegradationFun(obj,interpType)
+        function fun = selectDegradationFun(obj,interpType)
             switch interpType
                 case 'Interpolated'
                     fun = obj.degradation.fun;
@@ -152,11 +136,17 @@ classdef MaterialPhaseField < Material
                 case 'Hessian'
                     fun = obj.degradation.ddfun;
             end
-            s.operation = @(xV) fun(obj.phi.evaluate(xV));
-            s.ndimf = obj.phi.ndimf;
-            g0 = DomainFunction(s);
+        end
 
-            trcSign = Heaviside(trace(SymGrad(obj.u)));
+        function g = computeDegradationFun(obj,fun)
+            s.operation = @(xV) fun.evaluate(obj.phi.evaluate(xV));
+            s.ndimf = 1;
+            g = DomainFunction(s);
+        end
+
+        function g = computeSplitDegradationFun(obj,fun)
+            g0 = obj.computeDegradationFun(fun);
+            trcSign = Heaviside(trace(AntiVoigt(SymGrad(obj.u))));
             g = g0.*trcSign + (1-trcSign);
         end
 

@@ -65,13 +65,13 @@ classdef ShFunc_InternalEnergySplit < handle
 
         
         function dE = computeVolumetricEnergyDisplacementGradient(obj,u,phi,quadOrder)
-            Cbulk    = obj.materialPhaseField.getBulkMaterial(u,phi);
+            Cbulk    = obj.materialPhaseField.getBulkMaterial(u,phi,'Interpolated');
             sigmaVol = DDP(Cbulk,SymGrad(u));
             dE  = obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaVol,u,quadOrder);
         end
 
         function dE = computeDeviatoricEnergyDisplacementGradient(obj,u,phi,quadOrder)
-            Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
+            Cshear = obj.materialPhaseField.getShearMaterial(u,phi,'Interpolated');
             sigmaDev = DDP(Cshear,SymGrad(u));
             dE =  obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaDev,u,quadOrder);
         end        
@@ -108,12 +108,12 @@ classdef ShFunc_InternalEnergySplit < handle
 
 
         function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
-            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi);
+            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi,'Interpolated');
             ddE   = obj.computeElasticStiffnesMatrix(Cbulk,u,quadOrder);
         end
 
         function ddE = computeDeviatoricEnergyDisplacementHessian(obj,u,phi,quadOrder)
-            Cshear = obj.materialPhaseField.getShearMaterial(u,phi);
+            Cshear = obj.materialPhaseField.getShearMaterial(u,phi,'Interpolated');
             ddE    = obj.computeElasticStiffnesMatrix(Cshear,u,quadOrder);
         end        
 

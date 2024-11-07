@@ -63,7 +63,7 @@ classdef PhaseFieldComputer < handle
                         costFun(1,end+1) = costU;
                         costFun(2,end) = 0;
                         iter = iter+1;
-      %                  obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
 
                     end
                     if iterU > iterUMax
@@ -92,7 +92,7 @@ classdef PhaseFieldComputer < handle
                             costFun(1,end+1) = costPhi;
                             costFun(2,end) = 1;
                             iter = iter+1;
-%                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
 
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                             iterPhi = iterPhi + 1;                            
@@ -225,7 +225,7 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)-1));
+            totReact = sum(F(2*nodes(isInUp)));
 
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;

@@ -78,7 +78,7 @@ classdef ShFunc_BrittlePhaseField < handle
         
         function init(obj,cParams)
             obj.quadOrder = cParams.quadOrder;
-            obj.functionals.energy         = ShFunc_InternalEnergy(cParams);
+            obj.functionals.energy         = ShFunc_InternalEnergySplit(cParams);
             %obj.functional.energy2         = ShFunc_InternalEnergySplit(cParams);
             obj.functionals.localDamage    = ShFunc_LocalDamage(cParams);
             obj.functionals.nonLocalDamage = ShFunc_NonLocalDamage(cParams);
