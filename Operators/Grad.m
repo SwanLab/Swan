@@ -7,7 +7,6 @@ end
 function grad = evaluate(u, xV)
     dNdx = u.evaluateCartesianDerivatives(xV);
     uF   = u.getValuesByElem();
-    uF   = permute(uF,[1 2 4 3]);
     grad = pagemtimes(dNdx,uF);
 end
 
