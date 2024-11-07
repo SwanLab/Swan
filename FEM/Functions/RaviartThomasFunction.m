@@ -165,22 +165,22 @@ classdef RaviartThomasFunction < FeFunction
             end
         end
 
-        function dofConnec = computeDofConnectivity(obj)
-            conne  = obj.connec;
-            nDimf  = obj.ndimf;
-            nNode  = size(conne, 2);
-            nDofsE = nNode*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNode
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            dofConnec = dofsElem;
-        end
+        % function dofConnec = computeDofConnectivity(obj)
+        %     conne  = obj.connec;
+        %     nDimf  = obj.ndimf;
+        %     nNode  = size(conne, 2);
+        %     nDofsE = nNode*nDimf;
+        %     dofsElem  = zeros(nDofsE,size(conne,1));
+        %     for iNode = 1:nNode
+        %         for iUnkn = 1:nDimf
+        %             idofElem   = nDimf*(iNode - 1) + iUnkn;
+        %             globalNode = conne(:,iNode);
+        %             idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+        %             dofsElem(idofElem,:) = idofGlobal;
+        %         end
+        %     end
+        %     dofConnec = dofsElem;
+        % end
 
         function dof = getDofsFromCondition(obj, condition)
             nodes = condition(obj.coord);
