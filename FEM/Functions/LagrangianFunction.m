@@ -137,6 +137,12 @@ classdef LagrangianFunction < FeFunction
             grad        = DomainFunction(s);
         end
 
+        function curl = computeCurl(obj)
+            s.operation = @(xV) obj.computeCurlFun(xV);
+            s.ndimf     = 1;
+            curl        = DomainFunction(s);            
+        end
+
         function setdNdxOld(obj,dNdx)
             obj.dNdxOld = dNdx;
         end
@@ -460,6 +466,23 @@ classdef LagrangianFunction < FeFunction
             fV    = permute(fV,[1 2 4 3]);
             gradF = pagemtimes(dNdx,fV);
         end
+
+        function curlF = computeCurlFun(obj,xV)
+            dNdx  = obj.evaluateCartesianDerivatives(xV);
+            fV    = obj.getValuesByElem();
+            fV    = obj.createOrthogonal(fV);
+            fV    = permute(fV,[1 2 4 3]);
+            gradF = pagemtimes(dNdx,fV);
+            divF  = squeeze(sum(gradF,1));
+            curlF  = divF;
+        end
+
+        function fP = createOrthogonal(obj,f)
+            fP = zeros(size(f));
+            fP(:,1,:) = f(:,2,:);
+            fP(:,2,:) = -f(:,1,:);
+        end
+
 
        function fV = getValuesByElem(obj)
             connec = obj.getDofConnec();
