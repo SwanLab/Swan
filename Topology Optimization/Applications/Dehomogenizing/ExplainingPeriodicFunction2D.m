@@ -68,7 +68,7 @@ classdef ExplainingPeriodicFunction2D < handle
             beta = zeros(size(x1));
 
          %   alpha = beta/2;
-            alpha = atan2(x2 -x20 -0.1*(max(x2)),x1-x10);
+            alpha = atan2(x2 -x20 +0.1*(max(x2)),x1-x10);
 
             s.fValues = alpha;
             s.mesh    = obj.mesh;
