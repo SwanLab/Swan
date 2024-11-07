@@ -34,7 +34,7 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function init(obj)
             obj.meshSize = 0.04;
-            obj.nCells   = [10 10; 20 20; 40 40];
+            obj.nCells   = [10 10; 20 20; 20 20];
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
@@ -68,7 +68,7 @@ classdef ExplainingPeriodicFunction2D < handle
             beta = zeros(size(x1));
 
          %   alpha = beta/2;
-            alpha = atan2(x2 -x20+0.1*(max(x2)),x1-x10);
+            alpha = atan2(x2 -x20 -0.1*(max(x2)),x1-x10);
 
             s.fValues = alpha;
             s.mesh    = obj.mesh;
