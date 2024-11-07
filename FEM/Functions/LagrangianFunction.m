@@ -221,7 +221,6 @@ classdef LagrangianFunction < FeFunction
                     fV(iNode,iDim,:) = f(dof);
                 end
             end
-            fV   = permute(fV,[1 2 4 3]);
         end
 
 
