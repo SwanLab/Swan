@@ -101,6 +101,12 @@ classdef DomainFunction < handle
             r = DomainFunction(s);
         end
 
+        function r = exp(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) exp(aOp(xV));
+            r = DomainFunction(s);
+        end        
+
         function r = trace(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) trace(aOp(xV));
