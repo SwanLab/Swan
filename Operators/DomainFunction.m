@@ -50,7 +50,7 @@ classdef DomainFunction < handle
 
         function r = times(a,b)
             if not(isfloat(a))
-                aOp = DomainFunction.computeOperation(a);
+                aOp = DomainFunction.computeOperation(a);                
             else
                 aOp = @(xV) a;
             end
@@ -59,7 +59,10 @@ classdef DomainFunction < handle
             else
                 bOp = @(xV) b;
             end
+            ndimfA = DomainFunction.computeFieldDimension(a);
+            ndimfB = DomainFunction.computeFieldDimension(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = max(ndimfA,ndimfB);
             r = DomainFunction(s);
         end
 
@@ -147,6 +150,18 @@ classdef DomainFunction < handle
                 op = @(xV) a.evaluate(xV);
             end
         end
+
+        function ndimf = computeFieldDimension(a)
+            if isprop(a,'operation')
+                ndimf = a.ndimf;
+            elseif isnumeric(a)
+                ndimf = size(a,1);
+            else
+                ndimf = a.ndimf;
+            end
+        end        
+
+
 
     end
 
