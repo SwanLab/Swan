@@ -75,6 +75,11 @@ classdef ExplainingPeriodicFunction2D < handle
             s.order   = 'P1';
             aF = LagrangianFunction(s);
             obj.alpha = aF;
+
+            gradA = Grad(aF);
+            gradA = gradA.project('P1',obj.mesh);
+            t = Divergence(gradA); 
+            t.project('P1',obj.mesh).plot()             
         end
 
 
