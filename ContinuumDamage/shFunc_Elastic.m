@@ -6,7 +6,6 @@ classdef shFunc_Elastic < handle
     
     properties (Access = private)
         material
-        displacement
         mesh
     end
     
@@ -17,19 +16,19 @@ classdef shFunc_Elastic < handle
             
         end
         
-        function energy = computeFunction(obj,quadOrder)
+        function energy = computeFunction(obj,quadOrder,u)
             
             C = obj.material;
-            epsi = SymGrad(obj.displacement);
+            epsi = SymGrad(u);
             funct = DDP(DDP(epsi,C),epsi);
             energy = 0.5*(Integrator.compute(funct,obj.mesh,quadOrder));
        
         end
         
-        function jacobian = computeJacobian(obj,quadOrder)
+        function jacobian = computeJacobian(obj,quadOrder,u)
             
             C = obj.material;
-            u = obj.displacement;
+            
             
             epsi = SymGrad(u);
             b = DDP(epsi,C);
@@ -47,9 +46,9 @@ classdef shFunc_Elastic < handle
             
         end
         
-        function hessian = computeHessian(obj,quadOrder)
+        function hessian = computeHessian(obj,quadOrder,u)
             
-            u = obj.displacement;
+
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             
             S.type = 'ElasticStiffnessMatrix';
@@ -72,7 +71,6 @@ classdef shFunc_Elastic < handle
         
         function init(obj,cParams)
             obj.material = cParams.material;
-            obj.displacement = cParams.u;
             obj.mesh = cParams.mesh;
         end
         

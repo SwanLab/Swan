@@ -87,6 +87,7 @@ classdef TestingContinuumDamage < handle
             s.pointloadFun = [];
             s.periodicFun = [];
             bc = BoundaryConditions(s);
+
         end
 
         function bc = createForceBendingConditions(obj,s)

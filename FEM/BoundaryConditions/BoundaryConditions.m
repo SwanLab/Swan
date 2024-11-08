@@ -3,7 +3,7 @@ classdef BoundaryConditions < handle
     properties (Access = public)
         dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
         pointloadFun, pointload_dofs, pointload_vals, pointload_domain
-        periodic_leader, periodic_follower
+        periodic_leader, periodic_follower, free_dofs
 
         iVoigt, nVoigt
     end
@@ -26,6 +26,7 @@ classdef BoundaryConditions < handle
             obj.createDirichletFun();
             obj.createPointloadFun();
             obj.createPeriodicConditions();
+            obj.computeFreeDofs();
         end
         
     end
@@ -112,6 +113,12 @@ classdef BoundaryConditions < handle
             fVdofs(dofs) = values;
             fVdofs = reshape(fVdofs,[ndimf ndofs/ndimf])';
             fV = dirich.fValues + fVdofs;
+        end
+
+        function computeFreeDofs (obj)
+            numDofs = size(obj.mesh.coord,1)*2;
+            totalDofs(1:numDofs,1) = 1:numDofs;
+            obj.free_dofs = setdiff (totalDofs,obj.dirichlet_dofs);
         end
     end
     

@@ -4,7 +4,7 @@ classdef ContinuumDamageComputer < handle
         mesh
         boundaryConditions
         material
-        tau = 200
+        tau = 0.1
         tolerance = 1e-9
 
         type
@@ -40,21 +40,24 @@ classdef ContinuumDamageComputer < handle
             obj.ElasticFun = shFunc_Elastic(s);
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.u = uFun;
-
+            
             errorU = 1;
             uOld = uFun.fValues;
             while (errorU >= obj.tolerance)
-                %K = obj.computeKInternal();
-                obj.u.fValues = uOld;
-                Fext = obj.computeFExternal();
-                Fint = obj.computeFInternal();
-                F = Fext-Fint;
+
+                LHS = obj.computeKInternal(obj.u);
+
+                Fext = obj.computeFExternal(obj.u);
+                Fint = obj.computeFInternal(obj.u);
+                F = Fext+Fint;
                 
-                results = obj.computeU(F,obj.u,bc);
+                results = obj.computeU(F,obj.u,bc,LHS);
+                 
+                errorU = max(max(abs(uOld-results)));
                 
-                errorU = max(abs(uOld-results));
                 uOld = results;
-            end
+                obj.u.fValues = results;
+             end
     
         end
     end
@@ -73,19 +76,19 @@ classdef ContinuumDamageComputer < handle
             obj.scale = cParams.scale;
         end
 
-        function K = computeKInternal(obj)%,dispFun)
-            K = obj.ElasticFun.computeHessian(obj.quadOrder);
+        function K = computeKInternal(obj,u)%,dispFun)
+            K = obj.ElasticFun.computeHessian(obj.quadOrder,u);
         end
 
-        function F = computeFInternal(obj)%,displacementFun,K)
-            Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder);
+        function F = computeFInternal(obj,u)%,displacementFun,K)
+            Ftry = obj.ElasticFun.computeJacobian(obj.quadOrder,u);
             F = Ftry;
         end
 
 
-        function F = computeFExternal(obj)
+        function F = computeFExternal(obj,u)
             fExt = obj.boundaryConditions.pointloadFun;
-            Ftry = obj.ExternalWorkFun.computeGradient(obj.u,fExt,obj.quadOrder);
+            Ftry = obj.ExternalWorkFun.computeGradient(u,fExt,obj.quadOrder);
             F = Ftry;
         end
 
@@ -98,7 +101,7 @@ classdef ContinuumDamageComputer < handle
             dim = d;
         end
 
-        function uOut = computeU(obj,RHS,uIn,bc)
+        function uOut = computeU(obj,RHS,uIn,bc,LHS)
 
 
             % problemSolver = obj.createSolver();
@@ -108,13 +111,13 @@ classdef ContinuumDamageComputer < handle
             % u = problemSolver.solve(t);
             
             RHS = RHS(bc.free_dofs);
-
+            LHS = LHS(bc.free_dofs,bc.free_dofs);
 
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
 
             uInFree = uInVec(bc.free_dofs);
-            uOutFree = obj.updateWithGradient(RHS,uInFree);
+            uOutFree = obj.updateWithGradient(RHS,uInFree,LHS);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
 
@@ -159,8 +162,9 @@ classdef ContinuumDamageComputer < handle
             end
          end
 
-         function xNew = updateWithGradient(obj,RHS,x)
-            deltaX = -obj.tau.*RHS;
+         function xNew = updateWithGradient(obj,RHS,x,LHS)
+            % deltaX = -obj.tau.*RHS;
+            deltaX = -LHS\RHS;
             xNew = x + deltaX; 
         end
 
