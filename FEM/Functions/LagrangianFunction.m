@@ -359,7 +359,6 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = obj2;
             end
-
             res.fValues = val1 - val2;
             s = res;
         end
