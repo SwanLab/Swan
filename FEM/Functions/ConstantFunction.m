@@ -20,7 +20,7 @@ classdef ConstantFunction < AnalyticalFunction
                 s.constant = constant;
                 s.ndimf = length(constant);
                 s.mesh = mesh;
-                s.fHandle = @(xV) constant*ones(1,size(xV,2)); 
+                s.fHandle = @(xV) constant*ones([1,size(xV,[2,3])]); 
                 obj = ConstantFunction(s);
             end
     end
