@@ -1,11 +1,6 @@
 classdef MaterialPhaseField < Material
 
     properties (Access = private)
-        phi
-        u
-    end
-
-    properties (Access = private)
         mesh
         degradation
         baseMaterial
@@ -18,26 +13,21 @@ classdef MaterialPhaseField < Material
             obj.init(cParams)
         end
 
-        function obj = setDesignVariable(obj,u,phi)
-            obj.u = u;
-            obj.phi = phi;
-        end
-
-        function C = obtainTensor(obj)
+        function C = obtainTensor(obj,phi)
             f    = obj.degradation.fun;
-            degFun = obj.computeDegradationFun(f);
+            degFun = obj.computeDegradationFun(f,phi);
             C{1} = obj.createDegradedMaterial(degFun);
         end
 
-        function dC = obtainTensorDerivative(obj)
+        function dC = obtainTensorDerivative(obj,phi)
             df    = obj.degradation.dfun;
-            degFun = obj.computeDegradationFun(df);
+            degFun = obj.computeDegradationFun(df,phi);
             dC{1} = obj.createDegradedMaterial(degFun);
         end
 
-        function ddC = obtainTensorSecondDerivative(obj)
+        function ddC = obtainTensorSecondDerivative(obj,phi)
             ddf    = obj.degradation.ddfun;
-            degFun = obj.computeDegradationFun(ddf);
+            degFun = obj.computeDegradationFun(ddf,phi);
             ddC{1} = obj.createDegradedMaterial(degFun);
         end
 
@@ -66,8 +56,8 @@ classdef MaterialPhaseField < Material
         function mat = createDegradedMaterial(obj,fun)
             mu    = obj.baseMaterial.createShear();
             kappa = obj.baseMaterial.createBulk();
-            degM  = fun.*mu';
-            degK  = fun.*kappa';
+            degM  = fun.*mu;
+            degK  = fun.*kappa;
             s.shear = degM;
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
@@ -80,9 +70,8 @@ classdef MaterialPhaseField < Material
     methods (Access = public)
         
         function kFun = getBulkFun(obj,u,phi,interpType)
-            obj.setDesignVariable(u,phi);
             fun = obj.selectDegradationFun(interpType);
-            g = obj.computeSplitDegradationFun(fun);
+            g = obj.computeSplitDegradationFun(fun,u,phi);
 
             E  = obj.baseMaterial.young.constant;
             nu = obj.baseMaterial.poisson.constant;
@@ -90,13 +79,12 @@ classdef MaterialPhaseField < Material
             kV = E./(N*(1-(N-1)*nu));
             k = ConstantFunction.create(kV,obj.mesh);
 
-            kFun = g.*k';
+            kFun = g.*k;
         end
 
-        function muFun = getShearFun(obj,u,phi,interpType)
-            obj.setDesignVariable(u,phi);
+        function muFun = getShearFun(obj,phi,interpType)
             fun = obj.selectDegradationFun(interpType);
-            g = obj.computeDegradationFun(fun);
+            g = obj.computeDegradationFun(fun,phi);
 
             E  = obj.baseMaterial.young.constant;
             nu = obj.baseMaterial.poisson.constant;
@@ -115,8 +103,8 @@ classdef MaterialPhaseField < Material
             mat = Isotropic2dElasticMaterial(s);
         end
 
-        function mat = getShearMaterial(obj,u,phi,interpType)
-            mu    = obj.getShearFun(u,phi,interpType);
+        function mat = getShearMaterial(obj,phi,interpType)
+            mu    = obj.getShearFun(phi,interpType);
             kappa = ConstantFunction.create(0,obj.mesh);
             s.shear = mu;
             s.bulk  = kappa;
@@ -138,15 +126,16 @@ classdef MaterialPhaseField < Material
             end
         end
 
-        function g = computeDegradationFun(obj,fun)
-            s.operation = @(xV) fun.evaluate(obj.phi.evaluate(xV));
+        function g = computeDegradationFun(~,fun,phi)
+            phi = phi.copy(); % The copy is necessary in order to update correctly phi
+            s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
             s.ndimf = 1;
             g = DomainFunction(s);
         end
 
-        function g = computeSplitDegradationFun(obj,fun)
-            g0 = obj.computeDegradationFun(fun);
-            trcSign = Heaviside(trace(AntiVoigt(SymGrad(obj.u))));
+        function g = computeSplitDegradationFun(obj,fun,u,phi)
+            g0 = obj.computeDegradationFun(fun,phi);
+            trcSign = Heaviside(trace(AntiVoigt(SymGrad(u))));
             g = g0.*trcSign + (1-trcSign);
         end
 

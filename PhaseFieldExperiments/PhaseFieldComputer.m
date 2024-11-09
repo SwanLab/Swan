@@ -72,35 +72,44 @@ classdef PhaseFieldComputer < handle
                    
                     ePhi = -1;  iterPhi = 1; costOldPhi = costOldU;
                     while (abs(ePhi) > obj.tolErrPhi) && (iterPhi < 300)
-                        %LHS = obj.functional.computePhaseFieldLHS(u,phi);
+                        LHS = obj.functional.computePhaseFieldLHS(u,phi);
                         RHS = obj.functional.computePhaseFieldRHS(u,phi);
-                        phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
 
-                        phiProposed = phi.copy();
-                        phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
-                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
-
-                        if ePhi > 0
-                            tau = tau/2;
-                        else
-                            phiIter = phiIter + 1;
-                            obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
-                            s.tauArray(end+1) = tau;
-                            tau = 10*tau;
-                            phi = phiProposed;
-                            costOldPhi = costPhi;
-                            costFun(1,end+1) = costPhi;
-                            costFun(2,end) = 1;
-                            iter = iter+1;
-                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
-
-                            obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
-                            iterPhi = iterPhi + 1;                            
-                        end
+                        % ADAPTIVE LINE-SEARCH GRADIENT
+                        % phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
+                        % phiProposed = phi.copy();
+                        % phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                        % [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
+                        % obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
+                        % iterPhi = iterPhi + 1;
+                        % 
+                        % if ePhi > 0
+                        %     tau = tau/2;
+                        % else
+                        %     phiIter = phiIter + 1;
+                        %     obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
+                        %     s.tauArray(end+1) = tau;
+                        %     tau = 10*tau;
+                        %     phi = phiProposed;
+                        %     costOldPhi = costPhi;
+                        %     costFun(1,end+1) = costPhi;
+                        %     costFun(2,end) = 1;
+                        %     iter = iter+1;
+                        %     obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        % end
                         
-                        
+                        %NEWTON METHOD
+                        phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
+                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
+                        costOldPhi = costPhi;
+                        obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
+                        iterPhi = iterPhi + 1;
 
-
+                        costFun(1,end+1) = costPhi;
+                        costFun(2,end) = 1;
+                        iter = iter+1;
+                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
                     end
                     if iterPhi > iterPhiMax
                         iterPhiMax = iterPhi;

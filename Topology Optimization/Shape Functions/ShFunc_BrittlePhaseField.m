@@ -56,7 +56,7 @@ classdef ShFunc_BrittlePhaseField < handle
             fExt     = bc.pointloadFun;
             Fint     = obj.functionals.energy.computeGradientDisplacement(u,phi,obj.quadOrder);
             Fext     = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
-            RHS = Fint + Fext;
+            RHS      = Fint + Fext;
         end
         
         function LHS = computePhaseFieldLHS(obj,u,phi)
@@ -78,7 +78,7 @@ classdef ShFunc_BrittlePhaseField < handle
         
         function init(obj,cParams)
             obj.quadOrder = cParams.quadOrder;
-            obj.functionals.energy         = ShFunc_InternalEnergySplit(cParams);
+            obj.functionals.energy         = ShFunc_InternalEnergy(cParams);
             %obj.functional.energy2         = ShFunc_InternalEnergySplit(cParams);
             obj.functionals.localDamage    = ShFunc_LocalDamage(cParams);
             obj.functionals.nonLocalDamage = ShFunc_NonLocalDamage(cParams);
