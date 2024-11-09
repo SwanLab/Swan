@@ -7,7 +7,7 @@ classdef Tutorial11Monitoring < handle
         field2
         monitoring1
         monitoring2
-    end
+    end 
 
     methods (Access = public)
 
@@ -41,7 +41,7 @@ classdef Tutorial11Monitoring < handle
             s.shallDisplay = true;
             s.maxNColumns = 2;
             s.titles = [{'Dataset X'},{'Dataset X&Y'},{'Datasets X'},{'Datasets X&Y'},{'SemiLogY'},{'LogLog'},{'Bar'}];
-            s.chartTypes =[{'plot'},{'plot'},{'multiplot'},{'multiplot'},{'semilogY'},{'loglog'},{'bar'}]; 
+            s.chartTypes =[{'plot'},{'plot'},{'multiplot'},{'multiplot'},{'logy'},{'loglog'},{'bar'}]; 
             s.legends = [{["A","B","C"]},{["D","E","F"]}];
             obj.monitoring1 = Monitoring(s);
         end

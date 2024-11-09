@@ -8,7 +8,9 @@ classdef DisplayFactory < handle
                     display = DisplayPlot(s);
                 case 'multiplot'
                     display = DisplayMultiPlot(s);
-                case 'semilogY'
+                case 'logx'
+                    display = DisplaySemilogX(s);
+                case 'logy'
                     display = DisplaySemilogY(s);
                 case 'loglog'
                     display = DisplayLogLog(s);

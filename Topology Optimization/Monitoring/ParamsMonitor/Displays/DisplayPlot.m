@@ -35,7 +35,7 @@ classdef DisplayPlot < DisplayAbstract
             if ~isempty(obj.ArrayDataX) && ~isempty(obj.ArrayDataY)
                 set(obj.handle,'XData',obj.ArrayDataX,'YData',obj.ArrayDataY);
                 if obj.ArrayDataY(end)>0
-                    set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(0,max(obj.ArrayDataX))])
+                    set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(1e-15,max(obj.ArrayDataX))])
                 end
                 drawnow
             end
