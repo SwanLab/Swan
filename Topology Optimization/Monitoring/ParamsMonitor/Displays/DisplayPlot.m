@@ -37,7 +37,6 @@ classdef DisplayPlot < DisplayAbstract
                 if obj.ArrayDataY(end)>0
                     set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(1e-15,max(obj.ArrayDataX))])
                 end
-                drawnow
             end
         end
 

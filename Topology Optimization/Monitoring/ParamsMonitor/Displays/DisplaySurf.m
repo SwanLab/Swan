@@ -46,7 +46,6 @@ classdef DisplaySurf < DisplayAbstract
                 axis = flip(findobj(gcf,'Type','Axes'));
                 set(axis(obj.position).Title,'String',t);
                 set(obj.handle,'ZData',obj.FieldData,'CData',obj.FieldData,'Faces',obj.faces);
-                drawnow
             end
         end
     end

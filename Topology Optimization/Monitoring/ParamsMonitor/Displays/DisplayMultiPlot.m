@@ -51,7 +51,6 @@ classdef DisplayMultiPlot < DisplayAbstract
                     if obj.ArrayDataX(end)>0
                         set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(0,max(obj.ArrayDataX))])    
                     end
-                    drawnow
                 end
             end
         end
