@@ -6,12 +6,14 @@ classdef DisplayFactory < handle
             switch s.chartType
                 case 'plot'
                     display = DisplayPlot(s);
-                case 'multiPlot'
+                case 'multiplot'
                     display = DisplayMultiPlot(s);
-                case 'log'
-                    display = Display_SemilogY(s);
+                case 'semilogY'
+                    display = DisplaySemilogY(s);
+                case 'loglog'
+                    display = DisplayLogLog(s);
                 case 'bar'
-                    display = Display_Bar(s);
+                    display = DisplayBar(s);
                 case 'surf'
                     display = DisplaySurf(s);
                 otherwise

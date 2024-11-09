@@ -1,4 +1,4 @@
-classdef Display_SemilogY < Display_Plot
+classdef DisplaySemilogY < DisplayPlot
     
     methods (Access = protected)
         

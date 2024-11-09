@@ -47,18 +47,27 @@ classdef Monitoring < handle
             nColumn = min(nPlots,maxC);
         end
 
-        function createMonitoring(obj,s)
+        function createMonitoring(obj,cParams)
             if (obj.shallDisplay)
                 figure
                 nPlots         = length(obj.titles);
                 [nRow,nColumn] = obj.computeNumberRowsColumns();
+                idxMultiBar = 1; idxSurf = 1;
                 for i = 1:nPlots
-                    s.title     = obj.titles{i};
-                    s.chartType = obj.chartTypes{i};
-                    s.position  = i;
-                    newFig    = DisplayAbstract.create(s);
+                    sDisp.title     = obj.titles{i};
+                    sDisp.chartType = obj.chartTypes{i};
+                    if sDisp.chartType == "multiplot"
+                        sDisp.legend = cParams.legends{idxMultiBar};
+                        idxMultiBar = idxMultiBar+1;
+                    elseif sDisp.chartType == "surf"
+                        sDisp.barLim = cParams.barLims{i};
+                        sDisp.fun    = cParams.funs{i};
+                        idxSurf = idxSurf+1;
+                    end
+                    sDisp.position  = i;
+                    newFig    = DisplayAbstract.create(sDisp);
                     obj.appendFigure(newFig);
-                    obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]); %% AJUSTAR AIXO MES TARD
+                    obj.figures{i}.show(nRow,nColumn,i,[0.06 0.04]);
                     hold on
                 end
             end

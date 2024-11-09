@@ -18,10 +18,10 @@ classdef DisplayMultiPlot < DisplayAbstract
         function setChartType(obj)
             nLines = length(obj.legend);
             for i=1:nLines
-                obj.handle{i} = plot(1,1);
+                obj.handle{i} = plot(0,0);
                 hold on
             end
-            legend(obj.legend);
+            legend(obj.legend,'Location','northwest');
         end
         
     end
@@ -49,7 +49,7 @@ classdef DisplayMultiPlot < DisplayAbstract
                 for i=1:nLines
                     set(obj.handle{i},'XData',obj.ArrayDataX,'YData',obj.ArrayDataY(:,i));
                     if obj.ArrayDataX(end)>0
-                        set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(obj.ArrayDataX)])    
+                        set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(0,max(obj.ArrayDataX))])    
                     end
                     drawnow
                 end

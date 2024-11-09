@@ -1,17 +1,24 @@
 classdef Tutorial11Monitoring < handle
 
     properties (Access = private)
-        mesh
-        field
-        monitoring
+        mesh1
+        mesh2
+        field1
+        field2
+        monitoring1
+        monitoring2
     end
 
     methods (Access = public)
 
         function obj = Tutorial11Monitoring()
             obj.init();
-            obj.createMonitoring()
-            obj.updateMonitoring()
+            % First example
+            obj.createMonitoring1()
+            obj.updateMonitoring1()
+            % Second example
+            obj.createMonitoring2()
+            obj.updateMonitoring2()
         end
 
     end
@@ -20,38 +27,65 @@ classdef Tutorial11Monitoring < handle
 
         function init(obj)
             close all
-            obj.createField()
+            obj.createFields()
         end
 
-        function createField(obj)
-            obj.mesh = QuadMesh(1,1,5,5);
-            obj.field = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.field.fValues(:) = 1;
+        function createFields(obj)
+            obj.mesh1 = QuadMesh(1,1,5,5);
+            obj.mesh2 = TriangleMesh(1,1,5,5);
+            obj.field1 = LagrangianFunction.create(obj.mesh1,1,'P1');
+            obj.field2 = LagrangianFunction.create(obj.mesh2,2,'P1');
         end
 
-        function createMonitoring(obj)
+        function createMonitoring1(obj)
             s.shallDisplay = true;
-            s.maxNColumns = 3;
-            s.titles = [{'counting'},{'field'},{'counting multiples of 5'},{'AAAA'}];%,{'counting & doubles'},{'counting & doubles of multiples of 5'}
-            s.chartTypes =[{'surf'},{'plot'},{'multiPlot'},{'plot'}]; %,{'multiPlot'},{'multiPlot'}
-            s.mesh = obj.mesh;
-            s.barLim = [0 10];
-            s.legend = ["A","B","C"];
-            obj.monitoring = Monitoring(s);
+            s.maxNColumns = 2;
+            s.titles = [{'Dataset X'},{'Dataset X&Y'},{'Datasets X'},{'Datasets X&Y'},{'SemiLogY'},{'LogLog'},{'Bar'}];
+            s.chartTypes =[{'plot'},{'plot'},{'multiplot'},{'multiplot'},{'semilogY'},{'loglog'},{'bar'}]; 
+            s.legends = [{["A","B","C"]},{["D","E","F"]}];
+            obj.monitoring1 = Monitoring(s);
         end
 
-        function updateMonitoring(obj)
+        function updateMonitoring1(obj)
             for i=1:5
                 PlotData1 = i;
-                PlotData2 = [i;i*5];
-                MultiPlotData = [i;2*i;3*i; 10*i];
-                %MultiPlotData2 = [i;i*5;i*10];
-                SurfData(:) = 2*i.*ones(size(obj.field.fValues));
-                SurfData(1:6) = 3*i;
-                obj.monitoring.update(i,{[SurfData],[PlotData2],[MultiPlotData],[PlotData1]})
-                obj.monitoring.refresh()
+                PlotData2 = [i;-i*5];
+                MultiPlotData1 = [i;2*i;3*i];
+                MultiPlotData2 = [i;2*i;3*i;10*i];
+                BarData1 = [i;2*i];
+                SemiLogData2 = [10*i;10*i];
+                LogLogData = [i;10*i];
+                obj.monitoring1.update(i,{[PlotData1],[PlotData2],[MultiPlotData1],[MultiPlotData2], ...
+                                          [SemiLogData2],[LogLogData],[BarData1]})
+                obj.monitoring1.refresh()
                 pause(2);
             end
+        end
+
+        function createMonitoring2(obj)
+            s.shallDisplay = true;
+            s.maxNColumns = 3;
+            s.titles = [{'Scalar Function'},{'Vector function X'},{'Vector function Y'}];
+            s.chartTypes =[{'surf'},{'surf'},{'surf'}]; 
+            s.funs = [{obj.field1},{obj.field2},{obj.field2}];
+            s.barLims = [{[0 1]},{[]},{[]}];
+            obj.monitoring2 = Monitoring(s);
+        end
+
+        function updateMonitoring2(obj)
+            for i=1:5
+                obj.field1.fValues(:) = i/5;
+                obj.field2.fValues(:,1) = i;
+                obj.field2.fValues(1:2:end,2) = 15-2.5*i;
+                obj.field2.fValues(2:2:end,2) = -5+3.5*i;
+
+                SurfData1 = obj.field1.fValues;
+                SurfData2 = obj.field2.fValues(:,1);
+                SurfData3 = obj.field2.fValues(:,2);
+                obj.monitoring2.update(i,{[SurfData1],[SurfData2],[SurfData3]})
+                obj.monitoring2.refresh()
+                pause(2);
+            end 
         end
 
     end

@@ -41,16 +41,10 @@ classdef DisplayAbstract < handle
             grid on
         end
 
-        function refresh(obj)
-            if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
-                set(obj.handle,'XData',obj.ArrayDataX,'YData',obj.ArrayDataY);
-                if obj.ArrayDataX(end)>0
-                    set(obj.style,'XLim',[0 obj.ArrayDataX(end)])
-                end
-                drawnow
-            end
-        end
+    end
 
+    methods (Access = public, Abstract)
+        refresh(obj)
     end
     
     methods (Access = private)
