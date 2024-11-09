@@ -14,9 +14,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             bc       = testCase.createBC(m,'2D');
             fem      = testCase.solveElasticProblem(m,C,'2D',bc);
             kappa    = C.computeKappaFromYoungAndPoisson(E,nu,2);
-            kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
+            kappaFun = ConstantFunction.create(kappa,m);
             mu       = C.computeMuFromYoungAndPoisson(E,nu);
-            muFun    = AnalyticalFunction.create(@(x) mu*ones(size(x(1,:,:))),1,m);
+            muFun    = ConstantFunction.create(mu,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -51,9 +51,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             bc       = testCase.createBC(m,'3D');
             fem      = testCase.solveElasticProblem(m,C,'3D',bc);
             kappa    = C.computeKappaFromYoungAndPoisson(E,nu,3);
-            kappaFun = AnalyticalFunction.create(@(x) kappa*ones(size(x(1,:,:))),1,m);
+            kappaFun = ConstantFunction.create(kappa,m);
             mu       = C.computeMuFromYoungAndPoisson(E,nu);
-            muFun    = AnalyticalFunction.create(@(x) mu*ones(size(x(1,:,:))),1,m);
+            muFun    = ConstantFunction.create(mu,m);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -90,8 +90,8 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
         end
 
         function mat = computeMaterial(m,E1,nu1)
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,m);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,m);
+            E   = ConstantFunction.create(E1,m);
+            nu  = ConstantFunction.create(nu1,m);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = m.ndim;
