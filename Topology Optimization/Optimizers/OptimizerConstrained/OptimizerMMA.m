@@ -86,7 +86,7 @@ classdef OptimizerMMA < Optimizer
                 obj.xmin,obj.xmax,obj.df0dx,obj.fval,obj.dfdx,obj.a0,obj.a,obj.c,obj.d);
             
             obj.historicalVariables.kktnorm = kktnorm;
-            obj.dualVariable.value = lam;            
+            obj.dualVariable.fun.fValues = lam;            
             obj.updateConvergenceStatus();
             obj.KKTnorm     = kktnorm;
         end
@@ -172,8 +172,8 @@ classdef OptimizerMMA < Optimizer
                 obj.x = x0;
                 obj.xold1 = obj.x;
                 obj.xold2 = obj.xold1;
-                obj.xmin = obj.lowerBound*ones(length(x0),1);
-                obj.xmax = obj.upperBound*ones(length(x0),1);
+                obj.xmin = obj.lowerBound.*ones(length(x0),1);
+                obj.xmax = obj.upperBound.*ones(length(x0),1);
                 % obj.low = obj.xmin;
                 obj.low = zeros(length(x0),1);
                 % obj.upp = obj.xmax;

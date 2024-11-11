@@ -107,7 +107,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.penalty];
-            data = [data;obj.dualVariable.value];
+            data = [data;obj.dualVariable.fun.fValues];
             data = [data;obj.computeVolume(obj.constraint.value)];
             if obj.nIter == 0
                 data = [data;0;0];
@@ -122,7 +122,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient(x);
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
-            obj.dualVariable.value = zeros(obj.nConstr,1);
+            obj.dualVariable.fun.fValues = zeros(obj.nConstr,1);
             obj.penalty            = 3;
         end
 
@@ -139,7 +139,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 x = obj.updatePrimal();
                 obj.checkStep(x,x0);
             end
-            obj.updateOldValues(x);
+            obj.updateOldValues(x.fun.fValues);
         end
 
         function displayIter(obj,x)
@@ -158,7 +158,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             x       = obj.designVariable;
-            l       = obj.dualVariable.value;
+            l       = obj.dualVariable.fun.fValues;
             DJ      = obj.cost.gradient;
             Dg      = obj.constraint.gradient;
             g       = obj.constraint.value;
@@ -174,7 +174,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function x = updatePrimal(obj)
-            x   = obj.designVariable.fun.fValues;
+            x   = obj.designVariable;
             g   = obj.meritGradient;
             x   = obj.primalUpdater.update(g,x);
         end
@@ -182,7 +182,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         function computeMeritGradient(obj)
             Dh    = obj.constraint.gradient;
             DJ    = obj.cost.gradient;
-            l     = obj.dualVariable.value;
+            l     = obj.dualVariable.fun.fValues;
             p     = obj.penalty;
             gPlus = obj.defineConstraintValue();
             g     = (DJ + Dh*(l + p*gPlus));
@@ -196,14 +196,14 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.constraint.computeFunctionAndGradient(d);
             J      = obj.cost.value;
             gPlus  = obj.defineConstraintValue();
-            l      = obj.dualVariable.value;
+            l      = obj.dualVariable.fun.fValues;
             rho    = obj.penalty;
             mF     = J + l'*gPlus + 0.5*rho*(gPlus'*gPlus);
         end
 
         function c = defineConstraintValue(obj)
             c   = obj.constraint.value;
-            l   = obj.dualVariable.value;
+            l   = obj.dualVariable.fun.fValues;
             rho = obj.penalty;
             for i = 1:obj.nConstr
                 switch obj.constraintCase{i}
@@ -216,7 +216,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function checkStep(obj,x,x0)
-            mNew = obj.computeMeritFunction(x);
+            mNew = obj.computeMeritFunction(x.fun.fValues);
             if mNew < obj.mOld
                 obj.acceptableStep = true;
                 obj.dualUpdater.updatePenalty(obj.penalty);

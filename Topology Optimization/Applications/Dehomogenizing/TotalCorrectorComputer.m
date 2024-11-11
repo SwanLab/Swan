@@ -49,12 +49,8 @@ classdef TotalCorrectorComputer < handle
         end
 
         function createTotalCorrector(obj)
-            nElem = obj.mesh.nelem;
-            ndif  = obj.mesh.ndim;
-            nnode = obj.mesh.nnodeElem;
-            s.fValues = zeros(ndif,nnode,nElem);
-            s.mesh    = obj.mesh;
-            obj.totalCorrector = P1DiscontinuousFunction(s);    
+            ndimf  = obj.mesh.ndim;
+            obj.totalCorrector = P1DiscontinuousFunction.create(obj.mesh,ndimf);    
         end     
 
         function computeNumberOfCorrectors(obj)

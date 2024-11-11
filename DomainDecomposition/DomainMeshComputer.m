@@ -2,6 +2,7 @@ classdef DomainMeshComputer < handle
 
     properties (Access = public)
         domainMesh
+        domainMeshDisc
         localGlobalConnec
     end
 
@@ -30,7 +31,7 @@ classdef DomainMeshComputer < handle
         end
 
         function compute(obj)
-            obj.createGlobalConnec();
+            obj.connecGlob = obj.createGlobalConnec(obj.meshReference);
             obj.createGlobalCoord();
             obj.updateGlobalConnec();
             obj.updateGlobalCoord();
@@ -38,6 +39,10 @@ classdef DomainMeshComputer < handle
             s.coord        = obj.updtCoordGlob;
             s.connec       = obj.updtConnecGlob;
             obj.domainMesh = Mesh.create(s); 
+
+            s.connec = obj.connecGlob;
+            s.coord = obj.coordGlob;
+            obj.domainMeshDisc = Mesh.create(s);
         end
 
     end
@@ -53,27 +58,26 @@ classdef DomainMeshComputer < handle
             obj.interfaceConnec = cParams.interfaceConnec;
         end
 
-        function createGlobalConnec(obj)
+        function gConnec = createGlobalConnec(obj,m)
             % we simply create a connectivity matrix as if no nodes are
             % shared, just summing nnodes. We need that to create the
             % global connectivity matrix that considers shared nodes.
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            nelem = obj.meshReference.nelem;
-            nnodeElem=obj.meshReference.nnodeElem;
-            nnodes  = obj.meshReference.nnodes;
-            connec0 =obj.meshReference.connec;
+            nelem      = m.nelem;
+            nnodeElem  = m.nnodeElem;
+            nnodes     = m.nnodes;
+            connec0    = m.connec;
             %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
-            connecGlob=zeros(nX*nY*nelem,nnodeElem);
+            gConnec=zeros(nX*nY*nelem,nnodeElem);
             for jDom = 1:nY
                 for iDom = 1:nX
                     indLinear= nX*(jDom-1)+iDom;
                     rowIn=(indLinear-1)*nelem+1;
                     rowEnd=indLinear*nelem;
-                    connecGlob(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
+                    gConnec(rowIn:rowEnd,:)=connec0+nnodes*(indLinear-1);
                 end
             end
-            obj.connecGlob=connecGlob;
         end
 
         function  createGlobalCoord(obj)

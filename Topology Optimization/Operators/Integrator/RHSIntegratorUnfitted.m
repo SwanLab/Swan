@@ -88,8 +88,8 @@ classdef RHSIntegratorUnfitted < handle
                 fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
                 intLoc    = obj.innerIntegrator.compute(fInner,testLoc);
-                dofG      = test.computeDofConnectivity()';
-                dofL      = testLoc.computeDofConnectivity()';
+                dofG      = test.getDofConnec();
+                dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);
                 int(l2g)  = intLoc;
             end
@@ -177,7 +177,7 @@ classdef RHSIntegratorUnfitted < handle
 
         function f = assembleIntegrand(test,rhsElem)
             integrand = rhsElem;
-            connec    = test.computeDofConnectivity()';
+            connec    = test.getDofConnec();
             ndofs     = max(max(connec));
             nDofElem  = size(connec,2);
             f         = zeros(ndofs,1);

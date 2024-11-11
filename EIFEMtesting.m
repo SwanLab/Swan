@@ -10,6 +10,7 @@ classdef EIFEMtesting < handle
         LHS
         RHS
 
+        fileNameEIFEM
     end
 
 
@@ -57,8 +58,9 @@ classdef EIFEMtesting < handle
             %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);       
 
             tol = 1e-8;
-            Mmult = MdirNeu;
-           Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
+
+            %Mmult = MdirNeu;
+            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
 
             tic
             x0 = zeros(size(RHSf));
@@ -101,7 +103,8 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [10 1]; %nx ny
+            obj.nSubdomains  = [4 1]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
         end
 
         function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
@@ -142,12 +145,11 @@ classdef EIFEMtesting < handle
         end
 
         function mS = createEIFEMreferenceMesh(obj)
-            filename = 'DEF_Q4auxL_1.mat';
-            %'/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat'
+            filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-%             s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
-%             s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
+         %   s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
+         %   s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
             s.connec   = EIFEoper.MESH.CN;
             mS         = Mesh.create(s);
         end
@@ -208,12 +210,10 @@ classdef EIFEMtesting < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            young   = E;
-            poisson = nu;
+            E  = 1;
+            nu = 1/3;
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
@@ -299,8 +299,8 @@ classdef EIFEMtesting < handle
 
          function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS)
      % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = 'DEF_Q4porL_1.mat';
-            EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
+            EIFEMfilename = obj.fileNameEIFEM; 
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
