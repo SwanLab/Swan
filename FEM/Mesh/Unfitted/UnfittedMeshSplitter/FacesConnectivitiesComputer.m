@@ -6,7 +6,8 @@ classdef FacesConnectivitiesComputer < handle
         nFaceByElem
         nNodeByFace
         nEdgeByFace
-%         localNodeByFaceByElem
+        localNodeByFaceByElem
+        localFacesInElem
     end
     
     properties (Access = private)
@@ -19,7 +20,6 @@ classdef FacesConnectivitiesComputer < handle
         nodesByElem
         nElem
         nAllFaces
-        localFacesInElem
         type
     end
     
@@ -34,7 +34,23 @@ classdef FacesConnectivitiesComputer < handle
             obj.computeUniqueFacesIndex();
             obj.computeNodesInUniqueFaces();
             obj.computeFacesInElem();
-%             obj.computeLocalOrientedFaceConnec();
+            obj.computeLocalOrientedFaceConnec();
+        end
+
+        function sides = getFacesOrientation(obj)
+            l_f = obj.localNodeByFaceByElem;
+            r_f = obj.localFacesInElem;
+
+            sides = zeros(size(obj.facesInElem));
+
+            for iFace = 1:obj.nFaceByElem
+                for iRot = 1:obj.nNodeByFace
+                    glo = squeeze(l_f(:,iFace,:));
+                    ref = circshift(r_f(iFace,:),iRot-1);
+                    sides(all(glo==ref,2),iFace) = 1;
+                end
+                sides(sides(:,iFace)==0,iFace) = -1;
+            end
         end
 
     end
@@ -118,26 +134,23 @@ classdef FacesConnectivitiesComputer < handle
         
         function computeLocalOrientedFaceConnec(obj)
             faceConnec = zeros(obj.nElem,obj.nFaceByElem,obj.nNodeByFace);
+            cases = perms(1:obj.nNodeByFace);
+
             for iFace = 1:obj.nFaceByElem
-                nodesRotated = obj.isFaceRotated(iFace);
-                
-                nodeA = obj.localFacesInElem(iFace,1); % CHANGE THIS
-                nodeB = obj.localFacesInElem(iFace,2);
-                faceConnec(nodesRotated,iFace,1)  = nodeA;
-                faceConnec(nodesRotated,iFace,2)  = nodeB;
-                faceConnec(~nodesRotated,iFace,1) = nodeB;
-                faceConnec(~nodesRotated,iFace,2) = nodeA;
+                nodes = obj.localFacesInElem(iFace,:);
+
+                for iCase = 1:factorial(obj.nNodeByFace)
+                    nodesRotated = obj.isFaceRotated(iFace, iCase);
+                    faceConnec(nodesRotated == 1,iFace,:) = repmat(nodes(cases(iCase,:)),[sum(nodesRotated) 1 1]);
+                end
             end
             obj.localNodeByFaceByElem = faceConnec;
         end
         
-        function howMuch = isFaceRotated(obj,iFace)
+        function howMuch = isFaceRotated(obj,iFace,iCase)
             globalNodes = obj.computeGlobalNode(iFace);
-            localNodes  = obj.computeLocalNodes(iFace);
+            localNodes  = obj.computeLocalNodes(iFace,iCase);
             howMuch = obj.isEquallyOriented(globalNodes,localNodes);
-            if ~all(howMuch==1)
-                disp('hola')
-            end
         end
         
         function globalNodes = computeGlobalNode(obj,iFace)
@@ -145,25 +158,18 @@ classdef FacesConnectivitiesComputer < handle
             globalNodes = obj.nodesInFaces(faces,:);
         end
         
-        function localNodes = computeLocalNodes(obj,iFace)
-            localNode   = obj.localFacesInElem(iFace,:);
+        function localNodes = computeLocalNodes(obj,iFace,iCase)
+            cases = perms(1:obj.nNodeByFace);
+            localNode   = obj.localFacesInElem(iFace,cases(iCase,:));
             localNodes  = obj.nodesByElem(:,localNode);
-        end         
+        end
         
     end
     
     methods (Access = private, Static)
         
-        function howMuch = isEquallyOriented(gNode,lNode)
+        function itIs = isEquallyOriented(gNode,lNode)
             itIs = sum(abs(gNode - lNode),2) < 1;
-            howMuch = size(itIs);
-            for i = 1:length(itIs)
-                if itIs(i)==0
-                    
-                else
-                    howMuch(i) = 0;
-                end
-            end
         end
         
     end

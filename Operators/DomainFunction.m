@@ -22,10 +22,15 @@ classdef DomainFunction < handle
         function r = evaluate(obj,xV)
             r = obj.operation(xV);
         end
-        
+
+        function plot(obj,m)
+            fD = obj.project('P1D',m);
+            fD.plot();
+        end
+
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) pagetranspose(aOp(xV));
+            s.operation = @(xV) nOrderTranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -44,9 +49,34 @@ classdef DomainFunction < handle
         end
 
         function r = times(a,b)
+            if not(isfloat(a))
+                aOp = DomainFunction.computeOperation(a);                
+            else
+                aOp = @(xV) a;
+            end
+            if not(isfloat(b))
+                bOp = DomainFunction.computeOperation(b);
+            else
+                bOp = @(xV) b;
+            end
+            ndimfA = DomainFunction.computeFieldDimension(a);
+            ndimfB = DomainFunction.computeFieldDimension(b);
+            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = max(ndimfA,ndimfB);
+            r = DomainFunction(s);
+        end
+
+        function r = mtimes(a,b)
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = rdivide(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
         
@@ -71,6 +101,19 @@ classdef DomainFunction < handle
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = exp(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) exp(aOp(xV));
+            r = DomainFunction(s);
+        end        
+
+        function r = trace(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) trace(aOp(xV));
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -101,10 +144,24 @@ classdef DomainFunction < handle
         function op = computeOperation(a)
             if isprop(a,'operation')
                 op = a.operation;
+            elseif isnumeric(a)
+                op = @(xV) a;
             else
                 op = @(xV) a.evaluate(xV);
             end
         end
+
+        function ndimf = computeFieldDimension(a)
+            if isprop(a,'operation')
+                ndimf = a.ndimf;
+            elseif isnumeric(a)
+                ndimf = size(a,1);
+            else
+                ndimf = a.ndimf;
+            end
+        end        
+
+
 
     end
 

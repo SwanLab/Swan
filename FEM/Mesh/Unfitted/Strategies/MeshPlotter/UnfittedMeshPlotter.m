@@ -15,8 +15,8 @@ classdef UnfittedMeshPlotter < handle
         
         function plotDomainInColor(obj,color)
             obj.faceColor = color;
-            obj.edgeAlpha = 0;
-            obj.faceAlpha = 1;
+            obj.edgeAlpha = 1;
+            obj.faceAlpha = 0.9;
             obj.plotInner();
             obj.plotInnerCut();
         end

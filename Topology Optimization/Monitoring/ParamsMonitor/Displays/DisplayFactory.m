@@ -2,14 +2,22 @@ classdef DisplayFactory < handle
     
     methods (Access = public, Static)
         
-        function display = create(chartType,title)
-            switch chartType
+        function display = create(s)
+            switch s.chartType
                 case 'plot'
-                    display = Display_Plot(title);
-                case 'log'
-                    display = Display_SemilogY(title);
+                    display = DisplayPlot(s);
+                case 'multiplot'
+                    display = DisplayMultiPlot(s);
+                case 'logx'
+                    display = DisplaySemilogX(s);
+                case 'logy'
+                    display = DisplaySemilogY(s);
+                case 'loglog'
+                    display = DisplayLogLog(s);
                 case 'bar'
-                    display = Display_Bar(title);
+                    display = DisplayBar(s);
+                case 'surf'
+                    display = DisplaySurf(s);
                 otherwise
                     error('Invalid Chart Type.')
             end

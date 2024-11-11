@@ -31,6 +31,7 @@ classdef RHSintegrator_ShapeFunction < handle
             quad = obj.quadrature;
             xV   = quad.posgp;
             fG   = fun.evaluate(xV);
+            fG   = squeezeParticular(fG,2);
             dV   = obj.mesh.computeDvolume(quad);
             N = test.computeShapeFunctions(xV);
             nNodeElem  = size(N,1);
@@ -56,7 +57,7 @@ classdef RHSintegrator_ShapeFunction < handle
 
         function f = assembleIntegrand(obj,test,rhsElem)
             integrand = rhsElem;
-            connec   = test.getConnec();
+            connec   = test.getDofConnec();
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
             f = zeros(ndofs,1);

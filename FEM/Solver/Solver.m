@@ -23,6 +23,9 @@ classdef Solver < handle
 %                     % Preconditioned conjugate gradient
 %                     stype = PCG(cParams);
 
+                case 'rMINRES'
+                    stype = CGsolver();
+
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);
 

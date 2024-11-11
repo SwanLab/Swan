@@ -1,7 +1,7 @@
 classdef DualVariable < handle
     
     properties (Access = public)
-       value
+       fun
     end
     
     properties (Access = private)
@@ -13,7 +13,7 @@ classdef DualVariable < handle
        
        function obj = DualVariable(cParams)
            obj.nConstraints = cParams.nConstraints;
-           obj.value        = zeros(1,obj.nConstraints);
+           obj.fun.fValues  = zeros(obj.nConstraints,1);
        end
        
    end
@@ -21,11 +21,15 @@ classdef DualVariable < handle
    methods (Access = public)
       
        function restart(obj)
-           obj.value = obj.valueOld;
+           obj.fun.fValues = obj.valueOld;
+       end
+
+       function update(obj,lVal)
+           obj.fun.fValues = lVal;
        end
        
        function updateOld(obj)
-           obj.valueOld = obj.value;
+           obj.valueOld = obj.fun.fValues;
        end
        
    end

@@ -4,31 +4,26 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        forces
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditions, BCApplier
+        boundaryConditions, bcApplier
 
         stiffness
-        forces
-        solver, solverType, solverMode, solverCase
+        solverType, solverMode, solverCase
         scale
-        inputBC
-        preconditioner
+        
+        strain, stress
+
+        problemSolver
     end
 
     properties (Access = protected)
-        material
-        vstrain
-        mesh % For Homogenization
-        interpolationType
-        solverTyp
-        strain, stress
+        mesh 
+        material  
         displacementFun
-        preconditionerType
-        iterativeSolverTyp
-        tol
     end
 
     methods (Access = public)
@@ -43,9 +38,7 @@ classdef ElasticProblem < handle
         function solve(obj)
             obj.computeStiffnessMatrix();
             obj.computeForces();
-
             obj.computeDisplacement();
-
             obj.computeStrain();
             obj.computeStress();
         end
@@ -61,7 +54,6 @@ classdef ElasticProblem < handle
             a.filename = filename;
             a.fun      = fun;
             a.funNames = funNames;
-
             a.type     = software;
             pst = FunctionPrinter.create(a);
             pst.print();
@@ -85,37 +77,7 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'solverCase')
-                obj.solverCase  = cParams.solverCase;
-            else
-                obj.solverCase = 'DIRECT';
-            end
-           
-            obj.createQuadrature();
-            
-            obj.solverTyp = '';
-            obj.iterativeSolverTyp = '';
-            obj.preconditionerType = '';
-            obj.tol = 0;
-            if isfield(cParams, 'solverTyp')
-                obj.solverTyp = cParams.solverTyp;
-                if strcmp('ITERATIVE',obj.solverTyp) 
-                    obj.iterativeSolverTyp = cParams.iterativeSolverTyp;
-                    obj.tol = cParams.tol;
-                    if  strcmp('PCG',obj.iterativeSolverTyp) 
-                        obj.preconditionerType = cParams.preconditionerType;
-                    end
-                end
-            else
-                obj.solverTyp = 'DIRECT';
-            end
-        
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
+            obj.solverCase  = cParams.solverCase;
         end
 
         function createDisplacementFun(obj)
@@ -135,25 +97,18 @@ classdef ElasticProblem < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
-            obj.BCApplier = bc;
+            obj.bcApplier = bc;
         end
 
-
-        function createSolver(obj,cParams)         
-            s.type = obj.solverTyp ;
-            s.iterativeSolverTyp = obj.iterativeSolverTyp;
-            s.preconditionerType = obj.preconditionerType;
-            s.preconditioner = obj.computePreconditioner(cParams);
-            s.tol = obj.tol;
-
-            obj.solver = Solver.create(s);
-        end
-
-        function preconditioner = computePreconditioner(obj,cParams)
-            s.preconditionerType = obj.preconditionerType ;
-%                     cParam.submesh
-            s.lhs = cParams.lhs;
-            preconditioner = Preconditioner.create(s);
+        function createSolver(obj)
+            sS.type      = obj.solverCase;
+            solver       = Solver.create(sS);
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.bcApplier;
+            obj.problemSolver    = ProblemSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -189,18 +144,12 @@ classdef ElasticProblem < handle
 
 
         function u = computeDisplacement(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.stiffness  = obj.stiffness;
-            s.forces     = obj.forces;
-            s.solver     = obj.solver;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.BCApplier;
-            pb = ProblemSolver(s);
-            [u,L] = pb.solve();
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
+            s.stiffness = obj.stiffness;
+            s.forces    = obj.forces;
+            [u,~]       = obj.problemSolver.solve(s);
+            z.mesh      = obj.mesh;
+            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            z.order     = 'P1';
             uFeFun = LagrangianFunction(z);
             obj.uFun = uFeFun;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';

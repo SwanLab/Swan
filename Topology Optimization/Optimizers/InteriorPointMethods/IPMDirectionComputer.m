@@ -88,7 +88,7 @@ classdef IPMDirectionComputer < handle
 
         function computeRHS(obj)
             nSF     = obj.nConstr;
-            l       = obj.dualVariable.value;
+            l       = obj.dualVariable.fun.fValues;
             mu      = obj.baseVariables.mu;
             g       = obj.constraint.value;
             DJ      = obj.cost.gradient;

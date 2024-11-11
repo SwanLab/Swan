@@ -4,11 +4,11 @@ classdef Remesher < handle
         %    coord
         %    connec
         fineMesh
+        fineContMesh
     end
 
     properties (Access = private)
         mesh
-        nLevels
         cellsToRemesh
     end
 
@@ -18,89 +18,58 @@ classdef Remesher < handle
             obj.init(cParams)
         end
 
-        function mF = compute(obj)
+        function m = remesh(obj)
             s.coord  = obj.computeCoords();
             s.connec = obj.computeConnectivities();
-            mF = Mesh.create(s);
-        end
-
-        function remesh(obj)
-            %  s.nodesByElem = obj.connec;
-            %  edge = EdgesConnectivitiesComputer(s);
-            %  edge.compute();
-            m0 = obj.mesh;
-            for iLevel = 1:obj.nLevels
-                s.coord  = obj.computeCoords();
-                s.connec = obj.computeConnectivities();
-                m = Mesh.create(s);
-                m = m.createDiscontinuousMesh();
-                obj.mesh = m;
-                obj.cellsToRemesh = 1:obj.mesh.nelem;
-            end
-            obj.fineMesh = obj.mesh;
-            obj.mesh     = m0;
-            obj.cellsToRemesh = 1:obj.mesh.nelem;
-        end
-
-        function f = interpolate(obj,f)
-            m0 = obj.mesh;
-            for iLevel = 1:obj.nLevels
-                m = obj.mesh;
-                s.coord  = obj.computeCoords();
-                s.connec = obj.computeConnectivities();
-                mF = Mesh.create(s);
-                f  = f.refine(m,mF);
-                mD = mF.createDiscontinuousMesh();
-                obj.mesh = mD;
-                obj.cellsToRemesh = 1:obj.mesh.nelem;
-            end
-            obj.mesh     = m0;
-            obj.cellsToRemesh = 1:obj.mesh.nelem;
+            m = Mesh.create(s);            
         end
 
     end
 
+    methods (Access = public, Static)
+
+        function mF = compute(m)
+            s.mesh = m;
+            r = Remesher(s);
+            mF = r.remesh();
+        end
+
+    end
+   
     methods (Access = private)
 
         function init(obj,cParams)
-            %    obj.coord    = cParams.mesh.coord;
-            %  obj.connec   = cParams.mesh.connec;
-            obj.mesh     = cParams.mesh;
-            obj.nLevels  = cParams.nLevels;
+            obj.mesh          = cParams.mesh;
             obj.cellsToRemesh = 1:obj.mesh.nelem;
         end
 
         function coord = computeCoords(obj)
             oldCoord = obj.mesh.coord;
-            newCoord = obj.computeNewCoord();
+            newCoord = obj.computeNewCoord(obj.mesh,obj.mesh.coord);
             coord = [oldCoord;newCoord];
         end
 
-        function nC = computeNewCoord(obj)
-            me           = obj.mesh.computeEdgeMesh();
-            coordInEdges = me.computeBaricenter()';
-            nC           = coordInEdges;
+        function f = computeNewCoord(obj,m,fNodes)
+            s.edgeMesh = m.computeEdgeMesh();
+            s.fNodes   = fNodes;
+            eF         = EdgeFunctionInterpolator(s);
+            f = eF.compute()';
         end
 
         function allConnec = computeConnectivities(obj)
-            oldConnec = obj.computeOldConnectivities();
+            oldConnec = [];%obj.mesh.connec;
             newConnec = obj.computeNewConnectivities();
-            allConnec = [oldConnec,newConnec];
+            allConnec = [oldConnec;newConnec];
         end
 
-        function oldConnec = computeOldConnectivities(obj)
-            cells         = obj.cellsToRemesh;
-            cellToNotMesh = setdiff(1:obj.mesh.nelem,cells);
-            oldConnec     = obj.mesh.connec(cellToNotMesh,:);
-        end
-
-        function newConnec = computeNewConnectivities(obj)
+       function newConnec = computeNewConnectivities(obj)
             [nV1,nV2,nV3] = obj.computeNodeInVertex();
             [nE1,nE2,nE3] = obj.computeNodeInEdge();
             connec(:,1,:) = [nV1 nE1 nE3];
             connec(:,2,:) = [nE1 nV2 nE2];
             connec(:,3,:) = [nE1 nE2 nE3];
             connec(:,4,:) = [nE3 nE2 nV3];
+            connec    = permute(connec,[2 1 3]);
             newConnec = reshape(connec,[],3);
         end
 

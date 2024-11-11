@@ -10,10 +10,10 @@ classdef ProjectorFactory < handle
                     obj = Projector_toLagrangian(cParams);
                 case 'P1D'
                     obj = Projector_toP1Discontinuous(cParams);
-                case 'H1P1'
-                    obj = H1Projector_toP1(cParams);
-                case 'H1P1D'
-                    obj = H1Projector_toP1Discontinuous(cParams);
+                case 'RT'
+                    obj = Projector_toRaviartThomas(cParams);
+                case 'N'
+                    obj = Projector_toNedelec(cParams);
                 case 'RigidBody'
                     obj = Projector_toRigidBody(cParams);
                 case 'ModalFunction'
