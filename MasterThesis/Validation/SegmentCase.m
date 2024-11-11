@@ -48,8 +48,8 @@ classdef SegmentCase < handle
         end
 
         function createDesignVariable(obj)
-            s.type        = 'SquareInclusion';
-            s.length      = 0.5;
+            s.type        = 'CircleInclusion';
+            s.radius      = 0.25;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
@@ -69,9 +69,9 @@ classdef SegmentCase < handle
             s.trial    = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh     = obj.mesh;
             s.type     = 'Segment';
-            s.theta    = 0;
-            s.alpha    = 8 *obj.mesh.computeMeanCellSize();
-            s.beta     = 1 *obj.mesh.computeMeanCellSize();
+            s.theta    = 45;
+            s.alpha    = 6 *obj.mesh.computeMeanCellSize();
+            s.beta     = 6 *obj.mesh.computeMeanCellSize();
             f          = NonLinearFilter.create(s);
             obj.filter = f;
 

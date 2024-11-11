@@ -40,18 +40,18 @@ classdef NonLinearFilterDroplet < handle
             iter = 1;
             tolerance = 1;
 %             filename = 'beta5alpha5theta30.gif';
-            while tolerance >= 1e-5 
+            while tolerance >= 1e-4 
                 oldRho = obj.trial.fValues;
                 obj.createRHSShapeDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updatePreviousGuess(iter);
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
                 iter = iter + 1;
-                 %disp(iter);  
-                 disp(tolerance);
+%                 disp(iter);  
+%                 disp(tolerance);
              end
            
-            obj.trial.plot
+%             obj.trial.plot
             xF.fValues = obj.trial.fValues;
 
         end
@@ -65,7 +65,7 @@ classdef NonLinearFilterDroplet < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = 0;
-            obj.lambda = 1;
+            obj.lambda = 10;
         end
 
         function createDirection(obj)
@@ -196,7 +196,7 @@ classdef NonLinearFilterDroplet < handle
             muGen = obj.createGeneralMu(l2gRho,gRhoK);
 
             s.operation = @(xV) 0.*MuZeroCond.evaluate(xV) + ...
-                                1.*MuOneCond.evaluate(xV) + ...
+                                1.*(MuOneCond.evaluate(xV) & not(MuZeroCond.evaluate(xV))) + ...
                                 muGen.evaluate(xV).*(not(MuZeroCond.evaluate(xV)) & not(MuOneCond.evaluate(xV)));
             mu = DomainFunction(s);
         end

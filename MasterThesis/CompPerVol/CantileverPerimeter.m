@@ -42,7 +42,7 @@ classdef CantileverPerimeter < handle
 
         function init(obj)
             close all;
-            obj.epsOverH = 1;
+            obj.epsOverH = 4;
         end
 
         function createMesh(obj)
@@ -78,7 +78,7 @@ classdef CantileverPerimeter < handle
             ss.mesh             = obj.mesh;
             ss.boundaryType     = 'Neumann';
             ss.metric           = 'Anisotropy';
-            nu                  = 85;
+            nu                  = 45;
             ss.aniAlphaDeg      = 90;
             epsilon             = obj.epsOverH*h;
             ss.CAnisotropic     = [tand(nu), 0; 0, 1/tand(nu)];
@@ -171,7 +171,7 @@ classdef CantileverPerimeter < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1,1.5];
+            s.weights           = [1,0.05];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -200,14 +200,14 @@ classdef CantileverPerimeter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.002;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
