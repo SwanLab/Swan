@@ -6,7 +6,6 @@ classdef shFunc_ElasticDamage < handle
     
     properties (Access = private)
         material
-        displacement
         mesh
         
         r0
@@ -16,7 +15,7 @@ classdef shFunc_ElasticDamage < handle
     
     methods (Access = public)
         
-        function obj = shFunc_Elastic(cParams)
+        function obj = shFunc_ElasticDamage(cParams)
             obj.init(cParams)
             
         end
@@ -37,7 +36,7 @@ classdef shFunc_ElasticDamage < handle
             
             d = obj.computeDamage(r);
             C = obj.material;
-            Cdamage = C*(1-d);
+            Cdamage = (1-d)*C; %L' ORDRE DE MULTIPLICACIÓ FA QUE DONGUI UNA COSA O ALTRA
             
             epsi = SymGrad(u);
             b = DDP(epsi,Cdamage);
@@ -54,9 +53,8 @@ classdef shFunc_ElasticDamage < handle
             
         end
         
-        function hessian = computeHessian(obj,quadOrder)
+        function hessian = computeHessian(obj,quadOrder,u)
             
-            u = obj.displacement;
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             
             S.type = 'ElasticStiffnessMatrix';
@@ -73,7 +71,7 @@ classdef shFunc_ElasticDamage < handle
         
         end  
         
-        function rOut = newState (rIn)
+        function rOut = newState (rIn,u)
 
             C = obj.material;
             epsi = SymGrad(u);
@@ -93,7 +91,6 @@ classdef shFunc_ElasticDamage < handle
         
         function init(obj,cParams)
             obj.material = cParams.material;
-            obj.displacement = cParams.u;
             obj.mesh = cParams.mesh;
             obj.r0 = cParams.r0;
             obj.H = cParams.H;
@@ -101,9 +98,9 @@ classdef shFunc_ElasticDamage < handle
 
         function d = computeDamage(obj,r)
             q = obj.computeHardening();
-            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/r.evaluate(xV));
+            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/(r.evaluate(xV)));
             s.ndimf = 1;
-            d = DomainFunctiotn(s);
+            d = DomainFunction(s);
 
         end
 

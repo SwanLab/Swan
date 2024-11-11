@@ -5,6 +5,7 @@ classdef TestingContinuumDamage < handle
         bc
         material
         solverParams
+
     end
 
     methods (Access = public)
@@ -14,6 +15,7 @@ classdef TestingContinuumDamage < handle
             obj.bc        = obj.defineBoundaryConditions(cParams.bc);
             obj.material  = obj.createMaterial(cParams.material);
             obj.solverParams = cParams.solver;
+
 
         end
 
