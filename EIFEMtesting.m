@@ -57,8 +57,8 @@ classdef EIFEMtesting < handle
             %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);       
 
             tol = 1e-8;
-            Mmult = MdirNeu;
-           % Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
+            %Mmult = MdirNeu;
+            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
 
             tic
             x0 = zeros(size(RHSf));
