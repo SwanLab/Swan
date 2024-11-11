@@ -3,10 +3,10 @@ clear;
 close all;
 clc;
 
-load('DVToStudyEpsilon.mat','d'); % If 'd' was obtained from old master, THIS FILE WON'T WORK
+load('DVToStudyEpsilon.mat','d');
 d.fun.plot();
 a = gcf().findobj();
-a(4).EdgeColor = 'none';
+a(3).EdgeColor = 'none';
 
 % Here create your filter of interest
 filter = createAniFilter(d);
@@ -14,7 +14,7 @@ filter = createAniFilter(d);
 rhoEps = filter.compute(d.fun,2);
 rhoEps.plot();
 a = gcf().findobj();
-a(4).EdgeColor = 'none';
+a(3).EdgeColor = 'none';
 
 
 
