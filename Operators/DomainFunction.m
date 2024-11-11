@@ -50,7 +50,7 @@ classdef DomainFunction < handle
 
         function r = times(a,b)
             if not(isfloat(a))
-                aOp = DomainFunction.computeOperation(a);
+                aOp = DomainFunction.computeOperation(a);                
             else
                 aOp = @(xV) a;
             end
@@ -59,7 +59,10 @@ classdef DomainFunction < handle
             else
                 bOp = @(xV) b;
             end
+            ndimfA = DomainFunction.computeFieldDimension(a);
+            ndimfB = DomainFunction.computeFieldDimension(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = max(ndimfA,ndimfB);
             r = DomainFunction(s);
         end
 
@@ -101,6 +104,12 @@ classdef DomainFunction < handle
             r = DomainFunction(s);
         end
 
+        function r = exp(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) exp(aOp(xV));
+            r = DomainFunction(s);
+        end        
+
         function r = trace(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) trace(aOp(xV));
@@ -133,7 +142,7 @@ classdef DomainFunction < handle
     methods (Static, Access = public)
 
         function op = computeOperation(a)
-            if isprop(a,'operation')
+            if isa(a,'DomainFunction')
                 op = a.operation;
             elseif isnumeric(a)
                 op = @(xV) a;
@@ -141,6 +150,18 @@ classdef DomainFunction < handle
                 op = @(xV) a.evaluate(xV);
             end
         end
+
+        function ndimf = computeFieldDimension(a)
+            if isprop(a,'operation')
+                ndimf = a.ndimf;
+            elseif isnumeric(a)
+                ndimf = size(a,1);
+            else
+                ndimf = a.ndimf;
+            end
+        end        
+
+
 
     end
 

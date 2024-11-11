@@ -10,13 +10,11 @@ classdef ScalarProduct < handle
 
         function sp = computeH1(m,f,g,eps)
             quadOrder = 2;
-            spM = ScalarProduct.computeL2(m,f,g);
-           
+            spM = ScalarProduct.computeL2(m,f,g);           
             Df   = Grad(f);
             Dg   = Grad(g);
-            DfDg = DDP(Df,Dg);
+            DfDg = DP(Df,Dg);
             spK = Integrator.compute(DfDg,m,quadOrder);
-
             sp  = spM + eps^2*spK;
         end
 
