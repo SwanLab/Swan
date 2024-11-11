@@ -136,6 +136,12 @@ classdef LagrangianFunction < FeFunction
             curl        = DomainFunction(s);            
         end
 
+        function div = computeDiv(obj)
+            s.operation = @(xV) obj.computeDivFun(xV);
+            s.ndimf     = 1;
+            div         = DomainFunction(s);                   
+        end
+
         function setdNdxOld(obj,dNdx)
             obj.dNdxOld = dNdx;
         end
@@ -362,16 +368,16 @@ classdef LagrangianFunction < FeFunction
             r.fValues = -a.fValues;
         end
 
-        function s = times(obj1,obj2)
-            s.operation = @(xV) obj1.evaluate(xV) .* obj2.evaluate(xV);
-            s.ndimf = max(obj1.ndimf,obj2.ndimf);
+        function s = times(f1,f2)
+            s.operation = @(xV) f1.evaluate(xV) .* f2.evaluate(xV);
+            s.ndimf = max(f1.ndimf,f2.ndimf);
             s = DomainFunction(s);
         end
 
-        function s = power(f,b)
-            res = copy(f);
-            res.fValues = f.fValues .^ b;
-            s = res;
+        function f = power(f1,b)
+            s.operation = @(xV) (f1.evaluate(xV)).^b;
+            s.ndimf = f1.ndimf;
+            f = DomainFunction(s);
         end
 
         function s = rdivide(f,b)
@@ -380,16 +386,16 @@ classdef LagrangianFunction < FeFunction
             s = res;
         end
 
-        function s = mrdivide(f,b)
-            res = copy(f);
-            res.fValues = f.fValues ./ b;
-            s = res;
+        function f = mrdivide(f1,f2)
+            s.operation = @(xV) f1.evaluate(xV)./f2.evaluate(xV);
+            s.ndimf = max(f1.ndimf,f2.ndimf);
+            f = DomainFunction(s);            
         end
 
-        function expF = exp(f)
+        function f = exp(f)
             s.operation = @(xV) exp(f.evaluate(xV));
             s.ndimf = f.ndimf;
-            expF = DomainFunction(s);
+            f = DomainFunction(s);
         end
 
     end
@@ -460,6 +466,23 @@ classdef LagrangianFunction < FeFunction
             gradF = pagemtimes(dNdx,fV);
         end
 
+        function divF = computeDivFun(obj,xV)
+            nP = size(xV,2);
+            dNdx  = obj.evaluateCartesianDerivatives(xV);
+            fV    = obj.getValuesByElem();
+            fV    = permute(fV,[1 2 4 3]);
+            fV    = pagetranspose(fV);
+            fV    = repmat(fV,[1 1 nP 1]);
+            divF(1,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), fV,dNdx));        
+        end
+
+        function lapF = computeLaplacianFun(obj,xV)
+            gradF = Grad(obj);
+            gradF = gradF.project('P1',obj.mesh);
+            lapF  = Divergence(gradF); 
+            t.project('P1',obj.mesh).plot()              
+        end
+
         function curlF = computeCurlFun(obj,xV)
             dNdx  = obj.evaluateCartesianDerivatives(xV);
             fV    = obj.getValuesByElem();
@@ -468,7 +491,7 @@ classdef LagrangianFunction < FeFunction
             gradF = pagemtimes(dNdx,fV);
             divF  = squeeze(sum(gradF,1));
             curlF  = divF;
-        end
+        end       
 
         function fP = createOrthogonal(obj,f)
             fP = zeros(size(f));
