@@ -32,7 +32,7 @@ classdef ProjectedGradient < handle
         end
         
         function increaseStepLength(obj,f)
-            obj.tau = f*obj.tau;
+            obj.tau = min(f*obj.tau,25000);
         end
 
         function decreaseStepLength(obj)
