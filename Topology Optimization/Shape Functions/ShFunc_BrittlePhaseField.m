@@ -56,7 +56,7 @@ classdef ShFunc_BrittlePhaseField < handle
             fExt     = bc.pointloadFun;
             Fint     = obj.functionals.energy.computeGradientDisplacement(u,phi,obj.quadOrder);
             Fext     = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
-            RHS      = Fint + Fext;
+            RHS      = Fint - Fext;
         end
         
         function LHS = computePhaseFieldLHS(obj,u,phi)
