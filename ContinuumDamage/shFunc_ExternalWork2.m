@@ -1,8 +1,5 @@
 classdef shFunc_ExternalWork2 < handle
-  
-   properties (Access = public)
-   end
-  
+
    properties (Access = private)
        mesh
    end
@@ -15,16 +12,14 @@ classdef shFunc_ExternalWork2 < handle
        end
       
        function F = computeFunction(obj,u,fExt,quadOrder)
-          bMesh = obj.mesh.createBoundaryMesh{2}; %CARA DRETA
+          bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
           int = Integrator.create('Function',bMesh.mesh,quadOrder);
           [u, fExt] = obj.adaptFuns(u,fExt);
           F = int.compute(u.*fExt);
-     
-     
        end
       
        function Ju = computeGradient(obj,u,fExt,quadOrder)
-            bMesh = obj.mesh.createBoundaryMesh{2}; %CARA DRETA
+            bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
             s.mesh = bMesh.mesh;
             s.quadType = quadOrder;
             s.type = 'ShapeFunction';
@@ -45,7 +40,7 @@ classdef shFunc_ExternalWork2 < handle
        end
 
         function [uFun,fExtFun] = adaptFuns(obj,u,fExt) %% ADAPTING TO TOP BOUNDARY %%
-            bMesh = obj.mesh.createBoundaryMesh{2};
+            bMesh = obj.mesh.createBoundaryMesh{4};
             nodes = unique(bMesh.globalConnec);
             if isempty(fExt)
                 uFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
