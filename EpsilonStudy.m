@@ -3,7 +3,7 @@ clear;
 close all;
 clc;
 
-load('DVToStudyEpsilon.mat','d');
+load('DVToStudyEpsilon.mat','d'); % If 'd' was obtained from old master, THIS FILE WON'T WORK
 d.fun.plot();
 a = gcf().findobj();
 a(4).EdgeColor = 'none';

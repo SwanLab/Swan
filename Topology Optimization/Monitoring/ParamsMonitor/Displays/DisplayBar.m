@@ -12,13 +12,14 @@ classdef DisplayBar < DisplayPlot
 
         function refresh(obj)
             if ~isempty(obj.ArrayDataX) && ~isempty(obj.ArrayDataY)
-                axis = flip(findobj(gcf,'Type','Axes'));
-                set(axis(obj.position),'XTick',obj.ArrayDataX);
+                %axis = flip(findobj(gcf,'Type','Axes'));
+                %set(axis(obj.position),'XTick',obj.ArrayDataX);
                 set(obj.handle,'XData',obj.ArrayDataX,'YData',obj.ArrayDataY);
                 if obj.ArrayDataY(end)>0
                     set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(0,max(obj.ArrayDataX)+1)])
                     set(obj.style,'YLim',[min(-0.01,min(obj.ArrayDataY)), max(0,max(obj.ArrayDataY)+1)])
                 end
+                drawnow;
             end
         end
 
