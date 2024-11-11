@@ -137,7 +137,7 @@ classdef EIFEM < handle
             Udef  = obj.RVE.Udef;
             Urb   = obj.RVE.Urb;
             U     = Udef + Urb;
-            dofConec = obj.dispFun.getConnec();
+            dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
                 u(:,ielem) =  U*uCelem;

@@ -207,12 +207,10 @@ classdef EIFEMtesting < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            young   = E;
-            poisson = nu;
+            E  = 1;
+            nu = 1/3;
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
