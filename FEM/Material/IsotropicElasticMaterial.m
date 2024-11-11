@@ -10,6 +10,27 @@ classdef IsotropicElasticMaterial < Material
     properties (Access = protected)
         ndim
     end
+
+    methods (Access = public)
+
+        function mu = createShear(obj)
+            E  = @(xV) obj.young.evaluate(xV);
+            nu = @(xV) obj.poisson.evaluate(xV);
+            s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
+            s.ndimf = size(E,1);
+            mu = DomainFunction(s);
+        end
+
+        function k = createBulk(obj)
+            E  = @(xV) obj.young.evaluate(xV);
+            nu = @(xV) obj.poisson.evaluate(xV);
+            N  = obj.ndim;
+            s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
+            s.ndimf = size(E,1);
+            k = DomainFunction(s);
+        end
+        
+    end
     
     methods (Access = protected)
 
@@ -40,7 +61,6 @@ classdef IsotropicElasticMaterial < Material
                 k  = obj.bulk.evaluate(xV); 
             end
         end
-
 
     end
 
