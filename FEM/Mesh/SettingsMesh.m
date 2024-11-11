@@ -15,7 +15,7 @@ classdef SettingsMesh < AbstractSettings
     methods (Access = public)
         
         function obj = SettingsMesh(varargin)
-            if ~max(isfield(varargin{1},'kFace'), isprop(varargin{1},'kFace'))
+            if ~max(isfield(varargin{1},'kFace'))
                 varargin{1}.kFace = 0;
             end
             obj.coord  = varargin{1}.coord;

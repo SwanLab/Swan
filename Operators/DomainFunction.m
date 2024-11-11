@@ -142,7 +142,7 @@ classdef DomainFunction < handle
     methods (Static, Access = public)
 
         function op = computeOperation(a)
-            if isprop(a,'operation')
+            if isa(a,'DomainFunction')
                 op = a.operation;
             elseif isnumeric(a)
                 op = @(xV) a;
