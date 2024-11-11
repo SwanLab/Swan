@@ -285,7 +285,14 @@ classdef OptimizerNullSpace < Optimizer
 %                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
 %                     obj.etaMax = sqrt(tNorm);
 
-                    if obj.constraint.gMean < 1e-3
+                    % if obj.constraint.gMean < 1e-3
+                    %     obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
+                    % end
+
+                    [actg,~] = obj.computeActiveConstraintsGradient();
+                    isAlmostFeasible  = norm(actg) < 10*obj.tolerance;
+                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 10*obj.tol;
+                    if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
                     end
 

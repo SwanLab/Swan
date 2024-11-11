@@ -171,7 +171,8 @@ classdef TwoDimCantilever < handle
             s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
-            s.etaMax         = 0.01;
+            s.etaMaxMin      = 0.01;
+            s.etaMax         = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
