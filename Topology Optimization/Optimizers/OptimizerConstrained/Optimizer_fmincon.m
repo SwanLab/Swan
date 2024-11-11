@@ -64,7 +64,7 @@ classdef Optimizer_fmincon < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
@@ -74,11 +74,15 @@ classdef Optimizer_fmincon < Optimizer
         end
 
         function updateMonitoring(obj)
-            data = obj.cost.value;
-            data = [data;obj.cost.getFields(':')];
-            data = [data;obj.constraint.value];
-            data = [data;obj.designVariable.computeL2normIncrement()];
+            data = {};
+            data{end+1} = obj.cost.value;
+            data{end+1} = obj.cost.getFields(':');
+            for i=1:length(obj.constraint.value)
+                data{end+1} = obj.constraint.value(i);
+            end
+            data{end+1} = obj.designVariable.computeL2normIncrement();
             obj.monitoring.update(obj.nIter,data);
+            obj.monitoring.refresh();
         end
 
         function x = callfmincon(obj)

@@ -1,30 +1,14 @@
 classdef IsotropicElasticMaterial < Material
-   
-    properties (SetAccess = private, GetAccess = public)
+    
+    properties (SetAccess = private, GetAccess = private)
         young
         poisson
         bulk
-        shear 
+        shear
     end
 
     properties (Access = protected)
         ndim
-    end
-
-    methods (Access = public)
-
-        function mu = createShear(obj)
-            s.operation = @(xV) obj.computeShear(xV);
-            s.ndimf = 1;
-            mu = DomainFunction(s);
-        end
-
-        function k = createBulk(obj)
-            s.operation = @(xV) obj.computeBulk(xV);
-            s.ndimf = 1;
-            k = DomainFunction(s);
-        end    
-
     end
     
     methods (Access = protected)
@@ -42,52 +26,33 @@ classdef IsotropicElasticMaterial < Material
             end
             if isfield(cParams,'shear')
                 obj.shear = cParams.shear;
-            end            
-        end
-
-           
-
-        function [muV,kV] = computeShearAndBulk(obj,xV)
-            if isempty(obj.shear) && isempty(obj.bulk)
-                mu = obj.createShear();
-                k  = obj.createBulk();
-            else
-                mu = obj.shear;
-                k  = obj.bulk;
             end
-            muV = mu.evaluate(xV);
-            kV  = k.evaluate(xV);
+        end
+
+        function [mu,k] = computeShearAndBulk(obj,xV)
+            if isempty(obj.shear) && isempty(obj.bulk)
+                E  = obj.young.evaluate(xV);
+                nu = obj.poisson.evaluate(xV);
+                mu = obj.computeMuFromYoungAndPoisson(E,nu);
+                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+            else
+                mu = obj.shear.evaluate(xV);
+                k  = obj.bulk.evaluate(xV); 
+            end
         end
 
 
     end
 
-    methods (Access = private)
-
-        function mu = computeShear(obj,xV)
-            E  = obj.young.evaluate(xV);
-            nu = obj.poisson.evaluate(xV);
-            mu = obj.computeMuFromYoungAndPoisson(E,nu);
-        end
-
-        function k = computeBulk(obj,xV)
-            E  = obj.young.evaluate(xV);
-            nu = obj.poisson.evaluate(xV);
-            N  = obj.ndim;
-            k  = obj.computeKappaFromYoungAndPoisson(E,nu,N);
-        end        
-
-    end
-
-    methods (Access = public, Static)   
-
+    methods (Access = public, Static)
+       
         function mu = computeMuFromYoungAndPoisson(E,nu)
             mu = E./(2*(1+nu));
         end
 
         function k = computeKappaFromYoungAndPoisson(E,nu,N)
             k = E./(N*(1-(N-1)*nu));
-        end     
+        end
 
         function E = computeYoungFromShearAndBulk(m,k,N)
             E = ((N*N*k).*(2*m))./(2*m + N*(N-1)*k);
@@ -95,11 +60,11 @@ classdef IsotropicElasticMaterial < Material
         
         function nu = computePoissonFromFromShearAndBulk(m,k,N)
             nu = ((N*k)-(2*m))./(2*m + N*(N-1)*k);
-        end   
+        end
 
         function lambda = computeLambdaFromShearAndBulk(m,k,N)
             lambda = k - 2/N*m;
-        end                          
+        end
         
     end
     

@@ -1,16 +1,22 @@
-classdef Display_Abstract < handle
+classdef DisplayAbstract < handle
     
     properties (Access = protected)
-        handle
-        iterationArray
-        valueArray
-        style
-
         figTitle
+
+        position
+        handle
+        iteration
+        ArrayDataX
+        ArrayDataY
+        style
     end
 
     methods (Access = protected, Abstract)
         setChartType(obj)
+    end
+
+    methods (Access = public, Abstract)
+        updateParams(ibj,it,value)
     end
 
     methods (Access = public , Static)
@@ -23,8 +29,9 @@ classdef Display_Abstract < handle
 
     methods (Access = public)
 
-        function obj = Display_Abstract(figTitle)
+        function obj = DisplayAbstract(figTitle,position)
             obj.figTitle = figTitle;
+            obj.position = position;
         end
 
         function show(obj,nRows,nCols,i,margins)
@@ -33,24 +40,11 @@ classdef Display_Abstract < handle
             title(obj.figTitle);
             grid on
         end
-        
-        function updateParams(obj,it,value)
-            obj.iterationArray(end+1) = it;
-            if ~isempty(value)
-                obj.valueArray(end+1,:) = value;
-            end
-        end
 
-        function refresh(obj)
-            if ~isempty(obj.valueArray) && ~isempty(obj.iterationArray)
-                set(obj.handle,'XData',obj.iterationArray,'YData',obj.valueArray);
-                if obj.iterationArray(end)>0
-                    set(obj.style,'XLim',[0 obj.iterationArray(end)])
-                end
-                drawnow
-            end
-        end
+    end
 
+    methods (Access = public, Abstract)
+        refresh(obj)
     end
     
     methods (Access = private)
@@ -62,4 +56,5 @@ classdef Display_Abstract < handle
     end
     
 end
+
 
