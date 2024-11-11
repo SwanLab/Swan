@@ -113,10 +113,10 @@ classdef MeshCreatorFromRVE < handle
                 for iDom = 1:nX
                     bIJ = obj.meshSubDomain{jDom,iDom}.createBoundaryMesh();
                     bD{jDom,iDom} = bIJ;
-                     hold on
-                     for iline=1:length(bIJ)
-                         bIJ{iline}.mesh.plot();
-                     end
+                  %   hold on
+                  %   for iline=1:length(bIJ)
+                  %       bIJ{iline}.mesh.plot();
+                  %   end
                 end
             end
             obj.interfaceMeshSubDomain = bD;

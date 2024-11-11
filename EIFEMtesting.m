@@ -10,6 +10,7 @@ classdef EIFEMtesting < handle
         LHS
         RHS
 
+        fileNameEIFEM
     end
 
 
@@ -102,6 +103,7 @@ classdef EIFEMtesting < handle
 
         function init(obj)
             obj.nSubdomains  = [4 1]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
         end
 
         function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
@@ -142,11 +144,11 @@ classdef EIFEMtesting < handle
         end
 
         function mS = createEIFEMreferenceMesh(obj)
-            filename = 'DEF_Q4porL_1.mat';
+            filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-            s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
-            s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
+         %   s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
+         %   s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
             s.connec   = EIFEoper.MESH.CN;
             mS         = Mesh.create(s);
         end
@@ -296,7 +298,7 @@ classdef EIFEMtesting < handle
 
          function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS)
      % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = 'DEF_Q4porL_1.mat';
+            EIFEMfilename = obj.fileNameEIFEM; 
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
