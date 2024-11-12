@@ -4,7 +4,7 @@ classdef DisplayAbstract < handle
         figTitle
 
         position
-        monitoringIdx
+        figureIdx
         handle
         iteration
         ArrayDataX
@@ -33,7 +33,7 @@ classdef DisplayAbstract < handle
         function obj = DisplayAbstract(cParams)
             obj.figTitle = cParams.title;
             obj.position = cParams.position;
-            obj.monitoringIdx = cParams.monitoringIdx;
+            obj.figureIdx = cParams.figureIdx;
         end
 
         function show(obj,nRows,nCols,i,margins)
@@ -53,7 +53,7 @@ classdef DisplayAbstract < handle
 
         function DispAxes = obtainDisplayAxes(obj)
             AllFigs = findobj('Type','Figure');
-            Fig = findobj(AllFigs,'Number',obj.monitoringIdx);
+            Fig = findobj(AllFigs,'Number',obj.figureIdx);
             axes = flip(findobj(Fig,'Type','axes'));
             DispAxes = axes(obj.position);
         end
