@@ -104,8 +104,8 @@ classdef OrientedMappingComputer < handle
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientation{iDim};
                 dO = er.*b;
-           %     d00 = dO.project('P1',obj.mesh);
-           %     Curl(d00).project('P1D',obj.mesh).plot()                
+                d00 = dO.project('P1',obj.mesh);
+                Curl(d00).project('P1D',obj.mesh).plot()
                 obj.dilatedOrientation{iDim} = dO;
             end
         end            

@@ -57,24 +57,16 @@ classdef DilationComputer < handle
         end
         
         function computeRHS(obj)
-            s.mesh      = obj.mesh;
-            s.operation = @(x) obj.computeFieldTimesDivField(x);
-            gradT       = DomainFunction(s);
+            a1   = obj.orientationVector{1};
+            a2   = obj.orientationVector{2};
+            fun  = (Curl(a1).*a2 - Curl(a2).*a1);
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 3;
             test = LagrangianFunction.create(obj.mesh,1,'P1');
             rhs  = RHSintegrator.create(s);
-            rhsV = rhs.compute(gradT,test);
+            rhsV = rhs.compute(fun,test);
             obj.RHS = [rhsV;0];
-        end
-        
-        function gradT = computeFieldTimesDivField(obj,xV)
-            a1    = obj.orientationVector{1};
-            a2    = obj.orientationVector{2};
-            aDa1  = a1.computeFieldTimesDivergence(xV);
-            aDa2  = a2.computeFieldTimesDivergence(xV);  
-            gradT = -aDa1.fValues - aDa2.fValues;
         end
         
         function u = solveSystem(obj)
@@ -86,4 +78,4 @@ classdef DilationComputer < handle
         
     end
     
-end
+end          
