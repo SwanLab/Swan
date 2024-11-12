@@ -12,7 +12,6 @@ classdef LagrangianFunction < FeFunction
 
        dNdxOld
        xVOld     
-       fxVOld
     end
 
     methods (Access = public)
@@ -39,7 +38,6 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function fxV = evaluate(obj, xV)
-            if ~isequal(xV,obj.xVOld) || isempty(obj.fxVOld)
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = obj.interpolation.nnode;
             nGaus  = size(shapes,2);
@@ -55,12 +53,7 @@ classdef LagrangianFunction < FeFunction
                     f(:,1,:) = Ni*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
-            end
-                obj.fxVOld = fxV;
-                obj.xVOld   = xV;
-            else
-                fxV = obj.fxVOld;
-            end         
+            end     
         end
 
         function fxV = sampleFunction(obj,xP,cells)

@@ -1,9 +1,9 @@
-classdef Display_SemilogY < Display_Abstract
+classdef DisplayLogLog < DisplayPlot
     
     methods (Access = protected)
         
         function setChartType(obj)
-            obj.handle = semilogy(0,0);
+            obj.handle = loglog(0,0);
         end
         
     end
