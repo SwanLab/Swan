@@ -6,7 +6,7 @@ classdef DisplayMultiPlot < DisplayAbstract
     methods (Access = public)
 
         function obj = DisplayMultiPlot(cParams)
-            obj@DisplayAbstract(cParams.title,cParams.position)
+            obj@DisplayAbstract(cParams)
             obj.legend = cParams.legend;
         end
         
