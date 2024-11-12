@@ -39,7 +39,6 @@ classdef NonLinearFilterDroplet < handle
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-%             filename = 'beta5alpha5theta30.gif';
             while tolerance >= 1e-4 
                 oldRho = obj.trial.fValues;
                 obj.createRHSShapeDerivative(quadOrder);
@@ -47,11 +46,11 @@ classdef NonLinearFilterDroplet < handle
                 obj.updatePreviousGuess(iter);
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
                 iter = iter + 1;
-%                 disp(iter);  
-%                 disp(tolerance);
+                disp(iter);  
+                disp(tolerance);
              end
            
-%             obj.trial.plot
+            obj.trial.plot
             xF.fValues = obj.trial.fValues;
 
         end
@@ -65,7 +64,7 @@ classdef NonLinearFilterDroplet < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = 0;
-            obj.lambda = 10;
+            obj.lambda = 1;
         end
 
         function createDirection(obj)

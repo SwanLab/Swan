@@ -1,4 +1,4 @@
-classdef CantileverPerimeter < handle
+classdef CantileverPerimeterSegment < handle
 
     properties (Access = private)
         epsOverH
@@ -19,7 +19,7 @@ classdef CantileverPerimeter < handle
 
     methods (Access = public)
 
-        function obj = CantileverPerimeter()
+        function obj = CantileverPerimeterSegment()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -74,17 +74,14 @@ classdef CantileverPerimeter < handle
             obj.filterCompliance = f;
 
             h = obj.mesh.computeMeanCellSize();
-            ss.filterType       = 'PDE';
-            ss.mesh             = obj.mesh;
-            ss.boundaryType     = 'Neumann';
-            ss.metric           = 'Anisotropy';
-            nu                  = 85;
-            ss.aniAlphaDeg      = 90;
+            s.mesh   = obj.mesh;
+            s.theta  = 45;
+            s.alpha  = obj.epsOverH*h;
+            s.beta   = 0;
+            s.type   = 'Segment';
             epsilon             = obj.epsOverH*h;
-            ss.CAnisotropic     = [tand(nu), 0; 0, 1/tand(nu)];
-            ss.trial            = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.filterPerimeter = Filter.create(ss);
-            obj.filterPerimeter.updateEpsilon(epsilon);
+            obj.filterPerimeter = NonLinearFilter.create(s);
+%             obj.filterPerimeter.updateEpsilon(epsilon);
 
             
         end

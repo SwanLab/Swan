@@ -42,9 +42,9 @@ end
 
 function nLFilter = createNonLinearFilter(m)
 s.mesh   = m;
-s.theta  = 90;
+s.theta  = 0;
 s.alpha  = sqrt(2);
-s.epsilon = 5*m.computeMeanCellSize();
+s.epsilon = 4*m.computeMeanCellSize();
 s.type   = 'Droplet';
 nLFilter = NonLinearFilter.create(s);
 end

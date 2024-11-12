@@ -1,4 +1,4 @@
-classdef CantileverPerimeter < handle
+classdef MBBPerimeter < handle
 
     properties (Access = private)
         epsOverH
@@ -19,7 +19,7 @@ classdef CantileverPerimeter < handle
 
     methods (Access = public)
 
-        function obj = CantileverPerimeter()
+        function obj = MBBPerimeter()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -46,10 +46,10 @@ classdef CantileverPerimeter < handle
         end
 
         function createMesh(obj)
-            x1       = 2;
+            x1       = 6;
             x2       = 1;
-            n1       = 200;
-            n2       = 100;
+            n1       = 300;
+            n2       = 50;
             obj.mesh = TriangleMesh(x1,x2,n1,n2);
         end
 
@@ -78,7 +78,7 @@ classdef CantileverPerimeter < handle
             ss.mesh             = obj.mesh;
             ss.boundaryType     = 'Neumann';
             ss.metric           = 'Anisotropy';
-            nu                  = 85;
+            nu                  = 45;
             ss.aniAlphaDeg      = 90;
             epsilon             = obj.epsOverH*h;
             ss.CAnisotropic     = [tand(nu), 0; 0, 1/tand(nu)];
@@ -217,16 +217,27 @@ classdef CantileverPerimeter < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
+            isDirLeft = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1)) >= 0 ...
+                & abs(coor(:,1)) <= 0.3;
+            isDirRight = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1)) >= 5.7 ...
+                & abs(coor(:,1)) <= xMax;
+            isForce = @(coor) (abs(coor(:,2)) == yMax & ...
+                abs(coor(:,1)) >= 0.5 * xMax - 0.15 & ...
+                abs(coor(:,1)) <= 0.5 * xMax + 0.15);
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+
+            sDir{1}.domain = @(coor) isDirLeft(coor);
+            sDir{1}.direction = 2;  
+            sDir{1}.value = 0;
+
+            sDir{2}.domain = @(coor) isDirRight(coor);
+            sDir{2}.direction = [1, 2];  
+            sDir{2}.value = 0;
+
+            sPL{1}.domain = @(coor) isForce(coor);
+            sPL{1}.direction = 2;  
+            sPL{1}.value = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)

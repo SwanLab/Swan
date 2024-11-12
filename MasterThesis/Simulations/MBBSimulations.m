@@ -46,8 +46,8 @@ classdef MBBSimulations < handle
         function createMesh(obj)
             x1       = 6;
             x2       = 1;
-            n1       = 600;
-            n2       = 100;
+            n1       = 300;
+            n2       = 50;
             obj.mesh = TriangleMesh(x1,x2,n1,n2);
         end
 

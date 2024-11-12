@@ -44,7 +44,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
-             obj.designVariable.fun.print('ArchLumpFInalVol2');
+              obj.designVariable.fun.print('MBBLump300');
         end
     end
 
