@@ -4,6 +4,7 @@ classdef DisplayAbstract < handle
         figTitle
 
         position
+        monitoringIdx
         handle
         iteration
         ArrayDataX
@@ -29,9 +30,10 @@ classdef DisplayAbstract < handle
 
     methods (Access = public)
 
-        function obj = DisplayAbstract(figTitle,position)
-            obj.figTitle = figTitle;
-            obj.position = position;
+        function obj = DisplayAbstract(cParams)
+            obj.figTitle = cParams.title;
+            obj.position = cParams.position;
+            obj.monitoringIdx = cParams.monitoringIdx;
         end
 
         function show(obj,nRows,nCols,i,margins)
@@ -46,13 +48,24 @@ classdef DisplayAbstract < handle
     methods (Access = public, Abstract)
         refresh(obj)
     end
+
+    methods (Access = protected)
+
+        function DispAxes = obtainDisplayAxes(obj)
+            AllFigs = findobj('Type','Figure');
+            Fig = findobj(AllFigs,'Number',obj.monitoringIdx);
+            axes = flip(findobj(Fig,'Type','axes'));
+            DispAxes = axes(obj.position);
+        end
+
+    end
     
     methods (Access = private)
         
         function setStyle(obj,nRows,nCols,i,margins)
             obj.style = subplot_tight(nRows,nCols,i,margins);
         end
-        
+
     end
     
 end
