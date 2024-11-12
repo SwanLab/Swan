@@ -3,7 +3,7 @@ classdef DisplayPlot < DisplayAbstract
     methods (Access = public)
 
         function obj = DisplayPlot(cParams)
-            obj@DisplayAbstract(cParams.title,cParams.position)
+            obj@DisplayAbstract(cParams)
         end
         
     end

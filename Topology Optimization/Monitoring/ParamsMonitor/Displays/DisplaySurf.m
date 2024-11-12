@@ -12,7 +12,7 @@ classdef DisplaySurf < DisplayAbstract
     methods (Access = public)
 
         function obj = DisplaySurf(cParams)
-            obj@DisplayAbstract(cParams.title,cParams.position)
+            obj@DisplayAbstract(cParams)
             obj.fun = cParams.fun;
             if ~isempty(cParams.barLim)
                 obj.barLim = cParams.barLim;
@@ -43,8 +43,8 @@ classdef DisplaySurf < DisplayAbstract
         function refresh(obj)
             if ~isempty(obj.FieldData) && ~isempty(obj.iter)
                 t = strcat(obj.figTitle,' / iter:',num2str(obj.iter));
-                axis = flip(findobj(gcf,'Type','Axes'));
-                set(axis(obj.position).Title,'String',t);
+                axes = obj.obtainDisplayAxes();
+                set(axes.Title,'String',t);
                 set(obj.handle,'ZData',obj.FieldData,'CData',obj.FieldData,'Faces',obj.faces);
             end
         end
