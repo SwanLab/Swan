@@ -30,6 +30,9 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            obj.designVariable.fun.print('ResultatCantileverDensity');
+            % Save monitoring
         end
 
     end
@@ -192,8 +195,8 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isDir   = @(coor)  coor(:,1)==0;
+            isForce = @(coor)  coor(:,1)==xMax & coor(:,2)>=0.4*yMax & coor(:,2)<=0.6*yMax;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
