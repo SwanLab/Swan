@@ -75,7 +75,7 @@ classdef CantileverPerimeterSegment < handle
 
             h = obj.mesh.computeMeanCellSize();
             s.mesh   = obj.mesh;
-            s.theta  = 45;
+            s.theta  = 90;
             s.alpha  = obj.epsOverH*h;
             s.beta   = 0;
             s.type   = 'Segment';
