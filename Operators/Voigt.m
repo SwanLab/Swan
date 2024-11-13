@@ -19,12 +19,12 @@ function voigtA = evaluate(u,xV)
             voigtA = applyVoigt3D(matA);
     end
 end
-
+   
 function voigtA = applyVoigt2D(matA)
     nPoints = size(matA,3);
     nElem = size(matA,4);
     voigtA = zeros(3,nPoints,nElem);
-
+    
     voigtA(1,:,:) = matA(1,1,:,:); % xx
     voigtA(2,:,:) = matA(2,2,:,:); % yy
     voigtA(3,:,:) = matA(1,2,:,:) + matA(2,1,:,:); % xy
@@ -34,7 +34,7 @@ function voigtA = applyVoigt3D(matA)
     nPoints = size(matA,3);
     nElem = size(matA,4);
     voigtA = zeros(6,nPoints,nElem);
-
+    
     voigtA(1,:,:) = matA(1,1,:,:); % xx
     voigtA(2,:,:) = matA(2,2,:,:); % yy
     voigtA(3,:,:) = matA(3,3,:,:); % zz
@@ -42,3 +42,6 @@ function voigtA = applyVoigt3D(matA)
     voigtA(5,:,:) = matA(1,3,:,:) + matA(3,1,:,:); % xz
     voigtA(6,:,:) = matA(2,3,:,:) + matA(3,2,:,:); % yz
 end
+
+    
+    
