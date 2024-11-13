@@ -17,9 +17,11 @@ classdef NonLinearFilterSegment < handle
         K
         intChi
         rhsDer
+        rhoDif
         Den
         a2
         b2
+        rhoOld
     end
 
     methods (Access = public)
@@ -37,17 +39,17 @@ classdef NonLinearFilterSegment < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
+            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);            
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
             while tolerance >= 1e-4 
-                oldRho = obj.trial.copy();
+                obj.rhoOld.fValues = obj.trial.fValues;
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updateDotProductPreviousGuess();
-                dif = oldRho - obj.trial;
-                tolerance = dif.computeL2norm()/obj.trial.computeL2norm();
+                obj.rhoDif.fValues = obj.rhoOld.fValues - obj.trial.fValues;
+                tolerance = obj.rhoDif.computeL2norm()/obj.trial.computeL2norm();
                 iter = iter + 1;
 %                disp(iter);  
 %                 disp(tolerance);
@@ -62,6 +64,8 @@ classdef NonLinearFilterSegment < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
+            obj.rhoOld = LagrangianFunction.create(cParams.mesh, 1, 'P1');
+            obj.rhoDif = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.mesh  = cParams.mesh;
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
@@ -77,10 +81,7 @@ classdef NonLinearFilterSegment < handle
 
         function createDirectionFunction(obj)
             k = obj.direction;
-            s.fHandle = @(x) [k(1)*ones(size(x(1,:,:)));k(2)*ones(size(x(1,:,:)))];
-            s.ndimf = 2;
-            s.mesh = obj.mesh;
-            obj.directionFunction = AnalyticalFunction(s);
+            obj.directionFunction  = obj.createConstantFunction(k);
         end
 
         function createMassMatrix(obj)
@@ -156,10 +157,13 @@ classdef NonLinearFilterSegment < handle
         end
 
         function aF = createConstantFunction(obj,c)
-            s.fHandle = @(x) c*ones(size(x(1,:,:)));
-            s.ndimf = 1;
-            s.mesh = obj.mesh;
-            aF = AnalyticalFunction(s);
+            s.ndimf = length(c);
+            s.operation = @(xV) obj.createOperation(c,xV);
+            aF = DomainFunction(s);
+        end
+
+        function b = createOperation(obj,c,xV)
+            b = c.*ones([length(c),size(xV,2),obj.mesh.nelem]); 
         end
 
         function updateDotProductPreviousGuess(obj)
