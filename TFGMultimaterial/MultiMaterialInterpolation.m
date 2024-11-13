@@ -19,14 +19,18 @@ classdef MultiMaterialInterpolation < handle
             kappa               = obj.computeBulkMagnitude(lambda,mu,N);
         end
 
-        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C,i,j)
-            dC      = obj.computeTensorDerivativeIJ(x,C,i,j);
-            dmuVal  = squeeze(dC(2,2,:))/4;
-            dlamVal = squeeze(dC(1,3,:));
-            dmu     = obj.computeP1Function(x{1}.mesh,dmuVal);
-            dlam    = obj.computeP1Function(x{1}.mesh,dlamVal);
-            N       = x{1}.mesh.ndim;
-            dkappa  = obj.computeBulkMagnitude(dlam,dmu,N);
+        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
+            for i = 1:length(obj.youngVec)
+                for j = 1:length(obj.youngVec)
+                    dC      = obj.computeTensorDerivativeIJ(x,C,i,j);
+                    dmuVal  = squeeze(dC(2,2,:))/4;
+                    dlamVal = squeeze(dC(1,3,:));
+                    dmu{i,j}     = obj.computeP1Function(x{1}.mesh,dmuVal);
+                    dlam    = obj.computeP1Function(x{1}.mesh,dlamVal);
+                    N       = x{1}.mesh.ndim;
+                    dkappa{i,j}  = obj.computeBulkMagnitude(dlam,dmu{i,j},N);
+                end
+            end
         end
 
     end

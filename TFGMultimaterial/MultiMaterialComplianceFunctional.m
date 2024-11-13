@@ -77,18 +77,18 @@ classdef MultiMaterialComplianceFunctional < handle
             dJ               = obj.filterFields(dt);
         end
 
-        function dj = computeLocalGradient(obj,u,i,j)
-            dC      = obj.material.obtainTensorDerivative(i,j);
+        function dj = computeLocalGradient(obj,u,dC)
             strain  = SymGrad(u);
             dStress = DDP(dC,strain);
             dj      = -0.5.*DDP(strain, dStress);
         end
 
         function DJ = computeTopologicalDerivatives(obj,u)
+            dC = obj.material.obtainTensorDerivative();
             DJ = cell(obj.nMat,obj.nMat);
             for i = 1:obj.nMat
                 for j = 1:obj.nMat
-                    dj      = obj.computeLocalGradient(u,i,j);
+                    dj      = obj.computeLocalGradient(u,dC{i,j});
                     DJ{i,j} = dj./obj.value0;
                 end
             end
