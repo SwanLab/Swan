@@ -6,13 +6,16 @@ x_p=[0:pas:1-pas*15]; %S'ha de retallar una mica la punta perquè sinó queden e
 
 yt = 5*t*(0.2969*sqrt(x_p)-0.1260*x_p-0.3516*x_p.^2+0.2843*x_p.^3-0.1015*x_p.^4);
 
-for j=1:1:size(x_p,2)
-    if x_p(j)<=p
-        y_c(j)=(M/(p^2))*(2*p*x_p(j)-x_p(j)^2);
-    elseif x_p(j)>p
-        y_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
-    end
-end
+% for j=1:1:size(x_p,2)
+%     if x_p(j)<=p
+%         y_c(j)=(M/(p^2))*(2*p*x_p(j)-x_p(j)^2);
+%     elseif x_p(j)>p
+%         y_c(j)=(M/(1-p)^2)*((1-2*p)+2*p*x_p(j)-x_p(j)^2);
+%     end
+% end
+
+y_c = (  (M/(p^2))*(2*p*x_p-x_p.^2)  ).*(x_p<=p) + ...
+        (    (M/(1-p)^2)*((1-2*p)+2*p*x_p-x_p.^2)  ).*(x_p>p);
 
 % Plot chamber line:
 plot(x_p,y_c)
@@ -21,17 +24,25 @@ grid on
 
 %Plot airfoil with circles:
 figure
-for ii=1:1:size(x_p,2)
-    x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
-    y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+% for ii=1:1:size(x_p,2)
+%     x_c = [x_p(ii)-yt(ii):0.0001:x_p(ii)+yt(ii)+0.0001];
+%     y = sqrt(yt(ii)^2 - (x_c-x_p(ii)).^2);
+% 
+% 
+%     plot(x_c,y+y_c(ii));
+%     hold on
+%     plot(x_c,-y+y_c(ii));
+%     hold on
+% 
+% end
 
-
-    plot(x_c,y+y_c(ii));
-    hold on
-    plot(x_c,-y+y_c(ii));
-    hold on
-
-end
+% minxC = min(x_p-yt);
+% maxxC = max(x_p+yt);
+% x_c   = linspace(minxC,maxxC,length(yt));
+% y     = sqrt(yt.^2 - (x_c-x_p).^2);
+% plot(x_c,y+y_c);
+% hold on
+% plot(x_c,-y+y_c);
 
 axis equal
 
