@@ -12,6 +12,7 @@ classdef NonLinearFilterSegment < handle
     properties (Access = private)
         lineSearch
         direction
+        directionFunction
         M
         K
         intChi
@@ -22,9 +23,11 @@ classdef NonLinearFilterSegment < handle
     end
 
     methods (Access = public)
+
         function obj = NonLinearFilterSegment(cParams)
             obj.init(cParams);
             obj.createDirection();
+            obj.createDirectionFunction();
             obj.updateDotProductPreviousGuess();
             obj.createMassMatrix();
             obj.createDirectionalStiffnessMatrix();
@@ -39,11 +42,12 @@ classdef NonLinearFilterSegment < handle
             iter = 1;
             tolerance = 1;
             while tolerance >= 1e-4 
-                oldRho = obj.trial.fValues;
+                oldRho = obj.trial.copy();
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updateDotProductPreviousGuess();
-                tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
+                dif = oldRho - obj.trial;
+                tolerance = dif.computeL2norm()/obj.trial.computeL2norm();
                 iter = iter + 1;
 %                disp(iter);  
 %                 disp(tolerance);
@@ -66,8 +70,17 @@ classdef NonLinearFilterSegment < handle
         end
 
         function createDirection(obj)
-            th            = obj.theta;
-            obj.direction = [cosd(th);sind(th)];
+            th = obj.theta;            
+            k = [cosd(th);sind(th)];
+            obj.direction = k;
+        end
+
+        function createDirectionFunction(obj)
+            k = obj.direction;
+            s.fHandle = @(x) [k(1)*ones(size(x(1,:,:)));k(2)*ones(size(x(1,:,:)))];
+            s.ndimf = 2;
+            s.mesh = obj.mesh;
+            obj.directionFunction = AnalyticalFunction(s);
         end
 
         function createMassMatrix(obj)
@@ -108,35 +121,28 @@ classdef NonLinearFilterSegment < handle
             int        = RHSintegrator.create(s);
             test       = obj.trial;
             g          = obj.computeGradient();
-            f          = obj.createAnalyticalDirection();
+            f          = obj.directionFunction;
             rhs        = int.compute(f.*g, test);
             obj.rhsDer = rhs;
         end
 
-        function aF = createAnalyticalDirection(obj)
-            k = obj.direction;
-            s.fHandle = @(x) [k(1)*ones(size(x(1,:,:)));k(2)*ones(size(x(1,:,:)))];
-            s.ndimf = 2;
-            s.mesh = obj.mesh;
-            aF = AnalyticalFunction(s);
-        end
 
         function g = computeGradient(obj)
             s   = obj.sVar;
 %             Den = obj.createConstantFunction(2*obj.lineSearch);
 %             a2  = obj.createConstantFunction(a^2);
 %             b2  = obj.createConstantFunction(b^2);
-            maxFun = obj.CreateDomainMax(s);
-            minFun = obj.CreateDomainMin(s);
+            maxFun = obj.createDomainMax(s);
+            minFun = obj.createDomainMin(s);
             g   = s./obj.Den-obj.a2.*maxFun-obj.b2.*minFun;
         end
 
-        function m = CreateDomainMax(obj,sFun)
+        function m = createDomainMax(obj,sFun)
             s.operation = @(xV) max(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
             m           = DomainFunction(s);
         end
 
-        function m = CreateDomainMin(obj,sFun)
+        function m = createDomainMin(obj,sFun)
             s.operation = @(xV) min(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
             m           = DomainFunction(s);
         end
@@ -158,7 +164,7 @@ classdef NonLinearFilterSegment < handle
 
         function updateDotProductPreviousGuess(obj)
             gradRho  = Grad(obj.trial);
-            k        = obj.createAnalyticalDirection();
+            k        = obj.directionFunction;
             obj.sVar = DP(gradRho,k);
 %             obj.sVar = Integrator.compute(gradRho.*k,obj.mesh,2);
         end
