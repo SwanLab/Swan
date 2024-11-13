@@ -1,4 +1,4 @@
-classdef LevelSetInclusion < handle
+classdef ReferenceLevelSetInclusion < handle
 
     properties (Access = private)
         mesh
@@ -7,7 +7,7 @@ classdef LevelSetInclusion < handle
 
     methods (Access = public)
 
-        function obj = LevelSetInclusion()
+        function obj = ReferenceLevelSetInclusion()
             obj.init()
             obj.createMesh();
             obj.createElasticProblem();
