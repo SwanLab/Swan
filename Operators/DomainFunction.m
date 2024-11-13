@@ -28,9 +28,16 @@ classdef DomainFunction < handle
             fD.plot();
         end
 
+        function fun = project(obj,target,mesh)
+            s.mesh          = mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end
+
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) nOrderTranspose(aOp(xV));
+            s.operation = @(xV) pagetranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -49,16 +56,8 @@ classdef DomainFunction < handle
         end
 
         function r = times(a,b)
-            if not(isfloat(a))
-                aOp = DomainFunction.computeOperation(a);                
-            else
-                aOp = @(xV) a;
-            end
-            if not(isfloat(b))
-                bOp = DomainFunction.computeOperation(b);
-            else
-                bOp = @(xV) b;
-            end
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
             ndimfA = DomainFunction.computeFieldDimension(a);
             ndimfB = DomainFunction.computeFieldDimension(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
@@ -115,13 +114,6 @@ classdef DomainFunction < handle
             s.operation = @(xV) trace(aOp(xV));
             s.ndimf = a.ndimf;
             r = DomainFunction(s);
-        end
-
-        function fun = project(obj,target,mesh)
-            s.mesh          = mesh;
-            s.projectorType = target;
-            proj = Projector.create(s);
-            fun = proj.project(obj);
         end
 
     end
