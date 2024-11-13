@@ -71,11 +71,11 @@ classdef shFunc_ElasticDamage < handle
         
         end  
         
-        function rOut = newState (rIn,u)
+        function rOut = newState (obj,rIn,u)
 
             C = obj.material;
             epsi = SymGrad(u);
-            tauEpsi = sqrt(DDP(DDP(epsi,C),epsi));
+            tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);
 
             if tauEpsi <= rIn
 
@@ -84,7 +84,15 @@ classdef shFunc_ElasticDamage < handle
                 rOut = tauEpsi;
             end
 
-        end        
+        end
+
+        function d = computeDamage(obj,r)
+            q = obj.computeHardening();
+            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))./(r.evaluate(xV)));
+            s.ndimf = 1;
+            d = DomainFunction(s);
+
+        end
     end
     
     methods (Access = private)
@@ -94,14 +102,6 @@ classdef shFunc_ElasticDamage < handle
             obj.mesh = cParams.mesh;
             obj.r0 = cParams.r0;
             obj.H = cParams.H;
-        end
-
-        function d = computeDamage(obj,r)
-            q = obj.computeHardening();
-            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/(r.evaluate(xV)));
-            s.ndimf = 1;
-            d = DomainFunction(s);
-
         end
 
         function q = computeHardening(obj)

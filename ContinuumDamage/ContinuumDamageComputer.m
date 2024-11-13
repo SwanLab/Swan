@@ -31,24 +31,26 @@ classdef ContinuumDamageComputer < handle
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             u.fValues = obj.updateInitialDisplacement(bc,u);
             
-            s.operation = obj.r0;
+            s.operation = @(xV) obj.r0;
             s.ndimf = 1;
             rNew = DomainFunction (s);
-            
+
             errorU = 1;
             while (errorU >= obj.tolerance)
                 LHS = obj.computeLHS(u);
                 RHS = obj.computeRHS(u,rNew);
                 uNew = obj.computeU(LHS,RHS,u,bc);
                 errorU = max(max(abs(u.fValues-uNew)));
-
+                
+                u.fValues = uNew;
                 rOld = rNew;
-                rNew = obj.ElasticFun.newState(rOld,uNew);
+                rNew = obj.ElasticFun.newState(rOld,u);
 
                 fprintf('Error: %d \n',errorU);
-                u.fValues = uNew;
+            
             end
             data.displacement = u;
+            data.damage = obj.ElasticFun.computeDamage(rNew);
         end
     end
 
@@ -107,8 +109,8 @@ classdef ContinuumDamageComputer < handle
             uOutVec = uInVec;
 
             uInFree = uInVec(bc.free_dofs);
-            uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-            %uOutFree = obj.updateWithGradient(RHS,uInFree);
+            %uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
+            uOutFree = obj.updateWithGradient(RHS,uInFree);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
