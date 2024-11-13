@@ -43,6 +43,8 @@ classdef NonLinearFilterSegment < handle
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
+            obj.trial.fValues = obj.rhoOld.fValues;
+            obj.updateDotProductPreviousGuess();            
             while tolerance >= 1e-4 
                 obj.rhoOld.fValues = obj.trial.fValues;
                 obj.createRHSDirectionalDerivative(quadOrder);
@@ -51,10 +53,9 @@ classdef NonLinearFilterSegment < handle
                 obj.rhoDif.fValues = obj.rhoOld.fValues - obj.trial.fValues;
                 tolerance = obj.rhoDif.computeL2norm()/obj.trial.computeL2norm();
                 iter = iter + 1;
-%                disp(iter);  
-%                 disp(tolerance);
-             end
-           
+             %   disp(iter)  
+             %    disp(tolerance)
+            end
 %             obj.trial.plot
             xF.fValues = obj.trial.fValues;
 
