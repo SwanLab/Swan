@@ -4,8 +4,8 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 1;
-cParams.mesh.meshM = 1;
+cParams.mesh.meshN = 10;
+cParams.mesh.meshM = 10;
 
 
 

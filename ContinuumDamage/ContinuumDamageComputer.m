@@ -30,7 +30,11 @@ classdef ContinuumDamageComputer < handle
             bc = obj.boundaryConditions;
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             u.fValues = obj.updateInitialDisplacement(bc,u);
-            rNew = obj.r0;
+            
+            s.operation = obj.r0;
+            s.ndimf = 1;
+            rNew = DomainFunction (s);
+            
             errorU = 1;
             while (errorU >= obj.tolerance)
                 LHS = obj.computeLHS(u);
