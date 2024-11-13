@@ -32,7 +32,7 @@ classdef TopOptDensityConnectivity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-            obj.computeEigenValueFunctional();
+%             obj.computeEigenValueFunctional();
         end
 
     end
@@ -80,7 +80,6 @@ classdef TopOptDensityConnectivity < handle
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
 
             E1 = 1;
             nu1 = 1/3;
@@ -147,8 +146,9 @@ classdef TopOptDensityConnectivity < handle
             eigen = obj.computeEigenValueProblem();
             s.eigenModes = eigen;
             s.designVariable = obj.designVariable;
+            s.mesh = obj.mesh;
             mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient()
+            mE.computeFunctionAndGradient(obj.designVariable)
         end
 
         function eigen = computeEigenValueProblem(obj)
@@ -161,14 +161,14 @@ classdef TopOptDensityConnectivity < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filter;
-            s.minimumEigenValue = 0.05;      
+            s.minimumEigenValue = 0.15;      
             s.shift             = 1.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-%             s.shapeFunctions{2} = obj.minimumEigenValue;                   
+            s.shapeFunctions{2} = obj.minimumEigenValue;                   
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -190,7 +190,7 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;                                        
+            s.nConstraints   = 2;                                        
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -207,17 +207,9 @@ classdef TopOptDensityConnectivity < handle
             s.constraintCase{2} = 'INEQUALITY';                             
             s.ub             = 1;
             s.lb             = 0;
-
-%            s.etaNorm        = 0.01;
-%            s.gJFlowRatio    = 2;
-%            s.volumeTarget   = 0.4;
-%            s.primal         = 'PROJECTED GRADIENT';
-%            opt = OptimizerNullSpace(s);
-
-           opt              = OptimizerMMA(s);
-           
-           opt.solveProblem();
-           obj.optimizer = opt;
+            opt              = OptimizerMMA(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)

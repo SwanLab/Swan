@@ -37,24 +37,14 @@ classdef StiffnessEigenModesComputer < handle
             Kreduced = obj.fullToReduced(K);
             M  = obj.computeMassMatrixWithFunction(m);
             Mreduced = obj.fullToReduced(M);
-            
-            % Including the Eigenvalue Shift
             K = K + obj.shift*M;
-            Kreduced = Kreduced + obj.shift*Mreduced;
-            
+            Kreduced = Kreduced + obj.shift*Mreduced;          
             dK = obj.createStiffnessMatrixWithFunction(dalpha);
             dM = obj.computeMassMatrixWithFunction(dm);
-            [lambdaD,phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
+            [lambdaD, phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
             [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
-%             obj.plotDirichletEigenMode(phiD)
-%             obj.plotNeumannEigenMode(phiN)
-%            
-            % Derivative Expression with PhiD
-%             phiD_filled = obj.fillVectorWithHomogeneousDirichlet(phiD);
-%             dlambda = dK*phiD_filled - lambdaD*dM*phiD_filled;
-%             obj.plotEigenValueDerivative(dlambda)
-% 
-%           % Derivative Expression from Continuous Version
+            % obj.plotDirichletEigenMode(phiD)
+            % obj.plotNeumannEigenMode(phiN)
             dalphaCont = obj.createDomainFunction(dalpha);
             dmCont     = obj.createDomainFunction(dm);
             s.fValues = obj.fillVectorWithHomogeneousDirichlet(phiD);
@@ -62,8 +52,6 @@ classdef StiffnessEigenModesComputer < handle
             s.order   = 'P1';
             phiDCont = LagrangianFunction(s);
             dlambda = obj.computeLowestEigenValueGradient(dalphaCont, dmCont, phiDCont, lambdaD); 
-%             dlambdaCont.project('P1',obj.mesh).plot()
-
             lambda  = lambdaD;
         end
     end
@@ -132,7 +120,6 @@ classdef StiffnessEigenModesComputer < handle
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
-            % K = obj.fullToReduced(K);
         end
 
         function f = createDomainFunction(obj,fun)
@@ -173,12 +160,12 @@ classdef StiffnessEigenModesComputer < handle
             s.type            = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             M = lhs.compute();   
-            % M = obj.fullToReduced(M);
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
-            [eigF,eigV] = eigs(K,M,4,'smallestabs');
+            [eigF,eigV] = eigs(K,M,10,'smallestabs');
             eigV1 = eigV(n,n);
+%             diag(eigV)
             eigF1 = eigF(:,n);
         end   
 
@@ -192,13 +179,6 @@ classdef StiffnessEigenModesComputer < handle
         end        
 
         function plotDirichletEigenMode(obj,eigenF)
-%             t = LagrangianFunction.create(obj.mesh,1,'P1');
-%             ndofs = t.nDofs;           
-%             fV = zeros(ndofs,1);
-%             dofsDir = obj.boundaryConditions.dirichlet_dofs;
-%             fV(dofsDir,1) = obj.boundaryConditions.dirichlet_vals;
-%             free = setdiff(1:ndofs,obj.boundaryConditions.dirichlet_dofs);
-%             fV(free,1) = eigenF;
             s.fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
             s.mesh    = obj.mesh;
             s.order   = 'P1';
@@ -216,17 +196,8 @@ classdef StiffnessEigenModesComputer < handle
             fV(free,1) = eigenF;
         end
 
-        function plotEigenValueDerivative(obj,dlambda)
-            fV = dlambda;
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            vV = LagrangianFunction(s);
-            vV.plot()
-        end
-
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
-            dlambda = dalpha.*DDP(Grad(phi), Grad(phi)) - (lambda - obj.shift)*dm.*phi.*phi; 
+            dlambda = dalpha.*DP(Grad(phi), Grad(phi)) - (lambda - obj.shift)*dm.*phi.*phi; 
         end
         
 

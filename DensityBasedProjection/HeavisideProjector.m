@@ -12,9 +12,10 @@ classdef HeavisideProjector < handle
         end
 
         function projF = project(obj,xF)
-            a     = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
-            b     = obj.computeExpressionInDen();
-            projF = a/b;
+            projF = 1 - exp(-obj.beta*xF.fValues) + xF.fValues*exp(-obj.beta);
+%             a     = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
+%             b     = obj.computeExpressionInDen();
+%             projF = a/b;
         end
 
         function derProjF = derive(obj,xF)

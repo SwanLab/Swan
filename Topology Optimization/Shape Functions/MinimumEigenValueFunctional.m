@@ -4,44 +4,39 @@ classdef MinimumEigenValueFunctional < handle
         value
         gradient
     end
-    
+       
     properties (Access = private)
-        density
-    end
-    
-    properties (Access = private)
+       density
        eigModes 
        designVariable
+       mesh
+       filter
+       iter
     end
     
     methods (Access = public)
         
         function obj = MinimumEigenValueFunctional(cParams)
             obj.init(cParams)
+            obj.createFilterAndProject()
         end
         
+        function createFilterAndProject(obj)
+            s.beta = 16.0;
+            s.eta = 0.0;
+            s.filterStep = 'LUMP';
+            s.mesh = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.filter = FilterAndProject(s);
+        end     
+
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            % obj.designVariable.update(x);
-            obj.computeDensity(); 
+            obj.computeDensity(x);  
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);
             obj.value = f;  
-            obj.gradient = dfdx;            
+            obj.gradient = dfdx;       
         end
-        
-        function computeFunction(obj)
-            obj.computeDensity();
-            [f,~]= obj.eigModes.computeFunctionAndGradient(obj.density);
-            obj.value = f;
-            %obj.normalizeFunction();
-        end
-        
-        function computeGradient(obj)
-            obj.computeDensity();
-            [~,dfdx] = obj.eigModes.computeFunctionAndGradient(obj.density);
-            obj.gradient = dfdx;
-            %obj.normalizeGradient();
-        end
-        
+                
     end
     
     methods (Access = private)
@@ -49,40 +44,35 @@ classdef MinimumEigenValueFunctional < handle
         function init(obj,cParams)
             obj.eigModes       = cParams.eigenModes;
             obj.designVariable = cParams.designVariable;
+            obj.mesh           = cParams.mesh;
         end
         
-        function computeDensity(obj)
-            densDomain  = obj.designVariable.fun;
-            s.operation = @(xV) obj.computeComplementaryDensity(densDomain,xV);
-            densHole = DomainFunction(s);
-            obj.density = densHole;
-        end
-        
-        function rhoP = computeComplementaryDensity(obj,fun,xV)
-            rho = 1 - fun;
-            s.beta = 2.0;
-            s.eta  = 0.5;
-            projector = HeavisideProjector(s);
-            rhoPVal = projector.project(rho);
-            rhoP = LagrangianFunction.create(obj.designVariable.fun.mesh,1,fun.order);
-            rhoP.fValues = rhoPVal;
-
-            rho3 = round(rho.fValues);
-            rho3 = max(0,min(1,rho3));
-            rhoP3 = LagrangianFunction.create(obj.designVariable.fun.mesh,1,fun.order);
-            rhoP3.fValues = rho3;
+        function computeDensity(obj, x)  
+            % Not Rounding Densities
+%             s.operation = @(xV) obj.computeComplementaryDensity(x.fun,xV);
+%             densComp = DomainFunction(s);
             
-            s.beta = 2.0;
-            s.eta = 0.05;
-            s.filterStep = 'LUMP';
-            s.mesh  = obj.designVariable.fun.mesh;
-            s.trial = LagrangianFunction.create(obj.designVariable.fun.mesh,1,'P1');
-            filter = FilterAndProject(s);
-            rhoP4 = filter.compute(rho, 3);
-         end
+%             % Rounding Densities
+%             s.operation = @(xV) obj.computeRoundedComplementaryDensity(x.fun,xV);
+%             densComp = DomainFunction(s);
 
-%         function createHeavisideProjector(obj, beta, eta)
-%             obj.HeavisideProjector()
+            % Filter and Project
+            densComp = obj.filter.compute(1 - x.fun, 2);
+
+             obj.density = densComp;
+        end
+        
+        function rho = computeComplementaryDensity(obj,fun,xV)
+            rho = fun.evaluate(xV);
+            rho = 1 - rho;
+        end
+
+        function rho = computeRoundedComplementaryDensity(obj,fun,xV)
+            rho = fun.evaluate(xV);
+            rho = 1 - rho;
+            rho = round(rho);
+            rho = max(0,min(1,rho));
+         end
 
     end
     
