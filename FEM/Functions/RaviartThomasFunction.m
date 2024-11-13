@@ -238,41 +238,6 @@ classdef RaviartThomasFunction < FeFunction
             v   = sqrt(ff);
         end
 
-        function fdivF = computeFieldTimesDivergence(obj,xV)
-            fG  = obj.evaluate(xV);
-            dfG = obj.computeDivergence(xV);
-            fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);
-        end
-
-        function divF = computeDivergence(obj,xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
-            fV = obj.fValues;
-            nodes = obj.mesh.connec;
-            nNode = obj.mesh.nnodeElem;
-            nDim  = obj.mesh.ndim;
-            nGaus = size(xV,2);
-            divV = zeros(nGaus,obj.mesh.nelem);
-            for igaus = 1:nGaus
-                for kNode = 1:nNode
-                    nodeK = nodes(:,kNode);
-                    for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
-                        fkr = fV(nodeK,rDim);
-                        int(1,:) = dNkr.*fkr;
-                        divV(igaus,:) = divV(igaus,:) + int;
-                    end
-                end
-            end
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues(1,:,:) = divV;
-            divF = FGaussDiscontinuousFunction(s);
-        end
-
         function fFine = refine(obj,m,mFine)
             fNodes  = obj.fValues;
             fEdges  = obj.computeFunctionInEdges(m, fNodes);
