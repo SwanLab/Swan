@@ -81,7 +81,7 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
@@ -113,7 +113,8 @@ classdef OptimizerNullSpace < Optimizer
                         data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
                     end
             end
-            obj.monitoring.update(obj.nIter,data);
+            obj.monitoring.update(obj.nIter,num2cell(data));
+            obj.monitoring.refresh();
         end
 
         function updateEtaParameter(obj)
