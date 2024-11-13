@@ -52,10 +52,10 @@ nx.fValues = normal_vectors(:,1);
 ny.fValues = normal_vectors(:,2);
 sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
 pNx           = DomainFunction(sss);
-D            = Integrator.compute(pNx,bMesh,'QUADRATIC');
+D            = Integrator.compute(pNx,bMesh,2);
 sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
-L           = Integrator.compute(pNy,bMesh,'QUADRATIC');
+L           = Integrator.compute(pNy,bMesh,2);
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on
