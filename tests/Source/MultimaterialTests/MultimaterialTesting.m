@@ -98,8 +98,8 @@ classdef MultimaterialTesting < handle
         end
         
         function createInterpolators(obj)
-            E   = AnalyticalFunction.create(@(x) 200E9*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x) 0.25*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            E   = ConstantFunction.create(200E9,obj.mesh);
+            nu  = ConstantFunction.create(0.25,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
@@ -113,7 +113,7 @@ classdef MultimaterialTesting < handle
             sC.E  = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
             sC.CA = CA;
 
-            E   = AnalyticalFunction.create(@(x) 100E9*ones(size(squeezeParticular(x(1,:,:),2))),1,obj.mesh);
+            E   = ConstantFunction.create(100E9,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;

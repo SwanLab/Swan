@@ -76,9 +76,9 @@ classdef MultiMaterialVolumeConstraint < handle
                         if i==j
                             dV{i,j} = Z;
                         elseif i == k
-                            dV{i,j} = -I/obj.vTar;
+                            dV{i,j} = -I./obj.vTar;
                         elseif j == k
-                            dV{i,j} = I/obj.vTar;
+                            dV{i,j} = I./obj.vTar;
                         else
                             dV{i,j} = Z;
                         end
