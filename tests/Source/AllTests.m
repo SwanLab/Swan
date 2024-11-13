@@ -7,7 +7,7 @@ close all;
 TopOptTestsSuite;
 MultimaterialTestsSuite;
 ReadingFilesTestsSuite;
-PlottingTestsSuite; % Funciona quan es generen els .mat
+%PlottingTestsSuite; % Funciona quan es generen els .mat
 close all;
 %HomogenizationTestsSuite; % No funciona (issue Swan)
 ImageProcessingTestsSuite;

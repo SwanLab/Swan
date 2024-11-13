@@ -1,57 +1,55 @@
 classdef LevelSetPeriodicAndOriented < handle
 
+    
     properties (Access = private)
         epsilon
         epsilons
-        cellCoord
         phi
         y1
         y2
         deformedCoord
         m1
         m2
+        fineMesh
     end
 
     properties (Access = private)
         mesh
         remesher
-        cellLevelSetParams
         orientationVectors
         nCells
+        nRemeshLevels
     end
 
     methods (Access = public)
+        
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
-            obj.createRemesher();
-            obj.interpolateDeformedCoord();
-            obj.interpolateM1M2();
+            obj.remeshAndInterpolate();
         end
 
         function ls = computeLS(obj,epsilons)
             nEps = length(epsilons);
             ls = cell(nEps,1);
             for iEps = 1:nEps
-                obj.epsilon = epsilons(iEps);
-                obj.computeLevelSet();
-                ls{iEps} = obj.getValue();
+                eps = epsilons(iEps);
+                lsF = obj.computeLevelSet(eps);
+                ls{iEps} = lsF;
             end
         end
 
-        function mF = getFineMesh(obj)
-            fMesh = obj.remesher.fineMesh;
-            mF = fMesh.createDiscontinuousMesh();
+        function fM = getFineMesh(obj)
+           fM = obj.fineMesh;
         end
 
     end
 
     methods (Access = protected)
 
-        function computeLevelSet(obj)
-            obj.createCellCoord();
+        function ls = computeLevelSet(obj,eps)
             obj.thresholdParameters();
-            obj.createCellLevelSet();
+            ls = obj.createCellLevelSet(eps);
         end
 
     end
@@ -62,7 +60,9 @@ classdef LevelSetPeriodicAndOriented < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.orientationVectors = cParams.orientationVectors;
-            obj.cellLevelSetParams = cParams.cellLevelSetParams;
+            obj.nRemeshLevels      = cParams.nRemeshLevels;
+            obj.m1                 = cParams.m1;
+            obj.m2                 = cParams.m2;
         end
 
         function createDeformedCoord(obj)
@@ -71,66 +71,50 @@ classdef LevelSetPeriodicAndOriented < handle
             obj.deformedCoord = dC;
         end
 
-        function createRemesher(obj)
-            s.mesh    = obj.mesh.createDiscontinuousMesh();
-            s.nLevels =  3;
-            r  = Remesher(s);
-            r.remesh();
-            obj.remesher = r;
-        end
-
-        function createCellCoord(obj)
-            nDim = obj.mesh.ndim;
-            for iDim = 1:nDim
-                x = obj.deformedCoord.fValues(:,iDim);
-                y = obj.computeMicroCoordinate(x);
-                y = obj.periodicFunction(y);
-                yT(:,iDim) = y;
+        function remeshAndInterpolate(obj)
+            m = obj.mesh;
+            for iLevel = 1:obj.nRemeshLevels
+                m = m.remesh();
+                obj.deformedCoord = obj.deformedCoord.refine(m);
+                obj.m1            = obj.m1.refine(m);
+                obj.m2            = obj.m2.refine(m);                
             end
-            obj.cellCoord = yT;
+            obj.fineMesh = m;
         end
 
-        function createCellLevelSet(obj)
-            s       = obj.cellLevelSetParams;
-            s.coord = obj.cellCoord;
-            ls = LevelSetCreator.create(s);
-            obj.levelSet = ls.getValue();
+        function y = evaluateCellCoord(obj,xV,eps)
+            x = obj.deformedCoord.evaluate(xV);            
+            y = obj.computeMicroCoordinate(x,eps);
+            y = obj.periodicFunction(y);
         end
 
-        function interpolateDeformedCoord(obj)
-            y = obj.deformedCoord;
-            y = obj.interpolateDiscontinousFunction(y);
-            y = abs(y);
-            obj.deformedCoord.fValues = y;
+        function ls = createCellLevelSet(obj,eps)
+            s.operation  = @(xV) obj.rectangle(xV,eps);
+            s.ndimf      = 1;
+            f  = DomainFunction(s);
+            ls = f.project('P1',obj.fineMesh);
         end
 
-        function interpolateM1M2(obj)
-            m1 = obj.cellLevelSetParams.xSide;
-            m2 = obj.cellLevelSetParams.ySide;               
-            obj.m1 = obj.interpolateContinousFunctionToDisc(m1);
-            obj.m2 = obj.interpolateContinousFunctionToDisc(m2);
-          %  p  = obj.cellLevelSetParams.pnorm;                 
-          %  p = obj.interpolateContinousFunctionToDisc(p); 
-          %  obj.cellLevelSetParams.pnorm = p;
+        function fH = rectangle(obj,xV,eps)
+            sx = obj.m1.evaluate(xV);
+            sy = obj.m2.evaluate(xV);
+            x0 = 0.5;
+            y0 = 0.5;
+            x  = obj.evaluateCellCoord(xV,eps);
+            x1 = x(1,:,:);
+            x2 = x(2,:,:);
+            p = 2;
+            fH = ((abs(x1-x0)./(sx)).^p+(abs(x2-y0)./(sy)).^p).^(1/p) - 0.5;
+            fH = -fH;
         end
 
         function thresholdParameters(obj)
             mL = obj.computeMinLengthInUnitCell();
             s.minLengthInUnitCell = mL;
             t = MparameterThresholder(s);
-            m1 = t.thresh(obj.m1);
-            m2 = t.thresh(obj.m2);
-            obj.cellLevelSetParams.xSide = m1;
-            obj.cellLevelSetParams.ySide = m2;
+            obj.m1.fValues = t.thresh(obj.m1.fValues);
+            obj.m2.fValues = t.thresh(obj.m2.fValues);
         end
-
- 
-% 
-%         function interpolateDilatation(obj)
-%             r  = obj.orientationVectors.getDilatation();
-%             r  = obj.interpolateContinousFunctionToDisc(r);
-%             obj.dilation = r;
-%         end
 
         function t = computeMinLengthInUnitCell(obj)
 %            r = obj.dilation;
@@ -143,40 +127,8 @@ classdef LevelSetPeriodicAndOriented < handle
             t = 0;
         end
 
-       function fDI = interpolateContinousFunctionToDisc(obj,fC)
-            fD   = obj.createDiscontinousValues(fC);
-            fDI  = obj.interpolateDiscontinousFunction(fD);
-        end        
-
-        function fV = createDiscontinousValues(obj,f)
-            s.mesh    = obj.mesh;
-            s.fValues = f;
-            s.order   = 'P1';
-            fC = LagrangianFunction(s);
-            fD = fC.project('P1D');
-            fV = fD;
-        end
-
-        function vq = interpolateDiscontinousFunction(obj,v)
-            f = v;
-            r = obj.remesher;
-            f = r.interpolate(f);
-            vq = f.getFvaluesAsVector();
-        end        
-
-        function [y1,y2] = transformToFastCoord(obj,x1,x2)
-            y1 = obj.computeMicroCoordinate(x1);
-            y2 = obj.computeMicroCoordinate(x2);
-        end
-
-        function y = computeMicroCoordinate(obj,x)
-            eps = obj.epsilon;
-            y = (x-min(x))/eps;
-        end
-
-        function  [y1,y2] = makeCoordPeriodic(obj,y1,y2)
-            y1 = obj.periodicFunction(y1);
-            y2 = obj.periodicFunction(y2);
+        function y = computeMicroCoordinate(obj,x,eps)
+            y = (x-min(x(:))-eps)/eps;
         end
 
     end
@@ -184,8 +136,8 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = abs(cos(pi/2*(y))).^2;
-            %  f = y - floor(y);
+         %   f = abs(cos(1*pi*(y))).^2;           
+            f = (y - floor(y));
         end
 
     end

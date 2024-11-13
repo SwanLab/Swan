@@ -5,7 +5,7 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
 
         function testRemeshMesh(obj)
             mC = obj.createCoarseMesh();
-            mF = mC.remesh(1);
+            mF = mC.remesh();
             s = load('test_RemeshMesh');
             err(1) = norm(mF.coord(:)  - s.meshFine.coord(:));
             err(2) = norm(mF.connec(:) - s.meshFine.connec(:));
@@ -17,9 +17,8 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             m = obj.createCoarseMesh();
             f = obj.createP1ContinousFunction(m);
             for i = 1:2
-                mF = m.remesh(1);
-                f = f.refine(m,mF);
-                m    = mF;
+                m = m.remesh();
+                f = f.refine(m);
             end
             s = load('test_RemeshP1Function');
             err = norm(s.fValues(:) - f.fValues(:));
@@ -28,13 +27,11 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
         end
 
         function testRemeshP1DiscontinousFunction(obj)
-            m = obj.createCoarseDiscontinousMesh();
+            m = obj.createCoarseMesh();
             f = obj.createP1DiscontinousFunction(m);
             for i = 1:2
-                mF = m.remesh(1); % mF is CONTINUOUS, m is DISCONTINUOUS
-                f = f.refine(m,mF); %fNew = fOld.refine(mF); -> fOld has m, fNew has mF
-                m = mF.createDiscontinuousMesh(); % care: discont/cont -> interpolation through continuous
-                % ideally: work only with discontinuous meshes
+                m = m.remesh(); 
+                f = f.refine(m); 
             end
             s = load('test_RemeshP1DiscFunction');
             err = norm(s.fValues(:) - f.fValues(:));
@@ -52,31 +49,29 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             m = Mesh.create(s);
         end
 
-        function mD = createCoarseDiscontinousMesh(obj)
-            m   = obj.createCoarseMesh();
-            mD = m.createDiscontinuousMesh();
-        end
-
         function fC = createP1ContinousFunction(obj,m)
-            f         = obj.createFunctionToRemesh();
-            s.mesh    = m;
-            s.fValues = f(m.coord);
-            s.order   = 'P1';
-            fC        = LagrangianFunction(s);
+            f  = obj.createFunctionToRemesh(m);
+            fC = f.project('P1');
         end
 
         function fC = createP1DiscontinousFunction(obj,m)
-            f         = obj.createFunctionToRemesh();
-            s.fValues = f(m.computeBaricenter()');
-            s.mesh    = m;
-            s.order   = 'P0';
-            f0 = LagrangianFunction(s);
-            fC = f0.project('P1D');
+            f  = obj.createFunctionToRemesh(m);
+            fC = f.project('P1D');
         end
 
-        function f = createFunctionToRemesh(obj)
-            f = @(x) x(:,1).^2+x(:,2).^2;
+        function f = createFunctionToRemesh(obj,mesh)
+            s.fHandle = @(x) obj.parabola(x);
+            s.mesh   = mesh;
+            s.ndimf  = 1;
+            f = AnalyticalFunction(s);
         end
+
+        function f = parabola(obj,x)
+            x1 = x(1,:,:);
+            x2 = x(2,:,:);
+            f  = x1.^2+x2.^2;
+        end        
+
 
     end
 

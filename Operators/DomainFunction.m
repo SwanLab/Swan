@@ -22,10 +22,22 @@ classdef DomainFunction < handle
         function r = evaluate(obj,xV)
             r = obj.operation(xV);
         end
-        
+
+        function plot(obj,m)
+            fD = obj.project('P1D',m);
+            fD.plot();
+        end
+
+        function fun = project(obj,target,mesh)
+            s.mesh          = mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end
+
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
-            s.operation = @(xV) nOrderTranspose(aOp(xV));
+            s.operation = @(xV) pagetranspose(aOp(xV));
             r = DomainFunction(s);
         end
         
@@ -44,17 +56,12 @@ classdef DomainFunction < handle
         end
 
         function r = times(a,b)
-            if not(isfloat(a))
-                aOp = DomainFunction.computeOperation(a);
-            else
-                aOp = @(xV) a;
-            end
-            if not(isfloat(b))
-                bOp = DomainFunction.computeOperation(b);
-            else
-                bOp = @(xV) b;
-            end
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            ndimfA = DomainFunction.computeFieldDimension(a);
+            ndimfB = DomainFunction.computeFieldDimension(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = max(ndimfA,ndimfB);
             r = DomainFunction(s);
         end
 
@@ -96,18 +103,17 @@ classdef DomainFunction < handle
             r = DomainFunction(s);
         end
 
+        function r = exp(a)
+            aOp = DomainFunction.computeOperation(a);
+            s.operation = @(xV) exp(aOp(xV));
+            r = DomainFunction(s);
+        end        
+
         function r = trace(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) trace(aOp(xV));
             s.ndimf = a.ndimf;
             r = DomainFunction(s);
-        end
-
-        function fun = project(obj,target,mesh)
-            s.mesh          = mesh;
-            s.projectorType = target;
-            proj = Projector.create(s);
-            fun = proj.project(obj);
         end
 
     end
@@ -128,7 +134,7 @@ classdef DomainFunction < handle
     methods (Static, Access = public)
 
         function op = computeOperation(a)
-            if isprop(a,'operation')
+            if isa(a,'DomainFunction')
                 op = a.operation;
             elseif isnumeric(a)
                 op = @(xV) a;
@@ -136,6 +142,18 @@ classdef DomainFunction < handle
                 op = @(xV) a.evaluate(xV);
             end
         end
+
+        function ndimf = computeFieldDimension(a)
+            if isprop(a,'operation')
+                ndimf = a.ndimf;
+            elseif isnumeric(a)
+                ndimf = size(a,1);
+            else
+                ndimf = a.ndimf;
+            end
+        end        
+
+
 
     end
 

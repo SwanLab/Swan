@@ -165,22 +165,22 @@ classdef RaviartThomasFunction < FeFunction
             end
         end
 
-        function dofConnec = computeDofConnectivity(obj)
-            conne  = obj.connec;
-            nDimf  = obj.ndimf;
-            nNode  = size(conne, 2);
-            nDofsE = nNode*nDimf;
-            dofsElem  = zeros(nDofsE,size(conne,1));
-            for iNode = 1:nNode
-                for iUnkn = 1:nDimf
-                    idofElem   = nDimf*(iNode - 1) + iUnkn;
-                    globalNode = conne(:,iNode);
-                    idofGlobal = nDimf*(globalNode - 1) + iUnkn;
-                    dofsElem(idofElem,:) = idofGlobal;
-                end
-            end
-            dofConnec = dofsElem;
-        end
+        % function dofConnec = computeDofConnectivity(obj)
+        %     conne  = obj.connec;
+        %     nDimf  = obj.ndimf;
+        %     nNode  = size(conne, 2);
+        %     nDofsE = nNode*nDimf;
+        %     dofsElem  = zeros(nDofsE,size(conne,1));
+        %     for iNode = 1:nNode
+        %         for iUnkn = 1:nDimf
+        %             idofElem   = nDimf*(iNode - 1) + iUnkn;
+        %             globalNode = conne(:,iNode);
+        %             idofGlobal = nDimf*(globalNode - 1) + iUnkn;
+        %             dofsElem(idofElem,:) = idofGlobal;
+        %         end
+        %     end
+        %     dofConnec = dofsElem;
+        % end
 
         function dof = getDofsFromCondition(obj, condition)
             nodes = condition(obj.coord);
@@ -236,41 +236,6 @@ classdef RaviartThomasFunction < FeFunction
             int = Integrator.create(s);
             ff  = int.compute(obj,obj);
             v   = sqrt(ff);
-        end
-
-        function fdivF = computeFieldTimesDivergence(obj,xV)
-            fG  = obj.evaluate(xV);
-            dfG = obj.computeDivergence(xV);
-            fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);
-        end
-
-        function divF = computeDivergence(obj,xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
-            fV = obj.fValues;
-            nodes = obj.mesh.connec;
-            nNode = obj.mesh.nnodeElem;
-            nDim  = obj.mesh.ndim;
-            nGaus = size(xV,2);
-            divV = zeros(nGaus,obj.mesh.nelem);
-            for igaus = 1:nGaus
-                for kNode = 1:nNode
-                    nodeK = nodes(:,kNode);
-                    for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
-                        fkr = fV(nodeK,rDim);
-                        int(1,:) = dNkr.*fkr;
-                        divV(igaus,:) = divV(igaus,:) + int;
-                    end
-                end
-            end
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues(1,:,:) = divV;
-            divF = FGaussDiscontinuousFunction(s);
         end
 
         function fFine = refine(obj,m,mFine)

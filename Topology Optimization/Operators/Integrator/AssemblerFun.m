@@ -11,11 +11,11 @@ classdef AssemblerFun < handle
         end
 
         function A = assemble(obj, Aelem, f1, f2)
-            dofsF1 = f1.getConnec();
+            dofsF1 = f1.getDofConnec();
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
             else
-                dofsF2 = f2.getConnec();
+                dofsF2 = f2.getDofConnec();
             end
             
             nElem = size(Aelem,3);
@@ -44,7 +44,7 @@ classdef AssemblerFun < handle
 
         function V = assembleV(obj, F, fun)
             % Via indices
-            dofConnec = obj.fun.getConnec();
+            dofConnec = obj.fun.getDofConnec();
             nDofsEl   = size(dofConnec,2);
             nDofs     = max(max(dofConnec)); %obj.fun.nDofs;
             nGaus     = size(F,2);
