@@ -130,16 +130,15 @@ classdef LagrangianFunction < FeFunction
             grad        = DomainFunction(s);
         end
 
-        function curl = computeCurl(obj)
-            s.operation = @(xV) obj.computeCurlFun(xV);
-            s.ndimf     = 1;
-            curl        = DomainFunction(s);            
-        end
-
         function div = computeDiv(obj)
             s.operation = @(xV) obj.computeDivFun(xV);
             s.ndimf     = 1;
             div         = DomainFunction(s);                   
+        end        
+
+        function curl = computeCurl(obj) %only for 2D
+            fOrth = obj.createOrthogonalVector();            
+            curl  = Divergence(fOrth);            
         end
 
         function setdNdxOld(obj,dNdx)
@@ -258,40 +257,11 @@ classdef LagrangianFunction < FeFunction
             v   = sqrt(int);
         end
 
-        function fdivF = computeFieldTimesDivergence(obj,xV)
-            fG  = obj.evaluate(xV);
-            dfG = obj.computeDivergence(xV);
-            fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);
-        end
-
-        function divF = computeDivergence(obj,xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
-            fV = obj.fValues;
-            nodes = obj.mesh.connec;
-            nNode = obj.mesh.nnodeElem;
-            nDim  = obj.mesh.ndim;
-            nGaus = size(xV,2);
-            divV = zeros(nGaus,obj.mesh.nelem);
-            for igaus = 1:nGaus
-                for kNode = 1:nNode
-                    nodeK = nodes(:,kNode);
-                    for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
-                        fkr = fV(nodeK,rDim);
-                        int(1,:) = dNkr.*fkr;
-                        divV(igaus,:) = divV(igaus,:) + int;
-                    end
-                end
-            end
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues(1,:,:) = divV;
-            divF = FGaussDiscontinuousFunction(s);
-        end
+        function f = createOrthogonalVector(obj) %only in 2D and vector
+            f = obj.copy();
+            f.fValues(:,1) = obj.fValues(:,2);
+            f.fValues(:,2) = -obj.fValues(:,1);
+        end        
 
         function fFine = refine(obj,mFine) %Only for first order
             fNodes  = obj.fValues;
@@ -479,21 +449,8 @@ classdef LagrangianFunction < FeFunction
             t.project('P1',obj.mesh).plot()              
         end
 
-        function curlF = computeCurlFun(obj,xV)
-            dNdx  = obj.evaluateCartesianDerivatives(xV);
-            fV    = obj.getValuesByElem();
-            fV    = obj.createOrthogonal(fV);
-            fV    = permute(fV,[1 2 4 3]);
-            gradF = pagemtimes(dNdx,fV);
-            divF  = squeeze(sum(gradF,1));
-            curlF  = divF;
-        end       
 
-        function fP = createOrthogonal(obj,f)
-            fP = zeros(size(f));
-            fP(:,1,:) = f(:,2,:);
-            fP(:,2,:) = -f(:,1,:);
-        end
+
 
 
        function fV = getValuesByElem(obj)

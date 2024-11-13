@@ -19,7 +19,7 @@ classdef DisplayBar < DisplayPlot
                     set(obj.style,'XLim',[min(0,min(obj.ArrayDataX)), max(0,max(obj.ArrayDataX)+1)])
                     set(obj.style,'YLim',[min(-0.01,min(obj.ArrayDataY)), max(0,max(obj.ArrayDataY)+1)])
                 end
-                drawnow;
+                drawnow
             end
         end
 
