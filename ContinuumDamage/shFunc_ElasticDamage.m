@@ -77,6 +77,7 @@ classdef shFunc_ElasticDamage < handle
             epsi = SymGrad(u);
             tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);
 
+
             if tauEpsi <= rIn
 
                 rOut = rIn;
@@ -88,7 +89,7 @@ classdef shFunc_ElasticDamage < handle
 
         function d = computeDamage(obj,r)
             q = obj.computeHardening();
-            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))./(r.evaluate(xV)));
+            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/(r.evaluate(xV)));
             s.ndimf = 1;
             d = DomainFunction(s);
 
