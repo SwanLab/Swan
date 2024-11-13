@@ -13,7 +13,7 @@ classdef DomainMeshComputer < handle
         ninterfaces
         meshSubDomain
         interfaceConnec
-        
+        tolSameNode        
     end
 
     properties (Access = private)
@@ -50,6 +50,7 @@ classdef DomainMeshComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
+            obj.tolSameNode     = cParams.tolSameNode;
             obj.meshReference   = cParams.meshReference;
             obj.nSubdomains     = cParams.nSubdomains;
             obj.interfaceMeshSubDomain = cParams.interfaceMeshSubDomain;
@@ -120,7 +121,10 @@ classdef DomainMeshComputer < handle
         end
 
         function  updateGlobalCoord(obj)
-            obj.updtCoordGlob  = unique(obj.coordGlob,'rows','stable');
+            [~, colindices] = uniquetol(obj.coordGlob,obj.tolSameNode, 'ByRows', true);   %get indices of unique value. Is sorted BY VALUE
+            obj.updtCoordGlob = obj.coordGlob(sort(colindices),:);
+            
+            %obj.updtCoordGlob  = unique(obj.coordGlob,'rows','stable');%'stable');
         end
 
         function  computeLocalGlobalConnec(obj)

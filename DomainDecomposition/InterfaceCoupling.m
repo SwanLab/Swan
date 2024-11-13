@@ -9,6 +9,7 @@ classdef InterfaceCoupling < handle
         nSubdomains
         interfaceMeshSubDomain
         ninterfaces
+        tolSameNode
     end
     
     properties (Access = private)
@@ -37,6 +38,7 @@ classdef InterfaceCoupling < handle
             obj.nSubdomains   = cParams.nSubdomains;
             obj.interfaceMeshSubDomain = cParams.interfaceMeshSubDomain;
             obj.ninterfaces   = cParams.ninterfaces;
+            obj.tolSameNode   = cParams.tolSameNode;
         end
         
          function coordNodeBoundary(obj)
@@ -72,7 +74,7 @@ classdef InterfaceCoupling < handle
          function computeCouplingConnec(obj)
             ndim         = obj.meshReference.ndim;
             nBdNode      = length(obj.GlNodeBd);
-            GlNodeAux    = obj.GlNodeBd;
+            globalNode   = obj.GlNodeBd;
             coordBdGlAux = obj.coordBdGl;
             imaster=1;
             if ndim == 2
@@ -82,20 +84,25 @@ classdef InterfaceCoupling < handle
             end
             for iBdNode = 1:nBdNode
                 NodeCoord = coordAux(iBdNode,:);
-%                 aux       = ((abs(coordAux(:,1)-NodeCoord(1))<=1e-14) & (abs(coordAux(:,2)-NodeCoord(2))<=1e-14) & (abs(coordAux(:,3)-NodeCoord(3))<=1e-14));
-                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
+                tol = 1e-10;
+
+
+                isSameNode = vecnorm(coordAux-NodeCoord,'Inf',2) - tol <= 0;
+
+%                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
 %                 [~,ind]   = ismember(NodeCoord,coordAux,'Rows');
-                ind       = find(aux == 1);
-                if length(ind)>1                   
-                        sameNode_aux = GlNodeAux(ind);
-                        nsame = length(sameNode_aux);
-                        sameNode(imaster,1:nsame) = sort(sameNode_aux);
+                %ind       = find(aux == 1);
+                if sum(isSameNode)>1                   
+                        sameNode = globalNode(isSameNode);
+                        nsame   = length(sameNode);
+                        sameNodeOrdered(imaster,1:nsame) = sort(sameNode);
                         imaster=imaster+1;                    
                 end
             end
-            obj.interfaceConnec=unique(sameNode,'rows');
+            obj.interfaceConnec=unique(sameNodeOrdered,'rows');
          end
-        
+
+       
     end
     
 end

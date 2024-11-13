@@ -9,7 +9,7 @@ classdef MeshCreatorFromRVE < handle
         meshReference
         interfaceMeshReference
         ninterfaces
-
+        tolSameNode
     end
 
     properties (Access = private)
@@ -46,6 +46,7 @@ classdef MeshCreatorFromRVE < handle
             obj.meshReference = cParams.meshReference;
             obj.interfaceMeshReference  = obj.meshReference.createBoundaryMesh();
             obj.ninterfaces = length(obj.interfaceMeshReference);
+            obj.tolSameNode = cParams.tolSameNode;
         end
 
         function createSubDomainMeshes(obj)
@@ -129,10 +130,13 @@ classdef MeshCreatorFromRVE < handle
             s.ninterfaces   = obj.ninterfaces;
             s.meshSubDomain = obj.meshSubDomain;
 
+            s.tolSameNode = obj.tolSameNode;
             coupling = InterfaceCoupling(s);
             coupling.compute();
             obj.interfaceConnec = coupling.interfaceConnec;
+            
             s.interfaceConnec   = coupling.interfaceConnec;
+            s.tolSameNode       = obj.tolSameNode;
 
             DMesh = DomainMeshComputer(s);
             DMesh.compute();

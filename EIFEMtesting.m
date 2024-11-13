@@ -11,6 +11,8 @@ classdef EIFEMtesting < handle
         RHS
 
         fileNameEIFEM
+        tolSameNode
+
     end
 
 
@@ -103,13 +105,16 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [4 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
+            obj.nSubdomains  = [4 2]; %nx ny
+            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
+            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat'; 
+            obj.tolSameNode = 1e-10;
         end
 
         function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
+            s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
             [mD,mSb,iC,~,lG] = m.create();
         end
@@ -148,8 +153,9 @@ classdef EIFEMtesting < handle
             filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-         %   s.coord(s.coord==min(s.coord)) = round(s.coord(s.coord==min(s.coord)));
-         %   s.coord(s.coord==max(s.coord)) = round(s.coord(s.coord==max(s.coord)));
+            isMin = s.coord==min(s.coord); 
+            isMax = s.coord==max(s.coord); 
+
             s.connec   = EIFEoper.MESH.CN;
             mS         = Mesh.create(s);
         end
@@ -157,6 +163,7 @@ classdef EIFEMtesting < handle
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
+            s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
@@ -221,10 +228,11 @@ classdef EIFEMtesting < handle
             maxx = max(obj.meshDomain.coord(:,1));
             miny = min(obj.meshDomain.coord(:,2));
             maxy = max(obj.meshDomain.coord(:,2));
-            isLeft   = @(coor) (abs(coor(:,1) - minx)   < 1e-12);
-            isRight  = @(coor) (abs(coor(:,1) - maxx)   < 1e-12);
-            isBottom  = @(coor) (abs(coor(:,2) - miny)   < 1e-12);
-            isTop  = @(coor) (abs(coor(:,2) - maxy)   < 1e-12);
+            tolBound = 1e-8;
+            isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
+            isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
+            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
+            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
             Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
             Dir{1}.direction = [1,2];
@@ -235,8 +243,8 @@ classdef EIFEMtesting < handle
             %             Dir{2}.value     = 0;
 
             PL.domain    = @(coor) isTop(coor);
-            PL.direction = 2;
-            PL.value     = -0.1;
+            PL.direction = [2];
+            PL.value     = [-0.1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
