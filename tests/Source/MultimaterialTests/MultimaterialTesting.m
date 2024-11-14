@@ -3,7 +3,9 @@ classdef MultimaterialTesting < handle
     properties (Access = private)
         mesh
         designVariable
+        materialInterpolator
         filter
+        boundaryConditions
         physicalProblem
         compliance
         volumeA
@@ -13,11 +15,6 @@ classdef MultimaterialTesting < handle
         constraint
         dualVariable
         optimizer
-        nMat
-        matInterp
-        mat
-        bc
-        nLevelSet
     end
 
     methods (Access = public)
@@ -27,8 +24,7 @@ classdef MultimaterialTesting < handle
             obj.createMesh();
             obj.createFilter();
             obj.createDesignVariable();
-            obj.createMaterialProperties();
-            obj.createInterpolators();
+            obj.createMaterialInterpolator();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
             obj.createCompliance();
@@ -50,8 +46,6 @@ classdef MultimaterialTesting < handle
 
         function init(obj)
             close all;
-            obj.nMat = 4; % including weakest mat
-            obj.nLevelSet = 3;
         end
 
         function createMesh(obj)
@@ -60,50 +54,32 @@ classdef MultimaterialTesting < handle
 
         function createFilter(obj)
             s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filter   = f;
         end
 
         function createDesignVariable(obj)
-            s.mesh                 = obj.mesh;
-            s.type                 = 'Given';
-            s.fHandle              = @(x) -ones(size(x(1,:,:)));
-            g                      = GeometricalFunction(s);
-            lsFun{1}               = g.computeLevelSetFunction(obj.mesh);
-            s.fHandle              = @(x) -cos(x(1,:,:))+0.5;
-            g                      = GeometricalFunction(s);
-            lsFun{2}               = g.computeLevelSetFunction(obj.mesh);
-            s.fHandle              = @(x) sin(x(1,:,:))-0.5;
-            g                      = GeometricalFunction(s);
-            lsFun{3}               = g.computeLevelSetFunction(obj.mesh);
+            lsFun{1} = obj.createLevelSetFunction(@(x) -ones(size(x(1,:,:))));
+            lsFun{2} = obj.createLevelSetFunction(@(x) -cos(x(1,:,:))+0.5);
+            lsFun{3} = obj.createLevelSetFunction(@(x) sin(x(1,:,:))-0.5);
             
-            s.type                 = 'MultiLevelSet';
-            s.lsFun                = lsFun;
-            s.mesh                 = obj.mesh;
-            s.unitM                = obj.createMassMatrix();
-            s.plotting             = true;
-            obj.designVariable     = DesignVariable.create(s);
+            s.type             = 'MultiLevelSet';
+            s.lsFun            = lsFun;
+            s.mesh             = obj.mesh;
+            s.plotting         = true;
+            obj.designVariable = DesignVariable.create(s);
         end
 
-        function matI = createSingleMaterialProperty(obj,E,nu)
-            mu          = E./(2.*(1+nu));
-            la          = nu.*E./((1+nu).*(1-2.*nu)); % plain strain
-            matI.young  = E;
-            matI.nu     = nu;
-            matI.shear  = mu;
-            matI.lambda = 2.*mu.*la./(la+2.*mu); % plane stress
-        end
-
-        function createMaterialProperties(obj)
-            obj.mat.A = obj.createSingleMaterialProperty(200E9,0.25);
-            obj.mat.B = obj.createSingleMaterialProperty(100E9,0.25);
-            obj.mat.C = obj.createSingleMaterialProperty(50E9,0.25);
-            obj.mat.D = obj.createSingleMaterialProperty(0.2E9,0.25);
+        function lsFun = createLevelSetFunction(obj,fH)
+            s.type    = 'Given';
+            s.fHandle = fH;
+            g         = GeometricalFunction(s);
+            lsFun     = g.computeLevelSetFunction(obj.mesh);
         end
         
-        function createInterpolators(obj)
+        function createMaterialInterpolator(obj) % WILL BE EDITED
             E   = ConstantFunction.create(200E9,obj.mesh);
             nu  = ConstantFunction.create(0.25,obj.mesh);
             s.type    = 'ISOTROPIC';
@@ -116,7 +92,7 @@ classdef MultimaterialTesting < handle
             CA        = tensorEv(:,:,1,1);
 
 
-            sC.E  = [obj.mat.A.young,obj.mat.B.young,obj.mat.C.young,obj.mat.D.young];
+            sC.E  = [200E9,100E9,50E9,0.2E9];
             sC.CA = CA;
 
             E   = ConstantFunction.create(100E9,obj.mesh);
@@ -134,7 +110,7 @@ classdef MultimaterialTesting < handle
             sC.CB(3,3) = CB(2,2);
             sC.CB(1,3) = CB(1,2);
             sC.CB(3,1) = CB(2,1);
-            obj.matInterp = MultiMaterialInterpolation(sC);
+            obj.materialInterpolator = MultiMaterialInterpolation(sC);
         end
 
         function createBoundaryConditions(obj)
@@ -167,7 +143,7 @@ classdef MultimaterialTesting < handle
 
             s.periodicFun  = [];
             s.mesh = obj.mesh;
-            obj.bc = BoundaryConditions(s);
+            obj.boundaryConditions = BoundaryConditions(s);
         end
 
         function createElasticProblem(obj)
@@ -175,8 +151,7 @@ classdef MultimaterialTesting < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '2D';
-            s.boundaryConditions = obj.bc;
-            %s.interpolationType = 'LINEAR';
+            s.boundaryConditions = obj.boundaryConditions;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = 'DIRECT';
@@ -184,13 +159,13 @@ classdef MultimaterialTesting < handle
             obj.physicalProblem = fem;
         end
 
-        function createCompliance(obj)
-            s.nMat = obj.nMat;
+        function createCompliance(obj) % WILL BE EDITED
+            s.nMat = 4; % will be removed
             s.mesh = obj.mesh;
             s.filter = obj.filter;
             s.stateProblem = obj.physicalProblem;
             s.material = obj.createMaterial();
-            s.materialInterpolator = obj.matInterp;
+            s.materialInterpolator = obj.materialInterpolator;
             c = MultiMaterialComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -201,7 +176,7 @@ classdef MultimaterialTesting < handle
             obj.volumeC = obj.createIndivVolumeConstraint(0.1,3);
         end
 
-        function v = createIndivVolumeConstraint(obj,target,ID)
+        function v = createIndivVolumeConstraint(obj,target,ID) % WILL BE EDITED
             s.volumeTarget = target;
             s.nMat         = 4;
             s.matID        = ID;
@@ -225,7 +200,7 @@ classdef MultimaterialTesting < handle
          end
 
          function createDualVariable(obj)
-            s.nConstraints   = obj.nMat-1;
+            s.nConstraints   = 3;
             l                = DualVariable(s);
             obj.dualVariable = l;
          end
@@ -238,7 +213,7 @@ classdef MultimaterialTesting < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1;
             s.tolerance      = 1e-8;
-            s.constraintCase = repmat({'EQUALITY'},[obj.nMat,1]);
+            s.constraintCase = repmat({'EQUALITY'},[3,1]);
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
@@ -251,14 +226,13 @@ classdef MultimaterialTesting < handle
             x                      = obj.designVariable;
             s.type                 = 'MultiMaterial';
             s.density              = x;
-            s.materialInterpolator = obj.matInterp;
+            s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             m = Material.create(s);
         end
 
         function M = createMassMatrix(obj)
-            nnodes  = obj.mesh.nnodes*obj.nLevelSet;
-            %nnodes  = obj.mesh.nnodes;
+            nnodes  = obj.mesh.nnodes*3;
             indices = transpose(1:nnodes);
             vals    = ones(size(indices));
             h       = obj.mesh.computeMeanCellSize();
