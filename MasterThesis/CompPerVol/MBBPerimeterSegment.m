@@ -76,7 +76,7 @@ classdef MBBPerimeterSegment < handle
             h = obj.mesh.computeMeanCellSize();
             s.mesh   = obj.mesh;
             s.theta  = 90;
-            s.alpha  = obj.epsOverH*h;
+            s.alpha  = 2*obj.epsOverH*h;
             s.beta   = 0;
             s.type   = 'Segment';
             epsilon             = obj.epsOverH*h;
