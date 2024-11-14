@@ -2,6 +2,7 @@ classdef InterfaceCoupling < handle
     
     properties (Access = public)
         interfaceConnec
+        interfaceConnecReshaped
     end
     
     properties (Access = private)
@@ -27,6 +28,7 @@ classdef InterfaceCoupling < handle
         function compute(obj)
             obj.coordNodeBoundary();
             obj.computeCouplingConnec();
+            obj.reshapeConecPerInterface();
         end
         
     end
@@ -101,6 +103,33 @@ classdef InterfaceCoupling < handle
             end
             obj.interfaceConnec=unique(sameNodeOrdered,'rows');
          end
+
+         function reshapeConecPerInterface(obj)
+            globalConec = obj.interfaceConnec;
+            nRnodes     = obj.meshReference.nnodes;
+            nnode       = size(globalConec,1);
+            nint        = obj.ninterfaces;
+            gbInt        = 1;
+            inode = 1;
+            while inode < nnode
+                nodeId = globalConec(inode,1);
+                dom    = ceil(nodeId/nRnodes);
+                row = ceil(dom/obj.nSubdomains(1));
+                col = dom-(row-1)*obj.nSubdomains(1);
+                bdMesh = obj.interfaceMeshSubDomain{row,col};
+                for iInt = 1:nint
+                    isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
+                    if sum(sum(isNode)) > 0
+                        nnodebd = bdMesh{iInt}.mesh.nnodes;
+                        intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+                        inode = inode + nnodebd;
+                        gbInt = gbInt+1;
+                        break
+                    end
+                end
+            end
+            obj.interfaceConnecReshaped = intConec;
+        end
 
        
     end
