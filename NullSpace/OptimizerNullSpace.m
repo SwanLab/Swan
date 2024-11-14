@@ -44,7 +44,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
-               obj.designVariable.fun.print('CantileverSegmentbeta12WP5');
+               obj.designVariable.fun.print('MBBSegmentalphaWP15');
         end
     end
 

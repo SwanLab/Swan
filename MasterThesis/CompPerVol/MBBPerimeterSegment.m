@@ -76,14 +76,10 @@ classdef MBBPerimeterSegment < handle
             h = obj.mesh.computeMeanCellSize();
             s.mesh   = obj.mesh;
             s.theta  = 90;
-            s.alpha  = 2*obj.epsOverH*h;
+            s.alpha  = obj.epsOverH*h;
             s.beta   = 0;
             s.type   = 'Segment';
-            epsilon             = obj.epsOverH*h;
             obj.filterPerimeter = NonLinearFilter.create(s);
-%             obj.filterPerimeter.updateEpsilon(epsilon);
-
-            
         end
 
         function createMaterialInterpolator(obj)
@@ -169,7 +165,7 @@ classdef MBBPerimeterSegment < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1,0.5];
+            s.weights           = [1,0.15];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -205,14 +201,14 @@ classdef MBBPerimeterSegment < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.002;
+            s.gJFlowRatio    = 0.007;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
-             xMax    = max(obj.mesh.coord(:,1));
+            xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
             isDirLeft = @(coor) abs(coor(:,2)) == 0 & abs(coor(:,1)) >= 0 ...

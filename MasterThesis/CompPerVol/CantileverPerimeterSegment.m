@@ -76,8 +76,8 @@ classdef CantileverPerimeterSegment < handle
             h = obj.mesh.computeMeanCellSize();
             s.mesh   = obj.mesh;
             s.theta  = 90;
-            s.alpha  = obj.epsOverH*h;
-            s.beta   = 0;
+            s.alpha  = h;
+            s.beta   = 12*h;
             s.type   = 'Segment';
             epsilon             = obj.epsOverH*h;
             obj.filterPerimeter = NonLinearFilter.create(s);

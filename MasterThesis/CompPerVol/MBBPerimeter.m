@@ -78,7 +78,7 @@ classdef MBBPerimeter < handle
             ss.mesh             = obj.mesh;
             ss.boundaryType     = 'Neumann';
             ss.metric           = 'Anisotropy';
-            nu                  = 45;
+            nu                  = 85;
             ss.aniAlphaDeg      = 90;
             epsilon             = obj.epsOverH*h;
             ss.CAnisotropic     = [tand(nu), 0; 0, 1/tand(nu)];
