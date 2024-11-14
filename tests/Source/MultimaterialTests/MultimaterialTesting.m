@@ -68,10 +68,16 @@ classdef MultimaterialTesting < handle
 
         function createDesignVariable(obj)
             s.mesh                 = obj.mesh;
-            s.type                 = 'Full';
-            lsFun{1}               = @(x) -ones(size(x(1,:,:)));
-            lsFun{2}               = @(x) -cos(x(1,:,:))+0.5;
-            lsFun{3}               = @(x) sin(x(1,:,:))-0.5;
+            s.type                 = 'Given';
+            s.fHandle              = @(x) -ones(size(x(1,:,:)));
+            g                      = GeometricalFunction(s);
+            lsFun{1}               = g.computeLevelSetFunction(obj.mesh);
+            s.fHandle              = @(x) -cos(x(1,:,:))+0.5;
+            g                      = GeometricalFunction(s);
+            lsFun{2}               = g.computeLevelSetFunction(obj.mesh);
+            s.fHandle              = @(x) sin(x(1,:,:))-0.5;
+            g                      = GeometricalFunction(s);
+            lsFun{3}               = g.computeLevelSetFunction(obj.mesh);
             
             s.type                 = 'MultiLevelSet';
             s.lsFun                = lsFun;

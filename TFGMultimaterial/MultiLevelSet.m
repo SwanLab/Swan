@@ -6,20 +6,14 @@ classdef MultiLevelSet < handle
     end
 
     properties (Access = private)
-        type
-        lsFun
-        funOld
         plotting
         mesh
-        unitM
     end
 
     methods (Access = public)
-
         function obj = MultiLevelSet(cParams)
             obj.init(cParams);
-            obj.create();
-            obj.plotting = cParams.plotting;
+            obj.create(cParams);
         end
 
         function update(obj,value)
@@ -33,21 +27,11 @@ classdef MultiLevelSet < handle
 
         function plot(obj)
             if obj.plotting
-%                 tfi     = obj.obtainDomainFunction();
-%                 fi      = tfi.project('P1');
-%                 p       = obj.mesh.coord';
-%                 t       = obj.mesh.connec';
-%                 t(4,:)  = 1;
-% 
-%                 figure(2)
-%                 multimat_plot(p,t,fi.fValues);
-%                 drawnow
-% WE HAVE TO IMPLEMENT OUR VERSION
+            % WE HAVE TO IMPLEMENT OUR VERSION
             end
         end
 
         function updateOld(obj)
-            obj.funOld = obj.lsFun;
             for i = 1:length(obj.levelSets)
                 obj.levelSets{i}.updateOld();
             end
@@ -78,41 +62,30 @@ classdef MultiLevelSet < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.type = cParams.type;
-            obj.mesh = cParams.mesh;
-            obj.lsFun  = cParams.lsFun;
-            obj.unitM = cParams.unitM;
+            obj.mesh     = cParams.mesh;
+            obj.plotting = cParams.plotting;
         end
 
-        function create(obj)
-            s.type                 = 'LevelSet';
-            s.plotting             = false;
-            s.fValues              = obj.lsFun{1};
-            s.mesh                 = obj.mesh;
-            s.ndimf                = 1;
-            s.fHandle              = obj.lsFun{1};
-            s.fun                  = AnalyticalFunction(s);
-            s.fun                  = s.fun.project('P1');
-            ls1                    = DesignVariable.create(s);
-            obj.levelSets{1} = ls1;
+        function create(obj,s)
+            for i = 1:length(s.lsFun)
+                obj.levelSets{i} = obj.createLevelSet(s.lsFun{i});
+            end
+            obj.createFun();
+        end
 
-            s.fHandle              = obj.lsFun{2};
-            s.fun                  = AnalyticalFunction(s);
-            s.fun                  = s.fun.project('P1');
-            ls2                    = DesignVariable.create(s);
-            obj.levelSets{2} = ls2;
+        function ls = createLevelSet(obj,lsFun)
+            s.fun      = lsFun;
+            s.mesh     = obj.mesh;
+            s.type     = 'LevelSet';
+            s.plotting = false;
+            ls         = DesignVariable.create(s);
+        end
 
-            s.fHandle              = obj.lsFun{3};
-            s.fun                  = AnalyticalFunction(s);
-            s.fun                  = s.fun.project('P1');
-            ls3                    = DesignVariable.create(s);
-            obj.levelSets{3} = ls3;
-
+        function createFun(obj)
             obj.fun.fValues = [];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{1}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{2}.fun.fValues];
-            obj.fun.fValues = [obj.fun.fValues;obj.levelSets{3}.fun.fValues];
+            for i = 1:length(obj.levelSets)
+                obj.fun.fValues = [obj.fun.fValues;obj.levelSets{i}.fun.fValues];
+            end
         end
     end
-
 end
