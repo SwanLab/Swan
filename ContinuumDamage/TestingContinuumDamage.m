@@ -133,10 +133,10 @@ classdef TestingContinuumDamage < handle
         end
 
         function mat = createMaterial(obj,s)
-            sMat.young   = ConstantFunction.create(s.E,obj.mesh);
-            sMat.poisson = ConstantFunction.create(s.nu,obj.mesh);
-            sMat.ndim = obj.mesh.ndim;
-            mat = Isotropic2dElasticMaterial(sMat);
+         
+            s.mesh = obj.mesh;
+            
+            mat = DamagedMaterial(s);
         end
 
     end

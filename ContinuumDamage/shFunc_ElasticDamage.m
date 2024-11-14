@@ -24,8 +24,8 @@ classdef shFunc_ElasticDamage < handle
             
             d = obj.computeDamage(r);
 
-            C = obj.material;
-            Cdamage = (1-d)*C;
+            Cdamage = obj.material.obtainTensor(d);
+           
             epsi = SymGrad(u);
             funct = DDP(DDP(epsi,Cdamage),epsi);
             energy = 0.5*(Integrator.compute(funct,obj.mesh,quadOrder));
@@ -35,9 +35,8 @@ classdef shFunc_ElasticDamage < handle
         function jacobian = computeJacobian(obj,quadOrder,u,r)
             
             d = obj.computeDamage(r);
-            C = obj.material;
-            Cdamage = (1-d)*C; %L' ORDRE DE MULTIPLICACIÓ FA QUE DONGUI UNA COSA O ALTRA
-            
+            Cdamage = obj.material.obtainTensor(d);
+
             epsi = SymGrad(u);
             b = DDP(epsi,Cdamage);
             
@@ -53,14 +52,15 @@ classdef shFunc_ElasticDamage < handle
             
         end
         
-        function hessian = computeHessian(obj,quadOrder,u)
+        function hessian = computeHessian(obj,quadOrder,u,r)
             
             test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-            
+            d = obj.computeDamage(r);
+
             S.type = 'ElasticStiffnessMatrix';
             S.quadratureOrder = 2;
             S.mesh = obj.mesh;
-            S.material = obj.material;
+            S.material = obj.material.obtainTensor(d);
             S.test = test;
             S.trial = test;
            
@@ -72,12 +72,11 @@ classdef shFunc_ElasticDamage < handle
         end  
         
         function rOut = newState (obj,rIn,u)
-
-            C = obj.material;
+    
+            C = obj.material.obtainNonDamagedTensor;
             epsi = SymGrad(u);
             tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);
-
-
+         
             if tauEpsi <= rIn
 
                 rOut = rIn;
@@ -89,7 +88,7 @@ classdef shFunc_ElasticDamage < handle
 
         function d = computeDamage(obj,r)
             q = obj.computeHardening();
-            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))/(r.evaluate(xV)));
+            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV))./(r.evaluate(xV)));
             s.ndimf = 1;
             d = DomainFunction(s);
 

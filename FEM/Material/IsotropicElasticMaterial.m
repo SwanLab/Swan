@@ -65,7 +65,25 @@ classdef IsotropicElasticMaterial < Material
         function lambda = computeLambdaFromShearAndBulk(m,k,N)
             lambda = k - 2/N*m;
         end
-        
+    end
+    methods (Access = public)
+            function mu = createShear(obj)
+            E  = @(xV) obj.young.evaluate(xV);
+            nu = @(xV) obj.poisson.evaluate(xV);
+            s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
+            s.ndimf = size(E,1);
+            mu = DomainFunction(s);
+        end
+
+        function k = createBulk(obj)
+            E  = @(xV) obj.young.evaluate(xV);
+            nu = @(xV) obj.poisson.evaluate(xV);
+            N  = obj.ndim;
+            s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
+            s.ndimf = size(E,1);
+            k = DomainFunction(s);
+        end
+
     end
     
 end

@@ -8,7 +8,7 @@ classdef ContinuumDamageComputer < handle
     end
 
     properties (Access = private)
-        tau = 0.5
+        tau = 50
         tolerance = 1e-10
         quadOrder
 
@@ -32,13 +32,11 @@ classdef ContinuumDamageComputer < handle
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             u.fValues = obj.updateInitialDisplacement(bc,u);
             
-            s.operation = @(xV) obj.r0;
-            s.ndimf = 1;
-            rNew = DomainFunction (s);
-
+            rNew = ConstantFunction.create(obj.r0,obj.mesh);
+            
             errorU = 1;
             while (errorU >= obj.tolerance)
-                LHS = obj.computeLHS(u);
+                LHS = obj.computeLHS(u,rNew);
                 RHS = obj.computeRHS(u,rNew);
                 uNew = obj.computeU(LHS,RHS,u,bc);
                 errorU = max(max(abs(u.fValues-uNew)));
@@ -95,8 +93,8 @@ classdef ContinuumDamageComputer < handle
             end
          end
 
-        function K = computeLHS(obj,u)
-            K = obj.ElasticFun.computeHessian(obj.quadOrder,u);
+        function K = computeLHS(obj,u,r)
+            K = obj.ElasticFun.computeHessian(obj.quadOrder,u,r);
         end
 
         function F = computeRHS(obj,u,r)

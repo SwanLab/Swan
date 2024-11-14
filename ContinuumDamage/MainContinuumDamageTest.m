@@ -12,8 +12,8 @@ cParams.mesh.meshM = 1;
 cParams.material.E = 1;
 cParams.material.nu = 0;
 
-cParams.bc.bcType = 'displacementBending'; %'FORCE'
-cParams.bc.bcVal = 1;
+cParams.bc.bcType = 'forceTraction'; %'FORCE'
+cParams.bc.bcVal = 10;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
@@ -28,6 +28,6 @@ data = tester.compute();
 
 
 data.displacement.plot()
-%data.damage.plot
+data.damage.plot(data.displacement.mesh)
 
 tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
