@@ -49,7 +49,7 @@ classdef DropletCase < handle
 
         function createDesignVariable(obj)
             s.type        = 'CircleInclusion';
-            s.radius      = 0.25;
+            s.radius      = 0.2;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
@@ -70,8 +70,8 @@ classdef DropletCase < handle
             s.mesh     = obj.mesh;
             s.type     = 'Droplet';
             s.theta    = 90;
-            s.alpha    = sqrt(2);
-            s.epsilon  = 40*obj.mesh.computeMeanCellSize();
+            s.alpha    = 1.155;
+            s.epsilon  = 1*obj.mesh.computeMeanCellSize();
             f          = NonLinearFilter.create(s);
             obj.filter = f;
          end  
@@ -91,7 +91,7 @@ classdef DropletCase < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.85;
+            s.volumeTarget = 0.6;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -134,7 +134,7 @@ classdef DropletCase < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;

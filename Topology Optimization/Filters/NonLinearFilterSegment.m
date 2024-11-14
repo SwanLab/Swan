@@ -71,7 +71,7 @@ classdef NonLinearFilterSegment < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = cParams.beta;
-            obj.lineSearch = 100;
+            obj.lineSearch = 10;
         end
 
         function createDirection(obj)

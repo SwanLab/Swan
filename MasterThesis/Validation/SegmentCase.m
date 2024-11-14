@@ -38,8 +38,8 @@ classdef SegmentCase < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -70,8 +70,8 @@ classdef SegmentCase < handle
             s.mesh     = obj.mesh;
             s.type     = 'Segment';
             s.theta    = 45;
-            s.alpha    = 6 *obj.mesh.computeMeanCellSize();
-            s.beta     = 6 *obj.mesh.computeMeanCellSize();
+            s.alpha    = 12 *obj.mesh.computeMeanCellSize();
+            s.beta     = 12 *obj.mesh.computeMeanCellSize();
             f          = NonLinearFilter.create(s);
             obj.filter = f;
 
@@ -135,7 +135,7 @@ classdef SegmentCase < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
