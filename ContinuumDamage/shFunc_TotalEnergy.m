@@ -1,4 +1,4 @@
-classdef sh_TotalEnergy < handle
+classdef shFunc_TotalEnergy < handle
 
     properties (Access = public)
     
@@ -7,7 +7,8 @@ classdef sh_TotalEnergy < handle
         material
         mesh
 
-        internal
+        internalDamage
+        internalElastic
         external
         
         r0
@@ -15,15 +16,24 @@ classdef sh_TotalEnergy < handle
     end
 
     methods (Access = public)
-        function obj = sh_TotalEnergy(cParams)
+
+        function obj = shFunc_TotalEnergy(cParams)
             obj.init(cParams);
             obj.createFunctionals ();
         end
-        function totalEnergy = computeTotalEnergy (obj, quadOrder, u,r,fext)
-            internalEnergy = obj.internal.computeFunction(quadOrder,u,r);
+
+        function totalEnergy = computeTotalEnergyDamage (obj, quadOrder, u,r,fext)
+            internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,r);
             externalEnergy = obj.external.computeFunction(u,fext,quadOrder);
             totalEnergy = internalEnergy + externalEnergy;
         end
+
+        function totalEnergy = computeTotalEnergy (obj, quadOrder, u,fext)
+            internalEnergy = obj.internalElastic.computeFunction(quadOrder,u);
+            externalEnergy = obj.external.computeFunction(u,fext,quadOrder);
+            totalEnergy = internalEnergy + externalEnergy;
+        end
+
     end
     methods (Access = private)
         function init (obj,cParams)
@@ -39,7 +49,8 @@ classdef sh_TotalEnergy < handle
             s.H = obj.H;
             s.r0 = obj.r0;
 
-            obj.internal = shFunc_ElasticDamage(s);
+            obj.internalDamage = shFunc_ElasticDamage(s);
+            obj.internalElastic = shFunc_Elastic(s)
             obj.external = shFunc_ExternalWork2(s);
 
         end

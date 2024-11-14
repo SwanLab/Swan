@@ -13,7 +13,7 @@ cParams.material.E = 1;
 cParams.material.nu = 0;
 
 cParams.bc.bcType = 'displacementBending'; %'FORCE'
-cParams.bc.bcVal = 5;
+cParams.bc.bcVal = 1;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';

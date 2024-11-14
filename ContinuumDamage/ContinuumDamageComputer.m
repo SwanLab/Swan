@@ -17,6 +17,7 @@ classdef ContinuumDamageComputer < handle
 
         ElasticFun
         ExternalWorkFun
+        TotalEnergyFun
     end
 
     methods (Access = public)
@@ -50,6 +51,9 @@ classdef ContinuumDamageComputer < handle
             
             end
             data.displacement = u;
+            fExt = obj.boundaryConditions.pointloadFun;
+            %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
+            data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
             data.damage = obj.ElasticFun.computeDamage(rNew);
         end
     end
@@ -74,6 +78,7 @@ classdef ContinuumDamageComputer < handle
             %obj.ElasticFun = shFunc_Elastic(s);
 
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
+            obj.TotalEnergyFun = shFunc_TotalEnergy(s)
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)

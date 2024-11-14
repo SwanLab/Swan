@@ -25,7 +25,7 @@ classdef shFunc_ElasticDamage < handle
             d = obj.computeDamage(r);
 
             C = obj.material;
-            Cdamage = C*(1-d);
+            Cdamage = (1-d)*C;
             epsi = SymGrad(u);
             funct = DDP(DDP(epsi,Cdamage),epsi);
             energy = 0.5*(Integrator.compute(funct,obj.mesh,quadOrder));
