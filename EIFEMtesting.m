@@ -36,6 +36,7 @@ classdef EIFEMtesting < handle
 
             [LHS,RHS,LHSf] = obj.createElasticProblem();
             obj.LHS = LHSf;
+            LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
@@ -105,10 +106,10 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 2]; %nx ny
+            obj.nSubdomains  = [15 2]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
             %obj.fileNameEIFEM = 'DEF_Q4porL_1.mat'; 
-            obj.tolSameNode = 1e-10;
+            obj.tolSameNode = 1e-14;
         end
 
         function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)

@@ -49,14 +49,15 @@ classdef Preconditioner < handle
 
         function x = InexactCG(r,A,P)
             x0 = zeros(size(r));
-            factor = 0.99;
+           
+            factor = 0.01;
             tol = factor*norm(r);
-            x = PCG.solve(A,r,x0,P,tol);
-            %   tau = 1;
-
+            
+            %x = PCG.solve(A,r,x0,P,tol);
+            
             %tau = @(r,A) 1;
-            %   tau = @(r,A) r'*r/(r'*A(r));
-            %   x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
+            tau = @(r,A) r'*r/(r'*A(r));
+            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 
         end
 
