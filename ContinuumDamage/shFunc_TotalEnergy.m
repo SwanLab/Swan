@@ -25,13 +25,13 @@ classdef shFunc_TotalEnergy < handle
         function totalEnergy = computeTotalEnergyDamage (obj, quadOrder, u,r,fext)
             internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,r);
             externalEnergy = obj.external.computeFunction(u,fext,quadOrder);
-            totalEnergy = internalEnergy + externalEnergy;
+            totalEnergy = internalEnergy - externalEnergy;
         end
 
         function totalEnergy = computeTotalEnergy (obj, quadOrder, u,fext)
             internalEnergy = obj.internalElastic.computeFunction(quadOrder,u);
             externalEnergy = obj.external.computeFunction(u,fext,quadOrder);
-            totalEnergy = internalEnergy + externalEnergy;
+            totalEnergy = internalEnergy - externalEnergy;
         end
 
     end
