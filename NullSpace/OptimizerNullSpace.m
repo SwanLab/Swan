@@ -290,8 +290,8 @@ classdef OptimizerNullSpace < Optimizer
                     % end
 
                     [actg,~] = obj.computeActiveConstraintsGradient();
-                    isAlmostFeasible  = norm(actg) < 10*obj.tolerance;
-                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 10*obj.tol;
+                    isAlmostFeasible  = norm(actg) < 0.01;
+                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.01;
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
                     end
