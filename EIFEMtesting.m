@@ -28,7 +28,7 @@ classdef EIFEMtesting < handle
             
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG] = obj.createMeshDomain(mR);
+            [mD,mSb,iC,lG,iCR] = obj.createMeshDomain(mR);
             obj.meshDomain = mD;
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
@@ -43,7 +43,7 @@ classdef EIFEMtesting < handle
 
  
             Mid          = @(r) r;
-            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS);
+            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR);
             Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
@@ -105,18 +105,18 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [4 2]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat'; 
+            obj.nSubdomains  = [2 2]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
+            %obj.fileNameEIFEM = 'DEF_Q4porL_1.mat'; 
             obj.tolSameNode = 1e-10;
         end
 
-        function [mD,mSb,iC,lG] = createMeshDomain(obj,mR)
+        function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
-            [mD,mSb,iC,~,lG] = m.create();
+            [mD,mSb,iC,~,lG,iCR] = m.create();
         end
 
 
@@ -305,7 +305,7 @@ classdef EIFEMtesting < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
 
-         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS)
+         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR)
      % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             EIFEMfilename = obj.fileNameEIFEM; 
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
@@ -317,7 +317,7 @@ classdef EIFEMtesting < handle
             eifem           = EIFEM(s);         
 
             
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
             ss.bcApplier = obj.bcApplier;            
             ss.type = 'EIFEM';
@@ -325,8 +325,8 @@ classdef EIFEMtesting < handle
             Meifem = @(r) eP.apply(r);
          end
 
-         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb)            
-            s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR);
+         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)            
+            s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             s.DirCond       = dir;
             s.bcApplier     = obj.bcApplier; 
             s.LHS           = lhs;
@@ -337,9 +337,10 @@ classdef EIFEMtesting < handle
             Mdn = @(r) M.apply(r);
         end
 
-        function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR)
+        function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
             s.nSubdomains     = obj.nSubdomains;
             s.interfaceConnec = iC;
+            s.interfaceConnecReshaped = iCR;
             s.locGlobConnec   = lG;
             s.nBoundaryNodes  = bS{1}.mesh.nnodes;
             s.nReferenceNodes = mR.nnodes;

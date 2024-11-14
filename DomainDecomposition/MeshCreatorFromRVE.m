@@ -18,6 +18,7 @@ classdef MeshCreatorFromRVE < handle
         meshDomain
         interfaceConnec
         localGlobalConnec
+        interfaceConnecReshaped
     end
 
     methods (Access = public)
@@ -26,13 +27,14 @@ classdef MeshCreatorFromRVE < handle
             obj.init(cParams)
         end
 
-        function [mD,mSD,interfaceConnec,bdSB,localGlobalConnec] = create(obj)
+        function [mD,mSD,interfaceConnec,bdSB,localGlobalConnec,interfaceConnecReshaped] = create(obj)
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
             obj.createDomainMesh();
             mD  = obj.meshDomain;
             mSD = obj.meshSubDomain;
             interfaceConnec = obj.interfaceConnec;
+            interfaceConnecReshaped = obj.interfaceConnecReshaped;
             bdSB = obj.interfaceMeshSubDomain;
             localGlobalConnec = obj.localGlobalConnec;
         end
@@ -134,6 +136,8 @@ classdef MeshCreatorFromRVE < handle
             coupling = InterfaceCoupling(s);
             coupling.compute();
             obj.interfaceConnec = coupling.interfaceConnec;
+            
+            obj.interfaceConnecReshaped = coupling.interfaceConnecReshaped;
             
             s.interfaceConnec   = coupling.interfaceConnec;
             s.tolSameNode       = obj.tolSameNode;

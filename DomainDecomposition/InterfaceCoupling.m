@@ -86,7 +86,7 @@ classdef InterfaceCoupling < handle
             end
             for iBdNode = 1:nBdNode
                 NodeCoord = coordAux(iBdNode,:);
-                tol = 1e-10;
+                tol = obj.tolSameNode;
 
 
                 isSameNode = vecnorm(coordAux-NodeCoord,'Inf',2) - tol <= 0;

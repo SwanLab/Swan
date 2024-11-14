@@ -13,7 +13,7 @@ classdef DomainMeshComputer < handle
         ninterfaces
         meshSubDomain
         interfaceConnec
-        tolSameNode        
+        tolSameNode  
     end
 
     properties (Access = private)

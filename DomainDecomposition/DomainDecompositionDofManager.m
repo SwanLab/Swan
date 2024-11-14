@@ -2,6 +2,7 @@ classdef DomainDecompositionDofManager < handle
 
     properties (Access = public)
         interfaceConnec
+        interfaceConnecReshaped
         interfaceDom
         intConecLocal
     end
@@ -27,6 +28,7 @@ classdef DomainDecompositionDofManager < handle
         function init(obj,cParams)
             obj.nSubdomains     = cParams.nSubdomains;
             obj.interfaceConnec = cParams.interfaceConnec;
+            obj.interfaceConnecReshaped = cParams.interfaceConnecReshaped;
             obj.locGlobConnec   = cParams.locGlobConnec;
             obj.nBoundaryNodes  = cParams.nBoundaryNodes;
             obj.nReferenceNodes = cParams.nReferenceNodes;
@@ -46,10 +48,11 @@ classdef DomainDecompositionDofManager < handle
             nint = size(obj.interfaceDof,3);
             weight = [w,1-w];
             for iint = 1:nint
-                ndom = size(obj.interfaceDof(:,:,iint),2);
+                dofI = obj.interfaceDof{iint};
+                ndom = size(dofI,2);
                 for idom = 1:ndom
                     dom = obj.interfaceDom(iint,idom);
-                    dof = obj.interfaceDof(:,idom,iint);
+                    dof = dofI(:,idom);
                     f(dof,dom) = weight(idom)* f(dof,dom);
                 end
             end
@@ -59,10 +62,11 @@ classdef DomainDecompositionDofManager < handle
             nint = size(obj.interfaceDof,3);
             weight = [w,1-w];
             for iint = 1:nint
-                ndom = size(obj.interfaceDof(:,:,iint),2);
+                dofI = obj.interfaceDof{iint};
+                ndom = size(dofI,2);
                 for idom = 1:ndom
                     dom = obj.interfaceDom(iint,idom);
-                    dof = obj.interfaceDof(:,idom,iint);
+                    dof = dofI(:,idom);
                     m(dof,dof,dom) = weight(idom)* m(dof,dof,dom);
                 end
             end
@@ -130,32 +134,40 @@ classdef DomainDecompositionDofManager < handle
         end
 
         function computeLocalInterfaceDof(obj)
-            intConec = reshape(obj.interfaceConnec',2,obj.nBoundaryNodes,[]);
-            intConec = permute(intConec,[2 1 3]);
-            intConecL = zeros(size(intConec));
-            nint = size(intConec,3);
+                       
+            intConecResh = obj.interfaceConnecReshaped;
+
+
+
+            nint = numel(intConecResh);
             ndimf = obj.nDimf;
             ndofs = obj.nReferenceNodes*ndimf;
             for iint=1:nint
-                ndom = size(intConec,2); %length(intConec(1,:,iint));
+                intConecIint = intConecResh{iint};                
+                ndom = size(intConecIint,2); %length(intConec(1,:,iint));
+                intConecL = zeros(size(intConecIint));
+                interfaceDof = [];
                 for idom = 1:ndom
                     dofaux=0;
-                    nodesI = intConec(:,idom,iint);
-                    dom = ceil(intConec(1,idom,iint)/obj.nReferenceNodes);
+                    
+                    nodesI = intConecIint(:,idom);
+                    dom = ceil(intConecIint(1,idom)/obj.nReferenceNodes);
                     globaldof = (dom-1)*ndofs;
                     for iunkn=1:ndimf
                         DOF = ndimf*(nodesI - 1) + iunkn;
                         DOF = DOF-globaldof;
                         dofaux= [dofaux; DOF];
                     end
-                    interfaceDof(:,idom,iint) = dofaux(2:end);
+                    interfaceDof(:,idom) = dofaux(2:end);
                     interfaceDom(iint,idom) = dom;
-                    intConecL(:,idom,iint) = nodesI - (dom-1)*obj.nReferenceNodes;
+                    intConecL(:,idom) = nodesI - (dom-1)*obj.nReferenceNodes;
                 end
+                intConecLiint{iint} = intConecL(:,idom);
+                interfaceDofIint{iint} = interfaceDof;
             end
-            obj.interfaceDof  = interfaceDof;
+            obj.interfaceDof  = interfaceDofIint;
             obj.interfaceDom  = interfaceDom;
-            obj.intConecLocal = intConecL;
+            obj.intConecLocal = intConecLiint;
 
         end
 
