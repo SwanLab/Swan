@@ -33,8 +33,8 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.04;
-            obj.nCells   = [10 10; 20 20; 20 20];
+            obj.meshSize = 0.02;
+            obj.nCells   = [10 10; 20 20];
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
@@ -105,7 +105,23 @@ classdef ExplainingPeriodicFunction2D < handle
             t  = obj.orientation{1}.fValues;
             ct = (t(:,1));
             st = (t(:,2));
-            quiver(x,y,ct,st)
+            quiver(x,y,ct,st,'AutoScale', 'on')
+
+            n = 2;  % Modify this value to control density
+            x = x(1:n:end);
+            y = y(1:n:end);
+            ct = ct(1:n:end);
+            st = st(1:n:end);
+
+            
+            figure;
+            quiver(x, y, ct, st, 'AutoScale', 'on', 'LineWidth', 1.5);  % Increase LineWidth for thicker arrows
+        
+            axis equal;  % Keep aspect ratio equal
+        %    grid on;
+            box on;      % Adds a box around the plot
+            xlim([min(x), max(x)]);
+            ylim([min(y), max(y)]);
         end
 
         function s = createLevelSetCellParams(obj)            
