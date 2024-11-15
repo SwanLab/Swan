@@ -12,12 +12,13 @@ classdef MBBBeamDensity < handle
         constraint
         dualVariable
         optimizer
+        gJ
     end
 
     methods (Access = public)
 
-        function obj = MBBBeamDensity()
-            obj.init()
+        function obj = MBBBeamDensity(gJPar)
+            obj.init(gJPar)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -36,8 +37,9 @@ classdef MBBBeamDensity < handle
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,gJPar)
             close all;
+            obj.gJ = gJPar;
         end
 
         function createMesh(obj)
@@ -128,7 +130,7 @@ classdef MBBBeamDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.2;
+            s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -171,7 +173,10 @@ classdef MBBBeamDensity < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.5;
+            s.gJFlowRatio    = obj.gJ;
+            s.etaMax         = Inf;
+            s.etaMaxMin      = [];
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
