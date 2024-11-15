@@ -1,42 +1,5 @@
 function Pendulum()
-% clear all
-% g = sym('g','positive');
-% l = sym('l','positive');
-% 
-% w = sqrt(g/l)
-% 
-%  A = sym('A');
-%  B = sym('B');
-% % 
-%  t = sym('t');
-% % 
-%  theta0 = sym('theta0','real');
-%  dtheta0 = sym('dtheta0','real');
-% % 
-% % 
-% % 
-%  theta = A*cos(w*t) + B*sin(w*t);
-% % 
-% dtheta = diff(theta,t)
-% % 
-%  eq(1) = theta0  == subs(theta,t,0)   
-%  eq(2) = dtheta0 == subs(dtheta,t,0)
-% % 
-%  solution = solve(eq,[A,B])
-% % 
-%  theta = subs(theta,[A,B],[solution.A,solution.B]);
-%  theta = simplify(theta);
-% % 
-% 
-% theta = subs(theta,g,9.81);
-% theta = subs(theta,l,1);
-% theta = subs(theta,theta0,pi/8);
-% theta = subs(theta,dtheta0,0)
-% 
-% theta = matlabFunction(theta);
-% tV = linspace(0,1,100);
-% theta(tV)
-% plot(tV,theta(tV),'+')
+
 
 g = 9.81;
 l = 3;
@@ -48,21 +11,31 @@ w = sqrt(g/l);
 tspan = [0 50];
 y0 = [pi/8;0];
 
-odefun = @(t,y) [y(2);-w^2*sin(y(1))];
+fun2Integrate = @(t,y) [y(2);-w^2*sin(y(1))];
 
-[t1,y1] = integrateOde(odefun, tspan, y0);
+[t1,y1] = integrateOde(fun2Integrate, tspan, y0);
 plotSolution(t1,y1,g,l)
 
 
-[t1,y1] = ode45(odefun, tspan, y0);
+[t1,y1] = ode45(fun2Integrate, tspan, y0);
 plotSolution(t1,y1,g,l)
 
 
-odefun = @(t,y) [y(2);-w^2*(y(1))];
-[t2,y2] = ode45(odefun, tspan, y0);
+fun2Integrate = @(t,y) [y(2);-w^2*(y(1))];
+[t2,y2] = ode45(fun2Integrate, tspan, y0);
 plotSolution(t2,y2,g,l)
 
 end
+
+function dydtLinearized(obj,)
+
+end
+
+function dydtLinearized()
+
+end
+
+
 
 function [tv,y] = integrateOde(fun,tspan,y0)
 h = 0.001;
