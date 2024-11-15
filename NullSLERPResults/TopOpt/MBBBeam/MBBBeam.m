@@ -1,4 +1,4 @@
-classdef MBBBeamDensity < handle
+classdef MBBBeam < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef MBBBeamDensity < handle
 
     methods (Access = public)
 
-        function obj = MBBBeamDensity(gJPar)
+        function obj = MBBBeam(gJPar)
             obj.init(gJPar)
             obj.createMesh();
             obj.createDesignVariable();
@@ -31,9 +31,6 @@ classdef MBBBeamDensity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-
-            saveas(gcf,['NullSLERPResults/TopOpt/MBBBeam/DensityComparison/Monitoring_trust0d02_gJ',num2str(obj.gJ),'V0d4.fig']);
-            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MBBBeam/DensityComparison/gJ',num2str(obj.gJ),'_V0d4_fValues']);
         end
 
     end
@@ -57,16 +54,15 @@ classdef MBBBeamDensity < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
-            s.plotting = false;
-            dens    = DesignVariable.create(s);
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)

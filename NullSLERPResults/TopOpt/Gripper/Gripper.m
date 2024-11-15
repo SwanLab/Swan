@@ -1,6 +1,7 @@
-classdef MBBBeamDensity < handle
+classdef Gripper < handle
 
     properties (Access = private)
+        filename
         mesh
         filter
         designVariable
@@ -17,23 +18,21 @@ classdef MBBBeamDensity < handle
 
     methods (Access = public)
 
-        function obj = MBBBeamDensity(gJPar)
+        function obj = Gripper(gJPar)
             obj.init(gJPar)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-
-            saveas(gcf,['NullSLERPResults/TopOpt/MBBBeam/DensityComparison/Monitoring_trust0d02_gJ',num2str(obj.gJ),'V0d4.fig']);
-            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MBBBeam/DensityComparison/gJ',num2str(obj.gJ),'_V0d4_fValues']);
+            saveas(gcf,['NullSLERPResults/TopOpt/Gripper/FinalResults_NoOscillations/Monitoring_trust0d02_gJ',num2str(obj.gJ),'.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/Gripper/FinalResults_NoOscillations/gJ',num2str(obj.gJ),'_V0.6_fValues']);
         end
 
     end
@@ -46,27 +45,23 @@ classdef MBBBeamDensity < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,6,400);
-            x2      = linspace(0,1,66);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            file = 'Gripping';
+            obj.filename = file;
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
             s.plotting = false;
-            dens    = DesignVariable.create(s);
-            obj.designVariable = dens;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -114,18 +109,13 @@ classdef MBBBeamDensity < handle
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
+        function createNonSelfAdjCompliance(obj)
             s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
+            s.material     = obj.createMaterial();
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
-        end
-
-        function createCompliance(obj)
-            s.mesh                       = obj.mesh;
-            s.filter                     = obj.filter;
-            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
-            c = ComplianceFunctional(s);
+            s.filename     = obj.filename;
+            c = NonSelfAdjointComplianceFunctional(s);
             obj.compliance = c;
         end
 
@@ -133,7 +123,7 @@ classdef MBBBeamDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.6;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -171,15 +161,14 @@ classdef MBBBeamDensity < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
+            s.constraintCase = {'INEQUALITY'};
+            s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.gJ;
-            s.etaMax         = Inf;
-            s.etaMaxMin      = [];
-            s.tauMax         = 1000;
+            s.etaMaxMin      = 0.05;
+            s.etaMax         = 0.05;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -197,22 +186,10 @@ classdef MBBBeamDensity < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir1  = @(coor)  coor(:,2)==0 & coor(:,1)<=0.3;
-            isDir2  = @(coor)  coor(:,2)==0 & coor(:,1)>=5.7;
-            isForce = @(coor)  abs(coor(:,2))==yMax & abs(coor(:,1))>=2.85 & abs(coor(:,1))<=3.15;
-
-            sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = 2;
-            sDir{1}.value     = 0;
-
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            femReader = FemInputReader_GiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -229,8 +206,29 @@ classdef MBBBeamDensity < handle
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
-            s.mesh = obj.mesh;
+            s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+    end
+
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
+        end
+
     end
 end

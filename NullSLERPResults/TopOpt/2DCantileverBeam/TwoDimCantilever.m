@@ -30,6 +30,9 @@ classdef TwoDimCantilever < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            saveas(gcf,'NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ2d5V0d4.fig');
+            obj.designVariable.fun.print('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/gJ2d5_V0d4_fValues');
         end
 
     end
@@ -58,7 +61,7 @@ classdef TwoDimCantilever < handle
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = true;
+            s.plotting = false;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -163,16 +166,16 @@ classdef TwoDimCantilever < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.etaMaxMin      = 0.01;
-            s.etaMax         = 1;
+            s.gJFlowRatio    = 2.5;
+            s.etaMaxMin      = 0.06;
+            s.etaMax         = 0.06;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
