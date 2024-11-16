@@ -126,15 +126,16 @@ classdef PhaseFieldPlotter < handle
         function plotCost(obj)
             figure()
             hold on
-            for n = 2:size(obj.costFun,2)
-                if obj.costFun(2,n) == 0
-                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
-                elseif obj.costFun(2,n) == 1
-                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
-                elseif obj.costFun(2,n) == 2
-                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
-                end
-            end
+            % for n = 2:size(obj.costFun,2)
+            %     if obj.costFun(2,n) == 0
+            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
+            %     elseif obj.costFun(2,n) == 1
+            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
+            %     elseif obj.costFun(2,n) == 2
+            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
+            %     end
+            % end
+            plot(obj.costFun(1,:))
             title('Cost Function')
             xlabel('Iteration [-]')
             ylabel('Energy [J]')

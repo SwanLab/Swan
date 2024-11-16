@@ -3,7 +3,7 @@ classdef PhaseFieldComputer < handle
     properties (Constant, Access = public)
         tolErrU = 1e-13;
         tolErrPhi = 1e-12;
-        tolErrStag = 1e-8;
+        tolErrStag = 1e-12;
     end
 
     properties (Access = private)
@@ -274,6 +274,9 @@ classdef PhaseFieldComputer < handle
             data.iter.stag(step) = cParams.numIterStag;
             data.cost = cParams.cost;
             data.tau = cParams.tauArray;
+
+            data.restart.displacement = cParams.u;
+            data.restart.damage = cParams.phi;
         end
 
     end

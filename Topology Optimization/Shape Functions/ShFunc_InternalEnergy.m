@@ -77,7 +77,7 @@ classdef ShFunc_InternalEnergy < handle
             obj.mesh = cParams.mesh;
             obj.material = cParams.material;            
             obj.testPhi = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.testU   = LagrangianFunction.create(obj.mesh, 2, 'P1');
+            obj.testU   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
         
 
