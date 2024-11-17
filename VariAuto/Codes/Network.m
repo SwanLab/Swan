@@ -121,7 +121,7 @@ classdef Network < handle
                 %obj.OUtype = 'sigmoid';%'softmax';
                 obj.Costtype = 'L2';
                 obj.HUtype = 'ReLU';
-                obj.OUtype = 'ReLU';
+                obj.OUtype = 'linear';
             else
                 obj.Costtype = cParams{3};
                 obj.HUtype = cParams{4};
@@ -186,6 +186,9 @@ classdef Network < handle
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
                     g_der = z.*(1-z);
+                case 'linear'
+                    g = z;
+                    g_der = ones(size(z));
                 otherwise
                     msg = [type,' is not a valid activation function'];
                     error(msg)

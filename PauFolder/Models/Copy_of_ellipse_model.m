@@ -15,9 +15,9 @@ addpath('../../VariAuto/Codes')
 pol_deg         = 1;
 testratio       = 30;  
 lambda          = 0.0;
-learningRate    = 0.15;
-%hiddenLayers    = [8,10,10,10,8,6];
-hiddenLayers    = [6, 24, 48, 48, 48, 24, 6, 3];
+learningRate    = 0.2;
+hiddenLayers    = 40.* ones(1, 6);
+%hiddenLayers    = [6, 24, 48, 48, 48, 24, 6, 3];
 %hiddenLayers = [32, 32, 16];
 
 %% INITIALIZATION 
@@ -33,49 +33,44 @@ s.costParams.lambda             = lambda;
 
 % Select the model's features
 s.xFeatures = [1, 2];
-yFeaturesArray = 3:6;
+s.yFeatures = [3, 4, 5, 6];
 cHomogIdxs = [11, 12, 22, 33];
+
+% Load data
+data   = cHomogData(s);
+s.data = data;
+
+% Train the model
+opt = OptimizationProblem(s);
+opt.solve();
+
+%% Plot surface
+
+% Load dataset from specified path
+filePath = fullfile('..', 'Datasets', s.fileName);
+tempData = readmatrix(filePath);
+
+% Preallocate and evaluate y_data vector
+yData = cell2mat(arrayfun(@(i) opt.eval(tempData(i, 1:2)), 1:size(tempData, 1), 'UniformOutput',false)');
+
+% Determine grid size for reshaping data
+gridSize = floor(sqrt(size(tempData, 1)));
+
+% Reshape data into grid format
+gridA = reshape(tempData(:, 1), [gridSize, gridSize]);
+gridB = reshape(tempData(:, 2), [gridSize, gridSize]);
 
 % Set up plot
 hfig = figure;
 tiledlayout(2, 2)
 
-for i = 1:length(yFeaturesArray)
+for i = 1:length(s.yFeatures)
 
-    % Select the model's Y features
-    s.yFeatures = yFeaturesArray(i);
-    
-    % Load data
-    data   = cHomogData(s);
-    s.data = data;
-    
-    % Train the model
-    opt = OptimizationProblem(s);
-    opt.solve();
-    
-    %% Plot surface
-    
-    % Load dataset from specified path
-    filePath = fullfile('..', 'Datasets', s.fileName);
-    tempData = readmatrix(filePath);
-    
-    % Preallocate and evaluate y_data vector
-    yData = arrayfun(@(i) opt.eval(tempData(i, 1:2)), 1:size(tempData, 1))';
-    
-    % Set up figure for plotting
-    nexttile
-    %figure;
-    
-    % Determine grid size for reshaping data
-    gridSize = floor(sqrt(size(tempData, 1)));
-    
-    % Reshape data into grid format
-    gridA = reshape(tempData(:, 1), [gridSize, gridSize]);
-    gridB = reshape(tempData(:, 2), [gridSize, gridSize]);
-    gridC = reshape(tempData(:, s.yFeatures), [gridSize, gridSize]);
-    gridY = reshape(yData, [gridSize, gridSize]);
+    gridC = reshape(tempData(:, s.yFeatures(i)), [gridSize, gridSize]);
+    gridY = reshape(yData(:, i), [gridSize, gridSize]);
     
     % Plot 'Ground Truth' surface
+    nexttile
     surf(gridA, gridB, gridC, 'FaceColor', 'blue', 'EdgeColor', 'none', 'DisplayName', 'Ground Truth');
     hold on;
     
@@ -93,5 +88,6 @@ for i = 1:length(yFeaturesArray)
     title(['Component ', num2str(cHomogIdxs(i)),' of Constitutive Tensor']);
 
 end
+
 % Adjust figure size and position
 hfig.Position = [100 100 1000 600];
