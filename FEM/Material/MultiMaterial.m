@@ -34,8 +34,10 @@ classdef MultiMaterial < handle
             end
         end
 
-        function setDesignVariable(obj,x)
-            obj.density = x;
+        function setDesignVariable(obj,x,x2)
+            obj.density    = cell(2,1);
+            obj.density{1} = x;
+            obj.density{2} = x2;
         end
         
     end

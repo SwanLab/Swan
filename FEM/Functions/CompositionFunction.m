@@ -42,6 +42,7 @@ classdef CompositionFunction < L2Function
         function init(obj,cParams)
             obj.handleFunction = cParams.handleFunction;
             obj.l2function     = cParams.l2function;
+            obj.mesh           = cParams.l2function.mesh;
             obj.ndimf = size(obj.handleFunction,2);
         end
         

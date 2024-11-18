@@ -4,33 +4,44 @@ classdef MultiMaterialInterpolation < handle
         youngVec
         elasticTensorA
         elasticTensorB
+
+        simpAlls
    end
 
     methods (Access = public)
         function obj = MultiMaterialInterpolation(cParams)
-            obj.init(cParams)
+            obj.init(cParams);
+
+            obj.createSimpalls(cParams);
         end
 
         function [mu,kappa] = computeConsitutiveTensor(obj,x)
-            [muVals,lambdaVals] = obj.computeShearLambdaValues(x);
-            mu                  = obj.computeP1Function(x{1}.mesh,muVals);
-            lambda              = obj.computeP1Function(x{1}.mesh,lambdaVals);            
-            N                   = x{1}.mesh.ndim;
+            [muVals,lambdaVals] = obj.computeShearLambdaValues(x{1});
+            mu                  = obj.computeP1Function(x{1}{1}.mesh,muVals);
+            lambda              = obj.computeP1Function(x{1}{1}.mesh,lambdaVals);            
+            N                   = x{1}{1}.mesh.ndim;
             kappa               = obj.computeBulkMagnitude(lambda,mu,N);
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
             for i = 1:length(obj.youngVec)
                 for j = 1:length(obj.youngVec)
-                    dC      = obj.computeTensorDerivativeIJ(x,C,i,j);
+                    dC      = obj.computeTensorDerivativeIJ(x{1},C,i,j);
                     dmuVal  = squeeze(dC(2,2,:))/4;
                     dlamVal = squeeze(dC(1,3,:));
-                    dmu{i,j}     = obj.computeP1Function(x{1}.mesh,dmuVal);
-                    dlam    = obj.computeP1Function(x{1}.mesh,dlamVal);
-                    N       = x{1}.mesh.ndim;
+                    dmu{i,j}     = obj.computeP1Function(x{1}{1}.mesh,dmuVal);
+                    dlam    = obj.computeP1Function(x{1}{1}.mesh,dlamVal);
+                    N       = x{1}{1}.mesh.ndim;
                     dkappa{i,j}  = obj.computeBulkMagnitude(dlam,dmu{i,j},N);
                 end
             end
+
+            rho = x{2};
+            I   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
+            I.fValues(:) = 1;
+            Z   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
+            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
+
         end
 
     end
@@ -119,6 +130,47 @@ classdef MultiMaterialInterpolation < handle
         function kappa = computeBulkMagnitude(lambda,mu,N)
             s.operation = @(xV) lambda.evaluate(xV) + 2*mu.evaluate(xV)/N;
             kappa       = DomainFunction(s);
+        end
+    end
+
+
+
+
+
+
+    methods (Access = private)
+        function createSimpalls(obj,cParams) % 12, 13, 14, 23, 24, 34
+            E1  = cParams.E(1);
+            E2  = cParams.E(2);
+            E3  = cParams.E(3);
+            E4  = cParams.E(4);
+            nu1 = cParams.E(1);
+            nu2 = cParams.E(2);
+            nu3 = cParams.E(3);
+            nu4 = cParams.E(4);
+
+            obj.simpAlls.m12 = obj.createSimpall(E2,nu2,E1,nu1);
+            obj.simpAlls.m13 = obj.createSimpall(E3,nu3,E1,nu1);
+            obj.simpAlls.m14 = obj.createSimpall(E4,nu4,E1,nu1);
+            obj.simpAlls.m23 = obj.createSimpall(E3,nu3,E2,nu2);
+            obj.simpAlls.m24 = obj.createSimpall(E4,nu4,E2,nu2);
+            obj.simpAlls.m34 = obj.createSimpall(E4,nu4,E3,nu3);
+        end
+
+        function m = createSimpall(obj,E0,nu0,E1,nu1)
+            ndim = 2;
+            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+
+            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
+            s.matA = matA;
+            s.matB = matB;
+
+            m = MaterialInterpolator.create(s);
         end
     end
 end
