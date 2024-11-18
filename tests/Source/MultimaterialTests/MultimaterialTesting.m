@@ -89,13 +89,7 @@ classdef MultimaterialTesting < handle
             s.poisson = nu;
             tensor    = Material.create(s);
             tensorEv  = tensor.evaluate([0;0]);
-            CA        = tensorEv(:,:,1,1);
-            sC.CA  = zeros(size(CA));
-            sC.CA(2,2) = 2*CA(3,3);
-            sC.CA(1,1) = CA(1,1);
-            sC.CA(3,3) = CA(2,2);
-            sC.CA(1,3) = CA(1,2);
-            sC.CA(3,1) = CA(2,1);
+            sC.CA        = tensorEv(:,:,1,1);
 
 
             sC.E  = [200E9,100E9,50E9,0.2E9];
@@ -109,13 +103,7 @@ classdef MultimaterialTesting < handle
             s.poisson = nu;
             tensor    = Material.create(s);
             tensorEv  = tensor.evaluate([0;0]);
-            CB     = tensorEv(:,:,1,1);
-            sC.CB  = zeros(size(CB));
-            sC.CB(2,2) = 2*CB(3,3);
-            sC.CB(1,1) = CB(1,1);
-            sC.CB(3,3) = CB(2,2);
-            sC.CB(1,3) = CB(1,2);
-            sC.CB(3,1) = CB(2,1);
+            sC.CB     = tensorEv(:,:,1,1);
 
             E   = ConstantFunction.create(50E9,obj.mesh);
             s.type    = 'ISOTROPIC';
@@ -125,13 +113,7 @@ classdef MultimaterialTesting < handle
             s.poisson = nu;
             tensor    = Material.create(s);
             tensorEv  = tensor.evaluate([0;0]);
-            CC     = tensorEv(:,:,1,1);
-            sC.CC  = zeros(size(CC));
-            sC.CC(2,2) = 2*CC(3,3);
-            sC.CC(1,1) = CC(1,1);
-            sC.CC(3,3) = CC(2,2);
-            sC.CC(1,3) = CC(1,2);
-            sC.CC(3,1) = CC(2,1);
+            sC.CC     = tensorEv(:,:,1,1);
 
             E   = ConstantFunction.create(50E9,obj.mesh);
             s.type    = 'ISOTROPIC';
@@ -141,13 +123,7 @@ classdef MultimaterialTesting < handle
             s.poisson = nu;
             tensor    = Material.create(s);
             tensorEv  = tensor.evaluate([0;0]);
-            CD     = tensorEv(:,:,1,1);
-            sC.CD  = zeros(size(CD));
-            sC.CD(2,2) = 2*CD(3,3);
-            sC.CD(1,1) = CD(1,1);
-            sC.CD(3,3) = CD(2,2);
-            sC.CD(1,3) = CD(1,2);
-            sC.CD(3,1) = CD(2,1);
+            sC.CD     = tensorEv(:,:,1,1);
 
             obj.materialInterpolator = MultiMaterialInterpolation(sC);
         end
