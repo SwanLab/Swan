@@ -2,8 +2,7 @@ classdef MultiMaterialInterpolation < handle
 
    properties (Access = private)
         youngVec
-        elasticTensorA
-        elasticTensorB
+        elasticTensor
 
         simpAlls
    end
@@ -30,35 +29,57 @@ classdef MultiMaterialInterpolation < handle
                     dmuVal  = squeeze(dC(2,2,:))/4;
                     dlamVal = squeeze(dC(1,3,:));
                     dmu{i,j}     = obj.computeP1Function(x{1}{1}.mesh,dmuVal);
+                    s.operation = @(xV) dmu{i,j}.evaluate(xV);
+                    dmu{i,j}    = DomainFunction(s);
                     dlam    = obj.computeP1Function(x{1}{1}.mesh,dlamVal);
                     N       = x{1}{1}.mesh.ndim;
                     dkappa{i,j}  = obj.computeBulkMagnitude(dlam,dmu{i,j},N);
                 end
             end
 
+
+
+
+
             rho = x{2};
             I   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
             I.fValues(:) = 1;
             Z   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
-            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
 
+            [dmu14,dkappa14] = obj.simpAlls.m14.computeConsitutiveTensorDerivative(I);
+            dkSeba = (1/0.25)  *  dkappa{4,1};
+            error1 = (dkSeba - dkappa14) ./ dkappa14;
+            error1 = error1.project('P1',rho{1}.mesh);
+            error1 = sum(error1.fValues);
+
+            dmSeba = (1/0.25) .*dmu{4,1};
+            error2 = (dmSeba - dmu14) ./ dmu14;
+            error2 = error2.project('P1',rho{1}.mesh);
+            error2 = sum(error2.fValues);
+
+
+            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
+            ratio2 = (   (10/3 * obj.youngVec(2)*dkappa{2,1})   ./    dkappa12   );
+            ratio2 = ratio2.project('P1',rho{1}.mesh);
         end
 
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.youngVec       = cParams.E;
-            obj.elasticTensorA = cParams.CA;
-            obj.elasticTensorB = cParams.CB;
+            obj.youngVec         = cParams.E;
+            obj.elasticTensor{1} = cParams.CA;
+            obj.elasticTensor{2} = cParams.CB;
+            obj.elasticTensor{3} = cParams.CC;
+            obj.elasticTensor{4} = cParams.CD;
         end
 
         function [muVals,lambdaVals] = computeShearLambdaValues(obj,chi)
             chiVal            = obj.splitCellIntoValues(chi);
             tgamma(1,1,:)     = (obj.youngVec/obj.youngVec(1))*chiVal;
-            Ceff       = obj.elasticTensorA.*tgamma;
-            lambdaVals = squeeze(Ceff(1,2,:));
-            muVals     = squeeze(Ceff(3,3,:));
+            Ceff       = obj.elasticTensor{1}.*tgamma;
+            lambdaVals = squeeze(Ceff(1,3,:));
+            muVals     = 0.5*squeeze(Ceff(2,2,:));
         end
 
         function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi,i,j)
@@ -88,20 +109,19 @@ classdef MultiMaterialInterpolation < handle
         function dCij = computeTensorDerivativeIJ(obj,chi,C2,i,j)
             chiVal         = obj.splitCellIntoValues(chi);
             C              = obj.computeC(chiVal);
-            C2             = squeezeParticular(C2.evaluate([1/3; 1/3]),3);
+            Cm             = obj.elasticTensor{j};
             
-            coefMatrix2    = obj.computeGradientCoefficientsMatrix(chi,i,j);
-            CDC            = pagemtimes(C,coefMatrix2);
-            dC             = pagemtimes(CDC,C);
+            P              = obj.computeGradientCoefficientsMatrix(chi,i,j);
+            dC             = pagemtimes(pagemtimes(C,P),C);
             dCij           = dC;
         end
 
         function Cv = computeC(obj,chiVal)
-            C      = obj.elasticTensorB;            
+            C      = obj.elasticTensor{1};            
             nElem  = size(chiVal,2);            
             tgamma = obj.computeTgamma3(chiVal);
             Cv     = repmat(C,[1 1 nElem]);
-            Cv     = Cv.*tgamma;            
+            Cv     = Cv.*tgamma;                        
         end
 
         function tgamma3 = computeTgamma3(obj,chiVal)
@@ -144,10 +164,10 @@ classdef MultiMaterialInterpolation < handle
             E2  = cParams.E(2);
             E3  = cParams.E(3);
             E4  = cParams.E(4);
-            nu1 = cParams.E(1);
-            nu2 = cParams.E(2);
-            nu3 = cParams.E(3);
-            nu4 = cParams.E(4);
+            nu1 = cParams.nu(1);
+            nu2 = cParams.nu(2);
+            nu3 = cParams.nu(3);
+            nu4 = cParams.nu(4);
 
             obj.simpAlls.m12 = obj.createSimpall(E2,nu2,E1,nu1);
             obj.simpAlls.m13 = obj.createSimpall(E3,nu3,E1,nu1);
