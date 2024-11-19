@@ -33,7 +33,7 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.02;
+            obj.meshSize = 0.021;
             obj.nCells   = [10 10; 20 20];
             obj.xmin = 0;
             obj.xmax = 2;
@@ -51,7 +51,7 @@ classdef ExplainingPeriodicFunction2D < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+            [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -69,6 +69,9 @@ classdef ExplainingPeriodicFunction2D < handle
 
          %   alpha = beta/2;
             alpha = atan2(x2 -x20 +0.1*(max(x2)),x1-x10);
+
+            isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
+            alpha(isLeft) = alpha(isLeft) + pi;
 
             s.fValues = alpha;
             s.mesh    = obj.mesh;
@@ -99,15 +102,15 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function plotOrientation(obj)
-            figure()
+        %    figure()
             x = obj.mesh.coord(:,1);
             y = obj.mesh.coord(:,2);
             t  = obj.orientation{1}.fValues;
             ct = (t(:,1));
             st = (t(:,2));
-            quiver(x,y,ct,st,'AutoScale', 'on')
+            % quiver(x,y,ct,st,'AutoScale', 'on')
 
-            n = 2;  % Modify this value to control density
+            n = 4;  % Modify this value to control density
             x = x(1:n:end);
             y = y(1:n:end);
             ct = ct(1:n:end);
