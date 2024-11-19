@@ -39,10 +39,8 @@ classdef StiffnessEigenModesComputer < handle
             Mreduced = obj.fullToReduced(M);
             K = K + obj.shift*M;
             Kreduced = Kreduced + obj.shift*Mreduced;          
-            dK = obj.createStiffnessMatrixWithFunction(dalpha);
-            dM = obj.computeMassMatrixWithFunction(dm);
             [lambdaD, phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
-            [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
+%             [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
             % obj.plotDirichletEigenMode(phiD)
             % obj.plotNeumannEigenMode(phiN)
             dalphaCont = obj.createDomainFunction(dalpha);
@@ -163,9 +161,8 @@ classdef StiffnessEigenModesComputer < handle
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
-            [eigF,eigV] = eigs(K,M,10,'smallestabs');
+            [eigF,eigV] = eigs(K,M,4,'smallestabs');
             eigV1 = eigV(n,n);
-%             diag(eigV)
             eigF1 = eigF(:,n);
         end   
 
@@ -198,6 +195,13 @@ classdef StiffnessEigenModesComputer < handle
 
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
             dlambda = dalpha.*DP(Grad(phi), Grad(phi)) - (lambda - obj.shift)*dm.*phi.*phi; 
+%             phi.plot()
+%             a1 = dalpha.*DP(Grad(phi), Grad(phi))
+%             a2 = - (lambda - obj.shift)*dm.*phi.*phi
+%             a1.project('P1',obj.mesh).plot()
+%             a2.project('P1',obj.mesh).plot()
+%             a = a1 + a2
+%             dlambda.project('P1',obj.mesh).plot()
         end
         
 

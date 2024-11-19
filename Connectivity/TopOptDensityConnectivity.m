@@ -3,6 +3,10 @@ classdef TopOptDensityConnectivity < handle
     properties (Access = private)
         mesh
         filter
+        filterComp
+        filterAdjointComp
+        filterConnect
+        filterAdjointConnect
         designVariable
         materialInterpolator
         physicalProblem
@@ -22,6 +26,8 @@ classdef TopOptDensityConnectivity < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterCompliance();
+            obj.createFilterConnectivity();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -32,7 +38,6 @@ classdef TopOptDensityConnectivity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-%             obj.computeEigenValueFunctional();
         end
 
     end
@@ -68,10 +73,45 @@ classdef TopOptDensityConnectivity < handle
 
         function createFilter(obj)
             s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
             obj.filter = f;
+        end
+
+        function createFilterCompliance(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterComp = f;
+%             s.filterType = 'FilterAndProject';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'PDE';
+%             s.beta       = 2.0;
+% %             s.eta        = 0.5;
+%             f            = Filter.create(s);
+%             obj.filterComp = f;
+%             s.filterType = 'FilterAdjointAndProject';    
+%             f            = Filter.create(s);
+%             obj.filterAdjointComp = f;
+        end
+
+
+        function createFilterConnectivity(obj)
+            s.filterType = 'FilterAndProject';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'LUMP';
+            s.beta       = 100.0;
+            s.eta        = 0.05;
+%             s.beta = 16.0;
+            f            = Filter.create(s);
+            obj.filterConnect = f;
+            s.filterType = 'FilterAdjointAndProject';    
+            f            = Filter.create(s);
+            obj.filterAdjointConnect = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -126,7 +166,10 @@ classdef TopOptDensityConnectivity < handle
 
         function createCompliance(obj)
             s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
+            s.filter                      = obj.filterComp;
+            if ~isempty(obj.filterAdjointComp)
+                s.filterAdjoint               = obj.filterAdjointComp;
+            end
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
@@ -142,33 +185,19 @@ classdef TopOptDensityConnectivity < handle
             obj.volume = v;
         end
 
-        function computeEigenValueFunctional(obj)
-            eigen = obj.computeEigenValueProblem();
-            s.eigenModes = eigen;
-            s.designVariable = obj.designVariable;
-            s.mesh = obj.mesh;
-            mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient(obj.designVariable)
-        end
-
-        function eigen = computeEigenValueProblem(obj)
-            s.mesh = obj.mesh;
-            s.shift = 1.0;
-            eigen  = StiffnessEigenModesComputer(s);
-        end
-
         function createEigenValueConstraint(obj)                           
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.filter            = obj.filter;
-            s.minimumEigenValue = 0.15;      
+            s.filter            = obj.filterConnect;
+            s.filterAdjoint     = obj.filterAdjointConnect;
+            s.targetEigenValue = 0.05;      
             s.shift             = 1.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.minimumEigenValue;                   
+            s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -207,6 +236,36 @@ classdef TopOptDensityConnectivity < handle
             s.constraintCase{2} = 'INEQUALITY';                             
             s.ub             = 1;
             s.lb             = 0;
+            opt              = OptimizerMMA(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
+
+%             iterTotal = 0.0;
+%             target = 0.06;
+%             while target <= 0.15
+%                 iterTotal
+%                 target
+%                 obj.minimumEigenValue.updateTargetEigenvalue(target)
+%                 opt              = OptimizerMMA(s);
+%                 opt.solveProblem();
+%                 target = target + 0.01;
+%                 iterTotal = iterTotal + 50;
+%             end
+
+
+%             iterTotal = 400.0;
+%             s.maxIter        = 20;
+%             beta = 2;
+%             while beta <= 64
+%                 iterTotal
+%                 beta = beta*2;
+%                 obj.compliance.updateFilterParams(beta)
+%                 opt              = OptimizerMMA(s);
+%                 opt.solveProblem();
+%                 iterTotal = iterTotal + 20;
+%             end
+%             
+            s.maxIter        = 1000 - iterTotal;
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

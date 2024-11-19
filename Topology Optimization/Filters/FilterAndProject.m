@@ -23,6 +23,10 @@ classdef FilterAndProject < handle
             xF         = LagrangianFunction.create(obj.mesh,xFiltered.ndimf,xFiltered.order);
             xF.fValues = xFVal;
         end
+
+        function updateBeta(obj, beta)
+            obj.projector.updateBeta(beta);
+        end
     end
 
     methods (Access = private)
@@ -37,8 +41,10 @@ classdef FilterAndProject < handle
         end
 
         function createProjector(obj,cParams)
-            s.eta  = cParams.eta;
             s.beta = cParams.beta;
+            if isfield(cParams, 'eta')
+                s.eta  = cParams.eta;
+            end
             obj.projector = HeavisideProjector(s);
         end
     end

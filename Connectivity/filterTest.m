@@ -70,7 +70,7 @@ classdef filterTest < handle
 
         function createFilterAndProject(obj)
             s.beta = 16.0;
-            s.eta = 0.0;
+%             s.eta = 0.0;
             s.filterStep = 'LUMP';
             s.mesh = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -79,25 +79,25 @@ classdef filterTest < handle
 
 
         function computeDensity(obj, x)          
-            % Not Rounding Densities
-            s.operation = @(xV) obj.computeComplementaryDensity(obj.density.fun,xV);
-            obj.densityNR = DomainFunction(s);
-            obj.densityNR.project('P1',obj.mesh).plot()
-
-            % Rounding Densities
-            s.operation = @(xV) obj.computeRoundedComplementaryDensity(obj.density.fun,xV);
-            obj.densityR = DomainFunction(s);
-            obj.densityR.project('P1',obj.mesh).plot()
-
-            % Filter
-            obj.densityF = obj.filter.compute(1-obj.density.fun, 2);
-            obj.densityF.plot()
-
-            % Project
-            fV = obj.projector.project(1-obj.density.fun);
-            obj.densityP = LagrangianFunction.create(obj.density.fun.mesh,1,'P1')
-            obj.densityP.fValues = fV
-            obj.densityP.plot()
+%             % Not Rounding Densities
+%             s.operation = @(xV) obj.computeComplementaryDensity(obj.density.fun,xV);
+%             obj.densityNR = DomainFunction(s);
+%             obj.densityNR.project('P1',obj.mesh).plot()
+% 
+%             % Rounding Densities
+%             s.operation = @(xV) obj.computeRoundedComplementaryDensity(obj.density.fun,xV);
+%             obj.densityR = DomainFunction(s);
+%             obj.densityR.project('P1',obj.mesh).plot()
+% 
+%             % Filter
+%             obj.densityF = obj.filter.compute(1-obj.density.fun, 2);
+%             obj.densityF.plot()
+% 
+%             % Project
+%             fV = obj.projector.project(1-obj.density.fun);
+%             obj.densityP = LagrangianFunction.create(obj.density.fun.mesh,1,'P1')
+%             obj.densityP.fValues = fV
+%             obj.densityP.plot()
 
             % Filter and Project
             obj.densityFP = obj.filterAndProject.compute(1-obj.density.fun, 2);

@@ -11,6 +11,8 @@ classdef ConnectivityComputer < handle
         designVariable
         materialInterpolation
         filter
+        filterConnect
+        filterAdjointConnect
     end
 
     properties (Access = private)
@@ -26,6 +28,7 @@ classdef ConnectivityComputer < handle
             obj.createFilter();
             obj.createCharacteristicFunction();
             obj.createDesignVariable();  
+            obj.createFilterConnectivity();
             obj.computeEigenValueFunctional()
         end
 
@@ -90,20 +93,40 @@ classdef ConnectivityComputer < handle
             obj.designVariable = dens;
         end
 
+        function createFilterConnectivity(obj)
+           s.filterType = 'FilterAndProject';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'LUMP';
+            s.beta       = 100.0;
+            s.eta        = 0.5;
+            f            = Filter.create(s);
+            obj.filterConnect = f;
+
+            s.filterType = 'FilterAdjointAndProject';
+            f            = Filter.create(s);
+            obj.filterAdjointConnect = f;
+        end        
+
         function computeEigenValueFunctional(obj)
             eigen = obj.computeEigenValueProblem();
             s.eigenModes = eigen;
             s.designVariable = obj.designVariable;
             s.mesh = obj.mesh;
+            s.filter = obj.filterConnect;
+            s.filterAdjoint = obj.filterAdjointConnect;
             mE = MinimumEigenValueFunctional(s);
             [lambda, dlambda] = mE.computeFunctionAndGradient(obj.designVariable);
-            dlambda = obj.filter.compute(dlambda,2);
-            dlambda.plot()
+            if isa(dlambda, 'DomainFunction')
+                dlambda.project('P1',obj.mesh).plot()
+            else
+                dlambda.plot()
+            end
         end
 
         function eigen = computeEigenValueProblem(obj)
             s.mesh  = obj.mesh;
-            s.shift = 1.0;
+            s.shift = 0.0;
             eigen   = StiffnessEigenModesComputer(s);
         end
 

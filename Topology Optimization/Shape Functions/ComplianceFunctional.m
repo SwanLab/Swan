@@ -7,6 +7,7 @@ classdef ComplianceFunctional < handle
     properties (Access = private)
         mesh
         filter
+        filterAdjoint
         compliance
         material
     end
@@ -23,6 +24,10 @@ classdef ComplianceFunctional < handle
             [J,dJ] = obj.computeComplianceFunctionAndGradient();
         end
 
+        function updateFilterParams(obj, beta)
+            obj.filter.updateBeta(beta);
+            obj.filterAdjoint.updateBeta(beta);
+        end
     end
     
     methods (Access = private)
@@ -34,17 +39,28 @@ classdef ComplianceFunctional < handle
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
+            if isfield(cParams,'filterAdjoint')
+                obj.filterAdjoint = cParams.filterAdjoint;            
+            end
         end
 
         function xR = filterDesignVariable(obj,x)
             xR = obj.filter.compute(x,2);
+            if ~isempty(obj.filterAdjoint) 
+                obj.filterAdjoint.updateFilteredField(xR);
+            end
         end
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj)
             C   = obj.material.obtainTensor();
             dC  = obj.material.obtainTensorDerivative();
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filter.compute(dJ,2);
+            if isempty(obj.filterAdjoint) 
+                dJ     = obj.filter.compute(dJ,2);
+            else
+                dJ     = obj.filterAdjoint.compute(dJ,2);
+            end
+
             if isempty(obj.value0)
                 obj.value0 = J;
             end

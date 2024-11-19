@@ -11,28 +11,22 @@ classdef MinimumEigenValueFunctional < handle
        designVariable
        mesh
        filter
-       iter
+       filterAdjoint
     end
     
     methods (Access = public)
         
         function obj = MinimumEigenValueFunctional(cParams)
             obj.init(cParams)
-            obj.createFilterAndProject()
-        end
-        
-        function createFilterAndProject(obj)
-            s.beta = 16.0;
-            s.eta = 0.0;
-            s.filterStep = 'LUMP';
-            s.mesh = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter = FilterAndProject(s);
-        end     
+        end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
             obj.computeDensity(x);  
-            [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);
+%             obj.density.plot()
+            [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);    
+            if ~isempty(obj.filterAdjoint)
+                dfdx     = obj.filterAdjoint.compute(dfdx,2);
+            end
             obj.value = f;  
             obj.gradient = dfdx;       
         end
@@ -45,34 +39,40 @@ classdef MinimumEigenValueFunctional < handle
             obj.eigModes       = cParams.eigenModes;
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
+            if isfield(cParams,'filter')
+                obj.filter         = cParams.filter;
+            end
+            if isfield(cParams,'filterAdjoint')
+                obj.filterAdjoint  = cParams.filterAdjoint;
+            end
         end
         
-        function computeDensity(obj, x)  
-            % Not Rounding Densities
-%             s.operation = @(xV) obj.computeComplementaryDensity(x.fun,xV);
-%             densComp = DomainFunction(s);
-            
-%             % Rounding Densities
-%             s.operation = @(xV) obj.computeRoundedComplementaryDensity(x.fun,xV);
-%             densComp = DomainFunction(s);
-
-            % Filter and Project
-            densComp = obj.filter.compute(1 - x.fun, 2);
-
-             obj.density = densComp;
+        function x = filterDesignVariable(obj,x)
+            x = obj.filter.compute(x,2);
+            if ~isempty(obj.filterAdjoint) 
+                obj.filterAdjoint.updateFilteredField(x);
+            end
         end
-        
+
+        function computeDensity(obj,x)
+            if isempty(obj.filter)
+                densDomain  = x.fun;
+                s.operation = @(xV) obj.computeComplementaryDensity(densDomain,xV);
+                densHole = DomainFunction(s);
+                obj.density = densHole;
+            else
+                xD  = 1 - x.obtainDomainFunction();
+                xR = obj.filterDesignVariable(xD);
+                obj.density = xR;
+            end
+         end
+      
         function rho = computeComplementaryDensity(obj,fun,xV)
-            rho = fun.evaluate(xV);
-            rho = 1 - rho;
-        end
-
-        function rho = computeRoundedComplementaryDensity(obj,fun,xV)
             rho = fun.evaluate(xV);
             rho = 1 - rho;
             rho = round(rho);
             rho = max(0,min(1,rho));
-         end
+        end
 
     end
     

@@ -12,16 +12,28 @@ classdef HeavisideProjector < handle
         end
 
         function projF = project(obj,xF)
-            projF = 1 - exp(-obj.beta*xF.fValues) + xF.fValues*exp(-obj.beta);
-%             a     = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
-%             b     = obj.computeExpressionInDen();
-%             projF = a/b;
+            if isempty(obj.eta)
+                projF = 1 - exp(-obj.beta*xF.fValues) + xF.fValues*exp(-obj.beta);
+            else
+                a     = tanh(obj.beta*obj.eta) + obj.computeExpressionInNum(xF);
+                b     = obj.computeExpressionInDen();
+                projF = a/b;
+            end
         end
 
         function derProjF = derive(obj,xF)
-            a        = 1 - obj.computeExpressionInNum(xF).^2;
-            b        = obj.computeExpressionInDen();
-            derProjF = obj.beta*a/b;
+            if isempty(obj.eta)
+                derProjF = obj.beta*exp(-obj.beta*xF.fValues) + exp(-obj.beta);
+            else
+                a        = 1 - obj.computeExpressionInNum(xF).^2;
+                b        = obj.computeExpressionInDen();
+                derProjF = obj.beta*a/b;
+            end
+        end
+
+
+        function updateBeta(obj, beta)
+            obj.beta = beta;
         end
 
     end
@@ -30,7 +42,9 @@ classdef HeavisideProjector < handle
 
         function init(obj,cParams)
             obj.beta = cParams.beta;
-            obj.eta  = cParams.eta;
+            if isfield(cParams, 'eta')
+                obj.eta  = cParams.eta;
+            end
         end
 
         function num = computeExpressionInNum(obj,xF)
@@ -40,6 +54,6 @@ classdef HeavisideProjector < handle
         function den = computeExpressionInDen(obj)
             den = tanh(obj.beta*obj.eta) + tanh(obj.beta*(1-obj.eta));
         end
-        
+
     end    
 end
