@@ -12,7 +12,6 @@ classdef LagrangianFunction < FeFunction
 
        dNdxOld
        xVOld     
-       fxVOld
     end
 
     methods (Access = public)
@@ -39,7 +38,6 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function fxV = evaluate(obj, xV)
-            if ~isequal(xV,obj.xVOld) || isempty(obj.fxVOld)
             shapes = obj.interpolation.computeShapeFunctions(xV);
             nNode  = obj.interpolation.nnode;
             nGaus  = size(shapes,2);
@@ -55,12 +53,7 @@ classdef LagrangianFunction < FeFunction
                     f(:,1,:) = Ni*fi';
                     fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
                 end
-            end
-                obj.fxVOld = fxV;
-                obj.xVOld   = xV;
-            else
-                fxV = obj.fxVOld;
-            end         
+            end     
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -137,10 +130,15 @@ classdef LagrangianFunction < FeFunction
             grad        = DomainFunction(s);
         end
 
-        function curl = computeCurl(obj)
-            s.operation = @(xV) obj.computeCurlFun(xV);
+        function div = computeDiv(obj)
+            s.operation = @(xV) obj.computeDivFun(xV);
             s.ndimf     = 1;
-            curl        = DomainFunction(s);            
+            div         = DomainFunction(s);                   
+        end        
+
+        function curl = computeCurl(obj) %only for 2D
+            fOrth = obj.createOrthogonalVector();            
+            curl  = Divergence(fOrth);            
         end
 
         function setdNdxOld(obj,dNdx)
@@ -254,49 +252,16 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function v = computeL2norm(obj)
-            s.type     = 'ScalarProduct';
-            s.quadType = 'QUADRATIC';
-            s.mesh     = obj.mesh;
-            int = Integrator.create(s);
-            ff  = int.compute(obj,obj);
-            v   = sqrt(ff);
+        function v = computeL2norm(obj)            
+            int = Integrator.compute(obj.*obj,obj.mesh,2);
+            v   = sqrt(int);
         end
 
-        function fdivF = computeFieldTimesDivergence(obj,xV)
-            fG  = obj.evaluate(xV);
-            dfG = obj.computeDivergence(xV);
-            fdivFG = bsxfun(@times,dfG.fValues,fG);
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues    = fdivFG;
-            fdivF = FGaussDiscontinuousFunction(s);
-        end
-
-        function divF = computeDivergence(obj,xV)
-            dNdx = obj.evaluateCartesianDerivatives(xV);
-            fV = obj.fValues;
-            nodes = obj.mesh.connec;
-            nNode = obj.mesh.nnodeElem;
-            nDim  = obj.mesh.ndim;
-            nGaus = size(xV,2);
-            divV = zeros(nGaus,obj.mesh.nelem);
-            for igaus = 1:nGaus
-                for kNode = 1:nNode
-                    nodeK = nodes(:,kNode);
-                    for rDim = 1:nDim
-                        dNkr = squeeze(dNdx(rDim,kNode,igaus,:));
-                        fkr = fV(nodeK,rDim);
-                        int(1,:) = dNkr.*fkr;
-                        divV(igaus,:) = divV(igaus,:) + int;
-                    end
-                end
-            end
-            s.quadrature = xV;
-            s.mesh       = obj.mesh;
-            s.fValues(1,:,:) = divV;
-            divF = FGaussDiscontinuousFunction(s);
-        end
+        function f = createOrthogonalVector(obj) %only in 2D and vector
+            f = obj.copy();
+            f.fValues(:,1) = obj.fValues(:,2);
+            f.fValues(:,2) = -obj.fValues(:,1);
+        end        
 
         function fFine = refine(obj,mFine) %Only for first order
             fNodes  = obj.fValues;
@@ -359,7 +324,6 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = obj2;
             end
-
             res.fValues = val1 - val2;
             s = res;
         end
@@ -369,16 +333,16 @@ classdef LagrangianFunction < FeFunction
             r.fValues = -a.fValues;
         end
 
-        function s = times(obj1,obj2)
-            s.operation = @(xV) obj1.evaluate(xV) .* obj2.evaluate(xV);
-            s.ndimf = max(obj1.ndimf,obj2.ndimf);
+        function s = times(f1,f2)
+            s.operation = @(xV) f1.evaluate(xV) .* f2.evaluate(xV);
+            s.ndimf = max(f1.ndimf,f2.ndimf);
             s = DomainFunction(s);
         end
 
-        function s = power(f,b)
-            res = copy(f);
-            res.fValues = f.fValues .^ b;
-            s = res;
+        function f = power(f1,b)
+            s.operation = @(xV) (f1.evaluate(xV)).^b;
+            s.ndimf = f1.ndimf;
+            f = DomainFunction(s);
         end
 
         function s = rdivide(f,b)
@@ -387,16 +351,16 @@ classdef LagrangianFunction < FeFunction
             s = res;
         end
 
-        function s = mrdivide(f,b)
-            res = copy(f);
-            res.fValues = f.fValues ./ b;
-            s = res;
+        function f = mrdivide(f1,f2)
+            s.operation = @(xV) f1.evaluate(xV)./f2.evaluate(xV);
+            s.ndimf = max(f1.ndimf,f2.ndimf);
+            f = DomainFunction(s);            
         end
 
-        function expF = exp(f)
+        function f = exp(f)
             s.operation = @(xV) exp(f.evaluate(xV));
             s.ndimf = f.ndimf;
-            expF = DomainFunction(s);
+            f = DomainFunction(s);
         end
 
     end
@@ -467,21 +431,25 @@ classdef LagrangianFunction < FeFunction
             gradF = pagemtimes(dNdx,fV);
         end
 
-        function curlF = computeCurlFun(obj,xV)
+        function divF = computeDivFun(obj,xV)
+            nP = size(xV,2);
             dNdx  = obj.evaluateCartesianDerivatives(xV);
             fV    = obj.getValuesByElem();
-            fV    = obj.createOrthogonal(fV);
             fV    = permute(fV,[1 2 4 3]);
-            gradF = pagemtimes(dNdx,fV);
-            divF  = squeeze(sum(gradF,1));
-            curlF  = divF;
+            fV    = pagetranspose(fV);
+            fV    = repmat(fV,[1 1 nP 1]);
+            divF(1,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), fV,dNdx));        
         end
 
-        function fP = createOrthogonal(obj,f)
-            fP = zeros(size(f));
-            fP(:,1,:) = f(:,2,:);
-            fP(:,2,:) = -f(:,1,:);
+        function lapF = computeLaplacianFun(obj,xV)
+            gradF = Grad(obj);
+            gradF = gradF.project('P1',obj.mesh);
+            lapF  = Divergence(gradF); 
+            t.project('P1',obj.mesh).plot()              
         end
+
+
+
 
 
        function fV = getValuesByElem(obj)
