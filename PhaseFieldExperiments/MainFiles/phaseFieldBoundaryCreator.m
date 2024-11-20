@@ -135,9 +135,6 @@ classdef phaseFieldBoundaryCreator < handle
              Dir1 = DirichletCondition(obj.mesh,sDir);
 
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
-             
-             
-
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [1];
              sDir.value     = uVal;
@@ -162,17 +159,20 @@ classdef phaseFieldBoundaryCreator < handle
              sDir.value     = 0;
              Dir1 = DirichletCondition(obj.mesh,sDir);
 
-             % Enforce displacement under tip
-             isInTip = @(coor) (abs(coor(:,2)-(max(coor(:,2))+min(coor(:,2)))/2) < 1e-12) & (abs(coor(:,1)-max(coor(:,1))) < 1e-12);
+             isInTip = @(coor) (abs(coor(:,2)-(max(coor(:,2))+min(coor(:,2)))/2) < 1e-12) & (abs(coor(:,1)-max(coor(:,1))) < 30);
+             sDir.domain    = @(coor) isInTip(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInTip(coor);
              sDir.direction = [2];
              sDir.value     = uVal;
-             Dir2 = DirichletCondition(obj.mesh,sDir);
+             Dir3 = DirichletCondition(obj.mesh,sDir);
 
              % Merge
              s.mesh = obj.mesh;
-             s.dirichletFun = [Dir1 Dir2];
+             s.dirichletFun = [Dir1 Dir2 Dir3];
              s.pointloadFun = [];
              s.periodicFun = [];
              obj.boundaryConditions = BoundaryConditions(s);

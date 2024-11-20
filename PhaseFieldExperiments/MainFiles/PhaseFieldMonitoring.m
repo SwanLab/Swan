@@ -4,8 +4,8 @@ classdef PhaseFieldMonitoring < handle
 
         function monitor = initialize(cParams)
             s.shallDisplay = cParams.shallDisplay;
-            s.mesh = cParams.mesh;
-            s.barLim = [0;1];
+            s.funs = [{cParams.fun}];
+            s.barLims = [{[0;1]}];
             switch cParams.type
                 case 'full'
                     s.maxNColumns = 3;

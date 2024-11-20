@@ -3,7 +3,7 @@ classdef PhaseFieldComputer < handle
     properties (Constant, Access = public)
         tolErrU = 1e-13;
         tolErrPhi = 1e-12;
-        tolErrStag = 1e-12;
+        tolErrStag = 1e-4;
     end
 
     properties (Access = private)
@@ -64,6 +64,7 @@ classdef PhaseFieldComputer < handle
                         costFun(2,end) = 0;
                         iter = iter+1;
                         obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        obj.monitor.refresh();
 
                     end
                     if iterU > iterUMax
@@ -110,6 +111,7 @@ classdef PhaseFieldComputer < handle
                         costFun(2,end) = 1;
                         iter = iter+1;
                         obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        obj.monitor.refresh();
                     end
                     if iterPhi > iterPhiMax
                         iterPhiMax = iterPhi;
@@ -125,6 +127,7 @@ classdef PhaseFieldComputer < handle
                     costFun(2,end) = 2;
                     iter = iter+1;
                     obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                    obj.monitor.refresh();
                 end
                 uOld = u;
                 phiOld = phi;
@@ -145,6 +148,7 @@ classdef PhaseFieldComputer < handle
                 displ = obj.boundaryConditions.bcValues(i);
                 obj.monitor.update(i,{[totF;displ],[max(phi.fValues);displ],[phi.fValues],...
                                     [iterStag-1],[],[totE],[]});
+                obj.monitor.refresh();
 
             end
         end
@@ -166,7 +170,7 @@ classdef PhaseFieldComputer < handle
         function setMonitoring(obj,cParams)
             s.shallDisplay = cParams.monitoring.set;
             s.type = cParams.monitoring.type;
-            s.mesh = obj.mesh;
+            s.fun = cParams.initPhi;
             obj.monitor = PhaseFieldMonitoring.initialize(s);
         end
 
@@ -231,15 +235,15 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%%%% AUXILIARY METHODS %%%%%%%%%%%%%%% %%
 
         function totReact = computeTotalReaction(obj,F)
-            UpSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
-            nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)-1));
-
-            % DownSide  = min(obj.mesh.coord(:,2));
-            % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            % UpSide  = max(obj.mesh.coord(:,2));
+            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             % nodes = 1:obj.mesh.nnodes;
-            % totReact = sum(F(2*nodes(isInDown)));
+            % totReact = sum(F(2*nodes(isInUp)-1));
+
+            DownSide  = min(obj.mesh.coord(:,2));
+            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            nodes = 1:obj.mesh.nnodes;
+            totReact = sum(F(2*nodes(isInDown)));
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
