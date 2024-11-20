@@ -80,8 +80,8 @@ classdef MultimaterialTesting < handle
         end
         
         function createMaterialInterpolator(obj) % WILL BE EDITED
-            E   = ConstantFunction.create(200E9,obj.mesh);
-            nu  = ConstantFunction.create(0.25,obj.mesh);
+            E   = ConstantFunction.create(1,obj.mesh);
+            nu  = ConstantFunction.create(1/3,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
@@ -92,11 +92,10 @@ classdef MultimaterialTesting < handle
             sC.CA        = tensorEv(:,:,1,1);
 
 
-            sC.E  = [200E9,100E9,50E9,0.2E9];
-            %sC.nu = [0.25,0.25,0.25,0.25];
-            sC.nu = 1/3*[1,1,1,1];
+            sC.E  = [1,0.5,0.25,1e-3];
+            sC.nu = (1/3)*[1,1,1,1];
 
-            E   = ConstantFunction.create(100E9,obj.mesh);
+            E   = ConstantFunction.create(0.5,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
@@ -106,7 +105,7 @@ classdef MultimaterialTesting < handle
             tensorEv  = tensor.evaluate([0;0]);
             sC.CB     = tensorEv(:,:,1,1);
 
-            E   = ConstantFunction.create(50E9,obj.mesh);
+            E   = ConstantFunction.create(0.25,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
@@ -116,7 +115,7 @@ classdef MultimaterialTesting < handle
             tensorEv  = tensor.evaluate([0;0]);
             sC.CC     = tensorEv(:,:,1,1);
 
-            E   = ConstantFunction.create(50E9,obj.mesh);
+            E   = ConstantFunction.create(1e-3,obj.mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;

@@ -117,7 +117,7 @@ classdef MultiMaterialInterpolation < handle
             Cm             = obj.elasticTensor{j};
             
             P              = obj.computeGradientCoefficientsMatrix(chi,i,j);
-            dC             = pagemtimes(Cm,P);
+            dC             = pagemtimes(C,P);
             dCij           = dC;
         end
 
