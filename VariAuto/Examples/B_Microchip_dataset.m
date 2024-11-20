@@ -18,13 +18,16 @@ disp('Datsets available:')
 for i = 1:length(datasets)
     fprintf('%d - %s \n',i,datasets(i))
 end
-fileN = 'Iris.csv';%datasets(input('Choose: '));
+fileN = 'Microchip.csv';%datasets(input('Choose: '));
 
 s.features = 1:2;
 s.fileName        = fileN;
 s.testRatio       = testratio;
 s.polynomialOrder = pol_deg;
 data  = Data(s);
+
+%% Initial visualization
+plot(data.Xtrain(:,1), data.Xtrain(:,2),'o')
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
@@ -40,18 +43,16 @@ p.networkParams.hiddenLayers = hiddenlayers;
 
 optProblem   = OptimizationProblem(p);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;
-% opt.maxepochs     = 100    ; opt.earlyStop     = 10;
+% optProblem.maxepochs     = 100; 
+% opt.earlyStop     = 10;
 % opt.time          = Inf([1,1]); opt.fv         = 10^-4;
 % nplt              = 1;
 % optimizer       = Trainer.create(network,'SGD',learningRate,momentum,batch,opt,'static',nplt);
 
 optProblem.solve();
 %% RUN & Possible functions
-% optProblem.plotCostFnc();
-optProblem.plotConections();
+optProblem.plotCostFnc();
+% optProblem.plotConections(); NOT WORKING
 % optProblem.plotBoundary('contour'); NOT WORKING
-% optProblem.plotSurface();
-% optProblem.plotConfusionMatrix();
-
-
-
+% optProblem.plotSurface(); NO ENTIENDO UTILIDAD
+optProblem.plotConfusionMatrix();

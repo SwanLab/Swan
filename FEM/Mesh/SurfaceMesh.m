@@ -48,9 +48,9 @@ classdef SurfaceMesh < Mesh
             n = obj.computeNormals(quad.posgp);
         end
         
-        function plot(obj) %Black
-            faceColor = "red";
-            faceAlpha = 0.3;
+        function plot(obj) 
+            faceColor = "black"; %red
+            faceAlpha = 1; %0.3
             edgeAlpha = 0.5;
             if size(obj.connec,2) == 3 && size(obj.coord,2) == 3
                 x = obj.coord(:,1);
@@ -70,6 +70,9 @@ classdef SurfaceMesh < Mesh
                 p.FaceAlpha = faceAlpha;
                 p.LineWidth = 1.5;
                 axis('equal');
+                axis off
+                xlabel('x');
+                ylabel('y');
                 hold on
             end
         end

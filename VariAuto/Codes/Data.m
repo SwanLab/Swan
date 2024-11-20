@@ -2,8 +2,9 @@ classdef Data < handle
 
     properties (Access = public)
         nFeatures
+        nSamples
         nLabels
-        
+        polyGrade
         Xtrain
         Ytrain       
         Xtest
@@ -12,12 +13,12 @@ classdef Data < handle
     end
 
     properties (Access = private)
-        polynomialOrder
         X
         Y
         data
         fileName
         testRatio
+        features
     end
 
     methods (Access = public)
@@ -25,9 +26,8 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
-            obj.splitdata()
-            obj.nLabels   = size(obj.Ytrain,2);                        
-            obj.nFeatures = size(obj.Xtrain,2);            
+            obj.buildModel();
+            obj.splitdata();
         end
 
         function plotdata(self,i,j)
@@ -66,8 +66,8 @@ classdef Data < handle
                    obj.testRatio = h.value;
                    obj.splitdata()
                case 'polyGrade'
-                   obj.polynomialOrder = h.value;
-                   obj.buildModel(obj.X,obj.polynomialOrder);
+                   obj.polyGrade = h.value;
+                   obj.buildModel(obj.X,obj.polyGrade);
            end
         end
     end
@@ -77,53 +77,92 @@ classdef Data < handle
         function init(obj,cParams)
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
-            obj.polynomialOrder = cParams.polynomialOrder;
+            obj.polyGrade       = cParams.polynomialOrder;
+            obj.features        = cParams.features;
         end
 
         function loadData(obj)
-            f = fullfile('../Datasets/',obj.fileName);
-            %if obj.skipHeader == true
-            %obj.data = load(f);
+            f = obj.fileName;
             obj.data = readmatrix(f);
-            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
-            x = obj.data(:, feat);
+       %     fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
+       %     feat = input(' ');
+            xfeat = obj.features;
+            x = obj.data(:, xfeat);
+            yfeat = xfeat(end)+1:size(obj.data,2);
+            y = obj.data(:, yfeat);
+            obj.X = x;
+            obj.Y = y;
+            obj.nLabels   = size(obj.Y,2);                        
+            obj.nFeatures = size(obj.X,2);
+            obj.nSamples  = size(obj.X,1);
 
             % IDENTIFIER
             % ydata = obj.data(:, end);
             % y = zeros(length(ydata),max(ydata));
 
-            ydata = obj.data(:, feat);
-            y = zeros(length(ydata),width(ydata));
-            
-            u = unique(ydata);
-            for i=1:length(ydata)
-                for j = 1:length(u)
-                    if ydata(i) == u(j)
-                        y(i,j) = 1;
-                    end
-                end
-            end
-            
-            obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            % obj.Y = y;
-            obj.Y = obj.X;
+%             ydata = obj.data(:, feat);
+%             y = zeros(length(ydata),width(ydata));
+%             
+%             u = unique(ydata);
+%             for i=1:length(ydata)
+%                 for j = 1:length(u)
+%                     if ydata(i) == u(j)
+%                         y(i,j) = 1;
+%                     end
+%                 end
+%             end
+%             
+%             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
+%             % obj.Y = y;
+%             obj.Y = obj.X;
         end
-        
 
         function Xful = buildModel(obj)
-            x  = obj.X;
-            d  = obj.polynomialOrder;
-            x1 = x(:,1);
-            x2 = x(:,2);
-            cont = 1;
-            for g = 1:d
-                for a = 0:g
-                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
-                    cont = cont+1;
+            % Generation of all the possible exponent combinations
+            exponents = [];
+            for tD = obj.polyGrade:-1:1
+                newDeg    = obj.generateExponents(tD);
+                exponents = [exponents; newDeg];
+            end
+            exponents = flip(exponents,1);
+            
+            % Initialization of the output matrix
+            Xful = zeros(obj.nSamples, size(exponents,1));
+            
+            % Double loop to cover all the possible polynomials
+            for i = 1:size(exponents,1)
+                auxTerm = ones(obj.nSamples,1);
+                for j = 1:obj.nFeatures
+                    auxTerm = auxTerm.*(obj.X(:,j).^exponents(i,j));
                 end
+                Xful(:,i) = auxTerm;
             end
             obj.X = Xful;
+        end
+        
+        function exponents = generateExponents(obj,targetDeg)
+            % Initialization of parameters
+            exponents = [];
+            currentExponents = zeros(1, obj.nFeatures);
+            initialIndex = 1;
+            
+            % Calculation of the possible exponents for the target degree
+            exponents = obj.generateExponentsRecursive(targetDeg,initialIndex,currentExponents,exponents);
+        end
+        
+        function exponents = generateExponentsRecursive(obj,targetDeg,currentIndex,currentExponents,exponents)
+            % Assignation of exponents for the base case
+            if currentIndex == obj.nFeatures
+                currentExponents(currentIndex) = targetDeg;
+                exponents = [exponents; currentExponents];
+            else
+                % Recursion to search for the possibile combinations which
+                % sum the polynomial degree target
+                for i = 0:targetDeg
+                    currentExponents(currentIndex) = i;
+                    exponents = obj.generateExponentsRecursive(targetDeg - i, currentIndex + 1, currentExponents, exponents);
+                end
+            end
         end
 
         function splitdata(obj)

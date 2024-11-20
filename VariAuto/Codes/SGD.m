@@ -30,7 +30,7 @@ classdef SGD < Trainer
             obj.Xtest  = s.Xtest;
             obj.Ytest  = s.Ytest;
             obj.maxFunEvals  = 5000;
-            obj.optTolerance = 10^(-6);
+            obj.optTolerance = 10^(-8);
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 10^(-4);
             obj.nPlot       = 1;
@@ -39,7 +39,7 @@ classdef SGD < Trainer
             else
                 obj.batchSize    = size(obj.Xtrain,1);
             end
-            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
+            obj.MaxEpochs   = 1000; %obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
@@ -55,9 +55,10 @@ classdef SGD < Trainer
 
         function plotCostFunc(obj)
             figure(3);
-            epoch = 1:obj.MaxEpochs;
+            % epoch = 1:obj.MaxEpochs;
+            epoch = 1:length(obj.fplot);
             % plot(epoch,obj.fplot,'-o');
-            plot(epoch,obj.fplot);
+            plot(epoch,obj.fplot,'LineWidth',1.8);
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
@@ -129,6 +130,7 @@ classdef SGD < Trainer
                 fprintf('The operation terminated excepcionally\n')
             end
             F(th,Xb,Yb);
+            th
         end
 
         function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,Xb,Yb)
