@@ -29,7 +29,7 @@ classdef PhaseFieldPlotter < handle
         function init(obj,cParams)
             obj.damage = cParams.damage.maxValue;
             obj.damageField = cParams.damage.field;
-            obj.displacement = cParams.displacement;
+            obj.displacement = cParams.displacement.value;
             obj.reaction = cParams.reaction;
             obj.energy = cParams.energy;
             obj.iter = cParams.iter;
@@ -126,16 +126,15 @@ classdef PhaseFieldPlotter < handle
         function plotCost(obj)
             figure()
             hold on
-            % for n = 2:size(obj.costFun,2)
-            %     if obj.costFun(2,n) == 0
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
-            %     elseif obj.costFun(2,n) == 1
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
-            %     elseif obj.costFun(2,n) == 2
-            %         plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
-            %     end
-            % end
-            plot(obj.costFun(1,:))
+            for n = 2:size(obj.costFun,2)
+                if obj.costFun(2,n) == 0
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'b')
+                elseif obj.costFun(2,n) == 1
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'r')
+                elseif obj.costFun(2,n) == 2
+                    plot([n-1, n],[obj.costFun(1,n-1), obj.costFun(1,n)],'k')
+                end
+            end
             title('Cost Function')
             xlabel('Iteration [-]')
             ylabel('Energy [J]')

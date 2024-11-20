@@ -15,7 +15,7 @@ classdef MaterialPhaseField < Material
 
         function C = obtainTensor(obj,phi)
             f    = obj.degradation.fun;
-            degFun = obj.computeDegradationFun(f,phi); 
+            degFun = obj.computeDegradationFun(f,phi);
             C{1} = obj.createDegradedMaterial(degFun);
         end
 

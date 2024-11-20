@@ -1,6 +1,10 @@
 clc,clear,close all
 
-s.monitoring.set = true;
+% load("SEN1e-3_0.0015_1e-12.mat")
+% s.initialGuess.u = outputData.displacement.field;
+% s.initialGuess.phi = outputData.damage.field;
+
+s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 s.benchmark.type.mesh = 'Lshape';%'1Elem';
@@ -19,7 +23,7 @@ s.l0 = 5;
 
 tester = TestingPhaseField(s);
 outputData = tester.compute();
-save("SEN1e-5_0.0015_1e-12.mat","outputData") %ACTIVATE TO SAVE DATA!
+%save("SEN1e-5_0.0015_1e-12.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);
 

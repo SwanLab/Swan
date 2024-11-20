@@ -9,7 +9,7 @@ classdef PhaseFieldComputer < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        initPhi
+        initialGuess
         functional
     end
 
@@ -26,8 +26,8 @@ classdef PhaseFieldComputer < handle
         end
 
         function output = compute(obj)
-            u = LagrangianFunction.create(obj.mesh,2,'P1');
-            phi = obj.initPhi;
+            u   = obj.initialGuess.u;
+            phi = obj.initialGuess.phi;
             uOld = u;
             phiOld = phi;
           
@@ -160,7 +160,7 @@ classdef PhaseFieldComputer < handle
         %% %%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function init(obj,cParams)
             obj.mesh                = cParams.mesh;
-            obj.initPhi             = cParams.initPhi;
+            obj.initialGuess        = cParams.initialGuess;
             obj.boundaryConditions  = cParams.boundaryConditions;
             obj.functional          = cParams.functional;
             obj.shallPrint          = cParams.monitoring.print;
@@ -170,7 +170,7 @@ classdef PhaseFieldComputer < handle
         function setMonitoring(obj,cParams)
             s.shallDisplay = cParams.monitoring.set;
             s.type = cParams.monitoring.type;
-            s.fun = cParams.initPhi;
+            s.fun = obj.initialGuess.phi;
             obj.monitor = PhaseFieldMonitoring.initialize(s);
         end
 
@@ -265,7 +265,8 @@ classdef PhaseFieldComputer < handle
             fExt = cParams.bc.pointloadFun;
 
             data.reaction(step) = obj.computeTotalReaction(cParams.F);
-            data.displacement(step) = obj.boundaryConditions.bcValues(step);
+            data.displacement.value(step) = obj.boundaryConditions.bcValues(step);
+            data.displacement.field = cParams.u;
             data.damage.maxValue(step) = max(cParams.phi.fValues);
             data.damage.field = cParams.phi;
 
@@ -278,9 +279,6 @@ classdef PhaseFieldComputer < handle
             data.iter.stag(step) = cParams.numIterStag;
             data.cost = cParams.cost;
             data.tau = cParams.tauArray;
-
-            data.restart.displacement = cParams.u;
-            data.restart.damage = cParams.phi;
         end
 
     end

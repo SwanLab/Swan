@@ -11,7 +11,7 @@ classdef TestingPhaseField < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        initialPhaseField
+        initialGuess
         functional
     end
 
@@ -20,14 +20,14 @@ classdef TestingPhaseField < handle
         function obj = TestingPhaseField(cParams)
             obj.init(cParams) 
             obj.defineCase();
-            obj.createInitialPhaseField();
+            obj.createInitialGuess(cParams);
             obj.createPhaseFieldFunctional()
         end
 
         function outputData = compute(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
-            s.initPhi = obj.initialPhaseField;
+            s.initialGuess = obj.initialGuess;
             s.monitoring = obj.monitoring;
             s.functional = obj.functional;
             PFComp = PhaseFieldComputer(s);
@@ -60,10 +60,17 @@ classdef TestingPhaseField < handle
             obj.functional = ShFunc_BrittlePhaseField(s);
         end
 
-        function createInitialPhaseField(obj)
-            phi = LagrangianFunction.create(obj.mesh,1,'P1');
-            %phi.fValues(:) = 1e-12;
-            obj.initialPhaseField = phi;
+        function createInitialGuess(obj,cParams)
+            if isfield(cParams,'initialGuess')
+                obj.initialGuess.u = cParams.initialGuess.u;
+                obj.initialGuess.phi = cParams.initialGuess.phi;
+            else
+                u = LagrangianFunction.create(obj.mesh,2,'P1');
+                phi = LagrangianFunction.create(obj.mesh,1,'P1');
+                %phi.fValues(:) = 1e-12;
+                obj.initialGuess.u = u;
+                obj.initialGuess.phi = phi;
+            end
         end
 
         function material = createMaterialPhaseField(obj)
