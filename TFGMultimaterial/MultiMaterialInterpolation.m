@@ -50,12 +50,17 @@ classdef MultiMaterialInterpolation < handle
             dkSeba = dkappa{4,1};
             error1 = (dkSeba - dkappa14) ./ dkappa14;
             error1 = error1.project('P1',rho{1}.mesh);
-            error1 = sum(error1.fValues);
+            
+            errorNorm1 = error1.computeL2norm();
+            dmu14M = Mean(dmu14,rho{1}.mesh,2)
+            dKappa14M = Mean(dkappa14,rho{1}.mesh,2)
 
             dmSeba = dmu{4,1};
             error2 = (dmSeba - dmu14) ./ dmu14;
             error2 = error2.project('P1',rho{1}.mesh);
-            error2 = sum(error2.fValues);
+            errorNorm2 = error2.computeL2norm()
+            dmSebaM = Mean(dmSeba,rho{1}.mesh,2)
+            dKappaSebaM = Mean(dkSeba,rho{1}.mesh,2)
 
 
             [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
@@ -84,7 +89,7 @@ classdef MultiMaterialInterpolation < handle
 
         function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi,i,j)
             chiVal = obj.splitCellIntoValues(chi);
-            nu    = 0.25; % !!!
+            nu    = 1/3; % !!!
             alpha  = (1+nu)/(1-nu);
             beta = (3-nu)/(1+nu);
             E     = obj.youngVec;
@@ -112,7 +117,7 @@ classdef MultiMaterialInterpolation < handle
             Cm             = obj.elasticTensor{j};
             
             P              = obj.computeGradientCoefficientsMatrix(chi,i,j);
-            dC             = pagemtimes(C,P);
+            dC             = pagemtimes(Cm,P);
             dCij           = dC;
         end
 

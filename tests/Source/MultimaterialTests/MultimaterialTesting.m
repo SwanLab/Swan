@@ -93,7 +93,8 @@ classdef MultimaterialTesting < handle
 
 
             sC.E  = [200E9,100E9,50E9,0.2E9];
-            sC.nu = [0.25,0.25,0.25,0.25];
+            %sC.nu = [0.25,0.25,0.25,0.25];
+            sC.nu = 1/3*[1,1,1,1];
 
             E   = ConstantFunction.create(100E9,obj.mesh);
             s.type    = 'ISOTROPIC';
