@@ -23,7 +23,7 @@ classdef RichardsonSolver < handle
             r = B - A(x);      
             z = P(r);
             while norm(r) > tol
-                tau = linesearch(r,A);
+                tau = 1*linesearch(r,A);
                 x = x + tau * z;
                 r = B - A(x); 
                 z = P(r);
@@ -31,7 +31,8 @@ classdef RichardsonSolver < handle
                 iter = iter + 1;
                 residual(iter) = norm(r); %Ax - b
                 err(iter)=norm(x-xsol);
-                errAnorm(iter)=((x-xsol)')*A(x-xsol);                
+                errAnorm(iter)=((x-xsol)')*A(x-xsol);  
+                %norm(r)
             end        
 
         end
