@@ -31,6 +31,10 @@ s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
 s.costParams.lambda             = lambda;
 
+s.networkParams.costType = 'L2';
+s.networkParams.HUtype = 'ReLU';
+s.networkParams.OUtype = 'linear';
+
 % Select the model's features
 s.xFeatures = [1, 2];
 s.yFeatures = [3, 4, 5, 6];
@@ -51,7 +55,7 @@ filePath = fullfile('..', 'Datasets', s.fileName);
 tempData = readmatrix(filePath);
 
 % Preallocate and evaluate y_data vector
-yData = cell2mat(arrayfun(@(i) opt.eval(tempData(i, 1:2)), 1:size(tempData, 1), 'UniformOutput',false)');
+yData = cell2mat(arrayfun(@(i) opt.computeOutputValues(tempData(i, 1:2)), 1:size(tempData, 1), 'UniformOutput',false)');
 
 % Determine grid size for reshaping data
 gridSize = floor(sqrt(size(tempData, 1)));
@@ -91,3 +95,11 @@ end
 
 % Adjust figure size and position
 hfig.Position = [100 100 1000 600];
+
+%% Compute error
+
+Ytest_error = opt.computeOutputValues(data.Xtest) - data.Ytest;
+L2test_error = zeros(1, size(Ytest_error, 2));
+for i = 1:size(Ytest_error, 2)
+    L2test_error(i) = norm(Ytest_error(:, i));
+end

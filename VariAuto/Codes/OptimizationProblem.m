@@ -58,11 +58,6 @@ classdef OptimizationProblem < handle
            yOut = obj.network.computeYOut(X);
        end
 
-       % Canvi Pau: added eval per avaluar forwardprop
-       function out = eval(obj, Xin)
-           out = obj.network.assess(Xin);
-       end
-
    end
 
    methods (Access = private)

@@ -25,24 +25,6 @@ classdef Network < handle
             obj.createLearnableVariables();
         end
 
-        % Change Pau: S'ha afegir assess per calcular fw_prop sense el cost
-        function out = assess(obj,Xb)
-            [W,b] = obj.learnableVariables.reshapeInLayerForm();
-            nLy = obj.nLayers;
-            a = cell(nLy,1);
-            a{1} = Xb;
-            for i = 2:nLy
-                g_prev = a{i-1};
-                Wi = W{i-1};
-                bi = b{i-1};
-                h = obj.hypothesisfunction(g_prev,Wi,bi);
-                [g,~] = obj.actFCN(h,i);
-                a{i} = g;
-            end
-            obj.a_fcn = a;
-            out = obj.a_fcn{end};
-        end
-
         function c = forwardprop(obj,Xb,Yb)
             obj.computeAvalues(Xb);
             yOut  = obj.aValues{end}; 
@@ -202,10 +184,10 @@ classdef Network < handle
                     g = z;
                     g_der = ones(size(z));
                 otherwise
-                    g = z;
-                    g_der = ones(size(z));
-                    %msg = [type,' is not a valid activation function'];
-                    %error(msg)
+                    %g = z;
+                    %g_der = ones(size(z));
+                    msg = [type,' is not a valid activation function'];
+                    error(msg)
             end
         end
 
