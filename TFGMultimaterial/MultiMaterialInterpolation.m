@@ -42,30 +42,36 @@ classdef MultiMaterialInterpolation < handle
 
 
             rho = x{2};
-            I   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
+            m = rho{1}.mesh;
+            I   = LagrangianFunction.create(m,1,'P1');
             I.fValues(:) = 1;
-            Z   = LagrangianFunction.create(rho{1}.mesh,1,'P1');
+            Z   = LagrangianFunction.create(m,1,'P1');
 
+            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
+            [dmu13,dkappa13] = obj.simpAlls.m13.computeConsitutiveTensorDerivative(I);
             [dmu14,dkappa14] = obj.simpAlls.m14.computeConsitutiveTensorDerivative(I);
-            dkSeba = dkappa{4,1};
-            error1 = (dkSeba - dkappa14) ./ dkappa14;
-            error1 = error1.project('P1',rho{1}.mesh);
-            
-            errorNorm1 = error1.computeL2norm();
-            dmu14M = Mean(dmu14,rho{1}.mesh,2)
-            dKappa14M = Mean(dkappa14,rho{1}.mesh,2)
+            [dmu23,dkappa23] = obj.simpAlls.m23.computeConsitutiveTensorDerivative(I);
+            [dmu24,dkappa24] = obj.simpAlls.m24.computeConsitutiveTensorDerivative(I);
+            [dmu34,dkappa34] = obj.simpAlls.m34.computeConsitutiveTensorDerivative(I);
 
-            dmSeba = dmu{4,1};
-            error2 = (dmSeba - dmu14) ./ dmu14;
-            error2 = error2.project('P1',rho{1}.mesh);
-            errorNorm2 = error2.computeL2norm()
-            dmSebaM = Mean(dmSeba,rho{1}.mesh,2)
-            dKappaSebaM = Mean(dkSeba,rho{1}.mesh,2)
+            ratio12K = Mean(    dkappa{1,2}./dkappa12   ,m,2);
+            ratio13K = Mean(    dkappa{1,3}./dkappa13   ,m,2);
+            ratio14K = Mean(    dkappa{1,4}./dkappa14   ,m,2);
+            ratio23K = Mean(    dkappa{2,3}./dkappa23   ,m,2);
+            ratio24K = Mean(    dkappa{2,4}./dkappa24   ,m,2);
+            ratio34K = Mean(    dkappa{3,4}./dkappa34   ,m,2);
+
+            ratio12m = Mean(    dmu{1,2}./dmu12         ,m,2);
+            ratio13m = Mean(    dmu{1,3}./dmu13         ,m,2);
+            ratio14m = Mean(    dmu{1,4}./dmu14         ,m,2);
+            ratio23m = Mean(    dmu{2,3}./dmu23         ,m,2);
+            ratio24m = Mean(    dmu{2,4}./dmu24         ,m,2);
+            ratio34m = Mean(    dmu{3,4}./dmu34         ,m,2); % All fine but different sign
 
 
-            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
-            ratio2 = (   (10/3 * obj.youngVec(2)*dkappa{2,1})   ./    dkappa12   );
-            ratio2 = ratio2.project('P1',rho{1}.mesh);
+            [dmu21,dkappa21] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
+            ratio21K = Mean(    dkappa{2,1}./dkappa21   ,m,2);
+            ratio21m = Mean(    dmu{2,1}./dmu21         ,m,2); % Here all fine, even the sign
         end
 
     end
@@ -112,21 +118,10 @@ classdef MultiMaterialInterpolation < handle
         end
 
         function dCij = computeTensorDerivativeIJ(obj,chi,C2,i,j)
-            chiVal         = obj.splitCellIntoValues(chi);
-            C              = obj.computeC(chiVal);
-            Cm             = obj.elasticTensor{j};
-            
-            P              = obj.computeGradientCoefficientsMatrix(chi,i,j);
-            dC             = pagemtimes(C,P);
-            dCij           = dC;
-        end
-
-        function Cv = computeC(obj,chiVal)
-            C      = obj.elasticTensor{1};            
-            nElem  = size(chiVal,2);            
-            tgamma = obj.computeTgamma3(chiVal);
-            Cv     = repmat(C,[1 1 nElem]);
-            Cv     = Cv.*tgamma;                        
+            Cm     = obj.elasticTensor{i};
+            P      = obj.computeGradientCoefficientsMatrix(chi,i,j);
+            dC     = pagemtimes(Cm,P);
+            dCij   = dC;
         end
 
         function tgamma3 = computeTgamma3(obj,chiVal)
