@@ -12,8 +12,8 @@ classdef ContinuumDamageComputer < handle
         tolerance = 1e-5
         quadOrder
 
-        H = 0.01
-        r0 = 0.1
+        H = 0.5
+        r0 = (4.0e-1)/sqrt(3e4)
 
         ElasticFun
         ExternalWorkFun
@@ -34,33 +34,36 @@ classdef ContinuumDamageComputer < handle
             
             rNew = ConstantFunction.create(obj.r0,obj.mesh);
             
-            errorU = 1;
+            errorE = 1;
             fExt = obj.boundaryConditions.pointloadFun;
 
             EnergyOld = -1e5; %something unlikely
 
-            while (errorU >= obj.tolerance)
+            while (errorE >= obj.tolerance)
                 LHS = obj.computeLHS(u,rNew);
                 RHS = obj.computeRHS(u,rNew);
-                uNew = obj.computeU(LHS,RHS,u,bc);
+                [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
 
                 EnergyNew = obj.TotalEnergyFun.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
 
-                errorU = max(max(abs(EnergyNew-EnergyOld)));
+                errorE = max(max(abs(EnergyNew-EnergyOld)));
 
                 EnergyOld = EnergyNew;
                 u.fValues = uNew;
                 rOld = rNew;
-                rNew = obj.ElasticFun.newState(rOld,u);
+                
+                rNew = obj.ElasticFun.newState(rOld,u);              
+                fprintf('Error: %d \n',errorE);
 
-                fprintf('Error: %d \n',errorU);
             
             end
             data.displacement = u;
-            fExt = obj.boundaryConditions.pointloadFun;
+            %fExt = obj.boundaryConditions.pointloadFun;
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
             data.TotalEenrgy = EnergyNew;
             data.damage = obj.ElasticFun.computeDamage(rNew);
+            data.reactions = obj.computeReactions (u,uNewVec,LHS);
+            
         end
     end
 
@@ -84,7 +87,18 @@ classdef ContinuumDamageComputer < handle
             %obj.ElasticFun = shFunc_Elastic(s);
 
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
-            obj.TotalEnergyFun = shFunc_TotalEnergy(s)
+            obj.TotalEnergyFun = shFunc_TotalEnergy(s);
+        end
+
+        function Reac = computeReactions (obj, uLagrangian, u, LHS)
+           
+            R = LHS*u;
+            R(obj.boundaryConditions.free_dofs) = 0;
+            
+            Rout = reshape(R,[flip(size(uLagrangian.fValues))])';
+            Reac = LagrangianFunction.create(obj.mesh,2,'P1');
+            
+            Reac.fValues = Rout;
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
@@ -112,7 +126,7 @@ classdef ContinuumDamageComputer < handle
             F = Fint - Fext;
         end
 
-        function uOut = computeU(obj,LHS,RHS,uIn,bc)            
+        function [uOut,uOutVec] = computeU(obj,LHS,RHS,uIn,bc)            
             RHS = RHS(bc.free_dofs);
             LHS = LHS(bc.free_dofs,bc.free_dofs);
 
