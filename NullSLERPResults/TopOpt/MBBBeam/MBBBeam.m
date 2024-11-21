@@ -13,12 +13,13 @@ classdef MBBBeam < handle
         dualVariable
         optimizer
         gJ
+        etaM
     end
 
     methods (Access = public)
 
-        function obj = MBBBeam(gJPar)
-            obj.init(gJPar)
+        function obj = MBBBeam(gJPar,etaMax)
+            obj.init(gJPar,etaMax)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -31,15 +32,19 @@ classdef MBBBeam < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            saveas(gcf,['NullSLERPResults/TopOpt/MBBBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ',num2str(obj.gJ),'V0d4.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MBBBeam/FinalResults_NoOscillations/gJ',num2str(obj.gJ),'_V0d4_fValues']);
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj,gJPar)
+        function init(obj,gJPar,etaMax)
             close all;
-            obj.gJ = gJPar;
+            obj.gJ   = gJPar;
+            obj.etaM = etaMax;
         end
 
         function createMesh(obj)
@@ -60,7 +65,7 @@ classdef MBBBeam < handle
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = true;
+            s.plotting = false;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -168,14 +173,13 @@ classdef MBBBeam < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
+            s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.gJ;
-            s.etaMax         = Inf;
-            s.etaMaxMin      = [];
-            s.tauMax         = 1000;
+            s.etaMaxMin      = obj.etaM;
+            s.etaMax         = obj.etaM;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
