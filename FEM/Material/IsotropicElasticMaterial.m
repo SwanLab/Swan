@@ -1,6 +1,6 @@
 classdef IsotropicElasticMaterial < Material
     
-    properties (SetAccess = private, GetAccess = private)
+    properties (SetAccess = private, GetAccess = public)
         young
         poisson
         bulk
