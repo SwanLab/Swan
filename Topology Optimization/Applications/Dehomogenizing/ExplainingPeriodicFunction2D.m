@@ -33,7 +33,7 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.05;
+            obj.meshSize = 0.03;
             obj.nCells   = [10 10; 20 20];
             obj.xmin = 0;
             obj.xmax = 2;
@@ -75,9 +75,9 @@ classdef ExplainingPeriodicFunction2D < handle
         function f = createAlphaValues(obj,x)
             x1 = x(1,:,:);
             x2 = x(2,:,:);
-            x10 = (max(x1)+min(x1))/2;
+            x10 = (max(x1(:))+min(x1(:)))/2;
             x20 = 0;            
-            f = atan2(x2 -x20 +0.1*(max(x2)),x1-x10);
+            f = atan2(x2-x20 +0.1*(max(x2)),x1-x10);
             isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
             f(isLeft) = f(isLeft) + pi;
         end
@@ -104,30 +104,9 @@ classdef ExplainingPeriodicFunction2D < handle
             end
         end
 
-        function plotOrientation(obj)
-            %    figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            t  = obj.orientation{1}.fValues;
-            ct = (t(:,1));
-            st = (t(:,2));
-            % quiver(x,y,ct,st,'AutoScale', 'on')
-
-            n = 4;  % Modify this value to control density
-            x = x(1:n:end);
-            y = y(1:n:end);
-            ct = ct(1:n:end);
-            st = st(1:n:end);
-
-
-            figure;
-            quiver(x, y, ct, st, 'AutoScale', 'on', 'LineWidth', 1.5);  % Increase LineWidth for thicker arrows
-
-            axis equal;  % Keep aspect ratio equal
-            %    grid on;
-            box on;      % Adds a box around the plot
-            xlim([min(x), max(x)]);
-            ylim([min(y), max(y)]);
+        function plotOrientation(obj,varargin)
+            obj.orientation{1}.project('P1',obj.mesh).plotVector();
+            obj.orientation{2}.project('P1',obj.mesh).plotVector();
         end
 
         function s = createLevelSetCellParams(obj)

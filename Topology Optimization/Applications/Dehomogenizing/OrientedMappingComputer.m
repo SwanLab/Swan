@@ -49,7 +49,7 @@ classdef OrientedMappingComputer < handle
             nnode = obj.mesh.nnodeElem;
             nElem = obj.mesh.nelem;
             isCoh = false(nnode,nElem);
-            a1D   = obj.orientation{1}.project('P1D'); 
+            a1D   = obj.orientation{1}.project('P1D',obj.mesh); 
             a1    = a1D.getFvaluesDisc();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
