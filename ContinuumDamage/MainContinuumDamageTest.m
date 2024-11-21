@@ -4,16 +4,16 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 1;
-cParams.mesh.meshM = 1;
+cParams.mesh.meshN = 30;
+cParams.mesh.meshM = 30;
 
 
 
 cParams.material.E = 1;
-cParams.material.nu = 0;
+cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'forceTraction'; %'FORCE'
-cParams.bc.bcVal = 10;
+cParams.bc.bcVal = 1;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';

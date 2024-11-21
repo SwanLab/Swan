@@ -8,8 +8,8 @@ classdef ContinuumDamageComputer < handle
     end
 
     properties (Access = private)
-        tau = 50
-        tolerance = 1e-10
+        tau = 0.1
+        tolerance = 1e-5
         quadOrder
 
         H = 0.01
@@ -35,12 +35,20 @@ classdef ContinuumDamageComputer < handle
             rNew = ConstantFunction.create(obj.r0,obj.mesh);
             
             errorU = 1;
+            fExt = obj.boundaryConditions.pointloadFun;
+
+            EnergyOld = -1e5; %something unlikely
+
             while (errorU >= obj.tolerance)
                 LHS = obj.computeLHS(u,rNew);
                 RHS = obj.computeRHS(u,rNew);
                 uNew = obj.computeU(LHS,RHS,u,bc);
-                errorU = max(max(abs(u.fValues-uNew)));
-                
+
+                EnergyNew = obj.TotalEnergyFun.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
+
+                errorU = max(max(abs(EnergyNew-EnergyOld)));
+
+                EnergyOld = EnergyNew;
                 u.fValues = uNew;
                 rOld = rNew;
                 rNew = obj.ElasticFun.newState(rOld,u);
@@ -51,7 +59,7 @@ classdef ContinuumDamageComputer < handle
             data.displacement = u;
             fExt = obj.boundaryConditions.pointloadFun;
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
-            data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
+            data.TotalEenrgy = EnergyNew;
             data.damage = obj.ElasticFun.computeDamage(rNew);
         end
     end
@@ -112,8 +120,8 @@ classdef ContinuumDamageComputer < handle
             uOutVec = uInVec;
 
             uInFree = uInVec(bc.free_dofs);
-            %uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-            uOutFree = obj.updateWithGradient(RHS,uInFree);
+            uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
+            %uOutFree = obj.updateWithGradient(RHS,uInFree);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
