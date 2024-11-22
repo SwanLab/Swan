@@ -42,7 +42,7 @@ classdef EIFEMtesting < handle
             RHSf = RHS;
             Usol = LHS\RHS;
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
-            obj.plotSolution(Ufull,obj.meshDomain,1,1,0,0)
+            %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
 
             Mid          = @(r) r;
@@ -53,7 +53,7 @@ classdef EIFEMtesting < handle
             Mmodal       = obj.createModalpreconditioner(LHS);
             %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
-            MiluCG = @(r) Preconditioner.InexactCG(r,LHSf,Milu);
+            MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             tol = 1e-8;
             tic
@@ -67,18 +67,18 @@ classdef EIFEMtesting < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
+            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             zmult = Mmult(r);
             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            obj.plotSolution(zfull,obj.meshDomain,0,0,2,0)
+            %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
 
             zeifem = Meifem(r);
             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
-            obj.plotSolution(zfull,obj.meshDomain,0,0,1,0)
-            x0 = zmult;
+            %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
+           % x0 = zmult;
             tic
             %           tau = @(r,A) 1;
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
 
@@ -116,9 +116,9 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [5 5]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            %             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.nSubdomains  = [10 2]; %nx ny
+            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-14;
         end
 
@@ -430,7 +430,14 @@ classdef EIFEMtesting < handle
     end
 
     methods (Static, Access = public)
-        function plotSolution(x,mesh,row,col,iter,flag)
+
+
+        function J = computeTotalEnergy(x,A,b)
+            J = 0.5*x'*A(x)-b'*x;
+        end
+
+        function plotSolution(x,mesh,row,col,iter,bcApplier,flag)
+            x = bcApplier.reducedToFullVectorDirichlet(x);
             if nargin <7
                 flag =0;
             end

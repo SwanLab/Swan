@@ -25,13 +25,24 @@ classdef Preconditioner < handle
         end
 
 
-        function z = multiplePrec(r,P1,P2,P3,A)
+        function z = multiplePrec(r,P1,P2,P3,A,b,mesh,bcApplier)
+
+
             z1 = P1(r);
             r  = r-A(z1);
             z2 = P2(r);
             r  = r-A(z2);
             z3 = P3(r);
             z  = z1+z2+z3;
+
+         %   J1 = EIFEMtesting.computeTotalEnergy(z1,A,b)
+         %   J2 = EIFEMtesting.computeTotalEnergy(z1+z2,A,b)
+         %   J3 = EIFEMtesting.computeTotalEnergy(z1+z2+z3,A,b)
+
+       %     EIFEMtesting.plotSolution(z1,mesh,10,10,1,bcApplier,0)
+       %     EIFEMtesting.plotSolution(z1+z2,mesh,10,10,2,bcApplier,0)
+       %     EIFEMtesting.plotSolution(z1+z2+z3,mesh,10,10,3,bcApplier,0)
+           % EIFEMtesting.plotSolution(z,mesh,10,10,3,bcApplier,0)
         end
 
         function z = multiplePrec2(r,P1,P2,A)
@@ -47,17 +58,19 @@ classdef Preconditioner < handle
             z  = z1+z2;
         end
 
-        function x = InexactCG(r,A,P)
+        function x = InexactCG(r,A,P,b)
             x0 = zeros(size(r));
            
-            factor = 0.5;
+            factor = 0.99;
             tol = factor*norm(r);
             
-            %x = PCG.solve(A,r,x0,P,tol);
+            x = PCG.solve(A,r,x0,P,tol);
             
             %tau = @(r,A) 1;
-            tau = @(r,A) r'*r/(r'*A(r));           
-            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
+        %    tau = @(r,A) r'*r/(r'*A(r));           
+        %    x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
+
+
 
         end
 

@@ -15,7 +15,7 @@ classdef RichardsonSolver < handle
     methods (Static, Access = public)
           
 
-        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,linesearch,xsol)
+        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,linesearch,xsol,mesh,bcApplier)
             if nargin == 6, xsol = zeros(size(B)); end            
             iter = 0;
             n = length(B);
@@ -25,6 +25,7 @@ classdef RichardsonSolver < handle
             while norm(r) > tol
                 tau = 1*linesearch(r,A);
                 x = x + tau * z;
+%                EIFEMtesting.plotSolution(x,mesh,10,10,iter,bcApplier,0)
                 r = B - A(x); 
                 z = P(r);
                 test(iter+1)=norm(z);
@@ -36,6 +37,7 @@ classdef RichardsonSolver < handle
             end        
 
         end
+
     end
 
     
