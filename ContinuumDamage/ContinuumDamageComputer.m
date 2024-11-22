@@ -13,7 +13,7 @@ classdef ContinuumDamageComputer < handle
         quadOrder
 
         H = 0.5
-        r0 = (4.0e-1)/sqrt(3e4)
+        r0 = (4.0e-1)/sqrt(3e4)%revisar com es calcula (depen de les bc)
 
         ElasticFun
         ExternalWorkFun
@@ -37,7 +37,7 @@ classdef ContinuumDamageComputer < handle
             errorE = 1;
             fExt = obj.boundaryConditions.pointloadFun;
 
-            EnergyOld = -1e5; %something unlikely
+            EnergyOld = -1;
 
             while (errorE >= obj.tolerance)
                 LHS = obj.computeLHS(u,rNew);
@@ -58,6 +58,7 @@ classdef ContinuumDamageComputer < handle
             
             end
             data.displacement = u;
+            fInt = obj.ElasticFun.computeJacobian(obj.quadOrder,u,rNew);
             %fExt = obj.boundaryConditions.pointloadFun;
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
             data.TotalEenrgy = EnergyNew;
