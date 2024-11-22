@@ -1,4 +1,4 @@
-classdef shFunc_TotalEnergy < handle
+classdef shFunc_ContinuumDamage < handle
 
     properties (Access = public)
     
@@ -17,7 +17,7 @@ classdef shFunc_TotalEnergy < handle
 
     methods (Access = public)
 
-        function obj = shFunc_TotalEnergy(cParams)
+        function obj = shFunc_ContinuumDamage(cParams)
             obj.init(cParams);
             obj.createFunctionals ();
         end

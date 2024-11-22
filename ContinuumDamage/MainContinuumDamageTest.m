@@ -4,12 +4,12 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 10;
-cParams.mesh.meshM = 50;
+cParams.mesh.meshN = 30;
+cParams.mesh.meshM = 30;
 
 
 
-cParams.material.E = 3e4;
+cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'forceTraction'; %'FORCE'
@@ -17,6 +17,7 @@ cParams.bc.bcVal = 1;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
+
 cParams.solver.solverMode = 'DISP';
 cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
@@ -29,7 +30,12 @@ data = tester.compute();
 
 data.displacement.plot()
 data.reactions.plot()
+
+
+
+TotalReac = data.reactions.fValues
 data.damage.plot(data.displacement.mesh)
+damageFun = data.damage.project('P1D',data.displacement.mesh);
 
 
 tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);

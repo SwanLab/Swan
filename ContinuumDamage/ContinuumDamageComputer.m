@@ -13,11 +13,15 @@ classdef ContinuumDamageComputer < handle
         quadOrder
 
         H = 0.5
+<<<<<<< Updated upstream
         r0 = (4.0e-1)/sqrt(3e4)%revisar com es calcula (depen de les bc)
+=======
+        r0 = 0.1
+>>>>>>> Stashed changes
 
         ElasticFun
         ExternalWorkFun
-        TotalEnergyFun
+        Functional
     end
 
     methods (Access = public)
@@ -37,23 +41,28 @@ classdef ContinuumDamageComputer < handle
             errorE = 1;
             fExt = obj.boundaryConditions.pointloadFun;
 
+<<<<<<< Updated upstream
             EnergyOld = -1;
+=======
+            EnergyOld = 1; 
+>>>>>>> Stashed changes
 
-            while (errorE >= obj.tolerance)
+            while (abs(errorE) >= obj.tolerance)
                 LHS = obj.computeLHS(u,rNew);
                 RHS = obj.computeRHS(u,rNew);
                 [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
 
-                EnergyNew = obj.TotalEnergyFun.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
+                EnergyNew = obj.Functional.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
 
-                errorE = max(max(abs(EnergyNew-EnergyOld)));
+                errorE = max(max(EnergyNew-EnergyOld));
 
                 EnergyOld = EnergyNew;
                 u.fValues = uNew;
                 rOld = rNew;
                 
                 rNew = obj.ElasticFun.newState(rOld,u);              
-                fprintf('Error: %d \n',errorE);
+                fprintf('Error: %d ',errorE);
+                fprintf('Cost: %d \n',EnergyNew);
 
             
             end
@@ -88,7 +97,7 @@ classdef ContinuumDamageComputer < handle
             %obj.ElasticFun = shFunc_Elastic(s);
 
             obj.ExternalWorkFun = shFunc_ExternalWork2(s);
-            obj.TotalEnergyFun = shFunc_TotalEnergy(s);
+            obj.Functional = shFunc_ContinuumDamage(s);
         end
 
         function Reac = computeReactions (obj, uLagrangian, u, LHS)
@@ -100,6 +109,9 @@ classdef ContinuumDamageComputer < handle
             Reac = LagrangianFunction.create(obj.mesh,2,'P1');
             
             Reac.fValues = Rout;
+
+            isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+            Reac.fValues() = Rout.*isInDown;
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
