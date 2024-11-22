@@ -21,11 +21,11 @@ classdef EIFEMtesting < handle
     end
 
     methods (Access = public)
-      
+
         function obj = EIFEMtesting()
             close all
             obj.init()
-            
+
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR] = obj.createMeshDomain(mR);
@@ -36,42 +36,52 @@ classdef EIFEMtesting < handle
 
             [LHS,RHS,LHSf] = obj.createElasticProblem();
             obj.LHS = LHSf;
-            LHS = 0.5*(LHS+LHS');
+            %             LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
             Usol = LHS\RHS;
+            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+            obj.plotSolution(Ufull,obj.meshDomain,1,1,0,0)
 
- 
+
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR);
             Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
-%             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
+            %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
             MiluCG = @(r) Preconditioner.InexactCG(r,LHSf,Milu);
 
             tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
-            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol);
+%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
-            %[uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);       
+            %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
             tol = 1e-8;
 
             %Mmult = MdirNeu;
-            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
-
-            tic
             x0 = zeros(size(RHSf));
-            tau = @(r,A) 1;
-           [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol);
-%            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
+            r = RHSf - LHSf(x0);
+            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf);
+            zmult = Mmult(r);
+            zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
+            obj.plotSolution(zfull,obj.meshDomain,0,0,2,0)
+
+            zeifem = Meifem(r);
+            zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
+            obj.plotSolution(zfull,obj.meshDomain,0,0,1,0)
+            x0 = zmult;
+            tic
+            %           tau = @(r,A) 1;
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
-            
+
             figure
             plot(residualPCG,'linewidth',2)
             hold on
@@ -106,9 +116,9 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [8 2]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';                                
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat'; 
+            obj.nSubdomains  = [5 5]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            %             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-14;
         end
 
@@ -122,9 +132,9 @@ classdef EIFEMtesting < handle
 
 
         function mS = createReferenceMesh(obj)
-          %     mS = obj.createStructuredMesh();
+            %     mS = obj.createStructuredMesh();
             %   mS = obj.createMeshFromGid();
-             mS = obj.createEIFEMreferenceMesh();
+            mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -154,8 +164,8 @@ classdef EIFEMtesting < handle
             filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-            isMin = s.coord==min(s.coord); 
-            isMax = s.coord==max(s.coord); 
+            isMin = s.coord==min(s.coord);
+            isMax = s.coord==max(s.coord);
 
             s.connec   = EIFEoper.MESH.CN;
             mS         = Mesh.create(s);
@@ -221,7 +231,7 @@ classdef EIFEMtesting < handle
             E  = 1;
             nu = 1/3;
             young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);            
+            poisson = ConstantFunction.create(nu,mesh);
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
@@ -246,6 +256,9 @@ classdef EIFEMtesting < handle
             PL.domain    = @(coor) isTop(coor);
             PL.direction = [2];
             PL.value     = [-0.1];
+            %             PL.domain    = @(coor) isRight(coor);
+            %             PL.direction = [1];
+            %             PL.value     = [0.1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -306,35 +319,35 @@ classdef EIFEMtesting < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
 
-         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR)
-     % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameEIFEM; 
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';                             
+        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR)
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+            EIFEMfilename = obj.fileNameEIFEM;
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
             s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;            
-            eifem           = EIFEM(s);         
+            s.nSubdomains = obj.nSubdomains;
+            eifem           = EIFEM(s);
 
-            
+
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;            
+            ss.bcApplier = obj.bcApplier;
             ss.type = 'EIFEM';
-            eP = Preconditioner.create(ss);            
+            eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
-         end
+        end
 
-         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)            
+        function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
             s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             s.DirCond       = dir;
-            s.bcApplier     = obj.bcApplier; 
+            s.bcApplier     = obj.bcApplier;
             s.LHS           = lhs;
             s.subdomainMesh = mSb;
             s.meshDomain = obj.meshDomain;
             s.type = 'DirichletNeumann';
-            M = Preconditioner.create(s);            
+            M = Preconditioner.create(s);
             Mdn = @(r) M.apply(r);
         end
 
@@ -347,40 +360,77 @@ classdef EIFEMtesting < handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);  
+            d = DomainDecompositionDofManager(s);
         end
 
         function Milu = createILUpreconditioner(obj,LHS)
             s.LHS = LHS;
-            s.type = 'ILU';            
+            s.type = 'ILU';
             M = Preconditioner.create(s);
             Milu = @(r) M.apply(r);
-        end     
+        end
 
         function MgaussSeidel = createGaussSeidelpreconditioner(obj,LHS)
             s.LHS = LHS;
             s.type = 'GaussSeidel';
             M = Preconditioner.create(s);
             MgaussSeidel = @(r) M.apply(r);
-        end  
+        end
 
-         function Mjacobi = createJacobipreconditioner(obj,LHS)
+        function Mjacobi = createJacobipreconditioner(obj,LHS)
             s.LHS = LHS;
             s.type = 'Jacobi';
             M = Preconditioner.create(s);
             Mjacobi = @(r) M.apply(r);
-         end  
+        end
 
-         function Mmodal = createModalpreconditioner(obj,LHS)
+        function Mmodal = createModalpreconditioner(obj,LHS)
             s.LHS = LHS;
             s.nBasis = 8;
             s.type   = 'MODAL';
             M = Preconditioner.create(s);
             Mmodal = @(r) M.apply(r);
-         end  
+        end
 
-        
-        function plotSolution(obj,x,mesh,row,col,iter,flag)
+
+%         function plotSolution(obj,x,mesh,row,col,iter,flag)
+%             if nargin <7
+%                 flag =0;
+%             end
+%             %             xFull = bc.reducedToFullVector(x);
+%             if size(x,2)==1
+%                 s.fValues = reshape(x,2,[])';
+%             else
+%                 s.fValues = x;
+%             end
+%             %
+% 
+%             s.mesh = mesh;
+%             s.fValues(:,end+1) = 0;
+%             s.ndimf = 2;
+%             s.order = 'P1';
+%             xF = LagrangianFunction(s);
+%             %             xF.plot();
+%             if flag == 0
+%                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 1
+%                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 2
+%                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 3
+%                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 4
+%                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             end
+%             fclose('all');
+%         end
+
+
+
+    end
+
+    methods (Static, Access = public)
+        function plotSolution(x,mesh,row,col,iter,flag)
             if nargin <7
                 flag =0;
             end
@@ -395,7 +445,7 @@ classdef EIFEMtesting < handle
             s.mesh = mesh;
             s.fValues(:,end+1) = 0;
             s.ndimf = 2;
-            s.order = obj.functionType;
+            s.order = 'P1';
             xF = LagrangianFunction(s);
             %             xF.plot();
             if flag == 0
@@ -411,9 +461,6 @@ classdef EIFEMtesting < handle
             end
             fclose('all');
         end
-
-
-
     end
 
 end

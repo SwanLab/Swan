@@ -16,7 +16,7 @@ classdef PCG < handle
     
     methods (Static, Access = public)
                
-        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol)
+        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol,mesh,bcApplier)
             if nargin == 5, xsol = zeros(size(B)); end
             iter = 0;
             x = x0;
@@ -28,6 +28,8 @@ classdef PCG < handle
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
+                zfull = bcApplier.reducedToFullVectorDirichlet(x);
+                EIFEMtesting.plotSolution(zfull,mesh,10,10,iter,0)
                 r = r - alpha * Ap;
                 z = P(r);
                 rznew = r' * z;
