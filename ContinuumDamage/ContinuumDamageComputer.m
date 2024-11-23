@@ -13,14 +13,9 @@ classdef ContinuumDamageComputer < handle
         quadOrder
 
         H = 0.5
-<<<<<<< Updated upstream
-        r0 = (4.0e-1)/sqrt(3e4)%revisar com es calcula (depen de les bc)
-=======
-        r0 = 0.1
->>>>>>> Stashed changes
 
-        ElasticFun
-        ExternalWorkFun
+        r0 = (4.0e-1)/sqrt(3e4)%revisar com es calcula (depen de les bc)
+
         Functional
     end
 
@@ -41,11 +36,11 @@ classdef ContinuumDamageComputer < handle
             errorE = 1;
             fExt = obj.boundaryConditions.pointloadFun;
 
-<<<<<<< Updated upstream
+
             EnergyOld = -1;
-=======
+
             EnergyOld = 1; 
->>>>>>> Stashed changes
+
 
             while (abs(errorE) >= obj.tolerance)
                 LHS = obj.computeLHS(u,rNew);
@@ -60,18 +55,18 @@ classdef ContinuumDamageComputer < handle
                 u.fValues = uNew;
                 rOld = rNew;
                 
-                rNew = obj.ElasticFun.newState(rOld,u);              
+                rNew = obj.Functional.newState(rOld,u);              
                 fprintf('Error: %d ',errorE);
                 fprintf('Cost: %d \n',EnergyNew);
 
             
             end
             data.displacement = u;
-            fInt = obj.ElasticFun.computeJacobian(obj.quadOrder,u,rNew);
+            fInt = obj.Functional.computeJacobian(obj.quadOrder,u,rNew);
             %fExt = obj.boundaryConditions.pointloadFun;
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
             data.TotalEenrgy = EnergyNew;
-            data.damage = obj.ElasticFun.computeDamage(rNew);
+            data.damage = obj.Functional.computeDamage(rNew);
             data.reactions = obj.computeReactions (u,uNewVec,LHS);
             
         end
@@ -93,10 +88,10 @@ classdef ContinuumDamageComputer < handle
             s.H = obj.H;
             s.r0 = obj.r0;
 
-            obj.ElasticFun = shFunc_ElasticDamage(s);
-            %obj.ElasticFun = shFunc_Elastic(s);
-
-            obj.ExternalWorkFun = shFunc_ExternalWork2(s);
+            % obj.ElasticFun = shFunc_ElasticDamage(s);
+            % obj.ElasticFun = shFunc_Elastic(s);
+            % 
+            % obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.Functional = shFunc_ContinuumDamage(s);
         end
 
@@ -111,7 +106,8 @@ classdef ContinuumDamageComputer < handle
             Reac.fValues = Rout;
 
             isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-            Reac.fValues() = Rout.*isInDown;
+           
+            Reac.fValues(:,2) = Reac.fValues(:,2).*isInDown;
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
@@ -129,13 +125,13 @@ classdef ContinuumDamageComputer < handle
          end
 
         function K = computeLHS(obj,u,r)
-            K = obj.ElasticFun.computeHessian(obj.quadOrder,u,r);
+            K = obj.Functional.computeHessian(obj.quadOrder,u,r);
         end
 
         function F = computeRHS(obj,u,r)
             fExt = obj.boundaryConditions.pointloadFun;
-            Fext = obj.ExternalWorkFun.computeGradient(u,fExt,obj.quadOrder);
-            Fint = obj.ElasticFun.computeJacobian(obj.quadOrder,u,r);
+            Fext = obj.Functional.computeGradient(u,fExt,obj.quadOrder);
+            Fint = obj.Functional.computeJacobian(obj.quadOrder,u,r);
             F = Fint - Fext;
         end
 

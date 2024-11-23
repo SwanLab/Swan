@@ -12,7 +12,7 @@ cParams.mesh.meshM = 30;
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
-cParams.bc.bcType = 'forceTraction'; %'FORCE'
+cParams.bc.bcType = 'displacementTraction'; %'FORCE'
 cParams.bc.bcVal = 1;
 
 cParams.solver.type = 'Elastic';
@@ -33,7 +33,7 @@ data.reactions.plot()
 
 
 
-TotalReac = data.reactions.fValues
+TotalReac = sum(data.reactions.fValues(:,2));
 data.damage.plot(data.displacement.mesh)
 damageFun = data.damage.project('P1D',data.displacement.mesh);
 
