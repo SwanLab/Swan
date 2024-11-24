@@ -41,7 +41,7 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,40,20,20);
+            obj.mesh = HexaMesh(6,1,1,120,20,20);
         end
 
         function createDesignVariable(obj)

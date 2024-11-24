@@ -36,7 +36,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasFinished  = false;
             obj.printOptimizerVariable();
             obj.updateMonitoring();
-            %obj.designVariable.fun.print(['ResultsTFGGerard/Exemple_Iter',int2str(obj.nIter)]);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+            obj.designVariable.fun.print(['ResultsTFGGerard/D_Iter',int2str(obj.nIter)]);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -44,7 +46,9 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-                %obj.designVariable.fun.print(['ResultsTFGGerard/Exemple_Iter',int2str(obj.nIter)]);
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                obj.designVariable.fun.print(['ResultsTFGGerard/D_Iter',int2str(obj.nIter)]);
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end
         end
     end
@@ -176,8 +180,8 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 3;
-                %factor = 1.01;
+                %factor = 3;
+                factor = 1.01;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end

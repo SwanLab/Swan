@@ -201,17 +201,18 @@ classdef TopOptTestSingular < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;                       %Iteracions
-            s.tolerance      = 1e-8;     %Hi havia 1e-8
+            s.maxIter        = 2000;     %Iteracions
+            s.tolerance      = 1e-12;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT'; 
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.01; %HI HAVIA 0.001 (A menor valor menor oscilació del resultat?)
-            s.gJFlowRatio    = 0.5;   %hi havia 2   %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+            s.gJFlowRatio    = 0.35;   %hi havia 2   %major=complirconstraintrapid    menor=prioritzarminimitzarcost
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            %obj.designVariable.fun.print('Density_3D_Singular'); %Guarda la simulació automàticament per poder veure-la després a paraview
             %%%%%%%% Density  ^%%%%%%%%%
 
             %%%%%%%%%% LevelSet v %%%%%%%%

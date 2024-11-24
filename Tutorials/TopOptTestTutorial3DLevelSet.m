@@ -210,18 +210,18 @@ classdef TopOptTestTutorial3DLevelSet < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 250;
             s.tolerance      = 1e-8; 
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT'; 
+            s.primal         = 'SLERP'; 
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2; 
+            s.gJFlowRatio    = 2; 
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.fun.print('LevelSet_3D_02'); %Guarda la simulació automàticament per poder veure-la després a paraview
+            obj.designVariable.fun.print('LevelSet_3D_2'); %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function bc = createBoundaryConditions(obj)
