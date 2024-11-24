@@ -13,8 +13,7 @@ classdef ContinuumDamageComputer < handle
         quadOrder
 
         H = 0.5
-
-        r0 = (4.0e-1)/sqrt(3e4)%revisar com es calcula (depen de les bc)
+        r0 = 1/sqrt(210) %revisar com es calcula (depen de les bc)
 
         Functional
     end
@@ -27,48 +26,53 @@ classdef ContinuumDamageComputer < handle
         end
 
         function data = compute(obj)
-            bc = obj.boundaryConditions;
+            bc = obj.boundaryConditions.bc;
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             u.fValues = obj.updateInitialDisplacement(bc,u);
-            
+
             rNew = ConstantFunction.create(obj.r0,obj.mesh);
-            
+
             errorE = 1;
-            fExt = obj.boundaryConditions.pointloadFun;
+            fExt = obj.boundaryConditions.bc.pointloadFun;
+
+            EnergyOld = 1;
+
+            for i = 1:1:obj.boundaryConditions.ValueSetLenght
 
 
-            EnergyOld = -1;
+                obj.boundaryConditions.nextStep(i);
+                bc = obj.boundaryConditions.bc;
 
-            EnergyOld = 1; 
+                while (abs(errorE) >= obj.tolerance)
+                    LHS = obj.computeLHS(u,rNew);
+                    RHS = obj.computeRHS(u,rNew);
+                    [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
+
+                    EnergyNew = obj.Functional.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
+
+                    errorE = max(max(EnergyNew-EnergyOld));
+
+                    EnergyOld = EnergyNew;
+                    u.fValues = uNew;
+                    rOld = rNew;
+
+                    rNew = obj.Functional.newState(rOld,u);
+                    fprintf('Error: %d ',errorE);
+                    fprintf('Cost: %d \n',EnergyNew);
+
+                end
+                errorE = 1;
 
 
-            while (abs(errorE) >= obj.tolerance)
-                LHS = obj.computeLHS(u,rNew);
-                RHS = obj.computeRHS(u,rNew);
-                [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
-
-                EnergyNew = obj.Functional.computeTotalEnergyDamage(obj.quadOrder,u,rNew,fExt);
-
-                errorE = max(max(EnergyNew-EnergyOld));
-
-                EnergyOld = EnergyNew;
-                u.fValues = uNew;
-                rOld = rNew;
-                
-                rNew = obj.Functional.newState(rOld,u);              
-                fprintf('Error: %d ',errorE);
-                fprintf('Cost: %d \n',EnergyNew);
-
-            
             end
             data.displacement = u;
-            fInt = obj.Functional.computeJacobian(obj.quadOrder,u,rNew);
+            %fInt = obj.Functional.computeJacobian(obj.quadOrder,u,rNew);
             %fExt = obj.boundaryConditions.pointloadFun;
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
             data.TotalEenrgy = EnergyNew;
             data.damage = obj.Functional.computeDamage(rNew);
             data.reactions = obj.computeReactions (u,uNewVec,LHS);
-            
+
         end
     end
 
@@ -90,23 +94,23 @@ classdef ContinuumDamageComputer < handle
 
             % obj.ElasticFun = shFunc_ElasticDamage(s);
             % obj.ElasticFun = shFunc_Elastic(s);
-            % 
+            %
             % obj.ExternalWorkFun = shFunc_ExternalWork2(s);
             obj.Functional = shFunc_ContinuumDamage(s);
         end
 
         function Reac = computeReactions (obj, uLagrangian, u, LHS)
-           
+
             R = LHS*u;
-            R(obj.boundaryConditions.free_dofs) = 0;
-            
+            R(obj.boundaryConditions.bc.free_dofs) = 0;
+
             Rout = reshape(R,[flip(size(uLagrangian.fValues))])';
             Reac = LagrangianFunction.create(obj.mesh,2,'P1');
-            
+
             Reac.fValues = Rout;
 
             isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-           
+
             Reac.fValues(:,2) = Reac.fValues(:,2).*isInDown;
         end
 
@@ -122,20 +126,20 @@ classdef ContinuumDamageComputer < handle
                 uVec(restrictedDofs) = dirichVec(restrictedDofs);
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
-         end
+        end
 
         function K = computeLHS(obj,u,r)
             K = obj.Functional.computeHessian(obj.quadOrder,u,r);
         end
 
         function F = computeRHS(obj,u,r)
-            fExt = obj.boundaryConditions.pointloadFun;
+            fExt = obj.boundaryConditions.bc.pointloadFun;
             Fext = obj.Functional.computeGradient(u,fExt,obj.quadOrder);
             Fint = obj.Functional.computeJacobian(obj.quadOrder,u,r);
             F = Fint - Fext;
         end
 
-        function [uOut,uOutVec] = computeU(obj,LHS,RHS,uIn,bc)            
+        function [uOut,uOutVec] = computeU(obj,LHS,RHS,uIn,bc)
             RHS = RHS(bc.free_dofs);
             LHS = LHS(bc.free_dofs,bc.free_dofs);
 
@@ -149,15 +153,15 @@ classdef ContinuumDamageComputer < handle
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
 
-         function xNew = updateWithGradient(obj,RHS,x)
+        function xNew = updateWithGradient(obj,RHS,x)
             deltaX = -obj.tau.*RHS;
-            xNew = x + deltaX; 
-         end
+            xNew = x + deltaX;
+        end
 
-         function xNew = updateWithNewton(~,LHS,RHS,x)
-             deltaX = -LHS\RHS;
-             xNew = x + deltaX;
-         end
+        function xNew = updateWithNewton(~,LHS,RHS,x)
+            deltaX = -LHS\RHS;
+            xNew = x + deltaX;
+        end
 
     end
 end

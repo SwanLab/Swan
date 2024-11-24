@@ -27,12 +27,7 @@ classdef shFunc_ContinuumDamage < handle
             totalEnergy = internalEnergy - externalEnergy;
         end
 
-        % function totalEnergy = computeTotalEnergy (obj, quadOrder, u,fext)
-        %     internalEnergy = obj.internalElastic.computeFunction(quadOrder,u);
-        %     externalEnergy = obj.external.computeFunction(u,fext,quadOrder);
-        %     totalEnergy = internalEnergy - externalEnergy;
-        % end
-        %% EXTERNAL WORK FUNCTIONS
+        % EXTERNAL WORK FUNCTIONS
         function F = computeExternalFunction(obj,u,fExt,quadOrder)
             bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
             int = Integrator.create('Function',bMesh.mesh,quadOrder);
@@ -52,7 +47,7 @@ classdef shFunc_ContinuumDamage < handle
             Ju = RHS.compute(fExt,test);
             Ju = obj.reducedToFull(Ju,bMesh);
         end
-        %% INTERNAL ENERGY FUNCTIONS
+        % INTERNAL ENERGY FUNCTIONS
 
         function energy = computeInternalFunction(obj,quadOrder,u,r)
 
@@ -128,18 +123,6 @@ classdef shFunc_ContinuumDamage < handle
             obj.r0 = cParams.r0;
             obj.H = cParams.H;
         end
-        % function createFunctionals(obj)
-        %     s.mesh     = obj.mesh;
-        %     s.material = obj.material;
-        %     s.H = obj.H;
-        %     s.r0 = obj.r0;
-        % 
-        %     obj.internalDamage = shFunc_ElasticDamage(s);
-        %     obj.internalElastic = shFunc_Elastic(s);
-        %     obj.external = shFunc_ExternalWork2(s);
-        % 
-        % end
-
 
         function [uFun,fExtFun] = adaptFuns(obj,u,fExt) %% ADAPTING TO TOP BOUNDARY %%
             bMesh = obj.mesh.createBoundaryMesh{4};
