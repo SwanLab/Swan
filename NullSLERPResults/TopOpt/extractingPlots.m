@@ -34,7 +34,7 @@ grid on
 grid minor
 legend('$\eta^*=0.20$','$\eta^*=1.00$','$\eta^*=2.50$','interpreter','latex','FontSize', 12.5)
 xlabel('Iteration','Interpreter','latex','FontSize', 12.5)
-f1.Position = [680   558   560/1.5   420];
+f1.Position = [680   558   560/1.7   420];
 
 f2 = figure;
 plot(iter,constr1,iter,constr2,iter,constr3,'LineWidth',1.2)
@@ -42,7 +42,7 @@ grid on
 grid minor
 legend('$\eta^*=0.20$','$\eta^*=1.00$','$\eta^*=2.50$','interpreter','latex','FontSize', 12.5)
 xlabel('Iteration','Interpreter','latex','FontSize', 12.5)
-f2.Position = [680   558   560/1.5   420];
+f2.Position = [680   558   560/1.7   420];
 
 f3 = figure;
 plot(iter,lambda1,iter,lambda2,iter,lambda3,'LineWidth',1.2)
@@ -50,7 +50,7 @@ grid on
 grid minor
 legend('$\eta^*=0.20$','$\eta^*=1.00$','$\eta^*=2.50$','interpreter','latex','FontSize', 12.5)
 xlabel('Iteration','Interpreter','latex','FontSize', 12.5)
-f3.Position = [680   558   560/1.5   420];
+f3.Position = [680   558   560/1.7   420];
 
 f4 = figure;
 h = plot(iter(1:162),eta1(1:162),'--',iter(163:end),eta1(163:end),iter(1:74),eta2(1:74),'--',iter(75:end),eta2(75:end),iter(1:50),eta3(1:50),'--',iter(51:end),eta3(51:end),'LineWidth',1.2);
@@ -58,6 +58,6 @@ grid on
 grid minor
 legend('','$\eta^*=0.20$','','$\eta^*=1.00$','','$\eta^*=2.50$','interpreter','latex','FontSize', 12.5)
 xlabel('Iteration','Interpreter','latex','FontSize', 12.5)
-f4.Position = [680   558   560/1.5   420];
+f4.Position = [680   558   560/1.7   420];
 [h(1).Color, h(3).Color, h(5).Color] = colors{:};
 [h(2).Color, h(4).Color, h(6).Color] = colors{:};
