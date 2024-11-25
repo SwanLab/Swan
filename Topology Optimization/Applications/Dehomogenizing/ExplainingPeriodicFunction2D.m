@@ -88,8 +88,10 @@ classdef ExplainingPeriodicFunction2D < handle
                 s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
                 s.ndimf     = 2;
                 aF = DomainFunction(s);
+                aF = aF.project('P1',obj.mesh);
                 obj.orientation{iDim} = aF;
             end
+
         end
 
         function or = createOrientationFunction(obj,iDim,xV)
