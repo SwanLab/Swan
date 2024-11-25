@@ -38,8 +38,8 @@ classdef DeletingP1D < handle
         end
         
         function createAnalyticalFunciton(obj)
-            s.fHandle = @(x) cos(100*x(1,:,:)+x(2,:,:));
-            s.ndimf  = 1;
+            s.fHandle = @(x) [cos(10*x(1,:,:)+x(2,:,:));sin(10*x(1,:,:)+x(2,:,:))];
+            s.ndimf  = 2;
             s.mesh   = obj.mesh;
             obj.fun = AnalyticalFunction(s);
         end
@@ -49,17 +49,7 @@ classdef DeletingP1D < handle
         end
 
         function createP1DiscontinousFun(obj)
-            funP1D = obj.funP1.project('P1D');
-
-            s.ndimf = 1;
-            s.order = 'P1';
-            s.mesh      = obj.mesh;
-            s.fValues   = funP1D.fValues;
-            s.dofConnec = funP1D.dofConnec;
-            s.dofCoord  = funP1D.dofCoord;
-            s.dofs.getNumberDofs = size(funP1D.dofCoord,1);
-            funP1DC = LagrangianFunction(s);
-
+            funP1DC = obj.funP1.project('P1D');
 
             obj.funP1.computeL2norm()
             funP1DC.computeL2norm()
@@ -67,10 +57,10 @@ classdef DeletingP1D < handle
             obj.funP1.plot()
             funP1DC.plot()
 
-            gradP1DC = Grad(funP1DC).project('P1',obj.mesh);
+            gradP1DC = SymGrad(funP1DC).project('P1',obj.mesh);
             gradP1DC.plot()
 
-            gradP1 = Grad(obj.funP1).project('P1',obj.mesh);
+            gradP1 = SymGrad(obj.funP1).project('P1',obj.mesh);
             gradP1.plot()
 
             dif = gradP1DC - gradP1;
