@@ -45,7 +45,7 @@ classdef DomainDecompositionDofManager < handle
         end
 
         function f = scaleInterfaceValues(obj,f,w)
-            nint = size(obj.interfaceDof,3);
+            nint = numel(obj.interfaceDof);
             weight = [w,1-w];
             for iint = 1:nint
                 dofI = obj.interfaceDof{iint};
@@ -59,7 +59,7 @@ classdef DomainDecompositionDofManager < handle
         end
 
         function m = scaleInterfaceValuesMatrix(obj,m,w)
-            nint = size(obj.interfaceDof,3);
+            nint = numel(obj.interfaceDof);
             weight = [w,1-w];
             for iint = 1:nint
                 dofI = obj.interfaceDof{iint};
