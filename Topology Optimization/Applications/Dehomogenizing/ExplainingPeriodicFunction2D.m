@@ -77,7 +77,7 @@ classdef ExplainingPeriodicFunction2D < handle
             x2 = x(2,:,:);
             x10 = (max(x1(:))+min(x1(:)))/2;
             x20 = 0;            
-            f = atan2(x2-x20 +0.1*(max(x2)),x1-x10);
+            f = atan2(x2-x20 +0.5*(max(x2(:))),x1-x10);
             isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
             f(isLeft) = f(isLeft) + pi;
         end
@@ -88,6 +88,7 @@ classdef ExplainingPeriodicFunction2D < handle
                 s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
                 s.ndimf     = 2;
                 aF = DomainFunction(s);
+              %  aF = aF.project('P1',obj.mesh);
                 obj.orientation{iDim} = aF;
             end
         end

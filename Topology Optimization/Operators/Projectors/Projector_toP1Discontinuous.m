@@ -19,7 +19,10 @@ classdef Projector_toP1Discontinuous < Projector
                 xProj = LHS\RHS;
                 xProj = reshape(xProj',xP1D.ndimf,[])';
             end
-            xP1D.fValues  = xProj;
+            s.mesh = obj.mesh;
+            s.ndimf = x.ndimf;
+            s.fValues = xProj;
+            xP1D = P1DiscontinuousFunction(s); 
         end
 
     end

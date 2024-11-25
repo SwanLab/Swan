@@ -54,9 +54,13 @@ classdef P1DiscontinuousFunction < FeFunction
             fxV = obj.lagrangianFunction.computeL2norm();
         end
 
-        function g  =computeGrad(obj)
+        function g  = computeGrad(obj)
             g = obj.lagrangianFunction.computeGrad();
         end
+
+        function g  = computeCurl(obj)
+            g = obj.lagrangianFunction.computeCurl();
+        end        
 
         function f = copy(obj)
             f = obj.create(obj.mesh, obj.ndimf);

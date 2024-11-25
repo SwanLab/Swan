@@ -277,6 +277,7 @@ classdef LagrangianFunction < FeFunction
 
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = obj.copy();
+            f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
         end        
@@ -292,8 +293,14 @@ classdef LagrangianFunction < FeFunction
         end
 
         function f = copy(obj)
-            f = obj.create(obj.mesh,obj.ndimf,obj.order);
-            f.fValues = obj.fValues;
+            s.ndimf = obj.ndimf;
+            s.order = obj.order;
+            s.mesh      = obj.mesh;
+            s.fValues   = obj.fValues;
+            s.dofConnec = obj.dofConnec;
+            s.dofCoord  = obj.dofCoord;
+            s.dofs.getNumberDofs = size(obj.dofCoord,1);
+            f = LagrangianFunction(s);
             f.setXvOld(obj.xVOld);
             f.setdNdxOld(obj.dNdxOld);            
         end
