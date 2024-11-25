@@ -1,6 +1,6 @@
 clc,clear,close all
 
-% load("SEN1e-3_0.0015_1e-12.mat")
+% load("SEN1e-5_0.0015_1e-8v3.mat")
 % s.initialGuess.u = outputData.displacement.field;
 % s.initialGuess.phi = outputData.damage.field;
 
@@ -9,14 +9,14 @@ s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 s.benchmark.type.mesh = 'SEN';%'1Elem';
 s.benchmark.N = 10;
-s.benchmark.type.bc = 'displacementShear';%'displacementTraction';
+s.benchmark.type.bc = 'SEN';%'displacementTraction';
 
 % SEN
-s.benchmark.bcValues = [0:1e-4:5e-3,5e-3:1e-5:2e-1];%[0.01:0.01:0.35,0.32:-0.03:0.02];%[5e-3:0.1*1e-3:1e-2];%;%[0:1e-4:1e-1];
+s.benchmark.bcValues = [0:1e-4:8e-3,8e-3:1e-5:2e-1];%[0.01:0.01:0.35,0.32:-0.03:0.02];%[5e-3:0.1*1e-3:1e-2];%;%[0:1e-4:1e-1];
 s.matInfo.E  = 210;
 s.matInfo.nu = 0.3;
 s.matInfo.Gc = 2.7e-3;
-s.l0 = 0.0075;
+s.l0 = 0.0015;
 
 % Lshape
 % s.benchmark.bcValues = [0.01:0.01:0.35,0.32:-0.03:0.02];%[5e-3:0.1*1e-3:1e-2];%;%[0:1e-4:1e-1];
@@ -34,7 +34,7 @@ s.dissipInfo.pExp = 2;
 
 tester = TestingPhaseField(s);
 outputData = tester.compute();
-save("SEN1e-5_0.0075_1e-8.mat","outputData") %ACTIVATE TO SAVE DATA!
+save("SEN1e-5_0.0015_1e-12.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);
 
