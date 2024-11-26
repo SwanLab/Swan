@@ -7,7 +7,7 @@ classdef Projector_toP1Discontinuous < Projector
         end
 
        function xP1D = project(obj, x)
-            xP1D = P1DiscontinuousFunction.create(obj.mesh,x.ndimf);             
+            xP1D = LagrangianFunction.create(obj.mesh,x.ndimf,'P1D');
             if isa(x,'LagrangianFunction') && strcmp(x.order, 'P1')
                 f = x.fValues;
                 connec = obj.mesh.connec;
@@ -21,8 +21,9 @@ classdef Projector_toP1Discontinuous < Projector
             end
             s.mesh = obj.mesh;
             s.ndimf = x.ndimf;
+            s.order = 'P1D';
             s.fValues = xProj;
-            xP1D = P1DiscontinuousFunction(s); 
+            xP1D = LagrangianFunction(s); 
         end
 
     end

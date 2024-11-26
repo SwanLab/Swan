@@ -18,7 +18,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
-            obj.order = '1';
+            obj.order = 'P1';
             obj.createInterpolation();
 
             if not(contains(fieldnames(cParams),'dof'))

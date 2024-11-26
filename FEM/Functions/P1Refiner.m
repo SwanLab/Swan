@@ -30,8 +30,11 @@ classdef P1Refiner < handle
 
             s.mesh      = obj.meshFine;            
             s.dofConnec = obj.computeDofConnec();
+            s.dofs.getNumberDofs = size(s.dofCoord,1);
             s.fValues = obj.computeAllFValues(); %HERE!!!
-            fFine = P1DiscontinuousFunction(s);                   
+            s.order  = 'P1D';
+
+            fFine = LagrangianFunction(s);                   
         end
 
     end
@@ -42,14 +45,14 @@ classdef P1Refiner < handle
           %  connec = obj.fCoarse.mesh.connec;                
             mesh      =  obj.fCoarse.mesh;            
 %             nodesDisc = (obj.fCoarse.dofConnec);
-            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.getDofConnec());
              
-            coordD    = obj.fCoarse.dofCoord;
+            coordD    = obj.fCoarse.getDofCoord();
             coordD = obj.coordD;%coordD;%obj.computeDiscontinousFunction(coordC,connec,nodesDisc);
             ndim = obj.fCoarse.ndimf;
       %      allF      = obj.computeAllValues(coordD,nodesDisc,mesh,ndim);
             coordEdges = obj.computeFinEdges(coordD,nodesDisc,mesh,ndim);
-            allF = [obj.fCoarse.dofCoord;coordEdges];            
+            allF = [obj.fCoarse.getDofCoord();coordEdges];            
         end
 
         function node = getDofConnecFromVector(obj,dofConnec)
@@ -65,7 +68,7 @@ classdef P1Refiner < handle
             cC     = obj.fCoarse.mesh.coord;
             connec = obj.fCoarse.mesh.connec;
             %nodesDisc = obj.createDiscConnec(connec); 
-            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.getDofConnec());
             cD = obj.computeDiscontinousFunction(cC,connec,nodesDisc);                                
         end
 
@@ -75,7 +78,7 @@ classdef P1Refiner < handle
           %  nodesDisc = obj.createDiscConnec(connec);
           %  nodesDisc = reshape(nodesDisc',[],obj.fCoarse.mesh.nelem)';
 
-           nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+           nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.getDofConnec());
             
             
 
@@ -87,7 +90,7 @@ classdef P1Refiner < handle
         function allFvalues = computeAllFValues(obj)
             fDisc     = obj.fCoarse.fValues;
            % fDisc = fDisc(:);
-            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.dofConnec);
+            nodesDisc = obj.getDofConnecFromVector(obj.fCoarse.getDofConnec);
             %nodesDisc = (obj.fCoarse.dofConnec);
             mesh      = obj.fCoarse.mesh;
       %      ndim = 1;

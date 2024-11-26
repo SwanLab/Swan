@@ -154,7 +154,12 @@ classdef LagrangianFunction < FeFunction
         end
 
         function ord = getOrderNum(obj)
-            ord = str2double(obj.order(end));
+            switch obj.order
+                case 'P1D'
+                    ord = 1;
+                otherwise
+                ord = str2double(obj.order(end));
+            end
         end
 
         function plot(obj) % 2D domains only
@@ -280,16 +285,22 @@ classdef LagrangianFunction < FeFunction
             f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
-        end        
+        end
 
-        function fFine = refine(obj,mFine) %Only for first order
-            fNodes  = obj.fValues;
-            fEdges  = obj.computeFunctionInEdges(obj.mesh, fNodes);
-            fAll    = [fNodes;fEdges];
-            s.mesh    = mFine;
-            s.fValues = fAll;
-            s.order   = obj.order;
-            fFine = LagrangianFunction(s);
+        function fFine = refine(obj,mFine)%Only for first order
+            switch obj.order
+                case 'P1'
+                    fNodes  = obj.fValues;
+                    fEdges  = obj.computeFunctionInEdges(obj.mesh, fNodes);
+                    fAll    = [fNodes;fEdges];
+                    s.mesh    = mFine;
+                    s.fValues = fAll;
+                    s.order   = obj.order;
+                    fFine = LagrangianFunction(s);
+                case 'P1D'
+                    P1Dref = P1Refiner(obj,mFine);
+                    fFine  = P1Dref.compute();
+            end
         end
 
         function f = copy(obj)
@@ -410,7 +421,7 @@ classdef LagrangianFunction < FeFunction
             switch order
                 case 'P0'
                     ord = 'CONSTANT';
-                case 'P1'
+                case {'P1','P1D'}
                     ord = 'LINEAR';
                 case 'P2'
                     ord = 'QUADRATIC';
