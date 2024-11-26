@@ -39,21 +39,60 @@ classdef LagrangianFunction < FeFunction
 
         function fxV = evaluate(obj, xV)
             shapes = obj.interpolation.computeShapeFunctions(xV);
-            nNode  = obj.interpolation.nnode;
+            % nNode  = obj.interpolation.nnode;
+            % nGaus  = size(shapes,2);
+            % nF     = size(obj.fValues,2);
+            % nElem  = size(obj.dofConnec,1);
+            % fxV = zeros(nF,nGaus,nElem);
+            % nodes = obj.getDofConnecByVector();
+            % for iGaus = 1:nGaus
+            %     for iNode = 1:nNode
+            %         node = nodes(:,iNode);
+            %         Ni = shapes(iNode,iGaus);
+            %         fi = obj.fValues(node,:);
+            %         f(:,1,:) = Ni*fi';
+            %         fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+            %     end
+            % end     
+           func = obj.getFvaluesDisc2();
+
+          % fxV2 = fxV;
+
+            nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
-            nF     = size(obj.fValues,2);
-            nElem  = size(obj.dofConnec,1);
+            nF     = size(func,1);
+            nElem  = size(func,3);
             fxV = zeros(nF,nGaus,nElem);
-            nodes = obj.getDofConnecByVector();
-            for iGaus = 1:nGaus
-                for iNode = 1:nNode
-                    node = nodes(:,iNode);
-                    Ni = shapes(iNode,iGaus);
-                    fi = obj.fValues(node,:);
-                    f(:,1,:) = Ni*fi';
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+            for kNode = 1:nNode
+                shapeKJ = shapes(kNode,:,:);
+                fKJ     = func(:,kNode,:);
+                f = bsxfun(@times,shapeKJ,fKJ);
+                fxV = fxV + f;
+            end 
+
+          %  norm(fxV2(:)-fxV(:))/norm(fxV2(:))
+
+        end
+
+        function fVals = getFvaluesDisc2(obj)
+           nDimF  = size(obj.fValues,2);            
+         %   fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
+            nnodeElem = size(obj.mesh.connec,2);
+            node = obj.getDofConnecByVector();
+            for iDim = 1:nDimF
+                fI = obj.fValues(:,iDim);
+                for iNode = 1:nnodeElem
+                    %iDof  = (iNode-1)*obj.ndimf+iDim;
+%                    dofs  = obj.dofConnec(:,iDof);
+                    dof   = node(:,iNode);
+
+                    fVals(iDim,iNode,:) = fI(dof);
+                            
+                   % fVals(iDim,iNode,:) = fV;
+
                 end
-            end     
+            end
+
         end
 
         function fxV = sampleFunction(obj,xP,cells)
