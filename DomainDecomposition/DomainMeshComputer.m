@@ -121,7 +121,7 @@ classdef DomainMeshComputer < handle
         end
 
         function  updateGlobalCoord(obj)
-            tol = 1e-14;
+            tol = obj.tolSameNode;
 
             A = obj.coordGlob;
 
