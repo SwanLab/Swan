@@ -127,7 +127,6 @@ classdef MaterialPhaseField < Material
         end
 
         function g = computeDegradationFun(~,fun,phi)
-            phi = phi.copy(); % The copy is necessary in order to update correctly phi
             s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
             s.ndimf = 1;
             g = DomainFunction(s);

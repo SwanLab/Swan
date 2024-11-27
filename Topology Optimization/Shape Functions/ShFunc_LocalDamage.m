@@ -72,7 +72,6 @@ classdef ShFunc_LocalDamage < handle
                 case 'Hessian'
                     fun = obj.dissipationInterpolation.ddfun;
             end
-            phi = phi.copy(); % The copy is necessary in order to update correctly phi
             s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
             s.ndimf = 1;
             disFun = DomainFunction(s);
