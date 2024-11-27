@@ -14,7 +14,6 @@ classdef LagrangianPlotter < handle
         end
 
         function plot(obj)
-
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);

@@ -144,7 +144,7 @@ classdef DomainFunction < handle
         end
 
         function ndimf = computeFieldDimension(a)
-            if isprop(a,'operation')
+            if isa(a,'DomainFunction')
                 ndimf = a.ndimf;
             elseif isnumeric(a)
                 ndimf = size(a,1);

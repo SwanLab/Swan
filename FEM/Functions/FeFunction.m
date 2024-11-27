@@ -1,8 +1,4 @@
 classdef FeFunction < handle
-    % NOTE
-    % Go to P1Function.m for The Class Formerly Known As FeFunction
-    % Eventually should extend Function/Field or something like that, to
-    % account for other types of functions (eg. L2)
     
     properties (Constant, Access = public)
         fType = 'FE'
@@ -26,6 +22,7 @@ classdef FeFunction < handle
     end
     
     methods (Access = public)
+
         function fun = project(obj,target)
             s.mesh          = obj.mesh;
             s.projectorType = target;
@@ -40,6 +37,7 @@ classdef FeFunction < handle
     end
 
     methods (Static, Access = public)
+        
         function obj = create(type,fValues,mesh)
             s.order   = type;
             s.fValues = fValues;

@@ -184,6 +184,24 @@ classdef LagrangianFunction < FeFunction
 
         end
 
+        function plotVector(obj,varargin)
+            if size(varargin,1) == 1
+                n = varargin{1};
+            else 
+                n = 2;
+            end
+            figure();
+            x = obj.mesh.coord(1:n:end,1);
+            y = obj.mesh.coord(1:n:end,2);
+            fX = obj.fValues(1:n:end,1);
+            fY = obj.fValues(1:n:end,2);
+            quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
+            axis equal;  
+            box on;     
+            xlim([min(x), max(x)]);
+            ylim([min(y), max(y)]);
+        end
+
 
         
         function cV = getDofCoordByVector(obj,dimf)
@@ -324,7 +342,6 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = obj2;
             end
-
             res.fValues = val1 - val2;
             s = res;
         end
@@ -334,10 +351,21 @@ classdef LagrangianFunction < FeFunction
             r.fValues = -a.fValues;
         end
 
-        function s = times(f1,f2)
-            s.operation = @(xV) f1.evaluate(xV) .* f2.evaluate(xV);
-            s.ndimf = max(f1.ndimf,f2.ndimf);
-            s = DomainFunction(s);
+        function r = mtimes(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            r = DomainFunction(s);
+        end
+
+        function r = times(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            ndimfA = DomainFunction.computeFieldDimension(a);
+            ndimfB = DomainFunction.computeFieldDimension(b);
+            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.ndimf = max(ndimfA,ndimfB);
+            r = DomainFunction(s);
         end
 
         function f = power(f1,b)
@@ -346,10 +374,11 @@ classdef LagrangianFunction < FeFunction
             f = DomainFunction(s);
         end
 
-        function s = rdivide(f,b)
-            res = copy(f);
-            res.fValues = f.fValues ./ b;
-            s = res;
+        function r = rdivide(a,b)
+            aOp = DomainFunction.computeOperation(a);
+            bOp = DomainFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV)./bOp(xV);
+            r = DomainFunction(s);
         end
 
         function f = mrdivide(f1,f2)
@@ -446,11 +475,7 @@ classdef LagrangianFunction < FeFunction
             gradF = Grad(obj);
             gradF = gradF.project('P1',obj.mesh);
             lapF  = Divergence(gradF); 
-            t.project('P1',obj.mesh).plot()              
         end
-
-
-
 
 
        function fV = getValuesByElem(obj)
