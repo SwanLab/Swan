@@ -15,11 +15,33 @@ classdef MultiMaterialInterpolation < handle
         end
 
         function [mu,kappa] = computeConsitutiveTensor(obj,x)
+
             [muVals,lambdaVals] = obj.computeShearLambdaValues(x{1});
             mu                  = obj.computeP1Function(x{1}{1}.mesh,muVals);
-            lambda              = obj.computeP1Function(x{1}{1}.mesh,lambdaVals);            
+            lambda              = obj.computeP1Function(x{1}{1}.mesh,lambdaVals);
             N                   = x{1}{1}.mesh.ndim;
             kappa               = obj.computeBulkMagnitude(lambda,mu,N);
+
+
+
+
+
+
+%             mu0    = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(4),1/3);
+%             kappa0 = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(4),1/3,2);
+% 
+%             mu1     = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(1),1/3);
+%             kappa1  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(1),1/3,2);
+% 
+%             rho1 = x{2}{1};
+%             rho2 = x{2}{2};
+%             rho3 = x{2}{3};
+% 
+%             [mu23,kappa23]   = obj.simpAlls.m23.computeConsitutiveTensor(rho3);
+%             m123             = obj.createSimpallFromShearBulk(mu1,kappa1,mu23,kappa23);
+%             [mu123,kappa123] = m123.computeConsitutiveTensor(rho2);
+%             mAll             = obj.createSimpallFromShearBulk(mu0,kappa0,mu123,kappa123);
+%             [mu,kappa]       = mAll.computeConsitutiveTensor(rho1);
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
@@ -47,12 +69,12 @@ classdef MultiMaterialInterpolation < handle
             I.fValues(:) = 1;
             Z   = LagrangianFunction.create(m,1,'P1');
 
-            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
-            [dmu13,dkappa13] = obj.simpAlls.m13.computeConsitutiveTensorDerivative(I);
-            [dmu14,dkappa14] = obj.simpAlls.m14.computeConsitutiveTensorDerivative(I);
-            [dmu23,dkappa23] = obj.simpAlls.m23.computeConsitutiveTensorDerivative(I);
-            [dmu24,dkappa24] = obj.simpAlls.m24.computeConsitutiveTensorDerivative(I);
-            [dmu34,dkappa34] = obj.simpAlls.m34.computeConsitutiveTensorDerivative(I);
+            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
+            [dmu13,dkappa13] = obj.simpAlls.m13.computeConsitutiveTensorDerivative(Z);
+            [dmu14,dkappa14] = obj.simpAlls.m14.computeConsitutiveTensorDerivative(Z);
+            [dmu23,dkappa23] = obj.simpAlls.m23.computeConsitutiveTensorDerivative(Z);
+            [dmu24,dkappa24] = obj.simpAlls.m24.computeConsitutiveTensorDerivative(Z);
+            [dmu34,dkappa34] = obj.simpAlls.m34.computeConsitutiveTensorDerivative(Z);
 
             ratio12K = Mean(    dkappa{1,2}./dkappa12   ,m,2);
             ratio13K = Mean(    dkappa{1,3}./dkappa13   ,m,2);
@@ -66,12 +88,12 @@ classdef MultiMaterialInterpolation < handle
             ratio14m = Mean(    dmu{1,4}./dmu14         ,m,2);
             ratio23m = Mean(    dmu{2,3}./dmu23         ,m,2);
             ratio24m = Mean(    dmu{2,4}./dmu24         ,m,2);
-            ratio34m = Mean(    dmu{3,4}./dmu34         ,m,2); % All fine but different sign
+            ratio34m = Mean(    dmu{3,4}./dmu34         ,m,2); % All fine
 
 
-            [dmu21,dkappa21] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
+            [dmu21,dkappa21] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
             ratio21K = Mean(    dkappa{2,1}./dkappa21   ,m,2);
-            ratio21m = Mean(    dmu{2,1}./dmu21         ,m,2); % Here all fine, even the sign
+            ratio21m = Mean(    dmu{2,1}./dmu21         ,m,2); % Here all fine, but diff sign
         end
 
     end
@@ -169,12 +191,12 @@ classdef MultiMaterialInterpolation < handle
             nu3 = cParams.nu(3);
             nu4 = cParams.nu(4);
 
-            obj.simpAlls.m12 = obj.createSimpall(E2,nu2,E1,nu1);
-            obj.simpAlls.m13 = obj.createSimpall(E3,nu3,E1,nu1);
-            obj.simpAlls.m14 = obj.createSimpall(E4,nu4,E1,nu1);
-            obj.simpAlls.m23 = obj.createSimpall(E3,nu3,E2,nu2);
-            obj.simpAlls.m24 = obj.createSimpall(E4,nu4,E2,nu2);
-            obj.simpAlls.m34 = obj.createSimpall(E4,nu4,E3,nu3);
+            obj.simpAlls.m12 = obj.createSimpall(E1,nu1,E2,nu2);
+            obj.simpAlls.m13 = obj.createSimpall(E1,nu1,E3,nu3);
+            obj.simpAlls.m14 = obj.createSimpall(E1,nu1,E4,nu4);
+            obj.simpAlls.m23 = obj.createSimpall(E2,nu2,E3,nu3);
+            obj.simpAlls.m24 = obj.createSimpall(E2,nu2,E4,nu4);
+            obj.simpAlls.m34 = obj.createSimpall(E3,nu3,E4,nu4);
         end
 
         function m = createSimpall(obj,E0,nu0,E1,nu1)
@@ -191,6 +213,16 @@ classdef MultiMaterialInterpolation < handle
             s.matB = matB;
 
             m = MaterialInterpolator.create(s);
+        end
+
+        function m = createSimpallFromShearBulk(obj,mu0,kappa0,mu1,kappa1)
+            s.interpolation = 'SIMPALL';
+            s.dim           = '2D';
+            s.matA.shear    = mu0;
+            s.matA.bulk     = kappa0;
+            s.matB.shear    = mu1;
+            s.matB.bulk     = kappa1;
+            m               = MaterialInterpolator.create(s);
         end
     end
 end
