@@ -27,75 +27,46 @@ classdef MultiMaterialInterpolation < handle
 
 
 
-%             mu0    = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(4),1/3);
-%             kappa0 = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(4),1/3,2);
-% 
-%             mu1     = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(1),1/3);
-%             kappa1  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(1),1/3,2);
-% 
-%             rho1 = x{2}{1};
-%             rho2 = x{2}{2};
-%             rho3 = x{2}{3};
-% 
-%             [mu23,kappa23]   = obj.simpAlls.m23.computeConsitutiveTensor(rho3);
-%             m123             = obj.createSimpallFromShearBulk(mu1,kappa1,mu23,kappa23);
-%             [mu123,kappa123] = m123.computeConsitutiveTensor(rho2);
-%             mAll             = obj.createSimpallFromShearBulk(mu0,kappa0,mu123,kappa123);
-%             [mu,kappa]       = mAll.computeConsitutiveTensor(rho1);
+            mu0    = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(4),1/3);
+            kappa0 = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(4),1/3,2);
+
+            mu1     = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.youngVec(1),1/3);
+            kappa1  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.youngVec(1),1/3,2);
+
+            rho1 = x{2}{1};
+            rho2 = x{2}{2};
+            rho3 = x{2}{3};
+
+            [mu23,kappa23]   = obj.simpAlls{2,3}.computeConsitutiveTensor(rho3);
+            m123             = obj.createSimpallFromShearBulk(mu1,kappa1,mu23,kappa23);
+            [mu123,kappa123] = m123.computeConsitutiveTensor(rho2);
+            mAll             = obj.createSimpallFromShearBulk(mu0,kappa0,mu123,kappa123);
+            [mu2,kappa2]       = mAll.computeConsitutiveTensor(rho1);
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x,C)
-            for i = 1:length(obj.youngVec)
-                for j = 1:length(obj.youngVec)
-                    dC      = obj.computeTensorDerivativeIJ(x{1},C,i,j);
-                    dmuVal  = squeeze(dC(3,3,:));
-                    dlamVal = squeeze(dC(1,2,:));
-                    dmu{i,j}     = obj.computeP1Function(x{1}{1}.mesh,dmuVal);
-                    s.operation = @(xV) dmu{i,j}.evaluate(xV);
-                    dmu{i,j}    = DomainFunction(s);
-                    dlam    = obj.computeP1Function(x{1}{1}.mesh,dlamVal);
-                    N       = x{1}{1}.mesh.ndim;
-                    dkappa{i,j}  = obj.computeBulkMagnitude(dlam,dmu{i,j},N);
+            nMat         = length(obj.youngVec);
+            m            = x{2}{1}.mesh;
+            I            = LagrangianFunction.create(m,1,'P1');
+            I.fValues(:) = 1;
+            Z            = LagrangianFunction.create(m,1,'P1');
+            dmu          = cell(nMat,nMat);
+            dkappa       = cell(nMat,nMat);
+            for i = 1:nMat
+                for j = 1:nMat
+                    if i==j
+                        dmu{i,j}    = Z;
+                        dkappa{i,j} = Z;
+                    elseif i<j
+                        [dmu{i,j},dkappa{i,j}] = obj.simpAlls{i,j}.computeConsitutiveTensorDerivative(Z);
+                    else
+                        [dmu{i,j},dkappa{i,j}] = obj.simpAlls{j,i}.computeConsitutiveTensorDerivative(I);
+                        dmu{i,j}               = -dmu{i,j};
+                        dkappa{i,j}            = -dkappa{i,j};
+                    end
                 end
             end
-
-
-
-
-
-            rho = x{2};
-            m = rho{1}.mesh;
-            I   = LagrangianFunction.create(m,1,'P1');
-            I.fValues(:) = 1;
-            Z   = LagrangianFunction.create(m,1,'P1');
-
-            [dmu12,dkappa12] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(Z);
-            [dmu13,dkappa13] = obj.simpAlls.m13.computeConsitutiveTensorDerivative(Z);
-            [dmu14,dkappa14] = obj.simpAlls.m14.computeConsitutiveTensorDerivative(Z);
-            [dmu23,dkappa23] = obj.simpAlls.m23.computeConsitutiveTensorDerivative(Z);
-            [dmu24,dkappa24] = obj.simpAlls.m24.computeConsitutiveTensorDerivative(Z);
-            [dmu34,dkappa34] = obj.simpAlls.m34.computeConsitutiveTensorDerivative(Z);
-
-            ratio12K = Mean(    dkappa{1,2}./dkappa12   ,m,2);
-            ratio13K = Mean(    dkappa{1,3}./dkappa13   ,m,2);
-            ratio14K = Mean(    dkappa{1,4}./dkappa14   ,m,2);
-            ratio23K = Mean(    dkappa{2,3}./dkappa23   ,m,2);
-            ratio24K = Mean(    dkappa{2,4}./dkappa24   ,m,2);
-            ratio34K = Mean(    dkappa{3,4}./dkappa34   ,m,2);
-
-            ratio12m = Mean(    dmu{1,2}./dmu12         ,m,2);
-            ratio13m = Mean(    dmu{1,3}./dmu13         ,m,2);
-            ratio14m = Mean(    dmu{1,4}./dmu14         ,m,2);
-            ratio23m = Mean(    dmu{2,3}./dmu23         ,m,2);
-            ratio24m = Mean(    dmu{2,4}./dmu24         ,m,2);
-            ratio34m = Mean(    dmu{3,4}./dmu34         ,m,2); % All fine
-
-
-            [dmu21,dkappa21] = obj.simpAlls.m12.computeConsitutiveTensorDerivative(I);
-            ratio21K = Mean(    dkappa{2,1}./dkappa21   ,m,2);
-            ratio21m = Mean(    dmu{2,1}./dmu21         ,m,2); % Here all fine, but diff sign
         end
-
     end
 
     methods (Access = private)
@@ -113,44 +84,7 @@ classdef MultiMaterialInterpolation < handle
             Ceff       = obj.elasticTensor{1}.*tgamma;
             lambdaVals = squeeze(Ceff(1,2,:));
             muVals     = squeeze(Ceff(3,3,:));
-        end
-
-        function coefMatrix2 = computeGradientCoefficientsMatrix(obj,chi,i,j)
-            chiVal = obj.splitCellIntoValues(chi);
-            nu    = 1/3; % !!!
-            alpha  = (1+nu)/(1-nu);
-            beta = (3-nu)/(1+nu);
-            E     = obj.youngVec;
-            E1    = E*chiVal;
-            %i     = obj.currentMat;
-            %j     = obj.inclusionMat;
-            g     = E(j)/E(i);
-            c1    = -(1+beta)/(1+g*beta)*(1-g)./ones(size(E1));
-            c2    = -0.5*(alpha-beta)/(1+g*beta)*(g*(g-2)+1)/(1+g*alpha)./ones(size(E1));
-
-            coefMatrix2(1,1,:) = c1+c2;
-            coefMatrix2(1,2,:) = c2;
-            coefMatrix2(1,3,:) = 0;
-            coefMatrix2(2,1,:) = c2;
-            coefMatrix2(2,2,:) = c1+c2;
-            coefMatrix2(2,3,:) = 0;
-            coefMatrix2(3,1,:) = 0;
-            coefMatrix2(3,2,:) = 0;
-            coefMatrix2(3,3,:) = c1;
-        end
-
-        function dCij = computeTensorDerivativeIJ(obj,chi,C2,i,j)
-            Cm     = obj.elasticTensor{i};
-            P      = obj.computeGradientCoefficientsMatrix(chi,i,j);
-            dC     = pagemtimes(Cm,P);
-            dCij   = dC;
-        end
-
-        function tgamma3 = computeTgamma3(obj,chiVal)
-            tgamma         = (obj.youngVec/obj.youngVec(1))*chiVal;
-            tgamma3(:,1,:) = [tgamma;tgamma;tgamma];
-            tgamma3        = repmat(tgamma3,[1,3,1]);
-        end        
+        end       
 
     end
 
@@ -191,12 +125,12 @@ classdef MultiMaterialInterpolation < handle
             nu3 = cParams.nu(3);
             nu4 = cParams.nu(4);
 
-            obj.simpAlls.m12 = obj.createSimpall(E1,nu1,E2,nu2);
-            obj.simpAlls.m13 = obj.createSimpall(E1,nu1,E3,nu3);
-            obj.simpAlls.m14 = obj.createSimpall(E1,nu1,E4,nu4);
-            obj.simpAlls.m23 = obj.createSimpall(E2,nu2,E3,nu3);
-            obj.simpAlls.m24 = obj.createSimpall(E2,nu2,E4,nu4);
-            obj.simpAlls.m34 = obj.createSimpall(E3,nu3,E4,nu4);
+            obj.simpAlls{1,2} = obj.createSimpall(E1,nu1,E2,nu2);
+            obj.simpAlls{1,3} = obj.createSimpall(E1,nu1,E3,nu3);
+            obj.simpAlls{1,4} = obj.createSimpall(E1,nu1,E4,nu4);
+            obj.simpAlls{2,3} = obj.createSimpall(E2,nu2,E3,nu3);
+            obj.simpAlls{2,4} = obj.createSimpall(E2,nu2,E4,nu4);
+            obj.simpAlls{3,4} = obj.createSimpall(E3,nu3,E4,nu4);
         end
 
         function m = createSimpall(obj,E0,nu0,E1,nu1)
