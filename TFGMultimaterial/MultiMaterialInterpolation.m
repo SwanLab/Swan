@@ -35,7 +35,7 @@ classdef MultiMaterialInterpolation < handle
             I            = LagrangianFunction.create(m,1,'P1');
             I.fValues(:) = 1;
             Z            = LagrangianFunction.create(m,1,'P1');
-            [dmu,dkappa] = computeTopologicalDerivatives(obj,I,Z); % It doesn't depend on x !!!
+            [dmu,dkappa] = computeTopologicalDerivatives(obj,I,Z);
         end
     end
 
