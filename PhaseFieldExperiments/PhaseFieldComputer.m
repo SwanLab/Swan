@@ -3,7 +3,7 @@ classdef PhaseFieldComputer < handle
     properties (Constant, Access = public)
         tolErrU = 1e-13;
         tolErrPhi = 1e-12;
-        tolErrStag = 1e-12;
+        tolErrStag = 1e-8;
     end
 
     properties (Access = private)
@@ -244,6 +244,10 @@ classdef PhaseFieldComputer < handle
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             % nodes = 1:obj.mesh.nnodes;
             % totReact = -sum(F(2*nodes(isInDown)));
+
+            % isInTip = (abs(obj.mesh.coord(:,2)-(max(obj.mesh.coord(:,2))+min(obj.mesh.coord(:,2)))/2) < 1e-12) & (abs(obj.mesh.coord(:,1)-max(obj.mesh.coord(:,1))) < 30);
+            % nodes = 1:obj.mesh.nnodes;
+            % totReact = sum(F(2*nodes(isInTip)));
         end
 
         function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)

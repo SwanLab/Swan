@@ -54,6 +54,8 @@ classdef phaseFieldBoundaryCreator < handle
                    obj.createBoundaryConditions = @obj.createDisplacementTractionConditions;
                case 'displacementShear'
                    obj.createBoundaryConditions = @obj.createDisplacementShearConditions;
+               case 'displacementMixed'
+                   obj.createBoundaryConditions = @obj.createDisplacementMixedConditions;
                case 'Lshape'
                    obj.createBoundaryConditions = @obj.createLshapeDisplacementConditions;
                case 'FiberMatrix'
@@ -143,6 +145,33 @@ classdef phaseFieldBoundaryCreator < handle
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [2];
              sDir.value     = 0;
+             Dir3 = DirichletCondition(obj.mesh,sDir);             
+
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1 Dir2 Dir3];
+             s.pointloadFun = [];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);
+         end
+
+         function createDisplacementMixedConditions(obj,uVal)
+             angle = pi/4;
+
+             isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInDown(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir1 = DirichletCondition(obj.mesh,sDir);
+
+             isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [1];
+             sDir.value     = uVal*cos(angle);
+             Dir2 = DirichletCondition(obj.mesh,sDir);
+
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [2];
+             sDir.value     = uVal*sin(angle);
              Dir3 = DirichletCondition(obj.mesh,sDir);             
 
              s.mesh = obj.mesh;

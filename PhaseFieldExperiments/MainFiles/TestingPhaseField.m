@@ -67,7 +67,6 @@ classdef TestingPhaseField < handle
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
-                %phi.fValues(:) = 1e-12;
                 obj.initialGuess.u = u;
                 obj.initialGuess.phi = phi;
             end

@@ -9,8 +9,18 @@ classdef BenchmarkManager < handle
                 case 'nElem'
                     N = cParams.N;
                     mesh = QuadMesh(1,10,N,N);
-                case 'SEN'
-                    file = 'SENmeshDisplaced';
+                case 'SENshear'
+                    file = 'PF_SENshear0_01';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
+                case 'SENtraction'
+                    file = 'PF_SENtraction0_0025';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
+                case 'SENmixed'
+                    file = 'PF_SENmixed0_0025';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
