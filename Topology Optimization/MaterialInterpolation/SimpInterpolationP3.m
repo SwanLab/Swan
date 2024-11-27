@@ -41,16 +41,16 @@ classdef SimpInterpolationP3 < handle
             k  = obj.interpolate(rho,k0,k1);
         end
 
-        function mu = computeMuDerivative(obj,rho)
-            mu0 = obj.matA.shear;
-            mu1 = obj.matB.shear;
-            mu  = obj.derive(rho,mu0,mu1);
+        function dmu = computeMuDerivative(obj,rho)
+            mu0  = obj.matA.shear;
+            mu1  = obj.matB.shear;
+            dmu  = obj.derive(rho,mu0,mu1);
         end
 
-        function k = computeKappaDerivative(obj,rho)
-            k0 = obj.matA.bulk;
-            k1 = obj.matB.bulk;
-            k  = obj.derive(rho,k0,k1);
+        function dk = computeKappaDerivative(obj,rho)
+            k0  = obj.matA.bulk;
+            k1  = obj.matB.bulk;
+            dk  = obj.derive(rho,k0,k1);
         end
 
         function f = interpolate(obj,rho,f0,f1)
