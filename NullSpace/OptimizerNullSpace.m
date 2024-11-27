@@ -291,9 +291,9 @@ classdef OptimizerNullSpace < Optimizer
 
                     [actg,~] = obj.computeActiveConstraintsGradient();
                     isAlmostFeasible  = norm(actg) < 0.01;
-                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.01;
+                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.001;
                     if isAlmostFeasible && isAlmostOptimal
-                        obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
+                        obj.etaMax = max(obj.etaMax/1.05,obj.etaMaxMin);
                     end
 
                 case 'HAMILTON-JACOBI'

@@ -19,8 +19,10 @@
 % MBBBeamDensity(1);
 % MBBBeamDensity(2);
 
-% 2D Cantilever Beam LevelSet: gJ=2.5
-% TwoDimCantilever();
+% 2D Cantilever Beam LevelSet: gJ=0.2,1,2.5
+TwoDimCantilever(0.2);
+TwoDimCantilever(1);
+TwoDimCantilever(2.5);
 
 % 3D Cantilever Beam LevelSet: gJ=0.5/1/2 (V0d4) + gJ=0.7 (V0d2)
 % CREATE FOLDER
@@ -43,9 +45,9 @@
 
 
 % MBB Beam 40% LevelSet: gJ= 0.5/1/2;
-MBBBeam(0.5,0.015);
-MBBBeam(1,0.03);
-MBBBeam(2,0.1);
+% MBBBeam(0.5,0.015);
+% MBBBeam(1,0.03);
+% MBBBeam(2,0.1);
 
 
 % MultiLoad Bridge LevelSet: gJ=10/1Load + gJ=10/3Loads + gJ=10/9Loads;

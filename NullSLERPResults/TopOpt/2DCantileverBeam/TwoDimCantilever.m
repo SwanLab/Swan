@@ -12,12 +12,13 @@ classdef TwoDimCantilever < handle
         constraint
         dualVariable
         optimizer
+        gJ
     end
 
     methods (Access = public)
 
-        function obj = TwoDimCantilever()
-            obj.init()
+        function obj = TwoDimCantilever(gJPar)
+            obj.init(gJPar)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
@@ -31,16 +32,17 @@ classdef TwoDimCantilever < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            saveas(gcf,'NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ2d5V0d4.fig');
-            obj.designVariable.fun.print('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/gJ2d5_V0d4_fValues');
+            saveas(gcf,['NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ',num2str(obj.gJ),'V0d4.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/gJ',num2str(obj.gJ),'_V0d4_fValues']);
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,gJPar)
             close all;
+            obj.gJ = gJPar;
         end
 
         function createMesh(obj)
@@ -173,9 +175,9 @@ classdef TwoDimCantilever < handle
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 2.5;
-            s.etaMaxMin      = 0.06;
-            s.etaMax         = 0.06;
+            s.gJFlowRatio    = obj.gJ;
+            s.etaMaxMin      = 0.01;
+            s.etaMax         = 1;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

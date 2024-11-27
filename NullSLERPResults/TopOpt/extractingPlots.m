@@ -3,9 +3,9 @@ clear;
 close all;
 
 % 3 gJs case
-fig1 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ0d2.fig');
-fig2 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ1.fig');
-fig3 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ2d5V0d4.fig');
+fig1 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ0.2V0d4.fig');
+fig2 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ1V0d4.fig');
+fig3 = openfig('NullSLERPResults/TopOpt/2DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ2.5V0d4.fig');
 
 iter  = fig1.Children(end).Children.XData;
 cost1 = fig1.Children(end).Children.YData;
