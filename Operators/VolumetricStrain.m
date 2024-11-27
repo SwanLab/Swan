@@ -1,5 +1,6 @@
 function dom = VolumetricStrain(u)
     s.operation = @(xV) evaluate(u,xV);
+    s.mesh      = u.mesh;
     dom         = DomainFunction(s);
 end
 

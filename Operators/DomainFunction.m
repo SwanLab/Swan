@@ -1,16 +1,12 @@
 classdef DomainFunction < handle
-    
+
     properties (Access = public)
-        operation
         ndimf
     end
-    
-    properties (Access = private)
-        
-    end
-    
-    properties (Access = private)
-        
+
+    properties (GetAccess = public, SetAccess = protected)
+        operation
+        mesh
     end
     
     methods (Access = public)
@@ -23,8 +19,8 @@ classdef DomainFunction < handle
             r = obj.operation(xV);
         end
 
-        function plot(obj,m)
-            fD = obj.project('P1D',m);
+        function plot(obj)
+            fD = obj.project('P1D',obj.mesh);
             fD.plot();
         end
 
@@ -38,6 +34,7 @@ classdef DomainFunction < handle
         function r = ctranspose(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagetranspose(aOp(xV));
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
         
@@ -45,6 +42,11 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
+            if isa(a,'DomainFunction')
+                s.mesh = a.mesh;
+            else
+                s.mesh = b.mesh;
+            end
             r = DomainFunction(s);
         end
 
@@ -52,6 +54,11 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
+            if isa(a,'DomainFunction')
+                s.mesh = a.mesh;
+            else
+                s.mesh = b.mesh;
+            end
             r = DomainFunction(s);
         end
 
@@ -62,6 +69,11 @@ classdef DomainFunction < handle
             ndimfB = DomainFunction.computeFieldDimension(b);
             s.operation = @(xV) aOp(xV).*bOp(xV);
             s.ndimf = max(ndimfA,ndimfB);
+            if isa(a,'DomainFunction')
+                s.mesh = a.mesh;
+            else
+                s.mesh = b.mesh;
+            end
             r = DomainFunction(s);
         end
 
@@ -69,6 +81,11 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            if isa(a,'DomainFunction')
+                s.mesh = a.mesh;
+            else
+                s.mesh = b.mesh;
+            end
             r = DomainFunction(s);
         end
 
@@ -76,36 +93,46 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             bOp = DomainFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV)./bOp(xV);
+            if isa(a,'DomainFunction')
+                s.mesh = a.mesh;
+            else
+                s.mesh = b.mesh;
+            end
             r = DomainFunction(s);
         end
         
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) aOp(xV).^b;
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = exp(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) exp(aOp(xV));
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end        
 
@@ -113,6 +140,7 @@ classdef DomainFunction < handle
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) trace(aOp(xV));
             s.ndimf = a.ndimf;
+            s.mesh = a.mesh;
             r = DomainFunction(s);
         end
 
@@ -126,6 +154,12 @@ classdef DomainFunction < handle
                 obj.ndimf = cParams.ndimf;
             else
                 obj.ndimf = 1;
+            end
+
+            if isfield(cParams,'mesh')
+                obj.mesh = cParams.mesh;
+            else
+                obj.mesh = [];
             end
         end
 

@@ -107,7 +107,6 @@ classdef LagrangianFunction < FeFunction
             %obj.fValuesDisc = fVals;
         end
         
-
         function c = getDofCoord(obj)
             c = obj.dofCoord;
         end
@@ -127,12 +126,14 @@ classdef LagrangianFunction < FeFunction
         function grad = computeGrad(obj)
             s.operation = @(xV) obj.computeGradFun(xV);
             s.ndimf     = obj.mesh.ndim*obj.ndimf;
+            s.mesh      = obj.mesh;
             grad        = DomainFunction(s);
         end
 
         function div = computeDiv(obj)
             s.operation = @(xV) obj.computeDivFun(xV);
             s.ndimf     = 1;
+            s.mesh      = obj.mesh;
             div         = DomainFunction(s);                   
         end        
 
@@ -201,9 +202,7 @@ classdef LagrangianFunction < FeFunction
             xlim([min(x), max(x)]);
             ylim([min(y), max(y)]);
         end
-
-
-        
+  
         function cV = getDofCoordByVector(obj,dimf)
             cV = obj.getDofFieldByVector(dimf,obj.dofCoord);
         end
@@ -221,7 +220,6 @@ classdef LagrangianFunction < FeFunction
             f = obj.fValues;
             fV = obj.getDofFieldByVector(dimf,f);
         end        
-
 
         function dof = getDofsFromCondition(obj, condition)
             nodes = condition(obj.dofCoord);
@@ -354,12 +352,14 @@ classdef LagrangianFunction < FeFunction
         function s = times(f1,f2)
             s.operation = @(xV) f1.evaluate(xV) .* f2.evaluate(xV);
             s.ndimf = max(f1.ndimf,f2.ndimf);
+            s.mesh = f1.mesh;
             s = DomainFunction(s);
         end
 
         function f = power(f1,b)
             s.operation = @(xV) (f1.evaluate(xV)).^b;
             s.ndimf = f1.ndimf;
+            s.mesh = f1.mesh;
             f = DomainFunction(s);
         end
 
@@ -372,12 +372,14 @@ classdef LagrangianFunction < FeFunction
         function f = mrdivide(f1,f2)
             s.operation = @(xV) f1.evaluate(xV)./f2.evaluate(xV);
             s.ndimf = max(f1.ndimf,f2.ndimf);
+            s.mesh = f1.mesh;
             f = DomainFunction(s);            
         end
 
         function f = exp(f)
             s.operation = @(xV) exp(f.evaluate(xV));
             s.ndimf = f.ndimf;
+            s.mesh = f.mesh;
             f = DomainFunction(s);
         end
 
@@ -464,7 +466,6 @@ classdef LagrangianFunction < FeFunction
             gradF = gradF.project('P1',obj.mesh);
             lapF  = Divergence(gradF); 
         end
-
 
        function fV = getValuesByElem(obj)
             connec = obj.getDofConnec();
