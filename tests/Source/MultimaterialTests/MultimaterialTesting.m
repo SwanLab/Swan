@@ -79,53 +79,11 @@ classdef MultimaterialTesting < handle
             lsFun     = g.computeLevelSetFunction(obj.mesh);
         end
         
-        function createMaterialInterpolator(obj) % WILL BE EDITED
-            E   = ConstantFunction.create(1,obj.mesh);
-            nu  = ConstantFunction.create(1/3,obj.mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = E;
-            s.poisson = nu;
-            tensor    = Material.create(s);
-            tensorEv  = tensor.evaluate([0;0]);
-            sC.CA        = tensorEv(:,:,1,1);
-
-
-            sC.E  = [1,0.5,0.25,1e-3];
-            sC.nu = (1/3)*[1,1,1,1];
-
-            E   = ConstantFunction.create(0.5,obj.mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = E;
-            s.poisson = nu;
-            tensor    = Material.create(s);
-            tensorEv  = tensor.evaluate([0;0]);
-            sC.CB     = tensorEv(:,:,1,1);
-
-            E   = ConstantFunction.create(0.25,obj.mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = E;
-            s.poisson = nu;
-            tensor    = Material.create(s);
-            tensorEv  = tensor.evaluate([0;0]);
-            sC.CC     = tensorEv(:,:,1,1);
-
-            E   = ConstantFunction.create(1e-3,obj.mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = E;
-            s.poisson = nu;
-            tensor    = Material.create(s);
-            tensorEv  = tensor.evaluate([0;0]);
-            sC.CD     = tensorEv(:,:,1,1);
-
-            obj.materialInterpolator = MultiMaterialInterpolation(sC);
+        function createMaterialInterpolator(obj)
+            s.E    = [1,0.5,0.25,1e-3];
+            s.nu   = (1/3)*[1,1,1,1];
+            s.ndim = 2;
+            obj.materialInterpolator = MultiMaterialInterpolation(s);
         end
 
         function createBoundaryConditions(obj)

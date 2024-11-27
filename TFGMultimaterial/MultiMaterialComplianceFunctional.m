@@ -20,15 +20,11 @@ classdef MultiMaterialComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD = x.obtainDomainFunction();
-
-            xD2{1} = x.levelSets{1}.obtainDomainFunction();
-            xD2{2} = x.levelSets{2}.obtainDomainFunction();
-            xD2{3} = x.levelSets{3}.obtainDomainFunction();
-
+            xD{1} = x.levelSets{1}.obtainDomainFunction();
+            xD{2} = x.levelSets{2}.obtainDomainFunction();
+            xD{3} = x.levelSets{3}.obtainDomainFunction();
             xR = obj.filterFields(xD);
-            xR2 = obj.filterFields(xD2);
-            obj.material.setDesignVariable(xR,xR2);
+            obj.material.setDesignVariable(xR);
             C = obj.material.obtainTensor();
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);

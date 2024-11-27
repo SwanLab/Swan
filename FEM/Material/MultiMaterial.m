@@ -24,8 +24,7 @@ classdef MultiMaterial < handle
         function dC = obtainTensorDerivative(obj)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            C = obj.obtainTensor();
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho,C);
+            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
             for i = 1:size(dmu,1)
                 for j = 1:size(dmu,1)
                     s.operation = @(xV) obj.evaluateGradient(dmu{i,j},dkappa{i,j},xV);
@@ -34,10 +33,8 @@ classdef MultiMaterial < handle
             end
         end
 
-        function setDesignVariable(obj,x,x2)
-            obj.density    = cell(2,1);
-            obj.density{1} = x;
-            obj.density{2} = x2;
+        function setDesignVariable(obj,x)
+            obj.density = x;
         end
         
     end
