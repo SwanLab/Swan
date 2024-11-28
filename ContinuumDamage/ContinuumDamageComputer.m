@@ -12,8 +12,8 @@ classdef ContinuumDamageComputer < handle
         tolerance = 1e-8
         quadOrder
 
-        H = 0.1
-        r0 = 0.1/sqrt(210) %revisar com es calcula (depen de les bc)
+        H = 0.5
+        r0 = 1/sqrt(210) %revisar com es calcula (depen de les bc)
 
         elasticFun
         externalWorkFun

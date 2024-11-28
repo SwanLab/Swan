@@ -44,11 +44,18 @@ classdef TestingContinuumDamage < handle
     methods (Access = private)
 
         function mesh = createMesh(~,s)
-            l = s.meshLength;
-            w = s.meshWidth;
-            N = s.meshN;
-            M = s.meshM;
-            mesh = QuadMesh(l,w,N,M);
+            if ~isfield(s,'name')
+                l = s.meshLength;
+                w = s.meshWidth;
+                N = s.meshN;
+                M = s.meshM;
+                mesh = QuadMesh(l,w,N,M);
+            else
+                file = s.name;
+                a.fileName = file;
+                s = FemDataContainer(a);
+                mesh = s.mesh;
+            end
         end
 
         function bc = defineBoundaryConditions(obj,s)
