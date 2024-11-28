@@ -8,12 +8,12 @@ classdef ContinuumDamageComputer < handle
     end
 
     properties (Access = private)
-        tau = 0.1
-        tolerance = 1e-5
+        tau = 0.5
+        tolerance = 1
         quadOrder
 
-        H = 0.5
-        r0 = 1/sqrt(210) %revisar com es calcula (depen de les bc)
+        H = 0.001
+        r0 = 1e-3/sqrt(210) %revisar com es calcula (depen de les bc)
 
         Functional
     end
@@ -36,12 +36,17 @@ classdef ContinuumDamageComputer < handle
             fExt = obj.boundaryConditions.bc.pointloadFun;
 
             EnergyOld = 1;
+            
+            
 
             for i = 1:1:obj.boundaryConditions.ValueSetLenght
-
-
+                fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
+                
+                
                 obj.boundaryConditions.nextStep(i);
                 bc = obj.boundaryConditions.bc;
+                
+            
 
                 while (abs(errorE) >= obj.tolerance)
                     LHS = obj.computeLHS(u,rNew);
@@ -62,6 +67,8 @@ classdef ContinuumDamageComputer < handle
 
                 end
                 errorE = 1;
+                reactions(i) = obj.computeReactions (u,uNewVec,LHS);
+
 
 
             end
@@ -71,7 +78,7 @@ classdef ContinuumDamageComputer < handle
             %data.TotalEenrgy = obj.TotalEnergyFun.computeTotalEnergy(obj.quadOrder,u,fExt);
             data.TotalEenrgy = EnergyNew;
             data.damage = obj.Functional.computeDamage(rNew);
-            data.reactions = obj.computeReactions (u,uNewVec,LHS);
+            data.reactions = reactions;
 
         end
     end

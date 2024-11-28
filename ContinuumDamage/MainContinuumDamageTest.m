@@ -13,7 +13,7 @@ cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'forceTraction'; %'FORCE'
-cParams.bc.bcValueSet = [1 2 3 4 5];
+cParams.bc.bcValueSet = [1:1e-2:];
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
@@ -29,11 +29,15 @@ data = tester.compute();
 
 
 data.displacement.plot()
-data.reactions.plot()
+%data.reactions.plot()
+
+for i = 1:1:size(data.reactions,2)
+
+    TotalRec(i) = sum(data.reactions(i).fValues(:,2));
+
+end
 
 
-
-TotalReac = sum(data.reactions.fValues(:,2));
 data.damage.plot(data.displacement.mesh)
 damageFun = data.damage.project('P1D',data.displacement.mesh);
 
