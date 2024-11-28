@@ -39,21 +39,60 @@ classdef LagrangianFunction < FeFunction
 
         function fxV = evaluate(obj, xV)
             shapes = obj.interpolation.computeShapeFunctions(xV);
-            nNode  = obj.interpolation.nnode;
+            % nNode  = obj.interpolation.nnode;
+            % nGaus  = size(shapes,2);
+            % nF     = size(obj.fValues,2);
+            % nElem  = size(obj.dofConnec,1);
+            % fxV = zeros(nF,nGaus,nElem);
+            % nodes = obj.getDofConnecByVector();
+            % for iGaus = 1:nGaus
+            %     for iNode = 1:nNode
+            %         node = nodes(:,iNode);
+            %         Ni = shapes(iNode,iGaus);
+            %         fi = obj.fValues(node,:);
+            %         f(:,1,:) = Ni*fi';
+            %         fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+            %     end
+            % end     
+           func = obj.getFvaluesDisc2();
+
+          % fxV2 = fxV;
+
+            nNode  = size(shapes,1);
             nGaus  = size(shapes,2);
-            nF     = size(obj.fValues,2);
-            nElem  = size(obj.dofConnec,1);
+            nF     = size(func,1);
+            nElem  = size(func,3);
             fxV = zeros(nF,nGaus,nElem);
-            nodes = obj.getDofConnecByVector();
-            for iGaus = 1:nGaus
-                for iNode = 1:nNode
-                    node = nodes(:,iNode);
-                    Ni = shapes(iNode,iGaus);
-                    fi = obj.fValues(node,:);
-                    f(:,1,:) = Ni*fi';
-                    fxV(:,iGaus,:) = fxV(:,iGaus,:) + f;
+            for kNode = 1:nNode
+                shapeKJ = shapes(kNode,:,:);
+                fKJ     = func(:,kNode,:);
+                f = bsxfun(@times,shapeKJ,fKJ);
+                fxV = fxV + f;
+            end 
+
+          %  norm(fxV2(:)-fxV(:))/norm(fxV2(:))
+
+        end
+
+        function fVals = getFvaluesDisc2(obj)
+           nDimF  = size(obj.fValues,2);            
+         %   fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
+            nnodeElem = size(obj.mesh.connec,2);
+            node = obj.getDofConnecByVector();
+            for iDim = 1:nDimF
+                fI = obj.fValues(:,iDim);
+                for iNode = 1:nnodeElem
+                    %iDof  = (iNode-1)*obj.ndimf+iDim;
+%                    dofs  = obj.dofConnec(:,iDof);
+                    dof   = node(:,iNode);
+
+                    fVals(iDim,iNode,:) = fI(dof);
+                            
+                   % fVals(iDim,iNode,:) = fV;
+
                 end
-            end     
+            end
+
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -154,7 +193,12 @@ classdef LagrangianFunction < FeFunction
         end
 
         function ord = getOrderNum(obj)
-            ord = str2double(obj.order(end));
+            switch obj.order
+                case 'P1D'
+                    ord = 1;
+                otherwise
+                ord = str2double(obj.order(end));
+            end
         end
 
         function plot(obj) % 2D domains only
@@ -277,23 +321,36 @@ classdef LagrangianFunction < FeFunction
 
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = obj.copy();
+            f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
-        end        
+        end
 
-        function fFine = refine(obj,mFine) %Only for first order
-            fNodes  = obj.fValues;
-            fEdges  = obj.computeFunctionInEdges(obj.mesh, fNodes);
-            fAll    = [fNodes;fEdges];
-            s.mesh    = mFine;
-            s.fValues = fAll;
-            s.order   = obj.order;
-            fFine = LagrangianFunction(s);
+        function fFine = refine(obj,mFine)%Only for first order
+            switch obj.order
+                case 'P1'
+                    fNodes  = obj.fValues;
+                    fEdges  = obj.computeFunctionInEdges(obj.mesh, fNodes);
+                    fAll    = [fNodes;fEdges];
+                    s.mesh    = mFine;
+                    s.fValues = fAll;
+                    s.order   = obj.order;
+                    fFine = LagrangianFunction(s);
+                case 'P1D'
+                    P1Dref = P1Refiner(obj,mFine);
+                    fFine  = P1Dref.compute();
+            end
         end
 
         function f = copy(obj)
-            f = obj.create(obj.mesh,obj.ndimf,obj.order);
-            f.fValues = obj.fValues;
+            s.ndimf = obj.ndimf;
+            s.order = obj.order;
+            s.mesh      = obj.mesh;
+            s.fValues   = obj.fValues;
+            s.dofConnec = obj.dofConnec;
+            s.dofCoord  = obj.dofCoord;
+            s.dofs.getNumberDofs = size(obj.dofCoord,1);
+            f = LagrangianFunction(s);
             f.setXvOld(obj.xVOld);
             f.setdNdxOld(obj.dNdxOld);            
         end
@@ -415,7 +472,7 @@ classdef LagrangianFunction < FeFunction
             switch order
                 case 'P0'
                     ord = 'CONSTANT';
-                case 'P1'
+                case {'P1','P1D'}
                     ord = 'LINEAR';
                 case 'P2'
                     ord = 'QUADRATIC';

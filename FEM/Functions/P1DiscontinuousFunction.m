@@ -5,7 +5,8 @@ classdef P1DiscontinuousFunction < FeFunction
 
     properties (Access = private)
         fValuesDisc
-        interpolation        
+        interpolation  
+        lagrangianFunction
     end
 
     properties (Access = public)
@@ -17,7 +18,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function obj = P1DiscontinuousFunction(cParams)
             obj.init(cParams)
-            obj.order = '1';
+            obj.order = 'P1';
             obj.createInterpolation();
 
             if not(contains(fieldnames(cParams),'dof'))
@@ -25,25 +26,41 @@ classdef P1DiscontinuousFunction < FeFunction
             else
                 obj.dofConnec = cParams.dofConnec;
                 obj.dofCoord  = cParams.dofCoord;                
-            end            
+            end                        
             obj.createValuesByElement();
+            obj.createLagrangianFunction();
         end
 
         function fxV = evaluate(obj, xV)
-            func = obj.getFvaluesDisc();
-            shapes = obj.interpolation.computeShapeFunctions(xV);
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2);
-            nF     = size(func,1);
-            nElem  = size(func,3);
-            fxV = zeros(nF,nGaus,nElem);
-            for kNode = 1:nNode
-                shapeKJ = shapes(kNode,:,:);
-                fKJ     = func(:,kNode,:);
-                f = bsxfun(@times,shapeKJ,fKJ);
-                fxV = fxV + f;
-            end
+            obj.lagrangianFunction.fValues = obj.fValues;
+            fxV = obj.lagrangianFunction.evaluate(xV);
+            % func = obj.getFvaluesDisc();
+            % shapes = obj.interpolation.computeShapeFunctions(xV);
+            % nNode  = size(shapes,1);
+            % nGaus  = size(shapes,2);
+            % nF     = size(func,1);
+            % nElem  = size(func,3);
+            % fxV = zeros(nF,nGaus,nElem);
+            % for kNode = 1:nNode
+            %     shapeKJ = shapes(kNode,:,:);
+            %     fKJ     = func(:,kNode,:);
+            %     f = bsxfun(@times,shapeKJ,fKJ);
+            %     fxV = fxV + f;
+            % end
         end
+
+        function fxV = computeL2norm(obj)
+            obj.lagrangianFunction.fValues = obj.fValues;
+            fxV = obj.lagrangianFunction.computeL2norm();
+        end
+
+        function g  = computeGrad(obj)
+            g = obj.lagrangianFunction.computeGrad();
+        end
+
+        function g  = computeCurl(obj)
+            g = obj.lagrangianFunction.computeCurl();
+        end        
 
         function f = copy(obj)
             f = obj.create(obj.mesh, obj.ndimf);
@@ -76,25 +93,26 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            nElem = size(obj.dofConnec,1);
-            nNodeE = obj.interpolation.nnode;
-            nDimE = obj.interpolation.ndime;
-            nDimG = obj.mesh.ndim;
-            nPoints = size(xV, 2);
-            invJ  = obj.mesh.computeInverseJacobian(xV);
-            deriv = obj.computeShapeDerivatives(xV);
-            dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
-            for iDimG = 1:nDimG
-                for kNodeE = 1:nNodeE
-                    for jDimE = 1:nDimE
-                        invJ_IJ   = invJ(iDimG,jDimE,:,:);
-                        dShapes_JK = deriv(jDimE,kNodeE,:);
-                        dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
-                        dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
-                    end
-                end
-            end
-            dNdx = dShapes;
+            % nElem = size(obj.dofConnec,1);
+            % nNodeE = obj.interpolation.nnode;
+            % nDimE = obj.interpolation.ndime;
+            % nDimG = obj.mesh.ndim;
+            % nPoints = size(xV, 2);
+            % invJ  = obj.mesh.computeInverseJacobian(xV);
+            % deriv = obj.computeShapeDerivatives(xV);
+            % dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
+            % for iDimG = 1:nDimG
+            %     for kNodeE = 1:nNodeE
+            %         for jDimE = 1:nDimE
+            %             invJ_IJ   = invJ(iDimG,jDimE,:,:);
+            %             dShapes_JK = deriv(jDimE,kNodeE,:);
+            %             dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
+            %             dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
+            %         end
+            %     end
+            % end
+            % dNdx = dShapes;
+            dNdx = obj.lagrangianFunction.evaluateCartesianDerivatives(xV);
         end
 
         function fFine = refine(obj, mFine)
@@ -270,6 +288,18 @@ classdef P1DiscontinuousFunction < FeFunction
             obj.fValues   = cParams.fValues;
             obj.ndimf     = size(cParams.fValues,2);
             obj.order     = 'LINEAR';
+        end
+
+        function createLagrangianFunction(obj)
+            s.ndimf = obj.ndimf;
+            s.order = 'P1';
+            s.mesh      = obj.mesh;
+            s.fValues   = obj.fValues;
+            s.dofConnec = obj.dofConnec;
+            s.dofCoord  = obj.dofCoord;
+            s.dofs.getNumberDofs = size(obj.dofCoord,1);
+            f = LagrangianFunction(s);
+            obj.lagrangianFunction = f;
         end
 
         function createValuesByElement(obj)
