@@ -91,6 +91,7 @@ classdef ExplainingPeriodicFunction2D < handle
                 aF = aF.project('P1',obj.mesh);
                 obj.orientation{iDim} = aF;
             end
+
         end
 
         function or = createOrientationFunction(obj,iDim,xV)

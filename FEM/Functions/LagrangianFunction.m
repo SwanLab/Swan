@@ -77,8 +77,8 @@ classdef LagrangianFunction < FeFunction
         function fVals = getFvaluesDisc2(obj)
            nDimF  = size(obj.fValues,2);            
          %   fVals = reshape(obj.fValues',nDimF,[],obj.mesh.nelem);
-            nnodeElem = size(obj.mesh.connec,2);
-            node = obj.getDofConnecByVector();
+            node = obj.getDofConnecByVector();         
+            nnodeElem = size(node,2);
             for iDim = 1:nDimF
                 fI = obj.fValues(:,iDim);
                 for iNode = 1:nnodeElem
