@@ -49,8 +49,25 @@ classdef OrientedMappingComputer < handle
             nnode = obj.mesh.nnodeElem;
             nElem = obj.mesh.nelem;
             isCoh = false(nnode,nElem);
+            
             %a1D   = obj.orientation{1}.project('P1D',obj.mesh); 
             a1D   = obj.orientation{1}.project('P1D'); 
+
+            % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1D');            
+            % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1');
+            % s.filterType   = 'PDE';
+            % s.mesh         = obj.mesh;
+            % s.boundaryType = 'Neumann';
+            % s.metric       = 'Isotropy';
+            % filter          = Filter.create(s);
+            % epsilon    = 8*obj.mesh.computeMeanCellSize();
+            % filter.updateEpsilon(epsilon);            
+            % a1D = filter.compute(obj.orientation{1},2);
+
+
+            %a1D   = obj.orientation{1}.project('P1',obj.mesh); 
+           
+            a1D   = a1D.project('P1D'); 
             a1    = a1D.getFvaluesDisc();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
@@ -60,7 +77,8 @@ classdef OrientedMappingComputer < handle
             end
             s.fValues = isCoh(:);
             s.mesh    = obj.mesh;
-            isCF      = P1DiscontinuousFunction(s);            
+            s.order   = 'P1D';
+            isCF = LagrangianFunction(s); 
             obj.isCoherent = isCF;
         end
 
@@ -105,8 +123,8 @@ classdef OrientedMappingComputer < handle
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientation{iDim};
                 dO = er.*b;
-                d00 = dO.project('P1',obj.mesh);
-                Curl(d00).project('P1D',obj.mesh).plot()
+             %   d00 = dO.project('P1',obj.mesh);
+             %   Curl(d00).project('P1D',obj.mesh).plot()
                 obj.dilatedOrientation{iDim} = dO;
             end
         end            
@@ -132,7 +150,7 @@ classdef OrientedMappingComputer < handle
         end
 
         function computeMappingWithSingularities(obj)
-            psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
+            psiTs = obj.phiMapping + obj.totalCorrector;
             obj.phi = psiTs;
         end        
         
