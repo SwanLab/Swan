@@ -4,10 +4,7 @@ classdef Bc_ContinuumDamage < handle
         type
         bcValueSet
         ValueSetLenght
-        index
         mesh
-
-        bc
     end
     
     properties (Access = private)
@@ -19,10 +16,9 @@ classdef Bc_ContinuumDamage < handle
             obj.init(cParams);
         end
 
-        function nextStep (obj,i)
-            obj.index = i;
-            s.bcVal = obj.bcValueSet(obj.index);
-            obj.bc = obj.bcSetType (s);
+        function bc = nextStep(obj,i)
+            s.bcVal = obj.bcValueSet(i);
+            bc = obj.bcSetType (s);
         end
     
     end
@@ -33,12 +29,7 @@ classdef Bc_ContinuumDamage < handle
             obj.type = cParams.bcType;
             obj.bcValueSet = cParams.bcValueSet;
             obj.mesh = cParams.mesh;
-            obj.index = 1;
             obj.ValueSetLenght = size(obj.bcValueSet,2);
-
-            s.bcVal = obj.bcValueSet(obj.index);
-            obj.bc = obj.bcSetType (s);
-
         end
 
         function  bc = bcSetType (obj, s)

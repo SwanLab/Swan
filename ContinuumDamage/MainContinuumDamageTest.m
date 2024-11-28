@@ -4,16 +4,16 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 30;
-cParams.mesh.meshM = 30;
+cParams.mesh.meshN = 10;
+cParams.mesh.meshM = 10;
 
 
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
-cParams.bc.bcType = 'forceTraction'; %'FORCE'
-cParams.bc.bcValueSet = [1:1e-2:1.5];
+cParams.bc.bcType = 'displacementTraction'; %'FORCE'
+cParams.bc.bcValueSet = [1e-10:1e-3:1e-2];
 
 
 cParams.solver.type = 'Elastic';
@@ -28,7 +28,19 @@ cParams.tol = 1e-10;
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
 
-data.displacement.plot()
+data.displacement.field.plot
+data.damage.field.plot
 
+figure()
+plot(data.displacement.value,data.damage.maxValue)
+title('Damage-Displacement')
 
-tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
+figure()
+plot(data.displacement.value,data.reaction)
+title('Force-Displacement')
+
+figure()
+plot(data.displacement.value,data.totalEnergy)
+title('Energy - Displacement')
+
+%tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);

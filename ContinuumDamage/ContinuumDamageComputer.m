@@ -9,11 +9,11 @@ classdef ContinuumDamageComputer < handle
 
     properties (Access = private)
         tau = 0.5
-        tolerance = 1
+        tolerance = 1e-8
         quadOrder
 
-        H = 0.001
-        r0 = 1e-3/sqrt(210) %revisar com es calcula (depen de les bc)
+        H = 0.1
+        r0 = 0.1/sqrt(210) %revisar com es calcula (depen de les bc)
 
         elasticFun
         externalWorkFun
@@ -52,15 +52,15 @@ classdef ContinuumDamageComputer < handle
                     u.fValues = uNew;
                     obj.functional.updateInternalVariableR(u);
                 end
-                data.displacement.value = obj.boundaryConditions.bcVals;
-                data.totalEnergy = energy;
+                data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
+                data.totalEnergy(i) = energy;
                 damageDomainFun = obj.functional.computeDamage();
                 damageFun = damageDomainFun.project('P1D',obj.mesh);
-                data.damage.maxValue = max(damageFun.fValues);
-                data.reactions = obj.computeReactions(u,uNewVec,LHS);
+                data.damage.maxValue(i)  = max(damageFun.fValues);
+                data.reaction(i)  = -obj.computeTotalReaction(LHS,uNewVec);
             end
             data.displacement.field = u;
-            data.damage.fun = damageFun;
+            data.damage.field = damageFun;
         end
     end
 
@@ -71,7 +71,7 @@ classdef ContinuumDamageComputer < handle
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material  = cParams.material;
-            obj.solverParams = cParams.solver;
+            obj.solverParams = cParams.solver; 
         end
 
         function createFunctionals(obj)
@@ -81,21 +81,6 @@ classdef ContinuumDamageComputer < handle
             s.r0 = obj.r0;
 
             obj.functional = shFunc_ContinuumDamage(s);
-        end
-
-        function Reac = computeReactions (obj, uLagrangian, u, LHS)
-
-            R = LHS*u;
-            R(obj.boundaryConditions.bc.free_dofs) = 0;
-
-            Rout = reshape(R,[flip(size(uLagrangian.fValues))])';
-            Reac = LagrangianFunction.create(obj.mesh,2,'P1');
-
-            Reac.fValues = Rout;
-
-            isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-
-            Reac.fValues(:,2) = Reac.fValues(:,2).*isInDown;
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
@@ -136,17 +121,11 @@ classdef ContinuumDamageComputer < handle
             xNew = x + deltaX;
         end
 
-        function Reac = computeReactions (obj, uLagrangian, u, LHS)
-            R = LHS*u;
-            R(obj.boundaryConditions.free_dofs) = 0;
-            
-            Rout = reshape(R,[flip(size(uLagrangian.fValues))])';
-            Reac = LagrangianFunction.create(obj.mesh,2,'P1');
-            
-            Reac.fValues = Rout;
-
+        function totReact = computeTotalReaction(obj,LHS,u)
+            F = LHS*u;
             isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-            Reac.fValues = Rout.*isInDown;
+            nodes = 1:obj.mesh.nnodes;
+            totReact = sum(F(2*nodes(isInDown)));
         end
 
     end

@@ -58,7 +58,7 @@ classdef shFunc_ElasticDamage < handle
             d = obj.computeDamage(r);
 
             S.type = 'ElasticStiffnessMatrix';
-            S.quadratureOrder = 2;
+            S.quadratureOrder = quadOrder;
             S.mesh = obj.mesh;
             S.material = obj.material.obtainTensor(d);
             S.test = test;
