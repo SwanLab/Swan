@@ -30,12 +30,9 @@ data = tester.compute();
 
 data.displacement.plot()
 data.reactions.plot()
+data.damage.fun.plot()
+plot()
 
-
-
-TotalReac = data.reactions.fValues
-data.damage.plot(data.displacement.mesh)
-damageFun = data.damage.project('P1D',data.displacement.mesh);
 
 
 tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);

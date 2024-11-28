@@ -71,7 +71,7 @@ classdef shFunc_ElasticDamage < handle
         
         end  
         
-        function rOut = newState (obj,rIn,u)
+        function rOut = updateDamage (obj,rIn,u)
     
             C = obj.material.obtainNonDamagedTensor;
             epsi = SymGrad(u);
