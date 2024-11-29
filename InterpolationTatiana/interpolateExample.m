@@ -1,15 +1,17 @@
 function interpolateExample
-    coord = readCoordinates();
-    t = delaunayTriangulation(coord);
-    s.coord = coord;
-    s.connec = t.ConnectivityList;     
-    m = Mesh.create(s);
+coord = readCoordinates();
+alpha = alphaShape(coord);
+plot(alpha);
+[connec, vertices] = alphaTriangulation(alpha);
+s.coord = coord;
+s.connec = connec;
+m = Mesh.create(s);
 
-    s.mesh = m;  
-    s.order = 'P1';
-    s.fValues = readInterpolatedValues();
-    f = LagrangianFunction(s);
-    f.print('FirstData','Paraview')
+s.mesh = m;
+s.order = 'P1';
+s.fValues = readInterpolatedValues();
+f = LagrangianFunction(s);
+f.print('FirstData','Paraview')
 end
 
 function fValues = readInterpolatedValues()
