@@ -87,8 +87,9 @@ classdef MultiMaterialComplianceFunctional < handle
 
         function DJ = computeTopologicalDerivatives(obj,u)
             dC = obj.material.obtainTensorDerivative();
+            % chainrule dmu,dkappa => designVar
             DJ = cell(obj.nMat,obj.nMat);
-            for i = 1:obj.nMat
+            for i = 1:obj.nMat % loop design variable        THE SAME FOR VOLUME
                 for j = 1:obj.nMat
                     dj      = obj.computeLocalGradient(u,dC{i,j});
                     DJ{i,j} = dj./obj.value0;
