@@ -20,16 +20,16 @@
 % MBBBeamDensity(2);
 
 % 2D Cantilever Beam LevelSet: gJ=0.2,1,2.5
-TwoDimCantilever(0.2);
-TwoDimCantilever(1);
-TwoDimCantilever(2.5);
+% TwoDimCantilever(0.2);
+% TwoDimCantilever(1);
+% TwoDimCantilever(2.5);
 
 % 3D Cantilever Beam LevelSet: gJ=0.5/1/2 (V0d4) + gJ=0.7 (V0d2)
 % CREATE FOLDER
-% ThreeDimCantilever(0.5,0.4);
-% ThreeDimCantilever(1,0.4);
-% ThreeDimCantilever(2,0.4);
-% ThreeDimCantilever(0.7,0.2);
+ThreeDimCantilever(0.5,0.4);
+ThreeDimCantilever(1,0.4);
+ThreeDimCantilever(2,0.4);
+ThreeDimCantilever(0.7,0.2);
 
 % Gripper LevelSet: gJ=0.5, gJ=0.05
 % CREATE FOLDER
