@@ -1,4 +1,4 @@
-function ENIAfirstLectureLearnMatlab()
+function ENIAfirstLectureExercice1()
 nSteps = 10;
 t = createTimeStepping(nSteps);
 theta = t.*t;

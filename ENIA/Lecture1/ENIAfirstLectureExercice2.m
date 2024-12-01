@@ -1,4 +1,4 @@
-function Practica1_AnalyticalPendulum
+function ENIAfirstLectureExercice2
 g = 9.81;
 l = 1;
 w = sqrt(g/l);
