@@ -14,6 +14,10 @@ classdef ProjectorFactory < handle
                     obj = Projector_toRaviartThomas(cParams);
                 case 'N'
                     obj = Projector_toNedelec(cParams);
+                case 'RigidBody'
+                    obj = Projector_toRigidBody(cParams);
+                case 'ModalFunction'
+                    obj = Projector_toModalFunction(cParams);
             end
         end
 

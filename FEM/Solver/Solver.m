@@ -3,7 +3,7 @@ classdef Solver < handle
     methods (Static)
 
         function stype = create(cParams)
-%             solver_type = 'DIRECT';
+            %             solver_type = 'DIRECT';
             switch cParams.type
                 case {'DIRECT'}
                     stype = Direct_Solver();
@@ -13,7 +13,15 @@ classdef Solver < handle
                     stype = Cholesky_Direct_Solver();
 
                 case {'ITERATIVE'}
-                    error('Not implemented yet')
+%                     error('Not implemented yet')
+                    switch cParams.iterativeSolverTyp
+                        case{'PCG'}
+                            stype = PCG(cParams);
+                    end
+
+%                 case 'PCG'
+%                     % Preconditioned conjugate gradient
+%                     stype = PCG(cParams);
 
                 case 'rMINRES'
                     stype = CGsolver();

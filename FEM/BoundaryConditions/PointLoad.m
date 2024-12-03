@@ -22,7 +22,13 @@ classdef PointLoad < BoundaryCondition
         
         function obj = PointLoad(mesh, s)
             % P1
-            fun = LagrangianFunction.create(mesh, mesh.ndim,'P1'); % not necessarily mesh.ndim
+            if isfield(s,'ndim')
+                ndim = s.ndim;
+            else
+                ndim = mesh.ndim;
+            end
+            
+            fun = LagrangianFunction.create(mesh, ndim,'P1'); % not necessarily mesh.ndim
             pl_dofs = s.domain(mesh.coord);
             fun.fValues(pl_dofs,s.direction) = s.value;
             
