@@ -156,33 +156,30 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            s.coord   = obj.getDofCoord();
-            s.fValues = obj.fValues;
-            s.ndimf   = obj.ndimf;
             switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'     
-                    for iDim = 1:obj.ndimf
-                        connecf{iDim} = obj.getDofConnecByVector();
-                        coordf{iDim}  = obj.getDofFieldByVector(iDim,obj.dofCoord);            
+                case 'LINEAR'
+                    figure()
+                    connecP = obj.getDofConnecByVector();
+                    for iDim = 1:obj.ndimf                                                
+                        subplot(1,obj.ndimf,iDim);
+                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
+                        x  = coordP(:,1);
+                        y  = coordP(:,2);
+                        z  = obj.fValues(:,iDim);
+                        a = trisurf(connecP,x,y,z);
+                        view(0,90)
+                        %colorbar
+                        shading interp
+                        a.EdgeColor = [0 0 0];
+                        title(['dim = ', num2str(iDim)]);
                     end
-                    s.connec = connecf;
-                    s.coord  = coordf;
-                    
-                    lP = LagrangianPlotter(s);
-                    lP.plot();                    
-                case {'QUADRATIC','CUBIC'}
-                    %better to remesh (now only plotting the linear part)                    
-                    s.connec = obj.mesh.connec;                         
-                    lP = LagrangianPlotter(s);
-                    lP.plot();                    
                 otherwise
                     f = obj.project('P1D');
                     f.plot()
             end
-
         end
 
-        function plotVector(obj,varargin)
+        function plotVector(obj,varargin) %only for linear
             if size(varargin,1) == 1
                 n = varargin{1};
             else 
