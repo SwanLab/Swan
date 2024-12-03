@@ -88,7 +88,7 @@ classdef ExplainingPeriodicFunction2D < handle
                 s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
                 s.ndimf     = 2;
                 aF = DomainFunction(s);
-                aF = aF.project('P1',obj.mesh);
+                %aF = aF.project('P1',obj.mesh);
                 obj.orientation{iDim} = aF;
             end
 
@@ -107,8 +107,8 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function plotOrientation(obj,varargin)
-            obj.orientation{1}.project('P1',obj.mesh).plotVector();
-            obj.orientation{2}.project('P1',obj.mesh).plotVector();
+            obj.orientation{1}.project('P1D',obj.mesh).plotVector();
+            obj.orientation{2}.project('P1D',obj.mesh).plotVector();
         end
 
         function s = createLevelSetCellParams(obj)
