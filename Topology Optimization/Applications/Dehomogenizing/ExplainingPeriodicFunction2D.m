@@ -66,8 +66,8 @@ classdef ExplainingPeriodicFunction2D < handle
             obj.alpha = AnalyticalFunction(s);
 
 
-            gradA = Grad(obj.alpha.project('P1'));
-            gradA = gradA.project('P1',obj.mesh);
+            gradA = Grad(Project(obj.alpha,'P1',obj.mesh));
+            gradA = Project(gradA,'P1',obj.mesh);
             t = Divergence(gradA);
             t.project('P1',obj.mesh).plot()
         end
