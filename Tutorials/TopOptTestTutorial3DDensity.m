@@ -107,7 +107,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -165,18 +165,35 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createOptimizer(obj)
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = obj.dualVariable;
+            % s.maxIter        = 1000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = 'EQUALITY';
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.volumeTarget   = 0.4;
+            % opt = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.maxIter        = 30;                       %Iteracions
+            s.tolerance      = 1e-8;     %Hi havia 1e-8
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
-            opt = OptimizerMMA(s);
+            s.etaNorm        = 0.001; %HI HAVIA 0.001 (A menor valor menor oscilació del resultat?)
+            s.gJFlowRatio    = 1;   %hi havia 2   %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
