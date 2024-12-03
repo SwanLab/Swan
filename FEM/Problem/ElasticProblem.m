@@ -122,7 +122,7 @@ classdef ElasticProblem < handle
             lhs = LHSintegrator.create(s);
             obj.stiffness = lhs.compute();
         end
-
+    
         function computeForces(obj)
             s.type     = 'Elastic';
             s.scale    = 'MACRO';

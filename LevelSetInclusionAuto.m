@@ -1,4 +1,4 @@
-classdef LevelSetInclusion < handle
+classdef LevelSetInclusionAuto < handle
     
     properties (Access = public)
         stiffness
@@ -6,7 +6,9 @@ classdef LevelSetInclusion < handle
         stress
     end
     
-    properties (Access = private)     
+    properties (Access = private)
+        radius
+        nodeDirection
         physicalProblem
         bc
         boundaryConditions
@@ -25,8 +27,8 @@ classdef LevelSetInclusion < handle
 
     methods (Access = public)
 
-        function obj = LevelSetInclusion()
-            obj.init()
+        function [obj, u, L] = LevelSetInclusionAuto(r, i)
+            obj.init(r, i)
             obj.createMesh();
             
             %% New ugly chunk of code warning
@@ -48,9 +50,11 @@ classdef LevelSetInclusion < handle
 
     methods (Access = private)
 
-        function init(~)
-            close all;
-            clc;
+        function init(obj, r, i)
+            % close all;
+            % clc;
+            obj.radius = r;
+            obj.nodeDirection = i;
         end
 
         function createMesh(obj)
@@ -71,11 +75,11 @@ classdef LevelSetInclusion < handle
             mesh = Mesh.create(s);
         end
 
-        function levelSet = createLevelSetFunction(~,bgMesh)
+        function levelSet = createLevelSetFunction(obj,bgMesh)
             sLS.type        = 'CircleInclusion';
             sLS.xCoorCenter = 0.5;
             sLS.yCoorCenter = 0.5;
-            sLS.radius      = 0.2;
+            sLS.radius      = obj.radius;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -122,6 +126,22 @@ classdef LevelSetInclusion < handle
         end
 
         function bc = createBoundaryConditions(obj)
+
+            v                    = zeros(8,1);
+            v(obj.nodeDirection) = 1;
+            nRes                 = [1 1 2 2 3 3 4 4]*v;
+            assignMatrix         = [2 1 0 0 0 0 0 0
+                                    0 0 2 1 0 0 0 0
+                                    0 0 0 0 2 1 0 0
+                                    0 0 0 0 0 0 2 1
+                                    1 2 1 2 1 2 1 2];
+
+            vSimp       = assignMatrix*v;
+            dirs        = cell(5,1);
+            [dirs{:,1}] = deal([1, 2]);
+            [dirs{nRes}]  = deal(vSimp(nRes));
+            [dirs{end}]   = deal(vSimp(end));
+
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             xMin    = min(obj.mesh.coord(:,1));
@@ -133,29 +153,29 @@ classdef LevelSetInclusion < handle
             corner3 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMax)<= tol;
             corner4 = @(coor) abs(coor(:,1)-xMax) <= tol & abs(coor(:,2)-yMax)<= tol;
 
-            % isLeft  = @(coor)  abs(coor(:,1)-xMin) <= tol;
-            % isRight = @(coor)  abs(coor(:,1)-xMax) <= tol;
-%             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            cornerVec = {corner1; corner2; corner3; corner4};
 
-            sDir{1}.domain    = @(coor) corner1(coor);
-            sDir{1}.direction = [2];
+
+            sDir{1}.domain    = @(coor) cornerVec{1}(coor);
+            sDir{1}.direction = cell2mat(dirs(1));
             sDir{1}.value     = 0;
 
-            sDir{5}.domain    = @(coor) corner1(coor);
-            sDir{5}.direction = [1];
-            sDir{5}.value     = 1;
-
-            sDir{2}.domain    = @(coor) corner2(coor);
-            sDir{2}.direction = [1,2];
+            
+            sDir{2}.domain    = @(coor) cornerVec{2}(coor);
+            sDir{2}.direction = cell2mat(dirs(2));
             sDir{2}.value     = 0;
 
-            sDir{3}.domain    = @(coor) corner3(coor);
-            sDir{3}.direction = [1,2];
+            sDir{3}.domain    = @(coor) cornerVec{3}(coor);
+            sDir{3}.direction = cell2mat(dirs(3));
             sDir{3}.value     = 0;
 
-            sDir{4}.domain    = @(coor) corner4(coor);
-            sDir{4}.direction = [1,2];
+            sDir{4}.domain    = @(coor) cornerVec{4}(coor);
+            sDir{4}.direction = cell2mat(dirs(4));
             sDir{4}.value     = 0;
+
+            sDir{5}.domain    = @(coor) cornerVec{nRes}(coor);
+            sDir{5}.direction = cell2mat(dirs(end));
+            sDir{5}.value     = 1;
 
 %             sPL{1}.domain    = @(coor) isForce(coor);
 %             sPL{1}.direction = 2;
