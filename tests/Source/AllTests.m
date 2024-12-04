@@ -5,6 +5,7 @@ UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
 close all;
 TopOptTestsSuite;
+MultimaterialTestsSuite;
 ReadingFilesTestsSuite;
 %PlottingTestsSuite; % Funciona quan es generen els .mat
 close all;
