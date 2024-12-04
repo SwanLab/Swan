@@ -90,7 +90,7 @@ classdef TopOptTestTutorial3DDensity < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = f{1}.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
