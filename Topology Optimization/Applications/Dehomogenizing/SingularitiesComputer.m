@@ -52,8 +52,9 @@ classdef SingularitiesComputer < handle
 
         function computeSingularElements(obj)
             aC = obj.orientation;
-            aD = aC.project('P1D');
-            aD = permute(aD.getFvaluesDisc(), [1 3 2]);
+            aD = aC.project('P1D',obj.mesh);
+%            aD = aC.project('P1D');
+            aD = permute(aD.getFvaluesByElem(), [1 3 2]);
             a1 = zeros(3,obj.mesh.nelem);
             a2 = zeros(3,obj.mesh.nelem);
             a3 = zeros(3,obj.mesh.nelem);

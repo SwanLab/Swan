@@ -21,10 +21,7 @@ classdef Projector < handle
                 case 'L2Function'
                     ord = 2;
                 case 'FEFunction'
-%                     ord = 'LINEAR';
-                    ord = 2; % needed to project P1 to P1D
-                case 'FGaussDiscontinuousFunction'
-                    ord = fun.getQuadratureOrder;                    
+                    ord = 2; % needed to project P1 to P1D             
                 otherwise
                     ord = 3;
             end
