@@ -184,7 +184,7 @@ classdef ThreeDimCantilever < handle
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.gJFlow;
             s.etaMaxMin      = 0.033;
-            s.etaMax         = 1;
+            s.etaMax         = 100;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
