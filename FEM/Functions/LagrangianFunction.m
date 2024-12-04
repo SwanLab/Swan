@@ -305,97 +305,42 @@ classdef LagrangianFunction < FeFunction
 
         % Operator overload
 
-        function s = plus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
-            else
-                val1 = obj1;
-            end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
-            else
-                val2 = obj2;
-            end
+        % function s = plus(obj1,obj2)
+        %     if isa(obj1, 'LagrangianFunction')
+        %         res = copy(obj1);
+        %         val1 = obj1.fValues;
+        %     else
+        %         val1 = obj1;
+        %     end
+        %     if isa(obj2, 'LagrangianFunction')
+        %         res = copy(obj2);
+        %         val2 = obj2.fValues;
+        %     else
+        %         val2 = obj2;
+        %     end
+        % 
+        %     res.fValues = val1 + val2;
+        %     s = res;
+        % end
+        % 
+        % function s = minus(obj1,obj2)
+        %     if isa(obj1, 'LagrangianFunction')
+        %         res = copy(obj1);
+        %         val1 = obj1.fValues;
+        %     else
+        %         val1 = obj1;
+        %     end
+        %     if isa(obj2, 'LagrangianFunction')
+        %         res = copy(obj2);
+        %         val2 = obj2.fValues;
+        %     else
+        %         val2 = obj2;
+        %     end
+        %     res.fValues = val1 - val2;
+        %     s = res;
+        % end
 
-            res.fValues = val1 + val2;
-            s = res;
-        end
-
-        function s = minus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
-            else
-                val1 = obj1;
-            end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
-            else
-                val2 = obj2;
-            end
-            res.fValues = val1 - val2;
-            s = res;
-        end
-
-        function r = uminus(a)
-            r = copy(a);
-            r.fValues = -a.fValues;
-        end
-
-        function r = mtimes(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            s.mesh = a.mesh;
-            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
-            r = DomainFunction(s);
-        end
-
-        function r = times(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            ndimfA = DomainFunction.computeFieldDimension(a);
-            ndimfB = DomainFunction.computeFieldDimension(b);
-            s.operation = @(xV) aOp(xV).*bOp(xV);
-            s.ndimf = max(ndimfA,ndimfB);
-            s.mesh = a.mesh;
-            if isa(a,'LagrangianFunction')
-                s.mesh = a.mesh;
-            else
-                s.mesh = b.mesh;
-            end
-            r = DomainFunction(s);
-        end
-
-        function f = power(f1,b)
-            s.operation = @(xV) (f1.evaluate(xV)).^b;
-            s.ndimf = f1.ndimf;
-            s.mesh = f1.mesh;
-            f = DomainFunction(s);
-        end
-
-        function r = rdivide(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV)./bOp(xV);
-            r = DomainFunction(s);
-        end
-
-        function f = mrdivide(f1,f2)
-            s.operation = @(xV) f1.evaluate(xV)./f2.evaluate(xV);
-            s.ndimf = max(f1.ndimf,f2.ndimf);
-            s.mesh = f1.mesh;
-            f = DomainFunction(s);            
-        end
-
-        function f = exp(f)
-            s.operation = @(xV) exp(f.evaluate(xV));
-            s.ndimf = f.ndimf;
-            s.mesh = f.mesh;
-            f = DomainFunction(s);
-        end
+        
 
     end
 

@@ -1,4 +1,4 @@
-classdef FeFunction < handle
+classdef FeFunction < BaseFunction
     
     properties (Constant, Access = public)
         fType = 'FE'
@@ -9,9 +9,7 @@ classdef FeFunction < handle
     end
 
     properties (GetAccess = public, SetAccess = protected)
-       ndimf
-       order
-       mesh       
+       order      
     end
     
     properties (Access = protected)
@@ -47,7 +45,6 @@ classdef FeFunction < handle
 
         function obj = createEmpty(cParams)
             feFunType = cParams.feFunType;
-            mesh      = cParams.mesh;
             ndimf     = int2str(cParams.ndimf);
             specs     = ['.create(mesh,',ndimf,')'];
             obj       = eval([feFunType,specs]);
