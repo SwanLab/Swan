@@ -7,5 +7,4 @@ function fEval = evaluate(u, xV)
     e     = AntiVoigt(SymGrad(u));
     ev    = Voigt(Spherical(e));
     fEval = ev.evaluate(xV);
-
 end

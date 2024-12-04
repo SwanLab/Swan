@@ -12,11 +12,19 @@ classdef Projector_toLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-            LHS = obj.computeLHS(x);
-            RHS = obj.computeRHS(x);
-            xProj = LHS\RHS;
+            if obj.isP1toP1Dprojection(x)
+                f = x.fValues;
+                connec = obj.mesh.connec;
+                dofsC = reshape(connec',1,[]);
+                xProj = f(dofsC,:);
+            else
+                LHS = obj.computeLHS(x);
+                RHS = obj.computeRHS(x);
+                xProj = LHS\RHS;
+                xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
+            end
             s.mesh    = obj.mesh;
-            s.fValues = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
+            s.fValues = xProj;
             s.order = obj.order;
             xFun = LagrangianFunction(s);
         end
@@ -33,6 +41,10 @@ classdef Projector_toLagrangian < Projector
             s.type  = 'MassMatrix';
             lhs = LHSintegrator.create(s);
             LHS = lhs.compute();
+        end
+
+        function itIs = isP1toP1Dprojection(obj,x)
+            itIs = isa(x,'LagrangianFunction') && strcmp(x.order, 'P1') && strcmp(obj.order, 'P1D');
         end
 
         function RHS = computeRHS(obj,fun)

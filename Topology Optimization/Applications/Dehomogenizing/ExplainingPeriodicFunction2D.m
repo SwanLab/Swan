@@ -33,14 +33,15 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.05;
-            obj.nCells   = [1 3 10];
-            obj.xmin = 1;
+            obj.meshSize = 0.03;
+            obj.nCells   = [10 10; 20 20];
+            obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
-            obj.widthH = 0.9;
-            obj.widthW = 0.9;
+            %obj.widthH = 0.4;
+            obj.widthH = 0.8;
+            obj.widthW = 0.8;
         end
 
         function createMesh(obj)
@@ -50,7 +51,7 @@ classdef ExplainingPeriodicFunction2D < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
+            [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -59,57 +60,91 @@ classdef ExplainingPeriodicFunction2D < handle
         end
 
         function createAngle(obj)
-            m = obj.mesh;
-            x1 = m.coord(:,1);
-            beta = zeros(size(x1));
-            alpha = beta/2;
-            s.fValues = alpha;
+            s.fHandle = @(x) obj.createAlphaValues(x);
             s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            aF = LagrangianFunction(s);
-            obj.alpha = aF;
+            s.ndimf   = 1;
+            obj.alpha = AnalyticalFunction(s);
+
+
+            gradA = Grad(Project(obj.alpha,'P1',obj.mesh));
+            gradA = Project(gradA,'P1',obj.mesh);
+            t = Divergence(gradA);
+            t.project('P1',obj.mesh).plot()
         end
 
+        function f = createAlphaValues(obj,x)
+            x1 = x(1,:,:);
+            x2 = x(2,:,:);
+            x10 = (max(x1(:))+min(x1(:)))/2;
+            x20 = 0;            
+            f = atan2(x2-x20 +0.5*(max(x2(:))),x1-x10);
+            isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
+            f(isLeft) = f(isLeft) + pi;
+        end
 
         function createOrientation(obj)
-            al = obj.alpha.fValues;
-            a = [cos(al), sin(al)];
-            s.fValues = a;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            aF = LagrangianFunction(s);            
-            obj.orientation{1} = aF;
-            a = [-sin(al), cos(al)];
-            s.fValues = a;
-            s.mesh    = obj.mesh;
-            aF = LagrangianFunction(s);            
-            obj.orientation{2} = aF;
+            nDim = obj.mesh.ndim;
+            for iDim = 1:nDim
+                s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
+                s.ndimf     = 2;
+                aF = DomainFunction(s);
+                %aF = aF.project('P1',obj.mesh);
+                obj.orientation{iDim} = aF;
+            end
+
         end
 
-        function plotOrientation(obj)
-            figure()
-            x = obj.mesh.coord(:,1);
-            y = obj.mesh.coord(:,2);
-            t  = obj.orientation{1}.fValues;
-            ct = (t(:,1));
-            st = (t(:,2));
-            quiver(x,y,ct,st)
+        function or = createOrientationFunction(obj,iDim,xV)
+            alphaV = obj.alpha.evaluate(xV);
+            if iDim == 1                
+                or(1,:,:) = cos(alphaV);
+                or(2,:,:) = sin(alphaV);
+            else
+                alphaV = obj.alpha.evaluate(xV);
+                or(1,:,:) = -sin(alphaV);
+                or(2,:,:) = cos(alphaV);
+            end
         end
 
-        function s = createLevelSetCellParams(obj)            
+        function plotOrientation(obj,varargin)
+            obj.orientation{1}.project('P1D',obj.mesh).plotVector();
+            obj.orientation{2}.project('P1D',obj.mesh).plotVector();
+        end
+
+        function s = createLevelSetCellParams(obj)
             s.type  = 'RectangleInclusion';
-            s.xSide = obj.createConstantFunction(obj.widthH);
-            s.ySide = obj.createConstantFunction(obj.widthW);
+            s.xSide = obj.createFunction(obj.widthH,1);
+            s.ySide = obj.createFunction(obj.widthW,2);
             s.ndim   = 2;
         end
 
-        function f = createConstantFunction(obj,value)
-          %  s.fHandle = @(x) 0.5*value*(x(1,:,:));
-            s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
+        function f = createFunction(obj,value,dir)
+            s.fHandle = @(x) obj.variationFunction(value,x,dir);
+            %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
             f = f.project('P1D');
+        end
+
+        function f = variationFunction(obj,mV,x,dir)
+            xV = x(dir,:,:);
+            I  = ones(size(xV));
+            xmin = min(xV(:));
+            xmax = max(xV(:));
+            incX   = (xmax-xmin);
+            xM     = (xmax+xmin)/2;
+            mMin = 0.01;
+            mMax = 0.99;
+            incM = mMax - mMin;
+            tMax_min = (mV - mMin)/(2*incM)*incX/(xM - xmin);
+            tMax_max = (mMax - mV)/(2*incM)*incX/(xmax - xM);
+
+            %t = min(tMax_min,tMax_max);
+
+            t = 0;
+
+            f = mV + 2*t*(incM)/(incX)*(xV-xM);
         end
 
         function dehomogenize(obj)
