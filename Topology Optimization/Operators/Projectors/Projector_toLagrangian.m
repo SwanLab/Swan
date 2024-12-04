@@ -7,7 +7,6 @@ classdef Projector_toLagrangian < Projector
     methods (Access = public)
 
         function obj = Projector_toLagrangian(cParams)
-           % obj.init(cParams);
             obj.order = cParams.projectorType;
         end
 
@@ -40,6 +39,7 @@ classdef Projector_toLagrangian < Projector
                     quad = Quadrature.create(fun.mesh,1);
                     dv = fun.mesh.computeDvolume(quad);
                     a = sum(dv(1,:),1);
+                    a = repmat(a,1,fun.ndimf);
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
                     s.mesh  = fun.mesh;
