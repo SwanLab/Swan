@@ -58,7 +58,7 @@ classdef EIFEMtesting < handle
             tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -116,10 +116,10 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [10 2]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
-            obj.tolSameNode = 1e-14;
+            obj.nSubdomains  = [30 5]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+%             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.tolSameNode = 1e-10;
         end
 
         function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
@@ -239,13 +239,13 @@ classdef EIFEMtesting < handle
             maxx = max(obj.meshDomain.coord(:,1));
             miny = min(obj.meshDomain.coord(:,2));
             maxy = max(obj.meshDomain.coord(:,2));
-            tolBound = 1e-8;
+            tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
             isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
+            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
@@ -253,12 +253,12 @@ classdef EIFEMtesting < handle
             %             Dir{2}.direction = [2];
             %             Dir{2}.value     = 0;
 
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
-            %             PL.domain    = @(coor) isRight(coor);
-            %             PL.direction = [1];
-            %             PL.value     = [0.1];
+%             PL.domain    = @(coor) isTop(coor);
+%             PL.direction = [2];
+%             PL.value     = [-0.1];
+                        PL.domain    = @(coor) isRight(coor);
+                        PL.direction = [1];
+                        PL.value     = [0.1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
