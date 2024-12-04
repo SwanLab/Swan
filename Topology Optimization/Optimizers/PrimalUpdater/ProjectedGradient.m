@@ -32,7 +32,7 @@ classdef ProjectedGradient < handle
         end
         
         function increaseStepLength(obj,f)
-            tauMax  = 2000; %modificada per a Singular_2 
+            tauMax  = 5000; %modificada per a Singular_2; pujar una mica aviam si treu els grisos
             obj.tau = min(f*obj.tau,tauMax);
         end
 

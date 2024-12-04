@@ -37,7 +37,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.printOptimizerVariable();
             obj.updateMonitoring();
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
-            obj.designVariable.fun.print(['ResultsTFGGerard/D_Iter',int2str(obj.nIter)]);
+            obj.designVariable.fun.print(['ResultsTFGGerard/I_Iter',int2str(obj.nIter)]);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             while ~obj.hasFinished
                 obj.update();
@@ -47,7 +47,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                obj.designVariable.fun.print(['ResultsTFGGerard/D_Iter',int2str(obj.nIter)]);
+                obj.designVariable.fun.print(['ResultsTFGGerard/I_Iter',int2str(obj.nIter)]);
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end
         end
@@ -206,7 +206,7 @@ classdef OptimizerNullSpace < Optimizer
             x    = obj.designVariable.fun.fValues;
             g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
-            if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
+            if mNew < obj.mOld + 1e-2 && norm(x-x0)/norm(x0) < etaN  %Apliquem tolerància 
                 obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;

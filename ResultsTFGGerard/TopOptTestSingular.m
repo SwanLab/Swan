@@ -134,7 +134,7 @@ classdef TopOptTestSingular < handle
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '3D';
-            %s.boundaryConditions = obj.createBoundaryConditionsGidAndMatlab(); 
+            %s.boundaryConditions = obj.createBoundaryConditionsGidAndMatlab(); %GiD per restriccions i Matlab per forces
             s.boundaryConditions = obj.createNewBoundaryConditionsWithGiD(); %obj.createBoundaryConditions();   %CANVI JOSE (new=GiD. altre=matlab)
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -163,7 +163,7 @@ classdef TopOptTestSingular < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.95;                               %VOLUM FINAL
+            s.volumeTarget = 0.97;                               %VOLUM FINAL (volum target)
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -242,10 +242,16 @@ classdef TopOptTestSingular < handle
           s         = femReader.read(obj.filename);
           sDir      = obj.computeCondition(s.dirichlet);
           
-          isForce = @(coor) coor(:,3)>=-225 & coor(:,3)<=475 & coor(:,2)>=46.5 & coor(:,2)<=47.5;
-          sPL{1}.domain    = @(coor) isForce(coor);
+          isForce1 = @(coor) coor(:,3)>=-225 & coor(:,3)<=240 & coor(:,2)>=47.2 & coor(:,2)<=47.4; %Eix Y comprovat amb paraview (valor exacte = 47.29999...)
+          isForce2 = @(coor) coor(:,3)<=-225.1 & coor(:,3)>=-225.2; %Força aplicada a l'eix Z (valor exacte = 225.14999...)
+
+          sPL{1}.domain    = @(coor) isForce1(coor);
           sPL{1}.direction = 2;
-          sPL{1}.value     = -1;
+          sPL{1}.value     = -0.5;
+
+          sPL{1}.domain    = @(coor) isForce2(coor);
+          sPL{1}.direction = 3;
+          sPL{1}.value     = -0.87; 
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -290,11 +296,11 @@ classdef TopOptTestSingular < handle
             s.mesh         = obj.mesh;
             newbcGiD = BoundaryConditions(s);
         end
-
-    end
-
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
+    % 
+    % end
+    % 
+    % methods (Static, Access=private)
+        function sCond = computeCondition(obj,conditions)
             nodes = @(coor) 1:size(coor,1);
             dirs  = unique(conditions(:,2));
             j     = 0;
