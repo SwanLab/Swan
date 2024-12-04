@@ -154,11 +154,12 @@ classdef MultimaterialTesting < handle
             obj.volumeC = obj.createIndivVolumeConstraint(0.1,3);
         end
 
-        function v = createIndivVolumeConstraint(obj,target,ID) % WILL BE EDITED
+        function v = createIndivVolumeConstraint(obj,target,ID)
             s.volumeTarget = target;
             s.nMat         = 4;
             s.matID        = ID;
             s.mesh         = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             v              = MultiMaterialVolumeConstraint(s);
          end
 
