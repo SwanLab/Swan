@@ -203,7 +203,7 @@ classdef MultimaterialTesting < handle
 
         function m = createMaterial(obj)
             x                      = obj.designVariable;
-            s.type                 = 'MultiMaterial';
+            s.type                 = 'DensityBased';
             s.density              = x;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
