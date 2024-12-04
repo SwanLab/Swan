@@ -1,6 +1,7 @@
 function dom = Spherical(A)
     s.operation = @(xV) evaluate(A,xV);
     s.ndimf     = A.ndimf;
+    s.mesh      = A.mesh;
     dom         = DomainFunction(s);
 end
 

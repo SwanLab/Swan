@@ -1,9 +1,6 @@
 classdef Projector < handle
 
-    properties (Access = protected)
-        mesh
-        connec
-    end
+  
 
     methods (Static, Access = public)
 
@@ -31,10 +28,6 @@ classdef Projector < handle
 
     methods (Access = protected)
 
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.mesh.connec;
-        end
 
     end
 
