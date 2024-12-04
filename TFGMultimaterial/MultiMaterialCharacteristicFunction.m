@@ -48,7 +48,7 @@ classdef MultiMaterialCharacteristicFunction < handle
             for i = 1:nLS
                 x            = obj.designVariable.levelSets{i};
                 chi          = x.obtainDomainFunction();
-                chiV         = chi.project('P0');
+                chiV         = chi{1}.project('P0');
                 chiProj(:,i) = chiV.fValues;
             end
         end

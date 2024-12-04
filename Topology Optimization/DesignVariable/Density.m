@@ -14,7 +14,7 @@ classdef Density < DesignVariable
         end
 
         function fun = obtainDomainFunction(obj)
-            fun = obj.fun;
+            fun{1} = obj.fun;
         end
 
         function update(obj,value)

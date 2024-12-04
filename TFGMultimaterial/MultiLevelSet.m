@@ -50,7 +50,7 @@ classdef MultiLevelSet < handle
             nLS = length(obj.levelSets);
             charFuns = cell(nLS,1);
             for i = 1:nLS
-                charFuns{i} = obj.levelSets{i}.obtainDomainFunction();
+                charFuns(i) = obj.levelSets{i}.obtainDomainFunction();
             end
         end
 

@@ -12,13 +12,13 @@ classdef SimpAllExplicitInterpolator < handle
         end
         
         function [mu,kappa] = computeConsitutiveTensor(obj,rho)
-            mu    = obj.computeMuFunction(rho);
-            kappa = obj.computeKappaFunction(rho);
+            mu    = obj.computeMuFunction(rho{1});
+            kappa = obj.computeKappaFunction(rho{1});
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,rho)
-            dmu    = obj.computeMuDerivative(rho);
-            dkappa = obj.computeKappaDerivative(rho);
+            dmu{1}    = obj.computeMuDerivative(rho{1});
+            dkappa{1} = obj.computeKappaDerivative(rho{1});
         end          
     end
      

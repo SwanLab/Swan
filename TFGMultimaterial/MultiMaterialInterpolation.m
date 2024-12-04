@@ -21,13 +21,13 @@ classdef MultiMaterialInterpolation < handle
 
         function [mu,kappa] = computeConsitutiveTensor(obj,x)
             nMat       = length(obj.youngVec);
-            [mu,kappa] = obj.simpAlls{nMat-2,nMat-1}.computeConsitutiveTensor(x{end});
+            [mu,kappa] = obj.simpAlls{nMat-2,nMat-1}.computeConsitutiveTensor(x(end));
             for i = nMat-3:-1:1
                 m          = obj.createSimpall(obj.muRef{i},obj.kappaRef{i},mu,kappa);
-                [mu,kappa] = m.computeConsitutiveTensor(x{i+1});
+                [mu,kappa] = m.computeConsitutiveTensor(x(i+1));
             end
             mAll       = obj.createSimpall(obj.muRef{end},obj.kappaRef{end},mu,kappa);
-            [mu,kappa] = mAll.computeConsitutiveTensor(x{1});
+            [mu,kappa] = mAll.computeConsitutiveTensor(x(1));
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x)
@@ -98,9 +98,9 @@ classdef MultiMaterialInterpolation < handle
                         dmu{i,j}    = Z;
                         dkappa{i,j} = Z;
                     elseif i<j
-                        [dmu{i,j},dkappa{i,j}] = obj.simpAlls{i,j}.computeConsitutiveTensorDerivative(Z);
+                        [dmu(i,j),dkappa(i,j)] = obj.simpAlls{i,j}.computeConsitutiveTensorDerivative({Z});
                     else
-                        [dmu{i,j},dkappa{i,j}] = obj.simpAlls{j,i}.computeConsitutiveTensorDerivative(I);
+                        [dmu(i,j),dkappa(i,j)] = obj.simpAlls{j,i}.computeConsitutiveTensorDerivative({I});
                         dmu{i,j}               = -dmu{i,j};
                         dkappa{i,j}            = -dkappa{i,j};
                     end
