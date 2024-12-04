@@ -19,12 +19,13 @@ classdef Mesh < handle
         faces
         boundaryNodes
         boundaryElements
+        coordElem
     end
 
     properties (Access = private)
         xVOld
         dVOld
-        coordElem
+        
     end    
 
     properties (Access = protected)
