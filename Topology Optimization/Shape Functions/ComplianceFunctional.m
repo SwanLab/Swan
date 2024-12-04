@@ -18,9 +18,9 @@ classdef ComplianceFunctional < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
-            xR = obj.filterDesignVariable(xD);
+            xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);
-            [J,dJ] = obj.computeComplianceFunctionAndGradient();
+            [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
         end
 
     end
@@ -36,25 +36,37 @@ classdef ComplianceFunctional < handle
             end
         end
 
-        function xR = filterDesignVariable(obj,x)
-            xR = obj.filter.compute(x,2);
+        function xR = filterFields(obj,x)
+            nDesVar = length(x);
+            xR      = cell(nDesVar,1);
+            for i = 1:nDesVar
+                xR{i} = obj.filter.compute(x{i},2);
+            end
         end
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj)
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x)
             C   = obj.material.obtainTensor();
             dC  = obj.material.obtainTensorDerivative();
+            dC  = ChainRule.compute(x,dC);
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filter.compute(dJ,2);
+            dJ     = obj.filterFields(dJ);
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J          = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            J  = obj.computeNonDimensionalValue(J);
+            dJ = obj.computeNonDimensionalGradient(dJ);
         end
 
         function x = computeNonDimensionalValue(obj,x)
             refX = obj.value0;
             x    = x/refX;
+        end
+
+        function dx = computeNonDimensionalGradient(obj,dx)
+            refX = obj.value0;
+            for i = 1:length(dx)
+                dx{i}.fValues = dx{i}.fValues/refX;
+            end
         end
     end
 

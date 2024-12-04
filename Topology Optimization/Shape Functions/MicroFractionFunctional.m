@@ -27,13 +27,13 @@ classdef MicroFractionFunctional < handle
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             J  = obj.computeFunction();
-            dJ = obj.computeGradient(dC);
-            dJ = obj.filterField(dJ);
+            dJ = obj.computeGradient(dC{1});
+            dJ = obj.filterField({dJ});
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J          = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            J             = obj.computeNonDimensionalValue(J);
+            dJ{1}.fValues = obj.computeNonDimensionalValue(dJ{1}.fValues);
         end
 
     end
@@ -49,7 +49,11 @@ classdef MicroFractionFunctional < handle
         end
 
         function xR = filterField(obj,x)
-            xR = obj.filter.compute(x,2);
+            nDesVar = length(x);
+            xR      = cell(nDesVar,1);
+            for i = 1:nDesVar
+                xR{i} = obj.filter.compute(x{i},2);
+            end
         end
 
         function J = computeFunction(obj)
