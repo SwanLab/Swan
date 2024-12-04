@@ -12,18 +12,20 @@ classdef Mesh < handle
         nnodes
         nnodeElem
 
-        coordElem % remove (xFE)
+       % remove (xFE)
         interpolation
 
         edges
         faces
         boundaryNodes
         boundaryElements
+        coordElem
     end
 
     properties (Access = private)
         xVOld
         dVOld
+        
     end    
 
     properties (Access = protected)
@@ -355,7 +357,7 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.getFvaluesDisc();
+            obj.coordElem = obj.xFE.getFvaluesByElem();
         end
 
         function computeCoordFEfunction(obj)

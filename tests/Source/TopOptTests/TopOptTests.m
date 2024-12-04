@@ -125,7 +125,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 otherwise
                     f = x.obtainDomainFunction();
             end
-            f = f.project('P1');
+            f = f{1}.project('P1');
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = mI;
