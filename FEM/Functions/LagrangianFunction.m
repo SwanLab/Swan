@@ -92,12 +92,13 @@ classdef LagrangianFunction < FeFunction
 
         function fVals = getFvaluesDisc(obj)
             nDimF     = obj.ndimf;
-            node      = obj.getDofConnecByVector();
-            nnodeElem = obj.mesh.nnodeElem;
-            nElem     = size(obj.mesh.connec,1);
+            nNode     = obj.interpolation.nnode;
+            nElem     = size(obj.mesh.connec, 1);            
+            iDof      = (0:nNode-1)*obj.ndimf + 1;
+            node      = (obj.dofConnec(:, iDof) - 1) / nDimF + 1;
             fAll      = obj.fValues(node(:), :);
-            fReshaped = reshape(fAll, nElem, nnodeElem, nDimF);
-            fVals     = permute(fReshaped, [3, 2, 1]);
+            fReshaped = reshape(fAll, nElem, nNode, nDimF);
+            fVals = permute(fReshaped, [3, 2, 1]);            
         end
 
         function c = getDofCoord(obj)
