@@ -68,7 +68,7 @@ classdef OrientedMappingComputer < handle
             %a1D   = obj.orientation{1}.project('P1',obj.mesh); 
            
            % a1D   = a1D.project('P1D'); 
-            a1    = a1D.getFvaluesDisc();
+            a1    = a1D.getFvaluesByElem();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
                 aNi    = squeeze(a1(:,iNode,:));
@@ -90,7 +90,7 @@ classdef OrientedMappingComputer < handle
             connecD   = obj.isCoherent.getDofConnec();
             isCo = obj.isCoherent;
             sC = sparse(nnodeD*nElemD,nnodesC);
-            fV = isCo.getFvaluesDisc();
+            fV = isCo.getFvaluesByElem();
             for iNode = 1:nnodeD
                 isC  = squeeze(fV(1,iNode,:));
                 cond = obj.computeConformalMapCondition(isC);
