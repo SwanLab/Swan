@@ -20,6 +20,19 @@ classdef MultiMaterialCharacteristicFunction < handle
                 charFun{i}.fValues = chi(:,i);
             end
         end
+
+        function charFunDer = computeDerivatives(obj)
+            nLS        = length(obj.designVariable.levelSets);
+            chiLoc     = obj.computeParticularCharFunValues();
+            chi        = obj.computeCharFunValuesDerivatives(chiLoc);
+            charFunDer = cell(nLS,nLS);
+            for k = 1:nLS
+                for i = 1:nLS
+                    charFunDer{i,k} = LagrangianFunction.create(obj.mesh,1,'P0');
+                    charFunDer{i,k}.fValues = chi(:,i,k);
+                end
+            end
+        end
     end
 
     methods (Access = private)
@@ -48,6 +61,17 @@ classdef MultiMaterialCharacteristicFunction < handle
             end
             phi(:,nLS)   = prod(chi,2);
             phi(:,nLS+1) = (1 - chi(:,1));
+        end
+
+        function phi = computeCharFunValuesDerivatives(obj,chi)
+            nLS = length(obj.designVariable.levelSets);
+            phi = zeros(size(chi,1),nLS,nLS);
+            for k=1:nLS
+                for i=1:nLS-1
+                    phi(:,i,k) = (1 - chi(:,i+1)).*prod(chi(:,k+1:i),2);
+                end
+                phi(:,nLS,k)   = prod(chi(:,k+1:end),2);
+            end
         end
     end
 end

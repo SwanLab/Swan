@@ -54,9 +54,7 @@ classdef MultiMaterialVolumeConstraint < handle
         end
 
         function dJ = computeGradient(obj,x)
-            s.mesh           = obj.mesh;
-            s.designVariable = x;
-            multGrad         = MultimaterialGradientComputer(s);
+            multGrad         = MultimaterialGradientComputer(x);
             TD               = obj.computeTopologicalDerivatives();
             dt               = multGrad.compute(TD);
             for i = 1:length(dt)

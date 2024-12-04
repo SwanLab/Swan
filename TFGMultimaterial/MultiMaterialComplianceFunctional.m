@@ -71,12 +71,8 @@ classdef MultiMaterialComplianceFunctional < handle
         end
 
         function dJ = computeGradient(obj,u,x)
-            s.mesh           = obj.mesh;
-            s.designVariable = x;
-            multGrad         = MultimaterialGradientComputer(s);
-            TD               = obj.computeTopologicalDerivatives(u);
-            dt               = multGrad.compute(TD);
-            dJ               = obj.filterFields(dt);
+            TD               = obj.computeTopologicalDerivatives(u,x);
+            dJ               = obj.filterFields(TD);
         end
 
         function dj = computeLocalGradient(obj,u,dC)
@@ -85,15 +81,17 @@ classdef MultiMaterialComplianceFunctional < handle
             dj      = -0.5.*DDP(strain, dStress);
         end
 
-        function DJ = computeTopologicalDerivatives(obj,u)
+        function DJ = computeTopologicalDerivatives(obj,u,x)
             dC = obj.material.obtainTensorDerivative();
-            % chainrule dmu,dkappa => designVar
-            DJ = cell(obj.nMat,obj.nMat);
-            for i = 1:obj.nMat % loop design variable        THE SAME FOR VOLUME
-                for j = 1:obj.nMat
-                    dj      = obj.computeLocalGradient(u,dC{i,j});
-                    DJ{i,j} = dj./obj.value0;
-                end
+
+            chR = MultimaterialGradientComputer(x);
+            dC  = chR.compute(dC);
+            nDesVar = length(dC);
+
+            DJ = cell(nDesVar,1);
+            for i = 1:nDesVar
+                dj    = obj.computeLocalGradient(u,dC{i});
+                DJ{i} = dj./obj.value0;
             end
         end
     end

@@ -53,6 +53,13 @@ classdef MultiLevelSet < handle
             charFun          = multiCharFun.compute();
         end
 
+        function charFun = obtainDomainFunctionDerivatives(obj)
+            s.designVariable = obj;
+            s.mesh           = obj.mesh;
+            multiCharFun     = MultiMaterialCharacteristicFunction(s);
+            charFun          = multiCharFun.computeDerivatives();
+        end
+
         function ls = obtainVariableInCell(obj)
             ls = obj.levelSets;
         end
