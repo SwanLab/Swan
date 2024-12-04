@@ -14,11 +14,6 @@ classdef AnalyticalFunction < BaseFunction
             fxV = obj.domainFunction.evaluate(xV);
         end
 
-        function plot(obj)
-            p1D = obj.project('P1D');
-            p1D.plot();
-        end
-
     end
 
     methods (Access = public, Static)

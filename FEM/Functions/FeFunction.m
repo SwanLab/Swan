@@ -21,9 +21,6 @@ classdef FeFunction < BaseFunction
     
     methods (Access = public)
 
-
-        
-
         function n = computeL2norm(obj)
             l2Norm = L2Norm(obj.mesh);
             n = l2Norm.compute(obj);

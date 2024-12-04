@@ -14,13 +14,6 @@ classdef DomainFunction < BaseFunction
             r = obj.operation(xV);
         end
 
-        function plot(obj)
-            fD = obj.project('P1D',obj.mesh);
-            fD.plot();
-        end
-
-
-
     end
 
    methods (Access = private)

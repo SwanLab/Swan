@@ -20,6 +20,11 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             s.projectorType = target;
             proj = Projector.create(s);
             fun = proj.project(obj);
+        end       
+
+        function plot(obj)
+            p1D = obj.project('P1D');
+            p1D.plot();
         end        
 
         function r = ctranspose(a)
