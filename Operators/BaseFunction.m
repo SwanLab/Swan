@@ -1,4 +1,4 @@
-classdef BaseFunction < handle
+classdef BaseFunction < handle & matlab.mixin.Copyable
 
     properties (Access = public)
 
@@ -14,6 +14,13 @@ classdef BaseFunction < handle
     end
 
     methods (Access = public)
+
+        function fun = project(obj,target)
+            s.mesh          = obj.mesh;
+            s.projectorType = target;
+            proj = Projector.create(s);
+            fun = proj.project(obj);
+        end        
 
         function r = ctranspose(a)
             aOp = BaseFunction.computeOperation(a);

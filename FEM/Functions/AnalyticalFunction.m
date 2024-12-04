@@ -1,26 +1,17 @@
-classdef AnalyticalFunction < L2Function
-    
-    properties (Access = public)
-        ndimf
-    end
-    
+classdef AnalyticalFunction < BaseFunction
+
     properties (Access = private)
-        fHandle
+        domainFunction
     end
-    
-    properties (Access = private)
-        
-    end
-    
+
     methods (Access = public)
-        
+
         function obj = AnalyticalFunction(cParams)
             obj.init(cParams)
         end
 
         function fxV = evaluate(obj, xV)
-            x = obj.mesh.computeXgauss(xV);
-            fxV = obj.fHandle(x);
+            fxV = obj.domainFunction.evaluate(xV);
         end
 
         function plot(obj)
@@ -28,20 +19,10 @@ classdef AnalyticalFunction < L2Function
             p1D.plot();
         end
 
-        function r = times(obj,b)
-            s.operation = @(xV) obj.evaluate(xV);
-            f           = DomainFunction(s);
-            r           = f.*b;
-        end
-        
-        function ord = getOrderNum(obj)
-            ord = 2;
-        end
-
     end
 
     methods (Access = public, Static)
-        
+
         function obj = create(fHandle,ndimf,mesh)
             s.fHandle = fHandle;
             s.ndimf   = ndimf;
@@ -50,15 +31,31 @@ classdef AnalyticalFunction < L2Function
         end
 
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.fHandle = cParams.fHandle;
-            obj.ndimf   = cParams.ndimf;
-            obj.mesh    = cParams.mesh;
+            fHandle   = cParams.fHandle;
+            obj.ndimf = cParams.ndimf;
+            obj.mesh  = cParams.mesh;
+            obj.createDomainFunction(fHandle);
         end
-        
+
+        function createDomainFunction(obj,fHandle)
+            s.operation = @(xV) obj.compute(fHandle,xV);
+            s.mesh      = obj.mesh;
+            s.ndimf     = obj.ndimf;
+            f = DomainFunction(s);
+            obj.domainFunction = f;
+        end
+
+        function fxV = compute(obj,fHandle, xV)
+            x   = obj.mesh.computeXgauss(xV);
+            fxV = fHandle(x);
+        end
+
+
     end
-    
+
+
 end

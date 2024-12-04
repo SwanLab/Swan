@@ -21,12 +21,8 @@ classdef FeFunction < BaseFunction
     
     methods (Access = public)
 
-        function fun = project(obj,target)
-            s.mesh          = obj.mesh;
-            s.projectorType = target;
-            proj = Projector.create(s);
-            fun = proj.project(obj);
-        end
+
+        
 
         function n = computeL2norm(obj)
             l2Norm = L2Norm(obj.mesh);

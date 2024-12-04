@@ -19,12 +19,6 @@ classdef DomainFunction < BaseFunction
             fD.plot();
         end
 
-        function fun = project(obj,target,mesh)
-            s.mesh          = mesh;
-            s.projectorType = target;
-            proj = Projector.create(s);
-            fun = proj.project(obj);
-        end
 
 
     end

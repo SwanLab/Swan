@@ -279,19 +279,6 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function f = copy(obj)
-            s.ndimf = obj.ndimf;
-            s.order = obj.order;
-            s.mesh      = obj.mesh;
-            s.fValues   = obj.fValues;
-            s.dofConnec = obj.dofConnec;
-            s.dofCoord  = obj.dofCoord;
-            s.dofs.getNumberDofs = size(obj.dofCoord,1);
-            f = LagrangianFunction(s);
-            f.setXvOld(obj.xVOld);
-            f.setdNdxOld(obj.dNdxOld);            
-        end
-
         function f = normalize(obj,type,epsilon)
             switch type
                 case 'L2'
@@ -305,40 +292,40 @@ classdef LagrangianFunction < FeFunction
 
         % Operator overload
 
-        % function s = plus(obj1,obj2)
-        %     if isa(obj1, 'LagrangianFunction')
-        %         res = copy(obj1);
-        %         val1 = obj1.fValues;
-        %     else
-        %         val1 = obj1;
-        %     end
-        %     if isa(obj2, 'LagrangianFunction')
-        %         res = copy(obj2);
-        %         val2 = obj2.fValues;
-        %     else
-        %         val2 = obj2;
-        %     end
-        % 
-        %     res.fValues = val1 + val2;
-        %     s = res;
-        % end
-        % 
-        % function s = minus(obj1,obj2)
-        %     if isa(obj1, 'LagrangianFunction')
-        %         res = copy(obj1);
-        %         val1 = obj1.fValues;
-        %     else
-        %         val1 = obj1;
-        %     end
-        %     if isa(obj2, 'LagrangianFunction')
-        %         res = copy(obj2);
-        %         val2 = obj2.fValues;
-        %     else
-        %         val2 = obj2;
-        %     end
-        %     res.fValues = val1 - val2;
-        %     s = res;
-        % end
+        function s = plus(a,b)
+            if isa(a, 'LagrangianFunction')
+                res = copy(a);
+                val1 = a.fValues;
+            else
+                val1 = a;
+            end
+            if isa(b, 'LagrangianFunction')
+                res = copy(b);
+                val2 = b.fValues;
+            else
+                val2 = b;
+            end
+
+            res.fValues = val1 + val2;
+            s = res;
+        end
+
+        function s = minus(a,b)
+            if isa(a, 'LagrangianFunction')
+                res = copy(a);
+                val1 = a.fValues;
+            else
+                val1 = a;
+            end
+            if isa(b, 'LagrangianFunction')
+                res = copy(b);
+                val2 = b.fValues;
+            else
+                val2 = b;
+            end
+            res.fValues = val1 - val2;
+            s = res;
+        end
 
         
 
