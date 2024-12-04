@@ -51,7 +51,7 @@ classdef OrientedMappingComputer < handle
             isCoh = false(nnode,nElem);
             
             %a1D   = obj.orientation{1}.project('P1D',obj.mesh); 
-            a1D   = obj.orientation{1}.project('P1D'); 
+            a1D   = obj.orientation{1}.project('P1D',obj.mesh); 
 
             % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1D');            
             % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1');
@@ -67,7 +67,7 @@ classdef OrientedMappingComputer < handle
 
             %a1D   = obj.orientation{1}.project('P1',obj.mesh); 
            
-            a1D   = a1D.project('P1D'); 
+           % a1D   = a1D.project('P1D'); 
             a1    = a1D.getFvaluesDisc();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
