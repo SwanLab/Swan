@@ -146,7 +146,7 @@ classdef ElasticProblem < handle
             s.forces    = obj.forces;
             [u,~]       = obj.problemSolver.solve(s);           
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.uFun.fValues = uSplit;
+            obj.uFun.setFValues(uSplit);
         end
 
         function computeStrain(obj)
