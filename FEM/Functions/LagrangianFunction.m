@@ -91,19 +91,14 @@ classdef LagrangianFunction < FeFunction
         end         
 
         function fVals = getFvaluesDisc(obj)
-            nDimF = size(obj.fValues,2);
-            node  = obj.getDofConnecByVector();
-            nnodeElem = size(node,2);
-            nElem = size(obj.mesh.connec,1);
-            fVals = zeros(nDimF,nnodeElem,nElem);
-            for iDim = 1:nDimF
-                fI = obj.fValues(:,iDim);
-                for iNode = 1:nnodeElem
-                    dof   = node(:,iNode);
-                    fVals(iDim,iNode,:) = fI(dof);
-                end
-            end
-        end     
+            nDimF     = obj.ndimf;
+            node      = obj.getDofConnecByVector();
+            nnodeElem = obj.mesh.nnodeElem;
+            nElem     = size(obj.mesh.connec,1);
+            fAll      = obj.fValues(node(:), :);
+            fReshaped = reshape(fAll, nElem, nnodeElem, nDimF);
+            fVals     = permute(fReshaped, [3, 2, 1]);
+        end
 
         function c = getDofCoord(obj)
             c = obj.dofCoord;
@@ -165,7 +160,7 @@ classdef LagrangianFunction < FeFunction
                         coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
                         x  = coordP(:,1);
                         y  = coordP(:,2);
-                        z  = obj.fValues(:,iDim);
+                        z  = double(obj.fValues(:,iDim));
                         a = trisurf(connecP,x,y,z);
                         view(0,90)
                         %colorbar
