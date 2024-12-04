@@ -46,7 +46,15 @@ classdef MultiLevelSet < handle
             norm = sqrt(norm);
         end
 
-        function charFun = obtainDomainFunction(obj)
+        function charFuns = obtainDomainFunction(obj)
+            nLS = length(obj.levelSets);
+            charFuns = cell(nLS,1);
+            for i = 1:nLS
+                charFuns{i} = obj.levelSets{i}.obtainDomainFunction();
+            end
+        end
+
+        function charFun = obtainGlobalDomainFunction(obj)
             s.designVariable = obj;
             s.mesh           = obj.mesh; 
             multiCharFun     = MultiMaterialCharacteristicFunction(s);

@@ -16,12 +16,7 @@ classdef MultiMaterialVolumeConstraint < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             chi = obj.computeCharacteristicFunction(x);
             J   = obj.computeFunction(chi);
-            dJc = obj.computeGradient(x);
-            dJv = [];
-            for i = 1:length(dJc)
-                dJv = [dJv;dJc{i}.fValues];
-            end
-            dJ.fValues = dJv;
+            dJ  = obj.computeGradient(x);
         end
     end
 
@@ -35,7 +30,7 @@ classdef MultiMaterialVolumeConstraint < handle
         end
 
         function chi = computeCharacteristicFunction(obj,x)
-            tfi       = x.obtainDomainFunction(); 
+            tfi       = x.obtainGlobalDomainFunction(); 
             k         = obj.matID;
             chiVals   = tfi{k}.fValues;
             s.fValues = chiVals;

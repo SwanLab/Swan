@@ -11,7 +11,7 @@ classdef MultimaterialGradientComputer < handle
 
         function dt = compute(obj,TD)
             x      = obj.designVariable;
-            tfi    = x.obtainDomainFunction();
+            tfi    = x.obtainGlobalDomainFunction();
             tfiDer = x.obtainDomainFunctionDerivatives();
             nLS    = length(tfi)-1;
             dt     = cell(nLS,1);

@@ -27,6 +27,7 @@ classdef MultimaterialTesting < handle
             obj.createMaterialInterpolator();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
+            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraints();
             obj.createCost();
@@ -132,14 +133,18 @@ classdef MultimaterialTesting < handle
             obj.physicalProblem = fem;
         end
 
-        function createCompliance(obj) % WILL BE EDITED
-            s.nMat = 4; % will be removed
-            s.mesh = obj.mesh;
-            s.filter = obj.filter;
+        function c = createComplianceFromConstiutive(obj)
+            s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            s.material = obj.createMaterial();
-            s.materialInterpolator = obj.materialInterpolator;
-            c = MultiMaterialComplianceFunctional(s);
+            c = ComplianceFromConstiutiveTensor(s);
+        end
+
+        function createCompliance(obj)
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.material                   = obj.createMaterial();
+            c = ComplianceFunctional(s);
             obj.compliance = c;
         end
 
