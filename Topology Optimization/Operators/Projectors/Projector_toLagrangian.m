@@ -7,14 +7,14 @@ classdef Projector_toLagrangian < Projector
     methods (Access = public)
 
         function obj = Projector_toLagrangian(cParams)
-            obj.init(cParams);
             obj.order = cParams.projectorType;
         end
 
         function xFun = project(obj, x)
+            
             if obj.isP1toP1Dprojection(x)
                 f = x.fValues;
-                connec = obj.mesh.connec;
+                connec = x.mesh.connec;
                 dofsC = reshape(connec',1,[]);
                 xProj = f(dofsC,:);
             else
@@ -23,7 +23,7 @@ classdef Projector_toLagrangian < Projector
                 xProj = LHS\RHS;
                 xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             end
-            s.mesh    = obj.mesh;
+            s.mesh    = x.mesh;
             s.fValues = xProj;
             s.order = obj.order;
             xFun = LagrangianFunction(s);
@@ -34,13 +34,22 @@ classdef Projector_toLagrangian < Projector
     methods (Access = private)
         
         function LHS = computeLHS(obj,fun)
-            s.mesh  = obj.mesh;
-            s.test  = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
-            s.trial = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.order);
-            s.quadratureOrder = 2; % no
-            s.type  = 'MassMatrix';
-            lhs = LHSintegrator.create(s);
-            LHS = lhs.compute();
+            switch obj.order
+                case 'P0'
+                    quad = Quadrature.create(fun.mesh,1);
+                    dv = fun.mesh.computeDvolume(quad);
+                    a = sum(dv(1,:),1);
+                    a = repmat(a,1,fun.ndimf);
+                    LHS = spdiags(a',0,length(a),length(a));
+                otherwise
+                    s.mesh  = fun.mesh;
+                    s.test  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    s.trial = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    s.quadratureOrder = 2; % no
+                    s.type  = 'MassMatrix';
+                    lhs = LHSintegrator.create(s);
+                    LHS = lhs.compute();
+            end
         end
 
         function itIs = isP1toP1Dprojection(obj,x)
@@ -54,12 +63,12 @@ classdef Projector_toLagrangian < Projector
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
                 otherwise
-                    s.mesh = obj.mesh;
+                    s.mesh = fun.mesh;
                     s.type = 'ShapeFunction';
             end
             s.quadType = ord;
             int        = RHSintegrator.create(s);
-            test       = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.order);
+            test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
             RHS        = int.compute(fun,test);
         end
 

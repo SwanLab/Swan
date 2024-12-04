@@ -39,6 +39,10 @@ classdef PointLoad < BoundaryCondition
             obj.values = obj.getValues();
         end
 
+        function evaluate(obj)
+
+        end
+
         function dofs = getDofs(obj)
             ndimf = obj.fun.ndimf;
             nodesLog = obj.domain(obj.mesh.coord);

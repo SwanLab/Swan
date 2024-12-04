@@ -6,6 +6,7 @@ function dom = AntiVoigt(A)
         case 6
             s.ndimf = 9;
     end
+    s.mesh = A.mesh;
     dom = DomainFunction(s);
 end
 

@@ -1,6 +1,7 @@
 function dom = Partial(u,dimG)
     s.operation = @(xV) evaluate(u, dimG, xV);
     s.ndimf     = u.ndimf;
+    s.mesh      = u.mesh;
     dom = DomainFunction(s);
 end
 
