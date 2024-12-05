@@ -95,6 +95,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 

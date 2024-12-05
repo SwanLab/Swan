@@ -38,7 +38,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function fxV = evaluate(obj, xV)
-            %if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
+            if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
                 shapes = obj.interpolation.computeShapeFunctions(xV);
                 func   = obj.getFvaluesByElem();
                 nNode  = size(shapes,1);
@@ -54,9 +54,9 @@ classdef LagrangianFunction < FeFunction
                 end
                 obj.fxVOld  = fxV;
                 obj.xVOldfV = xV;
-            %else
-             %   fxV = obj.fxVOld;
-            %end
+            else
+               fxV = obj.fxVOld;
+            end
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -323,7 +323,7 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = b;
             end
-
+            res.fxVOld  = [];
             res.fValues = val1 + val2;
             s = res;
         end
@@ -341,6 +341,7 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = b;
             end
+            res.fxVOld  = [];
             res.fValues = val1 - val2;
             s = res;
         end
