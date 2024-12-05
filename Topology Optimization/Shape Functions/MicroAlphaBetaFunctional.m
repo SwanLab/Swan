@@ -88,8 +88,8 @@ classdef MicroAlphaBetaFunctional < handle
             a           = obj.alpha;
             b           = obj.beta;
             wInv        = (Ch\a)*(b'/Ch);
-            s.operation = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
-            dChInv      = DomainFunction(s);
+            f           = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
+            dChInv      = DomainFunction.create(f,obj.mesh);
         end
 
         function x = computeNonDimensionalValue(obj,x)

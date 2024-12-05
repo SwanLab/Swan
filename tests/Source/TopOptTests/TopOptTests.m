@@ -40,7 +40,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
             filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);
             mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
-            mat    = obj.createMaterial(x,mI);
+            mat    = obj.createMaterial(x,mI,m);
             fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
             Msmooth = obj.createMassMatrix(m,x);
             if exist('micro')
@@ -118,7 +118,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             mI = MaterialInterpolator.create(s);
         end
 
-        function m = createMaterial(x,mI)
+        function m = createMaterial(x,mI,m)
             switch class(x)
                 case 'DensityAndBound'
                     f = x.density.obtainDomainFunction();
@@ -130,6 +130,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.density              = f;
             s.materialInterpolator = mI;
             s.dim                  = '2D';
+            s.mesh                 = m;
             m = Material.create(s);
         end
 
