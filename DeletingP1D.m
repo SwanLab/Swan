@@ -57,10 +57,10 @@ classdef DeletingP1D < handle
             obj.funP1.plot()
             funP1DC.plot()
 
-            gradP1DC = SymGrad(funP1DC).project('P1',obj.mesh);
+            gradP1DC = SymGrad(funP1DC).project('P1');
             gradP1DC.plot()
 
-            gradP1 = SymGrad(obj.funP1).project('P1',obj.mesh);
+            gradP1 = SymGrad(obj.funP1).project('P1');
             gradP1.plot()
 
             dif = gradP1DC - gradP1;
