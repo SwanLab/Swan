@@ -25,15 +25,26 @@ classdef DomainFunction < BaseFunction
             else
                 obj.ndimf = 1;
             end
-
-            if isfield(cParams,'mesh')
-                obj.mesh = cParams.mesh;
-            else
-                obj.mesh = [];
-            end
+            obj.mesh = cParams.mesh;
         end
 
-    end
+   end
+
+   methods (Access = public, Static)
+
+       function f = create(operation, mesh, ndimf)
+           if nargin == 3, s.ndimf = ndimf; end
+           s.operation = operation;
+           s.mesh = mesh;
+           f = DomainFunction(s);
+       end
+
+
+
+
+   end
+
+
     
     
 

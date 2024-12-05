@@ -68,6 +68,7 @@ classdef ComplianceFunctional < handle
                 dx{i}.setFValues(dx{i}.fValues/refX);
             end
         end
+
     end
 
     methods (Static, Access = public)

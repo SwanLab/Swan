@@ -1,13 +1,10 @@
 classdef DensityBasedMaterial < handle
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
        density 
        materialInterpolator
        dim
+       mesh
     end
     
     methods (Access = public)
@@ -18,6 +15,7 @@ classdef DensityBasedMaterial < handle
         
         function C = obtainTensor(obj)
             s.operation = @(xV) obj.evaluate(xV);
+            s.mesh      = obj.mesh;
             C = DomainFunction(s);
         end
 
@@ -31,6 +29,7 @@ classdef DensityBasedMaterial < handle
             for i = 1:n1
                 for j = 1:n2
                     s.operation = @(xV) obj.evaluateGradient(dmu{i,j},dkappa{i,j},xV);
+                    s.mesh      = obj.mesh;
                     dC{i,j} = DomainFunction(s);
                 end
             end
@@ -48,6 +47,7 @@ classdef DensityBasedMaterial < handle
             obj.density              = cParams.density;
             obj.materialInterpolator = cParams.materialInterpolator;
             obj.dim                  = cParams.dim;
+            obj.mesh                 = cParams.mesh;
         end
         
         function m = createMaterial(obj,mu,kappa)

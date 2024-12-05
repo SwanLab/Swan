@@ -91,8 +91,9 @@ classdef LevelSetPeriodicAndOriented < handle
         function ls = createCellLevelSet(obj,eps)
             s.operation  = @(xV) obj.geometricalFunction(xV,eps);
             s.ndimf      = 1;
+            s.mesh       = obj.fineMesh;
             f  = DomainFunction(s);
-            ls = f.project('P1',obj.fineMesh);            
+            ls = Project(f,'P1');            
         end
 
         function fH = geometricalFunction(obj,xV,eps)
