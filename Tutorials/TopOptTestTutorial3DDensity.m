@@ -166,19 +166,36 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            opt = OptimizerMMA(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
+%             s.monitoring     = true;
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 1000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase = 'EQUALITY';
+%             s.ub             = 1;
+%             s.lb             = 0;
+%             opt = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+                
+              s.monitoring     = true;
+              s.cost           = obj.cost;
+              s.constraint     = obj.constraint;
+              s.designVariable = obj.designVariable;
+              s.dualVariable   = obj.dualVariable;
+              s.maxIter        = 30;
+              s.tolerance      = 1e-8;
+              s.constraintCase = {'EQUALITY'};
+              s.primal         = 'PROJECTED GRADIENT';
+              s.ub             = 1;
+              s.lb             = 0;
+              s.etaNorm        = 0.001;
+              s.gJFlowRatio    = 1;
+              opt = OptimizerNullSpace(s);
+              opt.solveProblem();
+              obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
