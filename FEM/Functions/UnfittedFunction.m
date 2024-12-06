@@ -11,16 +11,12 @@ classdef UnfittedFunction < BaseFunction
     end
 
     methods (Access = public)
+
         function obj = UnfittedFunction(cParams)
             obj.init(cParams);
             obj.computeUnfittedMeshFunction();
             obj.mesh = obj.unfittedMesh.backgroundMesh;
         end
-
-        function evaluate(obj,xV)
-
-        end
-
 
         function res = times(obj1,obj2)
             res     = copy(obj1);
@@ -42,5 +38,13 @@ classdef UnfittedFunction < BaseFunction
             obj.innerMeshFunction    = uMeshFun.innerMeshFunction;
             obj.innerCutMeshFunction = uMeshFun.innerCutMeshFunction;
         end
+    end
+
+    methods (Access = protected)
+
+        function evaluateNew(obj,xV)
+
+        end
+
     end
 end

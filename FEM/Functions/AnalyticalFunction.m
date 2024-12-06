@@ -10,10 +10,6 @@ classdef AnalyticalFunction < BaseFunction
             obj.init(cParams)
         end
 
-        function fxV = evaluate(obj, xV)
-            fxV = obj.domainFunction.evaluate(xV);
-        end
-
     end
 
     methods (Access = public, Static)
@@ -49,8 +45,14 @@ classdef AnalyticalFunction < BaseFunction
             fxV = fHandle(x);
         end
 
-
     end
 
+    methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.domainFunction.evaluate(xV);
+        end
+
+    end
 
 end
