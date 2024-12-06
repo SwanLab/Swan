@@ -34,7 +34,6 @@ classdef LagrangianFunction < FeFunction
         function setFValues(obj,fV)
             obj.fValues = fV;
             obj.fxVOld  = [];
-            obj.xVOldfV = [];
         end
 
         function fxV = evaluate(obj, xV)
@@ -276,6 +275,7 @@ classdef LagrangianFunction < FeFunction
 
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = obj.copy();
+            f.fxVOld = [];
             f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);

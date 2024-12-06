@@ -15,16 +15,8 @@ classdef CGsolver < handle
             obj.prepareProblem(A);
             tol = 1e-5;
             maxit = 15000; 
-
-            tic
-            % Original
-            %x = pcg(A,b,tol,maxit,[],[],obj.x0); 
-
-            % Modified
             L = ichol(A);
             x = pcg(A,b,tol,maxit,L,L',obj.x0);
-            toc
-
             obj.x0 = x;
         end
 
