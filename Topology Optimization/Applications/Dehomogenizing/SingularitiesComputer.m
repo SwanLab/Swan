@@ -16,41 +16,7 @@ classdef SingularitiesComputer < handle
             obj.init(cParams)
         end
 
-        function compute(obj)
-            obj.computeSingularElements();
-            obj.computeNumberOfSingularities();
-        end
-
-        function are = isNodeInTwoSingularElements(obj)
-            nodesS =  obj.mesh.connec(obj.isElemSingular.fValues,:);
-            allNodes = nodesS(:);
-            [~,indU] = unique(allNodes);
-            nonUnique = unique(allNodes(setdiff((1:length(allNodes)),indU)));
-            are = ~isempty(nonUnique);
-        end
-
-        function itIs = isSingularityInBoundary(obj)
-            nodesS   =  obj.mesh.connec(obj.isElemSingular.fValues,:);
-            allNodes = unique(nodesS(:));
-            nodes = boundary(obj.mesh.coord,1);
-            singNodesInB = intersect(allNodes,nodes);
-            itIs = ~isempty(singNodesInB);
-        end
-
-        function plot(obj)
-            obj.isElemSingular.plot();
-        end
-
-    end
-
-    methods (Access = private)
-
-       function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation = cParams.orientation;
-        end
-
-        function computeSingularElements(obj)
+        function f = compute(obj)
             aC = obj.orientation;
             aD = project(aC,'P1D');
             aD = permute(aD.getFvaluesByElem(), [1 3 2]);
@@ -68,11 +34,17 @@ classdef SingularitiesComputer < handle
             s.order   = 'P0';
             s.mesh    = obj.mesh;
             f = LagrangianFunction(s);
-            obj.isElemSingular = f;
         end
 
-        function computeNumberOfSingularities(obj)
-            obj.nSing = sum(obj.isElemSingular.fValues);
+
+
+    end
+
+    methods (Access = private)
+
+       function init(obj,cParams)
+            obj.mesh        = cParams.mesh;
+            obj.orientation = cParams.orientation;
         end
 
     end

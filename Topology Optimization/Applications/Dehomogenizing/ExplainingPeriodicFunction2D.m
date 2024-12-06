@@ -64,12 +64,6 @@ classdef ExplainingPeriodicFunction2D < handle
             s.mesh    = obj.mesh;
             s.ndimf   = 1;
             obj.alpha = AnalyticalFunction(s);
-
-
-            gradA = Grad(project(obj.alpha,'P1'));
-            gradA = project(gradA,'P1');
-            t = Divergence(gradA);
-            plot(project(t,'P1'))
         end
 
         function f = createAlphaValues(obj,x)
@@ -119,7 +113,6 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function f = createFunction(obj,value,dir)
             s.fHandle = @(x) obj.variationFunction(value,x,dir);
-            %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
@@ -150,7 +143,7 @@ classdef ExplainingPeriodicFunction2D < handle
             s.nCells             = obj.nCells;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-            s.theta              = obj.orientation;%.project('P0');%atan2(obj.orientation(:,2),obj.orientation(:,1));
+            s.orientation        = obj.orientation;
             d = Dehomogenizer(s);
             ls = d.compute();
             d.plot();

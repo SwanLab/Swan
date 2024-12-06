@@ -5,7 +5,7 @@ classdef MappingComputer < handle
         mesh
         interpolator
         dilatedOrientation
-        field
+        testFunction
     end
 
     methods (Access = public)
@@ -36,13 +36,14 @@ classdef MappingComputer < handle
             obj.mesh               = cParams.mesh;
             obj.dilatedOrientation = cParams.dilatedOrientation;
             obj.interpolator       = cParams.interpolator;
+            obj.testFunction       = LagrangianFunction.create(obj.mesh,1,'P1D');
         end
 
         function K = computeStiffnessMatrix(obj)
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1D');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1D');
+            s.test  = obj.testFunction;
+            s.trial = obj.testFunction;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -51,8 +52,8 @@ classdef MappingComputer < handle
             aI = obj.dilatedOrientation{iDim};
             s.mesh            = obj.mesh;
             s.quadratureOrder = 2;
-            s.type      = 'ShapeDerivative';
-            test = LagrangianFunction.create(obj.mesh,1,'P1D');
+            s.type            = 'ShapeDerivative';
+            test = obj.testFunction;
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute(aI,test);
             In   = obj.interpolator;
