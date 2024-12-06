@@ -19,7 +19,8 @@ classdef PerimeterFunctional < handle
             J  = obj.computeFunction(xD{1},xR{1});
             dJ{1} = obj.computeGradient(xR{1});
             J  = obj.computeNonDimensionalValue(J);
-            dJ{1}.fValues = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            dJ{1}.setFValues(dJVal);
         end
 
     end

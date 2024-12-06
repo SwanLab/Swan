@@ -24,15 +24,16 @@ classdef NonSelfAdjointComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD            = x.obtainDomainFunction();
-            xR            = obj.filterDesignVariable(xD);
-            [C,dC]        = obj.computeTensorFunctionAndGradient(xR);
-            uS            = obj.computeStateVariable(C);
-            uA            = obj.computeAdjointVariable(C);
-            J             = obj.computeFunctionValue(C,uS,uA);
-            dJ            = obj.computeGradient(dC{1},uS,uA);
-            dJ            = {obj.filter.compute(dJ,2)};
-            dJ{1}.fValues = dJ{1}.fValues/obj.value0;
+            xD     = x.obtainDomainFunction();
+            xR     = obj.filterDesignVariable(xD);
+            [C,dC] = obj.computeTensorFunctionAndGradient(xR);
+            uS     = obj.computeStateVariable(C);
+            uA     = obj.computeAdjointVariable(C);
+            J      = obj.computeFunctionValue(C,uS,uA);
+            dJ     = obj.computeGradient(dC{1},uS,uA);
+            dJ     = {obj.filter.compute(dJ,2)};
+            dJVal  = dJ{1}.fValues/obj.value0;
+            dJ{1}.setFValues(dJVal);
         end
     end
 

@@ -17,7 +17,7 @@ classdef MultiMaterialCharacteristicFunction < handle
             charFun = cell(nLS+1,1);
             for i = 1:nLS+1
                 charFun{i} = LagrangianFunction.create(obj.mesh,1,'P0');
-                charFun{i}.fValues = chi(:,i);
+                charFun{i}.setFValues(chi(:,i));
             end
         end
 
@@ -29,7 +29,7 @@ classdef MultiMaterialCharacteristicFunction < handle
             for k = 1:nLS
                 for i = 1:nLS
                     charFunDer{i,k} = LagrangianFunction.create(obj.mesh,1,'P0');
-                    charFunDer{i,k}.fValues = chi(:,i,k);
+                    charFunDer{i,k}.setFValues(chi(:,i,k));
                 end
             end
         end
