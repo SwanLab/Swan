@@ -23,9 +23,15 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end       
 
         function plot(obj)
-            p1D = obj.project('P1D');
+            p1D = project(obj,'P1D');
             p1D.plot();
-        end        
+        end    
+
+        function plotVector(obj,varargin)
+            if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
+            p1D = project(obj,'P1D');            
+            plotVector(p1D,n);
+        end             
 
         function r = ctranspose(a)
             aOp = BaseFunction.computeOperation(a);
