@@ -117,8 +117,8 @@ classdef LevelSetPeriodicAndOriented < handle
             mL = obj.computeMinLengthInUnitCell();
             s.minLengthInUnitCell = mL;
             t = MparameterThresholder(s);
-            obj.m1.fValues = t.thresh(obj.m1.fValues);
-            obj.m2.fValues = t.thresh(obj.m2.fValues);
+            obj.m1.setFValues(t.thresh(obj.m1.fValues));
+            obj.m2.setFValues(t.thresh(obj.m2.fValues));
         end
 
         function t = computeMinLengthInUnitCell(obj)
