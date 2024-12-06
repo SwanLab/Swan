@@ -44,16 +44,18 @@ classdef OrientedMappingComputer < handle
 
         function isCF = computeIsOrientationCoherent(obj,a1)
 
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,a1.ndimf,'P1');
-            f = Filter.create(s);
-            a1 = f.compute(a1,2);
+            % s.filterType = 'LUMP';
+            % s.mesh  = obj.mesh;
+            % s.trial = LagrangianFunction.create(obj.mesh,a1.ndimf,'P1');
+            % f = Filter.create(s);
+            % a1 = f.compute(a1,2);
 
 
-            %a1   = project(a1,'P1'); 
+            a1   = project(a1,'P1'); 
+            u = UnitBallProjector([]);
             
-            
+            a1.setFValues(u.project(a1.fValues))
+
             a1   = a1.getFvaluesByElem();
             aN1   = squeeze(a1(:,1,:));            
             isCoh = false(obj.mesh.nnodeElem,obj.mesh.nelem);

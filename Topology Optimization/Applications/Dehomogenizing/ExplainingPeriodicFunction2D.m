@@ -33,8 +33,8 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.03;
-            obj.nCells   = [10 10; 20 20];
+            obj.meshSize = 0.032;
+            obj.nCells   = [11 11; 21 21];
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
@@ -63,7 +63,16 @@ classdef ExplainingPeriodicFunction2D < handle
             s.fHandle = @(x) obj.createAlphaValues(x);
             s.mesh    = obj.mesh;
             s.ndimf   = 1;
-            obj.alpha = AnalyticalFunction(s);
+            a         = AnalyticalFunction(s);
+           
+
+             % s.filterType = 'LUMP';
+             % s.mesh  = obj.mesh;
+             % s.trial = LagrangianFunction.create(obj.mesh,a.ndimf,'P1');
+             % f = Filter.create(s);
+             % a = f.compute(a,2);
+
+            obj.alpha = a;%project(a,'P1');%a             
         end
 
         function f = createAlphaValues(obj,x)
@@ -82,7 +91,9 @@ classdef ExplainingPeriodicFunction2D < handle
                 s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
                 s.ndimf     = 2;
                 s.mesh      = obj.mesh;
-                aF = DomainFunction(s);
+                aF = DomainFunction(s);     
+
+                %better change the sign than adding 180degrees
                 obj.orientation{iDim} = aF;
             end
         end
