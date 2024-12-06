@@ -4,8 +4,9 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
 
     end
 
-    properties (Access = private)
-
+    properties (GetAccess = protected, SetAccess = protected)
+       fxVOld
+       xVOldfV
     end
 
     properties (GetAccess = public, SetAccess = protected)
@@ -14,6 +15,16 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
     end
 
     methods (Access = public)
+
+        function fxV = evaluate(obj, xV)
+            if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
+                fxV = obj.evaluateNew(xV);
+                obj.fxVOld  = fxV;
+                obj.xVOldfV = xV;
+            else
+               fxV = obj.fxVOld;
+            end
+        end        
 
         function fun = project(obj,target)
             s.mesh          = obj.mesh;
@@ -180,8 +191,8 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
 
     end
 
-    methods (Access = public, Abstract)
-        evaluate(obj,xV)
+    methods (Access = protected, Abstract)
+        evaluateNew(obj,xV)
     end
 
 end

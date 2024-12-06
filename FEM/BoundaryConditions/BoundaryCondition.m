@@ -28,5 +28,14 @@ classdef BoundaryCondition < FeFunction
         end
         
     end
+
+    methods (Access = protected)
+
+        function  evaluateNew(obj, xV)
+
+        end        
+
+
+    end    
     
 end
