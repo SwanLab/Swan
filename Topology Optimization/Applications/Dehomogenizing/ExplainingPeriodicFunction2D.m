@@ -66,10 +66,10 @@ classdef ExplainingPeriodicFunction2D < handle
             obj.alpha = AnalyticalFunction(s);
 
 
-            gradA = Grad(Project(obj.alpha,'P1'));
-            gradA = Project(gradA,'P1');
+            gradA = Grad(project(obj.alpha,'P1'));
+            gradA = project(gradA,'P1');
             t = Divergence(gradA);
-            Project(t,'P1').plot()
+            plot(project(t,'P1'))
         end
 
         function f = createAlphaValues(obj,x)
@@ -89,10 +89,8 @@ classdef ExplainingPeriodicFunction2D < handle
                 s.ndimf     = 2;
                 s.mesh      = obj.mesh;
                 aF = DomainFunction(s);
-                %aF = aF.project('P1',obj.mesh);
                 obj.orientation{iDim} = aF;
             end
-
         end
 
         function or = createOrientationFunction(obj,iDim,xV)
@@ -107,9 +105,9 @@ classdef ExplainingPeriodicFunction2D < handle
             end
         end
 
-        function plotOrientation(obj,varargin)
-            obj.orientation{1}.project('P1D',obj.mesh).plotVector();
-            obj.orientation{2}.project('P1D',obj.mesh).plotVector();
+        function plotOrientation(obj)            
+            plotVector(obj.orientation{1},4);
+            plotVector(obj.orientation{2},4);
         end
 
         function s = createLevelSetCellParams(obj)

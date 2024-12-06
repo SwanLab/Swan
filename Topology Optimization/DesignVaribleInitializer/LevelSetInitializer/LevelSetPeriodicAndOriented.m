@@ -93,7 +93,7 @@ classdef LevelSetPeriodicAndOriented < handle
             s.ndimf      = 1;
             s.mesh       = obj.fineMesh;
             f  = DomainFunction(s);
-            ls = Project(f,'P1');            
+            ls = project(f,'P1');            
         end
 
         function fH = geometricalFunction(obj,xV,eps)
