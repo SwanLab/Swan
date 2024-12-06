@@ -4,12 +4,9 @@ classdef FeFunction < BaseFunction
         fType = 'FE'
     end
 
-    properties (Access = public)
-       fValues        
-    end
-
     properties (GetAccess = public, SetAccess = protected)
-       order      
+        fValues
+        order      
     end
     
     properties (Access = protected)

@@ -11,7 +11,9 @@ classdef LagrangianFunction < FeFunction
         dofConnec
 
        dNdxOld
-       xVOld     
+       fxVOld
+       xVOlddN
+       xVOldfV
     end
 
     methods (Access = public)
@@ -29,20 +31,31 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
+        function setFValues(obj,fV)
+            obj.fValues = fV;
+            obj.fxVOld  = [];
+        end
+
         function fxV = evaluate(obj, xV)
-            shapes = obj.interpolation.computeShapeFunctions(xV);
-            func   = obj.getFvaluesByElem();
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2);
-            nF     = size(func,1);
-            nElem  = size(func,3);
-            fxV = zeros(nF,nGaus,nElem);
-            for kNode = 1:nNode
-                shapeKJ = shapes(kNode,:,:);
-                fKJ     = func(:,kNode,:);
-                f = bsxfun(@times,shapeKJ,fKJ);
-                fxV = fxV + f;
-            end 
+            if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
+                shapes = obj.interpolation.computeShapeFunctions(xV);
+                func   = obj.getFvaluesByElem();
+                nNode  = size(shapes,1);
+                nGaus  = size(shapes,2);
+                nF     = size(func,1);
+                nElem  = size(func,3);
+                fxV = zeros(nF,nGaus,nElem);
+                for kNode = 1:nNode
+                    shapeKJ = shapes(kNode,:,:);
+                    fKJ     = func(:,kNode,:);
+                    f = bsxfun(@times,shapeKJ,fKJ);
+                    fxV = fxV + f;
+                end
+                obj.fxVOld  = fxV;
+                obj.xVOldfV = xV;
+            else
+               fxV = obj.fxVOld;
+            end
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -63,7 +76,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            if ~isequal(xV,obj.xVOld) || isempty(obj.dNdxOld)
+            if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
                 nElem = size(obj.dofConnec,1);
                 nNodeE = obj.interpolation.nnode;
                 nDimE = obj.interpolation.ndime;
@@ -84,7 +97,7 @@ classdef LagrangianFunction < FeFunction
                 end
                 dNdx = dShapes;
                 obj.dNdxOld = dNdx;
-                obj.xVOld   = xV;
+                obj.xVOlddN = xV;
             else
                 dNdx = obj.dNdxOld;
             end
@@ -136,9 +149,13 @@ classdef LagrangianFunction < FeFunction
             obj.dNdxOld = dNdx;
         end
 
-        function setXvOld(obj,xV)
-            obj.xVOld = xV;
-        end           
+        function setXvdNOld(obj,xV)
+            obj.xVOlddN = xV;
+        end  
+
+        function setXvfVOld(obj,xV)
+            obj.xVOldfV = xV;
+        end   
         
         function ord = orderTextual(obj)
             ord = obj.getOrderTextual(obj.order);
@@ -255,6 +272,7 @@ classdef LagrangianFunction < FeFunction
 
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = obj.copy();
+            f.fxVOld = [];
             f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
@@ -302,7 +320,7 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = b;
             end
-
+            res.fxVOld  = [];
             res.fValues = val1 + val2;
             s = res;
         end
@@ -320,6 +338,7 @@ classdef LagrangianFunction < FeFunction
             else
                 val2 = b;
             end
+            res.fxVOld  = [];
             res.fValues = val1 - val2;
             s = res;
         end

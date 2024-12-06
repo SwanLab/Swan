@@ -32,8 +32,9 @@ classdef MicroAlphaBetaFunctional < handle
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J             = obj.computeNonDimensionalValue(J);
-            dJ{1}.fValues = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            J     = obj.computeNonDimensionalValue(J);
+            dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            dJ{1}.setFValues(dJVal);
         end
 
     end

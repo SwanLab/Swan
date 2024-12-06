@@ -65,7 +65,7 @@ classdef ComplianceFunctional < handle
         function dx = computeNonDimensionalGradient(obj,dx)
             refX = obj.value0;
             for i = 1:length(dx)
-                dx{i}.fValues = dx{i}.fValues/refX;
+                dx{i}.setFValues(dx{i}.fValues/refX);
             end
         end
 
