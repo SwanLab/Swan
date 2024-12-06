@@ -19,21 +19,22 @@ classdef FilterLump < handle
         function xFun = compute(obj, x, quadType)
             s.feFunType  = class(obj.trial);
             s.mesh       = obj.mesh;
-            s.ndimf      = 1;
+            s.ndimf      = x.ndimf;
             xFun         = LagrangianFunction.create(s.mesh, s.ndimf, obj.trial.order);
             lhs          = obj.LHS;
             rhs          = obj.computeRHS(x, quadType);
             xProj        = rhs./lhs;
-            xFun.fValues = xProj;
+            xFun.fValues = reshape(xProj',obj.trial.ndimf,[])';
         end
 
     end
 
     methods (Access = private)
+
         function init(obj,cParams)
             cParams.feFunType = class(cParams.trial);
-            cParams.ndimf     = 1;
-            obj.trial         = LagrangianFunction.create(cParams.mesh, 1, cParams.trial.order);
+            cParams.ndimf     = cParams.trial.ndimf;
+            obj.trial         = LagrangianFunction.create(cParams.mesh, cParams.ndimf, cParams.trial.order);
             obj.mesh          = cParams.mesh;
         end
 
