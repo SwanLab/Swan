@@ -11,9 +11,8 @@ classdef LagrangianFunction < FeFunction
         dofConnec
 
        dNdxOld
-       fxVOld
        xVOlddN
-       xVOldfV
+       
     end
 
     methods (Access = public)
@@ -34,28 +33,6 @@ classdef LagrangianFunction < FeFunction
         function setFValues(obj,fV)
             obj.fValues = fV;
             obj.fxVOld  = [];
-        end
-
-        function fxV = evaluate(obj, xV)
-            if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
-                shapes = obj.interpolation.computeShapeFunctions(xV);
-                func   = obj.getFvaluesByElem();
-                nNode  = size(shapes,1);
-                nGaus  = size(shapes,2);
-                nF     = size(func,1);
-                nElem  = size(func,3);
-                fxV = zeros(nF,nGaus,nElem);
-                for kNode = 1:nNode
-                    shapeKJ = shapes(kNode,:,:);
-                    fKJ     = func(:,kNode,:);
-                    f = bsxfun(@times,shapeKJ,fKJ);
-                    fxV = fxV + f;
-                end
-                obj.fxVOld  = fxV;
-                obj.xVOldfV = xV;
-            else
-               fxV = obj.fxVOld;
-            end
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -356,6 +333,26 @@ classdef LagrangianFunction < FeFunction
         end
 
         
+
+    end
+
+    methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            shapes = obj.interpolation.computeShapeFunctions(xV);
+            func   = obj.getFvaluesByElem();
+            nNode  = size(shapes,1);
+            nGaus  = size(shapes,2);
+            nF     = size(func,1);
+            nElem  = size(func,3);
+            fxV = zeros(nF,nGaus,nElem);
+            for kNode = 1:nNode
+                shapeKJ = shapes(kNode,:,:);
+                fKJ     = func(:,kNode,:);
+                f = bsxfun(@times,shapeKJ,fKJ);
+                fxV = fxV + f;
+            end
+        end        
 
     end
 

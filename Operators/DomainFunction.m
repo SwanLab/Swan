@@ -9,11 +9,7 @@ classdef DomainFunction < BaseFunction
         function obj = DomainFunction(cParams)
             obj.init(cParams)
         end
-        
-        function r = evaluate(obj,xV)
-            r = obj.operation(xV);
-        end
-
+    
     end
 
    methods (Access = private)
@@ -39,14 +35,15 @@ classdef DomainFunction < BaseFunction
            f = DomainFunction(s);
        end
 
-
-
-
    end
 
+  methods (Access = protected)
 
-    
-    
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.operation(xV);
+        end        
 
+    end
+   
 
 end
