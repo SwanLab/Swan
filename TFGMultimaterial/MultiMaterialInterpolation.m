@@ -31,10 +31,10 @@ classdef MultiMaterialInterpolation < handle
         end
 
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,x)
-            m            = x{1}.mesh;
-            I            = LagrangianFunction.create(m,1,'P1');
-            I.fValues(:) = 1;
-            Z            = LagrangianFunction.create(m,1,'P1');
+            m = x{1}.mesh;
+            Z = LagrangianFunction.create(m,1,'P1');
+            I = LagrangianFunction.create(m,1,'P1');
+            I.setFValues(ones(size(I.fValues)));
             [dmu,dkappa] = computeTopologicalDerivatives(obj,I,Z);
         end
     end

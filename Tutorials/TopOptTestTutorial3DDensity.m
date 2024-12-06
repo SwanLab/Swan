@@ -90,11 +90,12 @@ classdef TopOptTestTutorial3DDensity < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = f{1}.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -107,7 +108,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -175,7 +176,6 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

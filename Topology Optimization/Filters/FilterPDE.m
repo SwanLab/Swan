@@ -26,7 +26,7 @@ classdef FilterPDE < handle
             xF = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF.fValues  = obj.trial.fValues;
+            xF.setFValues(obj.trial.fValues);
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -93,7 +93,7 @@ classdef FilterPDE < handle
             x      = solver.solve(obj.LHS,obj.RHS);
             % xR     = obj.bc.reducedToFullVector(x);
             xR = x; % its the same
-            obj.trial.fValues = reshape(xR',obj.trial.ndimf,[])';
+            obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
         end
 
         function itHas = hasEpsilonChanged(obj,eps)

@@ -60,7 +60,9 @@ classdef MultiMaterialVolumeConstraint < handle
             dJ = cell(size(dt));
             for i = 1:length(dt)
                 dJ{i} = dt{i}.project('P1');
-                dJ{i}.fValues(dJ{i}.fValues>=-1e-6 & dJ{i}.fValues<=1e-6) = 1e-6;
+                dJVal = dJ{i}.fValues;
+                dJVal(dJVal>=-1e-6 & dJVal<=1e-6) = 1e-6;
+                dJ{i}.setFValues(dJVal);
             end
         end
 
