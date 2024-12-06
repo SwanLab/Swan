@@ -178,14 +178,11 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plotVector(obj,varargin) %only for linear
-            if size(varargin,1) == 1
-                n = varargin{1};
-            else 
-                n = 2;
-            end
+            if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             figure();
-            x = obj.mesh.coord(1:n:end,1);
-            y = obj.mesh.coord(1:n:end,2);
+            coord = obj.getDofFieldByVector(1,obj.dofCoord); 
+            x = coord(1:n:end,1);
+            y = coord(1:n:end,2);
             fX = obj.fValues(1:n:end,1);
             fY = obj.fValues(1:n:end,2);
             quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
