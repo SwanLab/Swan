@@ -179,7 +179,7 @@ classdef MBBBeam < handle
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.gJ;
             s.etaMaxMin      = obj.etaM;
-            s.etaMax         = obj.etaM;
+            s.etaMax         = obj.etaM*100;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
