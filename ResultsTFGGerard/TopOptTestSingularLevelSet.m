@@ -70,8 +70,22 @@ classdef TopOptTestSingularLevelSet < handle
              s.mesh = obj.mesh;
              s.type = 'LevelSet';
              s.plotting = false;
+             s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type); % Jose: Aqui tambe es necessari
              ls     = DesignVariable.create(s);
              obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond,type)
+            coor  = obj.mesh.coord;
+            nodes = find(cond(coor));
+            isFixed.nodes = nodes;
+            switch type
+                case 'Density'
+                    values = ones(size(nodes));
+                case 'LevelSet'
+                    values = -ones(size(nodes));
+            end
+            isFixed.values = values;
         end
 
         function createFilter(obj)
