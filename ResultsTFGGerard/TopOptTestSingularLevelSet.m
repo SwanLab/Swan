@@ -110,12 +110,13 @@ classdef TopOptTestSingularLevelSet < handle
          function m = createMaterial(obj)
              x = obj.designVariable;
              f = x.obtainDomainFunction();
-             f = obj.filter.compute(f,1); 
+             f = obj.filter.compute(f{1},1); 
              %Density: f = f.project('P1');
              s.type                 = 'DensityBased';
              s.density              = f;
              s.materialInterpolator = obj.materialInterpolator;
              s.dim                  = '3D';
+             s.mesh                 = obj.mesh;
              m = Material.create(s);
         end
 
@@ -129,7 +130,7 @@ classdef TopOptTestSingularLevelSet < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -211,7 +212,7 @@ classdef TopOptTestSingularLevelSet < handle
              s.constraint     = obj.constraint;
              s.designVariable = obj.designVariable;
              s.dualVariable   = obj.dualVariable;
-             s.maxIter        = 2000;
+             s.maxIter        = 5000;
              s.tolerance      = 1e-12;
              s.constraintCase = {'EQUALITY'};
              s.primal         = 'SLERP';

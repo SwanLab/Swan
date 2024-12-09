@@ -121,11 +121,12 @@ classdef TopOptTestSingular < handle
          function m = createMaterial(obj)
              x = obj.designVariable;
              f = x.obtainDomainFunction();
-             f = f.project('P1');
+             f = f{1}.project('P1');
              s.type                 = 'DensityBased';
              s.density              = f;
              s.materialInterpolator = obj.materialInterpolator;
              s.dim                  = '3D';
+             s.mesh                 = obj.mesh;
              m = Material.create(s);
         end
 
@@ -139,7 +140,7 @@ classdef TopOptTestSingular < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -201,7 +202,7 @@ classdef TopOptTestSingular < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;     %Iteracions
+            s.maxIter        = 5000;     %Iteracions
             s.tolerance      = 1e-12;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT'; 
