@@ -168,7 +168,7 @@ classdef Gripper < handle
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.gJ;
             s.etaMaxMin      = 0.05;
-            s.etaMax         = 0.05;
+            s.etaMax         = 0.05*100;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
