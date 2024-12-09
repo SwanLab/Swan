@@ -56,6 +56,7 @@ classdef LevelSet < DesignVariable
             s.mesh     = obj.mesh;
             s.type     = 'LevelSet';
             s.plotting = false;
+            s.isFixed  = obj.isFixed;
             ls         = DesignVariable.create(s);
         end
 
