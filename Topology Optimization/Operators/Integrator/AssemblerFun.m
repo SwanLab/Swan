@@ -11,13 +11,14 @@ classdef AssemblerFun < handle
         end
 
         function A = assemble(obj, Aelem, f1, f2)
+            
             dofsF1 = f1.getDofConnec();
             if isequal(f1, f2)
                 dofsF2 = dofsF1;
             else
                 dofsF2 = f2.getDofConnec();
             end
-            
+
             nElem = size(Aelem,3);
             nDofs1 = numel(f1.fValues);
             nDofs2 = numel(f2.fValues);
@@ -39,7 +40,6 @@ classdef AssemblerFun < handle
                 end
             end
             A = sparse(res(:,1), res(:,2), res(:,3), nDofs1, nDofs2);
-
         end
 
         function V = assembleV(obj, F, fun)

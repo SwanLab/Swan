@@ -71,7 +71,7 @@ classdef XcoordIsoComputer < handle
             s.connec = obj.localMesh.connec(obj.localSubCells(obj.iFull),:);
             m = Mesh.create(s);
             xNodalAllIso = m.coordElem;
-            obj.xIsoFull = xNodalAllIso(:,:,:);
+            obj.xIsoFull = xNodalAllIso;
         end
         
         function computeXisoSubCut(obj)

@@ -11,6 +11,7 @@ classdef DOFsComputer < handle
         order
         coord
         interp
+        continuityType
     end
     
     methods (Access = public)
@@ -31,7 +32,7 @@ classdef DOFsComputer < handle
                 obj.computeDofs();
             end
 
-            if  isprop(obj.mesh,'coord') 
+            if  isa(obj.mesh,'Mesh') 
                 obj.computeCoordPriv(obj.dofs);
             end
         end
@@ -59,6 +60,12 @@ classdef DOFsComputer < handle
             obj.ndimf = cParams.ndimf;
             obj.mesh = cParams.mesh;
             obj.order = obj.convertOrder(cParams.order);
+
+            if isequal(cParams.order,'P1D')
+                obj.continuityType = 'Disc';
+            else
+                obj.continuityType = 'Cont';
+            end
             
             if any(contains(fieldnames(cParams),'interpolation'))
                 obj.interp = cParams.interpolation;
@@ -87,31 +94,45 @@ classdef DOFsComputer < handle
         
         
         function computeCoordPriv(obj,dofs)
-            ndofsE = size(dofs,2);
-            if obj.order~=1
-                coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
-                sAF      = obj.computefHandlePosition();
-                sAF.mesh = obj.mesh;
-                func     = AnalyticalFunction(sAF);
-                c = func.evaluate(obj.interp.pos_nodes');
-                c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
-                c = permute(c,[3,1,2]);
-                c = reshape(c,[],obj.mesh.ndim);
-                newDofs = (dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
-                newDofs = reshape(newDofs,[],1);
-                coor(newDofs,:) = c;                
-                obj.coord = coor;
-            else
-                coor   = zeros(obj.ndofs,obj.mesh.ndim);
-                for idim = 1:obj.mesh.ndim
-                    nodes    = unique(obj.mesh.connec);
-                    coorDofs = repmat(obj.mesh.coord(nodes,idim)',obj.ndimf,1);
-                    dofs     = obj.computeNodesToDofs(nodes);
-                    coor(dofs,idim) = coorDofs(:);                   
-                end
-                obj.coord = coor;
+            switch obj.continuityType
+                case 'Cont'
+                    ndofsE = size(dofs,2);
+                    if obj.order~=1
+                        coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
+                        sAF      = obj.computefHandlePosition();
+                        sAF.mesh = obj.mesh;
+                        func     = AnalyticalFunction(sAF);
+                        c = func.evaluate(obj.interp.pos_nodes');
+                        c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
+                        c = permute(c,[3,1,2]);
+                        c = reshape(c,[],obj.mesh.ndim);
+                        newDofs = (dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
+                        newDofs = reshape(newDofs,[],1);
+                        coor(newDofs,:) = c;
+                        obj.coord = coor;
+                    else
+                        coor   = zeros(obj.ndofs,obj.mesh.ndim);
+                        for idim = 1:obj.mesh.ndim
+                            nodes    = unique(obj.mesh.connec);
+                            coorDofs = repmat(obj.mesh.coord(nodes,idim)',obj.ndimf,1);
+                            dofs     = obj.computeNodesToDofs(nodes);
+                            coor(dofs,idim) = coorDofs(:);
+                        end
+                        obj.coord = coor;
+                    end
+                case 'Disc'
+                    coordC = obj.mesh.coord;
+                    connec = obj.mesh.connec;
+                    dofsC  = reshape(connec',1,[]);
+                    coorD  = zeros(obj.ndofs,obj.mesh.ndim);
+                    for idim = 1:obj.mesh.ndim
+                        coorI = repmat(coordC(dofsC,idim),1,obj.ndimf)';
+                        coorD(1:obj.ndofs,idim) = reshape(coorI,[],1);
+                    end
+                    obj.coord = coorD;
             end
-        end
+
+            end
 
         function dofs = computeNodesToDofs(obj,nodes)
             for iDimf = 1:obj.ndimf
@@ -122,11 +143,18 @@ classdef DOFsComputer < handle
 
         
         function dofsVertices = computeDofsVertices(obj)
-            if obj.order == 0
-                dofsVertices = (1:obj.mesh.nelem)';
-            else
-                m = obj.mesh;
-                dofsVertices = m.connec;
+            switch obj.continuityType
+                case 'Cont'
+                    if obj.order == 0
+                        dofsVertices = (1:obj.mesh.nelem)';
+                    else
+                        m = obj.mesh;
+                        dofsVertices = m.connec;
+                    end
+                case 'Disc'
+                nDofs = obj.mesh.nnodeElem*obj.mesh.nelem;                    
+                nodes = 1:nDofs;
+                dofsVertices = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';        
             end
         end
 
@@ -272,7 +300,7 @@ classdef DOFsComputer < handle
                 switch order
                     case 'P0'
                         ord = 0;
-                    case 'P1'
+                    case {'P1','P1D'}
                         ord = 1;
                     case 'P2'
                         ord = 2;

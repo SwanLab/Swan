@@ -3,17 +3,19 @@ classdef Projector_toP0 < Projector
     properties (Access = private)
         quadrature
         M
+        mesh
     end
 
     methods (Access = public)
 
         function obj = Projector_toP0(cParams)
-            obj.init(cParams);
-            obj.computeQuadrature();
-            obj.createMassMatrix();
+          %  obj.init(cParams);
         end
 
         function xFun = project(obj, x)
+            obj.mesh = x.mesh;
+            obj.computeQuadrature();  
+            obj.createMassMatrix();
             RHS = obj.createRHS(x);
             s.fValues = obj.M\RHS;
             s.mesh    = obj.mesh;

@@ -1,12 +1,13 @@
 function dom = SymGrad(u)
-    s.operation = @(xV) evaluate(u, xV);
-    s.ndimf = u.ndimf*u.mesh.ndim;
+    gradU = Grad(u);
+    s.operation = @(xV) evaluate(gradU, xV);
+    s.ndimf     = gradU.ndimf;
+    s.mesh      = u.mesh;
     dom = DomainFunction(s);
     dom = Voigt(dom);    
 end
 
-function symGrad = evaluate(u, xV)
-    grad = Grad(u).evaluate(xV);
-    gradT = pagetranspose(grad);
-    symGrad = 0.5*(grad + gradT);
+function symGrad = evaluate(gradU, xV)
+    symGradFun = 0.5*(gradU + gradU');
+    symGrad = symGradFun.evaluate(xV);
 end
