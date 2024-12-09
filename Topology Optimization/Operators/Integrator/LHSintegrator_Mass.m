@@ -41,10 +41,10 @@ classdef LHSintegrator_Mass < LHSintegrator
             for igauss = 1 :nGaus
                 for inode= 1:nNodeTest
                     for jnode= 1:nNodeTrial
-                        for iunkn= 1:obj.test.ndimf
+                        for iDimf = 1:obj.test.ndimf
                        %     for junkn= 1:obj.trial.ndimf
-                                idof = obj.test.ndimf*(inode-1)+iunkn;
-                                jdof = obj.trial.ndimf*(jnode-1)+iunkn;
+                                idof = obj.test.ndimf*(inode-1)+iDimf;
+                                jdof = obj.trial.ndimf*(jnode-1)+iDimf;
                                 dvol = dVolu(igauss,:);
                                 Ni = shapesTest(inode,igauss,:);
                                 Nj = shapesTrial(jnode,igauss,:);

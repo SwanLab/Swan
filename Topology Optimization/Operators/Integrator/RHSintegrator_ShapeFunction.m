@@ -56,7 +56,7 @@ classdef RHSintegrator_ShapeFunction < handle
 
         function f = assembleIntegrand(obj,test,rhsElem)
             integrand = rhsElem;
-            connec   = test.getConnec();
+            connec   = test.getDofConnec();
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
             f = zeros(ndofs,1);
