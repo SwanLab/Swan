@@ -104,6 +104,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
