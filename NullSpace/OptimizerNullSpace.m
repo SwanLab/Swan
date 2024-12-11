@@ -20,6 +20,7 @@ classdef OptimizerNullSpace < Optimizer
         etaNorm
         gJFlowRatio
         predictedTau
+        meritOld
     end
 
     methods (Access = public) 
@@ -57,11 +58,12 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
+            obj.etaMax         = 10;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
             obj.nIter          = 0;
+            obj.meritOld       = 1e6;
             obj.createMonitoring(cParams);
         end
 
@@ -238,6 +240,12 @@ classdef OptimizerNullSpace < Optimizer
 %                     k          = obj.primalUpdater.tau;
 %                     b          = obj.primalUpdater.Beta;
 %                     a          = obj.primalUpdater.Alpha;
+                    actg              = obj.constraint.value;
+                    isAlmostFeasible  = norm(actg) < 0.01;
+                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.001;
+                    if isAlmostFeasible && isAlmostOptimal
+                        obj.etaMax = max(obj.etaMax/1.05,0.01);
+                    end
                     obj.etaMax = Inf;
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
@@ -271,12 +279,13 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-            if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
+            if abs(obj.meritNew - obj.meritOld) < obj.tol && obj.checkConstraint()
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
                 end
             end
+            obj.meritOld = obj.meritNew;
         end
 
         function updateIterInfo(obj)
