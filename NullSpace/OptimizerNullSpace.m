@@ -242,7 +242,7 @@ classdef OptimizerNullSpace < Optimizer
 %                     a          = obj.primalUpdater.Alpha;
                     actg              = obj.constraint.value;
                     isAlmostFeasible  = norm(actg) < 0.01;
-                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.001;
+                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.005;
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax = max(obj.etaMax/1.05,0.01);
                     end
