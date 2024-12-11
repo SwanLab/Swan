@@ -31,7 +31,7 @@ classdef GeometricalFunction < handle
             x3 = @(x) x(3,:,:);
             switch cParams.type
                 case 'Square'
-                    l  = cParams.length;
+                    l  = cParams.radius;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     fH = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0))/l - 0.5;

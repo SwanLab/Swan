@@ -59,6 +59,7 @@ classdef PhaseFieldPlotter < handle
         function meshDamage(obj)
             obj.damageField.plot;
             title('Final damage distribution')
+            shading interp
             colorbar
             clim([0 1])
         end

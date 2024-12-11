@@ -5,6 +5,8 @@ classdef TestingPhaseField < handle
         benchmark
         matInfo
         dissipInfo
+        tolerance
+        solverType
         l0
     end
 
@@ -30,6 +32,8 @@ classdef TestingPhaseField < handle
             s.initialGuess = obj.initialGuess;
             s.monitoring = obj.monitoring;
             s.functional = obj.functional;
+            s.tolerance = obj.tolerance;
+            s.solverType = obj.solverType;
             PFComp = PhaseFieldComputer(s);
 
             outputData = PFComp.compute();
@@ -44,6 +48,8 @@ classdef TestingPhaseField < handle
             obj.benchmark = cParams.benchmark;
             obj.matInfo = cParams.matInfo;
             obj.dissipInfo = cParams.dissipInfo;
+            obj.tolerance = cParams.tolerance;
+            obj.solverType = cParams.solverType;
             obj.l0 = cParams.l0;
         end
 
@@ -67,6 +73,7 @@ classdef TestingPhaseField < handle
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
+                phi.fValues(:)=0.01;
                 obj.initialGuess.u = u;
                 obj.initialGuess.phi = phi;
             end

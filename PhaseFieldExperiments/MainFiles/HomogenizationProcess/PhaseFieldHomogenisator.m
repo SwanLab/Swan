@@ -76,14 +76,19 @@ classdef PhaseFieldHomogenisator < handle
                 case "Circle"
                     holeMax = 0.5;
                 case "Square"
-                    holeMax = 0.99;
+                    holeMax = 0.98;
                 case "Full"
                     holeMax = 1;
             end
         end
         
         function matHomog = computeHomogenisation(obj,l,holeType)
-            mat = Tutorial02p2FEMElasticityMicro(l,holeType,obj.E,obj.nu);
+            s.n = 100;
+            s.radius = l;
+            s.type = holeType;
+            s.E = obj.E;
+            s.nu = obj.nu;
+            mat = Tutorial02p2FEMElasticityMicro(s);
             matHomog = mat.stateProblem.Chomog;
             
             figure(1)

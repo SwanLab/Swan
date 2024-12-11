@@ -1,16 +1,12 @@
 classdef PhaseFieldComputer < handle
 
-    properties (Constant, Access = public)
-        tolErrU = 1e-13;
-        tolErrPhi = 1e-12;
-        tolErrStag = 1e-8;
-    end
-
     properties (Access = private)
         mesh
         boundaryConditions
         initialGuess
         functional
+        tol
+        solverType
     end
 
     properties (Access = private)
@@ -25,31 +21,33 @@ classdef PhaseFieldComputer < handle
             obj.init(cParams)
         end
 
-        function output = compute(obj)
+        function outputData = compute(obj)
             u   = obj.initialGuess.u;
             phi = obj.initialGuess.phi;
             uOld = u;
             phiOld = phi;
-          
+
             iter = 0;
             phiIter = 0;
             costFun = null(2,1);
             tau = 150;
             s.tauArray = [];
-            output = [];
+            outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
-            for i = 1:maxSteps
+            noFullyBroken = true;
+            i = 1;
+            while(i<=maxSteps) && (noFullyBroken)
                 fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
                 bc = obj.boundaryConditions.nextStep();
                 u.fValues = obj.updateInitialDisplacement(bc,uOld);
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
-                while (abs(eStag) > obj.tolErrStag) && (iterStag < 300)
+                while (abs(eStag) > obj.tol.stag) && (iterStag < 300)
 
                     eU = 1; iterU = 1; costOldU = 0;
-                    while (abs(eU) > obj.tolErrU) && (iterU < 100)
+                    while (abs(eU) > obj.tol.u) && (iterU < 100)
                         LHS = obj.functional.computeElasticLHS(u,phi);
                         RHS = obj.functional.computeElasticRHS(u,phi,bc);
                         u.fValues = obj.computeDisplacement(LHS,RHS,u,bc);
@@ -70,53 +68,57 @@ classdef PhaseFieldComputer < handle
                     if iterU > iterUMax
                         iterUMax = iterU;
                     end
-                   
+
                     ePhi = -1;  iterPhi = 1; costOldPhi = costOldU;
-                    while (abs(ePhi) > obj.tolErrPhi) && (iterPhi < 300)
+                    while (abs(ePhi) > obj.tol.phi) && (iterPhi < 300)
                         LHS = obj.functional.computePhaseFieldLHS(u,phi);
                         RHS = obj.functional.computePhaseFieldRHS(u,phi);
 
-                        % ADAPTIVE LINE-SEARCH GRADIENT
-                        % phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
-                        % phiProposed = phi.copy();
-                        % phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
-                        % [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
-                        % obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
-                        % iterPhi = iterPhi + 1;
-                        % 
-                        % if ePhi > 0
-                        %     tau = tau/2;
-                        % else
-                        %     phiIter = phiIter + 1;
-                        %     obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
-                        %     s.tauArray(end+1) = tau;
-                        %     tau = 10*tau;
-                        %     phi = phiProposed;
-                        %     costOldPhi = costPhi;
-                        %     costFun(1,end+1) = costPhi;
-                        %     costFun(2,end) = 1;
-                        %     iter = iter+1;
-                        %     obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
-                        % end
-                        
-                        %NEWTON METHOD
-                        phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
-                        phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
-                        [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
-                        costOldPhi = costPhi;
-                        obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
-                        iterPhi = iterPhi + 1;
+                        if obj.solverType == "Gradient"
+                            % ADAPTIVE LINE-SEARCH GRADIENT
+                            phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
+                            phiProposed = phi.copy();
+                            phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                            [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
+                            obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
+                            iterPhi = iterPhi + 1;
 
-                        costFun(1,end+1) = costPhi;
-                        costFun(2,end) = 1;
-                        iter = iter+1;
-                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
-                        obj.monitor.refresh();
+                            if ePhi > 0
+                                tau = tau/2;
+                            else
+                                phiIter = phiIter + 1;
+                                obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
+                                s.tauArray(end+1) = tau;
+                                tau = 10*tau;
+                                phi = phiProposed;
+                                costOldPhi = costPhi;
+                                costFun(1,end+1) = costPhi;
+                                costFun(2,end) = 1;
+                                iter = iter+1;
+                                obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                            end
+
+                        elseif obj.solverType == "Newton"
+                            %NEWTON METHOD
+                            phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
+                            phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                            [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
+                            costOldPhi = costPhi;
+                            obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
+                            iterPhi = iterPhi + 1;
+
+                            costFun(1,end+1) = costPhi;
+                            costFun(2,end) = 1;
+                            iter = iter+1;
+                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                            obj.monitor.refresh();
+                        end
                     end
+
                     if iterPhi > iterPhiMax
                         iterPhiMax = iterPhi;
                     end
-                    
+
 
                     [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
                     costOldStag = costStag;
@@ -141,15 +143,20 @@ classdef PhaseFieldComputer < handle
                 s.bc = bc;
                 s.damageField = phi;
                 s.cost = costFun;
-                output = obj.saveData(output,s);
-                
+                outputData = obj.saveData(outputData,s);
+
                 totE = obj.functional.computeCostFunction(u,phi,bc);
                 totF = obj.computeTotalReaction(F);
                 displ = obj.boundaryConditions.bcValues(i);
                 obj.monitor.update(i,{[totF;displ],[max(phi.fValues);displ],[phi.fValues],...
-                                    [iterStag-1],[],[totE],[]});
+                    [iterStag-1],[],[totE;displ],[]});
                 obj.monitor.refresh();
 
+
+                if i>5 && totF<1e-8
+                    noFullyBroken = false;
+                end
+                i = i + 1;
             end
         end
 
@@ -164,6 +171,8 @@ classdef PhaseFieldComputer < handle
             obj.boundaryConditions  = cParams.boundaryConditions;
             obj.functional          = cParams.functional;
             obj.shallPrint          = cParams.monitoring.print;
+            obj.tol                 = cParams.tolerance;
+            obj.solverType          = cParams.solverType;
             obj.setMonitoring(cParams)
         end
 
@@ -238,7 +247,7 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)-1));
+            totReact = sum(F(2*nodes(isInUp)));
 
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
@@ -262,7 +271,7 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        %% %%%%%%%%%%%%%%%%%% SAVE + PLOTS %%%%%%%%%%%%%%% %%
+        %% %%%%%%%%%%%%%%%%%% SAVE %%%%%%%%%%%%%%% %%
 
         function data = saveData(obj,data,cParams)
             step = cParams.step;

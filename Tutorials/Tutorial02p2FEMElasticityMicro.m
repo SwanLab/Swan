@@ -1,6 +1,6 @@
 classdef Tutorial02p2FEMElasticityMicro < handle
 
-    properties (Access = private)
+    properties (Access = public)
         mesh
         young
         poisson
@@ -10,9 +10,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro()
-            obj.createMesh();
-            obj.computeElasticProperties();
+        function obj = Tutorial02p2FEMElasticityMicro(cParams)
+            obj.createMesh(cParams);
+            obj.computeElasticProperties(cParams);
             obj.createMaterial();
             obj.solveElasticProblem();
         end
@@ -21,9 +21,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = private)
         
-        function createMesh(obj)
-            fullmesh = UnitTriangleMesh(20,20);
-            ls = obj.computeCircleLevelSet(fullmesh);
+        function createMesh(obj,cParams)
+            fullmesh = UnitTriangleMesh(cParams.n,cParams.n);
+            ls = obj.computeCircleLevelSet(fullmesh,cParams);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
@@ -32,9 +32,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             obj.mesh = holeMesh;
         end
 
-        function ls = computeCircleLevelSet(obj, mesh)
-            gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
+        function ls = computeCircleLevelSet(obj,mesh,cParams)
+            gPar.type          = cParams.type;
+            gPar.radius        = cParams.radius;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
@@ -44,9 +44,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
 
-      function computeElasticProperties(obj)
-            E  = 1;
-            nu = 1/3;
+      function computeElasticProperties(obj,cParams)
+            E  = cParams.E;
+            nu = cParams.nu;
             obj.young   = ConstantFunction.create(E,obj.mesh);
             obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end

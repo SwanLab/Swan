@@ -21,13 +21,15 @@ classdef HomogenizedPhaseField < handle
             obj.computeFunctionsAndDerivatives(mxV,C);
         end
 
-        function C = obtainTensor(obj)
+        function C = obtainTensor(obj,phi)
+            obj.setDesignVariable(phi)
             s.operation = @(xV) obj.evaluate(xV);
             s.ndimf = 6;
             C{1} = DomainFunction(s);
         end
 
-        function dC = obtainTensorDerivative(obj)
+        function dC = obtainTensorDerivative(obj,phi)
+            obj.setDesignVariable(phi)
             nVar = numel(obj.microParams);
             dC   = cell(nVar,1);
             for iVar = 1:nVar
@@ -37,7 +39,8 @@ classdef HomogenizedPhaseField < handle
             end
         end
 
-        function d2C = obtainTensorSecondDerivative(obj)
+        function d2C = obtainTensorSecondDerivative(obj,phi)
+            obj.setDesignVariable(phi)
             nVar = numel(obj.microParams);
             d2C   = cell(nVar,1);
             for iVar = 1:nVar
@@ -47,7 +50,7 @@ classdef HomogenizedPhaseField < handle
             end
         end
 
-        function obj = setDesignVariable(obj,u,phi)
+        function setDesignVariable(obj,phi)
             obj.microParams{1} = phi;
         end             
 
