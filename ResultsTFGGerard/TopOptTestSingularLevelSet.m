@@ -70,8 +70,22 @@ classdef TopOptTestSingularLevelSet < handle
              s.mesh = obj.mesh;
              s.type = 'LevelSet';
              s.plotting = false;
+             s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type); % Jose: Aqui tambe es necessari
              ls     = DesignVariable.create(s);
              obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond,type)
+            coor  = obj.mesh.coord;
+            nodes = find(cond(coor));
+            isFixed.nodes = nodes;
+            switch type
+                case 'Density'
+                    values = ones(size(nodes));
+                case 'LevelSet'
+                    values = -ones(size(nodes));
+            end
+            isFixed.values = values;
         end
 
         function createFilter(obj)
@@ -110,12 +124,13 @@ classdef TopOptTestSingularLevelSet < handle
          function m = createMaterial(obj)
              x = obj.designVariable;
              f = x.obtainDomainFunction();
-             f = obj.filter.compute(f,1); 
+             f = obj.filter.compute(f{1},1); 
              %Density: f = f.project('P1');
              s.type                 = 'DensityBased';
              s.density              = f;
              s.materialInterpolator = obj.materialInterpolator;
              s.dim                  = '3D';
+             s.mesh                 = obj.mesh;
              m = Material.create(s);
         end
 
@@ -129,7 +144,7 @@ classdef TopOptTestSingularLevelSet < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -211,7 +226,7 @@ classdef TopOptTestSingularLevelSet < handle
              s.constraint     = obj.constraint;
              s.designVariable = obj.designVariable;
              s.dualVariable   = obj.dualVariable;
-             s.maxIter        = 2000;
+             s.maxIter        = 5000;
              s.tolerance      = 1e-12;
              s.constraintCase = {'EQUALITY'};
              s.primal         = 'SLERP';

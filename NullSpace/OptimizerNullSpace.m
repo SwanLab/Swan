@@ -20,6 +20,7 @@ classdef OptimizerNullSpace < Optimizer
         etaNorm
         gJFlowRatio
         predictedTau
+        grayMeasure
     end
 
     methods (Access = public) 
@@ -47,7 +48,9 @@ classdef OptimizerNullSpace < Optimizer
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                obj.designVariable.fun.print(['ResultsTFGGerard/I_Iter',int2str(obj.nIter)]);
+                if round(obj.nIter/10)==obj.nIter/10
+                    obj.designVariable.fun.print(['ResultsTFGGerard/I_Iter',int2str(obj.nIter/10)]);
+                end
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end
         end
@@ -87,11 +90,14 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
                     chartTypes = [chartTypes,{'plot','plot','plot'}];
+                case 'Density'
+                    titles = [titles;{'Gray measure'}];
+                    chartTypes = [chartTypes,{'plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -101,6 +107,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateMonitoring(obj)
+            obj.computeGrayMeasure();
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
@@ -118,8 +125,18 @@ classdef OptimizerNullSpace < Optimizer
                     else
                         data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
                     end
+                case 'Density'
+                    data = [data;obj.grayMeasure];
             end
-            obj.monitoring.update(obj.nIter,data);
+            obj.monitoring.update(obj.nIter,num2cell(data));
+            obj.monitoring.refresh();
+        end
+
+        function computeGrayMeasure(obj)
+            xFun = obj.designVariable.fun;
+            dInt = xFun.*(1-xFun);
+            int  = Integrator.compute(dInt,xFun.mesh,2);
+            obj.grayMeasure = int;
         end
 
         function updateEtaParameter(obj)
@@ -255,7 +272,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function etaN = obtainTrustRegion(obj)
             switch class(obj.designVariable)
-                case 'LevelSet'
+                case {'LevelSet','MultiLevelSet'}
                     if obj.nIter == 0
                         etaN = inf;
                     else
