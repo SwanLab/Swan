@@ -12,7 +12,7 @@ classdef Interpolation < handle
     
     properties (Access = protected)
         type
-        shapeFun, shapeDer, shapeSecondDer
+        shapeFun, shapeDer
     end
     
     methods (Static, Access = public)
@@ -36,13 +36,9 @@ classdef Interpolation < handle
             deriv = obj.shapeDer.evaluate(xV);
         end
 
-        function secondDeriv = computeShapeSecondDerivatives(obj,xV)
-            secondDeriv = obj.shapeSecondDer.evaluate(xV);
-        end
-
     end
 
-    methods (Access = public)
+    methods (Access = protected)
         
         function init(obj,cParams)
             obj.type  = cParams.type;
@@ -50,28 +46,18 @@ classdef Interpolation < handle
             obj.computeParams();
             obj.createShapeFunctions();
             obj.createShapeDerivatives();
-            obj.createShapeSecondDerivatives();
         end
 
         function createShapeFunctions(obj)
             s.operation = @(xV) obj.evaluateShapeFunctions(xV);
-            s.ndimf = 1;
-            shape = DomainFunction(s);
-            obj.shapeFun = shape;
+         %   shape = DomainFunction(s);
+            obj.shapeFun.evaluate = s.operation;%shape;
         end
 
         function createShapeDerivatives(obj)
             s.operation = @(xV) obj.evaluateShapeDerivatives(xV);
-            s.ndimf = 1;
-            deriv = DomainFunction(s);
-            obj.shapeDer = deriv;
-        end
-
-        function createShapeSecondDerivatives(obj)
-            s.operation = @(xV) obj.evaluateShapeSecondDerivatives(xV);
-            s.ndimf = 1;
-            secondDeriv = DomainFunction(s);
-            obj.shapeSecondDer = secondDeriv;
+         %   deriv = DomainFunction(s);
+            obj.shapeDer.evaluate = s.operation;
         end
         
     end
@@ -80,8 +66,6 @@ classdef Interpolation < handle
         computeParams(obj)
         evaluateShapeFunctions(obj)
         evaluateShapeDerivatives(obj)
-        %evaluateShapeSecondDerivatives(obj) %% HAS TO BE IMPLEMENTED IN
-        %ALL CLASSES
     end
     
 end

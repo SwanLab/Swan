@@ -27,13 +27,14 @@ classdef MicroAlphaBetaFunctional < handle
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             J  = obj.computeFunction();
-            dJ = obj.computeGradient(dC);
-            dJ = obj.filterField(dJ);
+            dJ = obj.computeGradient(dC{1});
+            dJ = obj.filterField({dJ});
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J          = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            J     = obj.computeNonDimensionalValue(J);
+            dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            dJ{1}.setFValues(dJVal);
         end
 
     end
@@ -49,7 +50,11 @@ classdef MicroAlphaBetaFunctional < handle
         end
 
         function xR = filterField(obj,x)
-            xR = obj.filter.compute(x,2);
+            nDesVar = length(x);
+            xR      = cell(nDesVar,1);
+            for i = 1:nDesVar
+                xR{i} = obj.filter.compute(x{i},2);
+            end
         end
 
         function J = computeFunction(obj)
@@ -84,8 +89,8 @@ classdef MicroAlphaBetaFunctional < handle
             a           = obj.alpha;
             b           = obj.beta;
             wInv        = (Ch\a)*(b'/Ch);
-            s.operation = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
-            dChInv      = DomainFunction(s);
+            f           = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
+            dChInv      = DomainFunction.create(f,obj.mesh);
         end
 
         function x = computeNonDimensionalValue(obj,x)

@@ -18,7 +18,7 @@ classdef Solver < handle
                 case {'ITERATIVE'}
                     error('Not implemented yet')
 
-                case 'rMINRES'
+                case 'CG'
                     stype = CGsolver();
 
                 case 'Nonlinear'

@@ -46,7 +46,6 @@ classdef DisplaySurf < DisplayAbstract
                 axes = obj.obtainDisplayAxes();
                 set(axes.Title,'String',t);
                 set(obj.handle,'ZData',obj.FieldData,'CData',obj.FieldData,'Faces',obj.faces);
-                drawnow
             end
         end
     end

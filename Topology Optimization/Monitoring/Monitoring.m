@@ -29,6 +29,7 @@ classdef Monitoring < handle
             for i = 1:nPlots
                 obj.figures{i}.refresh();
             end      
+            drawnow;
         end
     end
 

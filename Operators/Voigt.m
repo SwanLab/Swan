@@ -6,6 +6,7 @@ function dom = Voigt(u)
         case 9
             s.ndimf = 6;
     end
+    s.mesh = u.mesh;
     dom = DomainFunction(s);
 end
 

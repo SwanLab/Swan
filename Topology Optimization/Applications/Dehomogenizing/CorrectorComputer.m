@@ -123,7 +123,8 @@ classdef CorrectorComputer < handle
         function createCorrectorFunction(obj)
             s.fValues = permute(obj.correctorValues, [3, 2, 1]);
             s.mesh    = obj.mesh;
-            f = P1DiscontinuousFunction(s);
+            s.order   = 'P1D';
+            f = LagrangianFunction(s);
             obj.correctorFunction = f;
         end    
         
