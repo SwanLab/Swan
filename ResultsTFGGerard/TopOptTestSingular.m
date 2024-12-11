@@ -163,7 +163,7 @@ classdef TopOptTestSingular < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.97;                               %VOLUM FINAL (volum target)
+            s.volumeTarget = 0.95;                               %VOLUM FINAL (volum target)
             v = VolumeConstraint(s);
             obj.volume = v;
         end
