@@ -32,7 +32,7 @@ classdef MaterialInterpolatorFactory < handle
                 case 'HomogenizedMicrostructure'
                     obj = HomogenizedMicrostructureInterpolator(cParams);
                 case 'PhaseFieldDegradation'
-                    obj = PhaseFieldEnergyDegradationInterpolator();
+                    obj = PhaseFieldEnergyDegradationInterpolator(cParams);
                 case 'PhaseFieldDissipationAT'
                     obj = PhaseFieldDissipationInterpolator(cParams);
                 otherwise

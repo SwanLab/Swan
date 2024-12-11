@@ -74,6 +74,7 @@ classdef ShFunc_LocalDamage < handle
             end
             s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
             s.ndimf = 1;
+            s.mesh  = obj.mesh;
             disFun = DomainFunction(s);
         end
 

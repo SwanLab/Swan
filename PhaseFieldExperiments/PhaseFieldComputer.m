@@ -35,12 +35,12 @@ classdef PhaseFieldComputer < handle
             outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
-            noFullyBroken = true;
+            noFullyBroken = true; maxF = 0; lastStep = maxSteps; stop = false;
             i = 1;
             while(i<=maxSteps) && (noFullyBroken)
                 fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
                 bc = obj.boundaryConditions.nextStep();
-                u.fValues = obj.updateInitialDisplacement(bc,uOld);
+                u.setFValues(obj.updateInitialDisplacement(bc,uOld));
 
                 eStag = 1; iterStag = 1; costOldStag = 0;
                 iterUMax = 1; iterPhiMax = 1;
@@ -50,7 +50,7 @@ classdef PhaseFieldComputer < handle
                     while (abs(eU) > obj.tol.u) && (iterU < 100)
                         LHS = obj.functional.computeElasticLHS(u,phi);
                         RHS = obj.functional.computeElasticRHS(u,phi,bc);
-                        u.fValues = obj.computeDisplacement(LHS,RHS,u,bc);
+                        u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
                         F = obj.computeForceVector(LHS,u);
 
                         [eU, costU] = obj.computeErrorCostFunction(u,phi,bc,costOldU);
@@ -78,7 +78,7 @@ classdef PhaseFieldComputer < handle
                             % ADAPTIVE LINE-SEARCH GRADIENT
                             phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
                             phiProposed = phi.copy();
-                            phiProposed.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                            phiProposed.setFValues(obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1));
                             [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                             iterPhi = iterPhi + 1;
@@ -101,7 +101,7 @@ classdef PhaseFieldComputer < handle
                         elseif obj.solverType == "Newton"
                             %NEWTON METHOD
                             phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
-                            phi.fValues = obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1);
+                            phi.setFValues (obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1));
                             [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
                             costOldPhi = costPhi;
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
@@ -152,8 +152,14 @@ classdef PhaseFieldComputer < handle
                     [iterStag-1],[],[totE;displ],[]});
                 obj.monitor.refresh();
 
+                if totF > maxF
+                    maxF = totF;
+                elseif i>5 && totF<0.05*maxF && ~stop
+                    lastStep = i;
+                    stop = true;
+                end
 
-                if i>5 && totF<1e-8
+                if i==lastStep+5
                     noFullyBroken = false;
                 end
                 i = i + 1;

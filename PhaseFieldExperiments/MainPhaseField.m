@@ -9,10 +9,12 @@ clc,clear,close all
 s.monitoring.set = true;
 s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
-s.benchmark.N = 10;
+
 s.tolerance.u = 1e-13;
 s.tolerance.phi = 1e-8;
 s.tolerance.stag = 1e-8;
+
+s.benchmark.N = 10;
 
 % 1Elem
 % s.benchmark.type.mesh = '1Elem';
@@ -26,13 +28,13 @@ s.tolerance.stag = 1e-8;
 % SEN Traction
 s.benchmark.type.mesh = 'SENtraction';
 s.benchmark.type.bc = 'displacementTraction';
-%s.benchmark.bcValues = [1e-4:1e-4:5e-3,5e-3:1e-5:6e-3]; %AT2
-s.benchmark.bcValues = [1e-4:1e-3:1e-2,1e-2:1e-4:1e-1];
-%s.benchmark.bcValues = [1e-3:1e-4:1.5e-2]; %AT1
+%s.benchmark.bcValues = [0:1e-4:5e-3,5e-3:1e-5:6e-3]; %AT2
+s.benchmark.bcValues = [0:1e-3:9e-3,9.01e-3:1e-5:1e-2]; %HOMOG
+% s.benchmark.bcValues = [0:1e-3:9e-3,9.01e-3:1e-5:1e-2]; %AT1
 s.matInfo.E  = 210;
 s.matInfo.nu = 0.3;
 s.matInfo.Gc = 2.7e-3;
-s.l0 = 0.0015; %0.0015;
+s.l0 = 0.01;
 
 % % SEN Shear
 % s.benchmark.type.mesh = 'SENshear';
@@ -48,7 +50,7 @@ s.l0 = 0.0015; %0.0015;
 % s.benchmark.type.bc = 'displacementMixed';
 % %s.benchmark.bcValues = [1e-3:1e-3:1.5e-2]; %AT2
 % s.benchmark.bcValues = [1e-3:1e-3:1.5e-2]; %AT1
-% s.benchmark.bcValues = [1e-4:1e-3:1e-2,1e-2:1e-4:1e-1]; %HomogPeri
+% s.benchmark.bcValues = [1e-4:1e-3:1e-2,1e-2:1e-4:1e-1]; %Homog
 % s.matInfo.E  = 210;
 % s.matInfo.nu = 0.3;
 % s.matInfo.Gc = 2.7e-3;

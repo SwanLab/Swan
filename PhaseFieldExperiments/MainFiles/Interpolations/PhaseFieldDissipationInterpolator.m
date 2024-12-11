@@ -7,6 +7,7 @@ classdef PhaseFieldDissipationInterpolator < handle
     end
 
     properties (Access = private)
+        mesh
         pExp
     end
 
@@ -23,22 +24,26 @@ classdef PhaseFieldDissipationInterpolator < handle
 
         function init(obj,cParams)
             obj.pExp = cParams.pExp;
+            obj.mesh = cParams.mesh;
         end
 
         function computeDissipationFunctionAndDerivatives(obj)
             p = obj.pExp;
             e = 1e-12;
 
-            s.operation = @(phi) abs(phi).^p;
+            s.operation = @(phi) abs(phi+e).^p;
             s.ndimf = 1;
+            s.mesh = obj.mesh;
             obj.fun = DomainFunction(s);
 
-            s.operation = @(phi) p*(abs(phi)).^(p-1);
+            s.operation = @(phi) p*(abs(phi+e)).^(p-1);
             s.ndimf = 1;
+            s.mesh = obj.mesh;
             obj.dfun = DomainFunction(s);
 
             s.operation = @(phi) p*(p-1)*(abs(phi+e)).^(p-2);
             s.ndimf = 1;
+            s.mesh = obj.mesh;
             obj.ddfun = DomainFunction(s);
 
         end

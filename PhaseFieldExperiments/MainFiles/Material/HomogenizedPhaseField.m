@@ -5,6 +5,7 @@ classdef HomogenizedPhaseField < handle
         structuredMesh
         Ctensor
         microParams
+        mesh
 
         degradation
 
@@ -25,6 +26,7 @@ classdef HomogenizedPhaseField < handle
             obj.setDesignVariable(phi)
             s.operation = @(xV) obj.evaluate(xV);
             s.ndimf = 6;
+            s.mesh  = obj.mesh;
             C{1} = DomainFunction(s);
         end
 
@@ -35,6 +37,7 @@ classdef HomogenizedPhaseField < handle
             for iVar = 1:nVar
                 s.operation = @(xV) obj.evaluateGradient(xV,iVar);
                 s.ndimf = 6;
+                s.mesh  = obj.mesh;
                 dC{iVar} =  DomainFunction(s);
             end
         end
@@ -46,6 +49,7 @@ classdef HomogenizedPhaseField < handle
             for iVar = 1:nVar
                 s.operation = @(xV) obj.evaluateHessian(xV,iVar);
                 s.ndimf = 6;
+                s.mesh  = obj.mesh;
                 d2C{iVar} =  DomainFunction(s);
             end
         end
@@ -59,7 +63,8 @@ classdef HomogenizedPhaseField < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.fileName       = cParams.fileName;
+            obj.fileName  = cParams.fileName;
+            obj.mesh      = cParams.mesh;
         end
 
         function [mxV, C] = loadVademecum(obj)
@@ -87,7 +92,7 @@ classdef HomogenizedPhaseField < handle
                 for j = 1:size(C,2)
                     Cij = squeeze(C(i,j,:));
                     CijF = LagrangianFunction.create(m, 1,'P1');
-                    CijF.fValues = Cij;
+                    CijF.setFValues(Cij);
                     %Cij = CijF.project('P2');                                        
                     obj.Ctensor{i,j} = CijF;
                 end

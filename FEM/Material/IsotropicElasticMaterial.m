@@ -9,6 +9,7 @@ classdef IsotropicElasticMaterial < Material
 
     properties (Access = protected)
         ndim
+        mesh
     end
 
     methods (Access = public)
@@ -18,6 +19,7 @@ classdef IsotropicElasticMaterial < Material
             nu = @(xV) obj.poisson.evaluate(xV);
             s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
             s.ndimf = size(E,1);
+            s.mesh = obj.mesh;
             mu = DomainFunction(s);
         end
 
@@ -27,6 +29,7 @@ classdef IsotropicElasticMaterial < Material
             N  = obj.ndim;
             s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
             s.ndimf = size(E,1);
+            s.mesh = obj.mesh;
             k = DomainFunction(s);
         end
         
@@ -35,7 +38,8 @@ classdef IsotropicElasticMaterial < Material
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.ndim    = cParams.ndim;
+            obj.mesh    = cParams.mesh;
+            obj.ndim    = cParams.mesh.ndim;
             if isfield(cParams,'young')
                 obj.young = cParams.young;
             end

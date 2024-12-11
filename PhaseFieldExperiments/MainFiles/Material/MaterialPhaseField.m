@@ -47,7 +47,7 @@ classdef MaterialPhaseField < Material
     methods (Access = private)
 
         function mat = createBaseMaterial(obj,cParams)
-            sIso.ndim = obj.mesh.ndim;
+            sIso.mesh = obj.mesh;
             sIso.young = ConstantFunction.create(cParams.matInfo.E,obj.mesh);
             sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,obj.mesh);
             mat = Isotropic2dElasticMaterial(sIso);
@@ -56,11 +56,12 @@ classdef MaterialPhaseField < Material
         function mat = createDegradedMaterial(obj,fun)
             mu    = obj.baseMaterial.createShear();
             kappa = obj.baseMaterial.createBulk();
-            degM  = fun.*mu;
-            degK  = fun.*kappa;
+            degM  = fun.*mu + 1e-10; 
+            degK  = fun.*kappa + 1e-10;
             s.shear = degM;
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
+            s.mesh  = obj.mesh;
             mat = Isotropic2dElasticMaterial(s);
         end     
 
@@ -126,9 +127,10 @@ classdef MaterialPhaseField < Material
             end
         end
 
-        function g = computeDegradationFun(~,fun,phi)
+        function g = computeDegradationFun(obj,fun,phi)
             s.operation = @(xV) fun.evaluate(phi.evaluate(xV));
             s.ndimf = 1;
+            s.mesh = obj.mesh;
             g = DomainFunction(s);
         end
 

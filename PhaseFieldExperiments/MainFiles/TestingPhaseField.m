@@ -73,7 +73,6 @@ classdef TestingPhaseField < handle
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
-                phi.fValues(:)=0.01;
                 obj.initialGuess.u = u;
                 obj.initialGuess.phi = phi;
             end
@@ -93,6 +92,7 @@ classdef TestingPhaseField < handle
 
         function dissipation = createDissipationInterpolation(obj)
             s.pExp = obj.dissipInfo.pExp;
+            s.mesh = obj.mesh;
             dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1

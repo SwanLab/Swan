@@ -48,13 +48,13 @@ classdef ShFunc_ExternalWork < handle
             nodes = unique(bMesh.globalConnec);
             if isempty(fExt)
                 uFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
-                uFun.fValues = u.fValues(nodes,:);
+                uFun.setFValues(u.fValues(nodes,:));
                 fExtFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
             else
                 fExtFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
                 fExtFun.fValues = fExt.fValues(nodes,:);
                 uFun = LagrangianFunction.create(bMesh.mesh,u.ndimf,'P1');
-                uFun.fValues = u.fValues(nodes,:);
+                uFun.setFValues(u.fValues(nodes,:));
             end
         end
 

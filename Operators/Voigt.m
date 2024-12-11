@@ -14,6 +14,8 @@ function voigtA = evaluate(u,xV)
     matA = u.evaluate(xV);
     ndim = size(matA,1);
     switch ndim
+        case 1
+            voigtA(1,:,:) = matA(1,1,:,:);
         case 2
             voigtA = applyVoigt2D(matA);
         case 3
