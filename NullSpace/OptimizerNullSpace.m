@@ -249,7 +249,7 @@ classdef OptimizerNullSpace < Optimizer
 
         function etaN = obtainTrustRegion(obj)
             switch class(obj.designVariable)
-                case 'LevelSet'
+                case {'LevelSet','MultiLevelSet'}
                     if obj.nIter == 0
                         etaN = inf;
                     else

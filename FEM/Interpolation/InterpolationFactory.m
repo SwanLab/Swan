@@ -10,10 +10,10 @@ classdef InterpolationFactory < handle
                     obj = [];
                 case 'LINE'
                     switch order
+                        case 'CONSTANT'
+                            obj = Line_Constant(cParams);                        
                         case 'LINEAR'
                             obj = Line_Linear(cParams);
-                        case 'CONSTANT'
-                            obj = Line_Constant(cParams);
                         case 'QUADRATIC'
                             obj = Line_Quadratic(cParams);
                         case 'CUBIC'

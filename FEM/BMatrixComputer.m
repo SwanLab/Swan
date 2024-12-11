@@ -55,25 +55,22 @@ classdef BMatrixComputer < handle
 
         function B = computeBin3D(obj,iGaus)
             deriv = obj.dNdx;
-            nNode = size(deriv,2);
-            nElem = size(deriv,4);
-            B = zeros(obj.nVoigt,nNode,nElem);
-            for inode = 1:nNode
-                j = obj.fun.ndimf*(inode-1)+1;
-                % associated to normal strains
-                B(1,j,:)   = deriv(1,inode,iGaus,:);
-                B(2,j+1,:) = deriv(2,inode,iGaus,:);
-                B(3,j+2,:) = deriv(3,inode,iGaus,:);
-                % associated to shear strain, gamma12
-                B(4,j,:)   = deriv(2,inode,iGaus,:);
-                B(4,j+1,:) = deriv(1,inode,iGaus,:);
-                % associated to shear strain, gamma13
-                B(5,j,:)   = deriv(3,inode,iGaus,:);
-                B(5,j+2,:) = deriv(1,inode,iGaus,:);
-                % associated to shear strain, gamma23
-                B(6,j+1,:) = deriv(3,inode,iGaus,:);
-                B(6,j+2,:) = deriv(2,inode,iGaus,:);
-            end
+            nNode = size(deriv, 2);
+            nElem = size(deriv, 4);
+            j = reshape((0:nNode-1) * obj.fun.ndimf, 1, nNode, 1);
+            d1 = permute(deriv(1, :, iGaus, :), [1, 2, 4, 3]);
+            d2 = permute(deriv(2, :, iGaus, :), [1, 2, 4, 3]);
+            d3 = permute(deriv(3, :, iGaus, :), [1, 2, 4, 3]);
+            B = zeros(obj.nVoigt, obj.fun.ndimf * nNode, nElem);
+            B(1, j + 1, :) = d1;
+            B(2, j + 2, :) = d2;
+            B(3, j + 3, :) = d3;
+            B(4, j + 1, :) = d2;
+            B(4, j + 2, :) = d1;
+            B(5, j + 1, :) = d3;
+            B(5, j + 3, :) = d1;
+            B(6, j + 2, :) = d3;
+            B(6, j + 3, :) = d2;
         end
 
         function [B] = computeBin1D(obj, iGaus)
