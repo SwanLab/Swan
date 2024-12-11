@@ -58,7 +58,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 10;
+            obj.etaMax         = 2;
             obj.etaNorm        = cParams.etaNorm;
             obj.gJFlowRatio    = cParams.gJFlowRatio;
             obj.hasConverged   = false;
@@ -244,7 +244,7 @@ classdef OptimizerNullSpace < Optimizer
                     isAlmostFeasible  = norm(actg) < 0.01;
                     isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.005;
                     if isAlmostFeasible && isAlmostOptimal
-                        obj.etaMax = max(obj.etaMax/1.05,0.01);
+                        obj.etaMax = max(obj.etaMax/1.35,0.001);
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
