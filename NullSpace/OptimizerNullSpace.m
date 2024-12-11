@@ -246,7 +246,6 @@ classdef OptimizerNullSpace < Optimizer
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax = max(obj.etaMax/1.05,0.01);
                     end
-                    obj.etaMax = Inf;
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
