@@ -8,12 +8,13 @@ classdef ContinuumDamageComputer < handle
     end
 
     properties (Access = private)
-        tau = 0.5
+        tau = 5e-5
         tolerance = 1e-8
         quadOrder
 
-        H = 0.5
-        r0 = 1/sqrt(210) %revisar com es calcula (depen de les bc)
+
+        H = 0.1
+        r0 = 1/sqrt(6) %revisar com es calcula (depen de les bc)
 
         elasticFun
         externalWorkFun
@@ -37,30 +38,45 @@ classdef ContinuumDamageComputer < handle
                 fExt = bc.pointloadFun;
                 u.fValues = obj.updateInitialDisplacement(bc,u);
 
-                error = 1; energyOld = 1;
-                while (abs(error) >= obj.tolerance)
-                    LHS = obj.functional.computeHessian(obj.quadOrder,u);
-                    RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc);
+                error = 1; residu = 1;residuVec = [];
+
+                r = obj.functional.r;
+
+                LHS = obj.functional.computeHessian(obj.quadOrder,u,r);
+                RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+                
+                while (residu >= obj.tolerance)
+
                     [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
-                    energy = obj.functional.computeTotalEnergyDamage(obj.quadOrder,u,fExt);
-
-                    error = max(max(energy-energyOld));
-                    fprintf('Error: %d ',error);
-                    fprintf('Cost: %d \n',energy);
-
-                    energyOld = energy;
+                                                          
                     u.fValues = uNew;
-                    obj.functional.updateInternalVariableR(u);
+                    r = obj.functional.updateInternalVariableRAndReturnValue(u);
+                   
+                    residu = norm(LHS*uNewVec-RHS);
+                    residuVec(end+1) = residu;
+                    
+                    LHS = obj.functional.computeHessian(obj.quadOrder,u,r);
+                    RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+
+                    
+                    fprintf('Error: %d \n',residu);%.evaluate([0;0]));
+                    
                 end
+                obj.functional.setInternalVariableR(r);
+
+                energy = obj.functional.computeTotalEnergyDamage(obj.quadOrder,u,fExt);
+
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
                 data.totalEnergy(i) = energy;
                 damageDomainFun = obj.functional.computeDamage();
                 damageFun = damageDomainFun.project('P1D',obj.mesh);
                 data.damage.maxValue(i)  = max(damageFun.fValues);
+                data.damage.minValue(i)  = min(damageFun.fValues);
                 data.reaction(i)  = -obj.computeTotalReaction(LHS,uNewVec);
             end
             data.displacement.field = u;
             data.damage.field = damageFun;
+            data.residuVec = residuVec;
         end
     end
 

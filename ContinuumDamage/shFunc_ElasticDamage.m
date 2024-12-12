@@ -73,6 +73,8 @@ classdef shFunc_ElasticDamage < handle
         
         function rOut = updateDamage (obj,rIn,u)
     
+            % d = obj.computeDamage(rIn);
+            % C = obj.material.obtainTensor(d);
             C = obj.material.obtainNonDamagedTensor;
             epsi = SymGrad(u);
             tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);

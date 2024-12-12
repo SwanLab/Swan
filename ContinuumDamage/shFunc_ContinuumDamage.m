@@ -1,8 +1,8 @@
 
 classdef shFunc_ContinuumDamage < handle
 
-    properties (Access = public)
-    
+    properties (GetAccess = public,SetAccess = private)
+        r
     end
     properties (Access = private)
         material
@@ -12,8 +12,6 @@ classdef shFunc_ContinuumDamage < handle
         internalElastic
         externalWork
         
-        r0
-        r
         H
     end
 
@@ -37,24 +35,30 @@ classdef shFunc_ContinuumDamage < handle
             totalEnergy = internalEnergy - externalEnergy;
         end
 
-        function F = computeJacobian(obj,quadOrder,u,bc)
+        function F = computeJacobian(obj,quadOrder,u,bc,r)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeGradient(u,fExt,quadOrder);
-            Fint = obj.internalDamage.computeJacobian(quadOrder,u,obj.r);
+            Fint = obj.internalDamage.computeJacobian(quadOrder,u,r);
             F = Fint - Fext;
 
         end
 
-        function H = computeHessian(obj,quadOrder,u)
-            H = obj.internalDamage.computeHessian(quadOrder,u,obj.r);
+        function H = computeHessian(obj,quadOrder,u,r)
+            H = obj.internalDamage.computeHessian(quadOrder,u,r);
         end
 
         function updateInternalVariableR(obj,uNew)
             obj.r = obj.internalDamage.updateDamage(obj.r,uNew);
         end
+        function r = updateInternalVariableRAndReturnValue(obj,uNew)
+            r = obj.internalDamage.updateDamage(obj.r,uNew);
+        end
         
         function d = computeDamage (obj)
             d = obj.internalDamage.computeDamage(obj.r);
+        end
+        function setInternalVariableR(obj,r)
+            obj.r = r;
         end
 
 
@@ -65,7 +69,7 @@ classdef shFunc_ContinuumDamage < handle
         function init (obj,cParams)
             obj.material = cParams.material;
             obj.mesh = cParams.mesh;
-            obj.r0 = cParams.r0;
+            obj.r = cParams.r0;
             obj.H = cParams.H;
         end
 
@@ -73,16 +77,14 @@ classdef shFunc_ContinuumDamage < handle
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.H = obj.H;
-            s.r0 = obj.r0;
+            s.r0 = obj.r;
 
             obj.internalDamage = shFunc_ElasticDamage(s);
             obj.internalElastic = shFunc_Elastic(s);
             obj.externalWork = shFunc_ExternalWork2(s);
         end
-
         function setInitialDamage(obj)
-            obj.r = ConstantFunction.create(obj.r0,obj.mesh);
+            obj.r = ConstantFunction.create(obj.r,obj.mesh);
         end
-
     end
 end

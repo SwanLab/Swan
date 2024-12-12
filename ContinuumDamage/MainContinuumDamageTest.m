@@ -7,13 +7,13 @@ cParams.mesh.meshWidth = 1;
 cParams.mesh.meshN = 10;
 cParams.mesh.meshM = 10;
 
-cParams.mesh.name = 'CD_Mesh';
+%cParams.mesh.name = 'CD_Mesh';
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSet = [1:1e-2:1.25];
+cParams.bc.bcValueSet = [1e-10:1e-2:0.2];
 
 
 cParams.solver.type = 'Elastic';
@@ -43,4 +43,4 @@ figure()
 plot(data.displacement.value,data.totalEnergy)
 title('Energy - Displacement')
 
-%tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
+tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
