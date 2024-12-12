@@ -25,14 +25,21 @@ h = (x(end)-x(1)) /(N-1); % uniform grid spacing
 alpha = (10*h)^2;
 % Set Chambolle-Pock algorithm parameters
 lambda = 0.25;%/(1*h)^2;%0.2;         % Regularization parameter
-tau = 0.0025;           % Step size for the primal variable
-sigma = 0.0025;         % Step size for the dual variable
+tau = 0.00025;           % Step size for the primal variable
+sigma = 0.00025;         % Step size for the dual variable
 theta = 1;            % Over-relaxation parameter
 maxIter = 50000;       % Maximum number of iterations
 tol = 1e-6;           % Convergence tolerance
 
 % Run Chambolle-Pock 1D ROF algorithm
-[u, iter] = chambolle_pock_1d_ROF(f_noisy, lambda, tau, sigma, theta, maxIter, tol,x,h);
+
+proxf = @(p) prox_indicator_linf(p, sigma); %%General prox
+proxg = @(u) prox_l2_squared(u,tau*lambda, f); %%%General prox
+
+D = derivative(x);% Forward finite difference operator
+u0 = f;
+
+[u, iter] = chambollePock(u0, tau, sigma, theta,maxIter,tol,D,proxf,proxg);
 
 % Plot the denoised signal
 figure;
@@ -48,38 +55,29 @@ fprintf('Chambolle-Pock algorithm converged in %d iterations.\n', iter);
 
 
 
-function [u, iter] = chambolle_pock_1d_ROF(f, lambda, tau, sigma, theta, maxIter, tol,x,h)
-
-% Initialize variables
-n = length(f);                 % Length of the signal
-u = f;                         % Primal variable (initial guess is the input signal)
-p = zeros(n, 1);             % Dual variable (n-1 because of finite differences)
-ubar = u;                      % Extrapolated variable for u
-
-D = derivativeBackward(x);% Forward finite difference operator
-%h = 1;
-
+function [u, iter] = chambollePock(u0, tau, sigma, theta, maxIter, tol,D,proxSigmaF,proxTauG)
+u = u0;
+p = zeros(size(u0));
+uNew = u;
 for iter = 1:maxIter
-    
-    % 1. Update dual variable (p) using gradient of ubar
-    grad_ubar = D*ubar;    % Forward difference for 1D gradient
-    p = p + sigma * grad_ubar; 
-    p = p ./ max(1, abs(p));   % Proximal operator for dual variable (projection onto l-infinity norm ball)
-    
-    % 2. Update primal variable (u) using divergence of p
-    div_p = D'*p; % Divergence is the negative adjoint of the gradient
-    u_old = u;
-    u = (u - tau * div_p + tau * lambda * f) / (1 + tau * lambda);
-    
-    % 3. Extrapolation step for ubar
-    ubar = u + theta * (u - u_old);
-    
-    % Check convergence (using relative change in u)
-    if norm(u - u_old) / norm(u) < tol
+    p = proxSigmaF(p + sigma*D*uNew);
+    uOld = u;
+    u = proxTauG(u - tau * D'*p);
+    uNew = u + theta * (u - uOld);
+    if norm(u - uOld) / norm(u) < tol
         break;
     end
 end
+end
 
+function p = prox_indicator_linf(p, lambda)
+    p = (lambda*p)./ max(lambda,abs(p));
+end
+
+
+function u = prox_l2_squared(u, tau_lambda, f)
+    % Proximal operator for the l2-norm squared term
+    u = (u + tau_lambda * f) / (1 + tau_lambda);
 end
 
 function D = derivative(x)
@@ -100,8 +98,8 @@ B = zeros(N,2);
 B(2:N,1)=-1./xb; B(2:N,2)=1./xb;
 dx = x(2)-x(1); B(1,1)=-1/dx;B(1,2)=1/dx;
 D = spdiags(B,[-1 0],N,N);
-D = D*h;
-%D = D;
+%D = D*h;
+D = D;
 end
 
 function [D] = derivativeCentral(x)
@@ -116,6 +114,6 @@ A = zeros(N,3); A(2:N-1,1)=a; A(2:N-1,2)=b; A(2:N-1,3)=c;
 dx = x(2)-x(1); A(1,1)=-1/dx;A(1,2)=0;A(1,3)=1/dx;
 dx = x(end)-x(end-1); A(end,1)=-1/dx;A(end,2)=0;A(end,3)=1/dx;
 D = spdiags(A,[-1 0 1],N,N);
-D = D*h;
-%D = D;
+%D = D*h;
+D = D;
 end
