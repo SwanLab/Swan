@@ -1,15 +1,15 @@
 function MainDeblurChambollePock
 close all
-N = 15000;
+N = 1500;
 xmax = 0;xmin=1;
 normD = xmax-xmin;
 x = linspace(xmax,xmin,N);
 [f,f_noisy] = createNoisyStepFunction(N);
 
-e = normD/20;%4000*h;
+e = normD/40;%4000*h;
 lambda = 1/e^2;
 D = derivative(x);
-L = normest(D);
+%L = normest(D);
 %h = (x(end)-x(1))/(N-1);
 %tau = 1/L;
 %sigma = 1/L;
@@ -20,7 +20,8 @@ gamma = 100;
 maxIter = 150000;
 tol = 1e-6;
 
-%proxf = @(p) proxIndicatorLinf(p,1);
+%proxf = @(p,sigma) proxIndicatorLinf(p,sigma);
+%proxf = @(p,sigma) proxIndicatorSegment(p,sigma);
 %proxf = @(p) proxIndicatorL2(p, 1);
 %proxf = @(p,sigma) proxLsquared(p,sigma, 0);
 proxf = @(p,sigma) proxDualSquareSuportSegment(p,sigma);
@@ -38,10 +39,10 @@ end
 function [f,f_noisy] = createNoisyStepFunction(N)
 f = zeros(N, 1);
 segLength = round(N / 4);
-f(1:segLength) = 0;
+f(1:segLength) = -1;
 f(segLength+1:2*segLength) = 1;
 f(2*segLength+1:3*segLength) = -1;
-f(3*segLength+1:end) = 0.5;
+f(3*segLength+1:end) = -1;
 noise_std = 0.2;
 f_noisy = f + noise_std * randn(size(f));
 end
@@ -92,7 +93,17 @@ s = max(0,pdotk)./(1+sigma/alpha^2) + min(0,pdotk)./(1+sigma/beta^2);
 p = s*k;
 end
 
+function p = proxIndicatorSegment(p,sigma)
+sigma = 1;
+alpha = 1;
+beta  = 0.1;
+k = 1;
+pdotk = p*k;
+p = max(beta,min(alpha,pdotk))*k;
+end
+
 function p = proxIndicatorLinf(p, sigma)
+sigma = 1;
 p = (sigma*p)./ max(sigma,abs(p));
 end
 
