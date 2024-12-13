@@ -24,9 +24,9 @@ legend show;
 h = (x(end)-x(1)) /(N-1); % uniform grid spacing
 alpha = (10*h)^2;
 % Set Chambolle-Pock algorithm parameters
-lambda = 0.25;%/(1*h)^2;%0.2;         % Regularization parameter
-tau = 2*h;           % Step size for the primal variable
-sigma = 2*h;         % Step size for the dual variable
+lambda = 5;%/(1*h)^2;%0.2;         % Regularization parameter
+tau = 0.1*h;           % Step size for the primal variable
+sigma = 0.1*h;         % Step size for the dual variable
 theta = 1;            % Over-relaxation parameter
 maxIter = 150000;       % Maximum number of iterations
 tol = 1e-6;           % Convergence tolerance
