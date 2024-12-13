@@ -21,22 +21,32 @@ plot(x,f_noisy, 'r--', 'DisplayName', 'Noisy Signal');
 title('Original Signal and Noisy Signal');
 legend show;
 
+D = derivative(x);% Forward finite difference operator
+L = normest(D);
+
 h = (x(end)-x(1)) /(N-1); % uniform grid spacing
 alpha = (10*h)^2;
 % Set Chambolle-Pock algorithm parameters
-lambda = 5;%/(1*h)^2;%0.2;         % Regularization parameter
-tau = 0.1*h;           % Step size for the primal variable
-sigma = 0.1*h;         % Step size for the dual variable
+e = 4*h;
+lambda = 1/e^2;%1000000000;%%%%%% To think in terms of f    /(1*h)^2;%0.2;         % Regularization parameter
+tau = 0.5*1/L;           % Step size for the primal variable
+sigma = 0.5*1/L;         % Step size for the dual variable
 theta = 1;            % Over-relaxation parameter
 maxIter = 150000;       % Maximum number of iterations
-tol = 1e-6;           % Convergence tolerance
+tol = 1e-15;           % Convergence tolerance
 
 % Run Chambolle-Pock 1D ROF algorithm
 
-proxf = @(p) proxIndicatorLinf(p, sigma);%proxIndicatorLinf %%General prox
+alpha = 1;
+beta  = 0.1;
+k = 1;
+%proxf = @(p) proxLsquared(p,sigma, 0);
+%proxf = @(p) proxIndicatorLinf(p,1);
+%proxf = @(p) proxIndicatorL2(p, 1);
+proxf = @(p) proxDualSquareSuportSegment(p,sigma,k,alpha,beta);
 proxg = @(u) proxLsquared(u,tau*lambda, f); %%%General prox
 
-D = derivative(x);% Forward finite difference operator
+
 u0 = f_noisy;
 
 [u, iter] = chambollePock(u0, tau, sigma, theta,maxIter,tol,D,proxf,proxg);
@@ -70,12 +80,18 @@ for iter = 1:maxIter
 end
 end
 
-function p = proxIndicatorLinf(p, lambda)
-    p = (lambda*p)./ max(lambda,abs(p));
+function p = proxDualSquareSuportSegment(p,sigma,k,alpha,beta)
+pdotk = p*k;
+s = max(0,pdotk)/(1+sigma/alpha^2) + min(0,pdotk)/(1+sigma/beta^2);
+p = s*k;
 end
 
-function p = proxIndicatorL2(p, lambda)
-    p = p * min(1, lambda / norm(p, 2));
+function p = proxIndicatorLinf(p, sigma)
+    p = (sigma*p)./ max(sigma,abs(p));
+end
+
+function p = proxIndicatorL2(p, sigma)
+    p = p * min(1, sigma / norm(p, 2));
 end
 
 function u = proxLsquared(u, tau, f)
@@ -84,8 +100,8 @@ function u = proxLsquared(u, tau, f)
 end
 
 function D = derivative(x)
-D = derivativeCentral(x);
-%D = derivativeBackward(x);
+%D = derivativeCentral(x);
+D = derivativeBackward(x);
 end
 
 function divP = divergence(p,D)
