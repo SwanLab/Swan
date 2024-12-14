@@ -84,7 +84,7 @@ s.solverType = 'Gradient'; %'Newton'
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsOctober/SENtraction/" + ...
+save(userpath+"/PhaseFieldExperiments/ResultsOctober/SENtraction/" + ...
       "SENtraction_CirclePerimeter_GradientLowTolerance2.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);

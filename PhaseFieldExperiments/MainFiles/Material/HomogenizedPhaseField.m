@@ -72,10 +72,6 @@ classdef HomogenizedPhaseField < handle
             matFile   = [fName,'.mat'];
             file2load = fullfile('VademecumDamage',matFile);
             v = load(file2load);
-
-            %v.phi(end+1) = 1;
-            %v.mat(:,:,end+1) = zeros(3,3);
-
             mxV = v.phi;
             C   = v.mat;
         end
@@ -202,11 +198,13 @@ classdef HomogenizedPhaseField < handle
             ddfun = cell(3,3);
             for i=1:3
                 for j=1:3
-                    f = fit(x,squeeze(y(i,j,:)),'poly9');
-                    fun{i,j} = poly2sym(coeffvalues(f));
+                    % f = fit(x,squeeze(y(i,j,:)),'poly9');
+                    % coeffs = coeffvalues(f);
+                    coeffs = polyfix(x,squeeze(y(i,j,:)),1,0,9);
+                    fun{i,j} = poly2sym(coeffs);
                     dfun{i,j} = diff(fun{i,j});
                     ddfun{i,j} = diff(dfun{i,j});
-                    if all(coeffvalues(f))
+                    if all(coeffs)
                         obj.degradation.fun{i,j} = matlabFunction(fun{i,j});
                         obj.degradation.dfun{i,j} = matlabFunction(dfun{i,j});
                         obj.degradation.ddfun{i,j} = matlabFunction(ddfun{i,j});

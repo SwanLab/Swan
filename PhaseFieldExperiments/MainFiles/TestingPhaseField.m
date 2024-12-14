@@ -73,6 +73,7 @@ classdef TestingPhaseField < handle
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
+                %phi = obj.setInitialDamage(phi);
                 obj.initialGuess.u = u;
                 obj.initialGuess.phi = phi;
             end
@@ -100,6 +101,14 @@ classdef TestingPhaseField < handle
             elseif s.pExp == 2
                 dissipation.constant = obj.matInfo.Gc/(4*(1/2));
             end
+        end
+
+        function phi = setInitialDamage(obj,phi)
+            isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
+            fValues = phi.fValues;
+            fValues(isInMiddle) = 1;
+            %fValues = ones(size(phi.fValues));
+            phi.setFValues(fValues);
         end
 
     end
