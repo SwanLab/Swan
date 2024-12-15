@@ -36,10 +36,11 @@
 %Gripper(5);
 
 % MBB Beam 40% LevelSet: gJ= 0.5/1/2;
-MBBBeam(0.5,0.01);
-MBBBeam(1,0.01);
-MBBBeam(2,0.01);
-
+% MBBBeam(0.5,0.01);
+% MBBBeam(1,0.01);
+% MBBBeam(2,0.01);
 
 % MultiLoad Bridge LevelSet: gJ=10/1Load + gJ=10/3Loads + gJ=10/9Loads;
-% PENDING
+%TopOptTestMultiLoadBridgeLevelSet(1);
+%TopOptTestMultiLoadBridgeLevelSet(3);
+TopOptTestMultiLoadBridgeLevelSet(9);

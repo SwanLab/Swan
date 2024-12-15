@@ -23,6 +23,7 @@ classdef OptimizerNullSpace < Optimizer
         lG
         lJ
         etaNorm
+        etaNormMin
         gJFlowRatio
         predictedTau
         firstEstimation
@@ -67,6 +68,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.lG             = 0;
             obj.lJ             = 0;
             obj.etaNorm        = cParams.etaNorm;
+            obj.etaNormMin     = cParams.etaNormMin; % !!!
 
             % Important parameters %%%%
             obj.etaMin         = 1e-6; % Just in case the null space flow is too small. May be analogous with Florian's n0 parameter in the future
@@ -291,9 +293,10 @@ classdef OptimizerNullSpace < Optimizer
 
                     [actg,~] = obj.computeActiveConstraintsGradient();
                     isAlmostFeasible  = norm(actg) < 0.01;
-                    isAlmostOptimal   = abs(obj.meritNew - obj.meritOld) < 0.001;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
                     if isAlmostFeasible && isAlmostOptimal
-                        obj.etaMax = max(obj.etaMax/1.05,obj.etaMaxMin);
+                        obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
+                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
                     end
 
                 case 'HAMILTON-JACOBI'

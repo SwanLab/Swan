@@ -30,12 +30,13 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
         constraint
         dualVariable
         optimizer
+        nLoads
     end
 
     methods (Access = public)
 
-        function obj = TopOptTestMultiLoadBridgeLevelSet()
-            obj.init()
+        function obj = TopOptTestMultiLoadBridgeLevelSet(nL)
+            obj.init(nL)
             obj.createMesh();
             obj.createDesignVariable();
             obj.createDesignVariableTargetCompliance();
@@ -65,14 +66,18 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            saveas(gcf,['NullSLERPResults/TopOpt/MultiLoadBridge/FinalResults_NoOscillations/Monitoring_trust0d001_gJ10_',num2str(obj.nLoads),'Loads.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MultiLoadBridge/FinalResults_NoOscillations/gJ10_',num2str(obj.nLoads),'Loads_fValues']);
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,nL)
             close all;
+            obj.nLoads = nL;
         end
 
         function createMesh(obj)
@@ -98,7 +103,7 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.fun              = lsFun;
             s.mesh             = obj.mesh;
             s.type             = 'LevelSet';
-            s.plotting         = true;
+            s.plotting         = false;
             ls                 = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -437,21 +442,30 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.complianceLeft;
-            %s.shapeFunctions{2} = obj.compliance12;
-            %s.shapeFunctions{3} = obj.compliance23;
-            %s.shapeFunctions{4} = obj.compliance34;
-            s.shapeFunctions{2} = obj.complianceCenter;
-            %s.shapeFunctions{6} = obj.compliance56;
-            %s.shapeFunctions{7} = obj.compliance67;
-            %s.shapeFunctions{8} = obj.compliance78;
-            s.shapeFunctions{3} = obj.complianceRight;
+            switch obj.nLoads
+                case 1
+                    s.shapeFunctions{1} = obj.complianceCenter;
+                case 3
+                    s.shapeFunctions{1} = obj.complianceLeft;
+                    s.shapeFunctions{2} = obj.complianceCenter;
+                    s.shapeFunctions{3} = obj.complianceRight;
+                case 9
+                    s.shapeFunctions{1} = obj.complianceLeft;
+                    s.shapeFunctions{2} = obj.compliance12;
+                    s.shapeFunctions{3} = obj.compliance23;
+                    s.shapeFunctions{4} = obj.compliance34;
+                    s.shapeFunctions{5} = obj.complianceCenter;
+                    s.shapeFunctions{6} = obj.compliance56;
+                    s.shapeFunctions{7} = obj.compliance67;
+                    s.shapeFunctions{8} = obj.compliance78;
+                    s.shapeFunctions{9} = obj.complianceRight;
+            end
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 3;
+            s.nConstraints   = obj.nLoads;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -464,13 +478,15 @@ classdef TopOptTestMultiLoadBridgeLevelSet < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1500;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY'};%,'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
+            s.constraintCase = repmat({'INEQUALITY'},[1,obj.nLoads]);
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.001;
             s.gJFlowRatio    = 10;
-            s.etaMax         = 0.07;
+            s.etaMaxMin      = 0.1;
+            s.etaMax         = 0.1*10;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
