@@ -253,8 +253,10 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInUp)));
-
+            ReactX = sum(F(2*nodes(isInUp)-1));
+            ReactY = sum(F(2*nodes(isInUp)));
+            totReact = sqrt(ReactX^2+ReactY^2);
+            
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             % nodes = 1:obj.mesh.nnodes;
