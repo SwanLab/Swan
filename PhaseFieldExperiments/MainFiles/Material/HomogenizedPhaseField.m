@@ -199,8 +199,8 @@ classdef HomogenizedPhaseField < handle
             for i=1:3
                 for j=1:3
                     % f = fit(x,squeeze(y(i,j,:)),'poly9');
-                    % coeffs = coeffvalues(f);
-                    coeffs = polyfix(x,squeeze(y(i,j,:)),1,0,9);
+                    % fun{i,j} = poly2sym(coeffvalues(f));
+                    coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),0]);
                     fun{i,j} = poly2sym(coeffs);
                     dfun{i,j} = diff(fun{i,j});
                     ddfun{i,j} = diff(dfun{i,j});

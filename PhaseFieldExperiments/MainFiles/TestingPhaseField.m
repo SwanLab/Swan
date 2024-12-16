@@ -107,7 +107,7 @@ classdef TestingPhaseField < handle
             isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
             fValues = phi.fValues;
             fValues(isInMiddle) = 1;
-            %fValues = ones(size(phi.fValues));
+            fValues = 0.01*ones(size(phi.fValues));
             phi.setFValues(fValues);
         end
 
