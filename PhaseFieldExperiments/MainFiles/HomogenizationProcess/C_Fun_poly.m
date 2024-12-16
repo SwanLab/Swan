@@ -106,22 +106,25 @@ for i=1:3
         % legType = 1;
 
         %%%%%%%%%%%%%%%%%%% PLOT ANALYTICAL ALL TYPES %%%%%%%%%%%%%%%%%%
-        fplot(funMat(i,j,1),[0 1],'--','Color','#0072BD');
-        fplot(funMat(i,j,2),[0 1],'Color','#0072BD');
-        fplot(funMat(i,j,3),[0 1],'--','Color','#D95319');
-        fplot(funMat(i,j,4),[0 1],'Color','#D95319');
-        fplot(funMat(i,j,5),[0 1],'Color','#EDB120');
-        ylabel(['C',num2str(i),num2str(j)]);
-        xlabel("$\phi$",'Interpreter','latex');
-        title(t,'ANALYTICAL homogenized constitutive tensor')
-        legType = 2;
-
+        figure()
+        hold on
+        fplot(funMat(i,j,1),[0 1],'-o','Color','#D95319','LineWidth',1);
+        fplot(funMat(i,j,2),[0 1],'--o','Color','#D95319','LineWidth',1);
+        fplot(funMat(i,j,3),[0 1],'-square','Color','#0072BD','LineWidth',1);
+        fplot(funMat(i,j,4),[0 1],'--square','Color','#0072BD','LineWidth',1);
+        fplot(funMat(i,j,5),[0 1],'Color','#000000','LineWidth',1);
+        ylabel([char(8450)+"11 [GPa]"]);
+        ylim([0,inf])
+        xlabel("Damage $\phi$ [-]",'Interpreter','latex');
+        lgd = legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','Analytical');
+        fontsize(lgd,14,'points')
+        fontsize(gcf,16,'points')
         %%%%%%%%%%%%%%%%%%%% PLOT DERIVATIVES ALL TYPES %%%%%%%%%%%%%%%%%
-        % fplot(dfunMat(i,j,1),[0 1],'Color','#0072BD');
-        % fplot(dfunMat(i,j,2),[0 1],'--','Color','#0072BD');
-        % fplot(dfunMat(i,j,3),[0 1],'Color','#D95319');
-        % fplot(dfunMat(i,j,4),[0 1],'--','Color','#D95319');
-        % fplot(dfunMat(i,j,5),[0 1],'Color','#EDB120');
+        % fplot(dfunMat(i,j,1),[0 1],'Color','#FF1F5B');
+        % fplot(dfunMat(i,j,2),[0 1],'--','Color','#FF1F5B');
+        % fplot(dfunMat(i,j,3),[0 1],'Color','#009ADE');
+        % fplot(dfunMat(i,j,4),[0 1],'--','Color','#009ADE');
+        % fplot(dfunMat(i,j,5),[0 1],'Color','#FFC61E');
         % ylabel(['C',num2str(i),num2str(j)]);
         % xlabel("$\phi$",'Interpreter','latex');
         % title(t,'ANALYTICAL homogenized constitutive tensor DERIVATIVE')
@@ -180,8 +183,8 @@ function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams)
         for j=1:3
             % f = fit(x,squeeze(y(i,j,:)),'poly9');
             % fun{i,j} = poly2sym(coeffvalues(f));
-            f = polyfix(x,squeeze(y(i,j,:)),1,0,9);
-            fun{i,j} = poly2sym(f);
+            coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),0]);
+            fun{i,j} = poly2sym(coeffs);
             dfun{i,j} = diff(fun{i,j});
             ddfun{i,j} = diff(dfun{i,j});
         end
