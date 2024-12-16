@@ -21,7 +21,7 @@ classdef AssemblerFun < handle
             nDofs2     = numel(f2.fValues);
             ndofsElem1 = size(Aelem, 1);
             ndofsElem2 = size(Aelem, 2);
-            
+
             [iElem, jElem] = meshgrid(1:ndofsElem1, 1:ndofsElem2);
             iElem = iElem(:);
             jElem = jElem(:);
@@ -31,7 +31,7 @@ classdef AssemblerFun < handle
 
             rowIdx = dofsI(:);
             colIdx = dofsJ(:);
-            Aval   = permute(Aelem,[3 1 2]);
+            Aval   = permute(Aelem,[3 2 1]);
             values = Aval(:);
 
             A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
