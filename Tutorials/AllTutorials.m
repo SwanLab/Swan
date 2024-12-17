@@ -9,3 +9,25 @@ run('Tutorial09_ProjectorsQuadrilaterals.mlx');
 run('Tutorial10_AcademicProblem.mlx');
 
 % M files
+TopOptTestTutorial();
+TopOptTestTutorial3DDensity();
+TopOptTestTutorialBoundFormulation();
+TopOptTestTutorialDensityNullSpace();
+TopOptTestTutorialGiD();
+TopOptTestTutorialGlobalLengthScaleControl();
+TopOptTestTutorialLevelSetNullSpace();
+TopOptTestTutorialLSPerimeter();
+TopOptTestTutorialMicro();
+TopOptTestTutorialWithGiD();
+%TopOptViaHomogenizationTutorial(); % ALEX
+Tutorial02FEMElasticity();
+Tutorial02p2FEMElasticityMicro();
+Tutorial11Monitoring();
+TutorialRemeshing();
+
+% Output:
+clear;
+close all;
+clc;
+fprintf('Congratulations, all tutorials are working!');
+fprintf('\n');
