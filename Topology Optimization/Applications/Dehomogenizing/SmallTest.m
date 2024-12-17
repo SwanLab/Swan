@@ -43,7 +43,7 @@ classdef SmallTest < handle
             x2 = coord(:,2);
             x10 = (max(x1(:))+min(x1(:)))/2;
             x20 = -0.5*max(x2(:));                                    
-            r = ((x1-x10).^2+(x2-x20).^2);
+            r = sqrt((x1-x10).^2+(x2-x20).^2);
             fR = [x1-x10./r,x2-x20./r];
             fT = [-(x2-x20)./r,x1-x10./r];
             obj.orientation{1} = obj.createOrientationField(fR);
@@ -53,6 +53,20 @@ classdef SmallTest < handle
         function f = createOrientationField(obj,fV)
             fD = obj.createP1DiscontinousOrientation(fV);
             f  = obj.computeOppositeSignInLeftPart(fD);
+            f = obj.computeDoubleAngleOrientation(f);
+        end
+
+        function fS = computeDoubleAngleOrientation(obj,f)
+            aV = f.fValues;
+            aV1 = aV(:,1);
+            aV2 = aV(:,2);
+            fN(:,1) = 2*aV1.^2-1;
+            fN(:,2) = 2*aV1.*aV2;
+            s.fValues = fN;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            s.ndimf   = 2;
+            fS = LagrangianFunction(s);            
         end
 
         function aF = createP1DiscontinousOrientation(obj,fV)

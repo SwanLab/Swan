@@ -25,11 +25,11 @@ classdef OrientedMappingComputer < handle
         function dCoord = computeDeformedCoordinates(obj)
             obj.dilation              = obj.computeDilation();
             obj.dilatedOrientation    = obj.computeDilatedOrientationVector();            
-            a1 = obj.orientation{1};
-            obj.isCoherent            = obj.computeIsOrientationCoherent(a1);
+            b1 = obj.orientation{1};
+            obj.isCoherent            = obj.computeIsOrientationCoherent(b1);
             obj.interpolator          = obj.computeInterpolator();
             obj.phiMapping            = obj.computeMappings();
-            obj.totalCorrector        = obj.computeTotalCorrector(a1);
+            obj.totalCorrector        = obj.computeTotalCorrector(b1);
             dCoord                    = obj.phiMapping + obj.totalCorrector;
         end
         
@@ -42,7 +42,7 @@ classdef OrientedMappingComputer < handle
             obj.orientation = cParams.orientation; %%importnat since regul need P1
         end
 
-        function isCF = computeIsOrientationCoherent(obj,a1)
+        function isCF = computeIsOrientationCoherent(obj,b1)
 
             % s.filterType = 'LUMP';
             % s.mesh  = obj.mesh;
@@ -51,18 +51,18 @@ classdef OrientedMappingComputer < handle
             % a1 = f.compute(a1,2);
 
 
-            a1   = project(a1,'P1'); 
-            u = UnitBallProjector([]);
+      %      a1   = project(a1,'P1'); 
+       %     u = UnitBallProjector([]);
             
-            a1.setFValues(u.project(a1.fValues))
+      %      a1.setFValues(u.project(a1.fValues))
 
-            a1   = a1.getFvaluesByElem();
-            aN1   = squeeze(a1(:,1,:));            
+            b1   = b1.getFvaluesByElem();
+            bN1   = squeeze(b1(:,1,:));            
             isCoh = false(obj.mesh.nnodeElem,obj.mesh.nelem);
             for iNode = 1:obj.mesh.nnodeElem
-                aNi    = squeeze(a1(:,iNode,:));
-                aN1aNI = dot(aN1,aNi);
-                isCoh(iNode,:) = (aN1aNI)>0;
+                bNi    = squeeze(b1(:,iNode,:));
+                bN1bNI = dot(bN1,bNi);
+                isCoh(iNode,:) = (bN1bNI)>0;
             end
             s.fValues = isCoh(:);
             s.mesh    = obj.mesh;
