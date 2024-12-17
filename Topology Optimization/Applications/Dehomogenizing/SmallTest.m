@@ -19,8 +19,8 @@ classdef SmallTest < handle
         function obj = SmallTest()
             obj.init();
             obj.createMesh();
-            obj.createAngle();
-            obj.createOrientation();
+            obj.createOrientations();
+            obj.createOrientedMapping();
         end
         
     end
@@ -36,78 +36,65 @@ classdef SmallTest < handle
             s.connec = [1 2 3; 1 3 4];
             obj.mesh = Mesh.create(s); 
         end
-
-        function createAngle(obj)
-            s.fHandle = @(x) obj.createAlphaValues(x);
-            s.mesh    = obj.mesh;
-            s.ndimf   = 1;
-            a         = AnalyticalFunction(s);
-            obj.alpha = a;%project(a,'P1');%a             
-        end
-
-        function f = createAlphaValues(obj,x)
-            x1 = x(1,:,:);
-            x2 = x(2,:,:);
+     
+        function createOrientations(obj)
+            coord = obj.mesh.coord;
+            x1 = coord(:,1);
+            x2 = coord(:,2);
             x10 = (max(x1(:))+min(x1(:)))/2;
-            x20 = 0;            
-            f = atan2(x2-x20 +0.0*(max(x2(:))),x1-x10);
-          %  isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
-          %  f(isLeft) = f(isLeft) + pi;
+            x20 = -0.5*max(x2(:));                                    
+            r = ((x1-x10).^2+(x2-x20).^2);
+            fR = [x1-x10./r,x2-x20./r];
+            fT = [-(x2-x20)./r,x1-x10./r];
+            obj.orientation{1} = obj.createOrientationField(fR);
+            obj.orientation{2} = obj.createOrientationField(fT);
+        end 
+
+        function f = createOrientationField(obj,fV)
+            fD = obj.createP1DiscontinousOrientation(fV);
+            f  = obj.computeOppositeSignInLeftPart(fD);
         end
 
-        function createOrientation(obj)
-            nDim = obj.mesh.ndim;
-            for iDim = 1:nDim
+        function aF = createP1DiscontinousOrientation(obj,fV)
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            s.ndimf   = 2;
+            aF = LagrangianFunction(s);
+            aF = project(aF,'P1D');
+        end
 
-                a1 = project(cos(project(obj.alpha,'P1D')),'P1D'); 
-                a2 = project(sin(project(obj.alpha,'P1D')),'P1D'); 
-               % aV = reshape(',1,[])';
-                s.fValues = [a1.fValues, a2.fValues];
-                s.mesh    = obj.mesh;
-                s.order   = 'P1D';
-                s.ndimf   = 2;
-                aF = LagrangianFunction(s); 
-
-                coord= obj.mesh.computeBaricenter();
-                x1 = coord(:,1);
-                x2 = coord(:,2);                
-                isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;                
-
-                aFelem = aF.getFvaluesByElem;
-                tElem = aFelem;
-                tElem(2,:,isLeft) = aFelem(1,:,isLeft);
-                tElem(1,:,isLeft) = -aFelem(2,:,isLeft);
-
-                
-                s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
-                s.ndimf     = 2;
-                s.mesh      = obj.mesh;
-                aF = DomainFunction(s);     
-
-                %better change the sign than adding 180degrees
-                obj.orientation{iDim} = aF;
+        function fS = computeOppositeSignInLeftPart(obj,fS)
+            fElem = fS.getFvaluesByElem;
+            fSElem = fElem;
+            isLeft = obj.isLeft;
+            fSElem(:,:,isLeft) = -fElem(:,:,isLeft);           
+            connec = fS.getDofConnec;
+            for iNode = 1:3
+                iDof = (iNode-1)*fS.ndimf+1;
+                node = (connec(:,iDof)-1)/fS.ndimf+1;
+                fV(node,:) = squeeze(fSElem(:,iNode,:))';
             end
-        end        
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            s.ndimf   = 2;
+            fS = LagrangianFunction(s);
+        end
 
-        function or = createOrientationFunction(obj,iDim,xV)
-            alphaV = obj.alpha.evaluate(xV);
-            if iDim == 1                
-                or(1,:,:) = cos(alphaV);
-                or(2,:,:) = sin(alphaV);
-
-                x = obj.mesh.computeXgauss(xV);
-                x1 = x(1,:,:);
-                x2 = x(2,:,:);                
-                isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
-            %  f(isLeft) = f(isLeft) + pi;               
-              %  or(1,isLeft)  = -sin(alphaV(isLeft));
-              %  or(2,isLeft) = cos(alphaV(isLeft));
-            else
-                alphaV = obj.alpha.evaluate(xV);
-                or(1,:,:) = -sin(alphaV);
-                or(2,:,:) = cos(alphaV);
-            end
-        end        
+        function itIs = isLeft(obj)
+            coord= obj.mesh.computeBaricenter();
+            x1 = coord(:,1);
+            x2 = coord(:,2);
+            itIs = x1 < (min(x1(:))+ max(x1(:)))/2;
+        end
+        
+        function createOrientedMapping(obj)
+            s.mesh = obj.mesh;
+            s.orientation = obj.orientation;
+            oM = OrientedMappingComputer(s);
+            dCoord = oM.computeDeformedCoordinates()
+        end
         
     end
     
