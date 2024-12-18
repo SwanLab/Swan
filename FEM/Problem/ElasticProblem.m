@@ -59,8 +59,8 @@ classdef ElasticProblem < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun, obj.strainFun.project('P1',obj.mesh), ...
-                obj.stressFun.project('P1',obj.mesh)};
+            fun = {obj.uFun, obj.strainFun.project('P1'), ...
+                obj.stressFun.project('P1')};
             funNames = {'displacement', 'strain', 'stress'};
         end
 

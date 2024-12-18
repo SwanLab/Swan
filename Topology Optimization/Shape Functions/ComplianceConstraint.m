@@ -14,7 +14,7 @@ classdef ComplianceConstraint < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [c,dc] = obj.compliance.computeFunctionAndGradient(x);
             J      = obj.computeFunction(c);
-            dJ     = obj.computeGradient(dc);
+            dJ{1}  = obj.computeGradient(dc);
         end  
     end
 
@@ -32,8 +32,8 @@ classdef ComplianceConstraint < handle
 
         function dJ = computeGradient(obj,dc)
             cTar    = obj.complianceTarget;
-            fValues = dc.fValues/cTar;
-            dJ      = FeFunction.create(dc.order,fValues,obj.mesh);
+            fValues = dc{1}.fValues/cTar;
+            dJ      = FeFunction.create(dc{1}.order,fValues,obj.mesh);
         end
     end
 
