@@ -25,12 +25,12 @@ classdef Preconditioner < handle
         end
 
 
-        function z = multiplePrec(r,P1,P2,P3,A,b,mesh,bcApplier)
+        function z = multiplePrec(r,P1,P2,P3,A,b,mesh,bcApplier,uk)
 
 
             z1 = P1(r);
             r  = r-A(z1);
-            z2 = P2(r);
+            z2 = P2(r,uk);
             r  = r-A(z2);
             z3 = P3(r);
             z  = z1+z2+z3;
