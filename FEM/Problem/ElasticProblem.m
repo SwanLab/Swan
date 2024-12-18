@@ -165,6 +165,7 @@ classdef ElasticProblem < handle
 
         function u = createCGDispl(obj,uValues)
             u = copy(obj.uFun);
+            uValues = reshape(uValues,[obj.mesh.ndim,obj.mesh.nnodes])';
             u.setFValues(uValues);
         end
 
